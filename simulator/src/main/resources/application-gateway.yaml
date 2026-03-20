@@ -15,7 +15,7 @@ server:
 
 gateway:
   service-suffix: ""
-  exclude-services: gateway
+  exclude-services: gateway,version
 
 eureka:
   client:

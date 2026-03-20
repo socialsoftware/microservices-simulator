@@ -69,7 +69,8 @@ public class DynamicMVCProxyController {
                                 pathPatternString = pathPatternString.replaceAll("[\\[\\]]", "");
                                 for (String pathPattern : pathPatternString.split(",")) {
                                     pathPattern = pathPattern.trim();
-                                    logger.info("Found route: {} -> {}", pathPattern, serviceUrl);
+                                    if (!resolvedRoutes.containsKey(pathPattern))
+                                        logger.info("Found route: {} -> {}", pathPattern, serviceUrl);
                                     newRoutes.put(pathPattern, serviceUrl);
                                 }
                             }

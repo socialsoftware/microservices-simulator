@@ -47,11 +47,11 @@ services:
   # INFRASTRUCTURE
   # ============================================
   eureka-server:
-    image: steeltoeoss/eureka-server:latest
+    image: steeltoeoss/eureka-server:4.1.1
     container_name: eureka-server
     ports:
       - "8761:8761"
-    <<: *limits-small
+    <<: *limits-medium
     networks:
       - messaging-network
     restart: unless-stopped

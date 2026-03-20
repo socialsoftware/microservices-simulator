@@ -39,7 +39,7 @@ resilience4j:
 spring:
   config:
     activate:
-      on-profile: "!grpc & !stream & !gateway"
+      on-profile: "!remote & !gateway"
 
   cloud:
     kubernetes:
@@ -57,7 +57,7 @@ eureka:
 spring:
   config:
     activate:
-      on-profile: "grpc & !kubernetes"
+      on-profile: "remote & !kubernetes"
 
   cloud:
     discovery:

@@ -46,6 +46,81 @@ management:
       exposure:
         include: "health,beans"
 
+# Tech-agnostic remote configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: remote
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+
+  cloud:
+    stream:
+      default:
+        contentType: application/json
+      bindings:
+        # --- Single Event channel (all events go through here) ---
+        event-channel:
+          destination: event-channel
+
+        # --- Event Subscribers (common to all remote modes) ---
+        questionEventSubscriber-in-0:
+          destination: event-channel
+          group: question-service-group
+        tournamentEventSubscriber-in-0:
+          destination: event-channel
+          group: tournament-service-group
+        executionEventSubscriber-in-0:
+          destination: event-channel
+          group: execution-service-group
+        answerEventSubscriber-in-0:
+          destination: event-channel
+          group: answer-service-group
+        quizEventSubscriber-in-0:
+          destination: event-channel
+          group: quiz-service-group
+        courseEventSubscriber-in-0:
+          destination: event-channel
+          group: course-service-group
+        topicEventSubscriber-in-0:
+          destination: event-channel
+          group: topic-service-group
+        userEventSubscriber-in-0:
+          destination: event-channel
+          group: user-service-group
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port:9090}
+
+quizzes:
+  function-definition:
+    events: >-
+      questionEventSubscriber;
+      tournamentEventSubscriber;
+      executionEventSubscriber;
+      answerEventSubscriber;
+      quizEventSubscriber;
+      courseEventSubscriber;
+      topicEventSubscriber;
+      userEventSubscriber
+
+# Spring Cloud Stream specific (commands via RabbitMQ)
 ---
 spring:
   config:
@@ -55,8 +130,8 @@ spring:
   cloud:
     function:
       definition: >-
+        ${quizzes.function-definition.events};
         commandResponseChannel;
-
         answerServiceCommandChannel;
         executionServiceCommandChannel;
         questionServiceCommandChannel;
@@ -66,19 +141,7 @@ spring:
         userServiceCommandChannel;
         courseServiceCommandChannel;
 
-        questionEventSubscriber;
-        tournamentEventSubscriber;
-        executionEventSubscriber;
-        answerEventSubscriber;
-        quizEventSubscriber;
-        courseEventSubscriber;
-        topicEventSubscriber;
-        userEventSubscriber
-
     stream:
-      default:
-        contentType: application/json
-
       bindings:
         # --- Command producers (outputs) ---
         quiz-command-channel:
@@ -129,41 +192,7 @@ spring:
           destination: ${spring.application.name}-command-responses
           group: response-group
 
-        # --- Single Event channel (all events go through here) ---
-        event-channel:
-          destination: event-channel
-
-        # --- Event Subscribers ---
-        questionEventSubscriber-in-0:
-          destination: event-channel
-          group: question-service-group
-        tournamentEventSubscriber-in-0:
-          destination: event-channel
-          group: tournament-service-group
-        executionEventSubscriber-in-0:
-          destination: event-channel
-          group: execution-service-group
-        answerEventSubscriber-in-0:
-          destination: event-channel
-          group: answer-service-group
-        quizEventSubscriber-in-0:
-          destination: event-channel
-          group: quiz-service-group
-        courseEventSubscriber-in-0:
-          destination: event-channel
-          group: course-service-group
-        topicEventSubscriber-in-0:
-          destination: event-channel
-          group: topic-service-group
-        userEventSubscriber-in-0:
-          destination: event-channel
-          group: user-service-group
-
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+# gRPC specific (commands via gRPC)
 ---
 spring:
   config:
@@ -172,57 +201,7 @@ spring:
 
   cloud:
     function:
-      definition: >-
-        questionEventSubscriber;
-        tournamentEventSubscriber;
-        executionEventSubscriber;
-        answerEventSubscriber;
-        quizEventSubscriber;
-        courseEventSubscriber;
-        topicEventSubscriber;
-        userEventSubscriber
-
-    stream:
-      default:
-        contentType: application/json
-
-      bindings:
-        # --- Single Event channel (all events go through here) ---
-        event-channel:
-          destination: event-channel
-
-        # --- Event Subscribers ---
-        questionEventSubscriber-in-0:
-          destination: event-channel
-          group: question-service-group
-        tournamentEventSubscriber-in-0:
-          destination: event-channel
-          group: tournament-service-group
-        executionEventSubscriber-in-0:
-          destination: event-channel
-          group: execution-service-group
-        answerEventSubscriber-in-0:
-          destination: event-channel
-          group: answer-service-group
-        quizEventSubscriber-in-0:
-          destination: event-channel
-          group: quiz-service-group
-        courseEventSubscriber-in-0:
-          destination: event-channel
-          group: course-service-group
-          
-        topicEventSubscriber-in-0:
-          destination: event-channel
-          group: topic-service-group
-        userEventSubscriber-in-0:
-          destination: event-channel
-          group: user-service-group
-
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+      definition: ${quizzes.function-definition.events}
 
 grpc:
   server:
@@ -233,17 +212,13 @@ grpc:
     version:
       port: 9091
 
+# Kubernetes specific
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+
 eureka:
   client:
-    enabled: true
-    service-url:
-      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-    registry-fetch-interval-seconds: 5
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.uuid}
-    metadata-map:
-      grpcPort: ${grpc.server.port}
-
+    enabled: false

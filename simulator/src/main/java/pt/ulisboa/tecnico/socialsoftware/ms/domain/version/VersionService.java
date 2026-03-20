@@ -11,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import java.util.Optional;
 
 @Service
-@Profile("!remote & !distributed-version")
+@Profile("(!remote & !distributed-version) | version-service")
 public class VersionService implements IVersionService {
 
     @Autowired
