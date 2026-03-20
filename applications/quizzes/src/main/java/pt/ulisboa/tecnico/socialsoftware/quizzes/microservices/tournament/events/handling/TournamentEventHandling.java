@@ -4,13 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandling;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.eventProcessing.TournamentEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.handlers.*;
 
 @Component
-public class TournamentEventHandling {
+public class TournamentEventHandling implements EventHandling {
     @Autowired
     private EventApplicationService eventApplicationService;
     @Autowired
