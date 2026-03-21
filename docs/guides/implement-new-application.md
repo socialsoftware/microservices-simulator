@@ -76,7 +76,7 @@ For each inter-invariant, follow [`docs/guides/implement-event.md`](implement-ev
 - [ ] Sagas + TCC update functionality
 - [ ] Guard enforced in the service
 
-Reference: [`docs/concepts/inter-invariants.md`](../concepts/inter-invariants.md)
+Reference: [`docs/concepts/invariants.md`](../concepts/invariants.md)
 
 ---
 

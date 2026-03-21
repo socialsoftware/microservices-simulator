@@ -36,7 +36,6 @@ mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest  # sin
 - **Functionality** — a `WorkflowFunctionality` subclass that orchestrates a cross-service operation as a DAG of `Step`s. → [`docs/concepts/sagas.md`](docs/concepts/sagas.md)
 - **Sagas** — concurrency protocol using semantic locks (`SagaState`); conflicting steps declare `forbiddenStates`. → [`docs/concepts/sagas.md`](docs/concepts/sagas.md)
 - **TCC (Causal)** — concurrency protocol using field-level merge; concurrent writes to different fields can both succeed. → [`docs/concepts/tcc.md`](docs/concepts/tcc.md)
-- **Inter-invariant** — cross-aggregate consistency rule maintained via domain events (eventually consistent); consumer caches publisher state locally. → [`docs/concepts/inter-invariants.md`](docs/concepts/inter-invariants.md)
 
 ---
 
@@ -64,7 +63,7 @@ mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest  # sin
 | Domain events | [`docs/concepts/events.md`](docs/concepts/events.md) |
 | Sagas semantic locks | [`docs/concepts/sagas.md`](docs/concepts/sagas.md) |
 | TCC merge | [`docs/concepts/tcc.md`](docs/concepts/tcc.md) |
-| Inter-invariants | [`docs/concepts/inter-invariants.md`](docs/concepts/inter-invariants.md) |
+| Invariant & guard taxonomy | [`docs/concepts/invariants.md`](docs/concepts/invariants.md) |
 | Implement a new application | [`docs/guides/implement-new-application.md`](docs/guides/implement-new-application.md) |
 | Implement an aggregate | [`docs/guides/implement-aggregate.md`](docs/guides/implement-aggregate.md) |
 | Implement an event | [`docs/guides/implement-event.md`](docs/guides/implement-event.md) |

@@ -2,7 +2,7 @@
 
 Follow these steps to add a new domain event for cross-aggregate eventual consistency.
 
-Reference: [`docs/concepts/events.md`](../concepts/events.md), [`docs/concepts/inter-invariants.md`](../concepts/inter-invariants.md)
+Reference: [`docs/concepts/events.md`](../concepts/events.md), [`docs/concepts/invariants.md`](../concepts/invariants.md)
 
 ---
 

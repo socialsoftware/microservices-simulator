@@ -79,4 +79,4 @@ mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest
 - New aggregate: [`docs/guides/implement-aggregate.md`](../../docs/guides/implement-aggregate.md) or `/new-aggregate`
 - New event: [`docs/guides/implement-event.md`](../../docs/guides/implement-event.md) or `/new-event`
 - New functionality: [`docs/guides/implement-functionality.md`](../../docs/guides/implement-functionality.md) or `/new-functionality`
-- New inter-invariant: [`docs/concepts/inter-invariants.md`](../../docs/concepts/inter-invariants.md) or `/inter-invariant`
+- New inter-invariant: [`docs/concepts/invariants.md`](../../docs/concepts/invariants.md) or `/inter-invariant`
