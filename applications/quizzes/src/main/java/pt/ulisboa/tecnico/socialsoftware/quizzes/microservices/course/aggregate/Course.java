@@ -16,6 +16,7 @@ import java.util.Set;
         COURSE_TYPE_FINAL
         COURSE_NAME_FINAL
     INTER_INVARIANTS:
+        CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
  */
 @Entity
 public abstract class Course extends Aggregate {
@@ -29,6 +30,14 @@ public abstract class Course extends Aggregate {
      */
     @Column
     private final String name;
+
+    // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+    @Column
+    private int courseQuestionCount = 0;
+
+    // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+    @Column
+    private int courseExecutionCount = 0;
 
     public Course() {
         this.name = "COURSE NAME";
@@ -46,6 +55,8 @@ public abstract class Course extends Aggregate {
         super(other);
         this.name = other.getName();
         this.type = other.getType();
+        this.courseQuestionCount = other.getCourseQuestionCount();
+        this.courseExecutionCount = other.getCourseExecutionCount();
     }
 
     @Override
@@ -63,5 +74,21 @@ public abstract class Course extends Aggregate {
 
     public String getName() {
         return name;
+    }
+
+    public int getCourseQuestionCount() {
+        return courseQuestionCount;
+    }
+
+    public void setCourseQuestionCount(int courseQuestionCount) {
+        this.courseQuestionCount = courseQuestionCount;
+    }
+
+    public int getCourseExecutionCount() {
+        return courseExecutionCount;
+    }
+
+    public void setCourseExecutionCount(int courseExecutionCount) {
+        this.courseExecutionCount = courseExecutionCount;
     }
 }

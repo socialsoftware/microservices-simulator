@@ -1,5 +1,30 @@
 # Inter-Invariants
 
+## Upstream / Downstream Dependencies
+
+If aggregate **A** caches state from aggregate **B**, then **B is upstream of A**. The upstream aggregate is the publisher; the downstream aggregate is the consumer.
+
+**Rule:** event subscriptions always flow downstream. A downstream aggregate subscribes to its upstream aggregate's events and caches the relevant state locally. Downstream aggregates never call upstream aggregates at read time — all cross-aggregate reads go through the local cache.
+
+This determines where `getEventSubscriptions()` lives: always in the **downstream (consumer) aggregate**.
+
+### Dependency Graph (Quizzes)
+
+```
+Course ──────────────────────────► Execution
+Course ──────────────────────────► Question
+Topic ───────────────────────────► Question
+Question ────────────────────────► Quiz
+User ────────────────────────────► Execution
+User ────────────────────────────► Tournament
+Execution ───────────────────────► Tournament
+Quiz ────────────────────────────► QuizAnswer
+```
+
+Each arrow means: the downstream aggregate (right) holds a subscription to the upstream aggregate (left) and caches relevant state from it.
+
+---
+
 ## What They Are
 
 An inter-invariant is a **consistency rule that spans multiple aggregates**. Because aggregates are owned by separate services, they cannot read each other's state synchronously without coupling. Instead, the consumer aggregate **caches a local copy** of the relevant publisher state, kept eventually consistent via domain events.

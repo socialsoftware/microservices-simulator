@@ -15,6 +15,12 @@ public class CausalCourseFactory implements CourseFactory {
     public Course createCourse(Integer aggregateId, CourseExecutionDto courseExecutionDto) {
         return new CausalCourse(aggregateId, courseExecutionDto);
     }
+
+    @Override
+    public Course createCourseFromExisting(Course existing) {
+        return new CausalCourse((CausalCourse) existing);
+    }
+
     @Override
     public CourseDto createCourseDto(Course course) {
         return new CourseDto(course);

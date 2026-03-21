@@ -1,21 +1,21 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.command.course;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 
 public class UpdateCourseQuestionCountCommand extends Command {
-    private final Integer courseExecutionAggregateId;
+    private final Integer courseAggregateId;
     private final boolean increment;
 
     public UpdateCourseQuestionCountCommand(UnitOfWork unitOfWork, String serviceName,
-            Integer courseExecutionAggregateId, boolean increment) {
-        super(unitOfWork, serviceName, courseExecutionAggregateId);
-        this.courseExecutionAggregateId = courseExecutionAggregateId;
+            Integer courseAggregateId, boolean increment) {
+        super(unitOfWork, serviceName, courseAggregateId);
+        this.courseAggregateId = courseAggregateId;
         this.increment = increment;
     }
 
-    public Integer getCourseExecutionAggregateId() {
-        return courseExecutionAggregateId;
+    public Integer getCourseAggregateId() {
+        return courseAggregateId;
     }
 
     public boolean isIncrement() {

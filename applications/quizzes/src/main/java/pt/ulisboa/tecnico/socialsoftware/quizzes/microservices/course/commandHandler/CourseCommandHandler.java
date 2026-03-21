@@ -9,6 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.DeleteCourseComm
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetAndOrCreateCourseRemoteCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByNameRemoteCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseQuestionCountCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseExecutionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
 
 import java.util.logging.Logger;
@@ -33,6 +35,8 @@ public class CourseCommandHandler extends CommandHandler {
             case GetCourseByNameRemoteCommand cmd -> handleGetCourseByNameRemote(cmd);
             case CreateCourseRemoteCommand cmd -> handleCreateCourseRemote(cmd);
             case DeleteCourseCommand cmd -> handleDeleteCourse(cmd);
+            case UpdateCourseQuestionCountCommand cmd -> handleUpdateCourseQuestionCount(cmd);
+            case UpdateCourseExecutionCountCommand cmd -> handleUpdateCourseExecutionCount(cmd);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 yield null;
@@ -63,6 +67,26 @@ public class CourseCommandHandler extends CommandHandler {
     private Object handleDeleteCourse(DeleteCourseCommand command) {
         logger.info("Deleting course: " + command.getCourseAggregateId());
         courseService.deleteCourse(command.getCourseAggregateId(), command.getUnitOfWork());
+        return null;
+    }
+
+    private Object handleUpdateCourseQuestionCount(UpdateCourseQuestionCountCommand command) {
+        logger.info("Updating course question count for course: " + command.getCourseAggregateId() + " increment: " + command.isIncrement());
+        if (command.isIncrement()) {
+            courseService.incrementCourseQuestionCount(command.getCourseAggregateId(), command.getUnitOfWork());
+        } else {
+            courseService.decrementCourseQuestionCount(command.getCourseAggregateId(), command.getUnitOfWork());
+        }
+        return null;
+    }
+
+    private Object handleUpdateCourseExecutionCount(UpdateCourseExecutionCountCommand command) {
+        logger.info("Updating course execution count for course: " + command.getCourseAggregateId() + " increment: " + command.isIncrement());
+        if (command.isIncrement()) {
+            courseService.incrementCourseExecutionCount(command.getCourseAggregateId(), command.getUnitOfWork());
+        } else {
+            courseService.decrementCourseExecutionCount(command.getCourseAggregateId(), command.getUnitOfWork());
+        }
         return null;
     }
 }

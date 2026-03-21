@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.CreateCourseE
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.CreateCourseRemoteCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.DeleteCourseCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByNameRemoteCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseExecutionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
 import java.util.ArrayList;
@@ -71,9 +72,16 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
             this.setCreatedCourseExecution(createdCourseExecution);
         }, new ArrayList<>(Arrays.asList(getCourseStep, createCourseStep)));
 
+        // Step 4: Increment course execution count — CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+        SagaStep updateCourseExecutionCountStep = new SagaStep("updateCourseExecutionCountStep", () -> {
+            UpdateCourseExecutionCountCommand cmd = new UpdateCourseExecutionCountCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), this.courseExecutionDto.getCourseAggregateId(), true);
+            commandGateway.send(cmd);
+        }, new ArrayList<>(Arrays.asList(createCourseExecutionStep)));
+
         workflow.addStep(getCourseStep);
         workflow.addStep(createCourseStep);
         workflow.addStep(createCourseExecutionStep);
+        workflow.addStep(updateCourseExecutionCountStep);
     }
 
     public CourseExecutionDto getCourseExecutionDto() {

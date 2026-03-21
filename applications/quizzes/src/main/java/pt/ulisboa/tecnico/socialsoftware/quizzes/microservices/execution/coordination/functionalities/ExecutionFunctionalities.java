@@ -279,46 +279,6 @@ public class ExecutionFunctionalities {
         }
     }
 
-    public void incrementCourseQuestionCount(Integer executionAggregateId) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                UpdateCourseQuestionCountFunctionalitySagas incFunctionalitySagas = new UpdateCourseQuestionCountFunctionalitySagas(
-                        sagaUnitOfWorkService, executionAggregateId, true, sagaUnitOfWork, commandGateway);
-                incFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                break;
-            case TCC:
-                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-                UpdateCourseQuestionCountFunctionalityTCC incFunctionalityTCC = new UpdateCourseQuestionCountFunctionalityTCC(
-                        causalUnitOfWorkService, executionAggregateId, true, causalUnitOfWork, commandGateway);
-                incFunctionalityTCC.executeWorkflow(causalUnitOfWork);
-                break;
-            default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-    public void decrementCourseQuestionCount(Integer executionAggregateId) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                UpdateCourseQuestionCountFunctionalitySagas decFunctionalitySagas = new UpdateCourseQuestionCountFunctionalitySagas(
-                        sagaUnitOfWorkService, executionAggregateId, false, sagaUnitOfWork, commandGateway);
-                decFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                break;
-            case TCC:
-                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-                UpdateCourseQuestionCountFunctionalityTCC decFunctionalityTCC = new UpdateCourseQuestionCountFunctionalityTCC(
-                        causalUnitOfWorkService, executionAggregateId, false, causalUnitOfWork, commandGateway);
-                decFunctionalityTCC.executeWorkflow(causalUnitOfWork);
-                break;
-            default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
     private void checkInput(CourseExecutionDto courseExecutionDto) {
         if (courseExecutionDto.getAcronym() == null) {
             throw new QuizzesException(COURSE_EXECUTION_MISSING_ACRONYM);

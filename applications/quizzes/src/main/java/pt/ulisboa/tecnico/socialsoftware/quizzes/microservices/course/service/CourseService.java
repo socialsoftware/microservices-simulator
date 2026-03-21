@@ -83,6 +83,52 @@ public class CourseService {
         unitOfWorkService.registerChanged(course, unitOfWork);
     }
 
+    // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void incrementCourseQuestionCount(Integer courseAggregateId, UnitOfWork unitOfWork) {
+        Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+        Course newCourse = courseFactory.createCourseFromExisting(oldCourse);
+        newCourse.setCourseQuestionCount(newCourse.getCourseQuestionCount() + 1);
+        unitOfWorkService.registerChanged(newCourse, unitOfWork);
+    }
+
+    // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void decrementCourseQuestionCount(Integer courseAggregateId, UnitOfWork unitOfWork) {
+        Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+        Course newCourse = courseFactory.createCourseFromExisting(oldCourse);
+        newCourse.setCourseQuestionCount(Math.max(0, newCourse.getCourseQuestionCount() - 1));
+        unitOfWorkService.registerChanged(newCourse, unitOfWork);
+    }
+
+    // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void incrementCourseExecutionCount(Integer courseAggregateId, UnitOfWork unitOfWork) {
+        // The course may have been created in this same UoW (not yet in DB) — update it in-place
+        Course pendingCourse = unitOfWork.getAggregatesToCommit().stream()
+                .filter(a -> a instanceof Course && courseAggregateId.equals(a.getAggregateId()))
+                .map(a -> (Course) a)
+                .findFirst()
+                .orElse(null);
+        if (pendingCourse != null) {
+            pendingCourse.setCourseExecutionCount(pendingCourse.getCourseExecutionCount() + 1);
+            return;
+        }
+        Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+        Course newCourse = courseFactory.createCourseFromExisting(oldCourse);
+        newCourse.setCourseExecutionCount(newCourse.getCourseExecutionCount() + 1);
+        unitOfWorkService.registerChanged(newCourse, unitOfWork);
+    }
+
+    // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void decrementCourseExecutionCount(Integer courseAggregateId, UnitOfWork unitOfWork) {
+        Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+        Course newCourse = courseFactory.createCourseFromExisting(oldCourse);
+        newCourse.setCourseExecutionCount(Math.max(0, newCourse.getCourseExecutionCount() - 1));
+        unitOfWorkService.registerChanged(newCourse, unitOfWork);
+    }
+
     private Course getCourseByName(String courseName, UnitOfWork unitOfWork) {
         return courseRepository.findCourseIdByName(courseName)
                 .map(id -> (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))

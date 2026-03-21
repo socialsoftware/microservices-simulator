@@ -27,7 +27,7 @@ public class CausalCourse extends Course implements CausalAggregate {
     @Override
     @JsonIgnore
     public Set<String> getMutableFields() {
-        return new HashSet<>();
+        return Set.of("courseQuestionCount", "courseExecutionCount");
     }
 
     @Override
@@ -38,6 +38,10 @@ public class CausalCourse extends Course implements CausalAggregate {
 
     @Override
     public Aggregate mergeFields(Set<String> toCommitVersionChangedFields, Aggregate committedVersion, Set<String> committedVersionChangedFields) {
-        return null;
+        CausalCourse prev = (CausalCourse) getPrev();
+        CausalCourse committed = (CausalCourse) committedVersion;
+        this.setCourseQuestionCount(committed.getCourseQuestionCount() + (this.getCourseQuestionCount() - prev.getCourseQuestionCount()));
+        this.setCourseExecutionCount(committed.getCourseExecutionCount() + (this.getCourseExecutionCount() - prev.getCourseExecutionCount()));
+        return this;
     }
 }

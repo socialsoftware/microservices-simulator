@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseQuestionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.CreateQuestionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
@@ -60,6 +61,11 @@ public class CreateQuestionFunctionalityTCC extends WorkflowFunctionality {
             CreateQuestionCommand createQuestionCommand = new CreateQuestionCommand(unitOfWork,
                     ServiceMapping.QUESTION.getServiceName(), course, questionDto, topics);
             this.createdQuestion = (QuestionDto) commandGateway.send(createQuestionCommand);
+
+            // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+            UpdateCourseQuestionCountCommand updateCmd = new UpdateCourseQuestionCountCommand(unitOfWork,
+                    ServiceMapping.COURSE.getServiceName(), courseAggregateId, true);
+            commandGateway.send(updateCmd);
         });
         workflow.addStep(step);
     }

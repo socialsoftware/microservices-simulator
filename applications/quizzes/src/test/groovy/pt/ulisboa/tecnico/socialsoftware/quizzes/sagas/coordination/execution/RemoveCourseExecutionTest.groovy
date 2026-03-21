@@ -8,20 +8,19 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.handling.CourseExecutionEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 
 @DataJpaTest
 class RemoveCourseExecutionTest extends QuizzesSpockTest {
     @Autowired
     private ExecutionFunctionalities courseExecutionFunctionalities
 
-    @Autowired
-    private CourseExecutionEventHandling courseExecutionEventHandling
-
     private CourseExecutionDto courseExecutionDto
+    private TopicDto topicDto
 
     def setup() {
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
+        topicDto = createTopic(courseExecutionDto, TOPIC_NAME_1)
     }
 
     def cleanup() {}
@@ -35,8 +34,8 @@ class RemoveCourseExecutionTest extends QuizzesSpockTest {
     }
 
     def "cannot remove the sole course execution for a course when it has content"() {
-        given: "the course has questions (simulate by incrementing count)"
-        courseExecutionFunctionalities.incrementCourseQuestionCount(courseExecutionDto.getAggregateId())
+        given: "the course has a question"
+        createQuestion(courseExecutionDto, [topicDto], TITLE_1, CONTENT_1, OPTION_1, OPTION_2)
 
         when:
         courseExecutionFunctionalities.removeCourseExecution(courseExecutionDto.getAggregateId())
@@ -49,9 +48,8 @@ class RemoveCourseExecutionTest extends QuizzesSpockTest {
         given: "a second execution tied to the same course (same name+type, different acronym)"
         def courseExecutionDto2 = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, ACRONYM_1, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
 
-        and: "the course has questions (simulate by incrementing count on both executions)"
-        courseExecutionFunctionalities.incrementCourseQuestionCount(courseExecutionDto.getAggregateId())
-        courseExecutionFunctionalities.incrementCourseQuestionCount(courseExecutionDto2.getAggregateId())
+        and: "the course has a question"
+        createQuestion(courseExecutionDto, [topicDto], TITLE_1, CONTENT_1, OPTION_1, OPTION_2)
 
         when: "removing the first execution (not the last)"
         courseExecutionFunctionalities.removeCourseExecution(courseExecutionDto.getAggregateId())

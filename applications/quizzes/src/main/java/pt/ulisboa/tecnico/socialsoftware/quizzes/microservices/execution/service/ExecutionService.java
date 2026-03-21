@@ -89,19 +89,6 @@ public class ExecutionService {
                 unitOfWork);
         Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
 
-        int numberOfExecutionsOfCourse = Math.toIntExact(getAllCourseExecutions(unitOfWork).stream()
-                .filter(ce -> ce.getCourseAggregateId()
-                        .equals(newExecution.getExecutionCourse().getCourseAggregateId()))
-                .count());
-
-        /*
-         * CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
-         */
-        if (numberOfExecutionsOfCourse == 1 && newExecution.getCourseQuestionCount() > 0) {
-            throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT,
-                    executionAggregateId);
-        }
-
         newExecution.remove();
 
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
@@ -212,22 +199,4 @@ public class ExecutionService {
         return new CourseExecutionDto(newExecution);
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void incrementCourseQuestionCount(Integer executionAggregateId, UnitOfWork unitOfWork) {
-        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId,
-                unitOfWork);
-        Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
-        newExecution.setCourseQuestionCount(newExecution.getCourseQuestionCount() + 1);
-        unitOfWorkService.registerChanged(newExecution, unitOfWork);
-    }
-
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void decrementCourseQuestionCount(Integer executionAggregateId, UnitOfWork unitOfWork) {
-        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId,
-                unitOfWork);
-        Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
-        int newCount = Math.max(0, newExecution.getCourseQuestionCount() - 1);
-        newExecution.setCourseQuestionCount(newCount);
-        unitOfWorkService.registerChanged(newExecution, unitOfWork);
-    }
 }
