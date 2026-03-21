@@ -7,7 +7,9 @@ argument-hint: "<ConsumerAggregate> <condition-description>"
 # Implement Inter-Invariant: $ARGUMENTS
 
 You are implementing a new **inter-invariant** in the `applications/quizzes` module.
-An inter-invariant is a consistency rule that spans multiple aggregates and is maintained via domain events (eventually consistent).
+An inter-invariant is a **Layer 6** consistency rule that spans multiple aggregates and is maintained via domain events (eventually consistent).
+
+> If uncertain which layer to use for this rule, consult `docs/concepts/invariants.md` before proceeding.
 
 ---
 
@@ -32,6 +34,11 @@ Parse `$ARGUMENTS` to identify:
 - **Guarded operation**: the service method that throws when the guard fails
 - **Error message key**: name for the `QuizzesErrorMessage` enum entry
 
+**Layer decision:**
+
+- **Use Layer 6 (this skill)** — when the guarded condition changes infrequently and ~1 s eventual lag is acceptable; the cached state is already tracked by the event chain.
+- **Use Layer 5 instead** — when the condition must be strongly consistent at operation time; state is maintained synchronously in the same saga workflow (e.g., `cannot-delete-last-execution-with-content.md` uses a `getCourseStep` to read the Course aggregate under a semantic lock — that is a **Layer 5 example, not an async inter-invariant**).
+
 Ask the user to clarify any of the above if the arguments are ambiguous before writing any code.
 
 ---
@@ -49,7 +56,7 @@ Before writing anything, read:
 8. The existing test class closest to the affected operation
 
 Use the appropriate worked example as a structural reference:
-- **Guard-enforcement pattern**: `docs/examples/cannot-delete-last-execution-with-content.md`
+- **Guard-enforcement pattern**: `docs/examples/cannot-delete-last-execution-with-content.md` (**Layer 5 — not async**; use for structural reference only)
 - **Reactive-update or multiple invariants**: `docs/examples/tournament-inter-invariants.md`
 
 Do not copy domain logic — use them for structure (data flow, file list, code shape per layer).
@@ -108,9 +115,20 @@ In `microservices/<consumer>/aggregate/<Consumer>.java`:
 1. Add the field(s) that represent the tracked state, with getter/setter.
 2. Initialise them to a safe default (e.g. `0`, `false`, `new HashSet<>()`).
 3. Copy them in the copy-constructor.
-4. Add a private helper for the new inter-invariant subscriptions and call it from `getEventSubscriptions()`:
+4. Add a private helper for the new inter-invariant subscriptions and call it from `getEventSubscriptions()`.
+
+Subscriptions are only registered while the aggregate is ACTIVE. Inactive or deleted aggregates do not receive further updates:
 
 ```java
+@Override
+public Set<EventSubscription> getEventSubscriptions() {
+    Set<EventSubscription> eventSubscriptions = new HashSet<>();
+    if (getState() == AggregateState.ACTIVE) {
+        interInvariantXxx(eventSubscriptions);
+    }
+    return eventSubscriptions;
+}
+
 private void interInvariantXxx(Set<EventSubscription> eventSubscriptions) {
     // add one subscription per event type this invariant reacts to
     eventSubscriptions.add(new ConsumerSubscribesXxx(this.relevantRef));
@@ -125,12 +143,14 @@ Create under `microservices/<consumer>/events/subscribe/`:
 ```java
 public class ConsumerSubscribesXxx extends EventSubscription {
     public ConsumerSubscribesXxx(<Ref> ref) {
-        super(ref.getAggregateId(), ref.getVersion(), XxxEvent.class);
+        super(ref.getAggregateId(), ref.getVersion(), XxxEvent.class.getSimpleName());
     }
+
+    public ConsumerSubscribesXxx() {}
+
     @Override
-    public boolean filter(Event event) {
-        XxxEvent e = (XxxEvent) event;
-        return e.getRelevantId().equals(this.subscribedAggregateId);
+    public boolean subscribesEvent(Event event) {
+        return super.subscribesEvent(event);
     }
 }
 ```
@@ -163,14 +183,35 @@ public class XxxCommand extends Command {
 ## Step 8 — Implement: Event handlers
 
 Create under `microservices/<consumer>/events/handling/handlers/` one handler per event type.
-Each handler: receives the event, filters via the subscription, extracts needed data, and delegates to `<Consumer>EventProcessing`.
+
+If a base `<Consumer>EventHandler` already exists in that package, extend it. Create the abstract base only if absent.
+
+Each concrete handler receives the event, filters via the subscription, extracts needed data, and delegates to `<Consumer>EventProcessing`:
+
+```java
+// Concrete handler per event type
+public class XxxEventHandler extends ConsumerEventHandler {
+    public XxxEventHandler(ConsumerRepository repo, ConsumerEventProcessing processing) {
+        super(repo, processing);
+    }
+
+    @Override
+    public void handleEvent(Integer aggregateId, Event event) {
+        this.consumerEventProcessing.processXxxEvent(aggregateId, (XxxEvent) event);
+    }
+}
+```
 
 ---
 
 ## Step 9 — Wire polling in EventHandling bean
 
-In `microservices/<consumer>/events/handling/<Consumer>EventHandling.java`, add one `@Scheduled` method per event type:
+In `microservices/<consumer>/events/handling/<Consumer>EventHandling.java`, add one `@Scheduled` method per event type, with an inline invariant-name comment documenting which invariant the handler enforces:
+
 ```java
+/*
+    <INVARIANT_NAME>
+*/
 @Scheduled(fixedDelay = 1000)
 public void handleXxxEvents() {
     eventApplicationService.handleSubscribedEvent(XxxEvent.class,
@@ -239,7 +280,7 @@ public void assertCanPerform<Operation>(Integer consumerAggregateId, ..., UnitOf
 }
 ```
 
-The guard method loads only the consumer's own aggregate type (`aggregateLoadAndRegisterRead` must not be used to load a different service's aggregate). If the guard fails, it throws here.
+The guard method loads only the **consumer's own aggregate type** — `aggregateLoadAndRegisterRead` must not be used to load a different service's aggregate. The guard reads the consumer's own cached eventual state from the event chain; it never reads a foreign aggregate directly.
 
 **Part B — guard invocation in the guarded operation's functionality**:
 
@@ -281,13 +322,16 @@ Trigger event processing manually in tests by calling the `<Consumer>EventHandli
 
 ## Step 16 — Write summary markdown
 
-Create `docs/examples/<invariant-name>.md` with:
-- One-line rule description (type, enforced in, rule)
-- Data flow diagram (ASCII)
-- Key files table
-- Code snippet per layer
-- Consistency note (eventual vs. strong)
-- Test table
+Create `docs/examples/<invariant-name>.md` with the following structure (matching `tournament-inter-invariants.md`):
+
+1. **Header**: type (Layer 6 — inter-invariant), consumer aggregate, one-line rule
+2. **Invariant overview table**: name | publisher | trigger event | effect
+3. **Subscription wiring snippet** (`getEventSubscriptions()`)
+4. **Per-invariant details**: formal rule, subscription snippet, polling snippet, processing chain
+5. **Consistency properties**: eventual, ~1 s lag
+6. **Tests table**
+
+Then add a row to `docs/examples/README.md` linking the new file.
 
 ---
 
@@ -298,17 +342,18 @@ Create `docs/examples/<invariant-name>.md` with:
 - [ ] Events registered in publisher service
 - [ ] Tracked state field(s) added, initialised, and copied in copy-constructor
 - [ ] Event subscriptions created and wired into `getEventSubscriptions()`
+- [ ] Event subscriptions wrapped in `if (getState() == ACTIVE)`
 - [ ] Command class created with appropriate payload
 - [ ] Event handlers created
-- [ ] Polling methods added to EventHandling bean
+- [ ] Polling methods added to EventHandling bean (with invariant-name comment)
 - [ ] EventProcessing → Functionalities wiring added
 - [ ] Sagas + TCC functionality classes created
 - [ ] State update method(s) added to ConsumerService
 - [ ] Tests written and passing (`mvn clean -Ptest-sagas test`)
-- [ ] Summary markdown written in `docs/examples/`
+- [ ] Summary markdown written in `docs/examples/` and linked from `docs/examples/README.md`
 
 **Guard-enforcement pattern only:**
 - [ ] Error message added to `QuizzesErrorMessage`
-- [ ] Guard method added to the consumer service (loads only its own aggregate type)
+- [ ] Guard method added to the consumer service (loads only its own aggregate type; reads cached eventual state)
 - [ ] Guard command created
 - [ ] Guard invocation step added to both Sagas and TCC functionalities (before the mutating step)

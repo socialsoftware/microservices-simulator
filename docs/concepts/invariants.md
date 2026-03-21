@@ -6,6 +6,19 @@ Consistency in this codebase is enforced at six distinct layers. Each layer has 
 
 ---
 
+## Summary Table
+
+| # | Layer | Where | Timing | Consistency |
+|---|-------|-------|--------|-------------|
+| 1 | **Intra-invariant** | `verifyInvariants()` in aggregate | At UoW commit | Strong |
+| 2 | **Aggregate mutation guard** | Mutation methods (`remove()`, setters) | At mutation | Strong |
+| 3 | **Service-layer guard** | `*Service.java` | Before aggregate mutation | Strong |
+| 4 | **Functionality input validation** | `*Functionality*.java`, no DB read | Before any step | Strong (input) |
+| 5 | **Functionality cross-aggregate state guard** | `*Functionality*.java`, saga step reading another aggregate under semantic lock | In workflow step | Strong |
+| 6 | **Inter-invariant (event-driven)** | `getEventSubscriptions()` + event handler chain | Async (~1 s) | Eventual |
+
+---
+
 ## Layer 1 — Intra-Invariant
 
 **Definition:** A consistency rule that must always hold within a single aggregate instance. Checked on every Unit of Work commit, regardless of what operation caused the change.
@@ -95,8 +108,6 @@ Consistency in this codebase is enforced at six distinct layers. Each layer has 
 
 **Consistency:** Eventual — the consumer's cached state may lag behind the publisher by up to one poll interval.
 
-For details on the full event wiring, see below and [`docs/guides/implement-event.md`](../guides/implement-event.md).
-
 ### Upstream / Downstream Dependencies
 
 If aggregate **A** caches state from aggregate **B**, then **B is upstream of A**. Event subscriptions always flow downstream: the downstream aggregate subscribes to its upstream aggregate's events and caches the relevant state locally.
@@ -116,102 +127,16 @@ Execution ───────────────────────�
 Quiz ────────────────────────────► QuizAnswer
 ```
 
-### Reactive-Update Pattern
+### Going Deeper
 
-The consumer updates its cached state in response to events. No guard method or error throw is needed — the enforcement IS the state change.
+For a worked example across multiple invariants:
+→ [`docs/examples/tournament-inter-invariants.md`](../examples/tournament-inter-invariants.md)
 
-Use when: a domain event should cause the consumer to change its own state (e.g., a topic is deleted → remove it from the tournament's cached topic set).
+For the underlying event wiring mechanics (event class, subscription, handler, polling):
+→ [`docs/guides/implement-event.md`](../guides/implement-event.md)
 
-```
-Publisher aggregate                Consumer aggregate
-      │                                  │
-      │  event: XxxHappened              │
-      │─────────────────────────────────►│
-      │                                  │  poll (1s interval)
-      │                                  │  update cached state  ← enforcement IS here
-      │                                  │
-```
-
-### Components
-
-| Component | Location | Purpose |
-|-----------|---------|---------|
-| Event class | `quizzes/events/XxxEvent.java` | Carries the data the consumer needs |
-| Event subscription | `<consumer>/events/subscribe/ConsumerSubscribesXxx.java` | Declares what to listen for and how to filter |
-| Event handler | `<consumer>/events/handling/handlers/XxxEventHandler.java` | Receives and dispatches the event |
-| Polling method | `<consumer>/events/handling/<Consumer>EventHandling.java` | `@Scheduled` poll loop |
-| Cached state field | `<consumer>/aggregate/<Consumer>.java` | Local copy of publisher data |
-| Update functionality | `<consumer>/coordination/sagas/XxxFunctionalitySagas.java` + TCC | Workflow that applies the update to the aggregate |
-
-### Tracked State Patterns
-
-Choose the simplest representation for the invariant:
-
-| State type | Tracked field | Update logic |
-|-----------|-------------|-------------|
-| Running total | `int xxxCount` | `+1` on create event, `-1` on delete event |
-| Presence check | `boolean hasXxx` | `true` on create, `false` on delete |
-| Membership | `Set<Integer> xxxIds` | `add(id)` on create, `remove(id)` on delete |
-| Single reference | `Integer xxxId` | set on link event, null on unlink event |
-
-The update logic IS the enforcement — no guard check is needed.
-
-### Subscription Granularity
-
-**Per-aggregate** (most common): one subscription per consumer aggregate instance, anchored to a publisher aggregate ID.
-```java
-// One subscription for the whole consumer aggregate
-eventSubscriptions.add(new ConsumerSubscribesXxx(this.publisherRef));
-```
-
-**Per-entity**: one subscription per item in a set — used when the consumer tracks a collection and each element can independently publish events. The `subscribedAggregateId` is the entity's own aggregate ID.
-```java
-// One subscription per entity in the set
-for (ConsumerEntity entity : this.entitySet) {
-    eventSubscriptions.add(new ConsumerSubscribesXxx(entity));
-}
-```
-
-### publisherAggregateId Convention
-
-The `publisherAggregateId` passed to `super(...)` in the event constructor **must be the aggregate ID used as the subscription anchor**. This is the same value used in the subscription's `subscribedAggregateId`.
-
-For TCC, this is critical: `EventSubscriberService` uses `publisherAggregateId` to determine which aggregate versions a `CausalExecution` must have processed before it can be causally read alongside other aggregates.
-
-**Wrong:** using the entity ID (e.g., `questionAggregateId`) when the consumer subscribes by `courseAggregateId`.
-**Right:** using the same anchor ID in both the event and the subscription.
-
-### Eventual Consistency Trade-off
-
-Cached state is updated asynchronously (default: 1 second poll interval). This is a known trade-off — document it in the summary markdown when implementing a new invariant.
-
-### Worked Examples
-
-| Example |
-|---------|
-| [`docs/examples/tournament-inter-invariants.md`](../examples/tournament-inter-invariants.md) — reactive-update pattern + per-entity subscriptions, multiple invariants |
-
-### Implementing a New Inter-Invariant
-
-Use the `/inter-invariant` skill:
-```
-/inter-invariant Tournament remove topic from set when topic deleted
-```
-
-The skill walks through all steps for the reactive-update pattern.
-
----
-
-## Summary Table
-
-| # | Layer | Where | Timing | Consistency |
-|---|-------|-------|--------|-------------|
-| 1 | **Intra-invariant** | `verifyInvariants()` in aggregate | At UoW commit | Strong |
-| 2 | **Aggregate mutation guard** | Mutation methods (`remove()`, setters) | At mutation | Strong |
-| 3 | **Service-layer guard** | `*Service.java` | Before aggregate mutation | Strong |
-| 4 | **Functionality input validation** | `*Functionality*.java`, no DB read | Before any step | Strong (input) |
-| 5 | **Functionality cross-aggregate state guard** | `*Functionality*.java`, saga step reading another aggregate under semantic lock | In workflow step | Strong |
-| 6 | **Inter-invariant (event-driven)** | `getEventSubscriptions()` + event handler chain | Async (~1 s) | Eventual |
+To scaffold a new inter-invariant:
+→ `/inter-invariant <ConsumerAggregate> <condition>`
 
 ---
 

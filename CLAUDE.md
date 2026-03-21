@@ -78,7 +78,9 @@ Invoke these with `/skill-name <arguments>` when implementing new features in `a
 
 | Skill | When to use | Invoke with |
 |-------|------------|-------------|
-| `inter-invariant` | Add a cross-aggregate consistency rule via domain events | `/inter-invariant <ConsumerAggregate> <condition>` |
+| `intra-invariant` | Add a Layer 1 intra-invariant (`verifyInvariants` check) inside a single aggregate | `/intra-invariant <AggregateName> <rule-description>` |
+| `service-guard` | Add a Layer 3 service-layer guard that reads the DB and throws before any mutation | `/service-guard <ServiceName> <operation-method> <precondition>` |
+| `inter-invariant` | Add a Layer 6 cross-aggregate consistency rule maintained via domain events (eventual) | `/inter-invariant <ConsumerAggregate> <condition>` |
 | `new-aggregate` | Scaffold a new domain aggregate (base + Saga + TCC + factory + repo) | `/new-aggregate <AggregateName>` |
 | `new-event` | Add a new domain event with subscriptions, handler, and polling | `/new-event <EventName> <publisher> <consumer>` |
 | `new-functionality` | Implement a new cross-service operation (Sagas + TCC + command handler + controller) | `/new-functionality <Name> <aggregates...>` |
