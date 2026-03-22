@@ -29,13 +29,7 @@ mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest  # sin
 
 ---
 
-## Core Concept Glossary
-
-- **Aggregate** — unit of consistency; each write creates a new row; `aggregateId` is the logical identity; `version` is global. → [`docs/concepts/aggregate.md`](docs/concepts/aggregate.md)
-- **Unit of Work** — coordinates reads and writes for one functionality execution; committed or aborted atomically. Saga: `SagaUnitOfWork`. TCC: `CausalUnitOfWork`.
-- **Functionality** — a `WorkflowFunctionality` subclass that orchestrates a cross-service operation as a DAG of `Step`s. → [`docs/concepts/sagas.md`](docs/concepts/sagas.md)
-- **Sagas** — concurrency protocol using semantic locks (`SagaState`); conflicting steps declare `forbiddenStates`. → [`docs/concepts/sagas.md`](docs/concepts/sagas.md)
-- **TCC (Causal)** — concurrency protocol using field-level merge; concurrent writes to different fields can both succeed. → [`docs/concepts/tcc.md`](docs/concepts/tcc.md)
+Core concepts and architectural overview → [`docs/architecture.md`](docs/architecture.md)
 
 ---
 
@@ -43,10 +37,6 @@ mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest  # sin
 
 | Concern | Path |
 |---------|------|
-| Base aggregate | `simulator/.../ms/domain/aggregate/Aggregate.java` |
-| Saga aggregate interface | `simulator/.../ms/sagas/aggregate/SagaAggregate.java` |
-| TCC aggregate interface | `simulator/.../ms/causal/aggregate/CausalAggregate.java` |
-| Workflow base | `simulator/.../ms/coordination/workflow/WorkflowFunctionality.java` |
 | Execution aggregate (with inter-invariants) | `applications/.../execution/aggregate/Execution.java` |
 | Tournament saga functionality (multi-step) | `applications/.../tournament/coordination/sagas/AddParticipantFunctionalitySagas.java` |
 | Test bean config (Sagas) | `applications/.../quizzes/BeanConfigurationSagas.groovy` |
@@ -59,6 +49,7 @@ mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest  # sin
 
 | Topic | Path |
 |-------|------|
+| Application architecture & restrictions | [`docs/architecture.md`](docs/architecture.md) |
 | Aggregate versioning | [`docs/concepts/aggregate.md`](docs/concepts/aggregate.md) |
 | Domain events | [`docs/concepts/events.md`](docs/concepts/events.md) |
 | Sagas semantic locks | [`docs/concepts/sagas.md`](docs/concepts/sagas.md) |
