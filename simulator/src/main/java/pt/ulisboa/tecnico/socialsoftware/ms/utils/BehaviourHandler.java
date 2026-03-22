@@ -171,6 +171,22 @@ public class BehaviourHandler {
         }
     }
 
+    public String getReport() {
+        if (directory == null) {
+            return "";
+        }
+        Path filePath = Paths.get(directory, REPORT_FILE);
+        if (!Files.exists(filePath)) {
+            return "";
+        }
+        try {
+            return Files.readString(filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
     public void cleanUpCounter() {
         funcCounter.clear();
         appendToReport("Test finished\n");

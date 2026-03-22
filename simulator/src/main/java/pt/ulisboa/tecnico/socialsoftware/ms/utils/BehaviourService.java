@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,4 +60,13 @@ public class BehaviourService {
         TraceManager.getInstance().forceFlush();
     }
 
+    // *TESTING METHODS*
+
+    public String getReport() {
+        return BehaviourHandler.getInstance().getReport();
+    }
+
+    public void injectPlacement(JsonNode json) {
+        NetworkManager.getInstance().loadConfig(json);
+    }
 }

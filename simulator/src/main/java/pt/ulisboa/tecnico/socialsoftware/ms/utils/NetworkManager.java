@@ -57,32 +57,43 @@ public class NetworkManager {
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode root = mapper.readTree(file);
-
-            // Load nodes
-            JsonNode nodes = root.get("nodes");
-            if (nodes != null && nodes.isArray()) {
-                for (JsonNode node : nodes) {
-                    String nodeName = node.get("name").asText();
-                    JsonNode mss = node.get("microservices");
-                    if (mss != null && mss.isArray()) {
-                        for (JsonNode ms : mss) {
-                            microserviceToNode.put(ms.asText().toLowerCase(), nodeName);
-                        }
-                    }
-                }
-            }
-
-            // Load delays
-            JsonNode delays = root.get("delays");
-            if (delays != null) {
-                loadDelayConfig(delays, "intraservice");
-                loadDelayConfig(delays, "intranode");
-                loadDelayConfig(delays, "internode");
-            }
-
+            parseConfig(root);
             loaded = true;
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void loadConfig(JsonNode root) {
+        parseConfig(root);
+        loaded = true;
+    }
+
+    private void parseConfig(JsonNode root) {
+        // Clear existing state
+        microserviceToNode.clear();
+        delayConfigs.clear();
+
+        // Load nodes
+        JsonNode nodes = root.get("nodes");
+        if (nodes != null && nodes.isArray()) {
+            for (JsonNode node : nodes) {
+                String nodeName = node.get("name").asText();
+                JsonNode mss = node.get("microservices");
+                if (mss != null && mss.isArray()) {
+                    for (JsonNode ms : mss) {
+                        microserviceToNode.put(ms.asText().toLowerCase(), nodeName);
+                    }
+                }
+            }
+        }
+
+        // Load delays
+        JsonNode delays = root.get("delays");
+        if (delays != null) {
+            loadDelayConfig(delays, "intraservice");
+            loadDelayConfig(delays, "intranode");
+            loadDelayConfig(delays, "internode");
         }
     }
 

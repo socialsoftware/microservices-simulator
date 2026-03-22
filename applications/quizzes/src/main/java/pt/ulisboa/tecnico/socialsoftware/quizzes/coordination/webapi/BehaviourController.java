@@ -3,8 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.coordination.webapi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.databind.JsonNode;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService;
 
 import java.io.File;
@@ -16,25 +18,38 @@ public class BehaviourController {
     @Autowired
     private BehaviourService behaviourService;
 
-   @PostMapping("/behaviour/load")
-   public String load(@RequestParam String dir) {
-       System.out.println("Behaviour load started");
-       behaviourService.LoadDir(mavenBaseDir, dir);
-       System.out.println("Provided dir: " + dir);
-       return "OK";
-   }
+    @PostMapping("/behaviour/load")
+    public String load(@RequestParam String dir) {
+        System.out.println("Behaviour load started");
+        behaviourService.LoadDir(mavenBaseDir, dir);
+        System.out.println("Provided dir: " + dir);
+        return "OK";
+    }
 
-   @PostMapping("/behaviour/mode")
-   public String setMode(@RequestParam String mode) {
-       System.out.println("Behaviour mode set to: " + mode);
-       behaviourService.setMode(mode);
-       return "OK";
-   }
-    
+    @PostMapping("/behaviour/mode")
+    public String setMode(@RequestParam String mode) {
+        System.out.println("Behaviour mode set to: " + mode);
+        behaviourService.setMode(mode);
+        return "OK";
+    }
+
     @GetMapping(value = "/behaviour/clean")
     public String clean() {
         System.out.println("Report clean started");
         behaviourService.cleanReportFile();
+        return "OK";
+    }
+
+    // *TESTING METHODS*
+
+    @GetMapping(value = "/behaviour/report")
+    public String getReport() {
+        return behaviourService.getReport();
+    }
+
+    @PostMapping(value = "/behaviour/placement")
+    public String updatePlacement(@RequestBody JsonNode json) {
+        behaviourService.injectPlacement(json);
         return "OK";
     }
 }
