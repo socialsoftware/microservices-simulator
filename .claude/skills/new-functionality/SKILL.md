@@ -33,7 +33,7 @@ Before writing anything, read:
 4. `microservices/<primaryAggregate>/coordination/` — existing functionalities in the same package
 5. `command/<primaryAggregate>/` — existing command classes
 
-Also read `docs/guides/implement-functionality.md` for the full checklist.
+Also read `docs/concepts/sagas.md` and `docs/concepts/tcc.md` for the concurrency protocol details.
 
 ---
 

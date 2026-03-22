@@ -35,7 +35,7 @@ Read the following to understand the patterns to follow:
 7. `microservices/execution/aggregate/sagas/repositories/CourseExecutionCustomRepositorySagas.java`
 8. `microservices/execution/service/ExecutionService.java` — for service method patterns
 
-Also read `docs/guides/implement-aggregate.md` for the full checklist.
+Also read `docs/architecture.md` for architectural restrictions and package structure conventions.
 
 ---
 

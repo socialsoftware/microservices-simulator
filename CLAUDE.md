@@ -55,10 +55,6 @@ Core concepts and architectural overview → [`docs/architecture.md`](docs/archi
 | Sagas semantic locks | [`docs/concepts/sagas.md`](docs/concepts/sagas.md) |
 | TCC merge | [`docs/concepts/tcc.md`](docs/concepts/tcc.md) |
 | Invariant & guard taxonomy | [`docs/concepts/invariants.md`](docs/concepts/invariants.md) |
-| Implement a new application | [`docs/guides/implement-new-application.md`](docs/guides/implement-new-application.md) |
-| Implement an aggregate | [`docs/guides/implement-aggregate.md`](docs/guides/implement-aggregate.md) |
-| Implement an event | [`docs/guides/implement-event.md`](docs/guides/implement-event.md) |
-| Implement a functionality | [`docs/guides/implement-functionality.md`](docs/guides/implement-functionality.md) |
 | Worked examples | [`docs/examples/README.md`](docs/examples/README.md) |
 
 ---
@@ -69,6 +65,7 @@ Invoke these with `/skill-name <arguments>` when implementing new features in `a
 
 | Skill | When to use | Invoke with |
 |-------|------------|-------------|
+| `new-application` | Bootstrap a new application on the simulator from scratch (all 5 phases) | `/new-application <AppName> [description]` |
 | `intra-invariant` | Add a Layer 1 intra-invariant (`verifyInvariants` check) inside a single aggregate | `/intra-invariant <AggregateName> <rule-description>` |
 | `service-guard` | Add a Layer 3 service-layer guard that reads the DB and throws before any mutation | `/service-guard <ServiceName> <operation-method> <precondition>` |
 | `inter-invariant` | Add a Layer 6 cross-aggregate consistency rule maintained via domain events (eventual) | `/inter-invariant <ConsumerAggregate> <condition>` |

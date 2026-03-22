@@ -1,6 +1,6 @@
 # Application Architecture
 
-This document is the system-level companion to the per-concept guides. Read it before implementing a new application to understand how the layers fit together, what constraints govern each one, and which simulator base classes to extend. For step-by-step scaffolding instructions, see [`guides/implement-new-application.md`](guides/implement-new-application.md).
+This document is the system-level companion to the per-concept docs. Read it before implementing a new application to understand how the layers fit together, what constraints govern each one, and which simulator base classes to extend. To start a new application with Claude's help, invoke `/new-application <AppName>`.
 
 ---
 
@@ -225,5 +225,5 @@ For a quick decision, use this table. For full rationale and examples for each l
 | TCC field-level merge | [`concepts/tcc.md`](concepts/tcc.md) |
 | Domain events | [`concepts/events.md`](concepts/events.md) |
 | Invariant taxonomy (full) | [`concepts/invariants.md`](concepts/invariants.md) |
-| Implementation checklist | [`guides/implement-new-application.md`](guides/implement-new-application.md) |
+| Bootstrap a new application | `/new-application` skill |
 | Worked example | [`examples/cannot-delete-last-execution-with-content.md`](examples/cannot-delete-last-execution-with-content.md) |

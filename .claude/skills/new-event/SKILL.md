@@ -33,7 +33,7 @@ Before writing anything, read:
 4. `microservices/<consumer>/events/handling/handlers/` — existing handlers
 5. `microservices/<publisher>/service/<Publisher>Service.java` — where events are registered
 
-Also read `docs/guides/implement-event.md` and `docs/concepts/events.md` for background.
+Also read `docs/concepts/events.md` for background on event wiring mechanics.
 
 ---
 

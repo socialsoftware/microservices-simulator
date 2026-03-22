@@ -133,7 +133,7 @@ For a worked example across multiple invariants:
 → [`docs/examples/tournament-inter-invariants.md`](../examples/tournament-inter-invariants.md)
 
 For the underlying event wiring mechanics (event class, subscription, handler, polling):
-→ [`docs/guides/implement-event.md`](../guides/implement-event.md)
+→ `/new-event` skill
 
 To scaffold a new inter-invariant:
 → `/inter-invariant <ConsumerAggregate> <condition>`
