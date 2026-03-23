@@ -61,7 +61,7 @@ public class <EventName> extends Event {
 }
 ```
 
-**Critical:** `super(...)` must receive the same ID that consumers will use as `subscribedAggregateId`. Check `docs/concepts/invariants.md` for the TCC implication.
+**Critical:** `super(...)` must receive the same ID that consumers will use as `subscribedAggregateId`. Check `docs/concepts/consistency-enforcement.md` for the TCC implication.
 
 ---
 

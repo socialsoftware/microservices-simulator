@@ -54,7 +54,7 @@ Core concepts and architectural overview → [`docs/architecture.md`](docs/archi
 | Domain events | [`docs/concepts/events.md`](docs/concepts/events.md) |
 | Sagas semantic locks | [`docs/concepts/sagas.md`](docs/concepts/sagas.md) |
 | TCC merge | [`docs/concepts/tcc.md`](docs/concepts/tcc.md) |
-| Invariant & guard taxonomy | [`docs/concepts/invariants.md`](docs/concepts/invariants.md) |
+| Invariant & guard taxonomy | [`docs/concepts/consistency-enforcement.md`](docs/concepts/consistency-enforcement.md) |
 | Worked examples | [`docs/examples/README.md`](docs/examples/README.md) |
 
 ---

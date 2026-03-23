@@ -1,21 +1,26 @@
-# Invariant & Guard Taxonomy
+# Consistency Enforcement Taxonomy
 
 ## Introduction
 
-Consistency in this codebase is enforced at six distinct layers. Each layer has a different scope (single aggregate vs. cross-aggregate), timing (before mutation, at commit, or asynchronously), and consistency guarantee (strong or eventual). Multiple layers often protect the same business rule from different angles. Understanding which layer is responsible for what prevents redundant checks and makes it clear where to add a new rule.
+Consistency in this codebase is enforced at six distinct layers. Each layer has a different scope (single aggregate vs. cross-aggregate), timing (before mutation, at commit, or asynchronously), and consistency guarantee (strong or eventual). The layers cover two distinct kinds of rule:
+
+- **Invariants** — properties of aggregate *state* that must always hold (layers 1, 6).
+- **Preconditions / guards** — requirements on *operations* or *inputs* that must be met for a call to be valid (layers 2–5).
+
+Understanding which layer is responsible for what prevents redundant checks and makes it clear where to add a new rule.
 
 ---
 
 ## Summary Table
 
-| # | Layer | Where | Timing | Consistency |
-|---|-------|-------|--------|-------------|
-| 1 | **Intra-invariant** | `verifyInvariants()` in aggregate | At UoW commit | Strong |
-| 2 | **Aggregate mutation guard** | Mutation methods (`remove()`, setters) | At mutation | Strong |
-| 3 | **Service-layer guard** | `*Service.java` | Before aggregate mutation | Strong |
-| 4 | **Functionality input validation** | `*Functionality*.java`, no DB read | Before any step | Strong (input) |
-| 5 | **Functionality cross-aggregate state guard** | `*Functionality*.java`, saga step reading another aggregate under semantic lock | In workflow step | Strong |
-| 6 | **Inter-invariant (event-driven)** | `getEventSubscriptions()` + event handler chain | Async (~1 s) | Eventual |
+| # | Layer | Rule type | Where | Timing | Consistency |
+|---|-------|-----------|-------|--------|-------------|
+| 1 | **Intra-invariant** | State / transition invariant | `verifyInvariants()` in aggregate | At UoW commit | Strong |
+| 2 | **Operation precondition** | Operation precondition | Mutation methods (`remove()`, mutators) | At mutation | Strong |
+| 3 | **Service-layer guard** | Guard | `*Service.java` | Before aggregate mutation | Strong |
+| 4 | **Functionality input validation** | Guard | `*Functionality*.java`, no DB read | Before any step | Strong (input) |
+| 5 | **Functionality cross-aggregate state guard** | Guard | `*Functionality*.java`, saga step reading another aggregate under semantic lock | In workflow step | Strong |
+| 6 | **Inter-invariant (event-driven)** | State invariant (eventual) | `getEventSubscriptions()` + event handler chain | Async (~1 s) | Eventual |
 
 ---
 
@@ -33,11 +38,26 @@ Consistency in this codebase is enforced at six distinct layers. Each layer has 
 - `ANSWER_BEFORE_START` — `applications/.../tournament/aggregate/Tournament.java:verifyInvariants()` — a tournament cannot accept answers before its start time.
 - `REMOVE_NO_STUDENTS` — `applications/.../execution/aggregate/Execution.java:verifyInvariants()` — a course execution cannot be removed if it still has enrolled students.
 
+### Variant: transition invariant via mutation timestamp
+
+Some invariants express a *transition* rule of the form "field X cannot change once condition Y is met", where Y involves wall-clock time. These cannot call `DateHandler.now()` directly inside `verifyInvariants()` because the check would be non-idempotent (the same aggregate state could pass at T1 and fail at T2), and in TCC the UoW calls `verifyInvariants()` a second time after a concurrent-version merge.
+
+**Pattern:** the setter stamps the mutation time as a persistent field (`lastModifiedTime`) before applying the change. `verifyInvariants()` then compares `this.lastModifiedTime` against the threshold — never calling `DateHandler.now()` inside the invariant check itself.
+
+Three rules apply when using this pattern:
+1. **Setters stamp time:** each guarded setter calls `setLastModifiedTime(DateHandler.now())` before modifying the field.
+2. **Copy constructor bypasses setters:** the copy constructor assigns guarded fields directly (e.g. `this.availableDate = other.getAvailableDate()`) so that copying an existing aggregate does not stamp a new `lastModifiedTime`. The copied `lastModifiedTime` is also assigned directly from `other`.
+3. **`verifyInvariants()` reads the stored time:** the invariant method uses `this.lastModifiedTime`, not `DateHandler.now()`.
+
+**Examples:**
+- `QUESTIONS_FINAL_AFTER_AVAILABLE_DATE` / `AVAILABLE_DATE_FINAL_AFTER_AVAILABLE_DATE` / `CONCLUSION_DATE_FINAL_AFTER_AVAILABLE_DATE` / `RESULTS_DATE_FINAL_AFTER_AVAILABLE_DATE` — `applications/.../quiz/aggregate/Quiz.java:invariantFieldsFinalAfterAvailableDate()` — once `lastModifiedTime > prev.availableDate`, the question set and date fields must be identical to the previous version.
+- `FINAL_AFTER_START` / `IS_CANCELED` — `applications/.../tournament/aggregate/Tournament.java:invariantFinalAfterStart()` and `invariantCancelledFieldsAreFinal()` — the same pattern for Tournament fields.
+
 ---
 
-## Layer 2 — Aggregate Mutation Guard
+## Layer 2 — Operation Precondition
 
-**Definition:** A check inside a mutation method (`remove()`, a setter, or a state-transition method) that rejects an illegal state change before it is applied to the aggregate.
+**Definition:** A check inside a mutation method that rejects a **logically invalid operation** — not an inconsistent aggregate state, but a call that makes no sense given the current data (e.g., removing an element that does not exist). These are preconditions on the *operation*, not invariants on the *state*.
 
 **Where it lives:** Mutation methods directly on the aggregate class.
 
@@ -45,8 +65,11 @@ Consistency in this codebase is enforced at six distinct layers. Each layer has 
 
 **Consistency:** Strong — an exception is thrown synchronously; the aggregate state is never dirtied.
 
+**Distinction from Layer 1:** A Layer 1 invariant expresses a property of the aggregate's state that must always hold. A Layer 2 precondition expresses a requirement of the *caller*. The same rule cannot be expressed as a Layer 1 invariant because after the operation succeeds there is nothing wrong with the resulting state — the element simply is not there.
+
 **Examples:**
-- `CANNOT_UPDATE_QUIZ` — `applications/.../quiz/aggregate/Quiz.java` setters — prevents quiz fields from being changed after the quiz has been answered.
+- `Execution.removeStudent()` — throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if the student is not enrolled. Operation precondition: you can only remove a student that is actually enrolled.
+- `QuizAnswer.addQuestionAnswer()` — throws `QUESTION_ALREADY_ANSWERED` if the question was already answered. Operation precondition: you can only answer a question once.
 
 ---
 
@@ -159,8 +182,8 @@ Request arrives
     (saga step reads another aggregate under semantic lock)
       │
       ▼
-[2] Aggregate mutation guard
-    (mutation method checks internal state before applying change)
+[2] Operation precondition
+    (mutation method checks caller precondition before applying change)
       │
       ▼
 [1] Intra-invariant check

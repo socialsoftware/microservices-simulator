@@ -119,7 +119,7 @@ For each consistency rule to enforce eventually:
 
 Each event produces: event class, subscription, handler, polling wiring, and update functionality (Sagas + TCC).
 
-Reference: `docs/concepts/invariants.md` Layer 6 for the upstream/downstream model.
+Reference: `docs/concepts/consistency-enforcement.md` Layer 6 for the upstream/downstream model.
 
 ---
 

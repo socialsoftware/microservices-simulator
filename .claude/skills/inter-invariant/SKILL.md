@@ -9,7 +9,7 @@ argument-hint: "<ConsumerAggregate> <condition-description>"
 You are implementing a new **inter-invariant** in the `applications/quizzes` module.
 An inter-invariant is a **Layer 6** consistency rule that spans multiple aggregates and is maintained via domain events (eventually consistent).
 
-> If uncertain which layer to use for this rule, consult `docs/concepts/invariants.md` before proceeding.
+> If uncertain which layer to use for this rule, consult `docs/concepts/consistency-enforcement.md` before proceeding.
 
 ---
 

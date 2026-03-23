@@ -95,7 +95,7 @@ microservices/{serviceName}/
 
 ## Request Lifecycle
 
-Happy-path flow from an HTTP request through UoW commit and into the async event tail. Invariant layer numbers refer to the taxonomy in [`concepts/invariants.md`](concepts/invariants.md).
+Happy-path flow from an HTTP request through UoW commit and into the async event tail. Invariant layer numbers refer to the taxonomy in [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md).
 
 ```
 HTTP Request
@@ -177,7 +177,7 @@ See [`concepts/sagas.md`](concepts/sagas.md) for how semantic locks are acquired
 
 Subscriptions encode a one-way dependency: the consumer caches state from the publisher. The upstream (publisher) aggregate must not subscribe to its own events and must not reference downstream aggregate types. Adding subscriptions in the wrong direction creates circular dependencies in the event pipeline.
 
-See [`concepts/invariants.md`](concepts/invariants.md) Layer 6 for the upstream/downstream model.
+See [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) Layer 6 for the upstream/downstream model.
 
 ---
 
@@ -203,7 +203,7 @@ DTOs are point-in-time snapshots of an aggregate's observable state. A Functiona
 
 ## Choosing the Right Invariant Layer
 
-For a quick decision, use this table. For full rationale and examples for each layer, see [`concepts/invariants.md`](concepts/invariants.md).
+For a quick decision, use this table. For full rationale and examples for each layer, see [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md).
 
 | Rule type | Right layer |
 |-----------|-------------|
@@ -224,6 +224,6 @@ For a quick decision, use this table. For full rationale and examples for each l
 | Sagas semantic locks | [`concepts/sagas.md`](concepts/sagas.md) |
 | TCC field-level merge | [`concepts/tcc.md`](concepts/tcc.md) |
 | Domain events | [`concepts/events.md`](concepts/events.md) |
-| Invariant taxonomy (full) | [`concepts/invariants.md`](concepts/invariants.md) |
+| Invariant taxonomy (full) | [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) |
 | Bootstrap a new application | `/new-application` skill |
 | Worked example | [`examples/cannot-delete-last-execution-with-content.md`](examples/cannot-delete-last-execution-with-content.md) |
