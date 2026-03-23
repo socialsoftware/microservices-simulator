@@ -7,12 +7,8 @@ spring:
       stream: remote
       grpc: remote
 
-  config:
-    import:
-      - "classpath:application-common.yaml"
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/${spring.application.name}db
+    url: jdbc:postgresql://localhost:5432/msdb
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: postgres
@@ -26,21 +22,12 @@ spring:
     show-sql: false
     open-in-view: false
 
-  cloud:
-    kubernetes:
-      enabled: false
-      discovery:
-        enabled: false
-
-eureka:
-  client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
-
-command:
-  gateway:
-    timeout-seconds: 10
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        ignore-exceptions:
+          - __your_app_exception_class__
 
 management:
   endpoints:
@@ -48,4 +35,53 @@ management:
       exposure:
         include: "health,beans"
 
+# Tech-agnostic remote configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: remote
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+
+  cloud:
+    stream:
+      default:
+        contentType: application/json
+      bindings:
+        # --- Single Event channel (all events go through here) ---
+        event-channel:
+          destination: event-channel
+        # --- Add event subscribers per service ---
+        # __serviceName__EventSubscriber-in-0:
+        #   destination: event-channel
+        #   group: __service_name__-service-group
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port:9090}
+
 # Add profile-specific sections (stream/grpc) and service imports as needed for your app.
+
+# Kubernetes specific
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+    import:
+      - "classpath:application-kubernetes.yaml"

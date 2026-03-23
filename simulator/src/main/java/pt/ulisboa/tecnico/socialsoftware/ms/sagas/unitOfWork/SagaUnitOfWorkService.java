@@ -185,4 +185,14 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         }
         eventRepository.save(event);
     }
+
+    @Override
+    protected String resolveServiceName(String aggregateType) {
+        String stripped = aggregateType.replace("Saga", "");
+        String result = Character.toLowerCase(stripped.charAt(0)) + stripped.substring(1);
+        if (result.chars().anyMatch(Character::isUpperCase)) {
+            logger.warn("Potential bad service name resolution for aggregate type {}: {}", aggregateType, result);
+        }
+        return result;
+    }
 }

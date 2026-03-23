@@ -28,8 +28,5 @@ public abstract class UnitOfWorkService<U extends UnitOfWork> {
     // checking of concurrent versions and the actual persist
     public abstract void commitAllObjects(Long commitVersion, List<Aggregate> aggregates);
 
-    protected String resolveServiceName(String aggregateType) {
-        String stripped = aggregateType.replaceAll("Saga", "").replaceAll("Causal", "");
-        return Character.toLowerCase(stripped.charAt(0)) + stripped.substring(1);
-    }
+    protected abstract String resolveServiceName(String aggregateType);
 }

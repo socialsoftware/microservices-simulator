@@ -7,9 +7,6 @@ spring:
       stream: remote
       grpc: remote
 
-  config:
-    import:
-      - "optional:classpath:application.yaml"
 
   datasource:
     url: jdbc:postgresql://localhost:5432/msdb
@@ -26,12 +23,6 @@ spring:
     show-sql: false
     open-in-view: false
 
-  groovy:
-    template:
-      check-template-location: false
-
-  maven:
-    basedir: "@project.basedir@"
 
 resilience4j:
   retry:
@@ -218,7 +209,6 @@ spring:
   config:
     activate:
       on-profile: kubernetes
+    import:
+      - "classpath:application-kubernetes.yaml"
 
-eureka:
-  client:
-    enabled: false
