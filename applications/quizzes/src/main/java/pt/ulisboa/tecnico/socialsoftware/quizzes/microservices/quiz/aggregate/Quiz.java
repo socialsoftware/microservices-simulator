@@ -13,11 +13,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subsc
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.CANNOT_UPDATE_QUIZ;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.INVARIANT_BREAK;
 
 /*
@@ -57,6 +57,13 @@ public abstract class Quiz extends Aggregate {
      */
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<Integer> studentsWithAnswers = new HashSet<>();
+    /*
+     * Timestamp captured at mutation time so that QUESTIONS_FINAL_AFTER_AVAILABLE_DATE,
+     * AVAILABLE_DATE_FINAL_AFTER_AVAILABLE_DATE, CONCLUSION_DATE_FINAL_AFTER_AVAILABLE_DATE,
+     * and RESULTS_DATE_FINAL_AFTER_AVAILABLE_DATE can be verified post-hoc inside
+     * verifyInvariants() without calling DateHandler.now() there.
+     */
+    private LocalDateTime lastModifiedTime;
 
     public Quiz() {
         this.quizCourseExecution = null;
@@ -79,15 +86,16 @@ public abstract class Quiz extends Aggregate {
     public Quiz(Quiz other) {
         super(other);
         setQuizCourseExecution(new QuizCourseExecution(other.getQuizCourseExecution()));
-
-        setQuizQuestions(other.getQuizQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()));
+        // Copy plain fields directly (bypasses setters so lastModifiedTime is not stamped on copy)
+        this.quizQuestions = other.getQuizQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet());
+        this.quizQuestions.forEach(quizQuestion -> quizQuestion.setQuiz(this));
         setTitle(other.getTitle());
         this.creationDate = other.getCreationDate();
-        setAvailableDate(other.getAvailableDate());
-        setConclusionDate(other.getConclusionDate());
-        setResultsDate(other.getResultsDate());
+        this.availableDate = other.getAvailableDate();
+        this.conclusionDate = other.getConclusionDate();
+        this.resultsDate = other.getResultsDate();
         setQuizType(other.getQuizType());
-        setQuizQuestions(other.getQuizQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()));
+        this.lastModifiedTime = other.getLastModifiedTime();
         this.studentsWithAnswers = new HashSet<>(other.getStudentsWithAnswers());
     }
 
@@ -97,9 +105,29 @@ public abstract class Quiz extends Aggregate {
                 (getConclusionDate().isEqual(getResultsDate()) || getConclusionDate().isBefore(getResultsDate()));
     }
 
+    /*
+     * QUESTIONS_FINAL_AFTER_AVAILABLE_DATE / AVAILABLE_DATE_FINAL_AFTER_AVAILABLE_DATE
+     * CONCLUSION_DATE_FINAL_AFTER_AVAILABLE_DATE / RESULTS_DATE_FINAL_AFTER_AVAILABLE_DATE
+     * lastModifiedTime > prev.availableDate => final questions, availableDate, conclusionDate, resultsDate
+     */
+    private boolean invariantFieldsFinalAfterAvailableDate() {
+        Quiz prev = (Quiz) getPrev();
+        if (prev != null && prev.getAvailableDate() != null && this.lastModifiedTime != null
+                && this.lastModifiedTime.isAfter(prev.getAvailableDate())) {
+            return Objects.equals(this.availableDate, prev.getAvailableDate())
+                    && Objects.equals(this.conclusionDate, prev.getConclusionDate())
+                    && Objects.equals(this.resultsDate, prev.getResultsDate())
+                    && this.quizQuestions.stream().map(QuizQuestion::getQuestionAggregateId)
+                            .collect(Collectors.toSet())
+                            .equals(prev.getQuizQuestions().stream().map(QuizQuestion::getQuestionAggregateId)
+                                    .collect(Collectors.toSet()));
+        }
+        return true;
+    }
+
     @Override
     public void verifyInvariants() {
-        if (!(invariantDateOrdering())) {
+        if (!(invariantDateOrdering() && invariantFieldsFinalAfterAvailableDate())) {
             throw new QuizzesException(INVARIANT_BREAK, getAggregateId());
         }
     }
@@ -145,12 +173,9 @@ public abstract class Quiz extends Aggregate {
 
     public void setAvailableDate(LocalDateTime availableDate) {
         /*
-            AVAILABLE_DATE_FINAL_AFTER_AVAILABLE_DATE
+         * AVAILABLE_DATE_FINAL_AFTER_AVAILABLE_DATE — enforced by verifyInvariants() using lastModifiedTime
          */
-        Quiz prev = (Quiz) getPrev();
-        if (prev != null && prev.getAvailableDate() != null && DateHandler.now().isAfter(prev.getAvailableDate())) {
-            throw new QuizzesException(CANNOT_UPDATE_QUIZ, getAggregateId());
-        }
+        setLastModifiedTime(DateHandler.now());
         this.availableDate = availableDate;
     }
 
@@ -160,12 +185,9 @@ public abstract class Quiz extends Aggregate {
 
     public void setConclusionDate(LocalDateTime conclusionDate) {
         /*
-            CONCLUSION_DATE_FINAL_AFTER_AVAILABLE_DATE
+         * CONCLUSION_DATE_FINAL_AFTER_AVAILABLE_DATE — enforced by verifyInvariants() using lastModifiedTime
          */
-        Quiz prev = (Quiz) getPrev();
-        if (prev != null && (DateHandler.now()).isAfter(prev.getAvailableDate())) {
-            throw new QuizzesException(CANNOT_UPDATE_QUIZ, getAggregateId());
-        }
+        setLastModifiedTime(DateHandler.now());
         this.conclusionDate = conclusionDate;
     }
 
@@ -175,12 +197,9 @@ public abstract class Quiz extends Aggregate {
 
     public void setResultsDate(LocalDateTime resultsDate) {
         /*
-            RESULTS_DATE_FINAL_AFTER_AVAILABLE_DATE
+         * RESULTS_DATE_FINAL_AFTER_AVAILABLE_DATE — enforced by verifyInvariants() using lastModifiedTime
          */
-        Quiz prev = (Quiz) getPrev();
-        if(prev != null && (DateHandler.now()).isAfter(prev.getAvailableDate())) {
-            throw new QuizzesException(CANNOT_UPDATE_QUIZ, getAggregateId());
-        }
+        setLastModifiedTime(DateHandler.now());
         this.resultsDate = resultsDate;
     }
 
@@ -199,12 +218,9 @@ public abstract class Quiz extends Aggregate {
 
     public void setQuizQuestions(Set<QuizQuestion> quizQuestions) {
         /*
-            QUESTIONS_FINAL_AFTER_AVAILABLE_DATE
+         * QUESTIONS_FINAL_AFTER_AVAILABLE_DATE — enforced by verifyInvariants() using lastModifiedTime
          */
-        Quiz prev = (Quiz) getPrev();
-        if (prev != null && DateHandler.now().isAfter(prev.getAvailableDate())) {
-            throw new QuizzesException(CANNOT_UPDATE_QUIZ, getAggregateId());
-        }
+        setLastModifiedTime(DateHandler.now());
         this.quizQuestions = quizQuestions;
         this.quizQuestions.forEach(quizQuestion -> quizQuestion.setQuiz(this));
     }
@@ -256,5 +272,13 @@ public abstract class Quiz extends Aggregate {
 
     public boolean hasStudentWithAnswer(Integer studentAggregateId) {
         return this.studentsWithAnswers.contains(studentAggregateId);
+    }
+
+    public LocalDateTime getLastModifiedTime() {
+        return lastModifiedTime;
+    }
+
+    public void setLastModifiedTime(LocalDateTime lastModifiedTime) {
+        this.lastModifiedTime = lastModifiedTime;
     }
 }
