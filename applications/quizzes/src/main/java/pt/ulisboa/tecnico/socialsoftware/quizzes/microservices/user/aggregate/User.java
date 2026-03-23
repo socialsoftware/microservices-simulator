@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.INVARIANT_BREAK;
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.USER_ACTIVE;
 
 /*
     INTRA-INVARIANTS:
@@ -72,11 +71,9 @@ public abstract class User extends Aggregate {
         }
     }
 
+    @Override
     public void remove() {
-        if (isActive()) {
-            throw new QuizzesException(USER_ACTIVE, this.getAggregateId());
-        }
-        setState(AggregateState.DELETED);
+        super.remove();
     }
 
     public String getName() {
