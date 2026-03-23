@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
+import pt.ulisboa.tecnico.socialsoftware.ms.tracing.TraceService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
@@ -52,7 +52,7 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
     private TournamentEventHandling tournamentEventHandling
 
     @Autowired
-    private LocalCommandGateway commandGateway;
+    private LocalCommandGateway commandGateway
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto

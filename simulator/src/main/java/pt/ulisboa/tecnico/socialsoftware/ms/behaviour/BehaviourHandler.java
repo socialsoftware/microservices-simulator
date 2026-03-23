@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.utils;
+package pt.ulisboa.tecnico.socialsoftware.ms.behaviour;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.utils;
+package pt.ulisboa.tecnico.socialsoftware.ms.tracing;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;

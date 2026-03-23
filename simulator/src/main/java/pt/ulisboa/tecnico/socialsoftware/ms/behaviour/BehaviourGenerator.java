@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.utils;
+package pt.ulisboa.tecnico.socialsoftware.ms.behaviour;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 

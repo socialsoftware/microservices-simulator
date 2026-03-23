@@ -5,8 +5,7 @@ import org.slf4j.LoggerFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceManager;
+import pt.ulisboa.tecnico.socialsoftware.ms.tracing.TraceManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;

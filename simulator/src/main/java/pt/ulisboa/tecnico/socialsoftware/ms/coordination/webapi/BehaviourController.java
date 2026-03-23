@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService;
+import pt.ulisboa.tecnico.socialsoftware.ms.behaviour.BehaviourService;
 
 import java.io.File;
 
