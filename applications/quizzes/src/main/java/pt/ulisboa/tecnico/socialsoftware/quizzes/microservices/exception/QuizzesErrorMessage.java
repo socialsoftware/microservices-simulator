@@ -55,7 +55,6 @@ public final class QuizzesErrorMessage {
     public static final String COURSE_EXECUTION_MISSING_END_DATE = "Course execution requires an end date.";
 
     public static final String COURSE_EXECUTION_INVALID = "Course execution aggregate id %d  and version %d breaks invariants.";
-    public static final String CANNOT_DELETE_COURSE_EXECUTION = "Cannot delete course execution with aggregate id %d.";
     public static final String CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT = "Cannot delete the last course execution %d of a course that still has questions.";
 
     public static final String DUPLICATE_COURSE_EXECUTION = "Course execution with acronym %s and academic term %s already exists.";

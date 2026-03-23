@@ -46,7 +46,6 @@ Consistency in this codebase is enforced at six distinct layers. Each layer has 
 **Consistency:** Strong — an exception is thrown synchronously; the aggregate state is never dirtied.
 
 **Examples:**
-- `CANNOT_DELETE_COURSE_EXECUTION` — `applications/.../execution/aggregate/Execution.java:remove()` — prevents deletion if the execution is in a state that disallows it.
 - `CANNOT_UPDATE_QUIZ` — `applications/.../quiz/aggregate/Quiz.java` setters — prevents quiz fields from being changed after the quiz has been answered.
 
 ---

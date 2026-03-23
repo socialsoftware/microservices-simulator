@@ -18,7 +18,6 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 /*
     INTRA-INVARIANTS
         REMOVE_NO_STUDENTS
-        CANNOT_REMOVE_IF_STUDENTS
         NO_DUPLICATE_COURSE_EXECUTION
     INTER-INVARIANTS
         USER_EXISTS
@@ -138,12 +137,6 @@ public abstract class Execution extends Aggregate {
 
     @Override
     public void remove() {
-        /*
-         * CANNOT_REMOVE_IF_STUDENTS
-         */
-        if (!getStudents().isEmpty()) {
-            throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_COURSE_EXECUTION, getAggregateId());
-        }
         super.remove();
     }
 
