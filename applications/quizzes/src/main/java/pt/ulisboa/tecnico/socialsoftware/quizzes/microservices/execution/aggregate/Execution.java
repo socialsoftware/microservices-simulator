@@ -18,7 +18,6 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 /*
     INTRA-INVARIANTS
         REMOVE_NO_STUDENTS
-        ALL_STUDENTS_ARE_ACTIVE
         CANNOT_REMOVE_IF_STUDENTS
         NO_DUPLICATE_COURSE_EXECUTION
     INTER-INVARIANTS
@@ -130,18 +129,9 @@ public abstract class Execution extends Aggregate {
         return true;
     }
 
-    public boolean allStudentsAreActive() {
-        for (CourseExecutionStudent student : getStudents()) {
-            if (!student.isActive()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     @Override
     public void verifyInvariants() {
-        if (!(removedNoStudents() /* && allStudentsAreActive() */)) {
+        if (!(removedNoStudents())) {
             throw new QuizzesException(QuizzesErrorMessage.INVARIANT_BREAK, getAggregateId());
         }
     }
