@@ -58,8 +58,9 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
         // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
         SagaStep getCourseStep = new SagaStep("getCourseStep", () -> {
             GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), this.courseExecution.getCourseAggregateId());
-            getCourseByIdCommand.setSemanticLock(CourseSagaState.READ_COURSE);
-            CourseDto courseDto = (CourseDto) commandGateway.send(getCourseByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getCourseByIdCommand);
+            sagaCommand.setSemanticLock(CourseSagaState.READ_COURSE);
+            CourseDto courseDto = (CourseDto) commandGateway.send(sagaCommand);
             this.course = courseDto;
 
             if (courseDto.getCourseQuestionCount() > 0 && courseDto.getCourseExecutionCount() == 1) {
@@ -69,8 +70,9 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
 
         getCourseStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), this.course.getAggregateId());
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
         }, unitOfWork);
 
         SagaStep removeCourseExecutionStep = new SagaStep("removeCourseExecutionStep", () -> {
