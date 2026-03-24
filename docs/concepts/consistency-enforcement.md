@@ -2,10 +2,10 @@
 
 ## Introduction
 
-Consistency in this codebase is enforced at six distinct layers. Each layer has a different scope (single aggregate vs. cross-aggregate), timing (before mutation, at commit, or asynchronously), and consistency guarantee (strong or eventual). The layers cover two distinct kinds of rule:
+Consistency in this codebase is enforced at five distinct layers. Each layer has a different scope (single aggregate vs. cross-aggregate), timing (before mutation, at commit, or asynchronously), and consistency guarantee (strong or eventual). The layers cover two distinct kinds of rule:
 
-- **Invariants** — properties of aggregate *state* that must always hold (layers 1, 6).
-- **Preconditions / guards** — requirements on *operations* or *inputs* that must be met for a call to be valid (layers 2–5).
+- **Invariants** — properties of aggregate *state* that must always hold (layers 1, 5).
+- **Preconditions / guards** — requirements on *operations* or *inputs* that must be met for a call to be valid (layers 2–4).
 
 Understanding which layer is responsible for what prevents redundant checks and makes it clear where to add a new rule.
 
@@ -17,10 +17,9 @@ Understanding which layer is responsible for what prevents redundant checks and 
 |---|-------|-----------|-------|--------|-------------|
 | 1 | **Intra-invariant** | State / transition invariant | `verifyInvariants()` in aggregate | At UoW commit | Strong |
 | 2 | **Operation precondition** | Operation precondition | Mutation methods (`remove()`, mutators) | At mutation | Strong |
-| 3 | **Service-layer guard** | Guard | `*Service.java` | Before aggregate mutation | Strong |
-| 4 | **Functionality input validation** | Guard | `*Functionality*.java`, no DB read | Before any step | Strong (input) |
-| 5 | **Functionality cross-aggregate state guard** | Guard | `*Functionality*.java`, saga step reading another aggregate under semantic lock | In workflow step | Strong |
-| 6 | **Inter-invariant (event-driven)** | State invariant (eventual) | `getEventSubscriptions()` + event handler chain | Async (~1 s) | Eventual |
+| 3 | **Service-layer guard** | Guard | `*Functionalities.java` / `*Service.java`, before profile switch | Before aggregate mutation | Strong |
+| 4 | **Functionality cross-aggregate state guard** | Guard | `*Functionality*.java`, saga step reading another aggregate under semantic lock | In workflow step | Strong |
+| 5 | **Inter-invariant (event-driven)** | State invariant (eventual) | `getEventSubscriptions()` + event handler chain | Async (~1 s) | Eventual |
 
 ---
 
@@ -75,36 +74,24 @@ Three rules apply when using this pattern:
 
 ## Layer 3 — Service-Layer Guard
 
-**Definition:** A guard check in the service class that validates cross-entity or state preconditions before creating or mutating an aggregate. Reads from the database to verify preconditions.
+**Definition:** A guard that validates preconditions before the operation reaches any workflow or aggregate. Covers both pure input validation (no DB read required) and state preconditions that require a DB read. Lives in the `*Functionalities.java` coordinator (before the profile `switch`) or in `*Service.java`.
 
-**Where it lives:** `*Service.java` (e.g., `ExecutionService.java`).
+Input validation must **never** live inside `*FunctionalitySagas.java` or `*FunctionalityTCC.java`: placing it there forces duplication across profiles and mixes orchestration concerns with validation.
 
-**When it runs:** Before the aggregate is created or mutated; inside the same UoW transaction as the operation.
+**Where it lives:** `*Functionalities.java` (before the `switch` on workflow type) for input validation; `*Service.java` for DB-backed preconditions.
 
-**Consistency:** Strong — throws an exception that aborts the UoW before any aggregate is touched.
+**When it runs:** Before any UoW or aggregate is created; the operation is rejected before any workflow step executes.
+
+**Consistency:** Strong — throws an exception that aborts the call before any aggregate is touched.
 
 **Examples:**
+- `USER_MISSING_NAME` — `applications/.../execution/coordination/functionalities/ExecutionFunctionalities.java` — rejects the call if the supplied name is null, before the Sagas/TCC switch.
 - `DUPLICATE_COURSE_EXECUTION` — `applications/.../execution/service/ExecutionService.java` — rejects creation of a course execution that already exists.
 - `INACTIVE_USER` — `applications/.../execution/service/ExecutionService.java` — blocks enrollment of an inactive user.
 
 ---
 
-## Layer 4 — Functionality Input Validation
-
-**Definition:** Validation of the operation's input parameters at the start of the functionality, before any step reads from the database. Checks things that can be determined from the command object alone.
-
-**Where it lives:** `*Functionality*.java` (Sagas or TCC), typically in the constructor or a dedicated validation block at the top of `executeWorkflow()`.
-
-**When it runs:** Before any workflow step; no aggregate is loaded.
-
-**Consistency:** Strong (input only) — the operation is rejected immediately on invalid input.
-
-**Examples:**
-- `USER_MISSING_NAME` — `applications/.../user/coordination/sagas/UpdateStudentNameFunctionalitySagas.java` — the new name must not be blank; validated from the command before any step executes.
-
----
-
-## Layer 5 — Functionality Cross-Aggregate State Guard
+## Layer 4 — Functionality Cross-Aggregate State Guard
 
 **Definition:** A workflow step that loads a *different* aggregate (not the operation's primary target) under a semantic lock (Sagas) or causal snapshot (TCC) to verify a cross-aggregate precondition before the mutating step is allowed to run.
 
@@ -120,7 +107,7 @@ Three rules apply when using this pattern:
 
 ---
 
-## Layer 6 — Inter-Invariant (Event-Driven)
+## Layer 5 — Inter-Invariant (Event-Driven)
 
 **Definition:** A consistency rule that spans multiple aggregates and is maintained via domain events. The consumer aggregate caches a local copy of the relevant publisher state, kept eventually consistent by asynchronous event polling.
 
@@ -170,15 +157,11 @@ Order of enforcement layers within a single operation:
 Request arrives
       │
       ▼
-[4] Functionality input validation
-    (command fields only, no DB read)
-      │
-      ▼
 [3] Service-layer guard
-    (DB read of own aggregate type)
+    (input validation or DB read — in *Functionalities.java before switch, or *Service.java)
       │
       ▼
-[5] Functionality cross-aggregate state guard
+[4] Functionality cross-aggregate state guard
     (saga step reads another aggregate under semantic lock)
       │
       ▼
@@ -193,8 +176,8 @@ Request arrives
     commit
       │
       ▼  (async, ~1 s poll interval)
-[6] Inter-invariant event handler
+[5] Inter-invariant event handler
     (consumer caches publisher state update)
 ```
 
-Layers 1–5 are synchronous and strong. Layer 6 is asynchronous and eventually consistent.
+Layers 1–4 are synchronous and strong. Layer 5 is asynchronous and eventually consistent.
