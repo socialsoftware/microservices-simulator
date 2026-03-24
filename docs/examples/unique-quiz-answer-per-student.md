@@ -11,50 +11,50 @@ for all q in Quiz:
 
 ---
 
-## Current Implementation
+## Current Implementation (Option A — Layer 3 Service Guard)
 
-The rule is enforced via **two coupled layers**:
+The rule is enforced via a **synchronous repository check** in `QuizAnswerService.startQuiz()`, before any aggregate is created:
 
-- **Layer 6 (inter-invariant):** The `Quiz` aggregate subscribes to `CreateQuizAnswerEvent` and caches a local `studentsWithAnswers: Set<Integer>`, updated by the async event poll (~1 s interval).
-- **Layer 5 (cross-aggregate state guard):** `StartQuizFunctionalitySagas` has a `checkUniqueAnswerStep` that sends `AssertStudentHasNoAnswerCommand` to the Quiz service. `QuizService.assertStudentHasNoAnswer()` loads the Quiz aggregate and checks `quiz.hasStudentWithAnswer(studentId)`.
+```java
+// UNIQUE_QUIZ_ANSWER_PER_STUDENT (Layer 3 guard)
+if (quizAnswerRepository.existsByQuizIdAndStudentId(quizAggregateId, userDto.getAggregateId())) {
+    throw new QuizzesException(QuizzesErrorMessage.QUIZ_ALREADY_STARTED_BY_STUDENT,
+            userDto.getAggregateId(), quizAggregateId);
+}
+```
+
+`QuizAnswerService` is the authoritative owner of the `QuizAnswer` table. The check reads from the same DB transaction, so there is no staleness window and no cross-service coordination is needed.
 
 ### Data Flow
 
 ```
-StartQuizFunctionality (Answer service)     QuizService             Quiz aggregate
-        │                                       │                        │
-        │  checkUniqueAnswerStep                │                        │
-        │──► AssertStudentHasNoAnswerCommand     │                        │
-        │                                       │ assertStudentHasNoAnswer()
-        │                                       │──► load Quiz           │
-        │                                       │    hasStudentWithAnswer() = false
-        │                                       │    (ok, proceed)       │
-        │  startQuizStep                        │                        │
-        │──────────────────────────────────────────────────────────────► │
-        │                          startQuiz() registers CreateQuizAnswerEvent
-        │                                       │    (event not yet processed)
-        │                                       │                        │
-        │  [concurrent 2nd call, same student]  │                        │
-        │──► AssertStudentHasNoAnswerCommand     │                        │
-        │                                       │    hasStudentWithAnswer() = false ← stale!
-        │                                       │    (ok, proceed — BUG) │
-        │                                       │                        │
-        │  [~1 s later: event poll runs]        │                        │
-        │                             Quiz.studentsWithAnswers updated   │
-        │                                       │                        │
-        │  [3rd call, after poll]               │                        │
-        │──► AssertStudentHasNoAnswerCommand     │                        │
-        │                                       │    hasStudentWithAnswer() = true
-        │                                       │──► throws QUIZ_ALREADY_STARTED_BY_STUDENT
+StartQuizFunctionality (Answer service)     QuizAnswerService
+        │                                        │
+        │  startQuiz()                           │
+        │──────────────────────────────────────► │
+        │                     existsByQuizIdAndStudentId() → false
+        │                     (ok, proceed — create QuizAnswer)
+        │                                        │
+        │  [concurrent 2nd call, same student]   │
+        │──────────────────────────────────────► │
+        │                     existsByQuizIdAndStudentId() → true
+        │──────────────────────────────────────► throws QUIZ_ALREADY_STARTED_BY_STUDENT
 ```
 
 ---
 
-## The Core Problem
+## Previous Implementation (Broken — removed)
 
-**Layer 5 is backed by eventually-consistent state, so its strong-consistency guarantee does not hold.**
+The rule was previously enforced via **two coupled layers**:
 
-Layer 5 guards are supposed to be strongly consistent: a named workflow step reads another aggregate under a semantic lock, blocking concurrent conflicting mutations. But here, the data being read (`studentsWithAnswers`) is a Layer 6 cache that lags behind reality by up to one poll interval.
+- **Layer 6 (inter-invariant):** The `Quiz` aggregate subscribed to `CreateQuizAnswerEvent` and cached a local `studentsWithAnswers: Set<Integer>`, updated by the async event poll (~1 s interval).
+- **Layer 5 (cross-aggregate state guard):** `StartQuizFunctionalitySagas` had a `checkUniqueAnswerStep` that sent `AssertStudentHasNoAnswerCommand` to the Quiz service. `QuizService.assertStudentHasNoAnswer()` loaded the Quiz aggregate and checked `quiz.hasStudentWithAnswer(studentId)`.
+
+### Why it was broken
+
+**Layer 5 was backed by eventually-consistent state, so its strong-consistency guarantee did not hold.**
+
+Layer 5 guards are supposed to be strongly consistent: a named workflow step reads another aggregate under a semantic lock, blocking concurrent conflicting mutations. But the data being read (`studentsWithAnswers`) was a Layer 6 cache that lagged behind reality by up to one poll interval.
 
 The race:
 
@@ -64,83 +64,29 @@ t=0   startQuiz() #2 → guard passes (cache still empty, event not yet processe
 t=1s  event poll runs → cache updated → invariant already violated
 ```
 
-The guard becomes reliable only after the event has been processed. This is documented explicitly in the Consistency Note of `unique-quiz-answer-per-student.md` and is worked around in tests by calling `quizEventHandling.handleCreateQuizAnswerEvents()` manually.
-
-Additionally, the Layer 6 infrastructure (event class, subscription, handler, event polling, event processing, update functionality) exists solely to maintain a cache of data that the `QuizAnswer` service already owns natively. The complexity is not justified.
+Additionally, the Layer 6 infrastructure (event class, subscription, handler, event polling, event processing, update functionality) existed solely to maintain a cache of data that the `QuizAnswer` service already owned natively. The complexity was not justified.
 
 ---
 
-## Design Alternatives
+## Why Option A Is the Right Choice for This Rule
 
-### Option A — Layer 3 guard in `QuizAnswerService` (recommended)
+This invariant is a **local uniqueness constraint on a table that one service owns exclusively**. The `QuizAnswer` service is the sole writer of the `QuizAnswer` table — no other service can create a `QuizAnswer`. That means:
 
-Query the repository directly before creating a new `QuizAnswer`, within the same Unit of Work:
+| Property | Consequence |
+|---|---|
+| Single owner | No cross-service read is needed; the check is purely local |
+| Same DB transaction | The read and write are atomic — no staleness window |
+| No semantic lock needed | There is no other aggregate to lock; the guard lives in the authoritative service |
 
-```java
-// QuizAnswerService.startQuiz()
-if (quizAnswerRepository.existsByQuizIdAndStudentId(quizAggregateId, studentAggregateId)) {
-    throw new QuizzesException(QUIZ_ALREADY_STARTED_BY_STUDENT, studentAggregateId, quizAggregateId);
-}
-```
+Layer 3 is correct here precisely because the uniqueness constraint lives entirely within the authority of one service. A Layer 4 or Layer 6 approach only makes sense when the state you need to read belongs to a *different* service — which is not the case here.
 
-This is the authoritative service — it owns the `QuizAnswer` table. The check reads from the same DB transaction, so there is no staleness window.
+### Design alternatives considered
 
-The entire Layer 6 wiring (`CreateQuizAnswerEvent` subscription on `Quiz`, `studentsWithAnswers` field, `QuizSubscribesCreateQuizAnswer`, `CreateQuizAnswerEventHandler`, `handleCreateQuizAnswerEvents()`, `QuizEventProcessing`, `AddStudentToQuizAnswersFunctionality*`) can be removed.
+| Option | Layer | Where | Consistency | Complexity | Decision |
+|--------|-------|-------|-------------|------------|----------|
+| **A — repository check (chosen)** | L3 | `QuizAnswerService.startQuiz()` | Strong | Low | Eliminates all L5 + L6 wiring |
+| **B — DB unique constraint** | DB | `QuizAnswer` table | Strongest | Low (additive) | Useful as a safety net on top of A |
+| **C — saga step on own repository** | L5 | `QuizAnswerService` command | Strong | Medium | Keeps the step visible in workflow graph, but adds a dispatch hop for a check the service can do locally |
+| **Previous — saga step on Quiz cache** | L5 (backed by L6) | `QuizService` + `Quiz` aggregate | Eventually consistent | High | **Broken** — wrong layer for the data source |
 
-The `checkUniqueAnswerStep` in `StartQuizFunctionalitySagas` and `AssertStudentHasNoAnswerCommand` can also be removed.
-
-| Consistency | Complexity | Notes |
-|-------------|------------|-------|
-| Strong | Low | Eliminates all L5 + L6 wiring for this rule |
-
----
-
-### Option B — DB unique constraint (safety net)
-
-Add a unique constraint on `(quiz_id, student_id)` in the `QuizAnswer` table:
-
-```sql
-ALTER TABLE quiz_answer ADD CONSTRAINT uq_quiz_student UNIQUE (quiz_id, student_id);
-```
-
-The database rejects the second insert unconditionally. A constraint violation is caught and translated into a `QuizzesException(QUIZ_ALREADY_STARTED_BY_STUDENT)`.
-
-This is the strongest possible guarantee, but it surfaces as a DB exception rather than a domain exception. Best used **in addition to Option A** as a last-resort safety net.
-
-| Consistency | Complexity | Notes |
-|-------------|------------|-------|
-| Strongest (DB-level) | Low (additive) | Translate `DataIntegrityViolationException` to domain exception |
-
----
-
-### Option C — Fix Layer 5 without Layer 6 (intermediate)
-
-Keep the `checkUniqueAnswerStep` saga step but have it query the `QuizAnswer` repository directly, without relying on the Quiz cache:
-
-```java
-// QuizAnswerService.assertStudentHasNoAnswer() — reads its own repository
-if (quizAnswerRepository.existsByQuizIdAndStudentId(quizAggregateId, studentAggregateId)) {
-    throw new QuizzesException(QUIZ_ALREADY_STARTED_BY_STUDENT, ...);
-}
-```
-
-The command is now routed to the `QuizAnswer` service rather than the `Quiz` service. This eliminates the staleness problem and removes the need for the Layer 6 cache.
-
-Compared to Option A, this keeps the check as an explicit named saga step (more visible in the workflow graph) at the cost of an extra command dispatch hop for a check that the service could perform locally.
-
-| Consistency | Complexity | Notes |
-|-------------|------------|-------|
-| Strong | Medium | Removes L6, keeps the L5 step visible in workflow |
-
----
-
-## Enforcement Summary
-
-| Option | Layer | Where | Consistency | Complexity |
-|--------|-------|-------|-------------|------------|
-| **Current** | L5 (backed by L6 cache) | `QuizService` + `Quiz` aggregate | Eventually consistent (broken) | High |
-| **A (recommended)** | L3 | `QuizAnswerService.startQuiz()` | Strong | Low |
-| **B (safety net)** | DB constraint | `QuizAnswer` table | Strongest | Low (additive) |
-| **C (alternative)** | L5 (own repository) | `QuizAnswerService` command | Strong | Medium |
-
-The root cause of the current design's failure is using a Layer 5 guard to enforce a rule while reading Layer 6 (eventually-consistent) state. Any correct fix must read from an authoritative, synchronously-updated source.
+Option B (DB unique constraint) can be added on top of A as a last-resort safety net; it does not replace A since a raw `DataIntegrityViolationException` is not a domain exception.

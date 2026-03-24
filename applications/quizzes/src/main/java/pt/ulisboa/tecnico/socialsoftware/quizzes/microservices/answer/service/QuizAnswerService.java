@@ -9,7 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.CreateQuizAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.QuizAnswerQuestionAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
@@ -73,6 +72,11 @@ public class QuizAnswerService {
                     courseExecutionAggregateId);
         }
 
+        // UNIQUE_QUIZ_ANSWER_PER_STUDENT (Layer 3 guard)
+        if (quizAnswerRepository.existsByQuizIdAndStudentId(quizAggregateId, userDto.getAggregateId())) {
+            throw new QuizzesException(QuizzesErrorMessage.QUIZ_ALREADY_STARTED_BY_STUDENT, userDto.getAggregateId(), quizAggregateId);
+        }
+
         // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the quiz
         QuizAnswer quizAnswer = quizAnswerFactory.createQuizAnswer(aggregateId,
                 new AnswerCourseExecution(quizDto.getCourseExecutionAggregateId(), quizDto.getCourseExecutionVersion()),
@@ -81,8 +85,6 @@ public class QuizAnswerService {
         quizAnswer.setAnswerDate(DateHandler.now());
 
         unitOfWorkService.registerChanged(quizAnswer, unitOfWork);
-        unitOfWorkService.registerEvent(
-                new CreateQuizAnswerEvent(quizAggregateId, userDto.getAggregateId()), unitOfWork);
         return quizAnswerFactory.createQuizAnswerDto(quizAnswer);
     }
 

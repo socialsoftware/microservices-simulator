@@ -11,7 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.eventProcessing.QuizEventProcessing;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.handlers.CreateQuizAnswerEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.handlers.DeleteCourseExecutionEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.handlers.DeleteQuestionEventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.handlers.UpdateQuestionEventHandler;
@@ -52,12 +51,4 @@ public class QuizEventHandling implements EventHandling {
                 new DeleteQuestionEventHandler(quizRepository, quizEventProcessing));
     }
 
-    /*
-        UNIQUE_QUIZ_ANSWER_PER_STUDENT
-     */
-    @Scheduled(fixedDelay = 1000)
-    public void handleCreateQuizAnswerEvents() {
-        eventApplicationService.handleSubscribedEvent(CreateQuizAnswerEvent.class,
-                new CreateQuizAnswerEventHandler(quizRepository, quizEventProcessing));
-    }
 }

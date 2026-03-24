@@ -19,4 +19,9 @@ public class QuizAnswerCustomRepositoryTCC implements QuizAnswerCustomRepository
     public Optional<Integer> findQuizAnswerIdByQuizIdAndUserId(Integer quizAggregateId, Integer studentAggregateId) {
         return quizAnswerRepository.findQuizAnswerIdByQuizIdAndUserIdForTCC(quizAggregateId, studentAggregateId);
     }
+
+    @Override
+    public boolean existsByQuizIdAndStudentId(Integer quizAggregateId, Integer studentAggregateId) {
+        return quizAnswerRepository.existsByQuizIdAndStudentIdForTCC(quizAggregateId, studentAggregateId);
+    }
 }

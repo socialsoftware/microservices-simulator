@@ -9,7 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer.StartQuizCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.AssertStudentHasNoAnswerCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.quiz.GetQuizByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
@@ -56,23 +55,16 @@ public class StartQuizFunctionalitySagas extends WorkflowFunctionality {
             this.setUserDto(userDto);
         });
 
-        SagaStep checkUniqueAnswerStep = new SagaStep("checkUniqueAnswerStep", () -> {
-            AssertStudentHasNoAnswerCommand assertCommand = new AssertStudentHasNoAnswerCommand(unitOfWork,
-                    ServiceMapping.QUIZ.getServiceName(), quizAggregateId, userAggregateId);
-            commandGateway.send(assertCommand);
-        });
-
         SagaStep startQuizStep = new SagaStep("startQuizStep", () -> {
             StartQuizCommand startQuizCommand = new StartQuizCommand(unitOfWork,
                     ServiceMapping.ANSWER.getServiceName(), quizAggregateId, courseExecutionAggregateId,
                     this.getQuizDto(), this.getUserDto());
             QuizAnswerDto quizAnswerDto = (QuizAnswerDto) commandGateway.send(startQuizCommand);
             this.setQuizAnswerDto(quizAnswerDto);
-        }, new ArrayList<>(Arrays.asList(getQuizStep, getUserStep, checkUniqueAnswerStep)));
+        }, new ArrayList<>(Arrays.asList(getQuizStep, getUserStep)));
 
         workflow.addStep(getQuizStep);
         workflow.addStep(getUserStep);
-        workflow.addStep(checkUniqueAnswerStep);
         workflow.addStep(startQuizStep);
     }
 

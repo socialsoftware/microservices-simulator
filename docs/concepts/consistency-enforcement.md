@@ -88,6 +88,16 @@ Input validation must **never** live inside `*FunctionalitySagas.java` or `*Func
 - `USER_MISSING_NAME` — `applications/.../execution/coordination/functionalities/ExecutionFunctionalities.java` — rejects the call if the supplied name is null, before the Sagas/TCC switch.
 - `DUPLICATE_COURSE_EXECUTION` — `applications/.../execution/service/ExecutionService.java` — rejects creation of a course execution that already exists.
 - `INACTIVE_USER` — `applications/.../execution/service/ExecutionService.java` — blocks enrollment of an inactive user.
+- `QUIZ_ALREADY_STARTED_BY_STUDENT` — `applications/.../answer/service/QuizAnswerService.java` — rejects a second `startQuiz()` call for the same (student, quiz) pair via `quizAnswerRepository.existsByQuizIdAndStudentId(...)`.
+
+### When to use Layer 3 for uniqueness rules
+
+A **local uniqueness constraint** on a table that one service owns exclusively belongs at Layer 3, not Layer 4 or 5. The key question is: *who owns the data being checked?*
+
+- If the data lives in the **same service** making the call → use a Layer 3 repository read (`*Service.java`). The check is local, transactionally atomic, and requires no cross-service coordination.
+- If the data lives in a **different service** → use a Layer 4 workflow step (under semantic lock) to read the remote aggregate.
+
+Placing a uniqueness check at Layer 5 (event cache) when the authoritative data is local is a common mistake: the cache lags behind reality and the "strong" Layer 5 guard becomes eventually consistent in practice, allowing duplicate inserts in a narrow race window. See [`docs/examples/unique-quiz-answer-per-student.md`](../examples/unique-quiz-answer-per-student.md) for a full case study of this failure mode and the Layer 3 fix.
 
 ---
 

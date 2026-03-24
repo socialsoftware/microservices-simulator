@@ -11,7 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.functionalities.QuizFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.QuizEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
@@ -26,8 +25,6 @@ class StartQuizTest extends QuizzesSpockTest {
     private QuizFunctionalities quizFunctionalities
     @Autowired
     private QuizAnswerFunctionalities quizAnswerFunctionalities
-    @Autowired
-    private QuizEventHandling quizEventHandling
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userDto
@@ -67,9 +64,6 @@ class StartQuizTest extends QuizzesSpockTest {
         given: "the student starts the quiz once"
         quizAnswerFunctionalities.startQuiz(quizDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
-        and: "the CreateQuizAnswerEvent is processed by the Quiz aggregate"
-        quizEventHandling.handleCreateQuizAnswerEvents()
-
         when: "the student tries to start the same quiz again"
         quizAnswerFunctionalities.startQuiz(quizDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
 
@@ -84,7 +78,6 @@ class StartQuizTest extends QuizzesSpockTest {
 
         and: "the first student starts the quiz"
         quizAnswerFunctionalities.startQuiz(quizDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
-        quizEventHandling.handleCreateQuizAnswerEvents()
 
         when: "the second student starts the same quiz"
         quizAnswerFunctionalities.startQuiz(quizDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto2.getAggregateId())
