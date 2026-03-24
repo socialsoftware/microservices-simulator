@@ -22,13 +22,15 @@ class FullSweepNetworkUser(HttpUser):
                     "question", "topic", "answer"]}
             ],
             "delays": {
+                "USE_CSV_INJECTION": False,
+                "USE_RANDOM_DISTRIBUTIONS": True,
                 "intraservice": {"uni": [1, 2]},
                 "intranode":    {"uni": [5, 10]},
                 "internode":    {"uni": [10, 15]}
             }
         }
         try:
-            SimulatorAdminUtils.start_stochastic(config)
+            SimulatorAdminUtils.start_and_load(config)
             logging.info("### Setup Complete ###")
         except Exception as e:
             logging.error(f"### Setup Failed: {e}")

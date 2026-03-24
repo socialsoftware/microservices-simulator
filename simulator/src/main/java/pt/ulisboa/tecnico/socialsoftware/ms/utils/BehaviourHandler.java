@@ -16,12 +16,6 @@ public class BehaviourHandler {
     private static String directory;
     private static Map<String, Integer> funcRetry = new HashMap<>();
     private static final String REPORT_FILE = "BehaviourReport.txt";
-    private BehaviourMode mode = BehaviourMode.DETERMINISTIC;
-
-    public enum BehaviourMode {
-        DETERMINISTIC,
-        STOCHASTIC
-    }
 
     public static synchronized BehaviourHandler getInstance() {
         if (instance == null) {
@@ -34,22 +28,18 @@ public class BehaviourHandler {
         directory = dir;
     }
 
-    public void setMode(BehaviourMode mode) {
-        this.mode = mode;
-    }
-
     public Map<String, List<Integer>> getBehaviour(WorkflowFunctionality functionality, List<FlowStep> plan) {
+        Map<String, List<Integer>> map = new LinkedHashMap<>();
 
-        if (mode == BehaviourMode.DETERMINISTIC) {
-            String funcName = functionality.getClass().getSimpleName();
-            return loadStepsFile(funcName);
-        } else {
+        boolean useDistribution = NetworkManager.getInstance().isUseRandomDistributions();
+        boolean useCSV = NetworkManager.getInstance().isUseCSVInjection();
+
+        if (useDistribution) {
             // Extract source service from functionality package
             String packageName = functionality.getClass().getPackageName();
             String[] parts = packageName.split("\\.");
             String sourceService = (parts.length >= 7) ? parts[6] : "unknown";
 
-            Map<String, List<Integer>> map = new LinkedHashMap<>();
             for (FlowStep step : plan) {
                 String targetService = findTargetService(step.getName());
 
@@ -59,8 +49,18 @@ public class BehaviourHandler {
 
                 map.put(step.getName(), Arrays.asList(fault, delayBefore, delayAfter));
             }
-            return map;
         }
+
+        if (useCSV) {
+            String funcName = functionality.getClass().getSimpleName();
+            Map<String, List<Integer>> csvMap = loadStepsFile(funcName);
+            // Manual CSV delays override distribution delays
+            for (Map.Entry<String, List<Integer>> entry : csvMap.entrySet()) {
+                map.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return map;
     }
 
     private String findTargetService(String stepName) {
@@ -83,9 +83,11 @@ public class BehaviourHandler {
         if (lowerStepName.contains("creator") || lowerStepName.contains("student")
                 || lowerStepName.contains("enroll")) {
             return "execution";
+        } else if (lowerStepName.contains("participant")) {
+            return "tournament";
         }
 
-        return "unknown";
+        return null;
     }
 
     public Map<String, List<Integer>> loadStepsFile(String funcName) {

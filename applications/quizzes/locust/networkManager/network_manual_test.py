@@ -11,7 +11,7 @@ class NetworkStochasticUser(HttpUser):
     def on_test_start(environment, **kwargs):
         logging.info("############# TEST START #############")
         try:
-            SimulatorAdminUtils.start_stochastic()
+            SimulatorAdminUtils.start_and_load()
             data = QuizzesInteractionUtils.create_base_data()
             QuizzesInteractionUtils.create_questions(
                 data["course_id"], data["topic_data"])

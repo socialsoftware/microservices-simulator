@@ -26,13 +26,6 @@ public class BehaviourController {
         return "OK";
     }
 
-    @PostMapping("/behaviour/mode")
-    public String setMode(@RequestParam String mode) {
-        System.out.println("Behaviour mode set to: " + mode);
-        behaviourService.setMode(mode);
-        return "OK";
-    }
-
     @GetMapping(value = "/behaviour/clean")
     public String clean() {
         System.out.println("Report clean started");

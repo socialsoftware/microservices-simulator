@@ -16,13 +16,15 @@ class NetworkExponentialUser(HttpUser):
                 {"name": "Node2", "microservices": ["tournament", "quiz"]}
             ],
             "delays": {
+                "USE_CSV_INJECTION": False,
+                "USE_RANDOM_DISTRIBUTIONS": True,
                 "intraservice": {"exp": [1.0, 0.1]},
                 "intranode":    {"exp": [4.0, 0.1]},
                 "internode":    {"exp": [7.0, 0.1]}
             }
         }
         try:
-            SimulatorAdminUtils.start_stochastic(config)
+            SimulatorAdminUtils.start_and_load(config)
             environment.test_data = QuizzesInteractionUtils.create_base_data()
             logging.info("### Setup complete ###")
         except Exception as e:

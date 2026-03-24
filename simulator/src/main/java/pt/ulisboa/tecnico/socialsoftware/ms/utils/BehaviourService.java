@@ -20,14 +20,6 @@ public class BehaviourService {
         NetworkManager.getInstance().load();
     }
 
-    public void setMode(String mode) {
-        if (mode.equalsIgnoreCase("stochastic")) {
-            BehaviourHandler.getInstance().setMode(BehaviourHandler.BehaviourMode.STOCHASTIC);
-        } else {
-            BehaviourHandler.getInstance().setMode(BehaviourHandler.BehaviourMode.DETERMINISTIC);
-        }
-    }
-
     public void cleanUpCounter() {
         BehaviourHandler.getInstance().cleanUpCounter();
     }

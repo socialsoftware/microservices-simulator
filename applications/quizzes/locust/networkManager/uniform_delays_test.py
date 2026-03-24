@@ -16,13 +16,15 @@ class NetworkAutomationUser(HttpUser):
                 {"name": "Node2", "microservices": ["tournament", "quiz"]}
             ],
             "delays": {
+                "USE_CSV_INJECTION": False,
+                "USE_RANDOM_DISTRIBUTIONS": True,
                 "intraservice": {"uni": [0, 10]},
                 "intranode":    {"uni": [50, 100]},
                 "internode":    {"uni": [100, 200]}
             }
         }
         try:
-            SimulatorAdminUtils.start_stochastic(config)
+            SimulatorAdminUtils.start_and_load(config)
             environment.test_data = QuizzesInteractionUtils.create_base_data()
             logging.info("### Setup complete ###")
         except Exception as e:

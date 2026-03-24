@@ -61,11 +61,9 @@ class SimulatorAdminUtils:
     """Auxiliar class: Manages simulator's state"""
 
     @staticmethod
-    def start_stochastic(config=None):
+    def start_and_load(config=None):
         """Starts the simulador and loads behaviour in stochastic mode"""
         requests.get(f"{GATEWAY}/behaviour/clean").raise_for_status()
-        requests.post(
-            f"{GATEWAY}/behaviour/mode?mode=STOCHASTIC").raise_for_status()
         requests.post(
             f"{GATEWAY}/behaviour/load?dir=locust").raise_for_status()
         if config:
@@ -80,8 +78,6 @@ class SimulatorAdminUtils:
         requests.get(f"{GATEWAY}/scheduler/stop").raise_for_status()
         requests.get(f"{GATEWAY}/traces/end").raise_for_status()
         requests.get(f"{GATEWAY}/traces/flush").raise_for_status()
-        requests.post(
-            f"{GATEWAY}/behaviour/mode?mode=DETERMINISTIC").raise_for_status()
 
 
 class QuizzesInteractionUtils:

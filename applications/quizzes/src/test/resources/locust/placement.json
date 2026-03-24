@@ -25,6 +25,8 @@
     }
   ],
   "delays": {
+    "USE_CSV_INJECTION": false,
+    "USE_RANDOM_DISTRIBUTIONS": true,
     "intraservice": {
       "exp": [
         1,

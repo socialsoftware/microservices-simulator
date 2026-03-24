@@ -2,8 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -16,9 +23,19 @@ public class NetworkManager {
     private static String directory;
     private Random random = new Random();
     private boolean loaded = false;
+    private boolean useCSVInjection = false;
+    private boolean useRandomDistributions = false;
 
     private Map<String, String> microserviceToNode = new HashMap<>();
     private Map<String, DelayConfig> delayConfigs = new HashMap<>();
+
+    public boolean isUseCSVInjection() {
+        return useCSVInjection;
+    }
+
+    public boolean isUseRandomDistributions() {
+        return useRandomDistributions;
+    }
 
     private static class DelayConfig {
         String type; // "uni" or "exp"
@@ -91,6 +108,12 @@ public class NetworkManager {
         // Load delays
         JsonNode delays = root.get("delays");
         if (delays != null) {
+            if (delays.has("USE_CSV_INJECTION")) {
+                useCSVInjection = delays.get("USE_CSV_INJECTION").asBoolean();
+            }
+            if (delays.has("USE_RANDOM_DISTRIBUTIONS")) {
+                useRandomDistributions = delays.get("USE_RANDOM_DISTRIBUTIONS").asBoolean();
+            }
             loadDelayConfig(delays, "intraservice");
             loadDelayConfig(delays, "intranode");
             loadDelayConfig(delays, "internode");
@@ -113,6 +136,12 @@ public class NetworkManager {
     public int generateDelay(String sourceService, String targetService) {
         System.out.println("FLOW: " + sourceService + " -> " + targetService);
         String delayType;
+
+        if (sourceService == null || targetService == null) {
+            // No delay if a service isnt identified
+            return 0;
+        }
+
         if (sourceService != null && targetService != null && sourceService.equalsIgnoreCase(targetService)) {
             // Same service communication
             delayType = "intraservice";
@@ -131,8 +160,8 @@ public class NetworkManager {
 
         DelayConfig config = delayConfigs.get(delayType);
         if (config == null) {
-            // Fallback: use a default Log-Normal
-            return (int) Math.exp(3.0 + 0.5 * random.nextGaussian());
+            // Fallback: dont inject delay
+            return 0;
         }
 
         if ("uni".equals(config.type)) {
@@ -153,6 +182,8 @@ public class NetworkManager {
 
     public void reset() {
         this.loaded = false;
+        this.useCSVInjection = false;
+        this.useRandomDistributions = false;
         this.microserviceToNode.clear();
         this.delayConfigs.clear();
     }
