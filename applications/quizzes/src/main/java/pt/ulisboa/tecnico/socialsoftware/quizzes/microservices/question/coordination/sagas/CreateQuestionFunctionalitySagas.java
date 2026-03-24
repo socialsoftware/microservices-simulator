@@ -16,8 +16,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.CreateQuestion
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.sagas.states.CourseSagaState;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
@@ -74,10 +72,6 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
                         SagaCommand sagaCommand = new SagaCommand(getTopicByIdCommand);
                         sagaCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
                         TopicDto fetchedTopic = (TopicDto) commandGateway.send(sagaCommand);
-                        // TOPIC_BELONGS_TO_QUESTION_COURSE
-                        if (!fetchedTopic.getCourseId().equals(courseAggregateId)) {
-                            throw new QuizzesException(QuizzesErrorMessage.QUESTION_TOPIC_INVALID_COURSE, fetchedTopic.getAggregateId(), courseAggregateId);
-                        }
                         return fetchedTopic;
                     })
                     .collect(Collectors.toList());

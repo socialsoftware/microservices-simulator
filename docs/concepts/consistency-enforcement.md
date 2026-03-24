@@ -36,6 +36,8 @@ Understanding which layer is responsible for what prevents redundant checks and 
 **Examples:**
 - `ANSWER_BEFORE_START` — `applications/.../tournament/aggregate/Tournament.java:verifyInvariants()` — a tournament cannot accept answers before its start time.
 - `REMOVE_NO_STUDENTS` — `applications/.../execution/aggregate/Execution.java:verifyInvariants()` — a course execution cannot be removed if it still has enrolled students.
+- `CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT` — `applications/.../course/aggregate/Course.java:verifyInvariants()` — `courseExecutionCount` cannot reach 0 while `courseQuestionCount > 0`; both counters live inside `Course`, so the rule is purely intra. Fires when `updateCourseExecutionCount` commits; the saga places this step **before** the removal step so that if the invariant fires the execution has not yet been deleted and compensation can cleanly release its semantic lock.
+- `COURSE_SAME_TOPIC_COURSE` — `applications/.../question/aggregate/Question.java:verifyInvariants()` — every `QuestionTopic.courseAggregateId` (snapshotted from `TopicDto.getCourseId()` at construction) must equal `questionCourse.getCourseAggregateId()`; all data lives inside `Question`, so the rule is purely intra. Fires when the question aggregate is first committed.
 
 ### Variant: transition invariant via mutation timestamp
 
@@ -112,8 +114,8 @@ Placing a uniqueness check at Layer 5 (event cache) when the authoritative data 
 **Consistency:** Strong — under Sagas, the read step acquires or respects semantic locks that prevent the inspected aggregate from being concurrently modified in a conflicting way. See [`sagas.md`](sagas.md) for how `forbiddenStates` work.
 
 **Examples:**
-- `CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT` — `applications/.../execution/coordination/sagas/RemoveCourseExecutionFunctionalitySagas.java` — a `getCourseStep` reads the `Course` aggregate to check `courseQuestionCount > 0`; if true, the removal step is rejected before any deletion occurs.
-- `TOPIC_BELONGS_TO_QUESTION_COURSE` (`QUESTION_TOPIC_INVALID_COURSE`) — `applications/.../question/coordination/sagas/CreateQuestionFunctionalitySagas.java` — `getTopicsStep` reads each `Topic` aggregate under a semantic lock and verifies its `courseId` matches the target course before the question is created.
+
+There are currently no Layer 4 business-rule checks in this codebase. Both rules that previously lived here (`CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT` and `COURSE_SAME_TOPIC_COURSE`) were migrated to Layer 1 once it was recognised that all data they inspect belongs to a single aggregate. Layer 4 read steps that remain (e.g. `getTopicsStep` in `CreateQuestionFunctionalitySagas`) exist to fetch data needed to build the aggregate, not to enforce a cross-aggregate guard.
 
 ---
 

@@ -16,6 +16,7 @@ public class QuestionTopic {
     private Integer topicAggregateId;
     private String topicName;
     private Long topicVersion;
+    private Integer courseAggregateId;
     private Aggregate.AggregateState state;
     @ManyToOne
     private Question question;
@@ -27,12 +28,14 @@ public class QuestionTopic {
         setTopicAggregateId(topicDto.getAggregateId());
         setTopicName(topicDto.getName());
         setTopicVersion(topicDto.getVersion());
+        setCourseAggregateId(topicDto.getCourseId());
     }
 
     public QuestionTopic(QuestionTopic other) {
         setTopicAggregateId(other.getTopicAggregateId());
         setTopicName(other.getTopicName());
         setTopicVersion(other.getTopicVersion());
+        setCourseAggregateId(other.getCourseAggregateId());
     }
 
     public Long getId() {
@@ -65,6 +68,14 @@ public class QuestionTopic {
 
     public void setTopicVersion(Long topicVersion) {
         this.topicVersion = topicVersion;
+    }
+
+    public Integer getCourseAggregateId() {
+        return courseAggregateId;
+    }
+
+    public void setCourseAggregateId(Integer courseAggregateId) {
+        this.courseAggregateId = courseAggregateId;
     }
 
     public Aggregate.AggregateState getState() {

@@ -6,6 +6,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
 import java.util.HashSet;
@@ -15,8 +17,9 @@ import java.util.Set;
     INTRA-INVARIANTS:
         COURSE_TYPE_FINAL
         COURSE_NAME_FINAL
-    INTER_INVARIANTS:
         CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+    INTER_INVARIANTS:
+
  */
 @Entity
 public abstract class Course extends Aggregate {
@@ -66,7 +69,9 @@ public abstract class Course extends Aggregate {
 
     @Override
     public void verifyInvariants() {
-
+        if (courseExecutionCount == 0 && courseQuestionCount > 0) {
+            throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT, getAggregateId());
+        }
     }
     public CourseType getType() {
         return type;

@@ -10,14 +10,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseExecutionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveCourseExecutionCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.sagas.states.CourseSagaState;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
 
@@ -26,7 +21,6 @@ import java.util.Arrays;
 
 public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     private CourseExecutionDto courseExecution;
-    private CourseDto course;
     private final SagaUnitOfWorkService unitOfWorkService;
     private final CommandGateway commandGateway;
 
@@ -55,41 +49,19 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
             commandGateway.send(sagaCommand);
         }, unitOfWork);
 
-        // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
-        SagaStep getCourseStep = new SagaStep("getCourseStep", () -> {
-            GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), this.courseExecution.getCourseAggregateId());
-            SagaCommand sagaCommand = new SagaCommand(getCourseByIdCommand);
-            sagaCommand.setSemanticLock(CourseSagaState.READ_COURSE);
-            CourseDto courseDto = (CourseDto) commandGateway.send(sagaCommand);
-            this.course = courseDto;
-
-            if (courseDto.getCourseQuestionCount() > 0 && courseDto.getCourseExecutionCount() == 1) {
-                throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT, executionAggregateId);
-            }
+        SagaStep updateCourseExecutionCountStep = new SagaStep("updateCourseExecutionCountStep", () -> {
+            UpdateCourseExecutionCountCommand cmd = new UpdateCourseExecutionCountCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), this.courseExecution.getCourseAggregateId(), false);
+            commandGateway.send(cmd);
         }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
-
-        getCourseStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), this.course.getAggregateId());
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
 
         SagaStep removeCourseExecutionStep = new SagaStep("removeCourseExecutionStep", () -> {
             RemoveCourseExecutionCommand removeCourseExecutionCommand = new RemoveCourseExecutionCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
             commandGateway.send(removeCourseExecutionCommand);
-        }, new ArrayList<>(Arrays.asList(getCourseExecutionStep, getCourseStep)));
-
-        // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
-        SagaStep updateCourseExecutionCountStep = new SagaStep("updateCourseExecutionCountStep", () -> {
-            UpdateCourseExecutionCountCommand cmd = new UpdateCourseExecutionCountCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), this.course.getAggregateId(), false);
-            commandGateway.send(cmd);
-        }, new ArrayList<>(Arrays.asList(getCourseStep, removeCourseExecutionStep)));
+        }, new ArrayList<>(Arrays.asList(getCourseExecutionStep, updateCourseExecutionCountStep)));
 
         workflow.addStep(getCourseExecutionStep);
-        workflow.addStep(getCourseStep);
-        workflow.addStep(removeCourseExecutionStep);
         workflow.addStep(updateCourseExecutionCountStep);
+        workflow.addStep(removeCourseExecutionStep);
     }
 
     public CourseExecutionDto getCourseExecution() {
@@ -98,13 +70,5 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
 
     public void setCourseExecution(CourseExecutionDto courseExecution) {
         this.courseExecution = courseExecution;
-    }
-
-    public CourseDto getCourse() {
-        return course;
-    }
-
-    public void setCourse(CourseDto course) {
-        this.course = course;
     }
 }
