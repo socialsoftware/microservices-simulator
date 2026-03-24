@@ -100,7 +100,6 @@ Three rules apply when using this pattern:
 **Consistency:** Strong (input only) — the operation is rejected immediately on invalid input.
 
 **Examples:**
-- `QUESTION_TOPIC_INVALID_COURSE` — `applications/.../question/coordination/sagas/CreateQuestionFunctionalitySagas.java` — the question's topic must belong to the same course; checked from command fields before any DB read.
 - `USER_MISSING_NAME` — `applications/.../user/coordination/sagas/UpdateStudentNameFunctionalitySagas.java` — the new name must not be blank; validated from the command before any step executes.
 
 ---
@@ -117,6 +116,7 @@ Three rules apply when using this pattern:
 
 **Examples:**
 - `CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT` — `applications/.../execution/coordination/sagas/RemoveCourseExecutionFunctionalitySagas.java` — a `getCourseStep` reads the `Course` aggregate to check `courseQuestionCount > 0`; if true, the removal step is rejected before any deletion occurs.
+- `TOPIC_BELONGS_TO_QUESTION_COURSE` (`QUESTION_TOPIC_INVALID_COURSE`) — `applications/.../question/coordination/sagas/CreateQuestionFunctionalitySagas.java` — `getTopicsStep` reads each `Topic` aggregate under a semantic lock and verifies its `courseId` matches the target course before the question is created.
 
 ---
 

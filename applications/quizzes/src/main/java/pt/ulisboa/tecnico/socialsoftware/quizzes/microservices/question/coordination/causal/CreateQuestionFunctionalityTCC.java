@@ -43,19 +43,17 @@ public class CreateQuestionFunctionalityTCC extends WorkflowFunctionality {
             GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork,
                     ServiceMapping.COURSE.getServiceName(), courseAggregateId);
             QuestionCourse course = new QuestionCourse((CourseDto) commandGateway.send(getCourseByIdCommand));
-            /*
-             * COURSE_SAME_TOPICS_COURSE
-             */
-            for (TopicDto topicDto : questionDto.getTopicDto()) {
-                if (!topicDto.getCourseId().equals(courseAggregateId)) {
-                    throw new QuizzesException(QuizzesErrorMessage.QUESTION_TOPIC_INVALID_COURSE,
-                            topicDto.getAggregateId(), courseAggregateId);
-                }
-            }
-
             List<TopicDto> topics = questionDto.getTopicDto().stream()
-                    .map(topicDto -> (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork,
-                            ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId())))
+                    .map(topicDto -> {
+                        TopicDto fetchedTopic = (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork,
+                                ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId()));
+                        // TOPIC_BELONGS_TO_QUESTION_COURSE
+                        if (!fetchedTopic.getCourseId().equals(courseAggregateId)) {
+                            throw new QuizzesException(QuizzesErrorMessage.QUESTION_TOPIC_INVALID_COURSE,
+                                    fetchedTopic.getAggregateId(), courseAggregateId);
+                        }
+                        return fetchedTopic;
+                    })
                     .collect(Collectors.toList());
 
             CreateQuestionCommand createQuestionCommand = new CreateQuestionCommand(unitOfWork,
