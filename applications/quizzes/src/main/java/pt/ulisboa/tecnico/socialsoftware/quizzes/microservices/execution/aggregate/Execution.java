@@ -18,7 +18,8 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 /*
     INTRA-INVARIANTS
         REMOVE_NO_STUDENTS
-        NO_DUPLICATE_COURSE_EXECUTION
+    SERVICE-LAYER GUARDS (Layer 3)
+        NO_DUPLICATE_COURSE_EXECUTION (enforced in ExecutionService.createCourseExecution)
     INTER-INVARIANTS
         USER_EXISTS
         COURSE_EXISTS (does it count? course doesn't send events)

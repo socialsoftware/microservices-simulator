@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.CreateCourseExecutionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.CreateCourseRemoteCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.DeleteCourseCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByNameRemoteCommand;
@@ -71,6 +72,17 @@ public class CreateCourseExecutionFunctionalitySagas extends WorkflowFunctionali
             CourseExecutionDto createdCourseExecution = (CourseExecutionDto) commandGateway.send(createCourseExecutionCommand);
             this.setCreatedCourseExecution(createdCourseExecution);
         }, new ArrayList<>(Arrays.asList(getCourseStep, createCourseStep)));
+
+        createCourseExecutionStep.registerCompensation(() -> {
+            if (this.createdCourseExecution != null && this.createdCourseExecution.getAggregateId() != null) {
+                Logger.getLogger(CreateCourseExecutionFunctionalitySagas.class.getName())
+                        .info("Compensating createCourseExecutionStep: removing execution "
+                                + this.createdCourseExecution.getAggregateId());
+                RemoveCourseExecutionCommand removeCourseExecutionCommand = new RemoveCourseExecutionCommand(unitOfWork,
+                        ServiceMapping.EXECUTION.getServiceName(), this.createdCourseExecution.getAggregateId());
+                commandGateway.send(removeCourseExecutionCommand);
+            }
+        }, unitOfWork);
 
         // Step 4: Increment course execution count — CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
         SagaStep updateCourseExecutionCountStep = new SagaStep("updateCourseExecutionCountStep", () -> {

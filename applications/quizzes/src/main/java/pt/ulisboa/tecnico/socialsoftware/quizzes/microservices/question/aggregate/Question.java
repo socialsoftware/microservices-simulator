@@ -20,7 +20,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 
 /*
     INTRA-INVARIANTS:
-        COURSE_SAME_TOPIC_COURSE
+        TOPIC_BELONGS_TO_QUESTION_COURSE
     INTER-INVARIANTS:
         TOPICS_EXIST
         COURSE_EXISTS (course does not send events)
