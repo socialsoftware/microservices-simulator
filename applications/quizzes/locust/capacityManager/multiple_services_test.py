@@ -13,18 +13,27 @@ class MultiServiceCapacityUser(HttpUser):
     def on_test_start(environment, **kwargs):
         logging.info("############# TEST START #############")
         config = {
-            "microservices": [
-                {"name": "TournamentService", "capacity": 5},
-                {"name": "ExecutionService", "capacity": 5}
-            ],
-            "endpoints": [
-                {"name": "CreateTournamentFunctionalitySagas",
-                    "microservice": "TournamentService", "requirement": 2},
-                {"name": "FindTournamentFunctionalitySagas",
-                    "microservice": "TournamentService", "requirement": 1},
-                {"name": "AddStudentFunctionalitySagas",
-                    "microservice": "ExecutionService", "requirement": 2}
-            ]
+            "Capacities": {
+                "microservices": [
+                    {
+                        "name": "TournamentService",
+                        "capacity": 5,
+                        "endpoints": [
+                            {"name": "CreateTournamentFunctionalitySagas",
+                                "requirement": 2},
+                            {"name": "FindTournamentFunctionalitySagas",
+                                "requirement": 1}
+                        ]
+                    },
+                    {
+                        "name": "ExecutionService",
+                        "capacity": 5,
+                        "endpoints": [
+                            {"name": "AddStudentFunctionalitySagas", "requirement": 2}
+                        ]
+                    }
+                ]
+            }
         }
         try:
             CapacityAdminUtils.start_and_load(config)

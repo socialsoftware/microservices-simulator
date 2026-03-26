@@ -14,7 +14,7 @@ import java.util.concurrent.Semaphore;
 public class CapacityManager {
     private static CapacityManager instance;
     private static String directory;
-    private static final String CONFIG_FILE = "capacities.json";
+    private static final String CONFIG_FILE = "simulator_config.json";
     private static final String REPORT_FILE = "CapacityReport.txt";
     private final Map<String, Semaphore> msCapacities = new ConcurrentHashMap<>();
     private final Map<String, Integer> endpointRequirements = new ConcurrentHashMap<>();
@@ -73,31 +73,34 @@ public class CapacityManager {
     }
 
     private void parseConfig(JsonNode root) throws IOException {
-        if (root.has("microservices")) {
-            JsonNode microservices = root.get("microservices");
-            for (JsonNode ms : microservices) {
-                String msName = ms.get("name").asText();
-                int capacity = ms.get("capacity").asInt();
-                msCapacities.put(msName, new Semaphore(capacity, true));
+        if (root.has("Capacities")) {
+            JsonNode capacities = root.get("Capacities");
+            if (capacities.has("microservices")) {
+                JsonNode microservices = capacities.get("microservices");
+                for (JsonNode ms : microservices) {
+                    String msName = ms.get("name").asText();
+                    int capacity = ms.get("capacity").asInt();
+                    msCapacities.put(msName, new Semaphore(capacity, true));
 
-                waitingRequests.put(msName, Collections.synchronizedList(new ArrayList<>()));
-                activeRequests.put(msName, Collections.synchronizedList(new ArrayList<>()));
+                    waitingRequests.put(msName, Collections.synchronizedList(new ArrayList<>()));
+                    activeRequests.put(msName, Collections.synchronizedList(new ArrayList<>()));
+
+                    // Load endpoints for this microservice
+                    if (ms.has("endpoints")) {
+                        JsonNode endpoints = ms.get("endpoints");
+                        for (JsonNode ep : endpoints) {
+                            String epName = ep.get("name").asText();
+                            int requirement = ep.get("requirement").asInt();
+                            endpointRequirements.put(epName, requirement);
+                            endpointToMicroservice.put(epName, msName);
+                        }
+                    }
+                }
             }
         }
 
-        if (root.has("endpoints")) {
-            JsonNode endpoints = root.get("endpoints");
-            for (JsonNode ep : endpoints) {
-                String epName = ep.get("name").asText();
-                String msName = ep.get("microservice").asText();
-                int requirement = ep.get("requirement").asInt();
-                endpointRequirements.put(epName, requirement);
-                endpointToMicroservice.put(epName, msName);
-            }
-        }
-
-        // Init report file
-        if (directory != null && !directory.isEmpty()) {
+        // Init report file if any configuration was loaded
+        if (!msCapacities.isEmpty() && directory != null && !directory.isEmpty()) {
             if (writer != null) {
                 writer.close();
             }

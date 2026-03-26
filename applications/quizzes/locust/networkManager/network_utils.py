@@ -63,6 +63,8 @@ class SimulatorAdminUtils:
     @staticmethod
     def start_and_load(config=None):
         """Starts the simulador and loads behaviour in stochastic mode"""
+        requests.get(f"{GATEWAY}/capacity/reset").raise_for_status()
+        requests.get(f"{GATEWAY}/behaviour/reset").raise_for_status()
         requests.get(f"{GATEWAY}/behaviour/clean").raise_for_status()
         requests.post(
             f"{GATEWAY}/behaviour/load?dir=locust").raise_for_status()

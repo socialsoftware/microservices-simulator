@@ -11,11 +11,12 @@ class NetworkExponentialUser(HttpUser):
     def on_test_start(environment, **kwargs):
         logging.info("############# TEST START #############")
         config = {
-            "nodes": [
-                {"name": "Node1", "microservices": ["user", "execution"]},
-                {"name": "Node2", "microservices": ["tournament", "quiz"]}
-            ],
-            "delays": {
+            "Placement": {
+                "nodes": [
+                    {"name": "Node1", "microservices": ["user", "execution"]},
+                    {"name": "Node2", "microservices": ["tournament", "quiz"]}
+                ]},
+            "Delays": {
                 "USE_CSV_INJECTION": False,
                 "USE_RANDOM_DISTRIBUTIONS": True,
                 "intraservice": {"exp": [1.0, 0.1]},

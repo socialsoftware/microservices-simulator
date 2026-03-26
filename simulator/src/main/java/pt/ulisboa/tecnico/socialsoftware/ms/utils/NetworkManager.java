@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class NetworkManager {
-    private static final String PLACEMENT_FILE = "placement.json";
+    private static final String PLACEMENT_FILE = "simulator_config.json";
     private static NetworkManager instance;
     private static String directory;
     private Random random = new Random();
@@ -81,23 +81,26 @@ public class NetworkManager {
     }
 
     private void parseConfig(JsonNode root) {
-        // Load nodes
-        JsonNode nodes = root.get("nodes");
-        if (nodes != null && nodes.isArray()) {
-            for (JsonNode node : nodes) {
-                String nodeName = node.get("name").asText();
-                JsonNode mss = node.get("microservices");
-                if (mss != null && mss.isArray()) {
-                    for (JsonNode ms : mss) {
-                        microserviceToNode.put(ms.asText().toLowerCase(), nodeName);
+        // Load nodes from Placement field
+        if (root.has("Placement")) {
+            JsonNode placement = root.get("Placement");
+            JsonNode nodes = placement.get("nodes");
+            if (nodes != null && nodes.isArray()) {
+                for (JsonNode node : nodes) {
+                    String nodeName = node.get("name").asText();
+                    JsonNode mss = node.get("microservices");
+                    if (mss != null && mss.isArray()) {
+                        for (JsonNode ms : mss) {
+                            microserviceToNode.put(ms.asText().toLowerCase(), nodeName);
+                        }
                     }
                 }
             }
         }
 
         // Load delays
-        JsonNode delays = root.get("delays");
-        if (delays != null) {
+        if (root.has("Delays")) {
+            JsonNode delays = root.get("Delays");
             if (delays.has("USE_CSV_INJECTION")) {
                 useCSVInjection = delays.get("USE_CSV_INJECTION").asBoolean();
             }

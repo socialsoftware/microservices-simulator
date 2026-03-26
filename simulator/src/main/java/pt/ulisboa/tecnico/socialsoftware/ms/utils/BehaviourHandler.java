@@ -214,4 +214,8 @@ public class BehaviourHandler {
                 "\u001B[33mRetry value for " + funcName + ": " + funcRetry.getOrDefault(funcName, 0) + "\u001B[0m");
         return funcRetry.getOrDefault(funcName, 0);
     }
+
+    public void reset() {
+        NetworkManager.getInstance().reset();
+    }
 }

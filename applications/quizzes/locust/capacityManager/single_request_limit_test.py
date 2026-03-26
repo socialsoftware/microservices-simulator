@@ -13,13 +13,18 @@ class CapacityAutomationUser(HttpUser):
         logging.info("############# TEST START #############")
         # Limit TournamentService to only 1 request at a time
         config = {
-            "microservices": [
-                {"name": "TournamentService", "capacity": 1}
-            ],
-            "endpoints": [
-                {"name": "CreateTournamentFunctionalitySagas",
-                    "microservice": "TournamentService", "requirement": 1}
-            ]
+            "Capacities": {
+                "microservices": [
+                    {
+                        "name": "TournamentService",
+                        "capacity": 1,
+                        "endpoints": [
+                            {"name": "CreateTournamentFunctionalitySagas",
+                                "requirement": 1}
+                        ]
+                    }
+                ]
+            }
         }
         try:
             CapacityAdminUtils.start_and_load(config)

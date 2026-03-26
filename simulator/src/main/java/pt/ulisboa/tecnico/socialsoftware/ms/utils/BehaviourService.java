@@ -20,6 +20,10 @@ public class BehaviourService {
         NetworkManager.getInstance().load();
     }
 
+    public void reset() {
+        BehaviourHandler.getInstance().reset();
+    }
+
     public void cleanUpCounter() {
         BehaviourHandler.getInstance().cleanUpCounter();
     }

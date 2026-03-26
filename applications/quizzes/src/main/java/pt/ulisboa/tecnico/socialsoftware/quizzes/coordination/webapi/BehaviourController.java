@@ -26,6 +26,13 @@ public class BehaviourController {
         return "OK";
     }
 
+    @GetMapping("/behaviour/reset")
+    public String reset() {
+        System.out.println("Behaviour reset started");
+        behaviourService.reset();
+        return "OK";
+    }
+
     @GetMapping(value = "/behaviour/clean")
     public String clean() {
         System.out.println("Report clean started");

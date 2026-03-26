@@ -64,6 +64,8 @@ class CapacityAdminUtils:
     @staticmethod
     def start_and_load(config=None):
         """Starts the simulator and loads capacity configuration"""
+        requests.get(f"{GATEWAY}/capacity/reset").raise_for_status()
+        requests.get(f"{GATEWAY}/behaviour/reset").raise_for_status()
         requests.get(f"{GATEWAY}/capacity/clean").raise_for_status()
         requests.post(f"{GATEWAY}/capacity/load?dir=locust").raise_for_status()
         if config:

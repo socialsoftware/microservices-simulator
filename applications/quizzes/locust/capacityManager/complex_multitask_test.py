@@ -14,25 +14,37 @@ class ComplexMultiServiceUser(HttpUser):
     def on_test_start(environment, **kwargs):
         logging.info("############# COMPLEX TEST START #############")
         config = {
-            "microservices": [
-                {"name": "TournamentService", "capacity": 10},
-                {"name": "ExecutionService", "capacity": 6},
-                {"name": "UserService", "capacity": 4}
-            ],
-            "endpoints": [
-                {"name": "CreateTournamentFunctionalitySagas",
-                    "microservice": "TournamentService", "requirement": 5},
-                {"name": "FindTournamentFunctionalitySagas",
-                    "microservice": "TournamentService", "requirement": 2},
-                {"name": "AddStudentFunctionalitySagas",
-                    "microservice": "ExecutionService", "requirement": 3},
-                {"name": "GetCourseExecutionByIdFunctionalitySagas",
-                    "microservice": "ExecutionService", "requirement": 1},
-                {"name": "CreateUserFunctionalitySagas",
-                    "microservice": "UserService", "requirement": 1},
-                {"name": "ActivateUserFunctionalitySagas",
-                    "microservice": "UserService", "requirement": 1}
-            ]
+            "Capacities": {
+                "microservices": [
+                    {
+                        "name": "TournamentService",
+                        "capacity": 10,
+                        "endpoints": [
+                            {"name": "CreateTournamentFunctionalitySagas",
+                                "requirement": 5},
+                            {"name": "FindTournamentFunctionalitySagas",
+                                "requirement": 2}
+                        ]
+                    },
+                    {
+                        "name": "ExecutionService",
+                        "capacity": 6,
+                        "endpoints": [
+                            {"name": "AddStudentFunctionalitySagas", "requirement": 3},
+                            {"name": "GetCourseExecutionByIdFunctionalitySagas",
+                                "requirement": 1}
+                        ]
+                    },
+                    {
+                        "name": "UserService",
+                        "capacity": 4,
+                        "endpoints": [
+                            {"name": "CreateUserFunctionalitySagas", "requirement": 1},
+                            {"name": "ActivateUserFunctionalitySagas", "requirement": 1}
+                        ]
+                    }
+                ]
+            }
         }
         try:
             CapacityAdminUtils.start_and_load(config)

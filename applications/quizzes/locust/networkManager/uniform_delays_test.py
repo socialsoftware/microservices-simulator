@@ -11,11 +11,12 @@ class NetworkAutomationUser(HttpUser):
     def on_test_start(environment, **kwargs):
         logging.info("############# TEST START #############")
         config = {
-            "nodes": [
-                {"name": "Node1", "microservices": ["user", "execution"]},
-                {"name": "Node2", "microservices": ["tournament", "quiz"]}
-            ],
-            "delays": {
+            "Placement": {
+                "nodes": [
+                    {"name": "Node1", "microservices": ["user", "execution"]},
+                    {"name": "Node2", "microservices": ["tournament", "quiz"]}
+                ]},
+            "Delays": {
                 "USE_CSV_INJECTION": False,
                 "USE_RANDOM_DISTRIBUTIONS": True,
                 "intraservice": {"uni": [0, 10]},
