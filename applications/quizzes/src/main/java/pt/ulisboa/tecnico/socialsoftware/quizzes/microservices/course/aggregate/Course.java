@@ -6,6 +6,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
 import java.util.HashSet;
@@ -15,7 +17,9 @@ import java.util.Set;
     INTRA-INVARIANTS:
         COURSE_TYPE_FINAL
         COURSE_NAME_FINAL
+        CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
     INTER_INVARIANTS:
+
  */
 @Entity
 public abstract class Course extends Aggregate {
@@ -29,6 +33,14 @@ public abstract class Course extends Aggregate {
      */
     @Column
     private final String name;
+
+    // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+    @Column
+    private int courseQuestionCount = 0;
+
+    // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+    @Column
+    private int courseExecutionCount = 0;
 
     public Course() {
         this.name = "COURSE NAME";
@@ -46,6 +58,8 @@ public abstract class Course extends Aggregate {
         super(other);
         this.name = other.getName();
         this.type = other.getType();
+        this.courseQuestionCount = other.getCourseQuestionCount();
+        this.courseExecutionCount = other.getCourseExecutionCount();
     }
 
     @Override
@@ -55,7 +69,9 @@ public abstract class Course extends Aggregate {
 
     @Override
     public void verifyInvariants() {
-
+        if (courseExecutionCount == 0 && courseQuestionCount > 0) {
+            throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT, getAggregateId());
+        }
     }
     public CourseType getType() {
         return type;
@@ -63,5 +79,21 @@ public abstract class Course extends Aggregate {
 
     public String getName() {
         return name;
+    }
+
+    public int getCourseQuestionCount() {
+        return courseQuestionCount;
+    }
+
+    public void setCourseQuestionCount(int courseQuestionCount) {
+        this.courseQuestionCount = courseQuestionCount;
+    }
+
+    public int getCourseExecutionCount() {
+        return courseExecutionCount;
+    }
+
+    public void setCourseExecutionCount(int courseExecutionCount) {
+        this.courseExecutionCount = courseExecutionCount;
     }
 }

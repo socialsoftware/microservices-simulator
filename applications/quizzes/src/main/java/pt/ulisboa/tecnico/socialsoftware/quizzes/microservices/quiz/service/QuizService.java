@@ -48,16 +48,10 @@ public class QuizService {
         return quizFactory.createQuizDto((Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
-    // intended for requests from local functionalities
-
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public QuizDto generateQuiz(CourseExecutionDto courseExecutionDto, QuizDto quizDto, List<QuestionDto> questionDtos, Integer numberOfQuestions, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-
-//        QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionService.getCourseExecutionById(courseExecutionAggregateId, unitOfWork));
         QuizCourseExecution quizCourseExecution = new QuizCourseExecution(courseExecutionDto);
-
-//        List<QuestionDto> questionDtos = questionService.findQuestionsByTopicIds(topicIds, unitOfWork);
 
         if (questionDtos.size() < numberOfQuestions) {
             throw new QuizzesException(QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS);
@@ -69,7 +63,7 @@ public class QuizService {
         }
 
         Set<QuizQuestion> quizQuestions = questionPositions.stream()
-                .map(pos -> questionDtos.get(pos))
+                .map(questionDtos::get)
                 .map(QuizQuestion::new)
                 .collect(Collectors.toSet());
 
@@ -107,8 +101,6 @@ public class QuizService {
         newQuiz.update(quizDto);
 
         if (topicsAggregateIds != null && numberOfQuestions != null) {
-//            List<QuestionDto> questionDtos = questionService.findQuestionsByTopicIds(new ArrayList<>(topicsAggregateIds), unitOfWork);
-
             if (questionDtos.size() < numberOfQuestions) {
                 throw new QuizzesException(QuizzesErrorMessage.NOT_ENOUGH_QUESTIONS);
             }
@@ -217,4 +209,5 @@ public class QuizService {
         newQuiz.remove();
         unitOfWorkService.registerChanged(newQuiz, unitOfWork);
     }
+
 }

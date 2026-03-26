@@ -49,4 +49,5 @@ public class QuizEventHandling implements EventHandling {
         eventApplicationService.handleSubscribedEvent(DeleteQuestionEvent.class,
                 new DeleteQuestionEventHandler(quizRepository, quizEventProcessing));
     }
+
 }

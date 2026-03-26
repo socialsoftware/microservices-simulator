@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetAndOrCreateCourseRemoteCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseExecutionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.CreateCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
@@ -33,6 +34,10 @@ public class CreateCourseExecutionFunctionalityTCC extends WorkflowFunctionality
 
             CreateCourseExecutionCommand createCourseExecutionCommand = new CreateCourseExecutionCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), this.courseExecutionDto);
             this.createdCourseExecution = (CourseExecutionDto) commandGateway.send(createCourseExecutionCommand);
+
+            // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+            UpdateCourseExecutionCountCommand updateCmd = new UpdateCourseExecutionCountCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), this.courseExecutionDto.getCourseAggregateId(), true);
+            commandGateway.send(updateCmd);
         });
 
         workflow.addStep(step);

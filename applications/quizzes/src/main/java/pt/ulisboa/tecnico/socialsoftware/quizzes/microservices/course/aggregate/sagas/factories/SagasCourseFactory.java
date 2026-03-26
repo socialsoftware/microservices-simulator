@@ -17,6 +17,11 @@ public class SagasCourseFactory implements CourseFactory {
     }
 
     @Override
+    public Course createCourseFromExisting(Course existing) {
+        return new SagaCourse((SagaCourse) existing);
+    }
+
+    @Override
     public CourseDto createCourseDto(Course course) {
         return new CourseDto(course);
     }

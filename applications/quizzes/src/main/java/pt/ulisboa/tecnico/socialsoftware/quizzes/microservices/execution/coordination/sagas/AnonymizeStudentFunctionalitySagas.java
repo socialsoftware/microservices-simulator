@@ -42,7 +42,7 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
             GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
             SagaCommand sagaCommand = new SagaCommand(getCourseExecutionByIdCommand);
             sagaCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
-            sagaCommand.setForbiddenStates(List.of(GenericSagaState.IN_SAGA));
+            sagaCommand.setForbiddenStates(List.of(CourseExecutionSagaState.READ_COURSE));
             commandGateway.send(sagaCommand);
         });
 

@@ -236,6 +236,10 @@ public class ExecutionFunctionalities {
     }
 
     public void updateStudentName(Integer executionAggregateId, Integer userAggregateId, UserDto userDto) {
+        if (userDto.getName() == null) {
+            throw new QuizzesException(USER_MISSING_NAME);
+        }
+
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {

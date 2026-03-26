@@ -7,7 +7,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseQuestionCountCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.GetQuestionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.RemoveQuestionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.causal.CausalQuestion;
 
 public class RemoveQuestionFunctionalityTCC extends WorkflowFunctionality {
@@ -26,8 +29,16 @@ public class RemoveQuestionFunctionalityTCC extends WorkflowFunctionality {
         this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
 
         Step step = new Step(() -> {
+            GetQuestionByIdCommand getCmd = new GetQuestionByIdCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
+            QuestionDto questionDto = (QuestionDto) commandGateway.send(getCmd);
+            Integer courseAggregateId = questionDto.getCourse().getAggregateId();
+
             RemoveQuestionCommand cmd = new RemoveQuestionCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
             commandGateway.send(cmd);
+
+            // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+            UpdateCourseQuestionCountCommand updateCmd = new UpdateCourseQuestionCountCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId, false);
+            commandGateway.send(updateCmd);
         });
 
         workflow.addStep(step);

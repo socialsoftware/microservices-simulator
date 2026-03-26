@@ -8,11 +8,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseQuestionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.CreateQuestionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
@@ -42,24 +41,22 @@ public class CreateQuestionFunctionalityTCC extends WorkflowFunctionality {
             GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork,
                     ServiceMapping.COURSE.getServiceName(), courseAggregateId);
             QuestionCourse course = new QuestionCourse((CourseDto) commandGateway.send(getCourseByIdCommand));
-            /*
-             * COURSE_SAME_TOPICS_COURSE
-             */
-            for (TopicDto topicDto : questionDto.getTopicDto()) {
-                if (!topicDto.getCourseId().equals(courseAggregateId)) {
-                    throw new QuizzesException(QuizzesErrorMessage.QUESTION_TOPIC_INVALID_COURSE,
-                            topicDto.getAggregateId(), courseAggregateId);
-                }
-            }
-
             List<TopicDto> topics = questionDto.getTopicDto().stream()
-                    .map(topicDto -> (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork,
-                            ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId())))
+                    .map(topicDto -> {
+                        TopicDto fetchedTopic = (TopicDto) commandGateway.send(new GetTopicByIdCommand(unitOfWork,
+                                ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId()));
+                        return fetchedTopic;
+                    })
                     .collect(Collectors.toList());
 
             CreateQuestionCommand createQuestionCommand = new CreateQuestionCommand(unitOfWork,
                     ServiceMapping.QUESTION.getServiceName(), course, questionDto, topics);
             this.createdQuestion = (QuestionDto) commandGateway.send(createQuestionCommand);
+
+            // CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+            UpdateCourseQuestionCountCommand updateCmd = new UpdateCourseQuestionCountCommand(unitOfWork,
+                    ServiceMapping.COURSE.getServiceName(), courseAggregateId, true);
+            commandGateway.send(updateCmd);
         });
         workflow.addStep(step);
     }

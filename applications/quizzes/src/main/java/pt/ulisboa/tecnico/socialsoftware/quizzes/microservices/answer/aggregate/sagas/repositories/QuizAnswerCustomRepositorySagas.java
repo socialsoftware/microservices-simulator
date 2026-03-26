@@ -19,4 +19,9 @@ public class QuizAnswerCustomRepositorySagas implements QuizAnswerCustomReposito
     public Optional<Integer> findQuizAnswerIdByQuizIdAndUserId(Integer quizAggregateId, Integer studentAggregateId) {
         return quizAnswerRepository.findQuizAnswerIdByQuizIdAndUserIdForSaga(quizAggregateId, studentAggregateId);
     }
+
+    @Override
+    public boolean existsByQuizIdAndStudentId(Integer quizAggregateId, Integer studentAggregateId) {
+        return quizAnswerRepository.existsByQuizIdAndStudentIdForSaga(quizAggregateId, studentAggregateId);
+    }
 }

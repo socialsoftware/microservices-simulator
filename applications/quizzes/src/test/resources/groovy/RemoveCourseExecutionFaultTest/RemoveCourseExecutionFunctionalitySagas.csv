@@ -1,0 +1,6 @@
+run
+getCourseExecutionStep,1,0,0
+removeCourseExecutionStep,0,0,0
+run
+getCourseExecutionStep,0,0,0
+removeCourseExecutionStep,1,0,0

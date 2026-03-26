@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkServi
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseExecutionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.GetCourseExecutionByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
@@ -48,12 +49,18 @@ public class RemoveCourseExecutionFunctionalitySagas extends WorkflowFunctionali
             commandGateway.send(sagaCommand);
         }, unitOfWork);
 
+        SagaStep updateCourseExecutionCountStep = new SagaStep("updateCourseExecutionCountStep", () -> {
+            UpdateCourseExecutionCountCommand cmd = new UpdateCourseExecutionCountCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), this.courseExecution.getCourseAggregateId(), false);
+            commandGateway.send(cmd);
+        }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
+
         SagaStep removeCourseExecutionStep = new SagaStep("removeCourseExecutionStep", () -> {
             RemoveCourseExecutionCommand removeCourseExecutionCommand = new RemoveCourseExecutionCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
             commandGateway.send(removeCourseExecutionCommand);
-        }, new ArrayList<>(Arrays.asList(getCourseExecutionStep)));
+        }, new ArrayList<>(Arrays.asList(getCourseExecutionStep, updateCourseExecutionCountStep)));
 
         workflow.addStep(getCourseExecutionStep);
+        workflow.addStep(updateCourseExecutionCountStep);
         workflow.addStep(removeCourseExecutionStep);
     }
 

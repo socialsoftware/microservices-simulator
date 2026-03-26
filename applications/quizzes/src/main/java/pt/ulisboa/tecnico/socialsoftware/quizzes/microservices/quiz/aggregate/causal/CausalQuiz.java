@@ -26,7 +26,7 @@ public class CausalQuiz extends Quiz implements CausalAggregate {
     @JsonIgnore
     public Set<String> getMutableFields() {
         // we dont add the courseExecution because it can only change through events and the only events that comes from it is the delete which deletes the quiz
-        return Set.of("availableDate", "conclusionDate", "resultsDate", "title" ,"quizQuestions");
+        return Set.of("availableDate", "conclusionDate", "resultsDate", "title", "quizQuestions");
     }
 
     @Override
@@ -89,4 +89,5 @@ public class CausalQuiz extends Quiz implements CausalAggregate {
             mergedQuiz.setQuizQuestions(committedQuiz.getQuizQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()));
         }
     }
+
 }

@@ -20,11 +20,12 @@ public class CourseExecutionEventHandling implements EventHandling {
     private CourseExecutionRepository courseExecutionRepository;
 
     /*
-        USER_EXISTS
+     * USER_EXISTS
      */
     @Scheduled(fixedDelay = 1000)
     public void handleRemoveUserEvents() {
         eventApplicationService.handleSubscribedEvent(DeleteUserEvent.class,
                 new DeleteUserEventHandler(courseExecutionRepository, executionEventProcessing));
     }
+
 }
