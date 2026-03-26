@@ -10,6 +10,7 @@ public class CapacityService {
 
     public void loadDir(String dir, String testNameFile) {
         directory = dir + "/src/test/resources/" + testNameFile + "/";
+        CapacityManager.getInstance().reset();
         CapacityManager.setDirectory(directory);
         CapacityManager.getInstance().load();
     }
@@ -20,5 +21,17 @@ public class CapacityService {
 
     public Map<String, Integer> getAvailableCapacities() {
         return CapacityManager.getInstance().getAvailableCapacities();
+    }
+
+    public String getReport() {
+        return CapacityManager.getInstance().getReport();
+    }
+
+    public void cleanReportFile() {
+        CapacityManager.getInstance().cleanReportFile();
+    }
+
+    public void injectCapacities(String json) {
+        CapacityManager.getInstance().loadConfig(json);
     }
 }

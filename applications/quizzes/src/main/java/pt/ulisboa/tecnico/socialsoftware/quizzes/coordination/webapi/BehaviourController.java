@@ -40,8 +40,8 @@ public class BehaviourController {
         return behaviourService.getReport();
     }
 
-    @PostMapping(value = "/behaviour/placement")
-    public String updatePlacement(@RequestBody JsonNode json) {
+    @PostMapping(value = "/behaviour/inject")
+    public String injectPlacement(@RequestBody JsonNode json) {
         behaviourService.injectPlacement(json);
         return "OK";
     }

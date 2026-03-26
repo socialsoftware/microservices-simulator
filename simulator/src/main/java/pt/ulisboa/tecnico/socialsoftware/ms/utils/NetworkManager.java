@@ -2,15 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.ms.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.Step;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -82,15 +75,12 @@ public class NetworkManager {
     }
 
     public void loadConfig(JsonNode root) {
+        reset();
         parseConfig(root);
         loaded = true;
     }
 
     private void parseConfig(JsonNode root) {
-        // Clear existing state
-        microserviceToNode.clear();
-        delayConfigs.clear();
-
         // Load nodes
         JsonNode nodes = root.get("nodes");
         if (nodes != null && nodes.isArray()) {

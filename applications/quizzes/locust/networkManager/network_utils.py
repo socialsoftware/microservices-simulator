@@ -67,7 +67,7 @@ class SimulatorAdminUtils:
         requests.post(
             f"{GATEWAY}/behaviour/load?dir=locust").raise_for_status()
         if config:
-            requests.post(f"{GATEWAY}/behaviour/placement",
+            requests.post(f"{GATEWAY}/behaviour/inject",
                           json=config).raise_for_status()
         requests.get(f"{GATEWAY}/traces/start").raise_for_status()
         requests.get(f"{GATEWAY}/scheduler/start").raise_for_status()
