@@ -4,18 +4,12 @@ A case study built on the simulator demonstrating all patterns: aggregates, even
 
 ---
 
-## Existing Aggregates
+## Domain Model
 
-| Aggregate | Service class | Package |
-|-----------|-------------|---------|
-| Course | `CourseService` | `microservices/course/` |
-| CourseExecution (Execution) | `ExecutionService` | `microservices/execution/` |
-| User | `UserService` | `microservices/user/` |
-| Topic | `TopicService` | `microservices/topic/` |
-| Question | `QuestionService` | `microservices/question/` |
-| Quiz | `QuizService` | `microservices/quiz/` |
-| QuizAnswer | `QuizAnswerService` | `microservices/answer/` |
-| Tournament | `TournamentService` | `microservices/tournament/` |
+| File | Purpose |
+|------|---------|
+| [`quizzes-domain-model.md`](quizzes-domain-model.md) | Entities, relationships, and consistency rules (aggregate-independent) |
+| [`quizzes-aggregate-grouping.md`](quizzes-aggregate-grouping.md) | Aggregate partitioning decision, snapshots, and event dependencies |
 
 ---
 
