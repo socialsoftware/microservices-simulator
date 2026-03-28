@@ -54,11 +54,11 @@ public class UserFunctionalities {
 
     public UserDto createUser(UserDto userDto) throws QuizzesException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        checkInput(userDto);
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(userDto);
 
                 CreateUserFunctionalitySagas createUserFunctionalitySagas = new CreateUserFunctionalitySagas(
                         sagaUnitOfWorkService, userDto, sagaUnitOfWork, commandGateway);
@@ -67,7 +67,6 @@ public class UserFunctionalities {
                 return createUserFunctionalitySagas.getCreatedUserDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(userDto);
 
                 CreateUserFunctionalityTCC createUserFunctionalityTCC = new CreateUserFunctionalityTCC(
                         causalUnitOfWorkService, userDto, causalUnitOfWork, commandGateway);

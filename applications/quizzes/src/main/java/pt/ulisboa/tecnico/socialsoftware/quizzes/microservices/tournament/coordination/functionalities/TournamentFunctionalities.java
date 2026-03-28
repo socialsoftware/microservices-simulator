@@ -223,11 +223,11 @@ public class TournamentFunctionalities {
     public TournamentDto createTournament(Integer userId, Integer executionId, List<Integer> topicsId,
             TournamentDto tournamentDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        checkInput(userId, topicsId, tournamentDto);
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(userId, topicsId, tournamentDto);
 
                 CreateTournamentFunctionalitySagas createTournamentFunctionalitySagas = new CreateTournamentFunctionalitySagas(
                         sagaUnitOfWorkService,
@@ -237,7 +237,6 @@ public class TournamentFunctionalities {
                 return createTournamentFunctionalitySagas.getTournamentDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(userId, topicsId, tournamentDto);
 
                 CreateTournamentFunctionalityTCC createTournamentFunctionalityTCC = new CreateTournamentFunctionalityTCC(
                         causalUnitOfWorkService,
