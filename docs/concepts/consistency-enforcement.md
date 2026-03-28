@@ -2,10 +2,10 @@
 
 ## Introduction
 
-Consistency in this codebase is enforced at five distinct layers. Each layer has a different scope (single aggregate vs. cross-aggregate), timing (before mutation, at commit, or asynchronously), and consistency guarantee (strong or eventual). The layers cover two distinct kinds of rule:
+Consistency in this codebase is enforced at six distinct layers. Each layer has a different scope (single aggregate vs. cross-aggregate), timing (before mutation, at commit, or asynchronously), and consistency guarantee (strong or eventual). The layers cover two distinct kinds of rule:
 
-- **Invariants** — properties of aggregate *state* that must always hold (layers 1, 5).
-- **Preconditions / guards** — requirements on *operations* or *inputs* that must be met for a call to be valid (layers 2–4).
+- **Invariants** — properties of aggregate *state* that must always hold (layers 1, 6).
+- **Preconditions / guards** — requirements on *operations* or *inputs* that must be met for a call to be valid (layers 2–5).
 
 Understanding which layer is responsible for what prevents redundant checks and makes it clear where to add a new rule.
 
@@ -17,15 +17,16 @@ Understanding which layer is responsible for what prevents redundant checks and 
 |---|-------|-----------|-------|--------|-------------|
 | 1 | **Intra-invariant** | State / transition invariant | `verifyInvariants()` in aggregate | At UoW commit | Strong |
 | 2 | **Operation precondition** | Operation precondition | Mutation methods (`remove()`, mutators) | At mutation | Strong |
-| 3 | **Service-layer guard** | Guard | `*Functionalities.java` / `*Service.java`, before profile switch | Before aggregate mutation | Strong |
-| 4 | **Functionality cross-aggregate state guard** | Guard | `*Functionality*.java`, saga step reading another aggregate under semantic lock | In workflow step | Strong |
-| 5 | **Inter-invariant (event-driven)** | State invariant (eventual) | `getEventSubscriptions()` + event handler chain | Async (~1 s) | Eventual |
+| 3 | **Service-layer guard** | Guard (DB read) | `*Service.java`, before mutation | Inside workflow step, within `@Transactional` | Strong |
+| 4 | **Input validation guard** | Guard (no DB) | `checkInput()` in `*Functionalities.java`, before `createUnitOfWork()` | Before UoW is created | Strong |
+| 5 | **Functionality cross-aggregate state guard** | Guard | `*Functionality*.java`, saga step reading another aggregate under semantic lock | In workflow step | Strong |
+| 6 | **Inter-invariant (event-driven)** | State invariant (eventual) | `getEventSubscriptions()` + event handler chain | Async (~1 s) | Eventual |
 
 ---
 
 ## Layer 1 — Intra-Invariant
 
-**Definition:** A consistency rule that must always hold within a single aggregate instance. Checked on every Unit of Work commit, regardless of what operation caused the change.
+**Definition:** A consistency rule that must always hold within a single aggregate instance. Checked every time an aggregate is changed by one of its services, regardless of what operation caused the change.
 
 **Where it lives:** `verifyInvariants()` in the base aggregate class (e.g., `Tournament.java`, `Execution.java`).
 
@@ -76,34 +77,50 @@ Three rules apply when using this pattern:
 
 ## Layer 3 — Service-Layer Guard
 
-**Definition:** A guard that validates preconditions before the operation reaches any workflow or aggregate. Covers both pure input validation (no DB read required) and state preconditions that require a DB read. Lives in the `*Functionalities.java` coordinator (before the profile `switch`) or in `*Service.java`.
+**Definition:** A guard that requires a DB read — uniqueness constraints and state checks. Lives in `*Service.java`, inside the `@Transactional(SERIALIZABLE)` boundary, making the read and any subsequent write serializable and race-free.
 
-Input validation must **never** live inside `*FunctionalitySagas.java` or `*FunctionalityTCC.java`: placing it there forces duplication across profiles and mixes orchestration concerns with validation.
+**Where it lives:** `*Service.java`, at the start of the relevant method, before any aggregate mutation.
 
-**Where it lives:** `*Functionalities.java` (before the `switch` on workflow type) for input validation; `*Service.java` for DB-backed preconditions.
+**When it runs:** Inside the first workflow step, within the `@Transactional(SERIALIZABLE)` boundary of the `*Service.java` method, before any mutation.
 
-**When it runs:** Before any UoW or aggregate is created; the operation is rejected before any workflow step executes.
-
-**Consistency:** Strong — throws an exception that aborts the call before any aggregate is touched.
-
-**Examples:**
-- `USER_MISSING_NAME` — `applications/.../execution/coordination/functionalities/ExecutionFunctionalities.java` — rejects the call if the supplied name is null, before the Sagas/TCC switch.
-- `DUPLICATE_COURSE_EXECUTION` — `applications/.../execution/service/ExecutionService.java` — rejects creation of a course execution that already exists.
-- `INACTIVE_USER` — `applications/.../execution/service/ExecutionService.java` — blocks enrollment of an inactive user.
-- `QUIZ_ALREADY_STARTED_BY_STUDENT` — `applications/.../answer/service/QuizAnswerService.java` — rejects a second `startQuiz()` call for the same (student, quiz) pair via `quizAnswerRepository.existsByQuizIdAndStudentId(...)`.
+**Consistency:** Strong — throws an exception that aborts the workflow before any aggregate is dirtied.
 
 ### When to use Layer 3 for uniqueness rules
 
-A **local uniqueness constraint** on a table that one service owns exclusively belongs at Layer 3, not Layer 4 or 5. The key question is: *who owns the data being checked?*
+A **local uniqueness constraint** on a table that one service owns exclusively belongs here, not at Layer 5 or 6. The key question is: *who owns the data being checked?*
 
-- If the data lives in the **same service** making the call → use a Layer 3 repository read (`*Service.java`). The check is local, transactionally atomic, and requires no cross-service coordination.
-- If the data lives in a **different service** → use a Layer 4 workflow step (under semantic lock) to read the remote aggregate.
+- Same service → Layer 3 repository read in `*Service.java` (local, transactionally atomic).
+- Different service → Layer 5 workflow step (under semantic lock) to read the remote aggregate.
 
-Placing a uniqueness check at Layer 5 (event cache) when the authoritative data is local is a common mistake: the cache lags behind reality and the "strong" Layer 5 guard becomes eventually consistent in practice, allowing duplicate inserts in a narrow race window. See [`docs/examples/unique-quiz-answer-per-student.md`](../examples/unique-quiz-answer-per-student.md) for a full case study of this failure mode and the Layer 3 fix.
+Placing a uniqueness check at Layer 6 (event cache) when the authoritative data is local is a mistake: the cache lags behind reality and the "strong" Layer 6 guard becomes eventually consistent in practice, allowing duplicate inserts in a narrow race window. See [`docs/examples/unique-quiz-answer-per-student.md`](../examples/unique-quiz-answer-per-student.md) for a full case study of this failure mode and the Layer 3 fix.
+
+**Examples:**
+- `INACTIVE_USER` — `applications/.../execution/service/ExecutionService.java` — blocks enrollment of an inactive user.
+- `DUPLICATE_COURSE_EXECUTION` — `applications/.../execution/service/ExecutionService.java` — rejects creation of a course execution that already exists.
+- `QUIZ_ALREADY_STARTED_BY_STUDENT` — `applications/.../answer/service/QuizAnswerService.java` — rejects a second `startQuiz()` call for the same (student, quiz) pair via `quizAnswerRepository.existsByQuizIdAndStudentId(...)`.
 
 ---
 
-## Layer 4 — Functionality Cross-Aggregate State Guard
+## Layer 4 — Input Validation Guard
+
+**Definition:** A guard that validates pure input before any workflow infrastructure is created. Covers null/blank field checks and structural DTO validation that requires no DB read.
+
+**Where it lives:** `checkInput()` in `*Functionalities.java`, called **before `createUnitOfWork()`**.
+
+**When it runs:** Before `createUnitOfWork()` is called — the operation is rejected before any version slot is consumed or workflow step executes.
+
+**Consistency:** Strong — throws an exception immediately; no UoW, no transaction, no aggregate is touched.
+
+**Distinction from Layer 3:** Layer 3 runs inside a workflow step within a `@Transactional` boundary and requires a DB read. Layer 4 fires before the workflow system is involved at all. Input validation must **never** live inside `*FunctionalitySagas.java` or `*FunctionalityTCC.java` (forces profile duplication), and must not be placed after `createUnitOfWork()` (wastes a version-counter slot for every rejected call).
+
+**Examples:**
+- `TOPIC_MISSING_NAME` — `applications/.../topic/coordination/functionalities/TopicFunctionalities.java` — rejects the call if the supplied name is null.
+- `USER_MISSING_NAME` — `applications/.../user/coordination/functionalities/UserFunctionalities.java` — rejects the call if the supplied name is null.
+- Tournament null-field guards — `applications/.../tournament/coordination/functionalities/TournamentFunctionalities.java` — rejects `createTournament()` if userId, topicsId, or core date fields are null.
+
+---
+
+## Layer 5 — Functionality Cross-Aggregate State Guard
 
 **Definition:** A workflow step that loads a *different* aggregate (not the operation's primary target) under a semantic lock (Sagas) or causal snapshot (TCC) to verify a cross-aggregate precondition before the mutating step is allowed to run.
 
@@ -115,11 +132,11 @@ Placing a uniqueness check at Layer 5 (event cache) when the authoritative data 
 
 **Examples:**
 
-There are currently no Layer 4 business-rule checks in this codebase. Both rules that previously lived here (`CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT` and `COURSE_SAME_TOPIC_COURSE`) were migrated to Layer 1 once it was recognised that all data they inspect belongs to a single aggregate. Layer 4 read steps that remain (e.g. `getTopicsStep` in `CreateQuestionFunctionalitySagas`) exist to fetch data needed to build the aggregate, not to enforce a cross-aggregate guard.
+There are currently no Layer 5 business-rule checks in this codebase. Both rules that previously lived here (`CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT` and `COURSE_SAME_TOPIC_COURSE`) were migrated to Layer 1 once it was recognised that all data they inspect belongs to a single aggregate. Layer 5 read steps that remain (e.g. `getTopicsStep` in `CreateQuestionFunctionalitySagas`) exist to fetch data needed to build the aggregate, not to enforce a cross-aggregate guard.
 
 ---
 
-## Layer 5 — Inter-Invariant (Event-Driven)
+## Layer 6 — Inter-Invariant (Event-Driven)
 
 **Definition:** A consistency rule that spans multiple aggregates and is maintained via domain events. The consumer aggregate caches a local copy of the relevant publisher state, kept eventually consistent by asynchronous event polling.
 
@@ -169,11 +186,18 @@ Order of enforcement layers within a single operation:
 Request arrives
       │
       ▼
-[3] Service-layer guard
-    (input validation or DB read — in *Functionalities.java before switch, or *Service.java)
+[4] Input validation guard
+    (checkInput() in *Functionalities.java — BEFORE createUnitOfWork())
       │
       ▼
-[4] Functionality cross-aggregate state guard
+ createUnitOfWork() / profile switch
+      │
+      ▼
+[3] Service-layer guard
+    (in *Service.java — before mutation, inside @Transactional(SERIALIZABLE))
+      │
+      ▼
+[5] Functionality cross-aggregate state guard
     (saga step reads another aggregate under semantic lock)
       │
       ▼
@@ -188,8 +212,8 @@ Request arrives
     commit
       │
       ▼  (async, ~1 s poll interval)
-[5] Inter-invariant event handler
+[6] Inter-invariant event handler
     (consumer caches publisher state update)
 ```
 
-Layers 1–4 are synchronous and strong. Layer 5 is asynchronous and eventually consistent.
+Layers 1–5 are synchronous and strong. Layer 6 is asynchronous and eventually consistent.
