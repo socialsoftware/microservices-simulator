@@ -23,7 +23,7 @@ class CapacityValidatorUtils:
     def get_max_concurrent(report, ms_name):
         """Extracts the maximum number of active requests for a microservice from the report"""
         # Format: [msName] ACTION: logId | Active: [id1, id2] | Waiting: [] | Available: X
-        pattern = rf"\[{ms_name}\] .* \| Active: \[(.*?)\]"
+        pattern = rf"\[{ms_name.lower()}\] .* \| Active: \[(.*?)\]"
         matches = re.findall(pattern, report)
         max_active = 0
         for m in matches:

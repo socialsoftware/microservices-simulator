@@ -40,8 +40,8 @@ class CapacityAutomationUser(HttpUser):
             report = CapacityValidatorUtils.get_report()
             logging.info("### RESULTS ###")
             # Verify that TournamentService never exceeded 1 concurrent request
-            CapacityValidatorUtils.assert_max_capacity(
-                "TournamentService", report, 1)
+            CapacityValidatorUtils.assert_concurrency_range(
+                "TournamentService", report, 1, 1)
             CapacityAdminUtils.stop_and_cleanup()
 
             logging.info("############# TEST END #############")

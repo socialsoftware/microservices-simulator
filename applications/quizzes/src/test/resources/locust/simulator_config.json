@@ -11,6 +11,7 @@
       },
       {
         "name": "Node2",
+        "capacity": 10,
         "microservices": [
           "quiz",
           "tournament"
@@ -51,7 +52,7 @@
   "Capacities": {
     "microservices": [
       {
-        "name": "TournamentService",
+        "name": "tournament",
         "capacity": 2,
         "endpoints": [
           {
@@ -65,7 +66,7 @@
         ]
       },
       {
-        "name": "ExecutionService",
+        "name": "execution",
         "capacity": 5,
         "endpoints": [
           {
