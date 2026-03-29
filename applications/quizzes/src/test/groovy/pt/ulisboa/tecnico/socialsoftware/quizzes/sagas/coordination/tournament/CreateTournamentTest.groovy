@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordin
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
@@ -91,6 +92,28 @@ class CreateTournamentTest extends QuizzesSpockTest {
         tournamentFunctionalities.createTournament(null, courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], new TournamentDto(startTime: DateHandler.toISOString(TIME_1), endTime: DateHandler.toISOString(TIME_3), numberOfQuestions: 2))
 
         then:
+        thrown(QuizzesException)
+    }
+
+    def "create tournament with zero numberOfQuestions violates TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE"() {
+        when:
+        tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], new TournamentDto(startTime: DateHandler.toISOString(TIME_1), endTime: DateHandler.toISOString(TIME_3), numberOfQuestions: 0))
+
+        then:
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+    }
+
+    def "TOURNAMENT_MAX_QUESTIONS invariant fires when numberOfQuestions is set to 31 directly"() {
+        given: 'a tournament aggregate loaded with numberOfQuestions set to 31'
+        def unitOfWork = unitOfWorkService.createUnitOfWork("invariantTest")
+        def tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentDto.aggregateId, unitOfWork)
+        tournament.setNumberOfQuestions(31)
+
+        when: 'verifyInvariants is called'
+        tournament.verifyInvariants()
+
+        then: 'INVARIANT_BREAK is thrown'
         thrown(QuizzesException)
     }
 

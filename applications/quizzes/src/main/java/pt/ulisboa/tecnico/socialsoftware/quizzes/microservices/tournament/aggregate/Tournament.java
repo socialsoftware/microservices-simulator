@@ -36,6 +36,9 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
         IS_CANCELED
         DELETE
         CREATOR_PARTICIPANT_CONSISTENCY
+        TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE
+        TOURNAMENT_MUST_HAVE_ONE_TOPIC
+        TOURNAMENT_MAX_QUESTIONS
     INTER-INVARIANTS:
         NUMBER_OF_QUESTIONS
         QUIZ_TOPICS
@@ -249,6 +252,30 @@ public abstract class Tournament extends Aggregate {
     }
 
     /*
+     * TOURNAMENT_MUST_HAVE_ONE_TOPIC
+     * this.tournamentTopics.size() >= 1
+     */
+    public boolean invariantMustHaveOneTopic() {
+        return this.tournamentTopics.size() >= 1;
+    }
+
+    /*
+     * TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE
+     * this.numberOfQuestions > 0
+     */
+    public boolean invariantNumberOfQuestionsPositive() {
+        return this.numberOfQuestions != null && this.numberOfQuestions > 0;
+    }
+
+    /*
+     * TOURNAMENT_MAX_QUESTIONS
+     * this.numberOfQuestions <= 30
+     */
+    public boolean invariantNumberOfQuestionsAtMost30() {
+        return this.numberOfQuestions == null || this.numberOfQuestions <= 30;
+    }
+
+    /*
      * DELETE
      * this.state == DELETED => this.participants.empty
      */
@@ -346,7 +373,10 @@ public abstract class Tournament extends Aggregate {
                     && invariantCreatorParticipantConsistency()
                     && invariantCreatorIsNotAnonymous()
                     && invariantFinalAfterStart()
-                    && invariantCancelledFieldsAreFinal())) {
+                    && invariantCancelledFieldsAreFinal()
+                    && invariantMustHaveOneTopic()
+                    && invariantNumberOfQuestionsPositive()
+                    && invariantNumberOfQuestionsAtMost30())) {
                 throw new QuizzesException(INVARIANT_BREAK, getAggregateId());
             }
         }

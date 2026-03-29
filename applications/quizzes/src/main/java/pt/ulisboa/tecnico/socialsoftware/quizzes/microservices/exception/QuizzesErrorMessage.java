@@ -24,6 +24,7 @@ public final class QuizzesErrorMessage {
     public static final String TOURNAMENT_MISSING_START_TIME = "Tournament requires a start time.";
     public static final String TOURNAMENT_MISSING_END_TIME = "Tournament requires an end time.";
     public static final String TOURNAMENT_MISSING_NUMBER_OF_QUESTIONS = "Tournament requires a number of questions.";
+    public static final String TOURNAMENT_MAX_QUESTIONS = "Tournament cannot have more than 30 questions.";
     public static final String TOURNAMENT_DELETED = "Tournament with aggregate id %d already deleted.";
     public static final String TOURNAMENT_PARTICIPANT_NOT_FOUND = "User %d is not enrolled in tournament %d";
     public static final String TOURNAMENT_TOPIC_NOT_FOUND = "Topic %d is not part of tournament %d.";

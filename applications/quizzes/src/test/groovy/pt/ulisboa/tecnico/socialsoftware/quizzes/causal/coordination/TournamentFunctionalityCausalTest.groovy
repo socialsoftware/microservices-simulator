@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.causal.coordination
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
@@ -15,6 +16,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordin
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
@@ -23,6 +26,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.Us
 @DataJpaTest
 class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
     public static final String UPDATED_NAME = "UpdatedName"
+
+    @Autowired
+    private CausalUnitOfWorkService unitOfWorkService
 
     @Autowired
     private ExecutionFunctionalities courseExecutionFunctionalities
@@ -459,6 +465,37 @@ class TournamentFunctionalityCausalTest extends QuizzesSpockTest {
         tournamentDtoResult.topics.size() == 1
         tournamentDtoResult.topics.find{it.aggregateId == topicDto3.aggregateId} != null
         tournamentDtoResult.quiz.aggregateId == tournamentDto.quiz.aggregateId
+    }
+
+    def 'update tournament with zero numberOfQuestions violates TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE under TCC'() {
+        given:
+        def updateDto = new TournamentDto()
+        updateDto.setAggregateId(tournamentDto.aggregateId)
+        updateDto.setNumberOfQuestions(0)
+        def topics = new HashSet<>(Arrays.asList(topicDto1.aggregateId, topicDto2.aggregateId))
+
+        when:
+        tournamentFunctionalities.updateTournament(updateDto, topics)
+
+        then:
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+        and: 'tournament is not changed'
+        def unchanged = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        unchanged.numberOfQuestions == 2
+    }
+
+    def 'TOURNAMENT_MAX_QUESTIONS invariant fires when numberOfQuestions is set to 31 directly under TCC'() {
+        given: 'a tournament aggregate loaded with numberOfQuestions set to 31'
+        def unitOfWork = unitOfWorkService.createUnitOfWork("invariantTest")
+        def tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentDto.aggregateId, unitOfWork)
+        tournament.setNumberOfQuestions(31)
+
+        when: 'verifyInvariants is called'
+        tournament.verifyInvariants()
+
+        then: 'INVARIANT_BREAK is thrown'
+        thrown(QuizzesException)
     }
 
     @TestConfiguration

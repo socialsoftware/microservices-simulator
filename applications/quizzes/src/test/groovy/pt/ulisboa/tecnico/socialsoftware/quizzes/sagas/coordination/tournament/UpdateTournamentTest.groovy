@@ -21,6 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
@@ -213,6 +214,99 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         then: 'FINAL_AFTER_START invariant is caught by verifyInvariants()'
         def error = thrown(SimulatorException)
         error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+    }
+
+    def 'TOURNAMENT_MUST_HAVE_ONE_TOPIC invariant fires when topics are cleared directly'() {
+        given: 'a tournament aggregate loaded with its topics cleared'
+        def unitOfWork = unitOfWorkService.createUnitOfWork("invariantTest")
+        def tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentDto.aggregateId, unitOfWork)
+        tournament.setTournamentTopics(new HashSet<>())
+
+        when: 'verifyInvariants is called'
+        tournament.verifyInvariants()
+
+        then: 'INVARIANT_BREAK is thrown'
+        thrown(QuizzesException)
+    }
+
+    def 'update tournament with zero numberOfQuestions violates TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE'() {
+        given:
+        def updateDto = new TournamentDto()
+        updateDto.setAggregateId(tournamentDto.aggregateId)
+        updateDto.setNumberOfQuestions(0)
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet()
+
+        when:
+        tournamentFunctionalities.updateTournament(updateDto, topicsAggregateIds)
+
+        then:
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+        and: 'tournament is not changed'
+        def unchanged = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        unchanged.numberOfQuestions == 2
+    }
+
+    def 'update tournament with negative numberOfQuestions violates TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE'() {
+        given:
+        def updateDto = new TournamentDto()
+        updateDto.setAggregateId(tournamentDto.aggregateId)
+        updateDto.setNumberOfQuestions(-1)
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet()
+
+        when:
+        tournamentFunctionalities.updateTournament(updateDto, topicsAggregateIds)
+
+        then:
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+        and: 'tournament is not changed'
+        def unchanged = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        unchanged.numberOfQuestions == 2
+    }
+
+    def 'TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE invariant fires when numberOfQuestions is set to zero directly'() {
+        given: 'a tournament aggregate loaded with numberOfQuestions set to zero'
+        def unitOfWork = unitOfWorkService.createUnitOfWork("invariantTest")
+        def tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentDto.aggregateId, unitOfWork)
+        tournament.setNumberOfQuestions(0)
+
+        when: 'verifyInvariants is called'
+        tournament.verifyInvariants()
+
+        then: 'INVARIANT_BREAK is thrown'
+        thrown(QuizzesException)
+    }
+
+    def 'update tournament with 31 numberOfQuestions violates TOURNAMENT_MAX_QUESTIONS'() {
+        given:
+        def updateDto = new TournamentDto()
+        updateDto.setAggregateId(tournamentDto.aggregateId)
+        updateDto.setNumberOfQuestions(31)
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet()
+
+        when:
+        tournamentFunctionalities.updateTournament(updateDto, topicsAggregateIds)
+
+        then:
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+        and: 'tournament is not changed'
+        def unchanged = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        unchanged.numberOfQuestions == 2
+    }
+
+    def 'TOURNAMENT_MAX_QUESTIONS invariant fires when numberOfQuestions is set to 31 directly'() {
+        given: 'a tournament aggregate loaded with numberOfQuestions set to 31'
+        def unitOfWork = unitOfWorkService.createUnitOfWork("invariantTest")
+        def tournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentDto.aggregateId, unitOfWork)
+        tournament.setNumberOfQuestions(31)
+
+        when: 'verifyInvariants is called'
+        tournament.verifyInvariants()
+
+        then: 'INVARIANT_BREAK is thrown'
+        thrown(QuizzesException)
     }
 
     @TestConfiguration
