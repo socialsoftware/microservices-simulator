@@ -166,6 +166,26 @@ public class QuizAnswerFunctionalities {
         }
     }
 
+    public void removeQuizAnswer(Integer quizAnswerAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveQuizAnswerFunctionalitySagas functionalitySagas = new RemoveQuizAnswerFunctionalitySagas(
+                        sagaUnitOfWorkService, quizAnswerAggregateId, sagaUnitOfWork, commandGateway);
+                functionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            case TCC:
+                CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
+                RemoveQuizAnswerFunctionalityTCC functionalityTCC = new RemoveQuizAnswerFunctionalityTCC(
+                        causalUnitOfWorkService, quizAnswerAggregateId, causalUnitOfWork, commandGateway);
+                functionalityTCC.executeWorkflow(causalUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
     public void updateUserNameInQuizAnswer(Integer quizAnswerAggregateId, Integer publisherAggregateId,
             Long publisherAggregateVersion, Integer studentAggregateId, String updatedName) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();

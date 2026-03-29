@@ -3,7 +3,11 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesAnonymizeStudent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesInvalidateQuiz;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesRemoveCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUnerollStudentFromCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUpdateStudentName;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 
 import java.time.LocalDateTime;
@@ -93,20 +97,16 @@ public abstract class QuizAnswer extends Aggregate {
     }
 
     private void interInvariantCourseExecutionExists(Set<EventSubscription> eventSubscriptions) {
-        // TODO: this event is not handled
         eventSubscriptions.add(new QuizAnswerSubscribesRemoveCourseExecution(this.getAnswerCourseExecution()));
     }
 
     private void interInvariantQuizExists(Set<EventSubscription> eventSubscriptions) {
         // also verifies QUESTION_EXISTS because if the question is DELETED the quiz sends this event
-        // TODO: DeleteQuestionEventHandler defined without any subscription to the event (missing QuizAnswerSubscribesDeleteQuestion?)
-        // TODO: this event is not handled
         eventSubscriptions.add(new QuizAnswerSubscribesInvalidateQuiz(this));
     }
 
     private void interInvariantStudentExists(Set<EventSubscription> eventSubscriptions) {
         eventSubscriptions.add(new QuizAnswerSubscribesUnerollStudentFromCourseExecution(this));
-        // TODO: this event is not handled
         eventSubscriptions.add(new QuizAnswerSubscribesAnonymizeStudent(this));
         eventSubscriptions.add(new QuizAnswerSubscribesUpdateStudentName(this));
     }
