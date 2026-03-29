@@ -7,7 +7,7 @@ Consistency in this codebase is enforced at six distinct layers. Each layer has 
 - **Invariants** — properties of aggregate *state* that must always hold (layers 1, 6).
 - **Preconditions / guards** — requirements on *operations* or *inputs* that must be met for a call to be valid (layers 2–5).
 
-Understanding which layer is responsible for what prevents redundant checks and makes it clear where to add a new rule.
+Understanding which layer is responsible for what prevents redundant checks and makes it clear where to add a new rule. **When in doubt, prefer Layer 1:** if a rule can be expressed as a property of a single aggregate's state, it belongs in `verifyInvariants()` — not scattered across multiple layers.
 
 ---
 
@@ -33,6 +33,8 @@ Understanding which layer is responsible for what prevents redundant checks and 
 **When it runs:** Called by the UoW commit path after all mutations for a functionality have been applied but before the new version is persisted.
 
 **Consistency:** Strong — the commit is aborted if any invariant fails.
+
+**Centralization principle:** Layer 1 is the canonical home for aggregate-state invariants. Whenever a rule can be expressed purely in terms of a single aggregate's state — regardless of which operation triggered the change — it belongs here. Because `verifyInvariants()` runs on every commit, a Layer 1 check fires uniformly across all operations, eliminating the need to repeat the same logic in individual mutation methods (Layer 2), service guards (Layer 3), or workflow steps (Layer 5). **If a rule fits Layer 1, define it only there — do not add the same check at another layer.**
 
 **Examples:**
 - `ANSWER_BEFORE_START` — `applications/.../tournament/aggregate/Tournament.java:verifyInvariants()` — a tournament cannot accept answers before its start time.
