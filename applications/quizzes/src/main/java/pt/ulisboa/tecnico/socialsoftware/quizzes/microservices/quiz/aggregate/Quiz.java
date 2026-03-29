@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subsc
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,6 +27,8 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
         AVAILABLE_DATE_FINAL_AFTER_AVAILABLE_DATE
         CONCLUSION_DATE_FINAL_AFTER_AVAILABLE_DATE
         RESULTS_DATE_FINAL_AFTER_AVAILABLE_DATE
+        QUIZ_IN_CLASS_REQUIRES_CONCLUSION_DATE
+        QUIZ_QUESTION_SEQUENCE_CONSECUTIVE
     INTER-INVARIANTS
         QUESTION_EXISTS
         COURSE_EXECUTION_EXISTS
@@ -117,9 +120,43 @@ public abstract class Quiz extends Aggregate {
         return true;
     }
 
+    /*
+     * QUIZ_IN_CLASS_REQUIRES_CONCLUSION_DATE
+     * Quiz.type == IN_CLASS => Quiz.conclusionDate != null
+     */
+    private boolean invariantInClassRequiresConclusionDate() {
+        return quizType != QuizType.IN_CLASS || conclusionDate != null;
+    }
+
+    /*
+     * QUIZ_QUESTION_SEQUENCE_CONSECUTIVE
+     * QuizQuestions are numbered starting at 1 with no gaps.
+     * Only enforced when at least one active question has a non-null sequence;
+     * generated quizzes that never assign sequences are exempt.
+     */
+    private boolean invariantQuizQuestionSequenceConsecutive() {
+        List<Integer> sequences = quizQuestions.stream()
+                .filter(qq -> qq.getState() == Aggregate.AggregateState.ACTIVE && qq.getSequence() != null)
+                .map(QuizQuestion::getSequence)
+                .sorted()
+                .collect(Collectors.toList());
+        if (sequences.isEmpty()) {
+            return true;
+        }
+        for (int i = 0; i < sequences.size(); i++) {
+            if (sequences.get(i) != i + 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public void verifyInvariants() {
-        if (!(invariantDateOrdering() && invariantFieldsFinalAfterAvailableDate())) {
+        if (!(invariantDateOrdering()
+                && invariantFieldsFinalAfterAvailableDate()
+                && invariantInClassRequiresConclusionDate()
+                && invariantQuizQuestionSequenceConsecutive())) {
             throw new QuizzesException(INVARIANT_BREAK, getAggregateId());
         }
     }
