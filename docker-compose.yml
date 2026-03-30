@@ -126,7 +126,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -141,7 +141,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -156,7 +156,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -171,7 +171,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -186,7 +186,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -201,7 +201,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -216,7 +216,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -231,7 +231,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -246,7 +246,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -300,7 +300,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -331,7 +331,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -363,7 +363,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8082/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8082/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -395,7 +395,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8089/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8089/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -427,7 +427,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8083/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8083/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -459,7 +459,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8084/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8084/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -491,7 +491,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8085/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8085/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -523,7 +523,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8086/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8086/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -555,7 +555,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8087/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8087/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -587,7 +587,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8088/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8088/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -637,17 +637,6 @@ services:
       - ./applications/quizzes:/quizzes
       - mavencache:/root/.m2
     command: mvn -Ptest-tcc test
-
-  test-answers-sagas:
-    image: maven:3.9.7-eclipse-temurin-21-alpine
-    stop_signal: SIGKILL
-    stdin_open: true
-    tty: true
-    working_dir: /answers
-    volumes:
-      - ./applications/answers:/answers
-      - mavencache:/root/.m2
-    command: mvn -Ptest-sagas test
 
   test-fig3a:
     image: maven:3.9.7-eclipse-temurin-21-alpine
@@ -716,7 +705,7 @@ services:
     networks:
       - messaging-network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8761/actuator/health"]
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:8761/actuator/health" ]
       interval: 10s
       timeout: 5s
       retries: 10
