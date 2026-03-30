@@ -2,7 +2,7 @@
 
 This chapter covers Nebula's event system: publishing events, subscribing to events from other aggregates, and using inter-invariants for referential integrity across aggregate boundaries.
 
-> **Tied example:** [`05-eventdriven`](../examples/abstractions/05-eventdriven/) — Author and Post aggregates with event publishing and subscription.
+> **Tied example:** [`05-eventdriven`](../examples/abstractions/05-eventdriven/): Author and Post aggregates with event publishing and subscription.
 
 ## Domain Overview
 
@@ -34,14 +34,14 @@ Events {
 ```
 
 Each published event has:
-- A **name** — becomes the Java event class name
-- **Fields** — data carried by the event
+- A **name**:becomes the Java event class name
+- **Fields**:data carried by the event
 
 ### What Gets Generated
 
 For each published event, Nebula generates:
 
-1. **Event class** — extends the simulator's `Event` base class:
+1. **Event class**:extends the simulator's `Event` base class:
 
 ```java
 public class AuthorUpdatedEvent extends Event {
@@ -52,12 +52,12 @@ public class AuthorUpdatedEvent extends Event {
 }
 ```
 
-2. **Publishing logic** in the service — events are registered with the Unit of Work:
+2. **Publishing logic** in the service: events are registered via the Unit of Work Service:
 
 ```java
 AuthorDeletedEvent event = new AuthorDeletedEvent(author.getAggregateId());
-event.setName(author.getName());
-unitOfWork.registerEvent(event);
+event.setPublisherAggregateVersion(author.getVersion());
+unitOfWorkService.registerEvent(event, unitOfWork);
 ```
 
 Events are dispatched only when the Unit of Work commits, ensuring they are not sent if the transaction fails.
@@ -78,22 +78,22 @@ This generates an event handler that updates local copies of data when the sourc
 
 ### Event Flow
 
-Events flow through the system in this sequence:
+Events flow through the system via scheduled polling:
 
 ```
-1. AuthorService publishes event
-   unitOfWork.registerEvent(new AuthorUpdatedEvent(...))
+1. AuthorService registers event
+   unitOfWorkService.registerEvent(new AuthorUpdatedEvent(...), unitOfWork)
 
-2. UnitOfWork commits → events dispatched
+2. UnitOfWork commits → event persisted
 
-3. PostEventProcessing routes the event
-   PostEventProcessing.handleAuthorUpdatedEvent(event)
+3. PostEventProcessing polls for new events (@Scheduled)
+   eventApplicationService.handleSubscribedEvent(...)
 
-4. Post aggregate processes event via handler
-   PostEventHandling.handleAuthorUpdated(event)
+4. Subscription classes match events to affected aggregates
+   PostSubscribesAuthorUpdated
 
-5. Handler updates local data
-   post.getAuthor().setAuthorName(event.getName())
+5. Event handlers process updates
+   AuthorUpdatedEventHandler updates local data
 ```
 
 ## Inter-Invariants
@@ -113,9 +113,9 @@ Events {
 ```
 
 Breaking this down:
-- `interInvariant AUTHOR_EXISTS` — named constraint group
-- `subscribe AuthorDeletedEvent from Author` — listen for this event from the Author aggregate
-- `{ author.authorAggregateId == event.aggregateId }` — matching condition: applies to Posts whose local author reference matches the deleted Author's ID
+- `interInvariant AUTHOR_EXISTS`:named constraint group
+- `subscribe AuthorDeletedEvent from Author`:listen for this event from the Author aggregate
+- `{ author.authorAggregateId == event.aggregateId }`:matching condition: applies to Posts whose local author reference matches the deleted Author's ID
 
 ### How They Work
 
@@ -146,7 +146,9 @@ Events {
 When an Author is deleted:
 1. `AuthorDeletedEvent` is published
 2. Post's inter-invariant matches Posts with `author.authorAggregateId == event.aggregateId`
-3. The `cascade` action deletes those Posts
+3. The generated `processAuthorDeletedEvent` method in `PostEventProcessing` provides the event processing hook. The reference constraint logic (cascade, prevent, setNull) should be implemented here
+
+> **Note:** The generated event processing method for delete inter-invariants is a stub that needs to be completed with the specific constraint logic. The subscription and event matching infrastructure is fully generated.
 
 ### Multiple Subscriptions Per Inter-Invariant
 
@@ -261,10 +263,10 @@ Aggregate Post {
 ```
 
 This demonstrates:
-- **Event publishing** — Author emits `AuthorUpdatedEvent` and `AuthorDeletedEvent`
-- **Simple subscription** — Post subscribes to `AuthorUpdatedEvent` for data sync
-- **Inter-invariant** — Post uses `AUTHOR_EXISTS` to enforce referential integrity on Author deletion
-- **Cascade delete** — When an Author is deleted, their Posts are also deleted
+- **Event publishing**:Author emits `AuthorUpdatedEvent` and `AuthorDeletedEvent`
+- **Simple subscription**:Post subscribes to `AuthorUpdatedEvent` for data sync
+- **Inter-invariant**:Post uses `AUTHOR_EXISTS` to enforce referential integrity on Author deletion
+- **Cascade delete**:When an Author is deleted, their Posts are also deleted
 
 ### Generate and verify:
 
@@ -274,9 +276,9 @@ cd dsl/nebula
 ```
 
 Explore the generated event infrastructure:
-- `AuthorUpdatedEvent.java` / `AuthorDeletedEvent.java` — event classes
-- `PostEventProcessing.java` — event routing
-- `PostEventHandling.java` — subscription handlers
+- `AuthorUpdatedEvent.java` / `AuthorDeletedEvent.java`:event classes
+- `PostEventProcessing.java`:event routing
+- `PostEventHandling.java`:subscription handlers
 
 ---
 

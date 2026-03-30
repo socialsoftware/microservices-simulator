@@ -2,7 +2,7 @@
 
 Cross-aggregate references are the most powerful feature of Nebula DSL. They let one aggregate hold a local copy of data from another aggregate, with automatic type inference, referential integrity, and delete handling.
 
-> **Tied example:** [`04-crossrefs`](../examples/abstractions/04-crossrefs/) — Teacher, Course, and Enrollment aggregates with cross-references.
+> **Tied example:** [`04-crossrefs`](../examples/abstractions/04-crossrefs/): Teacher, Course, and Enrollment aggregates with cross-references.
 
 ## Domain Overview
 
@@ -45,21 +45,22 @@ This creates a local entity (`CourseTeacher`) that holds a snapshot of selected 
 map <sourceField> as <localField>
 ```
 
-- `sourceField` — the property name in the referenced aggregate's root entity
-- `localField` — the name used in the local entity
+- `sourceField`:the property name in the referenced aggregate's root entity
+- `localField`:the name used in the local entity
 
 Example: `map name as teacherName` means "take the `name` field from `Teacher` (which is a `String`) and call it `teacherName` locally."
 
 ### Auto-Generated Base Fields
 
-All cross-aggregate entities automatically include two fields:
+All cross-aggregate entities automatically include three fields:
 
 ```java
-private Integer teacherAggregateId;  // ID of the referenced aggregate
-private Integer teacherVersion;      // Version for optimistic concurrency
+private Integer teacherAggregateId;    // ID of the referenced aggregate
+private Integer teacherVersion;        // Version for optimistic concurrency
+private AggregateState teacherState;   // State of the referenced aggregate
 ```
 
-The naming convention is `<lowercase-aggregate>AggregateId` and `<lowercase-aggregate>Version`.
+The naming convention is `<lowercase-aggregate>AggregateId`, `<lowercase-aggregate>Version`, and `<lowercase-aggregate>State`.
 
 ### Type Inference
 
@@ -126,7 +127,7 @@ Entity EnrollmentTeacher from Teacher {
 }
 ```
 
-This generates an entity with just `teacherAggregateId` and `teacherVersion`.
+This generates an entity with just `teacherAggregateId`, `teacherVersion`, and `teacherState`.
 
 ### Collection References
 
@@ -139,7 +140,7 @@ Root Entity Enrollment {
 }
 ```
 
-Collection references generate additional `addTeacherToEnrollment` and `removeTeacherFromEnrollment` service methods.
+Collection references generate additional service methods: `addEnrollmentTeacher`, `addEnrollmentTeachers` (bulk), `getEnrollmentTeacher`, `updateEnrollmentTeacher`, and `removeEnrollmentTeacher`.
 
 ## References Block
 
@@ -158,7 +159,7 @@ References {
 
 | Action | Behavior |
 |--------|----------|
-| `prevent` | Throw an exception — the referenced aggregate cannot be deleted while this reference exists |
+| `prevent` | Throw an exception: the referenced aggregate cannot be deleted while this reference exists |
 | `cascade` | Delete this aggregate when the referenced aggregate is deleted |
 | `setNull` | Set the reference to null when the referenced aggregate is deleted |
 
@@ -192,7 +193,7 @@ Events {
 
 This means: "When a `TeacherDeletedEvent` arrives, check if our local `teacher.teacherAggregateId` matches `event.aggregateId`. If it does, this aggregate is affected."
 
-Inter-invariants work together with the `References` block — the inter-invariant detects the event, and the reference action (`prevent`, `cascade`, `setNull`) determines the response. See [Chapter 07](07-Events-Reactive-Patterns.md) for a deep dive.
+Inter-invariants work together with the `References` block: the inter-invariant detects the event, and the reference action (`prevent`, `cascade`, `setNull`) determines the response. See [Chapter 07](07-Events-Reactive-Patterns.md) for a deep dive.
 
 ## Complete Example: Course Aggregate
 
@@ -239,10 +240,10 @@ Aggregate Course {
 ```
 
 This aggregate demonstrates:
-- **Cross-aggregate reference** — `CourseTeacher from Teacher` with three mapped fields
-- **Entity reference property** — `CourseTeacher teacher` in the root entity
-- **Invariants** — including `teacherNotNull` to ensure the reference is set
-- **Referential integrity** — `prevent` delete action + `TEACHER_EXISTS` inter-invariant
+- **Cross-aggregate reference**:`CourseTeacher from Teacher` with three mapped fields
+- **Entity reference property**:`CourseTeacher teacher` in the root entity
+- **Invariants**:including `teacherNotNull` to ensure the reference is set
+- **Referential integrity**:`prevent` delete action + `TEACHER_EXISTS` inter-invariant
 
 ### Generate and verify:
 
@@ -252,9 +253,9 @@ cd dsl/nebula
 ```
 
 Explore the generated code:
-- `CourseTeacher.java` — non-root entity with inferred types
-- `Course.java` — root entity with `CourseTeacher` reference
-- `CourseEventProcessing.java` — inter-invariant event handling
+- `CourseTeacher.java`:non-root entity with inferred types
+- `Course.java`:root entity with `CourseTeacher` reference
+- `CourseEventProcessing.java`:inter-invariant event handling
 
 ---
 

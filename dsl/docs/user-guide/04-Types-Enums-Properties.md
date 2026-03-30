@@ -2,7 +2,7 @@
 
 This chapter covers the Nebula type system: shared enumerations, all supported data types, and property modifiers that control how fields behave.
 
-> **Tied example:** [`02-typesenums`](../examples/abstractions/02-typesenums/) — a Contact aggregate with enums, temporal types, and default values.
+> **Tied example:** [`02-typesenums`](../examples/abstractions/02-typesenums/): a Contact aggregate with enums, temporal types, and default values.
 
 ## Shared Enums
 
@@ -63,8 +63,8 @@ List<Integer> scores
 Set<ExecutionUser> users
 ```
 
-- `List<T>` — ordered, allows duplicates
-- `Set<T>` — unordered, no duplicates
+- `List<T>`:ordered, allows duplicates
+- `Set<T>`:unordered, no duplicates
 
 Collections of entities generate additional add/remove service methods (see [Chapter 10](10-Generated-Code.md)).
 
@@ -96,7 +96,7 @@ LoanBook book               // Single entity reference
 Set<EnrollmentTeacher> teachers   // Collection of entity references
 ```
 
-Entity references across aggregates use the `from` keyword — covered in [Chapter 06](06-Cross-Aggregate-References.md).
+Entity references across aggregates use the `from` keyword, covered in [Chapter 06](06-Cross-Aggregate-References.md).
 
 ### Built-in Types
 
@@ -127,16 +127,11 @@ Boolean favorite = false
 AggregateState state = AggregateState.ACTIVE
 ```
 
-In the generated entity, this becomes:
-
-```java
-private Boolean available = true;
-private Integer count = 0;
-```
+Default values are used in the DTO and factory layers to populate fields when no explicit value is provided. Note that default value initializers are **not** added to the JPA entity field declarations; the defaults are applied through the factory creation flow.
 
 ### DTO Exclusion (`dto-exclude`)
 
-Exclude a property from DTOs — useful for internal fields that shouldn't be exposed via the API:
+Exclude a property from DTOs, useful for internal fields that shouldn't be exposed via the API:
 
 ```nebula
 String internalId dto-exclude
@@ -185,10 +180,10 @@ Aggregate Contact {
 ```
 
 This demonstrates:
-- **Enum type** — `ContactCategory category` uses a shared enum
-- **Temporal type** — `LocalDateTime createdAt` for a timestamp
-- **Default values** — `favorite = false` and `callCount = 0`
-- **Multiple string properties** — could also be written as `String firstName, lastName, email`
+- **Enum type**:`ContactCategory category` uses a shared enum
+- **Temporal type**:`LocalDateTime createdAt` for a timestamp
+- **Default values**:`favorite = false` and `callCount = 0`
+- **Multiple string properties**:could also be written as `String firstName, lastName, email`
 
 ### Generate and verify:
 

@@ -2,7 +2,7 @@
 
 Build your first microservice in 10 lines of DSL. This chapter introduces the core building blocks of Nebula using the simplest possible example.
 
-> **Tied example:** [`01-helloworld`](../examples/abstractions/01-helloworld/) — a single Task aggregate.
+> **Tied example:** [`01-helloworld`](../examples/abstractions/01-helloworld/): a single Task aggregate.
 
 ## The Complete Example
 
@@ -47,9 +47,9 @@ This annotation tells Nebula to generate complete CRUD operations across all lay
 
 Every aggregate must have exactly one `Root Entity`. It becomes a JPA entity that extends the simulator's `Aggregate` base class, which automatically provides:
 
-- `aggregateId` — unique identifier
-- `version` — optimistic concurrency control
-- `state` — lifecycle tracking (`ACTIVE`, `INACTIVE`, `DELETED`)
+- `aggregateId`:unique identifier
+- `version`:optimistic concurrency control
+- `state`:lifecycle tracking (`ACTIVE`, `INACTIVE`, `DELETED`)
 
 ### Properties
 
@@ -143,34 +143,44 @@ The single `task.nebula` file produces this directory tree (showing the key file
         └── enums/                                  # Shared enumerations
 ```
 
-That's **40+ files** from 9 lines of DSL — a significant reduction in code to write.
+That's **40+ files** from 9 lines of DSL, a significant reduction in code to write.
 
 ## What `@GenerateCrud` Produces
 
 The five CRUD operations flow through three layers:
 
 ```
-Controller (REST)  →  Functionalities (orchestration)  →  Service (business logic)
-POST /tasks        →  createTask()                     →  TaskService.createTask()
-GET /tasks/{id}    →  getTaskById()                    →  TaskService.getTaskById()
-GET /tasks         →  getAllTasks()                     →  TaskService.getAllTasks()
-PUT /tasks/{id}    →  updateTask()                     →  TaskService.updateTask()
-DELETE /tasks/{id} →  deleteTask()                     →  TaskService.deleteTask()
+Controller (REST)              →  Functionalities  →  Service (business logic)
+POST /tasks/create             →  createTask()     →  TaskService.createTask()
+GET /tasks/{taskAggregateId}   →  getTaskById()    →  TaskService.getTaskById()
+GET /tasks                     →  getAllTasks()     →  TaskService.getAllTasks()
+PUT /tasks                     →  updateTask()     →  TaskService.updateTask()
+DELETE /tasks/{taskAggregateId}→  deleteTask()      →  TaskService.deleteTask()
 ```
+
+Saga workflows are also generated for **all five operations** (create, get by id, get all, update, and delete).
+
+`@GenerateCrud` also auto-generates `TaskDeletedEvent` and `TaskUpdatedEvent` domain events, which are published by the service when an aggregate is updated or deleted.
 
 Each operation uses the **Unit of Work** pattern for transaction safety:
 
 ```java
-public TaskDto createTask(CreateTaskRequestDto dto, UnitOfWork unitOfWork) {
-    Task task = taskFactory.createTask(null, dto);
-    task = unitOfWorkService.registerChanged(task, unitOfWork);
+public TaskDto createTask(CreateTaskRequestDto createRequest, UnitOfWork unitOfWork) {
+    TaskDto taskDto = new TaskDto();
+    taskDto.setTitle(createRequest.getTitle());
+    taskDto.setDescription(createRequest.getDescription());
+    taskDto.setDone(createRequest.getDone());
+
+    Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+    Task task = taskFactory.createTask(aggregateId, taskDto);
+    unitOfWorkService.registerChanged(task, unitOfWork);
     return taskFactory.createTaskDto(task);
 }
 ```
 
 ## Try It Yourself
 
-1. **Create a new file** in `dsl/docs/examples/abstractions/01-helloworld/` — for example, `note.nebula`:
+1. **Create a new file** in `dsl/docs/examples/abstractions/01-helloworld/`:for example, `note.nebula`:
 
 ```nebula
 Aggregate Note {
@@ -189,16 +199,16 @@ Aggregate Note {
 ./bin/cli.js generate ../docs/examples/abstractions/01-helloworld/ -o ../docs/examples/generated
 ```
 
-3. **Explore the output** — you'll see a new `note/` package alongside `task/`.
+3. **Explore the output**:you'll see a new `note/` package alongside `task/`.
 
 ## What's Next
 
 This chapter covered the bare minimum: a standalone aggregate with automatic CRUD. The next chapters build on this foundation:
 
-- **[Chapter 04](04-Types-Enums-Properties.md)** — Enumerations, all data types, and property modifiers
-- **[Chapter 05](05-Business-Rules-Repositories.md)** — Invariants and custom repository queries
-- **[Chapter 06](06-Cross-Aggregate-References.md)** — Referencing data from other aggregates
-- **[Chapter 07](07-Events-Reactive-Patterns.md)** — Event publishing and reactive subscriptions
+- **[Chapter 04](04-Types-Enums-Properties.md)**:Enumerations, all data types, and property modifiers
+- **[Chapter 05](05-Business-Rules-Repositories.md)**:Invariants and custom repository queries
+- **[Chapter 06](06-Cross-Aggregate-References.md)**:Referencing data from other aggregates
+- **[Chapter 07](07-Events-Reactive-Patterns.md)**:Event publishing and reactive subscriptions
 
 ---
 

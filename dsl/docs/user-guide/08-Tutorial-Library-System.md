@@ -1,8 +1,8 @@
 # Tutorial: Building a Library System
 
-This chapter walks through building a complete library management system from scratch, combining every feature covered in chapters 03-07. No new syntax is introduced — this is a synthesis exercise.
+This chapter walks through building a complete library management system from scratch, combining every feature covered in chapters 03-07. No new syntax is introduced; this is a synthesis exercise.
 
-> **Tied example:** [`06-tutorial`](../examples/abstractions/06-tutorial/) — Member, Book, Loan aggregates with shared enums.
+> **Tied example:** [`06-tutorial`](../examples/abstractions/06-tutorial/): Member, Book, Loan aggregates with shared enums.
 
 ## What We're Building
 
@@ -16,9 +16,9 @@ Member (simple CRUD)
 Book (invariants, events, repository)
 ```
 
-- **Member** — library members with membership types (Chapter 03)
-- **Book** — books with business rules and custom queries (Chapters 04-05)
-- **Loan** — borrows that reference both Member and Book (Chapters 06-07)
+- **Member**:library members with membership types (Chapter 03)
+- **Book**:books with business rules and custom queries (Chapters 04-05)
+- **Loan**:borrows that reference both Member and Book (Chapters 06-07)
 
 By the end, 4 `.nebula` files (~60 lines total) generate a complete Spring Boot application with **50+ Java files** and **~4,500 lines of code**.
 
@@ -37,11 +37,11 @@ SharedEnums {
 
 This defines a `MembershipType` enum used by the Member aggregate. Enums are project-wide and can be referenced from any aggregate.
 
-> **Covered in:** [Chapter 04 — Types, Enums, and Properties](04-Types-Enums-Properties.md)
+> **Covered in:** [Chapter 04: Types, Enums, and Properties](04-Types-Enums-Properties.md)
 
 ## Step 2: Build the Member Aggregate
 
-The simplest aggregate — pure CRUD with no business rules. Create `member.nebula`:
+The simplest aggregate: pure CRUD with no business rules. Create `member.nebula`:
 
 ```nebula
 Aggregate Member {
@@ -60,7 +60,7 @@ This generates:
 - REST endpoints: `POST/GET/PUT/DELETE /members`
 - Saga workflows for distributed transactions
 
-> **Covered in:** [Chapter 03 — Your First Aggregate](03-Your-First-Aggregate.md)
+> **Covered in:** [Chapter 03: Your First Aggregate](03-Your-First-Aggregate.md)
 
 ## Step 3: Build the Book Aggregate
 
@@ -100,16 +100,16 @@ Aggregate Book {
 ```
 
 New features compared to Member:
-- **Default value** — `available = true`
-- **Invariants** — title and author can't be blank
-- **Published event** — `BookDeletedEvent` is emitted when a Book is deleted (needed by Loan)
-- **Repository queries** — custom lookup by genre and availability
+- **Default value**:`available = true`
+- **Invariants**:title and author can't be blank
+- **Published event**:`BookDeletedEvent` is emitted when a Book is deleted (needed by Loan)
+- **Repository queries**:custom lookup by genre and availability
 
 > **Covered in:** [Chapter 04](04-Types-Enums-Properties.md) (defaults), [Chapter 05](05-Business-Rules-Repositories.md) (invariants, repository)
 
 ## Step 4: Build the Loan Aggregate
 
-The most complex aggregate — cross-references, referential integrity, and temporal constraints. Create `loan.nebula`:
+The most complex aggregate: cross-references, referential integrity, and temporal constraints. Create `loan.nebula`:
 
 ```nebula
 Aggregate Loan {
@@ -261,13 +261,13 @@ loan.nebula                 →     microservices/loan/ (8 files)
 
 This tutorial illustrates several key DSL design decisions:
 
-1. **One aggregate per file** — keeps each domain concept isolated and readable
-2. **Shared enums in dedicated file** — enums are cross-cutting and belong in their own file
-3. **`@GenerateCrud` on every aggregate** — start with CRUD, add custom methods later
-4. **Cross-references over duplication** — `LoanMember from Member` instead of copying fields
-5. **Invariants for all business rules** — enforced automatically at the framework level
-6. **References for delete handling** — declarative instead of hand-coded cascade logic
-7. **Inter-invariants for event-driven integrity** — reactive enforcement across aggregate boundaries
+1. **One aggregate per file**:keeps each domain concept isolated and readable
+2. **Shared enums in dedicated file**:enums are cross-cutting and belong in their own file
+3. **`@GenerateCrud` on every aggregate**:start with CRUD, add custom methods later
+4. **Cross-references over duplication**:`LoanMember from Member` instead of copying fields
+5. **Invariants for all business rules**:enforced automatically at the framework level
+6. **References for delete handling**:declarative instead of hand-coded cascade logic
+7. **Inter-invariants for event-driven integrity**:reactive enforcement across aggregate boundaries
 
 ---
 

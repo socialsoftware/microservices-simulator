@@ -87,7 +87,10 @@ dsl/docs/examples/generated/06-tutorial/
     │       └── enums/
     │           └── MembershipType.java
     └── resources/
-        └── application.yml
+        ├── application.properties
+        ├── application.yml
+        ├── database.properties
+        └── logback-spring.xml
 ```
 
 ## What Gets Generated Per Aggregate
@@ -117,48 +120,48 @@ For an aggregate with `@GenerateCrud` ([Chapter 03](03-Your-First-Aggregate.md))
 
 ## Key Generated Files
 
-### Entity (`User.java`)
+### Entity (`Member.java`)
 
-Root entities extend the simulator's `Aggregate` base class:
+Root entities extend the simulator's `Aggregate` base class. They are generated as `abstract` classes, with concrete subclasses for each consistency model (Sagas, TCC):
 
 ```java
 @Entity
-public class User extends Aggregate {
+public abstract class Member extends Aggregate {
     private String name;
-    private String username;
-    private UserRole role;
-    private Boolean active = true;
+    private String email;
+    @Enumerated(EnumType.STRING)
+    private MembershipType membership;
 
-    public User() { super(); }
+    public Member() { super(); }
 
-    public User(Integer aggregateId, UserDto dto) {
+    public Member(Integer aggregateId, MemberDto dto) {
         setAggregateId(aggregateId);
         setName(dto.getName());
-        setUsername(dto.getUsername());
-        setRole(dto.getRole());
-        setActive(dto.getActive());
+        setEmail(dto.getEmail());
+        setMembership(dto.getMembership());
     }
 
-    public User(User other) {
+    public Member(Member other) {
         super(other);
         setName(other.getName());
-        setUsername(other.getUsername());
-        setRole(other.getRole());
-        setActive(other.getActive());
+        setEmail(other.getEmail());
+        setMembership(other.getMembership());
     }
 
-    // Getters, setters, invariant verification
+    // Getters, setters, verifyInvariants(), buildDto()
 }
 ```
 
 Three constructors are generated:
-1. **Default** — for JPA
-2. **DTO constructor** — for creating from request data
-3. **Copy constructor** — for the immutable update pattern
+1. **Default**:for JPA
+2. **DTO constructor**:for creating from request data
+3. **Copy constructor**:for the immutable update pattern
+
+A saga-specific subclass (`SagaMember extends Member`) is also generated with saga state tracking.
 
 ### DTO (`UserDto.java`)
 
-DTOs include base fields plus entity properties (minus `dto-exclude` fields — see [Chapter 04](04-Types-Enums-Properties.md)):
+DTOs include base fields plus entity properties (minus `dto-exclude` fields, see [Chapter 04](04-Types-Enums-Properties.md)):
 
 ```java
 public class UserDto {
@@ -186,67 +189,81 @@ public interface UserFactory {
 }
 ```
 
-### Service (`UserService.java`)
+### Service (`MemberService.java`)
 
-Business logic with the Unit of Work pattern:
+Business logic with the Unit of Work pattern. The create method generates a new aggregate ID, converts the request DTO, and registers the change:
 
 ```java
 @Service
-public class UserService {
-    private final UserFactory userFactory;
-    private final UnitOfWorkService unitOfWorkService;
+public class MemberService {
+    @Autowired
+    private MemberFactory memberFactory;
+    @Autowired
+    private UnitOfWorkService unitOfWorkService;
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    public UserDto createUser(CreateUserRequestDto dto, UnitOfWork unitOfWork) {
-        User user = userFactory.createUser(null, dto);
-        user = unitOfWorkService.registerChanged(user, unitOfWork);
-        return userFactory.createUserDto(user);
+    public MemberDto createMember(CreateMemberRequestDto createRequest, UnitOfWork unitOfWork) {
+        MemberDto memberDto = new MemberDto();
+        memberDto.setName(createRequest.getName());
+        memberDto.setEmail(createRequest.getEmail());
+        memberDto.setMembership(createRequest.getMembership());
+
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        Member member = memberFactory.createMember(aggregateId, memberDto);
+        unitOfWorkService.registerChanged(member, unitOfWork);
+        return memberFactory.createMemberDto(member);
     }
 
-    public UserDto getUserById(Integer id, UnitOfWork unitOfWork) {
-        User user = unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-        return userFactory.createUserDto(user);
+    public MemberDto updateMember(MemberDto memberDto, UnitOfWork unitOfWork) {
+        Integer id = memberDto.getAggregateId();
+        Member oldMember = (Member) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+        Member newMember = memberFactory.createMemberFromExisting(oldMember);
+        // Set updatable fields from DTO...
+        unitOfWorkService.registerChanged(newMember, unitOfWork);
+        // Register update event
+        MemberUpdatedEvent event = new MemberUpdatedEvent(newMember.getAggregateId(), ...);
+        event.setPublisherAggregateVersion(newMember.getVersion());
+        unitOfWorkService.registerEvent(event, unitOfWork);
+        return memberFactory.createMemberDto(newMember);
     }
 
-    public UserDto updateUser(Integer id, UserDto dto, UnitOfWork unitOfWork) {
-        User oldUser = unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-        User newUser = userFactory.createUserFromExisting(oldUser);
-        newUser.setName(dto.getName());
-        newUser.setActive(dto.getActive());
-        newUser = unitOfWorkService.registerChanged(newUser, unitOfWork);
-        return userFactory.createUserDto(newUser);
-    }
-
-    public void deleteUser(Integer id, UnitOfWork unitOfWork) {
-        User oldUser = unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-        User newUser = userFactory.createUserFromExisting(oldUser);
-        newUser.remove();
-        unitOfWorkService.registerChanged(newUser, unitOfWork);
+    public void deleteMember(Integer aggregateId, UnitOfWork unitOfWork) {
+        Member oldMember = (Member) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Member newMember = memberFactory.createMemberFromExisting(oldMember);
+        newMember.remove();
+        unitOfWorkService.registerChanged(newMember, unitOfWork);
+        unitOfWorkService.registerEvent(new MemberDeletedEvent(newMember.getAggregateId()), unitOfWork);
     }
 }
 ```
 
-### Controller (`UserController.java`)
+### Controller (`MemberController.java`)
 
-REST endpoints:
+REST endpoints. Note that the create path includes `/create`, update takes the ID from the request body, and path variables use the full `{memberAggregateId}` naming:
 
 ```java
 @RestController
-@RequestMapping("/users")
-public class UserController {
-    @PostMapping
-    public UserDto createUser(@RequestBody CreateUserRequestDto dto) { ... }
+public class MemberController {
+    @Autowired
+    private MemberFunctionalities memberFunctionalities;
 
-    @GetMapping("/{id}")
-    public UserDto getUser(@PathVariable Integer id) { ... }
+    @PostMapping("/members/create")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MemberDto createMember(@RequestBody CreateMemberRequestDto createRequest) { ... }
 
-    @GetMapping
-    public List<UserDto> getAllUsers() { ... }
+    @GetMapping("/members/{memberAggregateId}")
+    public MemberDto getMemberById(@PathVariable Integer memberAggregateId) { ... }
 
-    @PutMapping("/{id}")
-    public UserDto updateUser(@PathVariable Integer id, @RequestBody UserDto dto) { ... }
+    @GetMapping("/members")
+    public List<MemberDto> getAllMembers() { ... }
 
-    @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Integer id) { ... }
+    @PutMapping("/members")
+    public MemberDto updateMember(@RequestBody MemberDto memberDto) { ... }
+
+    @DeleteMapping("/members/{memberAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMember(@PathVariable Integer memberAggregateId) { ... }
 }
 ```
 
@@ -257,10 +274,11 @@ public class UserController {
 All operations go through the `UnitOfWork` for transaction tracking:
 
 ```java
-public UserDto createUser(CreateUserRequestDto dto, UnitOfWork unitOfWork) {
-    User user = userFactory.createUser(null, dto);
-    user = unitOfWorkService.registerChanged(user, unitOfWork);  // Track change
-    return userFactory.createUserDto(user);
+public MemberDto createMember(CreateMemberRequestDto createRequest, UnitOfWork unitOfWork) {
+    Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+    Member member = memberFactory.createMember(aggregateId, memberDto);
+    unitOfWorkService.registerChanged(member, unitOfWork);  // Track change
+    return memberFactory.createMemberDto(member);
 }
 ```
 
@@ -277,11 +295,12 @@ newUser = unitOfWorkService.registerChanged(newUser, unitOfWork);
 
 ### Event Publishing
 
-Events are registered with the Unit of Work and emitted on commit (see [Chapter 07](07-Events-Reactive-Patterns.md)):
+Events are registered via the Unit of Work Service and emitted on commit (see [Chapter 07](07-Events-Reactive-Patterns.md)):
 
 ```java
-UserDeletedEvent event = new UserDeletedEvent(user.getAggregateId());
-unitOfWork.registerEvent(event);
+MemberDeletedEvent event = new MemberDeletedEvent(member.getAggregateId());
+event.setPublisherAggregateVersion(member.getVersion());
+unitOfWorkService.registerEvent(event, unitOfWork);
 ```
 
 ### Event Subscription
@@ -316,42 +335,48 @@ public void verifyInvariants() {
 
 ## Event Flow
 
-Events flow through the system as follows:
+Events flow through the system via scheduled polling:
 
 ```
-1. Service publishes event
-   unitOfWork.registerEvent(new UserDeletedEvent(...))
+1. Service registers event
+   unitOfWorkService.registerEvent(new MemberDeletedEvent(...), unitOfWork)
 
-2. UnitOfWork commits → events dispatched
+2. UnitOfWork commits → event persisted
 
-3. EventProcessing routes to subscriber aggregates
-   UserEventProcessing.handleUserDeletedEvent(event)
+3. EventProcessing polls for new events (@Scheduled)
+   eventApplicationService.handleSubscribedEvent(...)
 
-4. Subscriber aggregate processes event
-   ExecutionEventHandling.handleUserDeleted(event)
+4. Subscription classes match events to affected aggregates
+   LoanSubscribesMemberDeleted
 
-5. Handler updates local state
-   execution.getUsers().removeIf(u -> u.getUserAggregateId().equals(event.getAggregateId()))
+5. Event handlers process updates
+   MemberDeletedEventHandler updates local state
 ```
 
 ## Collection Operations
 
-For `Set<T>` and `List<T>` properties, additional service methods are generated:
+For `Set<T>` and `List<T>` properties referencing cross-aggregate entities, five additional service methods are generated:
 
 ```java
-// Add to collection
-public ExecutionDto addUserToExecution(
-    Integer executionId,
-    ExecutionUserDto userDto,
-    UnitOfWork unitOfWork
-) { ... }
+// Add single item
+public EnrollmentDto addEnrollmentTeacher(Integer enrollmentId, Integer teacherAggregateId,
+    EnrollmentTeacherDto dto, UnitOfWork unitOfWork) { ... }
 
-// Remove from collection
-public ExecutionDto removeUserFromExecution(
-    Integer executionId,
-    Integer userId,
-    UnitOfWork unitOfWork
-) { ... }
+// Add multiple items
+public EnrollmentDto addEnrollmentTeachers(Integer enrollmentId,
+    List<EnrollmentTeacherDto> dtos, UnitOfWork unitOfWork) { ... }
+
+// Get single item
+public EnrollmentTeacherDto getEnrollmentTeacher(Integer enrollmentId,
+    Integer teacherAggregateId, UnitOfWork unitOfWork) { ... }
+
+// Update item
+public EnrollmentDto updateEnrollmentTeacher(Integer enrollmentId, Integer teacherAggregateId,
+    EnrollmentTeacherDto dto, UnitOfWork unitOfWork) { ... }
+
+// Remove item
+public EnrollmentDto removeEnrollmentTeacher(Integer enrollmentId,
+    Integer teacherAggregateId, UnitOfWork unitOfWork) { ... }
 ```
 
 ## Code Volume

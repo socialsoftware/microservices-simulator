@@ -50,7 +50,7 @@ Nebula reads `.nebula` files from an abstractions directory. Each file typically
 
 ```
 dsl/docs/examples/abstractions/
-├── 01-helloworld/        # Simplest example — start here (Ch 03)
+├── 01-helloworld/        # Simplest example, start here (Ch 03)
 │   └── task.nebula
 ├── 02-typesenums/        # Types and enumerations (Ch 04)
 │   └── contact.nebula
@@ -112,8 +112,8 @@ Each abstractions directory must contain a `nebula.config.json` file that specif
 }
 ```
 
-- `basePackage` — the root Java package for all generated code
-- `framework.version` — the Microservices Simulator version to use as a Maven dependency
+- `basePackage`:the root Java package for all generated code
+- `framework.version`:the Microservices Simulator version to use as a Maven dependency
 
 The project name is derived from the abstractions folder name (e.g., `06-tutorial/` produces project name `tutorial`), and the generated Java packages follow the pattern `<basePackage>.<projectName>`.
 

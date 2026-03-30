@@ -2,7 +2,7 @@
 
 This chapter covers advanced DSL features that go beyond the basics: extract patterns, DTO entities, custom services and endpoints, exception messages, and real-world case study summaries.
 
-> **Tied example:** [`07-advanced`](../examples/abstractions/07-advanced/) — Customer, Product, Order, and Invoice aggregates with advanced patterns.
+> **Tied example:** [`07-advanced`](../examples/abstractions/07-advanced/): Customer, Product, Order, and Invoice aggregates with advanced patterns.
 
 ## Extract Pattern
 
@@ -18,9 +18,9 @@ Entity InvoiceOrder from Order {
 ```
 
 The dotted path `items.key` means:
-1. `items` — a `Set<OrderItem>` collection in the Order root entity
-2. `.key` — the `key` field on each `OrderItem`
-3. Result: `Set<String>` — the collection type is preserved, the element type becomes the field's type
+1. `items`:a `Set<OrderItem>` collection in the Order root entity
+2. `.key`:the `key` field on each `OrderItem`
+3. Result: `Set<String>`:the collection type is preserved, the element type becomes the field's type
 
 ### How It Works
 
@@ -72,14 +72,14 @@ map orders.status as orderStatuses                // List<OrderStatus>
 
 ### Limitations
 
-- **Single-level only** — `map a.b` works, `map a.b.c` does not
-- **Root entity properties only** — the source collection must be on the root entity
-- **No filtering** — extracts from all elements in the collection
-- **List and Set only** — works with `List<T>` and `Set<T>` collection types
+- **Single-level only**:`map a.b` works, `map a.b.c` does not
+- **Root entity properties only**:the source collection must be on the root entity
+- **No filtering**:extracts from all elements in the collection
+- **List and Set only**:works with `List<T>` and `Set<T>` collection types
 
 ## Dto Entity
 
-Mark an entity with `Dto` to create a pure data transfer object — an entity that exists only as an embedded value within the aggregate, not as a reference to another aggregate:
+Mark an entity with `Dto` to create a value object within the aggregate that is not a reference to another aggregate:
 
 ```nebula
 Dto Entity OrderItem {
@@ -90,9 +90,9 @@ Dto Entity OrderItem {
 }
 ```
 
-DTO entities:
+DTO entities are generated as JPA `@Entity` classes with their own `@Id` and database table, but they:
 - Do not have `aggregateId` or `version` fields
-- Are embedded within the root entity (typically as a collection)
+- Are linked to the root entity via a `@OneToOne` or `@ManyToOne` relationship
 - Are useful for line items, nested value objects, and structured data within an aggregate
 
 ### Usage in Root Entity
@@ -197,14 +197,14 @@ Customer ◄────── Order ──────► Product
 
 | Feature | Where Used |
 |---------|-----------|
-| Extract pattern | `invoice.nebula` — `map items.key as orderItemKeys` |
-| Dto Entity | `order.nebula` — `Dto Entity OrderItem` |
-| AggregateState reference | `invoice.nebula` — `AggregateState orderState` |
-| Custom JPQL query | `order.nebula` — `findOrderIdsAboveAmount` |
-| Multiple shared enums | `shared-enums.nebula` — `OrderStatus`, `PaymentMethod` |
-| Custom exceptions | `exceptions.nebula` — 5 error message constants |
-| Cascading references | `invoice.nebula` — cascade on Order delete |
-| Prevent references | `order.nebula` — prevent Customer delete |
+| Extract pattern | `invoice.nebula`:`map items.key as orderItemKeys` |
+| Dto Entity | `order.nebula`:`Dto Entity OrderItem` |
+| AggregateState reference | `invoice.nebula`:`AggregateState orderState` |
+| Custom JPQL query | `order.nebula`:`findOrderIdsAboveAmount` |
+| Multiple shared enums | `shared-enums.nebula`:`OrderStatus`, `PaymentMethod` |
+| Custom exceptions | `exceptions.nebula`:5 error message constants |
+| Cascading references | `invoice.nebula`:cascade on Order delete |
+| Prevent references | `order.nebula`:prevent Customer delete |
 
 ### Generate and verify:
 
@@ -215,9 +215,9 @@ cd dsl/nebula
 
 ## Real-World Case Studies
 
-### Answers Project (9 aggregates)
+### Answers Project (8 aggregates)
 
-Located in `dsl/abstractions/answers/`, this is a complete course management system:
+Located in `dsl/abstractions/answers/`, this is a complete course management system (plus `shared-enums.nebula` and `exceptions.nebula`):
 
 | Aggregate | Features |
 |-----------|----------|
@@ -230,17 +230,17 @@ Located in `dsl/abstractions/answers/`, this is a complete course management sys
 | Tournament | Cross-ref to Execution and Quiz, complex temporal invariants |
 | Answer | Cross-refs, extract pattern (`map questions.aggregateId as quizQuestionsAggregateIds`), complex queries |
 
-### TeaStore Project (6 aggregates)
+### TeaStore Project (5 aggregates)
 
-Located in `dsl/abstractions/teastore/`, this is an e-commerce storefront:
+Located in `dsl/abstractions/teastore/`, this is an e-commerce storefront (plus `shared-enums.nebula`):
 
 | Aggregate | Features |
 |-----------|----------|
 | User | Basic CRUD |
 | Category | Basic CRUD, events |
-| Product | Cross-ref to Category, events, availability tracking |
+| Product | Cross-ref to Category, events, invariants |
 | Cart | Cross-ref to User and Product, collection references |
-| Order | Cross-ref to User and Product, order status tracking |
+| Order | Cross-ref to User and Product, collection references |
 
 ## Best Practices
 
