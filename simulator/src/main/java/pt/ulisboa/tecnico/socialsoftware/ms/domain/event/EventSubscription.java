@@ -13,7 +13,8 @@ public abstract class EventSubscription {
 
     public EventSubscription(Integer subscribedAggregateId, Integer subscribedVersion, String eventType) {
         setSubscribedAggregateId(subscribedAggregateId);
-        // this is for complex functionalities where we don't know the id of an aggregate we are creating
+        // this is for complex functionalities where we don't know the id of an
+        // aggregate we are creating
         setSubscribedVersion(Objects.requireNonNullElse(subscribedVersion, 0));
         setEventType(eventType);
         setSubscriberAggregateId(subscribedAggregateId);
@@ -25,13 +26,11 @@ public abstract class EventSubscription {
         setEventType(other.getEventType());
     }
 
-
     public boolean subscribesEvent(Event event) {
         return getEventType().equals(event.getClass().getSimpleName()) &&
                 getSubscribedAggregateId().equals(event.getPublisherAggregateId()) &&
                 getSubscribedVersion() < event.getPublisherAggregateVersion();
     }
-
 
     public Integer getSubscribedAggregateId() {
         return subscribedAggregateId;
@@ -71,7 +70,8 @@ public abstract class EventSubscription {
             return false;
         }
         EventSubscription other = (EventSubscription) obj;
-        return getSubscribedAggregateId() != null && getSubscribedAggregateId().equals(other.getSubscribedAggregateId()) &&
+        return getSubscribedAggregateId() != null && getSubscribedAggregateId().equals(other.getSubscribedAggregateId())
+                &&
                 getSubscribedVersion() != null && getSubscribedVersion().equals(other.getSubscribedVersion()) &&
                 getEventType() != null && getEventType().equals(other.getEventType());
     }
