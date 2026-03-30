@@ -17,8 +17,8 @@ public class CapacityManager {
     private static final String CONFIG_FILE = "simulator_config.json";
     private static final String REPORT_FILE = "CapacityReport.txt";
     private final Map<String, Semaphore> msCapacities = new ConcurrentHashMap<>();
-    private final Map<String, Integer> endpointRequirements = new ConcurrentHashMap<>();
-    private final Map<String, String> endpointToMicroservice = new ConcurrentHashMap<>();
+    private final Map<String, Integer> requirements = new ConcurrentHashMap<>();
+    private final Map<String, String> stepToMicroservice = new ConcurrentHashMap<>();
     private volatile boolean loaded = false;
 
     private final Map<String, List<String>> waitingRequests = new ConcurrentHashMap<>();
@@ -103,14 +103,14 @@ public class CapacityManager {
                     waitingRequests.put(msName, Collections.synchronizedList(new ArrayList<>()));
                     activeRequests.put(msName, Collections.synchronizedList(new ArrayList<>()));
 
-                    // Load endpoints for this microservice
-                    if (ms.has("endpoints")) {
-                        JsonNode endpoints = ms.get("endpoints");
-                        for (JsonNode ep : endpoints) {
-                            String epName = ep.get("name").asText();
-                            int requirement = ep.get("requirement").asInt();
-                            endpointRequirements.put(epName, requirement);
-                            endpointToMicroservice.put(epName, msName);
+                    // Load steps for this microservice
+                    if (ms.has("steps")) {
+                        JsonNode steps = ms.get("steps");
+                        for (JsonNode step : steps) {
+                            String stepName = step.get("name").asText();
+                            int requirement = step.get("requirement").asInt();
+                            requirements.put(stepName, requirement);
+                            stepToMicroservice.put(stepName, msName);
                         }
                     }
                 }
@@ -153,12 +153,12 @@ public class CapacityManager {
         }
     }
 
-    public void acquire(String functionalityName, String requestId) throws InterruptedException {
+    public void acquire(String stepName, String requestId) throws InterruptedException {
         if (!loaded) {
             return;
         }
 
-        String msName = endpointToMicroservice.get(functionalityName);
+        String msName = stepToMicroservice.get(stepName);
         if (msName == null) {
             return;
         }
@@ -168,10 +168,10 @@ public class CapacityManager {
             throw new SimulatorException("Microservice " + msName + " does not exist in capacity configuration");
         }
 
-        Integer requirement = endpointRequirements.get(functionalityName);
+        Integer requirement = requirements.get(stepName);
         if (requirement != null && requirement > 0) {
             waitingRequests.get(msName).add(requestId);
-            logState(msName, "WAITING", requestId);
+            logState(msName, "WAITING", stepName, requestId);
 
             try {
                 semaphore.acquire(requirement);
@@ -180,24 +180,24 @@ public class CapacityManager {
             }
 
             activeRequests.get(msName).add(requestId);
-            logState(msName, "ACQUIRED", requestId);
+            logState(msName, "ACQUIRED", stepName, requestId);
         }
     }
 
-    public void release(String functionalityName, String requestId) {
+    public void release(String stepName, String requestId) {
         if (!loaded) {
             return;
         }
 
-        String msName = endpointToMicroservice.get(functionalityName);
+        String msName = stepToMicroservice.get(stepName);
         if (msName != null) {
-            Integer requirement = endpointRequirements.get(functionalityName);
+            Integer requirement = requirements.get(stepName);
             Semaphore semaphore = msCapacities.get(msName);
             if (semaphore != null && requirement != null && requirement > 0) {
                 if (activeRequests.get(msName).remove(requestId)) {
                     // Only release if it was actually active
                     semaphore.release(requirement);
-                    logState(msName, "RELEASED", requestId);
+                    logState(msName, "RELEASED", stepName, requestId);
                 }
             }
         }
@@ -218,7 +218,7 @@ public class CapacityManager {
         }
     }
 
-    private synchronized void logState(String msName, String action, String logId) {
+    private synchronized void logState(String msName, String action, String stepName, String requestId) {
         List<String> active_snapshot;
         List<String> waiting_snapshot;
         synchronized (activeRequests.get(msName)) {
@@ -229,8 +229,8 @@ public class CapacityManager {
         }
 
         int available = msCapacities.get(msName).availablePermits();
-        String logMsg = String.format("[%s] %s: %s | Active: %s | Waiting: %s | Available: %d",
-                msName, action, logId, active_snapshot, waiting_snapshot, available);
+        String logMsg = String.format("[%s][%s] %s: %s | Active: %s | Waiting: %s | Available: %d",
+                msName, stepName, action, requestId, active_snapshot, waiting_snapshot, available);
         appendToReport(logMsg);
     }
 
@@ -248,8 +248,8 @@ public class CapacityManager {
 
     public synchronized void reset() {
         msCapacities.clear();
-        endpointRequirements.clear();
-        endpointToMicroservice.clear();
+        requirements.clear();
+        stepToMicroservice.clear();
         loaded = false;
 
         waitingRequests.clear();

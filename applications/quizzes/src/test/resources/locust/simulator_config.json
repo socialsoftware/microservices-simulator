@@ -11,7 +11,7 @@
       },
       {
         "name": "Node2",
-        "capacity": 10,
+        "capacity": 100,
         "microservices": [
           "quiz",
           "tournament"
@@ -54,13 +54,13 @@
       {
         "name": "tournament",
         "capacity": 2,
-        "endpoints": [
+        "steps": [
           {
-            "name": "FindTournamentFunctionalitySagas",
+            "name": "createTournamentStep",
             "requirement": 1
           },
           {
-            "name": "CreateTournamentFunctionalitySagas",
+            "name": "findTournamentStep",
             "requirement": 1
           }
         ]
@@ -68,10 +68,96 @@
       {
         "name": "execution",
         "capacity": 5,
-        "endpoints": [
+        "steps": [
           {
-            "name": "AddStudentFunctionalitySagas",
-            "requirement": 2
+            "name": "getCourseExecutionStep",
+            "requirement": 1
+          },
+          {
+            "name": "getCreatorStep",
+            "requirement": 1
+          },
+          {
+            "name": "getCourseExecutionById",
+            "requirement": 1
+          },
+          {
+            "name": "enrollStudentStep",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "quiz",
+        "capacity": 10,
+        "steps": [
+          {
+            "name": "generateQuizStep",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "topic",
+        "capacity": 5,
+        "steps": [
+          {
+            "name": "createTopicStep",
+            "requirement": 1
+          },
+          {
+            "name": "getTopicsStep",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "question",
+        "capacity": 5,
+        "steps": [
+          {
+            "name": "createQuestionStep",
+            "requirement": 1
+          },
+          {
+            "name": "validateQuestionTopicsStep",
+            "requirement": 1
+          },
+          {
+            "name": "findQuestionsByTopicIdsStep",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "user",
+        "capacity": 10,
+        "steps": [
+          {
+            "name": "createUserStep",
+            "requirement": 1
+          },
+          {
+            "name": "getUserStep",
+            "requirement": 1
+          },
+          {
+            "name": "activateUserStep",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "course",
+        "capacity": 10,
+        "steps": [
+          {
+            "name": "createCourseExecutionStep",
+            "requirement": 1
+          },
+          {
+            "name": "getCourseStep",
+            "requirement": 1
           }
         ]
       }
