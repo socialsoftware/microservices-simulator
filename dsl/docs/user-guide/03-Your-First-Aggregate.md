@@ -67,6 +67,25 @@ Each property generates:
 - A corresponding field in the DTO
 - Constructor parameters for creation
 
+### Comments
+
+Nebula supports single-line and multi-line comments, using the same syntax as Java:
+
+```nebula
+// This is a single-line comment
+
+/*
+ * This is a multi-line comment
+ */
+Aggregate Task {
+    Root Entity Task {
+        String title       // Inline comments work too
+    }
+}
+```
+
+Comments are ignored by the parser and can be placed anywhere in a `.nebula` file.
+
 ## Generate and Explore
 
 Run the Nebula CLI to generate code:
