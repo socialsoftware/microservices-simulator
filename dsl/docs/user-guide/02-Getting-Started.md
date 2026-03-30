@@ -38,10 +38,10 @@ Verify the CLI is working:
 
 Expected output:
 ```
-Usage: cli [options] <command>
+Usage: cli [options] [command]
 
 Commands:
-  generate [options]  Generate code from Nebula abstractions
+  generate [options] <abstractions-path>  generates Java microservices code from Nebula DSL abstractions
 ```
 
 ## Abstractions Directory
@@ -98,6 +98,18 @@ dsl/abstractions/
 ```
 
 > **Note:** Examples 01-07 map directly to guide chapters 03-09. Each chapter references its tied example with generation commands.
+
+### Project Configuration
+
+Each abstractions directory must contain a `nebula.config.json` file that specifies the base Java package:
+
+```json
+{
+    "basePackage": "pt.ulisboa.tecnico.socialsoftware"
+}
+```
+
+The project name is derived from the abstractions folder name (e.g., `06-tutorial/` produces project name `tutorial`), and the generated Java packages follow the pattern `<basePackage>.<projectName>`.
 
 ## Generating Code
 
@@ -164,20 +176,6 @@ mvn clean compile
 
 If compilation succeeds, the generated code is valid.
 
-### Run Tests
-
-```bash
-mvn clean -Ptest-sagas test
-```
-
-### Run the Application
-
-```bash
-mvn clean -Psagas spring-boot:run
-```
-
-The application runs on `http://localhost:8080`.
-
 ## Making Changes and Regenerating
 
 ### Modify a `.nebula` file
@@ -212,7 +210,7 @@ The `phone` field is now part of the entity, DTO, and all CRUD operations.
 
 1. Edit `.nebula` files in `dsl/abstractions/`
 2. Regenerate: `./bin/cli.js generate ../abstractions/myproject/`
-3. Test: `mvn clean -Ptest-sagas test`
+3. Compile: `mvn clean compile`
 
 ### After DSL grammar changes
 
@@ -244,8 +242,6 @@ npm run watch               # Watch mode (auto-rebuild on changes)
 ```bash
 cd dsl/docs/examples/generated/06-tutorial   # or applications/answers, etc.
 mvn clean compile                   # Compile generated code
-mvn clean -Ptest-sagas test         # Run Saga tests
-mvn clean -Psagas spring-boot:run   # Run Saga application
 ```
 
 ### Simulator Framework

@@ -99,17 +99,23 @@ Entity CourseTeacher from Teacher {
 ### Generated Code
 
 ```java
-@Embeddable
+@Entity
 public class CourseTeacher {
-    private Integer teacherAggregateId;    // Auto-added
-    private Integer teacherVersion;        // Auto-added
+    @Id
+    @GeneratedValue
+    private Long id;
     private String teacherName;            // Inferred: String
     private String teacherEmail;           // Inferred: String
     private String teacherDepartment;      // Inferred: String
+    private Integer teacherAggregateId;    // Auto-added
+    private Integer teacherVersion;        // Auto-added
+    private AggregateState teacherState;   // Auto-added
+    @OneToOne
+    private Course course;                 // Back-reference to parent
 }
 ```
 
-Non-root entities are simple JPA entities (no version chain, no invariants).
+Non-root entities are JPA entities with their own `@Id` but no version chain or invariants. They include auto-generated fields for the referenced aggregate's ID, version, and state, plus a back-reference to the parent root entity.
 
 ### Empty Mappings
 
@@ -246,9 +252,9 @@ cd dsl/nebula
 ```
 
 Explore the generated code:
-- `CourseTeacher.java` — embeddable entity with inferred types
+- `CourseTeacher.java` — non-root entity with inferred types
 - `Course.java` — root entity with `CourseTeacher` reference
-- `LoanEventHandling.java` — inter-invariant event handling
+- `CourseEventProcessing.java` — inter-invariant event handling
 
 ---
 

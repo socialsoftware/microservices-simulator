@@ -78,38 +78,72 @@ cd dsl/nebula
 
 ### What Gets Generated
 
-The single `task.nebula` file produces this directory tree:
+The single `task.nebula` file produces this directory tree (showing the key files):
 
 ```
 01-helloworld/
 ├── pom.xml
 └── src/main/java/.../helloworld/
-    ├── HelloworldSimulator.java          # Spring Boot application
+    ├── HelloworldSimulator.java                    # Spring Boot application
+    ├── ServiceMapping.java                         # Service routing
+    ├── command/task/                               # Command objects (CQRS)
+    │   ├── CreateTaskCommand.java
+    │   ├── GetTaskByIdCommand.java
+    │   ├── GetAllTasksCommand.java
+    │   ├── UpdateTaskCommand.java
+    │   └── DeleteTaskCommand.java
+    ├── coordination/
+    │   ├── validation/                             # Business rule validation
+    │   │   └── TaskBusinessRuleValidator.java (+ annotations)
+    │   └── webapi/
+    │       ├── BehaviourController.java            # Simulator behaviour API
+    │       └── TracesController.java               # Tracing API
+    ├── events/
+    │   ├── TaskDeletedEvent.java                   # Domain events
+    │   └── TaskUpdatedEvent.java
     ├── microservices/task/
     │   ├── aggregate/
-    │   │   ├── Task.java                 # JPA entity
-    │   │   ├── TaskFactory.java          # Factory interface
-    │   │   ├── TaskRepository.java       # Spring Data repository
-    │   │   └── TaskCustomRepository.java # Custom query interface
+    │   │   ├── Task.java                           # JPA entity
+    │   │   ├── TaskFactory.java                    # Factory interface
+    │   │   ├── TaskRepository.java                 # Spring Data repository
+    │   │   ├── TaskCustomRepository.java           # Custom query interface
+    │   │   └── sagas/                              # Saga-specific variants
+    │   │       ├── SagaTask.java
+    │   │       ├── dtos/SagaTaskDto.java
+    │   │       ├── factories/SagasTaskFactory.java
+    │   │       ├── repositories/TaskCustomRepositorySagas.java
+    │   │       └── states/TaskSagaState.java
+    │   ├── commandHandler/
+    │   │   ├── TaskCommandHandler.java             # Command dispatch
+    │   │   └── TaskStreamCommandHandler.java       # Stream command dispatch
+    │   ├── coordination/
+    │   │   ├── eventProcessing/
+    │   │   │   └── TaskEventProcessing.java        # Event coordination
+    │   │   ├── functionalities/
+    │   │   │   └── TaskFunctionalities.java        # Orchestration layer
+    │   │   ├── sagas/
+    │   │   │   ├── CreateTaskFunctionalitySagas.java
+    │   │   │   ├── GetTaskByIdFunctionalitySagas.java
+    │   │   │   ├── GetAllTasksFunctionalitySagas.java
+    │   │   │   ├── UpdateTaskFunctionalitySagas.java
+    │   │   │   └── DeleteTaskFunctionalitySagas.java
+    │   │   └── webapi/
+    │   │       ├── TaskController.java             # REST controller
+    │   │       └── requestDtos/
+    │   │           └── CreateTaskRequestDto.java   # Creation request DTO
     │   └── service/
-    │       └── TaskService.java          # Business logic
-    ├── coordination/
-    │   ├── functionalities/
-    │   │   └── TaskFunctionalities.java  # Orchestration layer
-    │   ├── webapi/
-    │   │   └── TaskController.java       # REST controller
-    │   └── eventProcessing/
-    │       └── TaskEventProcessing.java  # Event coordination
-    ├── sagas/coordination/task/
-    │   ├── CreateTaskFunctionalitySagas.java
-    │   ├── UpdateTaskFunctionalitySagas.java
-    │   └── DeleteTaskFunctionalitySagas.java
-    └── shared/dtos/
-        ├── TaskDto.java                  # Response DTO
-        └── CreateTaskRequestDto.java     # Creation request DTO
+    │       └── TaskService.java                    # Business logic
+    ├── microservices/exception/                    # Project-wide exceptions
+    │   ├── HelloworldErrorMessage.java
+    │   ├── HelloworldException.java
+    │   └── HelloworldExceptionHandler.java
+    └── shared/
+        ├── dtos/
+        │   └── TaskDto.java                        # Response DTO
+        └── enums/                                  # Shared enumerations
 ```
 
-That's **14+ files** from 9 lines of DSL — a reduction ratio of over 100:1 in lines of code.
+That's **40+ files** from 9 lines of DSL — a significant reduction in code to write.
 
 ## What `@GenerateCrud` Produces
 

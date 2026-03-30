@@ -112,18 +112,32 @@ These are covered in the [Reference](11-Reference.md) chapter.
 
 ### Generated Code
 
-Invariants generate a `verifyInvariants()` method on the entity:
+Invariants generate a `verifyInvariants()` method on the entity. Each invariant is checked individually, and the custom error message is included in the exception:
 
 ```java
-@Override
-public void verifyInvariants() {
-    if (!(invariantNameNotBlank() && invariantPricePositive() && invariantStockNonNegative())) {
-        throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
-    }
+private boolean invariantNameNotBlank() {
+    return this.name != null && this.name.length() > 0;
 }
 
-private boolean invariantNameNotBlank() {
-    return getName().length() > 0;
+private boolean invariantPricePositive() {
+    return price > 0.0;
+}
+
+private boolean invariantStockNonNegative() {
+    return stockQuantity >= 0;
+}
+
+@Override
+public void verifyInvariants() {
+    if (!invariantNameNotBlank()) {
+        throw new SimulatorException(INVARIANT_BREAK, "Product name cannot be blank");
+    }
+    if (!invariantPricePositive()) {
+        throw new SimulatorException(INVARIANT_BREAK, "Product price must be positive");
+    }
+    if (!invariantStockNonNegative()) {
+        throw new SimulatorException(INVARIANT_BREAK, "Stock quantity cannot be negative");
+    }
 }
 ```
 

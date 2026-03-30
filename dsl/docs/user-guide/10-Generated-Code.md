@@ -6,73 +6,88 @@ This chapter explains what Nebula generates, how the generated code is structure
 
 ## Generated Directory Structure
 
-For each project, Nebula generates a complete Spring Boot application:
+For each project, Nebula generates a complete Spring Boot application. The structure shown below uses the **Member** aggregate as a representative example; Book and Loan follow the same pattern within their own `microservices/<aggregate>/` directories:
 
 ```
 dsl/docs/examples/generated/06-tutorial/
-├── pom.xml                             # Maven build configuration
+├── pom.xml                                        # Maven build configuration
 ├── .gitignore
 └── src/main/
     ├── java/pt/ulisboa/tecnico/socialsoftware/tutorial/
-    │   ├── TutorialSimulator.java      # Main application class
-    │   ├── microservices/              # Domain layer
+    │   ├── TutorialSimulator.java                 # Main application class
+    │   ├── ServiceMapping.java                    # Service routing
+    │   ├── command/                               # Command objects (CQRS)
+    │   │   ├── member/
+    │   │   │   ├── CreateMemberCommand.java
+    │   │   │   ├── GetMemberByIdCommand.java
+    │   │   │   └── ...                            # (one per CRUD operation)
+    │   │   ├── book/
+    │   │   └── loan/
+    │   ├── coordination/
+    │   │   ├── validation/                        # Business rule validation
+    │   │   │   ├── MemberBusinessRuleValidator.java
+    │   │   │   ├── MemberInvariants.java
+    │   │   │   ├── MemberValidationAnnotations.java
+    │   │   │   ├── ValidMemberBusinessRule.java
+    │   │   │   └── ...                            # (one set per aggregate)
+    │   │   └── webapi/
+    │   │       ├── BehaviourController.java       # Simulator behaviour API
+    │   │       └── TracesController.java          # Tracing API
+    │   ├── events/                                # Domain events
+    │   │   ├── MemberDeletedEvent.java
+    │   │   ├── MemberUpdatedEvent.java
+    │   │   ├── BookDeletedEvent.java
+    │   │   └── ...
+    │   ├── microservices/                         # Domain layer (per aggregate)
+    │   │   ├── exception/
+    │   │   │   ├── TutorialErrorMessage.java
+    │   │   │   ├── TutorialException.java
+    │   │   │   └── TutorialExceptionHandler.java
     │   │   ├── member/
     │   │   │   ├── aggregate/
-    │   │   │   │   ├── Member.java                   # JPA entity
-    │   │   │   │   ├── MemberFactory.java            # Factory interface
-    │   │   │   │   ├── MemberRepository.java         # Spring Data interface
-    │   │   │   │   └── MemberCustomRepository.java   # Custom queries
+    │   │   │   │   ├── Member.java                # JPA entity
+    │   │   │   │   ├── MemberFactory.java         # Factory interface
+    │   │   │   │   ├── MemberRepository.java      # Spring Data interface
+    │   │   │   │   ├── MemberCustomRepository.java
+    │   │   │   │   └── sagas/                     # Saga-specific variants
+    │   │   │   │       ├── SagaMember.java
+    │   │   │   │       ├── dtos/SagaMemberDto.java
+    │   │   │   │       ├── factories/SagasMemberFactory.java
+    │   │   │   │       ├── repositories/MemberCustomRepositorySagas.java
+    │   │   │   │       └── states/MemberSagaState.java
+    │   │   │   ├── commandHandler/
+    │   │   │   │   ├── MemberCommandHandler.java
+    │   │   │   │   └── MemberStreamCommandHandler.java
+    │   │   │   ├── coordination/
+    │   │   │   │   ├── eventProcessing/
+    │   │   │   │   │   └── MemberEventProcessing.java
+    │   │   │   │   ├── functionalities/
+    │   │   │   │   │   └── MemberFunctionalities.java
+    │   │   │   │   ├── sagas/
+    │   │   │   │   │   ├── CreateMemberFunctionalitySagas.java
+    │   │   │   │   │   ├── GetMemberByIdFunctionalitySagas.java
+    │   │   │   │   │   ├── GetAllMembersFunctionalitySagas.java
+    │   │   │   │   │   ├── UpdateMemberFunctionalitySagas.java
+    │   │   │   │   │   └── DeleteMemberFunctionalitySagas.java
+    │   │   │   │   └── webapi/
+    │   │   │   │       ├── MemberController.java  # REST controller
+    │   │   │   │       └── requestDtos/
+    │   │   │   │           └── CreateMemberRequestDto.java
     │   │   │   └── service/
-    │   │   │       └── MemberService.java            # Business logic
-    │   │   ├── book/
-    │   │   │   ├── aggregate/
-    │   │   │   │   ├── Book.java
-    │   │   │   │   ├── BookFactory.java
-    │   │   │   │   ├── BookRepository.java
-    │   │   │   │   └── BookCustomRepository.java
-    │   │   │   ├── service/
-    │   │   │   │   └── BookService.java
-    │   │   │   └── events/
-    │   │   │       └── publish/
-    │   │   │           └── BookDeletedEvent.java
-    │   │   └── loan/
-    │   │       ├── aggregate/
-    │   │       │   ├── Loan.java
-    │   │       │   ├── LoanMember.java
-    │   │       │   ├── LoanBook.java
-    │   │       │   ├── LoanFactory.java
-    │   │       │   └── LoanRepository.java
-    │   │       ├── service/
-    │   │       │   └── LoanService.java
-    │   │       └── events/
-    │   │           └── handling/
-    │   │               └── LoanEventHandling.java
-    │   ├── coordination/               # Coordination layer
-    │   │   ├── functionalities/
-    │   │   │   ├── MemberFunctionalities.java
-    │   │   │   ├── BookFunctionalities.java
-    │   │   │   └── LoanFunctionalities.java
-    │   │   ├── webapi/
-    │   │   │   ├── MemberController.java
-    │   │   │   ├── BookController.java
-    │   │   │   └── LoanController.java
-    │   │   └── eventProcessing/
-    │   │       └── LoanEventProcessing.java
-    │   ├── sagas/                       # Saga coordination
-    │   │   └── coordination/
-    │   │       ├── member/
-    │   │       ├── book/
-    │   │       └── loan/
-    │   └── shared/                      # Shared components
+    │   │   │       └── MemberService.java         # Business logic
+    │   │   ├── book/                              # Same structure as member
+    │   │   └── loan/                              # + events/handling/ + events/subscribe/
+    │   └── shared/                                # Shared components
     │       ├── dtos/
     │       │   ├── MemberDto.java
-    │       │   ├── CreateMemberRequestDto.java
-    │       │   └── ...
+    │       │   ├── BookDto.java
+    │       │   ├── LoanDto.java
+    │       │   ├── LoanMemberDto.java
+    │       │   └── LoanBookDto.java
     │       └── enums/
     │           └── MembershipType.java
     └── resources/
-        ├── application.yml
-        └── application-sagas.yml
+        └── application.yml
 ```
 
 ## What Gets Generated Per Aggregate
@@ -82,18 +97,23 @@ For an aggregate with `@GenerateCrud` ([Chapter 03](03-Your-First-Aggregate.md))
 | Component | Files | Purpose |
 |-----------|-------|---------|
 | Entity | 1-3 | JPA entities (root + child entities) |
-| DTO | 1-3 | DTOs (Dto, CreateRequestDto) |
-| Factory | 1 | Factory interface + implementation |
-| Repository | 2 | Spring Data interface + custom repository |
+| Saga entity | 1 | Saga-specific aggregate variant |
+| DTO | 2-4 | DTOs (Dto, CreateRequestDto, SagaDto, child Dtos) |
+| Factory | 1-2 | Factory interface + saga factory implementation |
+| Repository | 2-3 | Spring Data interface + custom repository + saga repository |
 | Service | 1 | CRUD + collection + custom methods |
 | Controller | 1 | REST endpoints |
 | Functionalities | 1 | Orchestration layer |
 | Event Processing | 1 | Event coordination |
-| Events | N | Published events (one per event) |
+| Commands | 5 | CQRS command objects (one per CRUD operation) |
+| Command Handlers | 2 | Command dispatch + stream dispatch |
+| Saga State | 1 | Saga state tracking |
+| Events | N | Domain events (deleted + updated per aggregate) |
 | Event Handlers | M | Event handlers (one per subscription) |
-| Sagas | 3-5 | Saga workflows (create, update, delete, collection ops) |
+| Sagas | 5 | Saga workflows (one per CRUD operation) |
+| Validation | 3-4 | Business rule validators and annotations |
 
-**Typical totals:** 10-20+ files per aggregate, depending on complexity.
+**Typical totals:** 25-35+ files per aggregate, depending on complexity.
 
 ## Key Generated Files
 
@@ -280,13 +300,16 @@ public class Execution extends Aggregate {
 
 ### Invariant Verification
 
-Invariants ([Chapter 05](05-Business-Rules-Repositories.md)) are verified when changes are registered:
+Invariants ([Chapter 05](05-Business-Rules-Repositories.md)) are verified when changes are registered. Each invariant is checked individually with its custom error message:
 
 ```java
 @Override
 public void verifyInvariants() {
-    if (!(invariantNameNotBlank() && invariantRoleNotNull())) {
-        throw new SimulatorException(INVARIANT_BREAK, getAggregateId());
+    if (!invariantNameNotBlank()) {
+        throw new SimulatorException(INVARIANT_BREAK, "Name cannot be blank");
+    }
+    if (!invariantRoleNotNull()) {
+        throw new SimulatorException(INVARIANT_BREAK, "Role is required");
     }
 }
 ```

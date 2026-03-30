@@ -121,16 +121,16 @@ Run the Nebula CLI to generate a Spring Boot application:
 ./bin/cli.js generate ../abstractions/myproject/
 ```
 
-### 4. Run Application
-Build and run the generated microservices:
+### 4. Verify
+Compile the generated code to ensure correctness:
 
 ```bash
 cd applications/myproject
-mvn clean - Psagas spring-boot:run
+mvn clean compile
 ```
 
 ### 5. Iterate
-Modify DSL, regenerate, test. The cycle takes seconds, not hours.
+Modify DSL, regenerate, compile. The cycle takes seconds, not hours.
 
 ## Technology Stack
 

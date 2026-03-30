@@ -224,12 +224,6 @@ mvn clean install -DskipTests
 # Compile the generated application
 cd dsl/docs/examples/generated/06-tutorial
 mvn clean compile
-
-# Run tests
-mvn clean -Ptest-sagas test
-
-# Run the application
-mvn clean -Psagas spring-boot:run
 ```
 
 ## What We Built: By the Numbers
