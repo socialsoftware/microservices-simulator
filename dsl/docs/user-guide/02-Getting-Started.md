@@ -105,9 +105,15 @@ Each abstractions directory must contain a `nebula.config.json` file that specif
 
 ```json
 {
-    "basePackage": "pt.ulisboa.tecnico.socialsoftware"
+    "basePackage": "pt.ulisboa.tecnico.socialsoftware",
+    "framework": {
+        "version": "3.1.0-SNAPSHOT"
+    }
 }
 ```
+
+- `basePackage` — the root Java package for all generated code
+- `framework.version` — the Microservices Simulator version to use as a Maven dependency
 
 The project name is derived from the abstractions folder name (e.g., `06-tutorial/` produces project name `tutorial`), and the generated Java packages follow the pattern `<basePackage>.<projectName>`.
 

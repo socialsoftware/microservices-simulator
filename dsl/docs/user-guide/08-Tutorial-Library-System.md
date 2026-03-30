@@ -232,14 +232,14 @@ mvn clean compile
 |--------|-------|
 | DSL files | 4 |
 | DSL lines | ~60 |
-| Generated Java files | 50+ |
-| Generated Java lines | ~4,500 |
-| Code reduction | ~75x |
+| Generated Java files | 120+ |
+| Generated Java lines | ~5,100 |
+| Code reduction | ~85x |
 
 ### DSL Files vs Generated Structure
 
 ```
-DSL (4 files, ~60 lines)          Generated (50+ files, ~4,500 lines)
+DSL (4 files, ~60 lines)          Generated (120+ files, ~5,100 lines)
 ─────────────────────────          ──────────────────────────────────
 shared-enums.nebula         →     shared/enums/MembershipType.java
 member.nebula               →     microservices/member/ (5 files)

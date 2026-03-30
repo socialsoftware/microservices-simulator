@@ -42,11 +42,6 @@ export class SharedFeature {
             }
         }
 
-        
-        if (enums.length === 0) {
-            return EnumGenerator.createCommonEnums();
-        }
-
         return enums;
     }
 

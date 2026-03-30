@@ -206,7 +206,7 @@ export class CodeGenerator {
             }
 
             const sharedCount = Object.keys(sharedResults).length;
-            console.log(`\nGenerated project files (integration, pom.xml, .gitignore${sharedCount > 0 ? `, ${sharedCount} shared enums` : ''})`);
+            console.log(`\nGenerated project files (integration, pom.xml, .gitignore${sharedCount > 0 ? `, ${sharedCount} shared enum${sharedCount !== 1 ? 's' : ''}` : ''})`);
 
             console.log(chalk.green(`\nCode generation completed successfully!`));
             console.log(`Output: ${paths.projectPath}`);
