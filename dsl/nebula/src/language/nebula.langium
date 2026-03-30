@@ -11,9 +11,6 @@ Aggregate:
         (aggregateElements+=AggregateElement)*
     '}';
 
-// Aggregate elements - cardinality constraints enforced by validator:
-// - Entity, Method, Workflow: Multiple allowed
-// - Repository, Events, References, WebAPIEndpoints, ServiceDefinition, Functionalities: Only one allowed
 AggregateElement:
     Entity | Method | Workflow | Repository | Events | References | WebAPIEndpoints | ServiceDefinition | Functionalities;
 
@@ -29,14 +26,9 @@ Entity:
         '}'
     )?;
 
-// New syntax: map dtoField as entityField
-// Example: map name as courseName
-// Extract pattern: map collection.field as entityField
-// Example: map questions.aggregateId as questionIds
 DtoFieldMapping:
     'map' dtoField=DtoFieldPath 'as' entityField=ID;
 
-// Support dotted paths for field extraction (e.g., questions.aggregateId)
 DtoFieldPath:
     parts+=ID ('.' parts+=ID)*;
 
@@ -64,31 +56,6 @@ Workflow:
 WorkflowField:
     type=ParamType name=ID;
 
-// ============================================================================
-// STEP PATTERNS (Consolidated Design)
-// ============================================================================
-// Both Workflow and Functionality/Saga steps follow the same structural pattern:
-//
-// Pattern Structure:
-//   1. Step keyword ('step' for workflows, 'sync' for sagas)
-//   2. Step name (ID)
-//   3. Optional dependencies (shared StepDependencies rule)
-//   4. Body with context-specific actions
-//   5. Optional compensation block (mirrors step actions)
-//
-// Shared Components:
-//   - StepDependencies: Common dependency syntax for both contexts
-//
-// Context-Specific Components:
-//   - WorkflowStep uses WorkflowStepAction (supports dotted args, extract)
-//   - SyncStep uses StepAction (supports result setting, simple args)
-//
-// This design maintains consistency while allowing context-specific semantics.
-// ============================================================================
-
-// WORKFLOW STEP PATTERN
-// ============================================================================
-
 WorkflowStep:
     'step' stepName=ID
     (dependsOn=StepDependencies)?
@@ -102,12 +69,11 @@ WorkflowStepCompensation:
         compensationActions+=WorkflowStepAction*
     '}';
 
-// Workflow step actions (context: Workflow orchestration)
 WorkflowStepAction:
-    WorkflowCallAction          // Call a service method
-    | WorkflowExtractAction     // Extract data from collections
-    | WorkflowRegisterStateAction  // Register saga state
-    | WorkflowSetFieldAction;   // Set workflow field value
+    WorkflowCallAction
+    | WorkflowExtractAction
+    | WorkflowRegisterStateAction
+    | WorkflowSetFieldAction;
 
 WorkflowCallAction:
     'call' serviceRef=ID '.' method=ID '(' (args+=WorkflowArg (',' args+=WorkflowArg)*)? ')'
@@ -123,7 +89,6 @@ WorkflowRegisterStateAction:
 WorkflowSetFieldAction:
     'set' fieldName=ID '=' value=WorkflowArg;
 
-// Workflow argument (supports dotted property access: user.name.first)
 WorkflowArg:
     ref=ID ('.' chain+=ID)*;
 
@@ -148,9 +113,6 @@ PublishedEvent:
     '}';
 
 SubscribedEvent:
-    // Simple subscription: only reference the event name as a string.
-    // We intentionally do NOT require a PublishedEvent definition here, since
-    // many events (e.g., standard CRUD events) are generated automatically.
     'subscribe' eventType=ID
     ('from' sourceAggregate=ID)?
     ('routing' '(' routingIdExpr=Expression (',' routingVersionExpr=Expression)? ')')?
@@ -318,23 +280,18 @@ CollectionExpression:
         'allMatch' | 'anyMatch' | 'noneMatch'
     ) '(' variable=ID '->' body=Expression ')';
 
-// Pure primitive types (no void, no UnitOfWork)
 PrimitiveType:
     typeName=('Integer' | 'Long' | 'Float' | 'Double' | 'String' | 'Boolean' | 'LocalDateTime' | 'Object');
 
-// Special framework types
 BuiltinType:
     typeName=('UnitOfWork' | 'AggregateState');
 
-// Entity reference type
 EntityType:
     type=[Entity:QualifiedName];
 
-// Base type = any non-collection, non-void type
 BaseType:
     PrimitiveType | BuiltinType | EntityType;
 
-// Collection types with consistent element type
 ListType:
     'List' '<' elementType=BaseType '>';
 
@@ -344,7 +301,6 @@ SetType:
 OptionalType:
     'Optional' '<' elementType=BaseType '>';
 
-// Complete type system
 Type:
     BaseType | ListType | SetType | OptionalType;
 
@@ -382,7 +338,6 @@ WebAPIEndpoints:
         (endpoints+=CustomEndpoint)*
     '}';
 
-// Endpoint syntax
 CustomEndpoint:
     'Endpoint' name=ID '{'
         ('httpMethod' ':' method=HttpMethod)?
@@ -425,12 +380,6 @@ FunctionalityMethod:
         '}'
     )?;
 
-// ============================================================================
-// FUNCTIONALITY/SAGA STEP PATTERN
-// Shared structure: stepName + dependencies + actions + compensation
-// (Mirrors WorkflowStep pattern for consistency)
-// ============================================================================
-
 FunctionalityStep:
     SyncStep;
 
@@ -442,7 +391,6 @@ SyncStep:
     '}'
     (compensation=StepCompensation)?;
 
-// Shared step dependency structure (used by both Workflow and Saga steps)
 StepDependencies:
     'depends' 'on' dependencies+=ID (',' dependencies+=ID)*;
 
@@ -451,12 +399,11 @@ StepCompensation:
         compensationActions+=StepAction*
     '}';
 
-// Functionality/Saga step actions (context: Saga coordination)
 StepAction:
-    FuncCallServiceAction       // Call a service method
-    | FuncSetResultAction       // Set result for functionality return
-    | FuncAssignVariableAction  // Assign to local variable
-    | FuncRegisterSagaStateAction;  // Register saga state
+    FuncCallServiceAction
+    | FuncSetResultAction
+    | FuncAssignVariableAction
+    | FuncRegisterSagaStateAction;
 
 FuncCallServiceAction:
     'call' serviceRef=ID '.' method=ID '(' (args+=StepArgument (',' args+=StepArgument)*)? ')'
@@ -471,7 +418,6 @@ FuncAssignVariableAction:
 FuncRegisterSagaStateAction:
     'register' 'sagaState' aggregateId=StepArgument 'as' sagaState=ID 'in' unitOfWork=ID;
 
-// Functionality step argument (simple: string literal or ID)
 StepArgument:
     {infer StepArgument} (STRING | ID);
 
@@ -483,7 +429,6 @@ ServiceMethod:
     name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
     (':' returnType=ReturnType)?;
 
-// Enum Support
 EnumDefinition:
     'enum' name=ID '{'
         values+=EnumValue (',' values+=EnumValue)*
@@ -492,7 +437,6 @@ EnumDefinition:
 EnumValue:
     name=ID;
 
-// Shared Enums Support
 SharedEnums:
     'SharedEnums' '{'
         enums+=EnumDefinition*
