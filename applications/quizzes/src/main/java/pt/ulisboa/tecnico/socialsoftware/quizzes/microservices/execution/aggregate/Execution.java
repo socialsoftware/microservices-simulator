@@ -18,9 +18,8 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 /*
     INTRA-INVARIANTS
         REMOVE_NO_STUDENTS
-        REMOVE_COURSE_IS_VALID
-        ALL_STUDENTS_ARE_ACTIVE
-        CANNOT_REMOVE_IF_STUDENTS
+    SERVICE-LAYER GUARDS (Layer 3)
+        NO_DUPLICATE_COURSE_EXECUTION (enforced in ExecutionService.createCourseExecution)
     INTER-INVARIANTS
         USER_EXISTS
         COURSE_EXISTS (does it count? course doesn't send events)
@@ -123,19 +122,33 @@ public abstract class Execution extends Aggregate {
     /*
      * REMOVE_NO_STUDENTS
      */
+    public boolean removedNoStudents() {
+        if (getState() == AggregateState.DELETED) {
+            return getStudents().size() == 0;
+        }
+        return true;
+    }
 
-    public void removeStudent(Integer userAggregateId) {
-        CourseExecutionStudent studentToRemove = null;
-        if (!hasStudent(userAggregateId)) {
-            throw new QuizzesException(QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId,
-                    getAggregateId());
+    @Override
+    public void verifyInvariants() {
+        if (!(removedNoStudents())) {
+            throw new QuizzesException(QuizzesErrorMessage.INVARIANT_BREAK, getAggregateId());
         }
-        for (CourseExecutionStudent student : this.students) {
-            if (student.getUserAggregateId().equals(userAggregateId)) {
-                studentToRemove = student;
-            }
+    }
+
+    @Override
+    public void remove() {
+        super.remove();
+    }
+
+    @Override
+    public void setVersion(Long version) {
+        // if the course version is null, it means it that we're creating during this
+        // transaction
+        if (this.courseExecutionCourse != null && this.courseExecutionCourse.getCourseVersion() == null) {
+            this.courseExecutionCourse.setCourseVersion(version);
         }
-        this.students.remove(studentToRemove);
+        super.setVersion(version);
     }
 
     public boolean hasStudent(Integer userAggregateId) {
@@ -156,49 +169,17 @@ public abstract class Execution extends Aggregate {
         return null;
     }
 
-    public boolean removedNoStudents() {
-        if (getState() == AggregateState.DELETED) {
-            return getStudents().size() == 0;
+    public void removeStudent(Integer userAggregateId) {
+        CourseExecutionStudent studentToRemove = null;
+        if (!hasStudent(userAggregateId)) {
+            throw new QuizzesException(QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId,
+                    getAggregateId());
         }
-        return true;
-    }
-
-    public boolean allStudentsAreActive() {
-        for (CourseExecutionStudent student : getStudents()) {
-            if (!student.isActive()) {
-                return false;
+        for (CourseExecutionStudent student : this.students) {
+            if (student.getUserAggregateId().equals(userAggregateId)) {
+                studentToRemove = student;
             }
         }
-        return true;
+        this.students.remove(studentToRemove);
     }
-
-    @Override
-    public void verifyInvariants() {
-        if (!(removedNoStudents() /* && allStudentsAreActive() */)) {
-            throw new QuizzesException(QuizzesErrorMessage.INVARIANT_BREAK, getAggregateId());
-        }
-    }
-
-    @Override
-    public void remove() {
-        /*
-         * CANNOT_REMOVE_IF_STUDENTS
-         */
-        if (getStudents().size() > 0) {
-            super.remove();
-        } else {
-            throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_COURSE_EXECUTION, getAggregateId());
-        }
-    }
-
-    @Override
-    public void setVersion(Integer version) {
-        // if the course version is null, it means it that we're creating during this
-        // transaction
-        if (this.courseExecutionCourse != null && this.courseExecutionCourse.getCourseVersion() == null) {
-            this.courseExecutionCourse.setCourseVersion(version);
-        }
-        super.setVersion(version);
-    }
-
 }
