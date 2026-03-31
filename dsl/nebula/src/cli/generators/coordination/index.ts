@@ -23,11 +23,6 @@ export class CoordinationGenerator {
         results['functionalities'] = await this.functionalitiesGenerator.generate(aggregate, rootEntity, options, allAggregates);
         results['event-processing'] = await this.eventProcessingGenerator.generate(aggregate, rootEntity, options, allAggregates);
 
-        if (options.architecture === 'causal-saga') {
-            
-            console.log(`\t- Saga coordination handled by SagaFeature for ${aggregate.name}`);
-        }
-
         return results;
     }
 

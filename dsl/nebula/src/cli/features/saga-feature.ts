@@ -4,25 +4,6 @@ import * as path from "node:path";
 import { GenerationOptions } from "../engine/types.js";
 
 export class SagaFeature {
-    static async generateCausalEntities(
-        aggregate: any,
-        aggregatePath: string,
-        options: GenerationOptions,
-        generators: any
-    ): Promise<void> {
-        try {
-            const causalCode = await generators.causalEntityGenerator.generateCausal(aggregate, options);
-            const causalDir = path.join(aggregatePath, 'aggregate', 'causal');
-            await fs.mkdir(causalDir, { recursive: true });
-            const causalEntityPath = path.join(causalDir, `Causal${aggregate.name}.java`);
-            const causalFactoryPath = path.join(causalDir, `Causal${aggregate.name}Factory.java`);
-            await fs.writeFile(causalEntityPath, causalCode['entity'], 'utf-8');
-            await fs.writeFile(causalFactoryPath, causalCode['factory'], 'utf-8');
-        } catch (error) {
-            console.error(chalk.red(`[ERROR] Error generating causal entities for ${aggregate.name}: ${error instanceof Error ? error.message : String(error)}`));
-        }
-    }
-
     static async generateSaga(
         aggregate: any,
         aggregatePath: string,

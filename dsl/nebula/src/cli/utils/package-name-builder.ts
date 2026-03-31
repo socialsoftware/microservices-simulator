@@ -306,18 +306,6 @@ export class PackageNameBuilder {
         return this.buildMicroservicePackage(projectName, aggregateName, 'commandHandler');
     }
 
-    buildCausalPackage(projectName: string, aggregateName: string): string {
-        return [
-            this.basePackage,
-            projectName.toLowerCase(),
-            PackageType.MICROSERVICES,
-            aggregateName.toLowerCase(),
-            'aggregate',
-            'causal'
-        ].join('.');
-    }
-
-    
     buildSharedDtosPackage(projectName: string): string {
         return this.buildSharedPackage(projectName, ComponentType.DTOS_SHARED);
     }

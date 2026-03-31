@@ -14,7 +14,7 @@ import { SagaGenerator } from "../generators/sagas/saga-generator.js";
 import { SagaFunctionalityGenerator } from "../generators/sagas/saga-functionality-generator.js";
 import { ExceptionGenerator } from "../generators/common/exception-generator.js";
 import { EventHandlerGenerator } from "../generators/microservices/events/event-handler-generator.js";
-import { CausalEntityGenerator } from "../generators/sagas/causal-entity-generator.js";
+
 import { ConfigurationGenerator } from "../generators/coordination/config/configuration-generator.js";
 import { AggregateValidator } from "../generators/validation/validation-system.js";
 
@@ -160,7 +160,6 @@ export interface GeneratorRegistry {
 
     sagaGenerator: SagaGenerator;
     sagaFunctionalityGenerator: SagaFunctionalityGenerator;
-    causalEntityGenerator: CausalEntityGenerator;
 
     exceptionGenerator: ExceptionGenerator;
     eventHandlerGenerator: EventHandlerGenerator;
@@ -341,17 +340,6 @@ export class GeneratorRegistryFactory {
             isRequired: false
         });
 
-        GeneratorDiscovery.register('causalEntityGenerator', new CausalEntityGenerator(), {
-            name: 'Causal Entity Generator',
-            version: '1.0.0',
-            description: 'Generates causal consistency entities',
-            category: 'sagas',
-            dependencies: ['entityGenerator'],
-            outputTypes: ['java'],
-            isRequired: false
-        });
-
-        
         GeneratorDiscovery.register('exceptionGenerator', new ExceptionGenerator(), {
             name: 'Exception Generator',
             version: '1.0.0',

@@ -65,16 +65,6 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             );
         }
 
-        if (architecture === 'causal-saga') {
-            properties.push(
-                '',
-                '# Causal Saga Configuration',
-                this.buildPropertyLine('saga.coordination.enabled', 'true'),
-                this.buildPropertyLine('saga.causal.consistency', 'true')
-            );
-        }
-
-        
         properties.push(
             '',
             '# Saga Pattern Configuration',
@@ -145,19 +135,6 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             ])
         ];
 
-        if (architecture === 'causal-saga') {
-            sections.push(
-                '',
-                this.buildYamlSection('saga', [
-                    this.buildYamlProperty('coordination', '', 1),
-                    this.buildYamlProperty('enabled', 'true', 2),
-                    this.buildYamlProperty('causal', '', 1),
-                    this.buildYamlProperty('consistency', 'true', 2)
-                ])
-            );
-        }
-
-        
         sections.push(
             '',
             this.buildYamlSection('saga', [

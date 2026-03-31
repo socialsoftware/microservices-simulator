@@ -93,7 +93,7 @@ WorkflowArg:
     ref=ID ('.' chain+=ID)*;
 
 WorkflowType returns string:
-    'causal' | 'saga';
+    'saga';
 
 Repository:
     'Repository' '{'

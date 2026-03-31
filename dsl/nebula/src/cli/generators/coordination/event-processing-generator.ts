@@ -74,7 +74,7 @@ export class EventProcessingGenerator {
             imports: imports.join('\n'),
             projectName,
             ProjectName,
-            hasSagas: options.architecture === 'causal-saga'
+            hasSagas: true
         };
 
         const renderedMethods = eventProcessingMethodsArray.map((method: any) => this.renderMethod(method, tempContext, aggregate)).join('\n\n');

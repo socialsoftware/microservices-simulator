@@ -102,7 +102,7 @@ export class FunctionalitiesGenerator {
             projectName,
             ProjectName,
             consistencyModels,
-            hasSagas: options.architecture === 'causal-saga',
+            hasSagas: true,
             hasExternalDtos: options.architecture === 'default'
         };
     }

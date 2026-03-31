@@ -20,11 +20,22 @@ Book (invariants, events, repository)
 - **Book**:books with business rules and custom queries (Chapters 04-05)
 - **Loan**:borrows that reference both Member and Book (Chapters 06-07)
 
-By the end, 4 `.nebula` files (~60 lines total) generate a complete Spring Boot application with **50+ Java files** and **~4,500 lines of code**.
+By the end, 4 `.nebula` files (~100 lines total) generate a complete Spring Boot application with **124 Java files** and **~5,100 lines of code**.
 
-## Step 1: Define Shared Enums
+## Step 1: Project Setup and Shared Enums
 
-Start with the shared enumerations. Create `shared-enums.nebula`:
+Create a `nebula.config.json` file in your abstractions directory:
+
+```json
+{
+    "basePackage": "pt.ulisboa.tecnico.socialsoftware",
+    "framework": {
+        "version": "3.1.0-SNAPSHOT"
+    }
+}
+```
+
+Then start with the shared enumerations. Create `shared-enums.nebula`:
 
 ```nebula
 SharedEnums {
@@ -231,15 +242,15 @@ mvn clean compile
 | Metric | Value |
 |--------|-------|
 | DSL files | 4 |
-| DSL lines | ~60 |
-| Generated Java files | 120+ |
+| DSL lines | ~100 |
+| Generated Java files | 124 |
 | Generated Java lines | ~5,100 |
-| Code reduction | ~85x |
+| Code reduction | ~50x |
 
 ### DSL Files vs Generated Structure
 
 ```
-DSL (4 files, ~60 lines)          Generated (120+ files, ~5,100 lines)
+DSL (4 files, ~100 lines)         Generated (124 files, ~5,100 lines)
 ─────────────────────────          ──────────────────────────────────
 shared-enums.nebula         →     shared/enums/MembershipType.java
 member.nebula               →     microservices/member/ (5 files)

@@ -43,7 +43,7 @@ export interface GeneratorRegistry {
     sagaFunctionalityGenerator: any;
     exceptionGenerator: any;
     eventHandlerGenerator: any;
-    causalEntityGenerator: any;
+
     configurationGenerator: any;
     serviceDefinitionGenerator: any;
 }

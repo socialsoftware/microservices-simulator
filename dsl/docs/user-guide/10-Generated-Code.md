@@ -122,7 +122,7 @@ For an aggregate with `@GenerateCrud` ([Chapter 03](03-Your-First-Aggregate.md))
 
 ### Entity (`Member.java`)
 
-Root entities extend the simulator's `Aggregate` base class. They are generated as `abstract` classes, with concrete subclasses for each consistency model (Sagas, TCC):
+Root entities extend the simulator's `Aggregate` base class. They are generated as `abstract` classes, with a concrete saga subclass (`SagaMember`) for distributed transaction support:
 
 ```java
 @Entity

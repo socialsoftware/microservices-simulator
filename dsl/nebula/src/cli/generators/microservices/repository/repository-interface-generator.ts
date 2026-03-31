@@ -65,7 +65,7 @@ export class RepositoryInterfaceGenerator {
             repositoryType,
             queryMethods,
             imports,
-            hasSagaSupport: options.architecture === 'causal-saga'
+            hasSagaSupport: true
         };
     }
 

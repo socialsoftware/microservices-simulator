@@ -16,7 +16,7 @@ export interface GenerationConfig {
     packageName: string;
     basePackage: string; 
 
-    architecture: 'microservices' | 'causal-saga' | 'monolith';
+    architecture: 'microservices' | 'monolith';
     consistencyModels?: string[];
 
     templateEngine: 'simple' | 'handlebars';
@@ -131,7 +131,7 @@ export class ConfigManager {
             outputDirectory: '../../applications',
             packageName: 'com.generated.microservices',
             basePackage: 'com.generated', 
-            architecture: 'causal-saga',
+            architecture: 'microservices',
             templateEngine: 'simple',
             templateCaching: true,
             strictMode: false,
@@ -215,22 +215,6 @@ export class ConfigManager {
                 allowsMultipleRoots: false,
                 requiredProperties: ['id'],
                 requiredMethods: []
-            }
-        });
-
-        this.registerArchitecture({
-            name: 'causal-saga',
-            defaultTemplates: {
-                entities: 'causal-entity.template',
-                dtos: 'causal-dto.template',
-                services: 'causal-service.template',
-                saga: 'saga-coordination.template'
-            },
-            validation: {
-                requiresRootEntity: true,
-                allowsMultipleRoots: false,
-                requiredProperties: ['aggregateId', 'version'],
-                requiredMethods: ['buildWorkflow']
             }
         });
 

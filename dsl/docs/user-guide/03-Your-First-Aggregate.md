@@ -39,9 +39,9 @@ This annotation tells Nebula to generate complete CRUD operations across all lay
 | Layer | What's Generated |
 |-------|-----------------|
 | **Service** | `createTask`, `getTaskById`, `getAllTasks`, `updateTask`, `deleteTask` |
-| **Controller** | `POST /tasks`, `GET /tasks/{id}`, `GET /tasks`, `PUT /tasks/{id}`, `DELETE /tasks/{id}` |
+| **Controller** | `POST /tasks/create`, `GET /tasks/{taskAggregateId}`, `GET /tasks`, `PUT /tasks`, `DELETE /tasks/{taskAggregateId}` |
 | **Functionalities** | Orchestration wrappers for each operation |
-| **Sagas** | Distributed transaction workflows for create, update, and delete |
+| **Sagas** | Distributed transaction workflows for all five CRUD operations |
 
 ### `Root Entity Task`
 

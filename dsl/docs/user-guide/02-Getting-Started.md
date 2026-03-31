@@ -51,24 +51,31 @@ Nebula reads `.nebula` files from an abstractions directory. Each file typically
 ```
 dsl/docs/examples/abstractions/
 ├── 01-helloworld/        # Simplest example, start here (Ch 03)
+│   ├── nebula.config.json
 │   └── task.nebula
 ├── 02-typesenums/        # Types and enumerations (Ch 04)
+│   ├── nebula.config.json
 │   └── contact.nebula
 ├── 03-businessrules/     # Invariants and repositories (Ch 05)
+│   ├── nebula.config.json
 │   └── product.nebula
 ├── 04-crossrefs/         # Cross-aggregate references (Ch 06)
+│   ├── nebula.config.json
 │   ├── teacher.nebula
 │   ├── course.nebula
 │   └── enrollment.nebula
 ├── 05-eventdriven/       # Event publishing and subscribing (Ch 07)
+│   ├── nebula.config.json
 │   ├── author.nebula
 │   └── post.nebula
 ├── 06-tutorial/          # Library system tutorial (Ch 08)
+│   ├── nebula.config.json
 │   ├── shared-enums.nebula
 │   ├── member.nebula
 │   ├── book.nebula
 │   └── loan.nebula
 └── 07-advanced/          # Advanced patterns (Ch 09)
+    ├── nebula.config.json
     ├── shared-enums.nebula
     ├── customer.nebula
     ├── product.nebula
@@ -77,7 +84,8 @@ dsl/docs/examples/abstractions/
     └── exceptions.nebula
 
 dsl/abstractions/
-├── answers/              # Answers case study (9 aggregates)
+├── answers/              # Answers case study (8 aggregates)
+│   ├── nebula.config.json
 │   ├── user.nebula
 │   ├── course.nebula
 │   ├── execution.nebula
@@ -88,7 +96,8 @@ dsl/abstractions/
 │   ├── answer.nebula
 │   ├── shared-enums.nebula
 │   └── exceptions.nebula
-└── teastore/             # TeaStore case study (6 aggregates)
+└── teastore/             # TeaStore case study (5 aggregates)
+    ├── nebula.config.json
     ├── user.nebula
     ├── category.nebula
     ├── product.nebula

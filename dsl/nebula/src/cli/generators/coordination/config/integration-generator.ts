@@ -109,7 +109,7 @@ export class IntegrationGenerator {
             basePackage: this.getBasePackage(options),
             imports,
             beans,
-            hasSagas: options.architecture === 'causal-saga',
+            hasSagas: true,
             hasExternalDtos: options.architecture === 'default'
         };
     }
@@ -126,7 +126,7 @@ export class IntegrationGenerator {
             lowerAggregate,
             projectName: options.projectName,
             properties,
-            hasSagas: options.architecture === 'causal-saga',
+            hasSagas: true,
             hasExternalDtos: options.architecture === 'default'
         };
     }
@@ -147,7 +147,7 @@ export class IntegrationGenerator {
             basePackage: this.getBasePackage(options),
             profiles,
             imports,
-            hasSagas: options.architecture === 'causal-saga'
+            hasSagas: true
         };
     }
 
@@ -182,10 +182,7 @@ export class IntegrationGenerator {
         imports.push('import org.springframework.context.annotation.Profile;');
         imports.push('import org.springframework.beans.factory.annotation.Autowired;');
 
-        if (options.architecture === 'causal-saga') {
-            imports.push(`import ${this.getBasePackage(options)}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
-            imports.push(`import ${this.getBasePackage(options)}.ms.causal.unitOfWork.CausalUnitOfWorkService;`);
-        }
+        imports.push(`import ${this.getBasePackage(options)}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
 
         return imports;
     }
@@ -193,15 +190,12 @@ export class IntegrationGenerator {
     private buildConfigurationBeans(aggregate: Aggregate, options: IntegrationGenerationOptions): any[] {
         const beans: any[] = [];
 
-        if (options.architecture === 'causal-saga') {
-            beans.push({
-                name: 'sagaUnitOfWorkService',
-                type: 'SagaUnitOfWorkService',
-                profile: 'sagas',
-                description: 'Saga unit of work service for distributed transactions'
-            });
-
-        }
+        beans.push({
+            name: 'sagaUnitOfWorkService',
+            type: 'SagaUnitOfWorkService',
+            profile: 'sagas',
+            description: 'Saga unit of work service for distributed transactions'
+        });
 
         return beans;
     }
@@ -233,13 +227,11 @@ export class IntegrationGenerator {
             description: 'Format SQL queries'
         });
 
-        if (options.architecture === 'causal-saga') {
-            properties.push({
-                key: 'spring.profiles.active',
-                value: 'sagas',
-                description: 'Active Spring profiles'
-            });
-        }
+        properties.push({
+            key: 'spring.profiles.active',
+            value: 'sagas',
+            description: 'Active Spring profiles'
+        });
 
         return properties;
     }
@@ -259,20 +251,17 @@ export class IntegrationGenerator {
             ]
         });
 
-        if (options.architecture === 'causal-saga') {
-            profiles.push({
-                name: 'sagas',
-                description: 'Saga-based distributed transaction configuration',
-                beans: [
-                    {
-                        name: 'sagaUnitOfWorkService',
-                        type: 'SagaUnitOfWorkService',
-                        implementation: 'SagaUnitOfWorkServiceImpl'
-                    }
-                ]
-            });
-
-        }
+        profiles.push({
+            name: 'sagas',
+            description: 'Saga-based distributed transaction configuration',
+            beans: [
+                {
+                    name: 'sagaUnitOfWorkService',
+                    type: 'SagaUnitOfWorkService',
+                    implementation: 'SagaUnitOfWorkServiceImpl'
+                }
+            ]
+        });
 
         return profiles;
     }
