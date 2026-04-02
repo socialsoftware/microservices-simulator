@@ -1,7 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -43,8 +44,9 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
             List<SagaAggregate.SagaState> states = new ArrayList<>();
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
             AddParticipantCommand addParticipantCommand = new AddParticipantCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, this.userDto);
-            addParticipantCommand.setForbiddenStates(states);
-            commandGateway.send(addParticipantCommand);
+            SagaCommand sagaCommand = new SagaCommand(addParticipantCommand);
+            sagaCommand.setForbiddenStates(states);
+            commandGateway.send(sagaCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
         this.workflow.addStep(getUserStep);

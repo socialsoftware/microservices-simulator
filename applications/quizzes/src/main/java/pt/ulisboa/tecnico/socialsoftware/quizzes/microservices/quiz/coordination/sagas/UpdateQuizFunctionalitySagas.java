@@ -1,8 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -38,15 +39,17 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getQuizStep = new SagaStep("getQuizStep", () -> {
             GetQuizByIdCommand getQuizByIdCommand = new GetQuizByIdCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto.getAggregateId());
-            getQuizByIdCommand.setSemanticLock(QuizSagaState.READ_QUIZ);
-            QuizDto quiz = (QuizDto) commandGateway.send(getQuizByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getQuizByIdCommand);
+            sagaCommand.setSemanticLock(QuizSagaState.READ_QUIZ);
+            QuizDto quiz = (QuizDto) commandGateway.send(sagaCommand);
             this.setQuiz(quiz);
         });
 
         getQuizStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quiz.getAggregateId());
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
         }, unitOfWork);
 
         SagaStep updateQuizStep = new SagaStep("updateQuizStep", () -> {

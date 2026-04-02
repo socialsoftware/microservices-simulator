@@ -2,8 +2,9 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coord
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
@@ -34,8 +35,9 @@ public class AnonymizeUserTournamentFunctionalitySagas extends WorkflowFunctiona
 
         SagaStep anonymizeUserStep = new SagaStep("anonymizeUserStep", () -> {
             AnonymizeUserCommand anonymizeUserCommand = new AnonymizeUserCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId, executionAggregateId, userAggregateId, name, username, eventVersion);
-            anonymizeUserCommand.setForbiddenStates(new ArrayList<>(List.of(TournamentSagaState.IN_UPDATE_TOURNAMENT)));
-            commandGateway.send(anonymizeUserCommand);
+            SagaCommand sagaCommand = new SagaCommand(anonymizeUserCommand);
+            sagaCommand.setForbiddenStates(new ArrayList<>(List.of(TournamentSagaState.IN_UPDATE_TOURNAMENT)));
+            commandGateway.send(sagaCommand);
         });
 
         this.workflow.addStep(anonymizeUserStep);

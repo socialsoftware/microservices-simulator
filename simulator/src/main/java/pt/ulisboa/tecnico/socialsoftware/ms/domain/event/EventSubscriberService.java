@@ -3,39 +3,71 @@ package pt.ulisboa.tecnico.socialsoftware.ms.domain.event;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.messaging.Message;
+import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateRepository;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class EventSubscriberService {
+@Service
+@Profile("remote")
+public class EventSubscriberService {
     private static final Logger logger = LoggerFactory.getLogger(EventSubscriberService.class);
 
     private final EventRepository eventRepository;
     private final ObjectMapper objectMapper;
     private final Map<String, Class<? extends Event>> subscribedEvents = new HashMap<>();
+    private final Map<String, Class<? extends Event>> eventClassesBySimpleName = new HashMap<>();
     private boolean initialized = false;
 
+    @Autowired(required = false)
+    private AggregateRepository aggregateRepository;
+
     public EventSubscriberService(EventRepository eventRepository,
-            MessagingObjectMapperProvider mapperProvider) {
+                                  MessagingObjectMapperProvider mapperProvider) {
         this.eventRepository = eventRepository;
         this.objectMapper = mapperProvider.newMapper();
+        scanEventClasses();
     }
 
-    public abstract Aggregate getLatestAggregate();
+    @SuppressWarnings("unchecked")
+    private void scanEventClasses() {
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+        scanner.addIncludeFilter(new AssignableTypeFilter(Event.class));
 
-    public abstract String getEventPackage();
+        for (BeanDefinition bd : scanner.findCandidateComponents("")) {
+            try {
+                Class<?> clazz = Class.forName(bd.getBeanClassName());
+                if (Event.class.isAssignableFrom(clazz) && !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers())) {
+                    eventClassesBySimpleName.put(clazz.getSimpleName(), (Class<? extends Event>) clazz);
+                }
+            } catch (ClassNotFoundException e) {
+                logger.warn("Could not load event class: {}", bd.getBeanClassName());
+            }
+        }
+        logger.info("Scanned event classes: {}", eventClassesBySimpleName.keySet());
+    }
 
     private void initializeSubscribedEvents() {
         if (initialized) {
             return;
         }
 
-        Aggregate aggregate = getLatestAggregate();
-        logger.info("Subscribing to aggregate {}", aggregate);
+        if (aggregateRepository == null) {
+            logger.warn("No AggregateRepository found. Cannot initialize subscribed events");
+            return;
+        }
+
+        Aggregate aggregate = aggregateRepository.findTopByOrderByVersionDesc().orElse(null);
         if (aggregate == null) {
             logger.warn("No aggregate found to initialize subscribed events");
             return;
@@ -44,19 +76,16 @@ public abstract class EventSubscriberService {
         Set<EventSubscription> eventSubscriptions = aggregate.getEventSubscriptions();
         for (EventSubscription subscription : eventSubscriptions) {
             String eventType = subscription.getEventType();
-            try {
-                String fullClassName = getEventPackage() + "." + eventType;
-                Class<?> eventClass = Class.forName(fullClassName);
-                if (Event.class.isAssignableFrom(eventClass)) {
-                    subscribedEvents.put(eventType, (Class<? extends Event>) eventClass);
-                }
-            } catch (ClassNotFoundException e) {
+            Class<? extends Event> eventClass = eventClassesBySimpleName.get(eventType);
+            if (eventClass != null) {
+                subscribedEvents.put(eventType, eventClass);
+            } else {
                 logger.warn("Event class not found for type: {}", eventType);
             }
         }
 
         initialized = true;
-        logger.info("Initialized subscribed events from aggregate: {}", subscribedEvents.keySet());
+        logger.info("Initialized subscribed events {} from aggregate: {}", subscribedEvents.keySet(), aggregate.getAggregateType());
     }
 
     public void processEvent(Message<String> message) {

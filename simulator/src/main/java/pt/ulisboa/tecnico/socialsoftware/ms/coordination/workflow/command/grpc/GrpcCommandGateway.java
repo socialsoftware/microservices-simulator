@@ -6,6 +6,7 @@ import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
@@ -14,13 +15,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandResponse;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.MessagingObjectMapperProvider;
-
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandReply;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandRequest;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandServiceGrpc;
@@ -28,8 +23,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandServiceGrpc;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import jakarta.annotation.PostConstruct;
 
 @Component
 @Profile("grpc")
@@ -62,12 +55,10 @@ public class GrpcCommandGateway extends CommandGateway {
         logger.info("Discovery client type: " + discoveryClient.getClass().getSimpleName());
 
         List<String> allServices = discoveryClient.getServices();
-        logger.info("Total services found: " + allServices.size());
-
         if (allServices.isEmpty()) {
-            logger.warning("No services discovered! Check if Kubernetes discovery is configured correctly.");
-            logger.warning("Make sure spring-cloud-starter-kubernetes-client-all is included in the build.");
+            logger.info("No services discovered yet. This is normal during startup as services register with the discovery server.");
         } else {
+            logger.info("Total services found: " + allServices.size());
             logger.info("All discovered services: " + allServices);
         }
 
@@ -135,6 +126,8 @@ public class GrpcCommandGateway extends CommandGateway {
         host = instance.getHost();
         port = resolveGrpcPort(instance, service);
 
+        logger.info("Calling service " + service + " at " + host + ":" + port);
+
         ManagedChannel channel = ManagedChannelBuilder
                 .forAddress(host, port)
                 .usePlaintext()
@@ -173,7 +166,9 @@ public class GrpcCommandGateway extends CommandGateway {
         Map<String, String> metadata = instance.getMetadata();
         if (metadata != null && metadata.containsKey("grpcPort")) {
             try {
-                return Integer.parseInt(metadata.get("grpcPort"));
+                int port = Integer.parseInt(metadata.get("grpcPort"));
+                logger.info("Using gRPC port " + port + " from metadata for service " + service);
+                return port;
             } catch (NumberFormatException ignored) {
                 logger.warning("Invalid grpcPort metadata for service " + service + ", falling back to properties");
             }
@@ -181,9 +176,12 @@ public class GrpcCommandGateway extends CommandGateway {
 
         Integer servicePort = environment.getProperty("grpc.command." + service + ".port", Integer.class);
         if (servicePort != null) {
+            logger.info("Using gRPC port " + servicePort + " from properties for service " + service);
             return servicePort;
         }
 
-        return environment.getProperty("grpc.command.default-port", Integer.class, instance.getPort());
+        int defaultPort = environment.getProperty("grpc.command.default-port", Integer.class, instance.getPort());
+        logger.warning("No grpcPort metadata found for service " + service + ". Falling back to " + defaultPort);
+        return defaultPort;
     }
 }

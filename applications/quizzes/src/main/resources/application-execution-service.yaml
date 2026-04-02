@@ -2,7 +2,7 @@ spring:
   application:
     name: execution
   datasource:
-    url: jdbc:postgresql://localhost:5432/executiondb
+    url: jdbc:postgresql://localhost:5432/${spring.application.name}db
 
   cloud:
     function:
@@ -10,16 +10,16 @@ spring:
     stream:
       bindings:
         execution-command-channel:
-          destination: execution-command-channel
+          destination: ${spring.application.name}-command-channel
         executionServiceCommandChannel-in-0:
-          destination: execution-command-channel
-          group: execution-service-group
+          destination: ${spring.application.name}-command-channel
+          group: ${spring.application.name}-service-group
         commandResponseChannel-in-0:
-          destination: execution-command-responses
-          group: execution-response-group
+          destination: ${spring.application.name}-command-responses
+          group: ${spring.application.name}-response-group
         executionEventSubscriber-in-0:
           destination: event-channel
-          group: execution-service-group
+          group: ${spring.application.name}-service-group
 
 server:
   port: 8083
@@ -27,25 +27,21 @@ grpc:
   server:
     port: 9093
 
----
-spring:
-  config:
-    activate:
-      on-profile: "!kubernetes"
-  cloud:
-    discovery:
-      enabled: true
+routes:
+  - id: ${spring.application.name}-service-users
+    uri: lb://${spring.application.name}${gateway.service-suffix}
+    predicates:
+      - Path=/users/*/executions
+    order: 1
 
-eureka:
-  client:
-    enabled: true
-    service-url:
-      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-    registry-fetch-interval-seconds: 5
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.uuid}
-    metadata-map:
-      grpcPort: ${grpc.server.port}
+  - id: ${spring.application.name}-service-create
+    uri: lb://${spring.application.name}${gateway.service-suffix}
+    predicates:
+      - Path=/executions/create
+    order: 8
+
+  - id: ${spring.application.name}-service
+    uri: lb://${spring.application.name}${gateway.service-suffix}
+    predicates:
+      - Path=/executions/**
+    order: 10

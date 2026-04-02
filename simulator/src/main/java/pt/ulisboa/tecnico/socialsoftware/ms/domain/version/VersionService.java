@@ -11,7 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import java.util.Optional;
 
 @Service
-@Profile("!remote & !distributed-version")
+@Profile("(!remote & !distributed-version) | version-service")
 public class VersionService implements IVersionService {
 
     @Autowired
@@ -32,6 +32,12 @@ public class VersionService implements IVersionService {
         }
         return version.getVersionNumber();
 
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Override
+    public Long getNextVersionNumber() {
+        return this.getVersionNumber() + 1;
     }
 
     // If a functionality has started and committed in the meanwhile this one will

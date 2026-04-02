@@ -1,6 +1,7 @@
 spring:
   application:
     name: version
+      
   datasource:
     url: jdbc:postgresql://localhost:5432/versiondb
     driver-class-name: org.postgresql.Driver
@@ -28,7 +29,7 @@ spring:
     activate:
       on-profile: stream
   rabbitmq:
-    host: localhost
+    host: ${SPRING_RABBITMQ_HOST:localhost}
     port: 5672
     username: guest
     password: guest
@@ -58,7 +59,7 @@ eureka:
       defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
-    registry-fetch-interval-seconds: 5
+    registry-fetch-interval-seconds: 10
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.uuid}

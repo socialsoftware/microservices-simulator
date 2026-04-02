@@ -1,8 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -34,15 +35,17 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getTopicStep = new SagaStep("getTopicStep", () -> {
             GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId());
-            getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
-            TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getTopicByIdCommand);
+            sagaCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
+            TopicDto topic = (TopicDto) commandGateway.send(sagaCommand);
             this.setTopic(topic);
         });
 
         getTopicStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topic.getAggregateId());
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
         }, unitOfWork);
 
         SagaStep updateTopicStep = new SagaStep("updateTopicStep", () -> {

@@ -1,0 +1,4 @@
+FROM maven:3.9.7-eclipse-temurin-21
+
+WORKDIR /simulator
+COPY simulator/ .

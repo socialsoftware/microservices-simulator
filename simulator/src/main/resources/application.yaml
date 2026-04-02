@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: simulator
+  profiles:
+    active: "@activatedProperties@"
+
+  main:
+    allow-bean-definition-overriding: true
+
+  autoconfigure:
+    exclude:
+      - org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAutoConfiguration
+
+  task:
+    scheduling:
+      pool:
+        size: 5
+
+command:
+  gateway:
+    timeout-seconds: 10
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        enable-randomized-wait: true
+        randomized-wait-factor: 0.5
+        retry-exceptions:
+          - java.lang.RuntimeException
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "!remote & !gateway"
+
+  cloud:
+    kubernetes:
+      enabled: false
+      discovery:
+        enabled: false
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "remote & !kubernetes"
+
+  cloud:
+    discovery:
+      enabled: true

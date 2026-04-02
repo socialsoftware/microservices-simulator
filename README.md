@@ -18,10 +18,10 @@ in [Transactional Causal Consistent Microservices Simulator](https://doi.org/10.
 The simulator supports multiple execution modes to test different aspects of system behavior, ranging from simple local
 execution to full distributed deployment.
 
-| Mode            | Description                                                                                                                                                                                                                                                                                | Profiles                                                          | Infrastructure                                                                                                                            |
+| Mode            | Description                                                                                                                                                                                                                                                                                | Spring Profiles                                                   | Infrastructure                                                                                                                            |
 |-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
 | **Centralized** | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls. Optionally uses `distributed-version` profile for Snowflake-based version IDs.                                                                                                          | `sagas\|tcc, local\|stream\|grpc`                                 | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
-| **Distributed** | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on [Kubernetes](#kubernetes-deployment). | Service-specific (e.g., `answer-service,sagas\|tcc,stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
+| **Distributed** | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on [Kubernetes](#kubernetes-deployment). | Service-specific (e.g., `answer-service, sagas\|tcc, stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
 
 ## Run Using Docker
 
@@ -29,13 +29,17 @@ execution to full distributed deployment.
 
 - [Docker Compose V2](https://docs.docker.com/compose/install/)
 
-### Build the Application
+### Docker Compose Structure
+
+The project uses a two-layer Docker Compose configuration:
+1. **Root `docker-compose.yml`**: Defines shared infrastructure components (PostgreSQL, RabbitMQ, Jaeger, Eureka) and simulator services (gateway, version-service, tests).
+2. **Application `docker-compose.yml`** (in `applications/quizzes`): Extends the root configuration with quiz-specific services and test environments.
+
+To run the full system, always execute Docker Compose commands from the `applications/quizzes` directory.
 
 ```bash
-docker compose build
+cd applications/quizzes
 ```
-
-Or run the service with the flag `--build`
 
 ### Running as Centralized with Local Service Calls
 
@@ -50,63 +54,86 @@ TX_MODE=tcc docker compose up quizzes-local -d
 ### Running as Centralized with Remote Service Calls
 
 ```bash
-# Sagas with Stream (default)
+# Sagas with Stream (default) + centralized IDs (version-service)
 docker compose up quizzes-remote version-service -d
 
-# Sagas with gRPC
+# Sagas with gRPC + centralized IDs (version-service)
 COMM_LAYER=grpc docker compose up quizzes-remote version-service -d
 
-# TCC with Stream
+# TCC with Stream + centralized IDs (version-service)
 TX_MODE=tcc docker compose up quizzes-remote version-service -d
 
-# TCC with gRPC
+# TCC with gRPC + centralized IDs (version-service)
 TX_MODE=tcc COMM_LAYER=grpc docker compose up quizzes-remote version-service -d
 ```
 
 ### Running as Distributed
 
-First, build the gateway and all microservices:
-
-```bash
-docker compose build --with-dependencies gateway
-```
-
-Then, run the gateway and all microservices:
+Run the gateway and all microservices:
 
 ```bash
 # Sagas (default) with Stream (default)
-docker compose up gateway -d
+docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 
 # TCC with Stream (default)
-TX_MODE=tcc docker compose up gateway version-service -d
+TX_MODE=tcc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 
 # With gRPC instead of stream
-COMM_LAYER=grpc docker compose up gateway version-service -d
+COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 
 # TCC + gRPC
-TX_MODE=tcc COMM_LAYER=grpc docker compose up gateway version-service -d
+TX_MODE=tcc COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
+```
+
+#### Version IDs: Centralized vs Distributed
+
+There are two supported strategies:
+
+**Centralized ID generation (version-service container).** Required for `quizzes-remote` and **microservices** when you want centralized IDs. Not required for `quizzes-local` (single process), so centralized IDs work without a separate container. Start it with:
+
+```bash
+docker compose up version-service -d
+```
+
+**Distributed ID generation (no version-service).** Enable with `VERSION_MODE=distributed-version`. Works with `quizzes-local`, `quizzes-remote`, and **microservices**.
+
+**Quick examples (distributed IDs):**
+
+```bash
+# quizzes-local (distributed IDs)
+VERSION_MODE=distributed-version docker compose up quizzes-local -d
+
+# quizzes-remote (distributed IDs)
+VERSION_MODE=distributed-version docker compose up quizzes-remote -d
+
+# microservices (distributed IDs)
+VERSION_MODE=distributed-version docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 ```
 
 #### Running with Distributed Version (no version-service needed)
 
-Use the `VERSION_MODE` environment variable to enable the `distributed-version` profile. Each microservice will generate
+Use the `VERSION_MODE` environment variable to enable the `distributed-version` Spring profile. Each service will generate
 version IDs locally using Snowflake IDs.
 
 ```bash
 # Sagas + Stream + Distributed Version
-VERSION_MODE=distributed-version docker compose up gateway -d
+VERSION_MODE=distributed-version docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 
 # Sagas + gRPC + Distributed Version
-VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up gateway -d
+VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 ```
+> **Note:** The `distributed-version` profile can also be used with the centralized quizzes-local and quizzes-remote.
 
-Starting the gateway will automatically start the entire distributed ecosystem, including:
+
+Distributed ecosystem:
 
 **Infrastructure:**
 
 * `eureka-server`: Service discovery
-* `rabbitmq`: Message broker for async communication
-* `gateway`: API Gateway (entry point)
+* `rabbitmq`: Message broker
+* `jaeger`: Distributed tracing
+* `eureka`: Service discovery 
+* `gateway`: API Gateway (entry point for distributed application)
 
 **Microservices:** (One Database per Service)
 
@@ -119,20 +146,28 @@ Starting the gateway will automatically start the entire distributed ecosystem, 
 * `tournament-service` -> `tournament-db`
 * `user-service` -> `user-db`
 
-> **Note:** The `version-service` is **not** started automatically. If you need centralized versioning (i.e., you are *
-*not** using the `distributed-version` profile), you must start it manually:
->
-> ```bash
-> docker compose up version-service -d
-> ```
-
-### Running Local Tests
-
-> **Note:** Run `build-simulator` first before running tests.
+### Stopping Containers
 
 ```bash
-docker compose up build-simulator
+# Stop running containers (keeps volumes)
+docker compose stop
+
+# Stop and remove containers (keeps volumes)
+docker compose down
+
+# Stop and remove containers and volumes (full reset)
+docker compose down -v
 ```
+
+### Cleaning Maven Cache
+
+If the simulator library version is updated in `simulator/pom.xml`, you must clean the Maven cache volume to ensure the test containers use the updated version.
+
+```bash
+docker volume rm microservices-simulator_m2_cache
+```
+
+### Running Local Tests
 
 **Simulator Sagas:**
 
@@ -171,10 +206,10 @@ kind create cluster --name microservices
 
 ```bash
 # Build all Docker images
-docker compose build --with-dependencies gateway
+docker compose build
 
 # Load images into Kind cluster
-for img in gateway simulator quizzes; do
+for img in simulator quizzes; do
   kind load docker-image ${img}:latest --name microservices
 done
 ```
@@ -250,7 +285,7 @@ az login
 # Create Resource Group
 az group create --name simulator-rg-es --location spaincentral
 
-# Create AKS Cluster (Free tier, minimal resources)
+# Create AKS Cluster (Free tier, minimal resources) -- This is a cluster example
 az aks create \
   --resource-group simulator-rg-es \
   --name simulator-cluster \
@@ -374,7 +409,7 @@ IntelliJ, these configurations will be automatically available in the Run/Debug 
 
 ### Running as Centralized with Remote Service Calls
 
-- Run the `quizzes-simulator` folder (contains `sagas-stream`, `sagas-grpc`, `tcc-stream`, `tcc-grpc` configurations)
+- Run the `quizzes` folder (contains `sagas-stream`, `sagas-grpc`, `tcc-stream`, `tcc-grpc`, etc. configurations)
 - Run one of the `version-service` folder configurations (`version-stream` or `version-grpc`) matching the communication
   layer
 
@@ -572,11 +607,11 @@ running RabbitMQ for inter-service communication.
 
 #### Running the Microservices
 
-**1. Start the Version Service** (skip this step if using `distributed-version` profile)**:**
+**1. Start the Version Service (stream or grpc)** (skip this step if using `distributed-version` profile)**:**
 
 ```bash
 cd simulator
-mvn spring-boot:run -Dspring-boot.run.profiles=version-service,stream
+mvn clean -Pversion-service,stream spring-boot:run
 ```
 
 **2. Start each Quizzes microservice (from `applications/quizzes`):**
@@ -609,11 +644,11 @@ mvn spring-boot:run -Psagas,stream,distributed-version
 mvn spring-boot:run -Psagas,grpc,distributed-version
 ```
 
-**3. Start the Gateway (from `applications/gateway`):**
+**3. Start the Gateway (from `simulator/`):**
 
 ```bash
-cd applications/gateway
-mvn spring-boot:run
+cd simulator/
+mvn -Pgateway spring-boot:run
 ```
 
 ---
@@ -729,16 +764,14 @@ map the service name to the service port automatically.
 
 ### API Gateway Configuration
 
-The [Gateway application.yaml](applications/gateway/src/main/resources/application.yaml) configures:
+The [Gateway application-gateway.yaml](simulator/src/main/resources/application-gateway.yaml) configures:
 
-1. **Service discovery** ([lines 8-25](applications/gateway/src/main/resources/application.yaml)): Eureka discovery for
+1. **Service discovery** ([lines 20-28](simulator/src/main/resources/application-gateway.yaml)): Eureka discovery for
    local distributed deployments; Kubernetes discovery is enabled via the `kubernetes` profile.
 
-2. **Route definitions** ([lines 30-87](applications/gateway/src/main/resources/application.yaml)): Map API paths to
-   backend services using `lb://<service>${gateway.service-suffix}` URIs.
+2. **Route definitions** ([lines 290-300 in application.yaml](applications/quizzes/src/main/resources/application.yaml)): The API Gateway is a Spring MVC-based application that dynamically proxies HTTP requests to backend services. Routes are configured via `gateway.routes.imports` referencing the target microservice application properties, which the `DynamicMVCProxyController` uses to forward REST calls.
 
-3. **Version service URL** ([line 18](applications/gateway/src/main/resources/application.yaml)): Base URL for the
-   version service used by admin endpoints.
+3. **Version service URL**: The Admin controller endpoints directly interact with the remote microservices for configuration sync.
 
 ## Code structure
 
@@ -779,7 +812,7 @@ domain specific code.
 ![Application Decomposition](data/figs/application_decomposition.png)
 
 The API Gateway is used when running the quizzes application as microservices to route API requests to the appropriate
-microservice.
+microservice. The gateway operates as an MVC application using a custom dynamic proxy controller to forward REST requests.
 
 ## How to implement and test your own business logic for Sagas and TCC (Illustrated with Quizzes Microservice System)
 
@@ -855,8 +888,8 @@ For the inter-service communication:
 3. **Configure gRPC Server Port** (for `grpc` profile): Define the gRPC server port in the service profile file and
    expose it via Eureka metadata,
    like [tournament-service gRPC config](applications/quizzes/src/main/resources/application-tournament-service.yaml).
-4. **Configure API Gateway Routes**: Define the route mappings in the
-   [Gateway application.yaml](applications/gateway/src/main/resources/application.yaml) to route API requests to the
+4. **Configure API Gateway Routes**: Define the route mappings in the microservice's application yaml file and import it via
+   `gateway.routes.imports` properties to have the MVC proxy controller route HTTP requests to the
    new microservice.
 
 To write tests:

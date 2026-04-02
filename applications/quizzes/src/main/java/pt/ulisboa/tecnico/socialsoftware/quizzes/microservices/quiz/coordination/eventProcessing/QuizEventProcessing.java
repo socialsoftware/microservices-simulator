@@ -29,4 +29,5 @@ public class QuizEventProcessing {
         logger.info("Processing DeleteQuizQuestionEvent: aggregateId={}, event={}", aggregateId, deleteQuestionEvent);
         quizFunctionalities.removeQuizQuestion(aggregateId, deleteQuestionEvent);
     }
+
 }

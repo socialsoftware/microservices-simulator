@@ -7,7 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceService
+import pt.ulisboa.tecnico.socialsoftware.ms.tracing.TraceService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
@@ -44,7 +44,7 @@ class HandleEventBehaviour extends QuizzesSpockTest {
     private TournamentFunctionalities tournamentFunctionalities
 
     @Autowired
-    private EventService eventService;
+    private EventService eventService
 
 
     @Autowired

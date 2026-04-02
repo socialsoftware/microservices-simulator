@@ -5,14 +5,15 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
+import pt.ulisboa.tecnico.socialsoftware.ms.behaviour.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CausalCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.factories.CausalQuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.repositories.QuizAnswerCustomRepositoryTCC
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.commandHandler.AnswerCommandHandler
@@ -69,27 +70,27 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.User
 class BeanConfigurationCausal {
     @Bean
     AggregateIdGeneratorService aggregateIdGeneratorService() {
-        return new AggregateIdGeneratorService();
+        return new AggregateIdGeneratorService()
     }
 
     @Bean
     IVersionService versionService() {
-        return new VersionService();
+        return new VersionService()
     }
 
     @Bean
     EventApplicationService eventApplicationService() {
-        return new EventApplicationService();
+        return new EventApplicationService()
     }
 
     @Bean
     EventService eventService() {
-        return new EventService();
+        return new EventService()
     }
 
     @Bean
     CausalUnitOfWorkService unitOfWorkService() {
-        return new CausalUnitOfWorkService();
+        return new CausalUnitOfWorkService()
     }
 
     @Bean
@@ -119,7 +120,7 @@ class BeanConfigurationCausal {
 
     @Bean
     QuestionEventProcessing questionEventProcessing() {
-        return new QuestionEventProcessing();
+        return new QuestionEventProcessing()
     }
 
     @Bean
@@ -129,7 +130,7 @@ class BeanConfigurationCausal {
 
     @Bean
     QuizEventProcessing quizEventProcessing() {
-        return new QuizEventProcessing();
+        return new QuizEventProcessing()
     }
 
     @Bean
@@ -279,7 +280,7 @@ class BeanConfigurationCausal {
 
     @Bean
     BehaviourService BehaviourService() {
-        return new BehaviourService();
+        return new BehaviourService()
     }
 
     @Bean
@@ -294,42 +295,47 @@ class BeanConfigurationCausal {
 
     // Command Handlers
     @Bean
+    CausalCommandHandler causalCommandHandler() {
+        return new CausalCommandHandler()
+    }
+
+    @Bean
     UserCommandHandler userCommandHandler() {
-        return new UserCommandHandler();
+        return new UserCommandHandler()
     }
 
     @Bean
     TournamentCommandHandler tournamentCommandHandler() {
-        return new TournamentCommandHandler();
+        return new TournamentCommandHandler()
     }
 
     @Bean
     QuestionCommandHandler questionCommandHandler() {
-        return new QuestionCommandHandler();
+        return new QuestionCommandHandler()
     }
 
     @Bean
     TopicCommandHandler topicCommandHandler() {
-        return new TopicCommandHandler();
+        return new TopicCommandHandler()
     }
 
     @Bean
     ExecutionCommandHandler executionCommandHandler() {
-        return new ExecutionCommandHandler();
+        return new ExecutionCommandHandler()
     }
 
     @Bean
     CourseCommandHandler courseCommandHandler() {
-        return new CourseCommandHandler();
+        return new CourseCommandHandler()
     }
 
     @Bean
     AnswerCommandHandler answerCommandHandler() {
-        return new AnswerCommandHandler();
+        return new AnswerCommandHandler()
     }
 
     @Bean
     QuizCommandHandler quizCommandHandler() {
-        return new QuizCommandHandler();
+        return new QuizCommandHandler()
     }
 }

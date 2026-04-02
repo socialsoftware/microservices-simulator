@@ -41,8 +41,10 @@ spec:
               memory: "1Gi"
               cpu: "1000m"
           env:
+            - name: START_CLASS
+              value: "pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication"
             - name: SPRING_PROFILES_ACTIVE
-              value: "kubernetes"
+              value: "gateway,kubernetes"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: "http://jaeger:4317"
           readinessProbe:

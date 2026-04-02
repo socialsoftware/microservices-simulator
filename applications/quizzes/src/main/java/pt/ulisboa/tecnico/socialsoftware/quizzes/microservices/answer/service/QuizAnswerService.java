@@ -65,7 +65,6 @@ public class QuizAnswerService {
     public QuizAnswerDto startQuiz(Integer quizAggregateId, Integer courseExecutionAggregateId, QuizDto quizDto,
             UserDto userDto, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        // QuizDto quizDto = quizService.getQuizById(quizAggregateId, unitOfWork);
 
         // COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION
         if (!courseExecutionAggregateId.equals(quizDto.getCourseExecutionAggregateId())) {
@@ -73,14 +72,12 @@ public class QuizAnswerService {
                     courseExecutionAggregateId);
         }
 
-        // QUIZ_COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
-        // COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
-        // UserDto userDto =
-        // courseExecutionService.getStudentByExecutionIdAndUserId(quizDto.getCourseExecutionAggregateId(),
-        // userAggregateId, unitOfWork);
+        // UNIQUE_QUIZ_ANSWER_PER_STUDENT (Layer 3 guard)
+        if (quizAnswerRepository.existsByQuizIdAndStudentId(quizAggregateId, userDto.getAggregateId())) {
+            throw new QuizzesException(QuizzesErrorMessage.QUIZ_ALREADY_STARTED_BY_STUDENT, userDto.getAggregateId(), quizAggregateId);
+        }
 
-        // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the
-        // quiz
+        // QUESTIONS_ANSWER_QUESTIONS_BELONG_TO_QUIZ because questions come from the quiz
         QuizAnswer quizAnswer = quizAnswerFactory.createQuizAnswer(aggregateId,
                 new AnswerCourseExecution(quizDto.getCourseExecutionAggregateId(), quizDto.getCourseExecutionVersion()),
                 new AnswerStudent(userDto), new AnsweredQuiz(quizDto));

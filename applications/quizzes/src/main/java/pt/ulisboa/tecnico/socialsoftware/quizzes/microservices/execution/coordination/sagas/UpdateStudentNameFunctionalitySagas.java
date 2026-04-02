@@ -8,10 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.UpdateExecutionStudentNameCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
-
-import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.USER_MISSING_NAME;
 
 public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
 
@@ -29,10 +26,6 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
     public void buildWorkflow(Integer executionAggregateId, Integer userAggregateId, UserDto userDto,
             SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
-
-        if (userDto.getName() == null) {
-            throw new QuizzesException(USER_MISSING_NAME);
-        }
 
         SagaStep updateStudentNameStep = new SagaStep("updateStudentNameStep", () -> {
             UpdateExecutionStudentNameCommand updateExecutionStudentNameCommand = new UpdateExecutionStudentNameCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId, userAggregateId, userDto.getName());

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.subscribe.QuestionSubscribesDeleteTopic;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.subscribe.QuestionSubscribesUpdateTopic;
 
@@ -18,11 +20,10 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 
 /*
     INTRA-INVARIANTS:
-
+        TOPIC_BELONGS_TO_QUESTION_COURSE
     INTER-INVARIANTS:
         TOPICS_EXIST
         COURSE_EXISTS (course does not send events)
-        COURSE_SAME_TOPIC_COURSE ()
  */
 @Entity
 public abstract class Question extends Aggregate {
@@ -69,11 +70,16 @@ public abstract class Question extends Aggregate {
 
     @Override
     public void verifyInvariants() {
+        for (QuestionTopic qt : questionTopics) {
+            if (!qt.getCourseAggregateId().equals(questionCourse.getCourseAggregateId())) {
+                throw new QuizzesException(QuizzesErrorMessage.QUESTION_TOPIC_INVALID_COURSE,
+                        qt.getTopicAggregateId(), questionCourse.getCourseAggregateId());
+            }
+        }
     }
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        //return Set.of(UPDATE_TOPIC, DELETE_TOPIC);
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (getState() == ACTIVE) {
             interInvariantTopicsExist(eventSubscriptions);

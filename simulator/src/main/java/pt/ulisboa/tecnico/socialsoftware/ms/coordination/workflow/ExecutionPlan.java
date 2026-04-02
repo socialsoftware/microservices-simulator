@@ -3,11 +3,11 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 import io.opentelemetry.api.trace.Span;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.behaviour.BehaviourHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.behaviour.CapacityManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.BehaviourHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.CapacityManager;
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.TraceManager;
+import pt.ulisboa.tecnico.socialsoftware.ms.tracing.TraceManager;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;

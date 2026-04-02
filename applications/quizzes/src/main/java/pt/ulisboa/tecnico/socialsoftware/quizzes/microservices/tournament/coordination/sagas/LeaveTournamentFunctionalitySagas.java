@@ -1,8 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -35,15 +36,17 @@ public class LeaveTournamentFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getOldTournamentStep = new SagaStep("getOldTournamentStep", () -> {
             GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
-            getTournamentByIdCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
-            TournamentDto oldTournament = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getTournamentByIdCommand);
+            sagaCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
+            TournamentDto oldTournament = (TournamentDto) commandGateway.send(sagaCommand);
             this.setOldTournament(oldTournament);
         });
 
         getOldTournamentStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
         }, unitOfWork);
 
         SagaStep leaveTournamentStep = new SagaStep("leaveTournamentStep", () -> {

@@ -1,7 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
@@ -51,8 +52,9 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         SagaStep getCourseExecutionStep = new SagaStep("getCourseExecutionStep", () -> {
             // by making this call locks regarding the course execution are guaranteed
             GetCourseExecutionByIdCommand getCourseExecutionByIdCommand = new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionId);
-            getCourseExecutionByIdCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
-            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway.send(getCourseExecutionByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getCourseExecutionByIdCommand);
+            sagaCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
+            CourseExecutionDto courseExecutionDto = (CourseExecutionDto) commandGateway.send(sagaCommand);
             this.setCourseExecutionDto(courseExecutionDto);
         });
 
@@ -68,8 +70,9 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         SagaStep getTopicsStep = new SagaStep("getTopicsStep", () -> { // TODO EACH TOPIC IN A SEPARATE STEP??
             topicsId.forEach(topicId -> {
                 GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicId);
-                getTopicByIdCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
-                TopicDto topic = (TopicDto) commandGateway.send(getTopicByIdCommand);
+                SagaCommand sagaCommand = new SagaCommand(getTopicByIdCommand);
+                sagaCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
+                TopicDto topic = (TopicDto) commandGateway.send(sagaCommand);
                 this.addTopicDto(topic);
             });
         });

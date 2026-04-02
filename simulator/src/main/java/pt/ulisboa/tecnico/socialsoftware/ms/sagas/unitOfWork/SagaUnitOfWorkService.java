@@ -50,10 +50,9 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
-        Long lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
+        versionService.getVersionNumber();
 
-        SagaUnitOfWork unitOfWork = new SagaUnitOfWork(lastCommittedAggregateVersionNumber + 1, functionalityName);
-        return unitOfWork;
+        return new SagaUnitOfWork(versionService.incrementAndGetVersionNumber(), functionalityName);
     }
 
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) {
@@ -77,10 +76,8 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     // used for testing with spock
     public Aggregate aggregateDeletedLoad(Integer aggregateId) {
-        Aggregate aggregate = sagaAggregateRepository.findDeletedSagaAggregate(aggregateId)
+        return sagaAggregateRepository.findDeletedSagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
-
-        return aggregate;
     }
 
     public Aggregate registerRead(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
@@ -187,6 +184,15 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             event.setPublished(true);
         }
         eventRepository.save(event);
-        unitOfWork.setVersion(unitOfWork.getVersion() + 1);
+    }
+
+    @Override
+    protected String resolveServiceName(String aggregateType) {
+        String stripped = aggregateType.replace("Saga", "");
+        String result = Character.toLowerCase(stripped.charAt(0)) + stripped.substring(1);
+        if (result.chars().anyMatch(Character::isUpperCase)) {
+            logger.warn("Potential bad service name resolution for aggregate type {}: {}", aggregateType, result);
+        }
+        return result;
     }
 }

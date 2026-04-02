@@ -1,0 +1,87 @@
+spring:
+  application:
+    name: __app_name__ # Make sure the app name is only one word, with no hyphens or underscores.
+  profiles:
+    active: "@activatedProperties@"
+    group:
+      stream: remote
+      grpc: remote
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/msdb
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+
+  jpa:
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    show-sql: false
+    open-in-view: false
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        ignore-exceptions:
+          - __your_app_exception_class__
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,beans"
+
+# Tech-agnostic remote configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: remote
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+
+  cloud:
+    stream:
+      default:
+        contentType: application/json
+      bindings:
+        # --- Single Event channel (all events go through here) ---
+        event-channel:
+          destination: event-channel
+        # --- Add event subscribers per service ---
+        # __serviceName__EventSubscriber-in-0:
+        #   destination: event-channel
+        #   group: __service_name__-service-group
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port:9090}
+
+# Add profile-specific sections (stream/grpc) and service imports as needed for your app.
+
+# Kubernetes specific
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+    import:
+      - "classpath:application-kubernetes.yaml"

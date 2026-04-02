@@ -40,6 +40,8 @@ spec:
               memory: "1Gi"
               cpu: "1000m"
           env:
+            - name: START_CLASS
+              value: "pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionServiceApplication"
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes,version-service,stream"
             - name: SPRING_DATASOURCE_URL

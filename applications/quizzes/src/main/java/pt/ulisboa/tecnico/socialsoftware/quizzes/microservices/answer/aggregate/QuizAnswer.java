@@ -3,7 +3,11 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.*;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesAnonymizeStudent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesInvalidateQuiz;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesRemoveCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUnerollStudentFromCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesUpdateStudentName;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 
 import java.time.LocalDateTime;
@@ -28,9 +32,6 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
         QUIZ_EXISTS
         QUESTION_EXISTS
         COURSE_EXECUTION_EXISTS
-        QUESTION_ANSWERS_QUESTION_BELONGS_TO_QUIZ
-        QUIZ_COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
-        COURSE_EXECUTION_SAME_AS_USER_COURSE_EXECUTION
         COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION (verified at the service and the quiz doesnt change execution)
 
  */
@@ -55,7 +56,8 @@ public abstract class QuizAnswer extends Aggregate {
         setQuiz(new AnsweredQuiz());
     }
 
-    public QuizAnswer(Integer aggregateId, AnswerCourseExecution answerCourseExecution, AnswerStudent answerStudent, AnsweredQuiz answeredQuiz) {
+    public QuizAnswer(Integer aggregateId, AnswerCourseExecution answerCourseExecution, AnswerStudent answerStudent,
+            AnsweredQuiz answeredQuiz) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setAnswerCourseExecution(answerCourseExecution);
@@ -85,7 +87,6 @@ public abstract class QuizAnswer extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        //return Set.of(REMOVE_USER, UNENROLL_STUDENT, INVALIDATE_QUIZ/*, REMOVE_QUIZ*/);
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (getState() == ACTIVE) {
             interInvariantCourseExecutionExists(eventSubscriptions);
@@ -96,23 +97,19 @@ public abstract class QuizAnswer extends Aggregate {
     }
 
     private void interInvariantCourseExecutionExists(Set<EventSubscription> eventSubscriptions) {
-        // TODO: this event is not handled
         eventSubscriptions.add(new QuizAnswerSubscribesRemoveCourseExecution(this.getAnswerCourseExecution()));
     }
 
     private void interInvariantQuizExists(Set<EventSubscription> eventSubscriptions) {
         // also verifies QUESTION_EXISTS because if the question is DELETED the quiz sends this event
-        // TODO: this event is not handled
         eventSubscriptions.add(new QuizAnswerSubscribesInvalidateQuiz(this));
     }
 
     private void interInvariantStudentExists(Set<EventSubscription> eventSubscriptions) {
         eventSubscriptions.add(new QuizAnswerSubscribesUnerollStudentFromCourseExecution(this));
-        // TODO: this event is not handled
         eventSubscriptions.add(new QuizAnswerSubscribesAnonymizeStudent(this));
         eventSubscriptions.add(new QuizAnswerSubscribesUpdateStudentName(this));
     }
-
 
     public LocalDateTime getCreationDate() {
         return creationDate;
@@ -180,7 +177,8 @@ public abstract class QuizAnswer extends Aggregate {
                 .map(QuestionAnswer::getQuestionAggregateId)
                 .collect(Collectors.toList());
         if (answeredQuestionIds.contains(questionAnswer.getQuestionAggregateId())) {
-            throw new QuizzesException(QUESTION_ALREADY_ANSWERED, questionAnswer.getQuestionAggregateId(), this.getQuiz().getQuizAggregateId());
+            throw new QuizzesException(QUESTION_ALREADY_ANSWERED, questionAnswer.getQuestionAggregateId(),
+                    this.getQuiz().getQuizAggregateId());
         }
         this.questionAnswers.add(questionAnswer);
         questionAnswer.setQuizAnswer(this);

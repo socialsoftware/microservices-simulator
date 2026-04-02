@@ -17,5 +17,4 @@ public class ExecutionEventProcessing {
         logger.info("Processing DeleteUserEvent: aggregateId={}, event={}", aggregateId, deleteUserEvent);
         executionFunctionalities.removeUserFromCourseExecution(aggregateId, deleteUserEvent.getPublisherAggregateId());
     }
-
 }

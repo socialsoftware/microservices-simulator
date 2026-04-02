@@ -52,11 +52,11 @@ public class ExecutionFunctionalities {
 
     public CourseExecutionDto createCourseExecution(CourseExecutionDto courseExecutionDto) throws QuizzesException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        checkInput(courseExecutionDto);
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(courseExecutionDto);
                 CreateCourseExecutionFunctionalitySagas createCourseExecutionFunctionalitySagas = new CreateCourseExecutionFunctionalitySagas(
                         sagaUnitOfWorkService, courseExecutionDto, sagaUnitOfWork,
                         commandGateway);
@@ -65,7 +65,6 @@ public class ExecutionFunctionalities {
                 return createCourseExecutionFunctionalitySagas.getCreatedCourseExecution();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(courseExecutionDto);
                 CreateCourseExecutionFunctionalityTCC createCourseExecutionFunctionalityTCC = new CreateCourseExecutionFunctionalityTCC(
                         causalUnitOfWorkService, courseExecutionDto, causalUnitOfWork,
                         commandGateway);
@@ -236,6 +235,10 @@ public class ExecutionFunctionalities {
     }
 
     public void updateStudentName(Integer executionAggregateId, Integer userAggregateId, UserDto userDto) {
+        if (userDto.getName() == null) {
+            throw new QuizzesException(USER_MISSING_NAME);
+        }
+
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
         switch (workflowType) {

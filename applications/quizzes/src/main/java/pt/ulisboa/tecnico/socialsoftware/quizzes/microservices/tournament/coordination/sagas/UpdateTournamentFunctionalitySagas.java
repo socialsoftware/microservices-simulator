@@ -1,7 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -49,9 +50,10 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
             states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
             states.add(TournamentSagaState.IN_DELETE_TOURNAMENT);
             GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto.getAggregateId());
-            getTournamentByIdCommand.setSemanticLock(TournamentSagaState.IN_UPDATE_TOURNAMENT);
-            getTournamentByIdCommand.setForbiddenStates(states);
-            TournamentDto originalTournamentDto = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getTournamentByIdCommand);
+            sagaCommand.setSemanticLock(TournamentSagaState.IN_UPDATE_TOURNAMENT);
+            sagaCommand.setForbiddenStates(states);
+            TournamentDto originalTournamentDto = (TournamentDto) commandGateway.send(sagaCommand);
             setOriginalTournamentDto(originalTournamentDto);
         });
 

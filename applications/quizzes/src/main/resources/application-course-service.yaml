@@ -2,7 +2,7 @@ spring:
   application:
     name: course
   datasource:
-    url: jdbc:postgresql://localhost:5432/coursedb
+    url: jdbc:postgresql://localhost:5432/${spring.application.name}db
 
   cloud:
     function:
@@ -10,42 +10,19 @@ spring:
     stream:
       bindings:
         course-command-channel:
-          destination: course-command-channel
+          destination: ${spring.application.name}-command-channel
         courseServiceCommandChannel-in-0:
-          destination: course-command-channel
-          group: course-service-group
+          destination: ${spring.application.name}-command-channel
+          group: ${spring.application.name}-service-group
         commandResponseChannel-in-0:
-          destination: course-command-responses
-          group: course-response-group
+          destination: ${spring.application.name}-command-responses
+          group: ${spring.application.name}-response-group
         courseEventSubscriber-in-0:
           destination: event-channel
-          group: course-service-group
+          group: ${spring.application.name}-service-group
 
 server:
   port: 8089
 grpc:
   server:
     port: 9099
-
----
-spring:
-  config:
-    activate:
-      on-profile: "!kubernetes"
-  cloud:
-    discovery:
-      enabled: true
-
-eureka:
-  client:
-    enabled: true
-    service-url:
-      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-    registry-fetch-interval-seconds: 5
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.uuid}
-    metadata-map:
-      grpcPort: ${grpc.server.port}

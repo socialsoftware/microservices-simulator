@@ -18,9 +18,8 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Ag
 /*
     INTRA-INVARIANTS
         REMOVE_NO_STUDENTS
-        REMOVE_COURSE_IS_VALID
-        ALL_STUDENTS_ARE_ACTIVE
-        CANNOT_REMOVE_IF_STUDENTS
+    SERVICE-LAYER GUARDS (Layer 3)
+        NO_DUPLICATE_COURSE_EXECUTION (enforced in ExecutionService.createCourseExecution)
     INTER-INVARIANTS
         USER_EXISTS
         COURSE_EXISTS (does it count? course doesn't send events)
@@ -39,7 +38,8 @@ public abstract class Execution extends Aggregate {
     public Execution() {
     }
 
-    public Execution(Integer aggregateId, CourseExecutionDto courseExecutionDto, CourseExecutionCourse courseExecutionCourse) {
+    public Execution(Integer aggregateId, CourseExecutionDto courseExecutionDto,
+            CourseExecutionCourse courseExecutionCourse) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
         setAcronym(courseExecutionDto.getAcronym());
@@ -120,7 +120,7 @@ public abstract class Execution extends Aggregate {
     }
 
     /*
-        REMOVE_NO_STUDENTS
+     * REMOVE_NO_STUDENTS
      */
     public boolean removedNoStudents() {
         if (getState() == AggregateState.DELETED) {
@@ -129,34 +129,17 @@ public abstract class Execution extends Aggregate {
         return true;
     }
 
-    public boolean allStudentsAreActive() {
-        for (CourseExecutionStudent student : getStudents()) {
-            if (!student.isActive()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     @Override
     public void verifyInvariants() {
-        if (!(removedNoStudents() /*&& allStudentsAreActive()*/)) {
+        if (!(removedNoStudents())) {
             throw new QuizzesException(QuizzesErrorMessage.INVARIANT_BREAK, getAggregateId());
         }
     }
 
     @Override
     public void remove() {
-        /*
-            CANNOT_REMOVE_IF_STUDENTS
-         */
-        if (getStudents().size() > 0) {
-            super.remove();
-        } else {
-            throw new QuizzesException(QuizzesErrorMessage.CANNOT_DELETE_COURSE_EXECUTION, getAggregateId());
-        }
+        super.remove();
     }
-
 
     @Override
     public void setVersion(Long version) {
@@ -188,7 +171,8 @@ public abstract class Execution extends Aggregate {
     public void removeStudent(Integer userAggregateId) {
         CourseExecutionStudent studentToRemove = null;
         if (!hasStudent(userAggregateId)) {
-            throw new QuizzesException(QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId, getAggregateId());
+            throw new QuizzesException(QuizzesErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND, userAggregateId,
+                    getAggregateId());
         }
         for (CourseExecutionStudent student : this.students) {
             if (student.getUserAggregateId().equals(userAggregateId)) {

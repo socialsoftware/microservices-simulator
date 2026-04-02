@@ -1,8 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -35,15 +36,17 @@ public class DeleteUserFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getUserStep = new SagaStep("getUserStep", () -> {
             GetUserByIdCommand getUserByIdCommand = new GetUserByIdCommand(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
-            getUserByIdCommand.setSemanticLock(UserSagaState.READ_USER);
-            UserDto user = (UserDto) commandGateway.send(getUserByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getUserByIdCommand);
+            sagaCommand.setSemanticLock(UserSagaState.READ_USER);
+            UserDto user = (UserDto) commandGateway.send(sagaCommand);
             this.setUser(user);
         });
 
         getUserStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
         }, unitOfWork);
 
         SagaStep deleteUserStep = new SagaStep("deleteUserStep", () -> {

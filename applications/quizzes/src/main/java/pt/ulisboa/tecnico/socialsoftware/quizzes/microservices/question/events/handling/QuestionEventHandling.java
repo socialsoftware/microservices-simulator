@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandling;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteTopicEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateTopicEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionRepository;
@@ -12,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.h
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.handling.handlers.UpdateTopicEventHandler;
 
 @Component
-public class QuestionEventHandling {
+public class QuestionEventHandling implements EventHandling {
     @Autowired
     private EventApplicationService eventApplicationService;
     @Autowired

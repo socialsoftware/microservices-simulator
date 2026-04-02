@@ -93,11 +93,11 @@ public class TopicFunctionalities {
 
     public TopicDto createTopic(Integer courseAggregateId, TopicDto topicDto) throws QuizzesException {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        checkInput(topicDto);
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(topicDto);
                 CreateTopicFunctionalitySagas createTopicFunctionalitySagas = new CreateTopicFunctionalitySagas(
                         sagaUnitOfWorkService, courseAggregateId, topicDto, sagaUnitOfWork,
                         commandGateway);
@@ -105,7 +105,6 @@ public class TopicFunctionalities {
                 return createTopicFunctionalitySagas.getCreatedTopicDto();
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(topicDto);
                 CreateTopicFunctionalityTCC createTopicFunctionalityTCC = new CreateTopicFunctionalityTCC(
                         causalUnitOfWorkService, courseAggregateId, topicDto,
                         causalUnitOfWork, commandGateway);
@@ -118,18 +117,17 @@ public class TopicFunctionalities {
 
     public void updateTopic(TopicDto topicDto) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        checkInput(topicDto);
 
         switch (workflowType) {
             case SAGAS:
                 SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(topicDto);
                 UpdateTopicFunctionalitySagas updateTopicFunctionalitySagas = new UpdateTopicFunctionalitySagas(
                         sagaUnitOfWorkService, topicDto, sagaUnitOfWork, commandGateway);
                 updateTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
                 break;
             case TCC:
                 CausalUnitOfWork causalUnitOfWork = causalUnitOfWorkService.createUnitOfWork(functionalityName);
-                checkInput(topicDto);
                 UpdateTopicFunctionalityTCC updateTopicFunctionalityTCC = new UpdateTopicFunctionalityTCC(
                         causalUnitOfWorkService, topicDto, causalUnitOfWork,
                         commandGateway);

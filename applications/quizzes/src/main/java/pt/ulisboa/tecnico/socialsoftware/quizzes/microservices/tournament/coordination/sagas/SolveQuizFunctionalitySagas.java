@@ -1,7 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
@@ -51,15 +52,17 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getTournamentStep = new SagaStep("getTournamentStep", () -> {
             GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
-            getTournamentByIdCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
-            TournamentDto tournament = (TournamentDto) commandGateway.send(getTournamentByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getTournamentByIdCommand);
+            sagaCommand.setSemanticLock(TournamentSagaState.READ_TOURNAMENT);
+            TournamentDto tournament = (TournamentDto) commandGateway.send(sagaCommand);
             this.setTournament(tournament);
         });
 
         SagaStep startQuizStep = new SagaStep("startQuizStep", () -> {
             StartTournamentQuizCommand startTournamentQuizCommand = new StartTournamentQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), userAggregateId, this.getTournamentDto().getQuiz().getAggregateId());
-            startTournamentQuizCommand.setSemanticLock(QuizSagaState.STARTED_TOURNAMENT_QUIZ);
-            QuizDto quiz = (QuizDto) commandGateway.send(startTournamentQuizCommand);
+            SagaCommand sagaCommand = new SagaCommand(startTournamentQuizCommand);
+            sagaCommand.setSemanticLock(QuizSagaState.STARTED_TOURNAMENT_QUIZ);
+            QuizDto quiz = (QuizDto) commandGateway.send(sagaCommand);
             this.setQuizDto(quiz);
         }, new ArrayList<>(Arrays.asList(getTournamentStep)));
 
@@ -88,8 +91,9 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep startQuizAnswerStep = new SagaStep("startQuizAnswerStep", () -> {
             StartQuizCommand startTournamentQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), this.quizDto, this.userDto);
-            startTournamentQuizCommand.setSemanticLock(QuizAnswerSagaState.STARTED_QUIZ);
-            QuizAnswerDto quizAnswerDto = (QuizAnswerDto) commandGateway.send(startTournamentQuizCommand);
+            SagaCommand sagaCommand = new SagaCommand(startTournamentQuizCommand);
+            sagaCommand.setSemanticLock(QuizAnswerSagaState.STARTED_QUIZ);
+            QuizAnswerDto quizAnswerDto = (QuizAnswerDto) commandGateway.send(sagaCommand);
             this.setQuizAnswerDto(quizAnswerDto);
         }, new ArrayList<>(Arrays.asList(getQuestionById, getStudentByExecutionIdAndUserId)));
 

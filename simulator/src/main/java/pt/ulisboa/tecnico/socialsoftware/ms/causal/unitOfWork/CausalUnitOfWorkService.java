@@ -51,9 +51,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CausalUnitOfWork createUnitOfWork(String functionalityName) {
-        Long lastCommittedAggregateVersionNumber = versionService.getVersionNumber();
-
-        CausalUnitOfWork unitOfWork = new CausalUnitOfWork(lastCommittedAggregateVersionNumber + 1, functionalityName);
+        CausalUnitOfWork unitOfWork = new CausalUnitOfWork(versionService.getNextVersionNumber(), functionalityName);
 
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", functionalityName, unitOfWork.getVersion());
 
@@ -271,6 +269,16 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
         }
 
         return concurrentAggregate;
+    }
+
+    @Override
+    protected String resolveServiceName(String aggregateType) {
+        String stripped = aggregateType.replace("Causal", "");
+        String result = Character.toLowerCase(stripped.charAt(0)) + stripped.substring(1);
+        if (result.chars().anyMatch(Character::isUpperCase)) {
+            logger.warn("Potential bad service name resolution for aggregate type {}: {}", aggregateType, result);
+        }
+        return result;
     }
 
 }

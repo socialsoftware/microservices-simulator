@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.DecrementVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.GetNextVersionCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.GetVersionCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.command.IncrementVersionCommand;
 
@@ -30,6 +31,7 @@ public class VersionCommandHandler extends CommandHandler {
         Object result;
         switch (command) {
             case GetVersionCommand ignored -> result = handleGetVersion();
+            case GetNextVersionCommand ignored -> result = handleGetNextVersion();
             case IncrementVersionCommand ignored -> result = handleIncrementVersion();
             case DecrementVersionCommand ignored -> result = handleDecrementVersion();
             default -> {
@@ -43,6 +45,11 @@ public class VersionCommandHandler extends CommandHandler {
     private Object handleGetVersion() {
         logger.info("Getting version number");
         return versionService.getVersionNumber();
+    }
+
+    private Object handleGetNextVersion() {
+        logger.info("Getting next version number");
+        return versionService.getNextVersionNumber();
     }
 
     private Object handleIncrementVersion() {

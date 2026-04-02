@@ -43,7 +43,7 @@ spec:
             - name: START_CLASS
               value: "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.CourseServiceApplication"
             - name: SPRING_PROFILES_ACTIVE
-              value: "kubernetes,course-service,sagas,stream"
+              value: "kubernetes,course-service,sagas,stream,distributed-version"
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:postgresql://postgres:5432/coursedb"
             - name: SPRING_RABBITMQ_HOST

@@ -1,0 +1,70 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: gateway
+  cloud:
+    discovery:
+      enabled: true
+    function:
+      definition: "" # Disable default function routing
+
+server:
+  port: 8080
+
+gateway:
+  service-suffix: ""
+  exclude-services: gateway,version
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: false
+    fetch-registry: true
+    registry-fetch-interval-seconds: 15
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:TRACE}
+    org.springframework.web.reactive: ${REACTIVE_LOG_LEVEL:DEBUG}
+    org.springframework.core.io.buffer: ${BUFFER_LOG_LEVEL:DEBUG}
+
+management:
+  health:
+    rabbit:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+  cloud:
+    kubernetes:
+      enabled: true
+      discovery:
+        enabled: true
+        all-namespaces: false
+      loadbalancer:
+        enabled: true
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+gateway:
+  service-suffix: -service

@@ -1,8 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -38,16 +39,18 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getCourseStep = new SagaStep("getCourseStep", () -> {
             GetCourseByIdCommand getCourseByIdCommand = new GetCourseByIdCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-            getCourseByIdCommand.setSemanticLock(CourseSagaState.READ_COURSE);
-            this.courseDto = (CourseDto) commandGateway.send(getCourseByIdCommand);
+            SagaCommand sagaCommand = new SagaCommand(getCourseByIdCommand);
+            sagaCommand.setSemanticLock(CourseSagaState.READ_COURSE);
+            this.courseDto = (CourseDto) commandGateway.send(sagaCommand);
             TopicCourse course = new TopicCourse(courseDto);
             this.setCourse(course);
         });
 
         getCourseStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseDto.getAggregateId());
-            command.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(command);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
         }, unitOfWork);
 
         SagaStep createTopicStep = new SagaStep("createTopicStep", () -> {

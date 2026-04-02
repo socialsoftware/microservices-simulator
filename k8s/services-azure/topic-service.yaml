@@ -43,7 +43,7 @@ spec:
             - name: START_CLASS
               value: "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.TopicServiceApplication"
             - name: SPRING_PROFILES_ACTIVE
-              value: "kubernetes,topic-service,sagas,stream"
+              value: "kubernetes,topic-service,sagas,stream,distributed-version"
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:postgresql://postgres:5432/topicdb"
             - name: SPRING_RABBITMQ_HOST

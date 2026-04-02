@@ -24,6 +24,7 @@ public final class QuizzesErrorMessage {
     public static final String TOURNAMENT_MISSING_START_TIME = "Tournament requires a start time.";
     public static final String TOURNAMENT_MISSING_END_TIME = "Tournament requires an end time.";
     public static final String TOURNAMENT_MISSING_NUMBER_OF_QUESTIONS = "Tournament requires a number of questions.";
+    public static final String TOURNAMENT_MAX_QUESTIONS = "Tournament cannot have more than 30 questions.";
     public static final String TOURNAMENT_DELETED = "Tournament with aggregate id %d already deleted.";
     public static final String TOURNAMENT_PARTICIPANT_NOT_FOUND = "User %d is not enrolled in tournament %d";
     public static final String TOURNAMENT_TOPIC_NOT_FOUND = "Topic %d is not part of tournament %d.";
@@ -55,15 +56,15 @@ public final class QuizzesErrorMessage {
     public static final String COURSE_EXECUTION_MISSING_END_DATE = "Course execution requires an end date.";
 
     public static final String COURSE_EXECUTION_INVALID = "Course execution aggregate id %d  and version %d breaks invariants.";
-    public static final String CANNOT_DELETE_COURSE_EXECUTION = "Cannot delete course execution with aggregate id %d.";
-    public static final String COURSE_EXECUTION_STUDENT_NOT_FOUND = "Student with aggregate id %d not found in course execution %d.";
+    public static final String CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT = "Cannot delete the last course execution %d of a course that still has questions.";
 
+    public static final String DUPLICATE_COURSE_EXECUTION = "Course execution with acronym %s and academic term %s already exists.";
+    public static final String COURSE_EXECUTION_STUDENT_NOT_FOUND = "Student with aggregate id %d not found in course execution %d.";
 
     public static final String TOPIC_MISSING_NAME = "Topic requires a name.";
     public static final String TOPIC_MISSING_COURSE = "Topic requires a course.";
     public static final String TOPIC_NOT_FOUND = "Topic with aggregate id %d not found.";
     public static final String TOPIC_DELETED = "Topic with aggregate id %d already deleted.";
-
 
     public static final String USER_MISSING_NAME = "User requires a name.";
     public static final String USER_MISSING_USERNAME = "User requires an username.";
@@ -89,6 +90,8 @@ public final class QuizzesErrorMessage {
     public static final String QUESTION_TOPIC_INVALID_COURSE = "Topic %d does not belong to course %d.";
 
     public static final String QUIZ_ANSWER_NOT_FOUND = "Answer with aggregate id %d not found.";
+
+    public static final String QUIZ_ALREADY_STARTED_BY_STUDENT = "Student %d already has an answer for quiz %d.";
 
     public static final String NO_USER_ANSWER_FOR_QUIZ = "Answer for user aggregate id %d and quiz aggregate id %d not found.";
 
