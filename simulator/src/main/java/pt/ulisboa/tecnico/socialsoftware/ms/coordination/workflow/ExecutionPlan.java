@@ -3,9 +3,9 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow;
 import io.opentelemetry.api.trace.Span;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.ulisboa.tecnico.socialsoftware.ms.behaviour.BehaviourHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.tracing.TraceManager;
 
 import java.util.*;
@@ -37,8 +37,8 @@ public class ExecutionPlan {
         this.functionality = functionality;
         this.functionalityName = functionality.getClass().getSimpleName();
 
-        behaviour = BehaviourHandler.getInstance().loadStepsFile(functionalityName);
-        BehaviourHandler.getInstance().appendToReport(reportSteps(behaviour));
+        behaviour = ImpairmentHandler.getInstance().loadStepsFile(functionalityName);
+        ImpairmentHandler.getInstance().appendToReport(reportSteps(behaviour));
         
         this.traceManager = TraceManager.getInstance();
     }

@@ -28,8 +28,8 @@ class CreateCourseExecutionCompensationTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanUpCounter()
-        behaviourService.cleanDirectory()
+        impairmentService.cleanUpCounter()
+        impairmentService.cleanDirectory()
     }
 
     def "saga compensation deletes newly created course when createCourseExecutionStep fails"() {

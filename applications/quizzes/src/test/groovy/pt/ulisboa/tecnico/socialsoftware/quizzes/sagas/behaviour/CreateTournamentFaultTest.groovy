@@ -105,12 +105,12 @@ class CreateTournamentFaultTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanUpCounter()
+        impairmentService.cleanUpCounter()
     }
 
     def 'Check Quiz existence'() {
         given: 'a clear report'
-        behaviourService.cleanReportFile()
+        impairmentService.cleanReportFile()
         
         and: 'create unit of works for the creation of a tournament'
         def functionalityName1 = CreateTournamentFunctionalitySagas.class.getSimpleName()
@@ -139,7 +139,7 @@ class CreateTournamentFaultTest extends QuizzesSpockTest {
 
         traceService.endRootSpan()
         traceService.spanFlush()
-        behaviourService.cleanDirectory()
+        impairmentService.cleanDirectory()
     }
 
     @TestConfiguration

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.behaviour;
+package pt.ulisboa.tecnico.socialsoftware.ms.impairment;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -8,17 +8,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class BehaviourHandler {
-    private static BehaviourHandler instance;
+public class ImpairmentHandler {
+    private static ImpairmentHandler instance;
     private static Map<String, Integer> funcCounter = new HashMap<>();
     private static String directory;
     private static Map<String, Integer> funcRetry = new HashMap<>();
     private static final String REPORT_FILE = "BehaviourReport.txt";
  
 
-    public static synchronized BehaviourHandler getInstance() {
+    public static synchronized ImpairmentHandler getInstance() {
         if (instance == null) {
-            instance = new BehaviourHandler();
+            instance = new ImpairmentHandler();
         }
         return instance;
     }

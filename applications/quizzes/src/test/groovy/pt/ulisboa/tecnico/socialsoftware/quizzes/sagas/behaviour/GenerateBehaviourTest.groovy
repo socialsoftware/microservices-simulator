@@ -95,13 +95,13 @@ class GenerateBehaviourTest extends QuizzesSpockTest {
 
     def 'add one participant with a delay to tournament'() {
         given: 'a clear report'
-        behaviourService.cleanReportFile()
+        impairmentService.cleanReportFile()
 
         when: 'generating a combination of behvaviours for AddParticipant and UpdateStudentName functionalities'
-        behaviourService.generateTestBehaviour("functionalities.txt")
+        impairmentService.generateTestBehaviour("functionalities.txt")
 
         then: 'the execution duration of AddParticipantFunctionality is bigger than the defined delay'
-        behaviourService.cleanReportFile()
+        impairmentService.cleanReportFile()
     }
 
     @TestConfiguration

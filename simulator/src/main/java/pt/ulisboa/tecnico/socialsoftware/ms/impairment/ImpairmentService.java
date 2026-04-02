@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.behaviour;
+package pt.ulisboa.tecnico.socialsoftware.ms.impairment;
 
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.tracing.TraceManager;
@@ -8,30 +8,30 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Service
-public class BehaviourService {
+public class ImpairmentService {
     private static String directory;
 
     public void LoadDir(String dir, String testNameFile) {
         directory = dir + "/src/test/resources/" + testNameFile + "/";
-        BehaviourHandler.getInstance();
-        BehaviourHandler.setDirectory(directory);
+        ImpairmentHandler.getInstance();
+        ImpairmentHandler.setDirectory(directory);
     }
 
     public void cleanUpCounter() {
-        BehaviourHandler.getInstance().cleanUpCounter();
+        ImpairmentHandler.getInstance().cleanUpCounter();
     }
 
     public void cleanReportFile() {
-        BehaviourHandler.getInstance().cleanReportFile();
+        ImpairmentHandler.getInstance().cleanReportFile();
         
     }
 
     public void cleanDirectory() {
-        BehaviourHandler.getInstance().setDirectory("");
+        ImpairmentHandler.getInstance().setDirectory("");
     }
 
     public int getRetryValue(String funcName) {
-        return BehaviourHandler.getInstance().getRetryValue(funcName);
+        return ImpairmentHandler.getInstance().getRetryValue(funcName);
     }
 
     public void generateTestBehaviour(String fileName) {
@@ -42,7 +42,7 @@ public class BehaviourService {
         if (!Files.exists(filePath)) {
             return;
         }
-        new BehaviourGenerator(directory, filePath);
+        new ImpairmentGenerator(directory, filePath);
     }
 
     public void flush() {

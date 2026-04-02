@@ -98,12 +98,12 @@ class HandleEventBehaviour extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanUpCounter()
+        impairmentService.cleanUpCounter()
     }
 
     def 'sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet' () {
         given: 'a clear report'
-        behaviourService.cleanReportFile()
+        impairmentService.cleanReportFile()
 
         and: 'creator name is updated'
         def updateNameDto = new UserDto()
@@ -130,7 +130,7 @@ class HandleEventBehaviour extends QuizzesSpockTest {
         cleanup: 'remove all generated artifacts after test execution'
         traceService.endRootSpan()
         traceService.spanFlush()
-        behaviourService.cleanDirectory()
+        impairmentService.cleanDirectory()
     }
 
     @TestConfiguration

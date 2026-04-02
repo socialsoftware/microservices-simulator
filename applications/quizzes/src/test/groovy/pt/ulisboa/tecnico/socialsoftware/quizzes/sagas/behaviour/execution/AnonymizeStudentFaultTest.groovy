@@ -26,7 +26,7 @@ class AnonymizeStudentFaultTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanDirectory()
+        impairmentService.cleanDirectory()
     }
 
     def "student is not anonymized when getCourseExecutionStep fails"() {

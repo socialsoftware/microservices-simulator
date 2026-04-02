@@ -101,12 +101,12 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanUpCounter()
+        impairmentService.cleanUpCounter()
     }
 
     def 'add one participant to tournament'() {
         given: 'a clear report'
-        behaviourService.cleanReportFile()
+        impairmentService.cleanReportFile()
         
         and: 'create unit of works for concurrent addition of participants'
         def functionalityName1 = AddParticipantFunctionalitySagas.class.getSimpleName()
@@ -188,7 +188,7 @@ class AddParticipantAndRecoverTest extends QuizzesSpockTest {
         }
         traceService.endRootSpan()
         // traceService.spanFlush()
-        behaviourService.cleanDirectory()
+        impairmentService.cleanDirectory()
     }
 
     @TestConfiguration

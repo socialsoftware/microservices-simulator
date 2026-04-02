@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.behaviour;
+package pt.ulisboa.tecnico.socialsoftware.ms.impairment;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
@@ -12,10 +12,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BehaviourGenerator {
+public class ImpairmentGenerator {
     private String directory;
 
-    public BehaviourGenerator(String dir, Path inputFile) {
+    public ImpairmentGenerator(String dir, Path inputFile) {
         this.directory = dir;
         generateBalancedBehaviours(inputFile);
     }

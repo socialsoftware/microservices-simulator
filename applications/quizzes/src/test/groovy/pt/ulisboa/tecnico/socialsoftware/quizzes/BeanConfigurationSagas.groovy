@@ -7,7 +7,6 @@ import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
-import pt.ulisboa.tecnico.socialsoftware.ms.behaviour.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.SagaCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.stream.CommandResponseAggregator
@@ -17,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.DistributedVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.IVersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.tracing.TraceService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.factories.SagasQuizAnswerFactory
@@ -159,62 +159,62 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    CourseCustomRepositorySagas courseCustomRepositorySagas(){
+    CourseCustomRepositorySagas courseCustomRepositorySagas() {
         return new CourseCustomRepositorySagas()
     }
 
     @Bean
-    CourseExecutionCustomRepositorySagas courseExecutionCustomRepositorySagas(){
+    CourseExecutionCustomRepositorySagas courseExecutionCustomRepositorySagas() {
         return new CourseExecutionCustomRepositorySagas()
     }
 
     @Bean
-    TournamentCustomRepositorySagas tournamentCustomRepositorySagas(){
+    TournamentCustomRepositorySagas tournamentCustomRepositorySagas() {
         return new TournamentCustomRepositorySagas()
     }
 
     @Bean
-    QuizAnswerCustomRepositorySagas quizAnswerCustomRepositorySagas(){
+    QuizAnswerCustomRepositorySagas quizAnswerCustomRepositorySagas() {
         return new QuizAnswerCustomRepositorySagas()
     }
 
     @Bean
-    SagasQuizAnswerFactory sagasQuizAnswerFactory(){
+    SagasQuizAnswerFactory sagasQuizAnswerFactory() {
         return new SagasQuizAnswerFactory()
     }
 
     @Bean
-    SagasCourseFactory sagasCourseFactory(){
+    SagasCourseFactory sagasCourseFactory() {
         return new SagasCourseFactory()
     }
 
     @Bean
-    SagasCourseExecutionFactory sagasCourseExecutionFactory(){
+    SagasCourseExecutionFactory sagasCourseExecutionFactory() {
         return new SagasCourseExecutionFactory()
     }
 
     @Bean
-    SagasQuestionFactory sagasQuestionFactory(){
+    SagasQuestionFactory sagasQuestionFactory() {
         return new SagasQuestionFactory()
     }
 
     @Bean
-    SagasQuizFactory sagasQuizFactory(){
+    SagasQuizFactory sagasQuizFactory() {
         return new SagasQuizFactory()
     }
 
     @Bean
-    SagasTopicFactory sagasTopicFactory(){
+    SagasTopicFactory sagasTopicFactory() {
         return new SagasTopicFactory()
     }
 
     @Bean
-    SagasTournamentFactory sagasTournamentFactory(){
+    SagasTournamentFactory sagasTournamentFactory() {
         return new SagasTournamentFactory()
     }
 
     @Bean
-    SagasUserFactory sagasUserFactory(){
+    SagasUserFactory sagasUserFactory() {
         return new SagasUserFactory()
     }
 
@@ -284,8 +284,8 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    BehaviourService BehaviourService() {
-        return new BehaviourService()
+    ImpairmentService ImpairmentService() {
+        return new ImpairmentService()
     }
 
     @Bean

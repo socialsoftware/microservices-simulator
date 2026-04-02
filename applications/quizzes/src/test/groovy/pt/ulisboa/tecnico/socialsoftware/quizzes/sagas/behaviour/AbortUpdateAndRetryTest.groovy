@@ -90,12 +90,12 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanUpCounter()
+        impairmentService.cleanUpCounter()
     }
 
     def 'update tournament fault compensate retry'() {
         given: 'a clear report'
-        behaviourService.cleanReportFile()
+        impairmentService.cleanReportFile()
         assert tournamentDto.numberOfQuestions == 2
 
         and: 
@@ -132,7 +132,7 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
         assert updatedTournamentDto1.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet()
 
         when: 'retry'
-        def retries = behaviourService.getRetryValue("UpdateTournamentFunctionalitySagas")
+        def retries = impairmentService.getRetryValue("UpdateTournamentFunctionalitySagas")
         println "\u001B[34mRetries: $retries\u001B[0m"
 
         boolean success = false
@@ -154,7 +154,7 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
         cleanup: 'remove all generated artifacts after test execution'
         traceService.endRootSpan()
         // traceService.spanFlush()
-        behaviourService.cleanDirectory()
+        impairmentService.cleanDirectory()
     }
 
     @TestConfiguration

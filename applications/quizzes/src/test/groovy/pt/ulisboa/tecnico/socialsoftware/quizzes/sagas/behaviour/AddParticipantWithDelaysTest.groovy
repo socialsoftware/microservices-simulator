@@ -96,12 +96,12 @@ class AddParticipantWithDelaysTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanUpCounter()
+        impairmentService.cleanUpCounter()
     }
 
     def 'add one participant with a delay to tournament'() {
         given: 'a clear report'
-        behaviourService.cleanReportFile()
+        impairmentService.cleanReportFile()
 
         and: 'one functionality to add a participant'
         def addParticipantFunctionality1 = new AddParticipantFunctionalitySagas(

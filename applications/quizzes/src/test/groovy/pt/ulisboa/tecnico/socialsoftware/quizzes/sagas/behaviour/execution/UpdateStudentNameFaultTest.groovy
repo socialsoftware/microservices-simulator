@@ -28,7 +28,7 @@ class UpdateStudentNameFaultTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanDirectory()
+        impairmentService.cleanDirectory()
     }
 
     def "student name is not updated when updateStudentNameStep fails"() {

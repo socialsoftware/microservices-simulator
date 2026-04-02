@@ -5,7 +5,6 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
-import pt.ulisboa.tecnico.socialsoftware.ms.behaviour.BehaviourService
 import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CausalCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
@@ -14,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.factories.CausalQuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.repositories.QuizAnswerCustomRepositoryTCC
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.commandHandler.AnswerCommandHandler
@@ -154,62 +154,62 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    CourseCustomRepositoryTCC courseCustomRepositoryTCC(){
+    CourseCustomRepositoryTCC courseCustomRepositoryTCC() {
         return new CourseCustomRepositoryTCC()
     }
 
     @Bean
-    CourseExecutionCustomRepositoryTCC courseExecutionCustomRepositoryTCC(){
+    CourseExecutionCustomRepositoryTCC courseExecutionCustomRepositoryTCC() {
         return new CourseExecutionCustomRepositoryTCC()
     }
 
     @Bean
-    TournamentCustomRepositoryTCC tournamentCustomRepositoryTCC(){
+    TournamentCustomRepositoryTCC tournamentCustomRepositoryTCC() {
         return new TournamentCustomRepositoryTCC()
     }
 
     @Bean
-    QuizAnswerCustomRepositoryTCC quizAnswerCustomRepositoryTCC(){
+    QuizAnswerCustomRepositoryTCC quizAnswerCustomRepositoryTCC() {
         return new QuizAnswerCustomRepositoryTCC()
     }
 
     @Bean
-    CausalQuizAnswerFactory causalQuizAnswerFactory(){
+    CausalQuizAnswerFactory causalQuizAnswerFactory() {
         return new CausalQuizAnswerFactory()
     }
 
     @Bean
-    CausalCourseFactory causalCourseFactory(){
+    CausalCourseFactory causalCourseFactory() {
         return new CausalCourseFactory()
     }
 
     @Bean
-    CausalCourseExecutionFactory causalCourseExecutionFactory(){
+    CausalCourseExecutionFactory causalCourseExecutionFactory() {
         return new CausalCourseExecutionFactory()
     }
 
     @Bean
-    CausalQuestionFactory causalQuestionFactory(){
+    CausalQuestionFactory causalQuestionFactory() {
         return new CausalQuestionFactory()
     }
 
     @Bean
-    CausalQuizFactory causalQuizFactory(){
+    CausalQuizFactory causalQuizFactory() {
         return new CausalQuizFactory()
     }
 
     @Bean
-    CausalTopicFactory causalTopicFactory(){
+    CausalTopicFactory causalTopicFactory() {
         return new CausalTopicFactory()
     }
 
     @Bean
-    CausalTournamentFactory causalTournamentFactory(){
+    CausalTournamentFactory causalTournamentFactory() {
         return new CausalTournamentFactory()
     }
 
     @Bean
-    CausalUserFactory causalUserFactory(){
+    CausalUserFactory causalUserFactory() {
         return new CausalUserFactory()
     }
 
@@ -279,8 +279,8 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    BehaviourService BehaviourService() {
-        return new BehaviourService()
+    ImpairmentService ImpairmentService() {
+        return new ImpairmentService()
     }
 
     @Bean

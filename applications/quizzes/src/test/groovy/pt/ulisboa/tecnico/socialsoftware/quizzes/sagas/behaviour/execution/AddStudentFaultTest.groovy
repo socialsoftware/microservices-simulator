@@ -25,7 +25,7 @@ class AddStudentFaultTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanDirectory()
+        impairmentService.cleanDirectory()
     }
 
     def "student is not enrolled when getUserStep fails"() {
