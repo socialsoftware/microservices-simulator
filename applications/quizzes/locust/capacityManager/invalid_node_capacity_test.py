@@ -24,12 +24,8 @@ class InvalidNodeCapacityUser(HttpUser):
             },
             "Capacities": {
                 "microservices": [
-                    {"name": "tournament", "capacity": 10, "endpoints": [
-                        {"name": "CreateTournamentFunctionalitySagas", "requirement": 1}
-                    ]},
-                    {"name": "execution", "capacity": 5, "endpoints": [
-                        {"name": "AddStudentFunctionalitySagas", "requirement": 1}
-                    ]}
+                    {"name": "tournament", "capacity": 10, "endpoints": []},
+                    {"name": "execution", "capacity": 5, "endpoints": []}
                 ]
             }
         }

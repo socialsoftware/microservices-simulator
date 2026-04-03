@@ -113,6 +113,9 @@ class QuizzesInteractionUtils:
         r.raise_for_status()
         topic_data = r.json()
 
+        # 3. Questions (Need at least 2 for the tournament)
+        QuizzesInteractionUtils.create_questions(exec_data["courseAggregateId"], topic_data)
+
         return {
             "execution_id": exec_data["aggregateId"],
             "course_id": exec_data["courseAggregateId"],

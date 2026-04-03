@@ -22,8 +22,8 @@ class CapacityValidatorUtils:
     @staticmethod
     def get_max_concurrent(report, ms_name):
         """Extracts the maximum number of active requests for a microservice from the report"""
-        # Format: [msName] ACTION: logId | Active: [id1, id2] | Waiting: [] | Available: X
-        pattern = rf"\[{ms_name.lower()}\] .* \| Active: \[(.*?)\]"
+        # Format: [msName][stepName] ACTION: requestId | Active: [id1, id2] | Waiting: [] | Available: X
+        pattern = rf"\[{ms_name.lower()}\]\[.*?\] .* \| Active: \[(.*?)\]"
         matches = re.findall(pattern, report)
         max_active = 0
         for m in matches:
@@ -86,32 +86,154 @@ class QuizzesInteractionUtils:
     """Auxiliar class: Interacts with quizzes tutor via flow and setup tasks"""
 
     @staticmethod
-    def create_base_data():
-        """
-        Creates an execution and topic.
-        Returns:
-            execution_id,
-            course_id,
-            topic_id,
-            topic_data,
-            suffix
-        """
+    def _perform_request(client, method, path, **kwargs):
+        """Helper to handle both requests module and Locust client"""
+        is_requests = (getattr(client, "__name__", "") == "requests")
+        url = f"{GATEWAY}{path}" if is_requests else path
+
+        res = getattr(client, method.lower())(url, **kwargs)
+
+        if is_requests:
+            res.raise_for_status()
+        return res
+
+    # *Isolated Functionality Methods*
+
+    @staticmethod
+    def create_execution(client, name, acronym, academic_term, end_date):
+        payload = {
+            "name": name, "type": "TECNICO", "acronym": acronym,
+            "academicTerm": academic_term, "endDate": end_date
+        }
+        return QuizzesInteractionUtils._perform_request(client, "POST", "/executions/create", json=payload)
+
+    @staticmethod
+    def create_topic(client, course_id, name):
+        return QuizzesInteractionUtils._perform_request(client, "POST", f"/courses/{course_id}/create", json={"name": name})
+
+    @staticmethod
+    def create_question(client, course_id, title, content, options, topics):
+        payload = {
+            "title": title, "content": "Content",
+            "optionDtos": options,
+            "topicDto": topics
+        }
+        return QuizzesInteractionUtils._perform_request(client, "POST", f"/courses/{course_id}/questions/create", json=payload)
+
+    @staticmethod
+    def create_user(client, name, username, role="STUDENT"):
+        payload = {"name": name, "username": username, "role": role}
+        return QuizzesInteractionUtils._perform_request(client, "POST", "/users/create", json=payload)
+
+    @staticmethod
+    def activate_user(client, user_id):
+        return QuizzesInteractionUtils._perform_request(client, "POST", f"/users/{user_id}/activate")
+
+    @staticmethod
+    def enroll_student(client, execution_id, user_id):
+        path = f"/executions/{execution_id}/students/add?userAggregateId={user_id}"
+        return QuizzesInteractionUtils._perform_request(client, "POST", path)
+
+    @staticmethod
+    def join_tournament(client, tournament_id, execution_id, user_id):
+        path = f"/tournaments/{tournament_id}/join"
+        params = {
+            "executionAggregateId": execution_id,
+            "userAggregateId": user_id
+        }
+        return QuizzesInteractionUtils._perform_request(client, "POST", path, params=params)
+
+    @staticmethod
+    def create_tournament(client, execution_id, user_id, topic_ids, num_questions=2):
+        now = datetime.datetime.now(datetime.timezone.utc)
+        start_time = (now + datetime.timedelta(hours=1)
+                      ).isoformat(timespec='milliseconds').replace("+00:00", "Z")
+        end_time = (now + datetime.timedelta(hours=2)
+                    ).isoformat(timespec='milliseconds').replace("+00:00", "Z")
+
+        payload = {
+            "startTime": start_time,
+            "endTime": end_time,
+            "numberOfQuestions": num_questions
+        }
+        params = {"userId": user_id, "topicsId": topic_ids}
+        return QuizzesInteractionUtils._perform_request(client, "POST", f"/executions/{execution_id}/tournaments/create", json=payload, params=params)
+
+    @staticmethod
+    def find_tournament(client, tournament_id):
+        path = f"/tournaments/{tournament_id}/"
+        return QuizzesInteractionUtils._perform_request(client, "GET", path)
+
+    @staticmethod
+    def get_execution(client, execution_id):
+        return QuizzesInteractionUtils._perform_request(client, "GET", f"/executions/{execution_id}")
+
+    @staticmethod
+    def update_tournament(client, tournament_id, topic_ids, num_questions=3):
+        """Updates an existing tournament using the correct PostMapping and body structure."""
+        now = datetime.datetime.now(datetime.timezone.utc)
+        payload = {
+            "aggregateId": tournament_id,
+            "startTime": (now + datetime.timedelta(hours=1)).isoformat(timespec='milliseconds').replace("+00:00", "Z"),
+            "endTime": (now + datetime.timedelta(hours=2)).isoformat(timespec='milliseconds').replace("+00:00", "Z"),
+            "numberOfQuestions": num_questions
+        }
+        return QuizzesInteractionUtils._perform_request(client, "POST", "/tournaments/update", json=payload, params={"topicsId": topic_ids})
+
+    @staticmethod
+    def solve_quiz(client, tournament_id, user_id):
+        return QuizzesInteractionUtils._perform_request(client, "POST", f"/tournaments/{tournament_id}/solveQuiz", params={"userAggregateId": user_id})
+
+    # *Complex Functionality Methods*
+
+    @staticmethod
+    def create_and_activate_user(client=requests):
+        """Creates a new user and sets its status to Active"""
+        u_suffix = uuid.uuid4().hex[:6]
+        res = QuizzesInteractionUtils.create_user(
+            client, f"U_{u_suffix}", f"u_{u_suffix}")
+        if res.status_code == 200:
+            user_id = res.json()["aggregateId"]
+            QuizzesInteractionUtils.activate_user(client, user_id)
+            return user_id
+        return None
+
+    @staticmethod
+    def create_questions(course_id, topic_data, count=3, client=requests):
+        """Helper to create multiple questions"""
+        for i in range(count):
+            options = [{"sequence": 1, "correct": True, "content": "C"}, {
+                "sequence": 2, "correct": False, "content": "W"}]
+            QuizzesInteractionUtils.create_question(
+                client, course_id, f"Q_{i}_{uuid.uuid4().hex[:4]}", "Content", options, [topic_data])
+
+    @staticmethod
+    def enroll_and_create_tournament(client, exec_id, user_id, topic_id):
+        """Enrolls a student and creates a tournament 1 hour in the future."""
+        QuizzesInteractionUtils.enroll_student(client, exec_id, user_id)
+        return QuizzesInteractionUtils.create_tournament(client, exec_id, user_id, [topic_id])
+
+    @staticmethod
+    def create_base_data(client=requests):
+        """Creates an execution, topic, and initial questions."""
         now = datetime.datetime.now(datetime.timezone.utc)
         suffix = int(now.timestamp())
+        end_date = (now + datetime.timedelta(days=365)
+                    ).isoformat().replace("+00:00", "Z")
 
         # 1. Execution
-        r = requests.post(f"{GATEWAY}/executions/create", json={
-            "name": f"Test_{suffix}", "type": "TECNICO", "acronym": f"T_{suffix}",
-            "academicTerm": "2023/2024", "endDate": (now + datetime.timedelta(days=365)).isoformat().replace("+00:00", "Z")
-        })
-        r.raise_for_status()
-        exec_data = r.json()
+        exec_res = QuizzesInteractionUtils.create_execution(
+            client, f"Test_{suffix}", f"T_{suffix}", "2023/2024", end_date)
+        exec_data = exec_res.json()
 
         # 2. Topic
-        r = requests.post(
-            f"{GATEWAY}/courses/{exec_data['courseAggregateId']}/create", json={"name": f"Topic_{suffix}"})
-        r.raise_for_status()
-        topic_data = r.json()
+        topic_res = QuizzesInteractionUtils.create_topic(
+            client, exec_data['courseAggregateId'], f"Topic_{suffix}")
+        topic_data = topic_res.json()
+
+        # 3. Questions (Need at least 2 for the tournament)
+        QuizzesInteractionUtils.create_questions(
+            exec_data['courseAggregateId'], topic_data, count=5, client=client)
 
         return {
             "execution_id": exec_data["aggregateId"],
@@ -120,57 +242,3 @@ class QuizzesInteractionUtils:
             "topic_data": topic_data,
             "suffix": suffix
         }
-
-    @staticmethod
-    def create_and_activate_user(client):
-        u_suffix = uuid.uuid4().hex[:6]
-        # Check if client is the requests module or a session/locust client
-        # Needed so the method works on both setup and tasks
-        is_requests = hasattr(client, 'post') and not hasattr(
-            client, 'base_url') and client.__name__ == 'requests'
-        url = f"{GATEWAY}/users/create" if is_requests else "/users/create"
-
-        res = client.post(url, json={
-            "name": f"U_{u_suffix}", "username": f"u_{u_suffix}", "role": "STUDENT"
-        })
-        if res.status_code == 200:
-            user_id = res.json()["aggregateId"]
-            act_url = f"{GATEWAY}/users/{user_id}/activate" if is_requests else f"/users/{user_id}/activate"
-            client.post(act_url)
-            return user_id
-        return None
-
-    @staticmethod
-    def create_questions(course_id, topic_data, count=3):
-        """Creates questions for the topic"""
-        for i in range(count):
-            requests.post(f"{GATEWAY}/courses/{course_id}/questions/create", json={
-                "title": f"Q_{i}_{uuid.uuid4().hex[:4]}", "content": "Content",
-                "optionDtos": [{"sequence": 1, "correct": True, "content": "C"}, {"sequence": 2, "correct": False, "content": "W"}],
-                "topicDto": [topic_data]
-            }).raise_for_status()
-
-    @staticmethod
-    def enroll_and_create_tournament(client, exec_id, user_id, topic_id):
-        """
-        Enrolls a user into a course execution and creates a tournament.
-        Returns:
-            Server-Response
-        """
-        # Check if client is requests
-        # Needed so the method works on both setup and tasks
-        is_requests = hasattr(client, 'post') and not hasattr(
-            client, 'base_url') and getattr(client, '__name__', '') == 'requests'
-
-        enroll_url = f"{GATEWAY}/executions/{exec_id}/students/add?userAggregateId={user_id}" if is_requests else f"/executions/{exec_id}/students/add?userAggregateId={user_id}"
-        client.post(enroll_url)
-
-        now = datetime.datetime.now(datetime.timezone.utc)
-        payload = {
-            "startTime": (now + datetime.timedelta(hours=1)).isoformat(timespec='milliseconds').replace("+00:00", "Z"),
-            "endTime": (now + datetime.timedelta(hours=2)).isoformat(timespec='milliseconds').replace("+00:00", "Z"),
-            "numberOfQuestions": 2
-        }
-
-        create_url = f"{GATEWAY}/executions/{exec_id}/tournaments/create" if is_requests else f"/executions/{exec_id}/tournaments/create"
-        return client.post(create_url, json=payload, params={"userId": user_id, "topicsId": [topic_id]})

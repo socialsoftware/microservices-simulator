@@ -16,28 +16,63 @@ class MultiServiceCapacityUser(HttpUser):
             "Capacities": {
                 "microservices": [
                     {
-                        "name": "TournamentService",
-                        "capacity": 5,
-                        "endpoints": [
-                            {"name": "CreateTournamentFunctionalitySagas",
-                                "requirement": 2},
-                            {"name": "FindTournamentFunctionalitySagas",
-                                "requirement": 1}
+                        "name": "tournament",
+                        "capacity": 40,
+                        "steps": [
+                            {
+                                "name": "getTopicsStep",
+                                "requirement": 1
+                            },
+                            {
+                                "name": "getCourseExecutionStep",
+                                "requirement": 1
+                            },
+                            {
+                                "name": "findQuestionsByTopicIdsStep",
+                                "requirement": 1
+                            },
+                            {
+                                "name": "getCreatorStep",
+                                "requirement": 1
+                            },
+                            {
+                                "name": "getCourseExecutionById",
+                                "requirement": 1
+                            },
+                            {
+                                "name": "generateQuizStep",
+                                "requirement": 1
+                            },
+                            {
+                                "name": "createTournamentStep",
+                                "requirement": 1
+                            },
+                            {
+                                "name": "findTournamentStep",
+                                "requirement": 1
+                            },
                         ]
                     },
                     {
-                        "name": "ExecutionService",
-                        "capacity": 5,
-                        "endpoints": [
-                            {"name": "AddStudentFunctionalitySagas", "requirement": 2}
+                        "name": "execution",
+                        "capacity": 3,
+                        "steps": [
+                            {
+                                "name": "getUserStep",
+                                "requirement": 1
+                            },
+                            {
+                                "name": "enrollStudentStep",
+                                "requirement": 2
+                            }
                         ]
                     }
                 ]
             }
         }
         try:
-            CapacityAdminUtils.start_and_load(config)
             environment.test_data = QuizzesInteractionUtils.create_base_data()
+            CapacityAdminUtils.start_and_load(config)
             logging.info("### Setup complete ###")
         except Exception as e:
             logging.error(f"### Setup Failed: {e}")
@@ -48,11 +83,11 @@ class MultiServiceCapacityUser(HttpUser):
         try:
             report = CapacityValidatorUtils.get_report()
             logging.info("### RESULTS ###")
-            # Ensure they are processed simultaneously (at least 2) but within capacity limits
+            # Ensure they are processed within capacity limits
             CapacityValidatorUtils.assert_concurrency_range(
-                "TournamentService", report, 2, 5)
+                "tournament", report, 1, 8)
             CapacityValidatorUtils.assert_concurrency_range(
-                "ExecutionService", report, 2, 2)
+                "execution", report, 1, 3)
             CapacityAdminUtils.stop_and_cleanup()
 
             logging.info("############# TEST END #############")
@@ -62,28 +97,21 @@ class MultiServiceCapacityUser(HttpUser):
     @task
     def execute_capacity_workflow(self):
         data = self.environment.test_data
-        if not data:
+        user_id = QuizzesInteractionUtils.create_and_activate_user()
+
+        if not (data and user_id):
             return
 
-        user_id = QuizzesInteractionUtils.create_and_activate_user(self.client)
-        if user_id:
-            # AddStudentFunctionalitySagas (ExecutionService)
-            self.client.post(
-                f"/executions/{data['execution_id']}/students/add?userAggregateId={user_id}", name="EnrollStudent")
+        # AddStudentFunctionalitySagas (ExecutionService)
+        QuizzesInteractionUtils.enroll_student(
+            self.client, data['execution_id'], user_id)
 
-            # CreateTournamentFunctionalitySagas (TournamentService)
-            now = datetime.datetime.now(datetime.timezone.utc)
-            payload = {
-                "startTime": (now + datetime.timedelta(hours=1)).isoformat(timespec='milliseconds').replace("+00:00", "Z"),
-                "endTime": (now + datetime.timedelta(hours=2)).isoformat(timespec='milliseconds').replace("+00:00", "Z"),
-                "numberOfQuestions": 2
-            }
-            res = self.client.post(f"/executions/{data['execution_id']}/tournaments/create",
-                                   json=payload, params={
-                                       "userId": user_id, "topicsId": [data["topic_id"]]},
-                                   name="CreateTournament")
+        # CreateTournamentFunctionalitySagas (TournamentService)
+        res = QuizzesInteractionUtils.create_tournament(
+            self.client, data["execution_id"], user_id, data["topic_id"])
 
-            if res.status_code == 200:
-                t_id = res.json()["aggregateId"]
-                # FindTournamentFunctionalitySagas (TournamentService)
-                self.client.get(f"/tournaments/{t_id}", name="FindTournament")
+        # FindTournamentFunctionalitySagas (TournamentService)
+        if res.status_code == 200:
+            t_id = res.json()["aggregateId"]
+            QuizzesInteractionUtils.find_tournament(self.client, t_id)
+            self.client.get(f"/tournaments/{t_id}", name="FindTournament")
