@@ -16,7 +16,7 @@ public class NetworkManager {
     private static String directory;
     private Random random = new Random();
     private boolean loaded = false;
-    private boolean useCSVInjection = false;
+    private boolean useCSVInjection = true;
     private boolean useRandomDistributions = false;
 
     private Map<String, String> microserviceToNode = new HashMap<>();
@@ -175,7 +175,7 @@ public class NetworkManager {
 
     public void reset() {
         this.loaded = false;
-        this.useCSVInjection = false;
+        this.useCSVInjection = true;
         this.useRandomDistributions = false;
         this.microserviceToNode.clear();
         this.delayConfigs.clear();
