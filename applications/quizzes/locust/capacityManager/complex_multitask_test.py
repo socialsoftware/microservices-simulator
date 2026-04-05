@@ -2,11 +2,11 @@ from locust import HttpUser, task, between, events
 import logging
 import requests
 import random
+import uuid
 from capacity_utils import CapacityAdminUtils, QuizzesInteractionUtils, CapacityValidatorUtils, GATEWAY
 
 
 class ComplexMultiServiceUser(HttpUser):
-    # ! THIS TEST REQUIRES MULTIPLE USERS AND ITERATIONS TO BE EXECUTED PROPERLY
     host = GATEWAY
     wait_time = between(2, 4)
 
@@ -14,15 +14,9 @@ class ComplexMultiServiceUser(HttpUser):
     def on_test_start(environment, **kwargs):
         logging.info("############# TEST START #############")
 
-        req_tr = random.randint(2, 5)
-        req_ex = random.randint(2, 5)
-        req_us = random.randint(2, 5)
-        req_qz = random.randint(2, 5)
-        req_qt = random.randint(2, 5)
-        req_tp = random.randint(2, 5)
-        req_an = random.randint(2, 5)
-        environment.reqs = [req_tr, req_ex,
-                            req_us, req_qz, req_qt, req_tp, req_an]
+        # Randomized requirements
+        reqs = [random.randint(2, 5) for _ in range(7)]
+        environment.reqs = reqs
 
         # Configuration including every step for CreateTournament, UpdateTournament, and SolveQuiz
         environment.config = {
@@ -32,12 +26,15 @@ class ComplexMultiServiceUser(HttpUser):
                         "name": "tournament",
                         "capacity": 30,
                         "steps": [
-                            {"name": "createTournamentStep", "requirement": req_tr},
-                            {"name": "updateTournamentStep", "requirement": req_tr},
-                            {"name": "solveQuizStep", "requirement": req_tr},
-                            {"name": "getTournamentStep", "requirement": req_tr},
+                            {"name": "createTournamentStep",
+                                "requirement": reqs[0]},
+                            {"name": "updateTournamentStep",
+                                "requirement": reqs[0]},
+                            {"name": "solveQuizStep", "requirement": reqs[0]},
+                            {"name": "getTournamentStep",
+                                "requirement": reqs[0]},
                             {"name": "getOriginalTournamentStep",
-                                "requirement": req_tr}
+                                "requirement": reqs[0]}
                         ]
                     },
                     {
@@ -45,32 +42,35 @@ class ComplexMultiServiceUser(HttpUser):
                         "capacity": 50,
                         "steps": [
                             {"name": "getCourseExecutionStep",
-                                "requirement": req_ex},
-                            {"name": "getCreatorStep", "requirement": req_ex},
+                                "requirement": reqs[1]},
+                            {"name": "getCreatorStep", "requirement": reqs[1]},
                             {"name": "getCourseExecutionById",
-                                "requirement": req_ex},
+                                "requirement": reqs[1]},
                             {"name": "getStudentByExecutionIdAndUserId",
-                                "requirement": req_ex},
-                            {"name": "enrollStudentStep", "requirement": req_ex}
+                                "requirement": reqs[1]},
+                            {"name": "enrollStudentStep",
+                                "requirement": reqs[1]}
                         ]
                     },
                     {
                         "name": "user",
                         "capacity": 20,
                         "steps": [
-                            {"name": "createUserStep", "requirement": req_us},
-                            {"name": "getUserStep", "requirement": req_us},
-                            {"name": "activateUserStep", "requirement": req_us}
+                            {"name": "createUserStep", "requirement": reqs[2]},
+                            {"name": "getUserStep", "requirement": reqs[2]},
+                            {"name": "activateUserStep",
+                                "requirement": reqs[2]}
                         ]
                     },
                     {
                         "name": "quiz",
                         "capacity": 25,
                         "steps": [
-                            {"name": "generateQuizStep", "requirement": req_qz},
-                            {"name": "updateQuizStep", "requirement": req_qz},
-                            {"name": "startQuizStep", "requirement": req_qz},
-                            {"name": "getQuizById", "requirement": req_qz}
+                            {"name": "generateQuizStep",
+                                "requirement": reqs[3]},
+                            {"name": "updateQuizStep", "requirement": reqs[3]},
+                            {"name": "startQuizStep", "requirement": reqs[3]},
+                            {"name": "getQuizById", "requirement": reqs[3]}
                         ]
                     },
                     {
@@ -78,24 +78,25 @@ class ComplexMultiServiceUser(HttpUser):
                         "capacity": 20,
                         "steps": [
                             {"name": "findQuestionsByTopicIdsStep",
-                                "requirement": req_qt},
+                                "requirement": reqs[4]},
                             {"name": "findQuestionsByTopicIds",
-                                "requirement": req_qt},
-                            {"name": "getQuestionById", "requirement": req_qt}
+                                "requirement": reqs[4]},
+                            {"name": "getQuestionById", "requirement": reqs[4]}
                         ]
                     },
                     {
                         "name": "topic",
                         "capacity": 20,
                         "steps": [
-                            {"name": "getTopicsStep", "requirement": req_tp}
+                            {"name": "getTopicsStep", "requirement": reqs[5]}
                         ]
                     },
                     {
                         "name": "answer",
                         "capacity": 20,
                         "steps": [
-                            {"name": "startQuizAnswerStep", "requirement": req_an}
+                            {"name": "startQuizAnswerStep",
+                                "requirement": reqs[6]}
                         ]
                     }
                 ]
@@ -103,12 +104,16 @@ class ComplexMultiServiceUser(HttpUser):
         }
 
         try:
+            environment.test_data_pool = []
+            for i in range(10):
+                data = QuizzesInteractionUtils.create_base_data()
+                environment.test_data_pool.append(data)
+
             CapacityAdminUtils.start_and_load(environment.config)
-            environment.test_data = QuizzesInteractionUtils.create_base_data()
             logging.info("### Setup complete ###")
         except Exception as e:
             logging.error(f"### Setup Failed: {e}")
-            environment.test_data = None
+            environment.test_data_pool = []
 
     @events.test_stop.add_listener
     def on_test_stop(environment, **kwargs):
@@ -137,23 +142,27 @@ class ComplexMultiServiceUser(HttpUser):
             logging.error(f"### Validation Error: {e}")
 
     def on_start(self):
-        # Each Locust user works on their own tournament to reduce DB contention
-        data = self.environment.test_data
-        if not data:
+        if not self.environment.test_data_pool:
             self.stop(True)
             return
+
+        print("start")
+        # Pick a random data-set
+        self.my_data = random.choice(self.environment.test_data_pool)
 
         try:
             # Create user (tournament owner)
             user_id = QuizzesInteractionUtils.create_and_activate_user(
                 requests)
+
             # Create the tournament
             res = QuizzesInteractionUtils.enroll_and_create_tournament(
-                requests, data["execution_id"], user_id, data["topic_id"])
+                requests, self.my_data["execution_id"], user_id, self.my_data["topic_id"])
 
             if res.status_code == 200:
                 self.t_id = res.json()["aggregateId"]
             else:
+                logging.error(f"### Tournament creation failed: {res.text}")
                 self.stop(True)
         except Exception as e:
             logging.error(f"### User Setup Failed: {e}")
@@ -162,15 +171,14 @@ class ComplexMultiServiceUser(HttpUser):
     @task(2)
     def task_update_tournament(self):
         QuizzesInteractionUtils.update_tournament(
-            self.client, self.t_id, [self.environment.test_data["topic_id"]])
+            self.client, self.t_id, [self.my_data["topic_id"]])
 
     @task(1)
     def task_solve_quiz(self):
-        data = self.environment.test_data
         user_id = QuizzesInteractionUtils.create_and_activate_user(self.client)
         if user_id:
             QuizzesInteractionUtils.enroll_student(
-                self.client, data["execution_id"], user_id)
+                self.client, self.my_data["execution_id"], user_id)
             QuizzesInteractionUtils.join_tournament(
-                self.client, self.t_id, data["execution_id"], user_id)
+                self.client, self.t_id, self.my_data["execution_id"], user_id)
             QuizzesInteractionUtils.solve_quiz(self.client, self.t_id, user_id)

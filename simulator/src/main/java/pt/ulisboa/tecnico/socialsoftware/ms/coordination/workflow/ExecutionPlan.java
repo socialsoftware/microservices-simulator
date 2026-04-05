@@ -132,10 +132,11 @@ public class ExecutionPlan {
                         throw new CompletionException(e);
                     } finally {
                         TraceManager.getInstance().endStepSpan(funcName, stepName);
-                        CapacityManager.getInstance().release(stepName, stepRequestId);
                     }
                 })
             ); // Execute and save the steps with no dependencies
+                // Release after in case of an exception
+                CapacityManager.getInstance().release(stepName, stepRequestId);
                 executedSteps.put(step, true);
             }
             
@@ -188,10 +189,11 @@ public class ExecutionPlan {
                             throw new CompletionException(e);
                         } finally {
                             TraceManager.getInstance().endStepSpan(funcName, stepName);
-                            CapacityManager.getInstance().release(stepName, stepRequestId);
                         }
                     })
                 );
+                // Release after in case of an exception
+                CapacityManager.getInstance().release(stepName, stepRequestId);
                 executedSteps.put(step, true);
             }
             
