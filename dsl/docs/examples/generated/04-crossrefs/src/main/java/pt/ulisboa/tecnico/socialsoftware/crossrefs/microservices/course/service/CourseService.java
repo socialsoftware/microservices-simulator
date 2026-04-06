@@ -19,10 +19,12 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.CourseDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.CourseUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.exception.CrossrefsException;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.coordination.webapi.requestDtos.CreateCourseRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.teacher.aggregate.Teacher;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.TeacherDto;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = CrossrefsException.class)
 public class CourseService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -45,10 +47,15 @@ public class CourseService {
             courseDto.setDescription(createRequest.getDescription());
             courseDto.setMaxStudents(createRequest.getMaxStudents());
             if (createRequest.getTeacher() != null) {
+                Teacher refSource = (Teacher) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getTeacher().getAggregateId(), unitOfWork);
+                TeacherDto refSourceDto = new TeacherDto(refSource);
                 CourseTeacherDto teacherDto = new CourseTeacherDto();
-                teacherDto.setAggregateId(createRequest.getTeacher().getAggregateId());
-                teacherDto.setVersion(createRequest.getTeacher().getVersion());
-                teacherDto.setState(createRequest.getTeacher().getState() != null ? createRequest.getTeacher().getState().name() : null);
+                teacherDto.setAggregateId(refSourceDto.getAggregateId());
+                teacherDto.setVersion(refSourceDto.getVersion());
+                teacherDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                teacherDto.setName(refSourceDto.getName());
+                teacherDto.setEmail(refSourceDto.getEmail());
+                teacherDto.setDepartment(refSourceDto.getDepartment());
                 courseDto.setTeacher(teacherDto);
             }
 
@@ -81,7 +88,14 @@ public class CourseService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(courseFactory::createCourseDto)
                 .collect(Collectors.toList());
         } catch (CrossrefsException e) {

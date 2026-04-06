@@ -40,9 +40,9 @@ public class BookCommandHandler extends CommandHandler {
         logger.info("handleCreateBook");
         try {
             return bookService.createBook(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class BookCommandHandler extends CommandHandler {
         logger.info("handleGetBookById");
         try {
             return bookService.getBookById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class BookCommandHandler extends CommandHandler {
         logger.info("handleGetAllBooks");
         try {
             return bookService.getAllBooks(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class BookCommandHandler extends CommandHandler {
         logger.info("handleUpdateBook");
         try {
             return bookService.updateBook(cmd.getBookDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class BookCommandHandler extends CommandHandler {
         try {
             bookService.deleteBook(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

@@ -78,6 +78,9 @@ public abstract class Order extends Aggregate {
 
     public void setCustomer(OrderCustomer customer) {
         this.customer = customer;
+        if (this.customer != null) {
+            this.customer.setOrder(this);
+        }
     }
 
     public Set<OrderProduct> getProducts() {
@@ -86,6 +89,9 @@ public abstract class Order extends Aggregate {
 
     public void setProducts(Set<OrderProduct> products) {
         this.products = products;
+        if (this.products != null) {
+            this.products.forEach(item -> item.setOrder(this));
+        }
     }
 
     public void addOrderProduct(OrderProduct orderProduct) {
@@ -129,6 +135,9 @@ public abstract class Order extends Aggregate {
 
     public void setItems(Set<OrderItem> items) {
         this.items = items;
+        if (this.items != null) {
+            this.items.forEach(item -> item.setOrder(this));
+        }
     }
 
     public void addOrderItem(OrderItem orderItem) {

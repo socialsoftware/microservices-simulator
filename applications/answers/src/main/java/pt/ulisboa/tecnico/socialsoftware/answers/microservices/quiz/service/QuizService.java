@@ -28,6 +28,10 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentRepository;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
 
 
 @Service
@@ -60,18 +64,26 @@ public class QuizService {
             quizDto.setConclusionDate(createRequest.getConclusionDate());
             quizDto.setResultsDate(createRequest.getResultsDate());
             if (createRequest.getExecution() != null) {
+                Execution refSource = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getExecution().getAggregateId(), unitOfWork);
+                ExecutionDto refSourceDto = new ExecutionDto(refSource);
                 QuizExecutionDto executionDto = new QuizExecutionDto();
-                executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
-                executionDto.setVersion(createRequest.getExecution().getVersion());
-                executionDto.setState(createRequest.getExecution().getState() != null ? createRequest.getExecution().getState().name() : null);
+                executionDto.setAggregateId(refSourceDto.getAggregateId());
+                executionDto.setVersion(refSourceDto.getVersion());
+                executionDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                executionDto.setAcronym(refSourceDto.getAcronym());
+                executionDto.setAcademicTerm(refSourceDto.getAcademicTerm());
                 quizDto.setExecution(executionDto);
             }
             if (createRequest.getQuestions() != null) {
-                quizDto.setQuestions(createRequest.getQuestions().stream().map(srcDto -> {
+                quizDto.setQuestions(createRequest.getQuestions().stream().map(reqDto -> {
+                    Question refItem = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(reqDto.getAggregateId(), unitOfWork);
+                    QuestionDto refItemDto = new QuestionDto(refItem);
                     QuizQuestionDto projDto = new QuizQuestionDto();
-                    projDto.setAggregateId(srcDto.getAggregateId());
-                    projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
+                    projDto.setAggregateId(refItemDto.getAggregateId());
+                    projDto.setVersion(refItemDto.getVersion());
+                    projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
+                    projDto.setTitle(refItemDto.getTitle());
+                    projDto.setContent(refItemDto.getContent());
                     return projDto;
                 }).collect(Collectors.toSet()));
             }

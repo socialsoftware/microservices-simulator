@@ -68,6 +68,9 @@ public abstract class Order extends Aggregate {
 
     public void setUser(OrderUser user) {
         this.user = user;
+        if (this.user != null) {
+            this.user.setOrder(this);
+        }
     }
 
     public String getTime() {

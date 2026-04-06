@@ -61,6 +61,9 @@ public abstract class Loan extends Aggregate {
 
     public void setMember(LoanMember member) {
         this.member = member;
+        if (this.member != null) {
+            this.member.setLoan(this);
+        }
     }
 
     public LoanBook getBook() {
@@ -69,6 +72,9 @@ public abstract class Loan extends Aggregate {
 
     public void setBook(LoanBook book) {
         this.book = book;
+        if (this.book != null) {
+            this.book.setLoan(this);
+        }
     }
 
     public LocalDateTime getLoanDate() {

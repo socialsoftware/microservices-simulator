@@ -40,9 +40,9 @@ public class EnrollmentCommandHandler extends CommandHandler {
         logger.info("handleCreateEnrollment");
         try {
             return enrollmentService.createEnrollment(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class EnrollmentCommandHandler extends CommandHandler {
         logger.info("handleGetEnrollmentById");
         try {
             return enrollmentService.getEnrollmentById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class EnrollmentCommandHandler extends CommandHandler {
         logger.info("handleGetAllEnrollments");
         try {
             return enrollmentService.getAllEnrollments(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class EnrollmentCommandHandler extends CommandHandler {
         logger.info("handleUpdateEnrollment");
         try {
             return enrollmentService.updateEnrollment(cmd.getEnrollmentDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class EnrollmentCommandHandler extends CommandHandler {
         try {
             enrollmentService.deleteEnrollment(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

@@ -18,10 +18,15 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.events.CustomerDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.events.CustomerUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.exception.AdvancedException;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.coordination.webapi.requestDtos.CreateCustomerRequestDto;
+import org.springframework.context.ApplicationContext;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.InvoiceRepository;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.Invoice;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderRepository;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.Order;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AdvancedException.class)
 public class CustomerService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -34,6 +39,9 @@ public class CustomerService {
 
     @Autowired
     private CustomerFactory customerFactory;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public CustomerService() {}
 
@@ -73,7 +81,14 @@ public class CustomerService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Customer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Customer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(customerFactory::createCustomerDto)
                 .collect(Collectors.toList());
         } catch (AdvancedException e) {
@@ -109,6 +124,20 @@ public class CustomerService {
 
     public void deleteCustomer(Integer id, UnitOfWork unitOfWork) {
         try {
+            InvoiceRepository invoiceRepositoryRef = applicationContext.getBean(InvoiceRepository.class);
+            boolean hasInvoiceReferences = invoiceRepositoryRef.findAll().stream()
+                .filter(s -> s.getState() != Customer.AggregateState.DELETED)
+                .anyMatch(s -> s.getCustomer() != null && id.equals(s.getCustomer().getCustomerAggregateId()));
+            if (hasInvoiceReferences) {
+                throw new AdvancedException("Cannot delete customer with invoices");
+            }
+            OrderRepository orderRepositoryRef = applicationContext.getBean(OrderRepository.class);
+            boolean hasOrderReferences = orderRepositoryRef.findAll().stream()
+                .filter(s -> s.getState() != Customer.AggregateState.DELETED)
+                .anyMatch(s -> s.getCustomer() != null && id.equals(s.getCustomer().getCustomerAggregateId()));
+            if (hasOrderReferences) {
+                throw new AdvancedException("Cannot delete customer with active orders");
+            }
             Customer oldCustomer = (Customer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Customer newCustomer = customerFactory.createCustomerFromExisting(oldCustomer);
             newCustomer.remove();

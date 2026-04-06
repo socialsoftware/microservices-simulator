@@ -20,10 +20,12 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.events.ProductUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.ProductCategoryUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.coordination.webapi.requestDtos.CreateProductRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.aggregate.Category;
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CategoryDto;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = TeastoreException.class)
 public class ProductService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -46,10 +48,14 @@ public class ProductService {
             productDto.setDescription(createRequest.getDescription());
             productDto.setListPriceInCents(createRequest.getListPriceInCents());
             if (createRequest.getProductCategory() != null) {
+                Category refSource = (Category) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getProductCategory().getAggregateId(), unitOfWork);
+                CategoryDto refSourceDto = new CategoryDto(refSource);
                 ProductCategoryDto productCategoryDto = new ProductCategoryDto();
-                productCategoryDto.setAggregateId(createRequest.getProductCategory().getAggregateId());
-                productCategoryDto.setVersion(createRequest.getProductCategory().getVersion());
-                productCategoryDto.setState(createRequest.getProductCategory().getState() != null ? createRequest.getProductCategory().getState().name() : null);
+                productCategoryDto.setAggregateId(refSourceDto.getAggregateId());
+                productCategoryDto.setVersion(refSourceDto.getVersion());
+                productCategoryDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                productCategoryDto.setName(refSourceDto.getName());
+                productCategoryDto.setDescription(refSourceDto.getDescription());
                 productDto.setProductCategory(productCategoryDto);
             }
 
@@ -82,7 +88,14 @@ public class ProductService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Product) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Product) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(productFactory::createProductDto)
                 .collect(Collectors.toList());
         } catch (TeastoreException e) {

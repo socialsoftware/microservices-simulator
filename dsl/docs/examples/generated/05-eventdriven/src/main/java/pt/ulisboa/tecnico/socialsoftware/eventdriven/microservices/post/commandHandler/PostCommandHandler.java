@@ -40,9 +40,9 @@ public class PostCommandHandler extends CommandHandler {
         logger.info("handleCreatePost");
         try {
             return postService.createPost(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class PostCommandHandler extends CommandHandler {
         logger.info("handleGetPostById");
         try {
             return postService.getPostById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class PostCommandHandler extends CommandHandler {
         logger.info("handleGetAllPosts");
         try {
             return postService.getAllPosts(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class PostCommandHandler extends CommandHandler {
         logger.info("handleUpdatePost");
         try {
             return postService.updatePost(cmd.getPostDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class PostCommandHandler extends CommandHandler {
         try {
             postService.deletePost(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

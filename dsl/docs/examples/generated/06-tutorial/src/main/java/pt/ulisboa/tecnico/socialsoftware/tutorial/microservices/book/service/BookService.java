@@ -18,10 +18,13 @@ import pt.ulisboa.tecnico.socialsoftware.tutorial.events.BookDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.events.BookUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.exception.TutorialException;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.coordination.webapi.requestDtos.CreateBookRequestDto;
+import org.springframework.context.ApplicationContext;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.aggregate.LoanRepository;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.aggregate.Loan;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = TutorialException.class)
 public class BookService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -34,6 +37,9 @@ public class BookService {
 
     @Autowired
     private BookFactory bookFactory;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public BookService() {}
 
@@ -74,7 +80,14 @@ public class BookService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Book) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Book) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(bookFactory::createBookDto)
                 .collect(Collectors.toList());
         } catch (TutorialException e) {
@@ -113,6 +126,13 @@ public class BookService {
 
     public void deleteBook(Integer id, UnitOfWork unitOfWork) {
         try {
+            LoanRepository loanRepositoryRef = applicationContext.getBean(LoanRepository.class);
+            boolean hasLoanReferences = loanRepositoryRef.findAll().stream()
+                .filter(s -> s.getState() != Book.AggregateState.DELETED)
+                .anyMatch(s -> s.getBook() != null && id.equals(s.getBook().getBookAggregateId()));
+            if (hasLoanReferences) {
+                throw new TutorialException("Cannot delete book that has active loans");
+            }
             Book oldBook = (Book) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Book newBook = bookFactory.createBookFromExisting(oldBook);
             newBook.remove();

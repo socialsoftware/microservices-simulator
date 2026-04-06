@@ -40,9 +40,9 @@ public class LoanCommandHandler extends CommandHandler {
         logger.info("handleCreateLoan");
         try {
             return loanService.createLoan(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class LoanCommandHandler extends CommandHandler {
         logger.info("handleGetLoanById");
         try {
             return loanService.getLoanById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class LoanCommandHandler extends CommandHandler {
         logger.info("handleGetAllLoans");
         try {
             return loanService.getAllLoans(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class LoanCommandHandler extends CommandHandler {
         logger.info("handleUpdateLoan");
         try {
             return loanService.updateLoan(cmd.getLoanDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class LoanCommandHandler extends CommandHandler {
         try {
             loanService.deleteLoan(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

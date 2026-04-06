@@ -32,6 +32,21 @@ export interface PreventReferenceTo {
     message: string;
 }
 
+export function findRootAggregateByName(aggregateName: string): Aggregate | undefined {
+    for (const model of allModelsRegistry) {
+        if (!model.aggregates) continue;
+        for (const aggregate of model.aggregates) {
+            if (aggregate.name === aggregateName) {
+                const entities = getEntities(aggregate);
+                if (entities.some(e => (e as any).isRoot)) {
+                    return aggregate;
+                }
+            }
+        }
+    }
+    return undefined;
+}
+
 export function findPreventReferencesTo(targetAggregateName: string): PreventReferenceTo[] {
     const results: PreventReferenceTo[] = [];
     for (const model of allModelsRegistry) {

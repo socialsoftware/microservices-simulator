@@ -22,10 +22,14 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.EnrollmentTeacherRemov
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.EnrollmentTeacherUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.exception.CrossrefsException;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.coordination.webapi.requestDtos.CreateEnrollmentRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggregate.Course;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.teacher.aggregate.Teacher;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.TeacherDto;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = CrossrefsException.class)
 public class EnrollmentService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -47,10 +51,15 @@ public class EnrollmentService {
             enrollmentDto.setEnrollmentDate(createRequest.getEnrollmentDate());
             enrollmentDto.setActive(createRequest.getActive());
             if (createRequest.getCourse() != null) {
+                Course refSource = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getCourse().getAggregateId(), unitOfWork);
+                CourseDto refSourceDto = new CourseDto(refSource);
                 EnrollmentCourseDto courseDto = new EnrollmentCourseDto();
-                courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
-                courseDto.setVersion(createRequest.getCourse().getVersion());
-                courseDto.setState(createRequest.getCourse().getState() != null ? createRequest.getCourse().getState().name() : null);
+                courseDto.setAggregateId(refSourceDto.getAggregateId());
+                courseDto.setVersion(refSourceDto.getVersion());
+                courseDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                courseDto.setTitle(refSourceDto.getTitle());
+                courseDto.setDescription(refSourceDto.getDescription());
+                courseDto.setMaxStudents(refSourceDto.getMaxStudents());
                 enrollmentDto.setCourse(courseDto);
             }
             if (createRequest.getTeachers() != null) {
@@ -92,7 +101,14 @@ public class EnrollmentService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Enrollment) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Enrollment) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(enrollmentFactory::createEnrollmentDto)
                 .collect(Collectors.toList());
         } catch (CrossrefsException e) {

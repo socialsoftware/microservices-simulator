@@ -75,6 +75,9 @@ public abstract class Post extends Aggregate {
 
     public void setAuthor(PostAuthor author) {
         this.author = author;
+        if (this.author != null) {
+            this.author.setPost(this);
+        }
     }
 
     public LocalDateTime getPublishedAt() {

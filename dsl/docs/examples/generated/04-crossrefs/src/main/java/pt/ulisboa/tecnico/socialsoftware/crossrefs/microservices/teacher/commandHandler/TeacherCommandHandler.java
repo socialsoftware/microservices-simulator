@@ -40,9 +40,9 @@ public class TeacherCommandHandler extends CommandHandler {
         logger.info("handleCreateTeacher");
         try {
             return teacherService.createTeacher(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class TeacherCommandHandler extends CommandHandler {
         logger.info("handleGetTeacherById");
         try {
             return teacherService.getTeacherById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class TeacherCommandHandler extends CommandHandler {
         logger.info("handleGetAllTeachers");
         try {
             return teacherService.getAllTeachers(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class TeacherCommandHandler extends CommandHandler {
         logger.info("handleUpdateTeacher");
         try {
             return teacherService.updateTeacher(cmd.getTeacherDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class TeacherCommandHandler extends CommandHandler {
         try {
             teacherService.deleteTeacher(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

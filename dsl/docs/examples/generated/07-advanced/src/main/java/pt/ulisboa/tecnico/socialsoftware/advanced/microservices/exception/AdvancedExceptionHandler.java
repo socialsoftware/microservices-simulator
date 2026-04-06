@@ -15,13 +15,20 @@ public class AdvancedExceptionHandler {
     @ExceptionHandler(AdvancedException.class)
     public ResponseEntity<String> handleAdvancedException(AdvancedException ex) {
         logger.warn("Handled AdvancedException: {}", ex.getErrorMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        return ResponseEntity.status(statusFor(ex.getMessage())).body(ex.getMessage());
     }
 
     @ExceptionHandler(SimulatorException.class)
     public ResponseEntity<String> handleSimulatorException(SimulatorException ex) {
         logger.warn("Handled SimulatorException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        return ResponseEntity.status(statusFor(ex.getMessage())).body(ex.getMessage());
+    }
+
+    private static HttpStatus statusFor(String message) {
+        if (message != null && message.contains("does not exist")) {
+            return HttpStatus.NOT_FOUND;
+        }
+        return HttpStatus.BAD_REQUEST;
     }
 
     @ExceptionHandler(Exception.class)

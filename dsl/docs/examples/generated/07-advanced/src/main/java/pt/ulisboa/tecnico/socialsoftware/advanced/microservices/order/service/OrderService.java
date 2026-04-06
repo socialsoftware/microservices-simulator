@@ -27,10 +27,14 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.events.OrderItemRemovedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.events.OrderItemUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.exception.AdvancedException;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.coordination.webapi.requestDtos.CreateOrderRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.aggregate.Customer;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.CustomerDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.product.aggregate.Product;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.ProductDto;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AdvancedException.class)
 public class OrderService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -54,18 +58,26 @@ public class OrderService {
             orderDto.setStatus(createRequest.getStatus() != null ? createRequest.getStatus().name() : null);
             orderDto.setPaymentMethod(createRequest.getPaymentMethod() != null ? createRequest.getPaymentMethod().name() : null);
             if (createRequest.getCustomer() != null) {
+                Customer refSource = (Customer) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getCustomer().getAggregateId(), unitOfWork);
+                CustomerDto refSourceDto = new CustomerDto(refSource);
                 OrderCustomerDto customerDto = new OrderCustomerDto();
-                customerDto.setAggregateId(createRequest.getCustomer().getAggregateId());
-                customerDto.setVersion(createRequest.getCustomer().getVersion());
-                customerDto.setState(createRequest.getCustomer().getState() != null ? createRequest.getCustomer().getState().name() : null);
+                customerDto.setAggregateId(refSourceDto.getAggregateId());
+                customerDto.setVersion(refSourceDto.getVersion());
+                customerDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                customerDto.setName(refSourceDto.getName());
+                customerDto.setEmail(refSourceDto.getEmail());
                 orderDto.setCustomer(customerDto);
             }
             if (createRequest.getProducts() != null) {
-                orderDto.setProducts(createRequest.getProducts().stream().map(srcDto -> {
+                orderDto.setProducts(createRequest.getProducts().stream().map(reqDto -> {
+                    Product refItem = (Product) unitOfWorkService.aggregateLoadAndRegisterRead(reqDto.getAggregateId(), unitOfWork);
+                    ProductDto refItemDto = new ProductDto(refItem);
                     OrderProductDto projDto = new OrderProductDto();
-                    projDto.setAggregateId(srcDto.getAggregateId());
-                    projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
+                    projDto.setAggregateId(refItemDto.getAggregateId());
+                    projDto.setVersion(refItemDto.getVersion());
+                    projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
+                    projDto.setName(refItemDto.getName());
+                    projDto.setPrice(refItemDto.getPrice());
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
@@ -100,7 +112,14 @@ public class OrderService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Order) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Order) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(orderFactory::createOrderDto)
                 .collect(Collectors.toList());
         } catch (AdvancedException e) {

@@ -40,9 +40,9 @@ public class CartCommandHandler extends CommandHandler {
         logger.info("handleCreateCart");
         try {
             return cartService.createCart(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class CartCommandHandler extends CommandHandler {
         logger.info("handleGetCartById");
         try {
             return cartService.getCartById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class CartCommandHandler extends CommandHandler {
         logger.info("handleGetAllCarts");
         try {
             return cartService.getAllCarts(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class CartCommandHandler extends CommandHandler {
         logger.info("handleUpdateCart");
         try {
             return cartService.updateCart(cmd.getCartDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class CartCommandHandler extends CommandHandler {
         try {
             cartService.deleteCart(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

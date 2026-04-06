@@ -21,7 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.coordi
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = EventdrivenException.class)
 public class AuthorService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -72,7 +72,14 @@ public class AuthorService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Author) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Author) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(authorFactory::createAuthorDto)
                 .collect(Collectors.toList());
         } catch (EventdrivenException e) {

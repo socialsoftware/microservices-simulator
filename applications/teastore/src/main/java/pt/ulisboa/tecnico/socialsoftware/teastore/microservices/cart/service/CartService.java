@@ -21,7 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.coordinatio
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = TeastoreException.class)
 public class CartService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -73,7 +73,14 @@ public class CartService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Cart) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Cart) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(cartFactory::createCartDto)
                 .collect(Collectors.toList());
         } catch (TeastoreException e) {

@@ -25,6 +25,10 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.OptionRemovedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.OptionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.coordination.webapi.requestDtos.CreateQuestionRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.Course;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.Topic;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 
 @Service
@@ -51,18 +55,24 @@ public class QuestionService {
             questionDto.setContent(createRequest.getContent());
             questionDto.setCreationDate(createRequest.getCreationDate());
             if (createRequest.getCourse() != null) {
+                Course refSource = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getCourse().getAggregateId(), unitOfWork);
+                CourseDto refSourceDto = new CourseDto(refSource);
                 QuestionCourseDto courseDto = new QuestionCourseDto();
-                courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
-                courseDto.setVersion(createRequest.getCourse().getVersion());
-                courseDto.setState(createRequest.getCourse().getState() != null ? createRequest.getCourse().getState().name() : null);
+                courseDto.setAggregateId(refSourceDto.getAggregateId());
+                courseDto.setVersion(refSourceDto.getVersion());
+                courseDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                courseDto.setName(refSourceDto.getName());
                 questionDto.setCourse(courseDto);
             }
             if (createRequest.getTopics() != null) {
-                questionDto.setTopics(createRequest.getTopics().stream().map(srcDto -> {
+                questionDto.setTopics(createRequest.getTopics().stream().map(reqDto -> {
+                    Topic refItem = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(reqDto.getAggregateId(), unitOfWork);
+                    TopicDto refItemDto = new TopicDto(refItem);
                     QuestionTopicDto projDto = new QuestionTopicDto();
-                    projDto.setAggregateId(srcDto.getAggregateId());
-                    projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
+                    projDto.setAggregateId(refItemDto.getAggregateId());
+                    projDto.setVersion(refItemDto.getVersion());
+                    projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
+                    projDto.setName(refItemDto.getName());
                     return projDto;
                 }).collect(Collectors.toSet()));
             }

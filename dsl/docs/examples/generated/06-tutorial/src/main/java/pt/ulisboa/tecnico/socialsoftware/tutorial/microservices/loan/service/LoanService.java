@@ -20,10 +20,14 @@ import pt.ulisboa.tecnico.socialsoftware.tutorial.events.LoanDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.events.LoanUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.exception.TutorialException;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.coordination.webapi.requestDtos.CreateLoanRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.member.aggregate.Member;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.MemberDto;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.aggregate.Book;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.BookDto;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = TutorialException.class)
 public class LoanService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -45,17 +49,26 @@ public class LoanService {
             loanDto.setLoanDate(createRequest.getLoanDate());
             loanDto.setDueDate(createRequest.getDueDate());
             if (createRequest.getMember() != null) {
+                Member refSource = (Member) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getMember().getAggregateId(), unitOfWork);
+                MemberDto refSourceDto = new MemberDto(refSource);
                 LoanMemberDto memberDto = new LoanMemberDto();
-                memberDto.setAggregateId(createRequest.getMember().getAggregateId());
-                memberDto.setVersion(createRequest.getMember().getVersion());
-                memberDto.setState(createRequest.getMember().getState() != null ? createRequest.getMember().getState().name() : null);
+                memberDto.setAggregateId(refSourceDto.getAggregateId());
+                memberDto.setVersion(refSourceDto.getVersion());
+                memberDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                memberDto.setName(refSourceDto.getName());
+                memberDto.setEmail(refSourceDto.getEmail());
                 loanDto.setMember(memberDto);
             }
             if (createRequest.getBook() != null) {
+                Book refSource = (Book) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getBook().getAggregateId(), unitOfWork);
+                BookDto refSourceDto = new BookDto(refSource);
                 LoanBookDto bookDto = new LoanBookDto();
-                bookDto.setAggregateId(createRequest.getBook().getAggregateId());
-                bookDto.setVersion(createRequest.getBook().getVersion());
-                bookDto.setState(createRequest.getBook().getState() != null ? createRequest.getBook().getState().name() : null);
+                bookDto.setAggregateId(refSourceDto.getAggregateId());
+                bookDto.setVersion(refSourceDto.getVersion());
+                bookDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                bookDto.setTitle(refSourceDto.getTitle());
+                bookDto.setAuthor(refSourceDto.getAuthor());
+                bookDto.setGenre(refSourceDto.getGenre());
                 loanDto.setBook(bookDto);
             }
 
@@ -88,7 +101,14 @@ public class LoanService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Loan) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Loan) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(loanFactory::createLoanDto)
                 .collect(Collectors.toList());
         } catch (TutorialException e) {

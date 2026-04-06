@@ -40,9 +40,9 @@ public class ContactCommandHandler extends CommandHandler {
         logger.info("handleCreateContact");
         try {
             return contactService.createContact(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class ContactCommandHandler extends CommandHandler {
         logger.info("handleGetContactById");
         try {
             return contactService.getContactById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class ContactCommandHandler extends CommandHandler {
         logger.info("handleGetAllContacts");
         try {
             return contactService.getAllContacts(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class ContactCommandHandler extends CommandHandler {
         logger.info("handleUpdateContact");
         try {
             return contactService.updateContact(cmd.getContactDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class ContactCommandHandler extends CommandHandler {
         try {
             contactService.deleteContact(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

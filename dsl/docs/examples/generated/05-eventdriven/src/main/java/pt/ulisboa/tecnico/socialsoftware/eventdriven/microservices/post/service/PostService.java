@@ -20,10 +20,12 @@ import pt.ulisboa.tecnico.socialsoftware.eventdriven.events.PostUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.events.PostAuthorUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.exception.EventdrivenException;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.coordination.webapi.requestDtos.CreatePostRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.aggregate.Author;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.AuthorDto;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = EventdrivenException.class)
 public class PostService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -46,10 +48,13 @@ public class PostService {
             postDto.setContent(createRequest.getContent());
             postDto.setPublishedAt(createRequest.getPublishedAt());
             if (createRequest.getAuthor() != null) {
+                Author refSource = (Author) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getAuthor().getAggregateId(), unitOfWork);
+                AuthorDto refSourceDto = new AuthorDto(refSource);
                 PostAuthorDto authorDto = new PostAuthorDto();
-                authorDto.setAggregateId(createRequest.getAuthor().getAggregateId());
-                authorDto.setVersion(createRequest.getAuthor().getVersion());
-                authorDto.setState(createRequest.getAuthor().getState() != null ? createRequest.getAuthor().getState().name() : null);
+                authorDto.setAggregateId(refSourceDto.getAggregateId());
+                authorDto.setVersion(refSourceDto.getVersion());
+                authorDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                authorDto.setName(refSourceDto.getName());
                 postDto.setAuthor(authorDto);
             }
 
@@ -82,7 +87,14 @@ public class PostService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Post) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Post) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(postFactory::createPostDto)
                 .collect(Collectors.toList());
         } catch (EventdrivenException e) {

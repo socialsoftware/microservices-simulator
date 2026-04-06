@@ -27,6 +27,12 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentTopicRemovedEv
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentTopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.coordination.webapi.requestDtos.CreateTournamentRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.Topic;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
 
 
 @Service
@@ -70,18 +76,24 @@ public class TournamentService {
                 }).collect(Collectors.toSet()));
             }
             if (createRequest.getExecution() != null) {
+                Execution refSource = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getExecution().getAggregateId(), unitOfWork);
+                ExecutionDto refSourceDto = new ExecutionDto(refSource);
                 TournamentExecutionDto executionDto = new TournamentExecutionDto();
-                executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
-                executionDto.setVersion(createRequest.getExecution().getVersion());
-                executionDto.setState(createRequest.getExecution().getState() != null ? createRequest.getExecution().getState().name() : null);
+                executionDto.setAggregateId(refSourceDto.getAggregateId());
+                executionDto.setVersion(refSourceDto.getVersion());
+                executionDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                executionDto.setAcronym(refSourceDto.getAcronym());
                 tournamentDto.setExecution(executionDto);
             }
             if (createRequest.getTopics() != null) {
-                tournamentDto.setTopics(createRequest.getTopics().stream().map(srcDto -> {
+                tournamentDto.setTopics(createRequest.getTopics().stream().map(reqDto -> {
+                    Topic refItem = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(reqDto.getAggregateId(), unitOfWork);
+                    TopicDto refItemDto = new TopicDto(refItem);
                     TournamentTopicDto projDto = new TournamentTopicDto();
-                    projDto.setAggregateId(srcDto.getAggregateId());
-                    projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
+                    projDto.setAggregateId(refItemDto.getAggregateId());
+                    projDto.setVersion(refItemDto.getVersion());
+                    projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
+                    projDto.setName(refItemDto.getName());
                     return projDto;
                 }).collect(Collectors.toSet()));
             }

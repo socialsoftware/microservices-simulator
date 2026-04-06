@@ -40,9 +40,9 @@ public class ProductCommandHandler extends CommandHandler {
         logger.info("handleCreateProduct");
         try {
             return productService.createProduct(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class ProductCommandHandler extends CommandHandler {
         logger.info("handleGetProductById");
         try {
             return productService.getProductById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class ProductCommandHandler extends CommandHandler {
         logger.info("handleGetAllProducts");
         try {
             return productService.getAllProducts(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class ProductCommandHandler extends CommandHandler {
         logger.info("handleUpdateProduct");
         try {
             return productService.updateProduct(cmd.getProductDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class ProductCommandHandler extends CommandHandler {
         try {
             productService.deleteProduct(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

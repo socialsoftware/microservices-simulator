@@ -62,6 +62,9 @@ public abstract class Enrollment extends Aggregate {
 
     public void setCourse(EnrollmentCourse course) {
         this.course = course;
+        if (this.course != null) {
+            this.course.setEnrollment(this);
+        }
     }
 
     public Set<EnrollmentTeacher> getTeachers() {
@@ -70,6 +73,9 @@ public abstract class Enrollment extends Aggregate {
 
     public void setTeachers(Set<EnrollmentTeacher> teachers) {
         this.teachers = teachers;
+        if (this.teachers != null) {
+            this.teachers.forEach(item -> item.setEnrollment(this));
+        }
     }
 
     public void addEnrollmentTeacher(EnrollmentTeacher enrollmentTeacher) {

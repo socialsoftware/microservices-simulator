@@ -25,6 +25,14 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerQuestionUpdatedEve
 import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerExecutionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.coordination.webapi.requestDtos.CreateAnswerRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.User;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 
 @Service
@@ -58,10 +66,13 @@ public class AnswerService {
                 answerDto.setExecution(executionDto);
             }
             if (createRequest.getUser() != null) {
+                User refSource = (User) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getUser().getAggregateId(), unitOfWork);
+                UserDto refSourceDto = new UserDto(refSource);
                 AnswerUserDto userDto = new AnswerUserDto();
-                userDto.setAggregateId(createRequest.getUser().getAggregateId());
-                userDto.setVersion(createRequest.getUser().getVersion());
-                userDto.setState(createRequest.getUser().getState() != null ? createRequest.getUser().getState().name() : null);
+                userDto.setAggregateId(refSourceDto.getAggregateId());
+                userDto.setVersion(refSourceDto.getVersion());
+                userDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                userDto.setName(refSourceDto.getName());
                 answerDto.setUser(userDto);
             }
             if (createRequest.getQuiz() != null) {

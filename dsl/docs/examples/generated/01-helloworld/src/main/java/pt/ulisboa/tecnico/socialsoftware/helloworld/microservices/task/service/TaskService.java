@@ -21,7 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.helloworld.microservices.task.coordinat
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = HelloworldException.class)
 public class TaskService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -73,7 +73,14 @@ public class TaskService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Task) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Task) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(taskFactory::createTaskDto)
                 .collect(Collectors.toList());
         } catch (HelloworldException e) {

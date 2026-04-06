@@ -19,6 +19,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.TopicDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.coordination.webapi.requestDtos.CreateTopicRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.Course;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
 
 
 @Service

@@ -40,9 +40,9 @@ public class UserCommandHandler extends CommandHandler {
         logger.info("handleCreateUser");
         try {
             return userService.createUser(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class UserCommandHandler extends CommandHandler {
         logger.info("handleGetUserById");
         try {
             return userService.getUserById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class UserCommandHandler extends CommandHandler {
         logger.info("handleGetAllUsers");
         try {
             return userService.getAllUsers(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class UserCommandHandler extends CommandHandler {
         logger.info("handleUpdateUser");
         try {
             return userService.updateUser(cmd.getUserDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class UserCommandHandler extends CommandHandler {
         try {
             userService.deleteUser(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

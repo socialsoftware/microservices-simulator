@@ -20,10 +20,12 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.events.OrderUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.OrderUserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.coordination.webapi.requestDtos.CreateOrderRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.aggregate.User;
+import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.UserDto;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = TeastoreException.class)
 public class OrderService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -51,10 +53,15 @@ public class OrderService {
             orderDto.setCreditCardNumber(createRequest.getCreditCardNumber());
             orderDto.setCreditCardExpiryDate(createRequest.getCreditCardExpiryDate());
             if (createRequest.getUser() != null) {
+                User refSource = (User) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getUser().getAggregateId(), unitOfWork);
+                UserDto refSourceDto = new UserDto(refSource);
                 OrderUserDto userDto = new OrderUserDto();
-                userDto.setAggregateId(createRequest.getUser().getAggregateId());
-                userDto.setVersion(createRequest.getUser().getVersion());
-                userDto.setState(createRequest.getUser().getState() != null ? createRequest.getUser().getState().name() : null);
+                userDto.setAggregateId(refSourceDto.getAggregateId());
+                userDto.setVersion(refSourceDto.getVersion());
+                userDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                userDto.setUserName(refSourceDto.getUserName());
+                userDto.setRealName(refSourceDto.getRealName());
+                userDto.setEmail(refSourceDto.getEmail());
                 orderDto.setUser(userDto);
             }
 
@@ -87,7 +94,14 @@ public class OrderService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Order) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Order) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(orderFactory::createOrderDto)
                 .collect(Collectors.toList());
         } catch (TeastoreException e) {

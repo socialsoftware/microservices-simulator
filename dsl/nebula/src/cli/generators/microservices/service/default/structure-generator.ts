@@ -3,7 +3,7 @@ import { capitalize } from "../../../../utils/generator-utils.js";
 import { getGlobalConfig } from "../../../common/config.js";
 import { ServiceContext } from "./types.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
-import { getEvents, findPreventReferencesTo } from "../../../../utils/aggregate-helpers.js";
+import { getEvents, findPreventReferencesTo, findRootAggregateByName } from "../../../../utils/aggregate-helpers.js";
 import { EventNameParser } from "../../../common/utils/event-name-parser.js";
 
 export class ServiceStructureGenerator {
@@ -197,6 +197,21 @@ export class ServiceStructureGenerator {
                 imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', sourceLower, 'aggregate')}.${ref.sourceAggregateName};`);
             }
         }
+
+        const enrichableSources = new Set<string>();
+        for (const entity of aggregate.entities || []) {
+            const aggRef = (entity as any).aggregateRef;
+            if (!aggRef || aggRef === aggregateName) continue;
+            if (findRootAggregateByName(aggRef)) {
+                enrichableSources.add(aggRef);
+            }
+        }
+        for (const sourceName of enrichableSources) {
+            const sourceLower = sourceName.toLowerCase();
+            imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', sourceLower, 'aggregate')}.${sourceName};`);
+            imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'shared', 'dtos')}.${sourceName}Dto;`);
+        }
+
         imports.push('');
 
         return imports.join('\n');

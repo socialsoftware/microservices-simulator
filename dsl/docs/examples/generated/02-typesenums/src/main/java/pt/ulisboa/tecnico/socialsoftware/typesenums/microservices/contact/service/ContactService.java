@@ -22,7 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.typesenums.microservices.contact.coordi
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = TypesenumsException.class)
 public class ContactService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -78,7 +78,14 @@ public class ContactService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Contact) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Contact) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(contactFactory::createContactDto)
                 .collect(Collectors.toList());
         } catch (TypesenumsException e) {

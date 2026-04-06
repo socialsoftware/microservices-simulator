@@ -3,6 +3,7 @@ import { MethodGeneratorTemplate, MethodMetadata, GenerationOptions } from "../.
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { CrudHelpers } from "../../../common/crud-helpers.js";
 import { EntityRelationshipExtractor } from "../crud/entity-relationship-extractor.js";
+import { findRootAggregateByName, getEntities } from "../../../../utils/aggregate-helpers.js";
 
 
 
@@ -80,6 +81,70 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
 
             if (rel.aggregateRef) {
                 const projectionDtoName = `${rel.entityName}Dto`;
+                const sourceAggregateName = rel.aggregateRef;
+
+                const sourceAggregate = findRootAggregateByName(sourceAggregateName);
+                const sourceRoot = sourceAggregate
+                    ? getEntities(sourceAggregate).find(e => (e as any).isRoot)
+                    : undefined;
+
+                const projectionEntity = (aggregate.aggregateElements || []).find(
+                    (el: any) => el.$type === 'Entity' && el.name === rel.entityName
+                ) as any;
+
+                let enrichableMappings: Array<{ field: string; isEnumState: boolean }> = [];
+                if (sourceRoot && projectionEntity?.fieldMappings) {
+                    for (const m of projectionEntity.fieldMappings) {
+                        const parts = m.dtoField?.parts || [];
+                        if (parts.length !== 1) continue;
+                        const dtoFieldName = parts[0];
+                        const sourceProp = (sourceRoot as any).properties?.find(
+                            (p: any) => p.name === dtoFieldName
+                        );
+                        if (!sourceProp) continue;
+                        enrichableMappings.push({ field: dtoFieldName, isEnumState: dtoFieldName === 'state' });
+                    }
+                }
+
+                const canEnrich = sourceRoot !== undefined && enrichableMappings.length > 0;
+
+                if (canEnrich) {
+                    const sourceClass = sourceAggregateName;
+                    const sourceDtoClass = `${sourceAggregateName}Dto`;
+                    const enrichLines = enrichableMappings.map(m => {
+                        const cap = this.capitalize(m.field);
+                        return `                ${rel.paramName}Dto.set${cap}(refSourceDto.get${cap}());`;
+                    }).join('\n');
+
+                    if (rel.isCollection) {
+                        const itemEnrichLines = enrichableMappings.map(m => {
+                            const cap = this.capitalize(m.field);
+                            return `                    projDto.set${cap}(refItemDto.get${cap}());`;
+                        }).join('\n');
+                        return `            if (createRequest.get${capitalizedName}() != null) {
+                ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}().stream().map(reqDto -> {
+                    ${sourceClass} refItem = (${sourceClass}) unitOfWorkService.aggregateLoadAndRegisterRead(reqDto.getAggregateId(), unitOfWork);
+                    ${sourceDtoClass} refItemDto = new ${sourceDtoClass}(refItem);
+                    ${projectionDtoName} projDto = new ${projectionDtoName}();
+                    projDto.setAggregateId(refItemDto.getAggregateId());
+                    projDto.setVersion(refItemDto.getVersion());
+                    projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
+${itemEnrichLines}
+                    return projDto;
+                }).collect(Collectors.to${rel.collectionType}()));
+            }`;
+                    }
+                    return `            if (createRequest.get${capitalizedName}() != null) {
+                ${sourceClass} refSource = (${sourceClass}) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.get${capitalizedName}().getAggregateId(), unitOfWork);
+                ${sourceDtoClass} refSourceDto = new ${sourceDtoClass}(refSource);
+                ${projectionDtoName} ${rel.paramName}Dto = new ${projectionDtoName}();
+                ${rel.paramName}Dto.setAggregateId(refSourceDto.getAggregateId());
+                ${rel.paramName}Dto.setVersion(refSourceDto.getVersion());
+                ${rel.paramName}Dto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+${enrichLines}
+                ${lowerAggregate}Dto.set${capitalizedName}(${rel.paramName}Dto);
+            }`;
+                }
 
                 if (rel.isCollection) {
                     return `            if (createRequest.get${capitalizedName}() != null) {
@@ -91,15 +156,14 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
                     return projDto;
                 }).collect(Collectors.to${rel.collectionType}()));
             }`;
-                } else {
-                    return `            if (createRequest.get${capitalizedName}() != null) {
+                }
+                return `            if (createRequest.get${capitalizedName}() != null) {
                 ${projectionDtoName} ${rel.paramName}Dto = new ${projectionDtoName}();
                 ${rel.paramName}Dto.setAggregateId(createRequest.get${capitalizedName}().getAggregateId());
                 ${rel.paramName}Dto.setVersion(createRequest.get${capitalizedName}().getVersion());
                 ${rel.paramName}Dto.setState(createRequest.get${capitalizedName}().getState() != null ? createRequest.get${capitalizedName}().getState().name() : null);
                 ${lowerAggregate}Dto.set${capitalizedName}(${rel.paramName}Dto);
             }`;
-                }
             } else {
                 return `            ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}());`;
             }

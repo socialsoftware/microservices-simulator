@@ -29,6 +29,10 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Qu
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentRepository;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.Course;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.User;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 
 
 @Service
@@ -58,18 +62,27 @@ public class ExecutionService {
             executionDto.setAcademicTerm(createRequest.getAcademicTerm());
             executionDto.setEndDate(createRequest.getEndDate());
             if (createRequest.getCourse() != null) {
+                Course refSource = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getCourse().getAggregateId(), unitOfWork);
+                CourseDto refSourceDto = new CourseDto(refSource);
                 ExecutionCourseDto courseDto = new ExecutionCourseDto();
-                courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
-                courseDto.setVersion(createRequest.getCourse().getVersion());
-                courseDto.setState(createRequest.getCourse().getState() != null ? createRequest.getCourse().getState().name() : null);
+                courseDto.setAggregateId(refSourceDto.getAggregateId());
+                courseDto.setVersion(refSourceDto.getVersion());
+                courseDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                courseDto.setName(refSourceDto.getName());
+                courseDto.setType(refSourceDto.getType());
                 executionDto.setCourse(courseDto);
             }
             if (createRequest.getUsers() != null) {
-                executionDto.setUsers(createRequest.getUsers().stream().map(srcDto -> {
+                executionDto.setUsers(createRequest.getUsers().stream().map(reqDto -> {
+                    User refItem = (User) unitOfWorkService.aggregateLoadAndRegisterRead(reqDto.getAggregateId(), unitOfWork);
+                    UserDto refItemDto = new UserDto(refItem);
                     ExecutionUserDto projDto = new ExecutionUserDto();
-                    projDto.setAggregateId(srcDto.getAggregateId());
-                    projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
+                    projDto.setAggregateId(refItemDto.getAggregateId());
+                    projDto.setVersion(refItemDto.getVersion());
+                    projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
+                    projDto.setName(refItemDto.getName());
+                    projDto.setUsername(refItemDto.getUsername());
+                    projDto.setActive(refItemDto.getActive());
                     return projDto;
                 }).collect(Collectors.toSet()));
             }

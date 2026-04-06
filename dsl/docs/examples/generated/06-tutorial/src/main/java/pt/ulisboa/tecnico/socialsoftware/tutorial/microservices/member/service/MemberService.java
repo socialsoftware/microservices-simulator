@@ -22,7 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.member.coordinat
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = TutorialException.class)
 public class MemberService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -74,7 +74,14 @@ public class MemberService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Member) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Member) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(memberFactory::createMemberDto)
                 .collect(Collectors.toList());
         } catch (TutorialException e) {

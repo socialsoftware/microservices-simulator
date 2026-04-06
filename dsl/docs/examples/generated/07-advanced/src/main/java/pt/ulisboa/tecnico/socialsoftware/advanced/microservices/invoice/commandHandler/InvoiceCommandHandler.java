@@ -40,9 +40,9 @@ public class InvoiceCommandHandler extends CommandHandler {
         logger.info("handleCreateInvoice");
         try {
             return invoiceService.createInvoice(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class InvoiceCommandHandler extends CommandHandler {
         logger.info("handleGetInvoiceById");
         try {
             return invoiceService.getInvoiceById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class InvoiceCommandHandler extends CommandHandler {
         logger.info("handleGetAllInvoices");
         try {
             return invoiceService.getAllInvoices(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class InvoiceCommandHandler extends CommandHandler {
         logger.info("handleUpdateInvoice");
         try {
             return invoiceService.updateInvoice(cmd.getInvoiceDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class InvoiceCommandHandler extends CommandHandler {
         try {
             invoiceService.deleteInvoice(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

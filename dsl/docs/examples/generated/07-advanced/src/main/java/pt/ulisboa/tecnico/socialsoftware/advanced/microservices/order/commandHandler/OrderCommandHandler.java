@@ -40,9 +40,9 @@ public class OrderCommandHandler extends CommandHandler {
         logger.info("handleCreateOrder");
         try {
             return orderService.createOrder(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class OrderCommandHandler extends CommandHandler {
         logger.info("handleGetOrderById");
         try {
             return orderService.getOrderById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class OrderCommandHandler extends CommandHandler {
         logger.info("handleGetAllOrders");
         try {
             return orderService.getAllOrders(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class OrderCommandHandler extends CommandHandler {
         logger.info("handleUpdateOrder");
         try {
             return orderService.updateOrder(cmd.getOrderDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class OrderCommandHandler extends CommandHandler {
         try {
             orderService.deleteOrder(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

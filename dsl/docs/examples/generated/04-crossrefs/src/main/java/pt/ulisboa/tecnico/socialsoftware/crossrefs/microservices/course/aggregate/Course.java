@@ -79,6 +79,9 @@ public abstract class Course extends Aggregate {
 
     public void setTeacher(CourseTeacher teacher) {
         this.teacher = teacher;
+        if (this.teacher != null) {
+            this.teacher.setCourse(this);
+        }
     }
 
 

@@ -40,9 +40,9 @@ public class TaskCommandHandler extends CommandHandler {
         logger.info("handleCreateTask");
         try {
             return taskService.createTask(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class TaskCommandHandler extends CommandHandler {
         logger.info("handleGetTaskById");
         try {
             return taskService.getTaskById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class TaskCommandHandler extends CommandHandler {
         logger.info("handleGetAllTasks");
         try {
             return taskService.getAllTasks(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class TaskCommandHandler extends CommandHandler {
         logger.info("handleUpdateTask");
         try {
             return taskService.updateTask(cmd.getTaskDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class TaskCommandHandler extends CommandHandler {
         try {
             taskService.deleteTask(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

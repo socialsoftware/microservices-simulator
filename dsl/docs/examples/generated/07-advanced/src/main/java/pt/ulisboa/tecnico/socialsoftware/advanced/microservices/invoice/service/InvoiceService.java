@@ -20,10 +20,14 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.events.InvoiceDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.events.InvoiceUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.exception.AdvancedException;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.coordination.webapi.requestDtos.CreateInvoiceRequestDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.Order;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderDto;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.aggregate.Customer;
+import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.CustomerDto;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AdvancedException.class)
 public class InvoiceService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -53,10 +57,14 @@ public class InvoiceService {
                 invoiceDto.setOrder(orderDto);
             }
             if (createRequest.getCustomer() != null) {
+                Customer refSource = (Customer) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getCustomer().getAggregateId(), unitOfWork);
+                CustomerDto refSourceDto = new CustomerDto(refSource);
                 InvoiceCustomerDto customerDto = new InvoiceCustomerDto();
-                customerDto.setAggregateId(createRequest.getCustomer().getAggregateId());
-                customerDto.setVersion(createRequest.getCustomer().getVersion());
-                customerDto.setState(createRequest.getCustomer().getState() != null ? createRequest.getCustomer().getState().name() : null);
+                customerDto.setAggregateId(refSourceDto.getAggregateId());
+                customerDto.setVersion(refSourceDto.getVersion());
+                customerDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                customerDto.setName(refSourceDto.getName());
+                customerDto.setEmail(refSourceDto.getEmail());
                 invoiceDto.setCustomer(customerDto);
             }
 
@@ -89,7 +97,14 @@ public class InvoiceService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Invoice) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Invoice) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(invoiceFactory::createInvoiceDto)
                 .collect(Collectors.toList());
         } catch (AdvancedException e) {

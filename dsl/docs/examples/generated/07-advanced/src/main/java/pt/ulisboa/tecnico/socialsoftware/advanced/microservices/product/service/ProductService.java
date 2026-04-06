@@ -21,7 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.product.coordina
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AdvancedException.class)
 public class ProductService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -73,7 +73,14 @@ public class ProductService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Product) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Product) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(productFactory::createProductDto)
                 .collect(Collectors.toList());
         } catch (AdvancedException e) {

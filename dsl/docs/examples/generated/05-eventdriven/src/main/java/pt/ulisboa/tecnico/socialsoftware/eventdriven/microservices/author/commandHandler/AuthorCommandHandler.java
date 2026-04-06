@@ -40,9 +40,9 @@ public class AuthorCommandHandler extends CommandHandler {
         logger.info("handleCreateAuthor");
         try {
             return authorService.createAuthor(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class AuthorCommandHandler extends CommandHandler {
         logger.info("handleGetAuthorById");
         try {
             return authorService.getAuthorById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class AuthorCommandHandler extends CommandHandler {
         logger.info("handleGetAllAuthors");
         try {
             return authorService.getAllAuthors(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class AuthorCommandHandler extends CommandHandler {
         logger.info("handleUpdateAuthor");
         try {
             return authorService.updateAuthor(cmd.getAuthorDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class AuthorCommandHandler extends CommandHandler {
         try {
             authorService.deleteAuthor(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

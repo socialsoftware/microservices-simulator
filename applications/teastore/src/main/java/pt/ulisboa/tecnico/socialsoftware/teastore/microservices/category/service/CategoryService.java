@@ -18,10 +18,13 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.events.CategoryDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.CategoryUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.coordination.webapi.requestDtos.CreateCategoryRequestDto;
+import org.springframework.context.ApplicationContext;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.ProductRepository;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.Product;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = TeastoreException.class)
 public class CategoryService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -34,6 +37,9 @@ public class CategoryService {
 
     @Autowired
     private CategoryFactory categoryFactory;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public CategoryService() {}
 
@@ -72,7 +78,14 @@ public class CategoryService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Category) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Category) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(categoryFactory::createCategoryDto)
                 .collect(Collectors.toList());
         } catch (TeastoreException e) {
@@ -107,6 +120,13 @@ public class CategoryService {
 
     public void deleteCategory(Integer id, UnitOfWork unitOfWork) {
         try {
+            ProductRepository productRepositoryRef = applicationContext.getBean(ProductRepository.class);
+            boolean hasProductReferences = productRepositoryRef.findAll().stream()
+                .filter(s -> s.getState() != Category.AggregateState.DELETED)
+                .anyMatch(s -> s.getProductCategory() != null && id.equals(s.getProductCategory().getCategoryAggregateId()));
+            if (hasProductReferences) {
+                throw new TeastoreException("Cannot delete category that has products");
+            }
             Category oldCategory = (Category) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Category newCategory = categoryFactory.createCategoryFromExisting(oldCategory);
             newCategory.remove();
