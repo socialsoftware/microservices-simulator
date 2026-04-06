@@ -66,53 +66,18 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
   </dependencies>
   <profiles>
     <profile>
-      <id>dev</id>
-      <properties>
-        <activatedProperties>dev</activatedProperties>
-      </properties>
+      <id>sagas</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
-    </profile>
-    <profile>
-      <id>sagas</id>
       <properties>
         <activatedProperties>sagas,local</activatedProperties>
-      </properties>
-    </profile>
-    <profile>
-      <id>dev-sagas</id>
-      <properties>
-        <activatedProperties>dev,sagas,local</activatedProperties>
       </properties>
     </profile>
     <profile>
       <id>test-sagas</id>
       <properties>
         <activatedProperties>test,sagas,local</activatedProperties>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.gmavenplus</groupId>
-            <artifactId>gmavenplus-plugin</artifactId>
-            <version>4.2.0</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>addTestSources</goal>
-                  <goal>compileTests</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>test</id>
-      <properties>
-        <activatedProperties>test</activatedProperties>
       </properties>
       <build>
         <plugins>
