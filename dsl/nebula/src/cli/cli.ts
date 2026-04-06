@@ -1,13 +1,14 @@
 import { Command } from "commander";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import { CodeGenerator } from "./engine/code-generator.js";
 import { DEFAULT_OUTPUT_DIR } from "./engine/types.js";
 import { ErrorHandler, ErrorUtils } from "./utils/error-handler.js";
 import { InputValidator } from "./utils/input-validator.js";
 import chalk from "chalk";
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packagePath = path.resolve(__dirname, "..", "..", "package.json");
 
 export default async function cli(): Promise<void> {

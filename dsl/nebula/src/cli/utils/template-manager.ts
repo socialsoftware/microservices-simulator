@@ -3,6 +3,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import Handlebars from 'handlebars';
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from './error-handler.js';
 
@@ -198,7 +199,7 @@ export class TemplateManager {
 
         
         const currentFileUrl = import.meta.url;
-        const currentFilePath = new URL(currentFileUrl).pathname;
+        const currentFilePath = fileURLToPath(currentFileUrl);
         const currentDir = path.dirname(currentFilePath);
         
         return path.join(currentDir, '../templates');
