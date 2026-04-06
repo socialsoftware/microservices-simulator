@@ -77,19 +77,19 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <profile>
       <id>sagas</id>
       <properties>
-        <activatedProperties>sagas</activatedProperties>
+        <activatedProperties>sagas,local</activatedProperties>
       </properties>
     </profile>
     <profile>
       <id>dev-sagas</id>
       <properties>
-        <activatedProperties>dev,sagas</activatedProperties>
+        <activatedProperties>dev,sagas,local</activatedProperties>
       </properties>
     </profile>
     <profile>
       <id>test-sagas</id>
       <properties>
-        <activatedProperties>test,sagas</activatedProperties>
+        <activatedProperties>test,sagas,local</activatedProperties>
       </properties>
       <build>
         <plugins>
