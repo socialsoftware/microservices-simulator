@@ -34,6 +34,10 @@ export class CommandHandlerGenerator {
             commandHandlerPackage, capitalizedAggregate, lowerAggregate, basePackage
         );
 
+        results[`${capitalizedAggregate}GrpcCommandHandler.java`] = this.generateGrpcCommandHandler(
+            commandHandlerPackage, capitalizedAggregate, lowerAggregate, basePackage
+        );
+
         return results;
     }
 
@@ -201,6 +205,49 @@ public class ${className} extends StreamCommandHandler {
     @Bean
     public Consumer<Message<?>> ${lowerAggregate}ServiceCommandChannel() {
         return this::handleCommandMessage;
+    }
+}
+`;
+    }
+
+    private generateGrpcCommandHandler(
+        packageName: string,
+        capitalizedAggregate: string,
+        lowerAggregate: string,
+        basePackage: string
+    ): string {
+        const className = `${capitalizedAggregate}GrpcCommandHandler`;
+        const commandHandlerClass = `${capitalizedAggregate}CommandHandler`;
+        const commandHandlerField = `${lowerAggregate}CommandHandler`;
+
+        return `package ${packageName};
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+import ${basePackage}.ms.coordination.workflow.command.Command;
+import ${basePackage}.ms.coordination.workflow.command.MessagingObjectMapperProvider;
+import ${basePackage}.ms.coordination.workflow.command.grpc.GrpcCommandHandler;
+
+@Component
+@Profile("grpc")
+public class ${className} extends GrpcCommandHandler {
+
+    private final ${commandHandlerClass} ${commandHandlerField};
+
+    public ${className}(MessagingObjectMapperProvider mapperProvider,
+            ${commandHandlerClass} ${commandHandlerField}) {
+        super(mapperProvider);
+        this.${commandHandlerField} = ${commandHandlerField};
+    }
+
+    @Override
+    protected String getAggregateTypeName() {
+        return "${capitalizedAggregate}";
+    }
+
+    @Override
+    protected Object handleDomainCommand(Command command) {
+        return ${commandHandlerField}.handleDomainCommand(command);
     }
 }
 `;
