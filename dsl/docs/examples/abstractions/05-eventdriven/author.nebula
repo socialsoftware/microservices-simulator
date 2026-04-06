@@ -1,0 +1,23 @@
+Aggregate Author {
+    @GenerateCrud
+
+    Root Entity Author {
+        String name
+        String bio
+
+        invariants {
+            check nameNotBlank { name.length() > 0 } error "Author name cannot be blank"
+        }
+    }
+
+    Events {
+        publish AuthorUpdatedEvent {
+            String name
+            String bio
+        }
+
+        publish AuthorDeletedEvent {
+            String name
+        }
+    }
+}

@@ -18,6 +18,7 @@ data/figs/*.bkp
 *.iws
 *.iml
 *.ipr
+.vscode/
 
 ### NetBeans ###
 /nbproject/private/

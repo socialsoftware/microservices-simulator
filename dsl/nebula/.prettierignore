@@ -1,0 +1,12 @@
+# Ignore Handlebars templates - they need to preserve whitespace for Java code generation
+templates/**/*.hbs
+*.hbs
+
+# Build output
+out/
+node_modules/
+dist/
+
+# Generated files
+*.vsix
+

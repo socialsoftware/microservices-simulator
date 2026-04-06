@@ -1,0 +1,21 @@
+Aggregate User {
+    @GenerateCrud
+
+    Root Entity User {
+        String name
+        String username
+        final UserRole role
+        Boolean active
+
+        invariants {
+            check nameNotBlank { name.length() > 0 }
+                error "User name cannot be blank"
+
+            check usernameNotBlank { username.length() > 0 }
+                error "Username cannot be blank"
+
+            check roleNotNull { role != null }
+                error "User role is required"
+        }
+    }
+}

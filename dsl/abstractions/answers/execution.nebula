@@ -1,0 +1,65 @@
+Aggregate Execution {
+    @GenerateCrud
+
+    Entity ExecutionCourse from Course {
+        map name as courseName
+        map type as courseType
+    }
+
+    Entity ExecutionUser from User {
+        map name as userName
+        map username as userUsername
+        map active as userActive
+    }
+
+    Root Entity Execution {
+        String acronym
+        String academicTerm
+        LocalDateTime endDate
+        ExecutionCourse course
+        Set<ExecutionUser> users
+
+        invariants {
+            check acronymNotBlank { acronym.length() > 0 }
+                error "Execution acronym cannot be blank"
+
+            check academicTermNotBlank { academicTerm.length() > 0 }
+                error "Academic term cannot be blank"
+
+            check courseNotNull { course != null }
+                error "Execution must be associated with a course"
+
+            check usersNotNull { users != null }
+                error "Execution must have a users collection"
+        }
+    }
+
+    References {
+        course -> Course {
+            onDelete: prevent
+            message: "Cannot delete course that has executions"
+        }
+    }
+
+    Events {
+        interInvariant COURSE_EXISTS {
+            subscribe CourseDeletedEvent from Course {
+                course.courseAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant USERS_EXIST {
+            subscribe UserDeletedEvent from User {
+                users.userAggregateId == event.aggregateId
+            }
+            subscribe UserUpdatedEvent from User {
+                users.userAggregateId == event.aggregateId
+            }
+        }
+    }
+
+    Repository {
+        @Query("select e1.aggregateId from Execution e1 where e1.aggregateId NOT IN (select e2.aggregateId from Execution e2 where e2.state = 'DELETED' AND e2.sagaState != 'NOT_IN_SAGA')")
+        Set<Integer> findCourseExecutionIdsOfAllNonDeletedForSaga()
+    }
+}

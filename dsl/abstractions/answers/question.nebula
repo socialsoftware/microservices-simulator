@@ -1,0 +1,69 @@
+Aggregate Question {
+    @GenerateCrud
+
+    Entity QuestionCourse from Course {
+        map name as courseName
+    }
+
+    Entity QuestionTopic from Topic {
+        Integer topicId
+        AggregateState topicState
+        map name as topicName
+    }
+
+    Dto Entity Option {
+        Integer key
+        Integer sequence
+        Boolean correct
+        String content
+    }
+
+    Root Entity Question {
+        String title
+        String content
+        LocalDateTime creationDate
+        QuestionCourse course
+        Set<QuestionTopic> topics
+        List<Option> options
+
+        invariants {
+            check titleNotBlank { title.length() > 0 }
+                error "Question title cannot be blank"
+
+            check contentNotBlank { content.length() > 0 }
+                error "Question content cannot be blank"
+
+            check courseNotNull { course != null }
+                error "Question must be associated with a course"
+
+            check topicsNotNull { topics != null }
+                error "Question must have a topics collection"
+
+            check optionsNotNull { options != null }
+                error "Question must have an options collection"
+        }
+    }
+
+    References {
+        course -> Course {
+            onDelete: prevent
+            message: "Cannot delete course that has questions"
+        }
+    }
+
+    Events {
+        subscribe TopicUpdatedEvent
+
+        interInvariant QUESTION_COURSE_EXISTS {
+            subscribe CourseDeletedEvent from Course {
+                course.courseAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant QUESTION_TOPICS_EXIST {
+            subscribe TopicDeletedEvent from Topic {
+                topics.topicAggregateId == event.aggregateId
+            }
+        }
+    }
+}

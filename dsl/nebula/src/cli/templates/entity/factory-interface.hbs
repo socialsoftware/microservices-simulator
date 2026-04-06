@@ -1,0 +1,11 @@
+package {{packageName}};
+
+{{#if imports}}
+{{imports}}
+
+{{/if}}
+public interface {{aggregateName}}Factory {
+    {{aggregateName}} create{{aggregateName}}({{createMethodParams}});
+    {{aggregateName}} create{{aggregateName}}FromExisting({{aggregateName}} existing{{aggregateName}});
+    {{dtoName}} create{{aggregateName}}Dto({{aggregateName}} {{lowerAggregateName}});
+}

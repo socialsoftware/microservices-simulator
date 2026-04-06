@@ -1,0 +1,6 @@
+{
+    "basePackage": "pt.ulisboa.tecnico.socialsoftware",
+    "framework": {
+        "version": "3.1.0-SNAPSHOT"
+    }
+}

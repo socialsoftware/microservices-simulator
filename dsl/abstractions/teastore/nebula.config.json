@@ -1,0 +1,19 @@
+{
+    "projectName": "teastore",
+    "basePackage": "pt.ulisboa.tecnico.socialsoftware",
+    "consistencyModels": [
+        "sagas"
+    ],
+    "database": {
+        "type": "postgresql",
+        "host": "postgres",
+        "port": 5432,
+        "name": "teastoredb",
+        "username": "postgres",
+        "password": "password"
+    },
+    "java": {
+        "version": "21",
+        "springBootVersion": "3.5.3"
+    }
+}

@@ -1,0 +1,53 @@
+Aggregate Product {
+    @GenerateCrud
+
+    Entity ProductCategory from Category {
+        map name as categoryName
+        map description as categoryDescription
+    }
+
+    Root Entity Product {
+        ProductCategory productCategory
+        String name
+        String description
+        Double listPriceInCents
+
+        invariants {
+            check nameNotEmpty { name.length() > 0 }
+                error "Product name cannot be empty"
+
+            check priceNonNegative { listPriceInCents >= 0.0 }
+                error "Product price cannot be negative"
+        }
+    }
+
+    Events {
+        publish CreateProductEvent {
+            String name
+            String categoryName
+            Double listPriceInCents
+        }
+
+        publish UpdateProductEvent {
+            String name
+            String description
+            Double listPriceInCents
+            String categoryName
+        }
+
+        subscribe CategoryUpdatedEvent
+
+        interInvariant PRODUCT_CATEGORY_EXISTS {
+            subscribe CategoryDeletedEvent from Category {
+                productCategory.categoryAggregateId == event.aggregateId
+            }
+        }
+    }
+
+    References {
+        productCategory -> Category {
+            onDelete: prevent
+            message: "Cannot delete category that has products"
+        }
+    }
+}

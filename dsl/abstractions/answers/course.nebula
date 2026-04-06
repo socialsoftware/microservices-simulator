@@ -1,0 +1,22 @@
+Aggregate Course {
+    @GenerateCrud
+
+    Root Entity Course {
+        String name
+        final CourseType type = CourseType.TECNICO
+        LocalDateTime creationDate
+
+        invariants {
+            check nameNotBlank { name.length() > 0 }
+                error "Course name cannot be blank"
+
+            check typeNotNull { type != null }
+                error "Course type is required"
+        }
+    }
+
+    Repository {
+        @Query("select c1.id from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE' AND c1.sagaState = 'NOT_IN_SAGA'")
+        Optional<Integer> findCourseIdByNameForSaga(String courseName)
+    }
+}

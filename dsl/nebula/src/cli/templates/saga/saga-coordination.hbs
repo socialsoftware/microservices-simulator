@@ -1,0 +1,42 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+public class {{aggregateName}}SagaCoordination extends WorkflowFunctionality {
+private {{rootEntityName}}Dto {{lowerAggregate}}Dto;
+private Saga{{aggregateName}}Dto {{lowerAggregate}};
+private final {{aggregateName}}Service {{lowerAggregate}}Service;
+private final SagaUnitOfWorkService unitOfWorkService;
+
+public {{aggregateName}}SagaCoordination({{aggregateName}}Service {{lowerAggregate}}Service, SagaUnitOfWorkService
+unitOfWorkService,
+{{rootEntityName}}Dto {{lowerAggregate}}Dto, SagaUnitOfWork unitOfWork) {
+this.{{lowerAggregate}}Service = {{lowerAggregate}}Service;
+this.unitOfWorkService = unitOfWorkService;
+this.buildWorkflow({{lowerAggregate}}Dto, unitOfWork);
+}
+
+public void buildWorkflow({{rootEntityName}}Dto {{lowerAggregate}}Dto, SagaUnitOfWork unitOfWork) {
+this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+// Saga coordination logic will be implemented here
+}
+
+// Getters and setters
+public {{rootEntityName}}Dto get{{aggregateName}}Dto() {
+return {{lowerAggregate}}Dto;
+}
+
+public void set{{aggregateName}}Dto({{rootEntityName}}Dto {{lowerAggregate}}Dto) {
+this.{{lowerAggregate}}Dto = {{lowerAggregate}}Dto;
+}
+
+public Saga{{aggregateName}}Dto get{{aggregateName}}() {
+return {{lowerAggregate}};
+}
+
+public void set{{aggregateName}}(Saga{{aggregateName}}Dto {{lowerAggregate}}) {
+this.{{lowerAggregate}} = {{lowerAggregate}};
+}
+}

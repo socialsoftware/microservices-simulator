@@ -1,0 +1,143 @@
+Aggregate Tournament {
+    @GenerateCrud
+
+    Root Entity Tournament {
+       LocalDateTime startTime
+       LocalDateTime endTime
+       Integer numberOfQuestions
+       Boolean cancelled
+       TournamentCreator creator
+       Set<TournamentParticipant> participants
+       TournamentExecution execution
+       Set<TournamentTopic> topics
+       TournamentQuiz quiz
+
+       invariants {
+           check startTimeBeforeEndTime {
+               startTime.isBefore(endTime)
+           }
+               error "Tournament start time must be before end time"
+
+           check participantsNotNull {
+               participants != null
+           }
+               error "Tournament must have a participants collection"
+
+           check creatorNotNull {
+               creator != null
+           }
+               error "Tournament must have a creator"
+
+           check executionNotNull {
+               execution != null
+           }
+               error "Tournament must be associated with an execution"
+
+           check topicsNotNull {
+               topics != null
+           }
+               error "Tournament must have a topics collection"
+
+           check quizNotNull {
+               quiz != null
+           }
+               error "Tournament must have a quiz"
+       }
+    }
+
+    Entity TournamentExecution from Execution {
+        map courseAggregateId as executionCourseAggregateId
+        map acronym as executionAcronym
+        AggregateState executionState
+        Integer executionVersion
+    }
+
+    Entity TournamentCreator from ExecutionUser {
+        Integer creatorAggregateId
+        map name as creatorName
+        map username as creatorUsername
+        Integer creatorVersion
+        AggregateState creatorState
+    }
+
+    Entity TournamentParticipant from ExecutionUser {
+        Integer participantAggregateId
+        map name as participantName
+        map username as participantUsername
+        Integer participantVersion
+        AggregateState participantState
+        LocalDateTime participantEnrollTime
+        TournamentParticipantQuiz participantQuiz
+    }
+
+    Entity TournamentParticipantQuiz from Quiz {
+        Integer participantQuizAggregateId
+        Integer participantQuizVersion
+        Boolean participantQuizAnswered
+        Integer participantQuizNumberOfAnswered
+        Integer participantQuizNumberOfCorrect
+        TournamentParticipant tournamentParticipant
+    }
+
+    Entity TournamentTopic from Topic {
+        Integer topicAggregateId
+        Integer topicVersion
+        AggregateState topicState
+        map name as topicName
+        map courseAggregateId as topicCourseAggregateId
+    }
+
+    Entity TournamentQuiz from Quiz {
+        Integer quizAggregateId
+        Integer quizVersion
+    }
+
+    References {
+        execution -> Execution {
+            onDelete: prevent
+            message: "Cannot delete execution that has tournaments"
+        }
+
+        quiz -> Quiz {
+            onDelete: prevent
+            message: "Cannot delete quiz that is used in tournaments"
+        }
+    }
+
+    Events {
+        subscribe ExecutionUpdatedEvent
+        subscribe ExecutionUserUpdatedEvent
+        subscribe TopicUpdatedEvent
+        subscribe QuizUpdatedEvent
+
+        interInvariant TOURNAMENT_EXECUTION_EXISTS {
+            subscribe ExecutionDeletedEvent from Execution {
+                execution.executionAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant TOURNAMENT_CREATOR_EXISTS {
+            subscribe UserDeletedEvent from User {
+                creator.creatorAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant TOURNAMENT_PARTICIPANTS_EXIST {
+            subscribe UserDeletedEvent from User {
+                participants.participantAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant TOURNAMENT_TOPICS_EXIST {
+            subscribe TopicDeletedEvent from Topic {
+                topics.topicAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant TOURNAMENT_QUIZ_EXISTS {
+            subscribe QuizDeletedEvent from Quiz {
+                quiz.quizAggregateId == event.aggregateId
+            }
+        }
+    }
+}

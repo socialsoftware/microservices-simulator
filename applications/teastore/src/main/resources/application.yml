@@ -1,0 +1,32 @@
+# Application Configuration (YAML format)
+spring:
+  application: 
+    name: teastore
+
+  datasource: 
+    url: jdbc:postgresql://postgres:5432/teastore_db
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: password
+
+  jpa: 
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate: 
+      ddl-auto: create-drop
+    show-sql: true
+    properties: 
+      hibernate: 
+        format_sql: true
+
+server:
+  port: 9473
+
+saga:
+  enabled: true
+  timeout: 30000
+  retry: 
+    max-attempts: 3
+
+events:
+  async: true
+  thread-pool-size: 10
