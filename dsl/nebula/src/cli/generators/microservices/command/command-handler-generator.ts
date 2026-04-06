@@ -108,9 +108,9 @@ export class CommandHandlerGenerator {
         logger.info("${c.handlerMethod}");
         try {
             ${returnStmt}
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }`;
         }).join('\n\n');

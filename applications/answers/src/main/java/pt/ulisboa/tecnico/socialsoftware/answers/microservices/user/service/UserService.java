@@ -18,10 +18,13 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.UserDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.UserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.coordination.webapi.requestDtos.CreateUserRequestDto;
+import org.springframework.context.ApplicationContext;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AnswersException.class)
 public class UserService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -34,6 +37,9 @@ public class UserService {
 
     @Autowired
     private UserFactory userFactory;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public UserService() {}
 
@@ -74,7 +80,14 @@ public class UserService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(userFactory::createUserDto)
                 .collect(Collectors.toList());
         } catch (AnswersException e) {
@@ -110,6 +123,13 @@ public class UserService {
 
     public void deleteUser(Integer id, UnitOfWork unitOfWork) {
         try {
+            AnswerRepository answerRepositoryRef = applicationContext.getBean(AnswerRepository.class);
+            boolean hasAnswerReferences = answerRepositoryRef.findAll().stream()
+                .filter(s -> s.getState() != User.AggregateState.DELETED)
+                .anyMatch(s -> s.getUser() != null && id.equals(s.getUser().getUserAggregateId()));
+            if (hasAnswerReferences) {
+                throw new AnswersException("Cannot delete user that has answers");
+            }
             User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             User newUser = userFactory.createUserFromExisting(oldUser);
             newUser.remove();

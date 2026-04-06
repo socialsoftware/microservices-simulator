@@ -22,10 +22,17 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUserRemovedEven
 import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.coordination.webapi.requestDtos.CreateExecutionRequestDto;
+import org.springframework.context.ApplicationContext;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizRepository;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentRepository;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AnswersException.class)
 public class ExecutionService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -38,6 +45,9 @@ public class ExecutionService {
 
     @Autowired
     private ExecutionFactory executionFactory;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public ExecutionService() {}
 
@@ -93,7 +103,14 @@ public class ExecutionService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(executionFactory::createExecutionDto)
                 .collect(Collectors.toList());
         } catch (AnswersException e) {
@@ -131,6 +148,27 @@ public class ExecutionService {
 
     public void deleteExecution(Integer id, UnitOfWork unitOfWork) {
         try {
+            AnswerRepository answerRepositoryRef = applicationContext.getBean(AnswerRepository.class);
+            boolean hasAnswerReferences = answerRepositoryRef.findAll().stream()
+                .filter(s -> s.getState() != Execution.AggregateState.DELETED)
+                .anyMatch(s -> s.getExecution() != null && id.equals(s.getExecution().getExecutionAggregateId()));
+            if (hasAnswerReferences) {
+                throw new AnswersException("Cannot delete execution that has answers");
+            }
+            QuizRepository quizRepositoryRef = applicationContext.getBean(QuizRepository.class);
+            boolean hasQuizReferences = quizRepositoryRef.findAll().stream()
+                .filter(s -> s.getState() != Execution.AggregateState.DELETED)
+                .anyMatch(s -> s.getExecution() != null && id.equals(s.getExecution().getExecutionAggregateId()));
+            if (hasQuizReferences) {
+                throw new AnswersException("Cannot delete execution that has quizzes");
+            }
+            TournamentRepository tournamentRepositoryRef = applicationContext.getBean(TournamentRepository.class);
+            boolean hasTournamentReferences = tournamentRepositoryRef.findAll().stream()
+                .filter(s -> s.getState() != Execution.AggregateState.DELETED)
+                .anyMatch(s -> s.getExecution() != null && id.equals(s.getExecution().getExecutionAggregateId()));
+            if (hasTournamentReferences) {
+                throw new AnswersException("Cannot delete execution that has tournaments");
+            }
             Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
             newExecution.remove();

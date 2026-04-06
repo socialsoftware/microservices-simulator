@@ -40,9 +40,9 @@ public class ExecutionCommandHandler extends CommandHandler {
         logger.info("handleCreateExecution");
         try {
             return executionService.createExecution(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class ExecutionCommandHandler extends CommandHandler {
         logger.info("handleGetExecutionById");
         try {
             return executionService.getExecutionById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class ExecutionCommandHandler extends CommandHandler {
         logger.info("handleGetAllExecutions");
         try {
             return executionService.getAllExecutions(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class ExecutionCommandHandler extends CommandHandler {
         logger.info("handleUpdateExecution");
         try {
             return executionService.updateExecution(cmd.getExecutionDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class ExecutionCommandHandler extends CommandHandler {
         try {
             executionService.deleteExecution(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

@@ -40,9 +40,9 @@ public class QuizCommandHandler extends CommandHandler {
         logger.info("handleCreateQuiz");
         try {
             return quizService.createQuiz(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class QuizCommandHandler extends CommandHandler {
         logger.info("handleGetQuizById");
         try {
             return quizService.getQuizById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class QuizCommandHandler extends CommandHandler {
         logger.info("handleGetAllQuizs");
         try {
             return quizService.getAllQuizs(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class QuizCommandHandler extends CommandHandler {
         logger.info("handleUpdateQuiz");
         try {
             return quizService.updateQuiz(cmd.getQuizDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class QuizCommandHandler extends CommandHandler {
         try {
             quizService.deleteQuiz(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

@@ -156,6 +156,11 @@ function generateBidirectionalSetter(prop: any, javaType: string, capName: strin
             return `set${backRefCapName}`;
         }
 
+        const sourceEntity = allEntities.find(e => e.name === entityName);
+        if (sourceEntity && (sourceEntity as any).isRoot && !(targetEntity as any).isRoot) {
+            return `set${capitalize(entityName)}`;
+        }
+
         return null;
     };
 
@@ -220,6 +225,10 @@ function generateCollectionMethods(prop: any, javaType: string, capName: string,
         if (backRefProp) {
             const backRefCapName = capitalize(backRefProp.name);
             return `set${backRefCapName}`;
+        }
+
+        if (!(targetEntity as any).isRoot) {
+            return `set${capitalize(entityName)}`;
         }
 
         return null;

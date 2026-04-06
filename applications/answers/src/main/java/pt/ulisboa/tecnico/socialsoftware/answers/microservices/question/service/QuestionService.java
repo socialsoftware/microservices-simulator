@@ -28,7 +28,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.coordina
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AnswersException.class)
 public class QuestionService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -97,7 +97,14 @@ public class QuestionService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(questionFactory::createQuestionDto)
                 .collect(Collectors.toList());
         } catch (AnswersException e) {

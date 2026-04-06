@@ -129,6 +129,9 @@ public abstract class Quiz extends Aggregate {
 
     public void setExecution(QuizExecution execution) {
         this.execution = execution;
+        if (this.execution != null) {
+            this.execution.setQuiz(this);
+        }
     }
 
     public Set<QuizQuestion> getQuestions() {
@@ -137,6 +140,9 @@ public abstract class Quiz extends Aggregate {
 
     public void setQuestions(Set<QuizQuestion> questions) {
         this.questions = questions;
+        if (this.questions != null) {
+            this.questions.forEach(item -> item.setQuiz(this));
+        }
     }
 
     public void addQuizQuestion(QuizQuestion quizQuestion) {

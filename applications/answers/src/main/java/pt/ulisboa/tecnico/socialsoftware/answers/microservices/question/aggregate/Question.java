@@ -97,6 +97,9 @@ public abstract class Question extends Aggregate {
 
     public void setCourse(QuestionCourse course) {
         this.course = course;
+        if (this.course != null) {
+            this.course.setQuestion(this);
+        }
     }
 
     public Set<QuestionTopic> getTopics() {
@@ -105,6 +108,9 @@ public abstract class Question extends Aggregate {
 
     public void setTopics(Set<QuestionTopic> topics) {
         this.topics = topics;
+        if (this.topics != null) {
+            this.topics.forEach(item -> item.setQuestion(this));
+        }
     }
 
     public void addQuestionTopic(QuestionTopic questionTopic) {
@@ -148,6 +154,9 @@ public abstract class Question extends Aggregate {
 
     public void setOptions(List<Option> options) {
         this.options = options;
+        if (this.options != null) {
+            this.options.forEach(item -> item.setQuestion(this));
+        }
     }
 
     public void addOption(Option option) {

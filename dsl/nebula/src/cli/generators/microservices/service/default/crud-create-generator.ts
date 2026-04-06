@@ -74,7 +74,7 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
             return `            ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}());`;
         }).join('\n');
 
-        
+
         const entitySetters = entityRelationships.map(rel => {
             const capitalizedName = this.capitalize(rel.paramName);
 

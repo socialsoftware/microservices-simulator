@@ -57,6 +57,9 @@ public abstract class Topic extends Aggregate {
 
     public void setCourse(TopicCourse course) {
         this.course = course;
+        if (this.course != null) {
+            this.course.setTopic(this);
+        }
     }
 
 

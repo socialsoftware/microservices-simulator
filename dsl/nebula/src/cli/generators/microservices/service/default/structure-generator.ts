@@ -3,7 +3,7 @@ import { capitalize } from "../../../../utils/generator-utils.js";
 import { getGlobalConfig } from "../../../common/config.js";
 import { ServiceContext } from "./types.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
-import { getEvents } from "../../../../utils/aggregate-helpers.js";
+import { getEvents, findPreventReferencesTo } from "../../../../utils/aggregate-helpers.js";
 import { EventNameParser } from "../../../common/utils/event-name-parser.js";
 
 export class ServiceStructureGenerator {
@@ -187,14 +187,25 @@ export class ServiceStructureGenerator {
 
 
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'coordination', 'webapi', 'requestDtos')}.Create${capitalize(aggregateName)}RequestDto;`);
+
+        const preventRefs = findPreventReferencesTo(aggregateName);
+        if (preventRefs.length > 0) {
+            imports.push('import org.springframework.context.ApplicationContext;');
+            for (const ref of preventRefs) {
+                const sourceLower = ref.sourceAggregateName.toLowerCase();
+                imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', sourceLower, 'aggregate')}.${ref.sourceAggregateName}Repository;`);
+                imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', sourceLower, 'aggregate')}.${ref.sourceAggregateName};`);
+            }
+        }
         imports.push('');
 
         return imports.join('\n');
     }
 
-    static generateClassDeclaration(aggregateName: string): string {
+    static generateClassDeclaration(aggregateName: string, projectName: string): string {
+        const projectException = `${capitalize(projectName)}Exception`;
         return `@Service
-@Transactional
+@Transactional(noRollbackFor = ${projectException}.class)
 public class ${capitalize(aggregateName)}Service {`;
     }
 
@@ -214,6 +225,14 @@ public class ${capitalize(aggregateName)}Service {`;
             `    @Autowired`,
             `    private ${capitalizedAggregate}Factory ${lowerAggregate}Factory;`
         ];
+
+        if (findPreventReferencesTo(aggregateName).length > 0) {
+            dependencies.push(
+                '',
+                `    @Autowired`,
+                `    private ApplicationContext applicationContext;`
+            );
+        }
 
         return dependencies.join('\n');
     }

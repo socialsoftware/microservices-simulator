@@ -44,7 +44,14 @@ export class CrudReadAllGenerator extends MethodGeneratorTemplate {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(${lowerAggregate}Factory::create${entityName}Dto)
                 .collect(Collectors.toList());`;
     }

@@ -121,6 +121,9 @@ public abstract class Tournament extends Aggregate {
 
     public void setCreator(TournamentCreator creator) {
         this.creator = creator;
+        if (this.creator != null) {
+            this.creator.setTournament(this);
+        }
     }
 
     public Set<TournamentParticipant> getParticipants() {
@@ -129,6 +132,9 @@ public abstract class Tournament extends Aggregate {
 
     public void setParticipants(Set<TournamentParticipant> participants) {
         this.participants = participants;
+        if (this.participants != null) {
+            this.participants.forEach(item -> item.setTournament(this));
+        }
     }
 
     public void addTournamentParticipant(TournamentParticipant tournamentParticipant) {
@@ -172,6 +178,9 @@ public abstract class Tournament extends Aggregate {
 
     public void setExecution(TournamentExecution execution) {
         this.execution = execution;
+        if (this.execution != null) {
+            this.execution.setTournament(this);
+        }
     }
 
     public Set<TournamentTopic> getTopics() {
@@ -180,6 +189,9 @@ public abstract class Tournament extends Aggregate {
 
     public void setTopics(Set<TournamentTopic> topics) {
         this.topics = topics;
+        if (this.topics != null) {
+            this.topics.forEach(item -> item.setTournament(this));
+        }
     }
 
     public void addTournamentTopic(TournamentTopic tournamentTopic) {
@@ -223,6 +235,9 @@ public abstract class Tournament extends Aggregate {
 
     public void setQuiz(TournamentQuiz quiz) {
         this.quiz = quiz;
+        if (this.quiz != null) {
+            this.quiz.setTournament(this);
+        }
     }
 
 

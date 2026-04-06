@@ -40,9 +40,9 @@ public class TopicCommandHandler extends CommandHandler {
         logger.info("handleCreateTopic");
         try {
             return topicService.createTopic(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class TopicCommandHandler extends CommandHandler {
         logger.info("handleGetTopicById");
         try {
             return topicService.getTopicById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class TopicCommandHandler extends CommandHandler {
         logger.info("handleGetAllTopics");
         try {
             return topicService.getAllTopics(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class TopicCommandHandler extends CommandHandler {
         logger.info("handleUpdateTopic");
         try {
             return topicService.updateTopic(cmd.getTopicDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class TopicCommandHandler extends CommandHandler {
         try {
             topicService.deleteTopic(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

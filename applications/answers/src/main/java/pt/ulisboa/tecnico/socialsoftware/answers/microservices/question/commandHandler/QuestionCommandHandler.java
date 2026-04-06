@@ -40,9 +40,9 @@ public class QuestionCommandHandler extends CommandHandler {
         logger.info("handleCreateQuestion");
         try {
             return questionService.createQuestion(cmd.getCreateRequest(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -50,9 +50,9 @@ public class QuestionCommandHandler extends CommandHandler {
         logger.info("handleGetQuestionById");
         try {
             return questionService.getQuestionById(cmd.getRootAggregateId(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -60,9 +60,9 @@ public class QuestionCommandHandler extends CommandHandler {
         logger.info("handleGetAllQuestions");
         try {
             return questionService.getAllQuestions(cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -70,9 +70,9 @@ public class QuestionCommandHandler extends CommandHandler {
         logger.info("handleUpdateQuestion");
         try {
             return questionService.updateQuestion(cmd.getQuestionDto(), cmd.getUnitOfWork());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 
@@ -81,9 +81,9 @@ public class QuestionCommandHandler extends CommandHandler {
         try {
             questionService.deleteQuestion(cmd.getRootAggregateId(), cmd.getUnitOfWork());
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.severe("Failed: " + e.getMessage());
-            return e;
+            throw e;
         }
     }
 }

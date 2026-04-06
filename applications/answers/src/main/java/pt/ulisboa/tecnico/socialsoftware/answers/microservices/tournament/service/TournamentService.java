@@ -30,7 +30,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.coordi
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AnswersException.class)
 public class TournamentService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -122,7 +122,14 @@ public class TournamentService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(tournamentFactory::createTournamentDto)
                 .collect(Collectors.toList());
         } catch (AnswersException e) {

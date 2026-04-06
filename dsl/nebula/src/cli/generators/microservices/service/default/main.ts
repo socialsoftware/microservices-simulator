@@ -10,7 +10,7 @@ export function generateServiceCode(aggregate: Aggregate, projectName: string): 
     const context = ServiceStructureGenerator.createServiceContext(aggregate, projectName);
 
     const imports = ServiceStructureGenerator.generateServiceImports(aggregate, projectName);
-    const classDeclaration = ServiceStructureGenerator.generateClassDeclaration(context.aggregateName);
+    const classDeclaration = ServiceStructureGenerator.generateClassDeclaration(context.aggregateName, projectName);
     const dependencies = ServiceStructureGenerator.generateDependencies(context.aggregateName, aggregate);
     const constructor = ServiceStructureGenerator.generateConstructor(context.aggregateName);
 

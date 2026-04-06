@@ -28,7 +28,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.coordinati
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AnswersException.class)
 public class AnswerService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -110,7 +110,14 @@ public class AnswerService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(answerFactory::createAnswerDto)
                 .collect(Collectors.toList());
         } catch (AnswersException e) {

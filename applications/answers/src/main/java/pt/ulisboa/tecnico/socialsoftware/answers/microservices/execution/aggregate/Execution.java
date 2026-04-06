@@ -90,6 +90,9 @@ public abstract class Execution extends Aggregate {
 
     public void setCourse(ExecutionCourse course) {
         this.course = course;
+        if (this.course != null) {
+            this.course.setExecution(this);
+        }
     }
 
     public Set<ExecutionUser> getUsers() {
@@ -98,6 +101,9 @@ public abstract class Execution extends Aggregate {
 
     public void setUsers(Set<ExecutionUser> users) {
         this.users = users;
+        if (this.users != null) {
+            this.users.forEach(item -> item.setExecution(this));
+        }
     }
 
     public void addExecutionUser(ExecutionUser executionUser) {

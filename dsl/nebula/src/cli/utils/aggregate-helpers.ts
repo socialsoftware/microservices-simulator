@@ -26,6 +26,33 @@ export function clearModelsRegistry(): void {
     allModelsRegistry = [];
 }
 
+export interface PreventReferenceTo {
+    sourceAggregateName: string;
+    fieldName: string;
+    message: string;
+}
+
+export function findPreventReferencesTo(targetAggregateName: string): PreventReferenceTo[] {
+    const results: PreventReferenceTo[] = [];
+    for (const model of allModelsRegistry) {
+        if (!model.aggregates) continue;
+        for (const aggregate of model.aggregates) {
+            const refs = (aggregate as any).references;
+            if (!refs || !refs.constraints) continue;
+            for (const constraint of refs.constraints) {
+                if (constraint.targetAggregate === targetAggregateName && constraint.action === 'prevent') {
+                    results.push({
+                        sourceAggregateName: aggregate.name,
+                        fieldName: constraint.fieldName,
+                        message: constraint.message
+                    });
+                }
+            }
+        }
+    }
+    return results;
+}
+
 
 
 

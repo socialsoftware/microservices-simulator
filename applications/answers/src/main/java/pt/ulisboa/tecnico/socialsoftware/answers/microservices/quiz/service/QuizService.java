@@ -23,10 +23,15 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizQuestionRemovedEvent
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizQuestionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.coordination.webapi.requestDtos.CreateQuizRequestDto;
+import org.springframework.context.ApplicationContext;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentRepository;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AnswersException.class)
 public class QuizService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -39,6 +44,9 @@ public class QuizService {
 
     @Autowired
     private QuizFactory quizFactory;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public QuizService() {}
 
@@ -97,7 +105,14 @@ public class QuizService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(quizFactory::createQuizDto)
                 .collect(Collectors.toList());
         } catch (AnswersException e) {
@@ -144,6 +159,20 @@ public class QuizService {
 
     public void deleteQuiz(Integer id, UnitOfWork unitOfWork) {
         try {
+            AnswerRepository answerRepositoryRef = applicationContext.getBean(AnswerRepository.class);
+            boolean hasAnswerReferences = answerRepositoryRef.findAll().stream()
+                .filter(s -> s.getState() != Quiz.AggregateState.DELETED)
+                .anyMatch(s -> s.getQuiz() != null && id.equals(s.getQuiz().getQuizAggregateId()));
+            if (hasAnswerReferences) {
+                throw new AnswersException("Cannot delete quiz that has answers");
+            }
+            TournamentRepository tournamentRepositoryRef = applicationContext.getBean(TournamentRepository.class);
+            boolean hasTournamentReferences = tournamentRepositoryRef.findAll().stream()
+                .filter(s -> s.getState() != Quiz.AggregateState.DELETED)
+                .anyMatch(s -> s.getQuiz() != null && id.equals(s.getQuiz().getQuizAggregateId()));
+            if (hasTournamentReferences) {
+                throw new AnswersException("Cannot delete quiz that is used in tournaments");
+            }
             Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
             newQuiz.remove();

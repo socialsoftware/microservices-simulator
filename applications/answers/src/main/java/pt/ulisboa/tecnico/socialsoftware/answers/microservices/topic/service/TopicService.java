@@ -22,7 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.coordinatio
 
 
 @Service
-@Transactional
+@Transactional(noRollbackFor = AnswersException.class)
 public class TopicService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
@@ -79,7 +79,14 @@ public class TopicService {
                 .collect(Collectors.toSet());
 
             return aggregateIds.stream()
-                .map(id -> (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map(id -> {
+                    try {
+                        return (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .map(topicFactory::createTopicDto)
                 .collect(Collectors.toList());
         } catch (AnswersException e) {
