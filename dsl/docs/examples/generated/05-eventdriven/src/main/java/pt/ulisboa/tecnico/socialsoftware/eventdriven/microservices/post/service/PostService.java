@@ -29,7 +29,7 @@ public class PostService {
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
     @Autowired
-    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    private UnitOfWorkService unitOfWorkService;
 
     @Autowired
     private PostRepository postRepository;

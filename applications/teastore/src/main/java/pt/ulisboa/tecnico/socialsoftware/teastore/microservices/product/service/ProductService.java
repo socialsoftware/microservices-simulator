@@ -29,7 +29,7 @@ public class ProductService {
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
     @Autowired
-    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    private UnitOfWorkService unitOfWorkService;
 
     @Autowired
     private ProductRepository productRepository;

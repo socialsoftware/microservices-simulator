@@ -3,14 +3,21 @@ package pt.ulisboa.tecnico.socialsoftware.typesenums.events;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import java.time.LocalDateTime;
+import jakarta.persistence.Column;
 
 @Entity
 public class ContactUpdatedEvent extends Event {
+    @Column(name = "contact_updated_event_first_name")
     private String firstName;
+    @Column(name = "contact_updated_event_last_name")
     private String lastName;
+    @Column(name = "contact_updated_event_email")
     private String email;
+    @Column(name = "contact_updated_event_created_at")
     private LocalDateTime createdAt;
+    @Column(name = "contact_updated_event_favorite")
     private Boolean favorite;
+    @Column(name = "contact_updated_event_call_count")
     private Integer callCount;
 
     public ContactUpdatedEvent() {

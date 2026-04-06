@@ -2,16 +2,25 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class OrderUpdatedEvent extends Event {
+    @Column(name = "order_updated_event_time")
     private String time;
+    @Column(name = "order_updated_event_total_price_in_cents")
     private Double totalPriceInCents;
+    @Column(name = "order_updated_event_address_name")
     private String addressName;
+    @Column(name = "order_updated_event_address1")
     private String address1;
+    @Column(name = "order_updated_event_address2")
     private String address2;
+    @Column(name = "order_updated_event_credit_card_company")
     private String creditCardCompany;
+    @Column(name = "order_updated_event_credit_card_number")
     private String creditCardNumber;
+    @Column(name = "order_updated_event_credit_card_expiry_date")
     private String creditCardExpiryDate;
 
     public OrderUpdatedEvent() {

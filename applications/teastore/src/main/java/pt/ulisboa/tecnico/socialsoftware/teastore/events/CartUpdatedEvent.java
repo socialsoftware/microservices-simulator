@@ -2,11 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class CartUpdatedEvent extends Event {
+    @Column(name = "cart_updated_event_user_id")
     private Long userId;
+    @Column(name = "cart_updated_event_checked_out")
     private Boolean checkedOut;
+    @Column(name = "cart_updated_event_total_price")
     private Double totalPrice;
 
     public CartUpdatedEvent() {

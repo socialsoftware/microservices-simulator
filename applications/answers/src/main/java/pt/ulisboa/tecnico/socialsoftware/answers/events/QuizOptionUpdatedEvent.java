@@ -2,11 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class QuizOptionUpdatedEvent extends Event {
+    @Column(name = "quiz_option_updated_event_question_aggregate_id")
     private Integer questionAggregateId;
+    @Column(name = "quiz_option_updated_event_question_version")
     private Integer questionVersion;
+    @Column(name = "quiz_option_updated_event_option_content")
     private String optionContent;
 
     public QuizOptionUpdatedEvent() {

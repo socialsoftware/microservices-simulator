@@ -2,10 +2,13 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class TopicCourseUpdatedEvent extends Event {
+    @Column(name = "topic_course_updated_event_course_aggregate_id")
     private Integer courseAggregateId;
+    @Column(name = "topic_course_updated_event_course_version")
     private Integer courseVersion;
 
     public TopicCourseUpdatedEvent() {

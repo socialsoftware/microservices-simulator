@@ -3,10 +3,13 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import java.time.LocalDateTime;
+import jakarta.persistence.Column;
 
 @Entity
 public class CourseUpdatedEvent extends Event {
+    @Column(name = "course_updated_event_name")
     private String name;
+    @Column(name = "course_updated_event_creation_date")
     private LocalDateTime creationDate;
 
     public CourseUpdatedEvent() {

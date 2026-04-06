@@ -2,13 +2,19 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class ExecutionUserUpdatedEvent extends Event {
+    @Column(name = "execution_user_updated_event_user_aggregate_id")
     private Integer userAggregateId;
+    @Column(name = "execution_user_updated_event_user_version")
     private Integer userVersion;
+    @Column(name = "execution_user_updated_event_user_name")
     private String userName;
+    @Column(name = "execution_user_updated_event_user_username")
     private String userUsername;
+    @Column(name = "execution_user_updated_event_user_active")
     private Boolean userActive;
 
     public ExecutionUserUpdatedEvent() {

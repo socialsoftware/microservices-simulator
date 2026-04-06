@@ -27,7 +27,7 @@ public class UserService {
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
     @Autowired
-    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    private UnitOfWorkService unitOfWorkService;
 
     @Autowired
     private UserRepository userRepository;

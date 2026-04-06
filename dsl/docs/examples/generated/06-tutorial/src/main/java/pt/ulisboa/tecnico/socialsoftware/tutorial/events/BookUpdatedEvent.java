@@ -2,12 +2,17 @@ package pt.ulisboa.tecnico.socialsoftware.tutorial.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class BookUpdatedEvent extends Event {
+    @Column(name = "book_updated_event_title")
     private String title;
+    @Column(name = "book_updated_event_author")
     private String author;
+    @Column(name = "book_updated_event_genre")
     private String genre;
+    @Column(name = "book_updated_event_available")
     private Boolean available;
 
     public BookUpdatedEvent() {

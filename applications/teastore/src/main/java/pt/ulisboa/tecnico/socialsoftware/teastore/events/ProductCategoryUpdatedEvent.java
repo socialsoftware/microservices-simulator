@@ -2,12 +2,17 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class ProductCategoryUpdatedEvent extends Event {
+    @Column(name = "product_category_updated_event_category_aggregate_id")
     private Integer categoryAggregateId;
+    @Column(name = "product_category_updated_event_category_version")
     private Integer categoryVersion;
+    @Column(name = "product_category_updated_event_category_name")
     private String categoryName;
+    @Column(name = "product_category_updated_event_category_description")
     private String categoryDescription;
 
     public ProductCategoryUpdatedEvent() {

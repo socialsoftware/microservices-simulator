@@ -2,11 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class TournamentExecutionUpdatedEvent extends Event {
+    @Column(name = "tournament_execution_updated_event_execution_aggregate_id")
     private Integer executionAggregateId;
+    @Column(name = "tournament_execution_updated_event_execution_version")
     private Integer executionVersion;
+    @Column(name = "tournament_execution_updated_event_execution_acronym")
     private String executionAcronym;
 
     public TournamentExecutionUpdatedEvent() {

@@ -22,7 +22,7 @@ public class TournamentParticipantQuiz {
     private Boolean participantQuizAnswered;
     private Integer participantQuizNumberOfAnswered;
     private Integer participantQuizNumberOfCorrect;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipantquiz")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentParticipantQuiz")
     private TournamentParticipant tournamentParticipant;
     private AggregateState quizState;
     @OneToOne

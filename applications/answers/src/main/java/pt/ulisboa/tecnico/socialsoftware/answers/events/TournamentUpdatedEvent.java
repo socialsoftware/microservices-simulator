@@ -3,12 +3,17 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import java.time.LocalDateTime;
+import jakarta.persistence.Column;
 
 @Entity
 public class TournamentUpdatedEvent extends Event {
+    @Column(name = "tournament_updated_event_start_time")
     private LocalDateTime startTime;
+    @Column(name = "tournament_updated_event_end_time")
     private LocalDateTime endTime;
+    @Column(name = "tournament_updated_event_number_of_questions")
     private Integer numberOfQuestions;
+    @Column(name = "tournament_updated_event_cancelled")
     private Boolean cancelled;
 
     public TournamentUpdatedEvent() {

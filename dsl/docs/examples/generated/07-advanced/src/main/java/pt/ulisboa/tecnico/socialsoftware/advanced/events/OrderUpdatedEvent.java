@@ -3,10 +3,13 @@ package pt.ulisboa.tecnico.socialsoftware.advanced.events;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import java.time.LocalDateTime;
+import jakarta.persistence.Column;
 
 @Entity
 public class OrderUpdatedEvent extends Event {
+    @Column(name = "order_updated_event_total_amount")
     private Double totalAmount;
+    @Column(name = "order_updated_event_order_date")
     private LocalDateTime orderDate;
 
     public OrderUpdatedEvent() {

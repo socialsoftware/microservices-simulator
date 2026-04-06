@@ -2,9 +2,11 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class TournamentExecutionDeletedEvent extends Event {
+    @Column(name = "tournament_execution_deleted_event_execution_aggregate_id")
     private Integer executionAggregateId;
 
     public TournamentExecutionDeletedEvent() {

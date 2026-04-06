@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -12,6 +13,7 @@ public class Option {
     @Id
     @GeneratedValue
     private Long id;
+    @Column(name = "\"key\"")
     private Integer key;
     private Integer sequence;
     private Boolean correct;

@@ -2,14 +2,21 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class AnswerQuestionUpdatedEvent extends Event {
+    @Column(name = "answer_question_updated_event_question_aggregate_id")
     private Integer questionAggregateId;
+    @Column(name = "answer_question_updated_event_question_version")
     private Integer questionVersion;
+    @Column(name = "answer_question_updated_event_sequence")
     private Integer sequence;
+    @Column(name = "answer_question_updated_event_key")
     private Integer key;
+    @Column(name = "answer_question_updated_event_time_taken")
     private Integer timeTaken;
+    @Column(name = "answer_question_updated_event_correct")
     private Boolean correct;
 
     public AnswerQuestionUpdatedEvent() {

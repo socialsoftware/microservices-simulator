@@ -2,9 +2,11 @@ package pt.ulisboa.tecnico.socialsoftware.tutorial.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class LoanBookDeletedEvent extends Event {
+    @Column(name = "loan_book_deleted_event_book_aggregate_id")
     private Integer bookAggregateId;
 
     public LoanBookDeletedEvent() {

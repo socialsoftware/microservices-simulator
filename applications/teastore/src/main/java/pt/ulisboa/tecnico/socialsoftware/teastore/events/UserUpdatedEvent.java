@@ -2,12 +2,17 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class UserUpdatedEvent extends Event {
+    @Column(name = "user_updated_event_user_name")
     private String userName;
+    @Column(name = "user_updated_event_password")
     private String password;
+    @Column(name = "user_updated_event_real_name")
     private String realName;
+    @Column(name = "user_updated_event_email")
     private String email;
 
     public UserUpdatedEvent() {

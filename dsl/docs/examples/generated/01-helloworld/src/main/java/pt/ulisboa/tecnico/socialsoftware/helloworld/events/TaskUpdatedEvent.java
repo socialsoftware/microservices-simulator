@@ -2,11 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.helloworld.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class TaskUpdatedEvent extends Event {
+    @Column(name = "task_updated_event_title")
     private String title;
+    @Column(name = "task_updated_event_description")
     private String description;
+    @Column(name = "task_updated_event_done")
     private Boolean done;
 
     public TaskUpdatedEvent() {

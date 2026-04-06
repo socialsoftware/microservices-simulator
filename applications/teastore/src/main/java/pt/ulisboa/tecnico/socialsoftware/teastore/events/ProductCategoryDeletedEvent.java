@@ -2,9 +2,11 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class ProductCategoryDeletedEvent extends Event {
+    @Column(name = "product_category_deleted_event_category_aggregate_id")
     private Integer categoryAggregateId;
 
     public ProductCategoryDeletedEvent() {

@@ -3,11 +3,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import java.time.LocalDateTime;
+import jakarta.persistence.Column;
 
 @Entity
 public class ExecutionUpdatedEvent extends Event {
+    @Column(name = "execution_updated_event_acronym")
     private String acronym;
+    @Column(name = "execution_updated_event_academic_term")
     private String academicTerm;
+    @Column(name = "execution_updated_event_end_date")
     private LocalDateTime endDate;
 
     public ExecutionUpdatedEvent() {

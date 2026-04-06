@@ -2,11 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.eventdriven.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class PostAuthorUpdatedEvent extends Event {
+    @Column(name = "post_author_updated_event_author_aggregate_id")
     private Integer authorAggregateId;
+    @Column(name = "post_author_updated_event_author_version")
     private Integer authorVersion;
+    @Column(name = "post_author_updated_event_author_name")
     private String authorName;
 
     public PostAuthorUpdatedEvent() {

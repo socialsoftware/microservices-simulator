@@ -2,11 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.crossrefs.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class CourseUpdatedEvent extends Event {
+    @Column(name = "course_updated_event_title")
     private String title;
+    @Column(name = "course_updated_event_description")
     private String description;
+    @Column(name = "course_updated_event_max_students")
     private Integer maxStudents;
 
     public CourseUpdatedEvent() {

@@ -31,7 +31,7 @@ public class ExecutionService {
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
     @Autowired
-    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    private UnitOfWorkService unitOfWorkService;
 
     @Autowired
     private ExecutionRepository executionRepository;

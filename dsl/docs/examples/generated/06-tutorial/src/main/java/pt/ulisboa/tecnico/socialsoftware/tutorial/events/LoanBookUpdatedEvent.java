@@ -2,13 +2,19 @@ package pt.ulisboa.tecnico.socialsoftware.tutorial.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class LoanBookUpdatedEvent extends Event {
+    @Column(name = "loan_book_updated_event_book_aggregate_id")
     private Integer bookAggregateId;
+    @Column(name = "loan_book_updated_event_book_version")
     private Integer bookVersion;
+    @Column(name = "loan_book_updated_event_book_title")
     private String bookTitle;
+    @Column(name = "loan_book_updated_event_book_author")
     private String bookAuthor;
+    @Column(name = "loan_book_updated_event_book_genre")
     private String bookGenre;
 
     public LoanBookUpdatedEvent() {

@@ -3,11 +3,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import java.time.LocalDateTime;
+import jakarta.persistence.Column;
 
 @Entity
 public class QuestionUpdatedEvent extends Event {
+    @Column(name = "question_updated_event_title")
     private String title;
+    @Column(name = "question_updated_event_content")
     private String content;
+    @Column(name = "question_updated_event_creation_date")
     private LocalDateTime creationDate;
 
     public QuestionUpdatedEvent() {

@@ -6,7 +6,7 @@ import jakarta.persistence.Column;
 
 @Entity
 public class OrderItemRemovedEvent extends Event {
-    @Column(name = "\"key\"")
+    @Column(name = "order_item_removed_event_key")
     private Integer key;
 
     public OrderItemRemovedEvent() {

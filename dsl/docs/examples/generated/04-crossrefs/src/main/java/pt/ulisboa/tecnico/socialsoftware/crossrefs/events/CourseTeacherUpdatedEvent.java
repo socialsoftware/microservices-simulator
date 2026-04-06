@@ -2,13 +2,19 @@ package pt.ulisboa.tecnico.socialsoftware.crossrefs.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class CourseTeacherUpdatedEvent extends Event {
+    @Column(name = "course_teacher_updated_event_teacher_aggregate_id")
     private Integer teacherAggregateId;
+    @Column(name = "course_teacher_updated_event_teacher_version")
     private Integer teacherVersion;
+    @Column(name = "course_teacher_updated_event_teacher_name")
     private String teacherName;
+    @Column(name = "course_teacher_updated_event_teacher_email")
     private String teacherEmail;
+    @Column(name = "course_teacher_updated_event_teacher_department")
     private String teacherDepartment;
 
     public CourseTeacherUpdatedEvent() {

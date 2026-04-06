@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -16,6 +17,7 @@ public class AnswerQuestion {
     @GeneratedValue
     private Long id;
     private Integer sequence;
+    @Column(name = "\"key\"")
     private Integer key;
     private Integer timeTaken;
     private Boolean correct;

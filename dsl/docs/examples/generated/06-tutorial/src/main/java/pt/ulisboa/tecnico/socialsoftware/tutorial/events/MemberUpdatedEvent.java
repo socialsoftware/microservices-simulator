@@ -2,10 +2,13 @@ package pt.ulisboa.tecnico.socialsoftware.tutorial.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class MemberUpdatedEvent extends Event {
+    @Column(name = "member_updated_event_name")
     private String name;
+    @Column(name = "member_updated_event_email")
     private String email;
 
     public MemberUpdatedEvent() {

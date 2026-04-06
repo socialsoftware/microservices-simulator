@@ -27,7 +27,7 @@ public class AuthorService {
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
     @Autowired
-    private UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    private UnitOfWorkService unitOfWorkService;
 
     @Autowired
     private AuthorRepository authorRepository;

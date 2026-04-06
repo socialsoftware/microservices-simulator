@@ -23,7 +23,7 @@ public class TournamentParticipant {
     private Integer participantVersion;
     private AggregateState participantState;
     private LocalDateTime participantEnrollTime;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentparticipant")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentParticipant")
     private TournamentParticipantQuiz participantQuiz;
     @OneToOne
     private Tournament tournament;

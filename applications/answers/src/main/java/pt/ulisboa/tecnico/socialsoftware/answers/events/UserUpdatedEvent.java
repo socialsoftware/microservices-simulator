@@ -2,11 +2,15 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class UserUpdatedEvent extends Event {
+    @Column(name = "user_updated_event_name")
     private String name;
+    @Column(name = "user_updated_event_username")
     private String username;
+    @Column(name = "user_updated_event_active")
     private Boolean active;
 
     public UserUpdatedEvent() {

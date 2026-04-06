@@ -2,9 +2,11 @@ package pt.ulisboa.tecnico.socialsoftware.answers.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class OptionRemovedEvent extends Event {
+    @Column(name = "option_removed_event_key")
     private Integer key;
 
     public OptionRemovedEvent() {

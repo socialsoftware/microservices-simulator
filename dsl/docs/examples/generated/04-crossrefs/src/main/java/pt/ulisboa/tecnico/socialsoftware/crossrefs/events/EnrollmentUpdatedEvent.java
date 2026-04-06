@@ -3,10 +3,13 @@ package pt.ulisboa.tecnico.socialsoftware.crossrefs.events;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import java.time.LocalDateTime;
+import jakarta.persistence.Column;
 
 @Entity
 public class EnrollmentUpdatedEvent extends Event {
+    @Column(name = "enrollment_updated_event_enrollment_date")
     private LocalDateTime enrollmentDate;
+    @Column(name = "enrollment_updated_event_active")
     private Boolean active;
 
     public EnrollmentUpdatedEvent() {

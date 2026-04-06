@@ -2,10 +2,13 @@ package pt.ulisboa.tecnico.socialsoftware.advanced.events;
 
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import jakarta.persistence.Column;
 
 @Entity
 public class InvoiceOrderUpdatedEvent extends Event {
+    @Column(name = "invoice_order_updated_event_order_aggregate_id")
     private Integer orderAggregateId;
+    @Column(name = "invoice_order_updated_event_order_version")
     private Integer orderVersion;
 
     public InvoiceOrderUpdatedEvent() {
