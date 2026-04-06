@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.domain.event;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -17,19 +18,19 @@ import java.util.logging.Logger;
 
 @Component
 @Profile("remote")
-public class StreamEventSubscriberRegistrar implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
+public class EventSubscriberRegistrar implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
 
-    private static final Logger logger = Logger.getLogger(StreamEventSubscriberRegistrar.class.getName());
+    private static final Logger logger = Logger.getLogger(EventSubscriberRegistrar.class.getName());
     private Environment environment;
 
     @Override
-    public void setEnvironment(Environment environment) {
+    public void setEnvironment(@NonNull Environment environment) {
         this.environment = environment;
     }
 
     // This method dynamically registers Spring Cloud Stream function beans for event subscribers based on the spring.cloud.function.definition property.
     @Override
-    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+    public void postProcessBeanDefinitionRegistry(@NonNull BeanDefinitionRegistry registry) throws BeansException {
         String functionDefinition = environment.getProperty("spring.cloud.function.definition", "");
         if (functionDefinition.isBlank()) {
             logger.warning("No spring.cloud.function.definition property found. Cannot register event subscribers dynamically.");
@@ -39,7 +40,7 @@ public class StreamEventSubscriberRegistrar implements BeanDefinitionRegistryPos
         String[] functionNames = functionDefinition.split(";");
         for (String name : functionNames) {
             String subscriberBeanName = name.trim();
-            if (subscriberBeanName.isEmpty() || !subscriberBeanName.endsWith("EventSubscriber")) {
+            if (!subscriberBeanName.endsWith("EventSubscriber")) {
                 continue;
             }
 
@@ -64,7 +65,7 @@ public class StreamEventSubscriberRegistrar implements BeanDefinitionRegistryPos
     }
 
     @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    public void postProcessBeanFactory(@NonNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
         // No-op
     }
 }
