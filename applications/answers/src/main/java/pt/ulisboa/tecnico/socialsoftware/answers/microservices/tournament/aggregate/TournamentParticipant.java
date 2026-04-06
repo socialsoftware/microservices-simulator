@@ -23,7 +23,7 @@ public class TournamentParticipant {
     private Integer participantVersion;
     private AggregateState participantState;
     private LocalDateTime participantEnrollTime;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentParticipant")
+    @OneToOne(cascade = CascadeType.ALL)
     private TournamentParticipantQuiz participantQuiz;
     @OneToOne
     private Tournament tournament;
@@ -100,9 +100,6 @@ public class TournamentParticipant {
 
     public void setParticipantQuiz(TournamentParticipantQuiz participantQuiz) {
         this.participantQuiz = participantQuiz;
-        if (this.participantQuiz != null) {
-            this.participantQuiz.setTournamentParticipant(this);
-        }
     }
 
     public Tournament getTournament() {

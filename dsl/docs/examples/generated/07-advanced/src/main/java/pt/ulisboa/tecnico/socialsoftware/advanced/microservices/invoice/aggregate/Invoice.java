@@ -64,9 +64,6 @@ public abstract class Invoice extends Aggregate {
 
     public void setOrder(InvoiceOrder order) {
         this.order = order;
-        if (this.order != null) {
-            this.order.setInvoice(this);
-        }
     }
 
     public InvoiceCustomer getCustomer() {
@@ -75,9 +72,6 @@ public abstract class Invoice extends Aggregate {
 
     public void setCustomer(InvoiceCustomer customer) {
         this.customer = customer;
-        if (this.customer != null) {
-            this.customer.setInvoice(this);
-        }
     }
 
     public Double getTotalAmount() {

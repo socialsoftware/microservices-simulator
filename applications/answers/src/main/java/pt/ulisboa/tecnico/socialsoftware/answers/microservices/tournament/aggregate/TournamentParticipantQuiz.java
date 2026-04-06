@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -9,7 +8,6 @@ import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentParticipantQuizDto;
 
 @Entity
@@ -22,8 +20,6 @@ public class TournamentParticipantQuiz {
     private Boolean participantQuizAnswered;
     private Integer participantQuizNumberOfAnswered;
     private Integer participantQuizNumberOfCorrect;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "tournamentParticipantQuiz")
-    private TournamentParticipant tournamentParticipant;
     private AggregateState quizState;
     @OneToOne
     private Tournament tournament;
@@ -44,7 +40,6 @@ public class TournamentParticipantQuiz {
         setParticipantQuizAnswered(tournamentParticipantQuizDto.getParticipantQuizAnswered());
         setParticipantQuizNumberOfAnswered(tournamentParticipantQuizDto.getParticipantQuizNumberOfAnswered());
         setParticipantQuizNumberOfCorrect(tournamentParticipantQuizDto.getParticipantQuizNumberOfCorrect());
-        setTournamentParticipant(tournamentParticipantQuizDto.getTournamentParticipant() != null ? new TournamentParticipant(tournamentParticipantQuizDto.getTournamentParticipant()) : null);
         setQuizState(tournamentParticipantQuizDto.getState() != null ? AggregateState.valueOf(tournamentParticipantQuizDto.getState()) : null);
     }
 
@@ -54,7 +49,6 @@ public class TournamentParticipantQuiz {
         setParticipantQuizAnswered(other.getParticipantQuizAnswered());
         setParticipantQuizNumberOfAnswered(other.getParticipantQuizNumberOfAnswered());
         setParticipantQuizNumberOfCorrect(other.getParticipantQuizNumberOfCorrect());
-        setTournamentParticipant(new TournamentParticipant(other.getTournamentParticipant()));
         setQuizState(other.getQuizState());
     }
 
@@ -106,17 +100,6 @@ public class TournamentParticipantQuiz {
         this.participantQuizNumberOfCorrect = participantQuizNumberOfCorrect;
     }
 
-    public TournamentParticipant getTournamentParticipant() {
-        return tournamentParticipant;
-    }
-
-    public void setTournamentParticipant(TournamentParticipant tournamentParticipant) {
-        this.tournamentParticipant = tournamentParticipant;
-        if (this.tournamentParticipant != null) {
-            this.tournamentParticipant.setParticipantQuiz(this);
-        }
-    }
-
     public AggregateState getQuizState() {
         return quizState;
     }
@@ -143,7 +126,6 @@ public class TournamentParticipantQuiz {
         dto.setParticipantQuizAnswered(getParticipantQuizAnswered());
         dto.setParticipantQuizNumberOfAnswered(getParticipantQuizNumberOfAnswered());
         dto.setParticipantQuizNumberOfCorrect(getParticipantQuizNumberOfCorrect());
-        dto.setTournamentParticipant(getTournamentParticipant() != null ? new TournamentParticipantDto(getTournamentParticipant()) : null);
         dto.setState(getQuizState() != null ? getQuizState().name() : null);
         return dto;
     }

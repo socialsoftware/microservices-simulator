@@ -160,8 +160,12 @@ function generateBidirectionalSetter(prop: any, javaType: string, capName: strin
     };
 
     if (isEntityType && !isCollection) {
-        const backRefMethod = findBackRefFieldName(javaType) || `set${entityName}`;
-
+        const backRefMethod = findBackRefFieldName(javaType);
+        if (!backRefMethod) {
+            return `    public void set${capName}(${javaType} ${propName}) {
+        this.${propName} = ${propName};
+    }`;
+        }
         return `    public void set${capName}(${javaType} ${propName}) {
         this.${propName} = ${propName};
         if (this.${propName} != null) {
@@ -170,8 +174,12 @@ function generateBidirectionalSetter(prop: any, javaType: string, capName: strin
     }`;
     } else if (isCollection && TypeResolver.isEntityType(TypeResolver.getElementType(prop.type) || '')) {
         const elementType = TypeResolver.getElementType(prop.type) || '';
-        const backRefMethod = findBackRefFieldName(elementType) || `set${entityName}`;
-
+        const backRefMethod = findBackRefFieldName(elementType);
+        if (!backRefMethod) {
+            return `    public void set${capName}(${javaType} ${propName}) {
+        this.${propName} = ${propName};
+    }`;
+        }
         return `    public void set${capName}(${javaType} ${propName}) {
         this.${propName} = ${propName};
         if (this.${propName} != null) {

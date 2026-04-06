@@ -114,12 +114,18 @@ export function generateFields(properties: any[], entity: Entity, isRootEntity: 
 
         if (isEntityType && !isCollection && !isEnumType(prop.type)) {
 
-            relationshipAnnotation = `    @OneToOne(cascade = CascadeType.ALL, mappedBy = "${entity.name.charAt(0).toLowerCase() + entity.name.slice(1)}")\n`;
+            if (isRootEntity) {
+                relationshipAnnotation = `    @OneToOne(cascade = CascadeType.ALL, mappedBy = "${entity.name.charAt(0).toLowerCase() + entity.name.slice(1)}")\n`;
+            } else {
+                relationshipAnnotation = `    @OneToOne(cascade = CascadeType.ALL)\n`;
+            }
             imports.usesOneToOne = true;
             imports.usesCascadeType = true;
         } else if (isEntityCollection) {
 
-            relationshipAnnotation = `    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "${entity.name.charAt(0).toLowerCase() + entity.name.slice(1)}")\n`;
+            relationshipAnnotation = isRootEntity
+                ? `    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "${entity.name.charAt(0).toLowerCase() + entity.name.slice(1)}")\n`
+                : `    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)\n`;
             if (javaType.startsWith('List<')) {
                 initialization = ' = new ArrayList<>()';
             } else if (javaType.startsWith('Set<')) {

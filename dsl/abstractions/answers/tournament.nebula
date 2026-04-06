@@ -76,7 +76,6 @@ Aggregate Tournament {
         Boolean participantQuizAnswered
         Integer participantQuizNumberOfAnswered
         Integer participantQuizNumberOfCorrect
-        TournamentParticipant tournamentParticipant
     }
 
     Entity TournamentTopic from Topic {

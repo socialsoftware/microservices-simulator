@@ -105,9 +105,6 @@ public abstract class Answer extends Aggregate {
 
     public void setExecution(AnswerExecution execution) {
         this.execution = execution;
-        if (this.execution != null) {
-            this.execution.setAnswer(this);
-        }
     }
 
     public AnswerUser getUser() {
@@ -116,9 +113,6 @@ public abstract class Answer extends Aggregate {
 
     public void setUser(AnswerUser user) {
         this.user = user;
-        if (this.user != null) {
-            this.user.setAnswer(this);
-        }
     }
 
     public AnswerQuiz getQuiz() {
@@ -127,9 +121,6 @@ public abstract class Answer extends Aggregate {
 
     public void setQuiz(AnswerQuiz quiz) {
         this.quiz = quiz;
-        if (this.quiz != null) {
-            this.quiz.setAnswer(this);
-        }
     }
 
     public List<AnswerQuestion> getQuestions() {
@@ -138,9 +129,6 @@ public abstract class Answer extends Aggregate {
 
     public void setQuestions(List<AnswerQuestion> questions) {
         this.questions = questions;
-        if (this.questions != null) {
-            this.questions.forEach(item -> item.setAnswer(this));
-        }
     }
 
     public void addAnswerQuestion(AnswerQuestion answerQuestion) {

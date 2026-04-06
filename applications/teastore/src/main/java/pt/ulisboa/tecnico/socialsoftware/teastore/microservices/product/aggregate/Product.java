@@ -56,9 +56,6 @@ public abstract class Product extends Aggregate {
 
     public void setProductCategory(ProductCategory productCategory) {
         this.productCategory = productCategory;
-        if (this.productCategory != null) {
-            this.productCategory.setProduct(this);
-        }
     }
 
     public String getName() {

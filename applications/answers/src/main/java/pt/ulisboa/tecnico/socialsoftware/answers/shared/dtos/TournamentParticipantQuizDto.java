@@ -9,7 +9,6 @@ public class TournamentParticipantQuizDto implements Serializable {
     private Boolean participantQuizAnswered;
     private Integer participantQuizNumberOfAnswered;
     private Integer participantQuizNumberOfCorrect;
-    private TournamentParticipantDto tournamentParticipant;
     private String state;
 
     public TournamentParticipantQuizDto() {
@@ -21,7 +20,6 @@ public class TournamentParticipantQuizDto implements Serializable {
         this.participantQuizAnswered = tournamentParticipantQuiz.getParticipantQuizAnswered();
         this.participantQuizNumberOfAnswered = tournamentParticipantQuiz.getParticipantQuizNumberOfAnswered();
         this.participantQuizNumberOfCorrect = tournamentParticipantQuiz.getParticipantQuizNumberOfCorrect();
-        this.tournamentParticipant = tournamentParticipantQuiz.getTournamentParticipant() != null ? new TournamentParticipantDto(tournamentParticipantQuiz.getTournamentParticipant()) : null;
         this.state = tournamentParticipantQuiz.getQuizState() != null ? tournamentParticipantQuiz.getQuizState().name() : null;
     }
 
@@ -63,14 +61,6 @@ public class TournamentParticipantQuizDto implements Serializable {
 
     public void setParticipantQuizNumberOfCorrect(Integer participantQuizNumberOfCorrect) {
         this.participantQuizNumberOfCorrect = participantQuizNumberOfCorrect;
-    }
-
-    public TournamentParticipantDto getTournamentParticipant() {
-        return tournamentParticipant;
-    }
-
-    public void setTournamentParticipant(TournamentParticipantDto tournamentParticipant) {
-        this.tournamentParticipant = tournamentParticipant;
     }
 
     public String getState() {
