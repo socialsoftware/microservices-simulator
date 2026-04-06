@@ -142,6 +142,34 @@ Root Entity Enrollment {
 
 Collection references generate additional service methods: `addEnrollmentTeacher`, `addEnrollmentTeachers` (bulk), `getEnrollmentTeacher`, `updateEnrollmentTeacher`, and `removeEnrollmentTeacher`.
 
+### No Bidirectional Sibling References
+
+Non-root entities inside the same aggregate cannot reference each other in **both directions**. Each non-root entity may reference a sibling in **one direction only**; the reverse direction is not supported.
+
+```nebula
+// ✅ OK: TournamentParticipant references TournamentParticipantQuiz
+Entity TournamentParticipant from ExecutionUser {
+    TournamentParticipantQuiz participantQuiz
+}
+
+Entity TournamentParticipantQuiz from Quiz {
+    // No back-reference to TournamentParticipant
+}
+```
+
+```nebula
+// ❌ Not allowed: both sides declare each other
+Entity TournamentParticipant from ExecutionUser {
+    TournamentParticipantQuiz participantQuiz
+}
+
+Entity TournamentParticipantQuiz from Quiz {
+    TournamentParticipant tournamentParticipant   // forbidden
+}
+```
+
+You don't need a back-reference: every non-root entity automatically gets a generated back-pointer to its **aggregate root**, so the inverse direction is always reachable through the root. If you need to find a participant from a quiz, navigate via the `Tournament` aggregate root rather than declaring a sibling back-pointer. This keeps the aggregate graph clean and avoids JPA owning-side ambiguity.
+
 ## References Block
 
 The `References` block defines what happens when a referenced aggregate is deleted:

@@ -237,6 +237,50 @@ cd dsl/docs/examples/generated/06-tutorial
 mvn clean compile
 ```
 
+## Step 7: Run the App
+
+The generated project is a Spring Boot application backed by PostgreSQL. Boot it end-to-end in three commands:
+
+```bash
+# 1. Start Postgres and create the tutorial database
+docker compose up -d postgres
+docker exec -i postgres psql -U postgres -c "CREATE DATABASE tutorial_db;"
+
+# 2. Run the application (sagas profile is the default)
+cd dsl/docs/examples/generated/06-tutorial
+mvn spring-boot:run
+```
+
+When you see `Started TutorialSimulator in N seconds`, the app is ready on `http://localhost:8923`.
+
+> Running on the host instead of inside docker-compose? The default `application.properties` points at host `postgres`. Override the URL on the command line:
+>
+> ```bash
+> mvn spring-boot:run -Dspring-boot.run.arguments="\
+>     --spring.datasource.url=jdbc:postgresql://localhost:5432/tutorial_db \
+>     --spring.datasource.password=postgres"
+> ```
+
+Try it out with `curl`:
+
+```bash
+# Create a member
+curl -X POST http://localhost:8923/members/create \
+    -H 'Content-Type: application/json' \
+    -d '{"name":"Alice","email":"alice@example.com","membership":"BASIC"}'
+
+# List all members
+curl http://localhost:8923/members
+```
+
+To run the Spock/Groovy tests instead:
+
+```bash
+mvn test -P test-sagas
+```
+
+For distributed deployments (`stream`, `grpc`, microservices), see the [project README](../../../README.md).
+
 ## What We Built: By the Numbers
 
 | Metric | Value |

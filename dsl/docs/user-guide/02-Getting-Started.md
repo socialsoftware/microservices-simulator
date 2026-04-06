@@ -191,6 +191,79 @@ mvn clean compile
 
 If compilation succeeds, the generated code is valid.
 
+### Run the Generated App
+
+The generated project is a standard Spring Boot application. Its `application.properties` is configured for **PostgreSQL** by default, but H2 is also on the classpath as a runtime dependency, so you can use it for quick smoke tests when you don't want to spin up a database.
+
+#### Option A: PostgreSQL (the intended target)
+
+Each project expects a database named after the project itself (e.g. `tutorial_db` for `06-tutorial`, `answers_db` for `answers`).
+
+**1. Start PostgreSQL and create the database**
+
+```bash
+# From the repository root
+docker compose up -d postgres
+docker exec -i postgres psql -U postgres -c "CREATE DATABASE tutorial_db;"
+```
+
+**2. Start the app**
+
+```bash
+cd dsl/docs/examples/generated/06-tutorial
+mvn spring-boot:run
+```
+
+This activates the `sagas` Maven profile by default, which sets `spring.profiles.active=sagas,local`, i.e. the saga transaction model with in-process command transport. Equivalent explicit form:
+
+```bash
+mvn spring-boot:run -P sagas
+```
+
+> **Note:** The generated `application.properties` points at host `postgres` (the docker-compose service name). If you are running the app on your host machine instead of inside docker-compose, override the host and password on the command line:
+>
+> ```bash
+> mvn spring-boot:run -Dspring-boot.run.arguments="\
+>     --spring.datasource.url=jdbc:postgresql://localhost:5432/tutorial_db \
+>     --spring.datasource.password=postgres"
+> ```
+
+When you see `Started TutorialSimulator in N seconds`, the app is ready. You can now hit the generated REST endpoints (see the controllers under `coordination/webapi/`).
+
+#### Option B: H2 (in-memory smoke test, no infra required)
+
+H2 is a tiny embedded SQL database that lives in your JVM's memory. It's useful for verifying the app boots and the bean wiring is correct without installing or starting Postgres. Override the datasource on the command line:
+
+```bash
+cd dsl/docs/examples/generated/06-tutorial
+mvn spring-boot:run -Dspring-boot.run.arguments="\
+    --spring.datasource.url=jdbc:h2:mem:tutorial \
+    --spring.datasource.driver-class-name=org.h2.Driver \
+    --spring.datasource.username=sa \
+    --spring.datasource.password= \
+    --spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
+```
+
+> **H2 is a smoke-test convenience, not a substitute for PostgreSQL.** It's fine for quickly checking that an app boots, but the simulator's saga semantics (transaction isolation, locking, native query support) are written against PostgreSQL. Use H2 to verify wiring; use PostgreSQL for anything you actually want to trust the results of.
+
+### Run Tests
+
+```bash
+cd dsl/docs/examples/generated/06-tutorial
+mvn test -P test-sagas
+```
+
+The `test-sagas` profile activates `test,sagas,local` and enables the Groovy/Spock test compiler. The generated app ships with two Maven profiles only:
+
+| Profile        | `spring.profiles.active` | Purpose                                                  |
+| -------------- | ------------------------ | -------------------------------------------------------- |
+| `sagas`        | `sagas,local`            | Run the app (saga model + in-process transport, default) |
+| `test-sagas`   | `test,sagas,local`       | Compile and run Spock/Groovy tests                       |
+
+> **Nebula does not generate tests for you.** The `test-sagas` profile is plumbing: it sets up the Spock/Groovy compiler so that *your own* tests can run. A freshly generated project contains no test files, so `mvn test -P test-sagas` will succeed with zero tests executed until you add them under `src/test/groovy/`. See the hand-written `applications/quizzes` and `applications/answers` projects for examples of Spock test files you can use as templates.
+
+For distributed transports (`stream`, `grpc`) or microservices-mode deployments, see the [project README](../../../README.md). Those concerns belong to the simulator framework rather than the DSL.
+
 ## Making Changes and Regenerating
 
 ### Modify a `.nebula` file

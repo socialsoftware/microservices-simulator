@@ -73,7 +73,7 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             this.buildPropertyLine('saga.retry.max-attempts', '3')
         );
 
-        
+
         properties.push(
             '',
             '# Event Configuration',
@@ -81,12 +81,21 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             this.buildPropertyLine('spring.events.thread-pool-size', '10')
         );
 
-        
+
         properties.push(
             '',
             '# Validation Configuration',
             this.buildPropertyLine('validation.enabled', 'true'),
             this.buildPropertyLine('validation.fail-fast', 'false')
+        );
+
+        properties.push(
+            '',
+            '# Service Discovery (disabled by default; enable when running in a microservices topology)',
+            this.buildPropertyLine('eureka.client.enabled', 'false'),
+            this.buildPropertyLine('eureka.client.register-with-eureka', 'false'),
+            this.buildPropertyLine('eureka.client.fetch-registry', 'false'),
+            this.buildPropertyLine('spring.cloud.discovery.enabled', 'false')
         );
 
         return properties.join('\n') + '\n';
@@ -145,7 +154,7 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
             ])
         );
 
-        
+
         sections.push(
             '',
             this.buildYamlSection('events', [
