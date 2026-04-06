@@ -440,7 +440,10 @@ export class PublishedEventGenerator extends EventBaseGenerator {
         const decoratedFields = rawFields.map((f: any) => {
             if (!f || !f.name) return f;
             const fieldSnake = PublishedEventGenerator.camelToSnake(f.name);
-            let columnName = `${eventPrefix}_${fieldSnake}`;
+            const fullName = `${eventPrefix}_${fieldSnake}`;
+            let columnName = fullName.length <= 63
+                ? fullName
+                : PublishedEventGenerator.shortenIdentifier(fullName, 63);
             if (PublishedEventGenerator.isReservedColumnName(columnName)) {
                 columnName = `\\"${columnName}\\"`;
             }
@@ -482,6 +485,15 @@ export class PublishedEventGenerator extends EventBaseGenerator {
 
     static camelToSnake(name: string): string {
         return name.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+    }
+
+    static shortenIdentifier(name: string, max: number): string {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+        }
+        const suffix = `_${(hash >>> 0).toString(16).padStart(8, '0')}`;
+        return name.slice(0, max - suffix.length) + suffix;
     }
 
     static isReservedColumnName(fieldName: string): boolean {

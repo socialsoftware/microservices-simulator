@@ -10,11 +10,11 @@ public class TournamentParticipantQuizUpdatedEvent extends Event {
     private Integer quizAggregateId;
     @Column(name = "tournament_participant_quiz_updated_event_quiz_version")
     private Integer quizVersion;
-    @Column(name = "tournament_participant_quiz_updated_event_participant_quiz_answered")
+    @Column(name = "tournament_participant_quiz_updated_event_participant__d87b71ca")
     private Boolean participantQuizAnswered;
-    @Column(name = "tournament_participant_quiz_updated_event_participant_quiz_number_of_answered")
+    @Column(name = "tournament_participant_quiz_updated_event_participant__264546fc")
     private Integer participantQuizNumberOfAnswered;
-    @Column(name = "tournament_participant_quiz_updated_event_participant_quiz_number_of_correct")
+    @Column(name = "tournament_participant_quiz_updated_event_participant__2a9c766b")
     private Integer participantQuizNumberOfCorrect;
 
     public TournamentParticipantQuizUpdatedEvent() {
