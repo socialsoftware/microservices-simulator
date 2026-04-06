@@ -226,7 +226,7 @@ export class ConfigLoader {
             },
             java: {
                 version: '21',
-                springBootVersion: '3.3.9'
+                springBootVersion: '3.5.8'
             },
             framework: {
                 groupId: 'pt.ulisboa.tecnico.socialsoftware',

@@ -139,7 +139,7 @@ export class ConfigManager {
             generateDocumentation: false,
             generateTests: false,
             javaVersion: '21',
-            springBootVersion: '3.3.9',
+            springBootVersion: '3.5.8',
             useJakarta: true,
             framework: 'spring',
             annotations: this.getSpringAnnotations(),

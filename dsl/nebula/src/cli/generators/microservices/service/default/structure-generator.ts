@@ -206,7 +206,7 @@ public class ${capitalize(aggregateName)}Service {`;
             `    private AggregateIdGeneratorService aggregateIdGeneratorService;`,
             '',
             `    @Autowired`,
-            `    private UnitOfWorkService<UnitOfWork> unitOfWorkService;`,
+            `    private UnitOfWorkService unitOfWorkService;`,
             '',
             `    @Autowired`,
             `    private ${capitalizedAggregate}Repository ${lowerAggregate}Repository;`,

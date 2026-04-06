@@ -130,7 +130,7 @@ export abstract class TemplateDataBase {
             dependencies: this.buildDependencies(context),
             buildTool: 'maven',
             javaVersion: '17',
-            springBootVersion: '3.2.0'
+            springBootVersion: '3.5.8'
         };
     }
 
