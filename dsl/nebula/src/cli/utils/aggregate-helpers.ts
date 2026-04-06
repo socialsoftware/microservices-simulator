@@ -32,6 +32,36 @@ export interface PreventReferenceTo {
     message: string;
 }
 
+export function resolveUltimateSourceRoot(name: string, seen: Set<string> = new Set()): Entity | undefined {
+    if (seen.has(name)) return undefined;
+    seen.add(name);
+
+    for (const model of allModelsRegistry) {
+        if (!model.aggregates) continue;
+        const matchedAggregate = model.aggregates.find(agg => agg.name === name);
+        if (matchedAggregate) {
+            const root = getEntities(matchedAggregate).find(e => (e as any).isRoot);
+            if (root) return root;
+        }
+    }
+
+    for (const model of allModelsRegistry) {
+        if (!model.aggregates) continue;
+        for (const aggregate of model.aggregates) {
+            const nested = getEntities(aggregate).find(e => e.name === name && !(e as any).isRoot);
+            if (nested) {
+                const nestedRef = (nested as any).aggregateRef;
+                if (nestedRef) {
+                    return resolveUltimateSourceRoot(nestedRef, seen);
+                }
+                return undefined;
+            }
+        }
+    }
+
+    return undefined;
+}
+
 export function findRootAggregateByName(aggregateName: string): Aggregate | undefined {
     for (const model of allModelsRegistry) {
         if (!model.aggregates) continue;
@@ -362,7 +392,7 @@ function extractCollectionElementType(collectionType: any): { wrapper: string; e
 
 
 
-function findEntityByName(entityTypeName: string): Entity | undefined {
+export function findEntityByName(entityTypeName: string): Entity | undefined {
     
     if (allModelsRegistry.length > 0) {
         for (const model of allModelsRegistry) {
@@ -402,37 +432,7 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
 
     
     
-    let rootEntity: Entity | undefined;
-
-    if (allModelsRegistry.length > 0) {
-        for (const model of allModelsRegistry) {
-            if (!model.aggregates) continue;
-
-            const targetAggregate = model.aggregates.find(agg => agg.name === aggregateRefName);
-            if (targetAggregate) {
-                const entities = getEntities(targetAggregate);
-                rootEntity = entities.find(e => e.isRoot);
-                if (rootEntity) break;
-            }
-        }
-    }
-
-    
-    if (!rootEntity) {
-        const model = entity.$container?.$container as Model | undefined;
-        if (!model || !model.aggregates) {
-            return undefined;
-        }
-
-        const targetAggregate = model.aggregates.find(agg => agg.name === aggregateRefName);
-        if (!targetAggregate) {
-            return undefined;
-        }
-
-        const entities = getEntities(targetAggregate);
-        rootEntity = entities.find(e => e.isRoot);
-    }
-
+    const rootEntity = resolveUltimateSourceRoot(aggregateRefName);
     if (!rootEntity) {
         return undefined;
     }
@@ -440,7 +440,23 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
     
     if (fieldPath.length === 1) {
         const property = rootEntity.properties?.find(p => p.name === fieldPath[0]);
-        return property?.type;
+        if (property) {
+            return property.type;
+        }
+
+        for (const nestedProp of rootEntity.properties || []) {
+            const nestedJavaType = (nestedProp.type as any)?.type?.ref?.name || (nestedProp.type as any)?.type?.$refText;
+            if (!nestedJavaType) continue;
+            const nestedEntity = findEntityByName(nestedJavaType);
+            if (!nestedEntity) continue;
+            const innerProps = getEffectiveProperties(nestedEntity);
+            const innerProp = innerProps.find((p: any) => p.name === fieldPath[0]);
+            if (innerProp) {
+                return innerProp.type;
+            }
+        }
+
+        return undefined;
     }
 
     

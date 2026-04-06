@@ -3,7 +3,7 @@ import { MethodGeneratorTemplate, MethodMetadata, GenerationOptions } from "../.
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { CrudHelpers } from "../../../common/crud-helpers.js";
 import { EntityRelationshipExtractor } from "../crud/entity-relationship-extractor.js";
-import { findRootAggregateByName, getEntities } from "../../../../utils/aggregate-helpers.js";
+import { resolveUltimateSourceRoot, findEntityByName, getEffectiveProperties } from "../../../../utils/aggregate-helpers.js";
 
 
 
@@ -81,45 +81,73 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
 
             if (rel.aggregateRef) {
                 const projectionDtoName = `${rel.entityName}Dto`;
-                const sourceAggregateName = rel.aggregateRef;
 
-                const sourceAggregate = findRootAggregateByName(sourceAggregateName);
-                const sourceRoot = sourceAggregate
-                    ? getEntities(sourceAggregate).find(e => (e as any).isRoot)
+                const sourceRoot = resolveUltimateSourceRoot(rel.aggregateRef);
+                const ultimateSourceName = sourceRoot
+                    ? (sourceRoot.$container as any).name
                     : undefined;
 
                 const projectionEntity = (aggregate.aggregateElements || []).find(
                     (el: any) => el.$type === 'Entity' && el.name === rel.entityName
                 ) as any;
 
-                let enrichableMappings: Array<{ field: string; isEnumState: boolean }> = [];
+                interface EnrichableMapping {
+                    field: string;
+                    buildExpr: (rootVar: string) => string;
+                }
+                let enrichableMappings: EnrichableMapping[] = [];
                 if (sourceRoot && projectionEntity?.fieldMappings) {
                     for (const m of projectionEntity.fieldMappings) {
                         const parts = m.dtoField?.parts || [];
                         if (parts.length !== 1) continue;
                         const dtoFieldName = parts[0];
-                        const sourceProp = (sourceRoot as any).properties?.find(
+                        const cap = this.capitalize(dtoFieldName);
+                        const directProp = (sourceRoot as any).properties?.find(
                             (p: any) => p.name === dtoFieldName
                         );
-                        if (!sourceProp) continue;
-                        enrichableMappings.push({ field: dtoFieldName, isEnumState: dtoFieldName === 'state' });
+                        if (directProp) {
+                            enrichableMappings.push({
+                                field: dtoFieldName,
+                                buildExpr: (rootVar) => `${rootVar}.get${cap}()`
+                            });
+                            continue;
+                        }
+                        for (const nestedProp of (sourceRoot as any).properties || []) {
+                            const nestedTypeName = (nestedProp.type as any)?.type?.ref?.name || (nestedProp.type as any)?.type?.$refText;
+                            if (!nestedTypeName) continue;
+                            const nestedEntity = findEntityByName(nestedTypeName);
+                            if (!nestedEntity) continue;
+                            const innerProps = getEffectiveProperties(nestedEntity);
+                            const innerProp = innerProps.find((p: any) => p.name === dtoFieldName);
+                            if (!innerProp) continue;
+                            const innerDtoField = innerProp.$dtoField || dtoFieldName;
+                            const innerCap = this.capitalize(innerDtoField);
+                            const nestedGetterCap = this.capitalize(nestedProp.name);
+                            enrichableMappings.push({
+                                field: dtoFieldName,
+                                buildExpr: (rootVar) =>
+                                    `${rootVar}.get${nestedGetterCap}() != null ? ${rootVar}.get${nestedGetterCap}().get${innerCap}() : null`
+                            });
+                            break;
+                        }
                     }
                 }
 
-                const canEnrich = sourceRoot !== undefined && enrichableMappings.length > 0;
+                const canEnrich = sourceRoot !== undefined && ultimateSourceName !== undefined;
 
                 if (canEnrich) {
-                    const sourceClass = sourceAggregateName;
-                    const sourceDtoClass = `${sourceAggregateName}Dto`;
+                    const sourceClass = ultimateSourceName!;
+                    const sourceDtoClass = `${ultimateSourceName}Dto`;
+                    const wrapIfTernary = (expr: string) => expr.includes('?') ? `(${expr})` : expr;
                     const enrichLines = enrichableMappings.map(m => {
                         const cap = this.capitalize(m.field);
-                        return `                ${rel.paramName}Dto.set${cap}(refSourceDto.get${cap}());`;
+                        return `                ${rel.paramName}Dto.set${cap}(${wrapIfTernary(m.buildExpr('refSourceDto'))});`;
                     }).join('\n');
 
                     if (rel.isCollection) {
                         const itemEnrichLines = enrichableMappings.map(m => {
                             const cap = this.capitalize(m.field);
-                            return `                    projDto.set${cap}(refItemDto.get${cap}());`;
+                            return `                    projDto.set${cap}(${wrapIfTernary(m.buildExpr('refItemDto'))});`;
                         }).join('\n');
                         return `            if (createRequest.get${capitalizedName}() != null) {
                 ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}().stream().map(reqDto -> {

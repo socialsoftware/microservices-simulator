@@ -45,10 +45,13 @@ public class TopicService {
             TopicDto topicDto = new TopicDto();
             topicDto.setName(createRequest.getName());
             if (createRequest.getCourse() != null) {
+                Course refSource = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getCourse().getAggregateId(), unitOfWork);
+                CourseDto refSourceDto = new CourseDto(refSource);
                 TopicCourseDto courseDto = new TopicCourseDto();
-                courseDto.setAggregateId(createRequest.getCourse().getAggregateId());
-                courseDto.setVersion(createRequest.getCourse().getVersion());
-                courseDto.setState(createRequest.getCourse().getState() != null ? createRequest.getCourse().getState().name() : null);
+                courseDto.setAggregateId(refSourceDto.getAggregateId());
+                courseDto.setVersion(refSourceDto.getVersion());
+                courseDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+
                 topicDto.setCourse(courseDto);
             }
 

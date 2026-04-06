@@ -63,11 +63,14 @@ public class EnrollmentService {
                 enrollmentDto.setCourse(courseDto);
             }
             if (createRequest.getTeachers() != null) {
-                enrollmentDto.setTeachers(createRequest.getTeachers().stream().map(srcDto -> {
+                enrollmentDto.setTeachers(createRequest.getTeachers().stream().map(reqDto -> {
+                    Teacher refItem = (Teacher) unitOfWorkService.aggregateLoadAndRegisterRead(reqDto.getAggregateId(), unitOfWork);
+                    TeacherDto refItemDto = new TeacherDto(refItem);
                     EnrollmentTeacherDto projDto = new EnrollmentTeacherDto();
-                    projDto.setAggregateId(srcDto.getAggregateId());
-                    projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
+                    projDto.setAggregateId(refItemDto.getAggregateId());
+                    projDto.setVersion(refItemDto.getVersion());
+                    projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
+
                     return projDto;
                 }).collect(Collectors.toSet()));
             }

@@ -29,6 +29,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.Answers
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.coordination.webapi.requestDtos.CreateTournamentRequestDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.User;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.Topic;
@@ -60,18 +62,26 @@ public class TournamentService {
             tournamentDto.setNumberOfQuestions(createRequest.getNumberOfQuestions());
             tournamentDto.setCancelled(createRequest.getCancelled());
             if (createRequest.getCreator() != null) {
+                User refSource = (User) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getCreator().getAggregateId(), unitOfWork);
+                UserDto refSourceDto = new UserDto(refSource);
                 TournamentCreatorDto creatorDto = new TournamentCreatorDto();
-                creatorDto.setAggregateId(createRequest.getCreator().getAggregateId());
-                creatorDto.setVersion(createRequest.getCreator().getVersion());
-                creatorDto.setState(createRequest.getCreator().getState() != null ? createRequest.getCreator().getState().name() : null);
+                creatorDto.setAggregateId(refSourceDto.getAggregateId());
+                creatorDto.setVersion(refSourceDto.getVersion());
+                creatorDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                creatorDto.setName(refSourceDto.getName());
+                creatorDto.setUsername(refSourceDto.getUsername());
                 tournamentDto.setCreator(creatorDto);
             }
             if (createRequest.getParticipants() != null) {
-                tournamentDto.setParticipants(createRequest.getParticipants().stream().map(srcDto -> {
+                tournamentDto.setParticipants(createRequest.getParticipants().stream().map(reqDto -> {
+                    User refItem = (User) unitOfWorkService.aggregateLoadAndRegisterRead(reqDto.getAggregateId(), unitOfWork);
+                    UserDto refItemDto = new UserDto(refItem);
                     TournamentParticipantDto projDto = new TournamentParticipantDto();
-                    projDto.setAggregateId(srcDto.getAggregateId());
-                    projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
+                    projDto.setAggregateId(refItemDto.getAggregateId());
+                    projDto.setVersion(refItemDto.getVersion());
+                    projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
+                    projDto.setName(refItemDto.getName());
+                    projDto.setUsername(refItemDto.getUsername());
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
@@ -82,6 +92,7 @@ public class TournamentService {
                 executionDto.setAggregateId(refSourceDto.getAggregateId());
                 executionDto.setVersion(refSourceDto.getVersion());
                 executionDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+                executionDto.setCourseAggregateId((refSourceDto.getCourse() != null ? refSourceDto.getCourse().getAggregateId() : null));
                 executionDto.setAcronym(refSourceDto.getAcronym());
                 tournamentDto.setExecution(executionDto);
             }
@@ -94,14 +105,18 @@ public class TournamentService {
                     projDto.setVersion(refItemDto.getVersion());
                     projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
                     projDto.setName(refItemDto.getName());
+                    projDto.setCourseAggregateId((refItemDto.getCourse() != null ? refItemDto.getCourse().getAggregateId() : null));
                     return projDto;
                 }).collect(Collectors.toSet()));
             }
             if (createRequest.getQuiz() != null) {
+                Quiz refSource = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getQuiz().getAggregateId(), unitOfWork);
+                QuizDto refSourceDto = new QuizDto(refSource);
                 TournamentQuizDto quizDto = new TournamentQuizDto();
-                quizDto.setAggregateId(createRequest.getQuiz().getAggregateId());
-                quizDto.setVersion(createRequest.getQuiz().getVersion());
-                quizDto.setState(createRequest.getQuiz().getState() != null ? createRequest.getQuiz().getState().name() : null);
+                quizDto.setAggregateId(refSourceDto.getAggregateId());
+                quizDto.setVersion(refSourceDto.getVersion());
+                quizDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+
                 tournamentDto.setQuiz(quizDto);
             }
 
@@ -269,7 +284,7 @@ public class TournamentService {
                 .orElseThrow(() -> new AnswersException("TournamentParticipant not found"));
 
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
-            TournamentParticipantUpdatedEvent event = new TournamentParticipantUpdatedEvent(tournamentId, element.getParticipantAggregateId(), element.getParticipantVersion(), element.getParticipantEnrollTime());
+            TournamentParticipantUpdatedEvent event = new TournamentParticipantUpdatedEvent(tournamentId, element.getParticipantAggregateId(), element.getParticipantVersion(), element.getParticipantName(), element.getParticipantUsername(), element.getParticipantEnrollTime());
             event.setPublisherAggregateVersion(newTournament.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return element.buildDto();
@@ -388,7 +403,7 @@ public class TournamentService {
         }
     }
 
-    public Tournament handleExecutionUserUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, UnitOfWork unitOfWork) {
+    public Tournament handleExecutionUserUpdatedEvent(Integer aggregateId, Integer executionuserAggregateId, Integer executionuserVersion, String creatorName, String creatorUsername, UnitOfWork unitOfWork) {
         try {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);

@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggreg
 public class TournamentExecutionDto implements Serializable {
     private String state;
     private Integer version;
+    private Integer courseAggregateId;
     private String acronym;
     private Integer aggregateId;
 
@@ -15,6 +16,7 @@ public class TournamentExecutionDto implements Serializable {
     public TournamentExecutionDto(TournamentExecution tournamentExecution) {
         this.state = tournamentExecution.getExecutionState() != null ? tournamentExecution.getExecutionState().name() : null;
         this.version = tournamentExecution.getExecutionVersion();
+        this.courseAggregateId = tournamentExecution.getExecutionCourseAggregateId();
         this.acronym = tournamentExecution.getExecutionAcronym();
         this.aggregateId = tournamentExecution.getExecutionAggregateId();
     }
@@ -33,6 +35,14 @@ public class TournamentExecutionDto implements Serializable {
 
     public void setVersion(Integer version) {
         this.version = version;
+    }
+
+    public Integer getCourseAggregateId() {
+        return courseAggregateId;
+    }
+
+    public void setCourseAggregateId(Integer courseAggregateId) {
+        this.courseAggregateId = courseAggregateId;
     }
 
     public String getAcronym() {

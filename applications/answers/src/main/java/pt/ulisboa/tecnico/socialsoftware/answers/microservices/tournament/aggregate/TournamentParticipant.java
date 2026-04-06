@@ -25,6 +25,8 @@ public class TournamentParticipant {
     private LocalDateTime participantEnrollTime;
     @OneToOne(cascade = CascadeType.ALL)
     private TournamentParticipantQuiz participantQuiz;
+    private String participantName;
+    private String participantUsername;
     @OneToOne
     private Tournament tournament;
 
@@ -44,6 +46,8 @@ public class TournamentParticipant {
         setParticipantState(tournamentParticipantDto.getState() != null ? AggregateState.valueOf(tournamentParticipantDto.getState()) : null);
         setParticipantEnrollTime(tournamentParticipantDto.getParticipantEnrollTime());
         setParticipantQuiz(tournamentParticipantDto.getParticipantQuiz() != null ? new TournamentParticipantQuiz(tournamentParticipantDto.getParticipantQuiz()) : null);
+        setParticipantName(tournamentParticipantDto.getName());
+        setParticipantUsername(tournamentParticipantDto.getUsername());
     }
 
     public TournamentParticipant(TournamentParticipant other) {
@@ -52,6 +56,8 @@ public class TournamentParticipant {
         setParticipantState(other.getParticipantState());
         setParticipantEnrollTime(other.getParticipantEnrollTime());
         setParticipantQuiz(new TournamentParticipantQuiz(other.getParticipantQuiz()));
+        setParticipantName(other.getParticipantName());
+        setParticipantUsername(other.getParticipantUsername());
     }
 
     public Long getId() {
@@ -102,6 +108,22 @@ public class TournamentParticipant {
         this.participantQuiz = participantQuiz;
     }
 
+    public String getParticipantName() {
+        return participantName;
+    }
+
+    public void setParticipantName(String participantName) {
+        this.participantName = participantName;
+    }
+
+    public String getParticipantUsername() {
+        return participantUsername;
+    }
+
+    public void setParticipantUsername(String participantUsername) {
+        this.participantUsername = participantUsername;
+    }
+
     public Tournament getTournament() {
         return tournament;
     }
@@ -120,6 +142,8 @@ public class TournamentParticipant {
         dto.setState(getParticipantState() != null ? getParticipantState().name() : null);
         dto.setParticipantEnrollTime(getParticipantEnrollTime());
         dto.setParticipantQuiz(getParticipantQuiz() != null ? new TournamentParticipantQuizDto(getParticipantQuiz()) : null);
+        dto.setName(getParticipantName());
+        dto.setUsername(getParticipantUsername());
         return dto;
     }
 }

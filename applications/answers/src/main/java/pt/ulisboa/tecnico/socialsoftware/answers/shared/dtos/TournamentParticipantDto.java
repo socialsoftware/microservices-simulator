@@ -10,6 +10,8 @@ public class TournamentParticipantDto implements Serializable {
     private String state;
     private LocalDateTime participantEnrollTime;
     private TournamentParticipantQuizDto participantQuiz;
+    private String name;
+    private String username;
 
     public TournamentParticipantDto() {
     }
@@ -20,6 +22,8 @@ public class TournamentParticipantDto implements Serializable {
         this.state = tournamentParticipant.getParticipantState() != null ? tournamentParticipant.getParticipantState().name() : null;
         this.participantEnrollTime = tournamentParticipant.getParticipantEnrollTime();
         this.participantQuiz = tournamentParticipant.getParticipantQuiz() != null ? new TournamentParticipantQuizDto(tournamentParticipant.getParticipantQuiz()) : null;
+        this.name = tournamentParticipant.getParticipantName();
+        this.username = tournamentParticipant.getParticipantUsername();
     }
 
     public Integer getAggregateId() {
@@ -60,5 +64,21 @@ public class TournamentParticipantDto implements Serializable {
 
     public void setParticipantQuiz(TournamentParticipantQuizDto participantQuiz) {
         this.participantQuiz = participantQuiz;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

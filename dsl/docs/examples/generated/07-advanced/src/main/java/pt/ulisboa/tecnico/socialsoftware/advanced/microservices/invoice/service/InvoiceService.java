@@ -50,10 +50,13 @@ public class InvoiceService {
             invoiceDto.setIssuedAt(createRequest.getIssuedAt());
             invoiceDto.setPaid(createRequest.getPaid());
             if (createRequest.getOrder() != null) {
+                Order refSource = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getOrder().getAggregateId(), unitOfWork);
+                OrderDto refSourceDto = new OrderDto(refSource);
                 InvoiceOrderDto orderDto = new InvoiceOrderDto();
-                orderDto.setAggregateId(createRequest.getOrder().getAggregateId());
-                orderDto.setVersion(createRequest.getOrder().getVersion());
-                orderDto.setState(createRequest.getOrder().getState() != null ? createRequest.getOrder().getState().name() : null);
+                orderDto.setAggregateId(refSourceDto.getAggregateId());
+                orderDto.setVersion(refSourceDto.getVersion());
+                orderDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+
                 invoiceDto.setOrder(orderDto);
             }
             if (createRequest.getCustomer() != null) {

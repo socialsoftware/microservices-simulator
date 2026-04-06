@@ -19,6 +19,7 @@ public class TournamentTopic {
     private Integer topicVersion;
     private AggregateState topicState;
     private String topicName;
+    private Integer topicCourseAggregateId;
     @OneToOne
     private Tournament tournament;
 
@@ -37,6 +38,7 @@ public class TournamentTopic {
         setTopicVersion(tournamentTopicDto.getVersion());
         setTopicState(tournamentTopicDto.getState() != null ? AggregateState.valueOf(tournamentTopicDto.getState()) : null);
         setTopicName(tournamentTopicDto.getName());
+        setTopicCourseAggregateId(tournamentTopicDto.getCourseAggregateId());
     }
 
     public TournamentTopic(TournamentTopic other) {
@@ -44,6 +46,7 @@ public class TournamentTopic {
         setTopicVersion(other.getTopicVersion());
         setTopicState(other.getTopicState());
         setTopicName(other.getTopicName());
+        setTopicCourseAggregateId(other.getTopicCourseAggregateId());
     }
 
     public Long getId() {
@@ -86,6 +89,14 @@ public class TournamentTopic {
         this.topicName = topicName;
     }
 
+    public Integer getTopicCourseAggregateId() {
+        return topicCourseAggregateId;
+    }
+
+    public void setTopicCourseAggregateId(Integer topicCourseAggregateId) {
+        this.topicCourseAggregateId = topicCourseAggregateId;
+    }
+
     public Tournament getTournament() {
         return tournament;
     }
@@ -103,6 +114,7 @@ public class TournamentTopic {
         dto.setVersion(getTopicVersion());
         dto.setState(getTopicState() != null ? getTopicState().name() : null);
         dto.setName(getTopicName());
+        dto.setCourseAggregateId(getTopicCourseAggregateId());
         return dto;
     }
 }

@@ -59,10 +59,13 @@ public class AnswerService {
             answerDto.setAnswerDate(createRequest.getAnswerDate());
             answerDto.setCompleted(createRequest.getCompleted());
             if (createRequest.getExecution() != null) {
+                Execution refSource = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getExecution().getAggregateId(), unitOfWork);
+                ExecutionDto refSourceDto = new ExecutionDto(refSource);
                 AnswerExecutionDto executionDto = new AnswerExecutionDto();
-                executionDto.setAggregateId(createRequest.getExecution().getAggregateId());
-                executionDto.setVersion(createRequest.getExecution().getVersion());
-                executionDto.setState(createRequest.getExecution().getState() != null ? createRequest.getExecution().getState().name() : null);
+                executionDto.setAggregateId(refSourceDto.getAggregateId());
+                executionDto.setVersion(refSourceDto.getVersion());
+                executionDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+
                 answerDto.setExecution(executionDto);
             }
             if (createRequest.getUser() != null) {
@@ -76,18 +79,24 @@ public class AnswerService {
                 answerDto.setUser(userDto);
             }
             if (createRequest.getQuiz() != null) {
+                Quiz refSource = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getQuiz().getAggregateId(), unitOfWork);
+                QuizDto refSourceDto = new QuizDto(refSource);
                 AnswerQuizDto quizDto = new AnswerQuizDto();
-                quizDto.setAggregateId(createRequest.getQuiz().getAggregateId());
-                quizDto.setVersion(createRequest.getQuiz().getVersion());
-                quizDto.setState(createRequest.getQuiz().getState() != null ? createRequest.getQuiz().getState().name() : null);
+                quizDto.setAggregateId(refSourceDto.getAggregateId());
+                quizDto.setVersion(refSourceDto.getVersion());
+                quizDto.setState(refSourceDto.getState() != null ? refSourceDto.getState().name() : null);
+
                 answerDto.setQuiz(quizDto);
             }
             if (createRequest.getQuestions() != null) {
-                answerDto.setQuestions(createRequest.getQuestions().stream().map(srcDto -> {
+                answerDto.setQuestions(createRequest.getQuestions().stream().map(reqDto -> {
+                    Question refItem = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(reqDto.getAggregateId(), unitOfWork);
+                    QuestionDto refItemDto = new QuestionDto(refItem);
                     AnswerQuestionDto projDto = new AnswerQuestionDto();
-                    projDto.setAggregateId(srcDto.getAggregateId());
-                    projDto.setVersion(srcDto.getVersion());
-                    projDto.setState(srcDto.getState() != null ? srcDto.getState().name() : null);
+                    projDto.setAggregateId(refItemDto.getAggregateId());
+                    projDto.setVersion(refItemDto.getVersion());
+                    projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
+
                     return projDto;
                 }).collect(Collectors.toList()));
             }

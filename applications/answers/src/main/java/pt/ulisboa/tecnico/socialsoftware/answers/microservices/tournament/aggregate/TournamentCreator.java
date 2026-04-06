@@ -18,6 +18,8 @@ public class TournamentCreator {
     private Integer creatorAggregateId;
     private Integer creatorVersion;
     private AggregateState creatorState;
+    private String creatorName;
+    private String creatorUsername;
     @OneToOne
     private Tournament tournament;
 
@@ -35,12 +37,16 @@ public class TournamentCreator {
         setCreatorAggregateId(tournamentCreatorDto.getAggregateId());
         setCreatorVersion(tournamentCreatorDto.getVersion());
         setCreatorState(tournamentCreatorDto.getState() != null ? AggregateState.valueOf(tournamentCreatorDto.getState()) : null);
+        setCreatorName(tournamentCreatorDto.getName());
+        setCreatorUsername(tournamentCreatorDto.getUsername());
     }
 
     public TournamentCreator(TournamentCreator other) {
         setCreatorAggregateId(other.getCreatorAggregateId());
         setCreatorVersion(other.getCreatorVersion());
         setCreatorState(other.getCreatorState());
+        setCreatorName(other.getCreatorName());
+        setCreatorUsername(other.getCreatorUsername());
     }
 
     public Long getId() {
@@ -75,6 +81,22 @@ public class TournamentCreator {
         this.creatorState = creatorState;
     }
 
+    public String getCreatorName() {
+        return creatorName;
+    }
+
+    public void setCreatorName(String creatorName) {
+        this.creatorName = creatorName;
+    }
+
+    public String getCreatorUsername() {
+        return creatorUsername;
+    }
+
+    public void setCreatorUsername(String creatorUsername) {
+        this.creatorUsername = creatorUsername;
+    }
+
     public Tournament getTournament() {
         return tournament;
     }
@@ -91,6 +113,8 @@ public class TournamentCreator {
         dto.setAggregateId(getCreatorAggregateId());
         dto.setVersion(getCreatorVersion());
         dto.setState(getCreatorState() != null ? getCreatorState().name() : null);
+        dto.setName(getCreatorName());
+        dto.setUsername(getCreatorUsername());
         return dto;
     }
 }
