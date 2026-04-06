@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -12,6 +13,7 @@ public class OrderItem {
     @Id
     @GeneratedValue
     private Long id;
+    @Column(name = "\"key\"")
     private String key;
     private String productName;
     private Integer quantity;

@@ -12,6 +12,7 @@ export function scanCodeForImports(javaCode: string, projectName: string, isRoot
     if (javaCode.includes('CascadeType')) imports.push('import jakarta.persistence.CascadeType;');
     if (javaCode.includes('FetchType')) imports.push('import jakarta.persistence.FetchType;');
     if (javaCode.includes('@Enumerated')) imports.push('import jakarta.persistence.Enumerated;\nimport jakarta.persistence.EnumType;');
+    if (javaCode.includes('@Column')) imports.push('import jakarta.persistence.Column;');
 
     
     if (javaCode.includes('LocalDateTime')) imports.push('import java.time.LocalDateTime;');

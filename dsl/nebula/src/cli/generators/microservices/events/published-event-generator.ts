@@ -435,12 +435,56 @@ export class PublishedEventGenerator extends EventBaseGenerator {
             });
         }
 
+        const rawFields = context.event.properties || [];
+        const decoratedFields = rawFields.map((f: any) => {
+            if (f && f.name && PublishedEventGenerator.isReservedColumnName(f.name)) {
+                const snake = PublishedEventGenerator.camelToSnake(f.name);
+                return { ...f, columnAnnotation: `    @Column(name = "\\"${snake}\\"")` };
+            }
+            return f;
+        });
+        const needsColumnImport = decoratedFields.some((f: any) => f.columnAnnotation);
+        if (needsColumnImport) {
+            const importStmt = 'import jakarta.persistence.Column;';
+            if (!addedImports.has(importStmt)) {
+                propertyImports.push(importStmt);
+                addedImports.add(importStmt);
+            }
+        }
+
         const templateContext = {
             packageName: context.packageName,
             eventName: context.event.fullEventName,
-            fields: context.event.properties || [],
+            fields: decoratedFields,
             imports: propertyImports.length > 0 ? propertyImports.join('\n') : undefined
         };
         return this.renderTemplateFromString(template, templateContext);
+    }
+
+    private static readonly SQL_RESERVED_WORDS = new Set<string>([
+        'all','analyse','analyze','and','any','array','as','asc','asymmetric',
+        'authorization','between','both','case','cast','check','collate','column',
+        'constraint','create','cross','current_catalog','current_date','current_role',
+        'current_schema','current_time','current_timestamp','current_user','default',
+        'deferrable','desc','distinct','do','else','end','except','false','fetch',
+        'for','foreign','from','full','grant','group','having','in','initially',
+        'inner','intersect','into','is','isnull','join','key','lateral','leading',
+        'left','like','limit','localtime','localtimestamp','natural','not','notnull',
+        'null','offset','on','only','or','order','outer','overlaps','placing',
+        'primary','range','references','returning','right','rows','select','session_user',
+        'set','similar','some','symmetric','system_user','table','then','to',
+        'trailing','true','union','unique','user','using','value','values','verbose',
+        'when','where','window','with','year'
+    ]);
+
+    static camelToSnake(name: string): string {
+        return name.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+    }
+
+    static isReservedColumnName(fieldName: string): boolean {
+        const lower = fieldName.toLowerCase();
+        if (PublishedEventGenerator.SQL_RESERVED_WORDS.has(lower)) return true;
+        const snake = PublishedEventGenerator.camelToSnake(fieldName);
+        return PublishedEventGenerator.SQL_RESERVED_WORDS.has(snake);
     }
 }

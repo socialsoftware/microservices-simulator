@@ -9,6 +9,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 @Entity
 public class {{eventName}} extends Event {
 {{#each fields}}
+{{#if columnAnnotation}}
+{{{columnAnnotation}}}
+{{/if}}
     private {{type}} {{name}};
 {{/each}}
 

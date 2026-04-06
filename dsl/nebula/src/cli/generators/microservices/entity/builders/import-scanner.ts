@@ -70,6 +70,7 @@ export class ImportScanner implements StrategyContext {
         if (javaCode.includes('FetchType')) imports.push('import jakarta.persistence.FetchType;');
         if (javaCode.includes('@Enumerated')) imports.push('import jakarta.persistence.Enumerated;');
         if (javaCode.includes('EnumType')) imports.push('import jakarta.persistence.EnumType;');
+        if (javaCode.includes('@Column')) imports.push('import jakarta.persistence.Column;');
 
         
         if (javaCode.includes('LocalDateTime')) imports.push('import java.time.LocalDateTime;');
