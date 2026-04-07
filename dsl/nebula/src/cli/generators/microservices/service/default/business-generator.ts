@@ -2,6 +2,7 @@ import { Aggregate, Entity, Method } from "../../../../../language/generated/ast
 import { capitalize } from "../../../../utils/generator-utils.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
+import { ActionMethodGenerator } from "./action-method-generator.js";
 
 export class ServiceBusinessGenerator {
     static generateBusinessMethods(aggregateName: string, aggregate: Aggregate, rootEntity: Entity, projectName: string): string {
@@ -16,9 +17,12 @@ export class ServiceBusinessGenerator {
             return !isServiceQuery;
         });
 
-        const methods = entityMethods.map(method =>
-            this.generateBusinessMethod(method, aggregateName, rootEntity, projectName)
-        ).join('\n\n');
+        const methods = entityMethods.map(method => {
+            if (ActionMethodGenerator.hasActionBody(method)) {
+                return ActionMethodGenerator.generate(method, aggregateName, rootEntity, projectName);
+            }
+            return this.generateBusinessMethod(method, aggregateName, rootEntity, projectName);
+        }).join('\n\n');
 
         return methods;
     }

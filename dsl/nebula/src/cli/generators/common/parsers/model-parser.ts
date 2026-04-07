@@ -428,7 +428,7 @@ export class ModelParser {
             parameters,
             returnType,
             javaReturnType,
-            body: method.body,
+            body: (method as any).rawBody,
             isPublic: true, 
             isStatic: false, 
             annotations: this.extractAnnotations(method)

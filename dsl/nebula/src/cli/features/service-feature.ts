@@ -2,6 +2,8 @@ import chalk from 'chalk';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { GenerationOptions, Aggregate, GeneratorRegistry } from '../engine/types.js';
+import { FileWriter } from '../utils/file-writer.js';
+import { ServiceExtensionGenerator } from '../generators/microservices/service/extension/service-extension-generator.js';
 
 export class ServiceFeature {
     static async generateService(aggregate: Aggregate, aggregatePath: string, options: GenerationOptions, generators: GeneratorRegistry): Promise<void> {
@@ -25,6 +27,10 @@ export class ServiceFeature {
             const servicePath = path.join(aggregatePath, 'service', `${serviceDefinition.name || aggregate.name + 'Service'}.java`);
             await fs.mkdir(path.dirname(servicePath), { recursive: true });
             await fs.writeFile(servicePath, serviceCode, 'utf-8');
+
+            const extensionCode = ServiceExtensionGenerator.generateExtensionCode(aggregate, options.projectName);
+            const extensionPath = path.join(aggregatePath, 'service', ServiceExtensionGenerator.getExtensionFileName(aggregate));
+            await FileWriter.writeGeneratedFileIfAbsent(extensionPath, extensionCode, `service extension ${aggregate.name}ServiceExtension`);
 
         } catch (error) {
             console.error(chalk.red(`[ERROR] Error generating service for ${aggregate.name}: ${error instanceof Error ? error.message : String(error)}`));

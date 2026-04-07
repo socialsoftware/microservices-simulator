@@ -3,6 +3,7 @@ import { GenerationOptions, Aggregate, GeneratorRegistry } from "../engine/types
 import { TemplateGenerators } from "../engine/template-generators.js";
 import { FileWriter } from "../utils/file-writer.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
+import { ServiceExtensionGenerator } from "../generators/microservices/service/extension/service-extension-generator.js";
 
 export class EntityFeature {
     static async generateCoreComponents(
@@ -50,6 +51,10 @@ export class EntityFeature {
                     const serviceCode = await generators.serviceGenerator.generateService(aggregate, options);
                     const servicePath = path.join(aggregatePath, 'service', `${aggregate.name}Service.java`);
                     await FileWriter.writeGeneratedFile(servicePath, serviceCode, `default service ${aggregate.name}Service`);
+
+                    const extensionCode = ServiceExtensionGenerator.generateExtensionCode(aggregate, options.projectName);
+                    const extensionPath = path.join(aggregatePath, 'service', ServiceExtensionGenerator.getExtensionFileName(aggregate));
+                    await FileWriter.writeGeneratedFileIfAbsent(extensionPath, extensionCode, `service extension ${aggregate.name}ServiceExtension`);
                 },
                 ErrorUtils.aggregateContext(
                     'generate default service',

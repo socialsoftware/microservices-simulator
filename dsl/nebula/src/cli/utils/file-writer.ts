@@ -47,10 +47,10 @@ export class FileWriter {
 
     static async writeGeneratedFile(filePath: string, content: string, description: string): Promise<void> {
         try {
-            
+
             const safePath = this.validateFilePath(filePath);
 
-            
+
             await fs.mkdir(path.dirname(safePath), { recursive: true });
 
 
@@ -73,7 +73,37 @@ export class FileWriter {
         }
     }
 
-    
+
+    static async writeGeneratedFileIfAbsent(filePath: string, content: string, description: string): Promise<void> {
+        try {
+            const safePath = this.validateFilePath(filePath);
+            await fs.mkdir(path.dirname(safePath), { recursive: true });
+
+            try {
+                await fs.access(safePath);
+                return;
+            } catch {
+            }
+
+            await fs.writeFile(safePath, content, 'utf-8');
+            this.fileCount++;
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                ErrorHandler.handle(
+                    error,
+                    ErrorUtils.fileContext('validate file path', filePath, { description }),
+                    ErrorSeverity.FATAL
+                );
+            } else {
+                ErrorHandler.handle(
+                    error instanceof Error ? error : new Error(String(error)),
+                    ErrorUtils.fileContext('write generated file (if absent)', filePath, { description }),
+                    ErrorSeverity.FATAL
+                );
+            }
+        }
+    }
+
 
     static async writeMultipleFiles(
         files: Map<string, string>,

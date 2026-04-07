@@ -36,7 +36,58 @@ Method:
     (annotations+=Annotation)*
     'method' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
     (':' returnType=ReturnType)?
-    ('{' body=STRING '}')?;
+    (
+        '{' (rawBody=STRING | actionBody=ActionMethodBody) '}'
+    )?;
+
+ActionMethodBody:
+    ('precondition' '{' preconditions+=ActionPrecondition* '}')?
+    'action' '{' statements+=ActionStatement* '}'
+    (publishes+=PublishesClause)*;
+
+PublishesClause:
+    'publishes' eventType=ID '{'
+        (assignments+=PublishesFieldAssignment (',' assignments+=PublishesFieldAssignment)*)?
+    '}';
+
+PublishesFieldAssignment:
+    field=ID ':' value=ActionExpression;
+
+ActionPrecondition:
+    'check' left=ActionExpression op=ActionBoolOp right=ActionExpression
+    'error' message=STRING;
+
+ActionBoolOp returns string:
+    '==' | '!=' | '<=' | '>=' | '<' | '>';
+
+ActionStatement:
+    CreateActionStatement | LoadActionStatement | AssignActionStatement | ExtensionActionStatement;
+
+LoadActionStatement:
+    'load' aggregateRef=ID '(' id=ActionExpression ')' 'as' alias=ID;
+
+AssignActionStatement:
+    aliasRef=ID '.' field=ID '=' value=ActionExpression;
+
+CreateActionStatement:
+    'create' aggregateRef=ID '{'
+        (fields+=ActionFieldAssignment (',' fields+=ActionFieldAssignment)*)?
+    '}';
+
+ActionFieldAssignment:
+    field=ID ':' value=ActionExpression;
+
+ExtensionActionStatement:
+    'extension' fnName=ID '(' (args+=ActionExpression (',' args+=ActionExpression)*)? ')';
+
+ActionExpression:
+    ActionLiteral | ActionRef;
+
+ActionRef:
+    name=ID ('.' chain+=ID)*;
+
+ActionLiteral:
+    stringValue=STRING | literalValue=LITERAL;
 
 Workflow:
     (annotations+=Annotation)*

@@ -9,6 +9,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { initializeAggregateProperties, registerAllModels } from "../utils/aggregate-helpers.js";
 import { FileWriter } from "../utils/file-writer.js";
+import { ExtensionFilePreserver } from "../utils/extension-file-preserver.js";
 
 import { TemplateGenerateOptions, GenerationOptions, DEFAULT_OUTPUT_DIR } from "./types.js";
 import { ProjectSetup } from "./project-setup.js";
@@ -66,10 +67,14 @@ export class CodeGenerator {
             const paths = await ProjectSetup.setupProjectPaths(config.baseOutputDir, inputPath, config.projectName);
 
 
+            const preservedExtensions = await ExtensionFilePreserver.snapshot(paths.projectPath);
+
             try {
                 await fs.rm(paths.projectPath, { recursive: true, force: true });
             } catch {
             }
+
+            await ExtensionFilePreserver.restore(preservedExtensions);
 
 
             await this.validateModels(models, config);

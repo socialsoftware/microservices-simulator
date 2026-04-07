@@ -108,6 +108,7 @@ export class ServiceStructureGenerator {
 
         eventImports.add(`import ${eventsPackage}.${aggregateName}DeletedEvent;`);
         eventImports.add(`import ${eventsPackage}.${aggregateName}UpdatedEvent;`);
+        eventImports.add(`import ${eventsPackage}.*;`);
 
         if (rootEntity?.properties) {
             for (const prop of rootEntity.properties) {
@@ -242,7 +243,10 @@ public class ${capitalize(aggregateName)}Service {`;
             `    private ${capitalizedAggregate}Repository ${lowerAggregate}Repository;`,
             '',
             `    @Autowired`,
-            `    private ${capitalizedAggregate}Factory ${lowerAggregate}Factory;`
+            `    private ${capitalizedAggregate}Factory ${lowerAggregate}Factory;`,
+            '',
+            `    @Autowired`,
+            `    private ${capitalizedAggregate}ServiceExtension extension;`
         ];
 
         if (findPreventReferencesTo(aggregateName).length > 0) {
