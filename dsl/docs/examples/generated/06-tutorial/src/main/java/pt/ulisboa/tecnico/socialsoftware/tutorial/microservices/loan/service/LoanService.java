@@ -18,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.events.LoanDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.events.LoanUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.events.*;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.exception.TutorialException;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.coordination.webapi.requestDtos.CreateLoanRequestDto;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.member.aggregate.Member;
@@ -40,6 +41,9 @@ public class LoanService {
 
     @Autowired
     private LoanFactory loanFactory;
+
+    @Autowired
+    private LoanServiceExtension extension;
 
     public LoanService() {}
 

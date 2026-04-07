@@ -18,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.PaymentDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.PaymentUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.*;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.exception.EcommerceException;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.payment.coordination.webapi.requestDtos.CreatePaymentRequestDto;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.order.aggregate.Order;
@@ -38,6 +39,9 @@ public class PaymentService {
 
     @Autowired
     private PaymentFactory paymentFactory;
+
+    @Autowired
+    private PaymentServiceExtension extension;
 
     public PaymentService() {}
 
@@ -152,18 +156,38 @@ public class PaymentService {
 
 
     public void handleOrderPlacedEvent(Integer aggregateId, UnitOfWork unitOfWork) {
-        // TODO: implement business logic for OrderPlacedEvent.
-        // This stub was generated because Payment subscribes to OrderPlacedEvent
-        // but the event is not a projection lifecycle event (Updated/Deleted).
     }
 
     public void handleOrderCancelledEvent(Integer aggregateId, UnitOfWork unitOfWork) {
-        // TODO: implement business logic for OrderCancelledEvent.
-        // This stub was generated because Payment subscribes to OrderCancelledEvent
-        // but the event is not a projection lifecycle event (Updated/Deleted).
     }
 
-
+    @Transactional
+    public PaymentDto authorize(Integer orderId, Double amountInCents, String paymentMethodName, UnitOfWork unitOfWork) {
+        try {
+        if (!(amountInCents > 0.0)) {
+            throw new EcommerceException("Payment amount must be positive");
+        }
+        PaymentDto dto = new PaymentDto();
+        dto.setAmountInCents(amountInCents);
+        dto.setPaymentMethod(paymentMethodName);
+        dto.setAuthorizationCode("AUTH-PENDING");
+        dto.setStatus("AUTHORIZED");
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        Payment payment = paymentFactory.createPayment(aggregateId, dto);
+        unitOfWorkService.registerChanged(payment, unitOfWork);
+        extension.recordAuthorizationAttempt(orderId, amountInCents);
+        PaymentAuthorizedEvent event0 = new PaymentAuthorizedEvent();
+        event0.setOrderAggregateId(orderId);
+        event0.setAmountInCents(amountInCents);
+        event0.setPublisherAggregateVersion(payment.getVersion());
+        unitOfWorkService.registerEvent(event0, unitOfWork);
+        return paymentFactory.createPaymentDto(payment);
+        } catch (EcommerceException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new EcommerceException("Error in authorize Payment: " + e.getMessage());
+        }
+    }
 
 
 }

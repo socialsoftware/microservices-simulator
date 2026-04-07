@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.events.MemberDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.events.MemberUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.events.*;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.exception.TutorialException;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.member.coordination.webapi.requestDtos.CreateMemberRequestDto;
 
@@ -35,6 +36,9 @@ public class MemberService {
 
     @Autowired
     private MemberFactory memberFactory;
+
+    @Autowired
+    private MemberServiceExtension extension;
 
     public MemberService() {}
 

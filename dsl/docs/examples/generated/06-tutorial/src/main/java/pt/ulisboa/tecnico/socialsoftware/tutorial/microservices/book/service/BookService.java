@@ -16,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.events.BookDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.events.BookUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.events.*;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.exception.TutorialException;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.coordination.webapi.requestDtos.CreateBookRequestDto;
 import org.springframework.context.ApplicationContext;
@@ -37,6 +38,9 @@ public class BookService {
 
     @Autowired
     private BookFactory bookFactory;
+
+    @Autowired
+    private BookServiceExtension extension;
 
     @Autowired
     private ApplicationContext applicationContext;

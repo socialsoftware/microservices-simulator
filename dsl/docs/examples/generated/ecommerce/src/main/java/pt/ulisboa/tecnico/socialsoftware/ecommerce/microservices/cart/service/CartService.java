@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.CartDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.CartUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.*;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.CartUserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.exception.EcommerceException;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.cart.coordination.webapi.requestDtos.CreateCartRequestDto;
@@ -38,6 +39,9 @@ public class CartService {
 
     @Autowired
     private CartFactory cartFactory;
+
+    @Autowired
+    private CartServiceExtension extension;
 
     public CartService() {}
 

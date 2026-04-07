@@ -18,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.ShippingDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.ShippingUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.*;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.exception.EcommerceException;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.shipping.coordination.webapi.requestDtos.CreateShippingRequestDto;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.order.aggregate.Order;
@@ -38,6 +39,9 @@ public class ShippingService {
 
     @Autowired
     private ShippingFactory shippingFactory;
+
+    @Autowired
+    private ShippingServiceExtension extension;
 
     public ShippingService() {}
 
@@ -152,15 +156,9 @@ public class ShippingService {
 
 
     public void handlePaymentAuthorizedEvent(Integer aggregateId, UnitOfWork unitOfWork) {
-        // TODO: implement business logic for PaymentAuthorizedEvent.
-        // This stub was generated because Shipping subscribes to PaymentAuthorizedEvent
-        // but the event is not a projection lifecycle event (Updated/Deleted).
     }
 
     public void handleOrderCancelledEvent(Integer aggregateId, UnitOfWork unitOfWork) {
-        // TODO: implement business logic for OrderCancelledEvent.
-        // This stub was generated because Shipping subscribes to OrderCancelledEvent
-        // but the event is not a projection lifecycle event (Updated/Deleted).
     }
 
 

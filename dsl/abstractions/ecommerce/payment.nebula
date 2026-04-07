@@ -1,6 +1,26 @@
 Aggregate Payment {
     @GenerateCrud
 
+    method authorize(Integer orderId, Double amountInCents, String paymentMethodName) {
+        precondition {
+            check amountInCents > 0.0
+                error "Payment amount must be positive"
+        }
+        action {
+            create Payment {
+                amountInCents: amountInCents,
+                paymentMethod: paymentMethodName,
+                authorizationCode: "AUTH-PENDING",
+                status: AUTHORIZED
+            }
+            extension recordAuthorizationAttempt(orderId, amountInCents)
+        }
+        publishes PaymentAuthorizedEvent {
+            orderAggregateId: orderId,
+            amountInCents: amountInCents
+        }
+    }
+
     Entity PaymentOrder from Order {
         map totalInCents as orderTotalInCents
         map status as orderStatus

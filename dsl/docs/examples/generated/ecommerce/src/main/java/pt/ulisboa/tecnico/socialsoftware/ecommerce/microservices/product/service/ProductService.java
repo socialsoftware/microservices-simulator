@@ -16,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.ProductDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.ProductUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.*;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.exception.EcommerceException;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.product.coordination.webapi.requestDtos.CreateProductRequestDto;
 
@@ -34,6 +35,9 @@ public class ProductService {
 
     @Autowired
     private ProductFactory productFactory;
+
+    @Autowired
+    private ProductServiceExtension extension;
 
     public ProductService() {}
 

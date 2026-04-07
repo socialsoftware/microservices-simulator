@@ -16,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.UserDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.UserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.*;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.exception.EcommerceException;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.user.coordination.webapi.requestDtos.CreateUserRequestDto;
 import org.springframework.context.ApplicationContext;
@@ -41,6 +42,9 @@ public class UserService {
 
     @Autowired
     private UserFactory userFactory;
+
+    @Autowired
+    private UserServiceExtension extension;
 
     @Autowired
     private ApplicationContext applicationContext;

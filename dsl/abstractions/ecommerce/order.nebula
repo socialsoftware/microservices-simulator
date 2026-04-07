@@ -1,6 +1,13 @@
 Aggregate Order {
     @GenerateCrud
 
+    method markPaid(Integer orderId) {
+        action {
+            load Order(orderId) as order
+            order.status = PAID
+        }
+    }
+
     Entity OrderUser from User {
         map username as userName
         map email as userEmail

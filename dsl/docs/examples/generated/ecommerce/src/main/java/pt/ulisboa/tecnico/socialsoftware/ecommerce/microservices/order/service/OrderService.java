@@ -18,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.OrderDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.OrderUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.*;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.OrderUserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.exception.EcommerceException;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.order.coordination.webapi.requestDtos.CreateOrderRequestDto;
@@ -46,6 +47,9 @@ public class OrderService {
 
     @Autowired
     private OrderFactory orderFactory;
+
+    @Autowired
+    private OrderServiceExtension extension;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -213,7 +217,19 @@ public class OrderService {
         }
     }
 
-
+    @Transactional
+    public void markPaid(Integer orderId, UnitOfWork unitOfWork) {
+        try {
+        Order orderOld = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(orderId, unitOfWork);
+        Order order = orderFactory.createOrderFromExisting(orderOld);
+        order.setStatus(OrderStatus.PAID);
+        unitOfWorkService.registerChanged(order, unitOfWork);
+        } catch (EcommerceException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new EcommerceException("Error in markPaid Order: " + e.getMessage());
+        }
+    }
 
 
 }

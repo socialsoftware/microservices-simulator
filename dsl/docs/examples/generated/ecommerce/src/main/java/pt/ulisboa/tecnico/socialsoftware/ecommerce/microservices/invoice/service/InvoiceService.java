@@ -19,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.InvoiceDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.InvoiceUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.ecommerce.events.*;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.exception.EcommerceException;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.invoice.coordination.webapi.requestDtos.CreateInvoiceRequestDto;
 import pt.ulisboa.tecnico.socialsoftware.ecommerce.microservices.order.aggregate.Order;
@@ -41,6 +42,9 @@ public class InvoiceService {
 
     @Autowired
     private InvoiceFactory invoiceFactory;
+
+    @Autowired
+    private InvoiceServiceExtension extension;
 
     public InvoiceService() {}
 
@@ -165,15 +169,9 @@ public class InvoiceService {
 
 
     public void handlePaymentAuthorizedEvent(Integer aggregateId, UnitOfWork unitOfWork) {
-        // TODO: implement business logic for PaymentAuthorizedEvent.
-        // This stub was generated because Invoice subscribes to PaymentAuthorizedEvent
-        // but the event is not a projection lifecycle event (Updated/Deleted).
     }
 
     public void handleOrderCancelledEvent(Integer aggregateId, UnitOfWork unitOfWork) {
-        // TODO: implement business logic for OrderCancelledEvent.
-        // This stub was generated because Invoice subscribes to OrderCancelledEvent
-        // but the event is not a projection lifecycle event (Updated/Deleted).
     }
 
 
