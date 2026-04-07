@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 
 public class UpdateExecutionStudentNameCommand extends Command {
     private Integer executionAggregateId;

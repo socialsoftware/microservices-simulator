@@ -1,12 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.handling.handlers;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.Execution;
+import pt.ulisboa.tecnico.socialsoftware.ms.event.EventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public abstract class CourseExecutionEventHandler extends EventHandler {
     private CourseExecutionRepository courseExecutionRepository;

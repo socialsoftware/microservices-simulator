@@ -17,10 +17,10 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
 
 import java.util.concurrent.atomic.AtomicInteger
 

@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.command.question;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 
 public class GetQuestionByIdCommand extends Command {
     private Integer aggregateId;

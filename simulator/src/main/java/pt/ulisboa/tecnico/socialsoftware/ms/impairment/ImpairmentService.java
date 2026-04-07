@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.impairment;
 
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.ms.tracing.TraceManager;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate;
 
 import jakarta.persistence.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;

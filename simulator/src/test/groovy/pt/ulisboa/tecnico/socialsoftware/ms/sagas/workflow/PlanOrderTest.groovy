@@ -1,10 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow
 
 import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.FlowStep
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFunctionality
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow
 
 class PlanOrderTest extends SpockTest {
 

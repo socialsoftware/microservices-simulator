@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.handlers;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.InvalidateQuizEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.eventProcessing.TournamentEventProcessing;

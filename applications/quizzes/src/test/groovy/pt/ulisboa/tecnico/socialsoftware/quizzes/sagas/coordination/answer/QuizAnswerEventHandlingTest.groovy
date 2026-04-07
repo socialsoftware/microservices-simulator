@@ -3,8 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate
+import pt.ulisboa.tecnico.socialsoftware.ms.event.EventRepository
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest

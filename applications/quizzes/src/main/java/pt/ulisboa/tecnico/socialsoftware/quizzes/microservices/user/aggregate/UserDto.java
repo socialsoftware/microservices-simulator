@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState;
 
 import java.io.Serializable;
 

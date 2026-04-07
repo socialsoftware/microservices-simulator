@@ -2,15 +2,9 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.commandHa
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.CreateCourseRemoteCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.DeleteCourseCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetAndOrCreateCourseRemoteCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByNameRemoteCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseQuestionCountCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseExecutionCountCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService;
 
 import java.util.logging.Logger;

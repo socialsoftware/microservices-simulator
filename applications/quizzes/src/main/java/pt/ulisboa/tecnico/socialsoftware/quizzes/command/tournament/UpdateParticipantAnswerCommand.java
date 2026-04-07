@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 
 public class UpdateParticipantAnswerCommand extends Command {
     private final Integer tournamentAggregateId;

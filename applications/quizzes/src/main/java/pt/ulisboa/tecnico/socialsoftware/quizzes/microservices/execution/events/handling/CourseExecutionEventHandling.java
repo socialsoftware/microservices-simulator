@@ -3,8 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventHandling;
+import pt.ulisboa.tecnico.socialsoftware.ms.event.EventApplicationService;
+import pt.ulisboa.tecnico.socialsoftware.ms.event.EventHandling;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing;

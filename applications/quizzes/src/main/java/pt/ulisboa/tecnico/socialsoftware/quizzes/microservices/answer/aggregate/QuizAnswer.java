@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate;
 
 import jakarta.persistence.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesAnonymizeStudent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesInvalidateQuiz;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.subscribe.QuizAnswerSubscribesRemoveCourseExecution;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
+import static pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState.ACTIVE;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.QUESTION_ALREADY_ANSWERED;
 
 /*
