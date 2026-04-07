@@ -1,0 +1,56 @@
+Aggregate Invoice {
+    @GenerateCrud
+
+    Entity InvoiceOrder from Order {
+        map totalInCents as orderTotalInCents
+    }
+
+    Entity InvoiceUser from User {
+        map username as userName
+        map email as userEmail
+    }
+
+    Root Entity Invoice {
+        InvoiceOrder order
+        InvoiceUser user
+        String invoiceNumber
+        Double amountInCents
+        String issuedAt
+        InvoiceStatus status
+
+        invariants {
+            check amountPositive { amountInCents > 0.0 }
+                error "Invoice amount must be positive"
+
+            check invoiceNumberNotEmpty { invoiceNumber.length() > 0 }
+                error "Invoice number cannot be empty"
+        }
+    }
+
+    Events {
+        publish InvoiceIssuedEvent {
+            Integer orderAggregateId
+            String invoiceNumber
+            Double amountInCents
+        }
+
+        publish InvoiceVoidedEvent {
+            Integer orderAggregateId
+            String invoiceNumber
+        }
+
+        subscribe PaymentAuthorizedEvent
+        subscribe OrderCancelledEvent
+    }
+
+    References {
+        order -> Order {
+            onDelete: prevent
+            message: "Cannot delete order that has invoices"
+        }
+        user -> User {
+            onDelete: prevent
+            message: "Cannot delete user that has invoices"
+        }
+    }
+}

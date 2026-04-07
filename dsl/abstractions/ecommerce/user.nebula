@@ -1,0 +1,35 @@
+Aggregate User {
+    @GenerateCrud
+
+    Root Entity User {
+        String username
+        String email
+        String passwordHash
+        String shippingAddress
+
+        invariants {
+            check usernameNotEmpty { username.length() > 0 }
+                error "Username cannot be empty"
+
+            check emailNotEmpty { email.length() > 0 }
+                error "Email cannot be empty"
+        }
+    }
+
+    Events {
+        publish UserCreatedEvent {
+            String username
+            String email
+        }
+
+        publish UserUpdatedEvent {
+            String username
+            String email
+            String shippingAddress
+        }
+
+        publish UserDeletedEvent {
+            String username
+        }
+    }
+}

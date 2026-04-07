@@ -44,7 +44,13 @@ export class ProjectionMethodGenerator {
             const isUpdate = eventTypeName.includes('Updated');
             const isDelete = eventTypeName.includes('Deleted');
 
-            if (!isUpdate && !isDelete) continue;
+            if (!isUpdate && !isDelete) {
+                methods.push(
+                    `    public void handle${eventTypeName}(Integer aggregateId, UnitOfWork unitOfWork) {\n` +
+                    `    }`
+                );
+                continue;
+            }
 
             
             let publisherAggregateName = EventNameParser.extractEntityName(eventTypeName);

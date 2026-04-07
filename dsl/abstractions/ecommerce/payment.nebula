@@ -1,0 +1,51 @@
+Aggregate Payment {
+    @GenerateCrud
+
+    Entity PaymentOrder from Order {
+        map totalInCents as orderTotalInCents
+        map status as orderStatus
+    }
+
+    Root Entity Payment {
+        PaymentOrder order
+        Double amountInCents
+        PaymentStatus status
+        String authorizationCode
+        String paymentMethod
+
+        invariants {
+            check amountPositive { amountInCents > 0.0 }
+                error "Payment amount must be positive"
+
+            check methodNotEmpty { paymentMethod.length() > 0 }
+                error "Payment method cannot be empty"
+        }
+    }
+
+    Events {
+        publish PaymentAuthorizedEvent {
+            Integer orderAggregateId
+            Double amountInCents
+        }
+
+        publish PaymentFailedEvent {
+            Integer orderAggregateId
+            String reason
+        }
+
+        publish PaymentRefundedEvent {
+            Integer orderAggregateId
+            Double amountInCents
+        }
+
+        subscribe OrderPlacedEvent
+        subscribe OrderCancelledEvent
+    }
+
+    References {
+        order -> Order {
+            onDelete: prevent
+            message: "Cannot delete order that has payments"
+        }
+    }
+}

@@ -1,0 +1,41 @@
+Aggregate Product {
+    @GenerateCrud
+
+    Root Entity Product {
+        String sku
+        String name
+        String description
+        Double priceInCents
+        Integer stock
+
+        invariants {
+            check skuNotEmpty { sku.length() > 0 }
+                error "Product SKU cannot be empty"
+
+            check priceNonNegative { priceInCents >= 0.0 }
+                error "Product price cannot be negative"
+
+            check stockNonNegative { stock >= 0 }
+                error "Product stock cannot be negative"
+        }
+    }
+
+    Events {
+        publish ProductCreatedEvent {
+            String sku
+            String name
+            Double priceInCents
+        }
+
+        publish ProductUpdatedEvent {
+            String sku
+            String name
+            Double priceInCents
+            Integer stock
+        }
+
+        publish ProductOutOfStockEvent {
+            String sku
+        }
+    }
+}

@@ -1,0 +1,49 @@
+Aggregate Cart {
+    @GenerateCrud
+
+    Entity CartUser from User {
+        map username as userName
+        map email as userEmail
+    }
+
+    Root Entity Cart {
+        CartUser user
+        Double totalInCents
+        Integer itemCount
+        Boolean checkedOut
+
+        invariants {
+            check totalNonNegative { totalInCents >= 0.0 }
+                error "Cart total cannot be negative"
+
+            check itemCountNonNegative { itemCount >= 0 }
+                error "Cart item count cannot be negative"
+        }
+    }
+
+    Events {
+        publish CartCreatedEvent {
+            Integer userAggregateId
+        }
+
+        publish CartCheckedOutEvent {
+            Integer userAggregateId
+            Double totalInCents
+        }
+
+        subscribe UserUpdatedEvent
+
+        interInvariant CART_USER_EXISTS {
+            subscribe UserDeletedEvent from User {
+                user.userAggregateId == event.aggregateId
+            }
+        }
+    }
+
+    References {
+        user -> User {
+            onDelete: prevent
+            message: "Cannot delete user that has a cart"
+        }
+    }
+}

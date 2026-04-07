@@ -1,0 +1,50 @@
+Aggregate Shipping {
+    @GenerateCrud
+
+    Entity ShippingOrder from Order {
+        map totalInCents as orderTotalInCents
+        map itemCount as orderItemCount
+    }
+
+    Root Entity Shipping {
+        ShippingOrder order
+        String address
+        String carrier
+        String trackingNumber
+        ShippingStatus status
+
+        invariants {
+            check addressNotEmpty { address.length() > 0 }
+                error "Shipping address cannot be empty"
+
+            check carrierNotEmpty { carrier.length() > 0 }
+                error "Carrier cannot be empty"
+        }
+    }
+
+    Events {
+        publish ShippingDispatchedEvent {
+            Integer orderAggregateId
+            String trackingNumber
+        }
+
+        publish ShippingDeliveredEvent {
+            Integer orderAggregateId
+        }
+
+        publish ShippingFailedEvent {
+            Integer orderAggregateId
+            String reason
+        }
+
+        subscribe PaymentAuthorizedEvent
+        subscribe OrderCancelledEvent
+    }
+
+    References {
+        order -> Order {
+            onDelete: prevent
+            message: "Cannot delete order that has shipping"
+        }
+    }
+}

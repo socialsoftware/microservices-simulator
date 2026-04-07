@@ -1,0 +1,61 @@
+Aggregate Order {
+    @GenerateCrud
+
+    Entity OrderUser from User {
+        map username as userName
+        map email as userEmail
+        map shippingAddress as shippingAddress
+    }
+
+    Root Entity Order {
+        OrderUser user
+        Double totalInCents
+        Integer itemCount
+        OrderStatus status
+        String placedAt
+
+        invariants {
+            check totalPositive { totalInCents > 0.0 }
+                error "Order total must be positive"
+
+            check hasItems { itemCount > 0 }
+                error "Order must contain at least one item"
+        }
+    }
+
+    Events {
+        publish OrderPlacedEvent {
+            Integer userAggregateId
+            Double totalInCents
+        }
+
+        publish OrderPaidEvent {
+            Integer userAggregateId
+            Double totalInCents
+        }
+
+        publish OrderShippedEvent {
+            Integer userAggregateId
+        }
+
+        publish OrderCancelledEvent {
+            Integer userAggregateId
+            String reason
+        }
+
+        subscribe UserUpdatedEvent
+
+        interInvariant ORDER_USER_EXISTS {
+            subscribe UserDeletedEvent from User {
+                user.userAggregateId == event.aggregateId
+            }
+        }
+    }
+
+    References {
+        user -> User {
+            onDelete: prevent
+            message: "Cannot delete user that has orders"
+        }
+    }
+}
