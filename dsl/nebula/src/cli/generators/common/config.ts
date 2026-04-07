@@ -147,10 +147,10 @@ export class ConfigManager {
             database: {
                 type: 'postgresql',
                 port: 5432,
-                host: 'postgres',
+                host: 'localhost',
                 name: 'defaultdb',
                 username: 'postgres',
-                password: 'password'
+                password: 'postgres'
             },
             simulatorFramework: {
                 groupId: 'pt.ulisboa.tecnico.socialsoftware',

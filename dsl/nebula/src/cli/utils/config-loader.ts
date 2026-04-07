@@ -177,7 +177,7 @@ export class ConfigLoader {
                 port: config.database.port || 5432,
                 name: config.database.name || 'defaultdb',
                 username: config.database.username || 'postgres',
-                password: config.database.password || 'password'
+                password: config.database.password || 'postgres'
             };
         }
 

@@ -113,11 +113,11 @@ export class ConfigurationFacade {
 
         const config: DatabaseConfig = {
             type: 'postgresql',
-            host: 'postgres',
+            host: 'localhost',
             port: 5432,
             name: projectName ? projectName.toLowerCase() : 'defaultdb',
             username: 'postgres',
-            password: 'password',
+            password: 'postgres',
             jdbcUrl: this.buildJdbcUrl(projectName),
             driverClass: this.getDatabaseDriverClass('postgresql'),
             dialect: this.getDatabaseDialect('postgresql')

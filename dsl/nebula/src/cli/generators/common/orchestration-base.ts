@@ -179,10 +179,10 @@ export abstract class OrchestrationBase {
         return {
             type: 'postgresql',
             port: 5432,
-            host: 'postgres',
+            host: 'localhost',
             name: 'defaultdb',
             username: 'postgres',
-            password: 'password'
+            password: 'postgres'
         };
     }
 

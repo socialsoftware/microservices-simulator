@@ -4,10 +4,10 @@ spring:
     name: tutorial
 
   datasource: 
-    url: jdbc:postgresql://postgres:5432/tutorial_db
+    url: jdbc:postgresql://localhost:5432/tutorial_db
     driver-class-name: org.postgresql.Driver
     username: postgres
-    password: password
+    password: postgres
 
   jpa: 
     database-platform: org.hibernate.dialect.PostgreSQLDialect
