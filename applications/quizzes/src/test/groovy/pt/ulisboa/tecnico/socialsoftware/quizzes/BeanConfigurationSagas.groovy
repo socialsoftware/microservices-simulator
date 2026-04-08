@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.resilience4j.retry.RetryRegistry
 import org.mockito.Mockito
 import org.springframework.boot.test.context.TestConfiguration
@@ -11,8 +12,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorServic
 import pt.ulisboa.tecnico.socialsoftware.ms.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.SagaCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.stream.CommandResponseAggregator
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.stream.StreamCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceService
@@ -294,8 +297,18 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    LocalCommandGateway commandGateway(ApplicationContext applicationContext, RetryRegistry registry) {
-        return new LocalCommandGateway(applicationContext, registry)
+    MessagingObjectMapperProvider messagingObjectMapperProvider() {
+        return new MessagingObjectMapperProvider(new ObjectMapper().findAndRegisterModules())
+    }
+
+    @Bean
+    LocalCommandService localCommandService(ApplicationContext applicationContext, MessagingObjectMapperProvider mapperProvider) {
+        return new LocalCommandService(applicationContext, mapperProvider)
+    }
+
+    @Bean
+    LocalCommandGateway commandGateway(ApplicationContext applicationContext, RetryRegistry registry, LocalCommandService localCommandService, MessagingObjectMapperProvider mapperProvider) {
+        return new LocalCommandGateway(applicationContext, registry, localCommandService, mapperProvider)
     }
 
     @Bean

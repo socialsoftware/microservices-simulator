@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
@@ -10,7 +11,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.event.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.event.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CausalCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.version.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.version.VersionService
@@ -289,8 +292,18 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    LocalCommandGateway commandGateway(ApplicationContext applicationContext, RetryRegistry registry) {
-        return new LocalCommandGateway(applicationContext, registry)
+    MessagingObjectMapperProvider messagingObjectMapperProvider() {
+        return new MessagingObjectMapperProvider(new ObjectMapper().findAndRegisterModules())
+    }
+
+    @Bean
+    LocalCommandService localCommandService(ApplicationContext applicationContext, MessagingObjectMapperProvider mapperProvider) {
+        return new LocalCommandService(applicationContext, mapperProvider)
+    }
+
+    @Bean
+    LocalCommandGateway commandGateway(ApplicationContext applicationContext, RetryRegistry registry, LocalCommandService localCommandService, MessagingObjectMapperProvider mapperProvider) {
+        return new LocalCommandGateway(applicationContext, registry, localCommandService, mapperProvider)
     }
 
     // Command Handlers

@@ -109,7 +109,7 @@ public class GrpcCommandGateway extends CommandGateway {
         mergeUnitOfWork(command.getUnitOfWork(), response.unitOfWork());
 
         if (response.isError()) {
-            throwMatchingException(response.errorType(), response.errorMessage());
+            throwMatchingException(response.errorType(), response.errorMessage(), response.errorTemplate());
         }
         return response.result();
     }

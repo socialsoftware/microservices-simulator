@@ -10,6 +10,12 @@ public class SimulatorException extends RuntimeException {
     private static final Logger logger = LoggerFactory.getLogger(SimulatorException.class);
     private final String simulatorErrorMessage;
 
+    protected SimulatorException(String simulatorErrorMessage, String formattedMessage, boolean alreadyFormatted) {
+        super(formattedMessage);
+        logger.info(formattedMessage);
+        this.simulatorErrorMessage = simulatorErrorMessage;
+    }
+
     public SimulatorException(String simulatorErrorMessage) {
         super(simulatorErrorMessage);
         logger.info(simulatorErrorMessage);
@@ -54,5 +60,9 @@ public class SimulatorException extends RuntimeException {
 
     public String getErrorMessage() {
         return simulatorErrorMessage;
+    }
+
+    public static SimulatorException fromRemote(String simulatorErrorMessage, String formattedMessage) {
+        return new SimulatorException(simulatorErrorMessage, formattedMessage, true);
     }
 }

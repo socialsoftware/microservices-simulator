@@ -10,13 +10,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandResponse;
-
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.*;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -101,7 +95,7 @@ public class StreamCommandGateway extends CommandGateway {
         mergeUnitOfWork(command.getUnitOfWork(), resp.unitOfWork());
 
         if (resp.isError()) {
-            throwMatchingException(resp.errorType(), resp.errorMessage());
+            throwMatchingException(resp.errorType(), resp.errorMessage(), resp.errorTemplate());
         }
         return resp.result();
     }

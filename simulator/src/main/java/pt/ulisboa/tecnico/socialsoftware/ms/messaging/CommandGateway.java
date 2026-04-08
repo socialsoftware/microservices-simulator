@@ -8,6 +8,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -79,11 +81,65 @@ public abstract class CommandGateway {
                 serviceName, commandName, rootCause.getMessage()));
     }
 
-    protected void throwMatchingException(String errorType, String errorMessage) {
-        if (SimulatorException.class.getName().equals(errorType)) {
-            throw new SimulatorException(errorMessage);
+    protected void throwMatchingException(String errorType, String errorMessage, String errorTemplate) {
+        throw restoreRemoteException(errorType, errorMessage, errorTemplate);
+    }
+
+    private RuntimeException restoreRemoteException(String errorType, String errorMessage, String errorTemplate) {
+        if (errorType == null || errorType.isBlank()) {
+            return new RuntimeException(errorMessage);
         }
-        throw new RuntimeException(errorType + ": " + errorMessage);
+
+        try {
+            Class<?> exceptionClass = Class.forName(errorType);
+            if (RuntimeException.class.isAssignableFrom(exceptionClass)) {
+                return instantiateRuntimeException(
+                        exceptionClass.asSubclass(RuntimeException.class),
+                        errorMessage,
+                        errorTemplate);
+            }
+        } catch (ClassNotFoundException e) {
+            logger.warning("Could not restore remote exception type '" + errorType + "': " + e.getMessage());
+        }
+
+        return new RuntimeException(errorType + ": " + errorMessage);
+    }
+
+    private RuntimeException instantiateRuntimeException(Class<? extends RuntimeException> exceptionClass, String errorMessage, String errorTemplate) {
+        RuntimeException fromRemoteFactory = tryFromRemoteFactory(exceptionClass, errorTemplate, errorMessage);
+        if (fromRemoteFactory != null) {
+            return fromRemoteFactory;
+        }
+
+        try {
+            return exceptionClass.getConstructor(String.class).newInstance(errorMessage);
+        } catch (ReflectiveOperationException ignored) {
+            if (SimulatorException.class.isAssignableFrom(exceptionClass)) {
+                String template = errorTemplate != null ? errorTemplate : errorMessage;
+                return SimulatorException.fromRemote(template, errorMessage);
+            }
+            return new RuntimeException(exceptionClass.getName() + ": " + errorMessage);
+        }
+    }
+
+    private RuntimeException tryFromRemoteFactory(Class<? extends RuntimeException> exceptionClass, String errorTemplate, String errorMessage) {
+        if (errorTemplate == null) {
+            return null;
+        }
+
+        try {
+            Method factory = exceptionClass.getMethod("fromRemote", String.class, String.class);
+            if (!Modifier.isStatic(factory.getModifiers())) {
+                return null;
+            }
+            Object instance = factory.invoke(null, errorTemplate, errorMessage);
+            if (instance instanceof RuntimeException) {
+                return (RuntimeException) instance;
+            }
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
+        return null;
     }
 
     protected void mergeUnitOfWork(UnitOfWork target, UnitOfWork source) {

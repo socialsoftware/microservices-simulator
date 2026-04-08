@@ -36,6 +36,9 @@ public class MessagingObjectMapperProvider {
 
         PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType("pt.ulisboa.tecnico")
+                .allowIfSubType("java.lang")
+                .allowIfSubType("java.util")
+                .allowIfSubType("java.time")
                 .build();
 
         TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(

@@ -11,6 +11,12 @@ public class QuizzesException extends SimulatorException {
     private static final Logger logger = LoggerFactory.getLogger(QuizzesException.class);
     private final String quizzesErrorMessage;
 
+    private QuizzesException(String quizzesErrorMessage, String formattedMessage, boolean alreadyFormatted) {
+        super(quizzesErrorMessage, formattedMessage, true);
+        logger.info(formattedMessage);
+        this.quizzesErrorMessage = quizzesErrorMessage;
+    }
+
     public QuizzesException(String quizzesErrorMessage) {
         super(quizzesErrorMessage);
         logger.info(quizzesErrorMessage);
@@ -49,5 +55,9 @@ public class QuizzesException extends SimulatorException {
 
     public String getErrorMessage() {
         return this.quizzesErrorMessage;
+    }
+
+    public static QuizzesException fromRemote(String quizzesErrorMessage, String formattedMessage) {
+        return new QuizzesException(quizzesErrorMessage, formattedMessage, true);
     }
 }
