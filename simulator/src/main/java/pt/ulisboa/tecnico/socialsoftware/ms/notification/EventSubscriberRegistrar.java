@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.event;
+package pt.ulisboa.tecnico.socialsoftware.ms.notification;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;

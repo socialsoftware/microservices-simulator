@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.handling.handlers;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.event.EventHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing;
 

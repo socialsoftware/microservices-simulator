@@ -3,22 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.ha
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.event.EventApplicationService;
-import pt.ulisboa.tecnico.socialsoftware.ms.event.EventHandling;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.AnonymizeStudentEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteUserEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.InvalidateQuizEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventApplicationService;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandling;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.eventProcessing.QuizAnswerEventProcessing;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.AnonymizeStudentEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.DeleteCourseExecutionEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.DeleteUserEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.DisenrollStudentFromCourseExecutionEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.InvalidateQuizEventHandler;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.UpdateStudentNameEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.handlers.*;
 
 @Component
 public class QuizAnswerEventHandling implements EventHandling {

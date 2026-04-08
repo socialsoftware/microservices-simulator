@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.events;
 
 import jakarta.persistence.Entity;
-import pt.ulisboa.tecnico.socialsoftware.ms.event.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
 
 /**
  * Note: we pass `courseAggregateId` to super() so `publisherAggregateId` is the course id.

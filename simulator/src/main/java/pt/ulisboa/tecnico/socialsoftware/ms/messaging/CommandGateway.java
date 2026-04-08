@@ -81,6 +81,9 @@ public abstract class CommandGateway {
                 serviceName, commandName, rootCause.getMessage()));
     }
 
+    // Command gateway receives all exceptions wrapped in Runtime exception (Except simulator exception), 
+    // to make them work with the circuit breaker retry.
+    // This method restores the original exception
     protected void throwMatchingException(String errorType, String errorMessage, String errorTemplate) {
         throw restoreRemoteException(errorType, errorMessage, errorTemplate);
     }

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.event;
+package pt.ulisboa.tecnico.socialsoftware.ms.notification;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

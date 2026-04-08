@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.event.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
 
 import java.io.Serializable;
 import java.util.ArrayList;

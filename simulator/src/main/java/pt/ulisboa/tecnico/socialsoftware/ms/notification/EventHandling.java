@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.event;
+package pt.ulisboa.tecnico.socialsoftware.ms.notification;
 
 /**
  * Marker interface for event handling beans.

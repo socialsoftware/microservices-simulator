@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.events;
 
 import jakarta.persistence.Entity;
-import pt.ulisboa.tecnico.socialsoftware.ms.event.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
 
 @Entity
 public class DeleteQuestionEvent extends Event {

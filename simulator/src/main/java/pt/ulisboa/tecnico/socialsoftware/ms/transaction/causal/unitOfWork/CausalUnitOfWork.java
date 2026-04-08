@@ -2,9 +2,9 @@ package pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork;
 
 import org.springframework.context.annotation.Profile;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.event.Event;
-import pt.ulisboa.tecnico.socialsoftware.ms.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 import java.util.HashMap;

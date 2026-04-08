@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.event;
+package pt.ulisboa.tecnico.socialsoftware.ms.notification;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
