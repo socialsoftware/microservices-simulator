@@ -3,11 +3,11 @@ package pt.ulisboa.tecnico.socialsoftware.ms.messaging;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.AbortCausalCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.CommitCausalCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.GetConcurrentAggregateCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.PrepareCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.AbortCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.CommitCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.GetConcurrentAggregateCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.PrepareCausalCommand;
 
 import java.util.logging.Logger;
 

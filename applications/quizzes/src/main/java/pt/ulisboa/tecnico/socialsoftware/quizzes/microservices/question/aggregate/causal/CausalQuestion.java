@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import org.apache.commons.collections4.SetUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;

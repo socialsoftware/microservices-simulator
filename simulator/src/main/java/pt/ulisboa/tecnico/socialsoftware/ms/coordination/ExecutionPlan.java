@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;

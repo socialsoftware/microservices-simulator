@@ -19,7 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.stream.StreamCommandGatewa
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.version.DistributedVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.version.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.factories.SagasQuizAnswerFactory

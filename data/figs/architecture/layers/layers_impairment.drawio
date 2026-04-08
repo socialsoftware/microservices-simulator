@@ -1,25 +1,22 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
   <diagram name="Page-1" id="bjVe5_6UI9en3Q5ru32t">
-    <mxGraphModel dx="983" dy="582" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1424" dy="842" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="UsN4bkov0mgB9LMyA9h2-17" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);container=0;" value="Simulator Library" vertex="1">
-          <mxGeometry height="470" width="570" x="70" y="320" as="geometry" />
-        </mxCell>
-        <mxCell id="UsN4bkov0mgB9LMyA9h2-18" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;container=0;" value="Impairment Module" vertex="1">
+        <mxCell id="UsN4bkov0mgB9LMyA9h2-18" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;container=0;fontSize=14;fontStyle=1" value="Impairment Module" vertex="1">
           <mxGeometry height="410" width="510" x="100" y="360" as="geometry" />
         </mxCell>
-        <mxCell id="UsN4bkov0mgB9LMyA9h2-19" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;container=0;" value="ImpairmentHandler" vertex="1">
+        <mxCell id="UsN4bkov0mgB9LMyA9h2-19" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#D482A8;strokeColor=#b85450;container=0;" value="ImpairmentHandler" vertex="1">
           <mxGeometry height="50" width="200" x="130" y="690" as="geometry" />
         </mxCell>
-        <mxCell id="UsN4bkov0mgB9LMyA9h2-20" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;container=0;" value="ImpairmentController" vertex="1">
+        <mxCell id="UsN4bkov0mgB9LMyA9h2-20" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#D482A8;strokeColor=#b85450;container=0;" value="ImpairmentController" vertex="1">
           <mxGeometry height="50" width="210" x="250" y="410" as="geometry" />
         </mxCell>
-        <mxCell id="UsN4bkov0mgB9LMyA9h2-21" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;container=0;" value="ImpairmentService" vertex="1">
+        <mxCell id="UsN4bkov0mgB9LMyA9h2-21" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#D482A8;strokeColor=#b85450;container=0;" value="ImpairmentService" vertex="1">
           <mxGeometry height="50" width="190" x="260" y="540" as="geometry" />
         </mxCell>
-        <mxCell id="UsN4bkov0mgB9LMyA9h2-22" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;container=0;" value="ImpairmentGenerator" vertex="1">
+        <mxCell id="UsN4bkov0mgB9LMyA9h2-22" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#D482A8;strokeColor=#b85450;container=0;" value="ImpairmentGenerator" vertex="1">
           <mxGeometry height="50" width="210" x="370" y="690" as="geometry" />
         </mxCell>
         <mxCell id="UsN4bkov0mgB9LMyA9h2-23" edge="1" parent="1" source="UsN4bkov0mgB9LMyA9h2-20" style="startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;" target="UsN4bkov0mgB9LMyA9h2-21" value="">

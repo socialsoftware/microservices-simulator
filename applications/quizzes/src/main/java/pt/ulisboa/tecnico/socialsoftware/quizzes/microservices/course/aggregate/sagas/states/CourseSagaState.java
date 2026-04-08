@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.sagas.states;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum CourseSagaState implements SagaState {
     READ_COURSE {

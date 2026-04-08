@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.messaging;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
 
 import java.io.Serializable;
 

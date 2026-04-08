@@ -14,7 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.version.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.version.VersionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.factories.CausalQuizAnswerFactory

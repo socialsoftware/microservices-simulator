@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.command.answer;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
 
 public class ConcludeQuizCommand extends Command {
     private Integer quizAggregateId;

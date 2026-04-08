@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.messaging;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
 
 public record CommandResponse(
         String correlationId,

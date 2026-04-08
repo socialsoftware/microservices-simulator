@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.messaging;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAggregate;
 
 import java.util.List;
 

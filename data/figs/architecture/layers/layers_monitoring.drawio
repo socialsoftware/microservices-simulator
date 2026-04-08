@@ -1,22 +1,19 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
   <diagram name="Page-1" id="pHv8kHWQmDJBnx0ZYzL-">
-    <mxGraphModel dx="705" dy="844" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1424" dy="842" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="_XiC_DoUsB0LQRGW9mxb-1" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);container=0;" value="Simulator Library" vertex="1">
-          <mxGeometry height="430" width="300" x="300" y="350" as="geometry" />
-        </mxCell>
-        <mxCell id="_XiC_DoUsB0LQRGW9mxb-2" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;container=0;" value="Monitoring Module" vertex="1">
+        <mxCell id="_XiC_DoUsB0LQRGW9mxb-2" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;container=0;fontSize=14;fontStyle=1" value="Monitoring Module" vertex="1">
           <mxGeometry height="360" width="240" x="330" y="390" as="geometry" />
         </mxCell>
-        <mxCell id="_XiC_DoUsB0LQRGW9mxb-3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;container=0;" value="TraceManager" vertex="1">
+        <mxCell id="_XiC_DoUsB0LQRGW9mxb-3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E58A8C;strokeColor=#b85450;container=0;" value="TraceManager" vertex="1">
           <mxGeometry height="50" width="160" x="370" y="670" as="geometry" />
         </mxCell>
-        <mxCell id="_XiC_DoUsB0LQRGW9mxb-4" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;container=0;" value="TraceController" vertex="1">
+        <mxCell id="_XiC_DoUsB0LQRGW9mxb-4" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E58A8C;strokeColor=#b85450;container=0;" value="TraceController" vertex="1">
           <mxGeometry height="50" width="170" x="365" y="430" as="geometry" />
         </mxCell>
-        <mxCell id="_XiC_DoUsB0LQRGW9mxb-5" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;container=0;" value="TraceService" vertex="1">
+        <mxCell id="_XiC_DoUsB0LQRGW9mxb-5" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E58A8C;strokeColor=#b85450;container=0;" value="TraceService" vertex="1">
           <mxGeometry height="50" width="150" x="375" y="550" as="geometry" />
         </mxCell>
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-6" edge="1" parent="1" source="_XiC_DoUsB0LQRGW9mxb-4" style="curved=1;startArrow=none;endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;endFill=1;" target="_XiC_DoUsB0LQRGW9mxb-5" value="">

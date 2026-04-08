@@ -7,15 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandResponse;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandReply;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandRequest;
 import pt.ulisboa.tecnico.socialsoftware.ms.grpc.CommandServiceGrpc;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandResponse;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
 
 import java.util.logging.Logger;
 

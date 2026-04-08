@@ -3,10 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.ms.messaging;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.AbortSagaCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.CommitSagaCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.command.AbortSagaCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.command.CommitSagaCommand;
 
 import java.util.logging.Logger;
 

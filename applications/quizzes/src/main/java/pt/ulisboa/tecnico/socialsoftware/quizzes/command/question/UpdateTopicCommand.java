@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.command.question;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 
 public class UpdateTopicCommand extends Command {

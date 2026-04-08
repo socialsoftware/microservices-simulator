@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;

@@ -1,0 +1,21 @@
+package pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+
+public class CommitCausalCommand extends Command {
+    private Aggregate aggregate;
+
+    public CommitCausalCommand(Integer aggregateId, String serviceName, Aggregate aggregate) {
+        super(null, serviceName, aggregateId);
+        this.aggregate = aggregate;
+    }
+
+    public Aggregate getAggregate() {
+        return aggregate;
+    }
+
+    public void setAggregate(Aggregate aggregate) {
+        this.aggregate = aggregate;
+    }
+}
