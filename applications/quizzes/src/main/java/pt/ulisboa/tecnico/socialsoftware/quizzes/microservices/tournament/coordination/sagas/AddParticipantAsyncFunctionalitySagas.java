@@ -9,8 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaU
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.GetStudentByExecutionIdAndUserIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.AddParticipantCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.GetStudentByExecutionIdAndUserIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.AddParticipantCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 

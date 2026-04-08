@@ -7,7 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.Caus
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.topic.DeleteTopicCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.topic.DeleteTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.causal.CausalTopic;
 
 public class DeleteTopicFunctionalityTCC extends WorkflowFunctionality {

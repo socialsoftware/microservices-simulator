@@ -10,9 +10,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaU
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseExecutionCountCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.GetCourseExecutionByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveCourseExecutionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.course.UpdateCourseExecutionCountCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.GetCourseExecutionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.RemoveCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
 

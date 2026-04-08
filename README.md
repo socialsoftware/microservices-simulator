@@ -839,10 +839,10 @@ For the transactional model independent part:
    method [getEventSubscriptions()](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java).
 5. **Define Event Subscriptions**: Events can be subscribed depending on its data. Therefore, define subscription
    classes
-   like [TournamentSubscribesUpdateStudentName](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/events/subscribe/TournamentSubscribesUpdateStudentName.java).
+   like [TournamentSubscribesUpdateStudentName](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/notification/subscribe/TournamentSubscribesUpdateStudentName.java).
 6. **Define Event Handlers**: For each subscribed event define an event handler that delegates the handling in a
    handling functionality,
-   like [UpdateStudentNameEventHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/events/handling/handlers/UpdateStudentNameEventHandler.java)
+   like [UpdateStudentNameEventHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/notification/handling/handlers/UpdateStudentNameEventHandler.java)
    and its handling
    functionality [processUpdateStudentNameEvent(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/eventProcessing/TournamentEventProcessing.java).
 7. **Define Aggregate Services**: Define the microservice API, whose implementation interact with the unit of work to
@@ -850,10 +850,10 @@ For the transactional model independent part:
    service [updateExecutionStudentName(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/service/ExecutionService.java).
 8. **Define Event Handling**: Define the aggregates event handling, that periodically polls the event table to process
    events,
-   like [TournamentEventHandling](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/events/handling/TournamentEventHandling.java).
+   like [TournamentEventHandling](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/notification/handling/TournamentEventHandling.java).
 9. **Define Event Subscriber Service**: Define the event subscriber service, that subscribes to events published by
    other microservices via Spring Cloud Stream,
-   like [TournamentEventSubscriberService](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/events/TournamentEventSubscriberService.java).
+   like [TournamentEventSubscriberService](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/notification/TournamentEventSubscriberService.java).
 
 For the transactional model dependent part:
 
@@ -874,14 +874,14 @@ For the functionalities:
    functionality [AddParticipantFunctionalitySagas(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java)
    and [AddParticipantFunctionalityTCC(...)](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/causal/AddParticipantFunctionalityTCC.java)
 2. **Define Commands**: Define the commands to be executed by the functionalities,
-   like [AddParticipantCommand](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/command/tournament/AddParticipantCommand.java).
+   like [AddParticipantCommand](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/commands/tournament/AddParticipantCommand.java).
    Every method of the aggregate service should have a corresponding command.
 
 For the inter-service communication:
 
 1. **Create the CommandHandler of the aggregate**: It receives commands
    and calls the corresponding aggregate service method of that command,
-   like [TournamentCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/commandHandler/TournamentCommandHandler.java).
+   like [TournamentCommandHandler](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/messaging/TournamentCommandHandler.java).
 2. **Configure Spring Cloud Stream Bindings** (for `stream` profile): Define the command and event channels in
    `application.yaml`,
    like [tournament-service bindings](applications/quizzes/src/main/resources/application-tournament-service.yaml).

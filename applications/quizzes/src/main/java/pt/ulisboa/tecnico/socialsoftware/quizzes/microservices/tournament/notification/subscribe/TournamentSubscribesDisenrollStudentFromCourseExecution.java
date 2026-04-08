@@ -1,0 +1,41 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
+
+public class TournamentSubscribesDisenrollStudentFromCourseExecution extends EventSubscription {
+    private TournamentDto tournamentDto;
+
+    public TournamentSubscribesDisenrollStudentFromCourseExecution(Tournament tournament) {
+        super(tournament.getTournamentCourseExecution().getCourseExecutionAggregateId(),
+                tournament.getTournamentCourseExecution().getCourseExecutionVersion(),
+                DisenrollStudentFromCourseExecutionEvent.class.getSimpleName());
+        this.tournamentDto = new TournamentDto(tournament);
+    }
+
+    public TournamentSubscribesDisenrollStudentFromCourseExecution() {}
+
+    @Override
+    public boolean subscribesEvent(Event event) {
+         return super.subscribesEvent(event) && checkTournamentInfo((DisenrollStudentFromCourseExecutionEvent)event);
+    }
+
+    private boolean checkTournamentInfo(DisenrollStudentFromCourseExecutionEvent disenrollStudentFromCourseExecutionEvent) {
+        if (tournamentDto.getCreator().getAggregateId().equals(disenrollStudentFromCourseExecutionEvent.getStudentAggregateId())) {
+            return true;
+        }
+
+        for (UserDto tournamentParticipant : tournamentDto.getParticipants()) {
+            if (tournamentParticipant.getAggregateId().equals(disenrollStudentFromCourseExecutionEvent.getStudentAggregateId())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+}

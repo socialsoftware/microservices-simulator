@@ -7,7 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaU
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.RemoveTopicCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.question.RemoveTopicCommand;
 
 public class DeleteTopicInQuestionFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;

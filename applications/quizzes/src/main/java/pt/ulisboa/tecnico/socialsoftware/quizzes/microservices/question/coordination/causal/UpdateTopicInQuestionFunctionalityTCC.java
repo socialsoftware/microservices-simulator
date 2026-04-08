@@ -1,13 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.causal;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.Step;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.workflow.CausalWorkflow;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.Step;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.question.UpdateTopicCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.question.UpdateTopicCommand;
 
 public class UpdateTopicInQuestionFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;

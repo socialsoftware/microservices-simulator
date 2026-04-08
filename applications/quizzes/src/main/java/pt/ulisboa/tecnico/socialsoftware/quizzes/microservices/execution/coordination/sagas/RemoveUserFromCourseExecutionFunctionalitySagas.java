@@ -7,7 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaU
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveUserCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.RemoveUserCommand;
 
 public class RemoveUserFromCourseExecutionFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;

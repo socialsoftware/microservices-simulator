@@ -7,7 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.Caus
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.AnonymizeStudentCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.AnonymizeStudentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.Execution;
 
 public class AnonymizeStudentFunctionalityTCC extends WorkflowFunctionality {

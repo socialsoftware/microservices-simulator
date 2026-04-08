@@ -7,8 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaU
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.EnrollStudentCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.EnrollStudentCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 

@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWor
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.AnonymizeUserCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.AnonymizeUserCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 
 import java.util.ArrayList;

@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.subscribe.CourseExecutionSubscribesRemoveUser;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.notification.subscribe.CourseExecutionSubscribesRemoveUser;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;

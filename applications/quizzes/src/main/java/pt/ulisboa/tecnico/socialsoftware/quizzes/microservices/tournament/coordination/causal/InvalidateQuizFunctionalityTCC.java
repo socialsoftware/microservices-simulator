@@ -7,7 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.Caus
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.tournament.InvalidateQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.InvalidateQuizCommand;
 
 public class InvalidateQuizFunctionalityTCC extends WorkflowFunctionality {
     private final CausalUnitOfWorkService unitOfWorkService;

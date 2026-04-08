@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.subscribe.QuestionSubscribesDeleteTopic;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.subscribe.QuestionSubscribesUpdateTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

@@ -12,7 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEve
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.InvalidateQuizEvent
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.functionalities.QuizAnswerFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.QuizAnswerEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.handling.QuizAnswerEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto

@@ -10,8 +10,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaU
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.DeleteUserCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.user.DeleteUserCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.sagas.states.UserSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService;

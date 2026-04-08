@@ -7,8 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.Caus
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.workflow.CausalWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.EnrollStudentCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.user.GetUserByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.EnrollStudentCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.user.GetUserByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 

@@ -7,12 +7,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaU
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.CreateCourseRemoteCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.DeleteCourseCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.GetCourseByNameRemoteCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.course.UpdateCourseExecutionCountCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.CreateCourseExecutionCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.command.execution.RemoveCourseExecutionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.course.CreateCourseRemoteCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.course.DeleteCourseCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.course.GetCourseByNameRemoteCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.course.UpdateCourseExecutionCountCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.CreateCourseExecutionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.RemoveCourseExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 
 import java.util.ArrayList;
