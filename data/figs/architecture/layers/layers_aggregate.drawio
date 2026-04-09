@@ -10,16 +10,16 @@
         <mxCell id="YfHP9GBOUUqT3W_q0Hfi-4" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;fontSize=13;fontStyle=1" value="Notification Module" vertex="1">
           <mxGeometry height="110" width="230" x="395" y="300" as="geometry" />
         </mxCell>
-        <mxCell id="YfHP9GBOUUqT3W_q0Hfi-5" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E1E98B;strokeColor=#000000;" value="AggregateRepository" vertex="1">
+        <mxCell id="YfHP9GBOUUqT3W_q0Hfi-5" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E1E98B;strokeColor=#000000;" value="&lt;&lt;interface&gt;&gt;&#xa;AggregateRepository" vertex="1">
           <mxGeometry height="50" width="180" x="200" y="590" as="geometry" />
         </mxCell>
-        <mxCell id="YfHP9GBOUUqT3W_q0Hfi-6" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E1E98B;strokeColor=#000000;" value="Aggregate" vertex="1">
+        <mxCell id="YfHP9GBOUUqT3W_q0Hfi-6" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E1E98B;strokeColor=#000000;" value="&lt;&lt;abstract&gt;&gt;&#xa;Aggregate" vertex="1">
           <mxGeometry height="50" width="110" x="235" y="480" as="geometry" />
         </mxCell>
         <mxCell id="YfHP9GBOUUqT3W_q0Hfi-7" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E1E98B;strokeColor=#000000;" value="AggregateIdGeneratorService" vertex="1">
           <mxGeometry height="50" width="240" x="520" y="480" as="geometry" />
         </mxCell>
-        <mxCell id="YfHP9GBOUUqT3W_q0Hfi-8" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E1E98B;strokeColor=#000000;" value="AggregateIdRepository" vertex="1">
+        <mxCell id="YfHP9GBOUUqT3W_q0Hfi-8" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E1E98B;strokeColor=#000000;" value="&lt;&lt;interface&gt;&gt;&#xa;AggregateIdRepository" vertex="1">
           <mxGeometry height="50" width="200" x="440" y="590" as="geometry" />
         </mxCell>
         <mxCell id="YfHP9GBOUUqT3W_q0Hfi-9" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E1E98B;strokeColor=#000000;" value="AggregateIdGenerator" vertex="1">
