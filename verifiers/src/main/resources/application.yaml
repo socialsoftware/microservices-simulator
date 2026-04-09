@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: verifiers
+  main:
+    web-application-type: none
+
+verifiers:
+  applications-root: ${VERIFIERS_APPLICATIONS_ROOT:/applications}
+  application-base-dir: ${VERIFIERS_APPLICATION_BASE_DIR:quizzes}
+
+eureka:
+  client:
+    enabled: false

@@ -1,0 +1,22 @@
+FROM maven:3.9.7-eclipse-temurin-21 AS deps
+
+WORKDIR /workspace
+
+# Install simulator (skip protobuf plugin which fails on ARM64 Docker).
+COPY simulator/pom.xml simulator/pom.xml
+COPY simulator/src simulator/src
+RUN mvn -q -DskipTests -Dprotobuf.skip -f simulator/pom.xml clean install
+
+# Install all application JARs.
+COPY applications applications
+RUN for pom in applications/*/pom.xml; do \
+        mvn -q -f "$pom" clean install -DskipTests; \
+    done
+
+FROM maven:3.9.7-eclipse-temurin-21
+
+WORKDIR /verifiers
+COPY --from=deps /root/.m2 /root/.m2
+COPY --from=deps /workspace/applications /applications
+COPY verifiers/pom.xml ./pom.xml
+COPY verifiers/src ./src

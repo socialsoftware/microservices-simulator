@@ -188,6 +188,49 @@ services:
     volumes:
       - m2_cache:/root/.m2
 
+  # ============================================
+  # VERIFIERS SERVICES
+  # ============================================
+  fault-analysis-scenario-gen:
+    build:
+      context: .
+      dockerfile: verifiers/Dockerfile
+      args:
+        PROFILE: sagas,local
+    image: fault-analysis-scenario-gen:latest
+    pull_policy: build
+    container_name: fault-analysis-scenario-gen
+    environment:
+      SPRING_PROFILES_ACTIVE: sagas,local
+      VERIFIERS_APPLICATIONS_ROOT: /applications
+      VERIFIERS_APPLICATION_BASE_DIR: quizzes
+    <<: *limits-medium
+    networks:
+      - messaging-network
+    volumes:
+      - m2_cache:/root/.m2
+
+  fault-analysis-scenario-gen-test:
+    build:
+      context: .
+      dockerfile: verifiers/Dockerfile.test
+      args:
+        PROFILE: sagas,local
+    image: fault-analysis-scenario-gen-tests:latest
+    pull_policy: build
+    container_name: fault-analysis-scenario-gen-test
+    environment:
+      SPRING_PROFILES_ACTIVE: sagas,local
+      VERIFIERS_APPLICATIONS_ROOT: /applications
+      VERIFIERS_APPLICATION_BASE_DIR: dummyapp
+    stop_signal: SIGKILL
+    stdin_open: true
+    tty: true
+    working_dir: /verifiers
+    command: mvn test
+    volumes:
+      - m2_cache:/root/.m2
+
 volumes:
   rabbitmq_data:
   m2_cache:

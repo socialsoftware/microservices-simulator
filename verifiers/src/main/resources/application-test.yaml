@@ -1,0 +1,3 @@
+verifiers:
+  applications-root: ${VERIFIERS_APPLICATIONS_ROOT:/applications}
+  application-base-dir: ${VERIFIERS_APPLICATION_BASE_DIR:dummyapp}
