@@ -5,16 +5,16 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-2" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;container=0;fontSize=14;fontStyle=1" value="Monitoring Module" vertex="1">
-          <mxGeometry height="360" width="240" x="330" y="390" as="geometry" />
+          <mxGeometry height="360" width="240" x="280" y="150" as="geometry" />
         </mxCell>
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E58A8C;strokeColor=default;container=0;" value="TraceManager" vertex="1">
-          <mxGeometry height="50" width="160" x="370" y="670" as="geometry" />
+          <mxGeometry height="50" width="160" x="320" y="430" as="geometry" />
         </mxCell>
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-4" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E58A8C;strokeColor=default;container=0;" value="TraceController" vertex="1">
-          <mxGeometry height="50" width="170" x="365" y="430" as="geometry" />
+          <mxGeometry height="50" width="170" x="315" y="190" as="geometry" />
         </mxCell>
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-5" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E58A8C;strokeColor=default;container=0;" value="TraceService" vertex="1">
-          <mxGeometry height="50" width="150" x="375" y="550" as="geometry" />
+          <mxGeometry height="50" width="150" x="325" y="310" as="geometry" />
         </mxCell>
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-6" edge="1" parent="1" source="_XiC_DoUsB0LQRGW9mxb-4" style="curved=1;startArrow=none;endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;endFill=1;" target="_XiC_DoUsB0LQRGW9mxb-5" value="">
           <mxGeometry relative="1" as="geometry">

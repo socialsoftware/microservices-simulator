@@ -44,13 +44,13 @@
         <mxCell id="j9R4vumW2I8ECUKVBteT-101" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#D482A8;strokeColor=#333333;labelBackgroundColor=none;labelBorderColor=none;textShadow=0;" value="Impairment Module" vertex="1">
           <mxGeometry height="54" width="197" x="200" y="620" as="geometry" />
         </mxCell>
-        <mxCell id="j9R4vumW2I8ECUKVBteT-102" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#F3C082;strokeColor=#333333;labelBackgroundColor=none;labelBorderColor=none;textShadow=0;" value="Version Module" vertex="1">
+        <mxCell id="j9R4vumW2I8ECUKVBteT-102" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#F3C082;strokeColor=#333333;labelBackgroundColor=none;labelBorderColor=none;textShadow=0;" value="Versioning Module" vertex="1">
           <mxGeometry height="54" width="170" x="963.5" y="550" as="geometry" />
         </mxCell>
         <mxCell id="j9R4vumW2I8ECUKVBteT-103" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#FFE599;strokeColor=#333333;labelBackgroundColor=none;labelBorderColor=none;textShadow=0;" value="Notification Module" vertex="1">
           <mxGeometry height="54" width="196" x="1181" y="620" as="geometry" />
         </mxCell>
-        <mxCell id="j9R4vumW2I8ECUKVBteT-104" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ECA485;strokeColor=#333333;labelBackgroundColor=none;labelBorderColor=none;textShadow=0;" value="Message Module" vertex="1">
+        <mxCell id="j9R4vumW2I8ECUKVBteT-104" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ECA485;strokeColor=#333333;labelBackgroundColor=none;labelBorderColor=none;textShadow=0;" value="Messaging Module" vertex="1">
           <mxGeometry height="54" width="182" x="707.5" y="674" as="geometry" />
         </mxCell>
         <mxCell id="j9R4vumW2I8ECUKVBteT-105" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-95" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;edgeStyle=orthogonalEdgeStyle;endFill=1;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;fontSize=9;html=1;" target="j9R4vumW2I8ECUKVBteT-104" value="&lt;b&gt;API:&lt;/b&gt; uses(Command, CommandGateway)">

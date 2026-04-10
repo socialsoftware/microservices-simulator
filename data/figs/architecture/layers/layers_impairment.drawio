@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
   <diagram name="Page-1" id="bjVe5_6UI9en3Q5ru32t">
-    <mxGraphModel dx="1187" dy="702" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1424" dy="842" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -33,7 +33,7 @@
             <mxPoint x="36" y="20" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="B1rPuHsZCiT0nrRQ0Ceu-1" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="delegates impairment&amp;nbsp;&lt;div&gt;API calls&lt;/div&gt;" vertex="1">
+        <mxCell id="B1rPuHsZCiT0nrRQ0Ceu-1" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="delegates&amp;nbsp;&amp;nbsp;&lt;div&gt;API calls&lt;/div&gt;" vertex="1">
           <mxGeometry x="360" y="500" as="geometry" />
         </mxCell>
         <mxCell id="B1rPuHsZCiT0nrRQ0Ceu-3" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="forwards calls&amp;nbsp;&lt;div&gt;to singleton&lt;/div&gt;" vertex="1">
