@@ -27,12 +27,12 @@ public class TeacherStreamCommandHandler extends StreamCommandHandler {
     }
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Teacher";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return teacherCommandHandler.handleDomainCommand(command);
     }
 

@@ -22,7 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.comma
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.version.IVersionService;
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService;
 
 import java.util.Arrays;
 import java.util.List;

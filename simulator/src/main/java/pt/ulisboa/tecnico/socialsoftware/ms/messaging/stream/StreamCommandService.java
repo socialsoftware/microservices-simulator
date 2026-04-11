@@ -35,7 +35,7 @@ public class StreamCommandService {
         this.objectMapper = mapperProvider.newMapper();
     }
 
-    public void handleCommandMessage(Message<?> message) {
+    public void send(Message<?> message) {
         Command command;
         if (!(message.getPayload() instanceof Command)) {
             if (message.getPayload() instanceof byte[]) {

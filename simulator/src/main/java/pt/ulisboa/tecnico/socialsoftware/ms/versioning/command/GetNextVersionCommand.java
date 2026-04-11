@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.version.command;
+package pt.ulisboa.tecnico.socialsoftware.ms.versioning.command;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 

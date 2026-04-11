@@ -48,7 +48,7 @@ public class StreamCommandChannelRegistrar implements BeanDefinitionRegistryPost
                     channelDef.setInstanceSupplier(() -> {
                         StreamCommandService service = ((ConfigurableListableBeanFactory) registry)
                                 .getBean(StreamCommandService.class);
-                        return (Consumer<Message<?>>) service::handleCommandMessage;
+                        return (Consumer<Message<?>>) service::send;
                     });
                     registry.registerBeanDefinition(channelBeanName, channelDef);
                 }

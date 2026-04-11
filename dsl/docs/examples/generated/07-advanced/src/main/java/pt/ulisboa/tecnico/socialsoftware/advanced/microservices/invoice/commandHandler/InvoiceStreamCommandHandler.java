@@ -27,12 +27,12 @@ public class InvoiceStreamCommandHandler extends StreamCommandHandler {
     }
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Invoice";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return invoiceCommandHandler.handleDomainCommand(command);
     }
 

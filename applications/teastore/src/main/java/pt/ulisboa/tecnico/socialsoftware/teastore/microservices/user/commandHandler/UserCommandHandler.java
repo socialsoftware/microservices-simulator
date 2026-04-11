@@ -17,12 +17,12 @@ public class UserCommandHandler extends CommandHandler {
     private UserService userService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "User";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateUserCommand cmd -> handleCreateUser(cmd);
             case GetUserByIdCommand cmd -> handleGetUserById(cmd);

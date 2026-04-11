@@ -17,12 +17,12 @@ public class InvoiceCommandHandler extends CommandHandler {
     private InvoiceService invoiceService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Invoice";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateInvoiceCommand cmd -> handleCreateInvoice(cmd);
             case GetInvoiceByIdCommand cmd -> handleGetInvoiceById(cmd);

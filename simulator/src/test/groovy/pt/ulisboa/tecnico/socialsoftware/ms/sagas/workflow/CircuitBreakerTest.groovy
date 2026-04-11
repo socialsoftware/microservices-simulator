@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryRegistry
 import io.github.resilience4j.springboot3.circuitbreaker.autoconfigure.CircuitBreakerAutoConfiguration
@@ -20,7 +21,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -137,23 +140,6 @@ class CircuitBreakerTest extends SpockTest {
         println "Retry intervals: ${intervals}ms"
     }
 
-//    def "timeout triggers retry when handler is slow"() {
-//        given:
-//        def command = new Command(null, "slow", null)
-//
-//        when:
-//        def failureCount = 0
-//        try {
-//            localCommandGateway.send(command)
-//        } catch (RuntimeException ignored) {
-//            failureCount++
-//        }
-//
-//        then:
-//        failureCount == 1
-//        LocalBeanConfiguration.slowAttempts.get() == 5
-//    }
-
     @SpringBootConfiguration
     @EnableAutoConfiguration(exclude = [DataSourceAutoConfiguration, HibernateJpaAutoConfiguration])
     @ImportAutoConfiguration([RetryAutoConfiguration, CircuitBreakerAutoConfiguration])
@@ -178,18 +164,28 @@ class CircuitBreakerTest extends SpockTest {
         }
 
         @Bean
-        LocalCommandGateway localCommandGateway(ApplicationContext applicationContext, RetryRegistry retryRegistry) {
-            return new LocalCommandGateway(applicationContext, retryRegistry)
+        MessagingObjectMapperProvider messagingObjectMapperProvider() {
+            return new MessagingObjectMapperProvider(new ObjectMapper().findAndRegisterModules())
+        }
+
+        @Bean
+        LocalCommandService localCommandService(ApplicationContext applicationContext, MessagingObjectMapperProvider mapperProvider) {
+            return new LocalCommandService(applicationContext, mapperProvider)
+        }
+
+        @Bean
+        LocalCommandGateway localCommandGateway(ApplicationContext applicationContext, RetryRegistry registry, LocalCommandService localCommandService, MessagingObjectMapperProvider mapperProvider) {
+            return new LocalCommandGateway(applicationContext, registry, localCommandService, mapperProvider)
         }
 
         @Bean
         CommandHandler retryableCommandHandler() {
             return new CommandHandler() {
                 @Override
-                protected String getAggregateTypeName() { return "test" }
+                public String getAggregateTypeName() { return "test" }
 
                 @Override
-                protected Object handleDomainCommand(Command command) {
+                public Object handleDomainCommand(Command command) {
                     retryableAttempts.incrementAndGet()
                     throw new RuntimeException("Simulated retriable failure")
                 }
@@ -200,10 +196,10 @@ class CircuitBreakerTest extends SpockTest {
         CommandHandler simulatorExceptionCommandHandler() {
             return new CommandHandler() {
                 @Override
-                protected String getAggregateTypeName() { return "test" }
+                public String getAggregateTypeName() { return "test" }
 
                 @Override
-                protected Object handleDomainCommand(Command command) {
+                public Object handleDomainCommand(Command command) {
                     simulatorExceptionAttempts.incrementAndGet()
                     throw new SimulatorException("Should not retry")
                 }
@@ -216,10 +212,10 @@ class CircuitBreakerTest extends SpockTest {
                 private int callCount = 0
 
                 @Override
-                protected String getAggregateTypeName() { return "test" }
+                public String getAggregateTypeName() { return "test" }
 
                 @Override
-                protected Object handleDomainCommand(Command command) {
+                public Object handleDomainCommand(Command command) {
                     eventuallySucceedsAttempts.incrementAndGet()
                     callCount++
                     if (callCount < 3) {
@@ -234,10 +230,10 @@ class CircuitBreakerTest extends SpockTest {
         CommandHandler slowCommandHandler() {
             return new CommandHandler() {
                 @Override
-                protected String getAggregateTypeName() { return "test" }
+                public String getAggregateTypeName() { return "test" }
 
                 @Override
-                protected Object handleDomainCommand(Command command) {
+                public Object handleDomainCommand(Command command) {
                     slowAttempts.incrementAndGet()
                     try {
                         Thread.sleep(3000)
@@ -253,10 +249,10 @@ class CircuitBreakerTest extends SpockTest {
         CommandHandler timedCommandHandler() {
             return new CommandHandler() {
                 @Override
-                protected String getAggregateTypeName() { return "test" }
+                public String getAggregateTypeName() { return "test" }
 
                 @Override
-                protected Object handleDomainCommand(Command command) {
+                public Object handleDomainCommand(Command command) {
                     timedAttempts.incrementAndGet()
                     timedTimestamps.add(System.currentTimeMillis())
                     throw new RuntimeException("Timed failure")

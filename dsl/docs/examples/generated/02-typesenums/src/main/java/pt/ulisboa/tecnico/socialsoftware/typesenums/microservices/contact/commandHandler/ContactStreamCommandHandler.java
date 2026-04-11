@@ -27,12 +27,12 @@ public class ContactStreamCommandHandler extends StreamCommandHandler {
     }
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Contact";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return contactCommandHandler.handleDomainCommand(command);
     }
 

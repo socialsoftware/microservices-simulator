@@ -27,12 +27,12 @@ public class EnrollmentStreamCommandHandler extends StreamCommandHandler {
     }
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Enrollment";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return enrollmentCommandHandler.handleDomainCommand(command);
     }
 

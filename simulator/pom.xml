@@ -75,7 +75,7 @@
         <profile>
             <id>version-service</id>
             <properties>
-                <start-class>pt.ulisboa.tecnico.socialsoftware.ms.version.VersionServiceApplication</start-class>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceApplication</start-class>
                 <activatedProperties>version-service,${communication.layer}</activatedProperties>
             </properties>
         </profile>

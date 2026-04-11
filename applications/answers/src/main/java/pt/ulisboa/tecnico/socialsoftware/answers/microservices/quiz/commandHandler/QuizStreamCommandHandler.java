@@ -27,12 +27,12 @@ public class QuizStreamCommandHandler extends StreamCommandHandler {
     }
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Quiz";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return quizCommandHandler.handleDomainCommand(command);
     }
 

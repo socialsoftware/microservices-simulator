@@ -17,12 +17,12 @@ public class TournamentCommandHandler extends CommandHandler {
     private TournamentService tournamentService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Tournament";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case GetTournamentByIdCommand cmd -> handleGetTournamentById(cmd);
             case AddParticipantCommand cmd -> handleAddParticipant(cmd);

@@ -27,12 +27,12 @@ public class TournamentStreamCommandHandler extends StreamCommandHandler {
     }
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Tournament";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return tournamentCommandHandler.handleDomainCommand(command);
     }
 

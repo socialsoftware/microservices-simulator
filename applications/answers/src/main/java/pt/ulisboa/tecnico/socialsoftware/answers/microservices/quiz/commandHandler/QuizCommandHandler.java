@@ -17,12 +17,12 @@ public class QuizCommandHandler extends CommandHandler {
     private QuizService quizService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Quiz";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateQuizCommand cmd -> handleCreateQuiz(cmd);
             case GetQuizByIdCommand cmd -> handleGetQuizById(cmd);

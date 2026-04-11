@@ -1,14 +1,14 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.version;
+package pt.ulisboa.tecnico.socialsoftware.ms.versioning;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.version.command.DecrementVersionCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.version.command.GetNextVersionCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.version.command.GetVersionCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.version.command.IncrementVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.command.DecrementVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.command.GetNextVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.command.GetVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.command.IncrementVersionCommand;
 
 @Service
 @Profile("remote & !version-service & !distributed-version")

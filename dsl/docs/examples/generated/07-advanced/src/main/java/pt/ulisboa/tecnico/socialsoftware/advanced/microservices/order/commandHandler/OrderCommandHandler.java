@@ -17,12 +17,12 @@ public class OrderCommandHandler extends CommandHandler {
     private OrderService orderService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Order";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateOrderCommand cmd -> handleCreateOrder(cmd);
             case GetOrderByIdCommand cmd -> handleGetOrderById(cmd);

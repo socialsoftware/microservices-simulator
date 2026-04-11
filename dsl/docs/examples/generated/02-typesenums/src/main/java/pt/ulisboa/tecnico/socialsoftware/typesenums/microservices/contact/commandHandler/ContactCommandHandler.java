@@ -17,12 +17,12 @@ public class ContactCommandHandler extends CommandHandler {
     private ContactService contactService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Contact";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateContactCommand cmd -> handleCreateContact(cmd);
             case GetContactByIdCommand cmd -> handleGetContactById(cmd);

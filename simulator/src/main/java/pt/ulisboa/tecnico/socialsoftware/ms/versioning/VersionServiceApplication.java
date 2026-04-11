@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.version;
+package pt.ulisboa.tecnico.socialsoftware.ms.versioning;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Profile;
 
 @Profile("version-service")
 @SpringBootApplication(scanBasePackages = {
-        "pt.ulisboa.tecnico.socialsoftware.ms.version",
+        "pt.ulisboa.tecnico.socialsoftware.ms.versioning",
         "pt.ulisboa.tecnico.socialsoftware.ms.messaging",
         "pt.ulisboa.tecnico.socialsoftware.ms.exception"
 })

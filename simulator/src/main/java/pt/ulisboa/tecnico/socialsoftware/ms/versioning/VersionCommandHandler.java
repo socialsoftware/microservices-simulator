@@ -1,15 +1,15 @@
 
-package pt.ulisboa.tecnico.socialsoftware.ms.version;
+package pt.ulisboa.tecnico.socialsoftware.ms.versioning;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.version.command.DecrementVersionCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.version.command.GetNextVersionCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.version.command.GetVersionCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.version.command.IncrementVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.command.DecrementVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.command.GetNextVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.command.GetVersionCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.command.IncrementVersionCommand;
 
 import java.util.logging.Logger;
 
@@ -22,12 +22,12 @@ public class VersionCommandHandler extends CommandHandler {
     private IVersionService versionService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Version";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         Object result;
         switch (command) {
             case GetVersionCommand ignored -> result = handleGetVersion();

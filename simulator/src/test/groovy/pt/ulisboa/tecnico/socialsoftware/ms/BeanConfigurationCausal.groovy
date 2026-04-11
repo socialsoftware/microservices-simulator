@@ -7,8 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorServic
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.version.IVersionService
-import pt.ulisboa.tecnico.socialsoftware.ms.version.VersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.CentralizedVersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -20,7 +20,7 @@ class BeanConfigurationCausal {
 
     @Bean
     IVersionService versionService() {
-        return new VersionService();
+        return new CentralizedVersionService();
     }
 
     @Bean

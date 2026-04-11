@@ -17,12 +17,12 @@ public class AnswerCommandHandler extends CommandHandler {
     private QuizAnswerService quizAnswerService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "QuizAnswer";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case GetQuizAnswerDtoByQuizIdAndUserIdCommand cmd -> handleGetQuizAnswerDtoByQuizIdAndUserId(cmd);
             case StartQuizCommand cmd -> handleStartQuiz(cmd);

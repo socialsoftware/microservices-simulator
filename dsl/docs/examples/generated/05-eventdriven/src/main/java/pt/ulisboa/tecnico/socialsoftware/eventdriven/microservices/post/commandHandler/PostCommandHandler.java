@@ -17,12 +17,12 @@ public class PostCommandHandler extends CommandHandler {
     private PostService postService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Post";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreatePostCommand cmd -> handleCreatePost(cmd);
             case GetPostByIdCommand cmd -> handleGetPostById(cmd);

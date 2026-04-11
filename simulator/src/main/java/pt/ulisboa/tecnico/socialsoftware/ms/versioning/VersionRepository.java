@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.version;
+package pt.ulisboa.tecnico.socialsoftware.ms.versioning;
 
 import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Profile;

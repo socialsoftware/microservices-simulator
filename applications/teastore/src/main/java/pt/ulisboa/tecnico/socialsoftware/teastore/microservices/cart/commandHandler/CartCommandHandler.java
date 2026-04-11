@@ -17,12 +17,12 @@ public class CartCommandHandler extends CommandHandler {
     private CartService cartService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Cart";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateCartCommand cmd -> handleCreateCart(cmd);
             case GetCartByIdCommand cmd -> handleGetCartById(cmd);

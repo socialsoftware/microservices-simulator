@@ -17,12 +17,12 @@ public class BookCommandHandler extends CommandHandler {
     private BookService bookService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Book";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateBookCommand cmd -> handleCreateBook(cmd);
             case GetBookByIdCommand cmd -> handleGetBookById(cmd);

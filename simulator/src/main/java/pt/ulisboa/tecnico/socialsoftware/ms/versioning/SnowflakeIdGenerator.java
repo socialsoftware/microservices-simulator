@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.version;
+package pt.ulisboa.tecnico.socialsoftware.ms.versioning;
 
 /**
  * Snowflake ID generator for distributed version IDs.

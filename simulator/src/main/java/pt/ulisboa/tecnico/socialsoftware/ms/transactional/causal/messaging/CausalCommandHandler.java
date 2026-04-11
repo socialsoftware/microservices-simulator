@@ -1,8 +1,12 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.messaging;
+package pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.messaging;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandlerDecorator;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.AbortCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.CommitCausalCommand;
@@ -13,7 +17,7 @@ import java.util.logging.Logger;
 
 @Component
 @Profile("tcc")
-public class CausalCommandHandler implements TransactionCommandHandler {
+public class CausalCommandHandler implements CommandHandlerDecorator {
     private static final Logger logger = Logger.getLogger(CausalCommandHandler.class.getName());
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")

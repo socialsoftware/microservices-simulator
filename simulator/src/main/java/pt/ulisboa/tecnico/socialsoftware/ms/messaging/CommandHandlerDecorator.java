@@ -1,5 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.messaging;
 
-public interface TransactionCommandHandler {
+public interface CommandHandlerDecorator {
     Object handle(Command command, CommandHandler serviceCommandHandler);
 }

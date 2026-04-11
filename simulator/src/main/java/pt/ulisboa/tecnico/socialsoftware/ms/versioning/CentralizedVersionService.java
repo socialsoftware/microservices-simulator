@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.version;
+package pt.ulisboa.tecnico.socialsoftware.ms.versioning;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Service
 @Profile("(!remote & !distributed-version) | version-service")
-public class VersionService implements IVersionService {
+public class CentralizedVersionService implements IVersionService {
 
     @Autowired
     private VersionRepository versionRepository;

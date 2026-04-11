@@ -17,12 +17,12 @@ public class TeacherCommandHandler extends CommandHandler {
     private TeacherService teacherService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Teacher";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateTeacherCommand cmd -> handleCreateTeacher(cmd);
             case GetTeacherByIdCommand cmd -> handleGetTeacherById(cmd);

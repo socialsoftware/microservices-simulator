@@ -1,8 +1,12 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.messaging;
+package pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.messaging;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandlerDecorator;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.command.AbortSagaCommand;
@@ -12,7 +16,7 @@ import java.util.logging.Logger;
 
 @Component
 @Profile("sagas")
-public class SagaCommandHandler implements TransactionCommandHandler {
+public class SagaCommandHandler implements CommandHandlerDecorator {
     private static final Logger logger = Logger.getLogger(SagaCommandHandler.class.getName());
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")

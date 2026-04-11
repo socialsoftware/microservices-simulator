@@ -17,12 +17,12 @@ public class ExecutionCommandHandler extends CommandHandler {
     private ExecutionService executionService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Execution";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateExecutionCommand cmd -> handleCreateExecution(cmd);
             case GetExecutionByIdCommand cmd -> handleGetExecutionById(cmd);
