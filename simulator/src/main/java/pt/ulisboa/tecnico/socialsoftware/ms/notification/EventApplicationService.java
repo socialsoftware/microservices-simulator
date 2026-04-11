@@ -15,7 +15,7 @@ public class EventApplicationService {
     public void handleSubscribedEvent(Class<? extends Event> eventClass, EventHandler eventHandler) {
         Set<Integer> aggregateIds = eventHandler.getAggregateIds();
         for (Integer subscriberAggregateId : aggregateIds) {
-            Set<EventSubscription> eventSubscriptions = eventService.getEventSubscriptions(subscriberAggregateId, eventClass);
+            Set<EventSubscription> eventSubscriptions = eventHandler.getEventSubscriptions(subscriberAggregateId, eventClass);
 
             for (EventSubscription eventSubscription: eventSubscriptions) {
                 List<? extends Event> eventsToProcess = eventService.getSubscribedEvents(eventSubscription, eventClass);
