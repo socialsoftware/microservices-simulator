@@ -1,6 +1,8 @@
 spring:
   application:
     name: quizzes
+  config:
+    import: "optional:classpath:simulator-defaults.yaml"
   profiles:
     active: "@activatedProperties@"
     group:
@@ -22,14 +24,6 @@ spring:
       ddl-auto: create # IMPORTANT this is only for jmeter testing -> it cleans the database every time it runs
     show-sql: false
     open-in-view: false
-
-
-resilience4j:
-  retry:
-    instances:
-      commandGateway:
-        ignore-exceptions:
-          - pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 
 management:
   endpoints:
