@@ -207,8 +207,6 @@ services:
     <<: *limits-medium
     networks:
       - messaging-network
-    volumes:
-      - m2_cache:/root/.m2
 
   fault-analysis-scenario-gen-test:
     build:
@@ -228,8 +226,6 @@ services:
     tty: true
     working_dir: /verifiers
     command: mvn test
-    volumes:
-      - m2_cache:/root/.m2
 
 volumes:
   rabbitmq_data:

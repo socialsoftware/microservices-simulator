@@ -7,11 +7,8 @@ COPY simulator/pom.xml simulator/pom.xml
 COPY simulator/src simulator/src
 RUN mvn -q -DskipTests -Dprotobuf.skip -f simulator/pom.xml clean install
 
-# Install all application JARs.
+# The verifier reads application sources directly; it does not need application JARs.
 COPY applications applications
-RUN for pom in applications/*/pom.xml; do \
-        mvn -q -f "$pom" clean install -DskipTests; \
-    done
 
 FROM maven:3.9.7-eclipse-temurin-21
 
