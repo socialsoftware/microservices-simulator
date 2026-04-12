@@ -19,6 +19,8 @@ public class ApplicationAnalysisState {
     public final List<CommandHandlerBuildingBlock> commandHandlers = new ArrayList<>();
     public final List<SagaFunctionalityBuildingBlock> sagas = new ArrayList<>();
     public final List<WorkflowFunctionalityCreationSite> sagaCreationSites = new ArrayList<>();
+    public final List<GroovyConstructorInputTrace> groovyConstructorInputTraces = new ArrayList<>();
+    public final List<GroovyFullTraceResult> groovyFullTraceResults = new ArrayList<>();
 
     /**
      * Keyed by interface FQN → all @Service implementations found in the parsed source.
@@ -48,6 +50,16 @@ public class ApplicationAnalysisState {
                 .map(dispatches -> dispatches.get(commandTypeFqn))
                 .filter(Objects::nonNull)
                 .findFirst();
+    }
+
+    public Optional<SagaFunctionalityBuildingBlock> findSagaByFqn(String sagaFqn) {
+        return sagas.stream()
+                .filter(saga -> Objects.equals(saga.getFqn(), sagaFqn))
+                .findFirst();
+    }
+
+    public boolean hasSagaFqn(String sagaFqn) {
+        return findSagaByFqn(sagaFqn).isPresent();
     }
 
     public String formatHumanReadableReport() {
@@ -149,6 +161,37 @@ public class ApplicationAnalysisState {
                             simpleName(site.sagaClassFqn())));
         }
 
+        appendLine(report, "Groovy constructor-input traces (" + groovyConstructorInputTraces.size() + ")");
+        if (groovyConstructorInputTraces.isEmpty()) {
+            appendLine(report, "  (none)");
+        } else {
+            groovyConstructorInputTraces.stream()
+                    .sorted(Comparator.comparing(GroovyConstructorInputTrace::sourceClassFqn)
+                            .thenComparing(GroovyConstructorInputTrace::sourceMethodName)
+                            .thenComparing(GroovyConstructorInputTrace::sagaClassFqn))
+                    .forEach(trace -> appendLine(report, "- " + formatGroovyTraceAnchor(trace.sourceClassFqn(),
+                            trace.sourceMethodName(), trace.sagaClassFqn())));
+        }
+
+        appendLine(report, "Groovy full traces (" + groovyFullTraceResults.size() + ")");
+        if (groovyFullTraceResults.isEmpty()) {
+            appendLine(report, "  (none)");
+        } else {
+            groovyFullTraceResults.stream()
+                    .sorted(Comparator.comparing(GroovyFullTraceResult::sourceClassFqn)
+                            .thenComparing(GroovyFullTraceResult::sourceMethodName)
+                            .thenComparing(GroovyFullTraceResult::sagaClassFqn))
+                    .forEach(trace -> {
+                        appendLine(report, "- " + formatGroovyTraceAnchor(trace.sourceClassFqn(),
+                                trace.sourceMethodName(), trace.sagaClassFqn()));
+
+                        if (trace.traceText() != null && !trace.traceText().isBlank()) {
+                            trace.traceText().lines()
+                                    .forEach(line -> appendLine(report, "  " + line));
+                        }
+                    });
+        }
+
         return report.toString().stripTrailing();
     }
 
@@ -204,5 +247,9 @@ public class ApplicationAnalysisState {
 
         int lastDot = fqn.lastIndexOf('.');
         return lastDot < 0 ? fqn : fqn.substring(lastDot + 1);
+    }
+
+    private static String formatGroovyTraceAnchor(String classFqn, String methodName, String sagaClassFqn) {
+        return simpleName(classFqn) + "." + methodName + "() -> " + simpleName(sagaClassFqn);
     }
 }

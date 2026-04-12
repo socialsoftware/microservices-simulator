@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.report.AnalysisHtmlReportRenderer;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.*;
 
 import java.io.IOException;
@@ -30,16 +32,19 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
     private final String applicationsRoot;
 
     private final String applicationBaseDir;
+    private final String reportHtmlPath;
 
     private final Path applicationsRootPath;
     private final Path applicationPath;
 
     public ScenarioGeneratorApplication(
             @Value("${verifiers.applications-root}") String applicationsRoot,
-            @Value("${verifiers.application-base-dir}") String applicationBaseDir
+            @Value("${verifiers.application-base-dir}") String applicationBaseDir,
+            @Value("${verifiers.report-html-path:}") String reportHtmlPath
     ) {
         this.applicationsRoot = Objects.requireNonNull(applicationsRoot, "applicationsRoot cannot be null");
         this.applicationBaseDir = Objects.requireNonNull(applicationBaseDir, "applicationBaseDir cannot be null");
+        this.reportHtmlPath = Objects.requireNonNull(reportHtmlPath, "reportHtmlPath cannot be null");
         this.applicationsRootPath = Path.of(this.applicationsRoot).toAbsolutePath().normalize();
         this.applicationPath = this.applicationsRootPath.resolve(this.applicationBaseDir).normalize();
     }
@@ -54,9 +59,9 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         solver.add(new ReflectionTypeSolver());
         solver.add(new ClassLoaderTypeSolver(Thread.currentThread().getContextClassLoader()));
 
-        // Add all /applications/**/src/main/java
+        // Only add source roots for the configured application subtree.
         try (var stream = Files.find(
-                applicationsRootPath,
+                applicationPath,
                 8,
                 (p, a) -> a.isDirectory() && p.endsWith(Paths.get("src", "main", "java"))
         )) {
@@ -65,7 +70,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 logger.info("Added source root: {}", srcRoot);
             });
         } catch (Exception e) {
-            throw new RuntimeException("Failed to configure source roots under " + applicationsRoot, e);
+            throw new RuntimeException("Failed to configure source roots under " + applicationPath, e);
         }
 
         config.setSymbolResolver(new JavaSymbolSolver(solver));
@@ -88,7 +93,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         configureSymbolSolver();
 
         ApplicationsFileTreeParser parser = new ApplicationsFileTreeParser();
-        parser.parse(applicationsRootPath);
+        parser.parse(applicationPath);
         logger.info("Java source files: {}", parser.getJavaFilePaths().size());
         logger.info("Groovy test files: {}", parser.getGroovyFilePaths().size());
 
@@ -142,6 +147,45 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             }
         });
 
-        logger.info("Analysis report:\n{}", applicationAnalysisState.formatHumanReadableReport());
+        GroovySourceIndex groovySourceIndex = new GroovySourceIndex();
+        try {
+            groovySourceIndex.parse(applicationPath);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse Groovy test sources under " + applicationPath, e);
+        }
+
+        GroovyConstructorInputTraceVisitor groovyTraceVisitor = new GroovyConstructorInputTraceVisitor();
+        groovyTraceVisitor.visit(groovySourceIndex, applicationAnalysisState);
+
+        String textReport = applicationAnalysisState.formatHumanReadableReport();
+        logger.info("Analysis report:\n{}", textReport);
+
+        AnalysisHtmlReportRenderer htmlReportRenderer = new AnalysisHtmlReportRenderer();
+        String htmlReport = htmlReportRenderer.render(
+                applicationAnalysisState,
+                AnalysisHtmlReportRenderer.ReportMetadata.now(applicationsRoot, applicationBaseDir),
+                textReport
+        );
+
+        Path htmlOutputPath = resolveHtmlReportPath();
+        Path parent = htmlOutputPath.getParent();
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
+        Files.writeString(htmlOutputPath, htmlReport);
+        logger.info("Analysis HTML report written to {}", htmlOutputPath.toAbsolutePath().normalize());
+    }
+
+    private Path resolveHtmlReportPath() {
+        if (reportHtmlPath == null || reportHtmlPath.isBlank()) {
+            return applicationPath.resolve("analysis-report.html").normalize();
+        }
+
+        Path configured = Path.of(reportHtmlPath);
+        if (configured.isAbsolute()) {
+            return configured.normalize();
+        }
+
+        return applicationPath.resolve(configured).normalize();
     }
 }

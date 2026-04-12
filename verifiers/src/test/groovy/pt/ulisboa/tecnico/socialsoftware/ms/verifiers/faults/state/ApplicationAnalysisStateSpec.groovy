@@ -79,6 +79,19 @@ class ApplicationAnalysisStateSpec extends Specification {
         state.getCommandDispatchInfo(typeB).get().accessPolicy() == AccessPolicy.WRITE
     }
 
+    def "findSagaByFqn resolves saga entries by fully qualified name"() {
+        given:
+        def state = new ApplicationAnalysisState()
+        def saga = new SagaFunctionalityBuildingBlock(null, 'com.example.app.order.coordination', 'com.example.app.order.coordination.CreateOrderFunctionalitySagas')
+        state.sagas.add(saga)
+
+        expect:
+        state.findSagaByFqn('com.example.app.order.coordination.CreateOrderFunctionalitySagas').present
+        state.findSagaByFqn('com.example.app.order.coordination.CreateOrderFunctionalitySagas').get() == saga
+        state.hasSagaFqn('com.example.app.order.coordination.CreateOrderFunctionalitySagas')
+        !state.hasSagaFqn('com.example.app.order.coordination.MissingSaga')
+    }
+
     def "formatHumanReadableReport renders the collected analysis state"() {
         given:
         def state = new ApplicationAnalysisState()
@@ -114,6 +127,18 @@ class ApplicationAnalysisStateSpec extends Specification {
                 'com.example.app.order.coordination.CreateOrderFunctionalitySagas'
         ))
 
+        state.groovyConstructorInputTraces.add(new GroovyConstructorInputTrace(
+                'com.example.app.order.CreateOrderSpec',
+                'setup',
+                'com.example.app.order.coordination.CreateOrderFunctionalitySagas'
+        ))
+        state.groovyFullTraceResults.add(new GroovyFullTraceResult(
+                'com.example.app.order.CreateOrderSpec',
+                'setup',
+                'com.example.app.order.coordination.CreateOrderFunctionalitySagas',
+                'setup -> new CreateOrderFunctionalitySagas(...)'
+        ))
+
         when:
         def report = state.formatHumanReadableReport()
 
@@ -130,6 +155,10 @@ class ApplicationAnalysisStateSpec extends Specification {
         report.contains('PlaceOrderCommand -> Order [WRITE, FORWARD, SINGLE x1]')
         report.contains('Saga creation sites (1)')
         report.contains('OrderFunctionalitiesFacade.createOrder() -> CreateOrderFunctionalitySagas')
+        report.contains('Groovy constructor-input traces (1)')
+        report.contains('CreateOrderSpec.setup() -> CreateOrderFunctionalitySagas')
+        report.contains('Groovy full traces (1)')
+        report.contains('setup -> new CreateOrderFunctionalitySagas(...)')
     }
 
     private static void configureParser(Path sourceRoot) {
