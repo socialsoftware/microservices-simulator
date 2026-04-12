@@ -1,8 +1,8 @@
 package com.example.dummyapp.order.commandHandler;
 
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import com.example.dummyapp.order.commands.CancelOrderCommand;
 import com.example.dummyapp.order.commands.GetOrderCommand;
 import com.example.dummyapp.order.commands.PlaceOrderCommand;

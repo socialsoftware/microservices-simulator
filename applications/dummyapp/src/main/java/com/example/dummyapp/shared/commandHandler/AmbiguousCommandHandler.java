@@ -2,8 +2,8 @@ package com.example.dummyapp.shared.commandHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import com.example.dummyapp.shared.commands.DoSomethingCommand;
 import com.example.dummyapp.shared.service.AmbiguousServiceApi;
 

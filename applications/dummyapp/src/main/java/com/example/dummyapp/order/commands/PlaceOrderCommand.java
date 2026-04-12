@@ -1,7 +1,7 @@
 package com.example.dummyapp.order.commands;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import com.example.dummyapp.order.aggregate.OrderDto;
 
 public class PlaceOrderCommand extends Command {

@@ -22,7 +22,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <dependency>
       <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
       <artifactId>MicroservicesSimulator</artifactId>
-      <version>3.1.0-SNAPSHOT</version>
+      <version>3.1.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

@@ -2,8 +2,8 @@ package com.example.dummyapp.item.commandHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import com.example.dummyapp.item.commands.LookupItemCommand;
 import com.example.dummyapp.item.commands.ProcessItemCommand;
 import com.example.dummyapp.item.service.OverloadedItemService;

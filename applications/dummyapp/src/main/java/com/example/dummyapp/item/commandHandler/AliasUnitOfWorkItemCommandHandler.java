@@ -4,8 +4,8 @@ import com.example.dummyapp.item.commands.AliasWriteItemCommand;
 import com.example.dummyapp.item.service.AliasUnitOfWorkItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 
 @Component
 public class AliasUnitOfWorkItemCommandHandler extends CommandHandler {
