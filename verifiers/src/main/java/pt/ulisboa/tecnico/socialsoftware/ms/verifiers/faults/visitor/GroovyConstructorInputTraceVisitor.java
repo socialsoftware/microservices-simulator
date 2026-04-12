@@ -15,9 +15,17 @@ import org.codehaus.groovy.ast.expr.PropertyExpression;
 import org.codehaus.groovy.ast.expr.TupleExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
+import org.codehaus.groovy.ast.stmt.CaseStatement;
+import org.codehaus.groovy.ast.stmt.CatchStatement;
+import org.codehaus.groovy.ast.stmt.DoWhileStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
+import org.codehaus.groovy.ast.stmt.ForStatement;
+import org.codehaus.groovy.ast.stmt.IfStatement;
 import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
+import org.codehaus.groovy.ast.stmt.SwitchStatement;
+import org.codehaus.groovy.ast.stmt.TryCatchStatement;
+import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.SourceUnit;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
@@ -26,6 +34,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTra
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyImportMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceClassMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -151,7 +161,11 @@ public class GroovyConstructorInputTraceVisitor {
         tracedBuilders.forEach(builder -> state.groovyFullTraceResults.add(new GroovyFullTraceResult(
                 builder.sourceClassFqn,
                 builder.sourceMethodName,
+                builder.sourceBindingName,
                 builder.sagaClassFqn,
+                List.copyOf(builder.constructorArguments),
+                List.copyOf(builder.workflowCalls),
+                List.copyOf(builder.resolutionNotes),
                 builder.buildTraceText()
         )));
     }
@@ -170,22 +184,126 @@ public class GroovyConstructorInputTraceVisitor {
                             Map<String, List<MethodResolutionContext>> methodsByName,
                             String methodName) {
         for (Statement statement : blockStatement.getStatements()) {
-            if (statement instanceof BlockStatement nestedBlock) {
-                traceBlock(nestedBlock, traceSourceClassFqn, classNode, metadata, state,
+            traceStatement(statement, traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+        }
+    }
+
+    private void traceStatement(Statement statement,
+                                String traceSourceClassFqn,
+                                ClassNode classNode,
+                                GroovySourceClassMetadata metadata,
+                                ApplicationAnalysisState state,
+                                Map<String, TraceBuilder> methodScopes,
+                                Map<String, TraceBuilder> classFieldScopes,
+                                Map<String, Expression> methodExpressionScopes,
+                                Map<String, Expression> classFieldExpressionScopes,
+                                Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                List<TraceBuilder> tracedBuilders,
+                                Map<String, List<MethodResolutionContext>> methodsByName,
+                                String methodName) {
+        if (statement == null) {
+            return;
+        }
+
+        if (statement instanceof BlockStatement nestedBlock) {
+            traceBlock(nestedBlock, traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            return;
+        }
+
+        if (statement instanceof TryCatchStatement tryCatchStatement) {
+            traceStatement(tryCatchStatement.getTryStatement(),
+                    traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+
+            for (CatchStatement catchStatement : tryCatchStatement.getCatchStatements()) {
+                traceStatement(catchStatement.getCode(),
+                        traceSourceClassFqn, classNode, metadata, state,
                         methodScopes, classFieldScopes,
                         methodExpressionScopes, classFieldExpressionScopes,
                         visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
-                continue;
             }
 
-            if (statement instanceof ExpressionStatement expressionStatement) {
-                Expression expression = expressionStatement.getExpression();
-                traceExpression(expression, traceSourceClassFqn, classNode, metadata, state,
+            traceStatement(tryCatchStatement.getFinallyStatement(),
+                    traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            return;
+        }
+
+        if (statement instanceof WhileStatement whileStatement) {
+            traceStatement(whileStatement.getLoopBlock(),
+                    traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            return;
+        }
+
+        if (statement instanceof DoWhileStatement doWhileStatement) {
+            traceStatement(doWhileStatement.getLoopBlock(),
+                    traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            return;
+        }
+
+        if (statement instanceof ForStatement forStatement) {
+            traceStatement(forStatement.getLoopBlock(),
+                    traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            return;
+        }
+
+        if (statement instanceof IfStatement ifStatement) {
+            traceStatement(ifStatement.getIfBlock(),
+                    traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            traceStatement(ifStatement.getElseBlock(),
+                    traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            return;
+        }
+
+        if (statement instanceof SwitchStatement switchStatement) {
+            for (CaseStatement caseStatement : switchStatement.getCaseStatements()) {
+                traceStatement(caseStatement.getCode(),
+                        traceSourceClassFqn, classNode, metadata, state,
                         methodScopes, classFieldScopes,
                         methodExpressionScopes, classFieldExpressionScopes,
-                        visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName,
-                        statement.getStatementLabel());
+                        visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
             }
+
+            traceStatement(switchStatement.getDefaultStatement(),
+                    traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            return;
+        }
+
+        if (statement instanceof ExpressionStatement expressionStatement) {
+            Expression expression = expressionStatement.getExpression();
+            traceExpression(expression, traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName,
+                    statement.getStatementLabel());
         }
     }
 
@@ -280,7 +398,7 @@ public class GroovyConstructorInputTraceVisitor {
             String sagaClassFqn = constructorResolution.sagaClassFqn();
 
             TraceBuilder builder = new TraceBuilder(traceSourceClassFqn,
-                    contextName(methodName, variableName), sagaClassFqn);
+                    contextName(methodName, variableName), variableName, sagaClassFqn);
             builder.appendContextLabel(label);
             builder.appendConstructorLine(formatAssignmentText(variableName, sagaClassFqn, null));
             appendConstructorArgumentLines(builder, constructorResolution.constructorExpression(),
@@ -322,13 +440,14 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         builder.appendContextLabel(label);
-        builder.appendCallLine(scopeName + "." + calledMethod + "(...)");
+        builder.appendCallLine(scopeName + "." + calledMethod + "(...)", label);
     }
 
     private void registerConstructorTrace(TraceBuilder builder, ApplicationAnalysisState state) {
         state.groovyConstructorInputTraces.add(new GroovyConstructorInputTrace(
                 builder.sourceClassFqn,
                 builder.sourceMethodName,
+                builder.sourceBindingName,
                 builder.sagaClassFqn
         ));
     }
@@ -439,7 +558,7 @@ public class GroovyConstructorInputTraceVisitor {
             String provenance = describeExpressionProvenance(argumentExpression, classNode, metadata, state,
                     methodExpressionScopes, classFieldExpressionScopes, methodsByName,
                     visibleFieldKeysByClassFqn, new ArrayDeque<>(), new HashSet<>(), 0);
-            builder.appendInputLine("arg[" + index + "]: " + provenance);
+            builder.appendInputLine(index, provenance);
         }
     }
 
@@ -1174,13 +1293,21 @@ public class GroovyConstructorInputTraceVisitor {
     private static final class TraceBuilder {
         private final String sourceClassFqn;
         private final String sourceMethodName;
+        private final String sourceBindingName;
         private final String sagaClassFqn;
         private final List<String> traceLines = new ArrayList<>();
+        private final List<GroovyTraceArgument> constructorArguments = new ArrayList<>();
+        private final List<GroovyWorkflowCall> workflowCalls = new ArrayList<>();
+        private final List<String> resolutionNotes = new ArrayList<>();
         private String lastLabel;
 
-        private TraceBuilder(String sourceClassFqn, String sourceMethodName, String sagaClassFqn) {
+        private TraceBuilder(String sourceClassFqn,
+                             String sourceMethodName,
+                             String sourceBindingName,
+                             String sagaClassFqn) {
             this.sourceClassFqn = sourceClassFqn;
             this.sourceMethodName = sourceMethodName;
+            this.sourceBindingName = sourceBindingName;
             this.sagaClassFqn = sagaClassFqn;
         }
 
@@ -1188,16 +1315,20 @@ public class GroovyConstructorInputTraceVisitor {
             traceLines.add(constructorLine);
         }
 
-        private void appendCallLine(String callLine) {
+        private void appendCallLine(String callLine, String contextLabel) {
             traceLines.add(callLine);
+            workflowCalls.add(new GroovyWorkflowCall(callLine, contextLabel));
         }
 
-        private void appendInputLine(String inputLine) {
+        private void appendInputLine(int index, String provenance) {
+            String inputLine = "arg[" + index + "]: " + provenance;
             traceLines.add(inputLine);
+            constructorArguments.add(new GroovyTraceArgument(index, provenance));
         }
 
         private void appendDetailLine(String detailLine) {
             traceLines.add(detailLine);
+            resolutionNotes.add(detailLine);
         }
 
         private void appendContextLabel(String label) {

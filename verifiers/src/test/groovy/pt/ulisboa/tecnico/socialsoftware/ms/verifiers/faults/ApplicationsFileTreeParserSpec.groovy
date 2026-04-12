@@ -84,7 +84,8 @@ class ApplicationsFileTreeParserSpec extends Specification {
 
         and:
         parser.groovyFilePaths.keySet() ==~ [
-            'com.example.dummyapp.DummyAppSpec'
+            'com.example.dummyapp.DummyAppSpec',
+            'com.example.dummyapp.GroovySagaTracingSpec'
         ]
     }
 
@@ -103,6 +104,8 @@ class ApplicationsFileTreeParserSpec extends Specification {
                 'applications/dummyapp/src/main/java/com/example/dummyapp/DummyApp.java')
         parser.groovyFilePaths['com.example.dummyapp.DummyAppSpec'].toString().endsWith(
                 'applications/dummyapp/src/test/groovy/com/example/dummyapp/DummyAppSpec.groovy')
+        parser.groovyFilePaths['com.example.dummyapp.GroovySagaTracingSpec'].toString().endsWith(
+                'applications/dummyapp/src/test/groovy/com/example/dummyapp/GroovySagaTracingSpec.groovy')
     }
 
     def 'parser rejects non-directory path'() {

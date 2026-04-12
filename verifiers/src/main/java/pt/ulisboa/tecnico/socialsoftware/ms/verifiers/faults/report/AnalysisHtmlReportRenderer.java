@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 
 public class AnalysisHtmlReportRenderer {
     private static final Pattern UNRESOLVED_NOTE_PATTERN = Pattern.compile("\\[(unresolved [^\\]]+)\\]");
-    private static final Pattern ARG_INDEX_PATTERN = Pattern.compile("^\\s*arg\\[(\\d+)]");
 
     public String render(ApplicationAnalysisState state,
                          ReportMetadata metadata,
@@ -36,12 +35,14 @@ public class AnalysisHtmlReportRenderer {
         List<GroovyConstructorInputTrace> constructorTraces = state.groovyConstructorInputTraces.stream()
                 .sorted(Comparator.comparing(GroovyConstructorInputTrace::sourceClassFqn)
                         .thenComparing(GroovyConstructorInputTrace::sourceMethodName)
+                        .thenComparing(trace -> trace.sourceBindingName() == null ? "" : trace.sourceBindingName())
                         .thenComparing(GroovyConstructorInputTrace::sagaClassFqn))
                 .toList();
 
         List<GroovyTraceView> fullTraceViews = state.groovyFullTraceResults.stream()
                 .sorted(Comparator.comparing(GroovyFullTraceResult::sourceClassFqn)
                         .thenComparing(GroovyFullTraceResult::sourceMethodName)
+                        .thenComparing(trace -> trace.sourceBindingName() == null ? "" : trace.sourceBindingName())
                         .thenComparing(GroovyFullTraceResult::sagaClassFqn))
                 .map(this::toGroovyTraceView)
                 .toList();
@@ -268,13 +269,15 @@ public class AnalysisHtmlReportRenderer {
         if (constructorTraces.isEmpty()) {
             html.append("<p class=\"no-data\">No constructor traces found.</p>\n");
         } else {
-            html.append("<table><thead><tr><th>Source class</th><th>Method</th><th>Saga constructor</th></tr></thead><tbody>\n");
+            html.append("<table><thead><tr><th>Source class</th><th>Method</th><th>Binding</th><th>Saga constructor</th></tr></thead><tbody>\n");
             constructorTraces.forEach(trace -> {
                 html.append("<tr><td><code>")
                         .append(escapeHtml(simpleName(trace.sourceClassFqn())))
                         .append("</code></td><td><code>")
                         .append(escapeHtml(trace.sourceMethodName()))
                         .append("()</code></td><td><code>")
+                        .append(escapeHtml(trace.sourceBindingName() == null ? "(unknown)" : trace.sourceBindingName()))
+                        .append("</code></td><td><code>")
                         .append(escapeHtml(simpleName(trace.sagaClassFqn())))
                         .append("</code></td></tr>\n");
             });
@@ -314,7 +317,9 @@ public class AnalysisHtmlReportRenderer {
                         .append(escapeHtml(simpleName(trace.sourceClassFqn())))
                         .append(".</code><code>")
                         .append(escapeHtml(trace.sourceMethodName()))
-                        .append("()</code> -> <code>")
+                        .append("()</code> <span class=\"muted\">[binding: ")
+                        .append(escapeHtml(trace.sourceBindingName() == null ? "(unknown)" : trace.sourceBindingName()))
+                        .append("]</span> -> <code>")
                         .append(escapeHtml(simpleName(trace.sagaClassFqn())))
                         .append("</code> &nbsp; ")
                         .append("<span class=\"chip\">args: ")
@@ -594,32 +599,43 @@ public class AnalysisHtmlReportRenderer {
 
     private GroovyTraceView toGroovyTraceView(GroovyFullTraceResult traceResult) {
         String traceText = traceResult.traceText() == null ? "" : traceResult.traceText();
+        List<pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument> constructorArguments =
+                traceResult.constructorArguments() == null ? List.of() : traceResult.constructorArguments();
         List<String> unresolved = new ArrayList<>();
-        int maxArgIndex = -1;
+        int maxArgIndex = constructorArguments.stream()
+                .mapToInt(pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument::index)
+                .max()
+                .orElse(-1);
 
-        for (String line : traceText.lines().toList()) {
-            Matcher argMatcher = ARG_INDEX_PATTERN.matcher(line);
-            if (argMatcher.find()) {
-                int index = Integer.parseInt(argMatcher.group(1));
-                if (index > maxArgIndex) {
-                    maxArgIndex = index;
-                }
-            }
+        constructorArguments.forEach(argument -> collectUnresolvedMarkers(argument.provenance(), unresolved));
+        if (traceResult.resolutionNotes() != null) {
+            traceResult.resolutionNotes().forEach(note -> collectUnresolvedMarkers(note, unresolved));
+        }
 
-            Matcher unresolvedMatcher = UNRESOLVED_NOTE_PATTERN.matcher(line);
-            while (unresolvedMatcher.find()) {
-                unresolved.add(unresolvedMatcher.group(1));
-            }
+        if (unresolved.isEmpty()) {
+            traceText.lines().forEach(line -> collectUnresolvedMarkers(line, unresolved));
         }
 
         return new GroovyTraceView(
                 traceResult.sourceClassFqn(),
                 traceResult.sourceMethodName(),
+                traceResult.sourceBindingName(),
                 traceResult.sagaClassFqn(),
                 traceText,
                 maxArgIndex,
                 unresolved
         );
+    }
+
+    private void collectUnresolvedMarkers(String sourceText, List<String> unresolved) {
+        if (sourceText == null || sourceText.isBlank()) {
+            return;
+        }
+
+        Matcher unresolvedMatcher = UNRESOLVED_NOTE_PATTERN.matcher(sourceText);
+        while (unresolvedMatcher.find()) {
+            unresolved.add(unresolvedMatcher.group(1));
+        }
     }
 
     private Map<String, Integer> collectUnresolvedByCategory(List<GroovyTraceView> traceViews) {
@@ -686,6 +702,7 @@ public class AnalysisHtmlReportRenderer {
 
     private record GroovyTraceView(String sourceClassFqn,
                                    String sourceMethodName,
+                                   String sourceBindingName,
                                    String sagaClassFqn,
                                    String traceText,
                                    int maxArgIndex,

@@ -18,6 +18,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaF
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaStepBuildingBlock
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowFunctionalityCreationSite
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -130,12 +132,17 @@ class ApplicationAnalysisStateSpec extends Specification {
         state.groovyConstructorInputTraces.add(new GroovyConstructorInputTrace(
                 'com.example.app.order.CreateOrderSpec',
                 'setup',
+                'setupSaga',
                 'com.example.app.order.coordination.CreateOrderFunctionalitySagas'
         ))
         state.groovyFullTraceResults.add(new GroovyFullTraceResult(
                 'com.example.app.order.CreateOrderSpec',
                 'setup',
+                'setupSaga',
                 'com.example.app.order.coordination.CreateOrderFunctionalitySagas',
+                [new GroovyTraceArgument(0, 'null')],
+                [new GroovyWorkflowCall('setupSaga.executeWorkflow(...)', 'when')],
+                [],
                 'setup -> new CreateOrderFunctionalitySagas(...)'
         ))
 
@@ -156,7 +163,7 @@ class ApplicationAnalysisStateSpec extends Specification {
         report.contains('Saga creation sites (1)')
         report.contains('OrderFunctionalitiesFacade.createOrder() -> CreateOrderFunctionalitySagas')
         report.contains('Groovy constructor-input traces (1)')
-        report.contains('CreateOrderSpec.setup() -> CreateOrderFunctionalitySagas')
+        report.contains('CreateOrderSpec.setup() [binding=setupSaga] -> CreateOrderFunctionalitySagas')
         report.contains('Groovy full traces (1)')
         report.contains('setup -> new CreateOrderFunctionalitySagas(...)')
     }

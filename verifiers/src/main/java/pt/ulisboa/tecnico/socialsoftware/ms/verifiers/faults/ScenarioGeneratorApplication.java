@@ -148,10 +148,15 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         });
 
         GroovySourceIndex groovySourceIndex = new GroovySourceIndex();
-        try {
-            groovySourceIndex.parse(applicationPath);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to parse Groovy test sources under " + applicationPath, e);
+        Path groovyTestRoot = applicationPath.resolve(Paths.get("src", "test", "groovy")).normalize();
+        if (Files.isDirectory(groovyTestRoot)) {
+            try {
+                groovySourceIndex.parse(groovyTestRoot);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to parse Groovy test sources under " + groovyTestRoot, e);
+            }
+        } else {
+            logger.info("No Groovy test root found under {}; skipping Groovy trace parsing", groovyTestRoot);
         }
 
         GroovyConstructorInputTraceVisitor groovyTraceVisitor = new GroovyConstructorInputTraceVisitor();

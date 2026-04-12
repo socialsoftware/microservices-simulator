@@ -4,8 +4,6 @@ import org.springframework.boot.SpringApplication
 import spock.lang.Specification
 import spock.lang.TempDir
 
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -197,12 +195,87 @@ class ScenarioGeneratorApplicationSpec extends Specification {
             }
         ''')
 
-        def originalOut = System.out
-        def originalErr = System.err
-        def outBuffer = new ByteArrayOutputStream()
-        def errBuffer = new ByteArrayOutputStream()
-        System.setOut(new PrintStream(outBuffer, true))
-        System.setErr(new PrintStream(errBuffer, true))
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        def context = app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}"
+        )
+
+        then:
+        noExceptionThrown()
+
+        and:
+        def htmlReportPath = applicationsRoot.resolve(applicationBaseDir).resolve('analysis-report.html')
+        Files.exists(htmlReportPath)
+        def htmlReport = Files.readString(htmlReportPath)
+        htmlReport.contains('Verifier Analysis Report')
+        htmlReport.contains('Groovy Trace Explorer')
+        htmlReport.contains('Services (1)')
+        htmlReport.contains('DemoService')
+        htmlReport.contains('Command handlers (1)')
+        htmlReport.contains('DemoCommand -&gt; DemoCommandHandler')
+        htmlReport.contains('Sagas (1)')
+        htmlReport.contains('Groovy constructor-input traces (1)')
+        htmlReport.contains('Groovy full traces (1)')
+        htmlReport.contains('DemoTraceSpec')
+        htmlReport.contains('field:saga()')
+        htmlReport.contains('arg[0]: null')
+        htmlReport.indexOf('Sagas (1)') < htmlReport.indexOf('Groovy constructor-input traces (1)')
+        htmlReport.contains('DemoTraceSpec')
+        htmlReport.contains('Raw Text Report (verbatim)')
+
+        cleanup:
+        context?.close()
+    }
+
+    def 'Groovy tracing scans only src/test/groovy and ignores src/main/groovy specifications'() {
+        given:
+        def applicationsRoot = tempDir.resolve('applications')
+        def applicationBaseDir = 'integration-app-main-groovy'
+
+        writeSource(applicationsRoot, applicationBaseDir, 'src/main/java/com/example/demo/order/coordination/DemoFunctionalitySagas.java', '''
+            package com.example.demo.order.coordination;
+
+            import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork;
+            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService;
+            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep;
+            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWorkflow;
+
+            public class DemoFunctionalitySagas extends WorkflowFunctionality {
+
+                private final SagaUnitOfWorkService unitOfWorkService;
+
+                public DemoFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                              SagaUnitOfWork unitOfWork) {
+                    this.unitOfWorkService = unitOfWorkService;
+                    buildWorkflow(unitOfWork);
+                }
+
+                public void buildWorkflow(SagaUnitOfWork unitOfWork) {
+                    this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+                    SagaStep createDemoStep = new SagaStep("createDemoStep", () -> {});
+                    workflow.addStep(createDemoStep);
+                }
+            }
+        ''')
+
+        writeSource(applicationsRoot, applicationBaseDir, 'src/main/groovy/demo/MainOnlyTraceSpec.groovy', '''
+            package demo
+
+            import com.example.demo.order.coordination.DemoFunctionalitySagas
+            import spock.lang.Specification
+
+            class MainOnlyTraceSpec extends Specification {
+                def saga = new DemoFunctionalitySagas(null, null)
+
+                def setup() {
+                    saga.executeWorkflow(null)
+                }
+            }
+        ''')
 
         and:
         def app = new SpringApplication(ScenarioGeneratorApplication)
@@ -217,33 +290,44 @@ class ScenarioGeneratorApplicationSpec extends Specification {
         noExceptionThrown()
 
         and:
-        def capturedOutput = outBuffer.toString() + errBuffer.toString()
-        def reportIndex = capturedOutput.indexOf('Analysis report:\n')
-        reportIndex >= 0
-        def report = capturedOutput.substring(reportIndex + 'Analysis report:\n'.length())
-        report.contains('Services (1)')
-        report.contains('DemoService')
-        report.contains('Command handlers (1)')
-        report.contains('DemoCommand -> DemoCommandHandler')
-        report.contains('Sagas (1)')
-        report.contains('Groovy constructor-input traces (1)')
-        report.contains('Groovy full traces (1)')
-        report.contains('DemoTraceSpec.field:saga() -> DemoFunctionalitySagas')
-        report.contains('arg[0]: null')
-        report.indexOf('Sagas (1)') < report.indexOf('Groovy constructor-input traces (1)')
-
-        and:
         def htmlReportPath = applicationsRoot.resolve(applicationBaseDir).resolve('analysis-report.html')
         Files.exists(htmlReportPath)
         def htmlReport = Files.readString(htmlReportPath)
-        htmlReport.contains('Verifier Analysis Report')
-        htmlReport.contains('Groovy Trace Explorer')
-        htmlReport.contains('DemoTraceSpec')
-        htmlReport.contains('Raw Text Report (verbatim)')
+        htmlReport.contains('No constructor traces found.')
+        !htmlReport.contains('MainOnlyTraceSpec')
 
         cleanup:
-        System.setOut(originalOut)
-        System.setErr(originalErr)
+        context?.close()
+    }
+
+    def 'application writes html report to configured relative path'() {
+        given:
+        def applicationsRoot = tempDir.resolve('applications')
+        def applicationBaseDir = 'custom-report-app'
+        Files.createDirectories(applicationsRoot.resolve(applicationBaseDir))
+
+        and:
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        def context = app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                '--verifiers.report-html-path=reports/custom-analysis.html'
+        )
+
+        then:
+        noExceptionThrown()
+
+        and:
+        def customReport = applicationsRoot.resolve(applicationBaseDir)
+                .resolve('reports/custom-analysis.html')
+        def defaultReport = applicationsRoot.resolve(applicationBaseDir)
+                .resolve('analysis-report.html')
+        Files.exists(customReport)
+        !Files.exists(defaultReport)
+
+        cleanup:
         context?.close()
     }
 

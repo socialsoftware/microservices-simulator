@@ -543,6 +543,150 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
         !argLine.contains('child-seed')
     }
 
+    def 'keeps helper and variable provenance edge cases conservative with explicit markers'() {
+        given:
+        def edgeState = new ApplicationAnalysisState()
+        def workflowVisitor = new WorkflowFunctionalityVisitor()
+        parseAllDummyappFiles().each { cu -> workflowVisitor.visit(cu, edgeState) }
+
+        writeSource('demo/ConservativeMarkersSpec.groovy', '''
+            package demo
+
+            import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
+            import spock.lang.Specification
+
+            class ConservativeMarkersSpec extends Specification {
+                def 'helper return with branching stays conservative'() {
+                    given:
+                    def saga = new CreateOrderFunctionalitySagas(branchingHelper('seed'), null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def 'helper cycle stays conservative'() {
+                    given:
+                    def saga = new CreateOrderFunctionalitySagas(loopA('seed'), null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def 'ambiguous helper overload stays conservative'() {
+                    given:
+                    def saga = new CreateOrderFunctionalitySagas(ambiguousHelper('seed'), null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def 'self reference provenance stays conservative'() {
+                    given:
+                    def seed = null
+                    seed = seed
+                    def saga = new CreateOrderFunctionalitySagas(seed, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def 'cyclic variable provenance stays conservative'() {
+                    given:
+                    def first = null
+                    def second = first
+                    first = second
+                    def saga = new CreateOrderFunctionalitySagas(first, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def 'deep variable provenance stays conservative'() {
+                    given:
+                    def v0 = 'seed'
+                    def v1 = v0
+                    def v2 = v1
+                    def v3 = v2
+                    def v4 = v3
+                    def v5 = v4
+                    def v6 = v5
+                    def v7 = v6
+                    def v8 = v7
+                    def v9 = v8
+                    def v10 = v9
+                    def v11 = v10
+                    def v12 = v11
+                    def v13 = v12
+                    def saga = new CreateOrderFunctionalitySagas(v13, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def branchingHelper(value) {
+                    if (value) {
+                        return value
+                    }
+                    value + '-fallback'
+                }
+
+                def loopA(value) {
+                    loopB(value)
+                }
+
+                def loopB(value) {
+                    loopA(value)
+                }
+
+                def ambiguousHelper(String value) {
+                    value
+                }
+
+                def ambiguousHelper(Object value) {
+                    value
+                }
+            }
+        ''')
+
+        def sourceIndex = new GroovySourceIndex()
+        sourceIndex.parse(tempDir)
+
+        when:
+        new GroovyConstructorInputTraceVisitor().visit(sourceIndex, edgeState)
+
+        then:
+        traceArgLineFor(edgeState, 'demo.ConservativeMarkersSpec', 'helper return with branching stays conservative', 0)
+                .contains('[unresolved local-helper-return]')
+        traceArgLineFor(edgeState, 'demo.ConservativeMarkersSpec', 'helper cycle stays conservative', 0)
+                .contains('[unresolved helper-cycle]')
+        traceArgLineFor(edgeState, 'demo.ConservativeMarkersSpec', 'ambiguous helper overload stays conservative', 0)
+                .contains('[unresolved local-helper-method]')
+        traceArgLineFor(edgeState, 'demo.ConservativeMarkersSpec', 'self reference provenance stays conservative', 0)
+                .contains('[unresolved self-reference]')
+        traceArgLineFor(edgeState, 'demo.ConservativeMarkersSpec', 'cyclic variable provenance stays conservative', 0)
+                .contains('[unresolved cyclic reference]')
+        traceArgLineFor(edgeState, 'demo.ConservativeMarkersSpec', 'deep variable provenance stays conservative', 0)
+                .contains('[unresolved depth-limit]')
+    }
+
     def 'surfaces label context in trace text and report output'() {
         expect:
         traceTextFor('labels are context only').contains('given:')
@@ -563,14 +707,14 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
         then:
         report.contains('Groovy constructor-input traces (8)')
         report.contains('Groovy full traces (8)')
-        report.contains('GroovyTraceSpec.field:sagaInField() -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.setup() -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.setupSpec() -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.labels are context only() -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.helper-method chain resolves local returns() -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.nested constructor arguments are traced() -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.accessor chain arguments are traced() -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.runtime-derived unresolved edge remains conservative() -> CreateOrderFunctionalitySagas')
+        report.contains('GroovyTraceSpec.field:sagaInField() [binding=sagaInField] -> CreateOrderFunctionalitySagas')
+        report.contains('GroovyTraceSpec.setup() [binding=setupAlias] -> CreateOrderFunctionalitySagas')
+        report.contains('GroovyTraceSpec.setupSpec() [binding=setupSpecAlias] -> CreateOrderFunctionalitySagas')
+        report.contains('GroovyTraceSpec.labels are context only() [binding=labeledSaga] -> CreateOrderFunctionalitySagas')
+        report.contains('GroovyTraceSpec.helper-method chain resolves local returns() [binding=helperSaga] -> CreateOrderFunctionalitySagas')
+        report.contains('GroovyTraceSpec.nested constructor arguments are traced() [binding=nestedSaga] -> CreateOrderFunctionalitySagas')
+        report.contains('GroovyTraceSpec.accessor chain arguments are traced() [binding=accessorSaga] -> CreateOrderFunctionalitySagas')
+        report.contains('GroovyTraceSpec.runtime-derived unresolved edge remains conservative() [binding=runtimeSaga] -> CreateOrderFunctionalitySagas')
     }
 
     private String traceTextFor(String sourceMethodName) {

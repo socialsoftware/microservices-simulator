@@ -168,9 +168,10 @@ public class ApplicationAnalysisState {
             groovyConstructorInputTraces.stream()
                     .sorted(Comparator.comparing(GroovyConstructorInputTrace::sourceClassFqn)
                             .thenComparing(GroovyConstructorInputTrace::sourceMethodName)
+                            .thenComparing(trace -> trace.sourceBindingName() == null ? "" : trace.sourceBindingName())
                             .thenComparing(GroovyConstructorInputTrace::sagaClassFqn))
                     .forEach(trace -> appendLine(report, "- " + formatGroovyTraceAnchor(trace.sourceClassFqn(),
-                            trace.sourceMethodName(), trace.sagaClassFqn())));
+                            trace.sourceMethodName(), trace.sourceBindingName(), trace.sagaClassFqn())));
         }
 
         appendLine(report, "Groovy full traces (" + groovyFullTraceResults.size() + ")");
@@ -180,10 +181,11 @@ public class ApplicationAnalysisState {
             groovyFullTraceResults.stream()
                     .sorted(Comparator.comparing(GroovyFullTraceResult::sourceClassFqn)
                             .thenComparing(GroovyFullTraceResult::sourceMethodName)
+                            .thenComparing(trace -> trace.sourceBindingName() == null ? "" : trace.sourceBindingName())
                             .thenComparing(GroovyFullTraceResult::sagaClassFqn))
                     .forEach(trace -> {
                         appendLine(report, "- " + formatGroovyTraceAnchor(trace.sourceClassFqn(),
-                                trace.sourceMethodName(), trace.sagaClassFqn()));
+                                trace.sourceMethodName(), trace.sourceBindingName(), trace.sagaClassFqn()));
 
                         if (trace.traceText() != null && !trace.traceText().isBlank()) {
                             trace.traceText().lines()
@@ -249,7 +251,13 @@ public class ApplicationAnalysisState {
         return lastDot < 0 ? fqn : fqn.substring(lastDot + 1);
     }
 
-    private static String formatGroovyTraceAnchor(String classFqn, String methodName, String sagaClassFqn) {
-        return simpleName(classFqn) + "." + methodName + "() -> " + simpleName(sagaClassFqn);
+    private static String formatGroovyTraceAnchor(String classFqn,
+                                                  String methodName,
+                                                  String sourceBindingName,
+                                                  String sagaClassFqn) {
+        String binding = sourceBindingName == null || sourceBindingName.isBlank()
+                ? ""
+                : " [binding=" + sourceBindingName + "]";
+        return simpleName(classFqn) + "." + methodName + "()" + binding + " -> " + simpleName(sagaClassFqn);
     }
 }
