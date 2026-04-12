@@ -641,6 +641,19 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
                     true
                 }
 
+                def 'dynamic method dispatch stays conservative'() {
+                    given:
+                    def methodName = 'trim'
+                    def raw = ' seed '
+                    def saga = new CreateOrderFunctionalitySagas(raw."${methodName}"(), null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
                 def branchingHelper(value) {
                     if (value) {
                         return value
@@ -685,6 +698,8 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
                 .contains('[unresolved cyclic reference]')
         traceArgLineFor(edgeState, 'demo.ConservativeMarkersSpec', 'deep variable provenance stays conservative', 0)
                 .contains('[unresolved depth-limit]')
+        traceArgLineFor(edgeState, 'demo.ConservativeMarkersSpec', 'dynamic method dispatch stays conservative', 0)
+                .contains('[unresolved dynamic-method-call]')
     }
 
     def 'surfaces label context in trace text and report output'() {
