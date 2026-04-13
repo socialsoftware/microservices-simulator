@@ -1,8 +1,6 @@
 spring:
   application:
     name: quizzes
-  config:
-    import: "optional:classpath:simulator-defaults.yaml"
   profiles:
     active: "@activatedProperties@"
     group:
@@ -30,6 +28,25 @@ management:
     web:
       exposure:
         include: "health,beans"
+
+command:
+  gateway:
+    timeout-seconds: 10
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        enable-randomized-wait: true
+        randomized-wait-factor: 0.5
+        retry-exceptions:
+          - java.lang.RuntimeException
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 
 # Tech-agnostic remote configuration
 ---

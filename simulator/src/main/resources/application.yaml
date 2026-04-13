@@ -1,3 +1,45 @@
 spring:
+  application:
+    name: simulator
+  profiles:
+    active: "@activatedProperties@"
+
+  main:
+    allow-bean-definition-overriding: true
+
+  autoconfigure:
+    exclude:
+      - org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAutoConfiguration
+
+  task:
+    scheduling:
+      pool:
+        size: 5
+
+---
+spring:
   config:
-    import: "optional:classpath:simulator-defaults.yaml"
+    activate:
+      on-profile: "!remote & !gateway"
+
+  cloud:
+    kubernetes:
+      enabled: false
+      discovery:
+        enabled: false
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "remote & !kubernetes"
+
+  cloud:
+    discovery:
+      enabled: true
