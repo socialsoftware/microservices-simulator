@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.Workf
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyConstructorInputTrace;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -317,11 +318,24 @@ public class AnalysisHtmlReportRenderer {
                         .append(escapeHtml(simpleName(trace.sourceClassFqn())))
                         .append(".</code><code>")
                         .append(escapeHtml(trace.sourceMethodName()))
-                        .append("()</code> <span class=\"muted\">[binding: ")
-                        .append(escapeHtml(trace.sourceBindingName() == null ? "(unknown)" : trace.sourceBindingName()))
-                        .append("]</span> -> <code>")
+                        .append("()</code>");
+
+                if (trace.sourceBindingName() != null && !trace.sourceBindingName().isBlank()) {
+                    html.append(" <span class=\"muted\">[binding: ")
+                            .append(escapeHtml(trace.sourceBindingName()))
+                            .append("]</span>");
+                } else if (trace.sourceExpressionText() != null && !trace.sourceExpressionText().isBlank()) {
+                    html.append(" <span class=\"muted\">[expr: ")
+                            .append(escapeHtml(trace.sourceExpressionText()))
+                            .append("]</span>");
+                }
+
+                html.append(" -> <code>")
                         .append(escapeHtml(simpleName(trace.sagaClassFqn())))
                         .append("</code> &nbsp; ")
+                        .append("<span class=\"chip\">origin: ")
+                        .append(escapeHtml(formatOriginLabel(trace.originKind())))
+                        .append("</span> ")
                         .append("<span class=\"chip\">args: ")
                         .append(trace.maxArgIndex() < 0 ? 0 : (trace.maxArgIndex() + 1))
                         .append("</span> ")
@@ -339,6 +353,12 @@ public class AnalysisHtmlReportRenderer {
                                     escapeHtml(entry.getKey()) + " x" + entry.getValue() + "</span>")
                             .collect(Collectors.joining(" ")));
                     html.append("</p>\n");
+                }
+
+                if (trace.sourceExpressionText() != null && !trace.sourceExpressionText().isBlank()) {
+                    html.append("<p class=\"muted\">Source expression: <code>")
+                            .append(escapeHtml(trace.sourceExpressionText()))
+                            .append("</code></p>\n");
                 }
 
                 html.append("<pre class=\"trace-pre\">")
@@ -620,6 +640,8 @@ public class AnalysisHtmlReportRenderer {
                 traceResult.sourceClassFqn(),
                 traceResult.sourceMethodName(),
                 traceResult.sourceBindingName(),
+                traceResult.originKind(),
+                traceResult.sourceExpressionText(),
                 traceResult.sagaClassFqn(),
                 traceText,
                 maxArgIndex,
@@ -644,6 +666,17 @@ public class AnalysisHtmlReportRenderer {
                 .flatMap(trace -> trace.unresolvedMarkers().stream())
                 .forEach(marker -> counts.put(marker, counts.getOrDefault(marker, 0) + 1));
         return counts;
+    }
+
+    private String formatOriginLabel(GroovyTraceOriginKind originKind) {
+        if (originKind == null) {
+            return "unknown";
+        }
+
+        return switch (originKind) {
+            case DIRECT_CONSTRUCTOR -> "direct";
+            case FACADE_CALL -> "facade";
+        };
     }
 
     private String formatMultiplicity(DispatchMultiplicity multiplicity) {
@@ -703,6 +736,8 @@ public class AnalysisHtmlReportRenderer {
     private record GroovyTraceView(String sourceClassFqn,
                                    String sourceMethodName,
                                    String sourceBindingName,
+                                   GroovyTraceOriginKind originKind,
+                                   String sourceExpressionText,
                                    String sagaClassFqn,
                                    String traceText,
                                    int maxArgIndex,

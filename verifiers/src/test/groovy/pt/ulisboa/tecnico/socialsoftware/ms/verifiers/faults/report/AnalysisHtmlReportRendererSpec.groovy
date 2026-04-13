@@ -4,7 +4,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAn
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyConstructorInputTrace
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe
 import spock.lang.Specification
 
 class AnalysisHtmlReportRendererSpec extends Specification {
@@ -21,18 +24,35 @@ class AnalysisHtmlReportRendererSpec extends Specification {
         state.groovyFullTraceResults.add(new GroovyFullTraceResult(
                 'com.example.demo.DemoSpec',
                 'setup',
-                'demoSaga',
-                'com.example.demo.CreateOrderFunctionalitySagas',
+                null,
+                GroovyTraceOriginKind.FACADE_CALL,
+                'itemFunctionalities.createItem(dto)',
+                'com.example.demo.CreateItemFunctionalitySagas',
                 [
-                        new GroovyTraceArgument(0, 'unitOfWorkService [unresolved source-backed variable]'),
-                        new GroovyTraceArgument(1, 'createUnitOfWork(...) [unresolved external/runtime edge]')
+                        new GroovyTraceArgument(0, 'sagaUnitOfWorkService [unresolved source-backed variable]',
+                                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, 'sagaUnitOfWorkService', [])),
+                        new GroovyTraceArgument(1, 'dto <- new ItemDto()',
+                                new GroovyValueRecipe(GroovyValueKind.CONSTRUCTOR, 'ItemDto', [
+                                        new GroovyValueRecipe(GroovyValueKind.LITERAL, 'aggregateId', []),
+                                        new GroovyValueRecipe(GroovyValueKind.LITERAL, '41', []),
+                                        new GroovyValueRecipe(GroovyValueKind.LITERAL, 'orderId', []),
+                                        new GroovyValueRecipe(GroovyValueKind.LITERAL, '13', [])
+                                ])),
+                        new GroovyTraceArgument(2, 'unitOfWork [unresolved runtime edge]',
+                                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, 'createUnitOfWork(...)', [])),
+                        new GroovyTraceArgument(3, 'commandGateway [unresolved source-backed variable]',
+                                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, 'commandGateway', []))
                 ],
-                [new GroovyWorkflowCall('demoSaga.executeWorkflow(...)', 'when')],
-                ['resolved via helper composeSaga(...) [unresolved helper-cycle]'],
+                [new GroovyWorkflowCall('itemFunctionalities.createItem(...)', 'when')],
+                ['resolved via facade ItemFunctionalitiesFacade.createItem(...)'],
                 '''
-                demoSaga = new CreateOrderFunctionalitySagas(...)
-                arg[0]: unitOfWorkService [unresolved source-backed variable]
-                arg[1]: createUnitOfWork(...) [unresolved external/runtime edge]
+                itemFunctionalities.createItem(dto)
+                [binding: (unknown)]
+                resolved via facade ItemFunctionalitiesFacade.createItem(...)
+                arg[0]: sagaUnitOfWorkService [unresolved source-backed variable]
+                arg[1]: dto <- new ItemDto()
+                arg[2]: unitOfWork [unresolved runtime edge]
+                arg[3]: commandGateway [unresolved source-backed variable]
                 '''.stripIndent().trim()
         ))
 
@@ -55,10 +75,14 @@ class AnalysisHtmlReportRendererSpec extends Specification {
         html.contains('<th>Binding</th>')
         html.contains('Detailed to deeper: unresolved input markers (3)')
         html.contains('unresolved source-backed variable')
-        html.contains('unresolved external/runtime edge')
-        html.contains('unresolved helper-cycle')
+        html.contains('unresolved runtime edge')
+        html.contains('resolved via facade ItemFunctionalitiesFacade.createItem(...)')
         html.contains('Full trace details (1)')
-        html.contains('args: 2')
+        html.contains('[expr: itemFunctionalities.createItem(dto)]')
+        html.contains('origin: facade')
+        html.contains('Source expression: <code>itemFunctionalities.createItem(dto)</code>')
+        html.contains('itemFunctionalities.createItem(dto)')
+        html.contains('args: 4')
         html.contains('Raw Text Report (verbatim)')
         html.contains('unsafe &lt;tag&gt;')
         !html.contains('unsafe <tag>')
