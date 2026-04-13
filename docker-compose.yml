@@ -204,6 +204,9 @@ services:
       SPRING_PROFILES_ACTIVE: sagas,local
       VERIFIERS_APPLICATIONS_ROOT: /applications
       VERIFIERS_APPLICATION_BASE_DIR: quizzes
+      VERIFIERS_REPORT_HTML_PATH: /reports/analysis-report.html
+    volumes:
+      - ./verifiers/target:/reports
     <<: *limits-medium
     networks:
       - messaging-network
