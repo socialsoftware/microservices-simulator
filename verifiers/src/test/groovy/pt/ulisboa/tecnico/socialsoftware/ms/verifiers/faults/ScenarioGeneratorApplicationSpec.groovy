@@ -1,13 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults
 
 import org.springframework.boot.SpringApplication
-import spock.lang.Specification
 import spock.lang.TempDir
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-class ScenarioGeneratorApplicationSpec extends Specification {
+class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.VisitorTestSupport {
 
     @TempDir
     Path tempDir
@@ -225,6 +224,36 @@ class ScenarioGeneratorApplicationSpec extends Specification {
         htmlReport.indexOf('Sagas (1)') < htmlReport.indexOf('Groovy constructor-input traces (1)')
         htmlReport.contains('DemoTraceSpec')
         htmlReport.contains('Raw Text Report (verbatim)')
+
+        cleanup:
+        context?.close()
+    }
+
+    def 'quizzes Groovy tracing now includes facade-derived recipes'() {
+        given:
+        def applicationsRoot = resolveProjectPath('applications')
+        def applicationBaseDir = 'quizzes'
+        def reportPath = tempDir.resolve('quizzes-analysis-report.html')
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        def context = app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.report-html-path=${reportPath}"
+        )
+
+        then:
+        noExceptionThrown()
+
+        and:
+        def htmlReport = Files.readString(reportPath)
+        htmlReport.contains('CreateTournamentTest')
+        htmlReport.contains('UpdateTournamentTest')
+        htmlReport.contains('UpdateStudentNameTest')
+        def countMatcher = htmlReport =~ /Groovy full traces \((\d+)\)/
+        countMatcher.find()
+        countMatcher.group(1).toInteger() > 29
 
         cleanup:
         context?.close()

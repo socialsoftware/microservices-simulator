@@ -1,7 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe
 import spock.lang.TempDir
 
 import java.nio.file.Files
@@ -217,11 +221,17 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
 
     def 'records helper chain, nested constructor, and accessor traces conservatively'() {
         expect:
+        def helperTrace = traceFor('helper-method chain resolves local returns')
+        helperTrace != null
+        helperTrace.originKind() == GroovyTraceOriginKind.DIRECT_CONSTRUCTOR
         traceTextFor('setup').contains('setupAlias.executeWorkflow')
         traceTextFor('setupSpec').contains('setupSpecAlias.resumeWorkflow')
 
         traceArgLineFor('helper-method chain resolves local returns', 0) ==
             'arg[0]: aggregateId <- inputBundle <- buildInputBundle(...) <- new LocalInputBundle(buildUserDto(...) <- new LocalUserDto(new LocalPayload(777))).userDto.aggregateId'
+        recipeContainsKind(helperTrace.constructorArguments()[0].recipe(), GroovyValueKind.HELPER_CALL_RESULT)
+        recipeContainsKind(helperTrace.constructorArguments()[0].recipe(), GroovyValueKind.PROPERTY_ACCESS)
+        !helperTrace.constructorArguments()[0].provenance().contains('[unresolved cyclic reference]')
         traceArgLineFor('nested constructor arguments are traced', 0) ==
             'arg[0]: new LocalPayload(new LocalPayload(nested-seed))'
         traceArgLineFor('accessor chain arguments are traced', 0) ==
@@ -232,6 +242,51 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
         traceTextFor('helper-method chain resolves local returns').contains('resolved via helper buildSagaFromHelpers(...)')
         traceTextFor('helper-method chain resolves local returns').contains('resolved via helper createSaga(...)')
         !state.groovyFullTraceResults.any { it.sourceMethodName == 'helperMethod' }
+    }
+
+    def 'recognizes local toSet collection transforms as structured recipes'() {
+        given:
+        def toSetState = new ApplicationAnalysisState()
+        def workflowVisitor = new WorkflowFunctionalityVisitor()
+        parseAllDummyappFiles().each { cu -> workflowVisitor.visit(cu, toSetState) }
+
+        writeSource('toSet-fixture/demo/ToSetTraceSpec.groovy', '''
+            package demo
+
+            import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
+            import spock.lang.Specification
+
+            class ToSetTraceSpec extends Specification {
+                def 'local collection toSet stays local'() {
+                    given:
+                    def values = [1, 2, 3].toSet()
+                    def saga = new CreateOrderFunctionalitySagas(values, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+            }
+        ''')
+
+        def sourceIndex = new GroovySourceIndex()
+        sourceIndex.parse(tempDir.resolve('toSet-fixture'))
+
+        when:
+        new GroovyConstructorInputTraceVisitor().visit(sourceIndex, toSetState)
+
+        then:
+        def trace = toSetState.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'demo.ToSetTraceSpec' && it.sourceMethodName == 'local collection toSet stays local'
+        }
+        trace != null
+        trace.constructorArguments()[0].recipe().kind() == GroovyValueKind.LOCAL_TRANSFORM
+        trace.constructorArguments()[0].recipe().text() == 'toSet'
+        trace.constructorArguments()[0].recipe().children()[0].kind() == GroovyValueKind.COLLECTION_LITERAL
+        trace.constructorArguments()[0].recipe().children()[0].text() == 'list'
+        !trace.constructorArguments()[0].provenance().contains('[unresolved external/runtime edge]')
     }
 
     def 'traces source-backed inherited setup/setupSpec/field/helper members'() {
@@ -734,6 +789,22 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
 
     private String traceTextFor(String sourceMethodName) {
         return state.groovyFullTraceResults.find { it.sourceMethodName == sourceMethodName }?.traceText() ?: ''
+    }
+
+    private GroovyFullTraceResult traceFor(String sourceMethodName) {
+        return state.groovyFullTraceResults.find { it.sourceMethodName == sourceMethodName }
+    }
+
+    private static boolean recipeContainsKind(GroovyValueRecipe recipe, GroovyValueKind kind) {
+        if (recipe == null) {
+            return false
+        }
+
+        if (recipe.kind() == kind) {
+            return true
+        }
+
+        return recipe.children().any { child -> recipeContainsKind(child, kind) }
     }
 
     private static String traceTextFor(ApplicationAnalysisState analysisState, String sourceClassFqn, String sourceMethodName) {

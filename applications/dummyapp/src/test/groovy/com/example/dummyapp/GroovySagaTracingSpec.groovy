@@ -2,7 +2,11 @@ package com.example.dummyapp
 
 import com.example.dummyapp.item.aggregate.ItemDto
 import com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas
+import com.example.dummyapp.item.coordination.ItemFunctionalitiesFacade
 import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
+import com.example.dummyapp.order.coordination.OrderFunctionalitiesFacade
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
 import spock.lang.Specification
 
 class RuntimeGateway {
@@ -37,6 +41,8 @@ class ItemBundle {
 
 class GroovySagaTracingSpec extends Specification {
     def orderSagaInField = new CreateOrderFunctionalitySagas(null, null)
+    def orderFunctionalities = new OrderFunctionalitiesFacade()
+    def itemFunctionalities = new ItemFunctionalitiesFacade()
     def plainAggregateInField = new DummyAggregate(200, 'plain')
     def runtimeGateway = new RuntimeGateway()
 
@@ -89,6 +95,18 @@ class GroovySagaTracingSpec extends Specification {
 
         when:
         saga.resumeWorkflow(null)
+
+        then:
+        true
+    }
+
+    def 'local toSet literal feeds order saga constructor'() {
+        given:
+        def aggregateCount = [1, 2, 3].toSet().size()
+        def toSetSaga = new CreateOrderFunctionalitySagas(null, null, aggregateCount, null)
+
+        when:
+        toSetSaga.executeWorkflow(null)
 
         then:
         true
@@ -180,6 +198,76 @@ class GroovySagaTracingSpec extends Specification {
         true
     }
 
+    def 'assignment from facade call traces item saga recipe'() {
+        given:
+        itemFunctionalities.@sagaUnitOfWorkService = Stub(SagaUnitOfWorkService)
+        def returnedDto = new ItemDto(aggregateId: 41, orderId: 13)
+        itemFunctionalities.@commandGateway = Stub(CommandGateway) {
+            send(_) >> returnedDto
+        }
+        def dto = new ItemDto(aggregateId: 41, orderId: 13)
+
+        when:
+        def result = itemFunctionalities.createItem(dto)
+
+        then:
+        result == returnedDto
+        true
+    }
+
+    def 'bare facade call traces item saga recipe'() {
+        given:
+        itemFunctionalities.@sagaUnitOfWorkService = Stub(SagaUnitOfWorkService)
+        itemFunctionalities.@commandGateway = Stub(CommandGateway) {
+            send(_) >> new ItemDto(aggregateId: 41, orderId: 13)
+        }
+        def dto = new ItemDto(aggregateId: 41, orderId: 13)
+
+        when:
+        itemFunctionalities.createItem(dto)
+
+        then:
+        true
+    }
+
+    def 'helper returning facade result feeds item saga constructor'() {
+        given:
+        itemFunctionalities.@sagaUnitOfWorkService = Stub(SagaUnitOfWorkService)
+        itemFunctionalities.@commandGateway = Stub(CommandGateway) {
+            send(_) >> new ItemDto(aggregateId: 41, orderId: 13)
+        }
+        def helperSaga = createItemSaga(buildItemDtoViaFacade())
+
+        when:
+        helperSaga.executeWorkflow(null)
+
+        then:
+        true
+    }
+
+    def 'facade assignment traces order saga recipe'() {
+        given:
+        orderFunctionalities.@sagaUnitOfWorkService = Stub(SagaUnitOfWorkService)
+
+        when:
+        def orderResult = orderFunctionalities.createOrder(null)
+
+        then:
+        orderResult == null
+        true
+    }
+
+    def 'bare facade call traces order saga recipe'() {
+        given:
+        orderFunctionalities.@sagaUnitOfWorkService = Stub(SagaUnitOfWorkService)
+
+        when:
+        orderFunctionalities.createOrder(null)
+
+        then:
+        true
+    }
+
     def buildItemSagaFromBundle(bundle) {
         createItemSaga(bundle.dto)
     }
@@ -194,6 +282,12 @@ class GroovySagaTracingSpec extends Specification {
 
     def buildItemDto() {
         new ItemDtoWrapper(new ItemDto(aggregateId: 31, orderId: 7)).dto
+    }
+
+    def buildItemDtoViaFacade() {
+        def itemDto = buildItemDto()
+        itemDto = itemFunctionalities.createItem(itemDto)
+        itemDto
     }
 }
 

@@ -11,10 +11,20 @@ public class OrderFunctionalitiesFacade {
     @Autowired
     private SagaUnitOfWorkService sagaUnitOfWorkService;
 
-    public void createOrder() {
-        SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork("createOrder");
-        CreateOrderFunctionalitySagas functionality =
-                new CreateOrderFunctionalitySagas(sagaUnitOfWorkService, unitOfWork);
-        functionality.executeWorkflow(unitOfWork);
+    public void createOrder(Integer customerId) {
+        if (customerId == null) {
+            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork("createOrder");
+            Integer customerIdCopy = customerId;
+            CreateOrderFunctionalitySagas functionality =
+                    new CreateOrderFunctionalitySagas(
+                            sagaUnitOfWorkService,
+                            unitOfWork,
+                            customerId,
+                            customerIdCopy);
+            functionality.executeWorkflow(unitOfWork);
+        } else {
+            SagaUnitOfWork unitOfWork = sagaUnitOfWorkService.createUnitOfWork("createOrder-shadow");
+            unitOfWork.toString();
+        }
     }
 }

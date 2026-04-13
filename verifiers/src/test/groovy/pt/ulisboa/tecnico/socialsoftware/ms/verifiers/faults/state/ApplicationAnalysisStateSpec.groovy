@@ -17,8 +17,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.Servi
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaFunctionalityBuildingBlock
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaStepBuildingBlock
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowCreationArgumentSource
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowCreationArgumentSourceKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowFunctionalityCreationSite
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -126,7 +131,17 @@ class ApplicationAnalysisStateSpec extends Specification {
         state.sagaCreationSites.add(new WorkflowFunctionalityCreationSite(
                 'com.example.app.order.coordination.OrderFunctionalitiesFacade',
                 'createOrder',
-                'com.example.app.order.coordination.CreateOrderFunctionalitySagas'
+                'com.example.app.order.coordination.CreateOrderFunctionalitySagas',
+                [
+                        new WorkflowCreationArgumentSource(0, WorkflowCreationArgumentSourceKind.FIELD_REFERENCE, null,
+                                'sagaUnitOfWorkService', null),
+                        new WorkflowCreationArgumentSource(1, WorkflowCreationArgumentSourceKind.LOCAL_VARIABLE, null,
+                                'unitOfWork', 'sagaUnitOfWorkService.createUnitOfWork("createOrder")'),
+                        new WorkflowCreationArgumentSource(2, WorkflowCreationArgumentSourceKind.METHOD_PARAMETER, 0,
+                                'customerId', null),
+                        new WorkflowCreationArgumentSource(3, WorkflowCreationArgumentSourceKind.INLINE_EXPRESSION, null,
+                                null, 'customerId + 1')
+                ]
         ))
 
         state.groovyConstructorInputTraces.add(new GroovyConstructorInputTrace(
@@ -139,8 +154,10 @@ class ApplicationAnalysisStateSpec extends Specification {
                 'com.example.app.order.CreateOrderSpec',
                 'setup',
                 'setupSaga',
+                GroovyTraceOriginKind.DIRECT_CONSTRUCTOR,
+                'new CreateOrderFunctionalitySagas(null, null)',
                 'com.example.app.order.coordination.CreateOrderFunctionalitySagas',
-                [new GroovyTraceArgument(0, 'null')],
+                [new GroovyTraceArgument(0, 'null', new GroovyValueRecipe(GroovyValueKind.LITERAL, 'null', []))],
                 [new GroovyWorkflowCall('setupSaga.executeWorkflow(...)', 'when')],
                 [],
                 'setup -> new CreateOrderFunctionalitySagas(...)'
@@ -162,6 +179,7 @@ class ApplicationAnalysisStateSpec extends Specification {
         report.contains('PlaceOrderCommand -> Order [WRITE, FORWARD, SINGLE x1]')
         report.contains('Saga creation sites (1)')
         report.contains('OrderFunctionalitiesFacade.createOrder() -> CreateOrderFunctionalitySagas')
+        report.contains('arg[2]: parameter #0 customerId')
         report.contains('Groovy constructor-input traces (1)')
         report.contains('CreateOrderSpec.setup() [binding=setupSaga] -> CreateOrderFunctionalitySagas')
         report.contains('Groovy full traces (1)')

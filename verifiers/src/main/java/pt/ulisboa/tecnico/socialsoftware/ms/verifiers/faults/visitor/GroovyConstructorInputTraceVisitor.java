@@ -11,6 +11,7 @@ import org.codehaus.groovy.ast.expr.ConstructorCallExpression;
 import org.codehaus.groovy.ast.expr.DeclarationExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
+import org.codehaus.groovy.ast.expr.ListExpression;
 import org.codehaus.groovy.ast.expr.PropertyExpression;
 import org.codehaus.groovy.ast.expr.TupleExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
@@ -32,10 +33,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAn
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyConstructorInputTrace;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyImportMetadata;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceClassMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowCreationArgumentSource;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowCreationArgumentSourceKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowFunctionalityCreationSite;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -162,6 +169,8 @@ public class GroovyConstructorInputTraceVisitor {
                 builder.sourceClassFqn,
                 builder.sourceMethodName,
                 builder.sourceBindingName,
+                builder.originKind,
+                builder.sourceExpressionText,
                 builder.sagaClassFqn,
                 List.copyOf(builder.constructorArguments),
                 List.copyOf(builder.workflowCalls),
@@ -352,6 +361,13 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         if (expression instanceof MethodCallExpression methodCallExpression) {
+            if (traceFacadeCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName, label)) {
+                return;
+            }
+
             traceWorkflowCall(methodCallExpression, methodScopes, label);
         }
     }
@@ -390,15 +406,30 @@ public class GroovyConstructorInputTraceVisitor {
             }
         }
 
+        if (rightExpression instanceof MethodCallExpression methodCallExpression
+                && traceFacadeCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
+                methodScopes, classFieldScopes,
+                methodExpressionScopes, classFieldExpressionScopes,
+                visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName, label)) {
+            methodExpressionScopes.put(variableName, rightExpression);
+            if (visibleClassFieldKey != null) {
+                classFieldExpressionScopes.put(visibleClassFieldKey, rightExpression);
+            }
+            return;
+        }
+
         ConstructorResolution constructorResolution = resolveSagaConstructor(rightExpression, classNode, metadata, state,
                 methodExpressionScopes, classFieldExpressionScopes, methodsByName,
-                visibleFieldKeysByClassFqn, new ArrayDeque<>(), 0);
+                visibleFieldKeysByClassFqn, new ArrayDeque<>(), 0,
+                GroovyTraceOriginKind.DIRECT_CONSTRUCTOR, rightExpression.getText());
 
         if (constructorResolution != null) {
             String sagaClassFqn = constructorResolution.sagaClassFqn();
 
             TraceBuilder builder = new TraceBuilder(traceSourceClassFqn,
                     contextName(methodName, variableName), variableName, sagaClassFqn);
+            builder.originKind = constructorResolution.originKind();
+            builder.sourceExpressionText = constructorResolution.sourceExpressionText();
             builder.appendContextLabel(label);
             builder.appendConstructorLine(formatAssignmentText(variableName, sagaClassFqn, null));
             appendConstructorArgumentLines(builder, constructorResolution.constructorExpression(),
@@ -441,6 +472,354 @@ public class GroovyConstructorInputTraceVisitor {
 
         builder.appendContextLabel(label);
         builder.appendCallLine(scopeName + "." + calledMethod + "(...)", label);
+    }
+
+    private boolean traceFacadeCall(MethodCallExpression methodCallExpression,
+                                    String traceSourceClassFqn,
+                                    ClassNode classNode,
+                                    GroovySourceClassMetadata metadata,
+                                    ApplicationAnalysisState state,
+                                    Map<String, TraceBuilder> methodScopes,
+                                    Map<String, TraceBuilder> classFieldScopes,
+                                    Map<String, Expression> methodExpressionScopes,
+                                    Map<String, Expression> classFieldExpressionScopes,
+                                    Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                    List<TraceBuilder> tracedBuilders,
+                                    Map<String, List<MethodResolutionContext>> methodsByName,
+                                    String methodName,
+                                    String label) {
+        FacadeResolution facadeResolution = resolveFacadeResolution(methodCallExpression, classNode, metadata, state,
+                methodExpressionScopes, classFieldExpressionScopes, visibleFieldKeysByClassFqn, methodsByName).orElse(null);
+        if (facadeResolution == null) {
+            return false;
+        }
+
+        TraceBuilder builder = new TraceBuilder(traceSourceClassFqn,
+                contextName(methodName, null), null, facadeResolution.creationSite().sagaClassFqn());
+        builder.originKind = GroovyTraceOriginKind.FACADE_CALL;
+        builder.sourceExpressionText = methodCallExpression.getText();
+        builder.appendContextLabel(label);
+        builder.appendConstructorLine(methodCallExpression.getText());
+        facadeResolution.constructorArguments().forEach(argument ->
+                builder.appendInputLine(argument.index(), argument.provenance(), argument.recipe()));
+        facadeResolution.resolutionNotes().forEach(builder::appendDetailLine);
+        registerConstructorTrace(builder, state);
+        tracedBuilders.add(builder);
+        return true;
+    }
+
+    private Optional<FacadeResolution> resolveFacadeResolution(MethodCallExpression methodCallExpression,
+                                                               ClassNode classNode,
+                                                               GroovySourceClassMetadata metadata,
+                                                               ApplicationAnalysisState state,
+                                                               Map<String, Expression> methodExpressionScopes,
+                                                               Map<String, Expression> classFieldExpressionScopes,
+                                                               Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                                               Map<String, List<MethodResolutionContext>> methodsByName) {
+        String calledMethod = methodCallExpression.getMethodAsString();
+        if (calledMethod == null || state.sagaCreationSites.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<String> receiverTypeFqn = resolveFacadeReceiverType(methodCallExpression.getObjectExpression(),
+                classNode, metadata, state, methodExpressionScopes, classFieldExpressionScopes);
+        if (receiverTypeFqn.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<Expression> callArguments = extractArguments(methodCallExpression.getArguments());
+
+        List<WorkflowFunctionalityCreationSite> matchingSites = state.sagaCreationSites.stream()
+                .filter(site -> Objects.equals(site.classFqn(), receiverTypeFqn.get())
+                        && Objects.equals(site.methodName(), calledMethod))
+                .toList();
+        SelectedCreationSite selectedCreationSite = selectFacadeCreationSite(matchingSites, callArguments).orElse(null);
+        if (selectedCreationSite == null) {
+            return Optional.empty();
+        }
+
+        WorkflowFunctionalityCreationSite creationSite = selectedCreationSite.creationSite();
+        List<GroovyTraceArgument> constructorArguments = new ArrayList<>();
+        for (WorkflowCreationArgumentSource argumentSource : creationSite.argumentSources()) {
+            ValueTrace argumentTrace = describeFacadeArgument(argumentSource, callArguments, classNode, metadata, state,
+                    methodExpressionScopes, classFieldExpressionScopes, visibleFieldKeysByClassFqn, methodsByName);
+            if (argumentTrace == null) {
+                return Optional.empty();
+            }
+
+            constructorArguments.add(new GroovyTraceArgument(argumentSource.argumentIndex(),
+                    argumentTrace.provenance(), argumentTrace.recipe()));
+        }
+
+        List<String> resolutionNotes = new ArrayList<>();
+        resolutionNotes.add("resolved via facade " + simpleName(receiverTypeFqn.get()) + "." + calledMethod + "(...)");
+        if (selectedCreationSite.note() != null && !selectedCreationSite.note().isBlank()) {
+            resolutionNotes.add(selectedCreationSite.note());
+        }
+
+        return Optional.of(new FacadeResolution(creationSite, receiverTypeFqn.get(), constructorArguments, resolutionNotes));
+    }
+
+    private Optional<SelectedCreationSite> selectFacadeCreationSite(List<WorkflowFunctionalityCreationSite> matchingSites,
+                                                                    List<Expression> callArguments) {
+        if (matchingSites == null || matchingSites.isEmpty()) {
+            return Optional.empty();
+        }
+
+        if (matchingSites.size() == 1) {
+            return Optional.of(new SelectedCreationSite(matchingSites.get(0), null));
+        }
+
+        List<WorkflowFunctionalityCreationSite> parameterCompatibleSites = matchingSites.stream()
+                .filter(site -> site.argumentSources().stream()
+                        .filter(source -> source.kind() == WorkflowCreationArgumentSourceKind.METHOD_PARAMETER)
+                        .allMatch(source -> source.parameterIndex() != null
+                                && source.parameterIndex() >= 0
+                                && source.parameterIndex() < callArguments.size()))
+                .toList();
+        if (parameterCompatibleSites.isEmpty()) {
+            return Optional.empty();
+        }
+
+        if (parameterCompatibleSites.size() == 1) {
+            return Optional.of(new SelectedCreationSite(parameterCompatibleSites.get(0), null));
+        }
+
+        Set<String> sagaClasses = parameterCompatibleSites.stream()
+                .map(WorkflowFunctionalityCreationSite::sagaClassFqn)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (sagaClasses.size() != 1) {
+            return Optional.empty();
+        }
+
+        WorkflowFunctionalityCreationSite selectedSite = parameterCompatibleSites.stream()
+                .sorted(Comparator
+                        .comparingLong((WorkflowFunctionalityCreationSite site) -> site.argumentSources().stream()
+                                .filter(source -> source.kind() == WorkflowCreationArgumentSourceKind.METHOD_PARAMETER)
+                                .count())
+                        .reversed()
+                        .thenComparingInt(site -> site.argumentSources().size()))
+                .findFirst()
+                .orElse(null);
+        if (selectedSite == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new SelectedCreationSite(selectedSite,
+                "multiple creation sites matched; selected conservative representative"));
+    }
+
+    private Optional<String> resolveFacadeReceiverType(Expression receiverExpression,
+                                                       ClassNode classNode,
+                                                       GroovySourceClassMetadata metadata,
+                                                       ApplicationAnalysisState state,
+                                                       Map<String, Expression> methodExpressionScopes,
+                                                       Map<String, Expression> classFieldExpressionScopes) {
+        return resolveFacadeReceiverType(receiverExpression, classNode, metadata, state,
+                methodExpressionScopes, classFieldExpressionScopes, 0, new HashSet<>());
+    }
+
+    private Optional<String> resolveFacadeReceiverType(Expression receiverExpression,
+                                                       ClassNode classNode,
+                                                       GroovySourceClassMetadata metadata,
+                                                       ApplicationAnalysisState state,
+                                                       Map<String, Expression> methodExpressionScopes,
+                                                       Map<String, Expression> classFieldExpressionScopes,
+                                                       int depth,
+                                                       Set<String> visitedVariableNames) {
+        if (receiverExpression == null || depth > MAX_TRACE_DEPTH) {
+            return Optional.empty();
+        }
+
+        Set<String> knownFacadeTypes = state.sagaCreationSites.stream()
+                .map(WorkflowFunctionalityCreationSite::classFqn)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (receiverExpression instanceof VariableExpression variableExpression) {
+            String variableName = variableExpression.getName();
+            if (variableName != null && !visitedVariableNames.add(variableName)) {
+                return Optional.empty();
+            }
+
+            Expression resolvedExpression = resolveExpressionFromScopes(variableName,
+                    methodExpressionScopes, classFieldExpressionScopes);
+            if (resolvedExpression != null && !isSelfReference(variableExpression, resolvedExpression)) {
+                Optional<String> resolvedType = resolveFacadeReceiverType(resolvedExpression, classNode, metadata, state,
+                        methodExpressionScopes, classFieldExpressionScopes, depth + 1, visitedVariableNames);
+                if (variableName != null) {
+                    visitedVariableNames.remove(variableName);
+                }
+                if (resolvedType.isPresent()) {
+                    return resolvedType;
+                }
+            }
+
+            if (variableName != null && methodExpressionScopes.containsKey(variableName)) {
+                visitedVariableNames.remove(variableName);
+                return Optional.empty();
+            }
+
+            Optional<String> explicitFieldType = resolveFieldTypeFqn(classNode, variableName, metadata, knownFacadeTypes);
+            if (variableName != null) {
+                visitedVariableNames.remove(variableName);
+            }
+            return explicitFieldType;
+        }
+
+        if (receiverExpression instanceof PropertyExpression propertyExpression) {
+            Optional<String> scopeName = resolveScopeName(propertyExpression);
+            if (scopeName.isPresent()) {
+                Expression resolvedExpression = resolveExpressionFromScopes(scopeName.get(),
+                        methodExpressionScopes, classFieldExpressionScopes);
+                if (resolvedExpression != null) {
+                    Optional<String> resolvedType = resolveFacadeReceiverType(resolvedExpression, classNode, metadata, state,
+                            methodExpressionScopes, classFieldExpressionScopes, depth + 1, visitedVariableNames);
+                    if (resolvedType.isPresent()) {
+                        return resolvedType;
+                    }
+                }
+
+                if (methodExpressionScopes.containsKey(scopeName.get())) {
+                    return Optional.empty();
+                }
+
+                return resolveFieldTypeFqn(classNode, scopeName.get(), metadata, knownFacadeTypes);
+            }
+
+            return Optional.empty();
+        }
+
+        if (receiverExpression instanceof ConstructorCallExpression constructorCallExpression) {
+            return resolveGroovyTypeFqn(constructorCallExpression.getType().getName(), metadata, knownFacadeTypes);
+        }
+
+        if (receiverExpression instanceof MethodCallExpression methodCallExpression && isLocalHelperCall(methodCallExpression)) {
+            // Conservative: do not infer receiver types through helper call chains here.
+            return Optional.empty();
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<String> resolveFieldTypeFqn(ClassNode classNode,
+                                                  String fieldName,
+                                                  GroovySourceClassMetadata metadata,
+                                                  Set<String> knownTypes) {
+        if (classNode == null || fieldName == null || fieldName.isBlank()) {
+            return Optional.empty();
+        }
+
+        FieldNode fieldNode = classNode.getField(fieldName);
+        if (fieldNode == null || fieldNode.getType() == null) {
+            return Optional.empty();
+        }
+
+        return resolveGroovyTypeFqn(fieldNode.getType().getName(), metadata, knownTypes);
+    }
+
+    private Optional<String> resolveGroovyTypeFqn(String typeName,
+                                                  GroovySourceClassMetadata metadata,
+                                                  Set<String> knownTypes) {
+        if (typeName == null || typeName.isBlank()) {
+            return Optional.empty();
+        }
+
+        if (typeName.contains(".")) {
+            return knownTypes.contains(typeName) ? Optional.of(typeName) : Optional.empty();
+        }
+
+        List<String> candidates = new ArrayList<>();
+        if (metadata.packageName() != null && !metadata.packageName().isBlank()) {
+            candidates.add(metadata.packageName() + "." + typeName);
+        }
+
+        for (GroovyImportMetadata importMetadata : metadata.imports()) {
+            if (importMetadata.staticImport() || importMetadata.importedType() == null || importMetadata.importedType().isBlank()) {
+                continue;
+            }
+
+            if (importMetadata.star()) {
+                candidates.add(importMetadata.importedType() + "." + typeName);
+                continue;
+            }
+
+            String importedSimpleName = simpleName(importMetadata.importedType());
+            if (typeName.equals(importMetadata.alias())
+                    || typeName.equals(importedSimpleName)
+                    || typeName.equals(importMetadata.importedType())) {
+                candidates.add(importMetadata.importedType());
+            }
+        }
+
+        List<String> simpleNameMatches = knownTypes.stream()
+                .filter(fqn -> Objects.equals(simpleName(fqn), typeName))
+                .toList();
+        if (simpleNameMatches.size() == 1) {
+            candidates.add(simpleNameMatches.get(0));
+        }
+
+        return candidates.stream()
+                .filter(knownTypes::contains)
+                .findFirst();
+    }
+
+    private ValueTrace describeFacadeArgument(WorkflowCreationArgumentSource source,
+                                              List<Expression> callArguments,
+                                              ClassNode classNode,
+                                              GroovySourceClassMetadata metadata,
+                                              ApplicationAnalysisState state,
+                                              Map<String, Expression> methodExpressionScopes,
+                                              Map<String, Expression> classFieldExpressionScopes,
+                                              Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                              Map<String, List<MethodResolutionContext>> methodsByName) {
+        if (source == null || source.kind() == null) {
+            return null;
+        }
+
+        return switch (source.kind()) {
+            case METHOD_PARAMETER -> {
+                Integer parameterIndex = source.parameterIndex();
+                if (parameterIndex == null || parameterIndex < 0 || parameterIndex >= callArguments.size()) {
+                    yield null;
+                }
+
+                yield describeExpressionTrace(callArguments.get(parameterIndex), classNode, metadata, state,
+                        methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                        visibleFieldKeysByClassFqn, new ArrayDeque<>(), new LinkedHashSet<>(), 0);
+            }
+            case LOCAL_VARIABLE -> describeConservativeSourceBackedValue(source,
+                    "local " + defaultText(source.name()),
+                    "source-backed local variable");
+            case FIELD_REFERENCE -> describeConservativeSourceBackedValue(source,
+                    "field " + defaultText(source.name()),
+                    "source-backed field reference");
+            case INLINE_EXPRESSION -> {
+                String text = defaultText(source.text());
+                yield new ValueTrace(text + " [unresolved external/runtime edge]",
+                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, text, List.of()));
+            }
+        };
+    }
+
+    private ValueTrace describeConservativeSourceBackedValue(WorkflowCreationArgumentSource source,
+                                                             String fallbackProvenance,
+                                                             String unresolvedLabel) {
+        String provenanceText = source.text() == null || source.text().isBlank()
+                ? fallbackProvenance
+                : defaultText(source.name()) + " <- " + source.text();
+
+        if (source.text() != null && !source.text().isBlank() && !JAVA_IDENTIFIER.matcher(source.text()).matches()) {
+            return new ValueTrace(provenanceText + " [unresolved external/runtime edge]",
+                    new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, source.text(), List.of()));
+        }
+
+        return new ValueTrace(provenanceText + " [unresolved source-backed variable]",
+                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE,
+                        defaultText(source.name()), List.of()));
+    }
+
+    private String defaultText(String value) {
+        return value == null || value.isBlank() ? "(unknown)" : value;
     }
 
     private void registerConstructorTrace(TraceBuilder builder, ApplicationAnalysisState state) {
@@ -555,10 +934,10 @@ public class GroovyConstructorInputTraceVisitor {
         List<Expression> argumentExpressions = extractArguments(constructorExpression.getArguments());
         for (int index = 0; index < argumentExpressions.size(); index++) {
             Expression argumentExpression = argumentExpressions.get(index);
-            String provenance = describeExpressionProvenance(argumentExpression, classNode, metadata, state,
+            ValueTrace trace = describeExpressionTrace(argumentExpression, classNode, metadata, state,
                     methodExpressionScopes, classFieldExpressionScopes, methodsByName,
                     visibleFieldKeysByClassFqn, new ArrayDeque<>(), new HashSet<>(), 0);
-            builder.appendInputLine(index, provenance);
+            builder.appendInputLine(index, trace.provenance(), trace.recipe());
         }
     }
 
@@ -571,7 +950,9 @@ public class GroovyConstructorInputTraceVisitor {
                                                          Map<String, List<MethodResolutionContext>> methodsByName,
                                                          Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
                                                          Deque<String> helperCallStack,
-                                                         int depth) {
+                                                         int depth,
+                                                         GroovyTraceOriginKind originKind,
+                                                         String sourceExpressionText) {
         if (expression == null || depth > MAX_TRACE_DEPTH) {
             return null;
         }
@@ -584,7 +965,8 @@ public class GroovyConstructorInputTraceVisitor {
             }
 
             return new ConstructorResolution(sagaClassFqn, constructorCallExpression,
-                    new LinkedHashMap<>(methodExpressionScopes), List.of(), classNode, metadata);
+                    new LinkedHashMap<>(methodExpressionScopes), List.of(), classNode, metadata,
+                    originKind, sourceExpressionText);
         }
 
         if (expression instanceof VariableExpression variableExpression) {
@@ -596,7 +978,8 @@ public class GroovyConstructorInputTraceVisitor {
 
             return resolveSagaConstructor(resolvedExpression, classNode, metadata, state,
                     methodExpressionScopes, classFieldExpressionScopes, methodsByName,
-                    visibleFieldKeysByClassFqn, helperCallStack, depth + 1);
+                    visibleFieldKeysByClassFqn, helperCallStack, depth + 1,
+                    originKind, sourceExpressionText);
         }
 
         if (expression instanceof PropertyExpression propertyExpression) {
@@ -613,7 +996,8 @@ public class GroovyConstructorInputTraceVisitor {
 
             return resolveSagaConstructor(resolvedExpression, classNode, metadata, state,
                     methodExpressionScopes, classFieldExpressionScopes, methodsByName,
-                    visibleFieldKeysByClassFqn, helperCallStack, depth + 1);
+                    visibleFieldKeysByClassFqn, helperCallStack, depth + 1,
+                    originKind, sourceExpressionText);
         }
 
         if (expression instanceof MethodCallExpression methodCallExpression && isLocalHelperCall(methodCallExpression)) {
@@ -639,7 +1023,8 @@ public class GroovyConstructorInputTraceVisitor {
             ConstructorResolution helperResolution = resolveSagaConstructor(helperReturn.returnExpression(),
                     helperMethodContext.layer().classNode(), helperMethodContext.layer().metadata(), state,
                     helperReturn.helperExpressionScopes(), classFieldExpressionScopes,
-                    methodsByName, visibleFieldKeysByClassFqn, helperCallStack, depth + 1);
+                    methodsByName, visibleFieldKeysByClassFqn, helperCallStack, depth + 1,
+                    originKind, sourceExpressionText);
             helperCallStack.pop();
 
             if (helperResolution == null) {
@@ -653,74 +1038,95 @@ public class GroovyConstructorInputTraceVisitor {
             return new ConstructorResolution(helperResolution.sagaClassFqn(),
                     helperResolution.constructorExpression(),
                     helperResolution.expressionScopes(), notes,
-                    helperResolution.resolutionClassNode(), helperResolution.resolutionMetadata());
+                    helperResolution.resolutionClassNode(), helperResolution.resolutionMetadata(),
+                    originKind, sourceExpressionText);
         }
 
         return null;
     }
 
-    private String describeExpressionProvenance(Expression expression,
-                                                ClassNode classNode,
-                                                GroovySourceClassMetadata metadata,
-                                                ApplicationAnalysisState state,
-                                                Map<String, Expression> methodExpressionScopes,
-                                                Map<String, Expression> classFieldExpressionScopes,
-                                                Map<String, List<MethodResolutionContext>> methodsByName,
-                                                Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
-                                                Deque<String> helperCallStack,
-                                                Set<String> visitedVariables,
-                                                int depth) {
+    private ValueTrace describeExpressionTrace(Expression expression,
+                                               ClassNode classNode,
+                                               GroovySourceClassMetadata metadata,
+                                               ApplicationAnalysisState state,
+                                               Map<String, Expression> methodExpressionScopes,
+                                               Map<String, Expression> classFieldExpressionScopes,
+                                               Map<String, List<MethodResolutionContext>> methodsByName,
+                                               Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                               Deque<String> helperCallStack,
+                                               Set<String> visitedVariables,
+                                               int depth) {
         if (expression == null) {
-            return "(unknown)";
+            return new ValueTrace("(unknown)", new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, "(unknown)", List.of()));
         }
 
         if (depth > MAX_TRACE_DEPTH) {
-            return expression.getText() + " [unresolved depth-limit]";
+            return new ValueTrace(expression.getText() + " [unresolved depth-limit]",
+                    new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, expression.getText(), List.of()));
         }
 
         if (expression instanceof ConstantExpression constantExpression) {
-            return constantExpression.getText();
+            return new ValueTrace(constantExpression.getText(),
+                    new GroovyValueRecipe(GroovyValueKind.LITERAL, constantExpression.getText(), List.of()));
         }
 
         if (expression instanceof ConstructorCallExpression constructorCallExpression) {
-            List<String> nestedArgumentProvenance = extractArguments(constructorCallExpression.getArguments()).stream()
-                    .map(argument -> describeExpressionProvenance(argument, classNode, metadata, state,
+            List<ValueTrace> nestedArgumentTraces = extractArguments(constructorCallExpression.getArguments()).stream()
+                    .map(argument -> describeExpressionTrace(argument, classNode, metadata, state,
                             methodExpressionScopes, classFieldExpressionScopes, methodsByName,
                             visibleFieldKeysByClassFqn, helperCallStack, visitedVariables, depth + 1))
                     .toList();
-            return "new " + constructorCallExpression.getType().getNameWithoutPackage() + "(" +
-                    String.join(", ", nestedArgumentProvenance) + ")";
+            return new ValueTrace("new " + constructorCallExpression.getType().getNameWithoutPackage() + "(" +
+                    nestedArgumentTraces.stream().map(ValueTrace::provenance).collect(Collectors.joining(", ")) + ")",
+                    new GroovyValueRecipe(GroovyValueKind.CONSTRUCTOR,
+                            constructorCallExpression.getType().getNameWithoutPackage(),
+                            nestedArgumentTraces.stream().map(ValueTrace::recipe).toList()));
+        }
+
+        if (expression instanceof ListExpression listExpression) {
+            List<ValueTrace> nestedTraces = listExpression.getExpressions().stream()
+                    .map(item -> describeExpressionTrace(item, classNode, metadata, state,
+                            methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                            visibleFieldKeysByClassFqn, helperCallStack, visitedVariables, depth + 1))
+                    .toList();
+            return new ValueTrace("[" + nestedTraces.stream().map(ValueTrace::provenance).collect(Collectors.joining(", ")) + "]",
+                    new GroovyValueRecipe(GroovyValueKind.COLLECTION_LITERAL, "list",
+                            nestedTraces.stream().map(ValueTrace::recipe).toList()));
         }
 
         if (expression instanceof VariableExpression variableExpression) {
             String variableName = variableExpression.getName();
             if ("this".equals(variableName) || "super".equals(variableName)) {
-                return variableName;
+                return new ValueTrace(variableName,
+                        new GroovyValueRecipe(GroovyValueKind.LITERAL, variableName, List.of()));
             }
 
             Expression resolvedExpression = resolveExpressionFromScopes(variableName,
                     methodExpressionScopes, classFieldExpressionScopes);
             if (resolvedExpression == null) {
-                return variableName + " [unresolved source-backed variable]";
+                return new ValueTrace(variableName + " [unresolved source-backed variable]",
+                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, variableName, List.of()));
             }
             if (isSelfReference(variableExpression, resolvedExpression)) {
-                return variableName + " [unresolved self-reference]";
+                return new ValueTrace(variableName + " [unresolved self-reference]",
+                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, variableName, List.of()));
             }
             if (!visitedVariables.add(variableName)) {
-                return variableName + " [unresolved cyclic reference]";
+                return new ValueTrace(variableName + " [unresolved cyclic reference]",
+                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, variableName, List.of()));
             }
 
-            String resolvedProvenance = describeExpressionProvenance(resolvedExpression,
+            ValueTrace resolvedTrace = describeExpressionTrace(resolvedExpression,
                     classNode, metadata, state,
                     methodExpressionScopes, classFieldExpressionScopes, methodsByName,
                     visibleFieldKeysByClassFqn, helperCallStack, visitedVariables, depth + 1);
             visitedVariables.remove(variableName);
 
-            return variableName + " <- " + resolvedProvenance;
+            return new ValueTrace(variableName + " <- " + resolvedTrace.provenance(), resolvedTrace.recipe());
         }
 
         if (expression instanceof PropertyExpression propertyExpression) {
-            String receiver = describeExpressionProvenance(propertyExpression.getObjectExpression(),
+            ValueTrace receiverTrace = describeExpressionTrace(propertyExpression.getObjectExpression(),
                     classNode, metadata, state,
                     methodExpressionScopes, classFieldExpressionScopes, methodsByName,
                     visibleFieldKeysByClassFqn, helperCallStack, visitedVariables, depth + 1);
@@ -728,56 +1134,94 @@ public class GroovyConstructorInputTraceVisitor {
             if (propertyName == null || propertyName.isBlank()) {
                 propertyName = propertyExpression.getProperty().getText();
             }
-            return receiver + "." + propertyName;
+            return new ValueTrace(receiverTrace.provenance() + "." + propertyName,
+                    new GroovyValueRecipe(GroovyValueKind.PROPERTY_ACCESS, propertyName,
+                            List.of(receiverTrace.recipe())));
         }
 
         if (expression instanceof MethodCallExpression methodCallExpression) {
             String calledMethod = methodCallExpression.getMethodAsString();
             if (calledMethod == null) {
-                return methodCallExpression.getText() + " [unresolved dynamic-method-call]";
+                return new ValueTrace(methodCallExpression.getText() + " [unresolved dynamic-method-call]",
+                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, methodCallExpression.getText(), List.of()));
             }
 
             if (isAccessorMethod(methodCallExpression)) {
-                String receiver = describeExpressionProvenance(methodCallExpression.getObjectExpression(),
+                ValueTrace receiverTrace = describeExpressionTrace(methodCallExpression.getObjectExpression(),
                         classNode, metadata, state,
                         methodExpressionScopes, classFieldExpressionScopes, methodsByName,
                         visibleFieldKeysByClassFqn, helperCallStack, visitedVariables, depth + 1);
                 String accessorName = accessorPropertyName(calledMethod).orElse(calledMethod + "()");
-                return receiver + "." + accessorName;
+                return new ValueTrace(receiverTrace.provenance() + "." + accessorName,
+                        new GroovyValueRecipe(GroovyValueKind.PROPERTY_ACCESS, accessorName,
+                                List.of(receiverTrace.recipe())));
+            }
+
+            if (isLocalToSetTransform(methodCallExpression)) {
+                ValueTrace receiverTrace = describeExpressionTrace(methodCallExpression.getObjectExpression(),
+                        classNode, metadata, state,
+                        methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                        visibleFieldKeysByClassFqn, helperCallStack, visitedVariables, depth + 1);
+                if (hasUnresolvedRecipe(receiverTrace.recipe()) || !isCollectionLikeRecipe(receiverTrace.recipe())) {
+                    return new ValueTrace(methodCallExpression.getText() + " [unresolved external/runtime edge]",
+                            new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, methodCallExpression.getText(),
+                                    List.of(receiverTrace.recipe())));
+                }
+                return new ValueTrace(receiverTrace.provenance() + ".toSet()",
+                        new GroovyValueRecipe(GroovyValueKind.LOCAL_TRANSFORM, "toSet",
+                                List.of(receiverTrace.recipe())));
             }
 
             if (isLocalHelperCall(methodCallExpression)) {
                 MethodResolutionContext helperMethodContext = resolveLocalHelperMethod(methodCallExpression, methodsByName)
                         .orElse(null);
                 if (helperMethodContext == null) {
-                    return calledMethod + "(...) [unresolved local-helper-method]";
+                    return new ValueTrace(calledMethod + "(...) [unresolved local-helper-method]",
+                            new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, calledMethod + "(...)", List.of()));
                 }
                 MethodNode helperMethod = helperMethodContext.methodNode();
 
                 String helperKey = helperMethodContext.layer().classFqn() + "#" + helperMethod.getTypeDescriptor();
                 if (helperCallStack.contains(helperKey)) {
-                    return calledMethod + "(...) [unresolved helper-cycle]";
+                    return new ValueTrace(calledMethod + "(...) [unresolved helper-cycle]",
+                            new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, calledMethod + "(...)", List.of()));
                 }
 
                 HelperReturnResolution helperReturn = resolveHelperReturn(methodCallExpression, helperMethodContext,
                         methodExpressionScopes, classFieldExpressionScopes, visibleFieldKeysByClassFqn);
                 if (helperReturn == null) {
-                    return calledMethod + "(...) [unresolved local-helper-return]";
+                    return new ValueTrace(calledMethod + "(...) [unresolved local-helper-return]",
+                            new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, calledMethod + "(...)", List.of()));
                 }
 
                 helperCallStack.push(helperKey);
-                String helperProvenance = describeExpressionProvenance(helperReturn.returnExpression(),
+                ValueTrace helperReturnTrace = describeExpressionTrace(helperReturn.returnExpression(),
                         helperMethodContext.layer().classNode(), helperMethodContext.layer().metadata(), state,
                         helperReturn.helperExpressionScopes(), classFieldExpressionScopes, methodsByName,
                         visibleFieldKeysByClassFqn, helperCallStack, visitedVariables, depth + 1);
                 helperCallStack.pop();
-                return calledMethod + "(...) <- " + helperProvenance;
+
+                return new ValueTrace(calledMethod + "(...) <- " + helperReturnTrace.provenance(),
+                        new GroovyValueRecipe(GroovyValueKind.HELPER_CALL_RESULT, calledMethod,
+                                List.of(helperReturnTrace.recipe())));
             }
 
-            return methodCallExpression.getText() + " [unresolved external/runtime edge]";
+            ValueTrace receiverTrace = null;
+            Expression objectExpression = methodCallExpression.getObjectExpression();
+            if (objectExpression != null && !(objectExpression instanceof VariableExpression variableExpression && "this".equals(variableExpression.getName()))) {
+                receiverTrace = describeExpressionTrace(objectExpression,
+                        classNode, metadata, state,
+                        methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                        visibleFieldKeysByClassFqn, helperCallStack, visitedVariables, depth + 1);
+            }
+
+            List<GroovyValueRecipe> children = receiverTrace == null ? List.of() : List.of(receiverTrace.recipe());
+            return new ValueTrace(methodCallExpression.getText() + " [unresolved external/runtime edge]",
+                    new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, methodCallExpression.getText(), children));
         }
 
-        return expression.getText();
+        return new ValueTrace(expression.getText() + " [unresolved external/runtime edge]",
+                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, expression.getText(), List.of()));
     }
 
     private HelperReturnResolution resolveHelperReturn(MethodCallExpression callExpression,
@@ -832,7 +1276,8 @@ public class GroovyConstructorInputTraceVisitor {
 
         for (Statement statement : blockStatement.getStatements()) {
             if (statement instanceof BlockStatement nestedBlock) {
-                MethodBodyScanResult nestedResult = scanMethodBody(nestedBlock, helperExpressionScopes);
+                Map<String, Expression> nestedScopes = new LinkedHashMap<>(helperExpressionScopes);
+                MethodBodyScanResult nestedResult = scanMethodBody(nestedBlock, nestedScopes);
                 returnExpressions.addAll(nestedResult.returnExpressions());
                 if (nestedResult.lastExpression() != null) {
                     lastExpression = nestedResult.lastExpression();
@@ -969,6 +1414,44 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         return accessorPropertyName(methodName).isPresent();
+    }
+
+    private boolean isLocalToSetTransform(MethodCallExpression methodCallExpression) {
+        if (methodCallExpression == null) {
+            return false;
+        }
+
+        String methodName = methodCallExpression.getMethodAsString();
+        if (!"toSet".equals(methodName) || !extractArguments(methodCallExpression.getArguments()).isEmpty()) {
+            return false;
+        }
+
+        return methodCallExpression.getObjectExpression() != null;
+    }
+
+    private boolean hasUnresolvedRecipe(GroovyValueRecipe recipe) {
+        if (recipe == null) {
+            return true;
+        }
+
+        if (recipe.kind() == GroovyValueKind.UNRESOLVED_VARIABLE || recipe.kind() == GroovyValueKind.UNRESOLVED_RUNTIME_EDGE) {
+            return true;
+        }
+
+        return recipe.children() != null && recipe.children().stream().anyMatch(this::hasUnresolvedRecipe);
+    }
+
+    private boolean isCollectionLikeRecipe(GroovyValueRecipe recipe) {
+        if (recipe == null) {
+            return false;
+        }
+
+        return switch (recipe.kind()) {
+            case COLLECTION_LITERAL -> true;
+            case HELPER_CALL_RESULT, LOCAL_TRANSFORM -> recipe.children() != null
+                    && recipe.children().stream().anyMatch(this::isCollectionLikeRecipe);
+            default -> false;
+        };
     }
 
     private Optional<String> accessorPropertyName(String methodName) {
@@ -1265,11 +1748,23 @@ public class GroovyConstructorInputTraceVisitor {
     }
 
     private record ConstructorResolution(String sagaClassFqn,
-                                         ConstructorCallExpression constructorExpression,
-                                         Map<String, Expression> expressionScopes,
-                                         List<String> resolutionNotes,
-                                         ClassNode resolutionClassNode,
-                                         GroovySourceClassMetadata resolutionMetadata) {
+                                          ConstructorCallExpression constructorExpression,
+                                          Map<String, Expression> expressionScopes,
+                                          List<String> resolutionNotes,
+                                          ClassNode resolutionClassNode,
+                                          GroovySourceClassMetadata resolutionMetadata,
+                                          GroovyTraceOriginKind originKind,
+                                          String sourceExpressionText) {
+    }
+
+    private record FacadeResolution(WorkflowFunctionalityCreationSite creationSite,
+                                     String receiverTypeFqn,
+                                     List<GroovyTraceArgument> constructorArguments,
+                                     List<String> resolutionNotes) {
+    }
+
+    private record SelectedCreationSite(WorkflowFunctionalityCreationSite creationSite,
+                                        String note) {
     }
 
     private record InheritanceLayer(String classFqn,
@@ -1285,6 +1780,9 @@ public class GroovyConstructorInputTraceVisitor {
                                           Map<String, Expression> helperExpressionScopes) {
     }
 
+    private record ValueTrace(String provenance, GroovyValueRecipe recipe) {
+    }
+
     private record MethodBodyScanResult(List<Expression> returnExpressions,
                                         Expression lastExpression,
                                         boolean ambiguousControlFlow) {
@@ -1295,6 +1793,8 @@ public class GroovyConstructorInputTraceVisitor {
         private final String sourceMethodName;
         private final String sourceBindingName;
         private final String sagaClassFqn;
+        private GroovyTraceOriginKind originKind;
+        private String sourceExpressionText;
         private final List<String> traceLines = new ArrayList<>();
         private final List<GroovyTraceArgument> constructorArguments = new ArrayList<>();
         private final List<GroovyWorkflowCall> workflowCalls = new ArrayList<>();
@@ -1321,9 +1821,13 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         private void appendInputLine(int index, String provenance) {
+            appendInputLine(index, provenance, null);
+        }
+
+        private void appendInputLine(int index, String provenance, GroovyValueRecipe recipe) {
             String inputLine = "arg[" + index + "]: " + provenance;
             traceLines.add(inputLine);
-            constructorArguments.add(new GroovyTraceArgument(index, provenance));
+            constructorArguments.add(new GroovyTraceArgument(index, provenance, recipe));
         }
 
         private void appendDetailLine(String detailLine) {

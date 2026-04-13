@@ -9,10 +9,21 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWor
 public class CreateOrderFunctionalitySagas extends WorkflowFunctionality {
 
     private final SagaUnitOfWorkService unitOfWorkService;
+    private final Integer customerId;
+    private final Integer projectedCustomerId;
 
     public CreateOrderFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
                                          SagaUnitOfWork unitOfWork) {
+        this(unitOfWorkService, unitOfWork, null, null);
+    }
+
+    public CreateOrderFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                         SagaUnitOfWork unitOfWork,
+                                         Integer customerId,
+                                         Integer projectedCustomerId) {
         this.unitOfWorkService = unitOfWorkService;
+        this.customerId = customerId;
+        this.projectedCustomerId = projectedCustomerId;
         buildWorkflow(unitOfWork);
     }
 

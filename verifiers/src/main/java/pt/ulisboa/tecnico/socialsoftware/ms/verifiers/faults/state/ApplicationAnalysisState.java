@@ -156,9 +156,19 @@ public class ApplicationAnalysisState {
                     .sorted(Comparator.comparing(WorkflowFunctionalityCreationSite::classFqn)
                             .thenComparing(WorkflowFunctionalityCreationSite::methodName)
                             .thenComparing(WorkflowFunctionalityCreationSite::sagaClassFqn))
-                    .forEach(site -> appendLine(report, "- " +
-                            simpleName(site.classFqn()) + "." + site.methodName() + "() -> " +
-                            simpleName(site.sagaClassFqn())));
+                    .forEach(site -> {
+                        appendLine(report, "- " +
+                                simpleName(site.classFqn()) + "." + site.methodName() + "() -> " +
+                                simpleName(site.sagaClassFqn()));
+
+                        if (site.argumentSources().isEmpty()) {
+                            appendLine(report, "  arguments: (none)");
+                            return;
+                        }
+
+                        site.argumentSources().forEach(source -> appendLine(report, "  - arg[" + source.argumentIndex() + "]: " +
+                                formatCreationArgumentSource(source)));
+                    });
         }
 
         appendLine(report, "Groovy constructor-input traces (" + groovyConstructorInputTraces.size() + ")");
@@ -259,5 +269,16 @@ public class ApplicationAnalysisState {
                 ? ""
                 : " [binding=" + sourceBindingName + "]";
         return simpleName(classFqn) + "." + methodName + "()" + binding + " -> " + simpleName(sagaClassFqn);
+    }
+
+    private static String formatCreationArgumentSource(WorkflowCreationArgumentSource source) {
+        return switch (source.kind()) {
+            case METHOD_PARAMETER -> "parameter #" + source.parameterIndex() + " " + source.name();
+            case LOCAL_VARIABLE -> source.text() == null || source.text().isBlank()
+                    ? "local " + source.name()
+                    : "local " + source.name() + " <- " + source.text();
+            case FIELD_REFERENCE -> "field " + source.name();
+            case INLINE_EXPRESSION -> source.text();
+        };
     }
 }
