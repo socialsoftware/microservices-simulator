@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
   <diagram name="Page-1" id="lGOWkU3c1oFzd6A5-4xN">
-    <mxGraphModel dx="2349" dy="886" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2513" dy="842" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -64,8 +64,8 @@
         <mxCell id="-4ZwmJNHe5w0UyYriJ5X-29" edge="1" parent="1" source="yPhrtrJFOavMuNPGtmri-7" style="startArrow=none;endArrow=block;rounded=0;edgeStyle=orthogonalEdgeStyle;endFill=0;endSize=16;jumpStyle=arc;curved=0;" target="yPhrtrJFOavMuNPGtmri-1" value="">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="-445" y="320" />
-              <mxPoint x="-255" y="320" />
+              <mxPoint x="-445" y="340" />
+              <mxPoint x="-255" y="340" />
             </Array>
             <mxPoint x="712.4736842105267" y="460" as="sourcePoint" />
             <mxPoint x="105.00000000000045" y="280.0000000000002" as="targetPoint" />
@@ -93,8 +93,8 @@
           <mxGeometry relative="1" x="0.1111" y="-30" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
-              <mxPoint x="-65" y="320" />
-              <mxPoint x="-255" y="320" />
+              <mxPoint x="-65" y="340" />
+              <mxPoint x="-255" y="340" />
             </Array>
             <mxPoint x="184.99999999999977" y="455" as="sourcePoint" />
             <mxPoint x="105.00000000000045" y="280.0000000000002" as="targetPoint" />
@@ -144,16 +144,24 @@
         <mxCell id="8uEPJ7MqXbosisj4lyKQ-1" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ECA485;strokeColor=#000000;" value="LocalCommandService" vertex="1">
           <mxGeometry height="50" width="160" x="-440" y="500" as="geometry" />
         </mxCell>
+        <mxCell id="OdMJt4on2w3cPirmiYA7-2" edge="1" parent="1" source="yPhrtrJFOavMuNPGtmri-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OdMJt4on2w3cPirmiYA7-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OdMJt4on2w3cPirmiYA7-3" connectable="0" parent="OdMJt4on2w3cPirmiYA7-2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="configures" vertex="1">
+          <mxGeometry relative="1" x="0.3333" y="-1" as="geometry">
+            <mxPoint x="-8" y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="yPhrtrJFOavMuNPGtmri-1" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#ECA485;strokeColor=default;" value="&amp;lt;&amp;lt;abstract&amp;gt;&amp;gt;&lt;br style=&quot;padding: 0px; margin: 0px;&quot;&gt;CommandGateway" vertex="1">
-          <mxGeometry height="80" width="140" x="-325" y="190" as="geometry">
+          <mxGeometry height="120" width="140" x="-325" y="185" as="geometry">
             <mxRectangle height="30" width="70" x="340" y="830" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="yPhrtrJFOavMuNPGtmri-2" parent="yPhrtrJFOavMuNPGtmri-1" style="text;strokeColor=default;fillColor=#ECA485;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;strokeWidth=2;" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;+ send(Command)&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;+ sendAsync(Command)&lt;/font&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="40" width="140" y="40" as="geometry" />
+        <mxCell id="yPhrtrJFOavMuNPGtmri-2" parent="yPhrtrJFOavMuNPGtmri-1" style="text;strokeColor=default;fillColor=#ECA485;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;strokeWidth=2;" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;+ send(Command)&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;+ sendAsync(Command)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;+&amp;nbsp;configureRetryRegistry()&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;+ fallbackSend()&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;+&amp;nbsp;restoreRemoteException()&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="140" y="40" as="geometry" />
         </mxCell>
         <mxCell id="yPhrtrJFOavMuNPGtmri-3" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#ECA485;strokeColor=#000000;" value="StreamCommandGateway" vertex="1">
-          <mxGeometry height="80" width="170" x="-340" y="350" as="geometry">
+          <mxGeometry height="80" width="170" x="-340" y="370" as="geometry">
             <mxRectangle height="30" width="70" x="340" y="830" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -161,7 +169,7 @@
           <mxGeometry height="40" width="170" y="40" as="geometry" />
         </mxCell>
         <mxCell id="yPhrtrJFOavMuNPGtmri-5" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#ECA485;strokeColor=#000000;" value="GrpcCommandGateway" vertex="1">
-          <mxGeometry height="80" width="170" x="-150" y="350" as="geometry">
+          <mxGeometry height="80" width="170" x="-150" y="370" as="geometry">
             <mxRectangle height="30" width="70" x="340" y="830" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -169,7 +177,7 @@
           <mxGeometry height="40" width="170" y="40" as="geometry" />
         </mxCell>
         <mxCell id="yPhrtrJFOavMuNPGtmri-7" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#ECA485;strokeColor=#000000;" value="LocalCommandGateway" vertex="1">
-          <mxGeometry height="80" width="170" x="-530" y="350" as="geometry">
+          <mxGeometry height="80" width="170" x="-530" y="370" as="geometry">
             <mxRectangle height="30" width="70" x="340" y="830" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -216,6 +224,9 @@
         </mxCell>
         <mxCell id="oox5e4TTEQXS8VKAOrHR-21" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="handle()" vertex="1">
           <mxGeometry x="-230" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="OdMJt4on2w3cPirmiYA7-1" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ECA485;strokeColor=default;" value="RetryRegistry" vertex="1">
+          <mxGeometry height="50" width="110" x="-90" y="220" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
