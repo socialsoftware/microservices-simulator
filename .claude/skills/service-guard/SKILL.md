@@ -1,16 +1,16 @@
 ---
 name: service-guard
-description: Add a Layer 3 service-layer guard to an existing service. The guard reads the DB and throws before any mutation. Arguments: "<ServiceName> <operation-method> <precondition-description>"
+description: Add a Layer 2 service-layer guard to an existing service. The guard validates input or reads the DB and throws before any mutation. Arguments: "<ServiceName> <operation-method> <precondition-description>"
 argument-hint: "<ServiceName> <operation-method> <precondition>"
 ---
 
 # Add Service-Layer Guard: $ARGUMENTS
 
-You are adding a new **Layer 3 service-layer guard** to an existing service in `applications/quizzes`.
+You are adding a new **Layer 2 service-layer guard** to an existing service in `applications/quizzes`.
 
-A service-layer guard is a precondition check that reads from the database and throws an exception before any aggregate mutation is applied. It runs inside the same UoW transaction as the operation.
+A service-layer guard is a precondition check that validates input or reads from the database and throws an exception before any aggregate mutation is applied. It runs inside the same UoW transaction as the operation.
 
-> The guard must only read the service's **own aggregate type**. If a foreign aggregate must be read to evaluate the precondition, use a Layer 5 saga step instead (`/inter-invariant` or a named step in the functionality). Consult `docs/concepts/consistency-enforcement.md` if uncertain.
+> The guard must only read the service's **own aggregate type**. If a foreign aggregate must be read to evaluate the precondition, use a Layer 3 saga step instead (a named step in the functionality). Consult `docs/concepts/consistency-enforcement.md` if uncertain.
 
 ---
 

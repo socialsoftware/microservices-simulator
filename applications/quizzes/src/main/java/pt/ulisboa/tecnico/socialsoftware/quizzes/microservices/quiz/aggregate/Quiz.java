@@ -32,7 +32,7 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
     INTER-INVARIANTS
         QUESTION_EXISTS
         COURSE_EXECUTION_EXISTS
-        UNIQUE_QUIZ_ANSWER_PER_STUDENT (Layer 3 guard in QuizAnswerService.startQuiz)
+        UNIQUE_QUIZ_ANSWER_PER_STUDENT (Layer 2 guard in QuizAnswerService.startQuiz)
  */
 @Entity
 public abstract class Quiz extends Aggregate {

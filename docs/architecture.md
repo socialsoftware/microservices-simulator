@@ -106,8 +106,6 @@ Controller
       ▼
 Functionality (WorkflowFunctionality)
       │
-      │  [Layer 4] input validation — command fields only, no DB read
-      │
       ├──► Step N: commandGateway.send(GetXxxCommand)
       │         └─ CommandHandler → Service.getXxx()
       │                 aggregateLoadAndRegisterRead(id, uow)   ← own type only
@@ -115,11 +113,10 @@ Functionality (WorkflowFunctionality)
       │
       └──► Step M: commandGateway.send(MutateXxxCommand)       ← depends on N
                 └─ CommandHandler → Service.mutateXxx()
-                        [Layer 3] service-layer guard
-                            aggregateLoadAndRegisterRead(id, uow)   ← own type only
+                        [Layer 2] service-layer guard
+                            input validation + DB checks, inside @Transactional(SERIALIZABLE)
                             throw if precondition violated
                         aggregate.mutate()
-                            [Layer 2] mutation guard — throws before any field changes
                         unitOfWorkService.registerChanged(aggregate, uow)
 
       UoW commit
@@ -129,7 +126,7 @@ Functionality (WorkflowFunctionality)
 
       Async (~1 s poll interval)
             EventHandling detects new events
-                [Layer 6] EventProcessing → Update Functionality
+                [Layer 4] EventProcessing → Update Functionality
                     consumer aggregate caches publisher state
 ```
 
@@ -177,7 +174,7 @@ See [`concepts/sagas.md`](concepts/sagas.md) for how semantic locks are acquired
 
 Subscriptions encode a one-way dependency: the consumer caches state from the publisher. The upstream (publisher) aggregate must not subscribe to its own events and must not reference downstream aggregate types. Adding subscriptions in the wrong direction creates circular dependencies in the event pipeline.
 
-See [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) Layer 6 for the upstream/downstream model.
+See [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) Layer 4 for the upstream/downstream model.
 
 ---
 
@@ -191,7 +188,7 @@ The simulator test suite runs under two Maven profiles (`test-sagas`, `test-tcc`
 
 `verifyInvariants()` is called inside the UoW commit path, after all mutations have been applied. Repository calls at this point risk deadlocks and violate the layering contract. Intra-invariants must check only fields already present on the aggregate instance.
 
-**Instead:** Use a Layer 3 service-layer guard in `*Service.java`, which runs before the UoW commit and can safely read from the DB.
+**Instead:** Use a Layer 2 service-layer guard in `*Service.java`, which runs before the UoW commit and can safely read from the DB.
 
 ---
 
@@ -208,11 +205,9 @@ For a quick decision, use this table. For full rationale and examples for each l
 | Rule type | Right layer |
 |-----------|-------------|
 | Always true within one aggregate; derivable from its own fields | Layer 1 — `verifyInvariants()` |
-| Must reject a specific mutation before any field changes | Layer 2 — mutation guard |
-| Requires a DB read to verify a precondition before mutation | Layer 3 — service-layer guard |
-| Derivable from command fields alone, no DB | Layer 4 — functionality input validation |
-| Requires reading a **different** aggregate under a semantic lock | Layer 5 — cross-aggregate state guard (saga step) |
-| Cross-aggregate; eventual consistency is acceptable | Layer 6 — inter-invariant via domain events |
+| Requires a DB read OR pure input validation before mutation | Layer 2 — service-layer guard |
+| Requires reading a **different** aggregate under a semantic lock | Layer 3 — cross-aggregate state guard (saga step) |
+| Cross-aggregate; eventual consistency is acceptable | Layer 4 — inter-invariant via domain events |
 
 ---
 

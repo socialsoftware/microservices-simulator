@@ -1,12 +1,14 @@
 ---
 name: new-functionality
-description: Implement a new cross-service operation in the microservices-simulator quizzes application (command, Sagas functionality, TCC functionality, command handler, controller, tests). Arguments: "<FunctionalityName> <PrimaryAggregate> [other aggregates...]"
+description: Implement a new cross-service operation in the microservices-simulator quizzes application (command, Sagas functionality, TCC stub, command handler, controller, tests). Arguments: "<FunctionalityName> <PrimaryAggregate> [other aggregates...]"
 argument-hint: "<FunctionalityName> <PrimaryAggregate> [OtherAggregate...]"
 ---
 
 # Implement New Functionality: $ARGUMENTS
 
 You are adding a new cross-service operation to the `applications/quizzes` module.
+
+> **Sagas only.** The Sagas workflow is the authoritative implementation. The TCC class is an empty stub. See `docs/concepts/tcc-placeholder-pattern.md`.
 
 ---
 
@@ -29,11 +31,10 @@ Clarify before writing any code.
 Before writing anything, read:
 1. `microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java` — multi-step workflow with forbidden states and shared state between steps
 2. `microservices/execution/coordination/sagas/UpdateCourseQuestionCountFunctionalitySagas.java` (or similar) — simple single-step workflow
-3. `microservices/tournament/coordination/causal/` — TCC equivalent
-4. `microservices/<primaryAggregate>/coordination/` — existing functionalities in the same package
-5. `command/<primaryAggregate>/` — existing command classes
+3. `microservices/<primaryAggregate>/coordination/` — existing functionalities in the same package
+4. `command/<primaryAggregate>/` — existing command classes
 
-Also read `docs/concepts/sagas.md` and `docs/concepts/tcc.md` for the concurrency protocol details.
+Also read `docs/concepts/sagas.md` for the Sagas concurrency protocol.
 
 ---
 
@@ -104,17 +105,23 @@ Key rules:
 
 ---
 
-## Step 4 — Implement: TCC functionality
+## Step 4 — Implement: TCC stub
 
 File: `microservices/<primaryAggregate>/coordination/causal/<FunctionalityName>FunctionalityTCC.java`
 
-Same structure as the Sagas version but uses `CausalWorkflow` and `FlowStep` instead of `SagaWorkflow` and `SagaStep`. No `setForbiddenStates` — TCC resolves conflicts via merge.
+This is a **stub only**. Do not implement real workflow logic:
 
 ```java
-public void buildWorkflow(..., CausalUnitOfWork unitOfWork) {
-    this.workflow = new CausalWorkflow(this, unitOfWorkService, unitOfWork);
-    FlowStep step1 = new FlowStep("step1Name", () -> { ... });
-    this.workflow.addStep(step1);
+public class <FunctionalityName>FunctionalityTCC extends WorkflowFunctionality {
+
+    public <FunctionalityName>FunctionalityTCC(CausalUnitOfWorkService uows, ..., CausalUnitOfWork uow, CommandGateway gw) {
+        // TCC not implemented
+    }
+
+    @Override
+    public void buildWorkflow(...) {
+        // TCC not implemented
+    }
 }
 ```
 
@@ -128,12 +135,19 @@ In `microservices/<primaryAggregate>/coordination/functionalities/<Primary>Funct
 public <ReturnDto> <functionalityName>(Integer primaryAggregateId, ...) {
     String name = "<FunctionalityName>";
 
-    SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(name);
-    <FunctionalityName>FunctionalitySagas f = new <FunctionalityName>FunctionalitySagas(
-            sagaUnitOfWorkService, primaryAggregateId, ..., uow, commandGateway);
-    f.executeWorkflow(uow);
-    sagaUnitOfWorkService.commit(uow);
-    return f.getResult();  // if applicable
+    switch (workflowType) {
+        case SAGAS:
+            SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(name);
+            <FunctionalityName>FunctionalitySagas f = new <FunctionalityName>FunctionalitySagas(
+                    sagaUnitOfWorkService, primaryAggregateId, ..., uow, commandGateway);
+            f.executeWorkflow(uow);
+            sagaUnitOfWorkService.commit(uow);
+            return f.getResult();
+        case TCC:
+            throw new UnsupportedOperationException("<FunctionalityName>: TCC not implemented. Run with -Ptest-sagas.");
+        default:
+            throw new IllegalStateException("Unknown workflow type");
+    }
 }
 ```
 
@@ -204,13 +218,13 @@ def "concurrent interleaving"() {
     f1.resumeWorkflow(uow1)    // f1 tries to continue
 
     then:
-    thrown(QuizzesException)   // or assert outcome
+    thrown(<App>Exception)   // or assert outcome
 }
 ```
 
 Run:
 ```bash
-cd applications/quizzes
+cd applications/<appName>
 mvn clean -Ptest-sagas test -Dtest=<FunctionalityName>Test
 ```
 
@@ -220,8 +234,8 @@ mvn clean -Ptest-sagas test -Dtest=<FunctionalityName>Test
 
 - [ ] Command class(es) created for each step
 - [ ] `<FunctionalityName>FunctionalitySagas.java` with correct step dependencies and forbidden states
-- [ ] `<FunctionalityName>FunctionalityTCC.java` structurally equivalent
-- [ ] Entry point method added to `<Primary>Functionalities.java`
+- [ ] `<FunctionalityName>FunctionalityTCC.java` — stub with empty `buildWorkflow()` body
+- [ ] Entry point method added to `<Primary>Functionalities.java` (Sagas case wired; TCC case throws)
 - [ ] Service method(s) implemented and calling `verifyInvariants()`
 - [ ] Command handler routes new commands
 - [ ] REST controller endpoint (if required)

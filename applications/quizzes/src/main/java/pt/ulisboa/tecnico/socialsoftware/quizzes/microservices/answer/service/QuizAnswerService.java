@@ -72,7 +72,7 @@ public class QuizAnswerService {
                     courseExecutionAggregateId);
         }
 
-        // UNIQUE_QUIZ_ANSWER_PER_STUDENT (Layer 3 guard)
+        // UNIQUE_QUIZ_ANSWER_PER_STUDENT (Layer 2 guard)
         if (quizAnswerRepository.existsByQuizIdAndStudentId(quizAggregateId, userDto.getAggregateId())) {
             throw new QuizzesException(QuizzesErrorMessage.QUIZ_ALREADY_STARTED_BY_STUDENT, userDto.getAggregateId(), quizAggregateId);
         }

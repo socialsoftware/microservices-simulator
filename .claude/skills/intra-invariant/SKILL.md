@@ -10,7 +10,7 @@ You are adding a new **Layer 1 intra-invariant** to an existing aggregate in `ap
 
 An intra-invariant is a consistency rule that must always hold within a single aggregate instance. It is checked by `verifyInvariants()` on every Unit of Work commit, regardless of which operation caused the change.
 
-> If this rule depends on state from another aggregate, consider Layer 6 (`/inter-invariant`) instead. If the rule only applies at the moment of a specific mutation, consider Layer 2 (aggregate mutation guard in `remove()` or a setter). Consult `docs/concepts/consistency-enforcement.md` if uncertain.
+> If this rule depends on state from another aggregate, use Layer 4 (`/inter-invariant`) instead. Do NOT throw domain exceptions from mutation methods — all aggregate state rules belong in `verifyInvariants()`. Consult `docs/concepts/consistency-enforcement.md` if uncertain.
 
 ---
 

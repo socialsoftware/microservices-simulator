@@ -18,7 +18,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.Aggregate
 /*
     INTRA-INVARIANTS
         REMOVE_NO_STUDENTS
-    SERVICE-LAYER GUARDS (Layer 3)
+    SERVICE-LAYER GUARDS (Layer 2)
         NO_DUPLICATE_COURSE_EXECUTION (enforced in ExecutionService.createCourseExecution)
     INTER-INVARIANTS
         USER_EXISTS
