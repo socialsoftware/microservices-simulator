@@ -27,7 +27,10 @@ export class ServiceStructureGenerator {
 
         imports.push('import java.util.List;');
         imports.push('import java.util.Set;');
+        imports.push('import java.util.Optional;');
         imports.push('import java.util.stream.Collectors;');
+        imports.push('import java.time.LocalDateTime;');
+        imports.push('import java.math.BigDecimal;');
 
 
         const rootEntity = aggregate.entities.find((e: any) => e.isRoot);

@@ -9,11 +9,15 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.aggregat
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.BookingDto;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.BookingUserDto;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.BookingRoomDto;
 
+import pt.ulisboa.tecnico.socialsoftware.showcase.shared.enums.PaymentMethod;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
@@ -55,6 +59,8 @@ public class BookingService {
             bookingDto.setCheckOutDate(createRequest.getCheckOutDate());
             bookingDto.setNumberOfNights(createRequest.getNumberOfNights());
             bookingDto.setTotalPrice(createRequest.getTotalPrice());
+            bookingDto.setPaymentMethod(createRequest.getPaymentMethod() != null ? createRequest.getPaymentMethod().name() : null);
+            bookingDto.setConfirmed(createRequest.getConfirmed());
             if (createRequest.getUser() != null) {
                 User refSource = (User) unitOfWorkService.aggregateLoadAndRegisterRead(createRequest.getUser().getAggregateId(), unitOfWork);
                 UserDto refSourceDto = new UserDto(refSource);
@@ -141,8 +147,12 @@ public class BookingService {
             if (bookingDto.getTotalPrice() != null) {
                 newBooking.setTotalPrice(bookingDto.getTotalPrice());
             }
+            if (bookingDto.getPaymentMethod() != null) {
+                newBooking.setPaymentMethod(PaymentMethod.valueOf(bookingDto.getPaymentMethod()));
+            }
+            newBooking.setConfirmed(bookingDto.getConfirmed());
 
-            unitOfWorkService.registerChanged(newBooking, unitOfWork);            BookingUpdatedEvent event = new BookingUpdatedEvent(newBooking.getAggregateId(), newBooking.getCheckInDate(), newBooking.getCheckOutDate(), newBooking.getNumberOfNights(), newBooking.getTotalPrice());
+            unitOfWorkService.registerChanged(newBooking, unitOfWork);            BookingUpdatedEvent event = new BookingUpdatedEvent(newBooking.getAggregateId(), newBooking.getCheckInDate(), newBooking.getCheckOutDate(), newBooking.getNumberOfNights(), newBooking.getTotalPrice(), newBooking.getConfirmed());
             event.setPublisherAggregateVersion(newBooking.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return bookingFactory.createBookingDto(newBooking);
@@ -169,6 +179,8 @@ public class BookingService {
 
 
 
+    public void handleUserLoyaltyAwardedEvent(Integer aggregateId, UnitOfWork unitOfWork) {
+    }
 
     @Transactional
     public BookingDto bookRoom(BookingUser user, BookingRoom room, String checkIn, String checkOut, Integer nights, Double price, UnitOfWork unitOfWork) {
@@ -180,6 +192,8 @@ public class BookingService {
         dto.setCheckOutDate(checkOut);
         dto.setNumberOfNights(nights);
         dto.setTotalPrice(price);
+        dto.setPaymentMethod("CREDIT_CARD");
+        dto.setConfirmed(false);
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
         Booking booking = bookingFactory.createBooking(aggregateId, dto);
         unitOfWorkService.registerChanged(booking, unitOfWork);
@@ -194,6 +208,20 @@ public class BookingService {
             throw e;
         } catch (Exception e) {
             throw new ShowcaseException("Error in bookRoom Booking: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void confirmBooking(Integer bookingId, UnitOfWork unitOfWork) {
+        try {
+        Booking bookingOld = (Booking) unitOfWorkService.aggregateLoadAndRegisterRead(bookingId, unitOfWork);
+        Booking booking = bookingFactory.createBookingFromExisting(bookingOld);
+        booking.setConfirmed(true);
+        unitOfWorkService.registerChanged(booking, unitOfWork);
+        } catch (ShowcaseException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ShowcaseException("Error in confirmBooking Booking: " + e.getMessage());
         }
     }
 

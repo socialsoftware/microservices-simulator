@@ -9,7 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.aggrega
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.CustomerDto;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;

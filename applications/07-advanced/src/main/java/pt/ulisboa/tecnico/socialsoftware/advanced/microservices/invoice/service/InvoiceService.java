@@ -9,7 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregat
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceOrderDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceCustomerDto;

@@ -23,6 +23,8 @@ Aggregate Booking {
         String checkOutDate
         Integer numberOfNights
         Double totalPrice
+        PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD
+        Boolean confirmed = false
 
         invariants {
             checkInDate.length() > 0 : "Check-in date is required"
@@ -40,7 +42,9 @@ Aggregate Booking {
                 checkInDate: checkIn,
                 checkOutDate: checkOut,
                 numberOfNights: nights,
-                totalPrice: price
+                totalPrice: price,
+                paymentMethod: CREDIT_CARD,
+                confirmed: false
             }
         }
         publishes BookingCreatedEvent {
@@ -50,17 +54,35 @@ Aggregate Booking {
         }
     }
 
+    method confirmBooking(Integer bookingId) {
+        action {
+            load Booking(bookingId) as booking
+            booking.confirmed = true
+        }
+    }
+
     Events {
         publish BookingCreatedEvent {
             Integer userAggregateId
             Integer roomAggregateId
             Double totalPrice
         }
+
+        subscribe UserLoyaltyAwardedEvent
+
+        interInvariant USER_MUST_EXIST {
+            subscribe UserDeletedEvent from User {
+                user.userAggregateId == event.aggregateId
+            }
+        }
     }
 
     Repository {
         @Query("select b.aggregateId from Booking b where b.totalPrice >= :minPrice")
         Set<Integer> findExpensiveBookingIds(Double minPrice)
+
+        @Query("select b.aggregateId from Booking b where b.confirmed = true and b.state != 'DELETED'")
+        Set<Integer> findConfirmedBookingIds()
     }
 
 }

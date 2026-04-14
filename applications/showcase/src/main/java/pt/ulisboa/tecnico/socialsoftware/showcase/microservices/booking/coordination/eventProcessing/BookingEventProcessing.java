@@ -5,14 +5,38 @@ import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.service.BookingService;
+import pt.ulisboa.tecnico.socialsoftware.showcase.events.UserLoyaltyAwardedEvent;
+import pt.ulisboa.tecnico.socialsoftware.showcase.events.UserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.aggregate.Booking;
+import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.aggregate.BookingFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
 @Service
 public class BookingEventProcessing {
     @Autowired
     private BookingService bookingService;
 
+    @Autowired
+    private BookingFactory bookingFactory;
+
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public BookingEventProcessing(UnitOfWorkService unitOfWorkService) {
         this.unitOfWorkService = unitOfWorkService;
-    }}
+    }
+
+    public void processUserLoyaltyAwardedEvent(Integer aggregateId, UserLoyaltyAwardedEvent userLoyaltyAwardedEvent) {
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        bookingService.handleUserLoyaltyAwardedEvent(aggregateId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void processUserDeletedEvent(Integer aggregateId, UserDeletedEvent userDeletedEvent) {
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Booking oldBooking = (Booking) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Booking newBooking = bookingFactory.createBookingFromExisting(oldBooking);
+        newBooking.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newBooking, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+}

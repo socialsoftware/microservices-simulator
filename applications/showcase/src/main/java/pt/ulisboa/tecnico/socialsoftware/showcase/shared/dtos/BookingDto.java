@@ -14,6 +14,8 @@ public class BookingDto implements Serializable {
     private String checkOutDate;
     private Integer numberOfNights;
     private Double totalPrice;
+    private String paymentMethod;
+    private Boolean confirmed;
 
     public BookingDto() {
     }
@@ -28,6 +30,8 @@ public class BookingDto implements Serializable {
         this.checkOutDate = booking.getCheckOutDate();
         this.numberOfNights = booking.getNumberOfNights();
         this.totalPrice = booking.getTotalPrice();
+        this.paymentMethod = booking.getPaymentMethod() != null ? booking.getPaymentMethod().name() : null;
+        this.confirmed = booking.getConfirmed();
     }
 
     public Integer getAggregateId() {
@@ -100,5 +104,21 @@ public class BookingDto implements Serializable {
 
     public void setTotalPrice(Double totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public Boolean getConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(Boolean confirmed) {
+        this.confirmed = confirmed;
     }
 }

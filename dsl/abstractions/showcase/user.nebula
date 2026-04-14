@@ -4,6 +4,8 @@ Aggregate User {
         String username
         String email
         Integer loyaltyPoints
+        MembershipTier tier = MembershipTier.BRONZE
+        Boolean active = true
 
         invariants {
             username.length() > 0 : "Username cannot be empty"
@@ -17,8 +19,36 @@ Aggregate User {
             create User {
                 username: username,
                 email: email,
-                loyaltyPoints: 0
+                loyaltyPoints: 0,
+                tier: BRONZE,
+                active: true
             }
         }
+    }
+
+    method awardLoyaltyPoints(Integer userId, Integer points) {
+        precondition {
+            check points > 0 error "Points awarded must be positive"
+        }
+        action {
+            load User(userId) as user
+            user.loyaltyPoints = points
+        }
+        publishes UserLoyaltyAwardedEvent {
+            userAggregateId: user.aggregateId,
+            pointsAwarded: points
+        }
+    }
+
+    Events {
+        publish UserLoyaltyAwardedEvent {
+            Integer userAggregateId
+            Integer pointsAwarded
+        }
+    }
+
+    Repository {
+        @Query("select u.aggregateId from User u where u.state != 'DELETED' and u.active = true")
+        Set<Integer> findActiveUserIds()
     }
 }

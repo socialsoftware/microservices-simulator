@@ -9,7 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggreg
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;

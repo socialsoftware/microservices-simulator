@@ -9,7 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggr
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.EnrollmentDto;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.EnrollmentCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.EnrollmentTeacherDto;

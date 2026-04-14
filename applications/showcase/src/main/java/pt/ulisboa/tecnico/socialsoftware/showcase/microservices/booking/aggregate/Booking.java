@@ -5,15 +5,22 @@ import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+
+import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.events.subscribe.BookingSubscribesUserDeletedUserMustExist;
+import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.events.subscribe.BookingSubscribesUserLoyaltyAwarded;
 
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.BookingDto;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.BookingRoomDto;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.BookingUserDto;
+import pt.ulisboa.tecnico.socialsoftware.showcase.shared.enums.PaymentMethod;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;
 
@@ -27,9 +34,12 @@ public abstract class Booking extends Aggregate {
     private String checkOutDate;
     private Integer numberOfNights;
     private Double totalPrice;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+    private Boolean confirmed;
 
     public Booking() {
-
+        this.paymentMethod = PaymentMethod.CREDIT_CARD;
     }
 
     public Booking(Integer aggregateId, BookingDto bookingDto) {
@@ -39,6 +49,8 @@ public abstract class Booking extends Aggregate {
         setCheckOutDate(bookingDto.getCheckOutDate());
         setNumberOfNights(bookingDto.getNumberOfNights());
         setTotalPrice(bookingDto.getTotalPrice());
+        setPaymentMethod(bookingDto.getPaymentMethod() != null ? PaymentMethod.valueOf(bookingDto.getPaymentMethod()) : PaymentMethod.CREDIT_CARD);
+        setConfirmed(bookingDto.getConfirmed());
         setUser(bookingDto.getUser() != null ? new BookingUser(bookingDto.getUser()) : null);
         setRoom(bookingDto.getRoom() != null ? new BookingRoom(bookingDto.getRoom()) : null);
     }
@@ -52,6 +64,8 @@ public abstract class Booking extends Aggregate {
         setCheckOutDate(other.getCheckOutDate());
         setNumberOfNights(other.getNumberOfNights());
         setTotalPrice(other.getTotalPrice());
+        setPaymentMethod(other.getPaymentMethod());
+        setConfirmed(other.getConfirmed());
     }
 
     public BookingUser getUser() {
@@ -108,12 +122,35 @@ public abstract class Booking extends Aggregate {
         this.totalPrice = totalPrice;
     }
 
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public Boolean getConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(Boolean confirmed) {
+        this.confirmed = confirmed;
+    }
+
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (this.getState() == AggregateState.ACTIVE) {
+            interInvariantUserMustExist(eventSubscriptions);
+            eventSubscriptions.add(new BookingSubscribesUserLoyaltyAwarded());
+        }
+        return eventSubscriptions;
     }
-
+    private void interInvariantUserMustExist(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new BookingSubscribesUserDeletedUserMustExist(this.getUser()));
+    }
 
 
     private boolean invariantRule0() {
@@ -158,6 +195,8 @@ public abstract class Booking extends Aggregate {
         dto.setCheckOutDate(getCheckOutDate());
         dto.setNumberOfNights(getNumberOfNights());
         dto.setTotalPrice(getTotalPrice());
+        dto.setPaymentMethod(getPaymentMethod() != null ? getPaymentMethod().name() : null);
+        dto.setConfirmed(getConfirmed());
         return dto;
     }
 }

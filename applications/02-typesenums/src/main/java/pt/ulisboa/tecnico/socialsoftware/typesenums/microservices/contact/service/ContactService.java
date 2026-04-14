@@ -9,7 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.typesenums.microservices.contact.aggreg
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.dtos.ContactDto;
 
 import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.enums.ContactCategory;

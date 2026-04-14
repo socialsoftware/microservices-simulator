@@ -9,7 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.teacher.aggrega
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.TeacherDto;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;

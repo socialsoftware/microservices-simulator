@@ -9,7 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggrega
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionCourseDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionUserDto;

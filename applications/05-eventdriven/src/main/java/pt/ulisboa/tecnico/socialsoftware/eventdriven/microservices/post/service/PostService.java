@@ -9,7 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.aggregat
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.PostDto;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.PostAuthorDto;
 

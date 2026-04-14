@@ -9,7 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.member.aggregate
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.MemberDto;
 
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.enums.MembershipType;

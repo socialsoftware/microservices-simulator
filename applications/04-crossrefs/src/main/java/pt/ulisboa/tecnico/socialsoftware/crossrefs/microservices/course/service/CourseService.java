@@ -9,7 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggregat
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseTeacherDto;
 

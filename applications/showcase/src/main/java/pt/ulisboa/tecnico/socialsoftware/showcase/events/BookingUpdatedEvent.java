@@ -14,6 +14,8 @@ public class BookingUpdatedEvent extends Event {
     private Integer numberOfNights;
     @Column(name = "booking_updated_event_total_price")
     private Double totalPrice;
+    @Column(name = "booking_updated_event_confirmed")
+    private Boolean confirmed;
 
     public BookingUpdatedEvent() {
         super();
@@ -23,12 +25,13 @@ public class BookingUpdatedEvent extends Event {
         super(aggregateId);
     }
 
-    public BookingUpdatedEvent(Integer aggregateId, String checkInDate, String checkOutDate, Integer numberOfNights, Double totalPrice) {
+    public BookingUpdatedEvent(Integer aggregateId, String checkInDate, String checkOutDate, Integer numberOfNights, Double totalPrice, Boolean confirmed) {
         super(aggregateId);
         setCheckInDate(checkInDate);
         setCheckOutDate(checkOutDate);
         setNumberOfNights(numberOfNights);
         setTotalPrice(totalPrice);
+        setConfirmed(confirmed);
     }
 
     public String getCheckInDate() {
@@ -61,6 +64,14 @@ public class BookingUpdatedEvent extends Event {
 
     public void setTotalPrice(Double totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public Boolean getConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(Boolean confirmed) {
+        this.confirmed = confirmed;
     }
 
 }

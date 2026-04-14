@@ -9,9 +9,13 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.user.aggregate.*
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.UserDto;
 
+import pt.ulisboa.tecnico.socialsoftware.showcase.shared.enums.MembershipTier;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
@@ -54,6 +58,8 @@ public class UserService {
             userDto.setUsername(createRequest.getUsername());
             userDto.setEmail(createRequest.getEmail());
             userDto.setLoyaltyPoints(createRequest.getLoyaltyPoints());
+            userDto.setTier(createRequest.getTier() != null ? createRequest.getTier().name() : null);
+            userDto.setActive(createRequest.getActive());
 
             Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
             User user = userFactory.createUser(aggregateId, userDto);
@@ -115,8 +121,12 @@ public class UserService {
             if (userDto.getLoyaltyPoints() != null) {
                 newUser.setLoyaltyPoints(userDto.getLoyaltyPoints());
             }
+            if (userDto.getTier() != null) {
+                newUser.setTier(MembershipTier.valueOf(userDto.getTier()));
+            }
+            newUser.setActive(userDto.getActive());
 
-            unitOfWorkService.registerChanged(newUser, unitOfWork);            UserUpdatedEvent event = new UserUpdatedEvent(newUser.getAggregateId(), newUser.getUsername(), newUser.getEmail(), newUser.getLoyaltyPoints());
+            unitOfWorkService.registerChanged(newUser, unitOfWork);            UserUpdatedEvent event = new UserUpdatedEvent(newUser.getAggregateId(), newUser.getUsername(), newUser.getEmail(), newUser.getLoyaltyPoints(), newUser.getActive());
             event.setPublisherAggregateVersion(newUser.getVersion());
             unitOfWorkService.registerEvent(event, unitOfWork);
             return userFactory.createUserDto(newUser);
@@ -158,6 +168,8 @@ public class UserService {
         dto.setUsername(username);
         dto.setEmail(email);
         dto.setLoyaltyPoints(0);
+        dto.setTier("BRONZE");
+        dto.setActive(true);
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
         User user = userFactory.createUser(aggregateId, dto);
         unitOfWorkService.registerChanged(user, unitOfWork);
@@ -166,6 +178,27 @@ public class UserService {
             throw e;
         } catch (Exception e) {
             throw new ShowcaseException("Error in signUp User: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void awardLoyaltyPoints(Integer userId, Integer points, UnitOfWork unitOfWork) {
+        try {
+        if (!(points > 0)) {
+            throw new ShowcaseException("Points awarded must be positive");
+        }
+        User userOld = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userId, unitOfWork);
+        User user = userFactory.createUserFromExisting(userOld);
+        user.setLoyaltyPoints(points);
+        unitOfWorkService.registerChanged(user, unitOfWork);
+        UserLoyaltyAwardedEvent event0 = new UserLoyaltyAwardedEvent();
+        event0.setUserAggregateId(user.getAggregateId());
+        event0.setPointsAwarded(points);
+        unitOfWorkService.registerEvent(event0, unitOfWork);
+        } catch (ShowcaseException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ShowcaseException("Error in awardLoyaltyPoints User: " + e.getMessage());
         }
     }
 

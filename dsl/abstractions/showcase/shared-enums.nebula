@@ -5,4 +5,18 @@ SharedEnums {
         OCCUPIED,
         OUT_OF_SERVICE
     }
+
+    enum PaymentMethod {
+        CREDIT_CARD,
+        DEBIT_CARD,
+        PAYPAL,
+        CASH
+    }
+
+    enum MembershipTier {
+        BRONZE,
+        SILVER,
+        GOLD,
+        PLATINUM
+    }
 }

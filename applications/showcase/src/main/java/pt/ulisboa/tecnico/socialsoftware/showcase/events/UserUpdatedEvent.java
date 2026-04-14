@@ -12,6 +12,8 @@ public class UserUpdatedEvent extends Event {
     private String email;
     @Column(name = "user_updated_event_loyalty_points")
     private Integer loyaltyPoints;
+    @Column(name = "user_updated_event_active")
+    private Boolean active;
 
     public UserUpdatedEvent() {
         super();
@@ -21,11 +23,12 @@ public class UserUpdatedEvent extends Event {
         super(aggregateId);
     }
 
-    public UserUpdatedEvent(Integer aggregateId, String username, String email, Integer loyaltyPoints) {
+    public UserUpdatedEvent(Integer aggregateId, String username, String email, Integer loyaltyPoints, Boolean active) {
         super(aggregateId);
         setUsername(username);
         setEmail(email);
         setLoyaltyPoints(loyaltyPoints);
+        setActive(active);
     }
 
     public String getUsername() {
@@ -50,6 +53,14 @@ public class UserUpdatedEvent extends Event {
 
     public void setLoyaltyPoints(Integer loyaltyPoints) {
         this.loyaltyPoints = loyaltyPoints;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
 }

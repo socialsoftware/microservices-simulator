@@ -11,6 +11,8 @@ public class UserDto implements Serializable {
     private String username;
     private String email;
     private Integer loyaltyPoints;
+    private String tier;
+    private Boolean active;
 
     public UserDto() {
     }
@@ -22,6 +24,8 @@ public class UserDto implements Serializable {
         this.username = user.getUsername();
         this.email = user.getEmail();
         this.loyaltyPoints = user.getLoyaltyPoints();
+        this.tier = user.getTier() != null ? user.getTier().name() : null;
+        this.active = user.getActive();
     }
 
     public Integer getAggregateId() {
@@ -70,5 +74,21 @@ public class UserDto implements Serializable {
 
     public void setLoyaltyPoints(Integer loyaltyPoints) {
         this.loyaltyPoints = loyaltyPoints;
+    }
+
+    public String getTier() {
+        return tier;
+    }
+
+    public void setTier(String tier) {
+        this.tier = tier;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

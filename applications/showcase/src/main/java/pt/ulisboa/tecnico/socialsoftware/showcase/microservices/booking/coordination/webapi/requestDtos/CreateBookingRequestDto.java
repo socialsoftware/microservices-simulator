@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.coordin
 import jakarta.validation.constraints.*;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.RoomDto;
+import pt.ulisboa.tecnico.socialsoftware.showcase.shared.enums.PaymentMethod;
 
 public class CreateBookingRequestDto {
     @NotNull
@@ -17,16 +18,22 @@ public class CreateBookingRequestDto {
     private Integer numberOfNights;
     @NotNull
     private Double totalPrice;
+    @NotNull
+    private PaymentMethod paymentMethod;
+    @NotNull
+    private Boolean confirmed;
 
     public CreateBookingRequestDto() {}
 
-    public CreateBookingRequestDto(UserDto user, RoomDto room, String checkInDate, String checkOutDate, Integer numberOfNights, Double totalPrice) {
+    public CreateBookingRequestDto(UserDto user, RoomDto room, String checkInDate, String checkOutDate, Integer numberOfNights, Double totalPrice, PaymentMethod paymentMethod, Boolean confirmed) {
         this.user = user;
         this.room = room;
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
         this.numberOfNights = numberOfNights;
         this.totalPrice = totalPrice;
+        this.paymentMethod = paymentMethod;
+        this.confirmed = confirmed;
     }
 
     public UserDto getUser() {
@@ -70,5 +77,19 @@ public class CreateBookingRequestDto {
 
     public void setTotalPrice(Double totalPrice) {
         this.totalPrice = totalPrice;
+    }
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+    public Boolean getConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(Boolean confirmed) {
+        this.confirmed = confirmed;
     }
 }
