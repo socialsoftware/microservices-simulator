@@ -65,6 +65,7 @@ export class ImportScanner implements StrategyContext {
         if (javaCode.includes('@Id')) imports.push('import jakarta.persistence.Id;');
         if (javaCode.includes('@GeneratedValue')) imports.push('import jakarta.persistence.GeneratedValue;');
         if (javaCode.includes('@OneToOne')) imports.push('import jakarta.persistence.OneToOne;');
+        if (javaCode.includes('@ManyToOne')) imports.push('import jakarta.persistence.ManyToOne;');
         if (javaCode.includes('@OneToMany')) imports.push('import jakarta.persistence.OneToMany;');
         if (javaCode.includes('CascadeType')) imports.push('import jakarta.persistence.CascadeType;');
         if (javaCode.includes('FetchType')) imports.push('import jakarta.persistence.FetchType;');

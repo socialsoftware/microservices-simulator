@@ -65,6 +65,15 @@ export class EventProcessingGenerator {
         const imports = this.buildImports(aggregate, options, allAggregates);
 
         const basePackage = this.getBasePackage();
+        const references = (aggregate as any).references;
+        const allEvents = this.collectSubscribedEvents(aggregate);
+        const hasInterInvariantDeleted = allEvents.some((event: any) => {
+            if (!event.isInterInvariant) return false;
+            const nameWithoutEvent = EventNameParser.removeEventSuffix(event.eventType || '');
+            return nameWithoutEvent.endsWith('Deleted');
+        });
+        const hasReferenceConstraints = (references?.constraints && references.constraints.length > 0) || hasInterInvariantDeleted;
+
         const tempContext = {
             aggregateName: capitalizedAggregate,
             lowerAggregate,
@@ -74,7 +83,8 @@ export class EventProcessingGenerator {
             imports: imports.join('\n'),
             projectName,
             ProjectName,
-            hasSagas: true
+            hasSagas: true,
+            hasReferenceConstraints
         };
 
         const renderedMethods = eventProcessingMethodsArray.map((method: any) => this.renderMethod(method, tempContext, aggregate)).join('\n\n');
@@ -90,52 +100,55 @@ export class EventProcessingGenerator {
 
 
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
+        const addedEventTypes = new Set<string>();
 
-
-        const eventsWithHandlers = allSubscribedEvents.filter((event: any) => !event.isInterInvariant);
-
-        eventsWithHandlers.forEach((event: any) => {
+        for (const event of allSubscribedEvents) {
             const eventTypeName = event.eventType || 'UnknownEvent';
-            methods.push({
-                name: `process${eventTypeName}`,
-                returnType: 'void',
-                parameters: [
-                    { name: 'aggregateId', type: 'Integer' },
-                    { name: eventTypeName.charAt(0).toLowerCase() + eventTypeName.slice(1), type: eventTypeName }
-                ]
-            });
-        });
+            if (addedEventTypes.has(eventTypeName)) continue;
+            addedEventTypes.add(eventTypeName);
+
+            const nameWithoutEvent = EventNameParser.removeEventSuffix(eventTypeName);
+            const isDeleted = nameWithoutEvent.endsWith('Deleted');
+
+            if (event.isInterInvariant && isDeleted) {
+                methods.push({
+                    name: `process${eventTypeName}`,
+                    returnType: 'void',
+                    isReferenceConstraint: true,
+                    parameters: [
+                        { name: 'aggregateId', type: 'Integer' },
+                        { name: eventTypeName.charAt(0).toLowerCase() + eventTypeName.slice(1), type: eventTypeName }
+                    ]
+                });
+            } else {
+                methods.push({
+                    name: `process${eventTypeName}`,
+                    returnType: 'void',
+                    parameters: [
+                        { name: 'aggregateId', type: 'Integer' },
+                        { name: eventTypeName.charAt(0).toLowerCase() + eventTypeName.slice(1), type: eventTypeName }
+                    ]
+                });
+            }
+        }
 
         const references = (aggregate as any).references;
         if (references?.constraints) {
             for (const constraint of references.constraints) {
                 const targetAggregate = constraint.targetAggregate;
                 const eventTypeName = `${targetAggregate}DeletedEvent`;
-                const alreadyExists = methods.some((m: any) => m.name === `process${eventTypeName}`);
-                if (!alreadyExists) {
-                    methods.push({
-                        name: `process${eventTypeName}`,
-                        returnType: 'void',
-                        isReferenceConstraint: true,
-                        parameters: [
-                            { name: 'aggregateId', type: 'Integer' },
-                            { name: eventTypeName.charAt(0).toLowerCase() + eventTypeName.slice(1), type: eventTypeName }
-                        ]
-                    });
-                }
-            }
-        }
-
-
-        const aggregateEvents = (aggregate as any).events;
-        if (aggregateEvents && Array.isArray(aggregateEvents)) {
-            aggregateEvents.forEach((event: any) => {
+                if (addedEventTypes.has(eventTypeName)) continue;
+                addedEventTypes.add(eventTypeName);
                 methods.push({
-                    name: `process${event.name}`,
+                    name: `process${eventTypeName}`,
                     returnType: 'void',
-                    parameters: event.parameters || []
+                    isReferenceConstraint: true,
+                    parameters: [
+                        { name: 'aggregateId', type: 'Integer' },
+                        { name: eventTypeName.charAt(0).toLowerCase() + eventTypeName.slice(1), type: eventTypeName }
+                    ]
                 });
-            });
+            }
         }
 
         return methods;
@@ -183,14 +196,29 @@ export class EventProcessingGenerator {
 
         const allSubscribedEvents = this.collectSubscribedEvents(aggregate);
 
-
-        const eventsWithHandlers = allSubscribedEvents.filter((event: any) => !event.isInterInvariant);
-
-        eventsWithHandlers.forEach((event: any) => {
+        allSubscribedEvents.forEach((event: any) => {
             const eventTypeName = event.eventType || 'UnknownEvent';
-
-            imports.push(`import ${basePackage}.${projectName}.events.${eventTypeName};`);
+            const importLine = `import ${basePackage}.${projectName}.events.${eventTypeName};`;
+            if (!imports.includes(importLine)) {
+                imports.push(importLine);
+            }
         });
+
+        const hasInterInvariantDeleted = allSubscribedEvents.some((event: any) => {
+            if (!event.isInterInvariant) return false;
+            const nameWithoutEvent = EventNameParser.removeEventSuffix(event.eventType || '');
+            return nameWithoutEvent.endsWith('Deleted');
+        });
+        if (hasInterInvariantDeleted) {
+            const lowerAgg = aggregate.name.toLowerCase();
+            const capAgg = StringUtils.capitalize(aggregate.name);
+            const aggImport = `import ${basePackage}.${projectName}.microservices.${lowerAgg}.aggregate.${capAgg};`;
+            const factoryImport = `import ${basePackage}.${projectName}.microservices.${lowerAgg}.aggregate.${capAgg}Factory;`;
+            const baseAggImport = `import ${basePackage}.ms.domain.aggregate.Aggregate;`;
+            if (!imports.includes(aggImport)) imports.push(aggImport);
+            if (!imports.includes(factoryImport)) imports.push(factoryImport);
+            if (!imports.includes(baseAggImport)) imports.push(baseAggImport);
+        }
 
         const references = (aggregate as any).references;
         if (references?.constraints) {
@@ -219,7 +247,10 @@ export class EventProcessingGenerator {
 public class {{aggregateName}}EventProcessing {
     @Autowired
     private {{aggregateName}}Service {{lowerAggregate}}Service;
-    
+${context.hasReferenceConstraints ? `
+    @Autowired
+    private ${context.aggregateName}Factory ${context.lowerAggregate}Factory;
+` : ''}
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public {{aggregateName}}EventProcessing(UnitOfWorkService unitOfWorkService) {
@@ -231,8 +262,15 @@ public class {{aggregateName}}EventProcessing {
         const params = method.parameters.map((p: any) => `${p.type} ${p.name}`).join(', ');
 
         if (method.isReferenceConstraint) {
+            const lowerAggregate = context.lowerAggregate || context.aggregateName?.toLowerCase() || 'aggregate';
+            const capAggregate = context.aggregateName || 'Aggregate';
             return `    public ${method.returnType} ${method.name}(${params}) {
-        // Reference constraint event processing - implement constraint logic
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        ${capAggregate} old${capAggregate} = (${capAggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        ${capAggregate} new${capAggregate} = ${lowerAggregate}Factory.create${capAggregate}FromExisting(old${capAggregate});
+        new${capAggregate}.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(new${capAggregate}, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }`;
         }
 

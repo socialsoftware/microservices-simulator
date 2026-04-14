@@ -12,7 +12,7 @@ export class WebApiFeature {
         allAggregates?: any[]
     ): Promise<void> {
         const hasManualEndpoints = aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0;
-        const hasAutoCrud = aggregate.generateCrud;
+        const hasAutoCrud = (aggregate as any).generateCrud;
         const hasEndpoints = hasManualEndpoints || hasAutoCrud;
 
         try {

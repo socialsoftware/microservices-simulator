@@ -194,43 +194,54 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                 const aggregateRef = entityAny.aggregateRef;
 
                 if (aggregateRef) {
+                    const fieldMappings: any[] = Array.isArray(entityAny.fieldMappings) ? entityAny.fieldMappings : [];
+                    const mappedFieldNames = new Set(fieldMappings.map((m: any) => m?.entityField).filter(Boolean));
+                    const localProps = (relatedEntity.properties || []).filter((p: any) => !mappedFieldNames.has(p.name));
+                    const hasLocalFields = localProps.length > 0;
+                    const hasNoMappings = fieldMappings.length === 0;
 
-                    let referencedName: string | undefined;
-                    if (typeof aggregateRef === 'string') {
-                        referencedName = aggregateRef;
-                    } else if (aggregateRef.ref?.name) {
-                        referencedName = aggregateRef.ref.name;
-                    } else if (aggregateRef.$refText) {
-                        referencedName = aggregateRef.$refText;
-                    }
+                    if (hasLocalFields && isCollection && hasNoMappings) {
+                        references.push({
+                            entityType: entityName,
+                            paramName: prop.name,
+                            relatedAggregate: aggregate.name,
+                            relatedDtoType: `${entityName}Dto`,
+                            isCollection
+                        });
+                    } else {
+                        let referencedName: string | undefined;
+                        if (typeof aggregateRef === 'string') {
+                            referencedName = aggregateRef;
+                        } else if (aggregateRef.ref?.name) {
+                            referencedName = aggregateRef.ref.name;
+                        } else if (aggregateRef.$refText) {
+                            referencedName = aggregateRef.$refText;
+                        }
 
-                    if (referencedName) {
+                        if (referencedName) {
+                            const directAggregate = allAggregates?.find(
+                                agg => agg.name === referencedName && agg.name !== aggregate.name
+                            );
 
-                        const directAggregate = allAggregates?.find(
-                            agg => agg.name === referencedName && agg.name !== aggregate.name
-                        );
-
-                        if (directAggregate) {
-
-                            references.push({
-                                entityType: entityName,
-                                paramName: prop.name,
-                                relatedAggregate: referencedName,
-                                relatedDtoType: `${referencedName}Dto`,
-                                isCollection
-                            });
-                        } else {
-
-
-                            const ultimateAggregate = this.resolveTransitiveAggregateRef(referencedName, allAggregates);
-                            if (ultimateAggregate) {
+                            if (directAggregate) {
                                 references.push({
                                     entityType: entityName,
                                     paramName: prop.name,
-                                    relatedAggregate: ultimateAggregate,
-                                    relatedDtoType: `${ultimateAggregate}Dto`,
+                                    relatedAggregate: referencedName,
+                                    relatedDtoType: `${referencedName}Dto`,
                                     isCollection
                                 });
+                            } else {
+                                const ultimateAggregate = this.resolveTransitiveAggregateRef(referencedName, allAggregates);
+                                if (ultimateAggregate) {
+                                    references.push({
+                                        entityType: entityName,
+                                        paramName: prop.name,
+                                        relatedAggregate: ultimateAggregate,
+                                        relatedDtoType: `${ultimateAggregate}Dto`,
+                                        isCollection
+                                    });
+                                }
                             }
                         }
                     }

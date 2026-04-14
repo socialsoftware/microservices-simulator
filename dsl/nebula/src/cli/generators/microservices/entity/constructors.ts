@@ -538,24 +538,24 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
         if (isEnumType(prop.type)) {
             return `        set${capitalizedName}(other.get${capitalizedName}());`;
         } else if (TypeResolver.isEntityType(javaType) && !javaType.startsWith('Set<') && !javaType.startsWith('List<')) {
-            return `        set${capitalizedName}(new ${javaType}(other.get${capitalizedName}()));`;
+            return `        set${capitalizedName}(other.get${capitalizedName}() != null ? new ${javaType}(other.get${capitalizedName}()) : null);`;
         } else if (javaType.startsWith('Set<')) {
             const elementType = TypeResolver.getElementType(prop.type);
             if (elementType && TypeResolver.isEntityType(elementType)) {
                 imports.usesCollectors = true;
-                return `        set${capitalizedName}(other.get${capitalizedName}().stream().map(${elementType}::new).collect(Collectors.toSet()));`;
+                return `        set${capitalizedName}(other.get${capitalizedName}() != null ? other.get${capitalizedName}().stream().map(${elementType}::new).collect(Collectors.toSet()) : null);`;
             } else {
                 imports.usesSet = true;
-                return `        set${capitalizedName}(new HashSet<>(other.get${capitalizedName}()));`;
+                return `        set${capitalizedName}(other.get${capitalizedName}() != null ? new HashSet<>(other.get${capitalizedName}()) : null);`;
             }
         } else if (javaType.startsWith('List<')) {
             const elementType = TypeResolver.getElementType(prop.type);
             if (elementType && TypeResolver.isEntityType(elementType)) {
                 imports.usesCollectors = true;
-                return `        set${capitalizedName}(other.get${capitalizedName}().stream().map(${elementType}::new).collect(Collectors.toList()));`;
+                return `        set${capitalizedName}(other.get${capitalizedName}() != null ? other.get${capitalizedName}().stream().map(${elementType}::new).collect(Collectors.toList()) : null);`;
             } else {
                 imports.usesList = true;
-                return `        set${capitalizedName}(new ArrayList<>(other.get${capitalizedName}()));`;
+                return `        set${capitalizedName}(other.get${capitalizedName}() != null ? new ArrayList<>(other.get${capitalizedName}()) : null);`;
             }
         } else {
             return `        set${capitalizedName}(other.get${capitalizedName}());`;

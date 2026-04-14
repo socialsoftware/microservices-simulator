@@ -162,10 +162,23 @@ export function generateFields(properties: any[], entity: Entity, isRootEntity: 
 
 
     if (!isRootEntity && entity.$container) {
-        const parentEntityName = entity.$container.name;
-        const backRefField = `    @OneToOne\n    private ${parentEntityName} ${parentEntityName.toLowerCase()};`;
+        const aggregate = entity.$container;
+        const rootEntity2 = (aggregate as any).aggregateElements?.find((e: any) => e.$type === 'Entity' && e.isRoot);
+        const parentEntityName = rootEntity2?.name || aggregate.name;
+        const rootProps = rootEntity2?.properties || [];
+        const isCollectionChild = rootProps.some((p: any) => {
+            const jt = resolveJavaType(p.type, p.name);
+            return (jt.startsWith('Set<') || jt.startsWith('List<')) && jt.includes(entity.name);
+        });
+        const backRefAnnotation = isCollectionChild ? '@ManyToOne' : '@OneToOne';
+        const lowerParent = parentEntityName.charAt(0).toLowerCase() + parentEntityName.slice(1);
+        const backRefField = `    ${backRefAnnotation}\n    private ${parentEntityName} ${lowerParent};`;
         fields = fields + '\n' + backRefField;
-        imports.usesOneToOne = true;
+        if (isCollectionChild) {
+            imports.usesManyToOne = true;
+        } else {
+            imports.usesOneToOne = true;
+        }
     }
 
     return { code: fields, imports };

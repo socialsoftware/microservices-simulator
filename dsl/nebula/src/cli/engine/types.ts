@@ -37,7 +37,6 @@ export interface GeneratorRegistry {
     eventGenerator: any;
     coordinationGenerator: any;
     webApiGenerator: any;
-    validationGenerator: any;
     integrationGenerator: any;
     sagaGenerator: any;
     sagaFunctionalityGenerator: any;

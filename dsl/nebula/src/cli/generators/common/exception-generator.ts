@@ -3,6 +3,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath } from 'node:url';
 import { StringUtils } from '../../utils/string-utils.js';
+import { getGlobalConfig } from './config.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export interface ExceptionGenerationOptions {
@@ -125,13 +126,14 @@ export class ExceptionGenerator {
 
     private async generateExceptionClass(projectName: string, packageName: string): Promise<string> {
         const capitalizedProjectName = projectName.charAt(0).toUpperCase() + projectName.slice(1);
+        const fwkPkg = getGlobalConfig().getFrameworkPackage();
         return `package ${packageName}.microservices.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+${`import ${fwkPkg}.exception.SimulatorException;`}
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class ${capitalizedProjectName}Exception extends SimulatorException {
@@ -212,6 +214,7 @@ public class ${capitalizedProjectName}Exception extends SimulatorException {
 
     private async generateControllerAdviceClass(projectName: string, packageName: string): Promise<string> {
         const capitalizedProjectName = projectName.charAt(0).toUpperCase() + projectName.slice(1);
+        const fwkPkg = getGlobalConfig().getFrameworkPackage();
         return `package ${packageName}.microservices.exception;
 
 import org.slf4j.Logger;
@@ -220,7 +223,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+${`import ${fwkPkg}.exception.SimulatorException;`}
 
 @ControllerAdvice
 public class ${capitalizedProjectName}ExceptionHandler {

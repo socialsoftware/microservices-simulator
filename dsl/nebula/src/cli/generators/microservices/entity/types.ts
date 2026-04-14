@@ -11,6 +11,7 @@ export type ImportRequirements = {
     usesStreams?: boolean;
     usesUserDto?: boolean;
     usesOneToOne?: boolean;
+    usesManyToOne?: boolean;
     usesOneToMany?: boolean;
     usesCascadeType?: boolean;
     usesFetchType?: boolean;

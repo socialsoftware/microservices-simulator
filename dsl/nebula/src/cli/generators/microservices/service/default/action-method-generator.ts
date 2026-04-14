@@ -181,12 +181,28 @@ ${tryWrapped}
                     break;
                 }
 
+                case 'FindActionStatement': {
+                    const collection = this.renderExpression(stmt.collection);
+                    const field = stmt.field;
+                    const value = this.renderExpression(stmt.value);
+                    const alias = stmt.alias;
+                    const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+                    lines.push(`        var ${alias} = ${collection}.stream()`);
+                    lines.push(`            .filter(el -> el.get${capitalize(field)}() != null && el.get${capitalize(field)}().equals(${value}))`);
+                    lines.push(`            .findFirst()`);
+                    const projectCap = projectName.charAt(0).toUpperCase() + projectName.slice(1);
+                    lines.push(`            .orElseThrow(() -> new ${projectCap}Exception("Element not found in collection"));`);
+                    dirtyAliases.set(alias, '__child');
+                    break;
+                }
+
                 default:
                     lines.push(`        // unsupported statement: ${stmt.$type}`);
             }
         }
 
         for (const [alias, _type] of dirtyAliases) {
+            if (_type === '__child') continue;
             lines.push(`        unitOfWorkService.registerChanged(${alias}, unitOfWork);`);
         }
 
@@ -200,6 +216,7 @@ ${tryWrapped}
         switch (expr.$type) {
             case 'ActionLiteral':
                 if (expr.stringValue !== undefined) return `"${expr.stringValue}"`;
+                if (expr.boolLiteral !== undefined) return expr.boolLiteral;
                 if (expr.literalValue !== undefined) return this.unquoteLiteral(expr.literalValue);
                 return 'null';
             case 'ActionRef': {

@@ -72,7 +72,7 @@ export class UnifiedEventFeature {
 
 
                 const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
-                const hasGenerateCrud = aggregate.generateCrud;
+                const hasGenerateCrud = (aggregate as any).generateCrud;
 
                 if (hasGenerateCrud && rootEntity) {
                     const crudEvents = await this.publishedEventGenerator.generatePublishedEvents(
@@ -392,7 +392,7 @@ export class UnifiedEventFeature {
         const feature = new UnifiedEventFeature();
         const aggregatePath = path.join(
             options.outputPath!,
-            'src', 'main', 'java', 'pt', 'ulisboa', 'tecnico', 'socialsoftware',
+            'src', 'main', 'java', ...options.basePackage.split('.'),
             options.projectName.toLowerCase(), 'microservices', aggregate.name.toLowerCase()
         );
 

@@ -44,7 +44,7 @@ export class CommandHandlerGenerator {
     private buildCases(aggregate: Aggregate, capitalizedAggregate: string, lowerAggregate: string): HandlerCase[] {
         const cases: HandlerCase[] = [];
 
-        if (aggregate.generateCrud) {
+        if ((aggregate as any).generateCrud) {
             cases.push({
                 commandClass: `Create${capitalizedAggregate}Command`,
                 handlerMethod: `handleCreate${capitalizedAggregate}`,

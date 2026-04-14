@@ -144,11 +144,23 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
                         return `                ${rel.paramName}Dto.set${cap}(${wrapIfTernary(m.buildExpr('refSourceDto'))});`;
                     }).join('\n');
 
+                    const fieldMappings: any[] = Array.isArray(projectionEntity?.fieldMappings) ? projectionEntity.fieldMappings : [];
+                    const mappedFieldNames = new Set(fieldMappings.map((m: any) => m?.entityField).filter(Boolean));
+                    const localProps = (projectionEntity?.properties || []).filter(
+                        (p: any) => !mappedFieldNames.has(p.name)
+                    );
+                    const hasNoMappings = fieldMappings.length === 0;
+
                     if (rel.isCollection) {
                         const itemEnrichLines = enrichableMappings.map(m => {
                             const cap = this.capitalize(m.field);
                             return `                    projDto.set${cap}(${wrapIfTernary(m.buildExpr('refItemDto'))});`;
                         }).join('\n');
+                        const localFieldLines = (hasNoMappings && localProps.length > 0) ? localProps.map((p: any) => {
+                            const cap = this.capitalize(p.name);
+                            return `                    projDto.set${cap}(reqDto.get${cap}());`;
+                        }).join('\n') : '';
+                        const allItemLines = [itemEnrichLines, localFieldLines].filter(s => s.length > 0).join('\n');
                         return `            if (createRequest.get${capitalizedName}() != null) {
                 ${lowerAggregate}Dto.set${capitalizedName}(createRequest.get${capitalizedName}().stream().map(reqDto -> {
                     ${sourceClass} refItem = (${sourceClass}) unitOfWorkService.aggregateLoadAndRegisterRead(reqDto.getAggregateId(), unitOfWork);
@@ -157,7 +169,7 @@ export class CrudCreateGenerator extends MethodGeneratorTemplate {
                     projDto.setAggregateId(refItemDto.getAggregateId());
                     projDto.setVersion(refItemDto.getVersion());
                     projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
-${itemEnrichLines}
+${allItemLines}
                     return projDto;
                 }).collect(Collectors.to${rel.collectionType}()));
             }`;

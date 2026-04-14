@@ -39,7 +39,7 @@ export class SagaFunctionalityGenerator {
         const allWorkflows = getWorkflows(aggregate);
 
         
-        if (aggregate.generateCrud) {
+        if ((aggregate as any).generateCrud) {
             
             const aggregatesToUse = allAggregates || (aggregate.$container as any)?.aggregates || [];
             const crudSagas = this.crudGenerator.generateCrudSagaFunctionalities(aggregate, options, packageName, aggregatesToUse);

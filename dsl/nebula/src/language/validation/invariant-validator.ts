@@ -3,11 +3,9 @@ import type { Invariant } from "../generated/ast.js";
 import { NamingValidator } from "./naming-validator.js";
 
 export class InvariantValidator {
-    constructor(private readonly namingValidator: NamingValidator) { }
+    constructor(_namingValidator: NamingValidator) { void _namingValidator; }
 
     checkInvariant(invariant: Invariant, accept: ValidationAcceptor): void {
-        this.namingValidator.validateName(invariant.name, "invariant", invariant, accept);
-
         if (!invariant.conditions || invariant.conditions.length === 0) {
             accept("error", "Invariant must have at least one condition", {
                 node: invariant,

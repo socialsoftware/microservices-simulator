@@ -392,23 +392,23 @@ export class EntityPipeline extends BaseGenerationPipeline {
     }
 
     private buildEntityPath(aggregate: Aggregate, entity: any, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${entity.name}.java`;
+        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${entity.name}.java`;
     }
 
     private buildDtoPath(_aggregate: Aggregate, entity: any, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/shared/dtos/${entity.name}Dto.java`;
+        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/shared/dtos/${entity.name}Dto.java`;
     }
 
     private buildFactoryPath(aggregate: Aggregate, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${aggregate.name}Factory.java`;
+        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${aggregate.name}Factory.java`;
     }
 
     private buildRepositoryPath(aggregate: Aggregate, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${aggregate.name}CustomRepository.java`;
+        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${aggregate.name}CustomRepository.java`;
     }
 
     private buildRepositoryInterfacePath(aggregate: Aggregate, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${aggregate.name}Repository.java`;
+        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${aggregate.name}Repository.java`;
     }
 
 }
@@ -464,11 +464,11 @@ export class ServicePipeline extends BaseGenerationPipeline {
 
     private buildServicePath(aggregate: Aggregate, serviceDefinition: any, options: GenerationOptions): string {
         const serviceName = serviceDefinition.name || `${aggregate.name}Service`;
-        return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/service/${serviceName}.java`;
+        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/service/${serviceName}.java`;
     }
 
     private buildDefaultServicePath(aggregate: Aggregate, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/service/${aggregate.name}Service.java`;
+        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/service/${aggregate.name}Service.java`;
     }
 }
 
@@ -512,7 +512,7 @@ export class EventPipeline extends BaseGenerationPipeline {
     }
 
     private buildEventPath(aggregate: Aggregate, eventKey: string, options: GenerationOptions): string {
-        const basePath = `${options.outputPath}/src/main/java/pt/ulisboa/tecnico/socialsoftware/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/events`;
+        const basePath = `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/events`;
 
         if (eventKey === 'event-handling') {
             return `${basePath}/handling/${aggregate.name}EventHandling.java`;

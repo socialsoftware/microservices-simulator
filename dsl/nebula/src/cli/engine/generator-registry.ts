@@ -8,7 +8,7 @@ import { RepositoryInterfaceGenerator } from "../generators/microservices/reposi
 import { EventGenerator } from "../generators/microservices/events/event-generator.js";
 import { CoordinationGenerator } from "../generators/coordination/index.js";
 import { WebApiGenerator } from "../generators/coordination/webapi/webapi-generator.js";
-import { ValidationGenerator } from "../generators/validation/validation-generator.js";
+
 import { IntegrationGenerator } from "../generators/coordination/config/integration-generator.js";
 import { SagaGenerator } from "../generators/sagas/saga-generator.js";
 import { SagaFunctionalityGenerator } from "../generators/sagas/saga-functionality-generator.js";
@@ -153,7 +153,6 @@ export interface GeneratorRegistry {
     eventGenerator: EventGenerator;
     coordinationGenerator: CoordinationGenerator;
     webApiGenerator: WebApiGenerator;
-    validationGenerator: ValidationGenerator;
 
     integrationGenerator: IntegrationGenerator;
     configurationGenerator: ConfigurationGenerator;
@@ -278,22 +277,12 @@ export class GeneratorRegistryFactory {
         });
 
         
-        GeneratorDiscovery.register('validationGenerator', new ValidationGenerator(), {
-            name: 'Validation Generator',
-            version: '1.0.0',
-            description: 'Generates validation logic and constraints',
-            category: 'validation',
-            dependencies: ['entityGenerator'],
-            outputTypes: ['java'],
-            isRequired: false
-        });
-
         GeneratorDiscovery.register('validationSystem', new AggregateValidator(), {
             name: 'Validation System',
             version: '1.0.0',
             description: 'Comprehensive validation system',
             category: 'validation',
-            dependencies: ['validationGenerator'],
+            dependencies: [],
             outputTypes: ['java'],
             isRequired: false
         });

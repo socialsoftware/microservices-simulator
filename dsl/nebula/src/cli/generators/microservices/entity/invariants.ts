@@ -1,6 +1,7 @@
 import { Entity } from "../../../../language/generated/ast.js";
 import { capitalize } from "../../../utils/generator-utils.js";
 import { ImportRequirements } from "./types.js";
+import { getGlobalConfig } from "../../common/config.js";
 
 export function generateInvariants(entity: Entity): { code: string, imports?: ImportRequirements } {
     const hasInvariants = entity.invariants && entity.invariants.length > 0;
@@ -21,7 +22,8 @@ export function generateInvariants(entity: Entity): { code: string, imports?: Im
 
     
     const invariantMethods = entity.invariants.map((invariant: any, index: number) => {
-        const methodName = `invariant${capitalize(invariant.name)}`;
+        const invariantName = invariant.name || `rule${index}`;
+        const methodName = `invariant${capitalize(invariantName)}`;
 
         
         const condition = getInvariantConditionText(invariant);
@@ -36,8 +38,9 @@ export function generateInvariants(entity: Entity): { code: string, imports?: Im
     }).join('\n');
 
     
-    const individualChecks = entity.invariants.map((invariant: any) => {
-        const methodName = `invariant${capitalize(invariant.name)}()`;
+    const individualChecks = entity.invariants.map((invariant: any, index: number) => {
+        const invariantName = invariant.name || `rule${index}`;
+        const methodName = `invariant${capitalize(invariantName)}()`;
         
         const message = invariant.errorMessage.replace(/^["']|["']$/g, '');
         return `        if (!${methodName}) {
@@ -51,9 +54,10 @@ export function generateInvariants(entity: Entity): { code: string, imports?: Im
 ${individualChecks}
     }`;
 
+    const fwk = getGlobalConfig().getFrameworkPackage();
     imports.customImports = new Set([
-        'import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;',
-        'import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;'
+        `import static ${fwk}.exception.SimulatorErrorMessage.INVARIANT_BREAK;`,
+        `import ${fwk}.exception.SimulatorException;`
     ]);
 
     return {

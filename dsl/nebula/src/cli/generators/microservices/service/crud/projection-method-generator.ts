@@ -17,11 +17,26 @@ export class ProjectionMethodGenerator {
         }
 
         
-        const simpleSubscriptions = events.subscribedEvents.filter((sub: any) => {
+        const plainSubscriptions = (events.subscribedEvents || []).filter((sub: any) => {
             const hasConditions = sub.conditions && sub.conditions.length > 0 &&
                 sub.conditions.some((c: any) => c.condition);
             const hasRouting = (sub as any).routingIdExpr;
             return !hasConditions && !hasRouting;
+        });
+
+        const interInvariantUpdated = (events.interInvariants || []).flatMap((ii: any) =>
+            (ii?.subscribedEvents || []).filter((sub: any) => {
+                const eventType = sub.eventType || '';
+                return eventType.includes('Updated');
+            })
+        );
+
+        const seen = new Set<string>();
+        const simpleSubscriptions = [...plainSubscriptions, ...interInvariantUpdated].filter((sub: any) => {
+            const eventType = sub.eventType || '';
+            if (seen.has(eventType)) return false;
+            seen.add(eventType);
+            return true;
         });
 
         if (simpleSubscriptions.length === 0) {

@@ -10,19 +10,20 @@ export class ServiceBusinessGenerator {
             return '';
         }
 
-        const entityMethods = aggregate.methods.filter(method => {
-            const isServiceQuery = (method.name.startsWith('get') && method.name.includes('By')) ||
-                (method.name.startsWith('find') && method.name.includes('By'));
-
-            return !isServiceQuery;
-        });
-
-        const methods = entityMethods.map(method => {
+        const methods = aggregate.methods.map(method => {
+            if ((method as any).queryBody) {
+                return this.generateQueryMethod(method, aggregateName, projectName, aggregate);
+            }
             if (ActionMethodGenerator.hasActionBody(method)) {
                 return ActionMethodGenerator.generate(method, aggregateName, rootEntity, projectName);
             }
+            const isServiceQuery = (method.name.startsWith('get') && method.name.includes('By')) ||
+                (method.name.startsWith('find') && method.name.includes('By'));
+            if (isServiceQuery) {
+                return '';
+            }
             return this.generateBusinessMethod(method, aggregateName, rootEntity, projectName);
-        }).join('\n\n');
+        }).filter(m => m.length > 0).join('\n\n');
 
         return methods;
     }
@@ -37,6 +38,52 @@ export class ServiceBusinessGenerator {
         ).join('\n\n');
 
         return methods;
+    }
+
+    private static generateQueryMethod(method: Method, aggregateName: string, projectName: string, aggregate?: Aggregate): string {
+        const queryBody = (method as any).queryBody;
+        const repoMethodName = queryBody.repositoryMethod;
+        const lowerAggregate = aggregateName.toLowerCase();
+        const capitalizedAggregate = capitalize(aggregateName);
+
+        const args = (queryBody.args || []).map((a: any) => {
+            if (a.name) return a.name;
+            if (a.stringValue !== undefined) return `"${a.stringValue}"`;
+            if (a.literalValue !== undefined) return a.literalValue;
+            return 'null';
+        });
+
+        const repoCall = `${lowerAggregate}Repository.${repoMethodName}(${args.join(', ')})`;
+
+        const methodParams = (method.parameters || []).map((p: any) => {
+            const pType = TypeResolver.resolveJavaType(p.type);
+            return `${pType} ${p.name}`;
+        });
+        methodParams.push('UnitOfWork unitOfWork');
+
+        const body = `            Set<Integer> aggregateIds = ${repoCall};
+            return aggregateIds.stream()
+                .map(id -> {
+                    try {
+                        return (${capitalizedAggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(${lowerAggregate}Factory::create${capitalizedAggregate}Dto)
+                .collect(java.util.stream.Collectors.toList());`;
+
+        return `    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public java.util.List<${capitalizedAggregate}Dto> ${method.name}(${methodParams.join(', ')}) {
+        try {
+${body}
+        } catch (${capitalize(projectName)}Exception e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ${capitalize(projectName)}Exception("Error in ${method.name} ${capitalizedAggregate}: " + e.getMessage());
+        }
+    }`;
     }
 
     private static generateBusinessMethod(method: Method, aggregateName: string, rootEntity: Entity, projectName: string): string {
@@ -68,8 +115,7 @@ ${ExceptionGenerator.generateTryCatchWrapper(projectName, `in ${methodName}`, ag
                 `            // Step ${index + 1}: ${step.name}
             ${this.generateWorkflowStep(step, aggregateName)}`
             ).join('\n') :
-            `            // Workflow logic not yet defined in DSL
-            throw new UnsupportedOperationException("Workflow ${methodName} not implemented");`;
+            `            throw new UnsupportedOperationException("Workflow ${methodName} not implemented");`;
 
         const methodBody = workflowSteps + (returnType !== 'void' ? '\n            return result;' : '');
 
@@ -84,7 +130,6 @@ ${ExceptionGenerator.generateTryCatchWrapper(projectName, `in workflow ${methodN
         const stepName = step.name;
 
         if (!stepType) {
-            console.warn(`Step type is undefined for aggregate ${aggregateName}`);
             return '// Step type was undefined';
         }
         switch (stepType.toLowerCase()) {
@@ -99,8 +144,7 @@ ${ExceptionGenerator.generateTryCatchWrapper(projectName, `in workflow ${methodN
             case 'notification':
                 return `notificationService.send${capitalize(stepName)}Notification();`;
             default:
-                return `// Execute ${stepName}
-            execute${capitalize(stepName)}();`;
+                return `execute${capitalize(stepName)}();`;
         }
     }
 
@@ -134,9 +178,7 @@ ${ExceptionGenerator.generateTryCatchWrapper(projectName, `in workflow ${methodN
         const rootEntityVar = lowerAggregate;
 
         let body = `            ${capitalizedAggregate} ${rootEntityVar} = ${lowerAggregate}Repository.findById(id)
-                .orElseThrow(() -> new ${capitalize(projectName)}Exception("${capitalizedAggregate} not found with id: " + id));
-            
-            // Business logic for ${method.name}`;
+                .orElseThrow(() -> new ${capitalize(projectName)}Exception("${capitalizedAggregate} not found with id: " + id));`;
 
         if (method.returnType) {
             const returnType = TypeResolver.resolveJavaType(method.returnType);

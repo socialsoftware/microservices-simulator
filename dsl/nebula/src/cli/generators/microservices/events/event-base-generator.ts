@@ -110,7 +110,7 @@ export abstract class EventBaseGenerator extends GeneratorBase {
             }
 
             
-            if (agg.generateCrud) {
+            if ((agg as any).generateCrud) {
                 const rootCrudEvents = [
                     `${aggName}UpdatedEvent`,
                     `${aggName}DeletedEvent`

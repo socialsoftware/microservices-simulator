@@ -22,7 +22,6 @@ import {
     EventsFeature,
     CoordinationFeature,
     WebApiFeature,
-    ValidationFeature,
     SagaFeature,
     ServiceFeature
 } from "../features/index.js";
@@ -116,7 +115,6 @@ export class CodeGenerator {
                     await EventsFeature.generateEvents(aggregate, aggregatePath, options, generators);
                     await CoordinationFeature.generateCoordination(aggregate, aggregatePath, options, generators, aggregates);
                     await WebApiFeature.generateWebApi(aggregate, aggregatePath, options, generators, aggregates);
-                    await ValidationFeature.generateValidation(aggregate, paths, options, generators);
                     await SagaFeature.generateSaga(aggregate, aggregatePath, options, generators, aggregates);
 
                     const commandGenerator = new CommandGenerator();

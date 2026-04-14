@@ -55,7 +55,7 @@ abstract class GeneratorPatternBase {
     }
 
     protected generatePackageName(projectName: string, aggregateName: string, ...subPackages: string[]): string {
-        const basePackage = 'pt.ulisboa.tecnico.socialsoftware';
+        const basePackage = getGlobalConfig().getBasePackage();
         const microservicePackage = `microservices.${aggregateName.toLowerCase()}`;
         const subPackageString = subPackages.filter(p => p).join('.');
         return `${basePackage}.${projectName.toLowerCase()}.${microservicePackage}.${subPackageString}`;

@@ -14,7 +14,8 @@ export interface GenerationConfig {
     version: string; 
     outputDirectory: string;
     packageName: string;
-    basePackage: string; 
+    basePackage: string;
+    frameworkPackage: string;
 
     architecture: 'microservices' | 'monolith';
     consistencyModels?: string[];
@@ -130,7 +131,8 @@ export class ConfigManager {
             version: '1.0.0-SNAPSHOT',
             outputDirectory: '../../applications',
             packageName: 'com.generated.microservices',
-            basePackage: 'com.generated', 
+            basePackage: 'com.generated',
+            frameworkPackage: 'pt.ulisboa.tecnico.socialsoftware.ms',
             architecture: 'microservices',
             templateEngine: 'simple',
             templateCaching: true,
@@ -283,6 +285,10 @@ export class ConfigManager {
 
     getBasePackage(): string {
         return this.config.basePackage;
+    }
+
+    getFrameworkPackage(): string {
+        return this.config.frameworkPackage;
     }
 
     getFeatureOutputPath(feature: string): string {

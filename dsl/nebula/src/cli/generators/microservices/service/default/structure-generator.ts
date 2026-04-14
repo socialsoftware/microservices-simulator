@@ -17,6 +17,7 @@ export class ServiceStructureGenerator {
         const imports = [
             'import org.springframework.beans.factory.annotation.Autowired;',
             'import org.springframework.stereotype.Service;',
+            'import org.springframework.transaction.annotation.Isolation;',
             'import org.springframework.transaction.annotation.Transactional;',
             '',
             `import ${getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'aggregate')}.*;`,
@@ -98,9 +99,10 @@ export class ServiceStructureGenerator {
             }
         }
 
-        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;');
-        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;');
-        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;');
+        const fwk = getGlobalConfig().getFrameworkPackage();
+        imports.push(`import ${fwk}.coordination.unitOfWork.UnitOfWork;`);
+        imports.push(`import ${fwk}.coordination.unitOfWork.UnitOfWorkService;`);
+        imports.push(`import ${fwk}.domain.aggregate.AggregateIdGeneratorService;`);
 
 
         const eventsPackage = getGlobalConfig().buildPackageName(projectName, 'events');

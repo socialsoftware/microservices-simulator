@@ -74,7 +74,7 @@ export class ServiceDefinitionGenerator {
             imports,
             methods,
             dependencies,
-            generateCrud: aggregate.generateCrud || false,
+            generateCrud: (aggregate as any).generateCrud || false,
             transactional: serviceDefinition.transactional || false,
             projectName: options.projectName.toLowerCase(),
             annotations: this.getFrameworkAnnotations()
@@ -97,14 +97,14 @@ export class ServiceDefinitionGenerator {
             '',
             'import org.springframework.dao.CannotAcquireLockException;',
             '',
-            'import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;',
-            'import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;',
-            'import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;',
+            `import ${getGlobalConfig().getFrameworkPackage()}.coordination.unitOfWork.UnitOfWork;`,
+            `import ${getGlobalConfig().getFrameworkPackage()}.coordination.unitOfWork.UnitOfWorkService;`,
+            `import ${getGlobalConfig().getFrameworkPackage()}.domain.aggregate.AggregateIdGeneratorService;`,
             `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'aggregate')}.*;`,
             `import ${getGlobalConfig().buildPackageName(options.projectName, 'shared', 'dtos')}.*;`
         ];
 
-        if (aggregate.generateCrud) {
+        if ((aggregate as any).generateCrud) {
             const aggregateName = aggregate.name;
             const lowerAggregate = aggregateName.toLowerCase();
             const eventPackage = getGlobalConfig().buildPackageName(options.projectName, 'events');
@@ -168,7 +168,7 @@ export class ServiceDefinitionGenerator {
         const methods: any[] = [];
         const entityName = rootEntity.name;
 
-        if (aggregate.generateCrud) {
+        if ((aggregate as any).generateCrud) {
             const crudOptions = CrudMethodGenerator.createOptions({
                 transactional: serviceDefinition.transactional || false,
                 includeValidation: true
@@ -180,7 +180,7 @@ export class ServiceDefinitionGenerator {
         }
 
         if (serviceDefinition.serviceMethods) {
-            const crudMethodNames = aggregate.generateCrud ? new Set([
+            const crudMethodNames = (aggregate as any).generateCrud ? new Set([
                 `create${entityName}`,
                 `get${entityName}ById`,
                 `update${entityName}`,

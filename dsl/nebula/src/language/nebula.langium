@@ -1,30 +1,80 @@
 grammar Nebula
 
 entry Model:
-    (aggregates+=Aggregate | sharedEnums+=SharedEnums)*
+    (aggregates+=Aggregate | sharedEnums+=SharedEnums | topLevelWorkflows+=TopLevelWorkflow)*
     (exceptions=ExceptionMessages)?;
+
+TopLevelWorkflow:
+    'Workflow' name=ID '{'
+        ('input' '{'
+            (inputs+=WorkflowInput (',' inputs+=WorkflowInput)*)?
+        '}')?
+        workflowSteps+=TopLevelWorkflowStep+
+    '}';
+
+WorkflowInput:
+    type=ParamType name=ID;
+
+TopLevelWorkflowStep:
+    'step' name=ID '{'
+        'action' ':' action=WorkflowActionCall
+        ('compensate' ':' compensate=WorkflowActionCall)?
+    '}';
+
+WorkflowActionCall:
+    target=ID '.' method=ID '(' (args+=WorkflowCallArg (',' args+=WorkflowCallArg)*)? ')';
+
+WorkflowCallArg:
+    name=ID ('.' chain+=ID)*;
 
 Aggregate:
     (annotations+=Annotation)*
     'Aggregate' name=ID '{'
-        (generateCrud?='@GenerateCrud')?
         (aggregateElements+=AggregateElement)*
     '}';
 
 AggregateElement:
-    Entity | Method | Workflow | Repository | Events | References | WebAPIEndpoints | ServiceDefinition | Functionalities;
+    Entity | Method | Workflow | Repository | Events | References | WebAPIEndpoints | ServiceDefinition | Functionalities | StateMachine | SagaStates;
+
+StateMachine:
+    'States' name=ID '{'
+        ('initial' initial=ID)?
+        ('terminal' terminal+=ID (',' terminal+=ID)*)?
+        transitions+=StateTransition*
+    '}';
+
+StateTransition:
+    from=ID '->' to=ID
+    ('publishes' eventType=ID
+        ('{'
+            (assignments+=PublishesFieldAssignment (',' assignments+=PublishesFieldAssignment)*)?
+        '}')?
+    )?;
+
+SagaStates:
+    'SagaStates' '{'
+        states+=ID (',' states+=ID)*
+    '}';
 
 Entity:
     (isRoot?='Root')? (generateDto?='Dto')? 'Entity' name=ID
     ('from' aggregateRef=ID)?
     (
         '{'
-            (properties+=Property | fieldMappings+=DtoFieldMapping)*
+            (properties+=Property | fieldMappings+=DtoFieldMapping | sourceBlocks+=SourceBlock)*
             ('invariants' '{'
                 invariants+=Invariant*
             '}')?
         '}'
     )?;
+
+SourceBlock:
+    'from' aggregateRef=ID '{'
+        (sources+=SourcedField (',' sources+=SourcedField)*)?
+    '}';
+
+SourcedField:
+    dtoField=DtoFieldPath ('as' entityField=ID)?;
 
 DtoFieldMapping:
     'map' dtoField=DtoFieldPath 'as' entityField=ID;
@@ -37,8 +87,11 @@ Method:
     'method' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
     (':' returnType=ReturnType)?
     (
-        '{' (rawBody=STRING | actionBody=ActionMethodBody) '}'
+        '{' (rawBody=STRING | actionBody=ActionMethodBody | queryBody=QueryMethodBody) '}'
     )?;
+
+QueryMethodBody:
+    'query' repositoryMethod=ID '(' (args+=ActionExpression (',' args+=ActionExpression)*)? ')';
 
 ActionMethodBody:
     ('precondition' '{' preconditions+=ActionPrecondition* '}')?
@@ -61,7 +114,10 @@ ActionBoolOp returns string:
     '==' | '!=' | '<=' | '>=' | '<' | '>';
 
 ActionStatement:
-    CreateActionStatement | LoadActionStatement | AssignActionStatement | ExtensionActionStatement;
+    CreateActionStatement | LoadActionStatement | FindActionStatement | AssignActionStatement | ExtensionActionStatement;
+
+FindActionStatement:
+    'find' collection=ActionRef 'where' field=ID '==' value=ActionExpression 'as' alias=ID;
 
 LoadActionStatement:
     'load' aggregateRef=ID '(' id=ActionExpression ')' 'as' alias=ID;
@@ -87,7 +143,10 @@ ActionRef:
     name=ID ('.' chain+=ID)*;
 
 ActionLiteral:
-    stringValue=STRING | literalValue=LITERAL;
+    stringValue=STRING | literalValue=LITERAL | boolLiteral=BooleanLiteral;
+
+BooleanLiteral returns string:
+    'true' | 'false';
 
 Workflow:
     (annotations+=Annotation)*
@@ -238,10 +297,7 @@ AggregateStateQualified returns string:
     'AggregateState' '.' ID;
 
 Invariant:
-    'check' name=ID '{'
-        conditions+=InvariantCondition*
-    '}'
-    'error' errorMessage=STRING;
+    conditions+=InvariantCondition ':' errorMessage=STRING;
 
 InvariantCondition:
     expression=Expression;

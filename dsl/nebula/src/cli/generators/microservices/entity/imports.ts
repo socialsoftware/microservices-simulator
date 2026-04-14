@@ -8,6 +8,7 @@ export function scanCodeForImports(javaCode: string, projectName: string, isRoot
     if (javaCode.includes('@Id')) imports.push('import jakarta.persistence.Id;');
     if (javaCode.includes('@GeneratedValue')) imports.push('import jakarta.persistence.GeneratedValue;');
     if (javaCode.includes('@OneToOne')) imports.push('import jakarta.persistence.OneToOne;');
+    if (javaCode.includes('@ManyToOne')) imports.push('import jakarta.persistence.ManyToOne;');
     if (javaCode.includes('@OneToMany')) imports.push('import jakarta.persistence.OneToMany;');
     if (javaCode.includes('CascadeType')) imports.push('import jakarta.persistence.CascadeType;');
     if (javaCode.includes('FetchType')) imports.push('import jakarta.persistence.FetchType;');
@@ -26,16 +27,17 @@ export function scanCodeForImports(javaCode: string, projectName: string, isRoot
         if (aggregateName && entityName && aggregateName !== entityName) {
             
         } else {
-            imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;');
+            const fwk = getGlobalConfig().getFrameworkPackage();
+            imports.push(`import ${fwk}.domain.aggregate.Aggregate;`);
         }
     }
 
-    
+    const fwk = getGlobalConfig().getFrameworkPackage();
     if (javaCode.includes('INVARIANT_BREAK')) {
-        imports.push('import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.INVARIANT_BREAK;');
+        imports.push(`import static ${fwk}.exception.SimulatorErrorMessage.INVARIANT_BREAK;`);
     }
     if (javaCode.includes('SimulatorException')) {
-        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;');
+        imports.push(`import ${fwk}.exception.SimulatorException;`);
     }
 
     
@@ -65,7 +67,7 @@ export function scanCodeForImports(javaCode: string, projectName: string, isRoot
 
     
     if (javaCode.includes('AggregateState')) {
-        imports.push('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
+        imports.push(`import ${fwk}.domain.aggregate.Aggregate.AggregateState;`);
     }
 
     return imports;

@@ -174,7 +174,23 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
         (aggregate as any).aggregateElements = [];
     }
 
-    
+    for (const element of aggregate.aggregateElements || []) {
+        const entity = element as any;
+        if (element.$type === 'Entity') {
+            if (entity.sourceBlocks && entity.sourceBlocks.length > 0 && !entity.aggregateRef) {
+                const block = entity.sourceBlocks[0];
+                entity.aggregateRef = block.aggregateRef;
+                if (!entity.fieldMappings || entity.fieldMappings.length === 0) {
+                    entity.fieldMappings = (block.sources || []).map((s: any) => ({
+                        dtoField: s.dtoField,
+                        entityField: s.entityField,
+                        type: s.type
+                    }));
+                }
+            }
+        }
+    }
+
     try {
         Object.defineProperty(aggregate, 'entities', {
             get: () => getEntities(aggregate),
@@ -233,6 +249,8 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
         enumerable: true,
         configurable: true
     });
+
+    (aggregate as any).generateCrud = true;
 
     initializedAggregates.add(aggregate);
 }
@@ -582,6 +600,43 @@ export function getEffectiveProperties(entity: Entity): any[] {
             $dtoField: dtoFieldStr
         });
         combinedNames.add(m.entityField);
+    }
+
+    const anyEntity = entity as any;
+    const aggregateRef = anyEntity.aggregateRef;
+    if (aggregateRef && !anyEntity.isRoot) {
+        const refName = typeof aggregateRef === 'string' ? aggregateRef :
+            aggregateRef.ref?.name || aggregateRef.$refText || '';
+        const lowerRef = refName.charAt(0).toLowerCase() + refName.slice(1);
+
+        const idFieldName = `${lowerRef}AggregateId`;
+        const versionFieldName = `${lowerRef}Version`;
+        const stateFieldName = `${lowerRef}State`;
+
+        if (!combinedNames.has(idFieldName)) {
+            combinedProps.push({
+                name: idFieldName,
+                type: { $type: 'PrimitiveType', typeName: 'Integer' },
+                $syntheticBase: true
+            });
+            combinedNames.add(idFieldName);
+        }
+        if (!combinedNames.has(versionFieldName)) {
+            combinedProps.push({
+                name: versionFieldName,
+                type: { $type: 'PrimitiveType', typeName: 'Integer' },
+                $syntheticBase: true
+            });
+            combinedNames.add(versionFieldName);
+        }
+        if (!combinedNames.has(stateFieldName)) {
+            combinedProps.push({
+                name: stateFieldName,
+                type: { $type: 'BuiltinType', typeName: 'AggregateState' },
+                $syntheticBase: true
+            });
+            combinedNames.add(stateFieldName);
+        }
     }
 
     return combinedProps;

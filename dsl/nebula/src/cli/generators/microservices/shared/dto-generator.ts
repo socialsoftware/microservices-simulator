@@ -116,7 +116,7 @@ function generateDtoImports(entity: Entity, projectName: string, aggregateName: 
 
     const needsAggregateState = fields.some(field => field.javaType === 'AggregateState' || field.javaType.includes('AggregateState'));
     if (needsAggregateState) {
-        imports.add('import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;');
+        imports.add(`import ${getGlobalConfig().getFrameworkPackage()}.domain.aggregate.Aggregate.AggregateState;`);
     }
 
     

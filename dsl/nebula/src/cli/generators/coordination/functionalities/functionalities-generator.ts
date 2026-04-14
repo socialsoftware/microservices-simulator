@@ -156,7 +156,7 @@ export class FunctionalitiesGenerator {
         const lowerAggregate = aggregateName.toLowerCase();
 
         
-        if (aggregate.generateCrud) {
+        if ((aggregate as any).generateCrud) {
             const crudMethods = this.crudGenerator.generateCrudMethods(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates, projectName);
             crudMethods.forEach(method => {
                 const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
@@ -240,7 +240,7 @@ export class FunctionalitiesGenerator {
 
     private buildCheckInputMethod(aggregate: AggregateExt, rootEntity: EntityExt, aggregateName: string, lowerAggregate: string, projectName: string): string | null {
         
-        const hasCrud = aggregate.generateCrud;
+        const hasCrud = (aggregate as any).generateCrud;
         if (!hasCrud) {
             return null;
         }
