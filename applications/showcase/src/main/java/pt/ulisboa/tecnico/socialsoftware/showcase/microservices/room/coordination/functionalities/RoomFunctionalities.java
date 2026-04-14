@@ -199,6 +199,76 @@ public class RoomFunctionalities {
         }
     }
 
+    public void reserve(Integer roomId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                ReserveFunctionalitySagas reserveFunctionalitySagas = new ReserveFunctionalitySagas(
+                        sagaUnitOfWorkService, roomService, roomId, sagaUnitOfWork, commandGateway);
+                reserveFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new ShowcaseException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void checkIn(Integer roomId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                CheckInFunctionalitySagas checkInFunctionalitySagas = new CheckInFunctionalitySagas(
+                        sagaUnitOfWorkService, roomService, roomId, sagaUnitOfWork, commandGateway);
+                checkInFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new ShowcaseException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void checkOut(Integer roomId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                CheckOutFunctionalitySagas checkOutFunctionalitySagas = new CheckOutFunctionalitySagas(
+                        sagaUnitOfWorkService, roomService, roomId, sagaUnitOfWork, commandGateway);
+                checkOutFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new ShowcaseException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void release(Integer roomId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                ReleaseFunctionalitySagas releaseFunctionalitySagas = new ReleaseFunctionalitySagas(
+                        sagaUnitOfWorkService, roomService, roomId, sagaUnitOfWork, commandGateway);
+                releaseFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new ShowcaseException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void retire(Integer roomId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                RetireFunctionalitySagas retireFunctionalitySagas = new RetireFunctionalitySagas(
+                        sagaUnitOfWorkService, roomService, roomId, sagaUnitOfWork, commandGateway);
+                retireFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new ShowcaseException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
     private void checkInput(RoomDto roomDto) {
         if (roomDto.getRoomNumber() == null) {
             throw new ShowcaseException(ROOM_MISSING_ROOMNUMBER);

@@ -78,4 +78,41 @@ Aggregate Room {
             String roomNumber
         }
     }
+
+    WebAPIEndpoints {
+        Endpoint reserve {
+            httpMethod: POST
+            path: "/rooms/{roomId}/reserve"
+            methodName: reserve
+            parameters: [ roomId: Integer : "@PathVariable" ]
+        }
+
+        Endpoint checkIn {
+            httpMethod: POST
+            path: "/rooms/{roomId}/checkin"
+            methodName: checkIn
+            parameters: [ roomId: Integer : "@PathVariable" ]
+        }
+
+        Endpoint checkOut {
+            httpMethod: POST
+            path: "/rooms/{roomId}/checkout"
+            methodName: checkOut
+            parameters: [ roomId: Integer : "@PathVariable" ]
+        }
+
+        Endpoint release {
+            httpMethod: POST
+            path: "/rooms/{roomId}/release"
+            methodName: release
+            parameters: [ roomId: Integer : "@PathVariable" ]
+        }
+
+        Endpoint retire {
+            httpMethod: POST
+            path: "/rooms/{roomId}/retire"
+            methodName: retire
+            parameters: [ roomId: Integer : "@PathVariable" ]
+        }
+    }
 }

@@ -6,15 +6,16 @@ import { StringUtils } from '../../../utils/string-utils.js';
 
 export class FunctionalitiesMethodGenerator {
 
-    
+
 
     generateWebApiMethodBody(endpoint: any, returnType: string, aggregateName: string, consistencyModels: string[], projectName?: string): string {
         const methodName = endpoint.methodName;
         const capitalizedMethodName = StringUtils.capitalize(methodName);
         const lowerAggregateName = aggregateName.toLowerCase();
         const params = this.extractEndpointParameters(endpoint.parameters);
+        const isCustomMethod = !this.isCrudMethodName(methodName, aggregateName);
 
-        const sagaParams = this.buildSagaParameters(params, lowerAggregateName);
+        const sagaParams = this.buildSagaParameters(params, lowerAggregateName, isCustomMethod);
         const sagaCall = this.buildSagaCall(methodName, returnType);
 
         const cases = `            case SAGAS:
@@ -33,7 +34,7 @@ ${cases}
         }`;
     }
 
-    
+
 
     generateFunctionalityMethodBody(func: any, returnType: string, aggregateName: string, projectName?: string): string {
         const methodName = func.name;
@@ -54,7 +55,7 @@ ${cases}
         }`;
     }
 
-    
+
 
     extractEndpointParameters(parameters: any): any[] {
         if (!parameters) return [];
@@ -83,7 +84,7 @@ ${cases}
         });
     }
 
-    
+
 
     extractFunctionalityParameters(parameters: any): any[] {
         if (!parameters) return [];
@@ -115,7 +116,7 @@ ${cases}
         });
     }
 
-    
+
 
     extractReturnType(returnType: any, entityRegistry: EntityRegistry): string {
         if (!returnType) return 'void';
@@ -152,10 +153,14 @@ ${cases}
         return 'void';
     }
 
-    
 
-    private buildSagaParameters(params: any[], aggregateName: string): string {
+
+    private buildSagaParameters(params: any[], aggregateName: string, includeService: boolean = false): string {
         const baseParams = ['sagaUnitOfWorkService'];
+
+        if (includeService) {
+            baseParams.push(`${aggregateName}Service`);
+        }
 
         params.forEach(param => {
             if (param.name) {
@@ -168,7 +173,18 @@ ${cases}
         return baseParams.join(', ');
     }
 
-    
+    private isCrudMethodName(methodName: string, aggregateName: string): boolean {
+        const cap = aggregateName.charAt(0).toUpperCase() + aggregateName.slice(1);
+        return (
+            methodName === `create${cap}` ||
+            methodName === `get${cap}ById` ||
+            methodName === `getAll${cap}s` ||
+            methodName === `update${cap}` ||
+            methodName === `delete${cap}`
+        );
+    }
+
+
 
     private buildSagaCall(methodName: string, returnType: string): string {
         if (returnType === 'void') {

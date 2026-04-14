@@ -39,4 +39,14 @@ public class UserController {
     public List<UserDto> getAllUsers() {
         return userFunctionalities.getAllUsers();
     }
+
+    @PostMapping("/users/signup")
+    public void signUp(@RequestParam String username, @RequestParam String email) {
+        userFunctionalities.signUp(username, email);
+    }
+
+    @PostMapping("/users/{userId}/loyalty")
+    public void awardLoyaltyPoints(@PathVariable Integer userId, @RequestParam Integer points) {
+        userFunctionalities.awardLoyaltyPoints(userId, points);
+    }
 }

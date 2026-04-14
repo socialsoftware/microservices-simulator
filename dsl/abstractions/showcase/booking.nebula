@@ -85,4 +85,14 @@ Aggregate Booking {
         Set<Integer> findConfirmedBookingIds()
     }
 
+    WebAPIEndpoints {
+        Endpoint confirmBooking {
+            httpMethod: POST
+            path: "/bookings/{bookingId}/confirm"
+            methodName: confirmBooking
+            parameters: [ bookingId: Integer : "@PathVariable" ]
+            desc: "Mark a booking as confirmed"
+        }
+    }
+
 }

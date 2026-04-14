@@ -51,4 +51,28 @@ Aggregate User {
         @Query("select u.aggregateId from User u where u.state != 'DELETED' and u.active = true")
         Set<Integer> findActiveUserIds()
     }
+
+    WebAPIEndpoints {
+        Endpoint signUp {
+            httpMethod: POST
+            path: "/users/signup"
+            methodName: signUp
+            parameters: [
+                username: String : "@RequestParam",
+                email: String : "@RequestParam"
+            ]
+            desc: "Create a user with BRONZE tier and zero loyalty points"
+        }
+
+        Endpoint awardLoyaltyPoints {
+            httpMethod: POST
+            path: "/users/{userId}/loyalty"
+            methodName: awardLoyaltyPoints
+            parameters: [
+                userId: Integer : "@PathVariable",
+                points: Integer : "@RequestParam"
+            ]
+            desc: "Award loyalty points to a user"
+        }
+    }
 }

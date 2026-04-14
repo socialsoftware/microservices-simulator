@@ -26,7 +26,7 @@ export class SagaFunctionalityGenerator {
         return options.basePackage;
     }
 
-    
+
 
     generateForAggregate(aggregate: any, options: SagaGenerationOptions, allAggregates?: Aggregate[]): Record<string, string> {
         const outputs: Record<string, string> = {};
@@ -34,7 +34,7 @@ export class SagaFunctionalityGenerator {
         const lowerAggregate = aggregate.name.toLowerCase();
         const packageName = `${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.coordination.sagas`;
 
-        
+
         initializeAggregateProperties(aggregate);
         const allWorkflows = getWorkflows(aggregate);
 
@@ -53,19 +53,19 @@ export class SagaFunctionalityGenerator {
             Object.assign(outputs, collectionSagas);
         }
 
-        
+
         this.generateEndpointSagaFunctionalities(aggregate, options, packageName, allWorkflows, outputs);
 
-        
+
         this.generateFunctionalityMethodSagas(aggregate, options, packageName, outputs);
 
-        
+
         this.eventProcessingGenerator.generateEventProcessingSagaFunctionalities(aggregate, options, outputs);
 
         return outputs;
     }
 
-    
+
 
     private generateEndpointSagaFunctionalities(
         aggregate: any,
@@ -82,25 +82,25 @@ export class SagaFunctionalityGenerator {
 
             const className = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
 
-            
+
             const matchingWorkflow = allWorkflows.find((w: any) =>
                 w.name === methodName && w.workflowSteps && w.workflowSteps.length > 0
             );
 
             if (matchingWorkflow) {
-                
+
                 const content = this.workflowGenerator.generateWorkflowFunctionality(aggregate, matchingWorkflow, options, packageName);
                 outputs[className + '.java'] = content;
                 continue;
             }
 
-            
+
             const content = this.generateBasicEndpointSaga(aggregate, endpoint, options, packageName);
             outputs[className + '.java'] = content;
         }
     }
 
-    
+
 
     private generateBasicEndpointSaga(
         aggregate: any,
@@ -110,21 +110,33 @@ export class SagaFunctionalityGenerator {
     ): string {
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
+        const aggregateName = aggregate.name;
         const methodName = endpoint.methodName;
         const className = `${StringUtils.capitalize(methodName)}FunctionalitySagas`;
         const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot) || { name: aggregate.name };
+        const serviceClass = `${aggregateName}Service`;
+        const serviceVar = `${lowerAggregate}Service`;
+        const isCustomMethod = !this.isCrudMethodName(methodName, aggregateName);
 
         const imports: string[] = [];
         imports.push(`import ${basePackage}.ms.coordination.workflow.command.CommandGateway;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`);
         imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
+        if (isCustomMethod) {
+            imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.service.${serviceClass};`);
+        }
 
-        const constructorDependencies = [
+        const constructorDependencies: Array<{ type: string; name: string }> = [
             { type: 'SagaUnitOfWorkService', name: 'sagaUnitOfWorkService' },
+        ];
+        if (isCustomMethod) {
+            constructorDependencies.push({ type: serviceClass, name: serviceVar });
+        }
+        constructorDependencies.push(
             { type: 'SagaUnitOfWork', name: 'unitOfWork' },
             { type: 'CommandGateway', name: 'commandGateway' }
-        ];
+        );
 
         let resultType: string | undefined;
         if (endpoint.returnType) {
@@ -142,20 +154,69 @@ export class SagaFunctionalityGenerator {
             }
         }
 
+        const buildParams: Array<{ type: string; name: string }> = [];
+        for (const p of (endpoint.parameters || [])) {
+            const pName = p.name;
+            const pType = typeof p.type === 'string' ? p.type : (p.type?.typeName || p.type?.name || 'Object');
+            if (pName && pType) {
+                buildParams.push({ type: pType, name: pName });
+            }
+        }
+        const constructorParams = this.interleaveConstructorParams(constructorDependencies, buildParams);
+
+        let stepsBody = '';
+        if (isCustomMethod) {
+            const argList = buildParams.map(p => p.name).join(', ');
+            const callArgs = argList ? `${argList}, this.unitOfWork` : 'this.unitOfWork';
+            const invocation = resultType
+                ? `result = this.${serviceVar}.${methodName}(${callArgs});`
+                : `this.${serviceVar}.${methodName}(${callArgs});`;
+            stepsBody = `        SagaStep ${methodName}Step = new SagaStep("${methodName}Step", () -> {
+            ${invocation}
+        });
+        this.workflow.addStep(${methodName}Step);`;
+        }
+
         const context = {
             packageName,
             imports,
             className,
-            constructorDependencies,
-            buildParams: [],
+            dependencyFields: constructorDependencies,
+            constructorParams,
+            buildParams,
             resultType,
-            stepsBody: ''
+            stepsBody
         };
 
         return this.templateManager.renderTemplate('saga/functionality.hbs', context);
     }
 
-    
+    private isCrudMethodName(methodName: string, aggregateName: string): boolean {
+        const cap = aggregateName.charAt(0).toUpperCase() + aggregateName.slice(1);
+        return (
+            methodName === `create${cap}` ||
+            methodName === `get${cap}ById` ||
+            methodName === `getAll${cap}s` ||
+            methodName === `update${cap}` ||
+            methodName === `delete${cap}`
+        );
+    }
+
+    private interleaveConstructorParams(
+        deps: Array<{ type: string; name: string }>,
+        buildParams: Array<{ type: string; name: string }>
+    ): Array<{ type: string; name: string }> {
+        if (!buildParams || buildParams.length === 0) {
+            return deps;
+        }
+        const sagaUowIdx = deps.findIndex(d => d.type === 'SagaUnitOfWork');
+        if (sagaUowIdx < 0) {
+            return [...deps, ...buildParams];
+        }
+        return [...deps.slice(0, sagaUowIdx), ...buildParams, ...deps.slice(sagaUowIdx)];
+    }
+
+
 
     private generateFunctionalityMethodSagas(
         aggregate: any,
@@ -220,14 +281,16 @@ export class SagaFunctionalityGenerator {
                 }
             }
 
-            
+
             const { stepsBody, variableDecls } = this.generateFunctionalityStepsBody(func, resultType, imports);
+            const constructorParams = this.interleaveConstructorParams(constructorDependencies, buildParams);
 
             const context = {
                 packageName,
                 imports,
                 className,
-                constructorDependencies,
+                dependencyFields: constructorDependencies,
+                constructorParams,
                 buildParams,
                 resultType,
                 stepsBody,
@@ -238,7 +301,7 @@ export class SagaFunctionalityGenerator {
         }
     }
 
-    
+
 
     private generateFunctionalityStepsBody(func: any, resultType: string | undefined, imports: string[]): { stepsBody: string; variableDecls: string } {
         const stepMap = new Map<string, string>();
@@ -251,13 +314,13 @@ export class SagaFunctionalityGenerator {
 
         let stepsBody = '';
 
-        
+
         for (const s of steps) {
             const stepName = s.stepName || 'step';
             stepMap.set(stepName, `${stepName}Step`);
         }
 
-        
+
         for (const s of steps) {
             const stepName = s.stepName || 'step';
             const stepVar = stepMap.get(stepName)!;
@@ -265,7 +328,7 @@ export class SagaFunctionalityGenerator {
             const dependencies = s.dependsOn?.dependencies || [];
             const compensation = s.compensation;
 
-            
+
             let stepBody = '';
 
             for (const action of actions) {
@@ -309,7 +372,7 @@ export class SagaFunctionalityGenerator {
                 }
             }
 
-            
+
             let stepDependencies = '';
             if (dependencies.length > 0) {
                 const depVars = dependencies.map((dep: string) => stepMap.get(dep) || `${dep}Step`).join(', ');
@@ -318,7 +381,7 @@ export class SagaFunctionalityGenerator {
 
             let stepCode = `        SagaStep ${stepVar} = new SagaStep("${stepName}", () -> {\n${stepBody}        }${stepDependencies});\n`;
 
-            
+
             if (compensation && compensation.compensationActions) {
                 let compensationBody = '';
                 for (const compAction of compensation.compensationActions) {
@@ -340,7 +403,7 @@ export class SagaFunctionalityGenerator {
             stepsBody += stepCode + '\n';
         }
 
-        
+
         if (steps.some((s: any) => s.dependsOn?.dependencies?.length > 0)) {
             imports.push('import java.util.ArrayList;');
             imports.push('import java.util.Arrays;');

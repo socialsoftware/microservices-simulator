@@ -13,14 +13,17 @@ public class {{className}} extends WorkflowFunctionality {
     {{#if resultType}}private {{resultType}} result;{{/if}}
     {{#if variableDeclarations}}{{variableDeclarations}}
     {{/if}}
-    {{#each constructorDependencies}}
+    {{#each dependencyFields}}
     private final {{type}} {{name}};
     {{/each}}
 
-    public {{className}}({{#each constructorDependencies}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
-        {{#each constructorDependencies}}
+    public {{className}}({{#each constructorParams}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
+        {{#each dependencyFields}}
         this.{{name}} = {{name}};
         {{/each}}
+{{#if buildParams}}
+        this.buildWorkflow({{#each buildParams}}{{name}}{{#unless @last}}, {{/unless}}{{/each}});
+{{/if}}
     }
 
     public void buildWorkflow({{#if buildParams}}{{#each buildParams}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}) {
@@ -34,5 +37,3 @@ public class {{className}} extends WorkflowFunctionality {
     }
     {{/if}}
 }
-
-
