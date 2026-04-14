@@ -7,7 +7,6 @@ import {
     Property,
     Repository,
     ServiceDefinition,
-    WebAPIEndpoints,
     Invariant,
     InterInvariant
 } from '../../language/generated/ast.js';
@@ -135,26 +134,6 @@ export interface MethodParameterExt {
     name: string;
     type: string;
     annotations: string[];
-}
-
-
-
-export interface WebAPIEndpointsExt extends WebAPIEndpoints {
-    customEndpoints: EndpointExt[];
-}
-
-export interface EndpointExt {
-    httpMethod: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-    path: string;
-    methodName: string;
-    parameters: EndpointParameterExt[];
-    returnType: string;
-}
-
-export interface EndpointParameterExt {
-    name: string;
-    type: string;
-    source: 'PathVariable' | 'RequestParam' | 'RequestBody';
 }
 
 

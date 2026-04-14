@@ -54,6 +54,7 @@ Aggregate Booking {
         }
     }
 
+    @PostMapping("/bookings/{bookingId}/confirm")
     method confirmBooking(Integer bookingId) {
         action {
             load Booking(bookingId) as booking
@@ -83,16 +84,6 @@ Aggregate Booking {
 
         @Query("select b.aggregateId from Booking b where b.confirmed = true and b.state != 'DELETED'")
         Set<Integer> findConfirmedBookingIds()
-    }
-
-    WebAPIEndpoints {
-        Endpoint confirmBooking {
-            httpMethod: POST
-            path: "/bookings/{bookingId}/confirm"
-            methodName: confirmBooking
-            parameters: [ bookingId: Integer : "@PathVariable" ]
-            desc: "Mark a booking as confirmed"
-        }
     }
 
 }

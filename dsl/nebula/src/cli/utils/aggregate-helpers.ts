@@ -1,4 +1,4 @@
-import { Aggregate, Entity, Method, Workflow, Repository, Events, WebAPIEndpoints, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isRepository, isEvents, isWebAPIEndpoints, isServiceDefinition, isFunctionalities, Model } from "../../language/generated/ast.js";
+import { Aggregate, Entity, Method, Workflow, Repository, Events, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isRepository, isEvents, isServiceDefinition, isFunctionalities, Model } from "../../language/generated/ast.js";
 
 
 
@@ -118,8 +118,70 @@ export function getEvents(aggregate: Aggregate): Events | undefined {
     return aggregate.aggregateElements.find((el): el is Events => isEvents(el));
 }
 
-export function getWebAPIEndpoints(aggregate: Aggregate): WebAPIEndpoints | undefined {
-    return aggregate.aggregateElements.find((el): el is WebAPIEndpoints => isWebAPIEndpoints(el));
+export function getWebAPIEndpoints(aggregate: Aggregate): any | undefined {
+    const synthesized = synthesizeEndpointsFromMethodAnnotations(aggregate);
+    if (synthesized.length === 0) {
+        return undefined;
+    }
+    return { $type: 'WebAPIEndpoints', endpoints: synthesized };
+}
+
+const HTTP_VERBS: Record<string, string> = {
+    GetMapping: 'GET',
+    PostMapping: 'POST',
+    PutMapping: 'PUT',
+    DeleteMapping: 'DELETE',
+    PatchMapping: 'PATCH',
+};
+
+function synthesizeEndpointsFromMethodAnnotations(aggregate: Aggregate): any[] {
+    const endpoints: any[] = [];
+    for (const method of getMethods(aggregate)) {
+        const mappingAnno = (method as any).annotations?.find((a: any) => HTTP_VERBS[a.name]);
+        if (!mappingAnno) continue;
+
+        const verb = HTTP_VERBS[mappingAnno.name];
+        const rawPath = (mappingAnno.values || [])[0]?.value;
+        if (typeof rawPath !== 'string') continue;
+        const path = rawPath.replace(/^["']|["']$/g, '');
+
+        const pathVarNames = new Set<string>();
+        const pathVarRegex = /\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
+        let m: RegExpExecArray | null;
+        while ((m = pathVarRegex.exec(path)) !== null) {
+            pathVarNames.add(m[1]);
+        }
+
+        const parameters = (method.parameters || []).map((p: any) => {
+            const explicitAnno = (p.annotations || []).find((a: any) =>
+                ['PathVariable', 'RequestParam', 'RequestBody', 'RequestHeader'].includes(a.name)
+            );
+            let annotation: string;
+            if (explicitAnno) {
+                annotation = `@${explicitAnno.name}`;
+            } else if (pathVarNames.has(p.name)) {
+                annotation = '@PathVariable';
+            } else if (p.type?.$type === 'EntityType') {
+                annotation = '@RequestBody';
+            } else {
+                annotation = '@RequestParam';
+            }
+            return { name: p.name, type: p.type, annotation };
+        });
+
+        endpoints.push({
+            $type: 'CustomEndpoint',
+            name: method.name,
+            httpMethod: { $type: 'HttpMethod', method: verb },
+            path,
+            methodName: method.name,
+            parameters,
+            returnType: method.returnType,
+            description: undefined,
+            throwsException: undefined,
+        });
+    }
+    return endpoints;
 }
 
 export function getServiceDefinition(aggregate: Aggregate): ServiceDefinition | undefined {
@@ -137,7 +199,7 @@ declare module "../../language/generated/ast.js" {
         workflows: Workflow[];
         repository?: Repository;
         events?: Events;
-        webApiEndpoints?: WebAPIEndpoints;
+        webApiEndpoints?: any;
         serviceDefinition?: ServiceDefinition;
         functionalities?: Functionalities;
     }
@@ -157,7 +219,7 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
         return;
     }
 
-    
+
     if (!aggregate.aggregateElements) {
         (aggregate as any).aggregateElements = [];
     }
@@ -189,7 +251,7 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
             configurable: true
         });
     } catch (e) {
-        
+
         (aggregate as any).entities = getEntities(aggregate);
     }
 
@@ -262,7 +324,7 @@ export function getAggregateRefName(entity: Entity): string | undefined {
 export function getEffectiveFieldMappings(entity: Entity): any[] {
     const anyEntity = entity as any;
 
-    
+
     const fieldMappings: any[] = Array.isArray(anyEntity.fieldMappings) ? anyEntity.fieldMappings : [];
 
     const aggregateRefName = getAggregateRefName(entity);
@@ -270,7 +332,7 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
         return fieldMappings;
     }
 
-    
+
     const explicitProps = entity.properties || [];
     const mappingDefinedProps = fieldMappings
         .filter((m: any) => m?.type && m?.entityField)
@@ -293,14 +355,14 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
     const pickBaseField = (dtoField: 'aggregateId' | 'version' | 'state', suffix: 'AggregateId' | 'Version' | 'State'): string | undefined => {
         if (existingDtoFields.has(dtoField)) return undefined;
 
-        
+
         const conventional = `${prefix}${suffix}`;
         if (existingEntityFields.has(conventional) && !explicitlyMappedEntityFields.has(conventional)) {
             return conventional;
         }
 
-        
-        
+
+
         const candidates = Array.from(existingEntityFields)
             .filter(name => typeof name === 'string' && name.endsWith(suffix))
             .filter(name => !explicitlyMappedEntityFields.has(name));
@@ -309,9 +371,9 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
             return candidates[0];
         }
 
-        
-        
-        
+
+
+
         return conventional;
     };
 
@@ -326,7 +388,7 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
             const entityField = pickBaseField(dtoField, suffix);
             if (!entityField) return null;
 
-            
+
             let type: any;
             if (suffix === 'AggregateId' || suffix === 'Version') {
                 type = 'Integer';
@@ -338,14 +400,14 @@ export function getEffectiveFieldMappings(entity: Entity): any[] {
         })
         .filter(Boolean) as any[];
 
-    
+
     const explicitMappingsWithTypes = fieldMappings.map((mapping: any) => {
         if (mapping.type) {
-            
+
             return mapping;
         }
 
-        
+
         const resolvedType = resolveTypeFromReferencedAggregate(entity, mapping.dtoField);
         return {
             ...mapping,
@@ -373,7 +435,7 @@ export function dtoFieldToString(dtoField: string | any): string {
 function extractCollectionElementType(collectionType: any): { wrapper: string; elementType: any } | undefined {
     if (!collectionType) return undefined;
 
-    
+
     if (collectionType.$type === 'ListType') {
         return {
             wrapper: 'List',
@@ -394,7 +456,7 @@ function extractCollectionElementType(collectionType: any): { wrapper: string; e
 
 
 export function findEntityByName(entityTypeName: string): Entity | undefined {
-    
+
     if (allModelsRegistry.length > 0) {
         for (const model of allModelsRegistry) {
             if (!model.aggregates) continue;
@@ -419,26 +481,26 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
         return undefined;
     }
 
-    
-    
+
+
     let fieldPath: string[];
     if (typeof dtoField === 'string') {
         fieldPath = [dtoField];
     } else if (dtoField && Array.isArray(dtoField.parts)) {
-        
+
         fieldPath = dtoField.parts;
     } else {
         return undefined;
     }
 
-    
-    
+
+
     const rootEntity = resolveUltimateSourceRoot(aggregateRefName);
     if (!rootEntity) {
         return undefined;
     }
 
-    
+
     if (fieldPath.length === 1) {
         const property = rootEntity.properties?.find(p => p.name === fieldPath[0]);
         if (property) {
@@ -460,23 +522,23 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
         return undefined;
     }
 
-    
-    
+
+
     const collectionProp = rootEntity.properties?.find(p => p.name === fieldPath[0]);
     if (!collectionProp || !collectionProp.type) {
         return undefined;
     }
 
-    
+
     const collectionInfo = extractCollectionElementType(collectionProp.type);
     if (!collectionInfo) {
-        return undefined; 
+        return undefined;
     }
 
-    
+
     let elementEntity: Entity | undefined;
 
-    
+
     if (collectionInfo.elementType.$type === 'EntityType') {
         const entityTypeName = collectionInfo.elementType.type?.ref?.name || collectionInfo.elementType.type?.$refText;
         if (entityTypeName) {
@@ -488,16 +550,16 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
         return undefined;
     }
 
-    
-    
-    
+
+
+
     const effectiveProps = getEffectiveProperties(elementEntity);
     const targetProp = effectiveProps.find((p: any) => {
-        
+
         if (p.$dtoField && dtoFieldToString(p.$dtoField) === fieldPath[1]) {
             return true;
         }
-        
+
         return p.name === fieldPath[1];
     });
 
@@ -505,7 +567,7 @@ function resolveTypeFromReferencedAggregate(entity: Entity, dtoField: string | a
         return undefined;
     }
 
-    
+
     return {
         $type: collectionInfo.wrapper === 'List' ? 'ListType' : 'SetType',
         elementType: targetProp.type
@@ -518,18 +580,18 @@ export function getEffectiveProperties(entity: Entity): any[] {
     const explicitProps = entity.properties || [];
     const mappings = getEffectiveFieldMappings(entity);
 
-    
+
     const mappingProps = mappings
         .filter((m: any) => m.entityField)
         .map((m: any) => {
             let propertyType = m.type;
 
-            
+
             if (!propertyType) {
                 propertyType = resolveTypeFromReferencedAggregate(entity, m.dtoField);
             }
 
-            
+
             if (!propertyType) {
                 return null;
             }
@@ -537,15 +599,15 @@ export function getEffectiveProperties(entity: Entity): any[] {
             return {
                 name: m.entityField,
                 type: propertyType,
-                
+
                 $fromMapping: true,
                 $dtoField: dtoFieldToString(m.dtoField),
                 $extractField: m.extractField
             };
         })
-        .filter(Boolean); 
+        .filter(Boolean);
 
-    
+
     const explicitNames = new Set(explicitProps.map(p => p.name));
     const combinedProps: any[] = [
         ...explicitProps,
@@ -554,8 +616,8 @@ export function getEffectiveProperties(entity: Entity): any[] {
 
     const combinedNames = new Set(combinedProps.map(p => p.name));
 
-    
-    
+
+
     for (const m of mappings) {
         if (!m?.entityField || !m?.dtoField) continue;
         if (combinedNames.has(m.entityField)) continue;
