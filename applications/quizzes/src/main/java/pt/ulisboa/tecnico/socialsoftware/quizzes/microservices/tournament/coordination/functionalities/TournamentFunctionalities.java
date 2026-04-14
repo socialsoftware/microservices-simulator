@@ -249,6 +249,26 @@ public class TournamentFunctionalities {
         }
     }
 
+    public TournamentDto createTournamentAsync(Integer userId, Integer executionId, List<Integer> topicsId,
+            TournamentDto tournamentDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        checkInput(userId, topicsId, tournamentDto);
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+
+                CreateTournamentAsyncFunctionalitySagas createTournamentAsyncFunctionalitySagas = new CreateTournamentAsyncFunctionalitySagas(
+                        sagaUnitOfWorkService,
+                        userId, executionId, topicsId, tournamentDto, sagaUnitOfWork, commandGateway);
+
+                createTournamentAsyncFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return createTournamentAsyncFunctionalitySagas.getTournamentDto();
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
     public void addParticipant(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
@@ -461,6 +481,23 @@ public class TournamentFunctionalities {
 
                 solveQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return solveQuizFunctionalityTCC.getQuizDto();
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public QuizDto solveQuizAsync(Integer tournamentAggregateId, Integer userAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                SolveQuizAsyncFunctionalitySagas solveQuizAsyncFunctionalitySagas = new SolveQuizAsyncFunctionalitySagas(
+                        sagaUnitOfWorkService,
+                        tournamentAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
+
+                solveQuizAsyncFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return solveQuizAsyncFunctionalitySagas.getQuizDto();
             default:
                 throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }

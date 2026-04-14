@@ -181,6 +181,23 @@ public class QuestionFunctionalities {
         }
     }
 
+    public void updateQuestionTopicsAsync(Integer courseAggregateId, List<Integer> topicIds) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                UpdateQuestionTopicsAsyncFunctionalitySagas updateQuestionTopicsAsyncFunctionalitySagas =
+                        new UpdateQuestionTopicsAsyncFunctionalitySagas(
+                                sagaUnitOfWorkService, courseAggregateId,
+                                topicIds, sagaUnitOfWork, commandGateway);
+                updateQuestionTopicsAsyncFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
     public void updateTopicInQuestion(Integer questionAggregateId, Integer aggregateTopicId, String topicName,
             Long eventVersion) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();

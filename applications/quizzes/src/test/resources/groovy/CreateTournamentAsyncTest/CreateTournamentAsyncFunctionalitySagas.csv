@@ -1,0 +1,12 @@
+run 
+fetchReadModelsAsyncStep,0,0,300
+generateQuizStep,0,0,80
+createTournamentStep,0,0,60
+run 
+fetchReadModelsAsyncStep,0,0,300
+generateQuizStep,0,0,80
+createTournamentStep,0,0,60
+run 
+fetchReadModelsAsyncStep,0,0,300
+generateQuizStep,0,0,80
+createTournamentStep,0,0,60
