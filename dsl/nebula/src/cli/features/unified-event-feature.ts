@@ -1,6 +1,6 @@
 import { Aggregate } from "../../language/generated/ast.js";
-import { EventGenerator } from "../generators/microservices/events/event-generator.js";
-import { PublishedEventGenerator } from "../generators/microservices/events/published-event-generator.js";
+import { EventGenerator } from "../generators/microservices/events/event-orchestrator.js";
+import { PublishedEventGenerator } from "../generators/microservices/events/event-class-generator.js";
 import { ReferencesGenerator } from "../generators/microservices/events/references-generator.js";
 import { GenerationOptions, GeneratorRegistry } from "../engine/types.js";
 import { FileWriter } from "../utils/file-writer.js";

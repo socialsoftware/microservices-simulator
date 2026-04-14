@@ -221,7 +221,16 @@ export class EventProcessingGenerator {
         }
 
         const references = (aggregate as any).references;
-        if (references?.constraints) {
+        if (references?.constraints && references.constraints.length > 0) {
+            const lowerAgg = aggregate.name.toLowerCase();
+            const capAgg = StringUtils.capitalize(aggregate.name);
+            const aggImport = `import ${basePackage}.${projectName}.microservices.${lowerAgg}.aggregate.${capAgg};`;
+            const factoryImport = `import ${basePackage}.${projectName}.microservices.${lowerAgg}.aggregate.${capAgg}Factory;`;
+            const baseAggImport = `import ${basePackage}.ms.domain.aggregate.Aggregate;`;
+            if (!imports.includes(aggImport)) imports.push(aggImport);
+            if (!imports.includes(factoryImport)) imports.push(factoryImport);
+            if (!imports.includes(baseAggImport)) imports.push(baseAggImport);
+
             for (const constraint of references.constraints) {
                 const targetAggregate = constraint.targetAggregate;
                 const eventTypeName = `${targetAggregate}DeletedEvent`;

@@ -359,7 +359,8 @@ export class WebApiDtoGenerator extends WebApiBaseGenerator {
                     if (relatedEntity) {
                         const entityAny = relatedEntity as any;
 
-                        if (entityAny.generateDto && isCollection) {
+                        const isLocalOwned = !entityAny.aggregateRef && !entityAny.isRoot;
+                        if ((entityAny.generateDto || isLocalOwned) && isCollection) {
                             const collectionPrefix = javaType.startsWith('Set<') ? 'Set' : 'List';
                             fields.push({
                                 name: prop.name,

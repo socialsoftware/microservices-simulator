@@ -3,6 +3,7 @@
 
 import chalk from 'chalk';
 import { Aggregate } from "../../language/generated/ast.js";
+import { PathBuilder } from "../utils/path-builder.js";
 import { GenerationOptions, GeneratorRegistry } from "./types.js";
 import { FileWriter } from "../utils/file-writer.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
@@ -391,24 +392,28 @@ export class EntityPipeline extends BaseGenerationPipeline {
         }
     }
 
+    private paths(aggregate: Aggregate, options: GenerationOptions) {
+        return new PathBuilder(options.outputPath, options.basePackage, options.projectName);
+    }
+
     private buildEntityPath(aggregate: Aggregate, entity: any, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${entity.name}.java`;
+        return this.paths(aggregate, options).entityPath(aggregate.name, `${entity.name}.java`);
     }
 
     private buildDtoPath(_aggregate: Aggregate, entity: any, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/shared/dtos/${entity.name}Dto.java`;
+        return this.paths(_aggregate, options).sharedPath('dtos', `${entity.name}Dto.java`);
     }
 
     private buildFactoryPath(aggregate: Aggregate, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${aggregate.name}Factory.java`;
+        return this.paths(aggregate, options).entityPath(aggregate.name, `${aggregate.name}Factory.java`);
     }
 
     private buildRepositoryPath(aggregate: Aggregate, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${aggregate.name}CustomRepository.java`;
+        return this.paths(aggregate, options).entityPath(aggregate.name, `${aggregate.name}CustomRepository.java`);
     }
 
     private buildRepositoryInterfacePath(aggregate: Aggregate, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/aggregate/${aggregate.name}Repository.java`;
+        return this.paths(aggregate, options).entityPath(aggregate.name, `${aggregate.name}Repository.java`);
     }
 
 }
@@ -464,11 +469,13 @@ export class ServicePipeline extends BaseGenerationPipeline {
 
     private buildServicePath(aggregate: Aggregate, serviceDefinition: any, options: GenerationOptions): string {
         const serviceName = serviceDefinition.name || `${aggregate.name}Service`;
-        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/service/${serviceName}.java`;
+        return new PathBuilder(options.outputPath, options.basePackage, options.projectName)
+            .servicePath(aggregate.name, `${serviceName}.java`);
     }
 
     private buildDefaultServicePath(aggregate: Aggregate, options: GenerationOptions): string {
-        return `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/service/${aggregate.name}Service.java`;
+        return new PathBuilder(options.outputPath, options.basePackage, options.projectName)
+            .servicePath(aggregate.name, `${aggregate.name}Service.java`);
     }
 }
 
@@ -512,22 +519,22 @@ export class EventPipeline extends BaseGenerationPipeline {
     }
 
     private buildEventPath(aggregate: Aggregate, eventKey: string, options: GenerationOptions): string {
-        const basePath = `${options.outputPath}/src/main/java/${options.basePackage.replace(/\./g, '/')}/${options.projectName.toLowerCase()}/microservices/${aggregate.name.toLowerCase()}/events`;
+        const pb = new PathBuilder(options.outputPath, options.basePackage, options.projectName);
 
         if (eventKey === 'event-handling') {
-            return `${basePath}/handling/${aggregate.name}EventHandling.java`;
+            return pb.eventsPath(aggregate.name, 'handling', `${aggregate.name}EventHandling.java`);
         } else if (eventKey.startsWith('event-handler-')) {
             const handlerName = eventKey.replace('event-handler-', '');
-            return `${basePath}/handling/handlers/${handlerName}.java`;
+            return pb.eventsPath(aggregate.name, 'handling', 'handlers', `${handlerName}.java`);
         } else if (eventKey.startsWith('published-event-')) {
             const eventName = eventKey.replace('published-event-', '');
-            return `${basePath}/publish/${eventName}.java`;
+            return pb.eventsPath(aggregate.name, 'publish', `${eventName}.java`);
         } else if (eventKey.startsWith('event-subscription-')) {
             const subscriptionName = eventKey.replace('event-subscription-', '');
-            return `${basePath}/subscribe/Subscribes${subscriptionName}.java`;
+            return pb.eventsPath(aggregate.name, 'subscribe', `Subscribes${subscriptionName}.java`);
         }
 
-        return `${basePath}/${eventKey}.java`;
+        return pb.eventsPath(aggregate.name, `${eventKey}.java`);
     }
 
     private buildEventDescription(eventKey: string): string {

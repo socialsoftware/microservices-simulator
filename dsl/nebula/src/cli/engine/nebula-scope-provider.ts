@@ -60,22 +60,29 @@ export class NebulaScopeProvider extends DefaultScopeProvider {
                 const indexManager = (this.services as any).shared?.workspace?.IndexManager;
                 if (indexManager) {
                     const allDescriptions = indexManager.allElements();
-                    const enumDescriptions = allDescriptions.filter((desc: AstNodeDescription) =>
-                        desc.type === 'EnumDefinition'
-                    );
-                    descriptions.push(...enumDescriptions);
+                    for (const desc of allDescriptions) {
+                        if (desc.type === 'Entity' || desc.type === 'EnumDefinition') {
+                            descriptions.push(desc);
+                        }
+                    }
                 } else {
-                    const globalScope = this.getGlobalScope('EnumDefinition', context);
-                    const globalEnumDescriptions = globalScope.getAllElements().filter(desc =>
-                        desc.type === 'EnumDefinition'
-                    );
-                    descriptions.push(...globalEnumDescriptions);
+                    const globalEntityScope = this.getGlobalScope('Entity', context);
+                    descriptions.push(...globalEntityScope.getAllElements());
+                    const globalEnumScope = this.getGlobalScope('EnumDefinition', context);
+                    descriptions.push(...globalEnumScope.getAllElements());
                 }
             } catch (error) {
             }
 
-            if (descriptions.length > 0) {
-                return new MapScope(descriptions);
+            const seen = new Set<string>();
+            const deduped = descriptions.filter(d => {
+                if (seen.has(d.name)) return false;
+                seen.add(d.name);
+                return true;
+            });
+
+            if (deduped.length > 0) {
+                return new MapScope(deduped);
             }
         }
 

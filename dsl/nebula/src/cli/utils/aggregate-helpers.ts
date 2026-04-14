@@ -181,11 +181,14 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
                 const block = entity.sourceBlocks[0];
                 entity.aggregateRef = block.aggregateRef;
                 if (!entity.fieldMappings || entity.fieldMappings.length === 0) {
-                    entity.fieldMappings = (block.sources || []).map((s: any) => ({
-                        dtoField: s.dtoField,
-                        entityField: s.entityField,
-                        type: s.type
-                    }));
+                    entity.fieldMappings = (block.sources || []).map((s: any) => {
+                        const parts = s.dtoField?.parts || [];
+                        return {
+                            dtoField: s.dtoField,
+                            entityField: s.entityField || (parts.length === 1 ? parts[0] : undefined),
+                            type: s.type
+                        };
+                    });
                 }
             }
         }
