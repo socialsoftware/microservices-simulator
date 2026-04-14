@@ -10,12 +10,19 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.QuestionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.UserDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.QuestionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
 @Service
 public class AnswerEventProcessing {
     @Autowired
     private AnswerService answerService;
-    
+
+    @Autowired
+    private AnswerFactory answerFactory;
+
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public AnswerEventProcessing(UnitOfWorkService unitOfWorkService) {
@@ -35,14 +42,38 @@ public class AnswerEventProcessing {
     }
 
     public void processExecutionDeletedEvent(Integer aggregateId, ExecutionDeletedEvent executionDeletedEvent) {
-        // Reference constraint event processing - implement constraint logic
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
+        newAnswer.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newAnswer, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 
     public void processUserDeletedEvent(Integer aggregateId, UserDeletedEvent userDeletedEvent) {
-        // Reference constraint event processing - implement constraint logic
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
+        newAnswer.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newAnswer, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 
     public void processQuizDeletedEvent(Integer aggregateId, QuizDeletedEvent quizDeletedEvent) {
-        // Reference constraint event processing - implement constraint logic
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
+        newAnswer.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newAnswer, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void processQuestionDeletedEvent(Integer aggregateId, QuestionDeletedEvent questionDeletedEvent) {
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
+        newAnswer.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newAnswer, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 }

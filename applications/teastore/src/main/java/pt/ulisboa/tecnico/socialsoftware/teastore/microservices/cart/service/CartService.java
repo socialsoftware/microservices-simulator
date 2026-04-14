@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.aggregate.*;
@@ -16,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.CartDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.CartUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.coordination.webapi.requestDtos.CreateCartRequestDto;
 
@@ -34,6 +36,9 @@ public class CartService {
 
     @Autowired
     private CartFactory cartFactory;
+
+    @Autowired
+    private CartServiceExtension extension;
 
     public CartService() {}
 

@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.service
 public class CategoryEventProcessing {
     @Autowired
     private CategoryService categoryService;
-    
+
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public CategoryEventProcessing(UnitOfWorkService unitOfWorkService) {

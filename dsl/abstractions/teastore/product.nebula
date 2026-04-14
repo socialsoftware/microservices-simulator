@@ -1,9 +1,7 @@
 Aggregate Product {
-    @GenerateCrud
 
-    Entity ProductCategory from Category {
-        map name as categoryName
-        map description as categoryDescription
+    Entity ProductCategory {
+        from Category { name as categoryName, description as categoryDescription }
     }
 
     Root Entity Product {
@@ -13,11 +11,9 @@ Aggregate Product {
         Double listPriceInCents
 
         invariants {
-            check nameNotEmpty { name.length() > 0 }
-                error "Product name cannot be empty"
+            name.length() > 0 : "Product name cannot be empty"
 
-            check priceNonNegative { listPriceInCents >= 0.0 }
-                error "Product price cannot be negative"
+            listPriceInCents >= 0.0 : "Product price cannot be negative"
         }
     }
 

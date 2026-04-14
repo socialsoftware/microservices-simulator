@@ -1,0 +1,24 @@
+Aggregate Teacher {
+
+    Root Entity Teacher {
+        String name
+        String email
+        String department
+
+        invariants {
+            name.length() > 0 : "Teacher name cannot be blank"
+        }
+    }
+
+    Events {
+        publish TeacherUpdatedEvent {
+            String name
+            String email
+            String department
+        }
+
+        publish TeacherDeletedEvent {
+            String name
+        }
+    }
+}

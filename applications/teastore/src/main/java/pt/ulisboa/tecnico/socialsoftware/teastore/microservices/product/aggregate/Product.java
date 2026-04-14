@@ -44,7 +44,7 @@ public abstract class Product extends Aggregate {
 
     public Product(Product other) {
         super(other);
-        setProductCategory(new ProductCategory(other.getProductCategory()));
+        setProductCategory(other.getProductCategory() != null ? new ProductCategory(other.getProductCategory()) : null);
         setName(other.getName());
         setDescription(other.getDescription());
         setListPriceInCents(other.getListPriceInCents());
@@ -100,19 +100,19 @@ public abstract class Product extends Aggregate {
     }
 
 
-    private boolean invariantNameNotEmpty() {
+    private boolean invariantRule0() {
         return this.name != null && this.name.length() > 0;
     }
 
-    private boolean invariantPriceNonNegative() {
+    private boolean invariantRule1() {
         return listPriceInCents >= 0.0;
     }
     @Override
     public void verifyInvariants() {
-        if (!invariantNameNotEmpty()) {
+        if (!invariantRule0()) {
             throw new SimulatorException(INVARIANT_BREAK, "Product name cannot be empty");
         }
-        if (!invariantPriceNonNegative()) {
+        if (!invariantRule1()) {
             throw new SimulatorException(INVARIANT_BREAK, "Product price cannot be negative");
         }
     }

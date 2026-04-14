@@ -76,11 +76,11 @@ public abstract class Tournament extends Aggregate {
         setEndTime(other.getEndTime());
         setNumberOfQuestions(other.getNumberOfQuestions());
         setCancelled(other.getCancelled());
-        setCreator(new TournamentCreator(other.getCreator()));
-        setParticipants(other.getParticipants().stream().map(TournamentParticipant::new).collect(Collectors.toSet()));
-        setExecution(new TournamentExecution(other.getExecution()));
-        setTopics(other.getTopics().stream().map(TournamentTopic::new).collect(Collectors.toSet()));
-        setQuiz(new TournamentQuiz(other.getQuiz()));
+        setCreator(other.getCreator() != null ? new TournamentCreator(other.getCreator()) : null);
+        setParticipants(other.getParticipants() != null ? other.getParticipants().stream().map(TournamentParticipant::new).collect(Collectors.toSet()) : null);
+        setExecution(other.getExecution() != null ? new TournamentExecution(other.getExecution()) : null);
+        setTopics(other.getTopics() != null ? other.getTopics().stream().map(TournamentTopic::new).collect(Collectors.toSet()) : null);
+        setQuiz(other.getQuiz() != null ? new TournamentQuiz(other.getQuiz()) : null);
     }
 
     public LocalDateTime getStartTime() {
@@ -282,47 +282,47 @@ public abstract class Tournament extends Aggregate {
     }
 
 
-    private boolean invariantStartTimeBeforeEndTime() {
+    private boolean invariantRule0() {
         return this.startTime.isBefore(this.endTime);
     }
 
-    private boolean invariantParticipantsNotNull() {
+    private boolean invariantRule1() {
         return this.participants != null;
     }
 
-    private boolean invariantCreatorNotNull() {
+    private boolean invariantRule2() {
         return this.creator != null;
     }
 
-    private boolean invariantExecutionNotNull() {
+    private boolean invariantRule3() {
         return this.execution != null;
     }
 
-    private boolean invariantTopicsNotNull() {
+    private boolean invariantRule4() {
         return this.topics != null;
     }
 
-    private boolean invariantQuizNotNull() {
+    private boolean invariantRule5() {
         return this.quiz != null;
     }
     @Override
     public void verifyInvariants() {
-        if (!invariantStartTimeBeforeEndTime()) {
+        if (!invariantRule0()) {
             throw new SimulatorException(INVARIANT_BREAK, "Tournament start time must be before end time");
         }
-        if (!invariantParticipantsNotNull()) {
+        if (!invariantRule1()) {
             throw new SimulatorException(INVARIANT_BREAK, "Tournament must have a participants collection");
         }
-        if (!invariantCreatorNotNull()) {
+        if (!invariantRule2()) {
             throw new SimulatorException(INVARIANT_BREAK, "Tournament must have a creator");
         }
-        if (!invariantExecutionNotNull()) {
+        if (!invariantRule3()) {
             throw new SimulatorException(INVARIANT_BREAK, "Tournament must be associated with an execution");
         }
-        if (!invariantTopicsNotNull()) {
+        if (!invariantRule4()) {
             throw new SimulatorException(INVARIANT_BREAK, "Tournament must have a topics collection");
         }
-        if (!invariantQuizNotNull()) {
+        if (!invariantRule5()) {
             throw new SimulatorException(INVARIANT_BREAK, "Tournament must have a quiz");
         }
     }

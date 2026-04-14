@@ -1,0 +1,35 @@
+Aggregate Post {
+
+    Entity PostAuthor {
+        from Author { name as authorName }
+    }
+
+    Root Entity Post {
+        String title
+        String content
+        PostAuthor author
+        LocalDateTime publishedAt
+
+        invariants {
+            title.length() > 0 : "Post title cannot be blank"
+            author != null : "Post must have an author"
+        }
+    }
+
+    References {
+        author -> Author {
+            onDelete: cascade
+            message: "Author deleted, removing their posts"
+        }
+    }
+
+    Events {
+        subscribe AuthorUpdatedEvent
+
+        interInvariant AUTHOR_EXISTS {
+            subscribe AuthorDeletedEvent from Author {
+                author.authorAggregateId == event.aggregateId
+            }
+        }
+    }
+}

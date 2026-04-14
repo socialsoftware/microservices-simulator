@@ -1,0 +1,8 @@
+Aggregate Product {
+
+    Root Entity Product {
+        String name
+        Double price
+        Boolean available = true
+    }
+}

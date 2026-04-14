@@ -1,0 +1,75 @@
+Aggregate Booking {
+
+    SagaStates {
+        IN_BOOK_ROOM,
+        READ_BOOKING,
+        IN_CANCEL_BOOKING
+    }
+
+    Entity BookingUser {
+        from User { username, email }
+    }
+
+    Entity BookingRoom {
+        from Room { roomNumber, pricePerNight }
+    }
+
+    Root Entity Booking {
+        BookingUser user
+        BookingRoom room
+        String checkInDate
+        String checkOutDate
+        Integer numberOfNights
+        Double totalPrice
+
+        invariants {
+            checkInDate.length() > 0 : "Check-in date is required"
+            checkOutDate.length() > 0 : "Check-out date is required"
+            numberOfNights > 0 : "Number of nights must be positive"
+            totalPrice > 0.0 : "Total price must be positive"
+        }
+    }
+
+    method bookRoom(User user, Room room, String checkIn, String checkOut, Integer nights, Double price) {
+        action {
+            create Booking {
+                user: user,
+                room: room,
+                checkInDate: checkIn,
+                checkOutDate: checkOut,
+                numberOfNights: nights,
+                totalPrice: price
+            }
+            extension sendConfirmationEmail(user, checkIn, checkOut)
+        }
+        publishes BookingCreatedEvent {
+            userAggregateId: user.aggregateId,
+            roomAggregateId: room.aggregateId,
+            totalPrice: price
+        }
+    }
+
+    Events {
+        publish BookingCreatedEvent {
+            Integer userAggregateId
+            Integer roomAggregateId
+            Double totalPrice
+        }
+    }
+
+    Repository {
+        @Query("select b.aggregateId from Booking b where b.totalPrice >= :minPrice")
+        Set<Integer> findExpensiveBookingIds(Double minPrice)
+    }
+
+    References {
+        user -> User {
+            onDelete: prevent
+            message: "Cannot delete user that has bookings"
+        }
+        room -> Room {
+            onDelete: prevent
+            message: "Cannot delete room that has bookings"
+        }
+    }
+}

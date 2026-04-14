@@ -4,10 +4,10 @@ spring:
     name: answers
 
   datasource: 
-    url: jdbc:postgresql://postgres:5432/answers_db
+    url: jdbc:postgresql://localhost:5432/answers_db
     driver-class-name: org.postgresql.Driver
     username: postgres
-    password: password
+    password: postgres
 
   jpa: 
     database-platform: org.hibernate.dialect.PostgreSQLDialect

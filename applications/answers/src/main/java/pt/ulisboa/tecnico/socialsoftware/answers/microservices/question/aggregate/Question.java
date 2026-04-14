@@ -62,9 +62,9 @@ public abstract class Question extends Aggregate {
         setTitle(other.getTitle());
         setContent(other.getContent());
         setCreationDate(other.getCreationDate());
-        setCourse(new QuestionCourse(other.getCourse()));
-        setTopics(other.getTopics().stream().map(QuestionTopic::new).collect(Collectors.toSet()));
-        setOptions(other.getOptions().stream().map(Option::new).collect(Collectors.toList()));
+        setCourse(other.getCourse() != null ? new QuestionCourse(other.getCourse()) : null);
+        setTopics(other.getTopics() != null ? other.getTopics().stream().map(QuestionTopic::new).collect(Collectors.toSet()) : null);
+        setOptions(other.getOptions() != null ? other.getOptions().stream().map(Option::new).collect(Collectors.toList()) : null);
     }
 
     public String getTitle() {
@@ -216,40 +216,40 @@ public abstract class Question extends Aggregate {
     }
 
 
-    private boolean invariantTitleNotBlank() {
+    private boolean invariantRule0() {
         return this.title != null && this.title.length() > 0;
     }
 
-    private boolean invariantContentNotBlank() {
+    private boolean invariantRule1() {
         return this.content != null && this.content.length() > 0;
     }
 
-    private boolean invariantCourseNotNull() {
+    private boolean invariantRule2() {
         return this.course != null;
     }
 
-    private boolean invariantTopicsNotNull() {
+    private boolean invariantRule3() {
         return this.topics != null;
     }
 
-    private boolean invariantOptionsNotNull() {
+    private boolean invariantRule4() {
         return this.options != null;
     }
     @Override
     public void verifyInvariants() {
-        if (!invariantTitleNotBlank()) {
+        if (!invariantRule0()) {
             throw new SimulatorException(INVARIANT_BREAK, "Question title cannot be blank");
         }
-        if (!invariantContentNotBlank()) {
+        if (!invariantRule1()) {
             throw new SimulatorException(INVARIANT_BREAK, "Question content cannot be blank");
         }
-        if (!invariantCourseNotNull()) {
+        if (!invariantRule2()) {
             throw new SimulatorException(INVARIANT_BREAK, "Question must be associated with a course");
         }
-        if (!invariantTopicsNotNull()) {
+        if (!invariantRule3()) {
             throw new SimulatorException(INVARIANT_BREAK, "Question must have a topics collection");
         }
-        if (!invariantOptionsNotNull()) {
+        if (!invariantRule4()) {
             throw new SimulatorException(INVARIANT_BREAK, "Question must have an options collection");
         }
     }

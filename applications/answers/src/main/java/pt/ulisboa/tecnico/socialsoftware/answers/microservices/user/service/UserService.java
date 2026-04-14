@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.*;
@@ -16,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.UserDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.UserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.coordination.webapi.requestDtos.CreateUserRequestDto;
 import org.springframework.context.ApplicationContext;
@@ -37,6 +39,9 @@ public class UserService {
 
     @Autowired
     private UserFactory userFactory;
+
+    @Autowired
+    private UserServiceExtension extension;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -145,7 +150,92 @@ public class UserService {
 
 
 
+    @Transactional
+    public void activateUser(Integer userId, UnitOfWork unitOfWork) {
+        try {
+        User userOld = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userId, unitOfWork);
+        User user = userFactory.createUserFromExisting(userOld);
+        user.setActive(true);
+        unitOfWorkService.registerChanged(user, unitOfWork);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in activateUser User: " + e.getMessage());
+        }
+    }
 
+    @Transactional
+    public void deactivateUser(Integer userId, UnitOfWork unitOfWork) {
+        try {
+        User userOld = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userId, unitOfWork);
+        User user = userFactory.createUserFromExisting(userOld);
+        user.setActive(false);
+        unitOfWorkService.registerChanged(user, unitOfWork);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in deactivateUser User: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void anonymizeUser(Integer userId, UnitOfWork unitOfWork) {
+        try {
+        User userOld = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userId, unitOfWork);
+        User user = userFactory.createUserFromExisting(userOld);
+        user.setName("ANONYMOUS");
+        user.setUsername("ANONYMOUS");
+        unitOfWorkService.registerChanged(user, unitOfWork);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in anonymizeUser User: " + e.getMessage());
+        }
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public java.util.List<UserDto> getStudents(UnitOfWork unitOfWork) {
+        try {
+            Set<Integer> aggregateIds = userRepository.findStudentIds();
+            return aggregateIds.stream()
+                .map(id -> {
+                    try {
+                        return (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(userFactory::createUserDto)
+                .collect(java.util.stream.Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in getStudents User: " + e.getMessage());
+        }
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public java.util.List<UserDto> getTeachers(UnitOfWork unitOfWork) {
+        try {
+            Set<Integer> aggregateIds = userRepository.findTeacherIds();
+            return aggregateIds.stream()
+                .map(id -> {
+                    try {
+                        return (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(userFactory::createUserDto)
+                .collect(java.util.stream.Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in getTeachers User: " + e.getMessage());
+        }
+    }
 
 
 }

@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.*;
@@ -17,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.OrderDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.OrderUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.OrderUserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.coordination.webapi.requestDtos.CreateOrderRequestDto;
@@ -38,6 +40,9 @@ public class OrderService {
 
     @Autowired
     private OrderFactory orderFactory;
+
+    @Autowired
+    private OrderServiceExtension extension;
 
     public OrderService() {}
 

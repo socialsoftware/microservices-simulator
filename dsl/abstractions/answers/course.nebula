@@ -1,5 +1,4 @@
 Aggregate Course {
-    @GenerateCrud
 
     Root Entity Course {
         String name
@@ -7,16 +6,18 @@ Aggregate Course {
         LocalDateTime creationDate
 
         invariants {
-            check nameNotBlank { name.length() > 0 }
-                error "Course name cannot be blank"
+            name.length() > 0 : "Course name cannot be blank"
 
-            check typeNotNull { type != null }
-                error "Course type is required"
+            type != null : "Course type is required"
         }
     }
 
+    method findCourseByName(String courseName) {
+        query findCourseIdsByName(courseName)
+    }
+
     Repository {
-        @Query("select c1.id from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE' AND c1.sagaState = 'NOT_IN_SAGA'")
-        Optional<Integer> findCourseIdByNameForSaga(String courseName)
+        @Query("select c1.aggregateId from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE'")
+        Set<Integer> findCourseIdsByName(String courseName)
     }
 }

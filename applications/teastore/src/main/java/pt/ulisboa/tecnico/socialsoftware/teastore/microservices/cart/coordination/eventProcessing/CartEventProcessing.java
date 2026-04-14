@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.service.Car
 public class CartEventProcessing {
     @Autowired
     private CartService cartService;
-    
+
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public CartEventProcessing(UnitOfWorkService unitOfWorkService) {

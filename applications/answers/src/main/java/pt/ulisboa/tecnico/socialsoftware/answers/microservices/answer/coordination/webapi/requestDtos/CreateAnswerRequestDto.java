@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
-import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuestionDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerQuestionDto;
 import java.util.Set;
 import java.time.LocalDateTime;
 
@@ -16,7 +16,7 @@ public class CreateAnswerRequestDto {
     @NotNull
     private QuizDto quiz;
     @NotNull
-    private Set<QuestionDto> questions;
+    private Set<AnswerQuestionDto> questions;
     @NotNull
     private LocalDateTime creationDate;
     @NotNull
@@ -26,7 +26,7 @@ public class CreateAnswerRequestDto {
 
     public CreateAnswerRequestDto() {}
 
-    public CreateAnswerRequestDto(ExecutionDto execution, UserDto user, QuizDto quiz, Set<QuestionDto> questions, LocalDateTime creationDate, LocalDateTime answerDate, Boolean completed) {
+    public CreateAnswerRequestDto(ExecutionDto execution, UserDto user, QuizDto quiz, Set<AnswerQuestionDto> questions, LocalDateTime creationDate, LocalDateTime answerDate, Boolean completed) {
         this.execution = execution;
         this.user = user;
         this.quiz = quiz;
@@ -57,11 +57,11 @@ public class CreateAnswerRequestDto {
     public void setQuiz(QuizDto quiz) {
         this.quiz = quiz;
     }
-    public Set<QuestionDto> getQuestions() {
+    public Set<AnswerQuestionDto> getQuestions() {
         return questions;
     }
 
-    public void setQuestions(Set<QuestionDto> questions) {
+    public void setQuestions(Set<AnswerQuestionDto> questions) {
         this.questions = questions;
     }
     public LocalDateTime getCreationDate() {

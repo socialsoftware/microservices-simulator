@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.servic
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.aggregate.*;
@@ -16,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.CategoryDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.CategoryUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.coordination.webapi.requestDtos.CreateCategoryRequestDto;
 import org.springframework.context.ApplicationContext;
@@ -37,6 +39,9 @@ public class CategoryService {
 
     @Autowired
     private CategoryFactory categoryFactory;
+
+    @Autowired
+    private CategoryServiceExtension extension;
 
     @Autowired
     private ApplicationContext applicationContext;

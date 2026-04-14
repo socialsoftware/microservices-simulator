@@ -82,26 +82,26 @@ public abstract class User extends Aggregate {
 
 
 
-    private boolean invariantNameNotBlank() {
+    private boolean invariantRule0() {
         return this.name != null && this.name.length() > 0;
     }
 
-    private boolean invariantUsernameNotBlank() {
+    private boolean invariantRule1() {
         return this.username != null && this.username.length() > 0;
     }
 
-    private boolean invariantRoleNotNull() {
+    private boolean invariantRule2() {
         return this.role != null;
     }
     @Override
     public void verifyInvariants() {
-        if (!invariantNameNotBlank()) {
+        if (!invariantRule0()) {
             throw new SimulatorException(INVARIANT_BREAK, "User name cannot be blank");
         }
-        if (!invariantUsernameNotBlank()) {
+        if (!invariantRule1()) {
             throw new SimulatorException(INVARIANT_BREAK, "Username cannot be blank");
         }
-        if (!invariantRoleNotNull()) {
+        if (!invariantRule2()) {
             throw new SimulatorException(INVARIANT_BREAK, "User role is required");
         }
     }

@@ -1,23 +1,18 @@
 Aggregate Quiz {
-    @GenerateCrud
 
-    Entity QuizExecution from Execution {
-        map acronym as executionAcronym
-        map academicTerm as executionAcademicTerm
+    Entity QuizExecution {
+        from Execution { acronym as executionAcronym, academicTerm as executionAcademicTerm }
         String executionName
     }
 
-    Entity QuizQuestion from Question {
+    Entity QuizQuestion {
+        from Question { title as questionTitle, content as questionContent }
         AggregateState questionState
-        map title as questionTitle
-        map content as questionContent
         Integer questionSequence
     }
 
-    Entity QuizOption from Question {
-        map sequence as optionSequence
-        map correct as optionCorrect
-        map content as optionContent
+    Entity QuizOption {
+        from Question { sequence as optionSequence, correct as optionCorrect, content as optionContent }
     }
 
     Root Entity Quiz {
@@ -31,27 +26,13 @@ Aggregate Quiz {
         Set<QuizQuestion> questions
 
         invariants {
-            check titleNotBlank { title.length() > 0 }
-                error "Quiz title cannot be blank"
+            title.length() > 0 : "Quiz title cannot be blank"
 
-            check dateOrdering {
-                availableDate.isBefore(conclusionDate) &&
-                conclusionDate.isBefore(resultsDate)
-            }
-                error "Quiz dates must be in order: available < conclusion < results"
+            availableDate.isBefore(conclusionDate) && conclusionDate.isBefore(resultsDate) : "Quiz dates must be in order: available < conclusion < results"
 
-            check questionsNotNull { questions != null }
-                error "Quiz must have a questions collection"
+            questions != null : "Quiz must have a questions collection"
 
-            check executionNotNull { execution != null }
-                error "Quiz must be associated with an execution"
-        }
-    }
-
-    References {
-        execution -> Execution {
-            onDelete: prevent
-            message: "Cannot delete execution that has quizzes"
+            execution != null : "Quiz must be associated with an execution"
         }
     }
 
@@ -70,6 +51,13 @@ Aggregate Quiz {
             subscribe QuestionDeletedEvent from Question {
                 questions.questionAggregateId == event.aggregateId
             }
+        }
+    }
+
+    References {
+        execution -> Execution {
+            onDelete: prevent
+            message: "Cannot delete execution that has quizzes"
         }
     }
 }

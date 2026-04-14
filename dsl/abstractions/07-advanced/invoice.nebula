@@ -1,0 +1,50 @@
+Aggregate Invoice {
+
+    Entity InvoiceOrder {
+        from Order { items.key as orderItemKeys }
+        AggregateState orderState
+    }
+
+    Entity InvoiceCustomer {
+        from Customer { name as customerName, email as customerEmail }
+    }
+
+    Root Entity Invoice {
+        InvoiceOrder order
+        InvoiceCustomer customer
+        Double totalAmount
+        LocalDateTime issuedAt
+        Boolean paid = false
+
+        invariants {
+            order != null : "Invoice must reference an order"
+            customer != null : "Invoice must have a customer"
+            totalAmount > 0.0 : "Invoice total must be positive"
+        }
+    }
+
+    References {
+        order -> Order {
+            onDelete: cascade
+            message: "Order deleted, removing invoice"
+        }
+        customer -> Customer {
+            onDelete: prevent
+            message: "Cannot delete customer with invoices"
+        }
+    }
+
+    Events {
+        interInvariant ORDER_EXISTS {
+            subscribe OrderDeletedEvent from Order {
+                order.orderAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant CUSTOMER_EXISTS {
+            subscribe CustomerDeletedEvent from Customer {
+                customer.customerAggregateId == event.aggregateId
+            }
+        }
+    }
+}

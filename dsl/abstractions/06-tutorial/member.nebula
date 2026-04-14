@@ -1,0 +1,8 @@
+Aggregate Member {
+
+    Root Entity Member {
+        String name
+        String email
+        MembershipType membership
+    }
+}

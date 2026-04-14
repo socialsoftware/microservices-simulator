@@ -1,0 +1,50 @@
+Aggregate Loan {
+
+    Entity LoanMember {
+        from Member { name as memberName, email as memberEmail }
+    }
+
+    Entity LoanBook {
+        from Book { title as bookTitle, author as bookAuthor, genre as bookGenre }
+    }
+
+    Root Entity Loan {
+        LoanMember member
+        LoanBook book
+        LocalDateTime loanDate
+        LocalDateTime dueDate
+
+        invariants {
+            member != null : "Loan must have a member"
+
+            book != null : "Loan must have a book"
+
+            loanDate.isBefore(dueDate) : "Loan date must be before due date"
+        }
+    }
+
+    References {
+        member -> Member {
+            onDelete: cascade
+            message: "Member deleted, removing their loans"
+        }
+        book -> Book {
+            onDelete: prevent
+            message: "Cannot delete book that has active loans"
+        }
+    }
+
+    Events {
+        interInvariant MEMBER_EXISTS {
+            subscribe MemberDeletedEvent from Member {
+                member.memberAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant BOOK_EXISTS {
+            subscribe BookDeletedEvent from Book {
+                book.bookAggregateId == event.aggregateId
+            }
+        }
+    }
+}

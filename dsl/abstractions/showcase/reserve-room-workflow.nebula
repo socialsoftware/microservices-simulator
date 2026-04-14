@@ -1,0 +1,29 @@
+Workflow ReserveRoomForUser {
+    input {
+        String username,
+        String email,
+        Integer roomId,
+        String checkIn,
+        String checkOut,
+        Integer nights,
+        Double price
+    }
+
+    step createUser {
+        action: User.signUp(username, email)
+        compensate: User.deleteUser(createUser.aggregateId)
+    }
+
+    step loadRoom {
+        action: Room.getRoomById(roomId)
+    }
+
+    step reserveRoom {
+        action: Room.reserve(roomId)
+        compensate: Room.release(roomId)
+    }
+
+    step bookRoom {
+        action: Booking.bookRoom(createUser, loadRoom, checkIn, checkOut, nights, price)
+    }
+}

@@ -7,12 +7,18 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.service.ProductService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.CategoryUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.CategoryDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.Product;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.ProductFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
 @Service
 public class ProductEventProcessing {
     @Autowired
     private ProductService productService;
-    
+
+    @Autowired
+    private ProductFactory productFactory;
+
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public ProductEventProcessing(UnitOfWorkService unitOfWorkService) {
@@ -26,6 +32,11 @@ public class ProductEventProcessing {
     }
 
     public void processCategoryDeletedEvent(Integer aggregateId, CategoryDeletedEvent categoryDeletedEvent) {
-        // Reference constraint event processing - implement constraint logic
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Product oldProduct = (Product) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Product newProduct = productFactory.createProductFromExisting(oldProduct);
+        newProduct.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newProduct, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 }

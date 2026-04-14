@@ -9,6 +9,9 @@ public class TournamentCreatorDto implements Serializable {
     private String state;
     private String name;
     private String username;
+    private Integer executionUserAggregateId;
+    private Integer executionUserVersion;
+    private String executionUserState;
 
     public TournamentCreatorDto() {
     }
@@ -19,6 +22,9 @@ public class TournamentCreatorDto implements Serializable {
         this.state = tournamentCreator.getCreatorState() != null ? tournamentCreator.getCreatorState().name() : null;
         this.name = tournamentCreator.getCreatorName();
         this.username = tournamentCreator.getCreatorUsername();
+        this.executionUserAggregateId = tournamentCreator.getExecutionUserAggregateId();
+        this.executionUserVersion = tournamentCreator.getExecutionUserVersion();
+        this.executionUserState = tournamentCreator.getExecutionUserState() != null ? tournamentCreator.getExecutionUserState().name() : null;
     }
 
     public Integer getAggregateId() {
@@ -59,5 +65,29 @@ public class TournamentCreatorDto implements Serializable {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public Integer getExecutionUserAggregateId() {
+        return executionUserAggregateId;
+    }
+
+    public void setExecutionUserAggregateId(Integer executionUserAggregateId) {
+        this.executionUserAggregateId = executionUserAggregateId;
+    }
+
+    public Integer getExecutionUserVersion() {
+        return executionUserVersion;
+    }
+
+    public void setExecutionUserVersion(Integer executionUserVersion) {
+        this.executionUserVersion = executionUserVersion;
+    }
+
+    public String getExecutionUserState() {
+        return executionUserState;
+    }
+
+    public void setExecutionUserState(String executionUserState) {
+        this.executionUserState = executionUserState;
     }
 }

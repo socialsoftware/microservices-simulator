@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.*;
@@ -16,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.CourseDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.CourseUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.coordination.webapi.requestDtos.CreateCourseRequestDto;
 import org.springframework.context.ApplicationContext;
@@ -41,6 +43,9 @@ public class CourseService {
 
     @Autowired
     private CourseFactory courseFactory;
+
+    @Autowired
+    private CourseServiceExtension extension;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -161,7 +166,27 @@ public class CourseService {
 
 
 
-
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public java.util.List<CourseDto> findCourseByName(String courseName, UnitOfWork unitOfWork) {
+        try {
+            Set<Integer> aggregateIds = courseRepository.findCourseIdsByName(courseName);
+            return aggregateIds.stream()
+                .map(id -> {
+                    try {
+                        return (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(courseFactory::createCourseDto)
+                .collect(java.util.stream.Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in findCourseByName Course: " + e.getMessage());
+        }
+    }
 
 
 }

@@ -1,0 +1,81 @@
+Aggregate Room {
+
+    States RoomStatus {
+        initial AVAILABLE
+        terminal OUT_OF_SERVICE
+
+        AVAILABLE -> RESERVED publishes RoomReservedEvent {
+            roomNumber: room.roomNumber
+        }
+        RESERVED -> OCCUPIED publishes RoomOccupiedEvent {
+            roomNumber: room.roomNumber
+        }
+        OCCUPIED -> AVAILABLE
+        RESERVED -> AVAILABLE
+        AVAILABLE -> OUT_OF_SERVICE
+    }
+
+    Entity RoomAmenity {
+        Integer code
+        String name
+        String description
+    }
+
+    Root Entity Room {
+        String roomNumber
+        String description
+        Double pricePerNight
+        Set<RoomAmenity> amenities
+        RoomStatus status
+
+        invariants {
+            roomNumber.length() > 0 : "Room number cannot be empty"
+            pricePerNight > 0.0 : "Price per night must be positive"
+        }
+    }
+
+    method reserve(Integer roomId) {
+        action {
+            load Room(roomId) as room
+            room.status = RESERVED
+        }
+    }
+
+    method checkIn(Integer roomId) {
+        action {
+            load Room(roomId) as room
+            room.status = OCCUPIED
+        }
+    }
+
+    method checkOut(Integer roomId) {
+        action {
+            load Room(roomId) as room
+            room.status = AVAILABLE
+        }
+    }
+
+    method release(Integer roomId) {
+        action {
+            load Room(roomId) as room
+            room.status = AVAILABLE
+        }
+    }
+
+    method retire(Integer roomId) {
+        action {
+            load Room(roomId) as room
+            room.status = OUT_OF_SERVICE
+        }
+    }
+
+    Events {
+        publish RoomReservedEvent {
+            String roomNumber
+        }
+
+        publish RoomOccupiedEvent {
+            String roomNumber
+        }
+    }
+}

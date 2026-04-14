@@ -69,10 +69,10 @@ public abstract class Answer extends Aggregate {
         setCreationDate(other.getCreationDate());
         setAnswerDate(other.getAnswerDate());
         setCompleted(other.getCompleted());
-        setExecution(new AnswerExecution(other.getExecution()));
-        setUser(new AnswerUser(other.getUser()));
-        setQuiz(new AnswerQuiz(other.getQuiz()));
-        setQuestions(other.getQuestions().stream().map(AnswerQuestion::new).collect(Collectors.toList()));
+        setExecution(other.getExecution() != null ? new AnswerExecution(other.getExecution()) : null);
+        setUser(other.getUser() != null ? new AnswerUser(other.getUser()) : null);
+        setQuiz(other.getQuiz() != null ? new AnswerQuiz(other.getQuiz()) : null);
+        setQuestions(other.getQuestions() != null ? other.getQuestions().stream().map(AnswerQuestion::new).collect(Collectors.toList()) : null);
     }
 
     public LocalDateTime getCreationDate() {
@@ -211,33 +211,33 @@ public abstract class Answer extends Aggregate {
     }
 
 
-    private boolean invariantExecutionNotNull() {
+    private boolean invariantRule0() {
         return this.execution != null;
     }
 
-    private boolean invariantUserNotNull() {
+    private boolean invariantRule1() {
         return this.user != null;
     }
 
-    private boolean invariantQuizNotNull() {
+    private boolean invariantRule2() {
         return this.quiz != null;
     }
 
-    private boolean invariantQuestionsNotNull() {
+    private boolean invariantRule3() {
         return this.questions != null;
     }
     @Override
     public void verifyInvariants() {
-        if (!invariantExecutionNotNull()) {
+        if (!invariantRule0()) {
             throw new SimulatorException(INVARIANT_BREAK, "Answer must be associated with an execution");
         }
-        if (!invariantUserNotNull()) {
+        if (!invariantRule1()) {
             throw new SimulatorException(INVARIANT_BREAK, "Answer must be associated with a user");
         }
-        if (!invariantQuizNotNull()) {
+        if (!invariantRule2()) {
             throw new SimulatorException(INVARIANT_BREAK, "Answer must be associated with a quiz");
         }
-        if (!invariantQuestionsNotNull()) {
+        if (!invariantRule3()) {
             throw new SimulatorException(INVARIANT_BREAK, "Answer must have a questions collection");
         }
     }

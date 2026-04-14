@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.service
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.*;
@@ -19,6 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuestionDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuestionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuestionTopicRemovedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuestionTopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.OptionRemovedEvent;
@@ -45,6 +47,9 @@ public class QuestionService {
 
     @Autowired
     private QuestionFactory questionFactory;
+
+    @Autowired
+    private QuestionServiceExtension extension;
 
     public QuestionService() {}
 
@@ -368,7 +373,27 @@ public class QuestionService {
         }
     }
 
-
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public java.util.List<QuestionDto> findQuestionsByTitle(String titlePattern, UnitOfWork unitOfWork) {
+        try {
+            Set<Integer> aggregateIds = questionRepository.findQuestionIdsByTitlePattern(titlePattern);
+            return aggregateIds.stream()
+                .map(id -> {
+                    try {
+                        return (Question) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(questionFactory::createQuestionDto)
+                .collect(java.util.stream.Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in findQuestionsByTitle Question: " + e.getMessage());
+        }
+    }
 
 
 }

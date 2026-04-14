@@ -1,5 +1,4 @@
 Aggregate User {
-    @GenerateCrud
 
     Root Entity User {
         String name
@@ -8,14 +7,49 @@ Aggregate User {
         Boolean active
 
         invariants {
-            check nameNotBlank { name.length() > 0 }
-                error "User name cannot be blank"
+            name.length() > 0 : "User name cannot be blank"
 
-            check usernameNotBlank { username.length() > 0 }
-                error "Username cannot be blank"
+            username.length() > 0 : "Username cannot be blank"
 
-            check roleNotNull { role != null }
-                error "User role is required"
+            role != null : "User role is required"
         }
+    }
+
+    method activateUser(Integer userId) {
+        action {
+            load User(userId) as user
+            user.active = true
+        }
+    }
+
+    method deactivateUser(Integer userId) {
+        action {
+            load User(userId) as user
+            user.active = false
+        }
+    }
+
+    method anonymizeUser(Integer userId) {
+        action {
+            load User(userId) as user
+            user.name = ANONYMOUS
+            user.username = ANONYMOUS
+        }
+    }
+
+    method getStudents() {
+        query findStudentIds()
+    }
+
+    method getTeachers() {
+        query findTeacherIds()
+    }
+
+    Repository {
+        @Query("select u.aggregateId from User u where u.role = 'STUDENT' AND u.state != 'DELETED'")
+        Set<Integer> findStudentIds()
+
+        @Query("select u.aggregateId from User u where u.role = 'TEACHER' AND u.state != 'DELETED'")
+        Set<Integer> findTeacherIds()
     }
 }

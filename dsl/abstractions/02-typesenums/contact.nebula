@@ -1,0 +1,16 @@
+SharedEnums {
+    enum ContactCategory { PERSONAL, WORK, FAMILY }
+}
+
+Aggregate Contact {
+
+    Root Entity Contact {
+        String firstName
+        String lastName
+        String email
+        ContactCategory category
+        LocalDateTime createdAt
+        Boolean favorite = false
+        Integer callCount = 0
+    }
+}

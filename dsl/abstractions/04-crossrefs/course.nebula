@@ -1,0 +1,34 @@
+Aggregate Course {
+
+    Entity CourseTeacher {
+        from Teacher { name as teacherName, email as teacherEmail, department as teacherDepartment }
+    }
+
+    Root Entity Course {
+        String title
+        String description
+        Integer maxStudents
+        CourseTeacher teacher
+
+        invariants {
+            title.length() > 0 : "Course title cannot be blank"
+            maxStudents > 0 : "Max students must be positive"
+            teacher != null : "Course must have a teacher"
+        }
+    }
+
+    References {
+        teacher -> Teacher {
+            onDelete: prevent
+            message: "Cannot delete teacher with active courses"
+        }
+    }
+
+    Events {
+        interInvariant TEACHER_EXISTS {
+            subscribe TeacherDeletedEvent from Teacher {
+                teacher.teacherAggregateId == event.aggregateId
+            }
+        }
+    }
+}

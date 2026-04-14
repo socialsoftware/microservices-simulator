@@ -40,7 +40,7 @@ public abstract class Topic extends Aggregate {
     public Topic(Topic other) {
         super(other);
         setName(other.getName());
-        setCourse(new TopicCourse(other.getCourse()));
+        setCourse(other.getCourse() != null ? new TopicCourse(other.getCourse()) : null);
     }
 
     public String getName() {
@@ -76,19 +76,19 @@ public abstract class Topic extends Aggregate {
     }
 
 
-    private boolean invariantNameNotBlank() {
+    private boolean invariantRule0() {
         return this.name != null && this.name.length() > 0;
     }
 
-    private boolean invariantCourseNotNull() {
+    private boolean invariantRule1() {
         return this.course != null;
     }
     @Override
     public void verifyInvariants() {
-        if (!invariantNameNotBlank()) {
+        if (!invariantRule0()) {
             throw new SimulatorException(INVARIANT_BREAK, "Topic name cannot be blank");
         }
-        if (!invariantCourseNotNull()) {
+        if (!invariantRule1()) {
             throw new SimulatorException(INVARIANT_BREAK, "Topic must be associated with a course");
         }
     }

@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
@@ -21,7 +21,7 @@ public class QuizQuestion {
     private String questionContent;
     private Integer questionAggregateId;
     private Integer questionVersion;
-    @OneToOne
+    @ManyToOne
     private Quiz quiz;
 
     public QuizQuestion() {

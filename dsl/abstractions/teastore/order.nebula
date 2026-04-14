@@ -1,26 +1,8 @@
 Aggregate Order {
-    @GenerateCrud
 
-    Entity OrderUser from User {
-        map userName as userName
-        map realName as userRealName
-        map email as userEmail
+    Entity OrderUser {
+        from User { userName as userName, realName as userRealName, email as userEmail }
     }
-
-    /*
-    Entity OrderItemProduct from Product {
-        map name as productName
-        map description as productDescription
-        map listPriceInCents as productPriceInCents
-    }
-
-    Entity OrderItem {
-        Long id
-        OrderItemProduct product
-        Integer quantity
-        Double unitPriceInCents
-    }
-    */
 
     Root Entity Order {
         OrderUser user
@@ -33,8 +15,6 @@ Aggregate Order {
         String creditCardCompany
         String creditCardNumber
         String creditCardExpiryDate
-
-        // Set<OrderItem> items
     }
 
     Events {

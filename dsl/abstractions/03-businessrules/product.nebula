@@ -1,0 +1,24 @@
+Aggregate Product {
+
+    Root Entity Product {
+        String name
+        String sku
+        Double price
+        Integer stockQuantity
+        Boolean active = true
+
+        invariants {
+            name.length() > 0 : "Product name cannot be blank"
+            price > 0.0 : "Product price must be positive"
+            stockQuantity >= 0 : "Stock quantity cannot be negative"
+        }
+    }
+
+    Repository {
+        List<Product> findByActiveTrue()
+        Optional<Product> findBySku(String sku)
+
+        @Query("select p.aggregateId from Product p where p.price <= :maxPrice AND p.state != 'DELETED'")
+        Set<Integer> findAffordableProductIds(Double maxPrice)
+    }
+}

@@ -1,0 +1,46 @@
+Aggregate WishlistItem {
+
+    Entity WishlistItemUser {
+        from User { username as userName, email as userEmail }
+    }
+
+    Entity WishlistItemProduct {
+        from Product { sku as productSku, name as productName, priceInCents as productPriceInCents }
+    }
+
+    Root Entity WishlistItem {
+        WishlistItemUser user
+        WishlistItemProduct product
+        String addedAt
+
+        invariants {
+            addedAt.length() > 0 : "Wishlist item must have an added timestamp"
+        }
+    }
+
+    Events {
+        publish WishlistItemAddedEvent {
+            Integer userAggregateId
+            Integer productAggregateId
+        }
+
+        publish WishlistItemRemovedEvent {
+            Integer userAggregateId
+            Integer productAggregateId
+        }
+
+        subscribe UserUpdatedEvent
+        subscribe ProductUpdatedEvent
+    }
+
+    References {
+        user -> User {
+            onDelete: prevent
+            message: "Cannot delete user that has wishlist items"
+        }
+        product -> Product {
+            onDelete: prevent
+            message: "Cannot delete product that is on a wishlist"
+        }
+    }
+}

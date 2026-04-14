@@ -1,0 +1,27 @@
+Aggregate Book {
+
+    Root Entity Book {
+        String title
+        String author
+        String genre
+        Boolean available = true
+
+        invariants {
+            title.length() > 0 : "Book title cannot be blank"
+
+            author.length() > 0 : "Author name cannot be blank"
+        }
+    }
+
+    Events {
+        publish BookDeletedEvent {
+            Integer bookId
+            String title
+        }
+    }
+
+    Repository {
+        List<Book> findByGenre(String genre)
+        List<Book> findByAvailableTrue()
+    }
+}

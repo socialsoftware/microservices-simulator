@@ -1,5 +1,4 @@
 Aggregate Product {
-    @GenerateCrud
 
     Root Entity Product {
         String sku
@@ -9,14 +8,23 @@ Aggregate Product {
         Integer stock
 
         invariants {
-            check skuNotEmpty { sku.length() > 0 }
-                error "Product SKU cannot be empty"
+            sku.length() > 0 : "Product SKU cannot be empty"
 
-            check priceNonNegative { priceInCents >= 0.0 }
-                error "Product price cannot be negative"
+            priceInCents >= 0.0 : "Product price cannot be negative"
 
-            check stockNonNegative { stock >= 0 }
-                error "Product stock cannot be negative"
+            stock >= 0 : "Product stock cannot be negative"
+        }
+    }
+
+    method createBySku(String sku) {
+        action {
+            create Product {
+                sku: sku,
+                name: "Auto-created",
+                description: "seeded by workflow",
+                priceInCents: 100.0,
+                stock: 1
+            }
         }
     }
 

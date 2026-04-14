@@ -1,5 +1,48 @@
 Aggregate Tournament {
-    @GenerateCrud
+
+    Entity TournamentExecution {
+        from Execution { courseAggregateId as executionCourseAggregateId, acronym as executionAcronym }
+        AggregateState executionState
+        Integer executionVersion
+    }
+
+    Entity TournamentCreator {
+        from ExecutionUser { name as creatorName, username as creatorUsername }
+        Integer creatorAggregateId
+        Integer creatorVersion
+        AggregateState creatorState
+    }
+
+    Entity TournamentParticipant {
+        from ExecutionUser { name as participantName, username as participantUsername }
+        Integer participantAggregateId
+        Integer participantVersion
+        AggregateState participantState
+        LocalDateTime participantEnrollTime
+        TournamentParticipantQuiz participantQuiz
+    }
+
+    Entity TournamentParticipantQuiz {
+        from Quiz {  }
+        Integer participantQuizAggregateId
+        Integer participantQuizVersion
+        Boolean participantQuizAnswered
+        Integer participantQuizNumberOfAnswered
+        Integer participantQuizNumberOfCorrect
+    }
+
+    Entity TournamentTopic {
+        from Topic { name as topicName, courseAggregateId as topicCourseAggregateId }
+        Integer topicAggregateId
+        Integer topicVersion
+        AggregateState topicState
+    }
+
+    Entity TournamentQuiz {
+        from Quiz {  }
+        Integer quizAggregateId
+        Integer quizVersion
+    }
 
     Root Entity Tournament {
        LocalDateTime startTime
@@ -13,94 +56,37 @@ Aggregate Tournament {
        TournamentQuiz quiz
 
        invariants {
-           check startTimeBeforeEndTime {
-               startTime.isBefore(endTime)
-           }
-               error "Tournament start time must be before end time"
+           startTime.isBefore(endTime) : "Tournament start time must be before end time"
 
-           check participantsNotNull {
-               participants != null
-           }
-               error "Tournament must have a participants collection"
+           participants != null : "Tournament must have a participants collection"
 
-           check creatorNotNull {
-               creator != null
-           }
-               error "Tournament must have a creator"
+           creator != null : "Tournament must have a creator"
 
-           check executionNotNull {
-               execution != null
-           }
-               error "Tournament must be associated with an execution"
+           execution != null : "Tournament must be associated with an execution"
 
-           check topicsNotNull {
-               topics != null
-           }
-               error "Tournament must have a topics collection"
+           topics != null : "Tournament must have a topics collection"
 
-           check quizNotNull {
-               quiz != null
-           }
-               error "Tournament must have a quiz"
+           quiz != null : "Tournament must have a quiz"
        }
     }
 
-    Entity TournamentExecution from Execution {
-        map courseAggregateId as executionCourseAggregateId
-        map acronym as executionAcronym
-        AggregateState executionState
-        Integer executionVersion
-    }
-
-    Entity TournamentCreator from ExecutionUser {
-        Integer creatorAggregateId
-        map name as creatorName
-        map username as creatorUsername
-        Integer creatorVersion
-        AggregateState creatorState
-    }
-
-    Entity TournamentParticipant from ExecutionUser {
-        Integer participantAggregateId
-        map name as participantName
-        map username as participantUsername
-        Integer participantVersion
-        AggregateState participantState
-        LocalDateTime participantEnrollTime
-        TournamentParticipantQuiz participantQuiz
-    }
-
-    Entity TournamentParticipantQuiz from Quiz {
-        Integer participantQuizAggregateId
-        Integer participantQuizVersion
-        Boolean participantQuizAnswered
-        Integer participantQuizNumberOfAnswered
-        Integer participantQuizNumberOfCorrect
-    }
-
-    Entity TournamentTopic from Topic {
-        Integer topicAggregateId
-        Integer topicVersion
-        AggregateState topicState
-        map name as topicName
-        map courseAggregateId as topicCourseAggregateId
-    }
-
-    Entity TournamentQuiz from Quiz {
-        Integer quizAggregateId
-        Integer quizVersion
-    }
-
-    References {
-        execution -> Execution {
-            onDelete: prevent
-            message: "Cannot delete execution that has tournaments"
+    method cancelTournament(Integer tournamentId) {
+        action {
+            load Tournament(tournamentId) as tournament
+            tournament.cancelled = true
         }
+    }
 
-        quiz -> Quiz {
-            onDelete: prevent
-            message: "Cannot delete quiz that is used in tournaments"
+    method updateParticipantName(Integer tournamentId, Integer participantAggregateId, String newName) {
+        action {
+            load Tournament(tournamentId) as tournament
+            find tournament.participants where participantAggregateId == participantAggregateId as participant
+            participant.participantName = newName
         }
+    }
+
+    method getActiveTournaments() {
+        query findActiveTournamentIds()
     }
 
     Events {
@@ -137,6 +123,23 @@ Aggregate Tournament {
             subscribe QuizDeletedEvent from Quiz {
                 quiz.quizAggregateId == event.aggregateId
             }
+        }
+    }
+
+    Repository {
+        @Query("select t.aggregateId from Tournament t where t.cancelled = false AND t.aggregateId NOT IN (select t2.aggregateId from Tournament t2 where t2.cancelled = true) AND t.aggregateId NOT IN (select t3.aggregateId from Tournament t3 where t3.state = 'DELETED' AND t3.sagaState != 'NOT_IN_SAGA')")
+        Set<Integer> findActiveTournamentIds()
+    }
+
+    References {
+        execution -> Execution {
+            onDelete: prevent
+            message: "Cannot delete execution that has tournaments"
+        }
+
+        quiz -> Quiz {
+            onDelete: prevent
+            message: "Cannot delete quiz that is used in tournaments"
         }
     }
 }

@@ -12,6 +12,9 @@ public class TournamentParticipantDto implements Serializable {
     private TournamentParticipantQuizDto participantQuiz;
     private String name;
     private String username;
+    private Integer executionUserAggregateId;
+    private Integer executionUserVersion;
+    private String executionUserState;
 
     public TournamentParticipantDto() {
     }
@@ -24,6 +27,9 @@ public class TournamentParticipantDto implements Serializable {
         this.participantQuiz = tournamentParticipant.getParticipantQuiz() != null ? new TournamentParticipantQuizDto(tournamentParticipant.getParticipantQuiz()) : null;
         this.name = tournamentParticipant.getParticipantName();
         this.username = tournamentParticipant.getParticipantUsername();
+        this.executionUserAggregateId = tournamentParticipant.getExecutionUserAggregateId();
+        this.executionUserVersion = tournamentParticipant.getExecutionUserVersion();
+        this.executionUserState = tournamentParticipant.getExecutionUserState() != null ? tournamentParticipant.getExecutionUserState().name() : null;
     }
 
     public Integer getAggregateId() {
@@ -80,5 +86,29 @@ public class TournamentParticipantDto implements Serializable {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public Integer getExecutionUserAggregateId() {
+        return executionUserAggregateId;
+    }
+
+    public void setExecutionUserAggregateId(Integer executionUserAggregateId) {
+        this.executionUserAggregateId = executionUserAggregateId;
+    }
+
+    public Integer getExecutionUserVersion() {
+        return executionUserVersion;
+    }
+
+    public void setExecutionUserVersion(Integer executionUserVersion) {
+        this.executionUserVersion = executionUserVersion;
+    }
+
+    public String getExecutionUserState() {
+        return executionUserState;
+    }
+
+    public void setExecutionUserState(String executionUserState) {
+        this.executionUserState = executionUserState;
     }
 }

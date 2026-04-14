@@ -56,8 +56,8 @@ public abstract class Execution extends Aggregate {
         setAcronym(other.getAcronym());
         setAcademicTerm(other.getAcademicTerm());
         setEndDate(other.getEndDate());
-        setCourse(new ExecutionCourse(other.getCourse()));
-        setUsers(other.getUsers().stream().map(ExecutionUser::new).collect(Collectors.toSet()));
+        setCourse(other.getCourse() != null ? new ExecutionCourse(other.getCourse()) : null);
+        setUsers(other.getUsers() != null ? other.getUsers().stream().map(ExecutionUser::new).collect(Collectors.toSet()) : null);
     }
 
     public String getAcronym() {
@@ -163,33 +163,33 @@ public abstract class Execution extends Aggregate {
     }
 
 
-    private boolean invariantAcronymNotBlank() {
+    private boolean invariantRule0() {
         return this.acronym != null && this.acronym.length() > 0;
     }
 
-    private boolean invariantAcademicTermNotBlank() {
+    private boolean invariantRule1() {
         return this.academicTerm != null && this.academicTerm.length() > 0;
     }
 
-    private boolean invariantCourseNotNull() {
+    private boolean invariantRule2() {
         return this.course != null;
     }
 
-    private boolean invariantUsersNotNull() {
+    private boolean invariantRule3() {
         return this.users != null;
     }
     @Override
     public void verifyInvariants() {
-        if (!invariantAcronymNotBlank()) {
+        if (!invariantRule0()) {
             throw new SimulatorException(INVARIANT_BREAK, "Execution acronym cannot be blank");
         }
-        if (!invariantAcademicTermNotBlank()) {
+        if (!invariantRule1()) {
             throw new SimulatorException(INVARIANT_BREAK, "Academic term cannot be blank");
         }
-        if (!invariantCourseNotNull()) {
+        if (!invariantRule2()) {
             throw new SimulatorException(INVARIANT_BREAK, "Execution must be associated with a course");
         }
-        if (!invariantUsersNotNull()) {
+        if (!invariantRule3()) {
             throw new SimulatorException(INVARIANT_BREAK, "Execution must have a users collection");
         }
     }

@@ -71,8 +71,8 @@ public abstract class Quiz extends Aggregate {
         setAvailableDate(other.getAvailableDate());
         setConclusionDate(other.getConclusionDate());
         setResultsDate(other.getResultsDate());
-        setExecution(new QuizExecution(other.getExecution()));
-        setQuestions(other.getQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()));
+        setExecution(other.getExecution() != null ? new QuizExecution(other.getExecution()) : null);
+        setQuestions(other.getQuestions() != null ? other.getQuestions().stream().map(QuizQuestion::new).collect(Collectors.toSet()) : null);
     }
 
     public String getTitle() {
@@ -204,34 +204,33 @@ public abstract class Quiz extends Aggregate {
     }
 
 
-    private boolean invariantTitleNotBlank() {
+    private boolean invariantRule0() {
         return this.title != null && this.title.length() > 0;
     }
 
-    private boolean invariantDateOrdering() {
-        return this.availableDate.isBefore(this.conclusionDate) &&
-                this.conclusionDate.isBefore(this.resultsDate);
+    private boolean invariantRule1() {
+        return this.availableDate.isBefore(this.conclusionDate) && this.conclusionDate.isBefore(this.resultsDate);
     }
 
-    private boolean invariantQuestionsNotNull() {
+    private boolean invariantRule2() {
         return this.questions != null;
     }
 
-    private boolean invariantExecutionNotNull() {
+    private boolean invariantRule3() {
         return this.execution != null;
     }
     @Override
     public void verifyInvariants() {
-        if (!invariantTitleNotBlank()) {
+        if (!invariantRule0()) {
             throw new SimulatorException(INVARIANT_BREAK, "Quiz title cannot be blank");
         }
-        if (!invariantDateOrdering()) {
+        if (!invariantRule1()) {
             throw new SimulatorException(INVARIANT_BREAK, "Quiz dates must be in order: available < conclusion < results");
         }
-        if (!invariantQuestionsNotNull()) {
+        if (!invariantRule2()) {
             throw new SimulatorException(INVARIANT_BREAK, "Quiz must have a questions collection");
         }
-        if (!invariantExecutionNotNull()) {
+        if (!invariantRule3()) {
             throw new SimulatorException(INVARIANT_BREAK, "Quiz must be associated with an execution");
         }
     }

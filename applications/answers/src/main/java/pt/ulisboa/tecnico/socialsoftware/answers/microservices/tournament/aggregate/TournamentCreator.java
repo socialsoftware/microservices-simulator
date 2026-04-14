@@ -20,6 +20,9 @@ public class TournamentCreator {
     private AggregateState creatorState;
     private String creatorName;
     private String creatorUsername;
+    private Integer executionUserAggregateId;
+    private Integer executionUserVersion;
+    private AggregateState executionUserState;
     @OneToOne
     private Tournament tournament;
 
@@ -39,6 +42,9 @@ public class TournamentCreator {
         setCreatorState(tournamentCreatorDto.getState() != null ? AggregateState.valueOf(tournamentCreatorDto.getState()) : null);
         setCreatorName(tournamentCreatorDto.getName());
         setCreatorUsername(tournamentCreatorDto.getUsername());
+        setExecutionUserAggregateId(tournamentCreatorDto.getExecutionUserAggregateId());
+        setExecutionUserVersion(tournamentCreatorDto.getExecutionUserVersion());
+        setExecutionUserState(tournamentCreatorDto.getExecutionUserState() != null ? AggregateState.valueOf(tournamentCreatorDto.getExecutionUserState()) : null);
     }
 
     public TournamentCreator(TournamentCreator other) {
@@ -47,6 +53,9 @@ public class TournamentCreator {
         setCreatorState(other.getCreatorState());
         setCreatorName(other.getCreatorName());
         setCreatorUsername(other.getCreatorUsername());
+        setExecutionUserAggregateId(other.getExecutionUserAggregateId());
+        setExecutionUserVersion(other.getExecutionUserVersion());
+        setExecutionUserState(other.getExecutionUserState());
     }
 
     public Long getId() {
@@ -95,6 +104,30 @@ public class TournamentCreator {
 
     public void setCreatorUsername(String creatorUsername) {
         this.creatorUsername = creatorUsername;
+    }
+
+    public Integer getExecutionUserAggregateId() {
+        return executionUserAggregateId;
+    }
+
+    public void setExecutionUserAggregateId(Integer executionUserAggregateId) {
+        this.executionUserAggregateId = executionUserAggregateId;
+    }
+
+    public Integer getExecutionUserVersion() {
+        return executionUserVersion;
+    }
+
+    public void setExecutionUserVersion(Integer executionUserVersion) {
+        this.executionUserVersion = executionUserVersion;
+    }
+
+    public AggregateState getExecutionUserState() {
+        return executionUserState;
+    }
+
+    public void setExecutionUserState(AggregateState executionUserState) {
+        this.executionUserState = executionUserState;
     }
 
     public Tournament getTournament() {

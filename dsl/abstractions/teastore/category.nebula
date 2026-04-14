@@ -1,5 +1,4 @@
 Aggregate Category {
-    @GenerateCrud
 
     Root Entity Category {
         String name

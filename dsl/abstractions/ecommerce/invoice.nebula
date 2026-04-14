@@ -1,13 +1,11 @@
 Aggregate Invoice {
-    @GenerateCrud
 
-    Entity InvoiceOrder from Order {
-        map totalInCents as orderTotalInCents
+    Entity InvoiceOrder {
+        from Order { totalInCents as orderTotalInCents }
     }
 
-    Entity InvoiceUser from User {
-        map username as userName
-        map email as userEmail
+    Entity InvoiceUser {
+        from User { username as userName, email as userEmail }
     }
 
     Root Entity Invoice {
@@ -19,11 +17,9 @@ Aggregate Invoice {
         InvoiceStatus status
 
         invariants {
-            check amountPositive { amountInCents > 0.0 }
-                error "Invoice amount must be positive"
+            amountInCents > 0.0 : "Invoice amount must be positive"
 
-            check invoiceNumberNotEmpty { invoiceNumber.length() > 0 }
-                error "Invoice number cannot be empty"
+            invoiceNumber.length() > 0 : "Invoice number cannot be empty"
         }
     }
 

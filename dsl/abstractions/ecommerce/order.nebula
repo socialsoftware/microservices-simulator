@@ -1,17 +1,23 @@
 Aggregate Order {
-    @GenerateCrud
 
-    method markPaid(Integer orderId) {
-        action {
-            load Order(orderId) as order
-            order.status = PAID
+    States OrderStatus {
+        initial PENDING
+        terminal DELIVERED, CANCELLED
+
+        PENDING -> PAID publishes OrderPaidEvent {
+            userAggregateId: order.user.userAggregateId,
+            totalInCents: order.totalInCents
         }
+        PAID -> SHIPPED publishes OrderShippedEvent {
+            userAggregateId: order.user.userAggregateId
+        }
+        SHIPPED -> DELIVERED
+        PENDING -> CANCELLED
+        PAID -> CANCELLED
     }
 
-    Entity OrderUser from User {
-        map username as userName
-        map email as userEmail
-        map shippingAddress as shippingAddress
+    Entity OrderUser {
+        from User { username as userName, email as userEmail, shippingAddress as shippingAddress }
     }
 
     Root Entity Order {
@@ -22,11 +28,49 @@ Aggregate Order {
         String placedAt
 
         invariants {
-            check totalPositive { totalInCents > 0.0 }
-                error "Order total must be positive"
+            totalInCents > 0.0 : "Order total must be positive"
 
-            check hasItems { itemCount > 0 }
-                error "Order must contain at least one item"
+            itemCount > 0 : "Order must contain at least one item"
+        }
+    }
+
+    method placeOrder(User user, Double totalInCents, Integer itemCount, String placedAt) {
+        action {
+            create Order {
+                user: user,
+                totalInCents: totalInCents,
+                itemCount: itemCount,
+                status: PENDING,
+                placedAt: placedAt
+            }
+        }
+    }
+
+    method markPaid(Integer orderId) {
+        action {
+            load Order(orderId) as order
+            order.status = PAID
+        }
+    }
+
+    method markShipped(Integer orderId) {
+        action {
+            load Order(orderId) as order
+            order.status = SHIPPED
+        }
+    }
+
+    method markDelivered(Integer orderId) {
+        action {
+            load Order(orderId) as order
+            order.status = DELIVERED
+        }
+    }
+
+    method cancelOrder(Integer orderId) {
+        action {
+            load Order(orderId) as order
+            order.status = CANCELLED
         }
     }
 

@@ -1,0 +1,32 @@
+Aggregate Discount {
+
+    Root Entity Discount {
+        String code
+        String description
+        Double percentageOff
+        Boolean active
+        String validFrom
+        String validUntil
+
+        invariants {
+            code.length() > 0 : "Discount code cannot be empty"
+
+            percentageOff >= 0.0 && percentageOff <= 100.0 : "Discount percentage must be between 0 and 100"
+        }
+    }
+
+    Events {
+        publish DiscountCreatedEvent {
+            String code
+            Double percentageOff
+        }
+
+        publish DiscountActivatedEvent {
+            String code
+        }
+
+        publish DiscountDeactivatedEvent {
+            String code
+        }
+    }
+}

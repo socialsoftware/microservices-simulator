@@ -10,13 +10,21 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUserUpdatedEven
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.UserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.TopicDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.Tournament;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
 @Service
 public class TournamentEventProcessing {
     @Autowired
     private TournamentService tournamentService;
-    
+
+    @Autowired
+    private TournamentFactory tournamentFactory;
+
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public TournamentEventProcessing(UnitOfWorkService unitOfWorkService) {
@@ -48,10 +56,38 @@ public class TournamentEventProcessing {
     }
 
     public void processExecutionDeletedEvent(Integer aggregateId, ExecutionDeletedEvent executionDeletedEvent) {
-        // Reference constraint event processing - implement constraint logic
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+        newTournament.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void processUserDeletedEvent(Integer aggregateId, UserDeletedEvent userDeletedEvent) {
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+        newTournament.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void processTopicDeletedEvent(Integer aggregateId, TopicDeletedEvent topicDeletedEvent) {
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+        newTournament.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 
     public void processQuizDeletedEvent(Integer aggregateId, QuizDeletedEvent quizDeletedEvent) {
-        // Reference constraint event processing - implement constraint logic
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
+        newTournament.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 }

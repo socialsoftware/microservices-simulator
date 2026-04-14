@@ -1,9 +1,0 @@
-Aggregate Member {
-    @GenerateCrud
-
-    Root Entity Member {
-        String name
-        String email
-        MembershipType membership
-    }
-}

@@ -10,6 +10,8 @@ public class TournamentParticipantQuizDto implements Serializable {
     private Integer participantQuizNumberOfAnswered;
     private Integer participantQuizNumberOfCorrect;
     private String state;
+    private Integer quizAggregateId;
+    private Integer quizVersion;
 
     public TournamentParticipantQuizDto() {
     }
@@ -21,6 +23,8 @@ public class TournamentParticipantQuizDto implements Serializable {
         this.participantQuizNumberOfAnswered = tournamentParticipantQuiz.getParticipantQuizNumberOfAnswered();
         this.participantQuizNumberOfCorrect = tournamentParticipantQuiz.getParticipantQuizNumberOfCorrect();
         this.state = tournamentParticipantQuiz.getQuizState() != null ? tournamentParticipantQuiz.getQuizState().name() : null;
+        this.quizAggregateId = tournamentParticipantQuiz.getQuizAggregateId();
+        this.quizVersion = tournamentParticipantQuiz.getQuizVersion();
     }
 
     public Integer getAggregateId() {
@@ -69,5 +73,21 @@ public class TournamentParticipantQuizDto implements Serializable {
 
     public void setState(String state) {
         this.state = state;
+    }
+
+    public Integer getQuizAggregateId() {
+        return quizAggregateId;
+    }
+
+    public void setQuizAggregateId(Integer quizAggregateId) {
+        this.quizAggregateId = quizAggregateId;
+    }
+
+    public Integer getQuizVersion() {
+        return quizVersion;
+    }
+
+    public void setQuizVersion(Integer quizVersion) {
+        this.quizVersion = quizVersion;
     }
 }

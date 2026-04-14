@@ -7,12 +7,18 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.service.OrderService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.UserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.UserDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.Order;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.OrderFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
 @Service
 public class OrderEventProcessing {
     @Autowired
     private OrderService orderService;
-    
+
+    @Autowired
+    private OrderFactory orderFactory;
+
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public OrderEventProcessing(UnitOfWorkService unitOfWorkService) {
@@ -26,6 +32,11 @@ public class OrderEventProcessing {
     }
 
     public void processUserDeletedEvent(Integer aggregateId, UserDeletedEvent userDeletedEvent) {
-        // Reference constraint event processing - implement constraint logic
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
+        newOrder.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newOrder, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 }

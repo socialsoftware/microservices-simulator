@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggre
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
@@ -20,7 +20,7 @@ public class TournamentTopic {
     private AggregateState topicState;
     private String topicName;
     private Integer topicCourseAggregateId;
-    @OneToOne
+    @ManyToOne
     private Tournament tournament;
 
     public TournamentTopic() {

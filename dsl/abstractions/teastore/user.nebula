@@ -1,5 +1,4 @@
 Aggregate User {
-    @GenerateCrud
 
     Root Entity User {
         String userName

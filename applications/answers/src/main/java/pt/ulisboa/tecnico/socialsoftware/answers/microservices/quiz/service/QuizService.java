@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.*;
@@ -19,6 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizQuestionRemovedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizQuestionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
@@ -48,6 +50,9 @@ public class QuizService {
 
     @Autowired
     private QuizFactory quizFactory;
+
+    @Autowired
+    private QuizServiceExtension extension;
 
     @Autowired
     private ApplicationContext applicationContext;

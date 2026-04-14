@@ -21,6 +21,8 @@ public class TournamentParticipantQuiz {
     private Integer participantQuizNumberOfAnswered;
     private Integer participantQuizNumberOfCorrect;
     private AggregateState quizState;
+    private Integer quizAggregateId;
+    private Integer quizVersion;
     @OneToOne
     private Tournament tournament;
 
@@ -41,6 +43,8 @@ public class TournamentParticipantQuiz {
         setParticipantQuizNumberOfAnswered(tournamentParticipantQuizDto.getParticipantQuizNumberOfAnswered());
         setParticipantQuizNumberOfCorrect(tournamentParticipantQuizDto.getParticipantQuizNumberOfCorrect());
         setQuizState(tournamentParticipantQuizDto.getState() != null ? AggregateState.valueOf(tournamentParticipantQuizDto.getState()) : null);
+        setQuizAggregateId(tournamentParticipantQuizDto.getQuizAggregateId());
+        setQuizVersion(tournamentParticipantQuizDto.getQuizVersion());
     }
 
     public TournamentParticipantQuiz(TournamentParticipantQuiz other) {
@@ -50,6 +54,8 @@ public class TournamentParticipantQuiz {
         setParticipantQuizNumberOfAnswered(other.getParticipantQuizNumberOfAnswered());
         setParticipantQuizNumberOfCorrect(other.getParticipantQuizNumberOfCorrect());
         setQuizState(other.getQuizState());
+        setQuizAggregateId(other.getQuizAggregateId());
+        setQuizVersion(other.getQuizVersion());
     }
 
     public Long getId() {
@@ -106,6 +112,22 @@ public class TournamentParticipantQuiz {
 
     public void setQuizState(AggregateState quizState) {
         this.quizState = quizState;
+    }
+
+    public Integer getQuizAggregateId() {
+        return quizAggregateId;
+    }
+
+    public void setQuizAggregateId(Integer quizAggregateId) {
+        this.quizAggregateId = quizAggregateId;
+    }
+
+    public Integer getQuizVersion() {
+        return quizVersion;
+    }
+
+    public void setQuizVersion(Integer quizVersion) {
+        this.quizVersion = quizVersion;
     }
 
     public Tournament getTournament() {

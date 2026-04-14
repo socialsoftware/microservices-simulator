@@ -71,12 +71,12 @@ public abstract class Cart extends Aggregate {
 
 
 
-    private boolean invariantTotalNonNegative() {
+    private boolean invariantRule0() {
         return totalPrice >= 0.0;
     }
     @Override
     public void verifyInvariants() {
-        if (!invariantTotalNonNegative()) {
+        if (!invariantRule0()) {
             throw new SimulatorException(INVARIANT_BREAK, "Cart total price cannot be negative");
         }
     }

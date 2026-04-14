@@ -1,0 +1,67 @@
+Workflow SeedCatalog {
+    input {
+        String firstSku
+    }
+
+    step createFirst {
+        action: Product.createBySku(firstSku)
+    }
+
+    step createClone {
+        action: Product.createBySku(createFirst.sku)
+    }
+}
+
+Workflow SeedUserAndProduct {
+    input {
+        String username,
+        String email,
+        String shippingAddress,
+        String productSku
+    }
+
+    step createUser {
+        action: User.makeUser(username, email, shippingAddress)
+        compensate: User.deleteUser(createUser.aggregateId)
+    }
+
+    step createProduct {
+        action: Product.createBySku(productSku)
+    }
+}
+
+Workflow PlaceOrderForUser {
+    input {
+        String username,
+        String email,
+        String shippingAddress,
+        Double totalInCents,
+        Integer itemCount,
+        String placedAt
+    }
+
+    step createUser {
+        action: User.makeUser(username, email, shippingAddress)
+    }
+
+    step placeOrder {
+        action: Order.placeOrder(createUser, totalInCents, itemCount, placedAt)
+        compensate: Order.deleteOrder(placeOrder.aggregateId)
+    }
+}
+
+Workflow CompensatingChain {
+    input {
+        String validSku,
+        String badSku
+    }
+
+    step createValid {
+        action: Product.createBySku(validSku)
+        compensate: Product.deleteProduct(createValid.aggregateId)
+    }
+
+    step createInvalid {
+        action: Product.createBySku(badSku)
+    }
+}

@@ -1,14 +1,13 @@
 Aggregate Question {
-    @GenerateCrud
 
-    Entity QuestionCourse from Course {
-        map name as courseName
+    Entity QuestionCourse {
+        from Course { name as courseName }
     }
 
-    Entity QuestionTopic from Topic {
+    Entity QuestionTopic {
+        from Topic { name as topicName }
         Integer topicId
         AggregateState topicState
-        map name as topicName
     }
 
     Dto Entity Option {
@@ -27,28 +26,20 @@ Aggregate Question {
         List<Option> options
 
         invariants {
-            check titleNotBlank { title.length() > 0 }
-                error "Question title cannot be blank"
+            title.length() > 0 : "Question title cannot be blank"
 
-            check contentNotBlank { content.length() > 0 }
-                error "Question content cannot be blank"
+            content.length() > 0 : "Question content cannot be blank"
 
-            check courseNotNull { course != null }
-                error "Question must be associated with a course"
+            course != null : "Question must be associated with a course"
 
-            check topicsNotNull { topics != null }
-                error "Question must have a topics collection"
+            topics != null : "Question must have a topics collection"
 
-            check optionsNotNull { options != null }
-                error "Question must have an options collection"
+            options != null : "Question must have an options collection"
         }
     }
 
-    References {
-        course -> Course {
-            onDelete: prevent
-            message: "Cannot delete course that has questions"
-        }
+    method findQuestionsByTitle(String titlePattern) {
+        query findQuestionIdsByTitlePattern(titlePattern)
     }
 
     Events {
@@ -64,6 +55,18 @@ Aggregate Question {
             subscribe TopicDeletedEvent from Topic {
                 topics.topicAggregateId == event.aggregateId
             }
+        }
+    }
+
+    Repository {
+        @Query("select q.aggregateId from Question q where q.title LIKE :titlePattern AND q.state != 'DELETED'")
+        Set<Integer> findQuestionIdsByTitlePattern(String titlePattern)
+    }
+
+    References {
+        course -> Course {
+            onDelete: prevent
+            message: "Cannot delete course that has questions"
         }
     }
 }

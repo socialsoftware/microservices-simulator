@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.servic
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.*;
@@ -18,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUserRemovedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
@@ -49,6 +51,9 @@ public class ExecutionService {
 
     @Autowired
     private ExecutionFactory executionFactory;
+
+    @Autowired
+    private ExecutionServiceExtension extension;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -283,8 +288,56 @@ public class ExecutionService {
     }
 
 
+    public Execution handleUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, String userName, String userUsername, Boolean userActive, UnitOfWork unitOfWork) {
+        try {
+            Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+            Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
 
 
+
+            unitOfWorkService.registerChanged(newExecution, unitOfWork);
+
+        unitOfWorkService.registerEvent(
+            new ExecutionUserUpdatedEvent(
+                    newExecution.getAggregateId(),
+                    userAggregateId,
+                    userVersion,
+                    userName,
+                    userUsername,
+                    userActive
+            ),
+            unitOfWork
+        );
+
+            return newExecution;
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error handling UserUpdatedEvent execution: " + e.getMessage());
+        }
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public java.util.List<ExecutionDto> getAllNonDeletedExecutions(UnitOfWork unitOfWork) {
+        try {
+            Set<Integer> aggregateIds = executionRepository.findCourseExecutionIdsOfAllNonDeletedForSaga();
+            return aggregateIds.stream()
+                .map(id -> {
+                    try {
+                        return (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(executionFactory::createExecutionDto)
+                .collect(java.util.stream.Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in getAllNonDeletedExecutions Execution: " + e.getMessage());
+        }
+    }
 
 
 }

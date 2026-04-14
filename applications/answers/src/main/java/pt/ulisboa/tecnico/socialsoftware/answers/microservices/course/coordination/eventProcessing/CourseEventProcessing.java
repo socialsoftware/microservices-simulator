@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.service.Co
 public class CourseEventProcessing {
     @Autowired
     private CourseService courseService;
-    
+
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public CourseEventProcessing(UnitOfWorkService unitOfWorkService) {

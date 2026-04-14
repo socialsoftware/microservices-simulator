@@ -4,7 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
@@ -24,7 +24,7 @@ public class AnswerQuestion {
     private Integer questionAggregateId;
     private Integer questionVersion;
     private AggregateState questionState;
-    @OneToOne
+    @ManyToOne
     private Answer answer;
 
     public AnswerQuestion() {

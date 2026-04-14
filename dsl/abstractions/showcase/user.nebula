@@ -1,0 +1,24 @@
+Aggregate User {
+
+    Root Entity User {
+        String username
+        String email
+        Integer loyaltyPoints
+
+        invariants {
+            username.length() > 0 : "Username cannot be empty"
+            email.length() > 0 : "Email cannot be empty"
+            loyaltyPoints >= 0 : "Loyalty points cannot be negative"
+        }
+    }
+
+    method signUp(String username, String email) {
+        action {
+            create User {
+                username: username,
+                email: email,
+                loyaltyPoints: 0
+            }
+        }
+    }
+}

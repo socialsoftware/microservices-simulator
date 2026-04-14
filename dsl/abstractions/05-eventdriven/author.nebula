@@ -1,0 +1,22 @@
+Aggregate Author {
+
+    Root Entity Author {
+        String name
+        String bio
+
+        invariants {
+            name.length() > 0 : "Author name cannot be blank"
+        }
+    }
+
+    Events {
+        publish AuthorUpdatedEvent {
+            String name
+            String bio
+        }
+
+        publish AuthorDeletedEvent {
+            String name
+        }
+    }
+}

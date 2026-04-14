@@ -1,9 +1,0 @@
-Aggregate Task {
-    @GenerateCrud
-
-    Root Entity Task {
-        String title
-        String description
-        Boolean done
-    }
-}

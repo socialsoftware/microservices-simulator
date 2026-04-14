@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.service.User
 public class UserEventProcessing {
     @Autowired
     private UserService userService;
-    
+
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public UserEventProcessing(UnitOfWorkService unitOfWorkService) {

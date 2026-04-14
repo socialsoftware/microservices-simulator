@@ -51,7 +51,7 @@ public abstract class Order extends Aggregate {
 
     public Order(Order other) {
         super(other);
-        setUser(new OrderUser(other.getUser()));
+        setUser(other.getUser() != null ? new OrderUser(other.getUser()) : null);
         setTime(other.getTime());
         setTotalPriceInCents(other.getTotalPriceInCents());
         setAddressName(other.getAddressName());

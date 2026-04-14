@@ -1,0 +1,36 @@
+Aggregate Enrollment {
+
+    Entity EnrollmentCourse {
+        from Course { title as courseTitle, description as courseDescription, maxStudents as courseMaxStudents }
+    }
+
+    Entity EnrollmentTeacher {
+        from Teacher {  }
+    }
+
+    Root Entity Enrollment {
+        EnrollmentCourse course
+        Set<EnrollmentTeacher> teachers
+        LocalDateTime enrollmentDate
+        Boolean active = true
+
+        invariants {
+            course != null : "Enrollment must have a course"
+        }
+    }
+
+    References {
+        course -> Course {
+            onDelete: cascade
+            message: "Course deleted, removing enrollments"
+        }
+    }
+
+    Events {
+        interInvariant COURSE_EXISTS {
+            subscribe CourseDeletedEvent from Course {
+                course.courseAggregateId == event.aggregateId
+            }
+        }
+    }
+}

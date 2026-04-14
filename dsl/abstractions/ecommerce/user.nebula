@@ -1,5 +1,4 @@
 Aggregate User {
-    @GenerateCrud
 
     Root Entity User {
         String username
@@ -8,11 +7,20 @@ Aggregate User {
         String shippingAddress
 
         invariants {
-            check usernameNotEmpty { username.length() > 0 }
-                error "Username cannot be empty"
+            username.length() > 0 : "Username cannot be empty"
 
-            check emailNotEmpty { email.length() > 0 }
-                error "Email cannot be empty"
+            email.length() > 0 : "Email cannot be empty"
+        }
+    }
+
+    method makeUser(String username, String email, String shippingAddress) {
+        action {
+            create User {
+                username: username,
+                email: email,
+                passwordHash: "seeded",
+                shippingAddress: shippingAddress
+            }
         }
     }
 

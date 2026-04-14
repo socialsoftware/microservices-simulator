@@ -1,0 +1,8 @@
+Aggregate Task {
+
+    Root Entity Task {
+        String title
+        String description
+        Boolean done
+    }
+}

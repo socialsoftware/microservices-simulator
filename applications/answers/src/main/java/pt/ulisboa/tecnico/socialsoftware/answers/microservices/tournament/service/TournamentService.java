@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.servi
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.*;
@@ -21,6 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentParticipantRemovedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentParticipantUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TournamentTopicRemovedEvent;
@@ -51,6 +53,9 @@ public class TournamentService {
 
     @Autowired
     private TournamentFactory tournamentFactory;
+
+    @Autowired
+    private TournamentServiceExtension extension;
 
     public TournamentService() {}
 
@@ -466,7 +471,59 @@ public class TournamentService {
         }
     }
 
+    @Transactional
+    public void cancelTournament(Integer tournamentId, UnitOfWork unitOfWork) {
+        try {
+        Tournament tournamentOld = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+        Tournament tournament = tournamentFactory.createTournamentFromExisting(tournamentOld);
+        tournament.setCancelled(true);
+        unitOfWorkService.registerChanged(tournament, unitOfWork);
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in cancelTournament Tournament: " + e.getMessage());
+        }
+    }
 
+    @Transactional
+    public void updateParticipantName(Integer tournamentId, Integer participantAggregateId, String newName, UnitOfWork unitOfWork) {
+        try {
+        Tournament tournamentOld = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
+        Tournament tournament = tournamentFactory.createTournamentFromExisting(tournamentOld);
+        var participant = tournament.getParticipants().stream()
+            .filter(el -> el.getParticipantAggregateId() != null && el.getParticipantAggregateId().equals(participantAggregateId))
+            .findFirst()
+            .orElseThrow(() -> new AnswersException("Element not found in collection"));
+        participant.setParticipantName(newName);
+        // warn: assignment to unknown alias 'participant'
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in updateParticipantName Tournament: " + e.getMessage());
+        }
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public java.util.List<TournamentDto> getActiveTournaments(UnitOfWork unitOfWork) {
+        try {
+            Set<Integer> aggregateIds = tournamentRepository.findActiveTournamentIds();
+            return aggregateIds.stream()
+                .map(id -> {
+                    try {
+                        return (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(tournamentFactory::createTournamentDto)
+                .collect(java.util.stream.Collectors.toList());
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in getActiveTournaments Tournament: " + e.getMessage());
+        }
+    }
 
 
 }

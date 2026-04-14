@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggreg
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
@@ -21,7 +21,7 @@ public class ExecutionUser {
     private Integer userAggregateId;
     private Integer userVersion;
     private AggregateState userState;
-    @OneToOne
+    @ManyToOne
     private Execution execution;
 
     public ExecutionUser() {

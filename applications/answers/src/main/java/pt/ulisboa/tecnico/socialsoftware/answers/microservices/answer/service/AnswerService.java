@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.*;
@@ -20,6 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerQuestionRemovedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerQuestionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.AnswerExecutionUpdatedEvent;
@@ -49,6 +51,9 @@ public class AnswerService {
 
     @Autowired
     private AnswerFactory answerFactory;
+
+    @Autowired
+    private AnswerServiceExtension extension;
 
     public AnswerService() {}
 
@@ -96,7 +101,10 @@ public class AnswerService {
                     projDto.setAggregateId(refItemDto.getAggregateId());
                     projDto.setVersion(refItemDto.getVersion());
                     projDto.setState(refItemDto.getState() != null ? refItemDto.getState().name() : null);
-
+                    projDto.setSequence(reqDto.getSequence());
+                    projDto.setKey(reqDto.getKey());
+                    projDto.setTimeTaken(reqDto.getTimeTaken());
+                    projDto.setCorrect(reqDto.getCorrect());
                     return projDto;
                 }).collect(Collectors.toList()));
             }
@@ -322,7 +330,25 @@ public class AnswerService {
         }
     }
 
-
+    @Transactional
+    public void answerQuestion(Integer answerId, Integer questionKey, Integer timeTaken, Boolean correct, UnitOfWork unitOfWork) {
+        try {
+        Answer answerOld = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(answerId, unitOfWork);
+        Answer answer = answerFactory.createAnswerFromExisting(answerOld);
+        var question = answer.getQuestions().stream()
+            .filter(el -> el.getKey() != null && el.getKey().equals(questionKey))
+            .findFirst()
+            .orElseThrow(() -> new AnswersException("Element not found in collection"));
+        question.setTimeTaken(timeTaken);
+        // warn: assignment to unknown alias 'question'
+        question.setCorrect(correct);
+        // warn: assignment to unknown alias 'question'
+        } catch (AnswersException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AnswersException("Error in answerQuestion Answer: " + e.getMessage());
+        }
+    }
 
 
 }

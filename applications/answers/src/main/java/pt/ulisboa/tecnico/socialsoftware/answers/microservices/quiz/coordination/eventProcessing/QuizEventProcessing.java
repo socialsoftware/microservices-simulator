@@ -9,12 +9,19 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TopicUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TopicDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.events.QuestionDeletedEvent;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.QuizFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
 
 @Service
 public class QuizEventProcessing {
     @Autowired
     private QuizService quizService;
-    
+
+    @Autowired
+    private QuizFactory quizFactory;
+
     private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
 
     public QuizEventProcessing(UnitOfWorkService unitOfWorkService) {
@@ -40,6 +47,20 @@ public class QuizEventProcessing {
     }
 
     public void processExecutionDeletedEvent(Integer aggregateId, ExecutionDeletedEvent executionDeletedEvent) {
-        // Reference constraint event processing - implement constraint logic
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
+        newQuiz.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void processQuestionDeletedEvent(Integer aggregateId, QuestionDeletedEvent questionDeletedEvent) {
+        UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(new Throwable().getStackTrace()[0].getMethodName());
+        Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
+        newQuiz.setState(Aggregate.AggregateState.INACTIVE);
+        unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 }

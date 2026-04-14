@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggrega
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 
@@ -20,7 +20,7 @@ public class QuestionTopic {
     private String topicName;
     private Integer topicAggregateId;
     private Integer topicVersion;
-    @OneToOne
+    @ManyToOne
     private Question question;
 
     public QuestionTopic() {

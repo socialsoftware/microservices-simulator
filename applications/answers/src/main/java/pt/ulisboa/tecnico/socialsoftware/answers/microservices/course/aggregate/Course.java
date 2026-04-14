@@ -73,19 +73,19 @@ public abstract class Course extends Aggregate {
 
 
 
-    private boolean invariantNameNotBlank() {
+    private boolean invariantRule0() {
         return this.name != null && this.name.length() > 0;
     }
 
-    private boolean invariantTypeNotNull() {
+    private boolean invariantRule1() {
         return this.type != null;
     }
     @Override
     public void verifyInvariants() {
-        if (!invariantNameNotBlank()) {
+        if (!invariantRule0()) {
             throw new SimulatorException(INVARIANT_BREAK, "Course name cannot be blank");
         }
-        if (!invariantTypeNotNull()) {
+        if (!invariantRule1()) {
             throw new SimulatorException(INVARIANT_BREAK, "Course type is required");
         }
     }

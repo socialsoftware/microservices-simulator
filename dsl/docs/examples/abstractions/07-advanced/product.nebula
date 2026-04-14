@@ -1,9 +1,0 @@
-Aggregate Product {
-    @GenerateCrud
-
-    Root Entity Product {
-        String name
-        Double price
-        Boolean available = true
-    }
-}

@@ -1,5 +1,22 @@
 Aggregate Payment {
-    @GenerateCrud
+
+    Entity PaymentOrder {
+        from Order { totalInCents as orderTotalInCents, status as orderStatus }
+    }
+
+    Root Entity Payment {
+        PaymentOrder order
+        Double amountInCents
+        PaymentStatus status
+        String authorizationCode
+        String paymentMethod
+
+        invariants {
+            amountInCents > 0.0 : "Payment amount must be positive"
+
+            paymentMethod.length() > 0 : "Payment method cannot be empty"
+        }
+    }
 
     method authorize(Integer orderId, Double amountInCents, String paymentMethodName) {
         precondition {
@@ -18,27 +35,6 @@ Aggregate Payment {
         publishes PaymentAuthorizedEvent {
             orderAggregateId: orderId,
             amountInCents: amountInCents
-        }
-    }
-
-    Entity PaymentOrder from Order {
-        map totalInCents as orderTotalInCents
-        map status as orderStatus
-    }
-
-    Root Entity Payment {
-        PaymentOrder order
-        Double amountInCents
-        PaymentStatus status
-        String authorizationCode
-        String paymentMethod
-
-        invariants {
-            check amountPositive { amountInCents > 0.0 }
-                error "Payment amount must be positive"
-
-            check methodNotEmpty { paymentMethod.length() > 0 }
-                error "Payment method cannot be empty"
         }
     }
 

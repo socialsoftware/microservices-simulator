@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.aggregate.*;
@@ -16,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkSe
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.UserDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.UserUpdatedEvent;
+import pt.ulisboa.tecnico.socialsoftware.teastore.events.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.coordination.webapi.requestDtos.CreateUserRequestDto;
 import org.springframework.context.ApplicationContext;
@@ -37,6 +39,9 @@ public class UserService {
 
     @Autowired
     private UserFactory userFactory;
+
+    @Autowired
+    private UserServiceExtension extension;
 
     @Autowired
     private ApplicationContext applicationContext;

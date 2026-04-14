@@ -1,9 +1,7 @@
 Aggregate Shipping {
-    @GenerateCrud
 
-    Entity ShippingOrder from Order {
-        map totalInCents as orderTotalInCents
-        map itemCount as orderItemCount
+    Entity ShippingOrder {
+        from Order { totalInCents as orderTotalInCents, itemCount as orderItemCount }
     }
 
     Root Entity Shipping {
@@ -14,11 +12,9 @@ Aggregate Shipping {
         ShippingStatus status
 
         invariants {
-            check addressNotEmpty { address.length() > 0 }
-                error "Shipping address cannot be empty"
+            address.length() > 0 : "Shipping address cannot be empty"
 
-            check carrierNotEmpty { carrier.length() > 0 }
-                error "Carrier cannot be empty"
+            carrier.length() > 0 : "Carrier cannot be empty"
         }
     }
 

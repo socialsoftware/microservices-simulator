@@ -1,8 +1,7 @@
 Aggregate Topic {
-    @GenerateCrud
 
-    Entity TopicCourse from Course {
-        // Uses base aggregate fields only (aggregateId, version, state)
+    Entity TopicCourse {
+        from Course {  }
     }
 
     Root Entity Topic {
@@ -10,18 +9,9 @@ Aggregate Topic {
         TopicCourse course
 
         invariants {
-            check nameNotBlank { name.length() > 0 }
-                error "Topic name cannot be blank"
+            name.length() > 0 : "Topic name cannot be blank"
 
-            check courseNotNull { course != null }
-                error "Topic must be associated with a course"
-        }
-    }
-
-    References {
-        course -> Course {
-            onDelete: prevent
-            message: "Cannot delete course that has topics"
+            course != null : "Topic must be associated with a course"
         }
     }
 
@@ -30,6 +20,13 @@ Aggregate Topic {
             subscribe CourseDeletedEvent from Course {
                 course.courseAggregateId == event.aggregateId
             }
+        }
+    }
+
+    References {
+        course -> Course {
+            onDelete: prevent
+            message: "Cannot delete course that has topics"
         }
     }
 }

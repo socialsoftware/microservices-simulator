@@ -6,6 +6,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
@@ -27,7 +28,10 @@ public class TournamentParticipant {
     private TournamentParticipantQuiz participantQuiz;
     private String participantName;
     private String participantUsername;
-    @OneToOne
+    private Integer executionUserAggregateId;
+    private Integer executionUserVersion;
+    private AggregateState executionUserState;
+    @ManyToOne
     private Tournament tournament;
 
     public TournamentParticipant() {
@@ -48,6 +52,9 @@ public class TournamentParticipant {
         setParticipantQuiz(tournamentParticipantDto.getParticipantQuiz() != null ? new TournamentParticipantQuiz(tournamentParticipantDto.getParticipantQuiz()) : null);
         setParticipantName(tournamentParticipantDto.getName());
         setParticipantUsername(tournamentParticipantDto.getUsername());
+        setExecutionUserAggregateId(tournamentParticipantDto.getExecutionUserAggregateId());
+        setExecutionUserVersion(tournamentParticipantDto.getExecutionUserVersion());
+        setExecutionUserState(tournamentParticipantDto.getExecutionUserState() != null ? AggregateState.valueOf(tournamentParticipantDto.getExecutionUserState()) : null);
     }
 
     public TournamentParticipant(TournamentParticipant other) {
@@ -55,9 +62,12 @@ public class TournamentParticipant {
         setParticipantVersion(other.getParticipantVersion());
         setParticipantState(other.getParticipantState());
         setParticipantEnrollTime(other.getParticipantEnrollTime());
-        setParticipantQuiz(new TournamentParticipantQuiz(other.getParticipantQuiz()));
+        setParticipantQuiz(other.getParticipantQuiz() != null ? new TournamentParticipantQuiz(other.getParticipantQuiz()) : null);
         setParticipantName(other.getParticipantName());
         setParticipantUsername(other.getParticipantUsername());
+        setExecutionUserAggregateId(other.getExecutionUserAggregateId());
+        setExecutionUserVersion(other.getExecutionUserVersion());
+        setExecutionUserState(other.getExecutionUserState());
     }
 
     public Long getId() {
@@ -122,6 +132,30 @@ public class TournamentParticipant {
 
     public void setParticipantUsername(String participantUsername) {
         this.participantUsername = participantUsername;
+    }
+
+    public Integer getExecutionUserAggregateId() {
+        return executionUserAggregateId;
+    }
+
+    public void setExecutionUserAggregateId(Integer executionUserAggregateId) {
+        this.executionUserAggregateId = executionUserAggregateId;
+    }
+
+    public Integer getExecutionUserVersion() {
+        return executionUserVersion;
+    }
+
+    public void setExecutionUserVersion(Integer executionUserVersion) {
+        this.executionUserVersion = executionUserVersion;
+    }
+
+    public AggregateState getExecutionUserState() {
+        return executionUserState;
+    }
+
+    public void setExecutionUserState(AggregateState executionUserState) {
+        this.executionUserState = executionUserState;
     }
 
     public Tournament getTournament() {

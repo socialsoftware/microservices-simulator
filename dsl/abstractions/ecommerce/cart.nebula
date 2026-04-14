@@ -1,23 +1,26 @@
 Aggregate Cart {
-    @GenerateCrud
 
-    Entity CartUser from User {
-        map username as userName
-        map email as userEmail
+    Entity CartUser {
+        from User { username as userName, email as userEmail }
+    }
+
+    Entity CartItem {
+        Long productId
+        Integer quantity
+        Double unitPriceInCents
     }
 
     Root Entity Cart {
         CartUser user
+        Set<CartItem> items
         Double totalInCents
         Integer itemCount
         Boolean checkedOut
 
         invariants {
-            check totalNonNegative { totalInCents >= 0.0 }
-                error "Cart total cannot be negative"
+            totalInCents >= 0.0 : "Cart total cannot be negative"
 
-            check itemCountNonNegative { itemCount >= 0 }
-                error "Cart item count cannot be negative"
+            itemCount >= 0 : "Cart item count cannot be negative"
         }
     }
 

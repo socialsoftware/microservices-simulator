@@ -1,0 +1,13 @@
+Aggregate Customer {
+
+    Root Entity Customer {
+        String name
+        String email
+        Boolean active = true
+
+        invariants {
+            name.length() > 0 : "Customer name cannot be blank"
+            email.length() > 0 : "Customer email cannot be blank"
+        }
+    }
+}
