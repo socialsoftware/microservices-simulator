@@ -1,5 +1,5 @@
 import type { ValidationAcceptor } from "langium";
-import type { Model, Aggregate, Entity, Property, Method, Invariant, RepositoryMethod, SubscribedEvent } from "../generated/ast.js";
+import type { Model, Aggregate, Entity, Property, Method, Invariant, RepositoryMethod, SubscribedEvent, TopLevelWorkflowStep } from "../generated/ast.js";
 import type { NebulaServices } from "../nebula-module.js";
 import { NamingValidator } from "./naming-validator.js";
 import { ModelValidator } from "./model-validator.js";
@@ -61,5 +61,15 @@ export class NebulaValidator {
 
     checkSubscribedEvent(event: SubscribedEvent, accept: ValidationAcceptor): void {
         this.eventValidator.checkSubscribedEvent(event, accept);
+    }
+
+    checkTopLevelWorkflowStep(step: TopLevelWorkflowStep, accept: ValidationAcceptor): void {
+        if (!step.lockState) return;
+
+        if (step.lockId?.name === step.name) {
+            accept('error',
+                `Step '${step.name}' cannot lock the aggregate it creates — lock only pre-existing aggregates`,
+                { node: step, property: 'lockId' });
+        }
     }
 }

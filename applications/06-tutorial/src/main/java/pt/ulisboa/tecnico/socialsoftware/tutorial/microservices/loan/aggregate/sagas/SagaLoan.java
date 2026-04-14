@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.LoanDto;
 
 @Entity
 public class SagaLoan extends Loan implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.tutorial.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaLoan() {

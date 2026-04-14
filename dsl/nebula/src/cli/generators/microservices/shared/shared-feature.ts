@@ -1,4 +1,5 @@
 import { EnumGenerator, EnumDefinition } from "./enum-generator.js";
+import { SagaStateGenerator, SagaStateDefinition } from "./saga-state-generator.js";
 
 export interface SharedGenerationOptions {
     projectName: string;
@@ -9,16 +10,35 @@ export interface SharedGenerationOptions {
 
 export class SharedFeature {
     private enumGenerator = new EnumGenerator();
+    private sagaStateGenerator = new SagaStateGenerator();
 
     async generateSharedComponents(options: SharedGenerationOptions): Promise<{ [key: string]: string }> {
         const results: { [key: string]: string } = {};
 
-        
         const enums = this.getEnumsToGenerate(options);
         const enumResults = this.enumGenerator.generateAllEnums(enums, options);
         Object.assign(results, enumResults);
 
+        const sagaStates = this.getSagaStatesToGenerate(options);
+        const sagaStateResults = this.sagaStateGenerator.generateAll(sagaStates, options);
+        Object.assign(results, sagaStateResults);
+
         return results;
+    }
+
+    private getSagaStatesToGenerate(options: SharedGenerationOptions): SagaStateDefinition[] {
+        const defs: SagaStateDefinition[] = [];
+        if (!options.models) return defs;
+        for (const model of options.models) {
+            const blocks = (model as any).sagaStatesBlocks || [];
+            for (const block of blocks) {
+                defs.push({
+                    name: block.name,
+                    values: [...(block.states || [])]
+                });
+            }
+        }
+        return defs;
     }
 
     private getEnumsToGenerate(options: SharedGenerationOptions): EnumDefinition[] {

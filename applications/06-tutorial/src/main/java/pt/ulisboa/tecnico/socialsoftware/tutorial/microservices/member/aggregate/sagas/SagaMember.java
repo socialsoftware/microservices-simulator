@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.MemberDto;
 
 @Entity
 public class SagaMember extends Member implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.tutorial.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaMember() {

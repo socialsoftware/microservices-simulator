@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.dtos.ContactDto;
 
 @Entity
 public class SagaContact extends Contact implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.typesenums.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaContact() {

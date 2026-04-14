@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
 
 @Entity
 public class SagaQuiz extends Quiz implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.answers.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaQuiz() {

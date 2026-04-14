@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.AnswerDto;
 
 @Entity
 public class SagaAnswer extends Answer implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.answers.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaAnswer() {

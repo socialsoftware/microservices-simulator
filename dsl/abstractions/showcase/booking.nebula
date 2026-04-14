@@ -1,11 +1,5 @@
 Aggregate Booking {
 
-    SagaStates {
-        IN_BOOK_ROOM,
-        READ_BOOKING,
-        IN_CANCEL_BOOKING
-    }
-
     Entity BookingUser {
         from User { username, email }
     }
@@ -65,12 +59,6 @@ Aggregate Booking {
     }
 
     Events {
-        publish BookingCreatedEvent {
-            Integer userAggregateId
-            Integer roomAggregateId
-            Double totalPrice
-        }
-
         subscribe UserLoyaltyAwardedEvent
 
         interInvariant USER_MUST_EXIST {

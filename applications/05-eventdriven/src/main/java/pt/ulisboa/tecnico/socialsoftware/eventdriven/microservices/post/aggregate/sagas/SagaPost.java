@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.PostDto;
 
 @Entity
 public class SagaPost extends Post implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaPost() {

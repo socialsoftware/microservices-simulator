@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.TeacherDto;
 
 @Entity
 public class SagaTeacher extends Teacher implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaTeacher() {

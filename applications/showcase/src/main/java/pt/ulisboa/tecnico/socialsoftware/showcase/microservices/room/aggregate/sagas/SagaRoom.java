@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.RoomDto;
 
 @Entity
 public class SagaRoom extends Room implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.showcase.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaRoom() {

@@ -98,6 +98,7 @@ export class SagaGenerator {
             lowerAggregate,
             rootEntityName: rootEntityName,
             packageName: `${this.getBasePackage()}.${options.projectName.toLowerCase()}.microservices.${aggregate.name.toLowerCase()}.aggregate.sagas`,
+            basePackageDotProject: `${this.getBasePackage()}.${options.projectName.toLowerCase()}`,
             imports,
             constructorParams
         };

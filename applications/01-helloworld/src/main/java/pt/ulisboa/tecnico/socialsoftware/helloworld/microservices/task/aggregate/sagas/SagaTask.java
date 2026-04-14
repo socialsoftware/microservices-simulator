@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.helloworld.shared.dtos.TaskDto;
 
 @Entity
 public class SagaTask extends Task implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.helloworld.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaTask() {

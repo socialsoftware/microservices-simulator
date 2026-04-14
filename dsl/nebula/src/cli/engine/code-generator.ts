@@ -139,8 +139,24 @@ export class CodeGenerator {
                 }
             }
 
-
-
+            const topLevelWorkflows = models.flatMap(m => (m as any).topLevelWorkflows || []);
+            if (topLevelWorkflows.length > 0) {
+                const { TopLevelWorkflowGenerator } = await import('../generators/coordination/workflows/top-level-workflow-generator.js');
+                const wfGenerator = new TopLevelWorkflowGenerator();
+                const workflowsDir = paths.javaPath + '/coordination/workflows';
+                for (const wf of topLevelWorkflows) {
+                    const files = wfGenerator.generateAll(wf, aggregates, {
+                        projectName: config.projectName,
+                        basePackage: options.basePackage!,
+                        models
+                    });
+                    await fs.mkdir(workflowsDir, { recursive: true });
+                    for (const { fileName, content } of files) {
+                        await fs.writeFile(path.join(workflowsDir, fileName), content, 'utf-8');
+                    }
+                    console.log(`  ${wf.name.padEnd(20)}workflow (${files.length} files)`);
+                }
+            }
 
 
             const projectOptions: GenerationOptions = {

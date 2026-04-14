@@ -1,20 +1,5 @@
 Aggregate Room {
 
-    States RoomStatus {
-        initial AVAILABLE
-        terminal OUT_OF_SERVICE
-
-        AVAILABLE -> RESERVED publishes RoomReservedEvent {
-            roomNumber: room.roomNumber
-        }
-        RESERVED -> OCCUPIED publishes RoomOccupiedEvent {
-            roomNumber: room.roomNumber
-        }
-        OCCUPIED -> AVAILABLE
-        RESERVED -> AVAILABLE
-        AVAILABLE -> OUT_OF_SERVICE
-    }
-
     Entity RoomAmenity {
         Integer code
         String name
@@ -26,7 +11,7 @@ Aggregate Room {
         String description
         Double pricePerNight
         Set<RoomAmenity> amenities
-        RoomStatus status
+        RoomStatus status = RoomStatus.AVAILABLE
 
         invariants {
             roomNumber.length() > 0 : "Room number cannot be empty"
@@ -41,6 +26,9 @@ Aggregate Room {
                 load Room(roomId) as room
                 room.status = RESERVED
             }
+            publishes RoomReservedEvent {
+                roomNumber: room.roomNumber
+            }
         }
 
         @PostMapping("/rooms/{roomId}/checkin")
@@ -48,6 +36,9 @@ Aggregate Room {
             action {
                 load Room(roomId) as room
                 room.status = OCCUPIED
+            }
+            publishes RoomOccupiedEvent {
+                roomNumber: room.roomNumber
             }
         }
 
@@ -76,13 +67,4 @@ Aggregate Room {
         }
     }
 
-    Events {
-        publish RoomReservedEvent {
-            String roomNumber
-        }
-
-        publish RoomOccupiedEvent {
-            String roomNumber
-        }
-    }
 }

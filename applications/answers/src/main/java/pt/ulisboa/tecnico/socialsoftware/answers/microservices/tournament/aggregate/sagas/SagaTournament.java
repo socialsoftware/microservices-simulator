@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 
 @Entity
 public class SagaTournament extends Tournament implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.answers.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaTournament() {

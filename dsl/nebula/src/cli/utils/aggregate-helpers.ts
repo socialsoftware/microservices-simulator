@@ -124,7 +124,146 @@ export function getRepository(aggregate: Aggregate): Repository | undefined {
 }
 
 export function getEvents(aggregate: Aggregate): Events | undefined {
-    return aggregate.aggregateElements.find((el): el is Events => isEvents(el));
+    const explicit = aggregate.aggregateElements.find((el): el is Events => isEvents(el));
+    const inferred = inferPublishedEventsFromPublishesClauses(aggregate);
+    if (inferred.length === 0) {
+        return explicit;
+    }
+
+    const explicitPublished = (explicit?.publishedEvents || []) as any[];
+    const explicitNames = new Set(explicitPublished.map((e: any) => e.name));
+    const newOnes = inferred.filter(e => !explicitNames.has(e.name));
+
+    const merged: any = explicit ? Object.create(explicit) : { $type: 'Events' };
+    Object.assign(merged, explicit || {});
+    merged.publishedEvents = [...explicitPublished, ...newOnes];
+    merged.subscribedEvents = (explicit as any)?.subscribedEvents || [];
+    merged.interInvariants = (explicit as any)?.interInvariants || [];
+    return merged as Events;
+}
+
+function inferPublishedEventsFromPublishesClauses(aggregate: Aggregate): any[] {
+    const eventMap = new Map<string, { name: string; fields: Map<string, any> }>();
+
+    const collectFromClause = (clause: any, contextMethod?: any) => {
+        if (!clause || !clause.eventType) return;
+        const eventName = clause.eventType;
+        let entry = eventMap.get(eventName);
+        if (!entry) {
+            entry = { name: eventName, fields: new Map() };
+            eventMap.set(eventName, entry);
+        }
+        for (const a of (clause.assignments || [])) {
+            if (!a?.field) continue;
+            if (entry.fields.has(a.field)) continue;
+            const inferredType = inferAssignmentType(a.value, contextMethod, aggregate);
+            entry.fields.set(a.field, inferredType);
+        }
+    };
+
+    for (const method of getMethods(aggregate)) {
+        const ab: any = (method as any).actionBody;
+        for (const pub of (ab?.publishes || [])) {
+            collectFromClause(pub, method);
+        }
+    }
+
+    const result: any[] = [];
+    for (const [name, entry] of eventMap) {
+        result.push({
+            $type: 'PublishedEvent',
+            name,
+            fields: Array.from(entry.fields.entries()).map(([fieldName, type]) => ({
+                $type: 'EventField',
+                name: fieldName,
+                type,
+            })),
+        });
+    }
+    return result;
+}
+
+function inferAssignmentType(expr: any, method: any, aggregate: Aggregate): any {
+    if (!expr) return makeBuiltinType('Object');
+
+    if (expr.$type === 'ActionLiteral') {
+        if (expr.stringValue !== undefined) return makeBuiltinType('String');
+        if (expr.boolLiteral !== undefined) return makeBuiltinType('Boolean');
+        if (expr.literalValue !== undefined) {
+            const v = expr.literalValue;
+            if (typeof v === 'string' && /\./.test(v)) return makeBuiltinType('Double');
+            return makeBuiltinType('Integer');
+        }
+        return makeBuiltinType('Object');
+    }
+
+    if (expr.$type === 'ActionRef') {
+        const head: string = expr.name;
+        const chain: string[] = expr.chain || [];
+
+        if (chain.length === 0) {
+            const param = (method?.parameters || []).find((p: any) => p?.name === head);
+            if (param?.type) return param.type;
+            return makeBuiltinType('Object');
+        }
+
+        const last = chain[chain.length - 1];
+        if (last === 'aggregateId' || last === 'version') return makeBuiltinType('Integer');
+        if (last === 'state') return makeBuiltinType('AggregateState');
+        if (last.endsWith('AggregateId') || last.endsWith('Version')) return makeBuiltinType('Integer');
+        if (last.endsWith('State')) return makeBuiltinType('AggregateState');
+
+        const entity = resolveAliasOrParamEntity(head, method, aggregate);
+        if (entity) {
+            let current: any = entity;
+            for (const c of chain) {
+                const prop = (current?.properties || []).find((p: any) => p?.name === c);
+                if (!prop) { current = null; break; }
+                if (c === chain[chain.length - 1]) return prop.type;
+                const refName = prop.type?.type?.$refText || prop.type?.type?.ref?.name;
+                if (refName) {
+                    current = (aggregate.aggregateElements || []).find(
+                        (e: any) => e.$type === 'Entity' && e.name === refName
+                    );
+                } else {
+                    current = null;
+                }
+            }
+        }
+        return makeBuiltinType('Object');
+    }
+
+    return makeBuiltinType('Object');
+}
+
+function resolveAliasOrParamEntity(name: string, method: any, aggregate: Aggregate): any {
+    for (const stmt of (method?.actionBody?.statements || [])) {
+        if (stmt?.$type === 'LoadActionStatement' && stmt.alias === name) {
+            return (aggregate.aggregateElements || []).find(
+                (e: any) => e.$type === 'Entity' && e.name === stmt.aggregateRef
+            );
+        }
+    }
+    const param = (method?.parameters || []).find((p: any) => p?.name === name);
+    if (param?.type?.$type === 'EntityType') {
+        const refName = param.type.type?.$refText || param.type.type?.ref?.name;
+        if (refName) {
+            return (aggregate.aggregateElements || []).find(
+                (e: any) => e.$type === 'Entity' && e.name === refName
+            );
+        }
+    }
+    const rootEntity = (aggregate.aggregateElements || []).find(
+        (e: any) => e.$type === 'Entity' && e.isRoot
+    ) as any;
+    if (rootEntity && (name === rootEntity.name?.toLowerCase() || name === aggregate.name?.toLowerCase())) {
+        return rootEntity;
+    }
+    return undefined;
+}
+
+function makeBuiltinType(name: string): any {
+    return { $type: 'PrimitiveType', typeName: name };
 }
 
 export function getWebAPIEndpoints(aggregate: Aggregate): any | undefined {

@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CartDto;
 
 @Entity
 public class SagaCart extends Cart implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.teastore.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaCart() {

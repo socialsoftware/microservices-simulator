@@ -44,13 +44,6 @@ Aggregate User {
         }
     }
 
-    Events {
-        publish UserLoyaltyAwardedEvent {
-            Integer userAggregateId
-            Integer pointsAwarded
-        }
-    }
-
     Repository {
         @Query("select u.aggregateId from User u where u.state != 'DELETED' and u.active = true")
         Set<Integer> findActiveUserIds()

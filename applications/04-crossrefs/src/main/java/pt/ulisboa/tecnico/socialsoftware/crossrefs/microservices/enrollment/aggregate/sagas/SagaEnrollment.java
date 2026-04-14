@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.EnrollmentDto;
 
 @Entity
 public class SagaEnrollment extends Enrollment implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaEnrollment() {

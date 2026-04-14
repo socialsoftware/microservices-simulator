@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceDto;
 
 @Entity
 public class SagaInvoice extends Invoice implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.advanced.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaInvoice() {

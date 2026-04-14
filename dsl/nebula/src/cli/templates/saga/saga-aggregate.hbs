@@ -6,6 +6,7 @@ package {{packageName}};
 
 @Entity
 public class Saga{{aggregateName}} extends {{aggregateName}} implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = {{basePackageDotProject}}.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public Saga{{aggregateName}}() {

@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.AuthorDto;
 
 @Entity
 public class SagaAuthor extends Author implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaAuthor() {

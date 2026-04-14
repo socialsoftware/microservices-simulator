@@ -31,7 +31,7 @@ public abstract class Room extends Aggregate {
     private RoomStatus status;
 
     public Room() {
-
+        this.status = RoomStatus.AVAILABLE;
     }
 
     public Room(Integer aggregateId, RoomDto roomDto) {
@@ -40,7 +40,7 @@ public abstract class Room extends Aggregate {
         setRoomNumber(roomDto.getRoomNumber());
         setDescription(roomDto.getDescription());
         setPricePerNight(roomDto.getPricePerNight());
-        setStatus(RoomStatus.valueOf(roomDto.getStatus()));
+        setStatus(roomDto.getStatus() != null ? RoomStatus.valueOf(roomDto.getStatus()) : RoomStatus.AVAILABLE);
         setAmenities(roomDto.getAmenities() != null ? roomDto.getAmenities().stream().map(RoomAmenity::new).collect(Collectors.toSet()) : null);
     }
 

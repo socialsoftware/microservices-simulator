@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderDto;
 
 @Entity
 public class SagaOrder extends Order implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.advanced.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaOrder() {

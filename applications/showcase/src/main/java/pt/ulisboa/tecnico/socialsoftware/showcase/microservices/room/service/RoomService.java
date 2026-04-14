@@ -270,6 +270,9 @@ public class RoomService {
         Room room = roomFactory.createRoomFromExisting(roomOld);
         room.setStatus(RoomStatus.RESERVED);
         unitOfWorkService.registerChanged(room, unitOfWork);
+        RoomReservedEvent event0 = new RoomReservedEvent();
+        event0.setRoomNumber(room.getRoomNumber());
+        unitOfWorkService.registerEvent(event0, unitOfWork);
         } catch (ShowcaseException e) {
             throw e;
         } catch (Exception e) {
@@ -284,6 +287,9 @@ public class RoomService {
         Room room = roomFactory.createRoomFromExisting(roomOld);
         room.setStatus(RoomStatus.OCCUPIED);
         unitOfWorkService.registerChanged(room, unitOfWork);
+        RoomOccupiedEvent event0 = new RoomOccupiedEvent();
+        event0.setRoomNumber(room.getRoomNumber());
+        unitOfWorkService.registerEvent(event0, unitOfWork);
         } catch (ShowcaseException e) {
             throw e;
         } catch (Exception e) {

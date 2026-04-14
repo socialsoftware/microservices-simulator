@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseDto;
 
 @Entity
 public class SagaCourse extends Course implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaCourse() {

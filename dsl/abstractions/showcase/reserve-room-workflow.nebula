@@ -21,6 +21,7 @@ Workflow ReserveRoomForUser {
     step reserveRoom {
         action: Room.reserve(roomId)
         compensate: Room.release(roomId)
+        lock Room(roomId) as IN_BOOK_ROOM
     }
 
     step bookRoom {

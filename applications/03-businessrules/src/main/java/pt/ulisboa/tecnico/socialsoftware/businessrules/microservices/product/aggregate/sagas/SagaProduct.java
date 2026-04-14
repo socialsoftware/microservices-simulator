@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.businessrules.shared.dtos.ProductDto;
 
 @Entity
 public class SagaProduct extends Product implements SagaAggregate {
+    @jakarta.persistence.Convert(converter = pt.ulisboa.tecnico.socialsoftware.businessrules.shared.sagaStates.SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaProduct() {

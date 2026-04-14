@@ -1,8 +1,13 @@
 grammar Nebula
 
 entry Model:
-    (aggregates+=Aggregate | sharedEnums+=SharedEnums | topLevelWorkflows+=TopLevelWorkflow)*
+    (aggregates+=Aggregate | sharedEnums+=SharedEnums | sagaStatesBlocks+=SagaStatesBlock | topLevelWorkflows+=TopLevelWorkflow)*
     (exceptions=ExceptionMessages)?;
+
+SagaStatesBlock:
+    'SagaStates' name=ID '{'
+        states+=ID (',' states+=ID)*
+    '}';
 
 TopLevelWorkflow:
     'Workflow' name=ID '{'
@@ -19,6 +24,8 @@ TopLevelWorkflowStep:
     'step' name=ID '{'
         'action' ':' action=WorkflowActionCall
         ('compensate' ':' compensate=WorkflowActionCall)?
+        ('lock' lockAggregate=ID '(' lockId=WorkflowCallArg ')' 'as' lockState=ID
+            ('forbidden' '[' forbidden+=ID (',' forbidden+=ID)* ']')?)?
     '}';
 
 WorkflowActionCall:
@@ -34,31 +41,11 @@ Aggregate:
     '}';
 
 AggregateElement:
-    Entity | Methods | Workflow | Repository | Events | ServiceDefinition | Functionalities | StateMachine | SagaStates;
+    Entity | Methods | Workflow | Repository | Events | ServiceDefinition | Functionalities;
 
 Methods:
     'Methods' '{'
         (methods+=Method)*
-    '}';
-
-StateMachine:
-    'States' name=ID '{'
-        ('initial' initial=ID)?
-        ('terminal' terminal+=ID (',' terminal+=ID)*)?
-        transitions+=StateTransition*
-    '}';
-
-StateTransition:
-    from=ID '->' to=ID
-    ('publishes' eventType=ID
-        ('{'
-            (assignments+=PublishesFieldAssignment (',' assignments+=PublishesFieldAssignment)*)?
-        '}')?
-    )?;
-
-SagaStates:
-    'SagaStates' '{'
-        states+=ID (',' states+=ID)*
     '}';
 
 Entity:
