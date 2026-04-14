@@ -9,7 +9,9 @@ Aggregate Invoice {
     }
 
     Root Entity Invoice {
+        @PreventDelete("Cannot delete order that has invoices")
         InvoiceOrder order
+        @PreventDelete("Cannot delete user that has invoices")
         InvoiceUser user
         String invoiceNumber
         Double amountInCents
@@ -39,14 +41,4 @@ Aggregate Invoice {
         subscribe OrderCancelledEvent
     }
 
-    References {
-        order -> Order {
-            onDelete: prevent
-            message: "Cannot delete order that has invoices"
-        }
-        user -> User {
-            onDelete: prevent
-            message: "Cannot delete user that has invoices"
-        }
-    }
 }

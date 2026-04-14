@@ -15,7 +15,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.subscribe.InvoiceSubscribesCustomerDeletedCustomerExists;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.subscribe.InvoiceSubscribesOrderDeleted;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.subscribe.InvoiceSubscribesOrderDeletedOrderExists;
 
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceCustomerDto;
@@ -111,7 +110,6 @@ public abstract class Invoice extends Aggregate {
         if (this.getState() == AggregateState.ACTIVE) {
             interInvariantOrderExists(eventSubscriptions);
             interInvariantCustomerExists(eventSubscriptions);
-            eventSubscriptions.add(new InvoiceSubscribesOrderDeleted(this));
         }
         return eventSubscriptions;
     }

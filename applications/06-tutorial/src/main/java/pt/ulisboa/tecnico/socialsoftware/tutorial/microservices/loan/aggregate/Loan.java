@@ -15,7 +15,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.subscribe.LoanSubscribesBookDeletedBookExists;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.subscribe.LoanSubscribesMemberDeleted;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.subscribe.LoanSubscribesMemberDeletedMemberExists;
 
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.LoanBookDto;
@@ -100,7 +99,6 @@ public abstract class Loan extends Aggregate {
         if (this.getState() == AggregateState.ACTIVE) {
             interInvariantMemberExists(eventSubscriptions);
             interInvariantBookExists(eventSubscriptions);
-            eventSubscriptions.add(new LoanSubscribesMemberDeleted(this));
         }
         return eventSubscriptions;
     }

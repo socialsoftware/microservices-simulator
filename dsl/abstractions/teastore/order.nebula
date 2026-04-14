@@ -5,6 +5,7 @@ Aggregate Order {
     }
 
     Root Entity Order {
+        @PreventDelete("Cannot delete user that has orders")
         OrderUser user
         String time
         Double totalPriceInCents
@@ -41,10 +42,4 @@ Aggregate Order {
         }
     }
 
-    References {
-        user -> User {
-            onDelete: prevent
-            message: "Cannot delete user that has orders"
-        }
-    }
 }

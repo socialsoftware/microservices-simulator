@@ -6,6 +6,7 @@ Aggregate Topic {
 
     Root Entity Topic {
         String name
+        @PreventDelete("Cannot delete course that has topics")
         TopicCourse course
 
         invariants {
@@ -23,10 +24,4 @@ Aggregate Topic {
         }
     }
 
-    References {
-        course -> Course {
-            onDelete: prevent
-            message: "Cannot delete course that has topics"
-        }
-    }
 }

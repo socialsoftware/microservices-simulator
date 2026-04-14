@@ -19,13 +19,6 @@ Aggregate Enrollment {
         }
     }
 
-    References {
-        course -> Course {
-            onDelete: cascade
-            message: "Course deleted, removing enrollments"
-        }
-    }
-
     Events {
         interInvariant COURSE_EXISTS {
             subscribe CourseDeletedEvent from Course {

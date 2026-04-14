@@ -14,7 +14,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.events.subscribe.PostSubscribesAuthorDeleted;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.events.subscribe.PostSubscribesAuthorDeletedAuthorExists;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.events.subscribe.PostSubscribesAuthorUpdated;
 
@@ -95,7 +94,6 @@ public abstract class Post extends Aggregate {
         if (this.getState() == AggregateState.ACTIVE) {
             interInvariantAuthorExists(eventSubscriptions);
             eventSubscriptions.add(new PostSubscribesAuthorUpdated());
-            eventSubscriptions.add(new PostSubscribesAuthorDeleted(this));
         }
         return eventSubscriptions;
     }

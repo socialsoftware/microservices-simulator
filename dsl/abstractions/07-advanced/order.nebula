@@ -16,6 +16,7 @@ Aggregate Order {
     }
 
     Root Entity Order {
+        @PreventDelete("Cannot delete customer with active orders")
         OrderCustomer customer
         Set<OrderProduct> products
         Set<OrderItem> items
@@ -27,13 +28,6 @@ Aggregate Order {
         invariants {
             customer != null : "Order must have a customer"
             totalAmount > 0.0 : "Order total must be positive"
-        }
-    }
-
-    References {
-        customer -> Customer {
-            onDelete: prevent
-            message: "Cannot delete customer with active orders"
         }
     }
 

@@ -5,6 +5,7 @@ Aggregate Payment {
     }
 
     Root Entity Payment {
+        @PreventDelete("Cannot delete order that has payments")
         PaymentOrder order
         Double amountInCents
         PaymentStatus status
@@ -58,10 +59,4 @@ Aggregate Payment {
         subscribe OrderCancelledEvent
     }
 
-    References {
-        order -> Order {
-            onDelete: prevent
-            message: "Cannot delete order that has payments"
-        }
-    }
 }

@@ -11,6 +11,7 @@ Aggregate Cart {
     }
 
     Root Entity Cart {
+        @PreventDelete("Cannot delete user that has a cart")
         CartUser user
         Set<CartItem> items
         Double totalInCents
@@ -43,10 +44,4 @@ Aggregate Cart {
         }
     }
 
-    References {
-        user -> User {
-            onDelete: prevent
-            message: "Cannot delete user that has a cart"
-        }
-    }
 }

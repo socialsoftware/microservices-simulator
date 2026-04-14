@@ -9,7 +9,9 @@ Aggregate WishlistItem {
     }
 
     Root Entity WishlistItem {
+        @PreventDelete("Cannot delete user that has wishlist items")
         WishlistItemUser user
+        @PreventDelete("Cannot delete product that is on a wishlist")
         WishlistItemProduct product
         String addedAt
 
@@ -33,14 +35,4 @@ Aggregate WishlistItem {
         subscribe ProductUpdatedEvent
     }
 
-    References {
-        user -> User {
-            onDelete: prevent
-            message: "Cannot delete user that has wishlist items"
-        }
-        product -> Product {
-            onDelete: prevent
-            message: "Cannot delete product that is on a wishlist"
-        }
-    }
 }

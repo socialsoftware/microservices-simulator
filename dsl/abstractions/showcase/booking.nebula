@@ -15,7 +15,9 @@ Aggregate Booking {
     }
 
     Root Entity Booking {
+        @PreventDelete("Cannot delete user that has bookings")
         BookingUser user
+        @PreventDelete("Cannot delete room that has bookings")
         BookingRoom room
         String checkInDate
         String checkOutDate
@@ -62,14 +64,4 @@ Aggregate Booking {
         Set<Integer> findExpensiveBookingIds(Double minPrice)
     }
 
-    References {
-        user -> User {
-            onDelete: prevent
-            message: "Cannot delete user that has bookings"
-        }
-        room -> Room {
-            onDelete: prevent
-            message: "Cannot delete room that has bookings"
-        }
-    }
 }

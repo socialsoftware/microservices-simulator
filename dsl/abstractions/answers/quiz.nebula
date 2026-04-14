@@ -22,6 +22,7 @@ Aggregate Quiz {
         LocalDateTime availableDate
         LocalDateTime conclusionDate
         LocalDateTime resultsDate
+        @PreventDelete("Cannot delete execution that has quizzes")
         QuizExecution execution
         Set<QuizQuestion> questions
 
@@ -54,10 +55,4 @@ Aggregate Quiz {
         }
     }
 
-    References {
-        execution -> Execution {
-            onDelete: prevent
-            message: "Cannot delete execution that has quizzes"
-        }
-    }
 }

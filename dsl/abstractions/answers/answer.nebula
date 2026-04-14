@@ -27,8 +27,11 @@ Aggregate Answer {
         LocalDateTime creationDate
         LocalDateTime answerDate
         Boolean completed
+        @PreventDelete("Cannot delete execution that has answers")
         AnswerExecution execution
+        @PreventDelete("Cannot delete user that has answers")
         AnswerUser user
+        @PreventDelete("Cannot delete quiz that has answers")
         AnswerQuiz quiz
         List<AnswerQuestion> questions
 
@@ -86,20 +89,4 @@ Aggregate Answer {
         Optional<Integer> findAnswerIdByQuizAggregateIdAndUserAggregateIdForSaga(Integer quizAggregateId, Integer userAggregateId)
     }
 
-    References {
-        execution -> Execution {
-            onDelete: prevent
-            message: "Cannot delete execution that has answers"
-        }
-
-        user -> User {
-            onDelete: prevent
-            message: "Cannot delete user that has answers"
-        }
-
-        quiz -> Quiz {
-            onDelete: prevent
-            message: "Cannot delete quiz that has answers"
-        }
-    }
 }

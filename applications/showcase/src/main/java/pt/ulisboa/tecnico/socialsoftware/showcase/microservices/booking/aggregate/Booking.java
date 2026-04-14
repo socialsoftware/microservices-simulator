@@ -8,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
@@ -112,10 +111,7 @@ public abstract class Booking extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        Set<EventSubscription> eventSubscriptions = new HashSet<>();
-        if (this.getState() == AggregateState.ACTIVE) {
-        }
-        return eventSubscriptions;
+        return new HashSet<>();
     }
 
 

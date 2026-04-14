@@ -34,7 +34,7 @@ Aggregate:
     '}';
 
 AggregateElement:
-    Entity | Method | Workflow | Repository | Events | References | WebAPIEndpoints | ServiceDefinition | Functionalities | StateMachine | SagaStates;
+    Entity | Method | Workflow | Repository | Events | WebAPIEndpoints | ServiceDefinition | Functionalities | StateMachine | SagaStates;
 
 StateMachine:
     'States' name=ID '{'
@@ -243,20 +243,6 @@ InterInvariant:
         (subscribedEvents+=SubscribedEvent)*
     '}';
 
-References:
-    'References' '{'
-        (constraints+=ReferenceConstraint)*
-    '}';
-
-ReferenceConstraint:
-    fieldName=ID '->' targetAggregate=ID '{'
-        'onDelete' ':' action=ReferenceAction
-        'message' ':' message=STRING
-    '}';
-
-ReferenceAction returns string:
-    'prevent' | 'cascade' | 'setNull';
-
 RepositoryMethod:
     ('@Query' '(' query=STRING ')')? returnType=RepositoryReturnType name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')';
 
@@ -281,6 +267,7 @@ ReturnType:
     'void' | PrimitiveType | EntityType | BuiltinType | ListType | SetType | OptionalType;
 
 Property:
+    (annotations+=Annotation)*
     (isFinal?='final')? type=Type name=ID (',' names+=ID)* ('=' defaultValue=PropertyDefaultValue)? (dtoExclude?='dto-exclude')?;
 
 PropertyDefaultValue returns string:

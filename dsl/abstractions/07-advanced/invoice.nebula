@@ -11,6 +11,7 @@ Aggregate Invoice {
 
     Root Entity Invoice {
         InvoiceOrder order
+        @PreventDelete("Cannot delete customer with invoices")
         InvoiceCustomer customer
         Double totalAmount
         LocalDateTime issuedAt
@@ -20,17 +21,6 @@ Aggregate Invoice {
             order != null : "Invoice must reference an order"
             customer != null : "Invoice must have a customer"
             totalAmount > 0.0 : "Invoice total must be positive"
-        }
-    }
-
-    References {
-        order -> Order {
-            onDelete: cascade
-            message: "Order deleted, removing invoice"
-        }
-        customer -> Customer {
-            onDelete: prevent
-            message: "Cannot delete customer with invoices"
         }
     }
 

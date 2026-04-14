@@ -5,6 +5,7 @@ Aggregate Shipping {
     }
 
     Root Entity Shipping {
+        @PreventDelete("Cannot delete order that has shipping")
         ShippingOrder order
         String address
         String carrier
@@ -37,10 +38,4 @@ Aggregate Shipping {
         subscribe OrderCancelledEvent
     }
 
-    References {
-        order -> Order {
-            onDelete: prevent
-            message: "Cannot delete order that has shipping"
-        }
-    }
 }

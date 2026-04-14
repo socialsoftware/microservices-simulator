@@ -91,7 +91,6 @@ export class ModelValidator {
         const blockCounts: { [key: string]: { count: number, nodes: any[] } } = {
             Repository: { count: 0, nodes: [] },
             Events: { count: 0, nodes: [] },
-            References: { count: 0, nodes: [] },
             WebAPIEndpoints: { count: 0, nodes: [] },
             ServiceDefinition: { count: 0, nodes: [] },
             Functionalities: { count: 0, nodes: [] }

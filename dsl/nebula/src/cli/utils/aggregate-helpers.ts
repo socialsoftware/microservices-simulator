@@ -1,4 +1,4 @@
-import { Aggregate, Entity, Method, Workflow, Repository, Events, References, WebAPIEndpoints, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isRepository, isEvents, isReferences, isWebAPIEndpoints, isServiceDefinition, isFunctionalities, Model } from "../../language/generated/ast.js";
+import { Aggregate, Entity, Method, Workflow, Repository, Events, WebAPIEndpoints, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isRepository, isEvents, isWebAPIEndpoints, isServiceDefinition, isFunctionalities, Model } from "../../language/generated/ast.js";
 
 
 
@@ -63,16 +63,28 @@ export function findPreventReferencesTo(targetAggregateName: string): PreventRef
     for (const model of allModelsRegistry) {
         if (!model.aggregates) continue;
         for (const aggregate of model.aggregates) {
-            const refs = (aggregate as any).references;
-            if (!refs || !refs.constraints) continue;
-            for (const constraint of refs.constraints) {
-                if (constraint.targetAggregate === targetAggregateName && constraint.action === 'prevent') {
-                    results.push({
-                        sourceAggregateName: aggregate.name,
-                        fieldName: constraint.fieldName,
-                        message: constraint.message
-                    });
-                }
+            const root = getEntities(aggregate).find((e: any) => e.isRoot);
+            if (!root) continue;
+
+            for (const prop of (root.properties || []) as any[]) {
+                const annotation = (prop.annotations || []).find((a: any) => a.name === 'PreventDelete');
+                if (!annotation) continue;
+
+                const referencedEntityName = (prop.type as any)?.type?.$refText;
+                if (!referencedEntityName) continue;
+
+                const projection = getEntities(aggregate).find((e: any) => e.name === referencedEntityName);
+                const sourceAggregate = (projection as any)?.aggregateRef;
+                if (sourceAggregate !== targetAggregateName) continue;
+
+                const rawMessage = (annotation.values || [])[0]?.value;
+                const message = typeof rawMessage === 'string' ? rawMessage.replace(/^["']|["']$/g, '') : '';
+
+                results.push({
+                    sourceAggregateName: aggregate.name,
+                    fieldName: prop.name,
+                    message
+                });
             }
         }
     }
@@ -106,10 +118,6 @@ export function getEvents(aggregate: Aggregate): Events | undefined {
     return aggregate.aggregateElements.find((el): el is Events => isEvents(el));
 }
 
-export function getReferences(aggregate: Aggregate): References | undefined {
-    return aggregate.aggregateElements.find((el): el is References => isReferences(el));
-}
-
 export function getWebAPIEndpoints(aggregate: Aggregate): WebAPIEndpoints | undefined {
     return aggregate.aggregateElements.find((el): el is WebAPIEndpoints => isWebAPIEndpoints(el));
 }
@@ -129,7 +137,6 @@ declare module "../../language/generated/ast.js" {
         workflows: Workflow[];
         repository?: Repository;
         events?: Events;
-        references?: References;
         webApiEndpoints?: WebAPIEndpoints;
         serviceDefinition?: ServiceDefinition;
         functionalities?: Functionalities;
@@ -206,12 +213,6 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
 
     Object.defineProperty(aggregate, 'events', {
         get: () => getEvents(aggregate),
-        enumerable: true,
-        configurable: true
-    });
-
-    Object.defineProperty(aggregate, 'references', {
-        get: () => getReferences(aggregate),
         enumerable: true,
         configurable: true
     });

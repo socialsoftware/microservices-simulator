@@ -17,7 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.events.subscribe.EnrollmentSubscribesCourseDeleted;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.events.subscribe.EnrollmentSubscribesCourseDeletedCourseExists;
 
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.EnrollmentCourseDto;
@@ -135,7 +134,6 @@ public abstract class Enrollment extends Aggregate {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
             interInvariantCourseExists(eventSubscriptions);
-            eventSubscriptions.add(new EnrollmentSubscribesCourseDeleted(this));
         }
         return eventSubscriptions;
     }

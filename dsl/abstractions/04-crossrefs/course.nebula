@@ -8,19 +8,13 @@ Aggregate Course {
         String title
         String description
         Integer maxStudents
+        @PreventDelete("Cannot delete teacher with active courses")
         CourseTeacher teacher
 
         invariants {
             title.length() > 0 : "Course title cannot be blank"
             maxStudents > 0 : "Max students must be positive"
             teacher != null : "Course must have a teacher"
-        }
-    }
-
-    References {
-        teacher -> Teacher {
-            onDelete: prevent
-            message: "Cannot delete teacher with active courses"
         }
     }
 

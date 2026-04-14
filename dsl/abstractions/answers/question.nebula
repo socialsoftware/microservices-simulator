@@ -21,6 +21,7 @@ Aggregate Question {
         String title
         String content
         LocalDateTime creationDate
+        @PreventDelete("Cannot delete course that has questions")
         QuestionCourse course
         Set<QuestionTopic> topics
         List<Option> options
@@ -63,10 +64,4 @@ Aggregate Question {
         Set<Integer> findQuestionIdsByTitlePattern(String titlePattern)
     }
 
-    References {
-        course -> Course {
-            onDelete: prevent
-            message: "Cannot delete course that has questions"
-        }
-    }
 }

@@ -16,13 +16,6 @@ Aggregate Post {
         }
     }
 
-    References {
-        author -> Author {
-            onDelete: cascade
-            message: "Author deleted, removing their posts"
-        }
-    }
-
     Events {
         subscribe AuthorUpdatedEvent
 
