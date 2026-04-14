@@ -52,9 +52,7 @@ class InvariantsSpec extends Specification {
         return dto
     }
 
-    // --- User invariants ---
-
-    def "user with blank username violates invariant"() {
+def "user with blank username violates invariant"() {
         given:
             def uow = unitOfWorkService.createUnitOfWork("inv-user-uname-${System.nanoTime()}")
             def req = new CreateUserRequestDto()
@@ -99,9 +97,7 @@ class InvariantsSpec extends Specification {
             thrown(Exception)
     }
 
-    // --- Room invariants ---
-
-    def "room with blank roomNumber violates invariant"() {
+def "room with blank roomNumber violates invariant"() {
         given:
             def uow = unitOfWorkService.createUnitOfWork("inv-room-num-${System.nanoTime()}")
             def req = new CreateRoomRequestDto()
@@ -146,9 +142,7 @@ class InvariantsSpec extends Specification {
             thrown(Exception)
     }
 
-    // --- Booking invariants ---
-
-    def "booking with blank checkInDate violates invariant"() {
+def "booking with blank checkInDate violates invariant"() {
         given:
             def tag = "${System.nanoTime()}"
             def user = seedValidUser(tag)

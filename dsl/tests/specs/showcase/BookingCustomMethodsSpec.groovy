@@ -17,10 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.shared.enums.RoomStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService
 import spock.lang.Specification
 
-// NOTE: bookRoom(BookingUser, BookingRoom, ...) is not exercised here because
-// constructing BookingUser / BookingRoom projection entities by hand is awkward
-// (their constructors take nested DTOs with internal wiring). The
-// createBooking(CreateBookingRequestDto, uow) path is used instead.
 @SpringBootTest
 @ActiveProfiles(["test", "sagas", "local"])
 class BookingCustomMethodsSpec extends Specification {
@@ -123,7 +119,4 @@ class BookingCustomMethodsSpec extends Specification {
             found.checkInDate == "2026-06-01"
     }
 
-    // bookRoom(BookingUser, BookingRoom, ...) is exercised indirectly — tests above
-    // use createBooking(CreateBookingRequestDto, uow) because constructing the projection
-    // entities by hand bypasses the from-User/from-Room mapping that makes projections useful.
 }

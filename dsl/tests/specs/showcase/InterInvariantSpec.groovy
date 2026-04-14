@@ -101,10 +101,8 @@ class InterInvariantSpec extends Specification {
             def uowR = unitOfWorkService.createUnitOfWork("ii-del-read-$tag")
             try {
                 def reloaded = bookingService.getBookingById(booking.aggregateId, uowR)
-                // interInvariant handler sets state to INACTIVE — either way, booking should not be ACTIVE
                 reloaded == null || reloaded.state == null || reloaded.state.name() != "ACTIVE"
             } catch (Exception ignored) {
-                // if the booking is unreachable after the inter-invariant fires, that's also a valid outcome
                 true
             }
     }
