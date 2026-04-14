@@ -1,5 +1,5 @@
 SharedEnums {
-    enum ContactCategory { PERSONAL, WORK, FAMILY }
+    ContactCategory { PERSONAL, WORK, FAMILY }
 }
 
 Aggregate Contact {

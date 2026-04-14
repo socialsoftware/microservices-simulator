@@ -72,9 +72,12 @@ ${executeMethod}
         for (const model of models) {
             const blocks = (model as any).sagaStatesBlocks || [];
             for (const block of blocks) {
-                const values: string[] = [...(block.states || [])];
-                for (const value of values) {
-                    index.set(value, { enumClass: block.name, values });
+                const groups = (block as any).groups || [];
+                for (const group of groups) {
+                    const values: string[] = [...(group.states || [])];
+                    for (const value of values) {
+                        index.set(value, { enumClass: group.name, values });
+                    }
                 }
             }
         }

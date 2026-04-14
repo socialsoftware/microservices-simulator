@@ -32,10 +32,13 @@ export class SharedFeature {
         for (const model of options.models) {
             const blocks = (model as any).sagaStatesBlocks || [];
             for (const block of blocks) {
-                defs.push({
-                    name: block.name,
-                    values: [...(block.states || [])]
-                });
+                const groups = (block as any).groups || [];
+                for (const group of groups) {
+                    defs.push({
+                        name: group.name,
+                        values: [...(group.states || [])]
+                    });
+                }
             }
         }
         return defs;

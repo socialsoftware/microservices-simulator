@@ -10,8 +10,6 @@ public class SagaStateConverter implements AttributeConverter<SagaState, String>
     @Override
     public String convertToDatabaseColumn(SagaState state) {
         if (state == null) return null;
-        // Use getDeclaringClass(): for enum values with bodies (like NOT_IN_SAGA { ... })
-        // getClass() returns an anonymous subclass whose name can't be Enum.valueOf'd.
         Class<?> enumClass = ((Enum<?>) state).getDeclaringClass();
         return enumClass.getName() + "#" + ((Enum<?>) state).name();
     }

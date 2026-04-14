@@ -1,46 +1,46 @@
 SharedEnums {
-    
-    enum CourseType {
+
+    CourseType {
         TECNICO,
         EXTERNAL
     }
-    
-    enum UserRole {
+
+    UserRole {
         STUDENT,
         TEACHER,
         ADMIN
     }
-    
-    enum QuestionType {
+
+    QuestionType {
         MULTIPLE_CHOICE,
         TRUE_FALSE,
         OPEN_ENDED
     }
-    
-    enum QuizType {
-        EXAM, 
-        TEST, 
-        GENERATED, 
-        PROPOSED, 
-        IN_CLASS, 
+
+    QuizType {
+        EXAM,
+        TEST,
+        GENERATED,
+        PROPOSED,
+        IN_CLASS,
         EXTERNAL_QUIZ
     }
-    
-    enum TournamentState {
+
+    TournamentState {
         CREATED,
         OPEN_FOR_ENROLLMENT,
         RUNNING,
         CLOSED,
         CANCELLED
     }
-    
-    enum AnswerState {
+
+    AnswerState {
         ANSWERED,
         UNANSWERED,
         SUBMITTED
     }
-    
-    enum EntityState {
+
+    EntityState {
         ACTIVE,
         INACTIVE,
         DELETED,

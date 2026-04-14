@@ -5,7 +5,12 @@ entry Model:
     (exceptions=ExceptionMessages)?;
 
 SagaStatesBlock:
-    'SagaStates' name=ID '{'
+    'SagaStates' '{'
+        groups+=SagaStateGroup*
+    '}';
+
+SagaStateGroup:
+    name=ID '{'
         states+=ID (',' states+=ID)*
     '}';
 
@@ -494,7 +499,7 @@ ServiceMethod:
     (':' returnType=ReturnType)?;
 
 EnumDefinition:
-    'enum' name=ID '{'
+    name=ID '{'
         values+=EnumValue (',' values+=EnumValue)*
     '}';
 

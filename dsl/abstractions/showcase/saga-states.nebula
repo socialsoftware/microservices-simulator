@@ -1,4 +1,6 @@
-SagaStates ReservationSagaStates {
-    IN_BOOK_ROOM,
-    IN_CANCEL_BOOKING
+SagaStates {
+    ReservationSagaStates {
+        IN_BOOK_ROOM,
+        IN_CANCEL_BOOKING
+    }
 }
