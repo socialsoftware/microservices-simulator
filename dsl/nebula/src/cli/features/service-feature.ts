@@ -4,6 +4,7 @@ import * as path from 'path';
 import { GenerationOptions, Aggregate, GeneratorRegistry } from '../engine/types.js';
 import { FileWriter } from '../utils/file-writer.js';
 import { ServiceExtensionGenerator } from '../generators/microservices/service/extension/service-extension-generator.js';
+import { AggregatePaths } from '../utils/path-builder.js';
 
 export class ServiceFeature {
     static async generateService(aggregate: Aggregate, aggregatePath: string, options: GenerationOptions, generators: GeneratorRegistry): Promise<void> {
@@ -24,12 +25,13 @@ export class ServiceFeature {
                 options
             );
 
-            const servicePath = path.join(aggregatePath, 'service', `${serviceDefinition.name || aggregate.name + 'Service'}.java`);
+            const paths = new AggregatePaths(aggregatePath, aggregate.name);
+            const servicePath = paths.service(`${serviceDefinition.name || aggregate.name + 'Service'}.java`);
             await fs.mkdir(path.dirname(servicePath), { recursive: true });
             await fs.writeFile(servicePath, serviceCode, 'utf-8');
 
             const extensionCode = ServiceExtensionGenerator.generateExtensionCode(aggregate, options.projectName);
-            const extensionPath = path.join(aggregatePath, 'service', ServiceExtensionGenerator.getExtensionFileName(aggregate));
+            const extensionPath = paths.serviceExtension(ServiceExtensionGenerator.getExtensionFileName(aggregate));
             await FileWriter.writeGeneratedFileIfAbsent(extensionPath, extensionCode, `service extension ${aggregate.name}ServiceExtension`);
 
         } catch (error) {

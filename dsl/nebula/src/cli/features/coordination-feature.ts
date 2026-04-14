@@ -2,6 +2,7 @@ import chalk from "chalk";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { GenerationOptions } from "../engine/types.js";
+import { AggregatePaths } from "../utils/path-builder.js";
 
 export class CoordinationFeature {
     static async generateCoordination(
@@ -13,13 +14,14 @@ export class CoordinationFeature {
     ): Promise<void> {
         try {
             const coordinationCode = await generators.coordinationGenerator.generateCoordination(aggregate, options, allAggregates);
+            const paths = new AggregatePaths(aggregatePath, aggregate.name);
 
-            const coordinationPath = path.join(aggregatePath, 'coordination', 'functionalities', `${aggregate.name}Functionalities.java`);
+            const coordinationPath = paths.functionalities();
             await fs.mkdir(path.dirname(coordinationPath), { recursive: true });
             await fs.writeFile(coordinationPath, coordinationCode['functionalities'], 'utf-8');
 
             if (coordinationCode['event-processing']) {
-                const eventProcessingPath = path.join(aggregatePath, 'coordination', 'eventProcessing', `${aggregate.name}EventProcessing.java`);
+                const eventProcessingPath = paths.eventProcessing();
                 await fs.mkdir(path.dirname(eventProcessingPath), { recursive: true });
                 await fs.writeFile(eventProcessingPath, coordinationCode['event-processing'], 'utf-8');
             }

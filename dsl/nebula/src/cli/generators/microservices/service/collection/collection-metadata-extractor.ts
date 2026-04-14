@@ -1,6 +1,6 @@
 import { Aggregate, Entity } from "../../../../../language/generated/ast.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
-import { capitalize } from "../../../../utils/generator-utils.js";
+import { capitalize } from "../../../../utils/string-utils.js";
 
 
 

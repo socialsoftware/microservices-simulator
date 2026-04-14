@@ -1,9 +1,9 @@
-import * as path from "node:path";
 import { GenerationOptions, Aggregate, GeneratorRegistry } from "../engine/types.js";
 import { TemplateGenerators } from "../engine/template-generators.js";
 import { FileWriter } from "../utils/file-writer.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
 import { ServiceExtensionGenerator } from "../generators/microservices/service/extension/service-extension-generator.js";
+import { AggregatePaths } from "../utils/path-builder.js";
 
 export class EntityFeature {
     static async generateCoreComponents(
@@ -12,6 +12,8 @@ export class EntityFeature {
         options: GenerationOptions,
         generators: GeneratorRegistry
     ): Promise<void> {
+        const paths = new AggregatePaths(aggregatePath, aggregate.name);
+
         for (const entity of aggregate.entities) {
             const entityOptions = {
                 projectName: options.projectName,
@@ -19,41 +21,30 @@ export class EntityFeature {
                 allEntities: aggregate.entities
             };
             const entityCode = await generators.entityGenerator.generateEntity(entity, entityOptions);
-            const entityPath = path.join(aggregatePath, 'aggregate', `${entity.name}.java`);
-            await FileWriter.writeGeneratedFile(entityPath, entityCode, `entity ${entity.name}`);
+            await FileWriter.writeGeneratedFile(paths.entity(entity.name), entityCode, `entity ${entity.name}`);
 
-            
-            
-            const sharedDtoDir = path.join(aggregatePath, '..', '..', 'shared', 'dtos');
             const dtoCode = await generators.dtoGenerator.generateDto(entity, options);
-            const dtoPath = path.join(sharedDtoDir, `${entity.name}Dto.java`);
-            await FileWriter.writeGeneratedFile(dtoPath, dtoCode, `shared DTO ${entity.name}Dto`);
+            await FileWriter.writeGeneratedFile(paths.sharedDto(entity.name), dtoCode, `shared DTO ${entity.name}Dto`);
         }
 
-        const factoryCode = await generators.factoryGenerator.generateFactory(aggregate, {
-            ...options
-        });
-        const factoryPath = path.join(aggregatePath, 'aggregate', `${aggregate.name}Factory.java`);
-        await FileWriter.writeGeneratedFile(factoryPath, factoryCode, `factory ${aggregate.name}Factory`);
+        const factoryCode = await generators.factoryGenerator.generateFactory(aggregate, { ...options });
+        await FileWriter.writeGeneratedFile(paths.factory(), factoryCode, `factory ${aggregate.name}Factory`);
 
         const repositoryCode = await generators.repositoryGenerator.generateRepository(aggregate, options);
-        const repositoryPath = path.join(aggregatePath, 'aggregate', `${aggregate.name}CustomRepository.java`);
-        await FileWriter.writeGeneratedFile(repositoryPath, repositoryCode, `custom repository ${aggregate.name}CustomRepository`);
+        await FileWriter.writeGeneratedFile(paths.customRepository(), repositoryCode, `custom repository ${aggregate.name}CustomRepository`);
 
         const repositoryInterfaceCode = await generators.repositoryInterfaceGenerator.generateRepositoryInterface(aggregate, options);
-        const repositoryInterfacePath = path.join(aggregatePath, 'aggregate', `${aggregate.name}Repository.java`);
-        await FileWriter.writeGeneratedFile(repositoryInterfacePath, repositoryInterfaceCode, `repository interface ${aggregate.name}Repository`);
+        await FileWriter.writeGeneratedFile(paths.repositoryInterface(), repositoryInterfaceCode, `repository interface ${aggregate.name}Repository`);
 
         const hasServiceDefinition = (aggregate as any).serviceDefinition;
         if (!hasServiceDefinition) {
             await ErrorHandler.wrapAsync(
                 async () => {
                     const serviceCode = await generators.serviceGenerator.generateService(aggregate, options);
-                    const servicePath = path.join(aggregatePath, 'service', `${aggregate.name}Service.java`);
-                    await FileWriter.writeGeneratedFile(servicePath, serviceCode, `default service ${aggregate.name}Service`);
+                    await FileWriter.writeGeneratedFile(paths.service(), serviceCode, `default service ${aggregate.name}Service`);
 
                     const extensionCode = ServiceExtensionGenerator.generateExtensionCode(aggregate, options.projectName);
-                    const extensionPath = path.join(aggregatePath, 'service', ServiceExtensionGenerator.getExtensionFileName(aggregate));
+                    const extensionPath = paths.serviceExtension(ServiceExtensionGenerator.getExtensionFileName(aggregate));
                     await FileWriter.writeGeneratedFileIfAbsent(extensionPath, extensionCode, `service extension ${aggregate.name}ServiceExtension`);
                 },
                 ErrorUtils.aggregateContext(
@@ -88,8 +79,7 @@ export class EntityFeature {
                 options.projectName,
                 aggregate
             );
-            const aggregateBaseClassPath = path.join(aggregatePath, 'aggregate', `${aggregate.name}.java`);
-            await FileWriter.writeGeneratedFile(aggregateBaseClassPath, aggregateBaseClassCode, `aggregate base class ${aggregate.name}`);
+            await FileWriter.writeGeneratedFile(paths.aggregateBaseClass(), aggregateBaseClassCode, `aggregate base class ${aggregate.name}`);
         }
     }
 }

@@ -5,7 +5,12 @@ import { ReferencesGenerator } from "../generators/microservices/events/referenc
 import { GenerationOptions, GeneratorRegistry } from "../engine/types.js";
 import { FileWriter } from "../utils/file-writer.js";
 import { ErrorHandler, ErrorUtils, ErrorSeverity } from "../utils/error-handler.js";
+import { AggregatePaths } from "../utils/path-builder.js";
 import * as path from 'path';
+
+function pathsFor(aggregatePath: string, aggregateName: string = ''): AggregatePaths {
+    return new AggregatePaths(aggregatePath, aggregateName);
+}
 
 interface EventGenerationConfig {
     generateCustomEvents: boolean;
@@ -45,15 +50,6 @@ export class UnifiedEventFeature {
         }
     }
 
-    private getSharedEventsPath(aggregatePath: string): string {
-        const parts = aggregatePath.split('/');
-        const msIndex = parts.lastIndexOf('microservices');
-        if (msIndex !== -1) {
-            return parts.slice(0, msIndex).join('/') + '/events';
-        }
-        return path.join(aggregatePath, '..', '..', 'events');
-    }
-
     private async generateStandardEvents(
         aggregate: Aggregate,
         aggregatePath: string,
@@ -89,7 +85,7 @@ export class UnifiedEventFeature {
                 }
 
                 if (eventCode['event-handling']) {
-                    const eventHandlingPath = path.join(aggregatePath, 'events', 'handling', `${aggregate.name}EventHandling.java`);
+                    const eventHandlingPath = pathsFor(aggregatePath, aggregate.name).eventHandling();
                     await FileWriter.writeGeneratedFile(
                         eventHandlingPath,
                         eventCode['event-handling'],
@@ -149,12 +145,12 @@ export class UnifiedEventFeature {
         aggregatePath: string,
         options: GenerationOptions
     ): Promise<void> {
-        const sharedEventsPath = this.getSharedEventsPath(aggregatePath);
+        const p = pathsFor(aggregatePath, aggregate.name);
         for (const publishedEvent of aggregate.events!.publishedEvents!) {
             await ErrorHandler.wrapAsync(
                 async () => {
                     const eventCode = this.eventGenerator.generatePublishedEvent(publishedEvent, aggregate, options);
-                    const eventPath = path.join(sharedEventsPath, `${publishedEvent.name}.java`);
+                    const eventPath = p.sharedEvent(publishedEvent.name);
                     await FileWriter.writeGeneratedFile(eventPath, eventCode, `published event ${publishedEvent.name}`);
                 },
                 ErrorUtils.entityContext(
@@ -176,7 +172,7 @@ export class UnifiedEventFeature {
         await ErrorHandler.wrapAsync(
             async () => {
                 const baseHandlerCode = this.eventGenerator.generateBaseEventHandler(aggregate, options);
-                const baseHandlerPath = path.join(aggregatePath, 'events', 'handling', 'handlers', `${aggregate.name}EventHandler.java`);
+                const baseHandlerPath = pathsFor(aggregatePath, aggregate.name).eventBaseHandler();
                 await FileWriter.writeGeneratedFile(baseHandlerPath, baseHandlerCode, `base event handler ${aggregate.name}EventHandler`);
             },
             ErrorUtils.aggregateContext(
@@ -235,7 +231,8 @@ export class UnifiedEventFeature {
                         subscriptionName = `${aggregate.name}Subscribes${eventTypeName.replace('Event', '')}${interInvariantSuffix}`;
                     }
 
-                    const subscriptionPath = path.join(aggregatePath, 'events', 'subscribe', `${subscriptionName}.java`);
+                    const p = pathsFor(aggregatePath, aggregate.name);
+                    const subscriptionPath = p.eventSubscription(subscriptionName);
                     await FileWriter.writeGeneratedFile(subscriptionPath, subscriptionCode, `subscribed event ${subscriptionName}`);
 
 
@@ -244,7 +241,7 @@ export class UnifiedEventFeature {
                     if (!isInterInvariant) {
                         const handlerCode = this.eventGenerator.generateEventHandler(subscribedEvent, aggregate, enhancedOptions);
                         const handlerName = `${eventTypeName}Handler`;
-                        const handlerPath = path.join(aggregatePath, 'events', 'handling', 'handlers', `${handlerName}.java`);
+                        const handlerPath = p.eventHandler(handlerName);
                         await FileWriter.writeGeneratedFile(handlerPath, handlerCode, `event handler ${handlerName}`);
                     }
                 },
@@ -260,51 +257,50 @@ export class UnifiedEventFeature {
     }
 
     private async generateEventHandlersFromCode(eventCode: any, aggregatePath: string): Promise<void> {
+        const p = pathsFor(aggregatePath);
         const handlerEntries = Object.entries(eventCode).filter(([key]) => key.startsWith('event-handler-'));
 
         const writePromises = handlerEntries.map(([key, content]) => {
             const handlerName = key.replace('event-handler-', '');
-            const handlerPath = path.join(aggregatePath, 'events', 'handling', 'handlers', `${handlerName}.java`);
-            return FileWriter.writeGeneratedFile(handlerPath, content as string, `event handler ${handlerName}`);
+            return FileWriter.writeGeneratedFile(p.eventHandler(handlerName), content as string, `event handler ${handlerName}`);
         });
 
         await Promise.all(writePromises);
     }
 
     private async generatePublishedEventsFromCode(eventCode: any, aggregatePath: string): Promise<void> {
+        const p = pathsFor(aggregatePath);
         const publishedEventEntries = Object.entries(eventCode).filter(([key]) => key.startsWith('published-event-'));
-        const sharedEventsPath = this.getSharedEventsPath(aggregatePath);
 
         const writePromises = publishedEventEntries.map(([key, content]) => {
             const eventName = key.replace('published-event-', '');
             const className = this.extractClassNameFromContent(content as string);
             const fileName = className || eventName;
-            const eventPath = path.join(sharedEventsPath, `${fileName}.java`);
-            return FileWriter.writeGeneratedFile(eventPath, content as string, `published event ${fileName}`);
+            return FileWriter.writeGeneratedFile(p.sharedEvent(fileName), content as string, `published event ${fileName}`);
         });
 
         await Promise.all(writePromises);
     }
 
     private async generateEventSubscriptionsFromCode(eventCode: any, aggregatePath: string): Promise<void> {
+        const p = pathsFor(aggregatePath);
         const subscriptionEntries = Object.entries(eventCode).filter(([key]) => key.startsWith('event-subscription-'));
 
         const writePromises = subscriptionEntries.map(([key, content]) => {
             const subscriptionName = key.replace('event-subscription-', '');
-            const subscriptionPath = path.join(aggregatePath, 'events', 'subscribe', `Subscribes${subscriptionName}.java`);
-            return FileWriter.writeGeneratedFile(subscriptionPath, content as string, `event subscription Subscribes${subscriptionName}`);
+            return FileWriter.writeGeneratedFile(p.eventSubscription(`Subscribes${subscriptionName}`), content as string, `event subscription Subscribes${subscriptionName}`);
         });
 
         await Promise.all(writePromises);
     }
 
     private async generateIndividualEventHandlers(individualEventHandlers: any, aggregatePath: string): Promise<void> {
+        const p = pathsFor(aggregatePath);
         const handlerEntries = Object.entries(individualEventHandlers).filter(([key]) => key.startsWith('specific-handler-'));
 
         const writePromises = handlerEntries.map(([key, content]) => {
             const handlerName = key.replace('specific-handler-', '');
-            const handlerPath = path.join(aggregatePath, 'events', 'handling', 'handlers', `${handlerName}.java`);
-            return FileWriter.writeGeneratedFile(handlerPath, content as string, `specific event handler ${handlerName}`);
+            return FileWriter.writeGeneratedFile(p.eventHandler(handlerName), content as string, `specific event handler ${handlerName}`);
         });
 
         await Promise.all(writePromises);
@@ -331,7 +327,8 @@ export class UnifiedEventFeature {
         options: GenerationOptions,
         allAggregates: any[]
     ): Promise<void> {
-        const baseHandlerPath = path.join(aggregatePath, 'events', 'handling', 'handlers', `${aggregate.name}EventHandler.java`);
+        const p = pathsFor(aggregatePath, aggregate.name);
+        const baseHandlerPath = p.eventBaseHandler();
         const fs = await import('fs');
         if (!fs.existsSync(baseHandlerPath)) {
             const baseHandlerCode = this.eventGenerator.generateBaseEventHandler(aggregate, options);
@@ -348,29 +345,15 @@ export class UnifiedEventFeature {
             }
         );
 
-
         for (const [key, code] of Object.entries(referenceHandlers)) {
             if (key.startsWith('ref-subscription-')) {
                 const targetAggregate = key.replace('ref-subscription-', '');
                 const className = `${aggregate.name}Subscribes${targetAggregate}Deleted`;
-                const subscriptionPath = path.join(
-                    aggregatePath,
-                    'events',
-                    'subscribe',
-                    `${className}.java`
-                );
-                await FileWriter.writeGeneratedFile(subscriptionPath, code, `reference subscription ${className}`);
+                await FileWriter.writeGeneratedFile(p.eventSubscription(className), code, `reference subscription ${className}`);
             } else if (key.startsWith('ref-handler-')) {
                 const targetAggregate = key.replace('ref-handler-', '');
                 const className = `${targetAggregate}DeletedEventHandler`;
-                const handlerPath = path.join(
-                    aggregatePath,
-                    'events',
-                    'handling',
-                    'handlers',
-                    `${className}.java`
-                );
-                await FileWriter.writeGeneratedFile(handlerPath, code, `reference handler ${className}`);
+                await FileWriter.writeGeneratedFile(p.eventHandler(className), code, `reference handler ${className}`);
             }
         }
     }

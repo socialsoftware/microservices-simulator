@@ -1,5 +1,5 @@
 import { Aggregate, Entity, Method } from "../../../../../language/generated/ast.js";
-import { capitalize } from "../../../../utils/generator-utils.js";
+import { capitalize } from "../../../../utils/string-utils.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
 import { ActionMethodGenerator } from "./action-method-generator.js";

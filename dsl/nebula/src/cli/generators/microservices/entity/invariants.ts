@@ -1,5 +1,5 @@
 import { Entity } from "../../../../language/generated/ast.js";
-import { capitalize } from "../../../utils/generator-utils.js";
+import { capitalize } from "../../../utils/string-utils.js";
 import { ImportRequirements } from "./types.js";
 import { getGlobalConfig } from "../../common/config.js";
 

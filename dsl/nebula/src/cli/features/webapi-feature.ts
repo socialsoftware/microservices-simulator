@@ -2,6 +2,7 @@ import chalk from "chalk";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { GenerationOptions } from "../engine/types.js";
+import { AggregatePaths, ProjectPaths } from "../utils/path-builder.js";
 
 export class WebApiFeature {
     static async generateWebApi(
@@ -27,20 +28,20 @@ export class WebApiFeature {
                 controllerCode = await generators.webApiGenerator.generateEmptyController(aggregate, options);
             }
 
-            const webApiPath = path.join(aggregatePath, 'coordination', 'webapi', `${aggregate.name}Controller.java`);
+            const paths = new AggregatePaths(aggregatePath, aggregate.name);
+            const webApiPath = paths.controller();
             await fs.mkdir(path.dirname(webApiPath), { recursive: true });
             await fs.writeFile(webApiPath, controllerCode, 'utf-8');
 
             if (requestDtos && typeof requestDtos === 'object') {
                 const dtoKeys = Object.keys(requestDtos);
                 if (dtoKeys.length > 0) {
-                    const dtosDir = path.join(aggregatePath, 'coordination', 'webapi', 'requestDtos');
+                    const dtosDir = paths.requestDtosDir();
                     await fs.mkdir(dtosDir, { recursive: true });
 
                     for (const [dtoName, dtoContent] of Object.entries(requestDtos)) {
                         if (dtoContent && typeof dtoContent === 'string' && dtoContent.trim()) {
-                            const dtoPath = path.join(dtosDir, `${dtoName}.java`);
-                            await fs.writeFile(dtoPath, dtoContent, 'utf-8');
+                            await fs.writeFile(paths.requestDto(dtoName), dtoContent, 'utf-8');
                         }
                     }
                 }
@@ -53,13 +54,13 @@ export class WebApiFeature {
     static async generateGlobalWebApi(paths: any, options: GenerationOptions, generators: any): Promise<void> {
         try {
             const globalControllersCode = await generators.webApiGenerator.generateGlobalControllers(options);
+            const projectPaths = new ProjectPaths(paths.javaPath);
 
-            const behaviourControllerPath = path.join(paths.javaPath, 'coordination', 'webapi', 'BehaviourController.java');
+            const behaviourControllerPath = projectPaths.behaviourController();
             await fs.mkdir(path.dirname(behaviourControllerPath), { recursive: true });
             await fs.writeFile(behaviourControllerPath, globalControllersCode['behaviour-controller'], 'utf-8');
 
-            const tracesControllerPath = path.join(paths.javaPath, 'coordination', 'webapi', 'TracesController.java');
-            await fs.writeFile(tracesControllerPath, globalControllersCode['traces-controller'], 'utf-8');
+            await fs.writeFile(projectPaths.tracesController(), globalControllersCode['traces-controller'], 'utf-8');
         } catch (error) {
             console.error(chalk.red(`[ERROR] Error generating global web API controllers: ${error instanceof Error ? error.message : String(error)}`));
         }

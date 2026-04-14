@@ -1,6 +1,6 @@
 import { Entity } from "../../../../../language/generated/ast.js";
 import { EntityExt } from "../../../../types/ast-extensions.js";
-import { capitalize } from "../../../../utils/generator-utils.js";
+import { capitalize } from "../../../../utils/string-utils.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
 import { getEffectiveFieldMappings } from "../../../../utils/aggregate-helpers.js";
 import { EXTENDED_PRIMITIVE_TYPES } from "../../../common/utils/type-constants.js";

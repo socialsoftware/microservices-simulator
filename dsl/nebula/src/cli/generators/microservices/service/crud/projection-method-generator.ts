@@ -1,6 +1,6 @@
 import { Entity } from "../../../../../language/generated/ast.js";
 import { EntityExt, AggregateExt, TypeGuards } from "../../../../types/ast-extensions.js";
-import { capitalize } from "../../../../utils/generator-utils.js";
+import { capitalize } from "../../../../utils/string-utils.js";
 import { getEvents, getEntities } from "../../../../utils/aggregate-helpers.js";
 import { EventNameParser } from "../../../common/utils/event-name-parser.js";
 import { EventHandlerCodeGenerator } from "./event-handler-code-generator.js";

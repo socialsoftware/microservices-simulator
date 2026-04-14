@@ -4,7 +4,7 @@ import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-typ
 import { EXTENDED_PRIMITIVE_TYPES } from "../../../common/utils/type-constants.js";
 import { getEffectiveFieldMappings } from "../../../../utils/aggregate-helpers.js";
 import { ExceptionGenerator } from "../../../common/utils/exception-generator.js";
-import { capitalize } from "../../../../utils/generator-utils.js";
+import { capitalize } from "../../../../utils/string-utils.js";
 
 export class ServiceCollectionGenerator {
     static generateCollectionMethods(aggregateName: string, rootEntity: Entity, projectName: string, aggregate?: Aggregate): string {
