@@ -86,6 +86,7 @@ class ApplicationsFileTreeParserSpec extends Specification {
         and:
         parser.groovyFilePaths.keySet() ==~ [
             'com.example.dummyapp.DummyAppSpec',
+            'com.example.dummyapp.GroovyNestedFacadeTracingSpec',
             'com.example.dummyapp.GroovySagaTracingSpec'
         ]
     }

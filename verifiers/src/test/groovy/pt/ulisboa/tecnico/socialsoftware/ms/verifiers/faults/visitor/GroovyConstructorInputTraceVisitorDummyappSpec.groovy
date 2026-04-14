@@ -171,6 +171,43 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         !helperTraceText.contains('[unresolved cyclic reference]')
     }
 
+    def 'nested helper facade traces are emitted once'() {
+        given:
+        def helperFacadeTraces = state.groovyFullTraceResults.findAll {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovyNestedFacadeTracingSpec' &&
+                    it.sourceMethodName == 'buildItemDtoViaFacade' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+        def parentTraceText = traceTextFor(
+                'com.example.dummyapp.GroovyNestedFacadeTracingSpec',
+                'nested helper facade result feeds item saga constructor',
+                'helperSaga',
+                'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        )
+
+        expect:
+        helperFacadeTraces.size() == 1
+        helperFacadeTraces[0].originKind() == GroovyTraceOriginKind.FACADE_CALL
+        helperFacadeTraces[0].sourceBindingName() == null
+        helperFacadeTraces[0].sourceExpressionText() == 'itemFunctionalities.createItem(itemDto)'
+        parentTraceText.contains('buildItemDtoViaFacade(...) <- itemDto <- itemFunctionalities.createItem(itemDto)')
+        parentTraceText.contains('resolved via helper createItemSaga(...)')
+    }
+
+    def 'same-name caller/helper locals no longer produce a cyclic marker'() {
+        given:
+        def traceText = traceTextFor(
+                'com.example.dummyapp.GroovyNestedFacadeTracingSpec',
+                'shadowed helper field/local itemDto remains acyclic',
+                'shadowSaga',
+                'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        )
+
+        expect:
+        traceText.contains('buildItemDtoWithShadowing(...) <- itemDto <- itemFunctionalities.createItem(itemDto)')
+        !traceText.contains('[unresolved cyclic reference]')
+    }
+
     def 'captures named-args and setter-based dto constructor provenance from dummyapp fixture'() {
         given:
         def toSetTrace = state.groovyFullTraceResults.find {

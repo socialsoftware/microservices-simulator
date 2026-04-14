@@ -757,6 +757,51 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
                 .contains('[unresolved dynamic-method-call]')
     }
 
+    def 'existing helper-cycle regression remains conservative'() {
+        given:
+        def edgeState = new ApplicationAnalysisState()
+        def workflowVisitor = new WorkflowFunctionalityVisitor()
+        parseAllDummyappFiles().each { cu -> workflowVisitor.visit(cu, edgeState) }
+
+        writeSource('demo/HelperCycleOnlySpec.groovy', '''
+            package demo
+
+            import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
+            import spock.lang.Specification
+
+            class HelperCycleOnlySpec extends Specification {
+                def 'helper cycle stays conservative'() {
+                    given:
+                    def saga = new CreateOrderFunctionalitySagas(loopA('seed'), null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def loopA(value) {
+                    loopB(value)
+                }
+
+                def loopB(value) {
+                    loopA(value)
+                }
+            }
+        ''')
+
+        def sourceIndex = new GroovySourceIndex()
+        sourceIndex.parse(tempDir)
+
+        when:
+        new GroovyConstructorInputTraceVisitor().visit(sourceIndex, edgeState)
+
+        then:
+        traceArgLineFor(edgeState, 'demo.HelperCycleOnlySpec', 'helper cycle stays conservative', 0)
+                .contains('[unresolved helper-cycle]')
+    }
+
     def 'surfaces label context in trace text and report output'() {
         expect:
         traceTextFor('labels are context only').contains('given:')
