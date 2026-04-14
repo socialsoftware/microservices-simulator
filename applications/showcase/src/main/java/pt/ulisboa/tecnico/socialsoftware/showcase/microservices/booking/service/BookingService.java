@@ -171,11 +171,11 @@ public class BookingService {
 
 
     @Transactional
-    public BookingDto bookRoom(User user, Room room, String checkIn, String checkOut, Integer nights, Double price, UnitOfWork unitOfWork) {
+    public BookingDto bookRoom(BookingUser user, BookingRoom room, String checkIn, String checkOut, Integer nights, Double price, UnitOfWork unitOfWork) {
         try {
         BookingDto dto = new BookingDto();
-        dto.setUser(user);
-        dto.setRoom(room);
+        dto.setUser(user.buildDto());
+        dto.setRoom(room.buildDto());
         dto.setCheckInDate(checkIn);
         dto.setCheckOutDate(checkOut);
         dto.setNumberOfNights(nights);
@@ -183,10 +183,9 @@ public class BookingService {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
         Booking booking = bookingFactory.createBooking(aggregateId, dto);
         unitOfWorkService.registerChanged(booking, unitOfWork);
-        extension.sendConfirmationEmail(user, checkIn, checkOut);
         BookingCreatedEvent event0 = new BookingCreatedEvent();
-        event0.setUserAggregateId(user.getAggregateId());
-        event0.setRoomAggregateId(room.getAggregateId());
+        event0.setUserAggregateId(user.getUserAggregateId());
+        event0.setRoomAggregateId(room.getRoomAggregateId());
         event0.setTotalPrice(price);
         event0.setPublisherAggregateVersion(booking.getVersion());
         unitOfWorkService.registerEvent(event0, unitOfWork);

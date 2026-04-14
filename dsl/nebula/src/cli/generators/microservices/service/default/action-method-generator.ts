@@ -26,6 +26,9 @@ export class ActionMethodGenerator {
         const params = this.renderParameters(method);
         const returnType = this.deriveReturnType(method, actionBody, capitalizedAggregate);
 
+        const aggregate = rootEntity.$container as any;
+        const entityParamNames = this.collectEntityParamNames(method, aggregate);
+
         const preconditionLines = this.renderPreconditions(actionBody.preconditions || [], projectName);
         const { actionLines, resultVar } = this.renderActionStatements(
             actionBody.statements || [],
@@ -33,7 +36,8 @@ export class ActionMethodGenerator {
             lowerAggregate,
             capitalizedAggregate,
             rootEntity,
-            projectName
+            projectName,
+            entityParamNames
         );
 
         const publishesLines = this.renderPublishes(
@@ -98,13 +102,29 @@ ${tryWrapped}
         return lines;
     }
 
+    private static collectEntityParamNames(method: Method, aggregate: any): Set<string> {
+        const entityNames = new Set<string>();
+        for (const entity of (aggregate?.entities || [])) {
+            if (entity?.name) entityNames.add(entity.name);
+        }
+        const result = new Set<string>();
+        for (const param of (method.parameters || [])) {
+            const typeName = (param as any).type?.type?.$refText;
+            if (typeName && entityNames.has(typeName)) {
+                result.add(param.name);
+            }
+        }
+        return result;
+    }
+
     private static renderActionStatements(
         statements: any[],
         aggregateName: string,
         lowerAggregate: string,
         capitalizedAggregate: string,
         rootEntity: Entity,
-        projectName: string
+        projectName: string,
+        entityParamNames: Set<string>
     ): { actionLines: string[]; resultVar: string | null } {
         const lines: string[] = [];
         let resultVar: string | null = null;
@@ -124,7 +144,14 @@ ${tryWrapped}
                     lines.push(`        ${capitalizedAggregate}Dto ${dtoVar} = new ${capitalizedAggregate}Dto();`);
                     for (const fa of (stmt.fields || [])) {
                         const setter = `set${capitalize(fa.field)}`;
-                        const value = this.renderExpression(fa.value);
+                        let value = this.renderExpression(fa.value);
+                        // If the value is a method parameter whose type is a projection entity,
+                        // the DTO setter expects a DTO — convert via buildDto().
+                        if (fa.value?.$type === 'ActionRef' &&
+                            (!fa.value.chain || fa.value.chain.length === 0) &&
+                            entityParamNames.has(fa.value.name)) {
+                            value = `${value}.buildDto()`;
+                        }
                         lines.push(`        ${dtoVar}.${setter}(${value});`);
                     }
                     const createdVar = lowerAggregate;

@@ -32,7 +32,7 @@ Aggregate Booking {
         }
     }
 
-    method bookRoom(User user, Room room, String checkIn, String checkOut, Integer nights, Double price) {
+    method bookRoom(BookingUser user, BookingRoom room, String checkIn, String checkOut, Integer nights, Double price) {
         action {
             create Booking {
                 user: user,
@@ -42,11 +42,10 @@ Aggregate Booking {
                 numberOfNights: nights,
                 totalPrice: price
             }
-            extension sendConfirmationEmail(user, checkIn, checkOut)
         }
         publishes BookingCreatedEvent {
-            userAggregateId: user.aggregateId,
-            roomAggregateId: room.aggregateId,
+            userAggregateId: user.userAggregateId,
+            roomAggregateId: room.roomAggregateId,
             totalPrice: price
         }
     }
