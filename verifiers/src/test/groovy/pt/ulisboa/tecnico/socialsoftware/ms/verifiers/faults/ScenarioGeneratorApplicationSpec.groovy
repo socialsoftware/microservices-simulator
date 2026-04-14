@@ -229,7 +229,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         context?.close()
     }
 
-    def 'quizzes Groovy tracing now includes facade-derived recipes'() {
+    def 'quizzes report exposes nested helper provenance for CreateTournamentFaultTest'() {
         given:
         def applicationsRoot = resolveProjectPath('applications')
         def applicationBaseDir = 'quizzes'
@@ -248,12 +248,24 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
 
         and:
         def htmlReport = Files.readString(reportPath)
-        htmlReport.contains('CreateTournamentTest')
-        htmlReport.contains('UpdateTournamentTest')
-        htmlReport.contains('UpdateStudentNameTest')
-        def countMatcher = htmlReport =~ /Groovy full traces \((\d+)\)/
-        countMatcher.find()
-        countMatcher.group(1).toInteger() > 29
+        htmlReport.contains('CreateTournamentFaultTest')
+
+        and:
+        def createTournamentFaultTraceMatcher = htmlReport =~
+                /(?s)<code>CreateTournamentFaultTest\.<\/code><code>[^<]*\(\)<\/code>.*?<pre class="trace-pre">(.*?)<\/pre>/
+        String targetedTraceBlock = null
+        while (createTournamentFaultTraceMatcher.find()) {
+            def traceBlock = createTournamentFaultTraceMatcher.group(1)
+            if (traceBlock.contains('createCourseExecution(...)') && traceBlock.contains('createUser(...)')) {
+                targetedTraceBlock = traceBlock
+                break
+            }
+        }
+
+        targetedTraceBlock != null
+        targetedTraceBlock.contains('createCourseExecution(...)')
+        targetedTraceBlock.contains('createUser(...)')
+        !targetedTraceBlock.contains('[unresolved cyclic reference]')
 
         cleanup:
         context?.close()
