@@ -42,45 +42,43 @@ export class CommandHandlerGenerator {
     }
 
     private buildCases(aggregate: Aggregate, capitalizedAggregate: string, lowerAggregate: string): HandlerCase[] {
-        const cases: HandlerCase[] = [];
-
-        if ((aggregate as any).generateCrud) {
-            cases.push({
+        const cases: HandlerCase[] = [
+            {
                 commandClass: `Create${capitalizedAggregate}Command`,
                 handlerMethod: `handleCreate${capitalizedAggregate}`,
                 serviceMethod: `create${capitalizedAggregate}`,
                 serviceArgs: 'cmd.getCreateRequest(), cmd.getUnitOfWork()',
                 hasResult: true
-            });
-            cases.push({
+            },
+            {
                 commandClass: `Get${capitalizedAggregate}ByIdCommand`,
                 handlerMethod: `handleGet${capitalizedAggregate}ById`,
                 serviceMethod: `get${capitalizedAggregate}ById`,
                 serviceArgs: 'cmd.getRootAggregateId(), cmd.getUnitOfWork()',
                 hasResult: true
-            });
-            cases.push({
+            },
+            {
                 commandClass: `GetAll${capitalizedAggregate}sCommand`,
                 handlerMethod: `handleGetAll${capitalizedAggregate}s`,
                 serviceMethod: `getAll${capitalizedAggregate}s`,
                 serviceArgs: 'cmd.getUnitOfWork()',
                 hasResult: true
-            });
-            cases.push({
+            },
+            {
                 commandClass: `Update${capitalizedAggregate}Command`,
                 handlerMethod: `handleUpdate${capitalizedAggregate}`,
                 serviceMethod: `update${capitalizedAggregate}`,
                 serviceArgs: `cmd.get${capitalizedAggregate}Dto(), cmd.getUnitOfWork()`,
                 hasResult: true
-            });
-            cases.push({
+            },
+            {
                 commandClass: `Delete${capitalizedAggregate}Command`,
                 handlerMethod: `handleDelete${capitalizedAggregate}`,
                 serviceMethod: `delete${capitalizedAggregate}`,
                 serviceArgs: 'cmd.getRootAggregateId(), cmd.getUnitOfWork()',
                 hasResult: false
-            });
-        }
+            },
+        ];
 
         return cases;
     }

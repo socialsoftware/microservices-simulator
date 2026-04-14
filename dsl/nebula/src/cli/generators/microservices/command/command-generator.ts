@@ -37,35 +37,13 @@ export class CommandGenerator {
     }
 
     private buildCommandList(aggregate: Aggregate, capitalizedAggregate: string, lowerAggregate: string, dtoType: string, createRequestDtoType: string, rootEntity: Entity): CommandInfo[] {
-        const commands: CommandInfo[] = [];
-
-        if ((aggregate as any).generateCrud) {
-            commands.push({
-                className: `Create${capitalizedAggregate}Command`,
-                params: [{ type: createRequestDtoType, name: 'createRequest' }],
-                aggregateIdParam: 'null'
-            });
-            commands.push({
-                className: `Get${capitalizedAggregate}ByIdCommand`,
-                params: [],
-                aggregateIdParam: 'aggregateId'
-            });
-            commands.push({
-                className: `GetAll${capitalizedAggregate}sCommand`,
-                params: [],
-                aggregateIdParam: 'null'
-            });
-            commands.push({
-                className: `Update${capitalizedAggregate}Command`,
-                params: [{ type: dtoType, name: `${lowerAggregate}Dto` }],
-                aggregateIdParam: 'null'
-            });
-            commands.push({
-                className: `Delete${capitalizedAggregate}Command`,
-                params: [],
-                aggregateIdParam: 'aggregateId'
-            });
-        }
+        const commands: CommandInfo[] = [
+            { className: `Create${capitalizedAggregate}Command`, params: [{ type: createRequestDtoType, name: 'createRequest' }], aggregateIdParam: 'null' },
+            { className: `Get${capitalizedAggregate}ByIdCommand`, params: [], aggregateIdParam: 'aggregateId' },
+            { className: `GetAll${capitalizedAggregate}sCommand`, params: [], aggregateIdParam: 'null' },
+            { className: `Update${capitalizedAggregate}Command`, params: [{ type: dtoType, name: `${lowerAggregate}Dto` }], aggregateIdParam: 'null' },
+            { className: `Delete${capitalizedAggregate}Command`, params: [], aggregateIdParam: 'aggregateId' },
+        ];
 
         if (rootEntity) {
             const collections = CollectionMetadataBuilder.extractCollections(aggregate, rootEntity);

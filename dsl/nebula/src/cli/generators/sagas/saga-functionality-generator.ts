@@ -38,24 +38,19 @@ export class SagaFunctionalityGenerator {
         initializeAggregateProperties(aggregate);
         const allWorkflows = getWorkflows(aggregate);
 
-        
-        if ((aggregate as any).generateCrud) {
-            
-            const aggregatesToUse = allAggregates || (aggregate.$container as any)?.aggregates || [];
-            const crudSagas = this.crudGenerator.generateCrudSagaFunctionalities(aggregate, options, packageName, aggregatesToUse);
-            Object.assign(outputs, crudSagas);
+        const aggregatesToUse = allAggregates || (aggregate.$container as any)?.aggregates || [];
+        const crudSagas = this.crudGenerator.generateCrudSagaFunctionalities(aggregate, options, packageName, aggregatesToUse);
+        Object.assign(outputs, crudSagas);
 
-            
-            const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot);
-            if (rootEntity) {
-                const collectionSagas = this.collectionGenerator.generateCollectionSagaFunctionalities(
-                    aggregate,
-                    rootEntity,
-                    options,
-                    packageName
-                );
-                Object.assign(outputs, collectionSagas);
-            }
+        const rootEntity = (aggregate.entities || []).find((e: any) => e.isRoot);
+        if (rootEntity) {
+            const collectionSagas = this.collectionGenerator.generateCollectionSagaFunctionalities(
+                aggregate,
+                rootEntity,
+                options,
+                packageName
+            );
+            Object.assign(outputs, collectionSagas);
         }
 
         

@@ -109,15 +109,12 @@ export abstract class EventBaseGenerator extends GeneratorBase {
                 return aggName.toLowerCase();
             }
 
-            
-            if ((agg as any).generateCrud) {
-                const rootCrudEvents = [
-                    `${aggName}UpdatedEvent`,
-                    `${aggName}DeletedEvent`
-                ];
-                if (rootCrudEvents.includes(eventTypeName)) {
-                    return aggName.toLowerCase();
-                }
+            const rootCrudEvents = [
+                `${aggName}UpdatedEvent`,
+                `${aggName}DeletedEvent`
+            ];
+            if (rootCrudEvents.includes(eventTypeName)) {
+                return aggName.toLowerCase();
             }
 
             

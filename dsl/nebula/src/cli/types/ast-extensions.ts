@@ -121,7 +121,6 @@ export interface QueryParameterExt {
 
 
 export interface ServiceDefinitionExt extends ServiceDefinition {
-    generateCrud: boolean;
     customMethods: ServiceMethodExt[];
 }
 
@@ -141,7 +140,6 @@ export interface MethodParameterExt {
 
 
 export interface WebAPIEndpointsExt extends WebAPIEndpoints {
-    generateCrud: boolean;
     customEndpoints: EndpointExt[];
 }
 

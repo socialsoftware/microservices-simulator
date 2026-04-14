@@ -155,31 +155,23 @@ export class FunctionalitiesGenerator {
         const addedMethods = new Set<string>();
         const lowerAggregate = aggregateName.toLowerCase();
 
-        
-        if ((aggregate as any).generateCrud) {
-            const crudMethods = this.crudGenerator.generateCrudMethods(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates, projectName);
-            crudMethods.forEach(method => {
-                const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
-                if (!addedMethods.has(methodSignature)) {
-                    methods.push(method);
-                    addedMethods.add(methodSignature);
-                }
-            });
+        const crudMethods = this.crudGenerator.generateCrudMethods(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates, projectName);
+        crudMethods.forEach(method => {
+            const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
+            if (!addedMethods.has(methodSignature)) {
+                methods.push(method);
+                addedMethods.add(methodSignature);
+            }
+        });
 
-            
-            const collectionMethods = this.collectionGenerator.generateCollectionMethods(aggregateName, lowerAggregate, rootEntity, aggregate, projectName);
-            collectionMethods.forEach(method => {
-                const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
-                if (!addedMethods.has(methodSignature)) {
-                    methods.push(method);
-                    addedMethods.add(methodSignature);
-                }
-            });
-
-            
-            
-            
-        }
+        const collectionMethods = this.collectionGenerator.generateCollectionMethods(aggregateName, lowerAggregate, rootEntity, aggregate, projectName);
+        collectionMethods.forEach(method => {
+            const methodSignature = `${method.name}_${method.parameters.map((p: any) => p.type).join('_')}`;
+            if (!addedMethods.has(methodSignature)) {
+                methods.push(method);
+                addedMethods.add(methodSignature);
+            }
+        });
 
         
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
@@ -239,12 +231,6 @@ export class FunctionalitiesGenerator {
     
 
     private buildCheckInputMethod(aggregate: AggregateExt, rootEntity: EntityExt, aggregateName: string, lowerAggregate: string, projectName: string): string | null {
-        
-        const hasCrud = (aggregate as any).generateCrud;
-        if (!hasCrud) {
-            return null;
-        }
-
         const dtoType = `${aggregateName}Dto`;
         const dtoParamName = `${lowerAggregate}Dto`;
         const createRequestDtoType = `Create${aggregateName}RequestDto`;

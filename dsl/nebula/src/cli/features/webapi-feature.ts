@@ -12,21 +12,10 @@ export class WebApiFeature {
         generators: any,
         allAggregates?: any[]
     ): Promise<void> {
-        const hasManualEndpoints = aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0;
-        const hasAutoCrud = (aggregate as any).generateCrud;
-        const hasEndpoints = hasManualEndpoints || hasAutoCrud;
-
         try {
-            let controllerCode: string;
-            let requestDtos: Record<string, string> | undefined;
-
-            if (hasEndpoints) {
-                const webApiCode = await generators.webApiGenerator.generateWebApi(aggregate, options, allAggregates);
-                controllerCode = webApiCode['controller'] as string;
-                requestDtos = webApiCode['request-dtos'] as Record<string, string>;
-            } else {
-                controllerCode = await generators.webApiGenerator.generateEmptyController(aggregate, options);
-            }
+            const webApiCode = await generators.webApiGenerator.generateWebApi(aggregate, options, allAggregates);
+            const controllerCode = webApiCode['controller'] as string;
+            const requestDtos = webApiCode['request-dtos'] as Record<string, string>;
 
             const paths = new AggregatePaths(aggregatePath, aggregate.name);
             const webApiPath = paths.controller();

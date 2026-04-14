@@ -40,19 +40,16 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         const endpoints: any[] = [];
         const lowerAggregate = aggregateName.toLowerCase();
 
-        if ((aggregate as any).generateCrud) {
-            const crudEndpoints = this.generateCrudEndpoints(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates);
-            endpoints.push(...crudEndpoints);
+        const crudEndpoints = this.generateCrudEndpoints(aggregateName, lowerAggregate, rootEntity, aggregate, allAggregates);
+        endpoints.push(...crudEndpoints);
 
-            
-            const collectionEndpoints = this.collectionGenerator.generateCollectionEndpoints(
-                aggregate,
-                rootEntity,
-                aggregateName,
-                lowerAggregate
-            );
-            endpoints.push(...collectionEndpoints);
-        }
+        const collectionEndpoints = this.collectionGenerator.generateCollectionEndpoints(
+            aggregate,
+            rootEntity,
+            aggregateName,
+            lowerAggregate
+        );
+        endpoints.push(...collectionEndpoints);
 
         if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0) {
             aggregate.webApiEndpoints.endpoints.forEach((endpoint: any) => {

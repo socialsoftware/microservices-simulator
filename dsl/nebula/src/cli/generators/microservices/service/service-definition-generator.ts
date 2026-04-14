@@ -74,7 +74,7 @@ export class ServiceDefinitionGenerator {
             imports,
             methods,
             dependencies,
-            generateCrud: (aggregate as any).generateCrud || false,
+            generateCrud: true,
             transactional: serviceDefinition.transactional || false,
             projectName: options.projectName.toLowerCase(),
             annotations: this.getFrameworkAnnotations()
@@ -104,16 +104,14 @@ export class ServiceDefinitionGenerator {
             `import ${getGlobalConfig().buildPackageName(options.projectName, 'shared', 'dtos')}.*;`
         ];
 
-        if ((aggregate as any).generateCrud) {
-            const aggregateName = aggregate.name;
-            const lowerAggregate = aggregateName.toLowerCase();
-            const eventPackage = getGlobalConfig().buildPackageName(options.projectName, 'events');
-            imports.push(`import ${eventPackage}.${aggregateName}UpdatedEvent;`);
-            imports.push(`import ${eventPackage}.${aggregateName}DeletedEvent;`);
+        const aggregateName = aggregate.name;
+        const lowerAggregate = aggregateName.toLowerCase();
+        const eventPackage = getGlobalConfig().buildPackageName(options.projectName, 'events');
+        imports.push(`import ${eventPackage}.${aggregateName}UpdatedEvent;`);
+        imports.push(`import ${eventPackage}.${aggregateName}DeletedEvent;`);
 
-            const requestDtoPackage = getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'coordination', 'webapi', 'requestDtos');
-            imports.push(`import ${requestDtoPackage}.Create${aggregateName}RequestDto;`);
-        }
+        const requestDtoPackage = getGlobalConfig().buildPackageName(options.projectName, 'microservices', lowerAggregate, 'coordination', 'webapi', 'requestDtos');
+        imports.push(`import ${requestDtoPackage}.Create${aggregateName}RequestDto;`);
 
         
         const aggregateEntityNames = new Set<string>();
@@ -168,25 +166,21 @@ export class ServiceDefinitionGenerator {
         const methods: any[] = [];
         const entityName = rootEntity.name;
 
-        if ((aggregate as any).generateCrud) {
-            const crudOptions = CrudMethodGenerator.createOptions({
-                transactional: serviceDefinition.transactional || false,
-                includeValidation: true
-            });
-            methods.push(...this.crudGenerator.generateCrudMethods(aggregate, rootEntity, crudOptions));
-
-            
-            methods.push(...this.collectionGenerator.generateCollectionMethods(aggregate, rootEntity));
-        }
+        const crudOptions = CrudMethodGenerator.createOptions({
+            transactional: serviceDefinition.transactional || false,
+            includeValidation: true
+        });
+        methods.push(...this.crudGenerator.generateCrudMethods(aggregate, rootEntity, crudOptions));
+        methods.push(...this.collectionGenerator.generateCollectionMethods(aggregate, rootEntity));
 
         if (serviceDefinition.serviceMethods) {
-            const crudMethodNames = (aggregate as any).generateCrud ? new Set([
+            const crudMethodNames = new Set([
                 `create${entityName}`,
                 `get${entityName}ById`,
                 `update${entityName}`,
                 `delete${entityName}`,
                 `getAll${aggregate.name}s`
-            ]) : new Set<string>();
+            ]);
 
             const filteredMethods = serviceDefinition.serviceMethods.filter((method: any) =>
                 !crudMethodNames.has(method.name)
@@ -226,7 +220,7 @@ export class ServiceDefinitionGenerator {
                 `import ${getGlobalConfig().buildPackageName(options.projectName, 'microservices', aggregate.name.toLowerCase(), 'repository')}.*;`
             ],
             methods: [],
-            generateCrud: false,
+            generateCrud: true,
             transactional: false,
             projectName: options.projectName.toLowerCase()
         };

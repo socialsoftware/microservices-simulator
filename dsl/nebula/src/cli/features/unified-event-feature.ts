@@ -65,9 +65,8 @@ export class UnifiedEventFeature {
 
 
                 const rootEntity = aggregate.entities.find((e: any) => e.isRoot);
-                const hasGenerateCrud = (aggregate as any).generateCrud;
 
-                if (hasGenerateCrud && rootEntity) {
+                if (rootEntity) {
                     const crudEvents = await this.eventClassGenerator.generatePublishedEvents(
                         aggregate,
                         rootEntity,

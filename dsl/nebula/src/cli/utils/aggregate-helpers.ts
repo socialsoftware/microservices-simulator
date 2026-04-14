@@ -235,8 +235,6 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
         configurable: true
     });
 
-    (aggregate as any).generateCrud = true;
-
     initializedAggregates.add(aggregate);
 }
 
