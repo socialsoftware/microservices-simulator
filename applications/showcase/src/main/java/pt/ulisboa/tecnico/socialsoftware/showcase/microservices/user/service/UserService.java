@@ -25,9 +25,6 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.events.UserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.showcase.events.*;
 import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.exception.ShowcaseException;
 import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.user.coordination.webapi.requestDtos.CreateUserRequestDto;
-import org.springframework.context.ApplicationContext;
-import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.aggregate.BookingRepository;
-import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.aggregate.Booking;
 
 
 @Service
@@ -47,9 +44,6 @@ public class UserService {
 
     @Autowired
     private UserServiceExtension extension;
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     public UserService() {}
 
@@ -140,18 +134,6 @@ public class UserService {
 
     public void deleteUser(Integer id, UnitOfWork unitOfWork) {
         try {
-            BookingRepository bookingRepositoryRef = applicationContext.getBean(BookingRepository.class);
-            boolean hasBookingReferences = bookingRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Booking::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Booking::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != User.AggregateState.DELETED)
-                .anyMatch(s -> s.getUser() != null && id.equals(s.getUser().getUserAggregateId()));
-            if (hasBookingReferences) {
-                throw new ShowcaseException("Cannot delete user that has bookings");
-            }
             User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             User newUser = userFactory.createUserFromExisting(oldUser);
             newUser.remove();

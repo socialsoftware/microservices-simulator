@@ -5,7 +5,6 @@ Aggregate Order {
     }
 
     Root Entity Order {
-        @PreventDelete("Cannot delete user that has orders")
         OrderUser user
         String time
         Double totalPriceInCents

@@ -24,9 +24,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.UserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.coordination.webapi.requestDtos.CreateUserRequestDto;
-import org.springframework.context.ApplicationContext;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.Answer;
 
 
 @Service
@@ -46,9 +43,6 @@ public class UserService {
 
     @Autowired
     private UserServiceExtension extension;
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     public UserService() {}
 
@@ -132,18 +126,6 @@ public class UserService {
 
     public void deleteUser(Integer id, UnitOfWork unitOfWork) {
         try {
-            AnswerRepository answerRepositoryRef = applicationContext.getBean(AnswerRepository.class);
-            boolean hasAnswerReferences = answerRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Answer::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Answer::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != User.AggregateState.DELETED)
-                .anyMatch(s -> s.getUser() != null && id.equals(s.getUser().getUserAggregateId()));
-            if (hasAnswerReferences) {
-                throw new AnswersException("Cannot delete user that has answers");
-            }
             User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             User newUser = userFactory.createUserFromExisting(oldUser);
             newUser.remove();

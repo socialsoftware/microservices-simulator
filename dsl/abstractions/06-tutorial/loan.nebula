@@ -10,7 +10,6 @@ Aggregate Loan {
 
     Root Entity Loan {
         LoanMember member
-        @PreventDelete("Cannot delete book that has active loans")
         LoanBook book
         LocalDateTime loanDate
         LocalDateTime dueDate

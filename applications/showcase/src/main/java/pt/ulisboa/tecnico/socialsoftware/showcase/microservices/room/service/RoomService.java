@@ -28,9 +28,6 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.events.RoomAmenityRemovedEvent
 import pt.ulisboa.tecnico.socialsoftware.showcase.events.RoomAmenityUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.exception.ShowcaseException;
 import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.room.coordination.webapi.requestDtos.CreateRoomRequestDto;
-import org.springframework.context.ApplicationContext;
-import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.aggregate.BookingRepository;
-import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.aggregate.Booking;
 
 
 @Service
@@ -50,9 +47,6 @@ public class RoomService {
 
     @Autowired
     private RoomServiceExtension extension;
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     public RoomService() {}
 
@@ -142,18 +136,6 @@ public class RoomService {
 
     public void deleteRoom(Integer id, UnitOfWork unitOfWork) {
         try {
-            BookingRepository bookingRepositoryRef = applicationContext.getBean(BookingRepository.class);
-            boolean hasBookingReferences = bookingRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Booking::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Booking::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != Room.AggregateState.DELETED)
-                .anyMatch(s -> s.getRoom() != null && id.equals(s.getRoom().getRoomAggregateId()));
-            if (hasBookingReferences) {
-                throw new ShowcaseException("Cannot delete room that has bookings");
-            }
             Room oldRoom = (Room) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Room newRoom = roomFactory.createRoomFromExisting(oldRoom);
             newRoom.remove();

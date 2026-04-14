@@ -24,11 +24,6 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.events.CustomerUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.advanced.events.*;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.exception.AdvancedException;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.coordination.webapi.requestDtos.CreateCustomerRequestDto;
-import org.springframework.context.ApplicationContext;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.InvoiceRepository;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.Invoice;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.OrderRepository;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.Order;
 
 
 @Service
@@ -48,9 +43,6 @@ public class CustomerService {
 
     @Autowired
     private CustomerServiceExtension extension;
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     public CustomerService() {}
 
@@ -133,30 +125,6 @@ public class CustomerService {
 
     public void deleteCustomer(Integer id, UnitOfWork unitOfWork) {
         try {
-            InvoiceRepository invoiceRepositoryRef = applicationContext.getBean(InvoiceRepository.class);
-            boolean hasInvoiceReferences = invoiceRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Invoice::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Invoice::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != Customer.AggregateState.DELETED)
-                .anyMatch(s -> s.getCustomer() != null && id.equals(s.getCustomer().getCustomerAggregateId()));
-            if (hasInvoiceReferences) {
-                throw new AdvancedException("Cannot delete customer with invoices");
-            }
-            OrderRepository orderRepositoryRef = applicationContext.getBean(OrderRepository.class);
-            boolean hasOrderReferences = orderRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Order::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Order::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != Customer.AggregateState.DELETED)
-                .anyMatch(s -> s.getCustomer() != null && id.equals(s.getCustomer().getCustomerAggregateId()));
-            if (hasOrderReferences) {
-                throw new AdvancedException("Cannot delete customer with active orders");
-            }
             Customer oldCustomer = (Customer) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Customer newCustomer = customerFactory.createCustomerFromExisting(oldCustomer);
             newCustomer.remove();

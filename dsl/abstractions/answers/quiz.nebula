@@ -22,7 +22,6 @@ Aggregate Quiz {
         LocalDateTime availableDate
         LocalDateTime conclusionDate
         LocalDateTime resultsDate
-        @PreventDelete("Cannot delete execution that has quizzes")
         QuizExecution execution
         Set<QuizQuestion> questions
 

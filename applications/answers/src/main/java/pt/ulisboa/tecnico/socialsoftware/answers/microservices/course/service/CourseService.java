@@ -24,13 +24,6 @@ import pt.ulisboa.tecnico.socialsoftware.answers.events.CourseUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.coordination.webapi.requestDtos.CreateCourseRequestDto;
-import org.springframework.context.ApplicationContext;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.ExecutionRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.QuestionRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregate.Question;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.TopicRepository;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.Topic;
 
 
 @Service
@@ -50,9 +43,6 @@ public class CourseService {
 
     @Autowired
     private CourseServiceExtension extension;
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     public CourseService() {}
 
@@ -134,42 +124,6 @@ public class CourseService {
 
     public void deleteCourse(Integer id, UnitOfWork unitOfWork) {
         try {
-            ExecutionRepository executionRepositoryRef = applicationContext.getBean(ExecutionRepository.class);
-            boolean hasExecutionReferences = executionRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Execution::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Execution::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != Course.AggregateState.DELETED)
-                .anyMatch(s -> s.getCourse() != null && id.equals(s.getCourse().getCourseAggregateId()));
-            if (hasExecutionReferences) {
-                throw new AnswersException("Cannot delete course that has executions");
-            }
-            QuestionRepository questionRepositoryRef = applicationContext.getBean(QuestionRepository.class);
-            boolean hasQuestionReferences = questionRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Question::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Question::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != Course.AggregateState.DELETED)
-                .anyMatch(s -> s.getCourse() != null && id.equals(s.getCourse().getCourseAggregateId()));
-            if (hasQuestionReferences) {
-                throw new AnswersException("Cannot delete course that has questions");
-            }
-            TopicRepository topicRepositoryRef = applicationContext.getBean(TopicRepository.class);
-            boolean hasTopicReferences = topicRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Topic::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Topic::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != Course.AggregateState.DELETED)
-                .anyMatch(s -> s.getCourse() != null && id.equals(s.getCourse().getCourseAggregateId()));
-            if (hasTopicReferences) {
-                throw new AnswersException("Cannot delete course that has topics");
-            }
             Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Course newCourse = courseFactory.createCourseFromExisting(oldCourse);
             newCourse.remove();

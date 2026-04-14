@@ -21,7 +21,6 @@ Aggregate Question {
         String title
         String content
         LocalDateTime creationDate
-        @PreventDelete("Cannot delete course that has questions")
         QuestionCourse course
         Set<QuestionTopic> topics
         List<Option> options

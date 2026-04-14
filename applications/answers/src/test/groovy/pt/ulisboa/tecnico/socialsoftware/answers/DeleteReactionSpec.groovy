@@ -40,7 +40,7 @@ class DeleteReactionSpec extends Specification {
         return dto
     }
 
-    def "deleting a course that has topics referencing it is blocked by prevent constraint"() {
+    def "deleting a course that has topics referencing it succeeds — topic reacts via interInvariant"() {
         given: "a course with a topic"
             def course = seedCourse()
             def uow1 = unitOfWorkService.createUnitOfWork("delr-topic")
@@ -56,11 +56,11 @@ class DeleteReactionSpec extends Specification {
             def uow2 = unitOfWorkService.createUnitOfWork("delr-course-del")
             courseService.deleteCourse(course.aggregateId, uow2)
             unitOfWorkService.commit(uow2)
-        then: "the deletion is blocked"
-            thrown(Exception)
+        then: "the deletion succeeds — subscribers react asynchronously"
+            noExceptionThrown()
     }
 
-    def "deleting a course that has an execution referencing it is blocked by prevent constraint"() {
+    def "deleting a course that has an execution referencing it succeeds — execution reacts via interInvariant"() {
         given: "a course with an execution"
             def course = seedCourse()
             def uow1 = unitOfWorkService.createUnitOfWork("delr-exec")
@@ -79,8 +79,8 @@ class DeleteReactionSpec extends Specification {
             def uow2 = unitOfWorkService.createUnitOfWork("delr-course-del2")
             courseService.deleteCourse(course.aggregateId, uow2)
             unitOfWorkService.commit(uow2)
-        then: "the deletion is blocked"
-            thrown(Exception)
+        then: "the deletion succeeds — subscribers react asynchronously"
+            noExceptionThrown()
     }
 
     def "deleting a user that is enrolled in an execution succeeds (reactive model)"() {

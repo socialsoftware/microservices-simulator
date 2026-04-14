@@ -3,7 +3,7 @@ import { capitalize } from "../../../../utils/string-utils.js";
 import { getGlobalConfig } from "../../../common/config.js";
 import { ServiceContext } from "./types.js";
 import { UnifiedTypeResolver as TypeResolver } from "../../../common/unified-type-resolver.js";
-import { getEvents, findPreventReferencesTo, resolveUltimateSourceRoot } from "../../../../utils/aggregate-helpers.js";
+import { getEvents, resolveUltimateSourceRoot } from "../../../../utils/aggregate-helpers.js";
 import { EventNameParser } from "../../../common/utils/event-name-parser.js";
 
 export class ServiceStructureGenerator {
@@ -195,16 +195,6 @@ export class ServiceStructureGenerator {
 
         imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', lowerAggregate, 'coordination', 'webapi', 'requestDtos')}.Create${capitalize(aggregateName)}RequestDto;`);
 
-        const preventRefs = findPreventReferencesTo(aggregateName);
-        if (preventRefs.length > 0) {
-            imports.push('import org.springframework.context.ApplicationContext;');
-            for (const ref of preventRefs) {
-                const sourceLower = ref.sourceAggregateName.toLowerCase();
-                imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', sourceLower, 'aggregate')}.${ref.sourceAggregateName}Repository;`);
-                imports.push(`import ${getGlobalConfig().buildPackageName(projectName, 'microservices', sourceLower, 'aggregate')}.${ref.sourceAggregateName};`);
-            }
-        }
-
         const enrichableSources = new Set<string>();
         for (const entity of aggregate.entities || []) {
             const aggRef = (entity as any).aggregateRef;
@@ -254,14 +244,6 @@ public class ${capitalize(aggregateName)}Service {`;
             `    @Autowired`,
             `    private ${capitalizedAggregate}ServiceExtension extension;`
         ];
-
-        if (findPreventReferencesTo(aggregateName).length > 0) {
-            dependencies.push(
-                '',
-                `    @Autowired`,
-                `    private ApplicationContext applicationContext;`
-            );
-        }
 
         return dependencies.join('\n');
     }

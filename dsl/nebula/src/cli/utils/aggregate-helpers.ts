@@ -22,11 +22,6 @@ export function getAllModels(): Model[] {
 
 
 
-export interface PreventReferenceTo {
-    sourceAggregateName: string;
-    fieldName: string;
-    message: string;
-}
 
 export function resolveUltimateSourceRoot(name: string, seen: Set<string> = new Set()): Entity | undefined {
     if (seen.has(name)) return undefined;
@@ -58,38 +53,6 @@ export function resolveUltimateSourceRoot(name: string, seen: Set<string> = new 
     return undefined;
 }
 
-export function findPreventReferencesTo(targetAggregateName: string): PreventReferenceTo[] {
-    const results: PreventReferenceTo[] = [];
-    for (const model of allModelsRegistry) {
-        if (!model.aggregates) continue;
-        for (const aggregate of model.aggregates) {
-            const root = getEntities(aggregate).find((e: any) => e.isRoot);
-            if (!root) continue;
-
-            for (const prop of (root.properties || []) as any[]) {
-                const annotation = (prop.annotations || []).find((a: any) => a.name === 'PreventDelete');
-                if (!annotation) continue;
-
-                const referencedEntityName = (prop.type as any)?.type?.$refText;
-                if (!referencedEntityName) continue;
-
-                const projection = getEntities(aggregate).find((e: any) => e.name === referencedEntityName);
-                const sourceAggregate = (projection as any)?.aggregateRef;
-                if (sourceAggregate !== targetAggregateName) continue;
-
-                const rawMessage = (annotation.values || [])[0]?.value;
-                const message = typeof rawMessage === 'string' ? rawMessage.replace(/^["']|["']$/g, '') : '';
-
-                results.push({
-                    sourceAggregateName: aggregate.name,
-                    fieldName: prop.name,
-                    message
-                });
-            }
-        }
-    }
-    return results;
-}
 
 
 

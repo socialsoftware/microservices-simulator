@@ -12,7 +12,6 @@ Aggregate Execution {
         String acronym
         String academicTerm
         LocalDateTime endDate
-        @PreventDelete("Cannot delete course that has executions")
         ExecutionCourse course
         Set<ExecutionUser> users
 

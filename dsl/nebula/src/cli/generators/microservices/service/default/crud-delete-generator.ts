@@ -1,6 +1,5 @@
 import { Aggregate, Entity } from "../../../../../language/generated/ast.js";
 import { MethodGeneratorTemplate, MethodMetadata, GenerationOptions } from "../../../common/base/method-generator-template.js";
-import { findPreventReferencesTo } from "../../../../utils/aggregate-helpers.js";
 
 
 
@@ -44,34 +43,8 @@ export class CrudDeleteGenerator extends MethodGeneratorTemplate {
         const entityName = metadata.entityName;
         const lowerAggregate = this.lowercase(metadata.aggregateName);
         const capitalizedAggregate = this.capitalize(metadata.aggregateName);
-        const projectName = metadata.projectName || 'project';
-        const projectException = `${this.capitalize(projectName)}Exception`;
 
-        const preventRefs = findPreventReferencesTo(metadata.aggregateName);
-        let preventChecks = '';
-        for (const ref of preventRefs) {
-            const sourceCap = ref.sourceAggregateName;
-            const sourceLc = sourceCap.toLowerCase();
-            const fieldGetter = 'get' + ref.fieldName.charAt(0).toUpperCase() + ref.fieldName.slice(1);
-            const targetLc = metadata.aggregateName.toLowerCase();
-            const projectionIdGetter = 'get' + targetLc.charAt(0).toUpperCase() + targetLc.slice(1) + 'AggregateId';
-            const escapedMessage = (ref.message || `Cannot delete ${lowerAggregate} that has referencing ${sourceLc}`).replace(/"/g, '\\"');
-            preventChecks += `            ${sourceCap}Repository ${sourceLc}RepositoryRef = applicationContext.getBean(${sourceCap}Repository.class);
-            boolean has${sourceCap}References = ${sourceLc}RepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    ${sourceCap}::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(${sourceCap}::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != ${entityName}.AggregateState.DELETED)
-                .anyMatch(s -> s.${fieldGetter}() != null && id.equals(s.${fieldGetter}().${projectionIdGetter}()));
-            if (has${sourceCap}References) {
-                throw new ${projectException}("${escapedMessage}");
-            }
-`;
-        }
-
-        return `${preventChecks}            ${entityName} old${capitalizedAggregate} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+        return `            ${entityName} old${capitalizedAggregate} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             ${entityName} new${capitalizedAggregate} = ${lowerAggregate}Factory.create${entityName}FromExisting(old${capitalizedAggregate});
             new${capitalizedAggregate}.remove();
             unitOfWorkService.registerChanged(new${capitalizedAggregate}, unitOfWork);`;

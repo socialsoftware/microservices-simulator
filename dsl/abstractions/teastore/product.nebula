@@ -5,7 +5,6 @@ Aggregate Product {
     }
 
     Root Entity Product {
-        @PreventDelete("Cannot delete category that has products")
         ProductCategory productCategory
         String name
         String description

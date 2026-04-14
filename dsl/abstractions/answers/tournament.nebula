@@ -51,10 +51,8 @@ Aggregate Tournament {
        Boolean cancelled
        TournamentCreator creator
        Set<TournamentParticipant> participants
-       @PreventDelete("Cannot delete execution that has tournaments")
        TournamentExecution execution
        Set<TournamentTopic> topics
-       @PreventDelete("Cannot delete quiz that is used in tournaments")
        TournamentQuiz quiz
 
        invariants {

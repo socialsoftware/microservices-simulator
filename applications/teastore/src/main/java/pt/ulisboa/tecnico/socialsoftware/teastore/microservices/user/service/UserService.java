@@ -24,9 +24,6 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.events.UserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.user.coordination.webapi.requestDtos.CreateUserRequestDto;
-import org.springframework.context.ApplicationContext;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.OrderRepository;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.Order;
 
 
 @Service
@@ -46,9 +43,6 @@ public class UserService {
 
     @Autowired
     private UserServiceExtension extension;
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     public UserService() {}
 
@@ -137,18 +131,6 @@ public class UserService {
 
     public void deleteUser(Integer id, UnitOfWork unitOfWork) {
         try {
-            OrderRepository orderRepositoryRef = applicationContext.getBean(OrderRepository.class);
-            boolean hasOrderReferences = orderRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Order::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Order::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != User.AggregateState.DELETED)
-                .anyMatch(s -> s.getUser() != null && id.equals(s.getUser().getUserAggregateId()));
-            if (hasOrderReferences) {
-                throw new TeastoreException("Cannot delete user that has orders");
-            }
             User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             User newUser = userFactory.createUserFromExisting(oldUser);
             newUser.remove();

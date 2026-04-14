@@ -8,7 +8,6 @@ Aggregate Course {
         String title
         String description
         Integer maxStudents
-        @PreventDelete("Cannot delete teacher with active courses")
         CourseTeacher teacher
 
         invariants {

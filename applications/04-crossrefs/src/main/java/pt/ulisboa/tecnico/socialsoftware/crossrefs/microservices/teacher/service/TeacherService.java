@@ -24,9 +24,6 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.TeacherUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.*;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.exception.CrossrefsException;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.teacher.coordination.webapi.requestDtos.CreateTeacherRequestDto;
-import org.springframework.context.ApplicationContext;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggregate.CourseRepository;
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggregate.Course;
 
 
 @Service
@@ -46,9 +43,6 @@ public class TeacherService {
 
     @Autowired
     private TeacherServiceExtension extension;
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     public TeacherService() {}
 
@@ -133,18 +127,6 @@ public class TeacherService {
 
     public void deleteTeacher(Integer id, UnitOfWork unitOfWork) {
         try {
-            CourseRepository courseRepositoryRef = applicationContext.getBean(CourseRepository.class);
-            boolean hasCourseReferences = courseRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Course::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Course::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != Teacher.AggregateState.DELETED)
-                .anyMatch(s -> s.getTeacher() != null && id.equals(s.getTeacher().getTeacherAggregateId()));
-            if (hasCourseReferences) {
-                throw new CrossrefsException("Cannot delete teacher with active courses");
-            }
             Teacher oldTeacher = (Teacher) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Teacher newTeacher = teacherFactory.createTeacherFromExisting(oldTeacher);
             newTeacher.remove();

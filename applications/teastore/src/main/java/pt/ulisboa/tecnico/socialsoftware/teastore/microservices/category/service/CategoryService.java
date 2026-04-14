@@ -24,9 +24,6 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.events.CategoryUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.exception.TeastoreException;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.coordination.webapi.requestDtos.CreateCategoryRequestDto;
-import org.springframework.context.ApplicationContext;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.ProductRepository;
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregate.Product;
 
 
 @Service
@@ -46,9 +43,6 @@ public class CategoryService {
 
     @Autowired
     private CategoryServiceExtension extension;
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     public CategoryService() {}
 
@@ -129,18 +123,6 @@ public class CategoryService {
 
     public void deleteCategory(Integer id, UnitOfWork unitOfWork) {
         try {
-            ProductRepository productRepositoryRef = applicationContext.getBean(ProductRepository.class);
-            boolean hasProductReferences = productRepositoryRef.findAll().stream()
-                .collect(Collectors.groupingBy(
-                    Product::getAggregateId,
-                    Collectors.maxBy(Comparator.comparingInt(Product::getVersion))))
-                .values().stream()
-                .flatMap(Optional::stream)
-                .filter(s -> s.getState() != Category.AggregateState.DELETED)
-                .anyMatch(s -> s.getProductCategory() != null && id.equals(s.getProductCategory().getCategoryAggregateId()));
-            if (hasProductReferences) {
-                throw new TeastoreException("Cannot delete category that has products");
-            }
             Category oldCategory = (Category) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
             Category newCategory = categoryFactory.createCategoryFromExisting(oldCategory);
             newCategory.remove();

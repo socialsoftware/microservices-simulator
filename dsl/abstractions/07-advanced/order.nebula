@@ -16,7 +16,6 @@ Aggregate Order {
     }
 
     Root Entity Order {
-        @PreventDelete("Cannot delete customer with active orders")
         OrderCustomer customer
         Set<OrderProduct> products
         Set<OrderItem> items
