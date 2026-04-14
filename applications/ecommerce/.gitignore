@@ -21,6 +21,9 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Tests (managed externally in dsl/tests/specs/)
+src/test/
+
 # Application specific
 HELP.md
 **/BehaviourReport.txt
