@@ -15,34 +15,36 @@ Aggregate User {
         }
     }
 
-    method activateUser(Integer userId) {
-        action {
-            load User(userId) as user
-            user.active = true
+    Methods {
+        activateUser(Integer userId) {
+            action {
+                load User(userId) as user
+                user.active = true
+            }
         }
-    }
 
-    method deactivateUser(Integer userId) {
-        action {
-            load User(userId) as user
-            user.active = false
+        deactivateUser(Integer userId) {
+            action {
+                load User(userId) as user
+                user.active = false
+            }
         }
-    }
 
-    method anonymizeUser(Integer userId) {
-        action {
-            load User(userId) as user
-            user.name = ANONYMOUS
-            user.username = ANONYMOUS
+        anonymizeUser(Integer userId) {
+            action {
+                load User(userId) as user
+                user.name = ANONYMOUS
+                user.username = ANONYMOUS
+            }
         }
-    }
 
-    method getStudents() {
-        query findStudentIds()
-    }
+        getStudents() {
+            query findStudentIds()
+        }
 
-    method getTeachers() {
-        query findTeacherIds()
+        getTeachers() {
+            query findTeacherIds()
+        }
     }
 
     Repository {

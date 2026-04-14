@@ -103,7 +103,16 @@ export function getEntities(aggregate: Aggregate): Entity[] {
 }
 
 export function getMethods(aggregate: Aggregate): Method[] {
-    return aggregate.aggregateElements.filter((el): el is Method => isMethod(el));
+    const result: Method[] = [];
+    for (const el of aggregate.aggregateElements || []) {
+        if ((el as any).$type === 'Methods') {
+            const nested = (el as any).methods || [];
+            for (const m of nested) {
+                if (isMethod(m)) result.push(m);
+            }
+        }
+    }
+    return result;
 }
 
 export function getWorkflows(aggregate: Aggregate): Workflow[] {

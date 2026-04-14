@@ -46,12 +46,14 @@ Aggregate Answer {
         }
     }
 
-    method answerQuestion(Integer answerId, Integer questionKey, Integer timeTaken, Boolean correct) {
-        action {
-            load Answer(answerId) as answer
-            find answer.questions where key == questionKey as question
-            question.timeTaken = timeTaken
-            question.correct = correct
+    Methods {
+        answerQuestion(Integer answerId, Integer questionKey, Integer timeTaken, Boolean correct) {
+            action {
+                load Answer(answerId) as answer
+                find answer.questions where key == questionKey as question
+                question.timeTaken = timeTaken
+                question.correct = correct
+            }
         }
     }
 

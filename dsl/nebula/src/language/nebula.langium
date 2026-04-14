@@ -34,7 +34,12 @@ Aggregate:
     '}';
 
 AggregateElement:
-    Entity | Method | Workflow | Repository | Events | ServiceDefinition | Functionalities | StateMachine | SagaStates;
+    Entity | Methods | Workflow | Repository | Events | ServiceDefinition | Functionalities | StateMachine | SagaStates;
+
+Methods:
+    'Methods' '{'
+        (methods+=Method)*
+    '}';
 
 StateMachine:
     'States' name=ID '{'
@@ -84,7 +89,7 @@ DtoFieldPath:
 
 Method:
     (annotations+=Annotation)*
-    'method' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
+    name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
     (':' returnType=ReturnType)?
     (
         '{' (rawBody=STRING | actionBody=ActionMethodBody | queryBody=QueryMethodBody) '}'

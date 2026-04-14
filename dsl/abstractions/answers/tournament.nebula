@@ -72,23 +72,25 @@ Aggregate Tournament {
        }
     }
 
-    method cancelTournament(Integer tournamentId) {
-        action {
-            load Tournament(tournamentId) as tournament
-            tournament.cancelled = true
+    Methods {
+        cancelTournament(Integer tournamentId) {
+            action {
+                load Tournament(tournamentId) as tournament
+                tournament.cancelled = true
+            }
         }
-    }
 
-    method updateParticipantName(Integer tournamentId, Integer participantAggregateId, String newName) {
-        action {
-            load Tournament(tournamentId) as tournament
-            find tournament.participants where participantAggregateId == participantAggregateId as participant
-            participant.participantName = newName
+        updateParticipantName(Integer tournamentId, Integer participantAggregateId, String newName) {
+            action {
+                load Tournament(tournamentId) as tournament
+                find tournament.participants where participantAggregateId == participantAggregateId as participant
+                participant.participantName = newName
+            }
         }
-    }
 
-    method getActiveTournaments() {
-        query findActiveTournamentIds()
+        getActiveTournaments() {
+            query findActiveTournamentIds()
+        }
     }
 
     Events {

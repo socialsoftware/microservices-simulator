@@ -39,8 +39,10 @@ Aggregate Question {
         }
     }
 
-    method findQuestionsByTitle(String titlePattern) {
-        query findQuestionIdsByTitlePattern(titlePattern)
+    Methods {
+        findQuestionsByTitle(String titlePattern) {
+            query findQuestionIdsByTitlePattern(titlePattern)
+        }
     }
 
     Events {

@@ -12,8 +12,10 @@ Aggregate Course {
         }
     }
 
-    method findCourseByName(String courseName) {
-        query findCourseIdsByName(courseName)
+    Methods {
+        findCourseByName(String courseName) {
+            query findCourseIdsByName(courseName)
+        }
     }
 
     Repository {

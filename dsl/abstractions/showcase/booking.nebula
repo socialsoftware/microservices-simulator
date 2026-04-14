@@ -34,31 +34,33 @@ Aggregate Booking {
         }
     }
 
-    method bookRoom(BookingUser user, BookingRoom room, String checkIn, String checkOut, Integer nights, Double price) {
-        action {
-            create Booking {
-                user: user,
-                room: room,
-                checkInDate: checkIn,
-                checkOutDate: checkOut,
-                numberOfNights: nights,
-                totalPrice: price,
-                paymentMethod: CREDIT_CARD,
-                confirmed: false
+    Methods {
+        bookRoom(BookingUser user, BookingRoom room, String checkIn, String checkOut, Integer nights, Double price) {
+            action {
+                create Booking {
+                    user: user,
+                    room: room,
+                    checkInDate: checkIn,
+                    checkOutDate: checkOut,
+                    numberOfNights: nights,
+                    totalPrice: price,
+                    paymentMethod: CREDIT_CARD,
+                    confirmed: false
+                }
+            }
+            publishes BookingCreatedEvent {
+                userAggregateId: user.userAggregateId,
+                roomAggregateId: room.roomAggregateId,
+                totalPrice: price
             }
         }
-        publishes BookingCreatedEvent {
-            userAggregateId: user.userAggregateId,
-            roomAggregateId: room.roomAggregateId,
-            totalPrice: price
-        }
-    }
 
-    @PostMapping("/bookings/{bookingId}/confirm")
-    method confirmBooking(Integer bookingId) {
-        action {
-            load Booking(bookingId) as booking
-            booking.confirmed = true
+        @PostMapping("/bookings/{bookingId}/confirm")
+        confirmBooking(Integer bookingId) {
+            action {
+                load Booking(bookingId) as booking
+                booking.confirmed = true
+            }
         }
     }
 

@@ -34,43 +34,45 @@ Aggregate Room {
         }
     }
 
-    @PostMapping("/rooms/{roomId}/reserve")
-    method reserve(Integer roomId) {
-        action {
-            load Room(roomId) as room
-            room.status = RESERVED
+    Methods {
+        @PostMapping("/rooms/{roomId}/reserve")
+        reserve(Integer roomId) {
+            action {
+                load Room(roomId) as room
+                room.status = RESERVED
+            }
         }
-    }
 
-    @PostMapping("/rooms/{roomId}/checkin")
-    method checkIn(Integer roomId) {
-        action {
-            load Room(roomId) as room
-            room.status = OCCUPIED
+        @PostMapping("/rooms/{roomId}/checkin")
+        checkIn(Integer roomId) {
+            action {
+                load Room(roomId) as room
+                room.status = OCCUPIED
+            }
         }
-    }
 
-    @PostMapping("/rooms/{roomId}/checkout")
-    method checkOut(Integer roomId) {
-        action {
-            load Room(roomId) as room
-            room.status = AVAILABLE
+        @PostMapping("/rooms/{roomId}/checkout")
+        checkOut(Integer roomId) {
+            action {
+                load Room(roomId) as room
+                room.status = AVAILABLE
+            }
         }
-    }
 
-    @PostMapping("/rooms/{roomId}/release")
-    method release(Integer roomId) {
-        action {
-            load Room(roomId) as room
-            room.status = AVAILABLE
+        @PostMapping("/rooms/{roomId}/release")
+        release(Integer roomId) {
+            action {
+                load Room(roomId) as room
+                room.status = AVAILABLE
+            }
         }
-    }
 
-    @PostMapping("/rooms/{roomId}/retire")
-    method retire(Integer roomId) {
-        action {
-            load Room(roomId) as room
-            room.status = OUT_OF_SERVICE
+        @PostMapping("/rooms/{roomId}/retire")
+        retire(Integer roomId) {
+            action {
+                load Room(roomId) as room
+                room.status = OUT_OF_SERVICE
+            }
         }
     }
 

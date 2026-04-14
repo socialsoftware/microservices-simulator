@@ -14,31 +14,33 @@ Aggregate User {
         }
     }
 
-    @PostMapping("/users/signup")
-    method signUp(String username, String email) {
-        action {
-            create User {
-                username: username,
-                email: email,
-                loyaltyPoints: 0,
-                tier: BRONZE,
-                active: true
+    Methods {
+        @PostMapping("/users/signup")
+        signUp(String username, String email) {
+            action {
+                create User {
+                    username: username,
+                    email: email,
+                    loyaltyPoints: 0,
+                    tier: BRONZE,
+                    active: true
+                }
             }
         }
-    }
 
-    @PostMapping("/users/{userId}/loyalty")
-    method awardLoyaltyPoints(Integer userId, Integer points) {
-        precondition {
-            check points > 0 error "Points awarded must be positive"
-        }
-        action {
-            load User(userId) as user
-            user.loyaltyPoints = points
-        }
-        publishes UserLoyaltyAwardedEvent {
-            userAggregateId: user.aggregateId,
-            pointsAwarded: points
+        @PostMapping("/users/{userId}/loyalty")
+        awardLoyaltyPoints(Integer userId, Integer points) {
+            precondition {
+                check points > 0 error "Points awarded must be positive"
+            }
+            action {
+                load User(userId) as user
+                user.loyaltyPoints = points
+            }
+            publishes UserLoyaltyAwardedEvent {
+                userAggregateId: user.aggregateId,
+                pointsAwarded: points
+            }
         }
     }
 

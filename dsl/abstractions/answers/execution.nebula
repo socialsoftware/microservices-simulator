@@ -27,8 +27,10 @@ Aggregate Execution {
         }
     }
 
-    method getAllNonDeletedExecutions() {
-        query findCourseExecutionIdsOfAllNonDeletedForSaga()
+    Methods {
+        getAllNonDeletedExecutions() {
+            query findCourseExecutionIdsOfAllNonDeletedForSaga()
+        }
     }
 
     Events {
