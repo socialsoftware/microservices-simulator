@@ -22,7 +22,8 @@ export class ApplicationConfigGenerator extends ConfigBaseGenerator {
 
         const properties = [
             '# Profile Configuration',
-            this.buildPropertyLine('spring.profiles.active', '@activatedProperties@'),
+            this.buildPropertyLine('spring.profiles.active', 'sagas,local'),
+            this.buildPropertyLine('spring.autoconfigure.exclude', 'org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration'),
             '',
             '# Maven Properties',
             this.buildPropertyLine('maven.basedir', '@project.basedir@'),

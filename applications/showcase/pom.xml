@@ -15,7 +15,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
   <description>showcase - Generated with Nebula DSL</description>
   <properties>
     <java.version>21</java.version>
-    <spring.profiles.active>sagas,local</spring.profiles.active>
   </properties>
   <dependencies>
     <!-- MicroservicesSimulator Framework Dependency -->
