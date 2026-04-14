@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
 
@@ -154,12 +155,10 @@ public abstract class CommandGateway {
             target.setVersion(source.getVersion());
         if (source.getAggregatesToCommit() != null) {
             for (Aggregate sourceAgg : source.getAggregatesToCommit()) {
-                boolean alreadyExists = target.getAggregatesToCommit().stream()
-                        .anyMatch(targetAgg -> targetAgg.getAggregateType().equals(sourceAgg.getAggregateType())
+                target.getAggregatesToCommit().removeIf(targetAgg ->
+                        targetAgg.getAggregateType().equals(sourceAgg.getAggregateType())
                                 && targetAgg.getAggregateId().equals(sourceAgg.getAggregateId()));
-                if (!alreadyExists) {
-                    target.getAggregatesToCommit().add(sourceAgg);
-                }
+                target.getAggregatesToCommit().add(sourceAgg);
             }
         }
         if (source.getEventsToEmit() != null)
@@ -179,6 +178,17 @@ public abstract class CommandGateway {
             }
             if (s.getPreviousStates() != null) {
                 t.getPreviousStates().putAll(s.getPreviousStates());
+            }
+        }
+
+        if (target instanceof CausalUnitOfWork t && source instanceof CausalUnitOfWork s) {
+            if (s.getCausalSnapshot() != null) {
+                s.getCausalSnapshot().forEach((aggregateId, aggregate) -> {
+                    if (!t.getCausalSnapshot().containsKey(aggregateId)
+                            || aggregate.getVersion() > t.getCausalSnapshot().get(aggregateId).getVersion()) {
+                        t.getCausalSnapshot().put(aggregateId, aggregate);
+                    }
+                });
             }
         }
     }

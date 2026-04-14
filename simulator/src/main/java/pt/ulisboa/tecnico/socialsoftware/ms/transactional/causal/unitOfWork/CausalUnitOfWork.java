@@ -20,9 +20,22 @@ public class CausalUnitOfWork extends UnitOfWork {
 
     private Map<Integer, Aggregate> causalSnapshot;
 
+    public CausalUnitOfWork() {
+        super();
+        this.causalSnapshot = new HashMap<>();
+    }
+
     public CausalUnitOfWork(Long version, String functionalityName) {
         super(version, functionalityName);
         this.causalSnapshot = new HashMap<>();
+    }
+
+    public Map<Integer, Aggregate> getCausalSnapshot() {
+        return causalSnapshot;
+    }
+
+    public void setCausalSnapshot(Map<Integer, Aggregate> causalSnapshot) {
+        this.causalSnapshot = causalSnapshot;
     }
 
     public void addToCausalSnapshot(Aggregate aggregate, List<Event> allEvents) {

@@ -37,6 +37,7 @@ public class LocalCommandGateway extends CommandGateway {
         logger.info("Executing command via LocalCommandService: " + command.getClass().getSimpleName() + " (serialization=" + serializeMessages + ")");
 
         if (serializeMessages) {
+            logger.info("Serializing command");
             CommandResponse response;
             String commandJson;
             try {
