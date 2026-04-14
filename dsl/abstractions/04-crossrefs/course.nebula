@@ -19,8 +19,8 @@ Aggregate Course {
     }
 
     Events {
-        interInvariant TEACHER_EXISTS {
-            subscribe TeacherDeletedEvent from Teacher {
+        subscribe TeacherDeletedEvent from Teacher {
+            interInvariant TEACHER_EXISTS {
                 teacher.teacherAggregateId == event.aggregateId
             }
         }

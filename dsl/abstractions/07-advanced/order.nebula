@@ -32,8 +32,8 @@ Aggregate Order {
     }
 
     Events {
-        interInvariant CUSTOMER_EXISTS {
-            subscribe CustomerDeletedEvent from Customer {
+        subscribe CustomerDeletedEvent from Customer {
+            interInvariant CUSTOMER_EXISTS {
                 customer.customerAggregateId == event.aggregateId
             }
         }

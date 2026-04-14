@@ -48,14 +48,14 @@ Aggregate Question {
     Events {
         subscribe TopicUpdatedEvent
 
-        interInvariant QUESTION_COURSE_EXISTS {
-            subscribe CourseDeletedEvent from Course {
+        subscribe CourseDeletedEvent from Course {
+            interInvariant QUESTION_COURSE_EXISTS {
                 course.courseAggregateId == event.aggregateId
             }
         }
 
-        interInvariant QUESTION_TOPICS_EXIST {
-            subscribe TopicDeletedEvent from Topic {
+        subscribe TopicDeletedEvent from Topic {
+            interInvariant QUESTION_TOPICS_EXIST {
                 topics.topicAggregateId == event.aggregateId
             }
         }

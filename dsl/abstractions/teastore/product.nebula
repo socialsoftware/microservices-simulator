@@ -34,8 +34,8 @@ Aggregate Product {
 
         subscribe CategoryUpdatedEvent
 
-        interInvariant PRODUCT_CATEGORY_EXISTS {
-            subscribe CategoryDeletedEvent from Category {
+        subscribe CategoryDeletedEvent from Category {
+            interInvariant PRODUCT_CATEGORY_EXISTS {
                 productCategory.categoryAggregateId == event.aggregateId
             }
         }

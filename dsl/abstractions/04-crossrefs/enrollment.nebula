@@ -20,8 +20,8 @@ Aggregate Enrollment {
     }
 
     Events {
-        interInvariant COURSE_EXISTS {
-            subscribe CourseDeletedEvent from Course {
+        subscribe CourseDeletedEvent from Course {
+            interInvariant COURSE_EXISTS {
                 course.courseAggregateId == event.aggregateId
             }
         }

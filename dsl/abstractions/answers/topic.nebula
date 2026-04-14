@@ -17,8 +17,8 @@ Aggregate Topic {
     }
 
     Events {
-        interInvariant TOPIC_COURSE_EXISTS {
-            subscribe CourseDeletedEvent from Course {
+        subscribe CourseDeletedEvent from Course {
+            interInvariant TOPIC_COURSE_EXISTS {
                 course.courseAggregateId == event.aggregateId
             }
         }

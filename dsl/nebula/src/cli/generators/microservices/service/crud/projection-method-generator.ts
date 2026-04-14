@@ -24,7 +24,7 @@ export class ProjectionMethodGenerator {
             return !hasConditions && !hasRouting;
         });
 
-        const interInvariantUpdated = (events.interInvariants || []).flatMap((ii: any) =>
+        const interInvariantUpdated = ((events as any).interInvariants || []).flatMap((ii: any) =>
             (ii?.subscribedEvents || []).filter((sub: any) => {
                 const eventType = sub.eventType || '';
                 return eventType.includes('Updated');

@@ -211,7 +211,6 @@ Events:
     'Events' '{'
         (publishedEvents+=PublishedEvent)*
         (subscribedEvents+=SubscribedEvent)*
-        (interInvariants+=InterInvariant)*
     '}';
 
 PublishedEvent:
@@ -225,20 +224,14 @@ SubscribedEvent:
     ('routing' '(' routingIdExpr=Expression (',' routingVersionExpr=Expression)? ')')?
     (
         '{'
-            conditions+=EventCondition*
+            ('interInvariant' invariantName=ID '{' invariantCondition=Expression '}')?
+            ('when' whenCondition=Expression)?
+            (reactionBody=ActionMethodBody)?
         '}'
     )?;
 
 EventField:
     type=Type name=ID;
-
-EventCondition:
-    condition=Expression?;
-
-InterInvariant:
-    'interInvariant' name=ID '{'
-        (subscribedEvents+=SubscribedEvent)*
-    '}';
 
 RepositoryMethod:
     ('@Query' '(' query=STRING ')')? returnType=RepositoryReturnType name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')';

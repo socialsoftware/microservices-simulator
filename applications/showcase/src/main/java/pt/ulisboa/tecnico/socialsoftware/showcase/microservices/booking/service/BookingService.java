@@ -180,8 +180,6 @@ public class BookingService {
 
 
 
-    public void handleUserLoyaltyAwardedEvent(Integer aggregateId, UnitOfWork unitOfWork) {
-    }
 
     @Transactional
     public BookingDto bookRoom(BookingUser user, BookingRoom room, String checkIn, String checkOut, Integer nights, Double price, UnitOfWork unitOfWork) {

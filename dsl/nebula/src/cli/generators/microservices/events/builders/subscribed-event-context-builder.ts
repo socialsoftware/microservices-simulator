@@ -41,7 +41,7 @@ export class SubscribedEventContextBuilder {
             ? subscribingEntityName.charAt(0).toLowerCase() + subscribingEntityName.slice(1)
             : '';
 
-        const conditions = event.conditions?.map((condition: any) => {
+        const conditions = (event as any).conditions?.map((condition: any) => {
             if (!condition.condition) {
                 return { condition: 'true' };
             }
@@ -206,7 +206,7 @@ export class SubscribedEventContextBuilder {
 
 
     private extractEntityReferenceFromCondition(event: SubscribedEvent, aggregate: AggregateExt): { fieldName: string, entityTypeName: string } | null {
-        const conditions = event.conditions || [];
+        const conditions = (event as any).conditions || [];
         if (conditions.length === 0) {
             return null;
         }

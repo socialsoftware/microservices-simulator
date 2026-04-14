@@ -35,8 +35,8 @@ Aggregate Order {
 
         subscribe UserUpdatedEvent
 
-        interInvariant ORDER_USER_EXISTS {
-            subscribe UserDeletedEvent from User {
+        subscribe UserDeletedEvent from User {
+            interInvariant ORDER_USER_EXISTS {
                 user.userAggregateId == event.aggregateId
             }
         }

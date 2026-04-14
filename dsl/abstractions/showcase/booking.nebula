@@ -59,10 +59,8 @@ Aggregate Booking {
     }
 
     Events {
-        subscribe UserLoyaltyAwardedEvent
-
-        interInvariant USER_MUST_EXIST {
-            subscribe UserDeletedEvent from User {
+        subscribe UserDeletedEvent from User {
+            interInvariant USER_MUST_EXIST {
                 user.userAggregateId == event.aggregateId
             }
         }

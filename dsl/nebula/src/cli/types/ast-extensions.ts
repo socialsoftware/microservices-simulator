@@ -7,8 +7,7 @@ import {
     Property,
     Repository,
     ServiceDefinition,
-    Invariant,
-    InterInvariant
+    Invariant
 } from '../../language/generated/ast.js';
 
 
@@ -93,10 +92,11 @@ export interface InvariantExt extends Invariant {
 
 
 
-export interface InterInvariantExt extends InterInvariant {
+export interface InterInvariantExt {
     name: string;
-    condition: string;
-    affectedAggregates: string[];
+    subscribedEvents: any[];
+    condition?: string;
+    affectedAggregates?: string[];
 }
 
 

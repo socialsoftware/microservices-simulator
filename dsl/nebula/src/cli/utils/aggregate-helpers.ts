@@ -126,8 +126,30 @@ export function getRepository(aggregate: Aggregate): Repository | undefined {
 export function getEvents(aggregate: Aggregate): Events | undefined {
     const explicit = aggregate.aggregateElements.find((el): el is Events => isEvents(el));
     const inferred = inferPublishedEventsFromPublishesClauses(aggregate);
-    if (inferred.length === 0) {
-        return explicit;
+
+    const allSubs = ((explicit as any)?.subscribedEvents || []) as any[];
+    const invariantSubs = allSubs.filter(s => !!s.invariantName);
+    const plainSubs = allSubs.filter(s => !s.invariantName);
+    const byName = new Map<string, any[]>();
+    for (const s of invariantSubs) {
+        if (!byName.has(s.invariantName)) byName.set(s.invariantName, []);
+        byName.get(s.invariantName)!.push(Object.assign({}, s, {
+            conditions: s.invariantCondition ? [{ condition: s.invariantCondition }] : []
+        }));
+    }
+    const syntheticInvariants = Array.from(byName.entries()).map(([name, subs]) => ({
+        $type: 'InterInvariant',
+        name,
+        subscribedEvents: subs
+    }));
+
+    if (inferred.length === 0 && syntheticInvariants.length === 0) {
+        if (!explicit) return explicit;
+        const shim: any = Object.create(explicit);
+        Object.assign(shim, explicit);
+        shim.subscribedEvents = plainSubs;
+        shim.interInvariants = [];
+        return shim as Events;
     }
 
     const explicitPublished = (explicit?.publishedEvents || []) as any[];
@@ -137,8 +159,8 @@ export function getEvents(aggregate: Aggregate): Events | undefined {
     const merged: any = explicit ? Object.create(explicit) : { $type: 'Events' };
     Object.assign(merged, explicit || {});
     merged.publishedEvents = [...explicitPublished, ...newOnes];
-    merged.subscribedEvents = (explicit as any)?.subscribedEvents || [];
-    merged.interInvariants = (explicit as any)?.interInvariants || [];
+    merged.subscribedEvents = plainSubs;
+    merged.interInvariants = syntheticInvariants;
     return merged as Events;
 }
 

@@ -61,26 +61,26 @@ Aggregate Answer {
         subscribe ExecutionUserUpdatedEvent
         subscribe QuestionUpdatedEvent
 
-        interInvariant ANSWER_EXECUTION_EXISTS {
-            subscribe ExecutionDeletedEvent from Execution {
+        subscribe ExecutionDeletedEvent from Execution {
+            interInvariant ANSWER_EXECUTION_EXISTS {
                 execution.executionAggregateId == event.aggregateId
             }
         }
 
-        interInvariant ANSWER_USER_EXISTS {
-            subscribe UserDeletedEvent from User {
+        subscribe UserDeletedEvent from User {
+            interInvariant ANSWER_USER_EXISTS {
                 user.userAggregateId == event.aggregateId
             }
         }
 
-        interInvariant ANSWER_QUIZ_EXISTS {
-            subscribe QuizDeletedEvent from Quiz {
+        subscribe QuizDeletedEvent from Quiz {
+            interInvariant ANSWER_QUIZ_EXISTS {
                 quiz.quizAggregateId == event.aggregateId
             }
         }
 
-        interInvariant ANSWER_QUESTIONS_EXIST {
-            subscribe QuestionDeletedEvent from Question {
+        subscribe QuestionDeletedEvent from Question {
+            interInvariant ANSWER_QUESTIONS_EXIST {
                 questions.questionAggregateId == event.aggregateId
             }
         }

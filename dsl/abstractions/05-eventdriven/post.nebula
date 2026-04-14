@@ -19,8 +19,8 @@ Aggregate Post {
     Events {
         subscribe AuthorUpdatedEvent
 
-        interInvariant AUTHOR_EXISTS {
-            subscribe AuthorDeletedEvent from Author {
+        subscribe AuthorDeletedEvent from Author {
+            interInvariant AUTHOR_EXISTS {
                 author.authorAggregateId == event.aggregateId
             }
         }

@@ -42,14 +42,14 @@ Aggregate Quiz {
         subscribe TopicUpdatedEvent
         subscribe TopicDeletedEvent
 
-        interInvariant QUIZ_EXECUTION_EXISTS {
-            subscribe ExecutionDeletedEvent from Execution {
+        subscribe ExecutionDeletedEvent from Execution {
+            interInvariant QUIZ_EXECUTION_EXISTS {
                 execution.executionAggregateId == event.aggregateId
             }
         }
 
-        interInvariant QUIZ_QUESTIONS_EXIST {
-            subscribe QuestionDeletedEvent from Question {
+        subscribe QuestionDeletedEvent from Question {
+            interInvariant QUIZ_QUESTIONS_EXIST {
                 questions.questionAggregateId == event.aggregateId
             }
         }

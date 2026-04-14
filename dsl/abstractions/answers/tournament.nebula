@@ -99,32 +99,32 @@ Aggregate Tournament {
         subscribe TopicUpdatedEvent
         subscribe QuizUpdatedEvent
 
-        interInvariant TOURNAMENT_EXECUTION_EXISTS {
-            subscribe ExecutionDeletedEvent from Execution {
+        subscribe ExecutionDeletedEvent from Execution {
+            interInvariant TOURNAMENT_EXECUTION_EXISTS {
                 execution.executionAggregateId == event.aggregateId
             }
         }
 
-        interInvariant TOURNAMENT_CREATOR_EXISTS {
-            subscribe UserDeletedEvent from User {
+        subscribe UserDeletedEvent from User {
+            interInvariant TOURNAMENT_CREATOR_EXISTS {
                 creator.creatorAggregateId == event.aggregateId
             }
         }
 
-        interInvariant TOURNAMENT_PARTICIPANTS_EXIST {
-            subscribe UserDeletedEvent from User {
+        subscribe UserDeletedEvent from User {
+            interInvariant TOURNAMENT_PARTICIPANTS_EXIST {
                 participants.participantAggregateId == event.aggregateId
             }
         }
 
-        interInvariant TOURNAMENT_TOPICS_EXIST {
-            subscribe TopicDeletedEvent from Topic {
+        subscribe TopicDeletedEvent from Topic {
+            interInvariant TOURNAMENT_TOPICS_EXIST {
                 topics.topicAggregateId == event.aggregateId
             }
         }
 
-        interInvariant TOURNAMENT_QUIZ_EXISTS {
-            subscribe QuizDeletedEvent from Quiz {
+        subscribe QuizDeletedEvent from Quiz {
+            interInvariant TOURNAMENT_QUIZ_EXISTS {
                 quiz.quizAggregateId == event.aggregateId
             }
         }

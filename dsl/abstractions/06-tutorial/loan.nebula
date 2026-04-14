@@ -25,14 +25,14 @@ Aggregate Loan {
     }
 
     Events {
-        interInvariant MEMBER_EXISTS {
-            subscribe MemberDeletedEvent from Member {
+        subscribe MemberDeletedEvent from Member {
+            interInvariant MEMBER_EXISTS {
                 member.memberAggregateId == event.aggregateId
             }
         }
 
-        interInvariant BOOK_EXISTS {
-            subscribe BookDeletedEvent from Book {
+        subscribe BookDeletedEvent from Book {
+            interInvariant BOOK_EXISTS {
                 book.bookAggregateId == event.aggregateId
             }
         }
