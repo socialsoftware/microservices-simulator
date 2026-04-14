@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.teacher.aggrega
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -134,6 +135,11 @@ public class TeacherService {
         try {
             CourseRepository courseRepositoryRef = applicationContext.getBean(CourseRepository.class);
             boolean hasCourseReferences = courseRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Course::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Course::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Teacher.AggregateState.DELETED)
                 .anyMatch(s -> s.getTeacher() != null && id.equals(s.getTeacher().getTeacherAggregateId()));
             if (hasCourseReferences) {

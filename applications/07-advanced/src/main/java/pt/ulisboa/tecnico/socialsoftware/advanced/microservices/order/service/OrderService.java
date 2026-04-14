@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -184,6 +185,7 @@ public class OrderService {
             Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(orderId, unitOfWork);
             Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
             OrderProduct element = new OrderProduct(OrderProductDto);
+            element.setOrder(newOrder);
             newOrder.getProducts().add(element);
             unitOfWorkService.registerChanged(newOrder, unitOfWork);
             return OrderProductDto;
@@ -200,6 +202,7 @@ public class OrderService {
             Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
             OrderProductDtos.forEach(dto -> {
                 OrderProduct element = new OrderProduct(dto);
+                element.setOrder(newOrder);
                 newOrder.getProducts().add(element);
             });
             unitOfWorkService.registerChanged(newOrder, unitOfWork);
@@ -273,6 +276,7 @@ public class OrderService {
             Order oldOrder = (Order) unitOfWorkService.aggregateLoadAndRegisterRead(orderId, unitOfWork);
             Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
             OrderItem element = new OrderItem(OrderItemDto);
+            element.setOrder(newOrder);
             newOrder.getItems().add(element);
             unitOfWorkService.registerChanged(newOrder, unitOfWork);
             return OrderItemDto;
@@ -289,6 +293,7 @@ public class OrderService {
             Order newOrder = orderFactory.createOrderFromExisting(oldOrder);
             OrderItemDtos.forEach(dto -> {
                 OrderItem element = new OrderItem(dto);
+                element.setOrder(newOrder);
                 newOrder.getItems().add(element);
             });
             unitOfWorkService.registerChanged(newOrder, unitOfWork);

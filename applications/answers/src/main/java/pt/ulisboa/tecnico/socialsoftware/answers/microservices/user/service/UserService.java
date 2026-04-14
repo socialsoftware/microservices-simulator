@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.user.aggregate.*;
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -133,6 +134,11 @@ public class UserService {
         try {
             AnswerRepository answerRepositoryRef = applicationContext.getBean(AnswerRepository.class);
             boolean hasAnswerReferences = answerRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Answer::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Answer::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != User.AggregateState.DELETED)
                 .anyMatch(s -> s.getUser() != null && id.equals(s.getUser().getUserAggregateId()));
             if (hasAnswerReferences) {

@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregat
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -176,6 +177,7 @@ public class QuestionService {
             Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
             Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
             QuestionTopic element = new QuestionTopic(QuestionTopicDto);
+            element.setQuestion(newQuestion);
             newQuestion.getTopics().add(element);
             unitOfWorkService.registerChanged(newQuestion, unitOfWork);
             return QuestionTopicDto;
@@ -192,6 +194,7 @@ public class QuestionService {
             Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
             QuestionTopicDtos.forEach(dto -> {
                 QuestionTopic element = new QuestionTopic(dto);
+                element.setQuestion(newQuestion);
                 newQuestion.getTopics().add(element);
             });
             unitOfWorkService.registerChanged(newQuestion, unitOfWork);
@@ -265,6 +268,7 @@ public class QuestionService {
             Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionId, unitOfWork);
             Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
             Option element = new Option(OptionDto);
+            element.setQuestion(newQuestion);
             newQuestion.getOptions().add(element);
             unitOfWorkService.registerChanged(newQuestion, unitOfWork);
             return OptionDto;
@@ -281,6 +285,7 @@ public class QuestionService {
             Question newQuestion = questionFactory.createQuestionFromExisting(oldQuestion);
             OptionDtos.forEach(dto -> {
                 Option element = new Option(dto);
+                element.setQuestion(newQuestion);
                 newQuestion.getOptions().add(element);
             });
             unitOfWorkService.registerChanged(newQuestion, unitOfWork);

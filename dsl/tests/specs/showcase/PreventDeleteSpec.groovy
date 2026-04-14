@@ -16,7 +16,6 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.shared.enums.MembershipTier
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.enums.PaymentMethod
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.enums.RoomStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService
-import spock.lang.PendingFeature
 import spock.lang.Specification
 
 @SpringBootTest
@@ -98,7 +97,6 @@ class PreventDeleteSpec extends Specification {
             ex.message != null && ex.message.contains("Cannot delete room that has bookings")
     }
 
-    @PendingFeature(reason = "After deleteBooking commits, a fresh findAll() in the prevent check still observes the booking — needs investigation of how Booking state transitions are visible across UnitOfWorks.")
     def "deleting the booking first allows the user to be deleted"() {
         given:
             def tag = "${System.nanoTime()}"

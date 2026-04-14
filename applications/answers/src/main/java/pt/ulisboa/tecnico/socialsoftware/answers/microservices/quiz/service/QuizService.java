@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.*;
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -181,6 +182,11 @@ public class QuizService {
         try {
             AnswerRepository answerRepositoryRef = applicationContext.getBean(AnswerRepository.class);
             boolean hasAnswerReferences = answerRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Answer::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Answer::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Quiz.AggregateState.DELETED)
                 .anyMatch(s -> s.getQuiz() != null && id.equals(s.getQuiz().getQuizAggregateId()));
             if (hasAnswerReferences) {
@@ -188,6 +194,11 @@ public class QuizService {
             }
             TournamentRepository tournamentRepositoryRef = applicationContext.getBean(TournamentRepository.class);
             boolean hasTournamentReferences = tournamentRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Tournament::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Tournament::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Quiz.AggregateState.DELETED)
                 .anyMatch(s -> s.getQuiz() != null && id.equals(s.getQuiz().getQuizAggregateId()));
             if (hasTournamentReferences) {
@@ -209,6 +220,7 @@ public class QuizService {
             Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizId, unitOfWork);
             Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
             QuizQuestion element = new QuizQuestion(QuizQuestionDto);
+            element.setQuiz(newQuiz);
             newQuiz.getQuestions().add(element);
             unitOfWorkService.registerChanged(newQuiz, unitOfWork);
             return QuizQuestionDto;
@@ -225,6 +237,7 @@ public class QuizService {
             Quiz newQuiz = quizFactory.createQuizFromExisting(oldQuiz);
             QuizQuestionDtos.forEach(dto -> {
                 QuizQuestion element = new QuizQuestion(dto);
+                element.setQuiz(newQuiz);
                 newQuiz.getQuestions().add(element);
             });
             unitOfWorkService.registerChanged(newQuiz, unitOfWork);

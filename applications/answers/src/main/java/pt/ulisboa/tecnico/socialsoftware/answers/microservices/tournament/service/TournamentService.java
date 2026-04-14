@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggreg
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -219,6 +220,7 @@ public class TournamentService {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
             TournamentParticipant element = new TournamentParticipant(TournamentParticipantDto);
+            element.setTournament(newTournament);
             newTournament.getParticipants().add(element);
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
             return TournamentParticipantDto;
@@ -235,6 +237,7 @@ public class TournamentService {
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
             TournamentParticipantDtos.forEach(dto -> {
                 TournamentParticipant element = new TournamentParticipant(dto);
+                element.setTournament(newTournament);
                 newTournament.getParticipants().add(element);
             });
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
@@ -308,6 +311,7 @@ public class TournamentService {
             Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWork);
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
             TournamentTopic element = new TournamentTopic(TournamentTopicDto);
+            element.setTournament(newTournament);
             newTournament.getTopics().add(element);
             unitOfWorkService.registerChanged(newTournament, unitOfWork);
             return TournamentTopicDto;
@@ -324,6 +328,7 @@ public class TournamentService {
             Tournament newTournament = tournamentFactory.createTournamentFromExisting(oldTournament);
             TournamentTopicDtos.forEach(dto -> {
                 TournamentTopic element = new TournamentTopic(dto);
+                element.setTournament(newTournament);
                 newTournament.getTopics().add(element);
             });
             unitOfWorkService.registerChanged(newTournament, unitOfWork);

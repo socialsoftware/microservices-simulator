@@ -58,6 +58,11 @@ export class CrudDeleteGenerator extends MethodGeneratorTemplate {
             const escapedMessage = (ref.message || `Cannot delete ${lowerAggregate} that has referencing ${sourceLc}`).replace(/"/g, '\\"');
             preventChecks += `            ${sourceCap}Repository ${sourceLc}RepositoryRef = applicationContext.getBean(${sourceCap}Repository.class);
             boolean has${sourceCap}References = ${sourceLc}RepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    ${sourceCap}::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(${sourceCap}::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != ${entityName}.AggregateState.DELETED)
                 .anyMatch(s -> s.${fieldGetter}() != null && id.equals(s.${fieldGetter}().${projectionIdGetter}()));
             if (has${sourceCap}References) {
@@ -78,7 +83,7 @@ export class CrudDeleteGenerator extends MethodGeneratorTemplate {
         return `            unitOfWorkService.registerEvent(new ${capitalizedAggregate}DeletedEvent(new${capitalizedAggregate}.getAggregateId()), unitOfWork);`;
     }
 
-    
+
 
 
     protected override assembleMethod(
@@ -88,7 +93,7 @@ export class CrudDeleteGenerator extends MethodGeneratorTemplate {
         errorHandling: string,
         metadata: MethodMetadata
     ): string {
-        
+
         return `    ${signature} {
         try {
 ${body}${eventHandling}

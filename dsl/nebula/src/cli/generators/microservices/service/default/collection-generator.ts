@@ -37,6 +37,7 @@ export class ServiceCollectionGenerator {
             ${entityName} old${entityName} = (${entityName}) unitOfWorkService.aggregateLoadAndRegisterRead(${lowerEntity}Id, unitOfWork);
             ${entityName} new${entityName} = ${lowerAggregate}Factory.create${entityName}FromExisting(old${entityName});
             ${collection.elementType} element = new ${collection.elementType}(${collection.singularName}Dto);
+            element.set${entityName}(new${entityName});
             new${entityName}.get${collection.capitalizedCollection}().add(element);
             unitOfWorkService.registerChanged(new${entityName}, unitOfWork);
             return ${collection.singularName}Dto;
@@ -55,6 +56,7 @@ ${catchBlock}
             ${entityName} new${entityName} = ${lowerAggregate}Factory.create${entityName}FromExisting(old${entityName});
             ${collection.singularName}Dtos.forEach(dto -> {
                 ${collection.elementType} element = new ${collection.elementType}(dto);
+                element.set${entityName}(new${entityName});
                 new${entityName}.get${collection.capitalizedCollection}().add(element);
             });
             unitOfWorkService.registerChanged(new${entityName}, unitOfWork);

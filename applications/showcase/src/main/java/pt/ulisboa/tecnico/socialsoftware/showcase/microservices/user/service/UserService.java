@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.user.aggregate.*
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -141,6 +142,11 @@ public class UserService {
         try {
             BookingRepository bookingRepositoryRef = applicationContext.getBean(BookingRepository.class);
             boolean hasBookingReferences = bookingRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Booking::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Booking::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != User.AggregateState.DELETED)
                 .anyMatch(s -> s.getUser() != null && id.equals(s.getUser().getUserAggregateId()));
             if (hasBookingReferences) {

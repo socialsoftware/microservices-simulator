@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggrega
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -171,6 +172,11 @@ public class ExecutionService {
         try {
             AnswerRepository answerRepositoryRef = applicationContext.getBean(AnswerRepository.class);
             boolean hasAnswerReferences = answerRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Answer::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Answer::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Execution.AggregateState.DELETED)
                 .anyMatch(s -> s.getExecution() != null && id.equals(s.getExecution().getExecutionAggregateId()));
             if (hasAnswerReferences) {
@@ -178,6 +184,11 @@ public class ExecutionService {
             }
             QuizRepository quizRepositoryRef = applicationContext.getBean(QuizRepository.class);
             boolean hasQuizReferences = quizRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Quiz::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Quiz::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Execution.AggregateState.DELETED)
                 .anyMatch(s -> s.getExecution() != null && id.equals(s.getExecution().getExecutionAggregateId()));
             if (hasQuizReferences) {
@@ -185,6 +196,11 @@ public class ExecutionService {
             }
             TournamentRepository tournamentRepositoryRef = applicationContext.getBean(TournamentRepository.class);
             boolean hasTournamentReferences = tournamentRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Tournament::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Tournament::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Execution.AggregateState.DELETED)
                 .anyMatch(s -> s.getExecution() != null && id.equals(s.getExecution().getExecutionAggregateId()));
             if (hasTournamentReferences) {
@@ -206,6 +222,7 @@ public class ExecutionService {
             Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
             Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
             ExecutionUser element = new ExecutionUser(ExecutionUserDto);
+            element.setExecution(newExecution);
             newExecution.getUsers().add(element);
             unitOfWorkService.registerChanged(newExecution, unitOfWork);
             return ExecutionUserDto;
@@ -222,6 +239,7 @@ public class ExecutionService {
             Execution newExecution = executionFactory.createExecutionFromExisting(oldExecution);
             ExecutionUserDtos.forEach(dto -> {
                 ExecutionUser element = new ExecutionUser(dto);
+                element.setExecution(newExecution);
                 newExecution.getUsers().add(element);
             });
             unitOfWorkService.registerChanged(newExecution, unitOfWork);

@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -200,6 +201,7 @@ public class AnswerService {
             Answer oldAnswer = (Answer) unitOfWorkService.aggregateLoadAndRegisterRead(answerId, unitOfWork);
             Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
             AnswerQuestion element = new AnswerQuestion(AnswerQuestionDto);
+            element.setAnswer(newAnswer);
             newAnswer.getQuestions().add(element);
             unitOfWorkService.registerChanged(newAnswer, unitOfWork);
             return AnswerQuestionDto;
@@ -216,6 +218,7 @@ public class AnswerService {
             Answer newAnswer = answerFactory.createAnswerFromExisting(oldAnswer);
             AnswerQuestionDtos.forEach(dto -> {
                 AnswerQuestion element = new AnswerQuestion(dto);
+                element.setAnswer(newAnswer);
                 newAnswer.getQuestions().add(element);
             });
             unitOfWorkService.registerChanged(newAnswer, unitOfWork);

@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.aggrega
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -130,6 +131,11 @@ public class CategoryService {
         try {
             ProductRepository productRepositoryRef = applicationContext.getBean(ProductRepository.class);
             boolean hasProductReferences = productRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Product::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Product::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Category.AggregateState.DELETED)
                 .anyMatch(s -> s.getProductCategory() != null && id.equals(s.getProductCategory().getCategoryAggregateId()));
             if (hasProductReferences) {

@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggr
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -168,6 +169,7 @@ public class EnrollmentService {
             Enrollment oldEnrollment = (Enrollment) unitOfWorkService.aggregateLoadAndRegisterRead(enrollmentId, unitOfWork);
             Enrollment newEnrollment = enrollmentFactory.createEnrollmentFromExisting(oldEnrollment);
             EnrollmentTeacher element = new EnrollmentTeacher(EnrollmentTeacherDto);
+            element.setEnrollment(newEnrollment);
             newEnrollment.getTeachers().add(element);
             unitOfWorkService.registerChanged(newEnrollment, unitOfWork);
             return EnrollmentTeacherDto;
@@ -184,6 +186,7 @@ public class EnrollmentService {
             Enrollment newEnrollment = enrollmentFactory.createEnrollmentFromExisting(oldEnrollment);
             EnrollmentTeacherDtos.forEach(dto -> {
                 EnrollmentTeacher element = new EnrollmentTeacher(dto);
+                element.setEnrollment(newEnrollment);
                 newEnrollment.getTeachers().add(element);
             });
             unitOfWorkService.registerChanged(newEnrollment, unitOfWork);

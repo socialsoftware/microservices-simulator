@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.aggregate.*
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -136,6 +137,11 @@ public class BookService {
         try {
             LoanRepository loanRepositoryRef = applicationContext.getBean(LoanRepository.class);
             boolean hasLoanReferences = loanRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Loan::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Loan::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Book.AggregateState.DELETED)
                 .anyMatch(s -> s.getBook() != null && id.equals(s.getBook().getBookAggregateId()));
             if (hasLoanReferences) {

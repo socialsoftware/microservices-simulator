@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.aggrega
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -134,6 +135,11 @@ public class CustomerService {
         try {
             InvoiceRepository invoiceRepositoryRef = applicationContext.getBean(InvoiceRepository.class);
             boolean hasInvoiceReferences = invoiceRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Invoice::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Invoice::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Customer.AggregateState.DELETED)
                 .anyMatch(s -> s.getCustomer() != null && id.equals(s.getCustomer().getCustomerAggregateId()));
             if (hasInvoiceReferences) {
@@ -141,6 +147,11 @@ public class CustomerService {
             }
             OrderRepository orderRepositoryRef = applicationContext.getBean(OrderRepository.class);
             boolean hasOrderReferences = orderRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Order::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Order::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Customer.AggregateState.DELETED)
                 .anyMatch(s -> s.getCustomer() != null && id.equals(s.getCustomer().getCustomerAggregateId()));
             if (hasOrderReferences) {

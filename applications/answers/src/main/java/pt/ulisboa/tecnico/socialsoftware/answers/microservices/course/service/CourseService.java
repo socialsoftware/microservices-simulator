@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.aggregate.
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -135,6 +136,11 @@ public class CourseService {
         try {
             ExecutionRepository executionRepositoryRef = applicationContext.getBean(ExecutionRepository.class);
             boolean hasExecutionReferences = executionRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Execution::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Execution::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Course.AggregateState.DELETED)
                 .anyMatch(s -> s.getCourse() != null && id.equals(s.getCourse().getCourseAggregateId()));
             if (hasExecutionReferences) {
@@ -142,6 +148,11 @@ public class CourseService {
             }
             QuestionRepository questionRepositoryRef = applicationContext.getBean(QuestionRepository.class);
             boolean hasQuestionReferences = questionRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Question::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Question::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Course.AggregateState.DELETED)
                 .anyMatch(s -> s.getCourse() != null && id.equals(s.getCourse().getCourseAggregateId()));
             if (hasQuestionReferences) {
@@ -149,6 +160,11 @@ public class CourseService {
             }
             TopicRepository topicRepositoryRef = applicationContext.getBean(TopicRepository.class);
             boolean hasTopicReferences = topicRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Topic::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Topic::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Course.AggregateState.DELETED)
                 .anyMatch(s -> s.getCourse() != null && id.equals(s.getCourse().getCourseAggregateId()));
             if (hasTopicReferences) {

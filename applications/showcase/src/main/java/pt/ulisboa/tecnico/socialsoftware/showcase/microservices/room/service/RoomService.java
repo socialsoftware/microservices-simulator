@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.room.aggregate.*
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -143,6 +144,11 @@ public class RoomService {
         try {
             BookingRepository bookingRepositoryRef = applicationContext.getBean(BookingRepository.class);
             boolean hasBookingReferences = bookingRepositoryRef.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Booking::getAggregateId,
+                    Collectors.maxBy(Comparator.comparingInt(Booking::getVersion))))
+                .values().stream()
+                .flatMap(Optional::stream)
                 .filter(s -> s.getState() != Room.AggregateState.DELETED)
                 .anyMatch(s -> s.getRoom() != null && id.equals(s.getRoom().getRoomAggregateId()));
             if (hasBookingReferences) {
@@ -164,6 +170,7 @@ public class RoomService {
             Room oldRoom = (Room) unitOfWorkService.aggregateLoadAndRegisterRead(roomId, unitOfWork);
             Room newRoom = roomFactory.createRoomFromExisting(oldRoom);
             RoomAmenity element = new RoomAmenity(RoomAmenityDto);
+            element.setRoom(newRoom);
             newRoom.getAmenities().add(element);
             unitOfWorkService.registerChanged(newRoom, unitOfWork);
             return RoomAmenityDto;
@@ -180,6 +187,7 @@ public class RoomService {
             Room newRoom = roomFactory.createRoomFromExisting(oldRoom);
             RoomAmenityDtos.forEach(dto -> {
                 RoomAmenity element = new RoomAmenity(dto);
+                element.setRoom(newRoom);
                 newRoom.getAmenities().add(element);
             });
             unitOfWorkService.registerChanged(newRoom, unitOfWork);

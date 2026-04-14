@@ -8,7 +8,6 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.room.service.Roo
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.RoomAmenityDto
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.enums.RoomStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService
-import spock.lang.PendingFeature
 import spock.lang.Specification
 
 @SpringBootTest
@@ -39,7 +38,6 @@ class RoomAmenitiesSpec extends Specification {
         return a
     }
 
-    @PendingFeature(reason = "Generator omits element.setRoom(newRoom) after add(), so JPA mappedBy='room' discards the insert.")
     def "addRoomAmenity + getRoomAmenity round-trip"() {
         given:
             def tag = "${System.nanoTime()}"
@@ -55,7 +53,6 @@ class RoomAmenitiesSpec extends Specification {
             found.description == "Free high-speed"
     }
 
-    @PendingFeature(reason = "Depends on addRoomAmenity persistence which is broken (see above).")
     def "updateRoomAmenity changes the name"() {
         given:
             def tag = "${System.nanoTime()}"
@@ -94,7 +91,6 @@ class RoomAmenitiesSpec extends Specification {
             } catch (Exception ignored) {}
     }
 
-    @PendingFeature(reason = "Depends on addRoomAmenity persistence which is broken (see above).")
     def "multiple amenities visible via getRoomById.amenities"() {
         given:
             def tag = "${System.nanoTime()}"
@@ -115,7 +111,6 @@ class RoomAmenitiesSpec extends Specification {
             found.amenities.any { it.code == 11 && it.name == "Balcony" }
     }
 
-    @PendingFeature(reason = "Depends on addRoomAmenity persistence which is broken (see above).")
     def "addRoomAmenity then getRoomById.amenities exposes the item"() {
         given:
             def tag = "${System.nanoTime()}"
