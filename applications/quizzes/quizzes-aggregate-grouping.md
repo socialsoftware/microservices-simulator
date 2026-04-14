@@ -25,25 +25,25 @@ All eight entities are placed in separate aggregates. This maximises deployment 
 
 ## §2 — Snapshots
 
-| Aggregate | Snapshots of | Fields cached |
-|---|---|---|
-| Topic | Course | `courseId` |
-| Execution | Course | `courseId`, `courseName`, `courseType` |
-| Execution | User × N (students) | `userId`, `userName`, `userUsername`, `active` |
-| Question | Course | `courseId` |
-| Question | Topic × N | `topicId`, `topicName`, `courseId` |
-| Quiz | Execution | `executionId`, `executionVersion` |
-| Quiz | Question × N | `questionId`, `questionVersion`, `title`, `content` |
-| QuizAnswer | Quiz | `quizId`, `quizVersion` |
-| QuizAnswer | User/student | `userId`, `userName` |
-| QuizAnswer | Execution | `executionId`, `executionVersion` |
-| QuestionAnswer | Question | `questionId`, `questionVersion` |
-| Tournament | Execution | `executionId`, `executionVersion` |
-| Tournament | User/creator | `userId`, `userName`, `userUsername`, `userVersion` |
-| Tournament | User/participant × N | `userId`, `userName`, `userUsername`, `enrollTime`, `userVersion` |
-| Tournament | Topic × N | `topicId`, `topicName` |
-| Tournament | Quiz | `quizId`, `quizVersion` |
-| Tournament | QuizAnswer per participant | `quizAnswerId`, `quizAnswerVersion`, `answered`, `numberOfAnswered`, `numberOfCorrect` |
+| Aggregate | Snapshots of | Fields cached | Updated on event |
+|---|---|---|---|
+| Topic | Course | `courseId` | `CourseUpdatedEvent` |
+| Execution | Course | `courseId`, `courseName`, `courseType` | `CourseUpdatedEvent` |
+| Execution | User × N (students) | `userId`, `userName`, `userUsername`, `active` | `UpdateStudentNameEvent`, `AnonymizeStudentEvent`, `UserDeletedEvent` |
+| Question | Course | `courseId` | `CourseUpdatedEvent` |
+| Question | Topic × N | `topicId`, `topicName`, `courseId` | `TopicUpdatedEvent`, `TopicDeletedEvent` |
+| Quiz | Execution | `executionId`, `executionVersion` | `ExecutionUpdatedEvent` |
+| Quiz | Question × N | `questionId`, `questionVersion`, `title`, `content` | `QuestionUpdatedEvent`, `QuestionDeletedEvent` |
+| QuizAnswer | Quiz | `quizId`, `quizVersion` | `QuizUpdatedEvent` |
+| QuizAnswer | User/student | `userId`, `userName` | `UpdateStudentNameEvent`, `AnonymizeStudentEvent` |
+| QuizAnswer | Execution | `executionId`, `executionVersion` | `ExecutionUpdatedEvent` |
+| QuestionAnswer | Question | `questionId`, `questionVersion` | `QuestionUpdatedEvent` |
+| Tournament | Execution | `executionId`, `executionVersion` | `ExecutionUpdatedEvent` |
+| Tournament | User/creator | `userId`, `userName`, `userUsername`, `userVersion` | `UpdateStudentNameEvent`, `AnonymizeStudentEvent` |
+| Tournament | User/participant × N | `userId`, `userName`, `userUsername`, `enrollTime`, `userVersion` | `UpdateStudentNameEvent`, `AnonymizeStudentEvent` |
+| Tournament | Topic × N | `topicId`, `topicName` | `TopicUpdatedEvent`, `TopicDeletedEvent` |
+| Tournament | Quiz | `quizId`, `quizVersion` | `QuizUpdatedEvent` |
+| Tournament | QuizAnswer per participant | `quizAnswerId`, `quizAnswerVersion`, `answered`, `numberOfAnswered`, `numberOfCorrect` | `QuizAnswerUpdatedEvent` |
 
 ---
 
@@ -68,5 +68,23 @@ QuizAnswer ──────────────────────►
 ```
 
 > An arrow `A ──► B` means: B must subscribe to A's events and cache the relevant A fields locally.
+
+---
+
+## §4 — Events
+
+| Event | Publisher | Trigger | Payload fields | Consumer(s) |
+|---|---|---|---|---|
+| `CourseUpdatedEvent` | Course | course name/type changed | `courseId`, `courseName`, `courseType` | Execution, Question, Topic |
+| `UserDeletedEvent` | User | user deleted | `userId` | Execution |
+| `UpdateStudentNameEvent` | User | student name updated | `userId`, `userName`, `userUsername` | Execution, QuizAnswer, Tournament |
+| `AnonymizeStudentEvent` | User | student anonymized | `userId`, `userName`, `userUsername` | Execution, QuizAnswer, Tournament |
+| `TopicUpdatedEvent` | Topic | topic name changed | `topicId`, `topicName`, `courseId` | Question, Tournament |
+| `TopicDeletedEvent` | Topic | topic deleted | `topicId` | Question, Tournament |
+| `QuestionUpdatedEvent` | Question | question title/content changed | `questionId`, `questionVersion`, `title`, `content` | Quiz, QuestionAnswer |
+| `QuestionDeletedEvent` | Question | question deleted | `questionId` | Quiz |
+| `ExecutionUpdatedEvent` | Execution | execution updated or deleted | `executionId`, `executionVersion` | Quiz, QuizAnswer, Tournament |
+| `QuizUpdatedEvent` | Quiz | quiz updated or invalidated | `quizId`, `quizVersion` | QuizAnswer, Tournament |
+| `QuizAnswerUpdatedEvent` | QuizAnswer | quiz answer submitted or updated | `quizAnswerId`, `quizAnswerVersion`, `answered`, `numberOfAnswered`, `numberOfCorrect` | Tournament |
 
 ---

@@ -51,7 +51,7 @@ Rules that inspect only fields of a single entity.
 
 ### 3.2 — Cross-entity rules
 
-> **AI agent implementation:** The AI agent classifies each §3.2 rule into Layer 3, 5, or 6 using `docs/concepts/decision-guide.md` and confirms the classification with the user before writing any code. Domain experts write the rules; the AI decides the layer.
+> **AI agent implementation:** The AI agent classifies each §3.2 rule into Layer 2, 3, or 4 using `docs/concepts/decision-guide.md` and confirms the classification with the user before writing any code. Domain experts write the rules; the AI decides the layer.
 
 One block per rule. Use the exact three-field shape below.
 
@@ -63,5 +63,18 @@ One block per rule. Use the exact three-field shape below.
 |---|---|
 | Entities | {Entity1}, {Entity2} |
 | Predicate | `{predicate in pseudo-code}` |
+
+---
+
+## §4 — Functionalities
+
+Operations that the application exposes. Each row maps directly to one `/new-functionality` invocation in Phase 3 of `/new-application`.
+
+> **One row per operation.** The **Primary Aggregate** is the one that owns the main state change (the one whose service method is the coordination entry point). List every aggregate that the saga reads or writes in **Other Aggregates**.
+> If an operation touches only a single aggregate, omit it here — it becomes a plain service method with no saga coordination.
+
+| Functionality | Primary Aggregate | Other Aggregates | Description |
+|---|---|---|---|
+| {FunctionalityName} | {PrimaryAggregate} | {Aggregate1}, {Aggregate2} | {One-sentence description of what the operation does} |
 
 ---
