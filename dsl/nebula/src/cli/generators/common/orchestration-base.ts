@@ -262,16 +262,6 @@ export abstract class OrchestrationBase {
         }
     }
 
-    protected hasFeature(features: string[] | undefined, feature: string): boolean {
-        
-        return true;
-    }
-
-    protected hasAnyFeature(features: string[] | undefined, ...checkFeatures: string[]): boolean {
-        
-        return true;
-    }
-
     protected resolveJavaType(type: any): string {
         return UnifiedTypeResolver.resolve(type);
     }

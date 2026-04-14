@@ -6,13 +6,12 @@ import { getEffectiveProperties, getEffectiveFieldMappings, getAllModels } from 
 import { ImportManager } from "../../../../utils/import-manager.js";
 import type { DtoSchemaRegistry, DtoFieldSchema } from "../../../../services/dto-schema-service.js";
 import { TypeExtractor } from "../../../common/utils/type-extractor.js";
-import { DtoSetterBuilder } from "./dto-setter-strategies/dto-setter-builder.js";
-import type { StrategyContext } from "./dto-setter-strategies/dto-setter-strategy.js";
+import { DtoSetterBuilder, DtoSetterContext } from "./dto-setter-builder.js";
 import { EntityPatternDetector } from "../../../common/utils/entity-pattern-detector.js";
 
 
 
-export class ImportScanner implements StrategyContext {
+export class ImportScanner implements DtoSetterContext {
     private dtoSetterBuilder: DtoSetterBuilder;
 
     constructor(

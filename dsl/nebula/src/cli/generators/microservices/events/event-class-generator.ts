@@ -4,7 +4,7 @@ import { EventGenerationOptions, PublishedEventContext } from "./event-types.js"
 import { EXTENDED_PRIMITIVE_TYPES } from "../../common/utils/type-constants.js";
 import { getEffectiveFieldMappings } from "../../../utils/aggregate-helpers.js";
 
-export class PublishedEventGenerator extends EventBaseGenerator {
+export class EventClassGenerator extends EventBaseGenerator {
     async generatePublishedEvents(aggregate: Aggregate, rootEntity: Entity, options: EventGenerationOptions): Promise<{ [key: string]: string }> {
         const results: { [key: string]: string } = {};
         const context = this.buildPublishedEventsContext(aggregate, rootEntity, options);
@@ -436,15 +436,15 @@ export class PublishedEventGenerator extends EventBaseGenerator {
         }
 
         const rawFields = context.event.properties || [];
-        const eventPrefix = PublishedEventGenerator.camelToSnake(context.event.fullEventName);
+        const eventPrefix = EventClassGenerator.camelToSnake(context.event.fullEventName);
         const decoratedFields = rawFields.map((f: any) => {
             if (!f || !f.name) return f;
-            const fieldSnake = PublishedEventGenerator.camelToSnake(f.name);
+            const fieldSnake = EventClassGenerator.camelToSnake(f.name);
             const fullName = `${eventPrefix}_${fieldSnake}`;
             let columnName = fullName.length <= 63
                 ? fullName
-                : PublishedEventGenerator.shortenIdentifier(fullName, 63);
-            if (PublishedEventGenerator.isReservedColumnName(columnName)) {
+                : EventClassGenerator.shortenIdentifier(fullName, 63);
+            if (EventClassGenerator.isReservedColumnName(columnName)) {
                 columnName = `\\"${columnName}\\"`;
             }
             return { ...f, columnAnnotation: `    @Column(name = "${columnName}")` };
@@ -498,8 +498,8 @@ export class PublishedEventGenerator extends EventBaseGenerator {
 
     static isReservedColumnName(fieldName: string): boolean {
         const lower = fieldName.toLowerCase();
-        if (PublishedEventGenerator.SQL_RESERVED_WORDS.has(lower)) return true;
-        const snake = PublishedEventGenerator.camelToSnake(fieldName);
-        return PublishedEventGenerator.SQL_RESERVED_WORDS.has(snake);
+        if (EventClassGenerator.SQL_RESERVED_WORDS.has(lower)) return true;
+        const snake = EventClassGenerator.camelToSnake(fieldName);
+        return EventClassGenerator.SQL_RESERVED_WORDS.has(snake);
     }
 }

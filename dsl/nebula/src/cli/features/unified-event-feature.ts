@@ -1,6 +1,6 @@
 import { Aggregate } from "../../language/generated/ast.js";
 import { EventGenerator } from "../generators/microservices/events/event-orchestrator.js";
-import { PublishedEventGenerator } from "../generators/microservices/events/event-class-generator.js";
+import { EventClassGenerator } from "../generators/microservices/events/event-class-generator.js";
 import { ReferencesGenerator } from "../generators/microservices/events/references-generator.js";
 import { GenerationOptions, GeneratorRegistry } from "../engine/types.js";
 import { FileWriter } from "../utils/file-writer.js";
@@ -16,12 +16,12 @@ interface EventGenerationConfig {
 
 export class UnifiedEventFeature {
     private eventGenerator: EventGenerator;
-    private publishedEventGenerator: PublishedEventGenerator;
+    private eventClassGenerator: EventClassGenerator;
     private referencesGenerator: ReferencesGenerator;
 
     constructor() {
         this.eventGenerator = new EventGenerator();
-        this.publishedEventGenerator = new PublishedEventGenerator();
+        this.eventClassGenerator = new EventClassGenerator();
         this.referencesGenerator = new ReferencesGenerator();
     }
 
@@ -75,7 +75,7 @@ export class UnifiedEventFeature {
                 const hasGenerateCrud = (aggregate as any).generateCrud;
 
                 if (hasGenerateCrud && rootEntity) {
-                    const crudEvents = await this.publishedEventGenerator.generatePublishedEvents(
+                    const crudEvents = await this.eventClassGenerator.generatePublishedEvents(
                         aggregate,
                         rootEntity,
                         {

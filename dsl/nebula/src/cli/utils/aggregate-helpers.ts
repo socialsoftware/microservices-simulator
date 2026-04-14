@@ -22,10 +22,6 @@ export function getAllModels(): Model[] {
 
 
 
-export function clearModelsRegistry(): void {
-    allModelsRegistry = [];
-}
-
 export interface PreventReferenceTo {
     sourceAggregateName: string;
     fieldName: string;
@@ -59,21 +55,6 @@ export function resolveUltimateSourceRoot(name: string, seen: Set<string> = new 
         }
     }
 
-    return undefined;
-}
-
-export function findRootAggregateByName(aggregateName: string): Aggregate | undefined {
-    for (const model of allModelsRegistry) {
-        if (!model.aggregates) continue;
-        for (const aggregate of model.aggregates) {
-            if (aggregate.name === aggregateName) {
-                const entities = getEntities(aggregate);
-                if (entities.some(e => (e as any).isRoot)) {
-                    return aggregate;
-                }
-            }
-        }
-    }
     return undefined;
 }
 

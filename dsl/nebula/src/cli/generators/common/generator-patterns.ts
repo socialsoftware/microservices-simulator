@@ -183,11 +183,6 @@ abstract class GeneratorPatternBase {
         }
     }
 
-    protected hasFeature(features: string[] | undefined, feature: string): boolean {
-        
-        return true;
-    }
-
     protected writeFile(filePath: string, content: string, description?: string): void {
         
         
