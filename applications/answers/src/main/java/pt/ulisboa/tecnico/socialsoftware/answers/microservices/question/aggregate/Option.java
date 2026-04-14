@@ -34,6 +34,7 @@ public class Option {
 
 
     public Option(Option other) {
+        setKey(other.getKey());
         setSequence(other.getSequence());
         setCorrect(other.getCorrect());
         setContent(other.getContent());

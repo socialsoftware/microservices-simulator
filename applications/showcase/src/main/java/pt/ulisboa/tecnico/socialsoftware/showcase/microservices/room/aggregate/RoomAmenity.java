@@ -30,6 +30,7 @@ public class RoomAmenity {
 
 
     public RoomAmenity(RoomAmenity other) {
+        setCode(other.getCode());
         setName(other.getName());
         setDescription(other.getDescription());
     }

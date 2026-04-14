@@ -516,17 +516,7 @@ export function generateCopyConstructor(entity: Entity): { code: string, imports
     const effectiveProps = getEffectiveProperties(entity);
 
 
-    const entityAny = entity as any;
-    const isProjectionEntity = !!entityAny.aggregateRef;
-
-    const setterCalls = effectiveProps.map((prop: any, index: number) => {
-
-
-
-        if (!isRootEntity && !isProjectionEntity && index === 0) {
-            return '';
-        }
-
+    const setterCalls = effectiveProps.map((prop: any) => {
         const javaType = resolveJavaType(prop.type);
         const capitalizedName = prop.name.charAt(0).toUpperCase() + prop.name.slice(1);
         const isFinal = (prop as any).isFinal || false;

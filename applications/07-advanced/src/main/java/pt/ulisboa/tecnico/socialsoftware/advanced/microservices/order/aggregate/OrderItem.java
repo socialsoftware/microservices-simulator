@@ -34,6 +34,7 @@ public class OrderItem {
 
 
     public OrderItem(OrderItem other) {
+        setKey(other.getKey());
         setProductName(other.getProductName());
         setQuantity(other.getQuantity());
         setUnitPrice(other.getUnitPrice());
