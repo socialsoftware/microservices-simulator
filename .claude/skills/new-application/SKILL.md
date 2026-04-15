@@ -1,7 +1,7 @@
 ---
 name: new-application
-description: Bootstrap a new application on the microservices-simulator from scratch. Guides through all 5 phases: reading human-authored domain templates, aggregate scaffolding, cross-service functionalities, event wiring, and tests. Arguments: "<AppName> [short description of the domain]"
-argument-hint: "<AppName> [short description of the domain]"
+description: Bootstrap a new application on the microservices-simulator from scratch. Guides through all 5 phases: reading human-authored domain templates, aggregate scaffolding, cross-service functionalities, event wiring, and tests. Arguments: "<path/to/{AppName}-domain-model.md> <path/to/{AppName}-aggregate-grouping.md>"
+argument-hint: "<path/to/{AppName}-domain-model.md> <path/to/{AppName}-aggregate-grouping.md>"
 ---
 
 # Bootstrap New Application: $ARGUMENTS
