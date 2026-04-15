@@ -93,6 +93,8 @@ There are two supported strategies:
 
 ```bash
 docker compose up version-service -d
+# with gRPC
+COMM_LAYER=grpc docker compose up version-service -d
 ```
 
 **Distributed ID generation (no version-service).** Enable with `VERSION_MODE=distributed-version`. Works with `quizzes-local`, `quizzes-remote`, and **microservices**.
@@ -517,8 +519,14 @@ mvn clean install
 #### Run simulator tests
 
 ```bash
-mvn clean -Ptest-sagas test
+mvn clean test
 ```
+
+> Note: the atomicity guarantee tests in
+> `simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/sagas/atomicity/`
+> are currently expected to fail because they assert guarantees that are not yet implemented
+> (duplicate-safe retry commit and full compensation on dispatch/phase-2 failure windows).
+> They are intentionally kept failing to make these gaps visible.
 
 ---
 
@@ -658,9 +666,12 @@ mvn -Pgateway spring-boot:run
 **Sagas test cases:**
 
 - [Workflow Test Plan (Simulator)](simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/sagas/workflow/PlanOrderTest.groovy)
+- [Atomicity Guarantee Tests (Simulator, expected-failing)](simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/sagas/atomicity/)
 - [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/)
 
 **TCC test cases:**
+
+- [Atomicity Retry Guarantee Test (Simulator, expected-failing)](simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/causal/atomicity/RetryDuplicateCausalCommitTest.groovy)
 
 - [Tournament Merge Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/aggregates/TournamentMergeUnitTest.groovy)
 - [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy)
