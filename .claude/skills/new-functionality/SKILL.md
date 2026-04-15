@@ -1,12 +1,12 @@
 ---
 name: new-functionality
-description: Implement a new cross-service operation in the microservices-simulator quizzes application (command, Sagas functionality, TCC stub, command handler, controller, tests). Arguments: "<FunctionalityName> <PrimaryAggregate> [other aggregates...]"
+description: Implement a new cross-service operation in the microservices-simulator (command, Sagas functionality, TCC stub, command handler, controller, tests). Arguments: "<FunctionalityName> <PrimaryAggregate> [other aggregates...]"
 argument-hint: "<FunctionalityName> <PrimaryAggregate> [OtherAggregate...]"
 ---
 
 # Implement New Functionality: $ARGUMENTS
 
-You are adding a new cross-service operation to the `applications/quizzes` module.
+You are adding a new cross-service operation to the application currently being built on the simulator.
 
 > **Sagas only.** The Sagas workflow is the authoritative implementation. The TCC class is an empty stub. See `docs/concepts/tcc-placeholder-pattern.md`.
 
@@ -168,19 +168,51 @@ Register the command handler in `LocalCommandGateway` if not already picked up.
 
 ---
 
-## Step 7 — Implement the service method
+## Step 7 — Implement the service method(s)
 
-In `<Primary>Service.java`, add the method called by the command handler:
+In `<Primary>Service.java`, add one method per command type. Apply operations in this order:
+
+### Read-only method (for Get*Command steps)
 
 ```java
-public void <xxx>(Integer aggregateId, ..., UnitOfWork unitOfWork) {
-    <Primary> old = load(aggregateId, unitOfWork);
-    <Primary> next = copy(old, unitOfWork);
-    // apply changes
-    next.verifyInvariants();
-    registerChanged(next, unitOfWork);
+public <Primary>Dto get<Primary>(Integer aggregateId, UnitOfWork unitOfWork) {
+    return new <Primary>Dto(aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
 }
 ```
+
+Always use `aggregateLoadAndRegisterRead` — never call the repository directly from a service method.
+
+### Mutating method (for mutation command steps)
+
+```java
+public <ReturnDto> <xxx>(Integer aggregateId, <Input>Dto inputDto, UnitOfWork unitOfWork) {
+    // 1. [Layer 2 guard] Precondition check — before touching the aggregate.
+    //    Reads own aggregate table; throws <App>Exception if violated.
+    //    See /service-guard for the full pattern.
+
+    // 2. Load existing aggregate (registers for UoW read tracking)
+    <Primary> old = aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+
+    // 3. Copy for mutation (creates the new version row — mutate the copy, never old)
+    <Primary> next = factory.copy(old);
+
+    // 4. Apply mutations — data from prior functionality steps arrives as method args
+    next.set<Field>(inputDto.get<Field>());
+
+    // 5. Register for commit (verifyInvariants() is called automatically at UoW commit time)
+    unitOfWorkService.registerChanged(next, unitOfWork);
+
+    return new <Primary>Dto(next);
+}
+```
+
+**Ordering rules:**
+- Layer 2 guards go **before** loading or copying the aggregate — abort before any state is dirtied.
+- Mutate the **copy** (`next`), never `old`.
+- Data fetched from other aggregates in prior steps arrives as method parameters — do **not** call `aggregateLoadAndRegisterRead` for foreign aggregate IDs (R1 violation).
+- `verifyInvariants()` is called at commit time by the UoW; an explicit call before `registerChanged` is optional but useful for catching Layer 1 violations early.
+
+> **Reference:** `applications/quizzes/...execution/service/ExecutionService.java` — guard + load/copy pattern; `applications/quizzes/...tournament/service/TournamentService.java` — embedding data from prior steps.
 
 ---
 

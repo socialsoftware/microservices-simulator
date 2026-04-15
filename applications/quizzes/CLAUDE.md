@@ -71,7 +71,6 @@ mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest
 ## Adding New Aggregates or Features
 
 - New aggregate: `/new-aggregate <AggregateName>`
-- New event: `/new-event <EventName> <Publisher> <Consumer>`
 - New functionality: `/new-functionality <Name> <aggregates...>`
 - New Layer 4 inter-invariant: `/inter-invariant <ConsumerAggregate> <condition>`
 - New Layer 2 service guard: `/service-guard <ServiceName> <operation-method> <precondition>`

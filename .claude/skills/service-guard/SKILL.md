@@ -6,7 +6,7 @@ argument-hint: "<ServiceName> <operation-method> <precondition>"
 
 # Add Service-Layer Guard: $ARGUMENTS
 
-You are adding a new **Layer 2 service-layer guard** to an existing service in `applications/quizzes`.
+You are adding a new **Layer 2 service-layer guard** to an existing service in the application currently being built on the simulator.
 
 A service-layer guard is a precondition check that validates input or reads from the database and throws an exception before any aggregate mutation is applied. It runs inside the same UoW transaction as the operation.
 
@@ -30,7 +30,7 @@ Before writing anything, read:
 2. The custom repository interface `microservices/<aggregate>/aggregate/<Aggregate>CustomRepository.java` (if it exists) and its implementations:
    - `microservices/<aggregate>/aggregate/sagas/<Aggregate>SagaRepository.java`
    - `microservices/<aggregate>/aggregate/causal/<Aggregate>CausalRepository.java`
-3. `QuizzesErrorMessage.java` — existing error constants
+3. `<App>ErrorMessage.java` — existing error constants
 4. The closest test class under `src/test/groovy/.../sagas/coordination/<aggregate>/`
 
 ---
@@ -59,7 +59,7 @@ Inside the service method, add the guard **before** any aggregate mutation, with
 ```java
 // GUARD_NAME — <one-line description of what is being checked>
 if (<precondition violated>) {
-    throw new QuizzesException(<ERROR_CONSTANT>, <relevant ids...>);
+    throw new <App>Exception(<ERROR_CONSTANT>, <relevant ids...>);
 }
 ```
 
@@ -69,13 +69,13 @@ Real examples from `ExecutionService.java`:
 // DUPLICATE_COURSE_EXECUTION — reject creation if acronym+term already exists
 if (existing.getAcronym().equals(courseExecutionDto.getAcronym())
         && existing.getAcademicTerm().equals(courseExecutionDto.getAcademicTerm())) {
-    throw new QuizzesException(DUPLICATE_COURSE_EXECUTION,
+    throw new <App>Exception(DUPLICATE_COURSE_EXECUTION,
             courseExecutionDto.getAcronym(), courseExecutionDto.getAcademicTerm());
 }
 
 // INACTIVE_USER — block enrollment of inactive users
 if (!courseExecutionStudent.isActive()) {
-    throw new QuizzesException(INACTIVE_USER, courseExecutionStudent.getUserAggregateId());
+    throw new <App>Exception(INACTIVE_USER, courseExecutionStudent.getUserAggregateId());
 }
 ```
 
@@ -99,7 +99,7 @@ If the guard can be evaluated on an aggregate already loaded by the operation, s
 
 ## Step 5 — Add error message constant
 
-In `QuizzesErrorMessage.java`, add the new constant if it does not already exist:
+In `<App>ErrorMessage.java`, add the new constant if it does not already exist:
 
 ```java
 CANNOT_<OP>_WHEN_<CONDITION>("Cannot <operation>: <human-readable reason>"),
@@ -116,7 +116,7 @@ Cover at minimum:
 | Scenario | Expected outcome |
 |----------|-----------------|
 | Precondition satisfied | Operation succeeds |
-| Precondition violated | `QuizzesException` with the correct error code |
+| Precondition violated | `<App>Exception` with the correct error code |
 | Boundary / edge cases | Correct behaviour |
 
 Run with:
@@ -130,5 +130,5 @@ mvn clean -Ptest-sagas test -Dtest=<YourTestClass>
 
 - [ ] Guard check added **before** any mutation in the service method, with inline label comment
 - [ ] Repository query added to custom repository interface + both implementations (Sagas + TCC), if a new query was needed
-- [ ] Error message constant added to `QuizzesErrorMessage.java` (or existing one reused)
+- [ ] Error message constant added to `<App>ErrorMessage.java` (or existing one reused)
 - [ ] Tests written and passing

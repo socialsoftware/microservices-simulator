@@ -1,12 +1,12 @@
 ---
 name: new-aggregate
-description: Scaffold a new domain aggregate in the microservices-simulator quizzes application (base class, SagaXxx, CausalXxx stubs, factories, repositories, service stub). Arguments: "<AggregateName> [description]"
+description: Scaffold a new domain aggregate in the microservices-simulator (base class, SagaXxx, CausalXxx stubs, factories, repositories, service stub). Arguments: "<AggregateName> [description]"
 argument-hint: "<AggregateName> [short description of what it represents]"
 ---
 
 # Scaffold New Aggregate: $ARGUMENTS
 
-You are adding a new domain aggregate to the `applications/quizzes` module.
+You are adding a new domain aggregate to the application currently being built on the simulator.
 
 > **Sagas only.** The Sagas implementation is the authoritative path. TCC/Causal classes are empty stubs that compile but are never invoked. See `docs/concepts/tcc-placeholder-pattern.md`.
 
@@ -27,7 +27,9 @@ Clarify before writing any code.
 
 ## Step 1 — Read existing templates
 
-Read the following to understand the patterns to follow:
+Before writing anything, read `docs/architecture.md` for architectural restrictions and package structure conventions.
+
+Then read the following reference implementations from `applications/quizzes/` to understand the patterns:
 1. `microservices/execution/aggregate/Execution.java` — base class with event subscriptions
 2. `microservices/execution/aggregate/sagas/SagaExecution.java` — saga subclass
 3. `microservices/execution/aggregate/sagas/factories/SagasExecutionFactory.java`
@@ -35,7 +37,7 @@ Read the following to understand the patterns to follow:
 5. `microservices/execution/aggregate/sagas/repositories/CourseExecutionCustomRepositorySagas.java`
 6. `microservices/execution/service/ExecutionService.java` — for service method patterns
 
-Also read `docs/architecture.md` for architectural restrictions and package structure conventions.
+Apply these patterns to the application you are working on, adapting package names, exception classes, and error message enums accordingly.
 
 ---
 

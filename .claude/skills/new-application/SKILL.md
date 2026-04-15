@@ -29,7 +29,11 @@ You are building a new application on top of the simulator library from scratch.
    ```
 3. Add the simulator dependency to `pom.xml` and define the Maven profile following `applications/quizzes/pom.xml`:
    - `test-sagas` profile only (Sagas only — do not add `test-tcc` unless TCC is explicitly required)
-4. Define shared exception class and error message enum (e.g., `<App>Exception.java`, `<App>ErrorMessage.java`). Follow `applications/quizzes/src/main/java/.../exception/QuizzesException.java` and `QuizzesErrorMessage.java`.
+4. Define shared exception class and error message enum (e.g., `<App>Exception.java`, `<App>ErrorMessage.java`). Follow `applications/quizzes/src/main/java/.../exception/QuizzesException.java` and `QuizzesErrorMessage.java` as references.
+
+5. Create the test infrastructure (front-loaded — needed to run creation tests after each aggregate in Phase 2):
+   - **`BeanConfigurationSagas.groovy`** — `@TestConfiguration` class that registers all aggregate services, repositories, and the `CommandGateway`. Follow `applications/quizzes/src/test/groovy/.../BeanConfigurationSagas.groovy` as a reference — replace every Quizzes-specific service with the new application's services. At this point the class will be mostly empty; add each service as it is scaffolded in Phase 2.
+   - **Base Spock test class** (e.g., `<AppName>SpockTest.groovy`) — extends `SpockTest` and provides `@Autowired` fields for all services plus shared `setup()` helpers (e.g., `create<Entity>()` factory methods). Follow `applications/quizzes/src/test/groovy/.../QuizzesSpockTest.groovy` as a reference.
 
 > **STOP after Phase 0.** Report what was created and ask: "Phase 0 complete. Ready to proceed to Phase 1 (read templates and classify rules)?"
 
@@ -48,7 +52,7 @@ Read both files as provided by the domain expert:
 Extract:
 - **Aggregates** — from §1 of grouping template
 - **Snapshot fields per aggregate** — from §2 of grouping template (which fields are cached and which event triggers each update)
-- **Event names and payloads** — from §4 of grouping template (each row is one `/new-event` call in Phase 4)
+- **Event names and payloads** — from §4 of grouping template (each row is one `/inter-invariant` call in Phase 4)
 - **Functionalities** — from §4 of domain model template (each row is one `/new-functionality` call in Phase 3)
 - **§3.1 rules** — single-entity, always Layer 1
 - **§3.2 rules** — cross-entity, classify below
@@ -75,16 +79,17 @@ Rule Classification Table — {AppName}
 
 §3.2 Rules:
   - {RULE_NAME}: Layer {1|2|3|4} → {skill(s)}
-  - ...
+    [if Layer 3: wired into step "{StepName}" of /new-functionality {FunctionalityName}]
 
 Aggregates to scaffold: {list}
 
 Functionalities to implement (from §4 of domain model):
   - {FunctionalityName}: /new-functionality {FunctionalityName} {PrimaryAggregate} [{OtherAggregates...}]
 
-Events to wire (from §4 of grouping):
-  - {EventName}: {Publisher} → {Consumer(s)} — /new-event {EventName} {Publisher} {Consumer}
-    (if multiple consumers: one /new-event call per consumer)
+Events and inter-invariants to wire (from §4 of grouping):
+  - {EventName}: {Publisher} → {Consumer(s)}
+    → /inter-invariant {ConsumerAggregate} <condition>
+    (if multiple consumers: one /inter-invariant call per consumer)
 ```
 
 Ask: "Does this classification look correct? Any adjustments before I start Phase 2 (aggregate scaffolding)?"
@@ -117,11 +122,20 @@ Each invocation produces:
 /intra-invariant <AggregateName> <rule-description>
 ```
 
-Repeat for every §3.1 rule (and any §3.2 rules re-classified to Layer 1) assigned to this aggregate. By the end of Phase 2 every aggregate is fully defined — structure **and** invariants. Tests written in Phase 5 will run against complete aggregates.
+Repeat for every §3.1 rule (and any §3.2 rules re-classified to Layer 1) assigned to this aggregate.
+
+**2.4** Register the aggregate's service, factory, and repository in `BeanConfigurationSagas.groovy` (created in Phase 0). Then write and run a creation test:
+
+```bash
+cd applications/<appName>
+mvn clean -Ptest-sagas test -Dtest=<AggregateName>Test
+```
+
+Fix failures before scaffolding the next aggregate.
 
 Reference implementations: `applications/quizzes/.../execution/`, `applications/quizzes/.../tournament/`
 
-> **STOP after Phase 2.** List every aggregate scaffolded and every intra-invariant added. Ask: "Phase 2 complete. Ready to proceed to Phase 3 (cross-service functionalities)?"
+> **STOP after Phase 2.** List every aggregate scaffolded, every intra-invariant added, and confirm all creation tests pass. Ask: "Phase 2 complete. Ready to proceed to Phase 3 (cross-service functionalities)?"
 
 ---
 
@@ -147,85 +161,110 @@ After all functionalities are implemented, also add any **Layer 2 rules** (from 
 /service-guard <ServiceName> <operation-method> <precondition>
 ```
 
-> **STOP after Phase 3.** List every functionality implemented and every service guard added. Ask: "Phase 3 complete. Ready to proceed to Phase 4 (event wiring and inter-invariants)?"
+After each `/new-functionality` and `/service-guard` invocation, run the tests for that functionality:
+
+```bash
+cd applications/<appName>
+mvn clean -Ptest-sagas test -Dtest=<FunctionalityName>Test
+```
+
+Fix failures before moving to the next functionality.
+
+> **STOP after Phase 3.** List every functionality implemented and every service guard added. Confirm all tests pass. Ask: "Phase 3 complete. Ready to proceed to Phase 4 (event wiring and inter-invariants)?"
 
 ---
 
 ## Phase 4 — Event Wiring and Cross-Aggregate Consistency
 
-Work through the named events in §4 of the grouping template. Each row is one event; if multiple consumers subscribe to the same event, invoke `/new-event` once per consumer.
+Work through the named events in §4 of the grouping template. Each row is one event; if multiple consumers subscribe to the same event, invoke `/inter-invariant` once per consumer.
 
-For each (event, consumer) pair:
-```
-/new-event <EventName> <PublisherAggregate> <ConsumerAggregate>
-```
+For each (event, consumer) pair in the classification table (from §4 of the grouping template):
 
-Each invocation produces:
-- `<EventName>.java` event class (if it does not exist yet; shared across consumers)
-- `<Consumer>Subscribes<EventName>.java` subscription class
-- `<EventName>EventHandler.java` handler class
-- Handler registration in `<Consumer>EventProcessing.java`
-- `<Consumer>EventHandling.java` polling class (created once per consumer aggregate)
-- `<Consumer>EventSubscriberService.java` Spring Cloud Stream subscriber (created once per consumer)
-
-After wiring each event, implement any **Layer 4 rules** (inter-invariants) that are triggered by that event:
 ```
 /inter-invariant <ConsumerAggregate> <condition>
 ```
 
-> **One event name per business transition.** If §4 of the grouping template lists two separate events for the same publisher (e.g., `UpdateStudentNameEvent` and `AnonymizeStudentEvent`), treat each as a separate `/new-event` call even if they flow to the same consumer.
+This single invocation produces everything: the event class, subscription, handler, polling method, EventProcessing chain, tracked field on the consumer aggregate, update functionality, and service state-update method.
 
-> **STOP after Phase 4.** List every event wired and every inter-invariant added. Ask: "Phase 4 complete. Ready to proceed to Phase 5 (tests)?"
+After each invocation, run its test to confirm the state update works:
+
+```bash
+cd applications/<appName>
+mvn clean -Ptest-sagas test -Dtest=<ConsumerAggregate>InterInvariantTest
+```
+
+> **One event name per business transition.** If §4 of the grouping template lists two separate events for the same publisher (e.g., `UpdateStudentNameEvent` and `AnonymizeStudentEvent`), treat each as a separate invocation even if they flow to the same consumer.
+
+> **STOP after Phase 4.** List every event wired and every inter-invariant added. Confirm all tests pass. Ask: "Phase 4 complete. Ready to proceed to Phase 5 (full suite)?"
 
 ---
 
-## Phase 5 — Tests
+## Phase 5 — Full Suite
 
-### 5.1 Test infrastructure setup
+By this point, all individual tests have been written and run incrementally during Phases 2–4. Phase 5 is about the tests that couldn't be written earlier because they require multiple aggregates and functionalities to be in place simultaneously.
 
-Before writing individual test cases, create the test infrastructure for the new application:
+### 5.1 Cross-functionality concurrency tests
 
-1. **`BeanConfigurationSagas.groovy`** — `@TestConfiguration` class that registers all aggregate services, repositories, and the `CommandGateway`. Follow `applications/quizzes/src/test/groovy/.../BeanConfigurationSagas.groovy` exactly — replace every Quizzes-specific service with the new application's services.
+Write any remaining Spock tests that span multiple functionalities — specifically, concurrent interleaving scenarios where two different operations race against each other:
 
-2. **Base Spock test class** (e.g., `<AppName>SpockTest.groovy`) — extends `SpockTest` and provides `@Autowired` fields for all services plus shared `setup()` helpers (e.g., `create<Entity>()` factory methods). Follow `applications/quizzes/src/test/groovy/.../QuizzesSpockTest.groovy`.
+```groovy
+def "concurrent interleaving — <Op1> vs <Op2>"() {
+    given:
+    def f1 = new <Op1>FunctionalitySagas(...)
+    def f2 = new <Op2>FunctionalitySagas(...)
 
-### 5.2 Write test cases
+    when:
+    f1.executeUntilStep("<stepName>", uow1)
+    f2.executeWorkflow(uow2)   // f2 completes while f1 holds semantic lock
+    f1.resumeWorkflow(uow1)    // f1 tries to continue
 
-For each functionality, write Spock tests in `src/test/groovy/.../sagas/`:
-
-- [ ] **Happy-path test** — creates prerequisites, runs the functionality end-to-end, asserts final state
-- [ ] **Layer 1 (intra-invariant) violation tests** — trigger each §3.1 rule violation and assert the correct exception
-- [ ] **Layer 2 (service-guard) violation tests** — set up the forbidden precondition, call the service method, assert the guard throws
-- [ ] **Layer 3 (forbidden-state) violation tests** — use `executeUntilStep(...)` to pause a concurrent functionality in the step that sets the semantic lock, then attempt the conflicting operation and assert rejection
-- [ ] **Layer 4 (inter-invariant) tests** — mutate the publisher aggregate, call `handle<Xxx>Events()` manually on the consumer, assert the cached snapshot fields are updated correctly
-- [ ] **Concurrent interleaving tests** — `executeUntilStep(workflow, step)` + `resumeWorkflow(workflow)` to deterministically reproduce race conditions; assert both the committed state and any exceptions
+    then:
+    thrown(<App>Exception)     // or assert committed state
+}
+```
 
 Reference: `applications/quizzes/src/test/groovy/.../sagas/coordination/AddParticipantAndUpdateStudentNameTest.groovy`
 
-### 5.3 Run tests
+### 5.2 Run the full suite
 
 ```bash
 cd applications/<appName>
 mvn clean -Ptest-sagas test
 ```
 
-Fix all failures before moving on. Do not add the `-Ptest-tcc` profile — TCC stubs are not expected to pass.
+Fix all failures. Do not add the `-Ptest-tcc` profile — TCC stubs are not expected to pass.
 
 ---
 
 ## Checklist
 
+**Phase 0**
 - [ ] `pom.xml` with simulator dependency and `test-sagas` profile
 - [ ] Shared exception class + error message enum
-- [ ] Domain model and aggregate grouping templates read; classification table confirmed with user
+- [ ] `BeanConfigurationSagas.groovy` skeleton created
+- [ ] Base Spock test class created
+
+**Phase 1**
+- [ ] Domain model and aggregate grouping templates read
+- [ ] Rule classification table confirmed with user (Layer 3 rules include step name)
+
+**Phase 2**
 - [ ] All aggregates scaffolded (base + Saga + Causal stub + factories + repos + service)
 - [ ] Snapshot fields added to each aggregate (from §2 of grouping template)
 - [ ] Layer 1 intra-invariants added to all aggregates
+- [ ] Creation test passing per aggregate
+
+**Phase 3**
 - [ ] Command classes for all functionalities
 - [ ] Sagas functionalities for all cross-aggregate operations (TCC stubs created)
 - [ ] Layer 3 `setForbiddenStates` wired in relevant saga steps
 - [ ] Layer 2 service guards added
-- [ ] Domain events wired per §4 of grouping template (one `/new-event` per event-consumer pair)
-- [ ] Layer 4 inter-invariants implemented
-- [ ] `BeanConfigurationSagas.groovy` and base Spock test class created
-- [ ] Sagas tests green: `mvn clean -Ptest-sagas test`
+- [ ] Tests passing per functionality (happy path + invariant violations + guard violations)
+
+**Phase 4**
+- [ ] `/inter-invariant` invoked per (event, consumer) pair (event class + subscription + handler + polling + tracked field + update functionality)
+- [ ] Inter-invariant tests passing per consumer aggregate
+
+**Phase 5**
+- [ ] Cross-functionality concurrency tests written and passing
+- [ ] Full suite green: `mvn clean -Ptest-sagas test`

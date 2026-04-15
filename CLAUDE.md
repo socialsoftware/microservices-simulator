@@ -72,7 +72,6 @@ Invoke these with `/skill-name <arguments>` when implementing new features in `a
 | `new-application` | Bootstrap a new application from human-authored templates (reads domain model, classifies rules, implements Sagas) | `/new-application <AppName> [description]` |
 | `new-aggregate` | Scaffold a new domain aggregate (base + Saga + TCC stub + factory + repo) | `/new-aggregate <AggregateName>` |
 | `new-functionality` | Implement a cross-service operation (Sagas only + TCC stub + command handler + controller) | `/new-functionality <Name> <aggregates...>` |
-| `new-event` | Add a domain event with subscription, handler, and polling | `/new-event <EventName> <publisher> <consumer>` |
 | `intra-invariant` | Add a Layer 1 intra-invariant (`verifyInvariants` check) inside a single aggregate | `/intra-invariant <AggregateName> <rule-description>` |
 | `service-guard` | Add a Layer 2 service-layer guard (DB read or input validation) that throws before any mutation | `/service-guard <ServiceName> <operation-method> <precondition>` |
 | `inter-invariant` | Add a Layer 4 inter-invariant (event-driven cache sync, no blocking) | `/inter-invariant <ConsumerAggregate> <condition>` |

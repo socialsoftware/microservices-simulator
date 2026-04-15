@@ -33,7 +33,7 @@ Adds:
 - `getSagaState()` / `setSagaState(SagaState state)` — semantic lock used to block conflicting concurrent operations
 - Inner interface `SagaState` — implemented as an enum per aggregate (e.g., `CourseExecutionSagaState`)
 
-In Quizzes, saga aggregates extend `Aggregate` and implement `SagaAggregate`:
+Example (Quizzes): saga aggregates extend `Aggregate` and implement `SagaAggregate`:
 ```
 Execution (abstract) → SagaExecution → implements SagaAggregate
 ```
@@ -76,7 +76,7 @@ Each aggregate has two JPA repository interfaces:
 | TCC repository | `XxxCustomRepositoryTCC` | `CourseExecutionCustomRepositoryTCC` |
 | Saga state enum | `XxxSagaState` | `CourseExecutionSagaState` |
 
-## Reference Implementations
+## Reference Implementations (Quizzes)
 
 - `applications/quizzes/src/main/java/.../execution/aggregate/Execution.java` — base with event subscriptions
 - `applications/quizzes/src/main/java/.../tournament/aggregate/Tournament.java` — multi-service references

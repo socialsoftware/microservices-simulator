@@ -1,6 +1,6 @@
 ---
 name: inter-invariant
-description: Implement a Layer 4 inter-invariant in the microservices-simulator quizzes application. Use this when a consumer aggregate needs to cache state from a publisher aggregate via domain events. Arguments: "<ConsumerAggregate> <condition>", e.g. "Execution userActive=true for enrolled users"
+description: Implement a Layer 4 inter-invariant in the microservices-simulator. Use this when a consumer aggregate needs to cache state from a publisher aggregate via domain events. Arguments: "<ConsumerAggregate> <condition>", e.g. "Execution userActive=true for enrolled users"
 argument-hint: "<ConsumerAggregate> <condition-description>"
 ---
 

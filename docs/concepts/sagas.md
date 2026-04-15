@@ -80,9 +80,11 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
 
 ```
 Aggregate (abstract)
-  └── Execution (abstract, in quizzes)
-        └── SagaExecution implements SagaAggregate
+  └── Xxx (abstract)
+        └── SagaXxx implements SagaAggregate
 ```
+
+Example (Quizzes): `Execution (abstract) → SagaExecution implements SagaAggregate`
 
 `SagaExecution` holds the `sagaState` field and implements `get/setSagaState()`.
 

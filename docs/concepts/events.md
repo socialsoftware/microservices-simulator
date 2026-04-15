@@ -6,7 +6,7 @@ Domain events are the mechanism for **eventual consistency** across aggregates. 
 
 ## Event Classes
 
-Located in `applications/quizzes/src/main/java/.../quizzes/events/`.
+Located in `src/main/java/.../<appName>/events/` (e.g., `applications/quizzes/src/main/java/.../quizzes/events/`).
 
 Each event extends `Event` from `ms.domain.event`:
 
@@ -166,7 +166,7 @@ public void handle<Xxx>Events() {
 
 ---
 
-## Reference Implementations
+## Reference Implementations (Quizzes)
 
 - `applications/quizzes/src/main/java/.../events/CreateQuestionEvent.java`
 - `applications/quizzes/src/main/java/.../execution/events/subscribe/ExecutionSubscribesCreateQuestion.java`

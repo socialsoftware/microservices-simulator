@@ -6,7 +6,7 @@ argument-hint: "<AggregateName> <rule-description>"
 
 # Add Intra-Invariant: $ARGUMENTS
 
-You are adding a new **Layer 1 intra-invariant** to an existing aggregate in `applications/quizzes`.
+You are adding a new **Layer 1 intra-invariant** to an existing aggregate in the application currently being built on the simulator.
 
 An intra-invariant is a consistency rule that must always hold within a single aggregate instance. It is checked by `verifyInvariants()` on every Unit of Work commit, regardless of which operation caused the change.
 
@@ -30,7 +30,7 @@ Before writing anything, read:
    - The class-level `INTRA-INVARIANTS` comment block
    - Existing private `boolean invariantXxx()` helpers
    - The `verifyInvariants()` method (state-scoping blocks)
-2. `QuizzesErrorMessage.java` — existing error constants
+2. `<App>ErrorMessage.java` — existing error constants
 3. The closest test class under `src/test/groovy/.../sagas/coordination/<aggregate>/`
 
 ---
@@ -77,7 +77,7 @@ The typical structure mirrors what already exists — for example, in `Tournamen
 public void verifyInvariants() {
     // DELETE invariant — applies to all states
     if (!invariantDeleteWhenNoParticipants()) {
-        throw new QuizzesException(INVARIANT_BREAK, getAggregateId());
+        throw new <App>Exception(INVARIANT_BREAK, getAggregateId());
     }
     // ACTIVE-only invariants
     if (getState() == AggregateState.ACTIVE) {
@@ -85,7 +85,7 @@ public void verifyInvariants() {
                 && invariantUniqueParticipant()
                 /* ... */
                 && invariantRuleName())) {  // ← add here
-            throw new QuizzesException(INVARIANT_BREAK, getAggregateId());
+            throw new <App>Exception(INVARIANT_BREAK, getAggregateId());
         }
     }
 }
@@ -97,7 +97,7 @@ If the rule applies to all states, add it outside the `if (ACTIVE)` block. If ru
 
 ## Step 5 — Add error message constant (optional)
 
-If the generic `INVARIANT_BREAK` message is not descriptive enough for this rule, add a specific constant to `QuizzesErrorMessage.java`:
+If the generic `INVARIANT_BREAK` message is not descriptive enough for this rule, add a specific constant to `<App>ErrorMessage.java`:
 
 ```java
 CANNOT_<OPERATION>_WHEN_<CONDITION>("Cannot <operation>: <human-readable reason>"),
@@ -134,7 +134,7 @@ Cover at minimum:
 | Scenario | Expected outcome |
 |----------|-----------------|
 | Invariant holds (valid state) | Operation succeeds, aggregate committed |
-| Invariant violated | `QuizzesException` thrown at UoW commit (or immediately in `verifyInvariants()`) |
+| Invariant violated | `<App>Exception` thrown at UoW commit (or immediately in `verifyInvariants()`) |
 | Edge / boundary cases | Correct behaviour (e.g. exactly-at-limit values) |
 
 Run with:
