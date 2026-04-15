@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
   <diagram id="arch_diagram" name="Architecture">
-    <mxGraphModel dx="1499" dy="886" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="982" dy="581" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -30,6 +30,20 @@
         <mxCell id="j6VN16GQ3WJ_CCbsFk6h-2" connectable="0" parent="j6VN16GQ3WJ_CCbsFk6h-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;&lt;b&gt;API:&lt;/b&gt;&amp;nbsp;extends(Step, Workflow)&lt;/font&gt;" vertex="1">
           <mxGeometry relative="1" x="0.0638" as="geometry">
             <mxPoint x="-59" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZamsCbYcNDLYRgeSWbrG-1" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-98" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;curved=0;strokeWidth=2;" target="j9R4vumW2I8ECUKVBteT-103">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1140" y="400" />
+              <mxPoint x="1140" y="530" />
+              <mxPoint x="1210" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZamsCbYcNDLYRgeSWbrG-2" connectable="0" parent="ZamsCbYcNDLYRgeSWbrG-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;&lt;b&gt;API&lt;/b&gt;: uses(EventService)&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.7767" as="geometry">
+            <mxPoint y="10" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="j9R4vumW2I8ECUKVBteT-98" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#B7DF9E;strokeColor=#333333;labelBackgroundColor=none;labelBorderColor=none;textShadow=0;" value="Transaction Module" vertex="1">
@@ -88,7 +102,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="j9R4vumW2I8ECUKVBteT-109" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-96" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;edgeStyle=orthogonalEdgeStyle;endFill=1;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fontSize=9;html=1;align=right;" target="j9R4vumW2I8ECUKVBteT-103" value="&lt;div style=&quot;&quot;&gt;&lt;b style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;API:&lt;/b&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;extends(Event, EventSubscription,&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;EventHandler, EventHandling)&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;uses(&lt;/span&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;EventSubscriberService,&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;EventApplicationService)&lt;/span&gt;&lt;/div&gt;">
+        <mxCell id="j9R4vumW2I8ECUKVBteT-109" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-96" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;edgeStyle=orthogonalEdgeStyle;endFill=1;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fontSize=9;html=1;align=right;" target="j9R4vumW2I8ECUKVBteT-103" value="&lt;div style=&quot;&quot;&gt;&lt;b style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;API:&lt;/b&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;extends(&lt;/span&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;EventHandling)&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;uses(&lt;/span&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;EventSubscriberService,&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;EventApplicationService)&lt;/span&gt;&lt;/div&gt;">
           <mxGeometry relative="1" x="0.6281" y="20" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
@@ -105,7 +119,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="j9R4vumW2I8ECUKVBteT-111" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-96" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;endFill=1;strokeWidth=2;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.75;exitDx=0;exitDy=0;fontSize=9;html=1;" target="j9R4vumW2I8ECUKVBteT-99" value="&lt;b&gt;API:&lt;/b&gt;&amp;nbsp;extends(Aggregate)&lt;div&gt;uses(AggregateIdGeneratorService)&lt;/div&gt;">
+        <mxCell id="j9R4vumW2I8ECUKVBteT-111" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-96" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;endFill=1;strokeWidth=2;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.75;exitDx=0;exitDy=0;fontSize=9;html=1;" target="j9R4vumW2I8ECUKVBteT-99" value="&lt;b&gt;API:&lt;/b&gt;&amp;nbsp;extends(Aggregate,&lt;div&gt;&lt;div style=&quot;text-align: right;&quot;&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Event, EventSubscription,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); background-color: light-dark(#ffffff, var(--ge-dark-color, #121212));&quot;&gt;EventHandler)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;uses(AggregateIdGeneratorService)&lt;/div&gt;&lt;/div&gt;">
           <mxGeometry relative="1" x="0.7212" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
@@ -126,8 +140,8 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="j9R4vumW2I8ECUKVBteT-114" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-99" style="startArrow=none;endArrow=classic;exitX=0.5;exitY=1;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;endFill=1;strokeWidth=2;fontSize=9;html=1;" target="j9R4vumW2I8ECUKVBteT-103" value="&lt;b&gt;API:&lt;/b&gt; uses(EventSubscription)">
-          <mxGeometry relative="1" x="0.6977" as="geometry">
+        <mxCell id="j9R4vumW2I8ECUKVBteT-114" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-99" style="startArrow=none;endArrow=classic;exitX=0.5;exitY=1;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;endFill=1;strokeWidth=2;fontSize=9;html=1;" target="j9R4vumW2I8ECUKVBteT-103" value="&lt;b&gt;API:&lt;/b&gt; uses(EventService)">
+          <mxGeometry relative="1" x="0.6984" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>

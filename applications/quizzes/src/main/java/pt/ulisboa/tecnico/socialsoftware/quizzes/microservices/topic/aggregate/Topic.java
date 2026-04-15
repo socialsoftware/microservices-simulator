@@ -5,7 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate;
 
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteCourseExecution;

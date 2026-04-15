@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow
+package pt.ulisboa.tecnico.socialsoftware.ms.workflow
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.resilience4j.retry.Retry
@@ -131,10 +131,8 @@ class CircuitBreakerTest extends SpockTest {
         for (int i = 1; i < timestamps.size(); i++) {
             intervals << (timestamps[i] - timestamps[i - 1])
         }
-        // With 100ms base and multiplier 2: ~100ms, ~200ms, ~400ms, ~800ms
-        // Verify each subsequent interval is larger than the previous
         for (int i = 1; i < intervals.size(); i++) {
-            assert intervals[i] > intervals[i - 1] * 0.8: // allow some tolerance
+            assert intervals[i] > intervals[i - 1] * 0.8:
                     "Interval ${i} (${intervals[i]}ms) should be larger than interval ${i-1} (${intervals[i-1]}ms)"
         }
         println "Retry intervals: ${intervals}ms"

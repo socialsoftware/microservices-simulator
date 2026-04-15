@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider;
 
 import java.util.List;
@@ -19,21 +20,21 @@ public class EventPublisherService {
     private static final Logger logger = LoggerFactory.getLogger(EventPublisherService.class);
     private static final String EVENT_CHANNEL = "event-channel";
 
-    private final EventRepository eventRepository;
+    private final EventService eventService;
     private final StreamBridge streamBridge;
     private final ObjectMapper objectMapper;
 
-    public EventPublisherService(EventRepository eventRepository,
+    public EventPublisherService(EventService eventService,
             StreamBridge streamBridge,
             MessagingObjectMapperProvider mapperProvider) {
-        this.eventRepository = eventRepository;
+        this.eventService = eventService;
         this.streamBridge = streamBridge;
         this.objectMapper = mapperProvider.newMapper();
     }
 
     @Scheduled(fixedDelay = 1000)
     public void publishPendingEvents() {
-        List<Event> pending = eventRepository.findAll().stream()
+        List<Event> pending = eventService.getAllEvents().stream()
                 .filter(e -> !e.isPublished())
                 .toList();
 
@@ -55,7 +56,7 @@ public class EventPublisherService {
 
             if (sent) {
                 event.setPublished(true);
-                eventRepository.save(event);
+                eventService.saveEvent(event);
                 logger.info("Published event '{}' to '{}'", eventSimpleName, EVENT_CHANNEL);
             } else {
                 logger.error("Failed to publish event '{}' to '{}'", eventSimpleName, EVENT_CHANNEL);

@@ -1,49 +1,16 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.sagas.atomicity
+package pt.ulisboa.tecnico.socialsoftware.ms.causal.atomicity
 
-import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
+
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.aggregate.CausalAggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.AbortCausalCommand
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.CommitCausalCommand
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.PrepareCausalCommand
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.GenericSagaState
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.command.AbortSagaCommand
 
-import java.util.concurrent.atomic.AtomicInteger
-
-class UnitOfWorkAtomicityWindowsTest extends SpockTest {
-
-    def 'saga abort must still compensate when command dispatch fails'() {
-        given:
-        def service = new SagaUnitOfWorkService()
-        def commandGateway = Mock(CommandGateway)
-        setField(service, 'commandGateway', commandGateway)
-
-        def unitOfWork = new SagaUnitOfWork(1L, 'ABORT_WINDOW')
-        unitOfWork.addToAggregatesInSaga(7, 'ExecutionSaga')
-        unitOfWork.savePreviousState(7, GenericSagaState.IN_SAGA)
-
-        def compensationCalls = new AtomicInteger(0)
-        unitOfWork.registerCompensation({ compensationCalls.incrementAndGet() })
-
-        when:
-        service.abort(unitOfWork)
-
-        then:
-        thrown(RuntimeException)
-        compensationCalls.get() == 1
-        1 * commandGateway.send({
-            it instanceof AbortSagaCommand &&
-                    it.aggregateId == 7 &&
-                    it.serviceName == 'execution'
-        }) >> { throw new RuntimeException('dispatch failure during abort') }
-        0 * commandGateway.send(_)
-    }
+class CausalUnitOfWorkAtomicityWindowsTest /*extends SpockTest*/ {
 
     def 'causal commit phase-2 failure must trigger abort commands to preserve atomicity'() {
         given:

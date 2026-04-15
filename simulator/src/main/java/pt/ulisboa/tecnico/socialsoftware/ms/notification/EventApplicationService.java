@@ -2,6 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.ms.notification;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 
 import java.util.List;
 import java.util.Set;

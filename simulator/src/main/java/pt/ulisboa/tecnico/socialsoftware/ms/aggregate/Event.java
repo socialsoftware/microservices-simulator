@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.notification;
+package pt.ulisboa.tecnico.socialsoftware.ms.aggregate;
 
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;

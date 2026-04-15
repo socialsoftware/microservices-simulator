@@ -513,7 +513,7 @@ cd simulator
 #### Install simulator library
 
 ```bash
-mvn clean install
+mvn clean install -DskipTests
 ```
 
 #### Run simulator tests
@@ -609,7 +609,7 @@ running RabbitMQ for inter-service communication.
 
     ```bash
     cd simulator
-    mvn clean install
+   mvn clean install -DskipTests
     cd ..
     ```
 

@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 
 import java.io.Serializable;
 import java.util.ArrayList;

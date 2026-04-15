@@ -1,9 +1,37 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.notification;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class EventHandler {
-   public abstract Set<Integer> getAggregateIds();
-   public abstract Set<EventSubscription> getEventSubscriptions(Integer subscriberAggregateId, Class<? extends Event> eventClass);
+   private final JpaRepository<? extends Aggregate, Integer> aggregateRepository;
+
+   protected EventHandler(JpaRepository<? extends Aggregate, Integer> aggregateRepository) {
+      this.aggregateRepository = aggregateRepository;
+   }
+
+   public Set<Integer> getAggregateIds() {
+      return aggregateRepository.findAll().stream()
+              .map(Aggregate::getAggregateId)
+              .collect(Collectors.toSet());
+   }
+
+   public Set<EventSubscription> getEventSubscriptions(Integer subscriberAggregateId, Class<? extends Event> eventClass) {
+      return aggregateRepository.findAll().stream()
+              .filter(aggregate -> Objects.equals(aggregate.getAggregateId(), subscriberAggregateId))
+              .filter(aggregate -> aggregate.getState() == Aggregate.AggregateState.ACTIVE)
+              .max(Comparator.comparing(Aggregate::getVersion, Comparator.nullsLast(Long::compareTo)))
+              .map(aggregate -> aggregate.getEventSubscriptionsByEventType(eventClass.getSimpleName()))
+              .orElse(Collections.emptySet());
+   }
+
    public abstract void handleEvent(Integer subscriberAggregateId, Event event);
 }

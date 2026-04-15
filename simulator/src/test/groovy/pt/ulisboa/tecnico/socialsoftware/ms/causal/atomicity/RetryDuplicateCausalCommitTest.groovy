@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.causal.atomicity
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.github.resilience4j.retry.RetryRegistry
 import io.github.resilience4j.springboot3.circuitbreaker.autoconfigure.CircuitBreakerAutoConfiguration
 import io.github.resilience4j.springboot3.retry.autoconfigure.RetryAutoConfiguration
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,14 +16,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
-import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.aggregate.CausalAggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.CommitCausalCommand
@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger
         'resilience4j.retry.instances.commandGateway.retry-exceptions[0]=java.lang.RuntimeException',
         'resilience4j.retry.instances.commandGateway.ignore-exceptions[0]=pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException'
 ])
-class RetryDuplicateCausalCommitTest extends SpockTest {
+class RetryDuplicateCausalCommitTest /*extends SpockTest*/ {
 
     private CausalUnitOfWorkService causalUnitOfWorkService
 
@@ -100,7 +100,7 @@ class RetryDuplicateCausalCommitTest extends SpockTest {
 
         @Bean
         LocalCommandGateway localCommandGateway(ApplicationContext applicationContext,
-                                                io.github.resilience4j.retry.RetryRegistry retryRegistry,
+                                                RetryRegistry retryRegistry,
                                                 LocalCommandService localCommandService,
                                                 MessagingObjectMapperProvider mapperProvider) {
             return new LocalCommandGateway(applicationContext, retryRegistry, localCommandService, mapperProvider)

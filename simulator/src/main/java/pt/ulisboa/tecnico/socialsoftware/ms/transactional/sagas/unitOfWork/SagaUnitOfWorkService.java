@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAggregate.SagaState;
@@ -42,7 +42,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Autowired
     private IVersionService versionService;
     @Autowired
-    private EventRepository eventRepository;
+    private EventService eventService;
     @Autowired
     private CommandGateway commandGateway;
     @Autowired
@@ -183,7 +183,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         if (Arrays.asList(environment.getActiveProfiles()).contains("local")) {
             event.setPublished(true);
         }
-        eventRepository.save(event);
+        eventService.saveEvent(event);
     }
 
     @Override

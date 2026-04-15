@@ -12,6 +12,8 @@ import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider;
 
 import java.util.HashMap;
@@ -23,7 +25,7 @@ import java.util.Set;
 public class EventSubscriberService {
     private static final Logger logger = LoggerFactory.getLogger(EventSubscriberService.class);
 
-    private final EventRepository eventRepository;
+    private final EventService eventService;
     private final ObjectMapper objectMapper;
     private final Map<String, Class<? extends Event>> subscribedEvents = new HashMap<>();
     private final Map<String, Class<? extends Event>> eventClassesBySimpleName = new HashMap<>();
@@ -32,9 +34,9 @@ public class EventSubscriberService {
     @Autowired(required = false)
     private AggregateRepository aggregateRepository;
 
-    public EventSubscriberService(EventRepository eventRepository,
+    public EventSubscriberService(EventService eventService,
                                   MessagingObjectMapperProvider mapperProvider) {
-        this.eventRepository = eventRepository;
+        this.eventService = eventService;
         this.objectMapper = mapperProvider.newMapper();
         scanEventClasses();
     }
@@ -109,10 +111,10 @@ public class EventSubscriberService {
 
             Event event = objectMapper.readValue(payload, eventClass);
             event.setPublished(true);
-            if (event.getId() != null && !eventRepository.existsById(event.getId())) {
+            if (event.getId() != null && !eventService.existsEventById(event.getId())) {
                 event.setId(null);
             }
-            eventRepository.save(event);
+            eventService.saveEvent(event);
 
             logger.info("Saved event '{}'", eventType);
         } catch (Exception e) {

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow
+package pt.ulisboa.tecnico.socialsoftware.ms.workflow
 
 import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep

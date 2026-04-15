@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork;
 
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 
 import java.util.List;
 

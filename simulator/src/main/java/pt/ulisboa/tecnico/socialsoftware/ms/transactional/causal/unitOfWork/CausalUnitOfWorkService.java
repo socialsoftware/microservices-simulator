@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.aggregate.CausalAggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.AbortCausalCommand;
@@ -43,7 +43,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     @Autowired
     private IVersionService versionService;
     @Autowired
-    private EventRepository eventRepository;
+    private EventService eventService;
     @Autowired
     private CommandGateway commandGateway;
     @Autowired
@@ -67,7 +67,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
             throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType(), aggregate.getAggregateId());
         }
 
-        List<Event> allEvents = eventRepository.findAll();
+        List<Event> allEvents = eventService.getAllEvents();
 
         unitOfWork.addToCausalSnapshot(aggregate, allEvents);
         return aggregate;
@@ -87,7 +87,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Aggregate registerRead(Aggregate aggregate, CausalUnitOfWork unitOfWork) {
-        List<Event> allEvents = eventRepository.findAll();
+        List<Event> allEvents = eventService.getAllEvents();
 
         unitOfWork.addToCausalSnapshot(aggregate, allEvents);
         return aggregate;
@@ -172,7 +172,7 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
             if (Arrays.asList(environment.getActiveProfiles()).contains("local")) {
                 e.setPublished(true);
             }
-            eventRepository.save(e);
+            eventService.saveEvent(e);
         });
 
         logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(),
