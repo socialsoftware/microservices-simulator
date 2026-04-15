@@ -54,6 +54,10 @@ x-microservice-deps: &microservice-deps
   jaeger:
     condition: service_started
 
+x-perf-caps: &perf-caps
+  cap_add:
+    - ${PERF_CAP:-CHOWN}
+
 x-test-quizzes: &test-quizzes
   build:
     context: ../../
@@ -128,8 +132,11 @@ services:
       EUREKA_HOST: eureka-server
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+    volumes:
+      - ./src/test/resources:/src/test/resources
     networks:
       - messaging-network
+    <<: *perf-caps
 
   quizzes-remote:
     build:
@@ -158,6 +165,7 @@ services:
       - ./src/test/resources:/src/test/resources
     networks:
       - messaging-network
+    <<: *perf-caps
 
   # =====================================================
   # MICROSERVICE DATABASES (Database-per-service pattern)
