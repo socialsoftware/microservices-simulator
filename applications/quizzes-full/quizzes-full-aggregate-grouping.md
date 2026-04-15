@@ -19,20 +19,20 @@ Small value objects with no independent identity are co-located with their ownin
 
 ## §1 — Aggregate Grouping
 
-| Aggregate | Entities contained | Service |
-|---|---|---|
-| Course | Course | CourseService |
-| User | User | UserService |
-| Topic | Topic | TopicService |
-| CourseExecution | CourseExecution | CourseExecutionService |
-| Question | Question, Option, Image | QuestionService |
-| Quiz | Quiz, QuizQuestion | QuizService |
-| QuizAnswer | QuizAnswer, QuestionAnswer | QuizAnswerService |
-| Tournament | Tournament | TournamentService |
-| Assessment | Assessment, TopicConjunction | AssessmentService |
-| Discussion | Discussion, Reply | DiscussionService |
-| QuestionSubmission | QuestionSubmission, Review | QuestionSubmissionService |
-| Dashboard | Dashboard, WeeklyScore, FailedAnswer, DifficultQuestion | DashboardService |
+| Aggregate | Description | Entities contained | Service |
+|---|---|---|---|
+| Course | A course offered by the institution (e.g. "Software Engineering"). Immutable after creation. Acts as the root namespace for Topics, Questions, and CourseExecutions. | Course | CourseService |
+| User | A person in the system — student, teacher, or admin. Tracks name, username, role, and whether the account is active. Role is immutable. | User | UserService |
+| Topic | A subject tag that belongs to a Course. Used to classify Questions and to filter content for Tournaments and Assessments. | Topic | TopicService |
+| CourseExecution | A concrete run of a Course in a given academic term (e.g. "ES 2024/25 Leic"). Holds the enrolled student roster. Multiple executions can exist for the same Course. | CourseExecution | CourseExecutionService |
+| Question | A quiz question with its answer options (and optional image). Tracks how many times it has been answered and how many answers were correct. Questions belong to a Course and are tagged with Topics. | Question, Option, Image | QuestionService |
+| Quiz | An ordered collection of Questions made available to students of a CourseExecution between `availableDate` and `conclusionDate`. Fields are frozen once the quiz becomes available. | Quiz, QuizQuestion | QuizService |
+| QuizAnswer | A student's response session for one Quiz. Records per-question answers (QuestionAnswer), completion status, and timing. At most one exists per student per quiz. | QuizAnswer, QuestionAnswer | QuizAnswerService |
+| Tournament | A competitive event where students within a CourseExecution race to answer a generated Quiz on selected Topics. Has an enrolment window (before `startTime`) and is frozen once started and answered. | Tournament | TournamentService |
+| Assessment | A named set of topic groups (TopicConjunctions) that a teacher defines for a CourseExecution. Used to scope question searches and quiz generation — it is a discovery/filter aid, not a quiz itself. | Assessment, TopicConjunction | AssessmentService |
+| Discussion | A threaded conversation started by a student on a specific QuestionAnswer. Teachers and the original student can add Replies. Discussions can be closed once at least one Reply exists. | Discussion, Reply | DiscussionService |
+| QuestionSubmission | A student-proposed Question sent for teacher review within a CourseExecution. Carries a review workflow (IN_REVIEW → APPROVED / REJECTED) with Review comments attached. | QuestionSubmission, Review | QuestionSubmissionService |
+| Dashboard | A per-student, per-CourseExecution analytics board. Tracks quiz and answer counts by quiz type, failed answers, statistically difficult questions, and weekly performance snapshots. Updated reactively from QuizAnswer events. | Dashboard, WeeklyScore, FailedAnswer, DifficultQuestion | DashboardService |
 
 ---
 

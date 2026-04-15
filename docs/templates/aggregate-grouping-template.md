@@ -14,9 +14,9 @@
 
 Choose which entities are co-located. This decision determines which cross-entity rules in the domain model require event-based eventual consistency vs. can be enforced transactionally.
 
-| Aggregate | Entities contained | Service |
-|---|---|---|
-| {AggregateName} | {Entity1}, {Entity2} | {AggregateName}Service |
+| Aggregate | Description | Entities contained | Service |
+|---|---|---|---|
+| {AggregateName} | {One-sentence description of what this aggregate represents.} | {Entity1}, {Entity2} | {AggregateName}Service |
 
 ---
 
