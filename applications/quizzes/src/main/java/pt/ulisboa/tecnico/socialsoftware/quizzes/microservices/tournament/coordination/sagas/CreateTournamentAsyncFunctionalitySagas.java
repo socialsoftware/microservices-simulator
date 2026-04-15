@@ -61,13 +61,15 @@ public class CreateTournamentAsyncFunctionalitySagas extends WorkflowFunctionali
             TournamentDto tournamentDto, SagaUnitOfWork unitOfWork) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
-        SagaStep fetchReadModelsAsyncStep = new SagaStep("fetchReadModelsAsyncStep", () -> {
+        SagaStep getCreatorAsyncStep = new SagaStep("getCreatorAsyncStep", () -> {
             GetStudentByExecutionIdAndUserIdCommand getStudentByExecutionIdAndUserIdCommand =
                     new GetStudentByExecutionIdAndUserIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(),
                             executionId, userId);
             this.userDtoFuture = commandGateway.sendAsync(getStudentByExecutionIdAndUserIdCommand)
                     .thenApply(dto -> (UserDto) dto);
+        });
 
+        SagaStep getCourseExecutionAsyncStep = new SagaStep("getCourseExecutionAsyncStep", () -> {
             GetCourseExecutionByIdCommand getCourseExecutionByIdCommand =
                     new GetCourseExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(),
                             executionId);
@@ -75,7 +77,9 @@ public class CreateTournamentAsyncFunctionalitySagas extends WorkflowFunctionali
             getCourseExecutionSagaCommand.setSemanticLock(CourseExecutionSagaState.READ_COURSE);
             this.courseExecutionDtoFuture = commandGateway.sendAsync(getCourseExecutionSagaCommand)
                     .thenApply(dto -> (CourseExecutionDto) dto);
+        });
 
+        SagaStep getTopicsAsyncStep = new SagaStep("getTopicsAsyncStep", () -> {
             List<CompletableFuture<TopicDto>> topicFutures = topicsId.stream()
                     .map(topicId -> {
                         GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(unitOfWork,
@@ -88,7 +92,9 @@ public class CreateTournamentAsyncFunctionalitySagas extends WorkflowFunctionali
 
             this.topicDtosFuture = CompletableFuture.allOf(topicFutures.toArray(new CompletableFuture[0]))
                     .thenApply(ignored -> topicFutures.stream().map(CompletableFuture::join).collect(Collectors.toSet()));
+    });
 
+    SagaStep findQuestionsByTopicIdsAsyncStep = new SagaStep("findQuestionsByTopicIdsAsyncStep", () -> {
             FindQuestionsByTopicIdsCommand findQuestionsByTopicIdsCommand =
                     new FindQuestionsByTopicIdsCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), topicsId);
             this.questionDtosFuture = commandGateway.sendAsync(findQuestionsByTopicIdsCommand)
@@ -96,9 +102,7 @@ public class CreateTournamentAsyncFunctionalitySagas extends WorkflowFunctionali
         });
 
         SagaStep generateQuizStep = new SagaStep("generateQuizStep", () -> {
-            this.setUserDto(this.userDtoFuture.join());
             this.setCourseExecutionDto(this.courseExecutionDtoFuture.join());
-            this.setTopicsDtos(new HashSet<>(this.topicDtosFuture.join()));
             this.questionDtos = this.questionDtosFuture.join();
 
             QuizDto quizDto = new QuizDto();
@@ -111,7 +115,7 @@ public class CreateTournamentAsyncFunctionalitySagas extends WorkflowFunctionali
                     tournamentDto.getNumberOfQuestions());
             QuizDto quizResultDto = (QuizDto) commandGateway.send(generateQuizCommand);
             this.setQuizDto(quizResultDto);
-        }, new ArrayList<>(Arrays.asList(fetchReadModelsAsyncStep)));
+            }, new ArrayList<>(Arrays.asList(getCourseExecutionAsyncStep, findQuestionsByTopicIdsAsyncStep)));
 
         generateQuizStep.registerCompensation(() -> {
             if (this.getQuizDto() != null) {
@@ -122,14 +126,20 @@ public class CreateTournamentAsyncFunctionalitySagas extends WorkflowFunctionali
         }, unitOfWork);
 
         SagaStep createTournamentStep = new SagaStep("createTournamentStep", () -> {
+            this.setUserDto(this.userDtoFuture.join());
+            this.setTopicsDtos(new HashSet<>(this.topicDtosFuture.join()));
+
             CreateTournamentCommand createTournamentCommand = new CreateTournamentCommand(unitOfWork,
                     ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto, this.getUserDto(),
                     this.getCourseExecutionDto(), this.getTopicsDtos(), this.getQuizDto());
             TournamentDto tournamentResultDto = (TournamentDto) commandGateway.send(createTournamentCommand);
             this.setTournamentDto(tournamentResultDto);
-        }, new ArrayList<>(Arrays.asList(generateQuizStep)));
+        }, new ArrayList<>(Arrays.asList(generateQuizStep, getCreatorAsyncStep, getTopicsAsyncStep)));
 
-        this.workflow.addStep(fetchReadModelsAsyncStep);
+        this.workflow.addStep(getCreatorAsyncStep);
+        this.workflow.addStep(getCourseExecutionAsyncStep);
+        this.workflow.addStep(getTopicsAsyncStep);
+        this.workflow.addStep(findQuestionsByTopicIdsAsyncStep);
         this.workflow.addStep(generateQuizStep);
         this.workflow.addStep(createTournamentStep);
     }
