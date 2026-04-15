@@ -153,6 +153,10 @@ unitOfWorkService.registerChanged(agg, unitOfWork);
 return new <Aggregate>Dto(agg);
 ```
 
+> **R2** — Only inject this aggregate's own repository, custom repository, and factory,
+> plus `UnitOfWorkService` and `AggregateIdGeneratorService`.
+> Never inject another aggregate's service, repository, or factory here.
+
 ---
 
 ## Step 9 — Wire into BeanConfiguration

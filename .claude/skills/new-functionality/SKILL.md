@@ -210,6 +210,7 @@ public <ReturnDto> <xxx>(Integer aggregateId, <Input>Dto inputDto, UnitOfWork un
 - Layer 2 guards go **before** loading or copying the aggregate — abort before any state is dirtied.
 - Mutate the **copy** (`next`), never `old`.
 - Data fetched from other aggregates in prior steps arrives as method parameters — do **not** call `aggregateLoadAndRegisterRead` for foreign aggregate IDs (R1 violation).
+- Do **not** inject another aggregate's repository to fetch its data — that is an R2 violation. Foreign aggregate data must arrive as method parameters from prior `Get*Command` steps.
 - `verifyInvariants()` is called at commit time by the UoW; an explicit call before `registerChanged` is optional but useful for catching Layer 1 violations early.
 
 > **Reference:** `applications/quizzes/...execution/service/ExecutionService.java` — guard + load/copy pattern; `applications/quizzes/...tournament/service/TournamentService.java` — embedding data from prior steps.

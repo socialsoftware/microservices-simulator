@@ -146,9 +146,15 @@ These rules are not enforced by the compiler. Violating them produces subtle run
 
 ---
 
-### R2 — A Service must not import another Service class
+### R2 — A Service may only inject its own aggregate's components
 
-Services are scoped to one aggregate type. Injecting `ServiceA` into `ServiceB` mixes transaction boundaries and bypasses the UoW, allowing reads and writes to escape the coordinated commit.
+A service class may `@Autowired` (or constructor-inject) only the repository, custom repository, and factory belonging to its own aggregate type, plus shared infrastructure (`UnitOfWorkService`, `AggregateIdGeneratorService`). Injecting a foreign service class mixes transaction boundaries and bypasses the UoW; injecting a foreign repository gives the service direct read/write access to a foreign data store — both escape the coordinated commit.
+
+**Correct injections in `XxxService`:**
+- `XxxRepository` / `XxxCustomRepository`
+- `XxxFactory`
+- `UnitOfWorkService`
+- `AggregateIdGeneratorService`
 
 **Instead:** Coordinate cross-aggregate operations at the Functionality layer. Each service is only called through its CommandHandler via `commandGateway`.
 

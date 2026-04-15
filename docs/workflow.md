@@ -105,7 +105,7 @@ For each §3.2 rule:
 | Constraint | Rule | Skill that enforces it |
 |---|---|---|
 | Service loads only its own aggregate type | R1 | `new-aggregate` service stub |
-| No cross-service `@Autowired` injection | R2 | `new-functionality` routes via `commandGateway` |
+| A Service may only inject its own aggregate's components (no foreign services or repositories) | R2 | `new-aggregate` Step 8 + `new-functionality` Step 7 |
 | Cross-aggregate state through DTOs only | R3 | `new-functionality` command classes |
 | Mutation steps must declare `forbiddenStates` | R4 | `new-functionality` Step 3 |
 | Subscriptions belong in consumer only | R5 | `inter-invariant` Step 6 |
