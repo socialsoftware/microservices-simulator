@@ -118,8 +118,6 @@ Ask: "Does this classification look correct? Any adjustments before I start Phas
 Once the user approves the classification, write `applications/<appName>/plan.md` — the authoritative progress tracker for all remaining phases. This file is the single source of truth that any agent (or the user) can open to see what has been done and what remains.
 
 Structure the file with one section per phase. Use GitHub-flavored **checkboxes** (`- [ ]` / `- [x]`) for every discrete work item so that the executing agent can tick items off as it completes them. Include:
-
-- **Phase 0 section** — pre-filled with `[x]` for everything already done.
 - **Phase 2 section** — one sub-section per aggregate; each sub-section has checkboxes for: scaffold, snapshot fields added, Layer 1 intra-invariants added (list each rule), registered in `BeanConfigurationSagas`, creation test passes.
 - **Phase 3 section** — one checkbox per functionality with its `/implement-functionality` invocation; list Layer 3 rules (and which saga step they wire into) as sub-bullets; if a Layer 2 guard applies, add a nested `- [ ] Layer 2 guard applied: <GUARD_NAME>` checkbox inside the functionality block.
 - **Phase 4 section** — one checkbox per (event, consumer) inter-invariant pair grouped by event, with the expected test class noted.

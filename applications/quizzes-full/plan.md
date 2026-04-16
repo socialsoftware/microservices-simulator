@@ -5,47 +5,6 @@
 
 ---
 
-## Phase 0 — Prerequisites
-
-- [x] `pom.xml` with simulator dependency, `test-sagas` profile, all microservice profiles, resource filtering, and `start-class`
-- [x] `QuizzesFullException.java` + `QuizzesFullErrorMessage.java`
-- [x] `ServiceMapping.java` enum (12 entries)
-- [x] `src/test/resources/application-test.properties`
-- [x] `BeanConfigurationSagas.groovy` infrastructure skeleton
-- [x] `QuizzesFullSpockTest.groovy` base test class
-- [x] `QuizzesFullSimulator.java` main entry point
-- [x] `CourseServiceApplication.java`
-- [x] `UserServiceApplication.java`
-- [x] `TopicServiceApplication.java`
-- [x] `CourseExecutionServiceApplication.java`
-- [x] `QuestionServiceApplication.java`
-- [x] `QuizServiceApplication.java`
-- [x] `QuizAnswerServiceApplication.java`
-- [x] `TournamentServiceApplication.java`
-- [x] `AssessmentServiceApplication.java`
-- [x] `DiscussionServiceApplication.java`
-- [x] `QuestionSubmissionServiceApplication.java`
-- [x] `DashboardServiceApplication.java`
-- [x] `src/main/resources/application.yaml`
-- [x] `src/main/resources/application-kubernetes.yaml`
-- [x] `src/main/resources/application-test.yaml`
-- [x] `src/main/resources/application-course-service.yaml`
-- [x] `src/main/resources/application-user-service.yaml`
-- [x] `src/main/resources/application-topic-service.yaml`
-- [x] `src/main/resources/application-courseExecution-service.yaml`
-- [x] `src/main/resources/application-question-service.yaml`
-- [x] `src/main/resources/application-quiz-service.yaml`
-- [x] `src/main/resources/application-quizAnswer-service.yaml`
-- [x] `src/main/resources/application-tournament-service.yaml`
-- [x] `src/main/resources/application-assessment-service.yaml`
-- [x] `src/main/resources/application-discussion-service.yaml`
-- [x] `src/main/resources/application-questionSubmission-service.yaml`
-- [x] `src/main/resources/application-dashboard-service.yaml`
-- [x] `Dockerfile`, `Dockerfile.test`, `.gitignore`, `.dockerignore`
-- [x] `mvn compile` passes (16 source files)
-
----
-
 ## Phase 1 — Rule Classification
 
 - [x] Domain model and aggregate grouping templates read
