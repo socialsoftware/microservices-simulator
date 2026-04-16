@@ -18,8 +18,8 @@ public class EventService {
         return eventRepository.findAll();
     }
 
-    public Event saveEvent(Event event) {
-        return eventRepository.save(event);
+    public void saveEvent(Event event) {
+        eventRepository.save(event);
     }
 
     public boolean existsEventById(Integer eventId) {

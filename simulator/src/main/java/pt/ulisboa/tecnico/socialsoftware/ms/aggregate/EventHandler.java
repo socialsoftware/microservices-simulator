@@ -1,9 +1,6 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.notification;
+package pt.ulisboa.tecnico.socialsoftware.ms.aggregate;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
-import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 
 import java.util.Collections;
 import java.util.Comparator;

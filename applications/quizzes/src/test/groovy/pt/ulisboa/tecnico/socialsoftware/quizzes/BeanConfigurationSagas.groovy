@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
@@ -16,7 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.stream.CommandResponseAggregator
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.stream.StreamCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceService
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.messaging.SagaCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService

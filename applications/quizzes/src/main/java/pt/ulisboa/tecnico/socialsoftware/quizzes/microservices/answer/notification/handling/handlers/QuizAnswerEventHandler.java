@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.handling.handlers;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.eventProcessing.QuizAnswerEventProcessing;
 
