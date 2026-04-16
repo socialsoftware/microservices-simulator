@@ -13,7 +13,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.Qui
 import java.util.HashSet;
 import java.util.Set;
 
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.INVARIANT_BREAK;
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.COURSE_MISSING_NAME;
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.COURSE_MISSING_TYPE;
 
 /*
     INTRA-INVARIANTS:
@@ -81,9 +82,11 @@ public abstract class Course extends Aggregate {
     @Override
     public void verifyInvariants() {
         if (getState() == ACTIVE) {
-            if (!(invariantCourseNameNotBlank()
-                    && invariantCourseTypeNotNull())) {
-                throw new QuizzesFullException(INVARIANT_BREAK, getAggregateId());
+            if (!invariantCourseNameNotBlank()) {
+                throw new QuizzesFullException(COURSE_MISSING_NAME);
+            }
+            if (!invariantCourseTypeNotNull()) {
+                throw new QuizzesFullException(COURSE_MISSING_TYPE);
             }
         }
     }

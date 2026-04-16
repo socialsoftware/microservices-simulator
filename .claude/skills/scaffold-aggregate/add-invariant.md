@@ -51,34 +51,38 @@ private boolean invariantRuleName() {
 
 ## Step 3 — Call from `verifyInvariants()`
 
-Add the call in the correct state-scoping block:
+Add the call in the correct state-scoping block with its own `if` statement:
 
 ```java
 @Override
 public void verifyInvariants() {
     if (getState() == AggregateState.ACTIVE) {
-        if (!(invariantExistingRule()
-                && invariantRuleName())) {   // ← add here
-            throw new <App>Exception(INVARIANT_BREAK, getAggregateId());
+        if (!invariantExistingRule()) {
+            throw new <App>Exception(EXISTING_RULE_ERROR);
+        }
+        if (!invariantRuleName()) {      // ← add here
+            throw new <App>Exception(RULE_NAME_ERROR);
         }
     }
 }
 ```
 
-If the rule applies to all states, add it outside the `if (ACTIVE)` block.
-If a rule-specific error constant is more descriptive than `INVARIANT_BREAK`, use it (see Step 4).
+If the rule applies to all states, add it outside the `if (ACTIVE)` block but still with its own inner `if`.
 
-> **The combined `&&` pattern is intentional.** `verifyInvariants()` is a single gate: all invariants sharing the same state scope are combined into one block. Using a generic `INVARIANT_BREAK` for that block is correct and expected — the individual `boolean invariantXxx()` method names serve as the diagnostic labels. Do not split into separate `if` blocks per invariant unless two invariants belong to different state scopes (e.g., one is ACTIVE-only and another applies in all states).
+> **Each invariant gets its own `if` block.** This makes it immediately clear which invariant was violated when an exception is thrown. Use the most descriptive specific error constant available (e.g., `COURSE_MISSING_NAME`); use `INVARIANT_BREAK` only as a last resort if no domain-specific constant fits. Group invariants sharing the same state scope under the same outer `if (getState() == ...)` guard, but each gets its own inner `if`.
 
 ---
 
-## Step 4 — Add error message constant (optional)
+## Step 4 — Add error message constant
 
-Only if the generic `INVARIANT_BREAK` is not descriptive enough:
+Add a domain-specific error constant to `<App>ErrorMessage.java`:
 
 ```java
-CANNOT_<OPERATION>_WHEN_<CONDITION>("Cannot <operation>: <human-readable reason>"),
+RULE_NAME_ERROR("Human-readable message explaining the invariant violation"),
 ```
+
+Prefer a specific constant per invariant — it should explain what went wrong in domain terms.
+`INVARIANT_BREAK` is now reserved for cases where no specific constant is appropriate.
 
 ---
 

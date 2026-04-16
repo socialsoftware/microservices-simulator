@@ -47,6 +47,8 @@ Understanding which layer is responsible for what prevents redundant checks and 
 
 **Centralization principle:** Layer 1 is the canonical home for aggregate-state invariants. Whenever a rule can be expressed purely in terms of a single aggregate's state — regardless of which operation triggered the change — it belongs here. Because `verifyInvariants()` runs on every commit, a Layer 1 check fires uniformly across all operations, eliminating the need to repeat the same logic in individual service guards (Layer 2) or workflow steps (Layer 3). **If a rule fits Layer 1, define it only there — do not add the same check at another layer.**
 
+**Exception pattern:** Each invariant has its own `if` block and throws the most descriptive specific exception available (e.g., `COURSE_MISSING_NAME`). Use `INVARIANT_BREAK` only as a last resort if no domain-specific constant fits.
+
 > **Restriction:** Mutation methods on aggregate classes (`add()`, `remove()`, setters) must **not** throw domain exceptions. All state-consistency rules must be placed in `verifyInvariants()`. Throwing from a mutation method bypasses the centralized invariant check and breaks the UoW commit contract — the UoW may partially apply mutations before the exception fires, leaving the aggregate in an inconsistent in-memory state.
 
 **Examples:**
