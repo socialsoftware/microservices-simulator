@@ -1,0 +1,264 @@
+spring:
+  application:
+    name: quizzesfull
+  profiles:
+    active: "@activatedProperties@"
+    group:
+      stream: remote
+      grpc: remote
+
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/msdb
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+
+  jpa:
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    show-sql: false
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,beans"
+
+command:
+  gateway:
+    timeout-seconds: 10
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        enable-randomized-wait: true
+        randomized-wait-factor: 0.5
+        retry-exceptions:
+          - java.lang.RuntimeException
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+
+# Tech-agnostic remote configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: remote
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+
+  cloud:
+    stream:
+      default:
+        contentType: application/json
+      bindings:
+        # --- Single Event channel (all events go through here) ---
+        event-channel:
+          destination: event-channel
+
+        # --- Event Subscribers (one per service) ---
+        courseEventSubscriber-in-0:
+          destination: event-channel
+          group: course-service-group
+        userEventSubscriber-in-0:
+          destination: event-channel
+          group: user-service-group
+        topicEventSubscriber-in-0:
+          destination: event-channel
+          group: topic-service-group
+        courseExecutionEventSubscriber-in-0:
+          destination: event-channel
+          group: courseExecution-service-group
+        questionEventSubscriber-in-0:
+          destination: event-channel
+          group: question-service-group
+        quizEventSubscriber-in-0:
+          destination: event-channel
+          group: quiz-service-group
+        quizAnswerEventSubscriber-in-0:
+          destination: event-channel
+          group: quizAnswer-service-group
+        tournamentEventSubscriber-in-0:
+          destination: event-channel
+          group: tournament-service-group
+        assessmentEventSubscriber-in-0:
+          destination: event-channel
+          group: assessment-service-group
+        discussionEventSubscriber-in-0:
+          destination: event-channel
+          group: discussion-service-group
+        questionSubmissionEventSubscriber-in-0:
+          destination: event-channel
+          group: questionSubmission-service-group
+        dashboardEventSubscriber-in-0:
+          destination: event-channel
+          group: dashboard-service-group
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port:9090}
+
+quizzesfull:
+  function-definition:
+    events: >-
+      courseEventSubscriber;
+      userEventSubscriber;
+      topicEventSubscriber;
+      courseExecutionEventSubscriber;
+      questionEventSubscriber;
+      quizEventSubscriber;
+      quizAnswerEventSubscriber;
+      tournamentEventSubscriber;
+      assessmentEventSubscriber;
+      discussionEventSubscriber;
+      questionSubmissionEventSubscriber;
+      dashboardEventSubscriber
+
+# Spring Cloud Stream specific (commands via RabbitMQ)
+---
+spring:
+  config:
+    activate:
+      on-profile: stream
+
+  cloud:
+    function:
+      definition: >-
+        ${quizzesfull.function-definition.events};
+        commandResponseChannel;
+        courseServiceCommandChannel;
+        userServiceCommandChannel;
+        topicServiceCommandChannel;
+        courseExecutionServiceCommandChannel;
+        questionServiceCommandChannel;
+        quizServiceCommandChannel;
+        quizAnswerServiceCommandChannel;
+        tournamentServiceCommandChannel;
+        assessmentServiceCommandChannel;
+        discussionServiceCommandChannel;
+        questionSubmissionServiceCommandChannel;
+        dashboardServiceCommandChannel;
+
+    stream:
+      bindings:
+        # --- Command producers (outputs) ---
+        course-command-channel:
+          destination: course-command-channel
+        user-command-channel:
+          destination: user-command-channel
+        topic-command-channel:
+          destination: topic-command-channel
+        courseExecution-command-channel:
+          destination: courseExecution-command-channel
+        question-command-channel:
+          destination: question-command-channel
+        quiz-command-channel:
+          destination: quiz-command-channel
+        quizAnswer-command-channel:
+          destination: quizAnswer-command-channel
+        tournament-command-channel:
+          destination: tournament-command-channel
+        assessment-command-channel:
+          destination: assessment-command-channel
+        discussion-command-channel:
+          destination: discussion-command-channel
+        questionSubmission-command-channel:
+          destination: questionSubmission-command-channel
+        dashboard-command-channel:
+          destination: dashboard-command-channel
+
+        # --- Command consumers (inputs) ---
+        courseServiceCommandChannel-in-0:
+          destination: course-command-channel
+          group: course-service-group
+        userServiceCommandChannel-in-0:
+          destination: user-command-channel
+          group: user-service-group
+        topicServiceCommandChannel-in-0:
+          destination: topic-command-channel
+          group: topic-service-group
+        courseExecutionServiceCommandChannel-in-0:
+          destination: courseExecution-command-channel
+          group: courseExecution-service-group
+        questionServiceCommandChannel-in-0:
+          destination: question-command-channel
+          group: question-service-group
+        quizServiceCommandChannel-in-0:
+          destination: quiz-command-channel
+          group: quiz-service-group
+        quizAnswerServiceCommandChannel-in-0:
+          destination: quizAnswer-command-channel
+          group: quizAnswer-service-group
+        tournamentServiceCommandChannel-in-0:
+          destination: tournament-command-channel
+          group: tournament-service-group
+        assessmentServiceCommandChannel-in-0:
+          destination: assessment-command-channel
+          group: assessment-service-group
+        discussionServiceCommandChannel-in-0:
+          destination: discussion-command-channel
+          group: discussion-service-group
+        questionSubmissionServiceCommandChannel-in-0:
+          destination: questionSubmission-command-channel
+          group: questionSubmission-service-group
+        dashboardServiceCommandChannel-in-0:
+          destination: dashboard-command-channel
+          group: dashboard-service-group
+
+        # --- Response channel ---
+        commandResponseChannel-in-0:
+          destination: ${spring.application.name}-command-responses
+          group: response-group
+
+# gRPC specific (commands via gRPC)
+---
+spring:
+  config:
+    activate:
+      on-profile: grpc
+
+  cloud:
+    function:
+      definition: ${quizzesfull.function-definition.events}
+
+grpc:
+  server:
+    port: 9090
+  fallback-service: ${spring.application.name}
+  command:
+    default-port: 9090
+    version:
+      port: 9091
+
+# Kubernetes specific
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+    import:
+      - "classpath:application-kubernetes.yaml"
