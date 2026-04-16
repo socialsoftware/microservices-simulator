@@ -11,72 +11,101 @@ under `docs/`.
 - **Human authors:** domain model template + aggregate grouping template
   (entities, rules, aggregate groupings, events — fixed inputs, never modified by the AI)
 - **AI decides:** consistency layer per §3.2 rule, then executes each phase using the skill chain
+- **AI executes (Phases 2–5):** each work unit runs in an isolated Claude session; `plan.md` is the job queue; `run.sh` drives iteration one work unit at a time
 
 ---
 
 ## Phase Structure
 
+### Tier 1 — Interactive (`/new-application`)
+
 ```
-/new-application
+/new-application <domain-model.md> <aggregate-grouping.md>
   │
   ├─ Phase 0 — Bootstrap
   │     pom.xml, module skeleton, exception class, error message enum
   │     BeanConfigurationSagas.groovy skeleton + base Spock test class  ← front-loaded
   │     STOP → confirm
   │
-  ├─ Phase 1 — Read templates & classify rules
-  │     Reads: {App}-domain-model.md + {App}-aggregate-grouping.md
-  │     Applies: docs/concepts/decision-guide.md  ←  the §3.2 flowchart
-  │     Output: Rule classification table + work plan
-  │       (Layer 3 rules include the step name they attach to)
-  │     STOP → user confirms before any code
+  └─ Phase 1 — Read templates & classify rules
+        Reads: {App}-domain-model.md + {App}-aggregate-grouping.md
+        Applies: docs/concepts/decision-guide.md  ←  the §3.2 flowchart
+        Output: Rule classification table + work plan
+          (Layer 3 rules include the step name they attach to)
+        Writes: plan.md  ← authoritative job queue for Phases 2–5
+                PROMPT.md  ← application-specific loop driver
+                run.sh  ← phase-aware bash driver
+        STOP → user confirms classification before any code
+```
+
+### Tier 2 — Loop-based (`run.sh`)
+
+Each invocation of `./run.sh` is a **fresh isolated Claude session** that does exactly one work unit, checks off its boxes in `plan.md`, and exits. The script pauses automatically when a phase boundary is crossed so you can review before continuing.
+
+```
+./run.sh   ← run from applications/<appName>/
   │
-  ├─ Phase 2 — Aggregate scaffolding
-  │     For each aggregate in §1 of grouping:
-  │       /new-aggregate <AggregateName>
-  │         → base class, SagaXxx, CausalXxx stub
-  │         → factories (Sagas + TCC stub), repos, service stub
-  │       add snapshot fields (from §2 of grouping)
-  │       /intra-invariant for all §3.1 rules + any §3.2 reclassified to Layer 1
-  │       register in BeanConfigurationSagas.groovy
-  │       run creation test → fix before next aggregate
-  │     STOP → confirm all creation tests pass
+  ├─ Phase 2 — Aggregate scaffolding  (one session per aggregate)
+  │     Session reads plan.md → finds first aggregate with unchecked items
+  │       /scaffold-aggregate <AggregateName>
+  │         creates all files, adds snapshot fields, adds Layer 1 intra-invariants,
+  │         registers in BeanConfigurationSagas, runs creation test
+  │     STOP at phase boundary → user reviews, re-runs ./run.sh
   │
-  ├─ Phase 3 — Cross-service functionalities
-  │     For each row in §4 of domain model:
-  │       /new-functionality <Name> <PrimaryAggregate> [others...]
-  │         → Sagas workflow (full) + TCC stub
-  │         → command(s), command handler, Functionalities entry, controller
-  │       Wire Layer 3 rules via setForbiddenStates on relevant saga steps
-  │       run functionality tests → fix before next functionality
-  │     Add Layer 2 rules:
-  │       /service-guard <ServiceName> <method> <precondition>
-  │     STOP → confirm all functionality tests pass
+  ├─ Phase 3 — Cross-service functionalities  (one session per functionality)
+  │     Session reads plan.md → finds first functionality with unchecked items
+  │       /implement-functionality <FunctionalityName>
+  │         implements Sagas workflow, TCC stub, commands, handler, service methods,
+  │         controller, wires Layer 3 setForbiddenStates,
+  │         applies Layer 2 guard inline (if listed in plan.md for this functionality),
+  │         runs test
+  │     STOP at phase boundary → user reviews, re-runs ./run.sh
   │
-  ├─ Phase 4 — Event wiring & inter-invariants
-  │     For each row in §4 of grouping (one per event-consumer pair):
-  │       /inter-invariant <ConsumerAggregate> <condition>
-  │         → event class, subscription, handler, polling, EventProcessing chain,
-  │           tracked field, update functionality, service state-update method
-  │       run inter-invariant test → fix before next event
-  │     STOP → confirm all inter-invariant tests pass
+  ├─ Phase 4 — Event wiring & inter-invariants  (one session per event-consumer pair)
+  │     Session reads plan.md → finds first unchecked inter-invariant
+  │       /wire-event <ConsumerAggregate> <EventName>
+  │         implements event class, subscription, handler, polling, EventProcessing
+  │         chain, update functionality, tracked fields, service method, runs test
+  │     STOP at phase boundary → user reviews, re-runs ./run.sh
   │
-  └─ Phase 5 — Full Suite
-        Cross-functionality concurrency tests (executeUntilStep + resumeWorkflow)
+  └─ Phase 5 — Full Suite  (one session)
+        Write cross-functionality concurrency tests
         mvn clean -Ptest-sagas test
+```
+
+---
+
+## Loop Driver Files
+
+Generated by Phase 1 into `applications/<appName>/`:
+
+| File | Purpose |
+|---|---|
+| `plan.md` | Job queue: one checkbox per work unit; sessions tick boxes as they complete each step |
+| `PROMPT.md` | Application-specific prompt telling a fresh session which work unit to pick up, which skill to invoke, and which context files to read |
+| `run.sh` | Bash driver: detects active phase, runs `cat PROMPT.md \| claude`, stops and prompts for review when a phase boundary is crossed |
+
+Usage:
+```bash
+cd applications/<appName>
+./run.sh          # execute one work unit; stops at phase boundary
+# review plan.md, then:
+./run.sh          # continue with next phase
 ```
 
 ---
 
 ## Skill-to-Phase Mapping
 
-| Skill | Called from | Produces |
+### Phase driver skills (loop entry points)
+
+Self-contained: each reads detail files within its skill directory — no sub-skill invocations.
+
+| Skill | Phase | Does |
 |---|---|---|
-| `/new-aggregate` | Phase 2 | base class, Saga variant, Causal stub, factories, repos, service stub |
-| `/intra-invariant` | Phase 2 (per §3.1 + reclassified §3.2) | `invariantXxx()` helper + `verifyInvariants()` call |
-| `/new-functionality` | Phase 3 | Sagas workflow, TCC stub, command, handler, Functionalities entry, controller |
-| `/service-guard` | Phase 3 (Layer 2) | guard check + optional repo query + error constant |
-| `/inter-invariant` | Phase 4 (Layer 4) | event class, subscription, handler, polling, EventProcessing chain, tracked field, update functionality, service method |
+| `/scaffold-aggregate <Name>` | Phase 2 (one call per aggregate) | creates all aggregate files, adds snapshot fields, adds Layer 1 intra-invariants, registers in BeanConfigurationSagas, runs creation test, ticks all plan.md boxes |
+| `/implement-functionality <Name>` | Phase 3 (one call per functionality) | implements Sagas workflow + TCC stub, commands, command handler, service methods, controller, wires Layer 3 `setForbiddenStates`, applies Layer 2 guard if listed in plan.md, runs test, ticks plan.md box |
+| `/wire-event <Consumer> <Event>` | Phase 4 (one call per event-consumer pair) | implements event class, subscription, handler, polling, EventProcessing chain, update functionality + TCC stub, tracked fields in service, runs test, ticks plan.md box |
 
 ---
 
@@ -88,14 +117,14 @@ Applied in Phase 1 to every §3.2 rule. Source: `docs/concepts/decision-guide.md
 For each §3.2 rule:
 
   Does it involve only data inside ONE aggregate (incl. snapshot fields)?
-  └─ YES → Layer 1   /intra-invariant
+  └─ YES → Layer 1   (intra-invariant, added by /scaffold-aggregate)
 
   Must it be checked synchronously?
   └─ YES: reads only the mutated aggregate's own table?
-        └─ YES → Layer 2   /service-guard
-        └─ NO  → Layer 3   /new-functionality + setForbiddenStates
+        └─ YES → Layer 2   (service guard, applied inline by /implement-functionality)
+        └─ NO  → Layer 3   (setForbiddenStates on a saga step, wired by /implement-functionality)
   └─ NO (eventual ~1 s lag acceptable, no blocking needed)?
-        └─ YES → Layer 4   /inter-invariant  (caches state only — never blocks)
+        └─ YES → Layer 4   (inter-invariant, wired by /wire-event — caches state only, never blocks)
 ```
 
 ---
@@ -123,19 +152,21 @@ Produced at the end of Phase 1, confirmed by the user before any code is written
 Rule Classification Table — {AppName}
 
 §3.1 Rules (all → Layer 1):
-  - {RULE_NAME}: Layer 1 → /intra-invariant on {AggregateName}
+  - {RULE_NAME}: Layer 1 (intra-invariant on {AggregateName})
 
 §3.2 Rules:
-  - {RULE_NAME}: Layer {1|2|3|4} → {skill(s)}
-    [Layer 3: attached to step "{StepName}" of /new-functionality {FunctionalityName}]
+  - {RULE_NAME}: Layer {1|2|3|4}
+    [Layer 2: service guard on {ServiceName}.{method} — applied by /implement-functionality {FunctionalityName}]
+    [Layer 3: attached to step "{StepName}" of /implement-functionality {FunctionalityName}]
 
 Aggregates to scaffold:
   - {AggregateName}
 
 Functionalities (from §4 of domain model):
-  - {FunctionalityName}: /new-functionality {FunctionalityName} {PrimaryAggregate} [{OtherAggregates...}]
+  - {FunctionalityName}: /implement-functionality {FunctionalityName} {PrimaryAggregate} [{OtherAggregates...}]
+    [Layer 2 guard: {GUARD_NAME} on {ServiceName}.{method}]  ← only if applicable
 
 Events to wire (from §4 of grouping):
   - {EventName}: {Publisher} → {Consumer(s)}
-    → /inter-invariant {ConsumerAggregate} <condition>
+    → /wire-event {ConsumerAggregate} {EventName}
 ```

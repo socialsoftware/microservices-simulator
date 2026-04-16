@@ -49,7 +49,7 @@ List pairs where the downstream entity must subscribe to the upstream entity's e
 
 ## §4 — Events
 
-Name every domain event published by each upstream aggregate. The AI agent uses this table as the canonical input for each `/inter-invariant` call in Phase 4 of `/new-application`. There must be one row per event — if two consumers subscribe to the same event, they share a single row here.
+Name every domain event published by each upstream aggregate. The AI agent uses this table as the canonical input for each `/wire-event` call in Phase 4 of `/new-application`. There must be one row per event — if two consumers subscribe to the same event, they share a single row here.
 
 > **Trigger** — the service operation (or state change) that causes the event to be published.
 > **Payload** — the fields the event carries (derived from §2 snapshot fields of the consumer(s)).

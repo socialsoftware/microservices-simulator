@@ -66,14 +66,4 @@ mvn clean -Ptest-tcc test
 mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest
 ```
 
----
 
-## Adding New Aggregates or Features
-
-- New aggregate: `/new-aggregate <AggregateName>`
-- New functionality: `/new-functionality <Name> <aggregates...>`
-- New Layer 4 inter-invariant: `/inter-invariant <ConsumerAggregate> <condition>`
-- New Layer 2 service guard: `/service-guard <ServiceName> <operation-method> <precondition>`
-- New intra-invariant (Layer 1): `/intra-invariant <AggregateName> <rule-description>`
-
-For deciding which layer to use for a given rule, see `docs/concepts/decision-guide.md`.

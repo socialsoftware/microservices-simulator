@@ -2,6 +2,10 @@
 
 This file is the entry point for both humans and AI agents. Each section links to the authoritative source for deeper information.
 
+The current objective is to implement a new more complete version of the Quizzes-Tutor application (quizzes-full) with the use of AI agents through skills and documentation.
+Both the documentation and skills are not static - they should evolve as we learn from the process of building quizzes-full, and as we identify gaps and areas for improvement. So any time something is unclear, or you find yourself needing to refer back to the reference quizzes app for guidance, that's a signal that we need to update the documentation or build a new skill to fill that gap.
+The goal is to make the process as smooth and self-contained as possible for future applications, so we want to capture all the learnings and patterns from this implementation in our docs and skills.
+
 ---
 
 ## Build Commands
@@ -10,38 +14,25 @@ This file is the entry point for both humans and AI agents. Each section links t
 # Install core library first
 cd simulator && mvn install
 
-# Run Quizzes application tests
+# Run tests in a specific application (example: quizzes reference app)
 cd applications/quizzes
 
 mvn clean -Ptest-sagas test          # all sagas tests
 mvn clean -Ptest-tcc test            # all TCC tests
 mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest  # single class
+
+# For new applications, run the same commands from applications/<appName>/
 ```
 
 ---
 
 ## Module Map
 
-| Module | Purpose | Local context |
-|--------|---------|---------------|
-| `simulator/` | Core library: `Aggregate`, `Workflow`, `UnitOfWork`, `CommandGateway`, events | [`simulator/CLAUDE.md`](simulator/CLAUDE.md) |
-| `applications/quizzes/` | Quizzes case study built on the simulator | [`applications/quizzes/CLAUDE.md`](applications/quizzes/CLAUDE.md) |
-
----
-
-Core concepts and architectural overview → [`docs/architecture.md`](docs/architecture.md)
-
----
-
-## Key File Locations
-
-| Concern | Path |
-|---------|------|
-| Execution aggregate (with inter-invariants) | `applications/.../execution/aggregate/Execution.java` |
-| Tournament saga functionality (multi-step) | `applications/.../tournament/coordination/sagas/AddParticipantFunctionalitySagas.java` |
-| Test bean config (Sagas) | `applications/.../quizzes/BeanConfigurationSagas.groovy` |
-| Base Spock test class | `applications/.../quizzes/QuizzesSpockTest.groovy` |
-| Error messages | `applications/.../quizzes/microservices/exception/QuizzesErrorMessage.java` |
+| Module | Purpose                                                                                                       | Local context |
+|--------|---------------------------------------------------------------------------------------------------------------|---------------|
+| `simulator/` | Core library: `Aggregate`, `Workflow`, `UnitOfWork`, `CommandGateway`, events                                 | [`simulator/CLAUDE.md`](simulator/CLAUDE.md) |
+| `applications/quizzes/` | Reference example — patterns and templates for new applications                                               | [`applications/quizzes/CLAUDE.md`](applications/quizzes/CLAUDE.md) |
+| `applications/quizzes-full/` | In progress app being built by harnessing AI agents | [`applications/quizzes-full/plan.md`](applications/quizzes-full/plan.md) |
 
 ---
 
@@ -56,6 +47,7 @@ Core concepts and architectural overview → [`docs/architecture.md`](docs/archi
 | TCC merge | [`docs/concepts/tcc.md`](docs/concepts/tcc.md) |
 | Invariant & guard taxonomy | [`docs/concepts/consistency-enforcement.md`](docs/concepts/consistency-enforcement.md) |
 | Consistency layer decision flowchart (AI agent) | [`docs/concepts/decision-guide.md`](docs/concepts/decision-guide.md) |
+| New-application loop-based workflow | [`docs/workflow.md`](docs/workflow.md) |
 | TCC placeholder stub pattern | [`docs/concepts/tcc-placeholder-pattern.md`](docs/concepts/tcc-placeholder-pattern.md) |
 | Domain model template | [`docs/templates/domain-model-template.md`](docs/templates/domain-model-template.md) |
 | Aggregate grouping template | [`docs/templates/aggregate-grouping-template.md`](docs/templates/aggregate-grouping-template.md) |
@@ -65,13 +57,17 @@ Core concepts and architectural overview → [`docs/architecture.md`](docs/archi
 
 ## Available Skills
 
-Invoke these with `/skill-name <arguments>` when implementing new features in `applications/quizzes/`:
+### Bootstrap
 
 | Skill | When to use | Invoke with |
 |-------|------------|-------------|
-| `new-application` | Bootstrap a new application from human-authored templates (reads domain model, classifies rules, implements Sagas) | `/new-application <AppName> [description]` |
-| `new-aggregate` | Scaffold a new domain aggregate (base + Saga + TCC stub + factory + repo) | `/new-aggregate <AggregateName>` |
-| `new-functionality` | Implement a cross-service operation (Sagas only + TCC stub + command handler + controller) | `/new-functionality <Name> <aggregates...>` |
-| `intra-invariant` | Add a Layer 1 intra-invariant (`verifyInvariants` check) inside a single aggregate | `/intra-invariant <AggregateName> <rule-description>` |
-| `service-guard` | Add a Layer 2 service-layer guard (DB read or input validation) that throws before any mutation | `/service-guard <ServiceName> <operation-method> <precondition>` |
-| `inter-invariant` | Add a Layer 4 inter-invariant (event-driven cache sync, no blocking) | `/inter-invariant <ConsumerAggregate> <condition>` |
+| `new-application` | Bootstrap a new application from scratch: reads domain templates, classifies rules, writes `plan.md` + `PROMPT.md` + `run.sh` | `/new-application <path/domain-model.md> <path/aggregate-grouping.md>` |
+
+### Phase driver skills (loop entry points — one work unit per session)
+
+| Skill | Phase | Invoke with |
+|-------|-------|-------------|
+| `scaffold-aggregate` | Phase 2 — one call per aggregate | `/scaffold-aggregate <AggregateName>` |
+| `implement-functionality` | Phase 3 — one call per functionality | `/implement-functionality <FunctionalityName>` |
+| `wire-event` | Phase 4 — one call per event-consumer pair | `/wire-event <ConsumerAggregate> <EventName>` |
+

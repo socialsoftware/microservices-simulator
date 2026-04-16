@@ -2,14 +2,14 @@
 
 ## Quick Reference (AI Agent Entry Point)
 
-For a new application, use this table to decide which skill to invoke for each domain rule. For the full decision flowchart, see [`docs/concepts/decision-guide.md`](decision-guide.md).
+For a new application, use this table to decide how each domain rule is enforced. For the full decision flowchart, see [`docs/concepts/decision-guide.md`](decision-guide.md).
 
-| Rule type | Layer | Skill | Consistency |
-|-----------|-------|-------|-------------|
-| Single-aggregate state rule (§3.1) | 1 | `/intra-invariant` | Strong |
-| Pre-mutation check (DB read or input validation), own service only | 2 | `/service-guard` | Strong |
-| Synchronous check reading a different aggregate | 3 | `/new-functionality` with `setForbiddenStates` | Strong |
-| Cache state from another aggregate (no blocking) | 4 | `/inter-invariant` | Eventual |
+| Rule type | Layer | Implemented by | Consistency |
+|-----------|-------|----------------|-------------|
+| Single-aggregate state rule (§3.1) | 1 | intra-invariant (added by `/scaffold-aggregate`) | Strong |
+| Pre-mutation check (DB read or input validation), own service only | 2 | service guard (applied inline by `/implement-functionality`) | Strong |
+| Synchronous check reading a different aggregate | 3 | saga step with `setForbiddenStates` (wired by `/implement-functionality`) | Strong |
+| Cache state from another aggregate (no blocking) | 4 | inter-invariant (wired by `/wire-event`) | Eventual |
 
 ---
 
@@ -148,8 +148,8 @@ Quiz ─────────────────────────
 For a worked example across multiple invariants:
 → [`docs/examples/tournament-inter-invariants.md`](../examples/tournament-inter-invariants.md)
 
-To scaffold a new inter-invariant:
-→ `/inter-invariant <ConsumerAggregate> <condition>`
+To wire a new inter-invariant (Phase 4):
+→ `/wire-event <ConsumerAggregate> <EventName>`
 
 ---
 
