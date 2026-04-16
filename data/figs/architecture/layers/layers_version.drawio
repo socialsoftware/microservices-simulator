@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
   <diagram name="Page-1" id="Nym5sldfmkzrC4iRWOlO">
-    <mxGraphModel dx="1187" dy="702" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="982" dy="581" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -8,7 +8,7 @@
           <mxGeometry height="350" width="870" x="160" y="290" as="geometry" />
         </mxCell>
         <mxCell id="Ov1xBlom3--HKTA3MHjy-18" parent="1" style="whiteSpace=wrap;strokeWidth=2;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;container=0;verticalAlign=top;fontStyle=1" value="Messaging Module" vertex="1">
-          <mxGeometry height="110" width="420" x="610" y="160" as="geometry" />
+          <mxGeometry height="110" width="500" x="530" y="160" as="geometry" />
         </mxCell>
         <mxCell id="Ov1xBlom3--HKTA3MHjy-6" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#F3C082;strokeColor=#000000;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;container=0;" value="Centralized VersionService" vertex="1">
           <mxGeometry height="50" width="130" x="355" y="480" as="geometry" />
@@ -20,13 +20,13 @@
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="660" y="450" />
-              <mxPoint x="760" y="450" />
+              <mxPoint x="770" y="450" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="JDgqE37J9f49GVfY9XjJ-1" connectable="0" parent="Ov1xBlom3--HKTA3MHjy-30" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;div&gt;send()&lt;/div&gt;" vertex="1">
           <mxGeometry relative="1" x="-0.6586" y="-2" as="geometry">
-            <mxPoint x="68" y="-233" as="offset" />
+            <mxPoint x="80" y="-192" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="Ov1xBlom3--HKTA3MHjy-38" edge="1" parent="1" source="Ov1xBlom3--HKTA3MHjy-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;" target="Ov1xBlom3--HKTA3MHjy-11">
@@ -58,6 +58,14 @@
         <mxCell id="Ov1xBlom3--HKTA3MHjy-40" connectable="0" parent="Ov1xBlom3--HKTA3MHjy-33" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="handles" vertex="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="15" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rWaqiGOlafWAdZgecZlV-2" edge="1" parent="1" source="Ov1xBlom3--HKTA3MHjy-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;endSize=16;" target="rWaqiGOlafWAdZgecZlV-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="655" y="300" />
+              <mxPoint x="655" y="300" />
+            </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="Ov1xBlom3--HKTA3MHjy-10" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#F3C082;strokeColor=#000000;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;container=0;" value="VersionCommandHandler" vertex="1">
@@ -116,10 +124,10 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="Ov1xBlom3--HKTA3MHjy-29" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ECA485;strokeColor=#000000;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;container=0;" value="CommandGateway" vertex="1">
-          <mxGeometry height="50" width="170" x="640" y="190" as="geometry" />
+          <mxGeometry height="50" width="130" x="720" y="190" as="geometry" />
         </mxCell>
         <mxCell id="Ov1xBlom3--HKTA3MHjy-31" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ECA485;strokeColor=#000000;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;container=0;" value="Command" vertex="1">
-          <mxGeometry height="50" width="160" x="850" y="190" as="geometry" />
+          <mxGeometry height="50" width="120" x="870" y="190" as="geometry" />
         </mxCell>
         <mxCell id="FmJwXlvKxK07wIOhyJU8-3" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#F3C082;strokeColor=#000000;" value="&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;br style=&quot;padding: 0px; margin: 0px;&quot;&gt;IVersionService" vertex="1">
           <mxGeometry height="90" width="180" x="330" y="320" as="geometry">
@@ -128,6 +136,9 @@
         </mxCell>
         <mxCell id="FmJwXlvKxK07wIOhyJU8-4" parent="FmJwXlvKxK07wIOhyJU8-3" style="text;strokeColor=#000000;fillColor=#F3C082;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;strokeWidth=2;" value="&lt;span style=&quot;font-size: 10px;&quot;&gt;+&amp;nbsp;getVersionNumber()&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;+&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; font-size: 10px;&quot;&gt;getNextVersionNumber()&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; font-size: 10px;&quot;&gt;+&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; font-size: 10px;&quot;&gt;incrementAndGetVersionNumber()&lt;/span&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="50" width="180" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="rWaqiGOlafWAdZgecZlV-1" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ECA485;strokeColor=#000000;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;container=0;" value="CommandHandler" vertex="1">
+          <mxGeometry height="50" width="130" x="570" y="190" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

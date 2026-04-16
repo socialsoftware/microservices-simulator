@@ -70,6 +70,24 @@ class CircuitBreakerTest extends SpockTest {
         LocalBeanConfiguration.retryableAttempts.get() == 5
     }
 
+    def "retry mechanism retries on RuntimeException with sendAsync"() {
+        given:
+        def command = new Command(null, "retryable", null)
+
+        when:
+        def failureCount = 0
+        try {
+            localCommandGateway.sendAsync(command).get()
+        } catch (Exception e) {
+            failureCount++
+            assert e.cause instanceof RuntimeException
+        }
+
+        then:
+        failureCount == 1
+        LocalBeanConfiguration.retryableAttempts.get() == 5
+    }
+
     def "retry mechanism does not retry on SimulatorException"() {
         given:
         def command = new Command(null, "simulatorException", null)
@@ -87,12 +105,42 @@ class CircuitBreakerTest extends SpockTest {
         LocalBeanConfiguration.simulatorExceptionAttempts.get() == 1
     }
 
+    def "retry mechanism does not retry on SimulatorException with sendAsync"() {
+        given:
+        def command = new Command(null, "simulatorException", null)
+
+        when:
+        def failureCount = 0
+        try {
+            localCommandGateway.sendAsync(command).get()
+        } catch (Exception e) {
+            failureCount++
+            assert e.cause instanceof SimulatorException
+        }
+
+        then:
+        failureCount == 1
+        LocalBeanConfiguration.simulatorExceptionAttempts.get() == 1
+    }
+
     def "retry mechanism succeeds after retries"() {
         given:
         def command = new Command(null, "eventuallySucceeds", null)
 
         when:
         def result = localCommandGateway.send(command)
+
+        then:
+        result == "Success after retries"
+        LocalBeanConfiguration.eventuallySucceedsAttempts.get() == 3
+    }
+
+    def "retry mechanism succeeds after retries with sendAsync"() {
+        given:
+        def command = new Command(null, "eventuallySucceeds", null)
+
+        when:
+        def result = localCommandGateway.sendAsync(command).get()
 
         then:
         result == "Success after retries"
@@ -207,16 +255,13 @@ class CircuitBreakerTest extends SpockTest {
         @Bean
         CommandHandler eventuallySucceedsCommandHandler() {
             return new CommandHandler() {
-                private int callCount = 0
-
                 @Override
                 public String getAggregateTypeName() { return "test" }
 
                 @Override
                 public Object handleDomainCommand(Command command) {
-                    eventuallySucceedsAttempts.incrementAndGet()
-                    callCount++
-                    if (callCount < 3) {
+                    def attempts = eventuallySucceedsAttempts.incrementAndGet()
+                    if (attempts < 3) {
                         throw new RuntimeException("Temporary failure")
                     }
                     return "Success after retries"

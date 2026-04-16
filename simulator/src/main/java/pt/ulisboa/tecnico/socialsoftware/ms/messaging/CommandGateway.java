@@ -55,7 +55,8 @@ public abstract class CommandGateway {
     public abstract Object send(Command command);
 
     public CompletableFuture<Object> sendAsync(Command command) {
-        return CompletableFuture.supplyAsync(() -> send(command), executor);
+        CommandGateway proxiedGateway = applicationContext.getBean(CommandGateway.class);
+        return CompletableFuture.supplyAsync(() -> proxiedGateway.send(command), executor);
     }
 
     @SuppressWarnings("unused")
