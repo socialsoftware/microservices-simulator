@@ -68,6 +68,8 @@ public void verifyInvariants() {
 If the rule applies to all states, add it outside the `if (ACTIVE)` block.
 If a rule-specific error constant is more descriptive than `INVARIANT_BREAK`, use it (see Step 4).
 
+> **The combined `&&` pattern is intentional.** `verifyInvariants()` is a single gate: all invariants sharing the same state scope are combined into one block. Using a generic `INVARIANT_BREAK` for that block is correct and expected — the individual `boolean invariantXxx()` method names serve as the diagnostic labels. Do not split into separate `if` blocks per invariant unless two invariants belong to different state scopes (e.g., one is ACTIVE-only and another applies in all states).
+
 ---
 
 ## Step 4 — Add error message constant (optional)

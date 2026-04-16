@@ -127,10 +127,11 @@ Add at minimum a `create<Aggregate>` method:
 ```java
 Integer aggregateId = unitOfWorkService.generateAggregateId();
 <Aggregate> agg = factory.createAggregate(aggregateId, dto /*, refs */);
-agg.verifyInvariants();
 unitOfWorkService.registerChanged(agg, unitOfWork);
 return new <Aggregate>Dto(agg);
 ```
+
+> **Do not call `agg.verifyInvariants()` directly.** `registerChanged` always calls it internally before writing — it is the single place that owns this responsibility. Calling it from a service method is redundant and misleading (it implies the service layer is responsible, which causes omissions in `getOrCreate`-style paths).
 
 > **R2** — Only inject this aggregate's own repository, custom repository, and factory,
 > plus `UnitOfWorkService` and `AggregateIdGeneratorService`. Never inject another aggregate's
