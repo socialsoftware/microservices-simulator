@@ -33,11 +33,11 @@ For each aggregate: scaffold → add snapshot fields → add Layer 1 intra-invar
 - [x] Creation test passes (`UserTest`)
 
 ### Topic
-- [ ] Scaffolded (`/scaffold-aggregate Topic`)
-- [ ] Snapshot fields added: `courseId` (from `CourseUpdatedEvent`)
-- [ ] Layer 1 intra-invariants added: *(none beyond §3.1 already listed)*
-- [ ] Registered in `BeanConfigurationSagas.groovy`
-- [ ] Creation test passes (`TopicTest`)
+- [x] Scaffolded (`/scaffold-aggregate Topic`)
+- [x] Snapshot fields added: `courseId` (from `CourseUpdatedEvent`)
+- [x] Layer 1 intra-invariants added: *(none)*
+- [x] Registered in `BeanConfigurationSagas.groovy`
+- [x] Creation test passes (`TopicTest`)
 
 ### CourseExecution
 - [ ] Scaffolded (`/scaffold-aggregate CourseExecution`)
