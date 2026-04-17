@@ -69,7 +69,8 @@ Each invocation of `./run.sh` is a **fresh isolated Claude session** that does e
   │     STOP at phase boundary → user reviews, re-runs ./run.sh
   │
   └─ Phase 5 — Full Suite  (one session)
-        Write cross-functionality concurrency tests
+        Write T4 cross-functionality tests, T5 fault/compensation tests, T6 async tests
+        (see docs/concepts/testing.md for selection rules and templates)
         mvn clean -Ptest-sagas test
 ```
 
@@ -92,6 +93,26 @@ cd applications/<appName>
 # review plan.md, then:
 ./run.sh          # continue with next phase
 ```
+
+---
+
+## Testing
+
+Every application must have all six test types defined in [`docs/concepts/testing.md`](concepts/testing.md).
+
+| Test type | Phase created | Skill that writes it | Naming pattern |
+|-----------|---------------|----------------------|----------------|
+| T1 Creation | Phase 2 | `/scaffold-aggregate` | `<Aggregate>Test` |
+| T2 Functionality | Phase 3 | `/implement-functionality` | `<FunctionalityName>Test` |
+| T3 Inter-Invariant | Phase 4 | `/wire-event` | `<Consumer>InterInvariantTest` |
+| T4 Cross-Functionality | Phase 5 | manual | `<Op1>And<Op2>Test` |
+| T5 Fault/Behavior | Phase 5 | manual | `<Functionality>FaultTest` |
+| T6 Async | Phase 5 | manual | `<Functionality>AsyncTest` |
+
+**Phase 5 must have an explicit, named test list** — not just examples. Use the derivation rules in
+`docs/concepts/testing.md § Phase 5 — How to Derive the Test List` to enumerate T4, T5, and T6
+tests before any Phase 5 code is written. The `/new-application` skill generates this list
+automatically in `plan.md`.
 
 ---
 

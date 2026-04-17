@@ -243,9 +243,15 @@ If there are no Layer 3 rules for this functionality, skip.
 
 ## Step 9 — Run the test
 
-Write a test at `src/test/groovy/.../sagas/coordination/<primaryAggregate>/<FunctionalityName>Test.groovy`
-covering: happy path, invariant/guard violations, and at least one concurrent-interleaving case
-using `executeUntilStep` + `resumeWorkflow`.
+Write a T2 test at `src/test/groovy/.../sagas/coordination/<primaryAggregate>/<FunctionalityName>Test.groovy`.
+Follow the T2 template in `docs/concepts/testing.md`. Cover:
+
+1. **Happy path** — workflow completes, result is correct
+2. **Invariant/guard violations** — one `thrown()` case per Layer 1 / Layer 2 rule
+3. **Step-interleaving** — for each saga step that declares `setForbiddenStates` (Layer 3),
+   add one case using `executeUntilStep("<stepName>", uow)` + `resumeWorkflow(uow)` where a
+   conflicting operation locks the foreign aggregate between steps. Do not cover just one step
+   when there are multiple; one interleaving case per guarded step boundary.
 
 Then run:
 ```bash

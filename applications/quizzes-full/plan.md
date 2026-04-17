@@ -278,5 +278,29 @@ One `/wire-event` call per (event, consumer) pair. 38 total.
 
 ## Phase 5 — Full Suite
 
-- [ ] Cross-functionality concurrency tests written (e.g., `AddParticipantAndUpdateStudentNameTest`, `AnonymizeStudentAndCreateQuizAnswerTest`)
+See `docs/concepts/testing.md` for templates and selection rationale.
+
+### T4 — Cross-Functionality Concurrency Tests
+
+- [ ] `AddParticipantAndUpdateStudentNameTest` — Tournament + User/CourseExecution: add participant while student name is being updated
+- [ ] `AddParticipantAndAnonymizeStudentTest` — Tournament + User: add participant while student is being anonymized
+- [ ] `AddParticipantAndEnrollStudentTest` — Tournament + CourseExecution: add participant while enrollment is in flight
+- [ ] `AddParticipantAndCreateTournamentTest` — Tournament self-concurrent: add participant while another tournament is being created on the same execution
+- [ ] `AddParticipantAndUpdateTournamentTest` — Tournament self-concurrent: add participant while tournament is being updated
+- [ ] `AnonymizeStudentAndCreateQuizAnswerTest` — User + QuizAnswer: anonymize student while quiz answer is being created
+- [ ] `EnrollStudentAndAnonymizeStudentTest` — CourseExecution + User: enroll student while same student is being anonymized
+
+### T5 — Fault / Compensation Tests
+
+- [ ] `CreateCourseExecutionCompensationTest` — verify rollback when CreateCourseExecution fails mid-saga
+- [ ] `CreateTournamentFaultTest` — verify tournament saga compensates on step failure
+- [ ] `AddParticipantFaultTest` — verify participant add compensates correctly
+
+### T6 — Async Tests
+
+- [ ] `CreateTournamentAsyncTest` — multiple concurrent tournament creations on the same execution
+- [ ] `AddParticipantAsyncTest` — multiple concurrent participant additions to the same tournament
+
+### Final run
+
 - [ ] `mvn clean -Ptest-sagas test` — full suite green

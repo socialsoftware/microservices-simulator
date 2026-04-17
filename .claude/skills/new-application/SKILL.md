@@ -121,7 +121,10 @@ Structure the file with one section per phase. Use GitHub-flavored **checkboxes*
 - **Phase 2 section** — one sub-section per aggregate; each sub-section has checkboxes for: scaffold, snapshot fields added, Layer 1 intra-invariants added (list each rule), registered in `BeanConfigurationSagas`, creation test passes.
 - **Phase 3 section** — one checkbox per functionality with its `/implement-functionality` invocation; list Layer 3 rules (and which saga step they wire into) as sub-bullets; if a Layer 2 guard applies, add a nested `- [ ] Layer 2 guard applied: <GUARD_NAME>` checkbox inside the functionality block.
 - **Phase 4 section** — one checkbox per (event, consumer) inter-invariant pair grouped by event, with the expected test class noted.
-- **Phase 5 section** — checkboxes for cross-functionality concurrency tests and the full suite run.
+- **Phase 5 section** — an explicit, named list of T4, T5, and T6 tests (not just "examples"), plus the full suite run checkbox. Derive the list using the rules in `docs/concepts/testing.md § Phase 5 — How to Derive the Test List`:
+  - **T4 Cross-Functionality tests**: build a map of aggregate → functionalities; for each aggregate shared by ≥2 functionalities, enumerate the high-risk (A, B) pairs and name a `<PrimaryOpA>And<PrimaryOpB>Test`
+  - **T5 Fault tests**: one `<Functionality>FaultTest` per functionality whose saga has ≥2 steps
+  - **T6 Async tests**: one `<Functionality>AsyncTest` for the 2–3 most concurrency-prone operations
 
 ### 1.5 Write `PROMPT.md` and `run.sh` after user confirms
 

@@ -225,8 +225,9 @@ public void update<Xxx>(Integer aggregateId, <EventName> event, UnitOfWork unitO
 
 ## Step 11 — Run the test
 
-Add test cases to `src/test/groovy/.../sagas/<consumer>/<Consumer>InterInvariantTest.groovy`
-(or the existing file if prior inter-invariants for this consumer were wired already).
+Add T3 test cases to `src/test/groovy/.../sagas/<consumer>/<Consumer>InterInvariantTest.groovy`
+(or the existing file if prior inter-invariants for this consumer were already wired).
+Follow the T3 template in `docs/concepts/testing.md`.
 
 Cover:
 - Event received → consumer aggregate reflects the change

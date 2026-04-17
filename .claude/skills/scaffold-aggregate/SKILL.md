@@ -99,6 +99,11 @@ Tick in `plan.md`:
 
 ## Step 5 — Run the creation test
 
+Write the T1 creation test at `src/test/groovy/.../sagas/<aggregate>/<AggregateName>Test.groovy`.
+Follow the T1 template in `docs/concepts/testing.md`: one happy-path case + one failing case per
+intra-invariant added in Step 3.
+
+Then run:
 ```bash
 cd applications/<appName>
 mvn clean -Ptest-sagas test -Dtest=<AggregateName>Test
