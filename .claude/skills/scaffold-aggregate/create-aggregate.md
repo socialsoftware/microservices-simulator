@@ -22,11 +22,13 @@ File: `microservices/<aggregate>/aggregate/<Aggregate>.java`
 
 - Extend `Aggregate`
 - Add all fields with getters/setters
+- For boolean fields (e.g., `active`): use `is<FieldName>()` getter naming convention (e.g., `isActive()`, not `getActive()`); always add `@Column(columnDefinition = "boolean default false")` to set the DB default
 - Implement default constructor, creation constructor (calls `super(aggregateId)` and
   `setAggregateType(getClass().getSimpleName())`), copy constructor (copies ALL fields including
   snapshot fields declared in the outer scaffold step)
 - Implement `verifyInvariants()` — empty body initially; intra-invariant helpers are added next
 - Implement `getEventSubscriptions()` — return empty set initially; event wiring happens in Phase 4
+- Add a trivial `@Override public void remove() { super.remove(); }` method (required by Phase 3 delete/anonymize operations)
 
 ---
 
@@ -64,13 +66,15 @@ public class Causal<Aggregate> extends <Aggregate> implements CausalAggregate {
 
     public Causal<Aggregate>() { super(); }
 
+    public Causal<Aggregate>(Integer aggregateId, <Aggregate>Dto <aggregateLower>Dto) { super(aggregateId, <aggregateLower>Dto); }
+
     public Causal<Aggregate>(<Aggregate> other) { super(other); }
 
     @Override
     public Set<String> getMutableFields() { return Set.of(); }
 
     @Override
-    public Set<Pair<String, String>> getIntentions() { return Set.of(); }
+    public Set<String[]> getIntentions() { return Set.of(); }
 
     @Override
     public Aggregate mergeFields(Set<String> toCommitChangedFields,
@@ -150,14 +154,16 @@ functionalities are implemented in Phase 3.
 
 ## Checklist
 
-- [ ] Base abstract class: correct constructors, `verifyInvariants()`, `getEventSubscriptions()`
-- [ ] `<Aggregate>SagaState` enum with `NOT_IN_SAGA`
+- [ ] Base abstract class: correct constructors (`no-arg`, `(Id, Dto)`, copy), `verifyInvariants()`, `getEventSubscriptions()`, `remove()` override
+- [ ] Boolean fields use `is<FieldName>()` getter with `@Column(columnDefinition = "boolean default false")`
+- [ ] `<Aggregate>SagaState` enum with at least `NOT_IN_SAGA`
 - [ ] `Saga<Aggregate>`: implements `SagaAggregate`, copies `sagaState`
-- [ ] `Causal<Aggregate>`: stub — `getMutableFields() → Set.of()`, `getIntentions() → Set.of()`, `mergeFields() → return this`
+- [ ] `Causal<Aggregate>`: stub with three constructors (`no-arg`, `(Id, Dto)`, copy); `getMutableFields() → Set.of()`, `getIntentions() → Set.of()`, `mergeFields() → return this`
 - [ ] Sagas factory (creates `Saga<Aggregate>`)
 - [ ] TCC factory stub (throws `UnsupportedOperationException`)
 - [ ] Common repository interface
 - [ ] Saga repository
 - [ ] TCC repository stub
-- [ ] Service stub with `create<Aggregate>`
+- [ ] Service stub with `create<Aggregate>` and `get<Aggregate>ById`
 - [ ] Command handler stub
+- [ ] DTO includes `AggregateState state` field and populates it in copy constructor

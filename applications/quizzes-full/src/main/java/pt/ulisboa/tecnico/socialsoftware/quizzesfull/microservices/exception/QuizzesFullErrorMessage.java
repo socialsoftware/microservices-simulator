@@ -28,6 +28,7 @@ public final class QuizzesFullErrorMessage {
     public static final String USER_MISSING_NAME = "User requires a name.";
     public static final String USER_MISSING_USERNAME = "User requires a username.";
     public static final String USER_MISSING_ROLE = "User requires a role.";
+    public static final String USER_ACTIVE_WHEN_DELETED = "User in DELETED state must have active = false.";
     public static final String INACTIVE_USER = "Cannot add course execution to inactive user.";
     public static final String USER_IS_ANONYMOUS = "Cannot add anonymous user %d.";
 

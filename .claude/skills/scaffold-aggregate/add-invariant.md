@@ -47,6 +47,8 @@ private boolean invariantRuleName() {
 }
 ```
 
+**Before proceeding, check `<App>ErrorMessage.java` for an existing constant matching this rule.** If none exists, add one in Step 4 (see below) and note it here.
+
 ---
 
 ## Step 3 — Call from `verifyInvariants()`
@@ -75,14 +77,18 @@ If the rule applies to all states, add it outside the `if (ACTIVE)` block but st
 
 ## Step 4 — Add error message constant
 
-Add a domain-specific error constant to `<App>ErrorMessage.java`:
+**Every invariant violation must throw using a constant from `<App>ErrorMessage.java`.** No raw strings.
+
+Add a domain-specific error constant if none exists:
 
 ```java
 RULE_NAME_ERROR("Human-readable message explaining the invariant violation"),
 ```
 
 Prefer a specific constant per invariant — it should explain what went wrong in domain terms.
-`INVARIANT_BREAK` is now reserved for cases where no specific constant is appropriate.
+`INVARIANT_BREAK` is now reserved as a last resort only, when truly no domain-specific constant fits.
+
+**This constant MUST be imported and used in Step 3 throws statements.**
 
 ---
 
@@ -105,6 +111,6 @@ At the top of the aggregate class, add the new rule name to the `INTRA-INVARIANT
 ## Checklist (per rule)
 
 - [ ] `invariant<RuleName>()` private boolean helper added (or documented as compile-time guarantee)
-- [ ] `verifyInvariants()` updated with the new call in the correct state-scoping block
-- [ ] Error message constant added if rule-specific (otherwise `INVARIANT_BREAK` reused)
+- [ ] Error message constant added in `<App>ErrorMessage.java` and imported
+- [ ] `verifyInvariants()` updated with the new call in the correct state-scoping block, **throwing a domain constant** (never raw strings)
 - [ ] Class-level `INTRA-INVARIANTS` comment updated with the new rule name

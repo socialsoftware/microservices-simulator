@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.USER_MISSING_ROLE;
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.USER_ACTIVE_WHEN_DELETED;
 
 /*
     INTRA-INVARIANTS:
@@ -45,7 +46,7 @@ public abstract class User extends Aggregate {
     @Enumerated(EnumType.STRING)
     private final Role role;
 
-    @Column
+    @Column(columnDefinition = "boolean default false")
     private Boolean active;
 
     public User() {
@@ -63,7 +64,7 @@ public abstract class User extends Aggregate {
         this.name = userDto.getName();
         this.username = userDto.getUsername();
         this.role = userDto.getRole() != null ? Role.valueOf(userDto.getRole()) : null;
-        this.active = userDto.getActive() != null ? userDto.getActive() : true;
+        this.active = false;
     }
 
     public User(User other) {
@@ -72,12 +73,17 @@ public abstract class User extends Aggregate {
         this.name = other.getName();
         this.username = other.getUsername();
         this.role = other.getRole();
-        this.active = other.getActive();
+        this.active = other.isActive();
     }
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         return new HashSet<>();
+    }
+
+    @Override
+    public void remove() {
+        super.remove();
     }
 
     /*
@@ -107,7 +113,7 @@ public abstract class User extends Aggregate {
             }
         }
         if (!invariantUserDeletedState()) {
-            throw new QuizzesFullException("User in DELETED state must have active = false");
+            throw new QuizzesFullException(USER_ACTIVE_WHEN_DELETED);
         }
     }
 
@@ -135,7 +141,7 @@ public abstract class User extends Aggregate {
         return role;
     }
 
-    public Boolean getActive() {
+    public Boolean isActive() {
         return active;
     }
 

@@ -36,7 +36,7 @@ class UserTest extends QuizzesFullSpockTest {
         result.getName() == USER_NAME_1
         result.getUsername() == USER_USERNAME_1
         result.getRole() == STUDENT_ROLE
-        result.getActive() == true
+        result.getActive() == false
         result.getAggregateId() != null
     }
 
@@ -77,7 +77,7 @@ class UserTest extends QuizzesFullSpockTest {
         result.getName() == USER_NAME_2
         result.getUsername() == USER_USERNAME_2
         result.getRole() == TEACHER_ROLE
-        result.getActive() == true
+        result.getActive() == false
         result.getAggregateId() != null
     }
 }

@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState;
 import java.io.Serializable;
 
 public class UserDto implements Serializable {
@@ -10,6 +11,7 @@ public class UserDto implements Serializable {
     private String role;
     private Boolean active;
     private Long version;
+    private AggregateState state;
 
     public UserDto() {
     }
@@ -20,8 +22,9 @@ public class UserDto implements Serializable {
         setName(user.getName());
         setUsername(user.getUsername());
         setRole(user.getRole() != null ? user.getRole().toString() : null);
-        setActive(user.getActive());
+        setActive(user.isActive());
         setVersion(user.getVersion());
+        setState(user.getState());
     }
 
     public Integer getAggregateId() {
@@ -78,5 +81,13 @@ public class UserDto implements Serializable {
 
     public void setVersion(Long version) {
         this.version = version;
+    }
+
+    public AggregateState getState() {
+        return state;
+    }
+
+    public void setState(AggregateState state) {
+        this.state = state;
     }
 }
