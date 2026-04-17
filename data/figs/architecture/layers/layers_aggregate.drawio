@@ -5,7 +5,7 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="XiRiiboalj0tHm2x6-l8-9" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;container=0;fontSize=13;fontStyle=1" value="Notification Module" vertex="1">
-          <mxGeometry height="130" width="180" x="310" y="280" as="geometry" />
+          <mxGeometry height="130" width="230" x="400" y="280" as="geometry" />
         </mxCell>
         <mxCell id="YfHP9GBOUUqT3W_q0Hfi-16" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;fontSize=14;fontStyle=1" value="Aggregate Module" vertex="1">
           <mxGeometry height="440" width="460" x="170" y="430" as="geometry" />
@@ -71,8 +71,8 @@
         <mxCell id="hX1dwjhNxIo2W7Hqn8s9-1" edge="1" parent="1" source="XiRiiboalj0tHm2x6-l8-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="XiRiiboalj0tHm2x6-l8-10">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="515" y="420" />
-              <mxPoint x="400" y="420" />
+              <mxPoint x="515" y="390" />
+              <mxPoint x="515" y="390" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -109,7 +109,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="XiRiiboalj0tHm2x6-l8-10" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#FFE599;" value="EventService" vertex="1">
-          <mxGeometry height="70" width="140" x="330" y="320" as="geometry">
+          <mxGeometry height="70" width="140" x="445" y="320" as="geometry">
             <mxRectangle height="30" width="70" x="340" y="830" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
