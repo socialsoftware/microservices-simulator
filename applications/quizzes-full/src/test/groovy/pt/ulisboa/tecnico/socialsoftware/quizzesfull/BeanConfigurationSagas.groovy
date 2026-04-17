@@ -27,6 +27,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.repositories.CourseCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.service.CourseService
 
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.sagas.factories.SagasUserFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.sagas.repositories.UserCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.service.UserService
+
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
 class BeanConfigurationSagas {
@@ -123,5 +127,21 @@ class BeanConfigurationSagas {
     @Bean
     CourseService courseService(SagaUnitOfWorkService uowService, CourseCustomRepositorySagas courseCustomRepository) {
         return new CourseService(uowService, courseCustomRepository)
+    }
+
+    // User
+    @Bean
+    UserCustomRepositorySagas userCustomRepositorySagas() {
+        return new UserCustomRepositorySagas()
+    }
+
+    @Bean
+    SagasUserFactory sagasUserFactory() {
+        return new SagasUserFactory()
+    }
+
+    @Bean
+    UserService userService(SagaUnitOfWorkService uowService, UserCustomRepositorySagas userCustomRepository) {
+        return new UserService(uowService, userCustomRepository)
     }
 }

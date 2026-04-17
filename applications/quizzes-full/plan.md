@@ -26,11 +26,11 @@ For each aggregate: scaffold → add snapshot fields → add Layer 1 intra-invar
 - [x] Creation test passes (`CourseTest`)
 
 ### User
-- [ ] Scaffolded (`/scaffold-aggregate User`)
-- [ ] Snapshot fields added (none — User is a root publisher)
-- [ ] Layer 1 intra-invariants added: USER_KEY_FINAL, USER_ROLE_FINAL, USER_ROLE_NOT_NULL, USER_DELETED_STATE
-- [ ] Registered in `BeanConfigurationSagas.groovy`
-- [ ] Creation test passes (`UserTest`)
+- [x] Scaffolded (`/scaffold-aggregate User`)
+- [x] Snapshot fields added (none — User is a root publisher)
+- [x] Layer 1 intra-invariants added: USER_KEY_FINAL, USER_ROLE_FINAL, USER_ROLE_NOT_NULL, USER_DELETED_STATE
+- [x] Registered in `BeanConfigurationSagas.groovy`
+- [x] Creation test passes (`UserTest`)
 
 ### Topic
 - [ ] Scaffolded (`/scaffold-aggregate Topic`)
