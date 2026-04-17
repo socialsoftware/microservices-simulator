@@ -54,75 +54,24 @@ File: `microservices/<aggregate>/aggregate/sagas/Saga<Aggregate>.java`
 
 ---
 
-## Step 4 — CausalXxx stub (TCC placeholder)
-
-File: `microservices/<aggregate>/aggregate/causal/Causal<Aggregate>.java`
-
-Stub only — do not implement real merge logic:
-
-```java
-@Entity
-public class Causal<Aggregate> extends <Aggregate> implements CausalAggregate {
-
-    public Causal<Aggregate>() { super(); }
-
-    public Causal<Aggregate>(Integer aggregateId, <Aggregate>Dto <aggregateLower>Dto) { super(aggregateId, <aggregateLower>Dto); }
-
-    public Causal<Aggregate>(<Aggregate> other) { super(other); }
-
-    @Override
-    public Set<String> getMutableFields() { return Set.of(); }
-
-    @Override
-    public Set<String[]> getIntentions() { return Set.of(); }
-
-    @Override
-    public Aggregate mergeFields(Set<String> toCommitChangedFields,
-                                  Aggregate committedVersion,
-                                  Set<String> committedChangedFields) {
-        return this;
-    }
-}
-```
-
----
-
-## Step 5 — Factories
+## Step 4 — Factories
 
 **Sagas factory** — `sagas/factories/Sagas<Aggregate>Factory.java`:
 - Implements `AggregateFactory<Saga<Aggregate>>`
 - `createAggregate(...)` returns a new `Saga<Aggregate>` instance
 - `copy(Saga<Aggregate> existing)` returns `new Saga<Aggregate>(existing)`
 
-**TCC factory stub** — `causal/factories/Causal<Aggregate>Factory.java`:
-```java
-@Component
-@Profile("tcc")
-public class Causal<Aggregate>Factory extends <Aggregate>Factory {
-    @Override
-    public Causal<Aggregate> createAggregate(...) {
-        throw new UnsupportedOperationException("TCC not implemented");
-    }
-    @Override
-    public Causal<Aggregate> copy(<Aggregate> existing) {
-        throw new UnsupportedOperationException("TCC not implemented");
-    }
-}
-```
-
 ---
 
-## Step 6 — Repositories
+## Step 5 — Repositories
 
 - `<Aggregate>CustomRepository.java` — shared interface, extends `AggregateRepository<T>`
 - `sagas/repositories/<Aggregate>CustomRepositorySagas.java` — extends both above and
   `SagaAggregateRepository<Saga<Aggregate>>`
-- `causal/repositories/<Aggregate>CustomRepositoryTCC.java` — stub: extends both above and
-  `CausalAggregateRepository<Causal<Aggregate>>`, no additional methods
 
 ---
 
-## Step 7 — Service stub
+## Step 6 — Service stub
 
 File: `microservices/<aggregate>/service/<Aggregate>Service.java`
 
@@ -143,7 +92,7 @@ return new <Aggregate>Dto(agg);
 
 ---
 
-## Step 8 — Command handler stub
+## Step 7 — Command handler stub
 
 File: `microservices/<aggregate>/coordination/<Aggregate>CommandHandler.java`
 
@@ -158,12 +107,9 @@ functionalities are implemented in Phase 3.
 - [ ] Boolean fields use `is<FieldName>()` getter with `@Column(columnDefinition = "boolean default false")`
 - [ ] `<Aggregate>SagaState` enum with at least `NOT_IN_SAGA`
 - [ ] `Saga<Aggregate>`: implements `SagaAggregate`, copies `sagaState`
-- [ ] `Causal<Aggregate>`: stub with three constructors (`no-arg`, `(Id, Dto)`, copy); `getMutableFields() → Set.of()`, `getIntentions() → Set.of()`, `mergeFields() → return this`
 - [ ] Sagas factory (creates `Saga<Aggregate>`)
-- [ ] TCC factory stub (throws `UnsupportedOperationException`)
 - [ ] Common repository interface
 - [ ] Saga repository
-- [ ] TCC repository stub
 - [ ] Service stub with `create<Aggregate>` and `get<Aggregate>ById`
 - [ ] Command handler stub
 - [ ] DTO includes `AggregateState state` field and populates it in copy constructor

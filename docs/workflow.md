@@ -55,7 +55,7 @@ Each invocation of `./run.sh` is a **fresh isolated Claude session** that does e
   ├─ Phase 3 — Cross-service functionalities  (one session per functionality)
   │     Session reads plan.md → finds first functionality with unchecked items
   │       /implement-functionality <FunctionalityName>
-  │         implements Sagas workflow, TCC stub, commands, handler, service methods,
+  │         implements Sagas workflow, commands, handler, service methods,
   │         controller, wires Layer 3 setForbiddenStates,
   │         applies Layer 2 guard inline (if listed in plan.md for this functionality),
   │         runs test
@@ -125,8 +125,8 @@ Self-contained: each reads detail files within its skill directory — no sub-sk
 | Skill | Phase | Does |
 |---|---|---|
 | `/scaffold-aggregate <Name>` | Phase 2 (one call per aggregate) | creates all aggregate files, adds snapshot fields, adds Layer 1 intra-invariants, registers in BeanConfigurationSagas, runs creation test, ticks all plan.md boxes |
-| `/implement-functionality <Name>` | Phase 3 (one call per functionality) | implements Sagas workflow + TCC stub, commands, command handler, service methods, controller, wires Layer 3 `setForbiddenStates`, applies Layer 2 guard if listed in plan.md, runs test, ticks plan.md box |
-| `/wire-event <Consumer> <Event>` | Phase 4 (one call per event-consumer pair) | implements event class, subscription, handler, polling, EventProcessing chain, update functionality + TCC stub, tracked fields in service, runs test, ticks plan.md box |
+| `/implement-functionality <Name>` | Phase 3 (one call per functionality) | implements Sagas workflow, commands, command handler, service methods, controller, wires Layer 3 `setForbiddenStates`, applies Layer 2 guard if listed in plan.md, runs test, ticks plan.md box |
+| `/wire-event <Consumer> <Event>` | Phase 4 (one call per event-consumer pair) | implements event class, subscription, handler, polling, EventProcessing chain, update functionality, tracked fields in service, runs test, ticks plan.md box |
 
 ---
 
@@ -159,9 +159,8 @@ For each §3.2 rule:
 | Cross-aggregate state through DTOs only | R3 | `new-functionality` command classes |
 | Mutation steps must declare `forbiddenStates` | R4 | `new-functionality` Step 3 |
 | Subscriptions belong in consumer only | R5 | `inter-invariant` Step 6 |
-| Both Sagas + Causal variants required | R6 | `new-aggregate` Steps 5–7 |
-| `verifyInvariants()` must not DB-read | R7 | `intra-invariant` doc block + `service-guard` placement |
-| DTOs are immutable | R8 | `new-aggregate` DTO pattern |
+| `verifyInvariants()` must not DB-read | R6 | `intra-invariant` doc block + `service-guard` placement |
+| DTOs are immutable | R7 | `new-aggregate` DTO pattern |
 
 ---
 

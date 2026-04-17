@@ -59,7 +59,7 @@ Understanding which layer is responsible for what prevents redundant checks and 
 
 ### Variant: transition invariant via mutation timestamp
 
-Some invariants express a *transition* rule of the form "field X cannot change once condition Y is met", where Y involves wall-clock time. These cannot call `DateHandler.now()` directly inside `verifyInvariants()` because the check would be non-idempotent (the same aggregate state could pass at T1 and fail at T2), and in TCC the UoW calls `verifyInvariants()` a second time after a concurrent-version merge.
+Some invariants express a *transition* rule of the form "field X cannot change once condition Y is met", where Y involves wall-clock time. These cannot call `DateHandler.now()` directly inside `verifyInvariants()` because the check would be non-idempotent (the same aggregate state could pass at T1 and fail at T2).
 
 **Pattern:** the setter stamps the mutation time as a persistent field (`lastModifiedTime`) before applying the change. `verifyInvariants()` then compares `this.lastModifiedTime` against the threshold — never calling `DateHandler.now()` inside the invariant check itself.
 
@@ -102,7 +102,7 @@ Placing a uniqueness check at Layer 4 (event cache) when the authoritative data 
 
 ## Layer 3 — Functionality Cross-Aggregate State Guard
 
-**Definition:** A workflow step that loads a *different* aggregate (not the operation's primary target) under a semantic lock (Sagas) or causal snapshot (TCC) to verify a cross-aggregate precondition before the mutating step is allowed to run.
+**Definition:** A workflow step that loads a *different* aggregate (not the operation's primary target) under a semantic lock (Sagas) to verify a cross-aggregate precondition before the mutating step is allowed to run.
 
 **Where it lives:** `*FunctionalitySagas.java` / `*FunctionalityTCC.java` — a named step that issues a read command to another service.
 

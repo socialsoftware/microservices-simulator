@@ -9,7 +9,7 @@ argument-hint: "<FunctionalityName>"
 You are completing all Phase 3 work for the functionality named in `$ARGUMENTS`. Do all steps
 in order. Tick the checkbox in `plan.md` after the test passes. Do not stop early.
 
-> **Sagas only.** TCC classes are empty stubs. See `docs/concepts/tcc-placeholder-pattern.md`.
+> **Sagas only.** Focus on the Sagas workflow implementation.
 
 ---
 
@@ -98,22 +98,7 @@ Key rules:
 
 ---
 
-## Step 3 — Implement: TCC stub
-
-File: `microservices/<primaryAggregate>/coordination/causal/<FunctionalityName>FunctionalityTCC.java`
-
-```java
-public class <FunctionalityName>FunctionalityTCC extends WorkflowFunctionality {
-    public <FunctionalityName>FunctionalityTCC(...) { /* TCC not implemented */ }
-
-    @Override
-    public void buildWorkflow(...) { /* TCC not implemented */ }
-}
-```
-
----
-
-## Step 4 — Wire entry point in Functionalities
+## Step 3 — Wire entry point in Functionalities
 
 In `microservices/<primaryAggregate>/coordination/functionalities/<Primary>Functionalities.java`:
 
@@ -138,7 +123,7 @@ public <ReturnDto> <functionalityName>(Integer primaryId, ...) {
 
 ---
 
-## Step 5 — Command handler
+## Step 4 — Command handler
 
 In the command handler for the primary aggregate, add routing for each new command:
 
@@ -151,7 +136,7 @@ if (command instanceof <Xxx>Command) {
 
 ---
 
-## Step 6 — Service method(s)
+## Step 5 — Service method(s)
 
 In `<Primary>Service.java`, add one method per command type.
 
@@ -184,7 +169,7 @@ public <ReturnDto> <xxx>(Integer aggregateId, <Input>Dto inputDto, UnitOfWork un
 
 ---
 
-## Step 6b — Layer 2 guard (if listed in plan.md)
+## Step 5b — Layer 2 guard (if listed in plan.md)
 
 If the plan.md entry for this functionality has a `- [ ] Layer 2 guard applied: <GUARD_NAME>` line,
 apply the guard **now**, before moving on.
@@ -209,7 +194,7 @@ apply the guard **now**, before moving on.
 
 ---
 
-## Step 7 — REST controller (if required)
+## Step 6 — REST controller (if required)
 
 File: `microservices/<primaryAggregate>/coordination/webapi/<Primary>Controller.java`
 
@@ -222,7 +207,7 @@ public ResponseEntity<XxxDto> <operation>(@PathVariable Integer aggregateId, ...
 
 ---
 
-## Step 8 — Wire Layer 3 forbidden states
+## Step 7 — Wire Layer 3 forbidden states
 
 For each Layer 3 sub-bullet from plan.md:
 ```
@@ -241,7 +226,7 @@ If there are no Layer 3 rules for this functionality, skip.
 
 ---
 
-## Step 9 — Run the test
+## Step 8 — Run the test
 
 Write a T2 test at `src/test/groovy/.../sagas/coordination/<primaryAggregate>/<FunctionalityName>Test.groovy`.
 Follow the T2 template in `docs/concepts/testing.md`. Cover:

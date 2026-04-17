@@ -196,12 +196,10 @@ In `<Consumer>Functionalities.java`, add `update<Xxx>` method that creates a UoW
 
 ---
 
-## Step 9 — Update functionality (Sagas + TCC stub)
+## Step 9 — Update functionality (Sagas)
 
 **Sagas** (`coordination/sagas/Update<Xxx>FunctionalitySagas.java`): single-step workflow that
 sends `Update<Xxx>Command` to the consumer service.
-
-**TCC stub** (`coordination/causal/Update<Xxx>FunctionalityTCC.java`): empty `buildWorkflow()`.
 
 ---
 

@@ -38,30 +38,19 @@ Example (Quizzes): saga aggregates extend `Aggregate` and implement `SagaAggrega
 Execution (abstract) → SagaExecution → implements SagaAggregate
 ```
 
-### TCC variant
-Interface: `ms.causal.aggregate.CausalAggregate`
-(`simulator/.../ms/causal/aggregate/CausalAggregate.java`)
-
-Adds:
-- `getMutableFields()` — names of fields that may change concurrently
-- `getIntentions()` — pairs of fields that must change together (conflict detection)
-- `mergeFields(...)` — field-level merge logic called when two concurrent versions are detected
-
 ## Factories
 
-Each aggregate has two factory classes (one per protocol):
+Each aggregate has a factory class for the Sagas protocol:
 - `sagas/factories/SagasXxxFactory.java` — creates `SagaXxx` instances
-- `causal/factories/CausalXxxFactory.java` — creates `CausalXxx` instances
 
 Factories implement `AggregateFactory<T>` and are injected into services.
 
 ## Repositories
 
-Each aggregate has two JPA repository interfaces:
+Each aggregate has a JPA repository interface for the Sagas protocol:
 - `sagas/repositories/XxxCustomRepositorySagas.java` — extends `SagaAggregateRepository`
-- `causal/repositories/XxxCustomRepositoryTCC.java` — extends `CausalAggregateRepository`
 
-`XxxCustomRepository.java` (the base interface, no protocol suffix) is a common interface shared by both.
+`XxxCustomRepository.java` (the base interface, no protocol suffix) is a common interface.
 
 ## Naming Conventions
 
@@ -69,11 +58,8 @@ Each aggregate has two JPA repository interfaces:
 |-------|---------|---------|
 | Base class | `Xxx` (abstract) | `Execution` |
 | Saga subclass | `SagaXxx` | `SagaExecution` |
-| TCC subclass | `CausalXxx` | `CausalExecution` |
 | Saga factory | `SagasXxxFactory` | `SagasExecutionFactory` |
-| TCC factory | `CausalXxxFactory` | `CausalExecutionFactory` |
 | Saga repository | `XxxCustomRepositorySagas` | `CourseExecutionCustomRepositorySagas` |
-| TCC repository | `XxxCustomRepositoryTCC` | `CourseExecutionCustomRepositoryTCC` |
 | Saga state enum | `XxxSagaState` | `CourseExecutionSagaState` |
 
 ## Reference Implementations (Quizzes)

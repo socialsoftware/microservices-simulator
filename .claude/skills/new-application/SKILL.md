@@ -11,7 +11,7 @@ You are building a new application on top of the simulator library from scratch.
 > **Critical constraints:**
 > 1. **Domain model and aggregate boundaries are human-defined.** The domain expert has filled the templates `{AppName}-domain-model.md` and `{AppName}-aggregate-grouping.md` before this skill is invoked. Do not change entity definitions, aggregate groupings, functionalities, event names, or rule semantics — read them as given.
 > 2. **Consistency layer placement is AI-decided.** For each rule in the domain model, use `docs/concepts/decision-guide.md` to classify it into the correct layer (1, 2, 3, or 4) and confirm with the user before coding.
-> 3. **Sagas only.** All TCC/Causal classes are empty stubs. See `docs/concepts/tcc-placeholder-pattern.md`.
+> 3. **Sagas only.** Development focuses on the Sagas pattern exclusively.
 
 ---
 
@@ -29,7 +29,7 @@ You are building a new application on top of the simulator library from scratch.
    ```
    Use the app name lowercased with hyphens removed as the package leaf (e.g., `quizzes-full` → `pt.ulisboa.tecnico.socialsoftware.quizzesfull`).
 3. Add the simulator dependency to `pom.xml` and define the Maven profile following `applications/quizzes/pom.xml`:
-   - `test-sagas` profile only (Sagas only — do not add `test-tcc` unless TCC is explicitly required).
+   - `test-sagas` profile only.
    - **Only carry over the `test-sagas` profile.** Omit the microservice deployment profiles (`answer-service`, `execution-service`, …), communication layer profiles (`local`, `stream`, `grpc`), and kubernetes profile — those are for the quizzes production deployment and are not needed in a new application.
 4. Define shared exception class and error message constants class (e.g., `<App>Exception.java`, `<App>ErrorMessage.java`). Follow `applications/quizzes/src/main/java/.../exception/QuizzesException.java` and `QuizzesErrorMessage.java` as references. Note: `QuizzesErrorMessage` is a `final class` with `static final String` constants — not a Java `enum`.
 
@@ -50,7 +50,7 @@ You are building a new application on top of the simulator library from scratch.
    - **`Dockerfile`** — multi-stage build: install simulator to local Maven, package app JAR, copy into minimal JRE image. `START_CLASS` and JAR name reference the new app's `<AppName>Simulator`.
    - **`Dockerfile.test`** — two stages: cache simulator in `.m2`, then copy app source for `mvn test`.
    - **`.gitignore`** and **`.dockerignore`** — identical to `applications/quizzes/`.
-   - **Update `pom.xml`**: add `<start-class>` property; add `<resources><resource><filtering>true</filtering>` build block for `@activatedProperties@` substitution; add `sagas`, `tcc`, `local`, `stream`, `grpc`, `distributed-version`, `kubernetes` profiles; add one microservice profile per service (sets `<start-class>` to its `ServiceApplication` and `<activatedProperties>` to `<service>-service,${transaction.pattern},${communication.layer}${version.suffix}`).
+   - **Update `pom.xml`**: add `<start-class>` property; add `<resources><resource><filtering>true</filtering>` build block for `@activatedProperties@` substitution; add `sagas`, `local`, `stream`, `grpc`, `distributed-version`, `kubernetes` profiles; add one microservice profile per service (sets `<start-class>` to its `ServiceApplication` and `<activatedProperties>` to `<service>-service,${transaction.pattern},${communication.layer}${version.suffix}`).
 
 > **STOP after Phase 0.** Report what was created and ask: "Phase 0 complete. Ready to proceed to Phase 1 (read templates and classify rules)?"
 

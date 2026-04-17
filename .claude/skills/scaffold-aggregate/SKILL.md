@@ -29,7 +29,7 @@ Read before writing any code:
 ## Step 1 — Create aggregate files
 
 Read `.claude/skills/scaffold-aggregate/create-aggregate.md` and follow every step in it for
-`$ARGUMENTS`. This produces the base class, SagaXxx, CausalXxx stub, factories, repositories,
+`$ARGUMENTS`. This produces the base class, SagaXxx, factories, repositories,
 service stub, and command handler stub.
 
 Tick in `plan.md`:
