@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzesfull.course
+package pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.course
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
