@@ -117,7 +117,11 @@ Ask: "Does this classification look correct? Any adjustments before I start Phas
 
 Once the user approves the classification, write `applications/<appName>/plan.md` — the authoritative progress tracker for all remaining phases. This file is the single source of truth that any agent (or the user) can open to see what has been done and what remains.
 
-Structure the file with one section per phase. Use GitHub-flavored **checkboxes** (`- [ ]` / `- [x]`) for every discrete work item so that the executing agent can tick items off as it completes them. Include:
+Structure the file with one section per phase. Use GitHub-flavored **checkboxes** (`- [ ]` / `- [x]`) for every discrete work item so that the executing agent can tick items off as it completes them.
+
+**Ordering Phase 2 aggregates:** Before writing the Phase 2 section, perform a topological sort of the aggregates based on their **creation-test dependencies** — which other aggregates' `create<X>()` helpers must already be registered in `BeanConfigurationSagas` when this aggregate's creation test runs. An aggregate A must precede B if B's creation test needs to call `createA()` (or any helper that routes a command through A's service). Use the snapshot fields in §2 of the grouping template and the event DAG in §3 as signals, but the key criterion is which aggregates are needed *at creation time* (not just for event-driven updates wired in Phase 4). Roots (no upstream creation-time deps) come first.
+
+Include:
 - **Phase 2 section** — one sub-section per aggregate; each sub-section has checkboxes for: scaffold, snapshot fields added, Layer 1 intra-invariants added (list each rule), registered in `BeanConfigurationSagas`, creation test passes.
 - **Phase 3 section** — one checkbox per functionality with its `/implement-functionality` invocation; list Layer 3 rules (and which saga step they wire into) as sub-bullets; if a Layer 2 guard applies, add a nested `- [ ] Layer 2 guard applied: <GUARD_NAME>` checkbox inside the functionality block.
 - **Phase 4 section** — one checkbox per (event, consumer) inter-invariant pair grouped by event, with the expected test class noted.

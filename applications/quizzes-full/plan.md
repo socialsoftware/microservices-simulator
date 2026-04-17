@@ -53,6 +53,27 @@ For each aggregate: scaffold → add snapshot fields → add Layer 1 intra-invar
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`QuestionTest`)
 
+### Assessment
+- [ ] Scaffolded (`/scaffold-aggregate Assessment`)
+- [ ] Snapshot fields added: `executionId`, `executionVersion`, `courseId` (from `CourseExecutionUpdatedEvent`); `topicId`, `topicName`, `courseId` per topic (from `TopicUpdatedEvent`, `TopicDeletedEvent`)
+- [ ] Layer 1 intra-invariants added: ASSESSMENT_TITLE_NOT_BLANK, TOPIC_COURSE_EXECUTION (Assessment)
+- [ ] Registered in `BeanConfigurationSagas.groovy`
+- [ ] Creation test passes (`AssessmentTest`)
+
+### QuestionSubmission
+- [ ] Scaffolded (`/scaffold-aggregate QuestionSubmission`)
+- [ ] Snapshot fields added: `questionId`, `questionVersion`, `title` (from `QuestionUpdatedEvent`); `userId`, `userName` for student (from `UserUpdatedEvent`, `UserAnonymizedEvent`); `executionId`, `executionVersion`, `courseId` (from `CourseExecutionUpdatedEvent`); `userId`, `userName`, `userRole` per Review (from `UserUpdatedEvent`, `UserAnonymizedEvent`)
+- [ ] Layer 1 intra-invariants added: REVIEW_COMMENT_NOT_BLANK
+- [ ] Registered in `BeanConfigurationSagas.groovy`
+- [ ] Creation test passes (`QuestionSubmissionTest`)
+
+### Dashboard
+- [ ] Scaffolded (`/scaffold-aggregate Dashboard`)
+- [ ] Snapshot fields added: `userId` for student (immutable at creation); `executionId`, `executionVersion`, `courseId` (from `CourseExecutionUpdatedEvent`); DifficultQuestion internal: `questionId`, `questionVersion`, `percentage`, `courseExecutionId`, `questionCourseId`; FailedAnswer internal: `questionAnswerId`, `questionAnswerVersion`, `correct`, `completed` (from `QuizAnswerUpdatedEvent`)
+- [ ] Layer 1 intra-invariants added: WEEKLY_SCORE_CANNOT_CLOSE_CURRENT_WEEK, DIFFICULT_QUESTION_PERCENTAGE_RANGE, DUPLICATE_DIFFICULT_QUESTION, DIFFICULT_QUESTION_COURSE_MATCH, FAILED_ANSWER_STUDENT_MATCH, FAILED_ANSWER_COURSE_MATCH, FAILED_ANSWER_COMPLETED_AND_WRONG, WEEKLY_SCORE_COURSE_MATCH
+- [ ] Registered in `BeanConfigurationSagas.groovy`
+- [ ] Creation test passes (`DashboardTest`)
+
 ### Quiz
 - [ ] Scaffolded (`/scaffold-aggregate Quiz`)
 - [ ] Snapshot fields added: `executionId`, `executionVersion` (from `CourseExecutionUpdatedEvent`); `questionId`, `questionVersion`, `title`, `content` per QuizQuestion (from `QuestionUpdatedEvent`, `QuestionDeletedEvent`)
@@ -74,33 +95,12 @@ For each aggregate: scaffold → add snapshot fields → add Layer 1 intra-invar
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`TournamentTest`)
 
-### Assessment
-- [ ] Scaffolded (`/scaffold-aggregate Assessment`)
-- [ ] Snapshot fields added: `executionId`, `executionVersion`, `courseId` (from `CourseExecutionUpdatedEvent`); `topicId`, `topicName`, `courseId` per topic (from `TopicUpdatedEvent`, `TopicDeletedEvent`)
-- [ ] Layer 1 intra-invariants added: ASSESSMENT_TITLE_NOT_BLANK, TOPIC_COURSE_EXECUTION (Assessment)
-- [ ] Registered in `BeanConfigurationSagas.groovy`
-- [ ] Creation test passes (`AssessmentTest`)
-
 ### Discussion
 - [ ] Scaffolded (`/scaffold-aggregate Discussion`)
 - [ ] Snapshot fields added: `executionId`, `executionVersion` (from `CourseExecutionUpdatedEvent`); `userId`, `userName`, `userRole` for student (from `UserUpdatedEvent`, `UserAnonymizedEvent`); `questionId`, `questionVersion` (from `QuestionUpdatedEvent`); `questionAnswerId`, `questionAnswerVersion` (from `QuizAnswerUpdatedEvent`); `userId`, `userName`, `userRole` per Reply (from `UserUpdatedEvent`, `UserAnonymizedEvent`)
 - [ ] Layer 1 intra-invariants added: DISCUSSION_MESSAGE_NOT_BLANK, DISCUSSION_DATE_FINAL, REPLY_MESSAGE_NOT_BLANK, REPLY_DATE_FINAL, DISCUSSION_CLOSE_REQUIRES_REPLY
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`DiscussionTest`)
-
-### QuestionSubmission
-- [ ] Scaffolded (`/scaffold-aggregate QuestionSubmission`)
-- [ ] Snapshot fields added: `questionId`, `questionVersion`, `title` (from `QuestionUpdatedEvent`); `userId`, `userName` for student (from `UserUpdatedEvent`, `UserAnonymizedEvent`); `executionId`, `executionVersion`, `courseId` (from `CourseExecutionUpdatedEvent`); `userId`, `userName`, `userRole` per Review (from `UserUpdatedEvent`, `UserAnonymizedEvent`)
-- [ ] Layer 1 intra-invariants added: REVIEW_COMMENT_NOT_BLANK
-- [ ] Registered in `BeanConfigurationSagas.groovy`
-- [ ] Creation test passes (`QuestionSubmissionTest`)
-
-### Dashboard
-- [ ] Scaffolded (`/scaffold-aggregate Dashboard`)
-- [ ] Snapshot fields added: `userId` for student (immutable at creation); `executionId`, `executionVersion`, `courseId` (from `CourseExecutionUpdatedEvent`); DifficultQuestion internal: `questionId`, `questionVersion`, `percentage`, `courseExecutionId`, `questionCourseId`; FailedAnswer internal: `questionAnswerId`, `questionAnswerVersion`, `correct`, `completed` (from `QuizAnswerUpdatedEvent`)
-- [ ] Layer 1 intra-invariants added: WEEKLY_SCORE_CANNOT_CLOSE_CURRENT_WEEK, DIFFICULT_QUESTION_PERCENTAGE_RANGE, DUPLICATE_DIFFICULT_QUESTION, DIFFICULT_QUESTION_COURSE_MATCH, FAILED_ANSWER_STUDENT_MATCH, FAILED_ANSWER_COURSE_MATCH, FAILED_ANSWER_COMPLETED_AND_WRONG, WEEKLY_SCORE_COURSE_MATCH
-- [ ] Registered in `BeanConfigurationSagas.groovy`
-- [ ] Creation test passes (`DashboardTest`)
 
 ---
 
