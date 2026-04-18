@@ -29,6 +29,10 @@ management:
       exposure:
         include: "health,beans"
 
+local:
+  messaging:
+    serialize: true 
+
 command:
   gateway:
     timeout-seconds: 10
@@ -51,6 +55,18 @@ resilience4j:
 eureka:
   client:
     enabled: false
+
+# Local-specific health tuning
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+management:
+  health:
+    rabbit:
+      enabled: false
 
 # Tech-agnostic remote configuration
 ---
@@ -107,7 +123,7 @@ eureka:
       defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
-    registry-fetch-interval-seconds: 10
+    registry-fetch-interval-seconds: 5 
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.uuid}

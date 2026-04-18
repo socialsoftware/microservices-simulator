@@ -49,7 +49,6 @@ public class CausalUnitOfWorkService extends UnitOfWorkService<CausalUnitOfWork>
     @Autowired
     private Environment environment;
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public CausalUnitOfWork createUnitOfWork(String functionalityName) {
         CausalUnitOfWork unitOfWork = new CausalUnitOfWork(versionService.getNextVersionNumber(), functionalityName);
 

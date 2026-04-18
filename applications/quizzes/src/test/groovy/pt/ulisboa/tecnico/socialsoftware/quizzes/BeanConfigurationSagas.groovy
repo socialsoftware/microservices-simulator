@@ -20,8 +20,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.messaging.SagaCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.versioning.DistributedVersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.CentralizedVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceClient
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.factories.SagasQuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.repositories.QuizAnswerCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.eventProcessing.QuizAnswerEventProcessing
@@ -82,8 +84,13 @@ class BeanConfigurationSagas {
     }
 
     @Bean
-    IVersionService versionService() {
-        return new DistributedVersionService("test")
+    IVersionService versionService(LocalCommandGateway commandGateway) {
+        return new VersionServiceClient(commandGateway)
+    }
+
+    @Bean
+    CentralizedVersionService centralizedVersionService() {
+        return new CentralizedVersionService()
     }
 
     @Bean
@@ -343,6 +350,11 @@ class BeanConfigurationSagas {
     @Bean
     SagaCommandHandler sagaCommandHandler() {
         return new SagaCommandHandler()
+    }
+
+    @Bean
+    VersionCommandHandler versionCommandHandler() {
+        return new VersionCommandHandler()
     }
 
     @Bean

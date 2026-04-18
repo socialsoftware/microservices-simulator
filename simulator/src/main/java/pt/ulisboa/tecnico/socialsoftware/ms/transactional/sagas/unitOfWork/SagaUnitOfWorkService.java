@@ -48,11 +48,8 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Autowired
     private Environment environment;
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
-        versionService.getVersionNumber();
-
-        return new SagaUnitOfWork(versionService.incrementAndGetVersionNumber(), functionalityName);
+        return new SagaUnitOfWork(versionService.getNextVersionNumber(), functionalityName);
     }
 
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) {
