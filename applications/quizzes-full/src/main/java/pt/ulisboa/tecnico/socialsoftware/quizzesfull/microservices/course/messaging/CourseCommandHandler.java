@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination;
+package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.messaging;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

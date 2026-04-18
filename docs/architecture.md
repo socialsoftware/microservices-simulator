@@ -54,35 +54,44 @@ Canonical directory layout for one microservice. Each package maps to an archite
 
 ```
 microservices/{serviceName}/
-├── aggregate/                              ← LAYER: Aggregate
-│   ├── {Xxx}.java                          (base abstract aggregate)
-│   ├── {Xxx}Dto.java                       (immutable DTO for inter-service reads)
+├── {Xxx}ServiceApplication.java
+├── aggregate/                                      ← LAYER: Aggregate
+│   ├── {Xxx}.java                                  (base abstract aggregate)
+│   ├── {Xxx}Dto.java                               (immutable DTO)
 │   ├── {Xxx}Repository.java
+│   ├── {Xxx}CustomRepository.java
 │   ├── {Xxx}Factory.java
 │   └── sagas/
-│       ├── Saga{Xxx}.java                  (implements SagaAggregate)
-│       ├── {Xxx}SagaState.java             (semantic-lock state enum)
-│       └── factories/, repositories/
-├── service/                                ← LAYER: Service
+│       ├── Saga{Xxx}.java                          (implements SagaAggregate)
+│       ├── states/{Xxx}SagaState.java
+│       ├── factories/
+│       └── repositories/
+├── service/                                        ← LAYER: Service
 │   └── {Xxx}Service.java
-├── commandHandler/                         ← LAYER: Command Handler
+├── messaging/                                      ← LAYER: Command Handler
 │   └── {Xxx}CommandHandler.java
-├── coordination/                           ← LAYER: Functionality + Controller
+├── coordination/                                   ← LAYER: Functionality + Controller
 │   ├── webapi/
 │   │   └── {Xxx}Controller.java
+│   ├── functionalities/
+│   │   └── {Xxx}Functionalities.java               (entry point / dispatch)
 │   ├── sagas/
 │   │   └── {Operation}FunctionalitySagas.java
-│   ├── functionalities/
-│   │   └── {Xxx}Functionalities.java       (entry point / dispatch)
-│   └── eventProcessing/
-│       └── {Xxx}EventHandling.java
-├── events/
-│   ├── subscribe/
-│   │   └── {Xxx}Subscribes{Event}.java
-│   └── handling/handlers/
-└── exception/
-    └── {App}ErrorMessage.java
+│   └── eventProcessing/                            ← optional: only if aggregate consumes events
+│       └── {Xxx}EventProcessing.java
+└── notification/                                   ← optional: only if aggregate consumes events
+    ├── api/
+    │   └── {Xxx}EventController.java
+    ├── handling/
+    │   ├── {Xxx}EventHandling.java                 (polling loop)
+    │   └── handlers/
+    │       └── {Event}EventHandler.java
+    └── subscribe/
+        └── {Xxx}Subscribes{Event}.java
 ```
+
+**Optional directories:**
+- `coordination/eventProcessing/` and `notification/` are present only in aggregates that **consume events** from other services (e.g., Tournament). Aggregates that only **publish events** (e.g., User) omit both directories.
 
 ---
 
