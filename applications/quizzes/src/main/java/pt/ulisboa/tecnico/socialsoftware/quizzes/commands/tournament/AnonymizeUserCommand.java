@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 public class AnonymizeUserCommand extends Command {
     private final Integer tournamentAggregateId;

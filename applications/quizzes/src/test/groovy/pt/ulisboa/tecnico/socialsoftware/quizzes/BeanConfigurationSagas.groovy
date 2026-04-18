@@ -18,8 +18,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.stream.CommandResponseAggr
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.stream.StreamCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.messaging.SagaCommandHandler
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.CentralizedVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionCommandHandler

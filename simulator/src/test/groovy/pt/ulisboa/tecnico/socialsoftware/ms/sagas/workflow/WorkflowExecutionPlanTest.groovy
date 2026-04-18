@@ -3,10 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow
 import pt.ulisboa.tecnico.socialsoftware.ms.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWorkflow
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException

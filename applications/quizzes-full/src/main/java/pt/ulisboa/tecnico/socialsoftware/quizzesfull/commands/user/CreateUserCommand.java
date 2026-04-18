@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.user;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto;
 
 public class CreateUserCommand extends Command {

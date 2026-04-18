@@ -23,10 +23,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.aggregate.CausalAggregate
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.CommitCausalCommand
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.PrepareCausalCommand
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.aggregate.CausalAggregate
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.CommitCausalCommand
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.PrepareCausalCommand
 
 import java.util.concurrent.atomic.AtomicInteger
 

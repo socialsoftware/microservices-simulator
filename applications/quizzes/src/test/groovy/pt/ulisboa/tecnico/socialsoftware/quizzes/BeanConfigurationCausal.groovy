@@ -13,8 +13,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvi
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.messaging.CausalCommandHandler
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.messaging.CausalCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.CentralizedVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionCommandHandler

@@ -4,11 +4,11 @@ package pt.ulisboa.tecnico.socialsoftware.ms.causal.atomicity
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.aggregate.CausalAggregate
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.AbortCausalCommand
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.CommitCausalCommand
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.command.PrepareCausalCommand
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.aggregate.CausalAggregate
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.AbortCausalCommand
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.CommitCausalCommand
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.PrepareCausalCommand
 
 class CausalUnitOfWorkAtomicityWindowsTest /*extends SpockTest*/ {
 

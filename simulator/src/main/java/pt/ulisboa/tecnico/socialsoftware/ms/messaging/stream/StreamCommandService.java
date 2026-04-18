@@ -14,7 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandResponse;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 import java.util.logging.Logger;
 
