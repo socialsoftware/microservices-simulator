@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandlerDecorator;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.command.AbortSagaCommand;

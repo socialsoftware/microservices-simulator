@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.messaging;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandlerDecorator;

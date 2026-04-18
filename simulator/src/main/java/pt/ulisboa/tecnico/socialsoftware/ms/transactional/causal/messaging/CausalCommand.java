@@ -1,4 +1,6 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.messaging;
+package pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.messaging;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 
 public class CausalCommand extends Command {
 
