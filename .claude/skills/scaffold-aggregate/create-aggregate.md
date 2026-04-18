@@ -96,8 +96,12 @@ return new <Aggregate>Dto(agg);
 
 File: `microservices/<aggregate>/coordination/<Aggregate>CommandHandler.java`
 
-Minimal stub — add routing for `Create<Aggregate>Command` only. Further commands are added when
-functionalities are implemented in Phase 3.
+Create two command classes and route both in the handler:
+
+1. `commands/<aggregate>/Create<Aggregate>Command` — holds the DTO; routes to `service.create<Aggregate>(cmd.getDto(), cmd.getUnitOfWork())`
+2. `commands/<aggregate>/Get<Aggregate>ByIdCommand` — holds `Integer <aggregate>AggregateId`; routes to `service.get<Aggregate>ById(cmd.get<Aggregate>AggregateId(), cmd.getUnitOfWork())`
+
+Further commands (update, delete, etc.) are added when functionalities are implemented in Phase 3.
 
 ---
 
@@ -111,5 +115,5 @@ functionalities are implemented in Phase 3.
 - [ ] Common repository interface
 - [ ] Saga repository
 - [ ] Service stub with `create<Aggregate>` and `get<Aggregate>ById`
-- [ ] Command handler stub
+- [ ] Command handler stub with `Create<Aggregate>Command` and `Get<Aggregate>ByIdCommand` routing
 - [ ] DTO includes `AggregateState state` field and populates it in copy constructor

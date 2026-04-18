@@ -101,7 +101,7 @@ Tick in `plan.md`:
 
 Write the T1 creation test at `src/test/groovy/.../sagas/<aggregate>/<AggregateName>Test.groovy`.
 Follow the T1 template in `docs/concepts/testing.md`: one happy-path case + one failing case per
-intra-invariant added in Step 3.
+intra-invariant added in Step 3. If no intra-invariants exist, only happy-path case.
 
 Then run:
 ```bash

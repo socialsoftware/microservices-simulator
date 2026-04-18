@@ -31,21 +31,4 @@ class TopicTest extends QuizzesFullSpockTest {
         result.getCourseId() == 1
         result.getAggregateId() != null
     }
-
-    def "create a topic without a courseId"() {
-        given: "a topic DTO with no courseId"
-        def topicDto = new TopicDto()
-        topicDto.setName(TOPIC_NAME_2)
-        topicDto.setCourseId(null)
-
-        when: "the topic is created"
-        def uow = unitOfWorkService.createUnitOfWork("createTopic")
-        def result = topicService.createTopic(topicDto, uow)
-        unitOfWorkService.commit(uow)
-
-        then: "creation succeeds with null courseId (snapshot not yet populated)"
-        result.getName() == TOPIC_NAME_2
-        result.getCourseId() == null
-        result.getAggregateId() != null
-    }
 }
