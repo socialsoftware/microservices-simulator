@@ -23,7 +23,7 @@ File: `microservices/<aggregate>/aggregate/<Aggregate>.java`
 - Extend `Aggregate`
 - Add all fields with getters/setters
 - For boolean fields (e.g., `active`): use `is<FieldName>()` getter naming convention (e.g., `isActive()`, not `getActive()`); always add `@Column(columnDefinition = "boolean default false")` to set the DB default
-- Implement default constructor, creation constructor (calls `super(aggregateId)` and
+- Implement default constructor with empty body (`public <Aggregate>() {}`), creation constructor (calls `super(aggregateId)` and
   `setAggregateType(getClass().getSimpleName())`), copy constructor (copies ALL fields including
   snapshot fields declared in the outer scaffold step)
 - Implement `verifyInvariants()` — empty body initially; intra-invariant helpers are added next

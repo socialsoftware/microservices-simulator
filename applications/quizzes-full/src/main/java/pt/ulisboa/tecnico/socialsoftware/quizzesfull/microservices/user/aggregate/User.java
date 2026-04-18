@@ -50,11 +50,6 @@ public abstract class User extends Aggregate {
     private Boolean active;
 
     public User() {
-        this.key = 0;
-        this.name = "USER NAME";
-        this.username = "USER USERNAME";
-        this.role = Role.STUDENT;
-        this.active = true;
     }
 
     public User(Integer aggregateId, UserDto userDto) {

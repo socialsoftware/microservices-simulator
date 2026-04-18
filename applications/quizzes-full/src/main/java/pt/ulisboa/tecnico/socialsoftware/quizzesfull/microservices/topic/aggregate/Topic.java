@@ -25,8 +25,6 @@ public abstract class Topic extends Aggregate {
     private Integer courseId;
 
     public Topic() {
-        this.name = "TOPIC NAME";
-        this.courseId = null;
     }
 
     public Topic(Integer aggregateId, TopicDto topicDto) {
