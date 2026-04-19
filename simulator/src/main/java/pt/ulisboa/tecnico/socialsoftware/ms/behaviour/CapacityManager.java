@@ -97,6 +97,9 @@ public class CapacityManager {
                     // Use lowercase for internal mapping consistency
                     String msName = ms.get("name").asText().toLowerCase();
                     int capacity = ms.get("capacity").asInt();
+                    if (capacity < 0) {
+                        throw new SimulatorException("Invalid capacity for microservice '" + msName + "': " + capacity);
+                    }
                     msCapacities.put(msName, new Semaphore(capacity, true));
                     microserviceCapacities.put(msName, capacity);
 
@@ -109,6 +112,15 @@ public class CapacityManager {
                         for (JsonNode step : steps) {
                             String stepName = step.get("name").asText();
                             int requirement = step.get("requirement").asInt();
+                            if (requirement < 0) {
+                                throw new SimulatorException(
+                                        "Invalid requirement for step '" + stepName + "': " + requirement);
+                            }
+                            if (requirement > capacity) {
+                                throw new SimulatorException(String.format(
+                                        "Invalid requirement: Step '%s' requires %d, but microservice '%s' capacity is %d",
+                                        stepName, requirement, msName, capacity));
+                            }
                             requirements.put(stepName, requirement);
                             stepToMicroservice.put(stepName, msName);
                         }

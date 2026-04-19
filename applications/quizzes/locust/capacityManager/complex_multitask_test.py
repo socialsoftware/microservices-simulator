@@ -24,7 +24,7 @@ class ComplexMultiServiceUser(HttpUser):
                 "microservices": [
                     {
                         "name": "tournament",
-                        "capacity": 30,
+                        "capacity": 20,
                         "steps": [
                             {"name": "createTournamentStep",
                                 "requirement": reqs[0]},
@@ -39,7 +39,7 @@ class ComplexMultiServiceUser(HttpUser):
                     },
                     {
                         "name": "execution",
-                        "capacity": 50,
+                        "capacity": 25,
                         "steps": [
                             {"name": "getCourseExecutionStep",
                                 "requirement": reqs[1]},
@@ -146,7 +146,6 @@ class ComplexMultiServiceUser(HttpUser):
             self.stop(True)
             return
 
-        print("start")
         # Pick a random data-set
         self.my_data = random.choice(self.environment.test_data_pool)
 
