@@ -114,7 +114,6 @@ public class ExecutionPlan {
                         TraceManager.getInstance().endDelaySpan(delaySpan);
                         logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                     } catch (InterruptedException e) {
-                        TraceManager.getInstance().endStepSpan(funcName, stepName);
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
                     }
@@ -130,13 +129,13 @@ public class ExecutionPlan {
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
-                    } finally {
-                        TraceManager.getInstance().endStepSpan(funcName, stepName);
                     }
                 })
+                .whenComplete((ignored, ex) -> {
+                    TraceManager.getInstance().endStepSpan(funcName, stepName);
+                    CapacityManager.getInstance().release(stepName, stepRequestId);
+                })
             ); // Execute and save the steps with no dependencies
-                // Release after in case of an exception
-                CapacityManager.getInstance().release(stepName, stepRequestId);
                 executedSteps.put(step, true);
             }
             
@@ -172,7 +171,6 @@ public class ExecutionPlan {
                             TraceManager.getInstance().endDelaySpan(delaySpan);
                             logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                         } catch (InterruptedException e) {
-                            TraceManager.getInstance().endStepSpan(funcName, stepName);
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);
                         }
@@ -187,13 +185,13 @@ public class ExecutionPlan {
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);
-                        } finally {
-                            TraceManager.getInstance().endStepSpan(funcName, stepName);
                         }
                     })
+                    .whenComplete((ignored, ex) -> {
+                        TraceManager.getInstance().endStepSpan(funcName, stepName);
+                        CapacityManager.getInstance().release(stepName, stepRequestId);
+                    })
                 );
-                // Release after in case of an exception
-                CapacityManager.getInstance().release(stepName, stepRequestId);
                 executedSteps.put(step, true);
             }
             
