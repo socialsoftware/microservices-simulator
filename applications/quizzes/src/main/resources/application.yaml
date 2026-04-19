@@ -23,6 +23,11 @@ spring:
     show-sql: false
     open-in-view: false
 
+simulator:
+  service-method-profiling:
+    enabled: true
+    output-file: /src/test/resources/service-hardware-profiling.txt
+
 
 resilience4j:
   retry:
@@ -36,6 +41,20 @@ management:
     web:
       exposure:
         include: "health,beans"
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port:9090}
 
 # Tech-agnostic remote configuration
 ---
@@ -84,20 +103,6 @@ spring:
         userEventSubscriber-in-0:
           destination: event-channel
           group: user-service-group
-
-eureka:
-  client:
-    enabled: true
-    service-url:
-      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-    registry-fetch-interval-seconds: 10
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.uuid}
-    metadata-map:
-      grpcPort: ${grpc.server.port:9090}
 
 quizzes:
   function-definition:
