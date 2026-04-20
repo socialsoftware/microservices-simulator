@@ -37,22 +37,18 @@ Tick in `plan.md`:
 
 ---
 
-## Step 2 — Add snapshot fields
+## Step 2 — Add snapshot entity classes and/or snapshot fields
 
-From §2 of the aggregate-grouping template, declare each snapshot field in the aggregate class
-below the aggregate's own fields, grouped under a `// --- Snapshot fields ---` comment:
+Read the `plan.md` entry for this aggregate — it lists exactly which checkboxes apply. Two patterns:
 
-- Field type follows from the domain (e.g., `Long courseId`, `String courseName`)
-- For per-entity caches (e.g., per-student data), use a `Map<Integer, ...>` keyed by entity ID;
-  use the quizzes `Execution` aggregate as a reference
-- Do **not** wire event subscriptions yet — that is Phase 4 (`/wire-event`)
-- Initialise to safe defaults (`null` / `0` / empty collection)
-- Copy all snapshot fields in the copy constructor
+- **Pattern A — Scalar:** Add the field(s) directly on the base aggregate class under a `// --- Snapshot fields ---` comment. Initialise to `null`/`0`. Copy in the copy constructor.
+- **Pattern B — Structured / collection:** Follow `create-aggregate.md` Step 1b — it contains all implementation details (entity class structure, JPA annotations on both the new class and the parent aggregate, canonical references).
 
-If the aggregate has no snapshot fields (e.g., a root publisher like Course or User), skip.
+If the aggregate has no snapshot data (root publisher), skip this step. Do **not** wire event subscriptions yet — that is Phase 4 (`/wire-event`).
 
-Tick in `plan.md`:
-- [x] Snapshot fields added
+Tick **all applicable** checkboxes in `plan.md` for this step:
+- [x] Snapshot entity classes created: <list class names> *(if Pattern B applies)*
+- [x] Snapshot fields/references added to aggregate class
 
 ---
 

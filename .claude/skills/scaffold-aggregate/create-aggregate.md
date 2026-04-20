@@ -13,6 +13,7 @@ structure conventions. Then read the following reference implementations from `a
 4. `microservices/execution/aggregate/CourseExecutionCustomRepository.java`
 5. `microservices/execution/aggregate/sagas/repositories/CourseExecutionCustomRepositorySagas.java`
 6. `microservices/execution/service/ExecutionService.java`
+7. `microservices/execution/aggregate/CourseExecutionStudent.java`
 
 ---
 
@@ -29,6 +30,39 @@ File: `microservices/<aggregate>/aggregate/<Aggregate>.java`
 - Implement `verifyInvariants()` — empty body initially; intra-invariant helpers are added next
 - Implement `getEventSubscriptions()` — return empty set initially; event wiring happens in Phase 4
 - Add a trivial `@Override public void remove() { super.remove(); }` method (required by Phase 3 delete/anonymize operations)
+
+---
+
+## Step 1b — Create snapshot entity classes (if needed)
+
+Skip this step if the aggregate has only scalar snapshot fields (Pattern A) or no snapshots at all.
+
+For each structured/collection snapshot identified in §2 of the aggregate-grouping template (and listed in `plan.md`), create:
+
+`microservices/<aggregate>/aggregate/<Aggregate><RelatedEntity>.java`
+
+Each class must:
+- Be annotated `@Entity`
+- Have `@Id @GeneratedValue private Long id` as primary key
+- Declare all snapshot fields (`aggregateId` as `Integer`, `version` as `Long`, descriptive fields, `state` enum via `@Enumerated(EnumType.STRING)` if applicable)
+- Have a no-arg constructor (`public <Class>() {}`)
+- Have a constructor from the related DTO (sets all snapshot fields)
+- Have a copy constructor (copies all snapshot fields, does NOT copy `id` or the back-reference)
+- Have a `@JsonIgnore`-annotated back-reference to the parent aggregate:
+  - `@OneToOne private <Aggregate> <aggregate>;` for single-object snapshots
+  - `@ManyToOne private <Aggregate> <aggregate>;` for collection snapshots
+- Have a `build<RelatedDto>()` method that returns a populated DTO
+- For **collection** classes (`@ManyToOne`): override `hashCode()` and `equals()` based on `aggregateId` and `version` only
+- For **boolean** fields: use `is<FieldName>()` getter with `@Column(columnDefinition = "boolean default false")`
+
+Canonical references (read before writing):
+- Single object → `applications/quizzes/src/main/java/.../execution/aggregate/CourseExecutionCourse.java`
+- Collection → `applications/quizzes/src/main/java/.../execution/aggregate/CourseExecutionStudent.java`
+- Collection with embedded sub-entity → `applications/quizzes/src/main/java/.../tournament/aggregate/TournamentParticipant.java`
+
+On the parent aggregate class (Step 1), add the corresponding JPA relationship field for each entity class created here:
+- `@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)` for single-object snapshots
+- `@OneToMany(mappedBy = "<aggregateFieldNameInEntityClass>", cascade = CascadeType.ALL, orphanRemoval = true)` for collections
 
 ---
 
@@ -109,6 +143,8 @@ Further commands (update, delete, etc.) are added when functionalities are imple
 
 - [ ] Base abstract class: correct constructors (`no-arg`, `(Id, Dto)`, copy), `verifyInvariants()`, `getEventSubscriptions()`, `remove()` override
 - [ ] Boolean fields use `is<FieldName>()` getter with `@Column(columnDefinition = "boolean default false")`
+- [ ] Snapshot entity classes (Step 1b, if applicable): `@Entity`, no-arg + DTO + copy constructors, `buildDto()`, back-reference field (`@JsonIgnore`), `hashCode`/`equals` for collection classes
+- [ ] Aggregate class declares JPA relationship fields for each snapshot entity class (`@OneToOne` or `@OneToMany` with cascade + orphanRemoval)
 - [ ] `<Aggregate>SagaState` enum with at least `NOT_IN_SAGA`
 - [ ] `Saga<Aggregate>`: implements `SagaAggregate`, copies `sagaState`
 - [ ] Sagas factory (creates `Saga<Aggregate>`)

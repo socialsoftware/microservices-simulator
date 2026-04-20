@@ -41,63 +41,101 @@ For each aggregate: scaffold → add snapshot fields → add Layer 1 intra-invar
 
 ### CourseExecution
 - [ ] Scaffolded (`/scaffold-aggregate CourseExecution`)
-- [ ] Snapshot fields added: `courseId`, `courseName`, `courseType` (from `CourseUpdatedEvent`); `userId`, `userName`, `userUsername`, `active` per student (from `UserUpdatedEvent`, `UserAnonymizedEvent`, `UserDeletedEvent`)
+- [ ] Snapshot entity classes created:
+  - `CourseExecutionCourse` (courseAggregateId, courseName, courseType, courseVersion — from `CourseUpdatedEvent`)
+  - `CourseExecutionStudent` (userAggregateId, userName, userUsername, active, state — from `UserUpdatedEvent`, `UserAnonymizedEvent`, `UserDeletedEvent`)
+- [ ] Snapshot references added to aggregate class (`@OneToOne CourseExecutionCourse courseExecutionCourse`; `@OneToMany Set<CourseExecutionStudent> students`)
 - [ ] Layer 1 intra-invariants added: COURSE_EXECUTION_ACRONYM_NOT_BLANK, COURSE_EXECUTION_ACADEMIC_TERM_NOT_BLANK, REMOVE_NO_STUDENTS, STUDENT_ALREADY_ENROLLED
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`CourseExecutionTest`)
 
 ### Question
 - [ ] Scaffolded (`/scaffold-aggregate Question`)
-- [ ] Snapshot fields added: `courseId` (from `CourseUpdatedEvent`); `topicId`, `topicName`, `courseId` per topic (from `TopicUpdatedEvent`, `TopicDeletedEvent`)
+- [ ] Snapshot field added: `courseAggregateId` (scalar Integer — no entity class needed, from `CourseUpdatedEvent`)
+- [ ] Snapshot entity class created:
+  - `QuestionTopic` (topicAggregateId, topicName, topicCourseAggregateId, topicVersion, state — from `TopicUpdatedEvent`, `TopicDeletedEvent`)
+- [ ] Snapshot reference added to aggregate class (`@OneToMany Set<QuestionTopic> topics`)
 - [ ] Layer 1 intra-invariants added: QUESTION_KEY_FINAL, QUESTION_CREATION_DATE_FINAL, QUESTION_TITLE_NOT_BLANK, QUESTION_CONTENT_NOT_BLANK, OPTION_SEQUENCE_NON_NEGATIVE, OPTION_CONTENT_NOT_BLANK, ONE_CORRECT_OPTION_NEEDED, IMAGE_URL_NOT_BLANK, TOPIC_BELONGS_TO_QUESTION_COURSE, CANNOT_CHANGE_ANSWERED_QUESTION
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`QuestionTest`)
 
 ### Assessment
 - [ ] Scaffolded (`/scaffold-aggregate Assessment`)
-- [ ] Snapshot fields added: `executionId`, `executionVersion`, `courseId` (from `CourseExecutionUpdatedEvent`); `topicId`, `topicName`, `courseId` per topic (from `TopicUpdatedEvent`, `TopicDeletedEvent`)
+- [ ] Snapshot fields added: `executionAggregateId`, `executionVersion`, `courseAggregateId` (scalar — from `CourseExecutionUpdatedEvent`)
+- [ ] Snapshot entity class created:
+  - `AssessmentTopic` (topicAggregateId, topicName, topicCourseAggregateId, topicVersion, state — from `TopicUpdatedEvent`, `TopicDeletedEvent`)
+- [ ] Snapshot reference added to aggregate class (`@OneToMany Set<AssessmentTopic> topics`)
 - [ ] Layer 1 intra-invariants added: ASSESSMENT_TITLE_NOT_BLANK, TOPIC_COURSE_EXECUTION (Assessment)
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`AssessmentTest`)
 
 ### QuestionSubmission
 - [ ] Scaffolded (`/scaffold-aggregate QuestionSubmission`)
-- [ ] Snapshot fields added: `questionId`, `questionVersion`, `title` (from `QuestionUpdatedEvent`); `userId`, `userName` for student (from `UserUpdatedEvent`, `UserAnonymizedEvent`); `executionId`, `executionVersion`, `courseId` (from `CourseExecutionUpdatedEvent`); `userId`, `userName`, `userRole` per Review (from `UserUpdatedEvent`, `UserAnonymizedEvent`)
+- [ ] Snapshot entity classes created:
+  - `QuestionSubmissionQuestion` (questionAggregateId, questionVersion, title — from `QuestionUpdatedEvent`)
+  - `QuestionSubmissionStudent` (userAggregateId, userName — from `UserUpdatedEvent`, `UserAnonymizedEvent`)
+  - `QuestionSubmissionExecution` (executionAggregateId, executionVersion, courseAggregateId — from `CourseExecutionUpdatedEvent`)
+  - `QuestionSubmissionReview` (userAggregateId, userName, userRole — per Review, from `UserUpdatedEvent`, `UserAnonymizedEvent`)
+- [ ] Snapshot references added to aggregate class (`@OneToOne` for question/student/execution; `@OneToMany` for reviews)
 - [ ] Layer 1 intra-invariants added: REVIEW_COMMENT_NOT_BLANK
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`QuestionSubmissionTest`)
 
 ### Dashboard
 - [ ] Scaffolded (`/scaffold-aggregate Dashboard`)
-- [ ] Snapshot fields added: `userId` for student (immutable at creation); `executionId`, `executionVersion`, `courseId` (from `CourseExecutionUpdatedEvent`); DifficultQuestion internal: `questionId`, `questionVersion`, `percentage`, `courseExecutionId`, `questionCourseId`; FailedAnswer internal: `questionAnswerId`, `questionAnswerVersion`, `correct`, `completed` (from `QuizAnswerUpdatedEvent`)
+- [ ] Snapshot field added: `userAggregateId` (scalar — immutable at creation)
+- [ ] Snapshot entity classes created:
+  - `DashboardCourseExecution` (executionAggregateId, executionVersion, courseAggregateId — from `CourseExecutionUpdatedEvent`)
+  - `DifficultQuestion` (questionAggregateId, questionVersion, percentage, courseExecutionAggregateId, questionCourseAggregateId — internal entity)
+  - `FailedAnswer` (questionAnswerAggregateId, questionAnswerVersion, correct, completed — from `QuizAnswerUpdatedEvent`)
+- [ ] Snapshot references added to aggregate class (`@OneToOne DashboardCourseExecution`; `@OneToMany` for DifficultQuestion and FailedAnswer)
 - [ ] Layer 1 intra-invariants added: WEEKLY_SCORE_CANNOT_CLOSE_CURRENT_WEEK, DIFFICULT_QUESTION_PERCENTAGE_RANGE, DUPLICATE_DIFFICULT_QUESTION, DIFFICULT_QUESTION_COURSE_MATCH, FAILED_ANSWER_STUDENT_MATCH, FAILED_ANSWER_COURSE_MATCH, FAILED_ANSWER_COMPLETED_AND_WRONG, WEEKLY_SCORE_COURSE_MATCH
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`DashboardTest`)
 
 ### Quiz
 - [ ] Scaffolded (`/scaffold-aggregate Quiz`)
-- [ ] Snapshot fields added: `executionId`, `executionVersion` (from `CourseExecutionUpdatedEvent`); `questionId`, `questionVersion`, `title`, `content` per QuizQuestion (from `QuestionUpdatedEvent`, `QuestionDeletedEvent`)
+- [ ] Snapshot entity classes created:
+  - `QuizCourseExecution` (courseExecutionAggregateId, courseExecutionVersion — from `CourseExecutionUpdatedEvent`)
+  - `QuizQuestion` (questionAggregateId, questionVersion, title, content, sequence, state — from `QuestionUpdatedEvent`, `QuestionDeletedEvent`)
+- [ ] Snapshot references added to aggregate class (`@OneToOne QuizCourseExecution`; `@OneToMany Set<QuizQuestion> quizQuestions`)
 - [ ] Layer 1 intra-invariants added: QUIZ_KEY_FINAL, QUIZ_CREATION_DATE_FINAL, QUIZ_TITLE_NOT_BLANK, QUIZ_AVAILABLE_DATE_NOT_NULL, QUIZ_DATE_ORDERING, QUIZ_QUESTION_SEQUENCE_STARTS_AT_ONE, QUIZ_FIELDS_FINAL_AFTER_AVAILABLE_DATE, QUIZ_CANNOT_HAVE_REPEATED_QUESTIONS
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`QuizTest`)
 
 ### QuizAnswer
 - [ ] Scaffolded (`/scaffold-aggregate QuizAnswer`)
-- [ ] Snapshot fields added: `quizId`, `quizVersion`, `oneWay`, `quizType` (from `QuizUpdatedEvent`); `userId`, `userName` (from `UserUpdatedEvent`, `UserAnonymizedEvent`); `questionId`, `questionVersion` per QuestionAnswer (from `QuestionUpdatedEvent`)
+- [ ] Snapshot entity classes created:
+  - `QuizAnswerQuiz` (quizAggregateId, quizVersion, oneWay, quizType — from `QuizUpdatedEvent`)
+  - `QuizAnswerUser` (userAggregateId, userName — from `UserUpdatedEvent`, `UserAnonymizedEvent`)
+  - `QuestionAnswer` (questionAggregateId, questionVersion — from `QuestionUpdatedEvent`)
+- [ ] Snapshot references added to aggregate class (`@OneToOne QuizAnswerQuiz`; `@OneToOne QuizAnswerUser`; `@OneToMany Set<QuestionAnswer> questionAnswers`)
 - [ ] Layer 1 intra-invariants added: QUIZ_ANSWER_SEQUENCE_NON_NEGATIVE, ONE_WAY_QUIZ_SEQUENCE
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`QuizAnswerTest`)
 
 ### Tournament
 - [ ] Scaffolded (`/scaffold-aggregate Tournament`)
-- [ ] Snapshot fields added: `executionId`, `executionVersion` (from `CourseExecutionUpdatedEvent`); `userId`, `userName`, `userUsername`, `userVersion` for creator (from `UserUpdatedEvent`, `UserAnonymizedEvent`); `userId`, `userName`, `userUsername`, `enrollTime`, `userVersion` per participant (from `UserUpdatedEvent`, `UserAnonymizedEvent`); `topicId`, `topicName` per topic (from `TopicUpdatedEvent`, `TopicDeletedEvent`); `quizId`, `quizVersion` (from `QuizUpdatedEvent`); `quizAnswerId`, `quizAnswerVersion`, `answered`, `numberOfAnswered`, `numberOfCorrect` per participant (from `QuizAnswerUpdatedEvent`)
+- [ ] Snapshot entity classes created:
+  - `TournamentCourseExecution` (executionAggregateId, executionVersion — from `CourseExecutionUpdatedEvent`)
+  - `TournamentCreator` (userAggregateId, userName, userUsername, userVersion, state — from `UserUpdatedEvent`, `UserAnonymizedEvent`)
+  - `TournamentParticipant` (userAggregateId, userName, userUsername, enrollTime, userVersion, state — from `UserUpdatedEvent`, `UserAnonymizedEvent`; plus quizAnswerAggregateId, quizAnswerVersion, answered, numberOfAnswered, numberOfCorrect from `QuizAnswerUpdatedEvent`)
+  - `TournamentTopic` (topicAggregateId, topicName, topicCourseAggregateId, topicVersion, state — from `TopicUpdatedEvent`, `TopicDeletedEvent`)
+  - `TournamentQuiz` (quizAggregateId, quizVersion — from `QuizUpdatedEvent`)
+- [ ] Snapshot references added to aggregate class (`@OneToOne` for execution/creator/quiz; `@OneToMany` for participants/topics)
 - [ ] Layer 1 intra-invariants added: TOURNAMENT_START_BEFORE_END, TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE, TOURNAMENT_MAX_QUESTIONS, TOURNAMENT_UNIQUE_AS_PARTICIPANT, TOURNAMENT_FINAL_AFTER_START, TOURNAMENT_IS_CANCELED, TOURNAMENT_ENROLL_UNTIL_END, DUPLICATE_TOURNAMENT_PARTICIPANT, CREATOR_IS_NOT_ANONYMOUS, TOURNAMENT_PRIVATE_PASSWORD, TOURNAMENT_CANCELED, TOURNAMENT_NOT_OPEN, TOURNAMENT_CANNOT_CHANGE_WHEN_OPEN
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`TournamentTest`)
 
 ### Discussion
 - [ ] Scaffolded (`/scaffold-aggregate Discussion`)
-- [ ] Snapshot fields added: `executionId`, `executionVersion` (from `CourseExecutionUpdatedEvent`); `userId`, `userName`, `userRole` for student (from `UserUpdatedEvent`, `UserAnonymizedEvent`); `questionId`, `questionVersion` (from `QuestionUpdatedEvent`); `questionAnswerId`, `questionAnswerVersion` (from `QuizAnswerUpdatedEvent`); `userId`, `userName`, `userRole` per Reply (from `UserUpdatedEvent`, `UserAnonymizedEvent`)
+- [ ] Snapshot entity classes created:
+  - `DiscussionCourseExecution` (executionAggregateId, executionVersion — from `CourseExecutionUpdatedEvent`)
+  - `DiscussionUser` (userAggregateId, userName, userRole — for student, from `UserUpdatedEvent`, `UserAnonymizedEvent`)
+  - `DiscussionQuestion` (questionAggregateId, questionVersion — from `QuestionUpdatedEvent`)
+  - `DiscussionQuestionAnswer` (questionAnswerAggregateId, questionAnswerVersion — from `QuizAnswerUpdatedEvent`)
+  - `DiscussionReplyUser` (userAggregateId, userName, userRole — per Reply, from `UserUpdatedEvent`, `UserAnonymizedEvent`)
+- [ ] Snapshot references added to aggregate class (`@OneToOne` for execution/user/question/questionAnswer; `@OneToMany` for reply users)
 - [ ] Layer 1 intra-invariants added: DISCUSSION_MESSAGE_NOT_BLANK, DISCUSSION_DATE_FINAL, REPLY_MESSAGE_NOT_BLANK, REPLY_DATE_FINAL, DISCUSSION_CLOSE_REQUIRES_REPLY
 - [ ] Registered in `BeanConfigurationSagas.groovy`
 - [ ] Creation test passes (`DiscussionTest`)
