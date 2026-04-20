@@ -31,7 +31,7 @@ public abstract class User extends Aggregate {
     /*
         USER_KEY_FINAL
     */
-    @Column
+    @Column(name = "user_key")
     private final Integer key;
 
     @Column
@@ -50,6 +50,8 @@ public abstract class User extends Aggregate {
     private Boolean active;
 
     public User() {
+        this.key = null;
+        this.role = null;
     }
 
     public User(Integer aggregateId, UserDto userDto) {

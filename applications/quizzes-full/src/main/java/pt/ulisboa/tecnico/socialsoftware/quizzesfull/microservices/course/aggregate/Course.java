@@ -41,6 +41,8 @@ public abstract class Course extends Aggregate {
     private final CourseType type;
 
     public Course() {
+        this.name = null;
+        this.type = null;
     }
 
     public Course(Integer aggregateId, CourseDto courseDto) {

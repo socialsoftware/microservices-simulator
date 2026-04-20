@@ -21,6 +21,7 @@ It is checked by `verifyInvariants()` on every Unit of Work commit.
   - Rules involving business-logic fields → ACTIVE only
   - Rules involving structural integrity → all states
 - **Important**: if the rule is enforced at the Java language level (e.g., `final` field, `@Column(nullable=false)`) and cannot be violated at runtime, document this in the class-level comment block and skip Steps 2–5. No `boolean` helper needed.
+  - **If using `final` fields**: the no-arg constructor (required by JPA) cannot leave them uninitialized — Java requires `final` fields to be assigned in every constructor. Update the no-arg constructor to assign `null` (or a sentinel) to each `final` field: e.g., `this.name = null;`. This is a JPA/Java language constraint, not a domain logic decision.
 
 ---
 
