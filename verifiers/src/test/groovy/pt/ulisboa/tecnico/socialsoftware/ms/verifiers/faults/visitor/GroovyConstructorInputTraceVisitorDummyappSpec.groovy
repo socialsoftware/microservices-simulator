@@ -293,6 +293,56 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         traceText.contains('arg[2]: aggregateCount <- [1, 2, 3].toSet().size()')
     }
 
+    def 'keeps toSet as local transform when dummyapp collection leaves stay unresolved'() {
+        given:
+        def trace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'local toSet with unresolved child leaves feeds order saga constructor' &&
+                    it.sourceBindingName == 'runtimeAwareToSetSaga' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas'
+        }
+
+        when:
+        def traceText = traceTextFor(
+                'com.example.dummyapp.GroovySagaTracingSpec',
+                'local toSet with unresolved child leaves feeds order saga constructor',
+                'runtimeAwareToSetSaga',
+                'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas'
+        )
+
+        then:
+        trace != null
+        trace.constructorArguments()[0].recipe().kind() == GroovyValueKind.LOCAL_TRANSFORM
+        trace.constructorArguments()[0].recipe().text() == 'toSet'
+        trace.constructorArguments()[0].recipe().children()[0].kind() == GroovyValueKind.COLLECTION_LITERAL
+        recipeContainsKind(trace.constructorArguments()[0].recipe(), GroovyValueKind.UNRESOLVED_RUNTIME_EDGE)
+        !trace.constructorArguments()[0].provenance().contains('.toSet() [unresolved external/runtime edge]')
+        traceText.contains('arg[0]: runtimeAwareIds <- [runtimeGateway.loadExternalDto() [unresolved external/runtime edge].aggregateId, 9].toSet()')
+    }
+
+    def 'keeps runtime toSet receivers conservative in dummyapp fixture'() {
+        given:
+        def trace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'runtime toSet receiver remains unresolved for order saga constructor' &&
+                    it.sourceBindingName == 'runtimeToSetSaga' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas'
+        }
+
+        when:
+        def traceText = traceTextFor(
+                'com.example.dummyapp.GroovySagaTracingSpec',
+                'runtime toSet receiver remains unresolved for order saga constructor',
+                'runtimeToSetSaga',
+                'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas'
+        )
+
+        then:
+        trace != null
+        trace.constructorArguments()[0].recipe().kind() == GroovyValueKind.UNRESOLVED_RUNTIME_EDGE
+        traceText.contains('arg[0]: runtimeSet <- runtimeGateway.loadExternalDto().toSet() [unresolved external/runtime edge]')
+    }
+
     def 'keeps unresolved runtime edges conservative for dummyapp item saga input'() {
         when:
         def traceText = traceTextFor(

@@ -1396,7 +1396,7 @@ public class GroovyConstructorInputTraceVisitor {
                     traceScopeKey,
                     helperScope,
                     rebindingFallbackScopes);
-                if (hasUnresolvedRecipe(receiverTrace.recipe()) || !isCollectionLikeRecipe(receiverTrace.recipe())) {
+                if (!isCollectionLikeRecipe(receiverTrace.recipe())) {
                     return new ValueTrace(methodCallExpression.getText() + " [unresolved external/runtime edge]",
                             new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, methodCallExpression.getText(),
                                     List.of(receiverTrace.recipe())));
@@ -1969,18 +1969,6 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         return methodCallExpression.getObjectExpression() != null;
-    }
-
-    private boolean hasUnresolvedRecipe(GroovyValueRecipe recipe) {
-        if (recipe == null) {
-            return true;
-        }
-
-        if (recipe.kind() == GroovyValueKind.UNRESOLVED_VARIABLE || recipe.kind() == GroovyValueKind.UNRESOLVED_RUNTIME_EDGE) {
-            return true;
-        }
-
-        return recipe.children() != null && recipe.children().stream().anyMatch(this::hasUnresolvedRecipe);
     }
 
     private boolean isCollectionLikeRecipe(GroovyValueRecipe recipe) {

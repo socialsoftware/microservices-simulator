@@ -112,6 +112,30 @@ class GroovySagaTracingSpec extends Specification {
         true
     }
 
+    def 'local toSet with unresolved child leaves feeds order saga constructor'() {
+        given:
+        def runtimeAwareIds = [runtimeGateway.loadExternalDto().getAggregateId(), 9].toSet()
+        def runtimeAwareToSetSaga = new CreateOrderFunctionalitySagas(runtimeAwareIds, null)
+
+        when:
+        runtimeAwareToSetSaga.executeWorkflow(null)
+
+        then:
+        true
+    }
+
+    def 'runtime toSet receiver remains unresolved for order saga constructor'() {
+        given:
+        def runtimeSet = runtimeGateway.loadExternalDto().toSet()
+        def runtimeToSetSaga = new CreateOrderFunctionalitySagas(runtimeSet, null)
+
+        when:
+        runtimeToSetSaga.executeWorkflow(null)
+
+        then:
+        true
+    }
+
     def 'try catch and retry loop include workflow calls'() {
         given:
         def retrySaga = new CreateOrderFunctionalitySagas(null, null)

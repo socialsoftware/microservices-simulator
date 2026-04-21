@@ -310,6 +310,12 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         !updateCreateTournamentBlock.contains('[unresolved self-reference]')
 
         and:
+        htmlReport.contains('UpdateTournamentTest.update tournament successfully()')
+        htmlReport.contains('topicsAggregateIds &lt;- ')
+        htmlReport.contains('LOCAL_TRANSFORM: toSet')
+        !htmlReport.contains('topicsAggregateIds &lt;- [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet() [unresolved external/runtime edge]')
+
+        and:
         def abortCreateTopicBlock = findTraceBlock(
                 htmlReport,
                 'AbortUpdateAndRetryTest',

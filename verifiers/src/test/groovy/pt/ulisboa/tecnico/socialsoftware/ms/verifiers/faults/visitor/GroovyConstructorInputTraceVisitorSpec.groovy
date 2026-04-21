@@ -289,6 +289,109 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
         !trace.constructorArguments()[0].provenance().contains('[unresolved external/runtime edge]')
     }
 
+    def 'keeps toSet local when collection items remain unresolved runtime leaves'() {
+        given:
+        def toSetState = new ApplicationAnalysisState()
+        def workflowVisitor = new WorkflowFunctionalityVisitor()
+        parseAllDummyappFiles().each { cu -> workflowVisitor.visit(cu, toSetState) }
+
+        writeSource('toSet-unresolved-fixture/demo/ToSetUnresolvedLeavesSpec.groovy', '''
+            package demo
+
+            import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
+            import spock.lang.Specification
+
+            class RuntimeGateway {
+                def loadExternalDto() {
+                    externalRuntime.fetchDto()
+                }
+            }
+
+            class ToSetUnresolvedLeavesSpec extends Specification {
+                def runtimeGateway = new RuntimeGateway()
+
+                def 'toSet keeps unresolved leaves local'() {
+                    given:
+                    def aggregateIds = [runtimeGateway.loadExternalDto().getAggregateId(), 7].toSet()
+                    def saga = new CreateOrderFunctionalitySagas(aggregateIds, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+            }
+        ''')
+
+        def sourceIndex = new GroovySourceIndex()
+        sourceIndex.parse(tempDir.resolve('toSet-unresolved-fixture'))
+
+        when:
+        new GroovyConstructorInputTraceVisitor().visit(sourceIndex, toSetState)
+
+        then:
+        def trace = toSetState.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'demo.ToSetUnresolvedLeavesSpec' && it.sourceMethodName == 'toSet keeps unresolved leaves local'
+        }
+        trace != null
+        trace.constructorArguments()[0].recipe().kind() == GroovyValueKind.LOCAL_TRANSFORM
+        trace.constructorArguments()[0].recipe().text() == 'toSet'
+        trace.constructorArguments()[0].recipe().children()[0].kind() == GroovyValueKind.COLLECTION_LITERAL
+        recipeContainsKind(trace.constructorArguments()[0].recipe(), GroovyValueKind.UNRESOLVED_RUNTIME_EDGE)
+        !trace.constructorArguments()[0].provenance().contains('.toSet() [unresolved external/runtime edge]')
+    }
+
+    def 'keeps toSet unresolved for runtime-only receivers'() {
+        given:
+        def toSetState = new ApplicationAnalysisState()
+        def workflowVisitor = new WorkflowFunctionalityVisitor()
+        parseAllDummyappFiles().each { cu -> workflowVisitor.visit(cu, toSetState) }
+
+        writeSource('toSet-runtime-fixture/demo/ToSetRuntimeReceiverSpec.groovy', '''
+            package demo
+
+            import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
+            import spock.lang.Specification
+
+            class RuntimeGateway {
+                def loadExternalDto() {
+                    externalRuntime.fetchDto()
+                }
+            }
+
+            class ToSetRuntimeReceiverSpec extends Specification {
+                def runtimeGateway = new RuntimeGateway()
+
+                def 'toSet on runtime receiver stays unresolved'() {
+                    given:
+                    def aggregateIds = runtimeGateway.loadExternalDto().toSet()
+                    def saga = new CreateOrderFunctionalitySagas(aggregateIds, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+            }
+        ''')
+
+        def sourceIndex = new GroovySourceIndex()
+        sourceIndex.parse(tempDir.resolve('toSet-runtime-fixture'))
+
+        when:
+        new GroovyConstructorInputTraceVisitor().visit(sourceIndex, toSetState)
+
+        then:
+        def trace = toSetState.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'demo.ToSetRuntimeReceiverSpec' && it.sourceMethodName == 'toSet on runtime receiver stays unresolved'
+        }
+        trace != null
+        trace.constructorArguments()[0].recipe().kind() == GroovyValueKind.UNRESOLVED_RUNTIME_EDGE
+        trace.constructorArguments()[0].provenance().contains('.toSet() [unresolved external/runtime edge]')
+    }
+
     def 'traces source-backed inherited setup/setupSpec/field/helper members'() {
         given:
         def inheritedState = new ApplicationAnalysisState()
