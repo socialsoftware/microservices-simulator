@@ -22,12 +22,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 @SpringBootApplication
 public class ScenarioGeneratorApplication implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ScenarioGeneratorApplication.class);
+    private static final DateTimeFormatter HTML_REPORT_ARCHIVE_TIMESTAMP_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
 
     private final String applicationsRoot;
 
@@ -165,10 +170,15 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         String textReport = applicationAnalysisState.formatHumanReadableReport();
         logger.info("Analysis report:\n{}", textReport);
 
+        OffsetDateTime generatedAt = OffsetDateTime.now(ZoneOffset.UTC);
         AnalysisHtmlReportRenderer htmlReportRenderer = new AnalysisHtmlReportRenderer();
         String htmlReport = htmlReportRenderer.render(
                 applicationAnalysisState,
-                AnalysisHtmlReportRenderer.ReportMetadata.now(applicationsRoot, applicationBaseDir),
+                new AnalysisHtmlReportRenderer.ReportMetadata(
+                        applicationsRoot,
+                        applicationBaseDir,
+                        generatedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                ),
                 textReport
         );
 
@@ -178,7 +188,10 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             Files.createDirectories(parent);
         }
         Files.writeString(htmlOutputPath, htmlReport);
+        Path archivedHtmlOutputPath = resolveArchivedHtmlReportPath(htmlOutputPath, generatedAt);
+        Files.writeString(archivedHtmlOutputPath, htmlReport);
         logger.info("Analysis HTML report written to {}", htmlOutputPath.toAbsolutePath().normalize());
+        logger.info("Analysis HTML archive written to {}", archivedHtmlOutputPath.toAbsolutePath().normalize());
     }
 
     private Path resolveHtmlReportPath() {
@@ -192,5 +205,28 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         }
 
         return applicationPath.resolve(configured).normalize();
+    }
+
+    private Path resolveArchivedHtmlReportPath(Path htmlOutputPath, OffsetDateTime generatedAt) {
+        String archiveTimestamp = generatedAt.format(HTML_REPORT_ARCHIVE_TIMESTAMP_FORMATTER);
+        String archiveFileName = appendTimestampBeforeExtension(htmlOutputPath.getFileName().toString(), archiveTimestamp);
+        Path parent = htmlOutputPath.getParent();
+        if (parent == null) {
+            return Path.of(archiveFileName).normalize();
+        }
+
+        return parent.resolve(archiveFileName).normalize();
+    }
+
+    private static String appendTimestampBeforeExtension(String fileName, String archiveTimestamp) {
+        int extensionStart = fileName.lastIndexOf('.');
+        if (extensionStart <= 0) {
+            return fileName + "-" + archiveTimestamp;
+        }
+
+        return fileName.substring(0, extensionStart)
+                + "-"
+                + archiveTimestamp
+                + fileName.substring(extensionStart);
     }
 }

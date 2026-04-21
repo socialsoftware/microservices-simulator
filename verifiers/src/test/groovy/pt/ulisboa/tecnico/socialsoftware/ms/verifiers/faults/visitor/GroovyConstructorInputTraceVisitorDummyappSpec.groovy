@@ -178,6 +178,7 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
                     it.sourceMethodName == 'buildItemDtoViaFacade' &&
                     it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
         }
+        def helperFacadeTrace = helperFacadeTraces ? helperFacadeTraces[0] : null
         def parentTraceText = traceTextFor(
                 'com.example.dummyapp.GroovyNestedFacadeTracingSpec',
                 'nested helper facade result feeds item saga constructor',
@@ -187,15 +188,23 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
 
         expect:
         helperFacadeTraces.size() == 1
-        helperFacadeTraces[0].originKind() == GroovyTraceOriginKind.FACADE_CALL
-        helperFacadeTraces[0].sourceBindingName() == null
-        helperFacadeTraces[0].sourceExpressionText() == 'itemFunctionalities.createItem(itemDto)'
+        helperFacadeTrace.originKind() == GroovyTraceOriginKind.FACADE_CALL
+        helperFacadeTrace.sourceBindingName() == null
+        helperFacadeTrace.sourceExpressionText() == 'itemFunctionalities.createItem(itemDto)'
+        helperFacadeTrace.constructorArguments()[1].provenance().contains('itemDto <- buildItemDto(...)')
+        !helperFacadeTrace.constructorArguments()[1].provenance().contains('[unresolved cyclic reference]')
+        recipeContainsKind(helperFacadeTrace.constructorArguments()[1].recipe(), GroovyValueKind.HELPER_CALL_RESULT)
         parentTraceText.contains('buildItemDtoViaFacade(...) <- itemDto <- itemFunctionalities.createItem(itemDto)')
         parentTraceText.contains('resolved via helper createItemSaga(...)')
     }
 
     def 'same-name caller/helper locals no longer produce a cyclic marker'() {
         given:
+        def helperFacadeTrace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovyNestedFacadeTracingSpec' &&
+                    it.sourceMethodName == 'buildItemDtoWithShadowing' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
         def traceText = traceTextFor(
                 'com.example.dummyapp.GroovyNestedFacadeTracingSpec',
                 'shadowed helper field/local itemDto remains acyclic',
@@ -204,8 +213,37 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         )
 
         expect:
+        helperFacadeTrace != null
+        helperFacadeTrace.constructorArguments()[1].provenance().contains('itemDto <- buildItemDto(...)')
+        !helperFacadeTrace.constructorArguments()[1].provenance().contains('[unresolved cyclic reference]')
         traceText.contains('buildItemDtoWithShadowing(...) <- itemDto <- itemFunctionalities.createItem(itemDto)')
         !traceText.contains('[unresolved cyclic reference]')
+    }
+
+    def 'helper parameter accessor keeps caller provenance without self-reference markers'() {
+        given:
+        def trace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovyNestedFacadeTracingSpec' &&
+                    it.sourceMethodName == 'helper parameter property access remains acyclic' &&
+                    it.sourceBindingName == 'aggregateSaga' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas'
+        }
+        def traceText = traceTextFor(
+                'com.example.dummyapp.GroovyNestedFacadeTracingSpec',
+                'helper parameter property access remains acyclic',
+                'aggregateSaga',
+                'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas'
+        )
+
+        expect:
+        trace != null
+        recipeContainsKind(trace.constructorArguments()[2].recipe(), GroovyValueKind.HELPER_CALL_RESULT)
+        recipeContainsKind(trace.constructorArguments()[2].recipe(), GroovyValueKind.PROPERTY_ACCESS)
+        !trace.constructorArguments()[2].provenance().contains('[unresolved self-reference]')
+        !trace.constructorArguments()[2].provenance().contains('[unresolved depth-limit]')
+        traceText.contains('aggregateIdFromHelper(...)')
+        !traceText.contains('[unresolved self-reference]')
+        !traceText.contains('[unresolved depth-limit]')
     }
 
     def 'captures named-args and setter-based dto constructor provenance from dummyapp fixture'() {

@@ -3,6 +3,7 @@ package com.example.dummyapp
 import com.example.dummyapp.item.aggregate.ItemDto
 import com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas
 import com.example.dummyapp.item.coordination.ItemFunctionalitiesFacade
+import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
 import spock.lang.Specification
@@ -41,6 +42,18 @@ class GroovyNestedFacadeTracingSpec extends Specification {
         true
     }
 
+    def 'helper parameter property access remains acyclic'() {
+        given:
+        def itemDto = buildItemDto()
+        def aggregateSaga = new CreateOrderFunctionalitySagas(null, null, aggregateIdFromHelper(itemDto), null)
+
+        when:
+        aggregateSaga.executeWorkflow(null)
+
+        then:
+        true
+    }
+
     def createItemSaga(dto) {
         new CreateItemFunctionalitySagas(null, dto, null, null)
     }
@@ -61,5 +74,9 @@ class GroovyNestedFacadeTracingSpec extends Specification {
             itemDto = itemFunctionalities.createItem(itemDto)
         }
         itemDto
+    }
+
+    def aggregateIdFromHelper(itemDto) {
+        itemDto.getAggregateId()
     }
 }

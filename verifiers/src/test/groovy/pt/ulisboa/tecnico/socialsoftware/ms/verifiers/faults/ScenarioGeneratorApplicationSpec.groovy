@@ -5,6 +5,7 @@ import spock.lang.TempDir
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.regex.Pattern
 
 class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.VisitorTestSupport {
 
@@ -225,6 +226,12 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         htmlReport.contains('DemoTraceSpec')
         htmlReport.contains('Raw Text Report (verbatim)')
 
+        and:
+        def archivedReports = findTimestampedSiblingReports(htmlReportPath)
+        archivedReports.size() == 1
+        archivedReports[0].getFileName().toString() ==~ /analysis-report-\d{8}-\d{6}-\d{3}\.html/
+        Files.readString(archivedReports[0]) == htmlReport
+
         cleanup:
         context?.close()
     }
@@ -266,6 +273,58 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         targetedTraceBlock.contains('createCourseExecution(...)')
         targetedTraceBlock.contains('createUser(...)')
         !targetedTraceBlock.contains('[unresolved cyclic reference]')
+
+        and:
+        def updateCreateUserBlock = findTraceBlock(
+                htmlReport,
+                'UpdateTournamentTest',
+                'createUser',
+                'userFunctionalities.createUser(userDto)'
+        )
+        def updateCreateCourseExecutionBlock = findTraceBlock(
+                htmlReport,
+                'UpdateTournamentTest',
+                'createCourseExecution',
+                'courseExecutionFunctionalities.createCourseExecution(courseExecutionDto)'
+        )
+        def updateCreateTournamentBlock = findTraceBlock(
+                htmlReport,
+                'UpdateTournamentTest',
+                'createTournament',
+                'tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)'
+        )
+
+        updateCreateUserBlock != null
+        updateCreateUserBlock.contains('arg[1]: userDto &lt;- new UserDto(')
+        !updateCreateUserBlock.contains('[unresolved cyclic reference]')
+        !updateCreateUserBlock.contains('[unresolved self-reference]')
+
+        updateCreateCourseExecutionBlock != null
+        updateCreateCourseExecutionBlock.contains('arg[1]: courseExecutionDto &lt;- new CourseExecutionDto(')
+        !updateCreateCourseExecutionBlock.contains('[unresolved cyclic reference]')
+        !updateCreateCourseExecutionBlock.contains('[unresolved self-reference]')
+
+        updateCreateTournamentBlock != null
+        updateCreateTournamentBlock.contains('arg[4]: tournamentDto &lt;- new TournamentDto(')
+        !updateCreateTournamentBlock.contains('[unresolved cyclic reference]')
+        !updateCreateTournamentBlock.contains('[unresolved self-reference]')
+
+        and:
+        def abortCreateTopicBlock = findTraceBlock(
+                htmlReport,
+                'AbortUpdateAndRetryTest',
+                'createTopic',
+                'topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto)'
+        )
+
+        abortCreateTopicBlock != null
+        !abortCreateTopicBlock.contains('[unresolved self-reference]')
+        !abortCreateTopicBlock.contains('[unresolved depth-limit]')
+
+        and:
+        !htmlReport.contains('courseExecutionDto [unresolved self-reference].courseAggregateId')
+        !htmlReport.contains('topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved depth-limit]')
+        !htmlReport.contains('arg[1]: userDto &lt;- new UserDto() [unresolved depth-limit]')
 
         cleanup:
         context?.close()
@@ -368,6 +427,12 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         Files.exists(customReport)
         !Files.exists(defaultReport)
 
+        and:
+        def archivedReports = findTimestampedSiblingReports(customReport)
+        archivedReports.size() == 1
+        archivedReports[0].getFileName().toString() ==~ /custom-analysis-\d{8}-\d{6}-\d{3}\.html/
+        Files.readString(archivedReports[0]) == Files.readString(customReport)
+
         cleanup:
         context?.close()
     }
@@ -377,5 +442,43 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         Files.createDirectories(file.parent)
         Files.writeString(file, contents.stripIndent().trim() + '\n')
         return file
+    }
+
+    private static String findTraceBlock(String htmlReport,
+                                         String sourceClassSimpleName,
+                                         String sourceMethodName,
+                                         String requiredSnippet) {
+        def pattern = Pattern.compile(
+                '(?s)<code>' + Pattern.quote(sourceClassSimpleName)
+                        + '\\.</code><code>'
+                        + Pattern.quote(sourceMethodName)
+                        + '\\(\\)</code>.*?<pre class="trace-pre">(.*?)</pre>'
+        )
+        def matcher = pattern.matcher(htmlReport)
+        while (matcher.find()) {
+            def block = matcher.group(1)
+            if (requiredSnippet == null || block.contains(requiredSnippet)) {
+                return block
+            }
+        }
+        return null
+    }
+
+    private static List<Path> findTimestampedSiblingReports(Path stableReportPath) {
+        def fileName = stableReportPath.getFileName().toString()
+        int extensionStart = fileName.lastIndexOf('.')
+        def baseName = extensionStart >= 0 ? fileName.substring(0, extensionStart) : fileName
+        def extension = extensionStart >= 0 ? fileName.substring(extensionStart) : ''
+        def archivePattern = Pattern.compile(Pattern.quote(baseName) + '-\\d{8}-\\d{6}-\\d{3}' + Pattern.quote(extension))
+
+        def stream = Files.list(stableReportPath.getParent())
+        try {
+            return stream
+                    .filter { path -> archivePattern.matcher(path.getFileName().toString()).matches() }
+                    .sorted()
+                    .toList()
+        } finally {
+            stream.close()
+        }
     }
 }
