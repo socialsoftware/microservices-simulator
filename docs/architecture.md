@@ -1,6 +1,6 @@
 # Application Architecture
 
-This document is the system-level companion to the per-concept docs. Read it before implementing a new application to understand how the layers fit together, what constraints govern each one, and which simulator base classes to extend. To start a new application with Claude's help, invoke `/new-application <AppName>`.
+This document is the system-level companion to the per-concept docs. Read it before implementing a new application to understand how the layers fit together, what constraints govern each one, and which simulator base classes to extend.
 
 ---
 
@@ -221,4 +221,3 @@ For a quick decision, use this table. For full rationale and examples for each l
 | Sagas semantic locks | [`concepts/sagas.md`](concepts/sagas.md) |
 | Domain events | [`concepts/events.md`](concepts/events.md) |
 | Invariant taxonomy (full) | [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) |
-| Bootstrap a new application | `/new-application` skill |

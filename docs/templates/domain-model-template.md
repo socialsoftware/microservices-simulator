@@ -41,7 +41,7 @@
 
 Rules that inspect only fields of a single entity.
 
-> **AI agent implementation:** All §3.1 rules become **Layer 1 intra-invariants** inside `verifyInvariants()`, added by `/scaffold-aggregate`.
+> **AI agent implementation:** All §3.1 rules become **Layer 1 intra-invariants** inside `verifyInvariants()`.
 
 | Rule | Entity | Predicate |
 |---|---|---|
@@ -69,8 +69,6 @@ One block per rule. Use the exact three-field shape below.
 ---
 
 ## §4 — Functionalities
-
-Operations that the application exposes. Each row maps directly to one `/implement-functionality` invocation in Phase 3 of `/new-application`.
 
 > **One row per operation.** The **Primary Aggregate** is the one that owns the main state change (the one whose service method is the coordination entry point). List every aggregate that the saga reads or writes in **Other Aggregates**.
 > If an operation touches only a single aggregate, omit it here — it becomes a plain service method with no saga coordination.

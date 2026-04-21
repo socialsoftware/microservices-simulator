@@ -37,7 +37,7 @@ The event is persisted when the UoW commits.
 
 ## EventSubscription
 
-Each subscriber aggregate declares which events it watches via `getEventSubscriptions()`. Located in `microservices/<aggregate>/events/subscribe/`.
+Each subscriber aggregate declares which events it watches via `getEventSubscriptions()`. Located in `microservices/<aggregate>/notification/subscribe/`.
 
 ```java
 public class ExecutionSubscribesCreateQuestion extends EventSubscription {
@@ -57,7 +57,7 @@ public class ExecutionSubscribesCreateQuestion extends EventSubscription {
 
 ## EventHandler
 
-Located in `microservices/<aggregate>/events/handling/handlers/`.
+Located in `microservices/<aggregate>/notification/handling/handlers/`.
 
 Each handler receives a matching event, verifies it passes the subscription filter, extracts needed data, and calls `<Aggregate>EventProcessing`.
 
@@ -74,7 +74,7 @@ public class CreateQuestionEventHandler extends EventHandler {
 
 ## Polling
 
-Located in `microservices/<aggregate>/events/handling/<Aggregate>EventHandling.java`.
+Located in `microservices/<aggregate>/notification/handling/<Aggregate>EventHandling.java`.
 
 Each event type gets one `@Scheduled` method:
 
@@ -169,5 +169,5 @@ public void handle<Xxx>Events() {
 ## Reference Implementations (Quizzes)
 
 - `applications/quizzes/src/main/java/.../events/CreateQuestionEvent.java`
-- `applications/quizzes/src/main/java/.../execution/events/subscribe/ExecutionSubscribesCreateQuestion.java`
-- `applications/quizzes/src/main/java/.../execution/events/handling/CourseExecutionEventHandling.java`
+- `applications/quizzes/src/main/java/.../execution/notification/subscribe/CourseExecutionSubscribesRemoveUser.java`
+- `applications/quizzes/src/main/java/.../execution/notification/handling/CourseExecutionEventHandling.java`

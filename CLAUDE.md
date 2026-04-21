@@ -1,10 +1,10 @@
 # CLAUDE.md — Navigation Hub
 
-This file is the entry point for both humans and AI agents. Each section links to the authoritative source for deeper information.
+Navigation hub for humans and AI agents — each section links to the authoritative source.
 
-The current objective is to implement a new more complete version of the Quizzes-Tutor application (quizzes-full) with the use of AI agents through skills and documentation.
-Both the documentation and skills are not static - they should evolve as we learn from the process of building quizzes-full, and as we identify gaps and areas for improvement. So any time something is unclear, or you find yourself needing to refer back to the reference quizzes app for guidance, that's a signal that we need to update the documentation or build a new skill to fill that gap.
-The goal is to make the process as smooth and self-contained as possible for future applications, so we want to capture all the learnings and patterns from this implementation in our docs and skills.
+**Current objective:** Build `quizzes-full`, a complete Quizzes-Tutor implementation driven by AI agents via skills and documentation.
+
+Docs and skills are **living artifacts**. When something is unclear or you find yourself consulting the `quizzes/` reference app, that's a signal to update the docs or add a skill — the goal is a self-contained process that captures every pattern learned.
 
 ---
 
@@ -29,7 +29,7 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 |--------|---------------------------------------------------------------------------------------------------------------|---------------|
 | `simulator/` | Core library: `Aggregate`, `Workflow`, `UnitOfWork`, `CommandGateway`, events                                 | [`simulator/CLAUDE.md`](simulator/CLAUDE.md) |
 | `applications/quizzes/` | Reference example — patterns and templates for new applications                                               | [`applications/quizzes/CLAUDE.md`](applications/quizzes/CLAUDE.md) |
-| `applications/quizzes-full/` | In progress app being built by harnessing AI agents | [`applications/quizzes-full/plan.md`](applications/quizzes-full/plan.md) |
+| `applications/quizzes-full/` | In progress app being built by harnessing AI agents |  |
 
 ---
 
@@ -43,25 +43,8 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 | Sagas semantic locks | [`docs/concepts/sagas.md`](docs/concepts/sagas.md) |
 | Invariant & guard taxonomy | [`docs/concepts/consistency-enforcement.md`](docs/concepts/consistency-enforcement.md) |
 | Consistency layer decision flowchart (AI agent) | [`docs/concepts/decision-guide.md`](docs/concepts/decision-guide.md) |
-| New-application loop-based workflow | [`docs/workflow.md`](docs/workflow.md) |
+| Test taxonomy & templates | [`docs/concepts/testing.md`](docs/concepts/testing.md) |
 | Domain model template | [`docs/templates/domain-model-template.md`](docs/templates/domain-model-template.md) |
 | Aggregate grouping template | [`docs/templates/aggregate-grouping-template.md`](docs/templates/aggregate-grouping-template.md) |
 
 ---
-
-## Available Skills
-
-### Bootstrap
-
-| Skill | When to use | Invoke with |
-|-------|------------|-------------|
-| `new-application` | Bootstrap a new application from scratch: reads domain templates, classifies rules, writes `plan.md` + `PROMPT.md` + `run.sh` | `/new-application <path/domain-model.md> <path/aggregate-grouping.md>` |
-
-### Phase driver skills (loop entry points — one work unit per session)
-
-| Skill | Phase | Invoke with |
-|-------|-------|-------------|
-| `scaffold-aggregate` | Phase 2 — one call per aggregate | `/scaffold-aggregate <AggregateName>` |
-| `implement-functionality` | Phase 3 — one call per functionality | `/implement-functionality <FunctionalityName>` |
-| `wire-event` | Phase 4 — one call per event-consumer pair | `/wire-event <ConsumerAggregate> <EventName>` |
-

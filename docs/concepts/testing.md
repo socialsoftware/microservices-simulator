@@ -49,8 +49,6 @@ src/test/groovy/<pkg>/
 
 ## T1 — Creation Test
 
-**When:** Written by `/scaffold-aggregate`. Runs at end of Phase 2.
-
 **Purpose:** Prove the aggregate can be instantiated with valid state and that all intra-invariants
 are enforced on a fresh instance.
 
@@ -88,8 +86,6 @@ class <Aggregate>Test extends <AppName>SpockTest {
 ---
 
 ## T2 — Functionality Test
-
-**When:** Written by `/implement-functionality`. Runs at end of Phase 3.
 
 **Purpose:** Cover the happy path, every invariant/guard violation, and the concurrent-interleaving
 cases that validate semantic locks at each saga step boundary.
@@ -167,8 +163,6 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 
 ## T3 — Inter-Invariant Test
 
-**When:** Written or extended by `/wire-event`. Runs at end of Phase 4.
-
 **Purpose:** Verify that when a publisher emits an event, the consumer aggregate's cached state
 is updated; and that an event for an unrelated entity leaves state unchanged.
 
@@ -227,8 +221,6 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
 
 ## T4 — Cross-Functionality Test
 
-**When:** Written in Phase 5.
-
 **Purpose:** Validate that two concurrent operations on overlapping aggregates either produce a
 consistent result or correctly reject one operation via semantic locks.
 
@@ -283,8 +275,6 @@ class <Op1>And<Op2>Test extends <AppName>SpockTest {
 
 ## T5 — Fault / Behavior Test
 
-**When:** Written in Phase 5.
-
 **Purpose:** Verify saga compensation when a step fails mid-workflow. The aggregate must be
 in a consistent state (either fully applied or fully rolled back) after the fault.
 
@@ -330,8 +320,6 @@ class <Functionality>FaultTest extends <AppName>SpockTest {
 
 ## T6 — Async Test
 
-**When:** Written in Phase 5.
-
 **Purpose:** Verify that multiple concurrent invocations of the same operation (fire-and-forget,
 no step coordination) all complete without corrupting aggregate state.
 
@@ -365,30 +353,3 @@ class <Functionality>AsyncTest extends <AppName>SpockTest {
     }
 }
 ```
-
----
-
-## Phase 5 — How to Derive the Test List
-
-When populating Phase 5 of `plan.md`, follow this procedure:
-
-### T4 selection
-
-1. Build a map: `aggregate → [functionalities that read or mutate it]`
-2. For each aggregate that appears in ≥2 functionalities, enumerate pairs (A, B) where concurrent
-   execution poses a real consistency risk.
-3. Create one `<A>And<B>Test` per high-risk pair. At minimum cover:
-   - The aggregate that is most shared (appears in the most functionalities)
-   - Every pair where A mutates a field that B reads
-
-### T5 selection
-
-1. Identify every functionality whose Sagas workflow has ≥2 steps.
-2. Create one `<Functionality>FaultTest` per such functionality (fault the first mutating step).
-3. Optionally add a `<Functionality>RecoveryTest` for complex sagas with compensating logic.
-
-### T6 selection
-
-1. Identify the 2–3 operations most likely to be invoked concurrently in production
-   (typically: add-participant-style operations, enrollment operations).
-2. Create one `<Functionality>AsyncTest` per selected operation.

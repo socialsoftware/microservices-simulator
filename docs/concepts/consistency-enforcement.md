@@ -5,11 +5,11 @@
 For a new application, use this table to decide how each domain rule is enforced. For the full decision flowchart, see [`docs/concepts/decision-guide.md`](decision-guide.md).
 
 | Rule type | Layer | Implemented by | Consistency |
-|-----------|-------|----------------|-------------|
-| Single-aggregate state rule (§3.1) | 1 | intra-invariant (added by `/scaffold-aggregate`) | Strong |
-| Pre-mutation check (DB read or input validation), own service only | 2 | service guard (applied inline by `/implement-functionality`) | Strong |
-| Synchronous check reading a different aggregate | 3 | saga step with `setForbiddenStates` (wired by `/implement-functionality`) | Strong |
-| Cache state from another aggregate (no blocking) | 4 | inter-invariant (wired by `/wire-event`) | Eventual |
+|-----------|-------|---------------|-------------|
+| Single-aggregate state rule (§3.1) | 1 | intra-invariant | Strong |
+| Pre-mutation check (DB read or input validation), own service only | 2 | service guard | Strong |
+| Synchronous check reading a different aggregate | 3 | saga step with `setForbiddenStates` | Strong |
+| Cache state from another aggregate (no blocking) | 4 | inter-invariant | Eventual |
 
 ---
 
@@ -144,11 +144,6 @@ User ─────────────────────────
 Execution ───────────────────────► Tournament
 Quiz ────────────────────────────► QuizAnswer
 ```
-
-### Going Deeper
-
-To wire a new inter-invariant (Phase 4):
-→ `/wire-event <ConsumerAggregate> <EventName>`
 
 ---
 
