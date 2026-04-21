@@ -40,14 +40,14 @@ For each aggregate: scaffold → add snapshot fields → add Layer 1 intra-invar
 - [x] Creation test passes (`TopicTest`)
 
 ### CourseExecution
-- [ ] Scaffolded (`/scaffold-aggregate CourseExecution`)
-- [ ] Snapshot entity classes created:
+- [x] Scaffolded (`/scaffold-aggregate CourseExecution`)
+- [x] Snapshot entity classes created:
   - `CourseExecutionCourse` (courseAggregateId, courseName, courseType, courseVersion — from `CourseUpdatedEvent`)
   - `CourseExecutionStudent` (userAggregateId, userName, userUsername, active, state — from `UserUpdatedEvent`, `UserAnonymizedEvent`, `UserDeletedEvent`)
-- [ ] Snapshot references added to aggregate class (`@OneToOne CourseExecutionCourse courseExecutionCourse`; `@OneToMany Set<CourseExecutionStudent> students`)
-- [ ] Layer 1 intra-invariants added: COURSE_EXECUTION_ACRONYM_NOT_BLANK, COURSE_EXECUTION_ACADEMIC_TERM_NOT_BLANK, REMOVE_NO_STUDENTS, STUDENT_ALREADY_ENROLLED
-- [ ] Registered in `BeanConfigurationSagas.groovy`
-- [ ] Creation test passes (`CourseExecutionTest`)
+- [x] Snapshot references added to aggregate class (`@OneToOne CourseExecutionCourse courseExecutionCourse`; `@OneToMany Set<CourseExecutionStudent> students`)
+- [x] Layer 1 intra-invariants added: COURSE_EXECUTION_ACRONYM_NOT_BLANK, COURSE_EXECUTION_ACADEMIC_TERM_NOT_BLANK, REMOVE_NO_STUDENTS, STUDENT_ALREADY_ENROLLED
+- [x] Registered in `BeanConfigurationSagas.groovy`
+- [x] Creation test passes (`CourseExecutionTest`)
 
 ### Question
 - [ ] Scaffolded (`/scaffold-aggregate Question`)
