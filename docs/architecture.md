@@ -200,6 +200,14 @@ DTOs are point-in-time snapshots of an aggregate's observable state. A Functiona
 
 ---
 
+### R8 — Functionalities may only send commands to upstream aggregates
+
+A functionality that belongs to aggregate A may only issue commands (read or mutate) to aggregates that are **upstream of A** in the event dependency graph. It must never send commands to aggregates that are downstream of A.
+
+**Why:** Downstream aggregates depend on A's events to cache A's state — the data-flow direction is A → downstream. Sending a command from A's functionality to a downstream aggregate reverses that direction, couples A to downstream internals, and risks circular command chains.
+
+---
+
 ## Choosing the Right Invariant Layer
 
 For a quick decision, use this table. For full rationale and examples for each layer, see [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md).
@@ -218,6 +226,8 @@ For a quick decision, use this table. For full rationale and examples for each l
 | Topic | Path |
 |-------|------|
 | Aggregate versioning | [`concepts/aggregate.md`](concepts/aggregate.md) |
+| Service layer patterns | [`concepts/service.md`](concepts/service.md) |
+| Commands & CommandHandler | [`concepts/commands.md`](concepts/commands.md) |
 | Sagas semantic locks | [`concepts/sagas.md`](concepts/sagas.md) |
 | Domain events | [`concepts/events.md`](concepts/events.md) |
 | Invariant taxonomy (full) | [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) |

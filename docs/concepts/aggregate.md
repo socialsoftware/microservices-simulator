@@ -62,6 +62,38 @@ Each aggregate has a JPA repository interface for the Sagas protocol:
 | Saga repository | `XxxCustomRepositorySagas` | `CourseExecutionCustomRepositorySagas` |
 | Saga state enum | `XxxSagaState` | `CourseExecutionSagaState` |
 
+## getEventSubscriptions() Implementation
+
+`getEventSubscriptions()` builds the set of `EventSubscription` objects from the aggregate's cached snapshot fields. It is called by the UoW on every commit to determine which events the current aggregate version listens to.
+
+```java
+@Override
+public Set<EventSubscription> getEventSubscriptions() {
+    Set<EventSubscription> eventSubscriptions = new HashSet<>();
+    if (getState() == AggregateState.ACTIVE) {
+        interInvariantUsersExist(eventSubscriptions);
+        // add one helper call per inter-invariant
+    }
+    return eventSubscriptions;
+}
+
+private void interInvariantUsersExist(Set<EventSubscription> eventSubscriptions) {
+    for (CourseExecutionStudent student : this.students) {
+        eventSubscriptions.add(new CourseExecutionSubscribesRemoveUser(student));
+    }
+}
+```
+
+Rules:
+- Guard with `getState() == ACTIVE` so deleted aggregates shed their subscriptions.
+- One private helper method per inter-invariant; name it after the invariant (e.g. `interInvariantUsersExist`).
+- Each helper adds one `EventSubscription` subclass per referenced upstream entity.
+- If the aggregate has no inter-invariants, return an empty set.
+
+See [`concepts/events.md`](events.md) for the `EventSubscription` subclass template.
+
+---
+
 ## Reference Implementations (Quizzes)
 
 - `applications/quizzes/src/main/java/.../execution/aggregate/Execution.java` — base with event subscriptions

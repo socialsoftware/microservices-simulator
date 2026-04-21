@@ -164,6 +164,25 @@ public void handle<Xxx>Events() {
 }
 ```
 
+### EventProcessing class
+
+`EventProcessing` is the bridge between the event handler and the update functionality. It receives the raw event from the handler and delegates to a `*Functionalities` method that performs the actual aggregate update.
+
+```java
+@Service
+public class <Consumer>EventProcessing {
+
+    @Autowired
+    private <Consumer>Functionalities <consumer>Functionalities;
+
+    public void process<Xxx>Event(Integer aggregateId, <EventName> event) {
+        <consumer>Functionalities.<updateMethod>(aggregateId, event.get<RelevantField>());
+    }
+}
+```
+
+`aggregateId` is the consumer aggregate's ID (passed down from the handler). The `<Consumer>Functionalities` update method opens its own UoW, loads the consumer aggregate, applies the cached-state update, and commits.
+
 ---
 
 ## Reference Implementations (Quizzes)

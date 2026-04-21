@@ -8,16 +8,14 @@ and provides structure templates for each category.
 
 ## Test Taxonomy
 
-Six test types exist, spread across Phases 2–5. Every application must have all six.
-
-| Type | Phase | Naming pattern | What it validates |
-|------|-------|----------------|-------------------|
-| **T1 Creation** | 2 | `<Aggregate>Test` | Aggregate instantiation + all intra-invariants pass on a fresh instance |
-| **T2 Functionality** | 3 | `<FunctionalityName>Test` | Happy path · invariant/guard violations · ≥1 step-interleaving case per saga step boundary |
-| **T3 Inter-Invariant** | 4 | `<Consumer>InterInvariantTest` | Event received → cached state updated; unrelated event → state unchanged |
-| **T4 Cross-Functionality** | 5 | `<Op1>And<Op2>Test` | Two operations on overlapping aggregates, step-interleaved to expose semantic lock conflicts |
-| **T5 Fault/Behavior** | 5 | `<Functionality>FaultTest` / `<Functionality>RecoveryTest` | Saga compensation correctness under injected failures; consistent state after abort |
-| **T6 Async** | 5 | `<Functionality>AsyncTest` | Multiple concurrent fire-and-forget executions without step coordination |
+| Type | Naming pattern | What it validates |
+|------|------|----------------|-------------------|
+| **T1 Creation** | `<Aggregate>Test` | Aggregate instantiation + all intra-invariants pass on a fresh instance |
+| **T2 Functionality** | `<FunctionalityName>Test` | Happy path · invariant/guard violations · ≥1 step-interleaving case per saga step boundary |
+| **T3 Inter-Invariant** | `<Consumer>InterInvariantTest` | Event received → cached state updated; unrelated event → state unchanged |
+| **T4 Cross-Functionality** | `<Op1>And<Op2>Test` | Two operations on overlapping aggregates, step-interleaved to expose semantic lock conflicts |
+| **T5 Fault/Behavior** | `<Functionality>FaultTest` / `<Functionality>RecoveryTest` | Saga compensation correctness under injected failures; consistent state after abort |
+| **T6 Async** | `<Functionality>AsyncTest` | Multiple concurrent fire-and-forget executions without step coordination |
 
 ---
 
@@ -37,7 +35,7 @@ src/test/groovy/<pkg>/
     ├── <aggregate>/                  ← one dir per consumer aggregate
     │   ├── <Aggregate>Test.groovy                  (T1)
     │   └── <Aggregate>InterInvariantTest.groovy    (T3)
-    └── behaviour/                    ← Phase 5 tests
+    └── behaviour/                    
         ├── <Op1>And<Op2>Test.groovy                (T4)
         ├── <Functionality>FaultTest.groovy          (T5)
         ├── <Functionality>RecoveryTest.groovy       (T5)

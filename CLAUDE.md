@@ -38,7 +38,9 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 | Topic | Path |
 |-------|------|
 | Application architecture & restrictions | [`docs/architecture.md`](docs/architecture.md) |
-| Aggregate versioning | [`docs/concepts/aggregate.md`](docs/concepts/aggregate.md) |
+| Aggregate versioning + `getEventSubscriptions()` | [`docs/concepts/aggregate.md`](docs/concepts/aggregate.md) |
+| Service layer patterns (read / create / mutate) | [`docs/concepts/service.md`](docs/concepts/service.md) |
+| Commands, CommandHandler, ServiceMapping | [`docs/concepts/commands.md`](docs/concepts/commands.md) |
 | Domain events + canonical wiring snippet | [`docs/concepts/events.md`](docs/concepts/events.md) |
 | Sagas semantic locks | [`docs/concepts/sagas.md`](docs/concepts/sagas.md) |
 | Invariant & guard taxonomy | [`docs/concepts/consistency-enforcement.md`](docs/concepts/consistency-enforcement.md) |

@@ -135,14 +135,22 @@ If aggregate **A** caches state from aggregate **B**, then **B is upstream of A*
 #### Dependency Graph (Quizzes)
 
 ```
+Course ──────────────────────────► Topic
 Course ──────────────────────────► Execution
 Course ──────────────────────────► Question
 Topic ───────────────────────────► Question
-Question ────────────────────────► Quiz
+Topic ───────────────────────────► Tournament
 User ────────────────────────────► Execution
+User ────────────────────────────► QuizAnswer
 User ────────────────────────────► Tournament
+Question ────────────────────────► Quiz
+Question ────────────────────────► QuizAnswer
+Execution ───────────────────────► Quiz
+Execution ───────────────────────► QuizAnswer
 Execution ───────────────────────► Tournament
 Quiz ────────────────────────────► QuizAnswer
+Quiz ────────────────────────────► Tournament
+QuizAnswer ──────────────────────► Tournament
 ```
 
 ---
