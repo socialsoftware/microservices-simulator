@@ -25,6 +25,7 @@ Choose which entities are co-located. This decision determines which cross-entit
 For each aggregate that references an entity in a **different** aggregate, list the fields it must cache locally. Omit aggregates that reference no external entities.
 
 > **Updated on event** — name the domain event (defined in §4 below) that triggers the cache refresh. The AI agent uses this column to wire the correct event subscriptions automatically.
+> If the source aggregate's fields are immutable (Java `final`), write `n/a — {SourceAggregate} fields are immutable`. No event subscription is needed; the snapshot is seeded once at the consuming aggregate's creation time via a direct service call in the creation saga.
 
 | Aggregate | Snapshots of | Fields cached | Updated on event |
 |---|---|---|---|
@@ -36,7 +37,7 @@ For each aggregate that references an entity in a **different** aggregate, list 
 
 List pairs where the downstream entity must subscribe to the upstream entity's events when they are in different aggregates. If two entities are co-located in the grouping above, omit the arrow.
 
-> **AI agent reads this as the topology map.** Each arrow `A ──► B` means B subscribes to one or more events from A. The actual event names and payloads are defined in §4. Do not omit arrows.
+> **AI agent reads this as the topology map.** Each arrow `A ──► B` means B caches A's fields locally. If A's fields can change, B also subscribes to A's events (defined in §4) to keep the snapshot current. If A's fields are immutable, include the arrow but omit an event row in §4 — the snapshot is seeded once at creation. Do not omit arrows.
 
 ```
 {UpstreamAggregate} ──────────────────────────► {DownstreamAggregate}

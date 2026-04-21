@@ -11,20 +11,24 @@
 
 ## §1 — Entities
 
-Each entity lists only its own scalar attributes. Cross-entity references appear in §2. The **Owns** column lists value objects that live inside this entity's boundary and have no independent identity (they are created and deleted with the entity). The **Snapshots** column lists cached copies of external entities maintained for eventual-consistency rules.
+Each entity lists only its own scalar attributes. Cross-entity references appear in §2. The **Owns** column lists value objects that live inside this entity's boundary and have no independent identity (they are created and deleted with the entity).
+
+> **Soft-delete:** Every aggregate inherits `state: AggregateState` from the simulator `Aggregate` base class (values: `ACTIVE`, `INACTIVE`, `DELETED`). This field is **not** a domain attribute and must **not** appear in the entity table. It is set by `remove()` on the base class. Rules that predicate on deletion (e.g. `X.state == DELETED`) rely on this field.
 
 | Entity | Attributes | Owns |
 |---|---|---|
-| **Course** | `name: String` (immutable), `type: CourseType` (immutable), `executionCount: Integer` (cached counter), `questionCount: Integer` (cached counter) | — |
-| **User** | `name: String`, `username: String`, `role: Role` (immutable), `active: Boolean` | — |
+| **Course** | `name: String` (immutable), `type: CourseType (TECNICO \| EXTERNAL)` (immutable), `executionCount: Integer` (cached counter), `questionCount: Integer` (cached counter) | — |
+| **User** | `name: String`, `username: String`, `role: Role (STUDENT \| TEACHER \| ADMIN)` (immutable), `active: Boolean` (default: false) | — |
 | **Topic** | `name: String` | — |
 | **Execution** | `acronym: String`, `academicTerm: String`, `endDate: LocalDateTime` | — |
 | **Question** | `title: String`, `content: String`, `creationDate: LocalDateTime` | Option × N |
 | **Option** | `sequence: Integer`, `optionKey: Integer`, `content: String`, `correct: Boolean` | — |
-| **Quiz** | `title: String`, `creationDate: LocalDateTime` (immutable), `availableDate: LocalDateTime`, `conclusionDate: LocalDateTime`, `resultsDate: LocalDateTime`, `quizType: QuizType`, `lastModifiedTime: LocalDateTime` (technical) | — |
+| **Quiz** | `title: String`, `creationDate: LocalDateTime` (immutable), `availableDate: LocalDateTime`, `conclusionDate: LocalDateTime`, `resultsDate: LocalDateTime`, `quizType: QuizType (EXAM \| TEST \| GENERATED \| PROPOSED \| IN_CLASS \| EXTERNAL_QUIZ)`, `lastModifiedTime: LocalDateTime` (technical) | — |
 | **QuizAnswer** | `creationDate: LocalDateTime` (immutable), `answerDate: LocalDateTime` (immutable), `completed: Boolean` | QuestionAnswer × N |
 | **QuestionAnswer** | `optionSequenceChoice: Integer`, `optionKey: Integer`, `correct: Boolean`, `timeTaken: Integer` | — |
-| **Tournament** | `startTime: LocalDateTime`, `endTime: LocalDateTime`, `numberOfQuestions: Integer`, `cancelled: Boolean`, `lastModifiedTime: LocalDateTime` (technical) | — |
+| **Tournament** | `startTime: LocalDateTime`, `endTime: LocalDateTime`, `numberOfQuestions: Integer`, `cancelled: Boolean`, `lastModifiedTime: LocalDateTime` (technical) | `TournamentParticipant × N` |
+| **TournamentParticipant** | `participantAggregateId: Integer`, `participantName: String`, `participantUsername: String`, `participantVersion: Long`, `enrollTime: LocalDateTime` | `TournamentParticipantQuizAnswer × 1` |
+| **TournamentParticipantQuizAnswer** | `quizAnswerAggregateId: Integer`, `quizAnswerVersion: Long`, `answered: Boolean` (default: false), `numberOfAnswered: Integer` (default: 0), `numberOfCorrect: Integer` (default: 0) | — |
 
 > **Technical field note:** `lastModifiedTime` on `Quiz` and `Tournament` is not a domain attribute. It is stamped at mutation time by each setter so that `verifyInvariants()` can check temporal constraints (e.g., "fields are final after `availableDate`") without calling `now()` inside the invariant check, which would make it non-idempotent across TCC merges.
 
@@ -218,7 +222,7 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | QuizAnswer, Quiz, Question |
-| Predicate | `QuizAnswer.quiz references a Quiz that has not been invalidated` |
+| Predicate | `QuizAnswer.quiz references a Quiz that has not been invalidated` — a Quiz is invalidated when any of its `questions` entries references a Question whose `state == DELETED`; once invalidated the Quiz must be treated as deleted for all downstream rules |
 
 ---
 
@@ -354,20 +358,26 @@ These rules inspect only fields of a single entity.
 |---|---|---|---|
 | CreateCourse | Course | — | Create a new course |
 | UpdateCourse | Course | — | Update course name or type |
+| DeleteCourse | Course | — | Soft-delete a course |
 | CreateTopic | Topic | Course | Create a topic linked to a course |
+| DeleteTopic | Topic | Question, Tournament | Soft-delete a topic and propagate removal to subscribers |
 | CreateExecution | Execution | Course | Create a course execution linked to a course |
 | UpdateExecution | Execution | — | Update execution acronym or academic term |
 | DeleteExecution | Execution | Course | Delete an execution and decrement course counter |
+| DisenrollStudent | Execution | QuizAnswer | Remove a student from a course execution |
 | EnrollStudentInExecution | Execution | User | Enroll an active user in a course execution |
 | UpdateStudentName | Execution | User | Update a student's cached name across the execution and downstream aggregates |
 | AnonymizeStudent | Execution | User | Anonymize a student (set name/username to ANONYMOUS) |
 | CreateQuestion | Question | Course, Topic | Create a question linked to a course and topics |
 | UpdateQuestion | Question | Topic | Update question content or topics |
 | DeleteQuestion | Question | Course | Delete a question and decrement course question counter |
+| DeleteUser | User | Execution | Soft-delete a user account |
 | CreateQuiz | Quiz | Execution, Question | Create a quiz linked to an execution and questions |
 | UpdateQuiz | Quiz | — | Update quiz dates or questions (before available date) |
 | CreateQuizAnswer | QuizAnswer | Quiz, User, Execution | Record a student's quiz answer |
-| CreateTournament | Tournament | Execution, User, Topic | Create a tournament for a course execution |
+| AnswerQuestion | QuizAnswer | Tournament | Record a student's answer to one question in a quiz |
+| ConcludeQuiz | QuizAnswer | — | Mark a quiz answer session as completed |
+| CreateTournament | Tournament | Execution, User, Topic, Quiz | Create a tournament for a course execution (also creates the associated Quiz) |
 | AddParticipant | Tournament | Execution, User | Enroll a student as a tournament participant |
 | UpdateTournament | Tournament | Quiz | Update tournament timing or topics |
 | CancelTournament | Tournament | — | Cancel an open tournament |
