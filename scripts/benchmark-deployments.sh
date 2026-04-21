@@ -12,8 +12,9 @@ PORT="8080"
 PROTOCOL="http"
 REPETITIONS=5
 TX_MODE="sagas"
-WAIT_TIMEOUT_SECONDS=420
+WAIT_TIMEOUT_SECONDS=120
 STARTUP_SETTLE_SECONDS=15
+COMPOSE_LOG_TAIL=2000
 RESULTS_DIR=""
 TEST_INPUT=""
 
@@ -31,15 +32,15 @@ DEPLOYMENT_NAMES=(
 
 configure_deployment_commands() {
   DEPLOYMENT_COMMANDS=(
-    "env TX_MODE=${TX_MODE} docker compose up quizzes-local -d"
-    "env TX_MODE=${TX_MODE} COMM_LAYER=stream docker compose up quizzes-remote version-service -d"
-    "env TX_MODE=${TX_MODE} COMM_LAYER=grpc docker compose up quizzes-remote version-service -d"
-    "env TX_MODE=${TX_MODE} COMM_LAYER=stream docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d"
-    "env TX_MODE=${TX_MODE} COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d"
-    "env TX_MODE=${TX_MODE} VERSION_MODE=distributed-version COMM_LAYER=stream docker compose up quizzes-remote -d"
-    "env TX_MODE=${TX_MODE} VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up quizzes-remote -d"
-    "env TX_MODE=${TX_MODE} VERSION_MODE=distributed-version COMM_LAYER=stream docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d"
-    "env TX_MODE=${TX_MODE} VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d"
+    "env TX_MODE=${TX_MODE} docker compose up quizzes-local -d --wait"
+    "env TX_MODE=${TX_MODE} COMM_LAYER=stream docker compose up quizzes-remote version-service -d --wait"
+    "env TX_MODE=${TX_MODE} COMM_LAYER=grpc docker compose up quizzes-remote version-service -d --wait"
+    "env TX_MODE=${TX_MODE} COMM_LAYER=stream docker compose up answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service gateway version-service -d --wait"
+    "env TX_MODE=${TX_MODE} COMM_LAYER=grpc docker compose up answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service gateway version-service -d --wait"
+    "env TX_MODE=${TX_MODE} VERSION_MODE=distributed-version COMM_LAYER=stream docker compose up quizzes-remote -d --wait"
+    "env TX_MODE=${TX_MODE} VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up quizzes-remote -d --wait"
+    "env TX_MODE=${TX_MODE} VERSION_MODE=distributed-version COMM_LAYER=stream docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d --wait"
+    "env TX_MODE=${TX_MODE} VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d --wait"
   )
 }
 
@@ -60,6 +61,7 @@ Options:
   --results-dir PATH         Output directory (default: generated timestamp under jmeter-results/)
   --wait-timeout SECONDS     Startup wait timeout in seconds (default: ${WAIT_TIMEOUT_SECONDS})
   --startup-settle SECONDS   Extra delay after health check before JMeter (default: ${STARTUP_SETTLE_SECONDS})
+  --compose-log-tail N       Number of docker compose log lines to save per run (default: ${COMPOSE_LOG_TAIL})
   -h, --help                 Show this help
 
 Example:
@@ -70,6 +72,10 @@ EOF
 
 log() {
   echo "[$(date +%H:%M:%S)] $*"
+}
+
+debug() {
+  log "[DEBUG] $*"
 }
 
 fail() {
@@ -128,6 +134,10 @@ parse_args() {
         STARTUP_SETTLE_SECONDS="$2"
         shift 2
         ;;
+      --compose-log-tail)
+        COMPOSE_LOG_TAIL="$2"
+        shift 2
+        ;;
       -h|--help)
         usage
         exit 0
@@ -143,12 +153,21 @@ parse_args() {
   [[ "${REPETITIONS}" -gt 0 ]] || fail "--repetitions must be > 0"
   [[ "${WAIT_TIMEOUT_SECONDS}" =~ ^[0-9]+$ ]] || fail "--wait-timeout must be an integer"
   [[ "${STARTUP_SETTLE_SECONDS}" =~ ^[0-9]+$ ]] || fail "--startup-settle must be an integer"
+  [[ "${COMPOSE_LOG_TAIL}" =~ ^[0-9]+$ ]] || fail "--compose-log-tail must be an integer"
+  [[ "${COMPOSE_LOG_TAIL}" -gt 0 ]] || fail "--compose-log-tail must be > 0"
 
   TX_MODE="${TX_MODE,,}"
   [[ "${TX_MODE}" == "sagas" || "${TX_MODE}" == "tcc" ]] || fail "--tx-mode must be one of: sagas, tcc"
 
+  local results_prefix="${TX_MODE}"
+  if [[ "${TX_MODE}" == "tcc" ]]; then
+    results_prefix="tcc"
+  elif [[ "${TX_MODE}" == "sagas" ]]; then
+    results_prefix="sagas"
+  fi
+
   if [[ -z "${RESULTS_DIR}" ]]; then
-    RESULTS_DIR="${PROJECT_ROOT}/jmeter-results/${TX_MODE}-benchmark_$(date +%Y%m%d_%H%M%S)"
+    RESULTS_DIR="${PROJECT_ROOT}/jmeter-results/${results_prefix}-benchmark_$(date +%Y%m%d_%H%M%S)"
   fi
 }
 
@@ -182,23 +201,39 @@ start_deployment() {
   )
 }
 
+capture_compose_logs() {
+  local output_file="$1"
+
+  (
+    cd "${QUIZZES_DIR}" || exit 1
+    docker compose logs --no-color --timestamps --tail "${COMPOSE_LOG_TAIL}"
+  ) > "${output_file}" 2>&1 || true
+}
+
 wait_for_http_ready() {
   local url="${PROTOCOL}://${SERVER}:${PORT}/actuator/health"
   local elapsed=0
 
+  debug "Waiting for health endpoint: ${url} (timeout=${WAIT_TIMEOUT_SECONDS}s)"
   while [[ "${elapsed}" -lt "${WAIT_TIMEOUT_SECONDS}" ]]; do
     if body="$(curl -fsS "${url}" 2>/dev/null)"; then
       if echo "${body}" | grep -q '"status"[[:space:]]*:[[:space:]]*"UP"'; then
+        debug "Health endpoint reported UP after ${elapsed}s"
         return 0
       fi
       if [[ "${body}" == *"UP"* ]]; then
+        debug "Health endpoint contained UP after ${elapsed}s"
         return 0
       fi
+    fi
+    if (( elapsed == 0 || elapsed % 10 == 0 )); then
+      debug "Health check still pending (${elapsed}s elapsed)"
     fi
     sleep 2
     elapsed=$((elapsed + 2))
   done
 
+  debug "Health check timed out after ${WAIT_TIMEOUT_SECONDS}s"
   return 1
 }
 
@@ -375,7 +410,7 @@ main() {
   SUMMARY_MD="${RESULTS_DIR}/thesis-table.md"
 
   cat > "${RUNS_CSV}" <<EOF
-deployment,run,jmeter_exit,run_pass,total_samples,failed_samples,success_rate,mean_ms,median_ms,p95_ms,p99_ms,duration_s,throughput_rps,jtl_file,log_file
+deployment,run,jmeter_exit,run_pass,total_samples,failed_samples,success_rate,mean_ms,median_ms,p95_ms,p99_ms,duration_s,throughput_rps,jtl_file,log_file,compose_logs_file
 EOF
 
   cat > "${SUMMARY_CSV}" <<EOF
@@ -389,11 +424,13 @@ EOF
     deployment="${DEPLOYMENT_NAMES[$i]}"
     command="${DEPLOYMENT_COMMANDS[$i]}"
     log "Starting benchmark for deployment: ${deployment}"
+    debug "[${deployment}] Compose command: ${command}"
 
     for run in $(seq 1 "${REPETITIONS}"); do
       run_prefix="${deployment}__run${run}"
       jtl_file="${RESULTS_DIR}/${run_prefix}.jtl"
       log_file="${RESULTS_DIR}/${run_prefix}.log"
+      compose_logs_file="${RESULTS_DIR}/${run_prefix}.compose.log"
       metric_file="${RESULTS_DIR}/${run_prefix}.metrics"
 
       log "[${deployment}] Run ${run}/${REPETITIONS}: restarting deployment"
@@ -401,7 +438,10 @@ EOF
 
       if ! start_deployment "${command}"; then
         log "[${deployment}] Run ${run}: deployment startup failed"
-        echo "${deployment},${run},1,0,0,0,0.00,0,0,0,0,0.000,0.000,${jtl_file},${log_file}" >> "${RUNS_CSV}"
+        debug "[${deployment}] Run ${run}: inspect compose services with docker compose ps"
+        capture_compose_logs "${compose_logs_file}"
+        debug "[${deployment}] Run ${run}: captured compose logs at ${compose_logs_file}"
+        echo "${deployment},${run},1,0,0,0,0.00,0,0,0,0,0.000,0.000,${jtl_file},${log_file},${compose_logs_file}" >> "${RUNS_CSV}"
         continue
       fi
 
@@ -411,7 +451,9 @@ EOF
           cd "${QUIZZES_DIR}" || exit 1
           docker compose ps
         ) > "${RESULTS_DIR}/${run_prefix}.compose-ps.txt" 2>&1 || true
-        echo "${deployment},${run},1,0,0,0,0.00,0,0,0,0,0.000,0.000,${jtl_file},${log_file}" >> "${RUNS_CSV}"
+        capture_compose_logs "${compose_logs_file}"
+        debug "[${deployment}] Run ${run}: captured compose logs at ${compose_logs_file}"
+        echo "${deployment},${run},1,0,0,0,0.00,0,0,0,0,0.000,0.000,${jtl_file},${log_file},${compose_logs_file}" >> "${RUNS_CSV}"
         continue
       fi
 
@@ -422,6 +464,7 @@ EOF
       fi
 
       log "[${deployment}] Run ${run}: executing JMeter"
+      debug "[${deployment}] Run ${run}: JMeter output=${RESULTS_DIR}/${run_prefix}.out, jtl=${jtl_file}, log=${log_file}"
       jmeter_exit=0
       "${JMETER_BIN}" -n \
         -t "${TEST_FILE}" \
@@ -441,10 +484,21 @@ EOF
         run_pass=1
       fi
 
-      echo "${deployment},${run},${jmeter_exit},${run_pass},${total_samples},${failed_samples},${success_rate},${mean_ms},${median_ms},${p95_ms},${p99_ms},${duration_s},${throughput_rps},${jtl_file},${log_file}" >> "${RUNS_CSV}"
+      log "[${deployment}] Run ${run}: JMeter exit=${jmeter_exit}, run_pass=${run_pass}, success_rate=${success_rate}% (${total_samples}-${failed_samples}/${total_samples}), mean=${mean_ms}ms, p95=${p95_ms}ms, throughput=${throughput_rps} req/s"
+      if [[ "${jmeter_exit}" -ne 0 || "${failed_samples}" -gt 0 ]]; then
+        debug "[${deployment}] Run ${run}: failure context from ${RESULTS_DIR}/${run_prefix}.out"
+        tail -n 20 "${RESULTS_DIR}/${run_prefix}.out" | sed 's/^/[JMETER] /'
+      fi
+
+      capture_compose_logs "${compose_logs_file}"
+      debug "[${deployment}] Run ${run}: captured compose logs at ${compose_logs_file}"
+      echo "${deployment},${run},${jmeter_exit},${run_pass},${total_samples},${failed_samples},${success_rate},${mean_ms},${median_ms},${p95_ms},${p99_ms},${duration_s},${throughput_rps},${jtl_file},${log_file},${compose_logs_file}" >> "${RUNS_CSV}"
     done
 
     aggregate_deployment "${deployment}" "${RUNS_CSV}" "${SUMMARY_CSV}"
+    dep_sample_success_rate=$(awk -F',' -v dep="${deployment}" '$1==dep { sr=$5 } END { if (sr=="") sr="0.00"; print sr }' "${SUMMARY_CSV}")
+    dep_run_pass_rate=$(awk -F',' -v dep="${deployment}" '$1==dep { rp=$4 } END { if (rp=="") rp="0.00"; print rp }' "${SUMMARY_CSV}")
+    log "[${deployment}] aggregate: run_pass_rate=${dep_run_pass_rate}%, sample_success_rate=${dep_sample_success_rate}%"
   done
 
   compose_down

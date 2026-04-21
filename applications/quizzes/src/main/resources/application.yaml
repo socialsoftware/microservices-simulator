@@ -29,10 +29,6 @@ management:
       exposure:
         include: "health,beans"
 
-local:
-  messaging:
-    serialize: true 
-
 command:
   gateway:
     timeout-seconds: 10
