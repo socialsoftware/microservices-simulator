@@ -222,4 +222,3 @@ For a quick decision, use this table. For full rationale and examples for each l
 | Domain events | [`concepts/events.md`](concepts/events.md) |
 | Invariant taxonomy (full) | [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) |
 | Bootstrap a new application | `/new-application` skill |
-| Worked example | [`examples/cannot-delete-last-execution-with-content.md`](examples/cannot-delete-last-execution-with-content.md) |

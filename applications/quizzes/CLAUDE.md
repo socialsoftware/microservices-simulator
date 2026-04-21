@@ -47,8 +47,6 @@ Use these as templates when implementing new aggregates or functionalities:
 | Multi-step saga with forbidden states | `microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java` |
 | TCC merge with mutable fields | `microservices/execution/aggregate/causal/CausalExecution.java` |
 | Event polling + EventProcessing chain | `microservices/execution/events/` |
-| Inter-invariant end-to-end | [`docs/examples/cannot-delete-last-execution-with-content.md`](../../docs/examples/cannot-delete-last-execution-with-content.md) |
-
 ---
 
 ## Build Commands

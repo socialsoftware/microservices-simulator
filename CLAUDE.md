@@ -46,7 +46,6 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 | New-application loop-based workflow | [`docs/workflow.md`](docs/workflow.md) |
 | Domain model template | [`docs/templates/domain-model-template.md`](docs/templates/domain-model-template.md) |
 | Aggregate grouping template | [`docs/templates/aggregate-grouping-template.md`](docs/templates/aggregate-grouping-template.md) |
-| Worked examples | [`docs/examples/README.md`](docs/examples/README.md) |
 
 ---
 

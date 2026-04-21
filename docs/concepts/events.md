@@ -171,4 +171,3 @@ public void handle<Xxx>Events() {
 - `applications/quizzes/src/main/java/.../events/CreateQuestionEvent.java`
 - `applications/quizzes/src/main/java/.../execution/events/subscribe/ExecutionSubscribesCreateQuestion.java`
 - `applications/quizzes/src/main/java/.../execution/events/handling/CourseExecutionEventHandling.java`
-- See also: [`docs/examples/cannot-delete-last-execution-with-content.md`](../examples/cannot-delete-last-execution-with-content.md)

@@ -91,7 +91,7 @@ A **local uniqueness constraint** on a table that one service owns exclusively b
 - Same service → Layer 2 repository read in `*Service.java` (local, transactionally atomic).
 - Different service → Layer 3 workflow step (under semantic lock) to read the remote aggregate.
 
-Placing a uniqueness check at Layer 4 (event cache) when the authoritative data is local is a mistake: the cache lags behind reality and the "strong" Layer 4 guard becomes eventually consistent in practice, allowing duplicate inserts in a narrow race window. See [`docs/examples/unique-quiz-answer-per-student.md`](../examples/unique-quiz-answer-per-student.md) for a full case study of this failure mode and the Layer 2 fix.
+Placing a uniqueness check at Layer 4 (event cache) when the authoritative data is local is a mistake: the cache lags behind reality and the "strong" Layer 4 guard becomes eventually consistent in practice, allowing duplicate inserts in a narrow race window.
 
 **Examples:**
 - `INACTIVE_USER` — `applications/.../execution/service/ExecutionService.java` — blocks enrollment of an inactive user.
@@ -146,9 +146,6 @@ Quiz ─────────────────────────
 ```
 
 ### Going Deeper
-
-For a worked example across multiple invariants:
-→ [`docs/examples/tournament-inter-invariants.md`](../examples/tournament-inter-invariants.md)
 
 To wire a new inter-invariant (Phase 4):
 → `/wire-event <ConsumerAggregate> <EventName>`
