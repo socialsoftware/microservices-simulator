@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: quizzes-full
+  profiles:
+    active: "@activatedProperties@"
+
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/msdb
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+
+  jpa:
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create # IMPORTANT this is only for jmeter testing -> it cleans the database every time it runs
+    show-sql: false
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,beans"
+
+command:
+  gateway:
+    timeout-seconds: 10
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        enable-randomized-wait: true
+        randomized-wait-factor: 0.5
+        retry-exceptions:
+          - java.lang.RuntimeException
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+
+eureka:
+  client:
+    enabled: false
+
+# Local-specific health tuning
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+management:
+  health:
+    rabbit:
+      enabled: false
+
+# Kubernetes specific
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+    import:
+      - "classpath:application-kubernetes.yaml"
