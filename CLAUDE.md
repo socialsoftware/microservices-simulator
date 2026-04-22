@@ -6,6 +6,8 @@ Navigation hub for humans and AI agents — each section links to the authoritat
 
 Docs and skills are **living artifacts**. When something is unclear or you find yourself consulting the `quizzes/` reference app, that's a signal to update the docs or add a skill — the goal is a self-contained process that captures every pattern learned.
 
+When in doubt, ask clarifying questions.
+
 ---
 
 ## Build Commands
