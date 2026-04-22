@@ -29,7 +29,7 @@
           <mxGeometry height="350" width="450" x="460" y="140" as="geometry" />
         </mxCell>
         <mxCell id="CWjrRTOUcP0ZYoB-0zXO-1" parent="1" style="whiteSpace=wrap;strokeWidth=2;dashed=1;dashPattern=1 4;verticalAlign=top;fontStyle=2;fontSize=11;" value="Initialization-Time Versioning Alternative" vertex="1">
-          <mxGeometry height="270" width="390" x="490" y="520" as="geometry" />
+          <mxGeometry height="300" width="390" x="490" y="520" as="geometry" />
         </mxCell>
         <mxCell id="ZBYEE1XtmZVWNN2fnvLg-1" edge="1" parent="1" source="CWjrRTOUcP0ZYoB-0zXO-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" target="CWjrRTOUcP0ZYoB-0zXO-14">
           <mxGeometry relative="1" as="geometry">
@@ -44,9 +44,9 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="CWjrRTOUcP0ZYoB-0zXO-2" parent="1" style="whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=default;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);dashed=1;dashPattern=3 3;container=0;" value=": Centralized Versioning System" vertex="1">
-          <mxGeometry height="220" width="350" x="510" y="550" as="geometry" />
+          <mxGeometry height="250" width="350" x="510" y="550" as="geometry" />
         </mxCell>
-        <mxCell id="CWjrRTOUcP0ZYoB-0zXO-12" parent="1" style="rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Web Client" vertex="1">
+        <mxCell id="CWjrRTOUcP0ZYoB-0zXO-12" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ffffff;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);" value=": Web Client" vertex="1">
           <mxGeometry height="40" width="100" x="630" y="50" as="geometry" />
         </mxCell>
         <mxCell id="CWjrRTOUcP0ZYoB-0zXO-14" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ffffff;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);" value=": Service Discovery&#xa;(Eureka)" vertex="1">
@@ -67,7 +67,7 @@
           <mxGeometry relative="1" x="0.5455" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
-              <mxPoint x="940" y="330" />
+              <mxPoint x="940" y="320" />
               <mxPoint x="940" y="600" />
             </Array>
           </mxGeometry>
@@ -90,11 +90,11 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="CWjrRTOUcP0ZYoB-0zXO-3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ffffff;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);" value=": Versioning Application" vertex="1">
-          <mxGeometry height="50" width="220" x="575" y="590" as="geometry" />
+        <mxCell id="CWjrRTOUcP0ZYoB-0zXO-3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ffffff;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);verticalAlign=top;" value=": Versioning Application" vertex="1">
+          <mxGeometry height="90" width="220" x="575" y="590" as="geometry" />
         </mxCell>
         <mxCell id="CWjrRTOUcP0ZYoB-0zXO-4" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);" value=": Version DB" vertex="1">
-          <mxGeometry height="60" width="100" x="635" y="690" as="geometry" />
+          <mxGeometry height="60" width="100" x="635" y="730" as="geometry" />
         </mxCell>
         <mxCell id="CWjrRTOUcP0ZYoB-0zXO-5" edge="1" parent="1" source="CWjrRTOUcP0ZYoB-0zXO-3" style="startArrow=none;endArrow=classic;strokeWidth=2;exitX=0.5;exitY=0.99;entryX=0.5;entryY=-0.01;rounded=0;edgeStyle=orthogonalEdgeStyle;endFill=1;" target="CWjrRTOUcP0ZYoB-0zXO-4" value="JDBC">
           <mxGeometry relative="1" as="geometry" />
@@ -136,6 +136,9 @@
         </mxCell>
         <mxCell id="CWjrRTOUcP0ZYoB-0zXO-13" parent="1" style="whiteSpace=wrap;strokeWidth=1;fillColor=#ffffff;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);" value="Snowflake ID" vertex="1">
           <mxGeometry height="45" width="120" x="695" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="HadevAsxGUkyGEO2QlUz-1" parent="1" style="whiteSpace=wrap;strokeWidth=1;fillColor=#ffffff;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);" value="gRPC Server" vertex="1">
+          <mxGeometry height="45" width="120" x="625" y="620" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
