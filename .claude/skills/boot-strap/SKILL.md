@@ -1,6 +1,7 @@
 ---
 name: boot-strap
 description: Bootstrap a new microservices-simulator application (Phase 0). Creates pom.xml, exception classes, BeanConfigurationSagas.groovy, and Spock test base classes from the quizzes reference app. Invoke with /boot-strap <App Name> (e.g., /boot-strap quizzes-full).
+argument-hint: "<App Name>"
 ---
 
 # Boot-Strap Phase 0 Application
