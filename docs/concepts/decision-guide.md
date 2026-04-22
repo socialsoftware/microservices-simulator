@@ -26,9 +26,13 @@ Does the rule involve only data that lives inside a SINGLE aggregate
   NO  → continue ↓
 
 Must the rule be checked SYNCHRONOUSLY (strong consistency — same UoW)?
-  YES → Does the check read only the aggregate being mutated?
-    YES → Layer 2 — service guard in *Service.java
-    NO  → Layer 3 — saga step with setForbiddenStates in *FunctionalitySagas.java
+  YES → Layer 2 — service guard in *Service.java
+        If the check validates a field on a DTO received from a preceding saga
+        data-assembly step (e.g. checking `userDto.isActive()`), this is still
+        Layer 2 — it is input validation on the parameters passed to the service.
+        If the precondition is implicit in the fetch query (query fails when
+        precondition is unmet), no explicit service check is needed
+        → classify as Construction prerequisite.
   NO  → Eventually consistent (~1 s lag) is acceptable?
     YES → Layer 4 — inter-invariant (event subscription + handler chain)
 ```
@@ -41,7 +45,7 @@ A Layer 4 inter-invariant is eventually consistent. It may only **cache state** 
 
 If you concluded that a rule belongs in Layer 4 but also requires blocking an operation, re-classify it:
 
-- If blocking must be synchronous → **Layer 3** (saga step with `setForbiddenStates`).
+- If blocking must be synchronous → **Layer 2** (service guard; add a saga data-assembly step if the needed data lives in another aggregate).
 - If true eventual consistency is acceptable → **Layer 4** (inter-invariant); no guard is added.
 
 ---
@@ -51,23 +55,14 @@ If you concluded that a rule belongs in Layer 4 but also requires blocking an op
 | §3.2 rule characteristic | Layer | Implemented by |
 |--------------------------|-------|---------------|
 | All referenced data is already inside the same aggregate (including snapshots) | 1 | intra-invariant |
-| Synchronous check, reads only the mutated aggregate's own table | 2 | service guard |
-| Synchronous check, reads a DIFFERENT aggregate | 3 | saga step with `setForbiddenStates`|
+| Synchronous check — own-table read, or input validation (including fields on DTO received from saga step) | 2 | service guard |
 | Eventual cache sync from another aggregate (no blocking) | 4 | inter-invariant |
 
 ---
 
 ## Common Mistakes to Avoid
 
-**Do NOT use Layer 4 for a rule that requires synchronous guarantees.**
-Layer 4 is eventually consistent (~1 s lag). If the rule must hold at commit time, use Layer 2 or 3.
-
-**Do NOT use Layer 2 if the check reads a different aggregate.**
-Layer 2 reads only the aggregate being mutated, within the service's own `@Transactional(SERIALIZABLE)` boundary. Reading a foreign aggregate from Layer 2 violates the architectural restriction. Use Layer 3 instead.
-
 **Do NOT duplicate a rule across layers.**
 Once a rule is placed at Layer 1, do not also add it at Layer 2 or 3. Layer 1 fires on every commit regardless of which operation caused the change — this is the canonical single location for single-aggregate invariants.
 
-**Layer 1 runs on every commit — keep it cheap.**
-`verifyInvariants()` is called on every UoW commit. Do not put DB queries there. If a check requires reading the database, it belongs at Layer 2 or 3.
 

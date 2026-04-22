@@ -7,18 +7,17 @@ For a new application, use this table to decide how each domain rule is enforced
 | Rule type | Layer | Implemented by | Consistency |
 |-----------|-------|---------------|-------------|
 | Single-aggregate state rule (§3.1) | 1 | intra-invariant | Strong |
-| Pre-mutation check (DB read or input validation), own service only | 2 | service guard | Strong |
-| Synchronous check reading a different aggregate | 3 | saga step with `setForbiddenStates` | Strong |
+| Pre-mutation check (DB read or input validation) | 2 | service guard | Strong |
 | Cache state from another aggregate (no blocking) | 4 | inter-invariant | Eventual |
 
 ---
 
 ## Introduction
 
-Consistency in this codebase is enforced at four distinct layers. Each layer has a different scope (single aggregate vs. cross-aggregate), timing (before mutation, at commit, or asynchronously), and consistency guarantee (strong or eventual). The layers cover two distinct kinds of rule:
+Consistency in this codebase is enforced at three distinct layers. Each layer has a different scope (single aggregate vs. cross-aggregate), timing (before mutation, at commit, or asynchronously), and consistency guarantee (strong or eventual). The layers cover two distinct kinds of rule:
 
 - **Invariants** — properties of aggregate *state* that must always hold (layers 1, 4).
-- **Guards** — requirements on *operations* that must be met for a call to be valid (layers 2–3).
+- **Guards** — requirements on *operations* that must be met for a call to be valid (layer 2).
 
 Understanding which layer is responsible for what prevents redundant checks and makes it clear where to add a new rule. **When in doubt, prefer Layer 1:** if a rule can be expressed as a property of a single aggregate's state, it belongs in `verifyInvariants()` — not scattered across multiple layers.
 
@@ -30,7 +29,6 @@ Understanding which layer is responsible for what prevents redundant checks and 
 |---|-------|-----------|-------|--------|-------------|
 | 1 | **Intra-invariant** | State / transition invariant | `verifyInvariants()` in aggregate | At UoW commit | Strong |
 | 2 | **Service-layer guard** | Guard (DB read or input validation) | `*Service.java`, before mutation | Inside workflow step, within `@Transactional` | Strong |
-| 3 | **Functionality cross-aggregate state guard** | Guard | `*Functionality*.java`, saga step reading another aggregate under semantic lock | In workflow step | Strong |
 | 4 | **Inter-invariant (event-driven)** | State invariant (eventual) | `getEventSubscriptions()` + event handler chain | Async (~1 s) | Eventual |
 
 ---
@@ -45,7 +43,7 @@ Understanding which layer is responsible for what prevents redundant checks and 
 
 **Consistency:** Strong — the commit is aborted if any invariant fails.
 
-**Centralization principle:** Layer 1 is the canonical home for aggregate-state invariants. Whenever a rule can be expressed purely in terms of a single aggregate's state — regardless of which operation triggered the change — it belongs here. Because `verifyInvariants()` runs on every commit, a Layer 1 check fires uniformly across all operations, eliminating the need to repeat the same logic in individual service guards (Layer 2) or workflow steps (Layer 3). **If a rule fits Layer 1, define it only there — do not add the same check at another layer.**
+**Centralization principle:** Layer 1 is the canonical home for aggregate-state invariants. Whenever a rule can be expressed purely in terms of a single aggregate's state — regardless of which operation triggered the change — it belongs here. Because `verifyInvariants()` runs on every commit, a Layer 1 check fires uniformly across all operations, eliminating the need to repeat the same logic in individual service guards (Layer 2) or saga data-assembly steps. **If a rule fits Layer 1, define it only there — do not add the same check at another layer.**
 
 **Exception pattern:** Each invariant has its own `if` block and throws the most descriptive specific exception available (e.g., `COURSE_MISSING_NAME`). Use `INVARIANT_BREAK` only as a last resort if no domain-specific constant fits.
 
@@ -86,10 +84,10 @@ Three rules apply when using this pattern:
 
 ### When to use Layer 2 for uniqueness rules
 
-A **local uniqueness constraint** on a table that one service owns exclusively belongs here, not at Layer 3 or 4. The key question is: *who owns the data being checked?*
+A **local uniqueness constraint** on a table that one service owns exclusively belongs here, not at Layer 4. The key question is: *who owns the data being checked?*
 
-- Same service → Layer 2 repository read in `*Service.java` (local, transactionally atomic).
-- Different service → Layer 3 workflow step (under semantic lock) to read the remote aggregate.
+- Same aggregate → Layer 2 repository read in `*Service.java` (local, transactionally atomic).
+- Different aggregate → Layer 4 (event-driven cache); if the precondition is needed at construction time, use a saga data-assembly step and treat the check as input validation at Layer 2.
 
 Placing a uniqueness check at Layer 4 (event cache) when the authoritative data is local is a mistake: the cache lags behind reality and the "strong" Layer 4 guard becomes eventually consistent in practice, allowing duplicate inserts in a narrow race window.
 
@@ -97,22 +95,6 @@ Placing a uniqueness check at Layer 4 (event cache) when the authoritative data 
 - `INACTIVE_USER` — `applications/.../execution/service/ExecutionService.java` — blocks enrollment of an inactive user.
 - `DUPLICATE_COURSE_EXECUTION` — `applications/.../execution/service/ExecutionService.java` — rejects creation of a course execution that already exists.
 - `QUIZ_ALREADY_STARTED_BY_STUDENT` — `applications/.../answer/service/QuizAnswerService.java` — rejects a second `startQuiz()` call for the same (student, quiz) pair via `quizAnswerRepository.existsByQuizIdAndStudentId(...)`.
-
----
-
-## Layer 3 — Functionality Cross-Aggregate State Guard
-
-**Definition:** A workflow step that loads a *different* aggregate (not the operation's primary target) under a semantic lock (Sagas) to verify a cross-aggregate precondition before the mutating step is allowed to run.
-
-**Where it lives:** `*FunctionalitySagas.java` / `*FunctionalityTCC.java` — a named step that issues a read command to another service.
-
-**When it runs:** During workflow execution, after the semantic lock on the primary aggregate is acquired, before the mutating step.
-
-**Consistency:** Strong — under Sagas, the read step acquires or respects semantic locks that prevent the inspected aggregate from being concurrently modified in a conflicting way. See [`sagas.md`](sagas.md) for how `forbiddenStates` work.
-
-**Examples:**
-
-There are currently no Layer 3 business-rule checks in this codebase. Both rules that previously lived here (`CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT` and `COURSE_SAME_TOPIC_COURSE`) were migrated to Layer 1 once it was recognised that all data they inspect belongs to a single aggregate. Layer 3 read steps that remain (e.g. `getTopicsStep` in `CreateQuestionFunctionalitySagas`) exist to fetch data needed to build the aggregate, not to enforce a cross-aggregate guard.
 
 ---
 
@@ -163,12 +145,13 @@ Order of enforcement layers within a single operation:
 Request arrives
       │
       ▼
-[2] Service-layer guard
-    (in *Service.java — input validation + DB checks, inside @Transactional(SERIALIZABLE))
+[saga data-assembly steps]
+    (fetch data from upstream aggregates — passes DTO to mutation step)
       │
       ▼
-[3] Functionality cross-aggregate state guard
-    (saga step reads another aggregate under semantic lock)
+[2] Service-layer guard
+    (in *Service.java — input validation, own-table checks, and
+     validation of externally fetched DTO data, inside @Transactional(SERIALIZABLE))
       │
       ▼
 [1] Intra-invariant check
@@ -182,4 +165,4 @@ Request arrives
     (consumer caches publisher state update)
 ```
 
-Layers 1–3 are synchronous and strong. Layer 4 is asynchronous and eventually consistent.
+Saga data-assembly steps and enforcement layers 1–2 are synchronous and strong. Layer 4 is asynchronous and eventually consistent.

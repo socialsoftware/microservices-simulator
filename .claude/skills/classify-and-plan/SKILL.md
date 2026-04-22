@@ -183,16 +183,14 @@ The flowchart asks:
    - If NO: → continue to question 2
 
 2. **"Must be synchronous?"**
-   - If YES: → continue to question 3
-   - If NO: → continue to question 4
+   - If YES: → **L2** (service guard)
+     - If check needs data from another aggregate: add a data-assembly saga step to fetch it as a DTO, then validate in the service.
+     - If the precondition is implicit in the fetch query (query fails when unmet): → **Construction prerequisite** (no explicit guard code needed).
+   - If NO: → continue to question 3
 
-3. (From YES branch) **"Rule guards a write operation step?"**
-   - If YES (can be deferred to saga): → **L3** (saga `setForbiddenStates` on specific step)
-   - If NO (must be enforced before write starts): → **L2** (service guard)
-
-4. (From NO branch, eventually-consistent OK?) **"Eventually consistent acceptable?"**
+3. (From NO branch) **"Eventually consistent acceptable?"**
    - If YES: → **L4** (inter-invariant, event subscription + polling)
-   - If NO: → Escalate to **L2** or **L3** (reconsider synchronism)
+   - If NO: → Escalate to **L2** (reconsider synchronism)
 
 **Implementation algorithm:**
 
@@ -203,29 +201,25 @@ FOR each rule in §3.2:
   
   # Question 1: Same aggregate?
   IF all entities in predicate refer to same aggregate (check aggregates map):
-    # Check if non-key fields appear → cached snapshot fields
-    IF rule references foreign aggregate state:
-      classification = L1  # data in this agg with cached fields
-    ELSE:
-      classification = L1
+    classification = L1  # intra-invariant (may use cached snapshot fields)
   ELSE:
     # Question 2: Must be synchronous?
     # Keywords: "immediately", "synchronous", "before", "prevents", "blocks", "forbids"
     IF predicate contains sync keywords:
-      # Question 3: Guards a write step?
-      # Heuristic: rule involves write operations AND can be checked at step level
-      IF aggregates_have_writes_in_functionality_list(entities):
-        classification = L3  # Prefer L3 for safest option
+      # Is the precondition implicit in the fetch query?
+      # (i.e., the fetch only succeeds when the precondition is met)
+      IF rule_is_implicitly_enforced_by_fetch(rule):
+        classification = "Construction prerequisite"
       ELSE:
-        classification = L2
+        classification = L2  # service guard; DTO field checks from saga step count as input validation
     ELSE:
-      # Question 4: Eventually consistent?
+      # Question 3: Eventually consistent?
       # Keywords: "eventually", "async", "eventually consistent"
       IF predicate contains eventual-consistency keywords OR rule is about caching:
         classification = L4
       ELSE:
         # Ambiguous: mark for review
-        classification = "L2 or L3"  # Mark as NEEDS_REVIEW
+        classification = "L2 (NEEDS_REVIEW)"
         
   rules_classified[rule.name] = {
     layer: classification,
@@ -237,15 +231,10 @@ FOR each rule in §3.2:
 **Implementation notes** (to appear in Rule Classification table):
 
 - **L1:** `intra-invariant in verifyInvariants()`
-- **L2:** `service guard in {PrimaryAggregate}Service`
-- **L3:** `setForbiddenStates in {Operation}FunctionalitySagas, step TBD`
+- **L2:** `service guard in {PrimaryAggregate}Service` — own-table read or input validation (DTO fields passed in from saga step also count as input validation)
 - **L4:** `inter-invariant — {Consumer}Aggregate subscribes to {Event}`
-- **L2 or L3 (NEEDS_REVIEW):** `L2 or L3 — needs review` (mark for manual resolution)
-
-**Heuristics for L2 vs. L3 disambiguation:**
-- **Choose L3** if: rule is clearly enforced as part of a multi-step saga (e.g., preventing intermediate inconsistency)
-- **Choose L2** if: rule is purely a precondition check before any write (e.g., "user must exist before adding to course")
-- **Mark NEEDS_REVIEW** if: you cannot determine from the predicate alone
+- **Construction prerequisite:** `implicit in saga data-assembly — {Operation}FunctionalitySagas fetches {OtherAggregate}; query fails if precondition unmet`
+- **L2 (NEEDS_REVIEW):** `L2 — needs review` (mark for manual resolution)
 
 ---
 
@@ -308,16 +297,17 @@ published_events = [e for e in all_events if e.publisher == agg]
 subscribed_events = [e for e in all_events if agg in e.consumers]
 ```
 
-#### 6.c: Identify Layer 3 rules for this aggregate
+#### 6.c: Identify cross-aggregate data-assembly requirements for this aggregate
 
-For each write functionality:
+For each write functionality, identify rules classified as L2 (cross-aggregate) or Construction prerequisite:
 ```
-layer_3_rules = [r for r in rules_classified 
-                 if r.layer == L3 AND 
-                    any(entity in r.entities for entity in agg.entities)]
+cross_agg_rules = [r for r in rules_classified 
+                   if r.layer in ('L2', 'Construction prerequisite') AND 
+                      r.requires_saga_fetch AND
+                      any(entity in r.entities for entity in agg.entities)]
 ```
 
-Map each rule to the write operation it guards (heuristic: match rule predicate keywords to operation name, e.g., "remove" rule → "RemoveXxx" operation).
+Map each rule to the saga data-assembly step that provides the needed data and, for L2 rules, to the service method that performs the explicit validation.
 
 #### 6.d: Phase 3 scenario identification (for aggregates with 2+ write functionalities)
 
@@ -407,7 +397,7 @@ All §3.2 rules from {App}-domain-model.md classified by docs/concepts/decision-
 
 Rows: one per §3.2 rule
 - Column 1: rule name (as extracted)
-- Column 2: layer (L1, L2, L3, L4, or "L2 or L3" if ambiguous)
+- Column 2: layer (L1, L2, L4, Construction prerequisite, Construction invariant, Post-creation saga validation, or "L2 (NEEDS_REVIEW)" if ambiguous)
 - Column 3: implementation note (from Step 4 classification)
 
 Note: Include §3.1 rules as a separate subsection if desired, all marked as L1.
@@ -445,8 +435,8 @@ For each aggregate in sorted order:
 **Events published:** list from aggregate-grouping §4
 **Events subscribed:** list from aggregate-grouping §4
 
-**Layer 3 rules in write functionalities** (from rule classification above):
-- `{RuleName}` → `{Operation}FunctionalitySagas`, step TBD
+**Cross-aggregate data-assembly prerequisites** (L2 cross-aggregate or Construction prerequisite rules):
+- `{RuleName}` → `{Operation}FunctionalitySagas` data-assembly step (fetch from `{OtherAggregate}`)
 
 **Files to produce:**
 
@@ -507,8 +497,8 @@ After writing plan.md:
 
 2. **Summary of results:**
    - Total aggregates processed: N
-   - Total rules classified: M (broken down by layer: L1: X, L2: Y, L3: Z, L4: W)
-   - Ambiguous rules flagged for review: K (marked "L2 or L3")
+   - Total rules classified: M (broken down by layer: L1: X, L2: Y, L4: W, Construction prerequisite: P, Construction invariant: Q, Post-creation saga validation: R)
+   - Ambiguous rules flagged for review: K (marked "L2 (NEEDS_REVIEW)")
    - Total Phase 2 sessions: count (e.g., "2.1.a through 2.3.d")
    - Total Phase 3 scenarios: count (e.g., "3.1 through 3.7")
 
@@ -546,7 +536,7 @@ After writing plan.md:
 Mark sections that need human review:
 
 - **"Needs review — Rule {name} has unusual format":** Parsing issue; content may be incomplete
-- **"L2 or L3 — needs review":** Classification ambiguity; user to decide
+- **"L2 — needs review":** Classification ambiguity between L2 (explicit service validation) and Construction prerequisite (implicit in fetch); user to decide
 - **"Needs review — DAG has unmapped aggregates":** Aggregate in rules but not in DAG
 - **"Needs review — unusual format detected":** Parsing used fallback heuristic
 
