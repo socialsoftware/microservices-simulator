@@ -140,6 +140,7 @@ applications/{app-name}/
 
 **Transformations:**
 - Package declaration: `pt.ulisboa.tecnico.socialsoftware.{pkg}`
+- Keep the `@PropertySource("classpath:application-test.properties")` annotation unchanged — this loads `application-test.properties` from the `simulator` library JAR (at `simulator/src/main/resources/`), not from the app itself. Do not remove or change the path.
 - Keep **only** the infrastructure bean methods (no aggregate-specific beans):
   - `aggregateIdGeneratorService()`
   - `versionService(LocalCommandGateway commandGateway)`
@@ -196,10 +197,12 @@ applications/{app-name}/
 
 **Transformations:**
 - Replace `name: quizzes` with `name: {app-name}` (under `spring.application`)
+- Remove the `spring.profiles.group` block (`stream: remote` / `grpc: remote`) — these group mappings only apply when the `remote` profile exists, which is being deleted
 - Delete the entire `remote` profile section (Spring Cloud Stream / RabbitMQ bindings) — the `quizzes.function-definition.events` block and all aggregate-specific subscriber bindings reference the quizzes domain and must not be copied
 - Delete the `stream` profile section (command channel bindings for all quizzes aggregates)
 - Delete the `grpc` profile section
-- Keep: root defaults, `local` profile, `distributed-version` profile placeholder if present, `kubernetes` profile
+- Keep: root defaults, `local` profile, `kubernetes` profile
+- Note: there is no `distributed-version` profile section in `application.yaml` — that profile only exists in `pom.xml`
 
 #### File 8: `applications/{app-name}/src/main/resources/application-test.yaml`
 
