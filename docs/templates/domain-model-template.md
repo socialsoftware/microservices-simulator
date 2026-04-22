@@ -41,7 +41,7 @@
 
 Rules that inspect only fields of a single entity.
 
-> **AI agent implementation:** All §3.1 rules become **Layer 1 intra-invariants** inside `verifyInvariants()`.
+> **AI agent implementation:** All §3.1 rules become **P1 intra-invariants** inside `verifyInvariants()`.
 
 | Rule | Entity | Predicate |
 |---|---|---|
@@ -53,7 +53,7 @@ Rules that inspect only fields of a single entity.
 
 ### 3.2 — Cross-entity rules
 
-> **AI agent implementation:** The AI agent classifies each §3.2 rule into Layer 2, 3, or 4 using `docs/concepts/decision-guide.md` and confirms the classification with the user before writing any code. Domain experts write the rules; the AI decides the layer.
+> **AI agent implementation:** The AI agent classifies each §3.2 rule into a pattern (P1–P5) using `docs/concepts/rule-enforcement-patterns.md` and confirms the classification with the user before writing any code. Domain experts write the rules; the AI decides the pattern.
 
 One block per rule. Use the exact three-field shape below.
 

@@ -97,7 +97,7 @@ microservices/{serviceName}/
 
 ## Request Lifecycle
 
-Happy-path flow from an HTTP request through UoW commit and into the async event tail. Invariant layer numbers refer to the taxonomy in [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md).
+Happy-path flow from an HTTP request through UoW commit and into the async event tail. Pattern codes refer to the taxonomy in [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns.md).
 
 ```
 HTTP Request
@@ -115,20 +115,20 @@ Functionality (WorkflowFunctionality)
       │
       └──► Step M: commandGateway.send(MutateXxxCommand)       ← depends on N
                 └─ CommandHandler → Service.mutateXxx()
-                        [Layer 2] service-layer guard
+                        [P3/P4] service-layer guard
                             input validation + DB checks, inside @Transactional(SERIALIZABLE)
                             throw if precondition violated
                         aggregate.mutate()
                         unitOfWorkService.registerChanged(aggregate, uow)
 
       UoW commit
-            [Layer 1] verifyInvariants() on each changed aggregate
+            [P1] verifyInvariants() on each changed aggregate
             persist new version row
             publish domain events
 
       Async (~1 s poll interval)
             EventHandling detects new events
-                [Layer 4] EventProcessing → Update Functionality
+                [P2] EventProcessing → Update Functionality
                     consumer aggregate caches publisher state
 ```
 
@@ -182,7 +182,7 @@ See [`concepts/sagas.md`](concepts/sagas.md) for how semantic locks are acquired
 
 Subscriptions encode a one-way dependency: the consumer caches state from the publisher. The upstream (publisher) aggregate must not subscribe to its own events and must not reference downstream aggregate types. Adding subscriptions in the wrong direction creates circular dependencies in the event pipeline.
 
-See [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) Layer 4 for the upstream/downstream model.
+See [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns.md) P2 for the upstream/downstream model.
 
 ---
 
@@ -190,7 +190,7 @@ See [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md)
 
 `verifyInvariants()` is called inside the UoW commit path, after all mutations have been applied. Repository calls at this point risk deadlocks and violate the layering contract. Intra-invariants must check only fields already present on the aggregate instance.
 
-**Instead:** Use a Layer 2 service-layer guard in `*Service.java`, which runs before the UoW commit and can safely read from the DB.
+**Instead:** Use a P3 or P4 service-layer guard in `*Service.java`, which runs before the UoW commit and can safely read from the DB.
 
 ---
 
@@ -208,16 +208,17 @@ A functionality that belongs to aggregate A may only issue commands (read or mut
 
 ---
 
-## Choosing the Right Invariant Layer
+## Choosing the Right Enforcement Pattern
 
-For a quick decision, use this table. For full rationale and examples for each layer, see [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md).
+For a quick decision, use this table. For the full decision flowchart and pattern recipes, see [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns.md).
 
-| Rule type | Right layer |
-|-----------|-------------|
-| Always true within one aggregate; derivable from its own fields | Layer 1 — `verifyInvariants()` |
-| Requires a DB read OR pure input validation before mutation | Layer 2 — service-layer guard |
-| Requires reading a **different** aggregate under a semantic lock | Layer 3 — cross-aggregate state guard (saga step) |
-| Cross-aggregate; eventual consistency is acceptable | Layer 4 — inter-invariant via domain events |
+| Rule type | Pattern |
+|-----------|---------|
+| Always true within one aggregate; derivable from its own fields | P1 — `verifyInvariants()` |
+| Global uniqueness across aggregate instances (own-table read) | P3 — service guard |
+| DTO field from a preceding saga data-assembly step | P4 — saga input validation |
+| Cross-aggregate; eventual consistency is acceptable | P2 — inter-invariant via domain events |
+| Precondition implicit in saga fetch / same value to two aggregates / post-creation assertion | P5a/P5b/P5c — by construction |
 
 ---
 
@@ -230,4 +231,4 @@ For a quick decision, use this table. For full rationale and examples for each l
 | Commands & CommandHandler | [`concepts/commands.md`](concepts/commands.md) |
 | Sagas semantic locks | [`concepts/sagas.md`](concepts/sagas.md) |
 | Domain events | [`concepts/events.md`](concepts/events.md) |
-| Invariant taxonomy (full) | [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) |
+| Rule-enforcement patterns (full) | [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns.md) |

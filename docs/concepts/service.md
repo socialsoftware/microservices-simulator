@@ -38,7 +38,7 @@ Never inject a foreign service class or a foreign repository — see [R1, R2 in 
 
 ## Method Patterns
 
-Every service method is annotated `@Transactional(isolation = Isolation.SERIALIZABLE)`. This makes Layer 2 guards race-free.
+Every service method is annotated `@Transactional(isolation = Isolation.SERIALIZABLE)`. This makes P3/P4 guards race-free.
 
 ### Read method
 
@@ -59,7 +59,7 @@ Generates a new aggregate ID, constructs the aggregate via the factory, register
 ```java
 @Transactional(isolation = Isolation.SERIALIZABLE)
 public CourseExecutionDto createCourseExecution(CourseExecutionDto dto, UnitOfWork unitOfWork) {
-    // [Layer 2] uniqueness guard — reads own table, inside @Transactional(SERIALIZABLE)
+    // [P3] uniqueness guard — reads own table, inside @Transactional(SERIALIZABLE)
     Set<Integer> existingIds = courseExecutionCustomRepository.findCourseExecutionIdsOfAllNonDeleted();
     for (Integer id : existingIds) {
         Execution existing = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
@@ -84,7 +84,7 @@ Loads the current version, copies it via the factory's `createFromExisting` meth
 ```java
 @Transactional(isolation = Isolation.SERIALIZABLE)
 public void enrollStudent(Integer executionAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
-    // [Layer 2] guard — reads own table
+    // [P4] guard — validates DTO field from preceding saga step
     Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
             executionAggregateId, unitOfWork);
 
@@ -127,9 +127,9 @@ Never mutate the aggregate instance returned by `aggregateLoadAndRegisterRead`. 
 
 ---
 
-## Layer 2 Guard Placement
+## P3/P4 Guard Placement
 
-Layer 2 guards (input validation + DB reads) belong at the **top** of the service method, before any `createFromExisting` call. Throwing at this point ensures no aggregate is dirtied before the guard fires. See [`consistency-enforcement.md`](consistency-enforcement.md) Layer 2 for the full taxonomy.
+P3/P4 guards (input validation + DB reads) belong at the **top** of the service method, before any `createFromExisting` call. Throwing at this point ensures no aggregate is dirtied before the guard fires. See [`rule-enforcement-patterns.md`](rule-enforcement-patterns.md) for the full taxonomy.
 
 ---
 

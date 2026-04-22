@@ -45,8 +45,7 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 | Commands, CommandHandler, ServiceMapping | [`docs/concepts/commands.md`](docs/concepts/commands.md) |
 | Domain events + canonical wiring snippet | [`docs/concepts/events.md`](docs/concepts/events.md) |
 | Sagas semantic locks | [`docs/concepts/sagas.md`](docs/concepts/sagas.md) |
-| Invariant & guard taxonomy | [`docs/concepts/consistency-enforcement.md`](docs/concepts/consistency-enforcement.md) |
-| Consistency layer decision flowchart (AI agent) | [`docs/concepts/decision-guide.md`](docs/concepts/decision-guide.md) |
+| Rule-enforcement patterns & decision guide | [`docs/concepts/rule-enforcement-patterns.md`](docs/concepts/rule-enforcement-patterns.md) |
 | Test taxonomy & templates | [`docs/concepts/testing.md`](docs/concepts/testing.md) |
 | Domain model template | [`docs/templates/domain-model-template.md`](docs/templates/domain-model-template.md) |
 | Aggregate grouping template | [`docs/templates/aggregate-grouping-template.md`](docs/templates/aggregate-grouping-template.md) |

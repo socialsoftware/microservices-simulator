@@ -89,7 +89,7 @@ class <Aggregate>Test extends <AppName>SpockTest {
 cases that validate semantic locks at each saga step boundary.
 
 **Step-interleaving rule:**
-- For each saga step that reads a foreign aggregate (Layer 3 `setForbiddenStates`), add one
+- For each saga step that reads a foreign aggregate (cross-aggregate prerequisite, `setForbiddenStates`), add one
   interleaving case where a conflicting operation locks the foreign aggregate *between* steps.
 - Use `executeUntilStep("stepName", uow)` to pause before the named step, then
   `resumeWorkflow(uow)` to continue after injecting the conflict.
