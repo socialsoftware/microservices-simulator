@@ -118,7 +118,7 @@ All §3.2 rules from {App}-domain-model.md classified by docs/concepts/rule-enfo
 |-----------|---------|---------------------|
 | RULE_A    | P1      | intra-invariant in verifyInvariants() |
 | RULE_B    | P3      | service guard in XxxService |
-| RULE_C    | P5a     | implicit in saga data-assembly — XxxFunctionalitySagas fetches YyyDto; query fails if precondition unmet |
+| RULE_C    | P4a     | implicit in saga data-assembly — XxxFunctionalitySagas fetches YyyDto; query fails if precondition unmet |
 | RULE_D    | P2      | inter-invariant — event subscription chain |
 
 ---
@@ -154,7 +154,7 @@ One section per aggregate in implementation order.
 **Events published:** list from aggregate-grouping §4 (publisher = this aggregate)  
 **Events subscribed:** list from aggregate-grouping §4 (consumer = this aggregate)
 
-**Cross-aggregate prerequisites** (P5a rules and P3 DTO-check rules requiring a saga data-assembly fetch):
+**Cross-aggregate prerequisites** (P4a rules and P3 DTO-check rules requiring a saga data-assembly fetch):
 - `RULE_C` → `CreateXxxFunctionalitySagas` data-assembly step (fetch from `{OtherAggregate}`)
 
 **Files to produce:**
@@ -236,7 +236,7 @@ above. The agent must:
    Implementation Order table. Aggregates with no upstream deps come first.
 3. For each aggregate in order, fill the Aggregate Details section: write/read functionalities
    (split from §4 of domain-model), events published/subscribed (from aggregate-grouping §4),
-   cross-aggregate prerequisites (P5a rules and P3 DTO-check rules) with their step names, and the full file list per session.
+   cross-aggregate prerequisites (P4a rules and P3 DTO-check rules) with their step names, and the full file list per session.
 4. Set the `d` session checkbox only for aggregates that have a non-empty Events subscribed list.
 5. Populate the Phase 3 Session List: one row for each pair of functionalities that share an
    aggregate and pose a real concurrent-consistency risk, plus one row per functionality whose
@@ -304,7 +304,7 @@ Add `Sagas{Aggregate}Factory` and `{Aggregate}CustomRepositorySagas` beans.
 - `{Aggregate}CommandHandler.java`
 - One command per write operation: `{Op}{Aggregate}Command.java`
 - One `{Op}FunctionalitySagas.java` per write operation — saga steps with `setForbiddenStates`
-  for every cross-aggregate prerequisite (P5a rule) on that step
+  for every cross-aggregate prerequisite (P4a rule) on that step
 - One `{Op}Test.groovy` (T2) per write operation — stored at
   `sagas/coordination/{aggregate}/{Op}Test.groovy`
 - Error message constants for new guards/invariants added to `{App}ErrorMessage.java`

@@ -53,7 +53,7 @@ Rules that inspect only fields of a single entity.
 
 ### 3.2 — Cross-entity rules
 
-> **AI agent implementation:** The AI agent classifies each §3.2 rule into a pattern (P1–P5) using `docs/concepts/rule-enforcement-patterns.md` and confirms the classification with the user before writing any code. Domain experts write the rules; the AI decides the pattern.
+> **AI agent implementation:** The AI agent classifies each §3.2 rule into a pattern (P1–P4) using `docs/concepts/rule-enforcement-patterns.md` and confirms the classification with the user before writing any code. Domain experts write the rules; the AI decides the pattern.
 
 One block per rule. Use the exact three-field shape below.
 

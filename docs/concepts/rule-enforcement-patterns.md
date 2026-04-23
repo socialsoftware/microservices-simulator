@@ -20,9 +20,9 @@ Human domain experts define the rules in the domain model template (`{App}-domai
 
 | Rule characteristic | Pattern | Code added? | Where it lives |
 |---------------------|---------|-------------|----------------|
-| Precondition implicit in saga fetch query (query fails if unmet) | P5a | None | saga data-assembly step |
-| Invariant holds because same value is passed to two aggregates in the same saga | P5b | None | saga construction |
-| Invariant verified by reading an aggregate back after creation within the same saga | P5c | Assertion in saga | saga post-creation step |
+| Precondition implicit in saga fetch query (query fails if unmet) | P4a | None | saga data-assembly step |
+| Invariant holds because same value is passed to two aggregates in the same saga | P4b | None | saga construction |
+| Invariant verified by reading an aggregate back after creation within the same saga | P4c | Assertion in saga | saga post-creation step |
 
 ---
 
@@ -46,17 +46,17 @@ Does the rule involve only data that lives inside a SINGLE aggregate
 
 Is the precondition implicit in a saga fetch query?
 (the query fails when the precondition is unmet — no explicit service check needed)
-  YES → P5a — Construction Prerequisite — no enforcement code
+  YES → P4a — Construction Prerequisite — no enforcement code
   NO  → continue ↓
 
 Is the invariant guaranteed because the saga passes the same value
 to two aggregates?
-  YES → P5b — Construction Invariant — no enforcement code
+  YES → P4b — Construction Invariant — no enforcement code
   NO  → continue ↓
 
 Can the rule be verified by reading an aggregate back after creation
 within the same saga?
-  YES → P5c — Post-Creation Saga Validation — assertion added to saga
+  YES → P4c — Post-Creation Saga Validation — assertion added to saga
   NO  → continue ↓
 
 Is the check a synchronous service-level guard?
@@ -90,7 +90,7 @@ A P2 check caches state only. If you find yourself wanting to block based on a P
 Use the `lastModifiedTime` field stamped at mutation time (see P1 temporal variant below). Direct use of `DateHandler.now()` makes the check non-idempotent.
 
 **Never validate cross-aggregate constraints in saga code.**
-If you need data from another aggregate to enforce a constraint, either (1) structure the saga command so it fails naturally when the precondition is unmet (P5a — preferred), or (2) pass the assembled DTO to your own service method and validate it there (P3). Putting the validation logic directly inside a saga step is wrong: it couples coordination code to domain rules and bypasses the transactional boundary of the service layer.
+If you need data from another aggregate to enforce a constraint, either (1) structure the saga command so it fails naturally when the precondition is unmet (P4a — preferred), or (2) pass the assembled DTO to your own service method and validate it there (P3). Putting the validation logic directly inside a saga step is wrong: it couples coordination code to domain rules and bypasses the transactional boundary of the service layer.
 
 ---
 
@@ -234,8 +234,8 @@ Both sub-cases execute inside `@Transactional(SERIALIZABLE)` in `*Service.java`,
 
 Placing a uniqueness check at P2 when the authoritative data is local is a mistake: the event cache lags behind reality and allows duplicates in a narrow race window.
 
-**When to choose P5a over P3 for cross-aggregate membership checks:**
-If the saga already sends a command to fetch an entity by a compound key (e.g., student by executionId + userId) and that command throws when the entity doesn't exist, no explicit P3 check is needed — the command failing IS the enforcement (P5a). Always prefer P5a when the saga query can be constructed to fail naturally.
+**When to choose P4a over P3 for cross-aggregate membership checks:**
+If the saga already sends a command to fetch an entity by a compound key (e.g., student by executionId + userId) and that command throws when the entity doesn't exist, no explicit P3 check is needed — the command failing IS the enforcement (P4a). Always prefer P4a when the saga query can be constructed to fail naturally.
 
 **Implementation recipe — own-table uniqueness:**
 
@@ -264,17 +264,17 @@ public void create{Aggregate}({CreateDto} dto, {OtherAggregate}Dto otherDto) {
 
 ---
 
-## P5 — By Construction (Saga-Structural Guarantees)
+## P4 — By Construction (Saga-Structural Guarantees)
 
 **Use when:** The rule holds automatically because of how the saga is structured. No P1–P3 enforcement code is added.
 
 **Documentation obligation:** Always add a short comment at the saga step explaining why no explicit check exists, so future readers do not add a redundant guard.
 
-### P5a — Construction Prerequisite
+### P4a — Construction Prerequisite
 
 The precondition is **implicit in a saga fetch query**: the command fails (throws) if the precondition is not met, aborting the saga before any mutation.
 
-**When it applies:** The fetch only succeeds when the precondition holds — no separate guard is needed. Prefer P5a over P3 whenever a compound-key command can naturally encode the constraint as a failure.
+**When it applies:** The fetch only succeeds when the precondition holds — no separate guard is needed. Prefer P4a over P3 whenever a compound-key command can naturally encode the constraint as a failure.
 
 **Canonical example — membership check:** "creator must be enrolled in the execution" is enforced by sending `GetStudentByExecutionIdAndUserIdCommand(executionId, userId)`. The ExecutionService throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if that student is not enrolled — no explicit P3 check is needed.
 
@@ -285,7 +285,7 @@ The precondition is **implicit in a saga fetch query**: the command fails (throw
     new Get{OtherAggregate}ByConditionCommand(...));
 ```
 
-### P5b — Construction Invariant
+### P4b — Construction Invariant
 
 The invariant holds because the saga passes the **same value** to two aggregates in the same workflow. There is no possible inconsistency given a correct saga.
 
@@ -295,7 +295,7 @@ commandGateway.send(new Create{AggA}Command(sharedId, ...));
 commandGateway.send(new Create{AggB}Command(sharedId, ...));
 ```
 
-### P5c — Post-Creation Saga Validation
+### P4c — Post-Creation Saga Validation
 
 The property can only be verified after a second aggregate is created. The saga reads the aggregate back and asserts the property before continuing.
 
@@ -318,7 +318,7 @@ Request arrives
       │
       ▼
 [saga data-assembly steps]
-    (fetch DTOs from upstream aggregates — P5a/P5b guarantees satisfied here)
+    (fetch DTOs from upstream aggregates — P4a/P4b guarantees satisfied here)
       │
       ▼
 [P3] Service-layer guard
@@ -338,4 +338,4 @@ Request arrives
 ```
 
 P3 and P1 are synchronous and strongly consistent. P2 is asynchronous and eventually consistent.
-P5c (post-creation saga validation) fires after the mutation step but before the saga ends — inside the saga, after the create command completes.
+P4c (post-creation saga validation) fires after the mutation step but before the saga ends — inside the saga, after the create command completes.

@@ -30,12 +30,12 @@ All §3.2 rules from quizzes-full-domain-model.md classified by docs/concepts/ru
 | COURSE_EXECUTION_EXISTS (QuizAnswer) | P2 | inter-invariant — `QuizAnswer` subscribes to `DeleteCourseExecutionEvent` |
 | ANSWER_BEFORE_START (Tournament) | P1 | intra-invariant in `Tournament.verifyInvariants()` — temporal: `lastModifiedTime.isBefore(startTime) ⟹ ∀p: p.answer.quizAnswerId == null` (both `startTime` and participant answer data are cached in Tournament) |
 | CREATOR_IS_NOT_ANONYMOUS (Tournament) | P1 | intra-invariant in `Tournament.verifyInvariants()` — `creator.name ≠ "ANONYMOUS" ∧ creator.username ≠ "ANONYMOUS"` (creator snapshot cached in Tournament) |
-| CREATOR_COURSE_EXECUTION (Tournament) | P5a | implicit in saga data-assembly — `CreateTournamentFunctionalitySagas` sends `GetStudentByExecutionIdAndUserIdCommand(executionId, creatorId)`; `ExecutionService` throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if creator not enrolled |
-| PARTICIPANT_COURSE_EXECUTION (Tournament) | P5a | implicit in saga data-assembly — `AddParticipantFunctionalitySagas` sends `GetStudentByExecutionIdAndUserIdCommand(executionId, participantId)`; `ExecutionService` throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if participant not enrolled |
-| TOPIC_COURSE_EXECUTION (Tournament) | P5a | implicit in saga data-assembly — `CreateTournamentFunctionalitySagas` and `UpdateTournamentFunctionalitySagas` fetch topics and find questions; quiz generation fails if topics don't belong to the execution's course |
-| QUIZ_COURSE_EXECUTION_CONSISTENCY (Tournament) | P5b | implicit in saga construction — same `executionId` passed to both `CreateTournamentCommand` and `CreateQuizCommand` in `CreateTournamentFunctionalitySagas`; holds by construction |
-| START_TIME_AVAILABLE_DATE / END_TIME_CONCLUSION_DATE (Tournament) | P5b | implicit in saga construction — same `startTime`/`endTime` values passed to both Tournament and Quiz in `CreateTournamentFunctionalitySagas`; holds by construction |
-| NUMBER_OF_QUESTIONS / QUIZ_TOPICS (Tournament) | P5b | implicit in saga construction — `CreateTournamentFunctionalitySagas` selects exactly `numberOfQuestions` questions from `topics` and passes them to `CreateQuizCommand`; holds by construction |
+| CREATOR_COURSE_EXECUTION (Tournament) | P4a | implicit in saga data-assembly — `CreateTournamentFunctionalitySagas` sends `GetStudentByExecutionIdAndUserIdCommand(executionId, creatorId)`; `ExecutionService` throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if creator not enrolled |
+| PARTICIPANT_COURSE_EXECUTION (Tournament) | P4a | implicit in saga data-assembly — `AddParticipantFunctionalitySagas` sends `GetStudentByExecutionIdAndUserIdCommand(executionId, participantId)`; `ExecutionService` throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if participant not enrolled |
+| TOPIC_COURSE_EXECUTION (Tournament) | P4a | implicit in saga data-assembly — `CreateTournamentFunctionalitySagas` and `UpdateTournamentFunctionalitySagas` fetch topics and find questions; quiz generation fails if topics don't belong to the execution's course |
+| QUIZ_COURSE_EXECUTION_CONSISTENCY (Tournament) | P4b | implicit in saga construction — same `executionId` passed to both `CreateTournamentCommand` and `CreateQuizCommand` in `CreateTournamentFunctionalitySagas`; holds by construction |
+| START_TIME_AVAILABLE_DATE / END_TIME_CONCLUSION_DATE (Tournament) | P4b | implicit in saga construction — same `startTime`/`endTime` values passed to both Tournament and Quiz in `CreateTournamentFunctionalitySagas`; holds by construction |
+| NUMBER_OF_QUESTIONS / QUIZ_TOPICS (Tournament) | P4b | implicit in saga construction — `CreateTournamentFunctionalitySagas` selects exactly `numberOfQuestions` questions from `topics` and passes them to `CreateQuizCommand`; holds by construction |
 | CREATOR_EXISTS / PARTICIPANT_EXISTS (Tournament) | P2 | inter-invariant — `Tournament` subscribes to `DeleteUserEvent`, `AnonymizeStudentEvent` |
 | TOPIC_EXISTS (Tournament) | P2 | inter-invariant — `Tournament` subscribes to `DeleteTopicEvent` |
 | QUIZ_EXISTS (Tournament) | P2 | inter-invariant — `Tournament` subscribes to `InvalidateQuizEvent` |
@@ -316,9 +316,9 @@ Topological sort of the dependency DAG (§3 of quizzes-full-aggregate-grouping.m
 ### 8. Tournament
 
 **Write functionalities:**
-- `CreateTournament(executionId, creatorId, topicIds, numberOfQuestions, startTime, endTime)` — create a tournament; also creates the associated Quiz; P5a implicit enforcement for creator enrollment and topic-course consistency
-- `AddParticipant(tournamentId, participantId)` — enroll a student; P5a implicit enforcement for participant enrollment in execution
-- `UpdateTournament(tournamentId, topicIds, numberOfQuestions, startTime, endTime)` — update timing/topics before start; also updates the associated Quiz; P5a implicit enforcement for topic-course consistency
+- `CreateTournament(executionId, creatorId, topicIds, numberOfQuestions, startTime, endTime)` — create a tournament; also creates the associated Quiz; P4a implicit enforcement for creator enrollment and topic-course consistency
+- `AddParticipant(tournamentId, participantId)` — enroll a student; P4a implicit enforcement for participant enrollment in execution
+- `UpdateTournament(tournamentId, topicIds, numberOfQuestions, startTime, endTime)` — update timing/topics before start; also updates the associated Quiz; P4a implicit enforcement for topic-course consistency
 - `CancelTournament(tournamentId)` — cancel an open tournament
 - `DeleteTournament(tournamentId)` — delete a cancelled or finished tournament
 
@@ -341,11 +341,11 @@ Topological sort of the dependency DAG (§3 of quizzes-full-aggregate-grouping.m
 
 **P2 rules:** `CREATOR_EXISTS/PARTICIPANT_EXISTS`, `TOPIC_EXISTS`, `QUIZ_EXISTS`, `COURSE_EXECUTION_EXISTS`, `QUIZ_ANSWER_EXISTS`
 
-**P5a rules:** `CREATOR_COURSE_EXECUTION`, `PARTICIPANT_COURSE_EXECUTION`, `TOPIC_COURSE_EXECUTION` — all enforced implicitly: the saga sends a command that throws if the precondition is unmet (no explicit service check needed)
+**P4a rules:** `CREATOR_COURSE_EXECUTION`, `PARTICIPANT_COURSE_EXECUTION`, `TOPIC_COURSE_EXECUTION` — all enforced implicitly: the saga sends a command that throws if the precondition is unmet (no explicit service check needed)
 
-**P5b rules:** `QUIZ_COURSE_EXECUTION_CONSISTENCY`, `START_TIME_AVAILABLE_DATE/END_TIME_CONCLUSION_DATE`, `NUMBER_OF_QUESTIONS/QUIZ_TOPICS`
+**P4b rules:** `QUIZ_COURSE_EXECUTION_CONSISTENCY`, `START_TIME_AVAILABLE_DATE/END_TIME_CONCLUSION_DATE`, `NUMBER_OF_QUESTIONS/QUIZ_TOPICS`
 
-**Cross-aggregate prerequisites (P5a):**
+**Cross-aggregate prerequisites (P4a):**
 - `CREATOR_COURSE_EXECUTION` → `CreateTournamentFunctionalitySagas` sends `GetStudentByExecutionIdAndUserIdCommand(executionId, creatorId)`; throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if not enrolled
 - `PARTICIPANT_COURSE_EXECUTION` → `AddParticipantFunctionalitySagas` sends `GetStudentByExecutionIdAndUserIdCommand(executionId, participantId)`; throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if not enrolled
 - `TOPIC_COURSE_EXECUTION` → `CreateTournamentFunctionalitySagas` / `UpdateTournamentFunctionalitySagas` fetch topics and find questions; quiz generation step fails if topics don't match the execution's course

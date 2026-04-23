@@ -207,20 +207,20 @@ FOR each rule in §3.2:
     # Is the precondition implicit in the fetch query?
     # (i.e., the fetch only succeeds when the precondition is met)
     IF rule_is_implicitly_enforced_by_fetch(rule):
-      classification = "P5a"
+      classification = "P4a"
     # Does the invariant hold because the same value is passed to two aggregates
     # in the same saga (no fetch needed, holds by construction)?
     ELSE IF rule_holds_by_shared_value_in_same_saga(rule):
-      classification = "P5b"
+      classification = "P4b"
     # Is the invariant verified by reading an aggregate back after its creation
     # in the same saga (post-creation check inside the saga, not the service)?
     ELSE IF rule_verified_by_reading_aggregate_back_after_creation(rule):
-      classification = "P5c"
+      classification = "P4c"
     ELSE:
       # Question 3: Must be synchronous?
       # Keywords: "immediately", "synchronous", "before", "prevents", "blocks", "forbids"
       # P3 covers ALL synchronous service-layer checks — both own-table uniqueness reads
-      # and DTO field validation from saga-assembled data. There is no separate P4 pattern.
+      # and DTO field validation from saga-assembled data. P4 covers ALL by-construction guarantees — P4a (prerequisite), P4b (construction invariant), P4c (post-creation assertion).
       IF predicate contains sync keywords:
         classification = P3  # service guard (*Service.java — own-table read OR DTO field check)
       ELSE:
@@ -244,9 +244,9 @@ FOR each rule in §3.2:
 - **P1:** `intra-invariant in verifyInvariants()`
 - **P3:** `service guard in {PrimaryAggregate}Service` — own-table uniqueness check, or DTO field validation from preceding saga step (both enforced in the service layer, never in saga code)
 - **P2:** `inter-invariant — {Consumer}Aggregate subscribes to {Event}`
-- **P5a:** `implicit in saga data-assembly — {Operation}FunctionalitySagas fetches {OtherAggregate}; query fails if precondition unmet`
-- **P5b:** `implicit in saga construction — same {field} passed to both {AggA} and {AggB} in the same saga; holds by construction, no separate check needed`
-- **P5c:** `post-creation check in {Operation}FunctionalitySagas — reads {Aggregate} back after creation to verify {property}`
+- **P4a:** `implicit in saga data-assembly — {Operation}FunctionalitySagas fetches {OtherAggregate}; query fails if precondition unmet`
+- **P4b:** `implicit in saga construction — same {field} passed to both {AggA} and {AggB} in the same saga; holds by construction, no separate check needed`
+- **P4c:** `post-creation check in {Operation}FunctionalitySagas — reads {Aggregate} back after creation to verify {property}`
 - **P3 (NEEDS_REVIEW):** `P3 — needs review` (mark for manual resolution)
 
 ---
@@ -312,10 +312,10 @@ subscribed_events = [e for e in all_events if agg in e.consumers]
 
 #### 6.c: Identify cross-aggregate data-assembly requirements for this aggregate
 
-For each write functionality, identify rules classified as P3 (DTO field check variant) or P5a (construction prerequisite) that require a saga data-assembly step:
+For each write functionality, identify rules classified as P3 (DTO field check variant) or P4a (construction prerequisite) that require a saga data-assembly step:
 ```
 cross_agg_rules = [r for r in rules_classified 
-                   if r.pattern in ('P3', 'P5a') AND 
+                   if r.pattern in ('P3', 'P4a') AND 
                       r.requires_saga_fetch AND
                       any(entity in r.entities for entity in agg.entities)]
 ```
@@ -410,7 +410,7 @@ All §3.2 rules from {App}-domain-model.md classified by docs/concepts/rule-enfo
 
 Rows: one per §3.2 rule
 - Column 1: rule name (as extracted)
-- Column 2: pattern (P1, P2, P3, P5a, P5b, P5c, or "P3 (NEEDS_REVIEW)" if ambiguous)
+- Column 2: pattern (P1, P2, P3, P4a, P4b, P4c, or "P3 (NEEDS_REVIEW)" if ambiguous)
 - Column 3: implementation note (from Step 4 classification)
 
 Note: Include §3.1 rules as a separate subsection if desired, all marked as P1.
@@ -448,7 +448,7 @@ For each aggregate in sorted order:
 **Events published:** list from aggregate-grouping §4
 **Events subscribed:** list from aggregate-grouping §4
 
-**Cross-aggregate prerequisites** (P5a rules and P3 DTO-check rules requiring a saga data-assembly fetch):
+**Cross-aggregate prerequisites** (P4a rules and P3 DTO-check rules requiring a saga data-assembly fetch):
 - `{RuleName}` → `{Operation}FunctionalitySagas` data-assembly step (fetch from `{OtherAggregate}`)
 
 **Files to produce:**
@@ -510,7 +510,7 @@ After writing plan.md:
 
 2. **Summary of results:**
    - Total aggregates processed: N
-   - Total rules classified: M (broken down by pattern: P1: X, P2: Y, P3: Z, P5a/b/c: R)
+   - Total rules classified: M (broken down by pattern: P1: X, P2: Y, P3: Z, P4a/b/c: R)
    - Ambiguous rules flagged for review: K (marked "P3 (NEEDS_REVIEW)")
    - Total Phase 2 sessions: count (e.g., "2.1.a through 2.3.d")
    - Total Phase 3 scenarios: count (e.g., "3.1 through 3.7")
@@ -549,7 +549,7 @@ After writing plan.md:
 Mark sections that need human review:
 
 - **"Needs review — Rule {name} has unusual format":** Parsing issue; content may be incomplete
-- **"P3 — needs review":** Classification ambiguity between P3 (explicit service guard) and P5a (implicit in saga fetch); user to decide
+- **"P3 — needs review":** Classification ambiguity between P3 (explicit service guard) and P4a (implicit in saga fetch); user to decide
 - **"Needs review — DAG has unmapped aggregates":** Aggregate in rules but not in DAG
 - **"Needs review — unusual format detected":** Parsing used fallback heuristic
 
