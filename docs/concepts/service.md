@@ -38,7 +38,7 @@ Never inject a foreign service class or a foreign repository — see [R1, R2 in 
 
 ## Method Patterns
 
-Every service method is annotated `@Transactional(isolation = Isolation.SERIALIZABLE)`. This makes P3/P4 guards race-free.
+Every service method is annotated `@Transactional(isolation = Isolation.SERIALIZABLE)`. This makes P3 guards race-free.
 
 ### Read method
 
@@ -84,7 +84,7 @@ Loads the current version, copies it via the factory's `createFromExisting` meth
 ```java
 @Transactional(isolation = Isolation.SERIALIZABLE)
 public void enrollStudent(Integer executionAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
-    // [P4] guard — validates DTO field from preceding saga step
+    // [P3] guard — validates DTO field assembled by preceding saga step
     Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
             executionAggregateId, unitOfWork);
 
@@ -127,9 +127,9 @@ Never mutate the aggregate instance returned by `aggregateLoadAndRegisterRead`. 
 
 ---
 
-## P3/P4 Guard Placement
+## P3 Guard Placement
 
-P3/P4 guards (input validation + DB reads) belong at the **top** of the service method, before any `createFromExisting` call. Throwing at this point ensures no aggregate is dirtied before the guard fires. See [`rule-enforcement-patterns.md`](rule-enforcement-patterns.md) for the full taxonomy.
+P3 guards (own-table reads, uniqueness checks, and DTO field validation from preceding saga steps) belong at the **top** of the service method, before any `createFromExisting` call. Throwing at this point ensures no aggregate is dirtied before the guard fires. See [`rule-enforcement-patterns.md`](rule-enforcement-patterns.md) for the full taxonomy.
 
 ---
 

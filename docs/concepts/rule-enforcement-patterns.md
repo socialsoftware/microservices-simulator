@@ -13,11 +13,10 @@ Human domain experts define the rules in the domain model template (`{App}-domai
 | Rule type | Pattern | Implemented by | Consistency |
 |-----------|---------|----------------|-------------|
 | Single-aggregate state rule (§3.1) | P1 | `verifyInvariants()` in aggregate | Strong |
-| Global uniqueness across aggregate instances | P3 | service guard (own-table read) | Strong |
-| DTO field from a preceding saga data-assembly step | P4 | service method or functionality | Strong |
+| Synchronous service-level check (own-table uniqueness OR saga-assembled DTO validation) | P3 | service guard in `*Service.java` | Strong |
 | Cache state from another aggregate (no blocking) | P2 | `getEventSubscriptions()` + event handler chain | Eventual |
 
-### Saga-Structural Guarantees (no P1–P4 code)
+### Saga-Structural Guarantees (no P1–P3 enforcement code)
 
 | Rule characteristic | Pattern | Code added? | Where it lives |
 |---------------------|---------|-------------|----------------|
@@ -60,18 +59,15 @@ within the same saga?
   YES → P5c — Post-Creation Saga Validation — assertion added to saga
   NO  → continue ↓
 
-Is the check a global uniqueness constraint on the aggregate's own table?
-  YES → P3 — service guard (own-table read in *Service.java)
-  NO  → continue ↓
-
-Is the check a validation of a DTO field received from a preceding saga step?
-  YES → P4 — saga input validation
+Is the check a synchronous service-level guard?
+  (own-table uniqueness, OR validation of a DTO assembled by a saga step — both enforced in *Service.java)
+  YES → P3 — service guard
   NO  → continue ↓
 
 Eventually consistent (~1 s lag) is acceptable?
   YES → P2 — inter-invariant (event subscription + handler chain)
   NO  → re-classify as P3 (add a saga data-assembly step to fetch the needed data as a DTO,
-        then validate it as a P4 check inside the service)
+        then validate it inside the service method)
 ```
 
 ### Step 3 — P2 rules never block operations
@@ -79,7 +75,7 @@ Eventually consistent (~1 s lag) is acceptable?
 A P2 inter-invariant is eventually consistent. It may only **cache state** in the consumer aggregate — no operation is blocked based on that cached state.
 
 If you concluded that a rule belongs at P2 but also requires blocking an operation, re-classify:
-- Blocking must be synchronous → **P3** (add a saga data-assembly step if the data lives in another aggregate; validate it as **P4**).
+- Blocking must be synchronous → **P3** (add a saga data-assembly step if the data lives in another aggregate; validate it in the service method).
 - True eventual consistency is acceptable → **P2**; no guard is added.
 
 ### Common Mistakes to Avoid
@@ -88,10 +84,13 @@ If you concluded that a rule belongs at P2 but also requires blocking an operati
 Once a rule is placed at P1, do not also add it at P3. P1 fires on every commit regardless of which operation caused the change — this is the canonical single location for single-aggregate invariants.
 
 **P2 never blocks operations.**
-A P2 check caches state only. If you find yourself wanting to block based on a P2 cached value, use P3/P4 instead.
+A P2 check caches state only. If you find yourself wanting to block based on a P2 cached value, use P3 instead.
 
 **Do not call `DateHandler.now()` inside `verifyInvariants()`.**
 Use the `lastModifiedTime` field stamped at mutation time (see P1 temporal variant below). Direct use of `DateHandler.now()` makes the check non-idempotent.
+
+**Never validate cross-aggregate constraints in saga code.**
+If you need data from another aggregate to enforce a constraint, either (1) structure the saga command so it fails naturally when the precondition is unmet (P5a — preferred), or (2) pass the assembled DTO to your own service method and validate it there (P3). Putting the validation logic directly inside a saga step is wrong: it couples coordination code to domain rules and bypasses the transactional boundary of the service layer.
 
 ---
 
@@ -223,17 +222,22 @@ public class {Aggregate}EventProcessing {
 
 ## P3 — Service Guard
 
-**Use when:** The rule is a **global uniqueness constraint** across all instances of an aggregate — impossible to check from within a single instance. Also used for any synchronous check that reads the aggregate's own table before mutation.
+**Use when:** The rule requires a **synchronous check in the service layer** — either:
+1. A **global uniqueness constraint** across all instances of an aggregate (own-table read before mutation), or
+2. A **DTO field validation** — the saga assembles a DTO from another aggregate in a preceding step and the service method validates a field on that DTO before proceeding.
+
+Both sub-cases execute inside `@Transactional(SERIALIZABLE)` in `*Service.java`, before any aggregate mutation. The data source (own table vs. saga-assembled DTO) does not change the pattern — both are P3.
 
 **When to use P3 vs P2 for uniqueness:**
 - Same aggregate's table → P3 (local, transactionally atomic).
-- Different aggregate → P2 event cache (eventually consistent); if synchronous enforcement is needed, add a saga data-assembly step and promote to P4.
+- Different aggregate → P2 event cache (eventually consistent); if synchronous enforcement is needed, add a saga data-assembly step to fetch the data as a DTO, then validate it as a P3 check inside the service method.
 
 Placing a uniqueness check at P2 when the authoritative data is local is a mistake: the event cache lags behind reality and allows duplicates in a narrow race window.
 
-**Implementation recipe:**
+**When to choose P5a over P3 for cross-aggregate membership checks:**
+If the saga already sends a command to fetch an entity by a compound key (e.g., student by executionId + userId) and that command throws when the entity doesn't exist, no explicit P3 check is needed — the command failing IS the enforcement (P5a). Always prefer P5a when the saga query can be constructed to fail naturally.
 
-In the service/functionality class, query the repository before the create command. Throw if a conflict exists.
+**Implementation recipe — own-table uniqueness:**
 
 ```java
 public void create{Aggregate}({CreateDto} dto) {
@@ -244,21 +248,10 @@ public void create{Aggregate}({CreateDto} dto) {
 }
 ```
 
-The check runs inside `@Transactional(SERIALIZABLE)`, making it race-free.
-
----
-
-## P4 — Saga Input Validation
-
-**Use when:** The rule requires a field from a *related aggregate's DTO* that the saga already fetches as part of data assembly. The check is a simple predicate on that DTO — no additional query needed.
-
-**Implementation recipe:**
-
-The saga fetches the related DTO in a preceding step. The service method or functionality checks the predicate before proceeding.
+**Implementation recipe — DTO field validation (saga-assembled data):**
 
 ```java
-// In the saga: fetch {OtherAggregate}Dto first, then pass to the mutation step.
-// In the service or functionality:
+// The saga fetches {OtherAggregate}Dto in a preceding step, then passes it to this method.
 public void create{Aggregate}({CreateDto} dto, {OtherAggregate}Dto otherDto) {
     if (!otherDto.isActive()) {
         throw new {App}Exception(INACTIVE_{OTHER_AGGREGATE}, otherDto.getAggregateId());
@@ -267,13 +260,13 @@ public void create{Aggregate}({CreateDto} dto, {OtherAggregate}Dto otherDto) {
 }
 ```
 
-DTO field checks from a saga data-assembly step are treated as **input validation** — they run inside the `@Transactional(SERIALIZABLE)` boundary, before any mutation.
+---
 
 ---
 
 ## P5 — By Construction (Saga-Structural Guarantees)
 
-**Use when:** The rule holds automatically because of how the saga is structured. No P1–P4 enforcement code is added.
+**Use when:** The rule holds automatically because of how the saga is structured. No P1–P3 enforcement code is added.
 
 **Documentation obligation:** Always add a short comment at the saga step explaining why no explicit check exists, so future readers do not add a redundant guard.
 
@@ -281,7 +274,9 @@ DTO field checks from a saga data-assembly step are treated as **input validatio
 
 The precondition is **implicit in a saga fetch query**: the command fails (throws) if the precondition is not met, aborting the saga before any mutation.
 
-**When it applies:** The fetch only succeeds when the precondition holds — no separate guard is needed.
+**When it applies:** The fetch only succeeds when the precondition holds — no separate guard is needed. Prefer P5a over P3 whenever a compound-key command can naturally encode the constraint as a failure.
+
+**Canonical example — membership check:** "creator must be enrolled in the execution" is enforced by sending `GetStudentByExecutionIdAndUserIdCommand(executionId, userId)`. The ExecutionService throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if that student is not enrolled — no explicit P3 check is needed.
 
 ```java
 // Fetching this DTO enforces the precondition implicitly.
@@ -326,10 +321,9 @@ Request arrives
     (fetch DTOs from upstream aggregates — P5a/P5b guarantees satisfied here)
       │
       ▼
-[P3/P4] Service-layer guard
-    (in *Service.java — P3: own-table reads / uniqueness;
-     P4: DTO field validation from preceding saga step;
-     both run inside @Transactional(SERIALIZABLE), before any aggregate mutation)
+[P3] Service-layer guard
+    (in *Service.java — own-table reads / uniqueness, or DTO field validation from saga step;
+     runs inside @Transactional(SERIALIZABLE), before any aggregate mutation)
       │
       ▼
 [P1] Intra-invariant check
@@ -343,5 +337,5 @@ Request arrives
     (consumer caches publisher state update)
 ```
 
-P3, P4, and P1 are synchronous and strongly consistent. P2 is asynchronous and eventually consistent.
+P3 and P1 are synchronous and strongly consistent. P2 is asynchronous and eventually consistent.
 P5c (post-creation saga validation) fires after the mutation step but before the saga ends — inside the saga, after the create command completes.

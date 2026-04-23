@@ -14,7 +14,7 @@ All §3.2 rules from quizzes-full-domain-model.md classified by docs/concepts/ru
 |-----------|---------|---------------------|
 | REMOVE_NO_STUDENTS | P1 | intra-invariant in `Execution.verifyInvariants()` — `students.isEmpty()` when `state == DELETED` |
 | NO_DUPLICATE_COURSE_EXECUTION | P3 | service guard in `ExecutionService` — own-table uniqueness check on `(acronym, academicTerm)` before create/update |
-| INACTIVE_USER | P4 | saga input validation in `EnrollStudentInExecutionFunctionalitySagas` — check `userDto.active == true` from preceding User data-assembly step |
+| INACTIVE_USER | P3 | service guard in `ExecutionService.enrollStudent()` — checks `userDto.active == true` on the saga-assembled UserDto before enrolling |
 | STUDENT_ALREADY_ENROLLED | P1 | intra-invariant in `Execution.verifyInvariants()` — no duplicate userId in `students` list |
 | USER_EXISTS (Execution) | P2 | inter-invariant — `Execution` subscribes to `DeleteUserEvent` (removes or marks student inactive in cached list) |
 | CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT | P1 | intra-invariant in `Course.verifyInvariants()` — `executionCount == 0 ⟹ questionCount == 0` (both are cached counters in Course) |
@@ -24,15 +24,15 @@ All §3.2 rules from quizzes-full-domain-model.md classified by docs/concepts/ru
 | COURSE_EXECUTION_EXISTS (Quiz) | P2 | inter-invariant — `Quiz` subscribes to `DeleteCourseExecutionEvent` |
 | UNIQUE_QUIZ_ANSWER_PER_STUDENT | P3 | service guard in `QuizAnswerService` — own-table uniqueness check on `(quizId, userId)` before create |
 | QUESTION_ALREADY_ANSWERED | P1 | intra-invariant in `QuizAnswer.verifyInvariants()` — all `questionId` values in `questionAnswers` are distinct |
-| COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION | P4 | saga input validation in `CreateQuizAnswerFunctionalitySagas` — check `quizDto.executionId == input.executionId` from preceding Quiz data-assembly step |
+| COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION | P3 | service guard in `QuizAnswerService.startQuiz()` — checks `courseExecutionId == quizDto.courseExecutionId` on the saga-assembled QuizDto before creating the answer |
 | USER_EXISTS (QuizAnswer) | P2 | inter-invariant — `QuizAnswer` subscribes to `DeleteUserEvent`, `AnonymizeStudentEvent`, `DisenrollStudentFromCourseExecutionEvent` |
 | QUIZ_EXISTS (QuizAnswer) | P2 | inter-invariant — `QuizAnswer` subscribes to `InvalidateQuizEvent` |
 | COURSE_EXECUTION_EXISTS (QuizAnswer) | P2 | inter-invariant — `QuizAnswer` subscribes to `DeleteCourseExecutionEvent` |
 | ANSWER_BEFORE_START (Tournament) | P1 | intra-invariant in `Tournament.verifyInvariants()` — temporal: `lastModifiedTime.isBefore(startTime) ⟹ ∀p: p.answer.quizAnswerId == null` (both `startTime` and participant answer data are cached in Tournament) |
 | CREATOR_IS_NOT_ANONYMOUS (Tournament) | P1 | intra-invariant in `Tournament.verifyInvariants()` — `creator.name ≠ "ANONYMOUS" ∧ creator.username ≠ "ANONYMOUS"` (creator snapshot cached in Tournament) |
-| CREATOR_COURSE_EXECUTION (Tournament) | P4 | saga input validation in `CreateTournamentFunctionalitySagas` — check `creatorId ∈ executionDto.studentIds` from preceding Execution data-assembly step |
-| PARTICIPANT_COURSE_EXECUTION (Tournament) | P4 | saga input validation in `AddParticipantFunctionalitySagas` — check `participantId ∈ executionDto.studentIds` from preceding Execution data-assembly step |
-| TOPIC_COURSE_EXECUTION (Tournament) | P4 | saga input validation in `CreateTournamentFunctionalitySagas` and `UpdateTournamentFunctionalitySagas` — check `topicDto.courseId == executionDto.courseId` for each topic from preceding data-assembly steps |
+| CREATOR_COURSE_EXECUTION (Tournament) | P5a | implicit in saga data-assembly — `CreateTournamentFunctionalitySagas` sends `GetStudentByExecutionIdAndUserIdCommand(executionId, creatorId)`; `ExecutionService` throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if creator not enrolled |
+| PARTICIPANT_COURSE_EXECUTION (Tournament) | P5a | implicit in saga data-assembly — `AddParticipantFunctionalitySagas` sends `GetStudentByExecutionIdAndUserIdCommand(executionId, participantId)`; `ExecutionService` throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if participant not enrolled |
+| TOPIC_COURSE_EXECUTION (Tournament) | P5a | implicit in saga data-assembly — `CreateTournamentFunctionalitySagas` and `UpdateTournamentFunctionalitySagas` fetch topics and find questions; quiz generation fails if topics don't belong to the execution's course |
 | QUIZ_COURSE_EXECUTION_CONSISTENCY (Tournament) | P5b | implicit in saga construction — same `executionId` passed to both `CreateTournamentCommand` and `CreateQuizCommand` in `CreateTournamentFunctionalitySagas`; holds by construction |
 | START_TIME_AVAILABLE_DATE / END_TIME_CONCLUSION_DATE (Tournament) | P5b | implicit in saga construction — same `startTime`/`endTime` values passed to both Tournament and Quiz in `CreateTournamentFunctionalitySagas`; holds by construction |
 | NUMBER_OF_QUESTIONS / QUIZ_TOPICS (Tournament) | P5b | implicit in saga construction — `CreateTournamentFunctionalitySagas` selects exactly `numberOfQuestions` questions from `topics` and passes them to `CreateQuizCommand`; holds by construction |
@@ -164,7 +164,7 @@ Topological sort of the dependency DAG (§3 of quizzes-full-aggregate-grouping.m
 - `UpdateExecution(executionId, acronym, academicTerm)` — update execution acronym or academic term
 - `DeleteExecution(executionId)` — delete execution and decrement course counter
 - `DisenrollStudent(executionId, studentId)` — remove a student from a course execution
-- `EnrollStudentInExecution(executionId, userId)` — enroll an active user; P4 check on `userDto.active`
+- `EnrollStudentInExecution(executionId, userId)` — enroll an active user; P3 check on `userDto.active` in the service
 - `UpdateStudentName(executionId, studentId, newName)` — update cached student name; triggers `UpdateStudentNameEvent`
 - `AnonymizeStudent(executionId, studentId)` — anonymize student; triggers `AnonymizeStudentEvent`
 
@@ -182,10 +182,10 @@ Topological sort of the dependency DAG (§3 of quizzes-full-aggregate-grouping.m
 
 **P3 rules:** `NO_DUPLICATE_COURSE_EXECUTION` — own-table uniqueness on `(acronym, academicTerm)` in `ExecutionService`
 
-**P4 rules:** `INACTIVE_USER` — `EnrollStudentInExecutionFunctionalitySagas` fetches `UserDto`; checks `userDto.active == true` before enrolling
+**P3 rules (DTO check):** `INACTIVE_USER` — `ExecutionService.enrollStudent()` receives saga-assembled `UserDto`; checks `userDto.active == true` before enrolling
 
 **Cross-aggregate prerequisites:**
-- `INACTIVE_USER` → `EnrollStudentInExecutionFunctionalitySagas` data-assembly step fetches `UserDto`; explicit check `userDto.active == true`
+- `INACTIVE_USER` → `EnrollStudentInExecutionFunctionalitySagas` data-assembly step fetches `UserDto`; `ExecutionService.enrollStudent()` checks `userDto.active == true`
 
 **Files to produce:**
 
@@ -276,7 +276,7 @@ Topological sort of the dependency DAG (§3 of quizzes-full-aggregate-grouping.m
 ### 7. QuizAnswer
 
 **Write functionalities:**
-- `CreateQuizAnswer(quizId, userId, executionId, creationDate)` — record a student's quiz answer session; P3 uniqueness check; P4 execution-consistency check
+- `CreateQuizAnswer(quizId, userId, executionId, creationDate)` — record a student's quiz answer session; P3 uniqueness check; P3 execution-consistency check (service validates saga-assembled QuizDto)
 - `AnswerQuestion(quizAnswerId, questionId, optionSequence, optionKey, correct, timeTaken)` — record a student's answer to one question; publishes `QuizAnswerQuestionAnswerEvent`
 - `ConcludeQuiz(quizAnswerId, answerDate)` — mark the quiz answer session as completed
 
@@ -293,10 +293,10 @@ Topological sort of the dependency DAG (§3 of quizzes-full-aggregate-grouping.m
 
 **P3 rules:** `UNIQUE_QUIZ_ANSWER_PER_STUDENT` — own-table check on `(quizId, userId)` in `QuizAnswerService`
 
-**P4 rules:** `COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION` — `CreateQuizAnswerFunctionalitySagas` fetches `QuizDto`; checks `quizDto.executionId == input.executionId`
+**P3 rules (DTO check):** `COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION` — `QuizAnswerService.startQuiz()` receives saga-assembled `QuizDto`; checks `courseExecutionId == quizDto.courseExecutionId` before creating the answer
 
 **Cross-aggregate prerequisites:**
-- `COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION` → `CreateQuizAnswerFunctionalitySagas` data-assembly step fetches `QuizDto`; explicit check `quizDto.executionId == input.executionId`
+- `COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION` → `CreateQuizAnswerFunctionalitySagas` data-assembly step fetches `QuizDto`; `QuizAnswerService.startQuiz()` checks `courseExecutionId == quizDto.courseExecutionId`
 
 **Files to produce:**
 
@@ -316,9 +316,9 @@ Topological sort of the dependency DAG (§3 of quizzes-full-aggregate-grouping.m
 ### 8. Tournament
 
 **Write functionalities:**
-- `CreateTournament(executionId, creatorId, topicIds, numberOfQuestions, startTime, endTime)` — create a tournament; also creates the associated Quiz; P4 checks for creator enrollment and topic-course consistency
-- `AddParticipant(tournamentId, participantId)` — enroll a student; P4 check for participant enrollment in execution
-- `UpdateTournament(tournamentId, topicIds, numberOfQuestions, startTime, endTime)` — update timing/topics before start; also updates the associated Quiz; P4 check for topic-course consistency
+- `CreateTournament(executionId, creatorId, topicIds, numberOfQuestions, startTime, endTime)` — create a tournament; also creates the associated Quiz; P5a implicit enforcement for creator enrollment and topic-course consistency
+- `AddParticipant(tournamentId, participantId)` — enroll a student; P5a implicit enforcement for participant enrollment in execution
+- `UpdateTournament(tournamentId, topicIds, numberOfQuestions, startTime, endTime)` — update timing/topics before start; also updates the associated Quiz; P5a implicit enforcement for topic-course consistency
 - `CancelTournament(tournamentId)` — cancel an open tournament
 - `DeleteTournament(tournamentId)` — delete a cancelled or finished tournament
 
@@ -341,14 +341,14 @@ Topological sort of the dependency DAG (§3 of quizzes-full-aggregate-grouping.m
 
 **P2 rules:** `CREATOR_EXISTS/PARTICIPANT_EXISTS`, `TOPIC_EXISTS`, `QUIZ_EXISTS`, `COURSE_EXECUTION_EXISTS`, `QUIZ_ANSWER_EXISTS`
 
-**P4 rules:** `CREATOR_COURSE_EXECUTION`, `PARTICIPANT_COURSE_EXECUTION`, `TOPIC_COURSE_EXECUTION`
+**P5a rules:** `CREATOR_COURSE_EXECUTION`, `PARTICIPANT_COURSE_EXECUTION`, `TOPIC_COURSE_EXECUTION` — all enforced implicitly: the saga sends a command that throws if the precondition is unmet (no explicit service check needed)
 
 **P5b rules:** `QUIZ_COURSE_EXECUTION_CONSISTENCY`, `START_TIME_AVAILABLE_DATE/END_TIME_CONCLUSION_DATE`, `NUMBER_OF_QUESTIONS/QUIZ_TOPICS`
 
-**Cross-aggregate prerequisites:**
-- `CREATOR_COURSE_EXECUTION` → `CreateTournamentFunctionalitySagas` data-assembly step fetches `ExecutionDto`; checks `creatorId ∈ executionDto.studentIds`
-- `PARTICIPANT_COURSE_EXECUTION` → `AddParticipantFunctionalitySagas` data-assembly step fetches `ExecutionDto`; checks `participantId ∈ executionDto.studentIds`
-- `TOPIC_COURSE_EXECUTION` → `CreateTournamentFunctionalitySagas` and `UpdateTournamentFunctionalitySagas` fetch `ExecutionDto` and each `TopicDto`; check `topicDto.courseId == executionDto.courseId`
+**Cross-aggregate prerequisites (P5a):**
+- `CREATOR_COURSE_EXECUTION` → `CreateTournamentFunctionalitySagas` sends `GetStudentByExecutionIdAndUserIdCommand(executionId, creatorId)`; throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if not enrolled
+- `PARTICIPANT_COURSE_EXECUTION` → `AddParticipantFunctionalitySagas` sends `GetStudentByExecutionIdAndUserIdCommand(executionId, participantId)`; throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if not enrolled
+- `TOPIC_COURSE_EXECUTION` → `CreateTournamentFunctionalitySagas` / `UpdateTournamentFunctionalitySagas` fetch topics and find questions; quiz generation step fails if topics don't match the execution's course
 
 **Files to produce:**
 

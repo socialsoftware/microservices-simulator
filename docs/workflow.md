@@ -154,7 +154,7 @@ One section per aggregate in implementation order.
 **Events published:** list from aggregate-grouping §4 (publisher = this aggregate)  
 **Events subscribed:** list from aggregate-grouping §4 (consumer = this aggregate)
 
-**Cross-aggregate prerequisites** (P5a/P4 rules requiring a fetch, from rule classification above):
+**Cross-aggregate prerequisites** (P5a rules and P3 DTO-check rules requiring a saga data-assembly fetch):
 - `RULE_C` → `CreateXxxFunctionalitySagas` data-assembly step (fetch from `{OtherAggregate}`)
 
 **Files to produce:**
@@ -236,7 +236,7 @@ above. The agent must:
    Implementation Order table. Aggregates with no upstream deps come first.
 3. For each aggregate in order, fill the Aggregate Details section: write/read functionalities
    (split from §4 of domain-model), events published/subscribed (from aggregate-grouping §4),
-   cross-aggregate prerequisites (P5a/P4 rules) with their step names, and the full file list per session.
+   cross-aggregate prerequisites (P5a rules and P3 DTO-check rules) with their step names, and the full file list per session.
 4. Set the `d` session checkbox only for aggregates that have a non-empty Events subscribed list.
 5. Populate the Phase 3 Session List: one row for each pair of functionalities that share an
    aggregate and pose a real concurrent-consistency risk, plus one row per functionality whose
@@ -300,7 +300,7 @@ Add `Sagas{Aggregate}Factory` and `{Aggregate}CustomRepositorySagas` beans.
 - *(for multi-step sagas)* service + command files of upstream aggregates involved in saga steps
 
 **Produces:**
-- `{Aggregate}Service.java` — one method per write functionality; service guards (P3/P4) here
+- `{Aggregate}Service.java` — one method per write functionality; P3 service guards here (own-table reads and DTO field checks)
 - `{Aggregate}CommandHandler.java`
 - One command per write operation: `{Op}{Aggregate}Command.java`
 - One `{Op}FunctionalitySagas.java` per write operation — saga steps with `setForbiddenStates`

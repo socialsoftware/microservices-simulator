@@ -219,12 +219,10 @@ FOR each rule in §3.2:
     ELSE:
       # Question 3: Must be synchronous?
       # Keywords: "immediately", "synchronous", "before", "prevents", "blocks", "forbids"
+      # P3 covers ALL synchronous service-layer checks — both own-table uniqueness reads
+      # and DTO field validation from saga-assembled data. There is no separate P4 pattern.
       IF predicate contains sync keywords:
-        # Is it a global uniqueness / own-table check?
-        IF rule_requires_own_table_read(rule):
-          classification = P3  # service guard (own-table read)
-        ELSE:
-          classification = P4  # saga input validation (DTO field from preceding saga step)
+        classification = P3  # service guard (*Service.java — own-table read OR DTO field check)
       ELSE:
         # Question 4: Eventually consistent?
         # Keywords: "eventually", "async", "eventually consistent"
@@ -244,8 +242,7 @@ FOR each rule in §3.2:
 **Implementation notes** (to appear in Rule Classification table):
 
 - **P1:** `intra-invariant in verifyInvariants()`
-- **P3:** `service guard in {PrimaryAggregate}Service` — own-table read or uniqueness check
-- **P4:** `saga input validation in {Operation}FunctionalitySagas` — DTO field from preceding data-assembly step
+- **P3:** `service guard in {PrimaryAggregate}Service` — own-table uniqueness check, or DTO field validation from preceding saga step (both enforced in the service layer, never in saga code)
 - **P2:** `inter-invariant — {Consumer}Aggregate subscribes to {Event}`
 - **P5a:** `implicit in saga data-assembly — {Operation}FunctionalitySagas fetches {OtherAggregate}; query fails if precondition unmet`
 - **P5b:** `implicit in saga construction — same {field} passed to both {AggA} and {AggB} in the same saga; holds by construction, no separate check needed`
@@ -315,15 +312,15 @@ subscribed_events = [e for e in all_events if agg in e.consumers]
 
 #### 6.c: Identify cross-aggregate data-assembly requirements for this aggregate
 
-For each write functionality, identify rules classified as P4 (saga input validation) or P5a (construction prerequisite):
+For each write functionality, identify rules classified as P3 (DTO field check variant) or P5a (construction prerequisite) that require a saga data-assembly step:
 ```
 cross_agg_rules = [r for r in rules_classified 
-                   if r.pattern in ('P4', 'P5a') AND 
+                   if r.pattern in ('P3', 'P5a') AND 
                       r.requires_saga_fetch AND
                       any(entity in r.entities for entity in agg.entities)]
 ```
 
-Map each rule to the saga data-assembly step that provides the needed data and, for P4 rules, to the service method that performs the explicit validation.
+Map each rule to the saga data-assembly step that provides the needed data and, for P3 DTO-check rules, to the service method that performs the explicit validation.
 
 #### 6.d: Phase 3 scenario identification (for aggregates with 2+ write functionalities)
 
@@ -413,7 +410,7 @@ All §3.2 rules from {App}-domain-model.md classified by docs/concepts/rule-enfo
 
 Rows: one per §3.2 rule
 - Column 1: rule name (as extracted)
-- Column 2: pattern (P1, P2, P3, P4, P5a, P5b, P5c, or "P3 (NEEDS_REVIEW)" if ambiguous)
+- Column 2: pattern (P1, P2, P3, P5a, P5b, P5c, or "P3 (NEEDS_REVIEW)" if ambiguous)
 - Column 3: implementation note (from Step 4 classification)
 
 Note: Include §3.1 rules as a separate subsection if desired, all marked as P1.
@@ -451,7 +448,7 @@ For each aggregate in sorted order:
 **Events published:** list from aggregate-grouping §4
 **Events subscribed:** list from aggregate-grouping §4
 
-**Cross-aggregate prerequisites** (P5a/P4 rules requiring a saga data-assembly fetch):
+**Cross-aggregate prerequisites** (P5a rules and P3 DTO-check rules requiring a saga data-assembly fetch):
 - `{RuleName}` → `{Operation}FunctionalitySagas` data-assembly step (fetch from `{OtherAggregate}`)
 
 **Files to produce:**
@@ -513,7 +510,7 @@ After writing plan.md:
 
 2. **Summary of results:**
    - Total aggregates processed: N
-   - Total rules classified: M (broken down by pattern: P1: X, P2: Y, P3: Z, P4: W, P5a/b/c: R)
+   - Total rules classified: M (broken down by pattern: P1: X, P2: Y, P3: Z, P5a/b/c: R)
    - Ambiguous rules flagged for review: K (marked "P3 (NEEDS_REVIEW)")
    - Total Phase 2 sessions: count (e.g., "2.1.a through 2.3.d")
    - Total Phase 3 scenarios: count (e.g., "3.1 through 3.7")

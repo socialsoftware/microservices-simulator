@@ -115,9 +115,9 @@ Functionality (WorkflowFunctionality)
       │
       └──► Step M: commandGateway.send(MutateXxxCommand)       ← depends on N
                 └─ CommandHandler → Service.mutateXxx()
-                        [P3/P4] service-layer guard
-                            input validation + DB checks, inside @Transactional(SERIALIZABLE)
-                            throw if precondition violated
+                        [P3] service-layer guard
+                            own-table reads, uniqueness checks, or DTO field validation;
+                            runs inside @Transactional(SERIALIZABLE), throw if precondition violated
                         aggregate.mutate()
                         unitOfWorkService.registerChanged(aggregate, uow)
 
@@ -190,7 +190,7 @@ See [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns
 
 `verifyInvariants()` is called inside the UoW commit path, after all mutations have been applied. Repository calls at this point risk deadlocks and violate the layering contract. Intra-invariants must check only fields already present on the aggregate instance.
 
-**Instead:** Use a P3 or P4 service-layer guard in `*Service.java`, which runs before the UoW commit and can safely read from the DB.
+**Instead:** Use a P3 service-layer guard in `*Service.java`, which runs before the UoW commit and can safely read from the DB.
 
 ---
 
@@ -215,8 +215,7 @@ For a quick decision, use this table. For the full decision flowchart and patter
 | Rule type | Pattern |
 |-----------|---------|
 | Always true within one aggregate; derivable from its own fields | P1 — `verifyInvariants()` |
-| Global uniqueness across aggregate instances (own-table read) | P3 — service guard |
-| DTO field from a preceding saga data-assembly step | P4 — saga input validation |
+| Synchronous service-level check (own-table uniqueness OR saga-assembled DTO field validation) | P3 — service guard |
 | Cross-aggregate; eventual consistency is acceptable | P2 — inter-invariant via domain events |
 | Precondition implicit in saga fetch / same value to two aggregates / post-creation assertion | P5a/P5b/P5c — by construction |
 
