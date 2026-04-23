@@ -18,17 +18,7 @@ crud_04_crossrefs() {
     grep -q "\"email\":\"smith@example.com\"" $RESP || { echo "course teacher projection not enriched (email expected)"; return 1; }
 
     code=$(curl -sS -o $RESP -w '%{http_code}' -X DELETE "$base/teachers/$teacherId")
-    if [ "$code" = "204" ]; then
-        echo "DELETE /teachers/$teacherId succeeded but should be blocked by prevent"
-        return 1
-    fi
-    grep -q "Cannot delete teacher with active courses" $RESP || {
-        echo "prevent message missing (got: $(cat $RESP))"
-        return 1
-    }
-
-    code=$(curl -sS -o /dev/null -w '%{http_code}' "$base/teachers/$teacherId")
-    [ "$code" = "200" ] || { echo "GET /teachers/$teacherId => HTTP $code (expected 200)"; return 1; }
+    [ "$code" = "204" ] || { echo "DELETE /teachers/$teacherId => HTTP $code (expected 204, reactive model)"; return 1; }
 
     return 0
 }

@@ -25,17 +25,7 @@ crud_answers() {
     grep -q "\"username\":\"alice\"" $RESP || { echo "user projection not enriched (username=alice expected)"; return 1; }
 
     code=$(curl -sS -o $RESP -w '%{http_code}' -X DELETE "$base/courses/$courseId")
-    if [ "$code" = "204" ]; then
-        echo "DELETE /courses/$courseId succeeded but should be blocked by prevent"
-        return 1
-    fi
-    grep -q "Cannot delete course that has executions" $RESP || {
-        echo "prevent message missing (got: $(cat $RESP))"
-        return 1
-    }
-
-    code=$(curl -sS -o /dev/null -w '%{http_code}' "$base/courses/$courseId")
-    [ "$code" = "200" ] || { echo "GET /courses/$courseId => HTTP $code (expected 200)"; return 1; }
+    [ "$code" = "204" ] || { echo "DELETE /courses/$courseId => HTTP $code (expected 204, reactive model)"; return 1; }
 
     code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE "$base/users/$userId")
     [ "$code" = "204" ] || { echo "DELETE /users/$userId => HTTP $code"; return 1; }

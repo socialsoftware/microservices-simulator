@@ -6,7 +6,7 @@ import org.springframework.test.context.ActiveProfiles
 import pt.ulisboa.tecnico.socialsoftware.showcase.events.UserDeletedEvent
 import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.coordination.eventProcessing.BookingEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.coordination.webapi.requestDtos.CreateBookingRequestDto
-import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.events.subscribe.BookingSubscribesUserDeletedUserMustExist
+import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.events.subscribe.BookingSubscribesUserDeletedUserRef
 import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.service.BookingService
 import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.room.coordination.webapi.requestDtos.CreateRoomRequestDto
 import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.room.service.RoomService
@@ -72,12 +72,12 @@ class InterInvariantSpec extends Specification {
         return dto
     }
 
-    def "BookingSubscribesUserDeletedUserMustExist subscription class exists (USER_MUST_EXIST interInvariant)"() {
+    def "BookingSubscribesUserDeletedUserRef subscription class exists (event-driven cascade interInvariant)"() {
         expect:
-            BookingSubscribesUserDeletedUserMustExist.class != null
+            BookingSubscribesUserDeletedUserRef.class != null
     }
 
-    def "BookingEventProcessing exposes processUserDeletedEvent for the USER_MUST_EXIST interInvariant"() {
+    def "BookingEventProcessing exposes processUserDeletedEvent for the event-driven cascade interInvariant"() {
         when:
             def method = BookingEventProcessing.class.getMethod(
                 "processUserDeletedEvent", Integer.class, UserDeletedEvent.class)
@@ -97,7 +97,7 @@ class InterInvariantSpec extends Specification {
                 bookingEventProcessing.processUserDeletedEvent(
                     booking.aggregateId, new UserDeletedEvent(user.aggregateId))
             } catch (Exception ignored) {}
-        then: "the booking is now in a non-ACTIVE state (INACTIVE per USER_MUST_EXIST handling)"
+        then: "the booking is now in a non-ACTIVE state (INACTIVE per event-driven cascade handling)"
             def uowR = unitOfWorkService.createUnitOfWork("ii-del-read-$tag")
             try {
                 def reloaded = bookingService.getBookingById(booking.aggregateId, uowR)
