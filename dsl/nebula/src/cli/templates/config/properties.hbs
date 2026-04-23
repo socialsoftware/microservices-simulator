@@ -1,0 +1,32 @@
+# {{lowerProjectName}} Application Properties
+
+{{#each properties}}
+# {{description}}
+{{key}}={{value}}
+
+{{/each}}
+{{#if hasSagas}}
+# Saga Configuration
+spring.profiles.active=sagas
+saga.timeout=30000
+saga.retry.max-attempts=3
+{{/if}}
+
+
+# Database Configuration
+spring.datasource.url={{jdbcUrl}}
+spring.datasource.driver-class-name={{databaseDriverClass}}
+spring.datasource.username={{databaseUsername}}
+spring.datasource.password={{databasePassword}}
+
+# JPA Configuration
+spring.jpa.database-platform={{databaseDialect}}
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# Logging Configuration
+logging.level.{{basePackage}}.{{lowerProjectName}}=DEBUG
+logging.level.org.springframework.web=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE

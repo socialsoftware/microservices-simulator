@@ -1,0 +1,36 @@
+Aggregate Post {
+    @GenerateCrud
+
+    Entity PostAuthor from Author {
+        map name as authorName
+    }
+
+    Root Entity Post {
+        String title
+        String content
+        PostAuthor author
+        LocalDateTime publishedAt
+
+        invariants {
+            check titleNotBlank { title.length() > 0 } error "Post title cannot be blank"
+            check authorNotNull { author != null } error "Post must have an author"
+        }
+    }
+
+    References {
+        author -> Author {
+            onDelete: cascade
+            message: "Author deleted, removing their posts"
+        }
+    }
+
+    Events {
+        subscribe AuthorUpdatedEvent
+
+        interInvariant AUTHOR_EXISTS {
+            subscribe AuthorDeletedEvent from Author {
+                author.authorAggregateId == event.aggregateId
+            }
+        }
+    }
+}

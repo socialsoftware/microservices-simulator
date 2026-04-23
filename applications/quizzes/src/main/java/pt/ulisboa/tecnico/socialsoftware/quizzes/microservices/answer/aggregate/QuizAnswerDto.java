@@ -15,6 +15,8 @@ public class QuizAnswerDto implements Serializable {
 
     //private List<QuestionAnswer> questionAnswers;
 
+    public QuizAnswerDto() {}
+
     public QuizAnswerDto(QuizAnswer quizAnswer) {
         setAggregateId(quizAnswer.getAggregateId());
         setVersion(quizAnswer.getVersion());

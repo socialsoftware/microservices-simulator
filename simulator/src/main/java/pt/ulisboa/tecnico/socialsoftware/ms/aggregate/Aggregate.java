@@ -1,0 +1,128 @@
+package pt.ulisboa.tecnico.socialsoftware.ms.aggregate;
+
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import jakarta.persistence.*;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState.DELETED;
+
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+public abstract class Aggregate implements Serializable {
+
+    public enum AggregateState {
+        ACTIVE,
+        INACTIVE,
+        DELETED
+    }
+
+    @Id
+    @GeneratedValue
+    private Integer id;
+    private Integer aggregateId;
+    @Column
+    private Long version;
+    private LocalDateTime creationTs;
+    @Enumerated(EnumType.STRING)
+    private AggregateState state;
+    private String aggregateType;
+    @ManyToOne
+    @JsonIdentityReference(alwaysAsId = true)
+    private Aggregate prev;
+
+    public void remove() {
+        setState(DELETED);
+    }
+
+    public Aggregate() {
+
+    }
+
+    /* used when creating a new aggregate */
+    public Aggregate(Integer aggregateId) {
+        setAggregateId(aggregateId);
+        setState(AggregateState.ACTIVE);
+        setPrev(null);
+    }
+
+    public Aggregate(Aggregate other) {
+        setId(null);
+        setAggregateId(other.getAggregateId());
+        setAggregateType(other.getAggregateType());
+        setState(other.getState());
+        setPrev(other);
+    }
+
+    public abstract void verifyInvariants();
+
+    public abstract Set<EventSubscription> getEventSubscriptions();
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
+    public LocalDateTime getCreationTs() {
+        return creationTs;
+    }
+
+    public void setCreationTs(LocalDateTime creationTs) {
+        this.creationTs = creationTs;
+    }
+
+    public AggregateState getState() {
+        return state;
+    }
+
+    public void setState(AggregateState state) {
+        this.state = state;
+    }
+
+    public String getAggregateType() {
+        return aggregateType;
+    }
+
+    public void setAggregateType(String aggregateType) {
+        this.aggregateType = aggregateType;
+    }
+
+    public Aggregate getPrev() {
+        return this.prev;
+    }
+
+    public void setPrev(Aggregate prev) {
+        this.prev = prev;
+    }
+
+    public Set<EventSubscription> getEventSubscriptionsByEventType(String eventType) {
+        return getEventSubscriptions().stream()
+                .filter(es -> es.getEventType().equals(eventType))
+                .collect(Collectors.toSet());
+    }
+
+}

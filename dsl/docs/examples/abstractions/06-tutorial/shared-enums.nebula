@@ -1,0 +1,6 @@
+SharedEnums {
+    enum MembershipType {
+        BASIC,
+        PREMIUM
+    }
+}

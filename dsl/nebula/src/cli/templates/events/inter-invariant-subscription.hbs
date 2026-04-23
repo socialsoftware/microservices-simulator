@@ -1,0 +1,19 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+public class {{subscription.capitalizedSubscriptionName}} extends EventSubscription {
+    public {{subscription.capitalizedSubscriptionName}}({{subscription.entityTypeName}} {{subscription.entityParamName}}) {
+        super({{subscription.entityParamName}}.get{{subscription.capitalizedAggregateIdField}}(),
+                {{subscription.entityParamName}}.get{{subscription.capitalizedVersionField}}(),
+                {{subscription.eventTypeName}}.class.getSimpleName());
+    }
+
+    @Override
+    public boolean subscribesEvent(Event event) {
+         return super.subscribesEvent(event);
+    }
+
+}

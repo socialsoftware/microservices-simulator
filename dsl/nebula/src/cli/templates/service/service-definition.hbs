@@ -1,0 +1,162 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+@Service
+public class {{serviceName}} {
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+
+    private final {{entityName}}Repository {{lowerEntityName}}Repository;
+
+    @Autowired
+    private {{entityName}}Factory {{lowerEntityName}}Factory;
+
+    public {{serviceName}}(UnitOfWorkService unitOfWorkService, {{entityName}}Repository {{lowerEntityName}}Repository) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.{{lowerEntityName}}Repository = {{lowerEntityName}}Repository;
+    }
+
+{{#each methods}}
+    @Retryable(
+            value = { SQLException.class, CannotAcquireLockException.class },
+            maxAttemptsExpression = "${retry.db.maxAttempts}",
+            backoff = @Backoff(
+                delayExpression = "${retry.db.delay}",
+                multiplierExpression = "${retry.db.multiplier}"
+            ))
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public {{returnType}} {{name}}({{#each parameters}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
+{{#if (eq crudAction "create")}}
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        {{entityName}} {{lowerEntityName}} = {{lowerEntityName}}Factory.create{{entityName}}(aggregateId{{#if entityRelationships.single}}{{#each entityRelationships.single}}, {{paramName}}{{/each}}{{/if}}, createRequest{{#if entityRelationships.collections}}{{#each entityRelationships.collections}}, {{paramName}}{{/each}}{{/if}});
+        unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
+        return {{lowerEntityName}}Factory.create{{entityName}}Dto({{lowerEntityName}});
+{{else if (eq crudAction "findById")}}
+        return {{lowerEntityName}}Factory.create{{entityName}}Dto(({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+{{else if (eq crudAction "update")}}
+        Integer aggregateId = {{lowerEntityName}}Dto.getAggregateId();
+        {{entityName}} old{{entityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        {{entityName}} new{{entityName}} = {{lowerEntityName}}Factory.create{{entityName}}FromExisting(old{{entityName}});
+{{#each properties}}
+        new{{../entityName}}.set{{capitalizedName}}({{../lowerEntityName}}Dto.get{{capitalizedName}}());
+{{/each}}
+        unitOfWorkService.registerChanged(new{{entityName}}, unitOfWork);
+        unitOfWorkService.registerEvent(new {{../aggregateName}}UpdatedEvent(new{{entityName}}.getAggregateId(){{#each eventProperties}}, new{{../../entityName}}.get{{capitalizedName}}(){{/each}}), unitOfWork);
+        return {{lowerEntityName}}Factory.create{{entityName}}Dto(new{{entityName}});
+{{else if (eq crudAction "delete")}}
+        {{entityName}} old{{entityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+        {{entityName}} new{{entityName}} = {{lowerEntityName}}Factory.create{{entityName}}FromExisting(old{{entityName}});
+        new{{entityName}}.remove();
+        unitOfWorkService.registerChanged(new{{entityName}}, unitOfWork);
+        unitOfWorkService.registerEvent(new {{../aggregateName}}DeletedEvent(new{{entityName}}.getAggregateId()), unitOfWork);
+{{else if (eq crudAction "findAll")}}
+        Set<Integer> aggregateIds = {{lowerEntityName}}Repository.findAll().stream()
+                .map({{entityName}}::getAggregateId)
+                .collect(Collectors.toSet());
+        return aggregateIds.stream()
+                .map(id -> ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map({{lowerEntityName}}Factory::create{{entityName}}Dto)
+                .collect(Collectors.toList());
+{{else if (eq crudAction "search")}}
+        Set<Integer> aggregateIds = {{lowerEntityName}}Repository.findAll().stream()
+                .filter(entity -> {
+{{#each searchableProperties}}
+                    if ({{name}} != null) {
+                        {{#if (eq type "String")}}
+                        if (!{{accessor}}.equals({{name}})) {
+                            return false;
+                        }
+                        {{else if (eq type "Boolean")}}
+                        if ({{accessor}} != {{name}}) {
+                            return false;
+                        }
+                        {{else}}
+                        if (!{{accessor}}.equals({{name}})) {
+                            return false;
+                        }
+                        {{/if}}
+                    }
+{{/each}}
+                    return true;
+                })
+                .map({{entityName}}::getAggregateId)
+                .collect(Collectors.toSet());
+        return aggregateIds.stream()
+                .map(id -> ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
+                .map({{lowerEntityName}}Factory::create{{entityName}}Dto)
+                .collect(Collectors.toList());
+{{else if (eq operation "add")}}
+        try {
+            {{entityName}} {{lowerEntityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead({{lowerEntityName}}Id, unitOfWork);
+            {{collectionInfo.elementType}} element = new {{collectionInfo.elementType}}({{collectionInfo.singularName}}Dto);
+            {{lowerEntityName}}.get{{collectionInfo.capitalizedCollection}}().add(element);
+            unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
+            return {{collectionInfo.singularName}}Dto;
+        } catch (Exception e) {
+            throw new RuntimeException("Error adding {{collectionInfo.singularName}}: " + e.getMessage(), e);
+        }
+{{else if (eq operation "addBatch")}}
+        try {
+            {{entityName}} {{lowerEntityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead({{lowerEntityName}}Id, unitOfWork);
+            {{collectionInfo.singularName}}Dtos.forEach(dto -> {
+                {{collectionInfo.elementType}} element = new {{collectionInfo.elementType}}(dto);
+                {{lowerEntityName}}.get{{collectionInfo.capitalizedCollection}}().add(element);
+            });
+            unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
+            return {{collectionInfo.singularName}}Dtos;
+        } catch (Exception e) {
+            throw new RuntimeException("Error adding {{collectionInfo.singularName}}s: " + e.getMessage(), e);
+        }
+{{else if (eq operation "get")}}
+        try {
+            {{entityName}} {{lowerEntityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead({{lowerEntityName}}Id, unitOfWork);
+            {{collectionInfo.elementType}} element = {{lowerEntityName}}.get{{collectionInfo.capitalizedCollection}}().stream()
+                .filter(item -> item.get{{capitalize collectionInfo.identifierField}}() != null &&
+                               item.get{{capitalize collectionInfo.identifierField}}().equals({{collectionInfo.identifierField}}))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("{{collectionInfo.elementType}} not found"));
+            return element.buildDto();
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving {{collectionInfo.singularName}}: " + e.getMessage(), e);
+        }
+{{else if (eq operation "remove")}}
+        try {
+            {{entityName}} {{lowerEntityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead({{lowerEntityName}}Id, unitOfWork);
+            {{lowerEntityName}}.get{{collectionInfo.capitalizedCollection}}().removeIf(item ->
+                item.get{{capitalize collectionInfo.identifierField}}() != null &&
+                item.get{{capitalize collectionInfo.identifierField}}().equals({{collectionInfo.identifierField}})
+            );
+            unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
+            unitOfWorkService.registerEvent(new {{collectionInfo.elementType}}RemovedEvent({{lowerEntityName}}Id, {{collectionInfo.identifierField}}), unitOfWork);
+        } catch (Exception e) {
+            throw new RuntimeException("Error removing {{collectionInfo.singularName}}: " + e.getMessage(), e);
+        }
+{{else if (eq operation "update")}}
+        try {
+            {{entityName}} {{lowerEntityName}} = ({{entityName}}) unitOfWorkService.aggregateLoadAndRegisterRead({{lowerEntityName}}Id, unitOfWork);
+            {{collectionInfo.elementType}} element = {{lowerEntityName}}.get{{collectionInfo.capitalizedCollection}}().stream()
+                .filter(item -> item.get{{capitalize collectionInfo.identifierField}}() != null &&
+                               item.get{{capitalize collectionInfo.identifierField}}().equals({{collectionInfo.identifierField}}))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("{{collectionInfo.elementType}} not found"));
+{{#each updatableFields}}
+            if ({{../../collectionInfo.singularName}}Dto.get{{capitalizedName}}() != null) {
+                element.set{{capitalizedName}}({{../../collectionInfo.singularName}}Dto.get{{capitalizedName}}());
+            }
+{{/each}}
+            unitOfWorkService.registerChanged({{lowerEntityName}}, unitOfWork);
+            unitOfWorkService.registerEvent(new {{collectionInfo.elementType}}UpdatedEvent({{lowerEntityName}}Id, {{collectionInfo.identifierField}}{{#each updatableFields}}, element.get{{capitalizedName}}(){{/each}}), unitOfWork);
+            return element.buildDto();
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating {{collectionInfo.singularName}}: " + e.getMessage(), e);
+        }
+{{/if}}
+    }
+
+{{/each}}
+}

@@ -1,0 +1,33 @@
+# EditorConfig for Nebula DSL
+
+root = true
+
+# Default settings
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+
+# TypeScript files
+[*.{ts,js}]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+# Handlebars templates - DO NOT auto-format
+[*.hbs]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = false
+insert_final_newline = true
+
+# JSON files
+[*.json]
+indent_style = space
+indent_size = 2
+
+# YAML files
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+

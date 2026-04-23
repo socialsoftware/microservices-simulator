@@ -1,68 +1,73 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
-import pt.ulisboa.tecnico.socialsoftware.ms.behaviour.BehaviourService
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CausalCommandHandler
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventApplicationService
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.IVersionService
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService
+import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.messaging.CausalCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.CentralizedVersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceClient
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.factories.CausalQuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.repositories.QuizAnswerCustomRepositoryTCC
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.commandHandler.AnswerCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.eventProcessing.QuizAnswerEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.functionalities.QuizAnswerFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.QuizAnswerEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.messaging.AnswerCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.handling.QuizAnswerEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.causal.factories.CausalCourseFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.causal.repositories.CourseCustomRepositoryTCC
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.commandHandler.CourseCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.messaging.CourseCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.service.CourseService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.causal.factories.CausalCourseExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.causal.repositories.CourseExecutionCustomRepositoryTCC
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.commandHandler.ExecutionCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.events.handling.CourseExecutionEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.messaging.ExecutionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.notification.handling.CourseExecutionEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.service.ExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.causal.factories.CausalQuestionFactory
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.commandHandler.QuestionCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.eventProcessing.QuestionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.events.handling.QuestionEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.messaging.QuestionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.handling.QuestionEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.service.QuestionService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.causal.factories.CausalQuizFactory
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.commandHandler.QuizCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.eventProcessing.QuizEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.functionalities.QuizFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.handling.QuizEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.messaging.QuizCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.handling.QuizEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.causal.factories.CausalTopicFactory
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.commandHandler.TopicCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.functionalities.TopicFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.messaging.TopicCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.causal.factories.CausalTournamentFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.causal.repositories.TournamentCustomRepositoryTCC
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.commandHandler.TournamentCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.eventProcessing.TournamentEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.messaging.TournamentCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.causal.factories.CausalUserFactory
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.commandHandler.UserCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.functionalities.UserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.messaging.UserCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.UserService
 
 @TestConfiguration
@@ -74,8 +79,13 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    IVersionService versionService() {
-        return new VersionService()
+    IVersionService versionService(LocalCommandGateway commandGateway) {
+        return new VersionServiceClient(commandGateway)
+    }
+
+    @Bean
+    CentralizedVersionService centralizedVersionService() {
+        return new CentralizedVersionService()
     }
 
     @Bean
@@ -154,62 +164,62 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    CourseCustomRepositoryTCC courseCustomRepositoryTCC(){
+    CourseCustomRepositoryTCC courseCustomRepositoryTCC() {
         return new CourseCustomRepositoryTCC()
     }
 
     @Bean
-    CourseExecutionCustomRepositoryTCC courseExecutionCustomRepositoryTCC(){
+    CourseExecutionCustomRepositoryTCC courseExecutionCustomRepositoryTCC() {
         return new CourseExecutionCustomRepositoryTCC()
     }
 
     @Bean
-    TournamentCustomRepositoryTCC tournamentCustomRepositoryTCC(){
+    TournamentCustomRepositoryTCC tournamentCustomRepositoryTCC() {
         return new TournamentCustomRepositoryTCC()
     }
 
     @Bean
-    QuizAnswerCustomRepositoryTCC quizAnswerCustomRepositoryTCC(){
+    QuizAnswerCustomRepositoryTCC quizAnswerCustomRepositoryTCC() {
         return new QuizAnswerCustomRepositoryTCC()
     }
 
     @Bean
-    CausalQuizAnswerFactory causalQuizAnswerFactory(){
+    CausalQuizAnswerFactory causalQuizAnswerFactory() {
         return new CausalQuizAnswerFactory()
     }
 
     @Bean
-    CausalCourseFactory causalCourseFactory(){
+    CausalCourseFactory causalCourseFactory() {
         return new CausalCourseFactory()
     }
 
     @Bean
-    CausalCourseExecutionFactory causalCourseExecutionFactory(){
+    CausalCourseExecutionFactory causalCourseExecutionFactory() {
         return new CausalCourseExecutionFactory()
     }
 
     @Bean
-    CausalQuestionFactory causalQuestionFactory(){
+    CausalQuestionFactory causalQuestionFactory() {
         return new CausalQuestionFactory()
     }
 
     @Bean
-    CausalQuizFactory causalQuizFactory(){
+    CausalQuizFactory causalQuizFactory() {
         return new CausalQuizFactory()
     }
 
     @Bean
-    CausalTopicFactory causalTopicFactory(){
+    CausalTopicFactory causalTopicFactory() {
         return new CausalTopicFactory()
     }
 
     @Bean
-    CausalTournamentFactory causalTournamentFactory(){
+    CausalTournamentFactory causalTournamentFactory() {
         return new CausalTournamentFactory()
     }
 
     @Bean
-    CausalUserFactory causalUserFactory(){
+    CausalUserFactory causalUserFactory() {
         return new CausalUserFactory()
     }
 
@@ -279,8 +289,8 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    BehaviourService BehaviourService() {
-        return new BehaviourService()
+    ImpairmentService ImpairmentService() {
+        return new ImpairmentService()
     }
 
     @Bean
@@ -289,14 +299,29 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    LocalCommandGateway commandGateway(ApplicationContext applicationContext, RetryRegistry registry) {
-        return new LocalCommandGateway(applicationContext, registry)
+    MessagingObjectMapperProvider messagingObjectMapperProvider() {
+        return new MessagingObjectMapperProvider(new ObjectMapper().findAndRegisterModules())
+    }
+
+    @Bean
+    LocalCommandService localCommandService(ApplicationContext applicationContext, MessagingObjectMapperProvider mapperProvider) {
+        return new LocalCommandService(applicationContext, mapperProvider)
+    }
+
+    @Bean
+    LocalCommandGateway commandGateway(ApplicationContext applicationContext, RetryRegistry registry, LocalCommandService localCommandService, MessagingObjectMapperProvider mapperProvider) {
+        return new LocalCommandGateway(applicationContext, registry, localCommandService, mapperProvider)
     }
 
     // Command Handlers
     @Bean
     CausalCommandHandler causalCommandHandler() {
         return new CausalCommandHandler()
+    }
+
+    @Bean
+    VersionCommandHandler versionCommandHandler() {
+        return new VersionCommandHandler()
     }
 
     @Bean

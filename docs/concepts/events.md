@@ -6,7 +6,7 @@ Domain events are the mechanism for **eventual consistency** across aggregates. 
 
 ## Event Classes
 
-Located in `applications/quizzes/src/main/java/.../quizzes/events/`.
+Located in `src/main/java/.../<appName>/events/` (e.g., `applications/quizzes/src/main/java/.../quizzes/events/`).
 
 Each event extends `Event` from `ms.domain.event`:
 
@@ -23,7 +23,7 @@ public class CreateQuestionEvent extends Event {
 }
 ```
 
-**Critical:** `publisherAggregateId` (the argument to `super(...)`) must be the aggregate ID used as the **subscription anchor**. For TCC, this is used for version-tracking. Using the wrong ID breaks TCC causal consistency.
+**Critical:** `publisherAggregateId` (the argument to `super(...)`) must be the aggregate ID used as the **subscription anchor**. Using the wrong ID breaks event filtering.
 
 ## Publishing Events
 
@@ -98,7 +98,75 @@ The `@Scheduled` annotation does **not** run in `@DataJpaTest` — call the meth
 | Polling bean | `<Consumer>EventHandling` | `CourseExecutionEventHandling` |
 | Processing | `<Consumer>EventProcessing` | `ExecutionEventProcessing` |
 
-## Reference Implementations
+## Canonical Wiring Snippet
+
+Use this exact pattern in all skills and implementations. All skill files must reference this snippet rather than defining their own variant.
+
+### Event class
+```java
+public class <EventName> extends Event {
+    private Integer entityAggregateId;
+    private Integer anchorAggregateId;
+
+    public <EventName>(Integer entityAggregateId, Integer anchorAggregateId) {
+        super(anchorAggregateId);  // publisherAggregateId = subscription anchor
+        this.entityAggregateId = entityAggregateId;
+        this.anchorAggregateId = anchorAggregateId;
+    }
+    // getters only — no setters
+}
+```
+
+**`publisherAggregateId`** (passed to `super(...)`) must be the **subscription anchor** — the owning/parent aggregate ID used for version tracking. For a child entity event, this is the parent aggregate's ID, not the child entity's ID.
+
+### Subscription class
+```java
+public class <Consumer>Subscribes<Xxx> extends EventSubscription {
+    public <Consumer>Subscribes<Xxx>(SomeRef ref) {
+        super(ref.getAnchorAggregateId(), ref.getAnchorVersion(), <EventName>.class);
+    }
+
+    public <Consumer>Subscribes<Xxx>() {}
+
+    @Override
+    public boolean filter(Event event) {
+        <EventName> e = (<EventName>) event;
+        return e.getAnchorAggregateId().equals(this.subscribedAggregateId);
+    }
+}
+```
+
+`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor.
+
+### Handler
+```java
+public class <Xxx>EventHandler extends <Consumer>EventHandler {
+    public <Xxx>EventHandler(<Consumer>Repository repo, <Consumer>EventProcessing processing) {
+        super(repo, processing);
+    }
+
+    @Override
+    public void handleEvent(Integer aggregateId, Event event) {
+        this.consumerEventProcessing.process<Xxx>Event(aggregateId, (<EventName>) event);
+    }
+}
+```
+
+### Polling method
+```java
+/*
+    <INVARIANT_NAME>
+*/
+@Scheduled(fixedDelay = 1000)
+public void handle<Xxx>Events() {
+    eventApplicationService.handleSubscribedEvent(<EventName>.class,
+            new <Xxx>EventHandler(consumerRepository, eventProcessing));
+}
+```
+
+---
+
+## Reference Implementations (Quizzes)
 
 - `applications/quizzes/src/main/java/.../events/CreateQuestionEvent.java`
 - `applications/quizzes/src/main/java/.../execution/events/subscribe/ExecutionSubscribesCreateQuestion.java`

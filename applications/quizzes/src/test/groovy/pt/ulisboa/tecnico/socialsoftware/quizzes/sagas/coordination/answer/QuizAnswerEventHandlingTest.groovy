@@ -3,8 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventRepository
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventRepository
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
@@ -12,7 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEve
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.InvalidateQuizEvent
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.functionalities.QuizAnswerFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.events.handling.QuizAnswerEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.handling.QuizAnswerEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto

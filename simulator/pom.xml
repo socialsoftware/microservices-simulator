@@ -31,39 +31,6 @@
         </dependencies>
     </dependencyManagement>
     <profiles>
-        <profile>
-            <id>test-sagas</id>
-            <properties>
-                <activatedProperties>test,sagas</activatedProperties>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.gmavenplus</groupId>
-                        <artifactId>gmavenplus-plugin</artifactId>
-                        <version>4.2.0</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>addTestSources</goal>
-                                    <goal>compileTests</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>3.5.3</version>
-                        <configuration>
-                            <includes>
-                                <include>**/sagas/**</include>
-                            </includes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <!-- Application Profiles -->
         <profile>
             <id>gateway</id>
@@ -75,7 +42,7 @@
         <profile>
             <id>version-service</id>
             <properties>
-                <start-class>pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionServiceApplication</start-class>
+                <start-class>pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceApplication</start-class>
                 <activatedProperties>version-service,${communication.layer}</activatedProperties>
             </properties>
         </profile>
@@ -284,6 +251,19 @@
             </extension>
         </extensions>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
+                <version>4.2.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>addTestSources</goal>
+                            <goal>compileTests</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

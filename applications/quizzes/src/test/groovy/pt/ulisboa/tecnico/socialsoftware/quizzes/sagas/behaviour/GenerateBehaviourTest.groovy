@@ -3,9 +3,9 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventService
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.tracing.TraceService
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceService
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
@@ -16,7 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.events.handling.TournamentEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
 
@@ -95,13 +95,13 @@ class GenerateBehaviourTest extends QuizzesSpockTest {
 
     def 'add one participant with a delay to tournament'() {
         given: 'a clear report'
-        behaviourService.cleanReportFile()
+        impairmentService.cleanReportFile()
 
         when: 'generating a combination of behvaviours for AddParticipant and UpdateStudentName functionalities'
-        behaviourService.generateTestBehaviour("functionalities.txt")
+        impairmentService.generateTestBehaviour("functionalities.txt")
 
         then: 'the execution duration of AddParticipantFunctionality is bigger than the defined delay'
-        behaviourService.cleanReportFile()
+        impairmentService.cleanReportFile()
     }
 
     @TestConfiguration

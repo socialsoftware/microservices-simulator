@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: user
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${spring.application.name}db
+
+  cloud:
+    function:
+      definition: commandResponseChannel;userServiceCommandChannel;userEventSubscriber;
+    stream:
+      bindings:
+        user-command-channel:
+          destination: ${spring.application.name}-command-channel
+        userServiceCommandChannel-in-0:
+          destination: ${spring.application.name}-command-channel
+          group: ${spring.application.name}-service-group
+        commandResponseChannel-in-0:
+          destination: ${spring.application.name}-command-responses
+          group: ${spring.application.name}-response-group
+        userEventSubscriber-in-0:
+          destination: event-channel
+          group: ${spring.application.name}-service-group
+
+server:
+  port: 8191
+grpc:
+  server:
+    port: 9191
+
+routes:
+  - id: ${spring.application.name}-service
+    uri: lb://${spring.application.name}${gateway.service-suffix}
+    predicates:
+      - Path=/users/**
+    order: 2

@@ -1,0 +1,38 @@
+package {{packageName}};
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+{{#each imports}}
+{{this}}
+{{/each}}
+
+public class {{className}} extends WorkflowFunctionality {
+    {{#if resultType}}private {{resultType}} result;{{/if}}
+    {{#if variableDeclarations}}{{variableDeclarations}}
+    {{/if}}
+    {{#each constructorDependencies}}
+    private final {{type}} {{name}};
+    {{/each}}
+
+    public {{className}}({{#each constructorDependencies}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
+        {{#each constructorDependencies}}
+        this.{{name}} = {{name}};
+        {{/each}}
+    }
+
+    public void buildWorkflow({{#if buildParams}}{{#each buildParams}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}) {
+        this.workflow = new SagaWorkflow(this, this.sagaUnitOfWorkService, this.unitOfWork);
+{{{stepsBody}}}
+    }
+
+    {{#if resultType}}
+    public {{resultType}} getResult() {
+        return result;
+    }
+    {{/if}}
+}
+
+

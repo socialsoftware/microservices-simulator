@@ -25,7 +25,7 @@ class RemoveCourseExecutionFaultTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanDirectory()
+        impairmentService.cleanDirectory()
     }
 
     def "course execution still exists when getCourseExecutionStep fails"() {

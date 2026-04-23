@@ -1,0 +1,132 @@
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.coordination.functionalities;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel.SAGAS;
+import static pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersErrorMessage.*;
+
+import java.util.Arrays;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.exception.AnswersException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
+import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.coordination.sagas.*;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.service.TopicService;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.coordination.webapi.requestDtos.CreateTopicRequestDto;
+import java.util.List;
+
+@Service
+public class TopicFunctionalities {
+    @Autowired
+    private TopicService topicService;
+
+    @Autowired
+    private SagaUnitOfWorkService sagaUnitOfWorkService;
+
+    @Autowired
+    private CommandGateway commandGateway;
+
+
+    @Autowired
+    private Environment env;
+
+    private TransactionalModel workflowType;
+
+    @PostConstruct
+    public void init() {
+        String[] activeProfiles = env.getActiveProfiles();
+        if (Arrays.asList(activeProfiles).contains(SAGAS.getValue())) {
+            workflowType = SAGAS;
+        } else {
+            throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public TopicDto createTopic(CreateTopicRequestDto createRequest) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(createRequest);
+                CreateTopicFunctionalitySagas createTopicFunctionalitySagas = new CreateTopicFunctionalitySagas(
+                        sagaUnitOfWorkService, createRequest, sagaUnitOfWork, commandGateway);
+                createTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return createTopicFunctionalitySagas.getCreatedTopicDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public TopicDto getTopicById(Integer topicAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetTopicByIdFunctionalitySagas getTopicByIdFunctionalitySagas = new GetTopicByIdFunctionalitySagas(
+                        sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork, commandGateway);
+                getTopicByIdFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getTopicByIdFunctionalitySagas.getTopicDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public TopicDto updateTopic(TopicDto topicDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                checkInput(topicDto);
+                UpdateTopicFunctionalitySagas updateTopicFunctionalitySagas = new UpdateTopicFunctionalitySagas(
+                        sagaUnitOfWorkService, topicDto, sagaUnitOfWork, commandGateway);
+                updateTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return updateTopicFunctionalitySagas.getUpdatedTopicDto();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public void deleteTopic(Integer topicAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                DeleteTopicFunctionalitySagas deleteTopicFunctionalitySagas = new DeleteTopicFunctionalitySagas(
+                        sagaUnitOfWorkService, topicAggregateId, sagaUnitOfWork, commandGateway);
+                deleteTopicFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                break;
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public List<TopicDto> getAllTopics() {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                GetAllTopicsFunctionalitySagas getAllTopicsFunctionalitySagas = new GetAllTopicsFunctionalitySagas(
+                        sagaUnitOfWorkService, sagaUnitOfWork, commandGateway);
+                getAllTopicsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return getAllTopicsFunctionalitySagas.getTopics();
+            default: throw new AnswersException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    private void checkInput(TopicDto topicDto) {
+        if (topicDto.getName() == null) {
+            throw new AnswersException(TOPIC_MISSING_NAME);
+        }
+}
+
+    private void checkInput(CreateTopicRequestDto createRequest) {
+        if (createRequest.getName() == null) {
+            throw new AnswersException(TOPIC_MISSING_NAME);
+        }
+}
+}

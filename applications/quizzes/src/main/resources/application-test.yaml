@@ -28,3 +28,7 @@ eureka:
     enabled: false
     register-with-eureka: false
     fetch-registry: false
+
+local:
+  messaging:
+    serialize: true # This is used to mimic remote communication in the local tests with serialization of the commands

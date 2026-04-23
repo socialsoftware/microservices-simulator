@@ -22,18 +22,30 @@ spring:
     show-sql: false
     open-in-view: false
 
-resilience4j:
-  retry:
-    instances:
-      commandGateway:
-        ignore-exceptions:
-          - __your_app_exception_class__
-
 management:
   endpoints:
     web:
       exposure:
         include: "health,beans"
+
+command:
+  gateway:
+    timeout-seconds: 10
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        enable-randomized-wait: true
+        randomized-wait-factor: 0.5
+        retry-exceptions:
+          - java.lang.RuntimeException
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 
 # Tech-agnostic remote configuration
 ---

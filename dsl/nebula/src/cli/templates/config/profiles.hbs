@@ -1,0 +1,22 @@
+package {{packageName}};
+
+{{#each imports}}
+{{this}}
+{{/each}}
+
+{{#each profiles}}
+@Configuration
+@Profile("{{name}}")
+public class {{capitalize name}}Configuration {
+// {{description}}
+
+{{#each beans}}
+@Bean
+public {{type}} {{name}}() {
+return new {{implementation}}();
+}
+
+{{/each}}
+}
+
+{{/each}}

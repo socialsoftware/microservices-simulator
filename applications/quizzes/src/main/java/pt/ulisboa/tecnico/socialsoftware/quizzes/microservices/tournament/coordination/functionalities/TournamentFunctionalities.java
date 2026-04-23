@@ -5,11 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.TransactionalModel;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.causal.unitOfWork.CausalUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
@@ -249,6 +249,26 @@ public class TournamentFunctionalities {
         }
     }
 
+    public TournamentDto createTournamentAsync(Integer userId, Integer executionId, List<Integer> topicsId,
+            TournamentDto tournamentDto) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        checkInput(userId, topicsId, tournamentDto);
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+
+                CreateTournamentAsyncFunctionalitySagas createTournamentAsyncFunctionalitySagas = new CreateTournamentAsyncFunctionalitySagas(
+                        sagaUnitOfWorkService,
+                        userId, executionId, topicsId, tournamentDto, sagaUnitOfWork, commandGateway);
+
+                createTournamentAsyncFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return createTournamentAsyncFunctionalitySagas.getTournamentDto();
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
     public void addParticipant(Integer tournamentAggregateId, Integer executionAggregateId, Integer userAggregateId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
 
@@ -461,6 +481,23 @@ public class TournamentFunctionalities {
 
                 solveQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return solveQuizFunctionalityTCC.getQuizDto();
+            default:
+                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+        }
+    }
+
+    public QuizDto solveQuizAsync(Integer tournamentAggregateId, Integer userAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+
+        switch (workflowType) {
+            case SAGAS:
+                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
+                SolveQuizAsyncFunctionalitySagas solveQuizAsyncFunctionalitySagas = new SolveQuizAsyncFunctionalitySagas(
+                        sagaUnitOfWorkService,
+                        tournamentAggregateId, userAggregateId, sagaUnitOfWork, commandGateway);
+
+                solveQuizAsyncFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
+                return solveQuizAsyncFunctionalitySagas.getQuizDto();
             default:
                 throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
         }

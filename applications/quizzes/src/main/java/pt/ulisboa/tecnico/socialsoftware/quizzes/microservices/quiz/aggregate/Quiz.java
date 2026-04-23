@@ -1,13 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate;
 
 import jakarta.persistence.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteCourseExecution;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesDeleteQuestion;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.events.subscribe.QuizSubscribesUpdateQuestion;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteQuestion;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesUpdateQuestion;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState.ACTIVE;
+import static pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState.ACTIVE;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage.INVARIANT_BREAK;
 
 /*
@@ -32,7 +32,7 @@ import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.
     INTER-INVARIANTS
         QUESTION_EXISTS
         COURSE_EXECUTION_EXISTS
-        UNIQUE_QUIZ_ANSWER_PER_STUDENT (Layer 3 guard in QuizAnswerService.startQuiz)
+        UNIQUE_QUIZ_ANSWER_PER_STUDENT (Layer 2 guard in QuizAnswerService.startQuiz)
  */
 @Entity
 public abstract class Quiz extends Aggregate {

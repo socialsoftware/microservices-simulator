@@ -347,3 +347,30 @@ These rules inspect only fields of a single entity.
 | Predicate | `∀p ∈ participants: p.answer statistics reflect the actual QuizAnswer` (`numberOfAnswered`, `numberOfCorrect`, `answered`) |
 
 ---
+
+## §4 — Functionalities
+
+| Functionality | Primary Aggregate | Other Aggregates | Description |
+|---|---|---|---|
+| CreateCourse | Course | — | Create a new course |
+| UpdateCourse | Course | — | Update course name or type |
+| CreateTopic | Topic | Course | Create a topic linked to a course |
+| CreateExecution | Execution | Course | Create a course execution linked to a course |
+| UpdateExecution | Execution | — | Update execution acronym or academic term |
+| DeleteExecution | Execution | Course | Delete an execution and decrement course counter |
+| EnrollStudentInExecution | Execution | User | Enroll an active user in a course execution |
+| UpdateStudentName | Execution | User | Update a student's cached name across the execution and downstream aggregates |
+| AnonymizeStudent | Execution | User | Anonymize a student (set name/username to ANONYMOUS) |
+| CreateQuestion | Question | Course, Topic | Create a question linked to a course and topics |
+| UpdateQuestion | Question | Topic | Update question content or topics |
+| DeleteQuestion | Question | Course | Delete a question and decrement course question counter |
+| CreateQuiz | Quiz | Execution, Question | Create a quiz linked to an execution and questions |
+| UpdateQuiz | Quiz | — | Update quiz dates or questions (before available date) |
+| CreateQuizAnswer | QuizAnswer | Quiz, User, Execution | Record a student's quiz answer |
+| CreateTournament | Tournament | Execution, User, Topic | Create a tournament for a course execution |
+| AddParticipant | Tournament | Execution, User | Enroll a student as a tournament participant |
+| UpdateTournament | Tournament | Quiz | Update tournament timing or topics |
+| CancelTournament | Tournament | — | Cancel an open tournament |
+| DeleteTournament | Tournament | — | Delete a cancelled or finished tournament |
+
+---

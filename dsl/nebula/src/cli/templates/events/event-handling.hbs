@@ -1,0 +1,32 @@
+package {{packageName}};
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventApplicationService;
+import {{coordinationPackage}}.{{aggregateName}}EventProcessing;
+import {{aggregatePackage}}.{{aggregateName}}Repository;
+{{#each subscribedEventImports}}
+import {{handlerPackage}}.{{handlerName}};
+import {{eventPackage}}.{{eventName}};
+{{/each}}
+
+@Component
+public class {{aggregateName}}EventHandling {
+    @Autowired
+    private EventApplicationService eventApplicationService;
+    @Autowired
+    private {{aggregateName}}EventProcessing {{lowerAggregateName}}EventProcessing;
+    @Autowired
+    private {{aggregateName}}Repository {{lowerAggregateName}}Repository;
+
+{{#each subscribedEvents}}
+    @Scheduled(fixedDelay = 1000)
+    public void handle{{eventName}}Events() {
+        eventApplicationService.handleSubscribedEvent({{eventName}}.class,
+                new {{handlerName}}({{../lowerAggregateName}}Repository, {{../lowerAggregateName}}EventProcessing));
+    }
+
+{{/each}}
+}

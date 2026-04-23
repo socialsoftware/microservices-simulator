@@ -25,16 +25,8 @@ spring:
 
 simulator:
   service-method-profiling:
-    enabled: true
+    enabled: false
     output-file: /src/test/resources/service-hardware-profiling.txt
-
-
-resilience4j:
-  retry:
-    instances:
-      commandGateway:
-        ignore-exceptions:
-          - pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException
 
 management:
   endpoints:
@@ -42,19 +34,40 @@ management:
       exposure:
         include: "health,beans"
 
+command:
+  gateway:
+    timeout-seconds: 10
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        enable-randomized-wait: true
+        randomized-wait-factor: 0.5
+        retry-exceptions:
+          - java.lang.RuntimeException
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+
 eureka:
   client:
-    enabled: true
-    service-url:
-      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-    registry-fetch-interval-seconds: 10
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.uuid}
-    metadata-map:
-      grpcPort: ${grpc.server.port:9090}
+    enabled: false
+
+# Local-specific health tuning
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+management:
+  health:
+    rabbit:
+      enabled: false
 
 # Tech-agnostic remote configuration
 ---
@@ -103,6 +116,20 @@ spring:
         userEventSubscriber-in-0:
           destination: event-channel
           group: user-service-group
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5 
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port:9090}
 
 quizzes:
   function-definition:

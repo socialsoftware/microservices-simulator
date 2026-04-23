@@ -1,0 +1,7 @@
+exceptions {
+    ORDER_NOT_FOUND: "Order with id %d does not exist"
+    CUSTOMER_NOT_FOUND: "Customer with id %d does not exist"
+    INVOICE_NOT_FOUND: "Invoice with id %d does not exist"
+    INSUFFICIENT_STOCK: "Insufficient stock for product %s"
+    INVALID_ORDER_STATUS: "Cannot transition order to status %s"
+}

@@ -1,0 +1,42 @@
+package {{packageName}};
+
+import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
+{{#if imports}}
+{{imports}}
+{{/if}}
+
+@Entity
+public class {{eventName}} extends Event {
+{{#each fields}}
+    private {{type}} {{name}};
+{{/each}}
+
+    public {{eventName}}() {
+        super();
+    }
+
+    public {{eventName}}(Integer aggregateId) {
+        super(aggregateId);
+    }
+
+{{#if fields}}
+    public {{eventName}}(Integer aggregateId, {{#each fields}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}}) {
+        super(aggregateId);
+{{#each fields}}
+        set{{capitalizedName}}({{name}});
+{{/each}}
+    }
+{{/if}}
+
+{{#each fields}}
+    public {{type}} get{{capitalizedName}}() {
+        return {{name}};
+    }
+
+    public void set{{capitalizedName}}({{type}} {{name}}) {
+        this.{{name}} = {{name}};
+    }
+
+{{/each}}
+}

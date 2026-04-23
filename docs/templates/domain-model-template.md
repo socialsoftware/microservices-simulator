@@ -1,5 +1,7 @@
 # {AppName} — Domain Model
 
+> **Authored by the domain expert.** AI agents read this file as given — they do not modify entity definitions, aggregate boundaries, or rule semantics.
+>
 > Replace every `{placeholder}` with content specific to your application.
 > Remove any rows or blocks that do not apply.
 > Keep the section numbers and block shapes intact — they are part of the contract this file makes with AI agents.
@@ -17,6 +19,7 @@
 > **Owns** — value objects with no independent identity; created and deleted with the entity.
 > **immutable** — add this annotation to any field that must not change after creation.
 > **technical** — add this annotation to fields that exist for implementation reasons (e.g. `lastModifiedTime`), not domain reasons.
+> **[snapshot from AggregateX]** — use this annotation for fields that are locally cached copies of data owned by a different aggregate. The AI agent will wire the corresponding event subscription. Example: `courseName: String [snapshot from Course]`.
 
 ---
 
@@ -36,6 +39,8 @@
 
 Rules that inspect only fields of a single entity.
 
+> **AI agent implementation:** All §3.1 rules become **Layer 1 intra-invariants** inside `verifyInvariants()`, added by `/scaffold-aggregate`.
+
 | Rule | Entity | Predicate |
 |---|---|---|
 | {RULE_NAME} | {Entity} | `{predicate in pseudo-code}` |
@@ -45,6 +50,8 @@ Rules that inspect only fields of a single entity.
 ---
 
 ### 3.2 — Cross-entity rules
+
+> **AI agent implementation:** The AI agent classifies each §3.2 rule into Layer 2, 3, or 4 using `docs/concepts/decision-guide.md` and confirms the classification with the user before writing any code. Domain experts write the rules; the AI decides the layer.
 
 One block per rule. Use the exact three-field shape below.
 
@@ -56,5 +63,18 @@ One block per rule. Use the exact three-field shape below.
 |---|---|
 | Entities | {Entity1}, {Entity2} |
 | Predicate | `{predicate in pseudo-code}` |
+
+---
+
+## §4 — Functionalities
+
+Operations that the application exposes. Each row maps directly to one `/implement-functionality` invocation in Phase 3 of `/new-application`.
+
+> **One row per operation.** The **Primary Aggregate** is the one that owns the main state change (the one whose service method is the coordination entry point). List every aggregate that the saga reads or writes in **Other Aggregates**.
+> If an operation touches only a single aggregate, omit it here — it becomes a plain service method with no saga coordination.
+
+| Functionality | Primary Aggregate | Other Aggregates | Description |
+|---|---|---|---|
+| {FunctionalityName} | {PrimaryAggregate} | {Aggregate1}, {Aggregate2} | {One-sentence description of what the operation does} |
 
 ---

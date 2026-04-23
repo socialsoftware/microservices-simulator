@@ -1,0 +1,10 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+
+public class GetAllCourseExecutionsCommand extends Command {
+    public GetAllCourseExecutionsCommand(UnitOfWork unitOfWork, String serviceName) {
+        super(unitOfWork, serviceName, null);
+    }
+}

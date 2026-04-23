@@ -3,7 +3,7 @@
     <option name="ACTIVE_PROFILES" value="version-service, stream" />
     <option name="SCHEDULED_DEBUGGER" value="true" />
     <module name="MicroservicesSimulator" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.ms.domain.version.VersionServiceApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceApplication" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="pt.ulisboa.tecnico.socialsoftware.ms.domain.version.*" />

@@ -1,0 +1,15 @@
+FROM maven:3.9.7-eclipse-temurin-21 AS deps
+
+WORKDIR /workspace
+
+# Install simulator artifact needed by quizzes-full.
+COPY simulator/pom.xml simulator/pom.xml
+COPY simulator/src simulator/src
+RUN mvn -q -DskipTests -f simulator/pom.xml clean install
+
+FROM maven:3.9.7-eclipse-temurin-21
+
+WORKDIR /quizzes-full
+COPY --from=deps /root/.m2/repository/pt/ulisboa/tecnico/socialsoftware/MicroservicesSimulator \
+  /root/.m2/repository/pt/ulisboa/tecnico/socialsoftware/MicroservicesSimulator
+COPY applications/quizzes-full/ .

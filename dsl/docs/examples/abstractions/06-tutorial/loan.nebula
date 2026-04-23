@@ -1,0 +1,57 @@
+Aggregate Loan {
+    @GenerateCrud
+
+    Entity LoanMember from Member {
+        map name as memberName
+        map email as memberEmail
+    }
+
+    Entity LoanBook from Book {
+        map title as bookTitle
+        map author as bookAuthor
+        map genre as bookGenre
+    }
+
+    Root Entity Loan {
+        LoanMember member
+        LoanBook book
+        LocalDateTime loanDate
+        LocalDateTime dueDate
+
+        invariants {
+            check memberNotNull { member != null }
+                error "Loan must have a member"
+
+            check bookNotNull { book != null }
+                error "Loan must have a book"
+
+            check dateOrdering { loanDate.isBefore(dueDate) }
+                error "Loan date must be before due date"
+        }
+    }
+
+    References {
+        member -> Member {
+            onDelete: cascade
+            message: "Member deleted, removing their loans"
+        }
+        book -> Book {
+            onDelete: prevent
+            message: "Cannot delete book that has active loans"
+        }
+    }
+
+    Events {
+        interInvariant MEMBER_EXISTS {
+            subscribe MemberDeletedEvent from Member {
+                member.memberAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant BOOK_EXISTS {
+            subscribe BookDeletedEvent from Book {
+                book.bookAggregateId == event.aggregateId
+            }
+        }
+    }
+}

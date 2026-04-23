@@ -3,9 +3,9 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.local.LocalCommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.tracing.TraceService
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
@@ -90,12 +90,12 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanUpCounter()
+        impairmentService.cleanUpCounter()
     }
 
     def 'update tournament fault compensate retry'() {
         given: 'a clear report'
-        behaviourService.cleanReportFile()
+        impairmentService.cleanReportFile()
         assert tournamentDto.numberOfQuestions == 2
 
         and: 
@@ -132,7 +132,7 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
         assert updatedTournamentDto1.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet()
 
         when: 'retry'
-        def retries = behaviourService.getRetryValue("UpdateTournamentFunctionalitySagas")
+        def retries = impairmentService.getRetryValue("UpdateTournamentFunctionalitySagas")
         println "\u001B[34mRetries: $retries\u001B[0m"
 
         boolean success = false
@@ -154,7 +154,7 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
         cleanup: 'remove all generated artifacts after test execution'
         traceService.endRootSpan()
         // traceService.spanFlush()
-        behaviourService.cleanDirectory()
+        impairmentService.cleanDirectory()
     }
 
     @TestConfiguration

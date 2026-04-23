@@ -1,0 +1,52 @@
+Aggregate Cart {
+    @GenerateCrud
+
+    /*
+    Entity CartItem {
+        Long productId
+        String productName
+        Double unitPriceInCents
+        Integer quantity
+    }
+    */
+
+    Root Entity Cart {
+        Long userId
+
+        // Set<CartItem> items
+
+        Boolean checkedOut
+
+        Double totalPrice
+
+        invariants {
+            check totalNonNegative { totalPrice >= 0.0 }
+                error "Cart total price cannot be negative"
+        }
+    }
+
+    Events {
+        publish CartCreatedEvent {
+            Long userId
+        }
+
+        publish CartItemAddedEvent {
+            Long productId
+            Integer quantity
+        }
+
+        publish CartItemUpdatedEvent {
+            Long productId
+            Integer quantity
+        }
+
+        publish CartItemRemovedEvent {
+            Long productId
+        }
+
+        publish CartCheckedOutEvent {
+            Long userId
+            Double totalPrice
+        }
+    }
+}

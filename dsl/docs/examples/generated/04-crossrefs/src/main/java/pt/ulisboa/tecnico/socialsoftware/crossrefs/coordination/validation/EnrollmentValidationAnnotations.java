@@ -1,0 +1,65 @@
+package pt.ulisboa.tecnico.socialsoftware.crossrefs.coordination.validation;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
+import java.util.Set;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggregate.EnrollmentCourse;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggregate.EnrollmentTeacher;
+
+public class EnrollmentValidationAnnotations {
+
+    public static class CourseValidation {
+        @NotNull
+        private EnrollmentCourse course;
+        
+        public EnrollmentCourse getCourse() {
+            return course;
+        }
+        
+        public void setCourse(EnrollmentCourse course) {
+            this.course = course;
+        }
+    }
+
+    public static class TeachersValidation {
+        @NotNull
+    @NotEmpty
+        private Set<EnrollmentTeacher> teachers;
+        
+        public Set<EnrollmentTeacher> getTeachers() {
+            return teachers;
+        }
+        
+        public void setTeachers(Set<EnrollmentTeacher> teachers) {
+            this.teachers = teachers;
+        }
+    }
+
+    public static class EnrollmentDateValidation {
+        @NotNull
+        private LocalDateTime enrollmentDate;
+        
+        public LocalDateTime getEnrollmentDate() {
+            return enrollmentDate;
+        }
+        
+        public void setEnrollmentDate(LocalDateTime enrollmentDate) {
+            this.enrollmentDate = enrollmentDate;
+        }
+    }
+
+    public static class ActiveValidation {
+        @NotNull
+        private Boolean active;
+        
+        public Boolean getActive() {
+            return active;
+        }
+        
+        public void setActive(Boolean active) {
+            this.active = active;
+        }
+    }
+
+}

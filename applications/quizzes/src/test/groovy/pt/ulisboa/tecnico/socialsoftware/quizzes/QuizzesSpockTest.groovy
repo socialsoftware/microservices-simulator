@@ -3,10 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes
 import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import pt.ulisboa.tecnico.socialsoftware.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.ms.behaviour.BehaviourService
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
@@ -86,14 +86,14 @@ class QuizzesSpockTest extends SpockTest {
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
     @Autowired
-    public BehaviourService behaviourService
+    public ImpairmentService impairmentService
     @Autowired(required = false)
     protected SagaUnitOfWorkService unitOfWorkService
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
         def scriptDir = "groovy/" + this.class.simpleName
-        behaviourService.LoadDir(mavenBaseDir, scriptDir)
+        impairmentService.LoadDir(mavenBaseDir, scriptDir)
     }
 
     @Transactional

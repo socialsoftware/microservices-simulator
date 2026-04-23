@@ -26,7 +26,7 @@ class RemoveStudentFaultTest extends QuizzesSpockTest {
     }
 
     def cleanup() {
-        behaviourService.cleanDirectory()
+        impairmentService.cleanDirectory()
     }
 
     def "student is still enrolled when getOldCourseExecutionStep fails"() {

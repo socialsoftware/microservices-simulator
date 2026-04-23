@@ -1,0 +1,25 @@
+Aggregate Teacher {
+    @GenerateCrud
+
+    Root Entity Teacher {
+        String name
+        String email
+        String department
+
+        invariants {
+            check nameNotBlank { name.length() > 0 } error "Teacher name cannot be blank"
+        }
+    }
+
+    Events {
+        publish TeacherUpdatedEvent {
+            String name
+            String email
+            String department
+        }
+
+        publish TeacherDeletedEvent {
+            String name
+        }
+    }
+}

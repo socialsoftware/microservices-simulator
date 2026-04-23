@@ -1,0 +1,55 @@
+Aggregate Order {
+    @GenerateCrud
+
+    Entity OrderCustomer from Customer {
+        map name as customerName
+        map email as customerEmail
+    }
+
+    Entity OrderProduct from Product {
+        map name as productName
+        map price as productPrice
+    }
+
+    Dto Entity OrderItem {
+        String key
+        String productName
+        Integer quantity
+        Double unitPrice
+    }
+
+    Root Entity Order {
+        OrderCustomer customer
+        Set<OrderProduct> products
+        Set<OrderItem> items
+        Double totalAmount
+        LocalDateTime orderDate
+        OrderStatus status
+        PaymentMethod paymentMethod
+
+        invariants {
+            check customerNotNull { customer != null } error "Order must have a customer"
+            check totalPositive { totalAmount > 0.0 } error "Order total must be positive"
+        }
+    }
+
+    References {
+        customer -> Customer {
+            onDelete: prevent
+            message: "Cannot delete customer with active orders"
+        }
+    }
+
+    Events {
+        interInvariant CUSTOMER_EXISTS {
+            subscribe CustomerDeletedEvent from Customer {
+                customer.customerAggregateId == event.aggregateId
+            }
+        }
+    }
+
+    Repository {
+        @Query("select e.aggregateId from Order e where e.totalAmount >= :minAmount AND e.state != 'DELETED'")
+        Set<Integer> findOrderIdsAboveAmount(Double minAmount)
+    }
+}
