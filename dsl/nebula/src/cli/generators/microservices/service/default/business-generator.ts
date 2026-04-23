@@ -29,11 +29,12 @@ export class ServiceBusinessGenerator {
     }
 
     static generateCustomMethods(aggregateName: string, aggregate: Aggregate, projectName: string): string {
-        if (!aggregate.workflows || aggregate.workflows.length === 0) {
+        const workflows = (aggregate as any).workflows || [];
+        if (!workflows.length) {
             return '';
         }
 
-        const methods = aggregate.workflows.map(workflow =>
+        const methods = workflows.map((workflow: any) =>
             this.generateWorkflowMethod(workflow, aggregateName, projectName)
         ).join('\n\n');
 

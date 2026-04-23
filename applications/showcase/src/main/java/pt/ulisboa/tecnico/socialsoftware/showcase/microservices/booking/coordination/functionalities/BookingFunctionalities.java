@@ -118,20 +118,6 @@ public class BookingFunctionalities {
         }
     }
 
-    public void confirmBooking(Integer bookingId) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                ConfirmBookingFunctionalitySagas confirmBookingFunctionalitySagas = new ConfirmBookingFunctionalitySagas(
-                        sagaUnitOfWorkService, bookingService, bookingId, sagaUnitOfWork, commandGateway);
-                confirmBookingFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                break;
-            default: throw new ShowcaseException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
     private void checkInput(BookingDto bookingDto) {
         if (bookingDto.getCheckInDate() == null) {
             throw new ShowcaseException(BOOKING_MISSING_CHECKINDATE);

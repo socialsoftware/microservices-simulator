@@ -42,6 +42,10 @@ Aggregate User {
                 pointsAwarded: points
             }
         }
+
+        getActiveUsers() {
+            query findActiveUserIds()
+        }
     }
 
     Repository {

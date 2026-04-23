@@ -1,4 +1,4 @@
-import { Aggregate, Entity, Method, Workflow, Repository, Events, ServiceDefinition, Functionalities, isEntity, isMethod, isWorkflow, isRepository, isEvents, isServiceDefinition, isFunctionalities, Model } from "../../language/generated/ast.js";
+import { Aggregate, Entity, Method, Repository, Events, isEntity, isMethod, isRepository, isEvents, Model } from "../../language/generated/ast.js";
 
 
 
@@ -76,10 +76,6 @@ export function getMethods(aggregate: Aggregate): Method[] {
         }
     }
     return result;
-}
-
-export function getWorkflows(aggregate: Aggregate): Workflow[] {
-    return aggregate.aggregateElements.filter((el): el is Workflow => isWorkflow(el));
 }
 
 export function getRepository(aggregate: Aggregate): Repository | undefined {
@@ -328,24 +324,12 @@ function synthesizeEndpointsFromMethodAnnotations(aggregate: Aggregate): any[] {
     return endpoints;
 }
 
-export function getServiceDefinition(aggregate: Aggregate): ServiceDefinition | undefined {
-    return aggregate.aggregateElements.find((el): el is ServiceDefinition => isServiceDefinition(el));
-}
-
-export function getFunctionalities(aggregate: Aggregate): Functionalities | undefined {
-    return aggregate.aggregateElements.find((el): el is Functionalities => isFunctionalities(el));
-}
-
 declare module "../../language/generated/ast.js" {
     interface Aggregate {
         entities: Entity[];
         methods: Method[];
-        workflows: Workflow[];
         repository?: Repository;
         events?: Events;
-        webApiEndpoints?: any;
-        serviceDefinition?: ServiceDefinition;
-        functionalities?: Functionalities;
     }
 }
 
@@ -405,12 +389,6 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
         configurable: true
     });
 
-    Object.defineProperty(aggregate, 'workflows', {
-        get: () => getWorkflows(aggregate),
-        enumerable: true,
-        configurable: true
-    });
-
     Object.defineProperty(aggregate, 'repository', {
         get: () => getRepository(aggregate),
         enumerable: true,
@@ -419,24 +397,6 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
 
     Object.defineProperty(aggregate, 'events', {
         get: () => getEvents(aggregate),
-        enumerable: true,
-        configurable: true
-    });
-
-    Object.defineProperty(aggregate, 'webApiEndpoints', {
-        get: () => getWebAPIEndpoints(aggregate),
-        enumerable: true,
-        configurable: true
-    });
-
-    Object.defineProperty(aggregate, 'serviceDefinition', {
-        get: () => getServiceDefinition(aggregate),
-        enumerable: true,
-        configurable: true
-    });
-
-    Object.defineProperty(aggregate, 'functionalities', {
-        get: () => getFunctionalities(aggregate),
         enumerable: true,
         configurable: true
     });

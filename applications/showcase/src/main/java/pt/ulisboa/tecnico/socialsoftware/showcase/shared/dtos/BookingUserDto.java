@@ -14,8 +14,8 @@ public class BookingUserDto implements Serializable {
     }
 
     public BookingUserDto(BookingUser bookingUser) {
-        this.username = bookingUser.getUsername();
-        this.email = bookingUser.getEmail();
+        this.username = bookingUser.getUserName();
+        this.email = bookingUser.getUserEmail();
         this.aggregateId = bookingUser.getUserAggregateId();
         this.version = bookingUser.getUserVersion();
         this.state = bookingUser.getUserState() != null ? bookingUser.getUserState().name() : null;

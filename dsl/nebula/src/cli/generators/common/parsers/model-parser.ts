@@ -1,7 +1,7 @@
-import { Aggregate, Entity, Method, Workflow, Model } from "../../../../language/generated/ast.js";
+import { Aggregate, Entity, Method, Model } from "../../../../language/generated/ast.js";
 import { ALL_PRIMITIVE_TYPES } from "../utils/type-constants.js";
 
-export { Aggregate, Entity, Method, Workflow, Model };
+export { Aggregate, Entity, Method, Model };
 
 
 
@@ -336,8 +336,8 @@ export class ModelParser {
             }
         }
 
-        
-        for (const workflow of aggregate.workflows) {
+
+        for (const workflow of ((aggregate as any).workflows || [])) {
             try {
                 workflows.push(this.parseWorkflow(workflow));
             } catch (error) {
@@ -347,7 +347,7 @@ export class ModelParser {
                     context: `workflow '${workflow.name || 'unknown'}' in aggregate '${aggregate.name}'`,
                     originalError: error instanceof Error ? error.message : String(error)
                 });
-                
+
             }
         }
 
@@ -359,7 +359,7 @@ export class ModelParser {
             methods,
             workflows,
             repository: aggregate.repository ? this.parseRepository(aggregate.repository) : undefined,
-            webApiEndpoints: aggregate.webApiEndpoints ? this.parseWebAPIEndpoints(aggregate.webApiEndpoints) : undefined,
+            webApiEndpoints: (aggregate as any).webApiEndpoints ? this.parseWebAPIEndpoints((aggregate as any).webApiEndpoints) : undefined,
             relationships,
             parseErrors: parseErrors.length > 0 ? parseErrors : undefined
         };
@@ -435,7 +435,7 @@ export class ModelParser {
         };
     }
 
-    parseWorkflow(workflow: Workflow): WorkflowData {
+    parseWorkflow(workflow: any): WorkflowData {
         const parameters = (workflow as any).parameters?.map((param: any) => this.parseParameter(param)) || [];
         const returnType = this.extractReturnType((workflow as any).returnType);
         const javaReturnType = this.resolveJavaType(returnType);

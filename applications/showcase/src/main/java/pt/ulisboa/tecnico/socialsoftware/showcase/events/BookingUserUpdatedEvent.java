@@ -10,10 +10,10 @@ public class BookingUserUpdatedEvent extends Event {
     private Integer userAggregateId;
     @Column(name = "booking_user_updated_event_user_version")
     private Integer userVersion;
-    @Column(name = "booking_user_updated_event_username")
-    private String username;
-    @Column(name = "booking_user_updated_event_email")
-    private String email;
+    @Column(name = "booking_user_updated_event_user_name")
+    private String userName;
+    @Column(name = "booking_user_updated_event_user_email")
+    private String userEmail;
 
     public BookingUserUpdatedEvent() {
         super();
@@ -23,12 +23,12 @@ public class BookingUserUpdatedEvent extends Event {
         super(aggregateId);
     }
 
-    public BookingUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, String username, String email) {
+    public BookingUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion, String userName, String userEmail) {
         super(aggregateId);
         setUserAggregateId(userAggregateId);
         setUserVersion(userVersion);
-        setUsername(username);
-        setEmail(email);
+        setUserName(userName);
+        setUserEmail(userEmail);
     }
 
     public Integer getUserAggregateId() {
@@ -47,20 +47,20 @@ public class BookingUserUpdatedEvent extends Event {
         this.userVersion = userVersion;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getEmail() {
-        return email;
+    public String getUserEmail() {
+        return userEmail;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
 }

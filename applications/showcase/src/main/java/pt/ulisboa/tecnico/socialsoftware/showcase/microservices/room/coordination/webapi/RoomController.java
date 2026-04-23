@@ -67,29 +67,4 @@ public class RoomController {
     public void removeRoomAmenitie(@PathVariable Integer roomId, @PathVariable Integer code) {
         roomFunctionalities.removeRoomAmenitie(roomId, code);
     }
-
-    @PostMapping("/rooms/{roomId}/reserve")
-    public void reserve(@PathVariable Integer roomId) {
-        roomFunctionalities.reserve(roomId);
-    }
-
-    @PostMapping("/rooms/{roomId}/checkin")
-    public void checkIn(@PathVariable Integer roomId) {
-        roomFunctionalities.checkIn(roomId);
-    }
-
-    @PostMapping("/rooms/{roomId}/checkout")
-    public void checkOut(@PathVariable Integer roomId) {
-        roomFunctionalities.checkOut(roomId);
-    }
-
-    @PostMapping("/rooms/{roomId}/release")
-    public void release(@PathVariable Integer roomId) {
-        roomFunctionalities.release(roomId);
-    }
-
-    @PostMapping("/rooms/{roomId}/retire")
-    public void retire(@PathVariable Integer roomId) {
-        roomFunctionalities.retire(roomId);
-    }
 }

@@ -15,8 +15,8 @@ public class BookingUser {
     @Id
     @GeneratedValue
     private Long id;
-    private String username;
-    private String email;
+    private String userName;
+    private String userEmail;
     private Integer userAggregateId;
     private Integer userVersion;
     private AggregateState userState;
@@ -34,16 +34,16 @@ public class BookingUser {
     }
 
     public BookingUser(BookingUserDto bookingUserDto) {
-        setUsername(bookingUserDto.getUsername());
-        setEmail(bookingUserDto.getEmail());
+        setUserName(bookingUserDto.getUsername());
+        setUserEmail(bookingUserDto.getEmail());
         setUserAggregateId(bookingUserDto.getAggregateId());
         setUserVersion(bookingUserDto.getVersion());
         setUserState(bookingUserDto.getState() != null ? AggregateState.valueOf(bookingUserDto.getState()) : null);
     }
 
     public BookingUser(BookingUser other) {
-        setUsername(other.getUsername());
-        setEmail(other.getEmail());
+        setUserName(other.getUserName());
+        setUserEmail(other.getUserEmail());
         setUserAggregateId(other.getUserAggregateId());
         setUserVersion(other.getUserVersion());
         setUserState(other.getUserState());
@@ -57,20 +57,20 @@ public class BookingUser {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getEmail() {
-        return email;
+    public String getUserEmail() {
+        return userEmail;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
     public Integer getUserAggregateId() {
@@ -110,8 +110,8 @@ public class BookingUser {
 
     public BookingUserDto buildDto() {
         BookingUserDto dto = new BookingUserDto();
-        dto.setUsername(getUsername());
-        dto.setEmail(getEmail());
+        dto.setUsername(getUserName());
+        dto.setEmail(getUserEmail());
         dto.setAggregateId(getUserAggregateId());
         dto.setVersion(getUserVersion());
         dto.setState(getUserState() != null ? getUserState().name() : null);

@@ -65,6 +65,15 @@ Aggregate Room {
                 room.status = OUT_OF_SERVICE
             }
         }
+
+        @PostMapping("/rooms/{roomId}/amenities/{amenityCode}/rename")
+        renameAmenity(Integer roomId, Integer amenityCode, String newName) {
+            action {
+                load Room(roomId) as room
+                find room.amenities where code == amenityCode as amenity
+                amenity.name = newName
+            }
+        }
     }
 
 }

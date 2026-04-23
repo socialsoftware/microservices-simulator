@@ -6,7 +6,6 @@ import {
     Entity,
     Property,
     Repository,
-    ServiceDefinition,
     Invariant
 } from '../../language/generated/ast.js';
 
@@ -119,7 +118,7 @@ export interface QueryParameterExt {
 
 
 
-export interface ServiceDefinitionExt extends ServiceDefinition {
+export interface ServiceDefinitionExt {
     customMethods: ServiceMethodExt[];
 }
 

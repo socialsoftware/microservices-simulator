@@ -65,7 +65,7 @@ export class EndpointBuilder {
         }
 
         
-        if (options.includeCustomEndpoints && aggregate.webApiEndpoints) {
+        if (options.includeCustomEndpoints && (aggregate as any).webApiEndpoints) {
             endpoints.push(...this.buildCustomEndpoints(aggregate, options));
         }
 
@@ -183,8 +183,8 @@ export class EndpointBuilder {
     private buildCustomEndpoints(aggregate: Aggregate, options: EndpointBuildingOptions): GeneratedEndpoint[] {
         const endpoints: GeneratedEndpoint[] = [];
 
-        if (aggregate.webApiEndpoints?.endpoints) {
-            aggregate.webApiEndpoints.endpoints.forEach((endpoint: any) => {
+        if ((aggregate as any).webApiEndpoints?.endpoints) {
+            (aggregate as any).webApiEndpoints.endpoints.forEach((endpoint: any) => {
                 const builtEndpoint = this.buildCustomEndpoint(endpoint, options);
                 endpoints.push(builtEndpoint);
             });

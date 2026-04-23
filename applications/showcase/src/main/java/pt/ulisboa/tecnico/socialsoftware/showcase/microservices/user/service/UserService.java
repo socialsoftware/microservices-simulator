@@ -190,5 +190,27 @@ public class UserService {
         }
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public java.util.List<UserDto> getActiveUsers(UnitOfWork unitOfWork) {
+        try {
+            Set<Integer> aggregateIds = userRepository.findActiveUserIds();
+            return aggregateIds.stream()
+                .map(id -> {
+                    try {
+                        return (User) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(userFactory::createUserDto)
+                .collect(java.util.stream.Collectors.toList());
+        } catch (ShowcaseException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ShowcaseException("Error in getActiveUsers User: " + e.getMessage());
+        }
+    }
+
 
 }

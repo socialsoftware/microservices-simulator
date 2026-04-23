@@ -1,4 +1,4 @@
-import { initializeAggregateProperties, getWorkflows } from '../../utils/aggregate-helpers.js';
+import { initializeAggregateProperties } from '../../utils/aggregate-helpers.js';
 import { SagaCrudGenerator } from './saga-crud-generator.js';
 import { SagaCollectionGenerator } from './saga-collection-generator.js';
 import { SagaWorkflowGenerator } from './saga-workflow-generator.js';
@@ -36,7 +36,7 @@ export class SagaFunctionalityGenerator {
 
 
         initializeAggregateProperties(aggregate);
-        const allWorkflows = getWorkflows(aggregate);
+        const allWorkflows = (aggregate as any).workflows || [];
 
         const aggregatesToUse = allAggregates || (aggregate.$container as any)?.aggregates || [];
         const crudSagas = this.crudGenerator.generateCrudSagaFunctionalities(aggregate, options, packageName, aggregatesToUse);

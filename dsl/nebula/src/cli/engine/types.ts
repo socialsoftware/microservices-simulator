@@ -25,7 +25,7 @@ export type ProjectPaths = {
 export const DEFAULT_OUTPUT_DIR = "../../applications";
 export const JAVA_SRC_PATH = ['src', 'main', 'java'];
 
-export type { Aggregate, Entity, Method, Parameter, Workflow } from "../../language/generated/ast.js";
+export type { Aggregate, Entity, Method, Parameter } from "../../language/generated/ast.js";
 
 export interface GeneratorRegistry {
     entityGenerator: any;

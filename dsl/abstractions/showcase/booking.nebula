@@ -1,7 +1,7 @@
 Aggregate Booking {
 
     Entity BookingUser {
-        from User { username, email }
+        from User { username as userName, email as userEmail }
     }
 
     Entity BookingRoom {

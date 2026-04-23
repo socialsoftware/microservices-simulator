@@ -46,7 +46,7 @@ Aggregate:
     '}';
 
 AggregateElement:
-    Entity | Methods | Workflow | Repository | Events | ServiceDefinition | Functionalities;
+    Entity | Methods | Repository | Events;
 
 Methods:
     'Methods' '{'
@@ -58,7 +58,7 @@ Entity:
     ('from' aggregateRef=ID)?
     (
         '{'
-            (properties+=Property | fieldMappings+=DtoFieldMapping | sourceBlocks+=SourceBlock)*
+            (properties+=Property | sourceBlocks+=SourceBlock)*
             ('invariants' '{'
                 invariants+=Invariant*
             '}')?
@@ -72,9 +72,6 @@ SourceBlock:
 
 SourcedField:
     dtoField=DtoFieldPath ('as' entityField=ID)?;
-
-DtoFieldMapping:
-    'map' dtoField=DtoFieldPath 'as' entityField=ID;
 
 DtoFieldPath:
     parts+=ID ('.' parts+=ID)*;
@@ -111,7 +108,7 @@ ActionBoolOp returns string:
     '==' | '!=' | '<=' | '>=' | '<' | '>';
 
 ActionStatement:
-    CreateActionStatement | LoadActionStatement | FindActionStatement | AssignActionStatement | ExtensionActionStatement;
+    CreateActionStatement | LoadActionStatement | FindActionStatement | AssignActionStatement;
 
 FindActionStatement:
     'find' collection=ActionRef 'where' field=ID '==' value=ActionExpression 'as' alias=ID;
@@ -130,9 +127,6 @@ CreateActionStatement:
 ActionFieldAssignment:
     field=ID ':' value=ActionExpression;
 
-ExtensionActionStatement:
-    'extension' fnName=ID '(' (args+=ActionExpression (',' args+=ActionExpression)*)? ')';
-
 ActionExpression:
     ActionLiteral | ActionRef;
 
@@ -144,63 +138,6 @@ ActionLiteral:
 
 BooleanLiteral returns string:
     'true' | 'false';
-
-Workflow:
-    (annotations+=Annotation)*
-    workflowType=WorkflowType 'workflow' name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
-    (':' returnType=ReturnType)?
-    (
-        '{'
-            ('fields' '{'
-                workflowFields+=WorkflowField*
-            '}')?
-            ('steps' '{'
-                workflowSteps+=WorkflowStep*
-            '}')?
-        '}'
-    )?;
-
-WorkflowField:
-    type=ParamType name=ID;
-
-WorkflowStep:
-    'step' stepName=ID
-    (dependsOn=StepDependencies)?
-    '{'
-        stepActions+=WorkflowStepAction*
-    '}'
-    (compensation=WorkflowStepCompensation)?;
-
-WorkflowStepCompensation:
-    'compensation' '{'
-        compensationActions+=WorkflowStepAction*
-    '}';
-
-WorkflowStepAction:
-    WorkflowCallAction
-    | WorkflowExtractAction
-    | WorkflowRegisterStateAction
-    | WorkflowSetFieldAction;
-
-WorkflowCallAction:
-    'call' serviceRef=ID '.' method=ID '(' (args+=WorkflowArg (',' args+=WorkflowArg)*)? ')'
-    ('->' assignTo=ID)?;
-
-WorkflowExtractAction:
-    'extract' source=WorkflowArg '->' target=ID
-    ('where' filterField=ID '==' filterValue=WorkflowArg)?;
-
-WorkflowRegisterStateAction:
-    'registerState' '(' aggregateId=WorkflowArg ',' sagaState=QualifiedName ')';
-
-WorkflowSetFieldAction:
-    'set' fieldName=ID '=' value=WorkflowArg;
-
-WorkflowArg:
-    ref=ID ('.' chain+=ID)*;
-
-WorkflowType returns string:
-    'saga';
 
 Repository:
     'Repository' '{'
@@ -415,80 +352,6 @@ ExceptionMessages:
 
 ExceptionMessage:
     name=ID ':' message=STRING;
-
-ServiceDefinition:
-    'Service' (name=ID)? '{'
-        (transactional?='@Transactional')?
-        ('methods' '{'
-            serviceMethods+=ServiceMethod*
-        '}')?
-    '}';
-
-Functionalities:
-    'Functionalities' '{'
-        functionalityMethods+=FunctionalityMethod*
-    '}';
-
-FunctionalityMethod:
-    name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
-    (':' returnType=ReturnType)? ('throws' exceptionType=ID)?
-    (
-        'dependencies' '{' dependencyRefs+=ID (',' dependencyRefs+=ID)* '}'
-    )?
-    (
-        'steps' '{'
-            functionalitySteps+=FunctionalityStep*
-        '}'
-    )?;
-
-FunctionalityStep:
-    SyncStep;
-
-SyncStep:
-    'sync' stepName=ID
-    (dependsOn=StepDependencies)?
-    '{'
-        stepActions+=StepAction*
-    '}'
-    (compensation=StepCompensation)?;
-
-StepDependencies:
-    'depends' 'on' dependencies+=ID (',' dependencies+=ID)*;
-
-StepCompensation:
-    'compensation' '{'
-        compensationActions+=StepAction*
-    '}';
-
-StepAction:
-    FuncCallServiceAction
-    | FuncSetResultAction
-    | FuncAssignVariableAction
-    | FuncRegisterSagaStateAction;
-
-FuncCallServiceAction:
-    'call' serviceRef=ID '.' method=ID '(' (args+=StepArgument (',' args+=StepArgument)*)? ')'
-    ('assign' 'to' assignTo=ID)?;
-
-FuncSetResultAction:
-    'set' 'result' 'to' resultType=ID ('as' getterName=ID)?;
-
-FuncAssignVariableAction:
-    'set' variableName=ID '=' expression=StepExpression;
-
-FuncRegisterSagaStateAction:
-    'register' 'sagaState' aggregateId=StepArgument 'as' sagaState=ID 'in' unitOfWork=ID;
-
-StepArgument:
-    {infer StepArgument} (STRING | ID);
-
-StepExpression:
-    STRING | LITERAL | Expression | ID;
-
-ServiceMethod:
-    (annotations+=Annotation)*
-    name=ID '(' (parameters+=Parameter (',' parameters+=Parameter)*)? ')'
-    (':' returnType=ReturnType)?;
 
 EnumDefinition:
     name=ID '{'

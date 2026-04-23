@@ -1,4 +1,4 @@
-import { initializeAggregateProperties, getWorkflows } from '../../utils/aggregate-helpers.js';
+import { initializeAggregateProperties } from '../../utils/aggregate-helpers.js';
 import { SagaHelpers } from './saga-helpers.js';
 import { SagaWorkflowGenerator } from './saga-workflow-generator.js';
 import { SagaGenerationOptions } from './saga-generator.js';
@@ -278,7 +278,7 @@ ${gettersSetters}
         initializeAggregateProperties(aggregate);
 
         
-        const allWorkflows = getWorkflows(aggregate);
+        const allWorkflows = (aggregate as any).workflows || [];
 
         const workflows = allWorkflows.filter((w: any) => {
             return w.workflowType === 'saga';

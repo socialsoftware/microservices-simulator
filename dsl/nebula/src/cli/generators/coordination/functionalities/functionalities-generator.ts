@@ -174,8 +174,9 @@ export class FunctionalitiesGenerator {
         });
 
         
-        if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
-            aggregate.webApiEndpoints.endpoints.forEach((endpoint: any) => {
+        const webApiEndpoints = (aggregate as any).webApiEndpoints;
+        if (webApiEndpoints && webApiEndpoints.endpoints) {
+            webApiEndpoints.endpoints.forEach((endpoint: any) => {
                 const params = this.methodGenerator.extractEndpointParameters(endpoint.parameters);
                 const returnType = this.methodGenerator.extractReturnType(endpoint.returnType, entityRegistry);
                 const methodSignature = `${endpoint.methodName}_${params.map((p: any) => p.type).join('_')}`;
@@ -218,8 +219,9 @@ export class FunctionalitiesGenerator {
     
 
     private checkUserServiceUsage(aggregate: AggregateExt): boolean {
-        if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints) {
-            return aggregate.webApiEndpoints.endpoints.some((endpoint: any) =>
+        const webApiEndpoints = (aggregate as any).webApiEndpoints;
+        if (webApiEndpoints && webApiEndpoints.endpoints) {
+            return webApiEndpoints.endpoints.some((endpoint: any) =>
                 endpoint.parameters && endpoint.parameters.some((param: any) =>
                     param.name && param.name.toLowerCase().includes('user')
                 )

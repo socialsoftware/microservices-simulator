@@ -51,8 +51,9 @@ export class ControllerGenerator extends WebApiBaseGenerator {
         );
         endpoints.push(...collectionEndpoints);
 
-        if (aggregate.webApiEndpoints && aggregate.webApiEndpoints.endpoints.length > 0) {
-            aggregate.webApiEndpoints.endpoints.forEach((endpoint: any) => {
+        const webApiEndpoints = (aggregate as any).webApiEndpoints;
+        if (webApiEndpoints && webApiEndpoints.endpoints.length > 0) {
+            webApiEndpoints.endpoints.forEach((endpoint: any) => {
                 const resolvedReturnType = endpoint.returnType ? this.resolveParameterType(endpoint.returnType) : null;
                 endpoints.push({
                     method: this.resolveHttpMethod(endpoint.method?.method || endpoint.httpMethod?.method),

@@ -118,34 +118,6 @@ public class UserFunctionalities {
         }
     }
 
-    public void signUp(String username, String email) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                SignUpFunctionalitySagas signUpFunctionalitySagas = new SignUpFunctionalitySagas(
-                        sagaUnitOfWorkService, userService, username, email, sagaUnitOfWork, commandGateway);
-                signUpFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                break;
-            default: throw new ShowcaseException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
-    public void awardLoyaltyPoints(Integer userId, Integer points) {
-        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
-
-        switch (workflowType) {
-            case SAGAS:
-                SagaUnitOfWork sagaUnitOfWork = sagaUnitOfWorkService.createUnitOfWork(functionalityName);
-                AwardLoyaltyPointsFunctionalitySagas awardLoyaltyPointsFunctionalitySagas = new AwardLoyaltyPointsFunctionalitySagas(
-                        sagaUnitOfWorkService, userService, userId, points, sagaUnitOfWork, commandGateway);
-                awardLoyaltyPointsFunctionalitySagas.executeWorkflow(sagaUnitOfWork);
-                break;
-            default: throw new ShowcaseException(UNDEFINED_TRANSACTIONAL_MODEL);
-        }
-    }
-
     private void checkInput(UserDto userDto) {
         if (userDto.getUsername() == null) {
             throw new ShowcaseException(USER_MISSING_USERNAME);

@@ -131,6 +131,7 @@ ${tryWrapped}
 
         const dirtyAliases = new Map<string, string>();
         const aliasTypes = new Map<string, string>();
+        const childToParent = new Map<string, string>();
 
         for (const stmt of statements) {
             switch (stmt.$type) {
@@ -145,8 +146,6 @@ ${tryWrapped}
                     for (const fa of (stmt.fields || [])) {
                         const setter = `set${capitalize(fa.field)}`;
                         let value = this.renderExpression(fa.value);
-                        // If the value is a method parameter whose type is a projection entity,
-                        // the DTO setter expects a DTO — convert via buildDto().
                         if (fa.value?.$type === 'ActionRef' &&
                             (!fa.value.chain || fa.value.chain.length === 0) &&
                             entityParamNames.has(fa.value.name)) {
@@ -219,7 +218,10 @@ ${tryWrapped}
                     lines.push(`            .findFirst()`);
                     const projectCap = projectName.charAt(0).toUpperCase() + projectName.slice(1);
                     lines.push(`            .orElseThrow(() -> new ${projectCap}Exception("Element not found in collection"));`);
-                    dirtyAliases.set(alias, '__child');
+                    const parentAlias = stmt.collection?.name;
+                    if (parentAlias && aliasTypes.has(parentAlias)) {
+                        childToParent.set(alias, parentAlias);
+                    }
                     break;
                 }
 

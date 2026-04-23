@@ -39,9 +39,4 @@ public class BookingController {
     public List<BookingDto> getAllBookings() {
         return bookingFunctionalities.getAllBookings();
     }
-
-    @PostMapping("/bookings/{bookingId}/confirm")
-    public void confirmBooking(@PathVariable Integer bookingId) {
-        bookingFunctionalities.confirmBooking(bookingId);
-    }
 }

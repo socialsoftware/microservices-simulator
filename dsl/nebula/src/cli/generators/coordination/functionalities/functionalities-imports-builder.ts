@@ -122,8 +122,8 @@ export class FunctionalitiesImportsBuilder {
                 });
             }
 
-            if (aggregate.workflows) {
-                aggregate.workflows.forEach((workflow: any) => {
+            if ((aggregate as any).workflows) {
+                ((aggregate as any).workflows || []).forEach((workflow: any) => {
                     const returnType = this.extractReturnType(workflow.returnType, entityRegistry);
                     this.collectDtoTypesFromReturnType(returnType, usedDtoTypes);
                 });

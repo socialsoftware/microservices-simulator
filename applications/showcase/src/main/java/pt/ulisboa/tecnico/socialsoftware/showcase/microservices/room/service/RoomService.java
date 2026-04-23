@@ -321,5 +321,23 @@ public class RoomService {
         }
     }
 
+    @Transactional
+    public void renameAmenity(Integer roomId, Integer amenityCode, String newName, UnitOfWork unitOfWork) {
+        try {
+        Room roomOld = (Room) unitOfWorkService.aggregateLoadAndRegisterRead(roomId, unitOfWork);
+        Room room = roomFactory.createRoomFromExisting(roomOld);
+        var amenity = room.getAmenities().stream()
+            .filter(el -> el.getCode() != null && el.getCode().equals(amenityCode))
+            .findFirst()
+            .orElseThrow(() -> new ShowcaseException("Element not found in collection"));
+        amenity.setName(newName);
+        // warn: assignment to unknown alias 'amenity'
+        } catch (ShowcaseException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ShowcaseException("Error in renameAmenity Room: " + e.getMessage());
+        }
+    }
+
 
 }
