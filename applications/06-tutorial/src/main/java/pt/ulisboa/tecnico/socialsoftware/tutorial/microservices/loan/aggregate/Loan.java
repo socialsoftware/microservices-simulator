@@ -14,8 +14,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.subscribe.LoanSubscribesBookDeletedBookExists;
-import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.subscribe.LoanSubscribesMemberDeletedMemberExists;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.subscribe.LoanSubscribesBookDeletedBookRef;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.events.subscribe.LoanSubscribesMemberDeletedMemberRef;
 
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.LoanBookDto;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.LoanDto;
@@ -97,17 +97,17 @@ public abstract class Loan extends Aggregate {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
-            interInvariantMemberExists(eventSubscriptions);
-            interInvariantBookExists(eventSubscriptions);
+            interInvariantMemberRef(eventSubscriptions);
+            interInvariantBookRef(eventSubscriptions);
         }
         return eventSubscriptions;
     }
-    private void interInvariantMemberExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new LoanSubscribesMemberDeletedMemberExists(this.getMember()));
+    private void interInvariantMemberRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new LoanSubscribesMemberDeletedMemberRef(this.getMember()));
     }
 
-    private void interInvariantBookExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new LoanSubscribesBookDeletedBookExists(this.getBook()));
+    private void interInvariantBookRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new LoanSubscribesBookDeletedBookRef(this.getBook()));
     }
 
 

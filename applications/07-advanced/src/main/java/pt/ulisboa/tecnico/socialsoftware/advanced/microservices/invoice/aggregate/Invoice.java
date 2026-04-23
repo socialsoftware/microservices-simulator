@@ -14,8 +14,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.subscribe.InvoiceSubscribesCustomerDeletedCustomerExists;
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.subscribe.InvoiceSubscribesOrderDeletedOrderExists;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.subscribe.InvoiceSubscribesCustomerDeletedCustomerRef;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.events.subscribe.InvoiceSubscribesOrderDeletedOrderRef;
 
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceCustomerDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceDto;
@@ -108,17 +108,17 @@ public abstract class Invoice extends Aggregate {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
-            interInvariantOrderExists(eventSubscriptions);
-            interInvariantCustomerExists(eventSubscriptions);
+            interInvariantOrderRef(eventSubscriptions);
+            interInvariantCustomerRef(eventSubscriptions);
         }
         return eventSubscriptions;
     }
-    private void interInvariantOrderExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new InvoiceSubscribesOrderDeletedOrderExists(this.getOrder()));
+    private void interInvariantOrderRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new InvoiceSubscribesOrderDeletedOrderRef(this.getOrder()));
     }
 
-    private void interInvariantCustomerExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new InvoiceSubscribesCustomerDeletedCustomerExists(this.getCustomer()));
+    private void interInvariantCustomerRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new InvoiceSubscribesCustomerDeletedCustomerRef(this.getCustomer()));
     }
 
 

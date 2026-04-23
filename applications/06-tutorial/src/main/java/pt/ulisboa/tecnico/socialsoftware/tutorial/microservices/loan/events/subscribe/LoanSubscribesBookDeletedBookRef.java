@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.aggregate.L
 import pt.ulisboa.tecnico.socialsoftware.tutorial.events.BookDeletedEvent;
 
 
-public class LoanSubscribesBookDeletedBookExists extends EventSubscription {
-    public LoanSubscribesBookDeletedBookExists(LoanBook book) {
+public class LoanSubscribesBookDeletedBookRef extends EventSubscription {
+    public LoanSubscribesBookDeletedBookRef(LoanBook book) {
         super(book.getBookAggregateId(),
                 book.getBookVersion(),
                 BookDeletedEvent.class.getSimpleName());

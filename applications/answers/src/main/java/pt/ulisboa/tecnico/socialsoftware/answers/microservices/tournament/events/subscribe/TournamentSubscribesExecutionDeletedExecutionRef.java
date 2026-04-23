@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionDeletedEvent;
 
 
-public class TournamentSubscribesExecutionDeletedTournamentExecutionExists extends EventSubscription {
-    public TournamentSubscribesExecutionDeletedTournamentExecutionExists(TournamentExecution execution) {
+public class TournamentSubscribesExecutionDeletedExecutionRef extends EventSubscription {
+    public TournamentSubscribesExecutionDeletedExecutionRef(TournamentExecution execution) {
         super(execution.getExecutionAggregateId(),
                 execution.getExecutionVersion(),
                 ExecutionDeletedEvent.class.getSimpleName());

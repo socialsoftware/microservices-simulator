@@ -20,8 +20,9 @@ Aggregate Post {
         subscribe AuthorUpdatedEvent
 
         subscribe AuthorDeletedEvent from Author {
-            interInvariant AUTHOR_EXISTS {
-                author.authorAggregateId == event.aggregateId
+            when author.authorAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
     }

@@ -19,9 +19,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesExecutionDeletedQuizExecutionExists;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesExecutionDeletedExecutionRef;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesExecutionUpdated;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesQuestionDeletedQuizQuestionsExist;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesQuestionDeletedQuestionsRef;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesTopicDeleted;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.events.subscribe.QuizSubscribesTopicUpdated;
 
@@ -185,21 +185,21 @@ public abstract class Quiz extends Aggregate {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
-            interInvariantQuizExecutionExists(eventSubscriptions);
-            interInvariantQuizQuestionsExist(eventSubscriptions);
+            interInvariantExecutionRef(eventSubscriptions);
+            interInvariantQuestionsRef(eventSubscriptions);
             eventSubscriptions.add(new QuizSubscribesExecutionUpdated());
             eventSubscriptions.add(new QuizSubscribesTopicUpdated());
             eventSubscriptions.add(new QuizSubscribesTopicDeleted());
         }
         return eventSubscriptions;
     }
-    private void interInvariantQuizExecutionExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new QuizSubscribesExecutionDeletedQuizExecutionExists(this.getExecution()));
+    private void interInvariantExecutionRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new QuizSubscribesExecutionDeletedExecutionRef(this.getExecution()));
     }
 
-    private void interInvariantQuizQuestionsExist(Set<EventSubscription> eventSubscriptions) {
+    private void interInvariantQuestionsRef(Set<EventSubscription> eventSubscriptions) {
         for (QuizQuestion item : this.questions) {
-            eventSubscriptions.add(new QuizSubscribesQuestionDeletedQuizQuestionsExist(item));
+            eventSubscriptions.add(new QuizSubscribesQuestionDeletedQuestionsRef(item));
         }
     }
 

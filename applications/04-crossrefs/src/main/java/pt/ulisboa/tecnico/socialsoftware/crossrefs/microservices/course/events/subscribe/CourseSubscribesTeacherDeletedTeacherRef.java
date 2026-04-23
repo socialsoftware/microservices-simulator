@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggregat
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.TeacherDeletedEvent;
 
 
-public class CourseSubscribesTeacherDeletedTeacherExists extends EventSubscription {
-    public CourseSubscribesTeacherDeletedTeacherExists(CourseTeacher teacher) {
+public class CourseSubscribesTeacherDeletedTeacherRef extends EventSubscription {
+    public CourseSubscribesTeacherDeletedTeacherRef(CourseTeacher teacher) {
         super(teacher.getTeacherAggregateId(),
                 teacher.getTeacherVersion(),
                 TeacherDeletedEvent.class.getSimpleName());

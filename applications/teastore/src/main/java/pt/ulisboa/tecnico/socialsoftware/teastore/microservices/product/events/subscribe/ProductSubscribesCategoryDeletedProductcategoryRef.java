@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.aggregat
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.CategoryDeletedEvent;
 
 
-public class ProductSubscribesCategoryDeletedProductCategoryExists extends EventSubscription {
-    public ProductSubscribesCategoryDeletedProductCategoryExists(ProductCategory productCategory) {
+public class ProductSubscribesCategoryDeletedProductcategoryRef extends EventSubscription {
+    public ProductSubscribesCategoryDeletedProductcategoryRef(ProductCategory productCategory) {
         super(productCategory.getCategoryAggregateId(),
                 productCategory.getCategoryVersion(),
                 CategoryDeletedEvent.class.getSimpleName());

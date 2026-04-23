@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.answers.events.UserUpdatedEvent;
 
 
-public class ExecutionSubscribesUserUpdatedUsersExist extends EventSubscription {
-    public ExecutionSubscribesUserUpdatedUsersExist(ExecutionUser users) {
+public class ExecutionSubscribesUserUpdatedUsersRef extends EventSubscription {
+    public ExecutionSubscribesUserUpdatedUsersRef(ExecutionUser users) {
         super(users.getUserAggregateId(),
                 users.getUserVersion(),
                 UserUpdatedEvent.class.getSimpleName());

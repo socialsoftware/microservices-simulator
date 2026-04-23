@@ -58,8 +58,9 @@ Aggregate Booking {
 
     Events {
         subscribe UserDeletedEvent from User {
-            interInvariant USER_MUST_EXIST {
-                user.userAggregateId == event.aggregateId
+            when user.userAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
     }

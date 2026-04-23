@@ -14,7 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.events.subscribe.BookingSubscribesUserDeletedUserMustExist;
+import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.events.subscribe.BookingSubscribesUserDeletedUserRef;
 
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.BookingDto;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.BookingRoomDto;
@@ -142,12 +142,12 @@ public abstract class Booking extends Aggregate {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
-            interInvariantUserMustExist(eventSubscriptions);
+            interInvariantUserRef(eventSubscriptions);
         }
         return eventSubscriptions;
     }
-    private void interInvariantUserMustExist(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new BookingSubscribesUserDeletedUserMustExist(this.getUser()));
+    private void interInvariantUserRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new BookingSubscribesUserDeletedUserRef(this.getUser()));
     }
 
 

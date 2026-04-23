@@ -32,8 +32,9 @@ Aggregate Order {
 
     Events {
         subscribe CustomerDeletedEvent from Customer {
-            interInvariant CUSTOMER_EXISTS {
-                customer.customerAggregateId == event.aggregateId
+            when customer.customerAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
     }

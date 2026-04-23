@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregat
 import pt.ulisboa.tecnico.socialsoftware.answers.events.CourseDeletedEvent;
 
 
-public class QuestionSubscribesCourseDeletedQuestionCourseExists extends EventSubscription {
-    public QuestionSubscribesCourseDeletedQuestionCourseExists(QuestionCourse course) {
+public class QuestionSubscribesCourseDeletedCourseRef extends EventSubscription {
+    public QuestionSubscribesCourseDeletedCourseRef(QuestionCourse course) {
         super(course.getCourseAggregateId(),
                 course.getCourseVersion(),
                 CourseDeletedEvent.class.getSimpleName());

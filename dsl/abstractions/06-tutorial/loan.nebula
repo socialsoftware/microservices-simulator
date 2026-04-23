@@ -25,14 +25,16 @@ Aggregate Loan {
 
     Events {
         subscribe MemberDeletedEvent from Member {
-            interInvariant MEMBER_EXISTS {
-                member.memberAggregateId == event.aggregateId
+            when member.memberAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
 
         subscribe BookDeletedEvent from Book {
-            interInvariant BOOK_EXISTS {
-                book.bookAggregateId == event.aggregateId
+            when book.bookAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
     }

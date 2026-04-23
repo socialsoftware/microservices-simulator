@@ -1,13 +1,13 @@
-package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe;
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.events.subscribe;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentQuiz;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.answer.aggregate.AnswerQuiz;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.QuizDeletedEvent;
 
 
-public class TournamentSubscribesQuizDeletedTournamentQuizExists extends EventSubscription {
-    public TournamentSubscribesQuizDeletedTournamentQuizExists(TournamentQuiz quiz) {
+public class AnswerSubscribesQuizDeletedQuizRef extends EventSubscription {
+    public AnswerSubscribesQuizDeletedQuizRef(AnswerQuiz quiz) {
         super(quiz.getQuizAggregateId(),
                 quiz.getQuizVersion(),
                 QuizDeletedEvent.class.getSimpleName());

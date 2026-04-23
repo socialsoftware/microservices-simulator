@@ -48,14 +48,16 @@ Aggregate Question {
         subscribe TopicUpdatedEvent
 
         subscribe CourseDeletedEvent from Course {
-            interInvariant QUESTION_COURSE_EXISTS {
-                course.courseAggregateId == event.aggregateId
+            when course.courseAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
 
         subscribe TopicDeletedEvent from Topic {
-            interInvariant QUESTION_TOPICS_EXIST {
-                topics.topicAggregateId == event.aggregateId
+            when topics.topicAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
     }

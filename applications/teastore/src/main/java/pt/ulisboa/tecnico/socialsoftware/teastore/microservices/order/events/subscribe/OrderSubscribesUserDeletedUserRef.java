@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.teastore.events.UserDeletedEvent;
 
 
-public class OrderSubscribesUserDeletedOrderUserExists extends EventSubscription {
-    public OrderSubscribesUserDeletedOrderUserExists(OrderUser user) {
+public class OrderSubscribesUserDeletedUserRef extends EventSubscription {
+    public OrderSubscribesUserDeletedUserRef(OrderUser user) {
         super(user.getUserAggregateId(),
                 user.getUserVersion(),
                 UserDeletedEvent.class.getSimpleName());

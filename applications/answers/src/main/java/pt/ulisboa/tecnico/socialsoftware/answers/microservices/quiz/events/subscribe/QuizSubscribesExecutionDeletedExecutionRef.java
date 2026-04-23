@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Qu
 import pt.ulisboa.tecnico.socialsoftware.answers.events.ExecutionDeletedEvent;
 
 
-public class QuizSubscribesExecutionDeletedQuizExecutionExists extends EventSubscription {
-    public QuizSubscribesExecutionDeletedQuizExecutionExists(QuizExecution execution) {
+public class QuizSubscribesExecutionDeletedExecutionRef extends EventSubscription {
+    public QuizSubscribesExecutionDeletedExecutionRef(QuizExecution execution) {
         super(execution.getExecutionAggregateId(),
                 execution.getExecutionVersion(),
                 ExecutionDeletedEvent.class.getSimpleName());

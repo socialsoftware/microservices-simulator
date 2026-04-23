@@ -34,20 +34,20 @@ Aggregate Execution {
 
     Events {
         subscribe CourseDeletedEvent from Course {
-            interInvariant COURSE_EXISTS {
-                course.courseAggregateId == event.aggregateId
+            when course.courseAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
 
         subscribe UserDeletedEvent from User {
-            interInvariant USERS_EXIST {
-                users.userAggregateId == event.aggregateId
+            when users.userAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
         subscribe UserUpdatedEvent from User {
-            interInvariant USERS_EXIST {
-                users.userAggregateId == event.aggregateId
-            }
+            when users.userAggregateId == event.aggregateId
         }
     }
 

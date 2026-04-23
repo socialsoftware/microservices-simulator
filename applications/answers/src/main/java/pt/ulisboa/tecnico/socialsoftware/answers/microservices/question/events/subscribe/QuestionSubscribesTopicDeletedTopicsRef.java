@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.aggregat
 import pt.ulisboa.tecnico.socialsoftware.answers.events.TopicDeletedEvent;
 
 
-public class QuestionSubscribesTopicDeletedQuestionTopicsExist extends EventSubscription {
-    public QuestionSubscribesTopicDeletedQuestionTopicsExist(QuestionTopic topics) {
+public class QuestionSubscribesTopicDeletedTopicsRef extends EventSubscription {
+    public QuestionSubscribesTopicDeletedTopicsRef(QuestionTopic topics) {
         super(topics.getTopicAggregateId(),
                 topics.getTopicVersion(),
                 TopicDeletedEvent.class.getSimpleName());

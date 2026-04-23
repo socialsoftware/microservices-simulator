@@ -21,8 +21,9 @@ Aggregate Enrollment {
 
     Events {
         subscribe CourseDeletedEvent from Course {
-            interInvariant COURSE_EXISTS {
-                course.courseAggregateId == event.aggregateId
+            when course.courseAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
     }

@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.aggregat
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.events.AuthorDeletedEvent;
 
 
-public class PostSubscribesAuthorDeletedAuthorExists extends EventSubscription {
-    public PostSubscribesAuthorDeletedAuthorExists(PostAuthor author) {
+public class PostSubscribesAuthorDeletedAuthorRef extends EventSubscription {
+    public PostSubscribesAuthorDeletedAuthorRef(PostAuthor author) {
         super(author.getAuthorAggregateId(),
                 author.getAuthorVersion(),
                 AuthorDeletedEvent.class.getSimpleName());

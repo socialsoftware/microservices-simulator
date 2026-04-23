@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.aggregat
 import pt.ulisboa.tecnico.socialsoftware.showcase.events.UserDeletedEvent;
 
 
-public class BookingSubscribesUserDeletedUserMustExist extends EventSubscription {
-    public BookingSubscribesUserDeletedUserMustExist(BookingUser user) {
+public class BookingSubscribesUserDeletedUserRef extends EventSubscription {
+    public BookingSubscribesUserDeletedUserRef(BookingUser user) {
         super(user.getUserAggregateId(),
                 user.getUserVersion(),
                 UserDeletedEvent.class.getSimpleName());

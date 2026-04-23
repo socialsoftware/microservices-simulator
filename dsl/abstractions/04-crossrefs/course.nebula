@@ -19,8 +19,9 @@ Aggregate Course {
 
     Events {
         subscribe TeacherDeletedEvent from Teacher {
-            interInvariant TEACHER_EXISTS {
-                teacher.teacherAggregateId == event.aggregateId
+            when teacher.teacherAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
     }

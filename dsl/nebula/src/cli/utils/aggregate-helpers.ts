@@ -91,13 +91,14 @@ export function getEvents(aggregate: Aggregate): Events | undefined {
     const inferred = inferPublishedEventsFromPublishesClauses(aggregate);
 
     const allSubs = ((explicit as any)?.subscribedEvents || []) as any[];
-    const invariantSubs = allSubs.filter(s => !!s.invariantName);
-    const plainSubs = allSubs.filter(s => !s.invariantName);
+    const whenSubs = allSubs.filter(s => !!s.whenCondition);
+    const plainSubs = allSubs.filter(s => !s.whenCondition);
     const byName = new Map<string, any[]>();
-    for (const s of invariantSubs) {
-        if (!byName.has(s.invariantName)) byName.set(s.invariantName, []);
-        byName.get(s.invariantName)!.push(Object.assign({}, s, {
-            conditions: s.invariantCondition ? [{ condition: s.invariantCondition }] : []
+    for (const s of whenSubs) {
+        const name = deriveInvariantName(s);
+        if (!byName.has(name)) byName.set(name, []);
+        byName.get(name)!.push(Object.assign({}, s, {
+            conditions: s.whenCondition ? [{ condition: s.whenCondition }] : []
         }));
     }
     const syntheticInvariants = Array.from(byName.entries()).map(([name, subs]) => ({
@@ -125,6 +126,16 @@ export function getEvents(aggregate: Aggregate): Events | undefined {
     merged.subscribedEvents = plainSubs;
     merged.interInvariants = syntheticInvariants;
     return merged as Events;
+}
+
+function deriveInvariantName(sub: any): string {
+    const whenCond = sub.whenCondition;
+    if (whenCond?.$cstNode?.text) {
+        const match = whenCond.$cstNode.text.trim().match(/^(\w+)\./);
+        if (match) return match[1].toUpperCase() + '_REF';
+    }
+    const eventType = sub.eventType || 'UNKNOWN';
+    return eventType.toUpperCase().replace(/EVENT$/, '') + '_REF';
 }
 
 function inferPublishedEventsFromPublishesClauses(aggregate: Aggregate): any[] {

@@ -19,7 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.subscribe.OrderSubscribesCustomerDeletedCustomerExists;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.events.subscribe.OrderSubscribesCustomerDeletedCustomerRef;
 
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderCustomerDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderDto;
@@ -212,12 +212,12 @@ public abstract class Order extends Aggregate {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
-            interInvariantCustomerExists(eventSubscriptions);
+            interInvariantCustomerRef(eventSubscriptions);
         }
         return eventSubscriptions;
     }
-    private void interInvariantCustomerExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new OrderSubscribesCustomerDeletedCustomerExists(this.getCustomer()));
+    private void interInvariantCustomerRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new OrderSubscribesCustomerDeletedCustomerRef(this.getCustomer()));
     }
 
 

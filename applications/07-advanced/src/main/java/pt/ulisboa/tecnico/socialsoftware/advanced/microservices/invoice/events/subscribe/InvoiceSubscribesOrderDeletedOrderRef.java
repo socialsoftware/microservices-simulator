@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregat
 import pt.ulisboa.tecnico.socialsoftware.advanced.events.OrderDeletedEvent;
 
 
-public class InvoiceSubscribesOrderDeletedOrderExists extends EventSubscription {
-    public InvoiceSubscribesOrderDeletedOrderExists(InvoiceOrder order) {
+public class InvoiceSubscribesOrderDeletedOrderRef extends EventSubscription {
+    public InvoiceSubscribesOrderDeletedOrderRef(InvoiceOrder order) {
         super(order.getOrderAggregateId(),
                 order.getOrderVersion(),
                 OrderDeletedEvent.class.getSimpleName());

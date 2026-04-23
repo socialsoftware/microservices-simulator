@@ -17,15 +17,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionDeletedTournamentExecutionExists;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionDeletedExecutionRef;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionUpdated;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesExecutionUserUpdated;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesQuizDeletedTournamentQuizExists;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesQuizDeletedQuizRef;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesQuizUpdated;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesTopicDeletedTournamentTopicsExist;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesTopicDeletedTopicsRef;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesTopicUpdated;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesUserDeletedTournamentCreatorExists;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesUserDeletedTournamentParticipantsExist;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesUserDeletedCreatorRef;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.events.subscribe.TournamentSubscribesUserDeletedParticipantsRef;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentCreatorDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
@@ -245,11 +245,11 @@ public abstract class Tournament extends Aggregate {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
-            interInvariantTournamentExecutionExists(eventSubscriptions);
-            interInvariantTournamentCreatorExists(eventSubscriptions);
-            interInvariantTournamentParticipantsExist(eventSubscriptions);
-            interInvariantTournamentTopicsExist(eventSubscriptions);
-            interInvariantTournamentQuizExists(eventSubscriptions);
+            interInvariantExecutionRef(eventSubscriptions);
+            interInvariantCreatorRef(eventSubscriptions);
+            interInvariantParticipantsRef(eventSubscriptions);
+            interInvariantTopicsRef(eventSubscriptions);
+            interInvariantQuizRef(eventSubscriptions);
             eventSubscriptions.add(new TournamentSubscribesExecutionUpdated());
             eventSubscriptions.add(new TournamentSubscribesExecutionUserUpdated());
             eventSubscriptions.add(new TournamentSubscribesTopicUpdated());
@@ -257,28 +257,28 @@ public abstract class Tournament extends Aggregate {
         }
         return eventSubscriptions;
     }
-    private void interInvariantTournamentExecutionExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new TournamentSubscribesExecutionDeletedTournamentExecutionExists(this.getExecution()));
+    private void interInvariantExecutionRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new TournamentSubscribesExecutionDeletedExecutionRef(this.getExecution()));
     }
 
-    private void interInvariantTournamentCreatorExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new TournamentSubscribesUserDeletedTournamentCreatorExists(this.getCreator()));
+    private void interInvariantCreatorRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new TournamentSubscribesUserDeletedCreatorRef(this.getCreator()));
     }
 
-    private void interInvariantTournamentParticipantsExist(Set<EventSubscription> eventSubscriptions) {
+    private void interInvariantParticipantsRef(Set<EventSubscription> eventSubscriptions) {
         for (TournamentParticipant item : this.participants) {
-            eventSubscriptions.add(new TournamentSubscribesUserDeletedTournamentParticipantsExist(item));
+            eventSubscriptions.add(new TournamentSubscribesUserDeletedParticipantsRef(item));
         }
     }
 
-    private void interInvariantTournamentTopicsExist(Set<EventSubscription> eventSubscriptions) {
+    private void interInvariantTopicsRef(Set<EventSubscription> eventSubscriptions) {
         for (TournamentTopic item : this.topics) {
-            eventSubscriptions.add(new TournamentSubscribesTopicDeletedTournamentTopicsExist(item));
+            eventSubscriptions.add(new TournamentSubscribesTopicDeletedTopicsRef(item));
         }
     }
 
-    private void interInvariantTournamentQuizExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new TournamentSubscribesQuizDeletedTournamentQuizExists(this.getQuiz()));
+    private void interInvariantQuizRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new TournamentSubscribesQuizDeletedQuizRef(this.getQuiz()));
     }
 
 

@@ -12,7 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.events.subscribe.CourseSubscribesTeacherDeletedTeacherExists;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.events.subscribe.CourseSubscribesTeacherDeletedTeacherRef;
 
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseTeacherDto;
@@ -89,12 +89,12 @@ public abstract class Course extends Aggregate {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
-            interInvariantTeacherExists(eventSubscriptions);
+            interInvariantTeacherRef(eventSubscriptions);
         }
         return eventSubscriptions;
     }
-    private void interInvariantTeacherExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new CourseSubscribesTeacherDeletedTeacherExists(this.getTeacher()));
+    private void interInvariantTeacherRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new CourseSubscribesTeacherDeletedTeacherRef(this.getTeacher()));
     }
 
 

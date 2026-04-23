@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.aggregate.L
 import pt.ulisboa.tecnico.socialsoftware.tutorial.events.MemberDeletedEvent;
 
 
-public class LoanSubscribesMemberDeletedMemberExists extends EventSubscription {
-    public LoanSubscribesMemberDeletedMemberExists(LoanMember member) {
+public class LoanSubscribesMemberDeletedMemberRef extends EventSubscription {
+    public LoanSubscribesMemberDeletedMemberRef(LoanMember member) {
         super(member.getMemberAggregateId(),
                 member.getMemberVersion(),
                 MemberDeletedEvent.class.getSimpleName());

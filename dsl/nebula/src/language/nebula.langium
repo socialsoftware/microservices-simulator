@@ -224,7 +224,6 @@ SubscribedEvent:
     ('routing' '(' routingIdExpr=Expression (',' routingVersionExpr=Expression)? ')')?
     (
         '{'
-            ('interInvariant' invariantName=ID '{' invariantCondition=Expression '}')?
             ('when' whenCondition=Expression)?
             (reactionBody=ActionMethodBody)?
         '}'

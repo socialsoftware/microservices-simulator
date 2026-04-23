@@ -2,14 +2,14 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.event
 
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentParticipant;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.TournamentCreator;
 import pt.ulisboa.tecnico.socialsoftware.answers.events.UserDeletedEvent;
 
 
-public class TournamentSubscribesUserDeletedTournamentParticipantsExist extends EventSubscription {
-    public TournamentSubscribesUserDeletedTournamentParticipantsExist(TournamentParticipant participants) {
-        super(participants.getParticipantAggregateId(),
-                participants.getParticipantVersion(),
+public class TournamentSubscribesUserDeletedCreatorRef extends EventSubscription {
+    public TournamentSubscribesUserDeletedCreatorRef(TournamentCreator creator) {
+        super(creator.getCreatorAggregateId(),
+                creator.getCreatorVersion(),
                 UserDeletedEvent.class.getSimpleName());
     }
 

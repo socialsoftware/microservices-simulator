@@ -19,8 +19,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesCourseDeletedQuestionCourseExists;
-import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesTopicDeletedQuestionTopicsExist;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesCourseDeletedCourseRef;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesTopicDeletedTopicsRef;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.question.events.subscribe.QuestionSubscribesTopicUpdated;
 
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.OptionDto;
@@ -199,19 +199,19 @@ public abstract class Question extends Aggregate {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
-            interInvariantQuestionCourseExists(eventSubscriptions);
-            interInvariantQuestionTopicsExist(eventSubscriptions);
+            interInvariantCourseRef(eventSubscriptions);
+            interInvariantTopicsRef(eventSubscriptions);
             eventSubscriptions.add(new QuestionSubscribesTopicUpdated());
         }
         return eventSubscriptions;
     }
-    private void interInvariantQuestionCourseExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new QuestionSubscribesCourseDeletedQuestionCourseExists(this.getCourse()));
+    private void interInvariantCourseRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new QuestionSubscribesCourseDeletedCourseRef(this.getCourse()));
     }
 
-    private void interInvariantQuestionTopicsExist(Set<EventSubscription> eventSubscriptions) {
+    private void interInvariantTopicsRef(Set<EventSubscription> eventSubscriptions) {
         for (QuestionTopic item : this.topics) {
-            eventSubscriptions.add(new QuestionSubscribesTopicDeletedQuestionTopicsExist(item));
+            eventSubscriptions.add(new QuestionSubscribesTopicDeletedTopicsRef(item));
         }
     }
 

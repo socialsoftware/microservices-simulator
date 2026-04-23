@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.advanced.events.CustomerDeletedEvent;
 
 
-public class OrderSubscribesCustomerDeletedCustomerExists extends EventSubscription {
-    public OrderSubscribesCustomerDeletedCustomerExists(OrderCustomer customer) {
+public class OrderSubscribesCustomerDeletedCustomerRef extends EventSubscription {
+    public OrderSubscribesCustomerDeletedCustomerRef(OrderCustomer customer) {
         super(customer.getCustomerAggregateId(),
                 customer.getCustomerVersion(),
                 CustomerDeletedEvent.class.getSimpleName());

@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggr
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.events.CourseDeletedEvent;
 
 
-public class EnrollmentSubscribesCourseDeletedCourseExists extends EventSubscription {
-    public EnrollmentSubscribesCourseDeletedCourseExists(EnrollmentCourse course) {
+public class EnrollmentSubscribesCourseDeletedCourseRef extends EventSubscription {
+    public EnrollmentSubscribesCourseDeletedCourseRef(EnrollmentCourse course) {
         super(course.getCourseAggregateId(),
                 course.getCourseVersion(),
                 CourseDeletedEvent.class.getSimpleName());

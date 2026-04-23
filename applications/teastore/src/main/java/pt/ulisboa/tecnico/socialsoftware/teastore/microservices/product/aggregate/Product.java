@@ -12,7 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.subscribe.ProductSubscribesCategoryDeletedProductCategoryExists;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.subscribe.ProductSubscribesCategoryDeletedProductcategoryRef;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.product.events.subscribe.ProductSubscribesCategoryUpdated;
 
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.ProductCategoryDto;
@@ -90,13 +90,13 @@ public abstract class Product extends Aggregate {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> eventSubscriptions = new HashSet<>();
         if (this.getState() == AggregateState.ACTIVE) {
-            interInvariantProductCategoryExists(eventSubscriptions);
+            interInvariantProductcategoryRef(eventSubscriptions);
             eventSubscriptions.add(new ProductSubscribesCategoryUpdated());
         }
         return eventSubscriptions;
     }
-    private void interInvariantProductCategoryExists(Set<EventSubscription> eventSubscriptions) {
-        eventSubscriptions.add(new ProductSubscribesCategoryDeletedProductCategoryExists(this.getProductCategory()));
+    private void interInvariantProductcategoryRef(Set<EventSubscription> eventSubscriptions) {
+        eventSubscriptions.add(new ProductSubscribesCategoryDeletedProductcategoryRef(this.getProductCategory()));
     }
 
 
