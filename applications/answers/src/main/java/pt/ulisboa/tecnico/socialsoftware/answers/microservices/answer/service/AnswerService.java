@@ -346,9 +346,8 @@ public class AnswerService {
             .findFirst()
             .orElseThrow(() -> new AnswersException("Element not found in collection"));
         question.setTimeTaken(timeTaken);
-        // warn: assignment to unknown alias 'question'
         question.setCorrect(correct);
-        // warn: assignment to unknown alias 'question'
+        unitOfWorkService.registerChanged(answer, unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

@@ -126,6 +126,19 @@ class UserCrudSpec extends Specification {
             reloaded.active == false
     }
 
+    def "getActiveUsers returns only active users via query method"() {
+        given:
+            def tag = "${System.nanoTime()}"
+            def active = createUser("active-$tag", "active-${tag}@e.com", 0, MembershipTier.BRONZE, true)
+            def inactive = createUser("inactive-$tag", "inactive-${tag}@e.com", 0, MembershipTier.BRONZE, false)
+        when:
+            def uow = unitOfWorkService.createUnitOfWork("user-active-$tag")
+            def result = userService.getActiveUsers(uow)
+        then:
+            result.any { it.aggregateId == active.aggregateId }
+            !result.any { it.aggregateId == inactive.aggregateId }
+    }
+
     def "deleteUser hides the row from subsequent reads"() {
         given:
             def tag = "${System.nanoTime()}"

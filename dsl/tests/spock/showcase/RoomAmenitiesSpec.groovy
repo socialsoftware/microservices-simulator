@@ -124,4 +124,21 @@ class RoomAmenitiesSpec extends Specification {
             def found = roomService.getRoomById(room.aggregateId, uowR)
             found.amenities.any { it.code == 20 && it.name == "Pool access" }
     }
+
+    def "renameAmenity uses find-where to locate and rename an amenity by code"() {
+        given:
+            def tag = "${System.nanoTime()}"
+            def room = createRoom(tag)
+            def uowAdd = unitOfWorkService.createUnitOfWork("amen-rename-add-$tag")
+            roomService.addRoomAmenity(room.aggregateId, 30, amenity(30, "OldName", "desc"), uowAdd)
+            unitOfWorkService.commit(uowAdd)
+        when:
+            def uow = unitOfWorkService.createUnitOfWork("amen-rename-$tag")
+            roomService.renameAmenity(room.aggregateId, 30, "NewName", uow)
+            unitOfWorkService.commit(uow)
+        then:
+            def uowR = unitOfWorkService.createUnitOfWork("amen-rename-read-$tag")
+            def found = roomService.getRoomAmenity(room.aggregateId, 30, uowR)
+            found.name == "NewName"
+    }
 }

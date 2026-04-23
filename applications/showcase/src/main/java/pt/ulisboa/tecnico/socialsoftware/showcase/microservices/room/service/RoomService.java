@@ -331,7 +331,7 @@ public class RoomService {
             .findFirst()
             .orElseThrow(() -> new ShowcaseException("Element not found in collection"));
         amenity.setName(newName);
-        // warn: assignment to unknown alias 'amenity'
+        unitOfWorkService.registerChanged(room, unitOfWork);
         } catch (ShowcaseException e) {
             throw e;
         } catch (Exception e) {

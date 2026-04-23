@@ -503,7 +503,7 @@ public class TournamentService {
             .findFirst()
             .orElseThrow(() -> new AnswersException("Element not found in collection"));
         participant.setParticipantName(newName);
-        // warn: assignment to unknown alias 'participant'
+        unitOfWorkService.registerChanged(tournament, unitOfWork);
         } catch (AnswersException e) {
             throw e;
         } catch (Exception e) {

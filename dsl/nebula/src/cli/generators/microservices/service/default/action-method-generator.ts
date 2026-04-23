@@ -194,16 +194,10 @@ ${tryWrapped}
                     lines.push(`        ${alias}.${setter}(${value});`);
                     if (aliasTypes.has(alias)) {
                         dirtyAliases.set(alias, aliasTypes.get(alias)!);
-                    } else {
-                        lines.push(`        // warn: assignment to unknown alias '${alias}'`);
+                    } else if (childToParent.has(alias)) {
+                        const parent = childToParent.get(alias)!;
+                        dirtyAliases.set(parent, aliasTypes.get(parent)!);
                     }
-                    break;
-                }
-
-                case 'ExtensionActionStatement': {
-                    const fn = stmt.fnName;
-                    const args = (stmt.args || []).map((a: any) => this.renderExpression(a));
-                    lines.push(`        extension.${fn}(${args.join(', ')});`);
                     break;
                 }
 
@@ -230,8 +224,7 @@ ${tryWrapped}
             }
         }
 
-        for (const [alias, _type] of dirtyAliases) {
-            if (_type === '__child') continue;
+        for (const [alias] of dirtyAliases) {
             lines.push(`        unitOfWorkService.registerChanged(${alias}, unitOfWork);`);
         }
 
