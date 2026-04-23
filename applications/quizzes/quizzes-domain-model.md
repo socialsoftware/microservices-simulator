@@ -303,7 +303,7 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Tournament, Quiz, Question, Topic |
-| Predicate | `Tournament.numberOfQuestions == count(Quiz.questions) ∧ topics(Quiz.questions) ⊇ Tournament.topics` |
+| Predicate | `Tournament.numberOfQuestions == count(Quiz.questions) ∧ Tournament.topics ⊇ topics(Quiz.questions)` |
 
 ---
 
