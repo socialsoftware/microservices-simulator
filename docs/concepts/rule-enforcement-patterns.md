@@ -22,7 +22,6 @@ Human domain experts define the rules in the domain model template (`{App}-domai
 |---------------------|---------|-------------|----------------|
 | Precondition implicit in saga fetch query (query fails if unmet) | P4a | None | saga data-assembly step |
 | Invariant holds because same value is passed to two aggregates in the same saga | P4b | None | saga construction |
-| Invariant verified by reading an aggregate back after creation within the same saga | P4c | Assertion in saga | saga post-creation step |
 
 ---
 
@@ -52,11 +51,6 @@ Is the precondition implicit in a saga fetch query?
 Is the invariant guaranteed because the saga passes the same value
 to two aggregates?
   YES → P4b — Construction Invariant — no enforcement code
-  NO  → continue ↓
-
-Can the rule be verified by reading an aggregate back after creation
-within the same saga?
-  YES → P4c — Post-Creation Saga Validation — assertion added to saga
   NO  → continue ↓
 
 Is the check a synchronous service-level guard?
@@ -295,18 +289,6 @@ commandGateway.send(new Create{AggA}Command(sharedId, ...));
 commandGateway.send(new Create{AggB}Command(sharedId, ...));
 ```
 
-### P4c — Post-Creation Saga Validation
-
-The property can only be verified after a second aggregate is created. The saga reads the aggregate back and asserts the property before continuing.
-
-```java
-// Read {Aggregate} back after creation and verify {RULE_NAME}.
-{Aggregate}Dto created = commandGateway.send(new Get{Aggregate}ByIdCommand(newId));
-if (created.getSomeCount() != expectedCount) {
-    throw new {App}Exception({VALIDATION_EXCEPTION});
-}
-```
-
 ---
 
 ## Enforcement Lifecycle
@@ -338,4 +320,3 @@ Request arrives
 ```
 
 P3 and P1 are synchronous and strongly consistent. P2 is asynchronous and eventually consistent.
-P4c (post-creation saga validation) fires after the mutation step but before the saga ends — inside the saga, after the create command completes.

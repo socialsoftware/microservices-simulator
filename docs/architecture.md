@@ -217,7 +217,7 @@ For a quick decision, use this table. For the full decision flowchart and patter
 | Always true within one aggregate; derivable from its own fields | P1 — `verifyInvariants()` |
 | Synchronous service-level check (own-table uniqueness OR saga-assembled DTO field validation) | P3 — service guard |
 | Cross-aggregate; eventual consistency is acceptable | P2 — inter-invariant via domain events |
-| Precondition implicit in saga fetch / same value to two aggregates / post-creation assertion | P4a/P4b/P4c — by construction |
+| Precondition implicit in saga fetch / same value to two aggregates | P4a/P4b — by construction |
 
 ---
 

@@ -212,15 +212,11 @@ FOR each rule in §3.2:
     # in the same saga (no fetch needed, holds by construction)?
     ELSE IF rule_holds_by_shared_value_in_same_saga(rule):
       classification = "P4b"
-    # Is the invariant verified by reading an aggregate back after its creation
-    # in the same saga (post-creation check inside the saga, not the service)?
-    ELSE IF rule_verified_by_reading_aggregate_back_after_creation(rule):
-      classification = "P4c"
     ELSE:
       # Question 3: Must be synchronous?
       # Keywords: "immediately", "synchronous", "before", "prevents", "blocks", "forbids"
       # P3 covers ALL synchronous service-layer checks — both own-table uniqueness reads
-      # and DTO field validation from saga-assembled data. P4 covers ALL by-construction guarantees — P4a (prerequisite), P4b (construction invariant), P4c (post-creation assertion).
+      # and DTO field validation from saga-assembled data. P4 covers ALL by-construction guarantees — P4a (prerequisite), P4b (construction invariant).
       IF predicate contains sync keywords:
         classification = P3  # service guard (*Service.java — own-table read OR DTO field check)
       ELSE:
@@ -246,7 +242,6 @@ FOR each rule in §3.2:
 - **P2:** `inter-invariant — {Consumer}Aggregate subscribes to {Event}`
 - **P4a:** `implicit in saga data-assembly — {Operation}FunctionalitySagas fetches {OtherAggregate}; query fails if precondition unmet`
 - **P4b:** `implicit in saga construction — same {field} passed to both {AggA} and {AggB} in the same saga; holds by construction, no separate check needed`
-- **P4c:** `post-creation check in {Operation}FunctionalitySagas — reads {Aggregate} back after creation to verify {property}`
 - **P3 (NEEDS_REVIEW):** `P3 — needs review` (mark for manual resolution)
 
 ---
@@ -410,7 +405,7 @@ All §3.2 rules from {App}-domain-model.md classified by docs/concepts/rule-enfo
 
 Rows: one per §3.2 rule
 - Column 1: rule name (as extracted)
-- Column 2: pattern (P1, P2, P3, P4a, P4b, P4c, or "P3 (NEEDS_REVIEW)" if ambiguous)
+- Column 2: pattern (P1, P2, P3, P4a, P4b, or "P3 (NEEDS_REVIEW)" if ambiguous)
 - Column 3: implementation note (from Step 4 classification)
 
 Note: Include §3.1 rules as a separate subsection if desired, all marked as P1.
