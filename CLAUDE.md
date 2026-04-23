@@ -1,6 +1,6 @@
 # CLAUDE.md — Navigation Hub
 
-Navigation hub for humans and AI agents — each section links to the authoritative source.
+Navigation hub for humans and AI agents — each section links to the authoritative source. This enables **progressive disclosure**: agents start with a small, stable entry point and are taught where to look next, rather than being overwhelmed up front.
 
 **Current objective:** Build `quizzes-full` as a comparative implementation using the **same 8 aggregates** as the reference `quizzes` app. Use this comparison to validate and refine docs and skills. Only after completing all aggregates will the domain be extended further.
 
