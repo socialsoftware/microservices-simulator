@@ -114,7 +114,7 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 | 2.1.c | `service/CourseService.java` (read methods appended), `commands/course/GetCourseByIdCommand.java`, `coordination/sagas/GetCourseByIdFunctionalitySagas.java`, `sagas/coordination/course/GetCourseByIdTest.groovy` |
 
 **Checklist:**
-- [ ] 2.1.a — Domain layer
+- [x] 2.1.a — Domain layer
 - [ ] 2.1.b — Write functionalities
 - [ ] 2.1.c — Read functionalities
 

@@ -27,4 +27,8 @@ public final class QuizzesFullErrorMessage {
     public static final String CANNOT_MODIFY_INACTIVE_AGGREGATE = "Cannot update aggregate %d because it is INACTIVE.";
 
     public static final String PLACEHOLDER = "placeholder";
+
+    // Course
+    public static final String CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT =
+            "Cannot delete the last course execution of a course that still has questions.";
 }
