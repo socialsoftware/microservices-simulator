@@ -22,7 +22,7 @@ class CapacityValidatorUtils:
     @staticmethod
     def get_max_concurrent(report, ms_name):
         """Extracts the maximum number of active requests for a microservice from the report"""
-        # Format: [msName][stepName] ACTION: requestId | Active: [id1, id2] | Waiting: [] | Available: X
+        # Format: [msName][operationName] ACTION: requestId | Active: [id1, id2] | Waiting: [] | Available: X
         pattern = rf"\[{ms_name.lower()}\]\[.*?\] .* \| Active: \[(.*?)\]"
         matches = re.findall(pattern, report)
         max_active = 0
@@ -121,7 +121,14 @@ class QuizzesInteractionUtils:
         return QuizzesInteractionUtils._perform_request(client, "POST", f"/courses/{course_id}/questions/create", json=payload)
 
     @staticmethod
-    def create_user(client, name, username, role="STUDENT"):
+    def create_user(client, name=None, username=None, role="STUDENT"):
+        u_suffix = uuid.uuid4().hex[:6]
+        if not name:
+            name = f"U_{u_suffix}"
+        
+        if not username:
+            username = f"u_{u_suffix}"
+        
         payload = {"name": name, "username": username, "role": role}
         return QuizzesInteractionUtils._perform_request(client, "POST", "/users/create", json=payload)
 
@@ -161,7 +168,7 @@ class QuizzesInteractionUtils:
 
     @staticmethod
     def find_tournament(client, tournament_id):
-        path = f"/tournaments/{tournament_id}/"
+        path = f"/tournaments/{tournament_id}"
         return QuizzesInteractionUtils._perform_request(client, "GET", path)
 
     @staticmethod
@@ -189,9 +196,7 @@ class QuizzesInteractionUtils:
     @staticmethod
     def create_and_activate_user(client=requests):
         """Creates a new user and sets its status to Active"""
-        u_suffix = uuid.uuid4().hex[:6]
-        res = QuizzesInteractionUtils.create_user(
-            client, f"U_{u_suffix}", f"u_{u_suffix}")
+        res = QuizzesInteractionUtils.create_user(client)
         if res.status_code == 200:
             user_id = res.json()["aggregateId"]
             QuizzesInteractionUtils.activate_user(client, user_id)

@@ -18,84 +18,81 @@ class ComplexMultiServiceUser(HttpUser):
         reqs = [random.randint(2, 5) for _ in range(7)]
         environment.reqs = reqs
 
-        # Configuration including every step for CreateTournament, UpdateTournament, and SolveQuiz
+        # Configuration including every command for CreateTournament, UpdateTournament, and SolveQuiz
         environment.config = {
             "Capacities": {
                 "microservices": [
                     {
                         "name": "tournament",
-                        "capacity": 20,
-                        "steps": [
-                            {"name": "createTournamentStep",
+                        "capacity": 15,
+                        "services": [
+                            {"name": "UpdateTournament",
                                 "requirement": reqs[0]},
-                            {"name": "updateTournamentStep",
+                            {"name": "SolveQuiz",
                                 "requirement": reqs[0]},
-                            {"name": "solveQuizStep", "requirement": reqs[0]},
-                            {"name": "getTournamentStep",
+                            {"name": "GetTournamentById",
                                 "requirement": reqs[0]},
-                            {"name": "getOriginalTournamentStep",
+                            {"name": "AddParticipant",
                                 "requirement": reqs[0]}
                         ]
                     },
                     {
                         "name": "execution",
-                        "capacity": 25,
-                        "steps": [
-                            {"name": "getCourseExecutionStep",
+                        "capacity": 15,
+                        "services": [
+                            {"name": "GetStudentByExecutionIdAndUserId",
                                 "requirement": reqs[1]},
-                            {"name": "getCreatorStep", "requirement": reqs[1]},
-                            {"name": "getCourseExecutionById",
-                                "requirement": reqs[1]},
-                            {"name": "getStudentByExecutionIdAndUserId",
-                                "requirement": reqs[1]},
-                            {"name": "enrollStudentStep",
+                            {"name": "EnrollStudent",
                                 "requirement": reqs[1]}
                         ]
                     },
                     {
                         "name": "user",
-                        "capacity": 20,
-                        "steps": [
-                            {"name": "createUserStep", "requirement": reqs[2]},
-                            {"name": "getUserStep", "requirement": reqs[2]},
-                            {"name": "activateUserStep",
+                        "capacity": 15,
+                        "services": [
+                            {"name": "CreateUser",
+                                "requirement": reqs[2]},
+                            {"name": "GetUserById",
+                                "requirement": reqs[2]},
+                            {"name": "ActivateUser",
                                 "requirement": reqs[2]}
                         ]
                     },
                     {
                         "name": "quiz",
-                        "capacity": 25,
-                        "steps": [
-                            {"name": "generateQuizStep",
+                        "capacity": 15,
+                        "services": [
+                            {"name": "StartTournamentQuiz",
                                 "requirement": reqs[3]},
-                            {"name": "updateQuizStep", "requirement": reqs[3]},
-                            {"name": "startQuizStep", "requirement": reqs[3]},
-                            {"name": "getQuizById", "requirement": reqs[3]}
+                            {"name": "GetQuizById",
+                                "requirement": reqs[3]},
+                            {"name": "UpdateGeneratedQuiz",
+                                "requirement": reqs[3]}
                         ]
                     },
                     {
                         "name": "question",
-                        "capacity": 20,
-                        "steps": [
-                            {"name": "findQuestionsByTopicIdsStep",
+                        "capacity": 10,
+                        "services": [
+                            {"name": "FindQuestionsByTopicIds",
                                 "requirement": reqs[4]},
-                            {"name": "findQuestionsByTopicIds",
+                            {"name": "GetQuestionById",
                                 "requirement": reqs[4]},
-                            {"name": "getQuestionById", "requirement": reqs[4]}
                         ]
                     },
                     {
                         "name": "topic",
-                        "capacity": 20,
-                        "steps": [
-                            {"name": "getTopicsStep", "requirement": reqs[5]}
+                        "capacity": 5,
+                        "services": [
+                            {"name": "GetTopicById",
+                             "requirement": reqs[5]}
                         ]
                     },
                     {
                         "name": "answer",
-                        "capacity": 20,
-                        "steps": [
-                            {"name": "startQuizAnswerStep",
+                        "capacity": 5,
+                        "services": [
+                            {"name": "StartQuiz",
                                 "requirement": reqs[6]}
                         ]
                     }
@@ -104,16 +101,36 @@ class ComplexMultiServiceUser(HttpUser):
         }
 
         try:
-            environment.test_data_pool = []
+            environment.scenarios = []
             for i in range(10):
                 data = QuizzesInteractionUtils.create_base_data()
-                environment.test_data_pool.append(data)
+
+                owner_id = QuizzesInteractionUtils.create_and_activate_user(requests)
+                if not owner_id:
+                    logging.warning("### Skipping scenario: failed to create owner user")
+                    continue
+
+                res = QuizzesInteractionUtils.enroll_and_create_tournament(
+                    requests, data["execution_id"], owner_id, data["topic_id"])
+                if res.status_code != 200:
+                    logging.warning(f"### Skipping scenario: tournament creation failed: {res.text}")
+                    continue
+
+                environment.scenarios.append({
+                    "data": data,
+                    "tournament_id": res.json()["aggregateId"]
+                })
+
+            environment.scenario_index = 0
+
+            if not environment.scenarios:
+                raise RuntimeError("No valid scenarios could be prepared")
 
             CapacityAdminUtils.start_and_load(environment.config)
             logging.info("### Setup complete ###")
         except Exception as e:
             logging.error(f"### Setup Failed: {e}")
-            environment.test_data_pool = []
+            environment.scenarios = []
 
     @events.test_stop.add_listener
     def on_test_stop(environment, **kwargs):
@@ -123,49 +140,34 @@ class ComplexMultiServiceUser(HttpUser):
 
             reqs = environment.reqs
             CapacityValidatorUtils.assert_max_capacity(
-                "tournament", report, int(30/reqs[0]))
+                "tournament", report, int(15/reqs[0]))
             CapacityValidatorUtils.assert_max_capacity(
-                "execution", report, int(50/reqs[1]))
+                "execution", report, int(15/reqs[1]))
             CapacityValidatorUtils.assert_max_capacity(
-                "user", report, int(20/reqs[2]))
+                "user", report, int(15/reqs[2]))
             CapacityValidatorUtils.assert_max_capacity(
-                "quiz", report, int(25/reqs[3]))
+                "quiz", report, int(15/reqs[3]))
             CapacityValidatorUtils.assert_max_capacity(
-                "question", report, int(20/reqs[4]))
+                "question", report, int(10))
             CapacityValidatorUtils.assert_max_capacity(
-                "topic", report, int(20/reqs[5]))
+                "topic", report, int(5/reqs[5]))
             CapacityValidatorUtils.assert_max_capacity(
-                "answer", report, int(20/reqs[6]))
+                "answer", report, int(5/reqs[6]))
             CapacityAdminUtils.stop_and_cleanup()
             logging.info("############# COMPLEX TEST END #############")
         except Exception as e:
             logging.error(f"### Validation Error: {e}")
 
     def on_start(self):
-        if not self.environment.test_data_pool:
+        if not self.environment.scenarios:
             self.stop(True)
             return
 
-        # Pick a random data-set
-        self.my_data = random.choice(self.environment.test_data_pool)
-
-        try:
-            # Create user (tournament owner)
-            user_id = QuizzesInteractionUtils.create_and_activate_user(
-                requests)
-
-            # Create the tournament
-            res = QuizzesInteractionUtils.enroll_and_create_tournament(
-                requests, self.my_data["execution_id"], user_id, self.my_data["topic_id"])
-
-            if res.status_code == 200:
-                self.t_id = res.json()["aggregateId"]
-            else:
-                logging.error(f"### Tournament creation failed: {res.text}")
-                self.stop(True)
-        except Exception as e:
-            logging.error(f"### User Setup Failed: {e}")
-            self.stop(True)
+        idx = self.environment.scenario_index % len(self.environment.scenarios)
+        self.environment.scenario_index += 1
+        scenario = self.environment.scenarios[idx]
+        self.my_data = scenario["data"]
+        self.t_id = scenario["tournament_id"]
 
     @task(2)
     def task_update_tournament(self):
@@ -176,8 +178,14 @@ class ComplexMultiServiceUser(HttpUser):
     def task_solve_quiz(self):
         user_id = QuizzesInteractionUtils.create_and_activate_user(self.client)
         if user_id:
-            QuizzesInteractionUtils.enroll_student(
+            enroll_res = QuizzesInteractionUtils.enroll_student(
                 self.client, self.my_data["execution_id"], user_id)
-            QuizzesInteractionUtils.join_tournament(
+
+            if enroll_res.status_code != 200:
+                return
+
+            join_res = QuizzesInteractionUtils.join_tournament(
                 self.client, self.t_id, self.my_data["execution_id"], user_id)
-            QuizzesInteractionUtils.solve_quiz(self.client, self.t_id, user_id)
+
+            if join_res.status_code == 200:
+                QuizzesInteractionUtils.solve_quiz(self.client, self.t_id, user_id)

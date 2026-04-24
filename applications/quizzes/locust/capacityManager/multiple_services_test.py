@@ -1,13 +1,13 @@
 from locust import HttpUser, task, between, events
 import logging
-import datetime
+import requests
 from capacity_utils import CapacityAdminUtils, QuizzesInteractionUtils, CapacityValidatorUtils, GATEWAY
 
 
 class MultiServiceCapacityUser(HttpUser):
     # ! THIS TEST REQUIRES MULTIPLE USERS TO BE EXECUTED PROPERLY
     host = GATEWAY
-    wait_time = between(0.01, 0.1)
+    wait_time = between(0.1, 0.5)
 
     @events.test_start.add_listener
     def on_test_start(environment, **kwargs):
@@ -17,53 +17,47 @@ class MultiServiceCapacityUser(HttpUser):
                 "microservices": [
                     {
                         "name": "tournament",
-                        "capacity": 40,
-                        "steps": [
+                        "capacity": 2,
+                        "services": [
                             {
-                                "name": "getTopicsStep",
+                                "name": "GetTournamentById",
                                 "requirement": 1
                             },
                             {
-                                "name": "getCourseExecutionStep",
+                                "name": "AddParticipant",
                                 "requirement": 1
-                            },
-                            {
-                                "name": "findQuestionsByTopicIdsStep",
-                                "requirement": 1
-                            },
-                            {
-                                "name": "getCreatorStep",
-                                "requirement": 1
-                            },
-                            {
-                                "name": "getCourseExecutionById",
-                                "requirement": 1
-                            },
-                            {
-                                "name": "generateQuizStep",
-                                "requirement": 1
-                            },
-                            {
-                                "name": "createTournamentStep",
-                                "requirement": 1
-                            },
-                            {
-                                "name": "findTournamentStep",
-                                "requirement": 1
-                            },
+                            }
                         ]
                     },
                     {
                         "name": "execution",
                         "capacity": 3,
-                        "steps": [
+                        "services": [
                             {
-                                "name": "getUserStep",
+                                "name": "EnrollStudent",
                                 "requirement": 1
                             },
                             {
-                                "name": "enrollStudentStep",
-                                "requirement": 2
+                                "name": "GetStudentByExecutionIdAndUserId",
+                                "requirement": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "user",
+                        "capacity": 4,
+                        "services": [
+                            {
+                                "name": "CreateUser",
+                                "requirement": 1
+                            },
+                            {
+                                "name": "ActivateUser",
+                                "requirement": 1
+                            },
+                            {
+                                "name": "GetUserById",
+                                "requirement": 1
                             }
                         ]
                     }
@@ -72,11 +66,27 @@ class MultiServiceCapacityUser(HttpUser):
         }
         try:
             environment.test_data = QuizzesInteractionUtils.create_base_data()
+            owner_id = QuizzesInteractionUtils.create_and_activate_user()
+            if not owner_id:
+                raise RuntimeError(
+                    "Failed to create owner for shared tournament")
+
+            tournament_res = QuizzesInteractionUtils.enroll_and_create_tournament(
+                requests,
+                environment.test_data["execution_id"],
+                owner_id,
+                environment.test_data["topic_id"])
+            if tournament_res.status_code != 200:
+                raise RuntimeError(
+                    f"Failed to create shared tournament: {tournament_res.text}")
+
+            environment.tournament_id = tournament_res.json()["aggregateId"]
             CapacityAdminUtils.start_and_load(config)
             logging.info("### Setup complete ###")
         except Exception as e:
             logging.error(f"### Setup Failed: {e}")
             environment.test_data = None
+            environment.tournament_id = None
 
     @events.test_stop.add_listener
     def on_test_stop(environment, **kwargs):
@@ -85,9 +95,11 @@ class MultiServiceCapacityUser(HttpUser):
             logging.info("### RESULTS ###")
             # Ensure they are processed within capacity limits
             CapacityValidatorUtils.assert_concurrency_range(
-                "tournament", report, 1, 8)
+                "tournament", report, 1, 2)
             CapacityValidatorUtils.assert_concurrency_range(
                 "execution", report, 1, 3)
+            CapacityValidatorUtils.assert_concurrency_range(
+                "user", report, 1, 4)
             CapacityAdminUtils.stop_and_cleanup()
 
             logging.info("############# TEST END #############")
@@ -97,21 +109,20 @@ class MultiServiceCapacityUser(HttpUser):
     @task
     def execute_capacity_workflow(self):
         data = self.environment.test_data
-        user_id = QuizzesInteractionUtils.create_and_activate_user()
+        t_id = getattr(self.environment, "tournament_id", None)
+        user_id = QuizzesInteractionUtils.create_and_activate_user(self.client)
 
-        if not (data and user_id):
+        if not (data and t_id and user_id):
             return
 
-        # AddStudentFunctionalitySagas (ExecutionService)
-        QuizzesInteractionUtils.enroll_student(
-            self.client, data['execution_id'], user_id)
+        # AddStudentFunctionalitySagas (Execution service)
+        enroll_res = QuizzesInteractionUtils.enroll_student(
+            self.client, data["execution_id"], user_id)
 
-        # CreateTournamentFunctionalitySagas (TournamentService)
-        res = QuizzesInteractionUtils.create_tournament(
-            self.client, data["execution_id"], user_id, data["topic_id"])
-
-        # FindTournamentFunctionalitySagas (TournamentService)
-        if res.status_code == 200:
-            t_id = res.json()["aggregateId"]
-            QuizzesInteractionUtils.find_tournament(self.client, t_id)
-            self.client.get(f"/tournaments/{t_id}", name="FindTournament")
+        if enroll_res.status_code == 200:
+            # AddParticipantFunctionalitySagas (Execution + Tournament services)
+            join_res = QuizzesInteractionUtils.join_tournament(
+                self.client, t_id, data["execution_id"], user_id)
+            if join_res.status_code == 200:
+                # FindTournamentFunctionalitySagas (Tournament service)
+                QuizzesInteractionUtils.find_tournament(self.client, t_id)

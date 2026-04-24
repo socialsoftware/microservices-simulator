@@ -23,8 +23,8 @@ class ValidNodeCapacityUser(HttpUser):
             },
             "Capacities": {
                 "microservices": [
-                    {"name": "tournament", "capacity": 10, "steps": []},
-                    {"name": "execution", "capacity": 5, "endpoints": []}
+                    {"name": "tournament", "capacity": 10, "services": []},
+                    {"name": "execution", "capacity": 5, "services": []}
                 ]
             }
         }

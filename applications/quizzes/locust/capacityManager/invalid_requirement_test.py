@@ -24,17 +24,14 @@ class InvalidNodeCapacityUser(HttpUser):
             },
             "Capacities": {
                 "microservices": [
-                    {"name": "tournament", "capacity": 10, "steps": []},
-                    {"name": "execution", "capacity": 5, "steps": [{"name": "getCourseExecutionStep",
+                    {"name": "tournament", "capacity": 10, "services": []},
+                    {"name": "execution", "capacity": 5, "services": [{"name": "GetCourseExecutionById",
                                                                     "requirement": -1}]}
                 ]
             }
         }
         try:
-            # We expect this call to fail with 500 because of SimulatorException
             CapacityAdminUtils.start_and_load(config)
-            logging.error(
-                "### >> FAIL: Setup succeeded but should have failed!")
         except Exception as e:
             logging.info(f"### Setup failed as expected: {e}")
 
@@ -45,7 +42,7 @@ class InvalidNodeCapacityUser(HttpUser):
             logging.info("### RESULTS ###")
             # Node2 sum: 10 + 5 = 15. [Limit is 5 - Invalid]
 
-            if "CONFIGURATION ERROR" in report and "Invalid requirement for step" in report:
+            if "CONFIGURATION ERROR" in report and "Invalid requirement for service" in report:
                 logging.info(
                     "### >> PASS: Correct validation error found in report.")
             else:

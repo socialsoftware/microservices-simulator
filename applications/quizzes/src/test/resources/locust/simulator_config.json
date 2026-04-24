@@ -54,13 +54,13 @@
       {
         "name": "tournament",
         "capacity": 2,
-        "steps": [
+        "services": [
           {
-            "name": "createTournamentStep",
+            "name": "createTournament",
             "requirement": 1
           },
           {
-            "name": "findTournamentStep",
+            "name": "getTournamentById",
             "requirement": 1
           }
         ]
@@ -68,21 +68,21 @@
       {
         "name": "execution",
         "capacity": 5,
-        "steps": [
-          {
-            "name": "getCourseExecutionStep",
-            "requirement": 1
-          },
-          {
-            "name": "getCreatorStep",
-            "requirement": 1
-          },
+        "services": [
           {
             "name": "getCourseExecutionById",
             "requirement": 1
           },
           {
-            "name": "enrollStudentStep",
+            "name": "getStudentByExecutionIdAndUserId",
+            "requirement": 1
+          },
+          {
+            "name": "getCourseExecutionsByUserId",
+            "requirement": 1
+          },
+          {
+            "name": "enrollStudent",
             "requirement": 1
           }
         ]
@@ -90,9 +90,9 @@
       {
         "name": "quiz",
         "capacity": 10,
-        "steps": [
+        "services": [
           {
-            "name": "generateQuizStep",
+            "name": "generateQuiz",
             "requirement": 1
           }
         ]
@@ -100,13 +100,13 @@
       {
         "name": "topic",
         "capacity": 5,
-        "steps": [
+        "services": [
           {
-            "name": "createTopicStep",
+            "name": "createTopic",
             "requirement": 1
           },
           {
-            "name": "getTopicsStep",
+            "name": "findTopicsByCourseId",
             "requirement": 1
           }
         ]
@@ -114,17 +114,17 @@
       {
         "name": "question",
         "capacity": 5,
-        "steps": [
+        "services": [
           {
-            "name": "createQuestionStep",
+            "name": "createQuestion",
             "requirement": 1
           },
           {
-            "name": "validateQuestionTopicsStep",
+            "name": "findQuestionsByTopicIds",
             "requirement": 1
           },
           {
-            "name": "findQuestionsByTopicIdsStep",
+            "name": "getQuestionById",
             "requirement": 1
           }
         ]
@@ -132,17 +132,17 @@
       {
         "name": "user",
         "capacity": 10,
-        "steps": [
+        "services": [
           {
-            "name": "createUserStep",
+            "name": "createUser",
             "requirement": 1
           },
           {
-            "name": "getUserStep",
+            "name": "getUserById",
             "requirement": 1
           },
           {
-            "name": "activateUserStep",
+            "name": "activateUser",
             "requirement": 1
           }
         ]
@@ -150,13 +150,13 @@
       {
         "name": "course",
         "capacity": 10,
-        "steps": [
+        "services": [
           {
-            "name": "createCourseExecutionStep",
+            "name": "createCourseRemote",
             "requirement": 1
           },
           {
-            "name": "getCourseStep",
+            "name": "getCourseById",
             "requirement": 1
           }
         ]

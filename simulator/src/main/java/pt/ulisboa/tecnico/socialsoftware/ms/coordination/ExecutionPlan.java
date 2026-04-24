@@ -88,7 +88,6 @@ public class ExecutionPlan {
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
             final String stepName = step.getName();
-            final String stepRequestId = UUID.randomUUID().toString().substring(0, 8);
             final String funcName = (unitOfWork != null)
                 ? unitOfWork.getFunctionalityName()
                 : this.functionalityName;
@@ -107,13 +106,13 @@ public class ExecutionPlan {
                 this.stepFutures.put(step, CompletableFuture.completedFuture(null)
                 .thenAccept(ignored -> {
                     try {
-                        CapacityManager.getInstance().acquire(stepName, stepRequestId);
                         TraceManager.getInstance().startStepSpan(funcName, stepName);
                         Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayBeforeValue, true);
                         Thread.sleep(delayBeforeValue);
                         TraceManager.getInstance().endDelaySpan(delaySpan);
                         logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                     } catch (InterruptedException e) {
+                        TraceManager.getInstance().endStepSpan(funcName, stepName);
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
                     }
@@ -129,11 +128,9 @@ public class ExecutionPlan {
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new CompletionException(e);
+                    } finally {
+                        TraceManager.getInstance().endStepSpan(funcName, stepName);
                     }
-                })
-                .whenComplete((ignored, ex) -> {
-                    TraceManager.getInstance().endStepSpan(funcName, stepName);
-                    CapacityManager.getInstance().release(stepName, stepRequestId);
                 })
             ); // Execute and save the steps with no dependencies
                 executedSteps.put(step, true);
@@ -144,7 +141,6 @@ public class ExecutionPlan {
         // Execute steps based on dependencies
         for (FlowStep step: plan) {
             final String stepName = step.getName();
-            final String stepRequestId = UUID.randomUUID().toString().substring(0, 8);
             final String funcName = (unitOfWork != null)
                 ? unitOfWork.getFunctionalityName()
                 : this.functionalityName;
@@ -164,13 +160,13 @@ public class ExecutionPlan {
                 this.stepFutures.put(step,combinedFuture
                     .thenAccept(ignored -> {
                         try {
-                            CapacityManager.getInstance().acquire(stepName, stepRequestId);
                             TraceManager.getInstance().startStepSpan(funcName, stepName);
                             Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayBeforeValue, true);
                             Thread.sleep(delayBeforeValue);
                             TraceManager.getInstance().endDelaySpan(delaySpan);
                             logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
                         } catch (InterruptedException e) {
+                            TraceManager.getInstance().endStepSpan(funcName, stepName);
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);
                         }
@@ -185,11 +181,9 @@ public class ExecutionPlan {
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             throw new CompletionException(e);
+                        } finally {
+                            TraceManager.getInstance().endStepSpan(funcName, stepName);
                         }
-                    })
-                    .whenComplete((ignored, ex) -> {
-                        TraceManager.getInstance().endStepSpan(funcName, stepName);
-                        CapacityManager.getInstance().release(stepName, stepRequestId);
                     })
                 );
                 executedSteps.put(step, true);

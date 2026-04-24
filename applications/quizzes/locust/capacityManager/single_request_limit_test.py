@@ -1,51 +1,34 @@
 from locust import HttpUser, task, between, events
 import logging
-import requests
 from capacity_utils import CapacityAdminUtils, QuizzesInteractionUtils, CapacityValidatorUtils, GATEWAY
 
 
 class CapacityAutomationUser(HttpUser):
     # ! THIS TEST REQUIRES MORE THAN 1 USER TO BE EXECUTED PROPERLY
     host = GATEWAY
-    wait_time = between(0.01, 0.1)
+    wait_time = between(0.1, 0.5)
 
     @events.test_start.add_listener
     def on_test_start(environment, **kwargs):
         logging.info("############# TEST START #############")
-        # Limit TournamentService to only 1 request at a time
+        # Limit UserService to only 1 request at a time
         config = {
             "Capacities": {
                 "microservices": [
                     {
-                        "name": "tournament",
+                        "name": "user",
                         "capacity": 1,
-                        "steps": [
+                        "services": [
                             {
-                                "name": "getTopicsStep",
+                                "name": "CreateUser",
                                 "requirement": 1
                             },
                             {
-                                "name": "getCourseExecutionStep",
+                                "name": "ActivateUser",
                                 "requirement": 1
                             },
                             {
-                                "name": "findQuestionsByTopicIdsStep",
-                                "requirement": 1
-                            },
-                            {
-                                "name": "getCreatorStep",
-                                "requirement": 1
-                            },
-                            {
-                                "name": "getCourseExecutionById",
-                                "requirement": 1
-                            },
-                            {
-                                "name": "generateQuizStep",
-                                "requirement": 1
-                            },
-                            {
-                                "name": "createTournamentStep",
+                                "name": "GetUserById",
                                 "requirement": 1
                             }
                         ]
@@ -54,11 +37,6 @@ class CapacityAutomationUser(HttpUser):
             }
         }
         try:
-            environment.test_data = QuizzesInteractionUtils.create_base_data()
-            environment.user_id = QuizzesInteractionUtils.create_and_activate_user()
-            QuizzesInteractionUtils.enroll_student(
-                requests, environment.test_data["execution_id"], environment.user_id)
-
             CapacityAdminUtils.start_and_load(config)
             logging.info("### Setup complete ###")
         except Exception as e:
@@ -70,9 +48,9 @@ class CapacityAutomationUser(HttpUser):
         try:
             report = CapacityValidatorUtils.get_report()
             logging.info("### RESULTS ###")
-            # Verify that TournamentService never exceeded 1 concurrent request
+            # Verify that UserService never exceeded 1 concurrent request
             CapacityValidatorUtils.assert_concurrency_range(
-                "tournament", report, 1, 1)
+                "user", report, 1, 1)
             CapacityAdminUtils.stop_and_cleanup()
 
             logging.info("############# TEST END #############")
@@ -81,11 +59,4 @@ class CapacityAutomationUser(HttpUser):
 
     @task
     def execute_capacity_workflow(self):
-        data = self.environment.test_data
-        user_id = self.environment.user_id
-        if not (data and user_id):
-            return
-
-        # CreateTournamentFunctionalitySagas (TournamentService)
-        QuizzesInteractionUtils.create_tournament(
-            self.client, data["execution_id"], user_id, data["topic_id"])
+        QuizzesInteractionUtils.create_and_activate_user(self.client)

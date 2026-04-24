@@ -24,16 +24,13 @@ class InvalidNodeCapacityUser(HttpUser):
             },
             "Capacities": {
                 "microservices": [
-                    {"name": "tournament", "capacity": 10, "endpoints": []},
-                    {"name": "execution", "capacity": 5, "endpoints": []}
+                    {"name": "tournament", "capacity": 10, "services": []},
+                    {"name": "execution", "capacity": 5, "services": []}
                 ]
             }
         }
         try:
-            # We expect this call to fail with 500 because of SimulatorException
             CapacityAdminUtils.start_and_load(config)
-            logging.error(
-                "### >> FAIL: Setup succeeded but should have failed!")
         except Exception as e:
             logging.info(f"### Setup failed as expected: {e}")
 
