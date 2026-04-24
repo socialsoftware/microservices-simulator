@@ -1,5 +1,30 @@
 # Run Using Maven
 
+## Table of Contents
+
+- [Technology Requirements](#technology-requirements)
+- [Setting up the Database](#setting-up-the-database)
+  - [Running in a Docker container](#running-in-a-docker-container)
+  - [Running on a local machine](#running-on-a-local-machine)
+- [Setting up Jaeger Tracing](#setting-up-jaeger-tracing)
+- [Simulator](#simulator)
+  - [Install simulator library](#install-simulator-library)
+  - [Run simulator tests](#run-simulator-tests)
+- [Quizzes Centralized Simulation](#quizzes-centralized-simulation)
+  - [Launch simulator for Sagas with local](#launch-simulator-for-sagas-with-local)
+  - [Launch simulator for TCC](#launch-simulator-for-tcc)
+  - [Running Sagas Tests](#running-sagas-tests)
+  - [Running TCC Tests](#running-tcc-tests)
+- [Quizzes Centralized Simulation with Remote Service Calls](#quizzes-centralized-simulation-with-remote-service-calls)
+  - [Additional Requirements:](#additional-requirements)
+  - [Running with Stream](#running-with-stream)
+  - [Running with gRPC](#running-with-grpc)
+- [Quizzes Distributed Simulation Deployment](#quizzes-distributed-simulation-deployment)
+  - [Prerequisites](#prerequisites)
+  - [Running the Microservices](#running-the-microservices)
+- [Running JMeter tests](#running-jmeter-tests)
+  - [Viewing JMeter tests structure](#viewing-jmeter-tests-structure)
+
 ### Technology Requirements
 
 - [Maven 3.9.9](https://archive.apache.org/dist/maven/maven-3/3.9.9/)

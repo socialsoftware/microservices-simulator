@@ -2,6 +2,24 @@
 
 The distributed mode can also be deployed on Kubernetes, using Spring Cloud Kubernetes for service discovery instead of Eureka.
 
+## Table of Contents
+
+- [Deploying to Local Kubernetes (Kind)](#deploying-to-local-kubernetes-kind)
+  - [Prerequisites](#prerequisites)
+  - [Build and Load Images](#build-and-load-images)
+  - [Deploy to Kubernetes](#deploy-to-kubernetes)
+  - [Access the Application](#access-the-application)
+  - [Access Jaeger UI](#access-jaeger-ui)
+  - [Cleanup](#cleanup)
+- [Azure Kubernetes Service (AKS) Deployment](#azure-kubernetes-service-aks-deployment)
+  - [Prerequisites](#prerequisites-1)
+  - [Setup AKS Cluster](#setup-aks-cluster)
+  - [Register Azure Resource Providers (One-time setup)](#register-azure-resource-providers-one-time-setup)
+  - [Push Images to Azure Container Registry](#push-images-to-azure-container-registry)
+  - [Deploy to Azure](#deploy-to-azure)
+  - [Cleanup Azure Resources](#cleanup-azure-resources)
+  - [Managing Multiple Clusters (Local vs Azure)](#managing-multiple-clusters-local-vs-azure)
+
 ## Deploying to Local Kubernetes (Kind)
 
 ### Prerequisites

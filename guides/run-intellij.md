@@ -1,5 +1,14 @@
 # Run Using IntelliJ
 
+## Table of Contents
+
+- [Technology Requirements](#technology-requirements)
+- [Pre-configured Run Configurations](#pre-configured-run-configurations)
+- [Running as Centralized with Local Service Calls](#running-as-centralized-with-local-service-calls)
+- [Running as Centralized with Remote Service Calls](#running-as-centralized-with-remote-service-calls)
+- [Running as Distributed](#running-as-distributed)
+  - [Running with Distributed Version](#running-with-distributed-version)
+
 ### Technology Requirements
 
 - [IntelliJ IDEA](https://www.jetbrains.com/idea/download/) (Ultimate or Community Edition)

@@ -1,5 +1,18 @@
 # Run Using Docker
 
+## Table of Contents
+
+- [Technology Requirements](#technology-requirements)
+- [Docker Compose Structure](#docker-compose-structure)
+- [Running as Centralized with Local Service Calls](#running-as-centralized-with-local-service-calls)
+- [Running as Centralized with Remote Service Calls](#running-as-centralized-with-remote-service-calls)
+- [Running as Distributed](#running-as-distributed)
+  - [Version IDs: Centralized vs. Distributed](#version-ids-centralized-vs-distributed)
+  - [Running with Distributed Version (no version-service needed)](#running-with-distributed-version-no-version-service-needed)
+- [Stopping Containers](#stopping-containers)
+- [Cleaning Maven Cache](#cleaning-maven-cache)
+- [Running Local Tests](#running-local-tests)
+
 ### Technology Requirements
 
 - [Docker Compose V2](https://docs.docker.com/compose/install/)

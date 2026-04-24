@@ -1,5 +1,28 @@
 # Microservices Simulator
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Running an Application](#running-an-application)
+- [Configuration Reference](#configuration-reference)
+  - [Jaeger Tracing](#jaeger-tracing)
+  - [Service Discovery](#service-discovery)
+  - [Database Configuration](#database-configuration)
+  - [Spring Cloud Stream Bindings](#spring-cloud-stream-bindings)
+  - [gRPC Command Gateway](#grpc-command-gateway)
+  - [Distributed Version Service](#distributed-version-service)
+  - [Service URLs and Ports](#service-urls-and-ports)
+  - [API Gateway Configuration](#api-gateway-configuration)
+- [Test Cases](#test-cases)
+- [Code Structure](#code-structure)
+  - [Simulator](#simulator)
+  - [Quizzes Microservice System](#quizzes-microservice-system)
+- [How to Implement Your Own Business Logic](#how-to-implement-your-own-business-logic)
+  - [Implementing a Single Aggregate](#implementing-a-single-aggregate)
+  - [Implementing a Single Functionality](#implementing-a-single-functionality)
+- [Publications](#publications)
+
 ## Overview
 
 Developing business-logic-rich microservices requires navigating complex trade-offs between data consistency and
@@ -28,13 +51,18 @@ The system architecture is divided into three primary layers:
 * **Infrastructure Layer**: Manages cross-cutting technical concerns and network operations, including the Messaging
   Module, Notification Module, Impairment Module, Monitoring Module, and Versioning Module.
 
-The simulator supports multiple execution modes to test different aspects of system behavior, ranging from simple local
-execution to full distributed deployment.
+The simulator supports multiple execution topologies, ranging from deterministic single-process runs to fully
+distributed microservice deployments.
 
-| Mode            | Description                                                                                                                                                                                                                                                      | Spring Profiles                                                     | Infrastructure                                                                                                                            |
-|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| **Centralized** | Runs as a single application. Supports local (internal), stream (RabbitMQ), or gRPC service calls. Optionally uses `distributed-version` profile for Snowflake-based version IDs.                                                                                | `sagas\|tcc, local\|stream\|grpc`                                   | PostgreSQL, Jaeger, (RabbitMQ for stream)                                                                                                 |
-| **Distributed** | Each domain service runs independently. Uses Eureka for discovery (or Spring Cloud Kubernetes on K8s) and RabbitMQ or gRPC. Optionally uses `distributed-version` profile for local version ID generation via Snowflake IDs. Can also be deployed on Kubernetes. | Service-specific (e.g., `answer-service, sagas\|tcc, stream\|grpc`) | PostgreSQL (**per service** in **Docker**, **centralized** with multiple databases with **Maven**), Jaeger, Eureka, (RabbitMQ for stream) |
+| Topology | Process and Data Layout | Command Transport | Event Transport | Typical Profiles | Core Infrastructure |
+|----------|-------------------------|-------------------|-----------------|------------------|---------------------|
+| **Centralized Local** | Single application process, shared database | In-memory (local) | Internal event persistence and polling | `sagas\|tcc, local` | PostgreSQL, Jaeger |
+| **Centralized Stream** | Single application process, shared database | RabbitMQ command channels | RabbitMQ `event-channel` | `sagas\|tcc, stream` | PostgreSQL, RabbitMQ, Jaeger |
+| **Centralized gRPC** | Single application process, shared database | gRPC (discovery-based resolution) | RabbitMQ `event-channel` | `sagas\|tcc, grpc` | PostgreSQL, Eureka, RabbitMQ, Jaeger |
+| **Distributed Stream** | Independent service processes, database-per-service | RabbitMQ command channels | RabbitMQ `event-channel` | Service profile + `sagas\|tcc, stream` (e.g., `quiz-service, sagas, stream`) | PostgreSQL per service, Eureka or Spring Cloud Kubernetes, API Gateway, RabbitMQ, Jaeger |
+| **Distributed gRPC** | Independent service processes, database-per-service | gRPC (service-to-service via discovery) | RabbitMQ `event-channel` | Service profile + `sagas\|tcc, grpc` (e.g., `quiz-service, tcc, grpc`) | PostgreSQL per service, Eureka or Spring Cloud Kubernetes, API Gateway, RabbitMQ, Jaeger |
+
+Versioning option across topologies: add `distributed-version` only with `sagas` to use local Snowflake ID generation; `tcc` requires centralized version management.
 
 ## Running an Application
 
@@ -235,8 +263,8 @@ workflow focuses strictly on domain modeling, defining events, and orchestrating
 | Development Task           | Implementation Details & Example                                                                                                                                                                                                                                                                                                                                                           | Rationale (Why)                                                                                    |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
 | **Define Functionality**   | Extend [`WorkflowFunctionality`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/WorkflowFunctionality.java) to coordinate a specific use-case, e.g., [`AddParticipantFunctionalitySagas.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java). | Encapsulates one business use case as a reusable coordination unit.                                |
-| **Workflow Orchestration** | Map execution `Step`s, dependencies, and transaction triggers within [`buildWorkflow()`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java), e.g., defining `getUserStep` and `addParticipantStep` dependencies.                                                              | Makes ordering, dependency, and rollback/compensation boundaries explicit.                         |
-| **Command Dispatching**    | Instantiate remote `Command`s and dispatch via the abstract [`CommandGateway`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/CommandGateway.java), e.g., sending `AddParticipantCommand` wrapped in a `SagaCommand` with semantic locks.                                                                                                                          | Executes distributed steps through transport-agnostic contracts while preserving domain isolation. |
+| **Workflow Orchestration** | Map execution [`Step`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/Step.java)s, dependencies, and transaction triggers within [`buildWorkflow()`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java), e.g., defining `getUserStep` and `addParticipantStep` dependencies.                                                              | Makes ordering, dependency, and rollback/compensation boundaries explicit.                         |
+| **Command Dispatching**    | Instantiate remote [`Command`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/Command.java)s and dispatch via the abstract [`CommandGateway`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/CommandGateway.java), e.g., sending [`AddParticipantCommand`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/commands/tournament/AddParticipantCommand.java) wrapped in a [`SagaCommand`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/sagas/messaging/SagaCommand.java) with semantic locks.                                                                                                                          | Executes distributed steps through transport-agnostic contracts while preserving domain isolation. |
 
 For step-by-step execution details of your own business logic or new aggregates:
 
