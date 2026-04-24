@@ -2,33 +2,45 @@ package pt.ulisboa.tecnico.socialsoftware.ms.impairment;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
+@Aspect
+@Component
+@ConditionalOnProperty(prefix = "simulator.capacity-management", name = "enabled", havingValue = "true")
 public class CapacityManager {
-    private static CapacityManager instance;
-    private static String directory;
-    private static final String CONFIG_FILE = "simulator_config.json";
-    private static final String REPORT_FILE = "CapacityReport.txt";
+    // TODO - Change paths
+    @Value("${simulator.capacity-management.configuration-file:#{null}}")
+    private String CONFIG_FILE;
+    @Value("${simulator.capacity-management.report-file:#{null}}")
+    private String REPORT_FILE;
+
     private final Map<String, Semaphore> msCapacities = new ConcurrentHashMap<>();
     private final Map<String, Integer> requirements = new ConcurrentHashMap<>();
-    private volatile boolean loaded = false;
-
     private final Map<String, List<String>> waitingRequests = new ConcurrentHashMap<>();
     private final Map<String, List<String>> activeRequests = new ConcurrentHashMap<>();
     private BufferedWriter writer;
 
-    public static synchronized CapacityManager getInstance() {
-        if (instance == null) {
-            instance = new CapacityManager();
-        }
-        return instance;
+    public CapacityManager() {
+    }
+
+    @PostConstruct
+    public void init() {
+        load();
     }
 
     // ******************
@@ -36,6 +48,37 @@ public class CapacityManager {
     // ******************
 
     // --- Private Helpers ---
+
+    private synchronized void load() {
+        // Checks if the configuration file exists and loads it if possible
+        if (CONFIG_FILE == null || REPORT_FILE == null) {
+            System.err.println("CapacityManager configuration-file and report-file must be specified in application.yaml");
+            return;
+        }
+
+        initReport();
+
+        Path filePath = Paths.get(CONFIG_FILE);
+        File jsonFile = filePath.toFile();
+        if (!jsonFile.exists()) {
+            String msg = "[CapacityManager] CRITICAL: File not found at " + jsonFile.getAbsolutePath();
+            System.err.println(msg);
+            appendToReport(msg);
+            return;
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode root = mapper.readTree(jsonFile);
+            parseConfig(root);
+            System.out.println("Capacity configuration loaded from " + filePath);
+        } catch (IOException | NumberFormatException | SimulatorException e) {
+            String errorMsg = "Error loading capacity configuration: " + e.getMessage();
+            System.err.println(errorMsg);
+            appendToReport("### " + errorMsg + " ###");
+            reset();
+        }
+    }
 
     private void parseConfig(JsonNode root) throws IOException {
         Map<String, Integer> microserviceCapacities = new HashMap<>();
@@ -131,50 +174,14 @@ public class CapacityManager {
 
     // --- Public Methods ---
 
-    public static void setDirectory(String dir) {
-        directory = dir;
-    }
-
-    public synchronized void load() {
-        // Checks if the configuration file exists and loads it if possible
-        if (loaded || directory == null || directory.isEmpty()) {
-            return;
-        }
-
-        initReport();
-
-        Path filePath = Paths.get(directory, CONFIG_FILE);
-        File jsonFile = filePath.toFile();
-        if (!jsonFile.exists()) {
-            String msg = "[CapacityManager] CRITICAL: File not found at " + jsonFile.getAbsolutePath();
-            System.err.println(msg);
-            appendToReport(msg);
-            return;
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            JsonNode root = mapper.readTree(jsonFile);
-            parseConfig(root);
-            loaded = true;
-            System.out.println("Capacity configuration loaded from " + filePath);
-        } catch (IOException | NumberFormatException | SimulatorException e) {
-            String errorMsg = "Error loading capacity configuration: " + e.getMessage();
-            System.err.println(errorMsg);
-            appendToReport("### " + errorMsg + " ###");
-            reset();
-        }
-    }
-
-    public synchronized void loadConfig(String json) {
-        // Receives and a configuration and overrides the current one - used for testing
+    public synchronized void injectConfiguration(String json) {
+        // Receives a configuration and overrides the current one - used for testing
         reset();
         initReport();
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode root = mapper.readTree(json);
             parseConfig(root);
-            loaded = true;
             System.out.println("Capacity configuration loaded from JSON string");
         } catch (IOException | NumberFormatException | SimulatorException e) {
             String errorMsg = "Error loading capacity configuration from JSON: " + e.getMessage();
@@ -187,10 +194,9 @@ public class CapacityManager {
     public synchronized void reset() {
         msCapacities.clear();
         requirements.clear();
-        loaded = false;
-
         waitingRequests.clear();
         activeRequests.clear();
+
         if (writer != null) {
             try {
                 writer.close();
@@ -201,22 +207,16 @@ public class CapacityManager {
         }
     }
 
-    // ? TODO - Remove??
-    public Map<String, Integer> getAvailableCapacities() {
-        Map<String, Integer> status = new ConcurrentHashMap<>();
-        msCapacities.forEach((ms, sem) -> status.put(ms, sem.availablePermits()));
-        return status;
-    }
+    // *******************************
+    // * --- Capacity Management --- *
+    // *******************************
 
-    // ********************************************************
-    // * --- Public Functionalities (Capacity Management) --- *
-    // ********************************************************
+    // --- Private Helpers ---
 
-    public void acquire(String microserviceName, String methodName, String requestId)
+    private void acquire(String microserviceName, String methodName, String requestId)
             throws InterruptedException {
-        if (!loaded || microserviceName == null) {
+        if (microserviceName == null)
             return;
-        }
 
         Semaphore semaphore = msCapacities.get(microserviceName);
         if (semaphore == null) {
@@ -240,10 +240,9 @@ public class CapacityManager {
         }
     }
 
-    public void release(String microserviceName, String methodName, String requestId) {
-        if (!loaded || microserviceName == null) {
+    private void release(String microserviceName, String methodName, String requestId) {
+        if (microserviceName == null)
             return;
-        }
 
         String operationKey = microserviceName + "." + methodName.toLowerCase();
         Integer requirement = requirements.get(operationKey);
@@ -257,6 +256,38 @@ public class CapacityManager {
         }
     }
 
+    private String resolveMicroserviceName(Class<?> serviceClass) {
+        String packageName = serviceClass.getPackageName();
+        String[] packageTokens = packageName.split("\\.");
+        for (int i = 0; i < packageTokens.length - 1; i++) {
+            if ("microservices".equals(packageTokens[i])) {
+                return packageTokens[i + 1].toLowerCase();
+            }
+        }
+        return null;
+    }
+
+    // --- Main Method ---
+
+    @Around("execution(public * pt.ulisboa.tecnico.socialsoftware.quizzes.microservices..service.*.*(..))")
+    public Object applyMicroserviceCapacity(ProceedingJoinPoint joinPoint) throws Throwable {
+
+        String methodName = joinPoint.getSignature().getName().toLowerCase();
+        String microserviceName = resolveMicroserviceName(joinPoint.getTarget().getClass());
+        String requestId = UUID.randomUUID().toString().substring(0, 8);
+
+        try {
+            acquire(microserviceName, methodName, requestId);
+            return joinPoint.proceed();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(
+                    "Interrupted while waiting for capacity for service " + microserviceName + "." + methodName, e);
+        } finally {
+            release(microserviceName, methodName, requestId);
+        }
+    }
+
     // **************************
     // * --- Report Logging --- *
     // **************************
@@ -264,17 +295,18 @@ public class CapacityManager {
     // ---Private Helpers ---
 
     private void initReport() {
-        if (directory != null && !directory.isEmpty()) {
-            try {
-                if (writer != null) {
-                    writer.close();
-                }
-                Path reportPath = Paths.get(directory, REPORT_FILE);
-                writer = new BufferedWriter(new FileWriter(reportPath.toFile(), false));
-                appendToReport("### CAPACITY MANAGER REPORT STARTED: " + new Date() + " ###");
-            } catch (IOException e) {
-                System.err.println("Error initializing capacity report: " + e.getMessage());
+        if (REPORT_FILE == null)
+            return;
+
+        try {
+            if (writer != null) {
+                writer.close();
             }
+            Path reportPath = Paths.get(REPORT_FILE);
+            writer = new BufferedWriter(new FileWriter(reportPath.toFile(), false));
+            appendToReport("### CAPACITY MANAGER REPORT STARTED: " + new Date() + " ###");
+        } catch (IOException e) {
+            System.err.println("Error initializing capacity report: " + e.getMessage());
         }
     }
 
@@ -309,10 +341,10 @@ public class CapacityManager {
     // --- Public Methods ---
 
     public String getReport() {
-        if (directory == null || directory.isEmpty()) {
+        if (REPORT_FILE == null)
             return "";
-        }
-        Path reportPath = Paths.get(directory, REPORT_FILE);
+
+        Path reportPath = Paths.get(REPORT_FILE);
         if (!Files.exists(reportPath)) {
             return "";
         }
@@ -325,14 +357,14 @@ public class CapacityManager {
     }
 
     public void cleanReportFile() {
-        if (directory == null || directory.isEmpty()) {
+        if (REPORT_FILE == null)
             return;
-        }
-        Path reportPath = Paths.get(directory, REPORT_FILE);
+
+        Path reportPath = Paths.get(REPORT_FILE);
         try {
-            Files.deleteIfExists(reportPath);
+            Files.writeString(reportPath, "", StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            System.err.println("Error deleting capacity report: " + e.getMessage());
+            System.err.println("Error cleaning capacity report: " + e.getMessage());
         }
     }
 }

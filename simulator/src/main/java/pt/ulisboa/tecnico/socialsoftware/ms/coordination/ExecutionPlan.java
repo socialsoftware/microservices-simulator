@@ -40,8 +40,6 @@ public class ExecutionPlan {
 
         behaviour = ImpairmentHandler.getInstance().getBehaviour(functionality, plan);
         ImpairmentHandler.getInstance().appendToReport(reportSteps(behaviour));
-        
-        CapacityManager.getInstance().load();
 
         this.traceManager = TraceManager.getInstance();
     }

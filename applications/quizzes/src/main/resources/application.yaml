@@ -27,6 +27,10 @@ simulator:
   service-method-profiling:
     enabled: false
     output-file: /src/test/resources/service-hardware-profiling.txt
+  capacity-management:
+    enabled: false
+    configuration-file: /src/test/resources/quizzes-configuration.json
+    report-file: /src/test/resources/locust/CapacityReport.txt
 
 management:
   endpoints:

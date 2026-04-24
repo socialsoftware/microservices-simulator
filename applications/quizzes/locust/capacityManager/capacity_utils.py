@@ -14,7 +14,7 @@ class CapacityValidatorUtils:
     @staticmethod
     def get_report():
         try:
-            return requests.get(f"{GATEWAY}/capacity/report").text
+            return requests.get(f"{GATEWAY}/capacity/report/read").text
         except Exception as e:
             logging.error(f"Failed to fetch capacity report: {e}")
             return ""
@@ -64,10 +64,8 @@ class CapacityAdminUtils:
     @staticmethod
     def start_and_load(config=None):
         """Starts the simulator and loads capacity configuration"""
-        requests.get(f"{GATEWAY}/capacity/reset").raise_for_status()
         requests.get(f"{GATEWAY}/behaviour/reset").raise_for_status()
-        requests.get(f"{GATEWAY}/capacity/clean").raise_for_status()
-        requests.post(f"{GATEWAY}/capacity/load?dir=locust").raise_for_status()
+        requests.get(f"{GATEWAY}/capacity/report/clean").raise_for_status()
         if config:
             requests.post(f"{GATEWAY}/capacity/inject",
                           json=config).raise_for_status()

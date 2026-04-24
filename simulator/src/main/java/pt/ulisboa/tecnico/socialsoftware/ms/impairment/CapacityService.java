@@ -1,37 +1,32 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.impairment;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 @Service
 public class CapacityService {
-    private static String directory;
-
-    public void loadDir(String dir, String testNameFile) {
-        directory = dir + "/src/test/resources/" + testNameFile + "/";
-        CapacityManager.getInstance().reset();
-        CapacityManager.setDirectory(directory);
-        CapacityManager.getInstance().load();
-    }
+    @Autowired(required = false)
+    private CapacityManager manager;
 
     public void reset() {
-        CapacityManager.getInstance().reset();
-    }
-
-    public Map<String, Integer> getAvailableCapacities() {
-        return CapacityManager.getInstance().getAvailableCapacities();
-    }
-
-    public String getReport() {
-        return CapacityManager.getInstance().getReport();
+        if (manager != null) {
+            manager.reset();
+        }
     }
 
     public void cleanReportFile() {
-        CapacityManager.getInstance().cleanReportFile();
+        if (manager != null) {
+            manager.cleanReportFile();
+        }
+    }
+
+    public String getReport() {
+        return manager != null ? manager.getReport() : "Capacity management is disabled.";
     }
 
     public void injectCapacities(String json) {
-        CapacityManager.getInstance().loadConfig(json);
+        if (manager != null) {
+            manager.injectConfiguration(json);
+        }
     }
 }
