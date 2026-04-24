@@ -95,6 +95,7 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 **Write functionalities:**
 - `CreateCourse(name, type)` — create a new course
 - `UpdateCourse(courseId, name, type)` — update course name or type
+  > ⚠️ **Contradiction:** `UpdateCourse` lists `name` and `type` as mutable, but both `COURSE_NAME_FINAL` and `COURSE_TYPE_FINAL` are classified as P1 (Java `final` fields — immutable). Resolve before implementing session 2.1.b: either remove `UpdateCourse` or reclassify those fields.
 - `DeleteCourse(courseId)` — soft-delete a course
 
 **Read functionalities:**
@@ -109,7 +110,7 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 
 | Session | Files |
 |---------|-------|
-| 2.1.a | `aggregate/Course.java`, `aggregate/sagas/SagaCourse.java`, `aggregate/sagas/states/CourseSagaState.java`, `aggregate/sagas/factories/SagasCourseFactory.java`, `aggregate/sagas/repositories/CourseCustomRepositorySagas.java`, `aggregate/CourseDto.java`, `aggregate/CourseRepository.java`, `sagas/course/CourseTest.groovy` |
+| 2.1.a | `aggregate/Course.java`, `aggregate/CourseType.java`, `aggregate/sagas/SagaCourse.java`, `aggregate/sagas/states/CourseSagaState.java`, `aggregate/sagas/factories/SagasCourseFactory.java`, `aggregate/sagas/repositories/CourseCustomRepositorySagas.java`, `aggregate/CourseDto.java`, `aggregate/CourseRepository.java`, `sagas/course/CourseTest.groovy` |
 | 2.1.b | `service/CourseService.java` (write methods), `messaging/CourseCommandHandler.java`, `commands/course/CreateCourseCommand.java`, `commands/course/UpdateCourseCommand.java`, `commands/course/DeleteCourseCommand.java`, `commands/course/DecrementExecutionCountCommand.java`, `commands/course/DecrementQuestionCountCommand.java`, `coordination/sagas/CreateCourseFunctionalitySagas.java`, `coordination/sagas/UpdateCourseFunctionalitySagas.java`, `coordination/sagas/DeleteCourseFunctionalitySagas.java`, `sagas/coordination/course/CreateCourseTest.groovy`, `sagas/coordination/course/UpdateCourseTest.groovy`, `sagas/coordination/course/DeleteCourseTest.groovy` |
 | 2.1.c | `service/CourseService.java` (read methods appended), `commands/course/GetCourseByIdCommand.java`, `coordination/sagas/GetCourseByIdFunctionalitySagas.java`, `sagas/coordination/course/GetCourseByIdTest.groovy` |
 

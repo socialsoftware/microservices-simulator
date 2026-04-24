@@ -114,12 +114,25 @@ Replace `- [ ] 2.{N}.{type}` with `- [x] 2.{N}.{type}` in plan.md.
 
 ---
 
+## Step 5b: Patch plan.md for Missing Files
+
+While producing files, note any file that should exist but is absent from plan.md's file table for this session — for example, an enum type class (e.g., `CourseType.java`) for an aggregate field typed as that enum, or an owned entity class referenced in the domain model.
+
+- For **unambiguous** omissions (a file you had to create to make the code compile): add it to the appropriate session row in plan.md and record it in the final report.
+- For **ambiguous** cases (you are unsure whether a file belongs or should be generated elsewhere): ask the user before adding.
+
+---
+
 ## Step 6: Report Completion
 
-After ticking the checkbox:
-1. List all files created or modified (with full paths)
-2. State which checkbox was ticked
-3. State what comes next: "Next session: 2.{N}.{next-type}" or "Aggregate {Aggregate} is complete. Next: aggregate {N+1}."
+After ticking the checkbox, output a concise structured report:
+
+1. **Files produced** — list all files created or modified (full paths)
+2. **Checkbox ticked** — e.g., `[x] 2.1.a`
+3. **plan.md additions** — any files added to the plan.md file table during this session (Step 5b), and why
+4. **Contradictions / problems** — any contradiction between plan.md and the domain model or rule classification (e.g., a write functionality that mutates a field marked P1 final), or any pattern that didn't match the docs and required consulting the reference app
+5. **Reference app consulted** — list any files read from `applications/quizzes/` and what question each resolved (signals for future doc improvement)
+6. **Next session** — "Next: 2.{N}.{next-type}" or "Aggregate {Aggregate} complete. Next: aggregate {N+1}."
 
 ---
 

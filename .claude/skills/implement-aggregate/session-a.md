@@ -56,9 +56,9 @@ Path: `{src}microservices/{aggregate}/aggregate/{Entity}.java`
 Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
 
 - Extends `{Aggregate}`, implements `SagaAggregate`
-- Adds a `sagaState` field of type `{Aggregate}SagaState` (JPA `@Enumerated(EnumType.STRING)`)
-- Implements `getSagaState()` and `setSagaState(SagaState state)` — cast to `{Aggregate}SagaState`
-- Constructor delegates to super
+- Adds a `sagaState` field of type `SagaAggregate.SagaState` (the interface) — **no** JPA annotation; the simulator's `SagaStateConverter` handles persistence
+- Constructor delegates to super and initializes `sagaState` to `GenericSagaState.NOT_IN_SAGA`
+- Implements `getSagaState()` returning the field; `setSagaState(SagaState state)` sets it directly (field type is the interface, no cast needed)
 - No other logic
 
 ### `{Aggregate}SagaState.java`
@@ -66,26 +66,28 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
 Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaState.java`
 
 - Enum implementing `SagaState`
-- One value per **write functionality** that acquires a lock on this aggregate (see write functionalities in plan.md)
 - Always includes `NOT_IN_SAGA`
-- Example values: `NOT_IN_SAGA`, `CREATE_{AGGREGATE}_SAGA`, `UPDATE_{AGGREGATE}_SAGA`, etc.
+- Include `IN_UPDATE_{AGGREGATE}` and `IN_DELETE_{AGGREGATE}` (or similar) for write sagas that **modify an existing instance** — these sagas lock an existing aggregate
+- **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock
+- Include `READ_{AGGREGATE}` if other aggregates use this aggregate as a cross-aggregate prerequisite (another aggregate's write saga fetches this one's DTO — check plan.md's write functionalities for other aggregates)
 
 ### `Sagas{Aggregate}Factory.java`
 
 Path: `{src}microservices/{aggregate}/aggregate/sagas/factories/Sagas{Aggregate}Factory.java`
 
-- Implements `SagasAggregateDomainEntityFactory<Saga{Aggregate}>`
-- `createAggregate(...)`: calls `new Saga{Aggregate}(...)` then sets `sagaState = NOT_IN_SAGA`; returns it
-- `createAggregateCopy(Saga{Aggregate} prev)`: creates a new `Saga{Aggregate}` with the same field values as `prev`, then sets `sagaState = NOT_IN_SAGA`
+- Plain `@Service @Profile("sagas")` class — no interface to implement (quizzes-full has no TCC variant, so no factory interface is required)
+- Three methods:
+  - `create{Aggregate}(aggregateId, ...)` — calls `new Saga{Aggregate}(...)`, sets `sagaState = GenericSagaState.NOT_IN_SAGA`, returns it
+  - `create{Aggregate}Copy(Saga{Aggregate} existing)` — constructs a new `Saga{Aggregate}` with the same field values as `existing`, sets `sagaState = GenericSagaState.NOT_IN_SAGA`, returns it
+  - `create{Aggregate}Dto({Aggregate} {aggregate})` — wraps the aggregate in a `{Aggregate}Dto` and returns it
 
 ### `{Aggregate}CustomRepositorySagas.java`
 
 Path: `{src}microservices/{aggregate}/aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`
 
-- Interface extending `CustomRepositorySagas<Saga{Aggregate}>`
-- Declares:
-  - `Saga{Aggregate} getLatestVersion(Integer aggregateId, UnitOfWork unitOfWork)`
-  - `Saga{Aggregate} findSagaAggregateById(Integer aggregateId, SagaUnitOfWorkService unitOfWorkService)`
+- Concrete `@Service @Profile("sagas")` class (not an interface)
+- Has an `@Autowired {Aggregate}Repository {aggregate}Repository` field
+- Add custom JPQL query methods only as needed; for aggregates with no cross-table lookups, the class body can be left empty (just the class declaration with the autowired repository)
 
 ### `{Aggregate}Repository.java`
 
@@ -110,8 +112,8 @@ Path: `{test}sagas/{aggregate}/{Aggregate}Test.groovy`
 - Extends `{AppClass}SpockTest`
 - One `def "create {Aggregate}"()` test per constructor variant that is valid
 - One `def "create {Aggregate} — {violation}"()` test per P1 rule violation (one test per rule)
-- Uses `{AppClass}SpockTest` helper methods where available; creates prerequisite aggregates via those helpers
-- Asserts: fields set correctly, `verifyInvariants()` passes on valid input, `{AppClass}Exception` thrown (with correct error message) on each violation
+- **Do not** use `{AppClass}Functionalities.create{Aggregate}(...)` — write functionalities are not available until session b. Instead, instantiate `Saga{Aggregate}` directly (e.g., `new Saga{Aggregate}(1, 'name', Type.VALUE)`) and call `verifyInvariants()` explicitly to trigger violation checks
+- Asserts: fields set correctly on valid input; `{AppClass}Exception` thrown (with the correct error message constant) on each violation
 
 ### Error message constants
 
