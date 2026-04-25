@@ -140,12 +140,12 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 
 | Session | Files |
 |---------|-------|
-| 2.2.a | `aggregate/User.java`, `aggregate/sagas/SagaUser.java`, `aggregate/sagas/states/UserSagaState.java`, `aggregate/sagas/factories/SagasUserFactory.java`, `aggregate/sagas/repositories/UserCustomRepositorySagas.java`, `aggregate/UserDto.java`, `aggregate/UserRepository.java`, `sagas/user/UserTest.groovy` |
+| 2.2.a | `aggregate/User.java`, `aggregate/UserRole.java`, `aggregate/sagas/SagaUser.java`, `aggregate/sagas/states/UserSagaState.java`, `aggregate/UserFactory.java`, `aggregate/sagas/factories/SagasUserFactory.java`, `aggregate/UserCustomRepository.java`, `aggregate/sagas/repositories/UserCustomRepositorySagas.java`, `aggregate/UserDto.java`, `aggregate/UserRepository.java`, `sagas/user/UserTest.groovy` |
 | 2.2.b | `service/UserService.java` (write methods), `messaging/UserCommandHandler.java`, `commands/user/DeleteUserCommand.java`, `commands/user/UpdateUserNameCommand.java`, `commands/user/AnonymizeUserCommand.java`, `coordination/sagas/DeleteUserFunctionalitySagas.java`, `sagas/coordination/user/DeleteUserTest.groovy` |
 | 2.2.c | `service/UserService.java` (read methods appended), `commands/user/GetUserByIdCommand.java`, `coordination/sagas/GetUserByIdFunctionalitySagas.java`, `sagas/coordination/user/GetUserByIdTest.groovy` |
 
 **Checklist:**
-- [ ] 2.2.a — Domain layer
+- [x] 2.2.a — Domain layer
 - [ ] 2.2.b — Write functionalities
 - [ ] 2.2.c — Read functionalities
 

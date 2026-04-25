@@ -33,4 +33,8 @@ public final class QuizzesFullErrorMessage {
             "Cannot delete the last course execution of a course that still has questions.";
     public static final String COURSE_FIELDS_IMMUTABLE =
             "Course name and type are immutable (P1 final fields) and cannot be updated.";
+
+    // User
+    public static final String USER_DELETED_STATE =
+            "A deleted user must have active set to false.";
 }
