@@ -71,23 +71,42 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaStat
 - **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock
 - Include `READ_{AGGREGATE}` if other aggregates use this aggregate as a cross-aggregate prerequisite (another aggregate's write saga fetches this one's DTO — check plan.md's write functionalities for other aggregates)
 
+### `{Aggregate}Factory.java` (interface)
+
+Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}Factory.java`
+
+- Plain Java interface — no annotations
+- Three methods typed against the abstract aggregate and DTO (no sagas-specific types in the signature):
+  - `{Aggregate} create{Aggregate}(Integer aggregateId, ...)` — returns `{Aggregate}` (abstract base)
+  - `{Aggregate} create{Aggregate}Copy({Aggregate} existing)` — returns `{Aggregate}`
+  - `{Aggregate}Dto create{Aggregate}Dto({Aggregate} {aggregate})` — returns the DTO
+
 ### `Sagas{Aggregate}Factory.java`
 
 Path: `{src}microservices/{aggregate}/aggregate/sagas/factories/Sagas{Aggregate}Factory.java`
 
-- Plain `@Service @Profile("sagas")` class — no interface to implement (quizzes-full has no TCC variant, so no factory interface is required)
-- Three methods:
-  - `create{Aggregate}(aggregateId, ...)` — calls `new Saga{Aggregate}(...)`, sets `sagaState = GenericSagaState.NOT_IN_SAGA`, returns it
-  - `create{Aggregate}Copy(Saga{Aggregate} existing)` — constructs a new `Saga{Aggregate}` with the same field values as `existing`, sets `sagaState = GenericSagaState.NOT_IN_SAGA`, returns it
-  - `create{Aggregate}Dto({Aggregate} {aggregate})` — wraps the aggregate in a `{Aggregate}Dto` and returns it
+- `@Service @Profile("sagas") public class Sagas{Aggregate}Factory implements {Aggregate}Factory`
+- Three methods implementing the interface — may use covariant return types (`Saga{Aggregate}`) but must cast internally when needed:
+  - `create{Aggregate}(aggregateId, ...)` — `return new Saga{Aggregate}(...)` (override)
+  - `create{Aggregate}Copy({Aggregate} existing)` — cast to `Saga{Aggregate}` inside: `return new Saga{Aggregate}((Saga{Aggregate}) existing)` (override)
+  - `create{Aggregate}Dto({Aggregate} {aggregate})` — `return new {Aggregate}Dto({aggregate})` (override)
+- The service layer injects `{Aggregate}Factory` (the interface), never `Sagas{Aggregate}Factory` directly.
+
+### `{Aggregate}CustomRepository.java` (interface)
+
+Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}CustomRepository.java`
+
+- Plain Java interface — no annotations
+- Declare only the custom query method signatures needed by the service (no Spring Data JPA auto-magic here — implementations provide JPQL). For aggregates with no cross-table lookups, the interface body can be empty.
+- The service layer injects this interface, never the concrete sagas class.
 
 ### `{Aggregate}CustomRepositorySagas.java`
 
 Path: `{src}microservices/{aggregate}/aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`
 
-- Concrete `@Service @Profile("sagas")` class (not an interface)
+- `@Service @Profile("sagas") public class {Aggregate}CustomRepositorySagas implements {Aggregate}CustomRepository`
 - Has an `@Autowired {Aggregate}Repository {aggregate}Repository` field
-- Add custom JPQL query methods only as needed; for aggregates with no cross-table lookups, the class body can be left empty (just the class declaration with the autowired repository)
+- Add custom JPQL query method implementations only as needed; for aggregates with no cross-table lookups, the class body can be left empty beyond the autowired repository
 
 ### `{Aggregate}Repository.java`
 

@@ -5,7 +5,6 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseType
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.SagaCourse
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
@@ -20,13 +19,13 @@ class CourseTest extends QuizzesFullSpockTest {
 
     def "create course"() {
         when:
-        def course = new SagaCourse(1, "Software Engineering", "TECNICO")
+        def courseDto = createCourse(COURSE_NAME_1, COURSE_TYPE_TECNICO)
 
         then:
-        course.name == "Software Engineering"
-        course.type == CourseType.TECNICO
-        course.executionCount == 0
-        course.questionCount == 0
+        courseDto.name == COURSE_NAME_1
+        courseDto.type == COURSE_TYPE_TECNICO
+        courseDto.executionCount == 0
+        courseDto.questionCount == 0
     }
 
     def "create course — CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT"() {

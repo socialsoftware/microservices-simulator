@@ -34,6 +34,8 @@ public class ExecutionService {
 
 Never inject a foreign service class or a foreign repository — see [R1, R2 in architecture.md](../architecture.md).
 
+> **Inject factories and repositories via their abstract interfaces, not the concrete sagas-profile classes.** The example above injects `CourseExecutionFactory` (the interface defined in `aggregate/`) — `SagasCourseExecutionFactory` is never referenced in the service. This keeps the service layer profile-agnostic and allows a TCC or other implementation to be wired in without touching the service.
+
 ---
 
 ## Method Patterns

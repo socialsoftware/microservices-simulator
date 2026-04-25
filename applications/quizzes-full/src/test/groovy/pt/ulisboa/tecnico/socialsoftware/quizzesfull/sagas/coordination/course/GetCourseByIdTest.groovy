@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto
 
 @DataJpaTest
+@org.springframework.transaction.annotation.Transactional
 @Import(LocalBeanConfiguration)
 class GetCourseByIdTest extends QuizzesFullSpockTest {
 

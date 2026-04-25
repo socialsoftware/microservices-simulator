@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.Qui
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 
 @DataJpaTest
+@org.springframework.transaction.annotation.Transactional
 @Import(LocalBeanConfiguration)
 class UpdateCourseTest extends QuizzesFullSpockTest {
 
