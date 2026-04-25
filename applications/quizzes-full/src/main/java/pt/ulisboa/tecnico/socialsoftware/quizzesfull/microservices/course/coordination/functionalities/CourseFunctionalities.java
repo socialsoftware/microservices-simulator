@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.CreateCourseFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.DeleteCourseFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.GetCourseByIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.UpdateCourseFunctionalitySagas;
 
 @Service
@@ -18,6 +19,15 @@ public class CourseFunctionalities {
 
     @Autowired
     private CommandGateway commandGateway;
+
+    public CourseDto getCourseById(Integer courseAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        GetCourseByIdFunctionalitySagas saga = new GetCourseByIdFunctionalitySagas(
+                unitOfWorkService, courseAggregateId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getCourseDto();
+    }
 
     public CourseDto createCourse(String name, String type) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();

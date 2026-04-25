@@ -117,7 +117,7 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 **Checklist:**
 - [x] 2.1.a — Domain layer
 - [x] 2.1.b — Write functionalities
-- [ ] 2.1.c — Read functionalities
+- [x] 2.1.c — Read functionalities
 
 ---
 
