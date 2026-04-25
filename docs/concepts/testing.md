@@ -157,6 +157,23 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 }
 ```
 
+### Not-Found Assertions
+
+Aggregate-not-found is thrown by the infrastructure (`SagaUnitOfWorkService.aggregateLoadAndRegisterRead`) as `SimulatorException` — **not** the app-level exception. Use `thrown(SimulatorException)` for these cases and import it at the top of the test file:
+
+```groovy
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+
+def "<functionalityName>: aggregate not found"() {
+    when:
+    <primary>Functionalities.<functionalityName>(999 /* non-existent id */)
+    then:
+    thrown(SimulatorException)
+}
+```
+
+Domain and guard violations (invariants, business rules enforced in the service layer) throw `<App>Exception`. Infrastructure not-found always throws `SimulatorException`.
+
 ---
 
 ## T3 — Inter-Invariant Test

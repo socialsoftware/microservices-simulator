@@ -63,8 +63,18 @@ Path: `commands/{aggregate}/{Query}Command.java`
 Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySagas.java`
 
 - Extends the read-functionality base class from simulator core
-- Single step: send `{Query}Command` to `{Aggregate}CommandHandler`, return the result DTO
+- Single step: send `{Query}Command` to `{Aggregate}CommandHandler`, store the result DTO in an instance field
+- Provide a getter for the result DTO
 - No compensation needed (reads are non-mutating)
+- See `docs/concepts/sagas.md` — "Read Functionality Sagas" section for the full class template
+
+### Read method appended to `{Aggregate}Functionalities.java`
+
+Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Functionalities.java`
+
+- **Append** one method per read functionality — do not rewrite the file
+- The method creates a `SagaUnitOfWork`, instantiates the `{Query}FunctionalitySagas` inline, calls `executeWorkflow`, and returns the DTO via `saga.get{Aggregate}Dto()`
+- Follow the same pattern as the write coordinator methods added in session `b`
 
 ### One `{Query}Test.groovy` per read functionality (T2)
 
@@ -72,22 +82,13 @@ Path: `{test}sagas/coordination/{aggregate}/{Query}Test.groovy`
 
 - Extends `{AppClass}SpockTest`
 - **Happy-path test**: create the aggregate using the `{AppClass}SpockTest` helper (or directly), execute the read, assert the returned DTO matches the aggregate's state
-- **Not-found test**: execute the read with a non-existent id, assert `{AppClass}Exception` is thrown
+- **Not-found test**: execute the read with a non-existent id, assert `SimulatorException` is thrown (the infrastructure throws `SimulatorException` when an aggregate ID does not exist — not the app-level exception; the app exception is only thrown by domain/service guards)
 
 ---
 
-## Update BeanConfigurationSagas.groovy
+## BeanConfigurationSagas — No Change Needed
 
-Open `{bean-config}` and add one `@Bean` method per read `FunctionalitySagas` class:
-
-```groovy
-@Bean
-{Query}FunctionalitySagas {query}FunctionalitySagas() {
-    return new {Query}FunctionalitySagas()
-}
-```
-
-Add the corresponding `import` statements. Place new beans after the write functionality beans added in session `b` for this aggregate.
+`FunctionalitySagas` classes receive a `SagaUnitOfWork` in their constructor and are instantiated *inline* inside coordinator methods — they are per-request objects, not Spring singletons. The `{Aggregate}Functionalities` coordinator bean was already registered in `{bean-config}` during session `b`. **Do not add any `@Bean` method for `FunctionalitySagas` classes.**
 
 ---
 

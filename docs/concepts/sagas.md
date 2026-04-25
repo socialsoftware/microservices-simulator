@@ -87,7 +87,52 @@ SagaStep addParticipantStep = new SagaStep("addParticipantStep", () -> {
 
 `setForbiddenStates(...)` causes the command handler to check the current saga state and throw if it matches any forbidden state.
 
-## Workflow Structure
+## Read Functionality Sagas
+
+Read sagas are a thin single-step wrapper. They have no compensation, no forbidden states, and no semantic lock acquisition — reads are non-mutating.
+
+```java
+public class Get{Aggregate}ByIdFunctionalitySagas extends WorkflowFunctionality {
+    private {Aggregate}Dto {aggregate}Dto;
+
+    public Get{Aggregate}ByIdFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+            Integer {aggregate}AggregateId,
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+        buildWorkflow(unitOfWorkService, {aggregate}AggregateId, unitOfWork, commandGateway);
+    }
+
+    public void buildWorkflow(SagaUnitOfWorkService unitOfWorkService,
+            Integer {aggregate}AggregateId,
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+        SagaStep get{Aggregate}Step = new SagaStep("get{Aggregate}Step", () -> {
+            Get{Aggregate}ByIdCommand cmd = new Get{Aggregate}ByIdCommand(
+                    unitOfWork, ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}AggregateId);
+            this.{aggregate}Dto = ({Aggregate}Dto) commandGateway.send(cmd);
+        });
+
+        this.workflow.addStep(get{Aggregate}Step);
+    }
+
+    public {Aggregate}Dto get{Aggregate}Dto() {
+        return {aggregate}Dto;
+    }
+}
+```
+
+The coordinator method creates it inline and returns the DTO via the getter:
+
+```java
+Get{Aggregate}ByIdFunctionalitySagas saga = new Get{Aggregate}ByIdFunctionalitySagas(
+        unitOfWorkService, aggregateId, unitOfWork, commandGateway);
+saga.executeWorkflow(unitOfWork);
+return saga.get{Aggregate}Dto();
+```
+
+Reference: `applications/quizzes/.../execution/coordination/sagas/GetCourseExecutionByIdFunctionalitySagas.java`
+
+## Write Workflow Structure
 
 ```java
 public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
