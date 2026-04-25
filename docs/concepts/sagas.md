@@ -33,6 +33,43 @@ public enum CourseExecutionSagaState implements SagaAggregate.SagaState {
 }
 ```
 
+## Lock-Acquisition Step Pattern (Two-Step Write Sagas)
+
+Write sagas that must lock the primary aggregate before mutating it use a two-step pattern:
+
+- **Step 1 — read + lock**: wrap the read command in `SagaCommand`, then call `setSemanticLock(state)` to atomically check the current state and transition to the new one.
+- **Step 2 — mutate**: send a plain (unwrapped) command that performs the mutation; declare step 1 as a dependency.
+
+```java
+// Step 1: acquire lock
+SagaStep getCourseStep = new SagaStep("getCourseStep", () -> {
+    GetCourseByIdCommand readCmd = new GetCourseByIdCommand(
+            unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
+    SagaCommand sagaCommand = new SagaCommand(readCmd);
+    sagaCommand.setSemanticLock(CourseSagaState.IN_UPDATE_COURSE);
+    this.courseDto = (CourseDto) commandGateway.send(sagaCommand);
+});
+
+// Compensation for step 1: release the lock
+SagaStep getCourseStep = new SagaStep("getCourseStep",
+    /* execute */ () -> { ... },
+    /* compensate */ () -> {
+        SagaCommand release = new SagaCommand(
+                new GetCourseByIdCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId));
+        release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+        commandGateway.send(release);
+    });
+
+// Step 2: mutate (plain command, no SagaCommand wrapper)
+SagaStep updateCourseStep = new SagaStep("updateCourseStep", () -> {
+    UpdateCourseCommand cmd = new UpdateCourseCommand(
+            unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId, name);
+    commandGateway.send(cmd);
+}, new ArrayList<>(Arrays.asList(getCourseStep)));
+```
+
+Contrast with plain `setForbiddenStates(...)` (shown below): that checks whether an existing lock blocks this operation, but does **not** set a new lock. `SagaCommand` + `setSemanticLock(...)` both checks and transitions atomically.
+
 ## Semantic Locks in Practice
 
 A step acquires a lock by setting the saga state on the command:

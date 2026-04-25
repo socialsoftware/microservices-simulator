@@ -140,7 +140,9 @@ public class TournamentCommandHandler extends CommandHandler {
 }
 ```
 
-`getAggregateTypeName()` must return the same string used as `serviceName` in the command constructor and in `ServiceMapping`.
+`getAggregateTypeName()` returns a PascalCase name (e.g. `"Course"`) used by `CommandHandlerDecorator` for decorator lookup — it is **not** the routing key.
+
+**Actual routing:** `LocalCommandService.send()` resolves the handler via `applicationContext.getBean(command.getServiceName() + "CommandHandler")`. The Spring bean name of the `CommandHandler` **must** equal `ServiceMapping.{AGGREGATE}.getServiceName() + "CommandHandler"` (e.g. `"courseCommandHandler"`). The `@Bean` method in `BeanConfigurationSagas` must use that exact lowercase camelCase name.
 
 Mutating handlers return `null`; read handlers return the DTO produced by the service method.
 

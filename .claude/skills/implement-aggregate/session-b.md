@@ -41,6 +41,10 @@ Load these files before writing any code:
 
 Produce every file listed in the plan.md `2.{N}.b` row. The authoritative file list is in plan.md — use it exactly. The descriptions below explain what each file must contain.
 
+> **Prerequisite — ServiceMapping**: Verify that `{src}{AppClass}/ServiceMapping.java` exists and contains an entry for `{AGGREGATE}`. If not, create it (or add the missing entry) before writing any commands — every command constructor references `ServiceMapping.{AGGREGATE}.getServiceName()`.
+
+> **Prerequisite — `Get{Aggregate}ByIdCommand`**: If `Get{Aggregate}ByIdCommand` does not yet exist (it may be planned for session-c), create it now. Write sagas that use a get-then-lock step require this read command in session-b.
+
 ### `{Aggregate}Service.java` (write methods)
 
 Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
@@ -84,6 +88,20 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Op}FunctionalitySagas.
   4. *(For multi-aggregate sagas)* Steps for other aggregates involved
 - Each data-assembly step that enforces a **P4a rule**: if the upstream command/query fails (throws), the prerequisite is considered violated — no extra guard needed in the service
 - Each `executeStep` that can fail has a matching `compensateStep` that rolls back the change
+
+### `{Aggregate}Functionalities.java`
+
+Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Functionalities.java`
+
+- Spring `@Service`
+- One public method per write functionality (matching the saga class name)
+- Each method:
+  1. Derives `functionalityName` via `new Throwable().getStackTrace()[0].getMethodName()`
+  2. Creates a `SagaUnitOfWork` with `unitOfWorkService.createUnitOfWork(functionalityName)`
+  3. Instantiates the corresponding `{Op}FunctionalitySagas` directly (not as a Spring bean)
+  4. Calls `executeWorkflow(uow)` on it
+  5. Returns the result DTO (or `void` for mutations)
+- Tests `@Autowired` this class and call its methods directly
 
 ### One `{Op}Test.groovy` per write functionality (T2)
 
@@ -130,14 +148,29 @@ Open `{bean-config}` and add new `@Bean` methods for:
     return new {Aggregate}CommandHandler()
 }
 
-// One bean per write FunctionalitySagas class:
 @Bean
-{Op}FunctionalitySagas {op}FunctionalitySagas() {
-    return new {Op}FunctionalitySagas()
+{Aggregate}Functionalities {aggregate}Functionalities() {
+    return new {Aggregate}Functionalities()
 }
 ```
 
+**Note:** `{Op}FunctionalitySagas` classes are **not** Spring beans — they are instantiated inline inside `{Aggregate}Functionalities`. Only the three beans above are needed per aggregate.
+
 Add the corresponding `import` statements. Place new beans after the beans added in session `a` for this aggregate.
+
+---
+
+## Update `{AppClass}SpockTest.groovy`
+
+Open `{test}{AppClass}SpockTest.groovy` and add:
+
+1. An `@Autowired(required = false)` field for the functionalities class:
+   ```groovy
+   @Autowired(required = false)
+   protected {Aggregate}Functionalities {aggregate}Functionalities
+   ```
+
+2. A `create{Aggregate}(...)` helper method that calls `{aggregate}Functionalities.create{Aggregate}(...)` with a minimal valid DTO and returns the resulting aggregate ID. Tests use this helper in their `setup:` block to satisfy prerequisites.
 
 ---
 

@@ -125,6 +125,16 @@ public void removeCourseExecution(Integer executionAggregateId, UnitOfWork unitO
 
 Never mutate the aggregate instance returned by `aggregateLoadAndRegisterRead`. Always create a new version via `factory.createXxxFromExisting(old)` and mutate that copy. The old version remains in the UoW read set for conflict detection; the new version is the write target.
 
+**Exception — soft-delete (`remove()`):** When a service method calls `aggregate.remove()` to transition the aggregate to a terminal deleted state, mutate the loaded aggregate in-place and register it directly:
+
+```java
+Course course = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+course.remove();
+unitOfWorkService.registerChanged(course, unitOfWork);
+```
+
+No factory copy is needed. `remove()` is a terminal state transition; it does not interact with version-merge conflict detection.
+
 ---
 
 ## P3 Guard Placement
