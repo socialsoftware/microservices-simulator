@@ -111,12 +111,12 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 | Session | Files |
 |---------|-------|
 | 2.1.a | `aggregate/Course.java`, `aggregate/CourseType.java`, `aggregate/sagas/SagaCourse.java`, `aggregate/sagas/states/CourseSagaState.java`, `aggregate/sagas/factories/SagasCourseFactory.java`, `aggregate/sagas/repositories/CourseCustomRepositorySagas.java`, `aggregate/CourseDto.java`, `aggregate/CourseRepository.java`, `sagas/course/CourseTest.groovy` |
-| 2.1.b | `service/CourseService.java` (write methods), `messaging/CourseCommandHandler.java`, `commands/course/CreateCourseCommand.java`, `commands/course/UpdateCourseCommand.java`, `commands/course/DeleteCourseCommand.java`, `commands/course/DecrementExecutionCountCommand.java`, `commands/course/DecrementQuestionCountCommand.java`, `coordination/sagas/CreateCourseFunctionalitySagas.java`, `coordination/sagas/UpdateCourseFunctionalitySagas.java`, `coordination/sagas/DeleteCourseFunctionalitySagas.java`, `sagas/coordination/course/CreateCourseTest.groovy`, `sagas/coordination/course/UpdateCourseTest.groovy`, `sagas/coordination/course/DeleteCourseTest.groovy` |
-| 2.1.c | `service/CourseService.java` (read methods appended), `commands/course/GetCourseByIdCommand.java`, `coordination/sagas/GetCourseByIdFunctionalitySagas.java`, `sagas/coordination/course/GetCourseByIdTest.groovy` |
+| 2.1.b | `service/CourseService.java` (write + getCourseById methods), `messaging/CourseCommandHandler.java`, `commands/course/CreateCourseCommand.java`, `commands/course/UpdateCourseCommand.java`, `commands/course/DeleteCourseCommand.java`, `commands/course/DecrementExecutionCountCommand.java`, `commands/course/DecrementQuestionCountCommand.java`, `commands/course/GetCourseByIdCommand.java` (moved from 2.1.c — write sagas need it for semantic lock steps), `coordination/sagas/CreateCourseFunctionalitySagas.java`, `coordination/sagas/UpdateCourseFunctionalitySagas.java`, `coordination/sagas/DeleteCourseFunctionalitySagas.java`, `coordination/functionalities/CourseFunctionalities.java` (added — needed as Spring bean for test wiring), `ServiceMapping.java` (added — app-level enum required by all commands), `sagas/coordination/course/CreateCourseTest.groovy`, `sagas/coordination/course/UpdateCourseTest.groovy`, `sagas/coordination/course/DeleteCourseTest.groovy` |
+| 2.1.c | `service/CourseService.java` (read methods appended if any missing), `coordination/sagas/GetCourseByIdFunctionalitySagas.java`, `sagas/coordination/course/GetCourseByIdTest.groovy` |
 
 **Checklist:**
 - [x] 2.1.a — Domain layer
-- [ ] 2.1.b — Write functionalities
+- [x] 2.1.b — Write functionalities
 - [ ] 2.1.c — Read functionalities
 
 ---

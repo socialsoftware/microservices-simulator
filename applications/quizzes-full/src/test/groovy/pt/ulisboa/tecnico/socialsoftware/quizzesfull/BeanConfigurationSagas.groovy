@@ -26,6 +26,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceClient
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.factories.SagasCourseFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.repositories.CourseCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.functionalities.CourseFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.messaging.CourseCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.service.CourseService
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -131,5 +134,21 @@ class BeanConfigurationSagas {
     @Bean
     CourseCustomRepositorySagas courseCustomRepositorySagas() {
         return new CourseCustomRepositorySagas()
+    }
+
+    // Course — session 2.1.b
+    @Bean
+    CourseService courseService(SagaUnitOfWorkService unitOfWorkService, CourseCustomRepositorySagas courseRepository) {
+        return new CourseService(unitOfWorkService, courseRepository)
+    }
+
+    @Bean
+    CourseCommandHandler courseCommandHandler() {
+        return new CourseCommandHandler()
+    }
+
+    @Bean
+    CourseFunctionalities courseFunctionalities() {
+        return new CourseFunctionalities()
     }
 }
