@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class NetworkManager {
-    private static final String PLACEMENT_FILE = "simulator_config.json";
+    private static final String PLACEMENT_FILE = "quizzes-configuration.json";
     private static NetworkManager instance;
     private static String directory;
     private Random random = new Random();
