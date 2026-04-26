@@ -52,97 +52,39 @@
   "Capacities": {
     "microservices": [
       {
-        "name": "tournament",
-        "capacity": 2,
-        "services": [
-          {
-            "name": "createTournament",
-            "requirement": 1
-          },
-          {
-            "name": "getTournamentById",
-            "requirement": 1
-          }
-        ]
-      },
-      {
-        "name": "execution",
-        "capacity": 5,
-        "services": [
-          {
-            "name": "getCourseExecutionById",
-            "requirement": 1
-          },
-          {
-            "name": "getStudentByExecutionIdAndUserId",
-            "requirement": 1
-          },
-          {
-            "name": "getCourseExecutionsByUserId",
-            "requirement": 1
-          },
-          {
-            "name": "enrollStudent",
-            "requirement": 1
-          }
-        ]
-      },
-      {
-        "name": "quiz",
+        "name": "answer",
         "capacity": 10,
         "services": [
           {
-            "name": "generateQuiz",
-            "requirement": 1
-          }
-        ]
-      },
-      {
-        "name": "topic",
-        "capacity": 5,
-        "services": [
-          {
-            "name": "createTopic",
+            "name": "getQuizAnswerDtoByQuizIdAndUserId",
             "requirement": 1
           },
           {
-            "name": "findTopicsByCourseId",
-            "requirement": 1
-          }
-        ]
-      },
-      {
-        "name": "question",
-        "capacity": 5,
-        "services": [
-          {
-            "name": "createQuestion",
+            "name": "startQuiz",
             "requirement": 1
           },
           {
-            "name": "findQuestionsByTopicIds",
+            "name": "answerQuestion",
             "requirement": 1
           },
           {
-            "name": "getQuestionById",
-            "requirement": 1
-          }
-        ]
-      },
-      {
-        "name": "user",
-        "capacity": 10,
-        "services": [
-          {
-            "name": "createUser",
+            "name": "concludeQuiz",
             "requirement": 1
           },
           {
-            "name": "getUserById",
+            "name": "removeQuizAnswer",
             "requirement": 1
           },
           {
-            "name": "activateUser",
+            "name": "updateUserName",
+            "requirement": 1
+          },
+          {
+            "name": "removeUser",
+            "requirement": 1
+          },
+          {
+            "name": "removeQuestion",
             "requirement": 1
           }
         ]
@@ -152,11 +94,323 @@
         "capacity": 10,
         "services": [
           {
+            "name": "getCourseById",
+            "requirement": 1
+          },
+          {
+            "name": "getAndOrCreateCourseRemote",
+            "requirement": 1
+          },
+          {
+            "name": "getCourseByNameRemote",
+            "requirement": 1
+          },
+          {
             "name": "createCourseRemote",
             "requirement": 1
           },
           {
-            "name": "getCourseById",
+            "name": "deleteCourse",
+            "requirement": 1
+          },
+          {
+            "name": "incrementCourseQuestionCount",
+            "requirement": 1
+          },
+          {
+            "name": "decrementCourseQuestionCount",
+            "requirement": 1
+          },
+          {
+            "name": "incrementCourseExecutionCount",
+            "requirement": 1
+          },
+          {
+            "name": "decrementCourseExecutionCount",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "execution",
+        "capacity": 10,
+        "services": [
+          {
+            "name": "getCourseExecutionById",
+            "requirement": 1
+          },
+          {
+            "name": "createCourseExecution",
+            "requirement": 1
+          },
+          {
+            "name": "getAllCourseExecutions",
+            "requirement": 1
+          },
+          {
+            "name": "removeCourseExecution",
+            "requirement": 1
+          },
+          {
+            "name": "enrollStudent",
+            "requirement": 1
+          },
+          {
+            "name": "getCourseExecutionsByUserId",
+            "requirement": 1
+          },
+          {
+            "name": "removeStudentFromCourseExecution",
+            "requirement": 1
+          },
+          {
+            "name": "getStudentByExecutionIdAndUserId",
+            "requirement": 1
+          },
+          {
+            "name": "anonymizeStudent",
+            "requirement": 1
+          },
+          {
+            "name": "updateExecutionStudentName",
+            "requirement": 1
+          },
+          {
+            "name": "removeUser",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "question",
+        "capacity": 10,
+        "services": [
+          {
+            "name": "getQuestionById",
+            "requirement": 1
+          },
+          {
+            "name": "findQuestionsByCourseAggregateId",
+            "requirement": 1
+          },
+          {
+            "name": "createQuestion",
+            "requirement": 1
+          },
+          {
+            "name": "updateQuestion",
+            "requirement": 1
+          },
+          {
+            "name": "removeQuestion",
+            "requirement": 1
+          },
+          {
+            "name": "updateQuestionTopics",
+            "requirement": 1
+          },
+          {
+            "name": "findQuestionsByTopicIds",
+            "requirement": 1
+          },
+          {
+            "name": "updateTopic",
+            "requirement": 1
+          },
+          {
+            "name": "removeTopic",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "quiz",
+        "capacity": 10,
+        "services": [
+          {
+            "name": "getQuizById",
+            "requirement": 1
+          },
+          {
+            "name": "generateQuiz",
+            "requirement": 1
+          },
+          {
+            "name": "startTournamentQuiz",
+            "requirement": 1
+          },
+          {
+            "name": "createQuiz",
+            "requirement": 1
+          },
+          {
+            "name": "updateGeneratedQuiz",
+            "requirement": 1
+          },
+          {
+            "name": "updateQuiz",
+            "requirement": 1
+          },
+          {
+            "name": "getAvailableQuizzes",
+            "requirement": 1
+          },
+          {
+            "name": "removeCourseExecution",
+            "requirement": 1
+          },
+          {
+            "name": "updateQuestion",
+            "requirement": 1
+          },
+          {
+            "name": "removeQuizQuestion",
+            "requirement": 1
+          },
+          {
+            "name": "removeQuiz",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "topic",
+        "capacity": 10,
+        "services": [
+          {
+            "name": "getTopicById",
+            "requirement": 1
+          },
+          {
+            "name": "createTopic",
+            "requirement": 1
+          },
+          {
+            "name": "findTopicsByCourseId",
+            "requirement": 1
+          },
+          {
+            "name": "updateTopic",
+            "requirement": 1
+          },
+          {
+            "name": "deleteTopic",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "tournament",
+        "capacity": 10,
+        "services": [
+          {
+            "name": "getTournamentById",
+            "requirement": 1
+          },
+          {
+            "name": "createTournament",
+            "requirement": 1
+          },
+          {
+            "name": "addParticipant",
+            "requirement": 1
+          },
+          {
+            "name": "updateTournament",
+            "requirement": 1
+          },
+          {
+            "name": "getTournamentsByCourseExecutionId",
+            "requirement": 1
+          },
+          {
+            "name": "getOpenedTournamentsForCourseExecution",
+            "requirement": 1
+          },
+          {
+            "name": "getClosedTournamentsForCourseExecution",
+            "requirement": 1
+          },
+          {
+            "name": "leaveTournament",
+            "requirement": 1
+          },
+          {
+            "name": "solveQuiz",
+            "requirement": 1
+          },
+          {
+            "name": "cancelTournament",
+            "requirement": 1
+          },
+          {
+            "name": "removeTournament",
+            "requirement": 1
+          },
+          {
+            "name": "anonymizeUser",
+            "requirement": 1
+          },
+          {
+            "name": "removeCourseExecution",
+            "requirement": 1
+          },
+          {
+            "name": "removeUser",
+            "requirement": 1
+          },
+          {
+            "name": "updateTopic",
+            "requirement": 1
+          },
+          {
+            "name": "removeTopic",
+            "requirement": 1
+          },
+          {
+            "name": "updateParticipantAnswer",
+            "requirement": 1
+          },
+          {
+            "name": "invalidateQuiz",
+            "requirement": 1
+          },
+          {
+            "name": "updateUserName",
+            "requirement": 1
+          }
+        ]
+      },
+      {
+        "name": "user",
+        "capacity": 10,
+        "services": [
+          {
+            "name": "getUserById",
+            "requirement": 1
+          },
+          {
+            "name": "createUser",
+            "requirement": 1
+          },
+          {
+            "name": "activateUser",
+            "requirement": 1
+          },
+          {
+            "name": "deactivateUser",
+            "requirement": 1
+          },
+          {
+            "name": "deleteUser",
+            "requirement": 1
+          },
+          {
+            "name": "getStudents",
+            "requirement": 1
+          },
+          {
+            "name": "getTeachers",
             "requirement": 1
           }
         ]
