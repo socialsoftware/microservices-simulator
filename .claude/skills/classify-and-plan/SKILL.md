@@ -342,7 +342,7 @@ For each aggregate, generate the full file list using the template from `docs/wo
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per entity), `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
+| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per entity), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
 ```
 
 **Session 2.N.b — Write Functionalities:**

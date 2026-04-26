@@ -47,8 +47,9 @@ src/test/groovy/<pkg>/
 
 ## T1 — Creation Test
 
-**Purpose:** Prove the aggregate can be instantiated with valid state and that all intra-invariants
-are enforced on a fresh instance.
+**Purpose:** Prove the aggregate can be instantiated with valid state. Invariant violations are
+**not** tested here — they belong in T2, where service method calls trigger `registerChanged →
+verifyInvariants` automatically. Never call `verifyInvariants()` directly.
 
 **Template:**
 ```groovy
@@ -60,24 +61,19 @@ class <Aggregate>Test extends <AppName>SpockTest {
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 
-    def "create <aggregate> with valid data"() {
+    def "create <aggregate>"() {
+        // If the constructor takes a DTO, build it in 'given:' first:
+        // given:
+        // def dto = new <Aggregate>Dto()
+        // dto.set<Field>(...)
+
         when:
-        def result = <aggregate>Functionalities.create<Aggregate>(/* valid args */)
+        def result = new Saga<Aggregate>(/* id, args or dto */)
 
         then:
-        result != null
         result.<field> == <expectedValue>
+        // assert all expected fields
     }
-
-    def "create <aggregate> with blank <field> throws exception"() {
-        when:
-        <aggregate>Functionalities.create<Aggregate>(/* invalid arg */)
-
-        then:
-        def ex = thrown(<App>Exception)
-        ex.message == <RULE_NAME>
-    }
-    // one 'throws exception' case per intra-invariant
 }
 ```
 

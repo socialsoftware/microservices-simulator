@@ -111,7 +111,7 @@ Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 - **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation, assert the resulting aggregate state
 - **P3 guard tests**: test each P3 rule violation (own-table duplicate, DTO field check)
 - **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., creator not enrolled in execution)
-- **P1 invariant tests via write**: test operations that would violate a P1 rule after mutation (if the service+saga path allows triggering them)
+- **P1 invariant violation tests**: for each P1 rule that a write operation can put at risk, add a test that exercises the service method causing the violation. The service calls `registerChanged`, which automatically invokes `verifyInvariants` — **never call `verifyInvariants()` directly**.
 
 ### Event classes (if this aggregate publishes events)
 

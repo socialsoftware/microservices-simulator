@@ -36,7 +36,7 @@ Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}.java`
 - Contains all fields defined in the domain model for this aggregate, including:
   - Snapshot fields copied from other aggregates (cached denormalized data)
   - Owned entity collections (`@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)`)
-- Constructor: accepts all required fields; sets `state = ACTIVE`; calls `verifyInvariants()`
+- Constructor: accepts all required fields; sets `state = ACTIVE`; does **not** call `verifyInvariants()` — the framework calls it automatically via `registerChanged` at commit time
 - `verifyInvariants()`: enforces all **P1 rules** for this aggregate listed in plan.md. Throws `{AppClass}Exception` with the appropriate error message constant on violation.
 - Getters and setters for all mutable fields
 - No business logic methods (sagas call service; service calls setters then verifyInvariants)
@@ -50,6 +50,16 @@ Path: `{src}microservices/{aggregate}/aggregate/{Entity}.java`
 - `@Entity` + `@Table`; `@Id` auto-generated
 - Fields matching the domain model
 - Constructor, getters, setters
+
+### Domain enum (conditional)
+
+If any aggregate field is typed as a domain enum (e.g., `role: UserRole`), produce a companion enum file:
+
+Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}Role.java` (or appropriate name)
+
+- Plain Java `enum` — no JPA annotations
+- Values matching the domain model
+- Add it explicitly to the plan.md 2.N.a row if not already listed
 
 ### `Saga{Aggregate}.java`
 
@@ -67,7 +77,7 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaStat
 
 - Enum implementing `SagaState`
 - Always includes `NOT_IN_SAGA`
-- Include `IN_UPDATE_{AGGREGATE}` and `IN_DELETE_{AGGREGATE}` (or similar) for write sagas that **modify an existing instance** — these sagas lock an existing aggregate
+- Include `IN_UPDATE_{AGGREGATE}` or `IN_DELETE_{AGGREGATE}` only when the saga has additional steps **after** the primary write step that must observe the aggregate under a distinct locked state. For a simple two-step saga (read → write-as-final-step), `READ_{AGGREGATE}` is sufficient as the only non-`NOT_IN_SAGA` state.
 - **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock
 - Include `READ_{AGGREGATE}` if other aggregates use this aggregate as a cross-aggregate prerequisite (another aggregate's write saga fetches this one's DTO — check plan.md's write functionalities for other aggregates)
 
@@ -129,10 +139,10 @@ Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}Dto.java`
 Path: `{test}sagas/{aggregate}/{Aggregate}Test.groovy`
 
 - Extends `{AppClass}SpockTest`
-- One `def "create {Aggregate}"()` test per constructor variant that is valid
-- One `def "create {Aggregate} — {violation}"()` test per P1 rule violation (one test per rule)
-- **Do not** use `{AppClass}Functionalities.create{Aggregate}(...)` — write functionalities are not available until session b. Instead, instantiate `Saga{Aggregate}` directly (e.g., `new Saga{Aggregate}(1, 'name', Type.VALUE)`) and call `verifyInvariants()` explicitly to trigger violation checks
-- Asserts: fields set correctly on valid input; `{AppClass}Exception` thrown (with the correct error message constant) on each violation
+- **One happy-path creation test only**: `def "create {Aggregate}"()` — instantiate `Saga{Aggregate}` directly and assert fields are set correctly
+- **Do not** use `{AppClass}Functionalities.create{Aggregate}(...)` — write functionalities are not available until session b
+- **Do not** add invariant-violation cases — no service methods exist in session-a. P1 violation tests belong in session-b, triggered by service method calls that invoke `registerChanged → verifyInvariants` automatically. Never call `verifyInvariants()` directly.
+- If the aggregate constructor takes `{Aggregate}Dto` rather than raw args, build the DTO in the `given:` block before calling `new Saga{Aggregate}(id, dto)`
 
 ### Error message constants
 

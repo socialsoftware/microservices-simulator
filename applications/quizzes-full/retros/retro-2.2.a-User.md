@@ -99,14 +99,14 @@
 
 ## Action Items
 
-| Priority | Target file | Action |
-|----------|------------|--------|
-| High | `.claude/skills/implement-aggregate/session-a.md` | Remove "calls `verifyInvariants()`" from constructor description; add note that tests call it manually |
+| Priority | Target file | Action                                                                                                                                                                |
+|----------|------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| High | `.claude/skills/implement-aggregate/session-a.md` | Remove "calls `verifyInvariants()`" from constructor description;                                                                                                     |
 | High | `.claude/skills/implement-aggregate/session-a.md` | Qualify IN_DELETE/IN_UPDATE saga state guidance: only needed when saga has steps after the primary write; READ_{AGGREGATE} suffices for two-step (get → delete) sagas |
-| Medium | `.claude/skills/implement-aggregate/session-a.md` | Add explicit conditional in Produce section: if aggregate has enum-typed field, produce companion enum file and add to plan.md |
-| Medium | `.claude/skills/implement-aggregate/session-a.md` | Add T1 test variant for DTO-constructor aggregates (set up DTO in `given:` block before `new Saga{Aggregate}(id, dto)`) |
-| Medium | `.claude/skills/classify-and-plan` | Always include `{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` in 2.N.a file table rows |
-| Low | `docs/concepts/testing.md` | Add T1 direct-instantiation template for aggregates without a CreateXxx functionality |
+| Medium | `.claude/skills/implement-aggregate/session-a.md` | Add explicit conditional in Produce section: if aggregate has enum-typed field, produce companion enum file and add to plan.md                                        |
+| Medium | `.claude/skills/implement-aggregate/session-a.md` | Add T1 test variant for DTO-constructor aggregates (set up DTO in `given:` block before `new Saga{Aggregate}(id, dto)`)                                               |
+| Medium | `.claude/skills/classify-and-plan` | Always include `{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` in 2.N.a file table rows                                                              |
+| Low | `docs/concepts/testing.md` | Add T1 direct-instantiation template for aggregates without a CreateXxx functionality                                                                                 |
 
 ---
 

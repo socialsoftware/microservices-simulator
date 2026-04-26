@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.sagas.SagaUser
 
@@ -34,23 +32,5 @@ class UserTest extends QuizzesFullSpockTest {
         user.username == "johndoe"
         user.role.toString() == "STUDENT"
         user.isActive() == false
-    }
-
-    def "create user — USER_DELETED_STATE"() {
-        given:
-        def userDto = new UserDto()
-        userDto.setName("John Doe")
-        userDto.setUsername("johndoe")
-        userDto.setRole("STUDENT")
-        def user = new SagaUser(1, userDto)
-        user.setActive(true)
-
-        when:
-        user.remove()
-        user.verifyInvariants()
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == QuizzesFullErrorMessage.USER_DELETED_STATE
     }
 }
