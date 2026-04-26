@@ -5,6 +5,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTra
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe
 import spock.lang.TempDir
 
@@ -242,6 +243,69 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
         traceTextFor('helper-method chain resolves local returns').contains('resolved via helper buildSagaFromHelpers(...)')
         traceTextFor('helper-method chain resolves local returns').contains('resolved via helper createSaga(...)')
         !state.groovyFullTraceResults.any { it.sourceMethodName == 'helperMethod' }
+    }
+
+    def 'same and different unresolved names preserve identity semantics'() {
+        given:
+        def identityState = new ApplicationAnalysisState()
+        def workflowVisitor = new WorkflowFunctionalityVisitor()
+        parseAllDummyappFiles().each { cu -> workflowVisitor.visit(cu, identityState) }
+
+        writeSource('demo/PlaceholderIdentityTraceSpec.groovy', '''
+            package demo
+
+            import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
+            import spock.lang.Specification
+
+            class PlaceholderIdentityTraceSpec extends Specification {
+                def 'same and different unresolved names preserve identity semantics'() {
+                    given:
+                    def saga = new CreateOrderFunctionalitySagas(sameName, sameName, firstName, secondName)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+            }
+        ''')
+
+        def sourceIndex = new GroovySourceIndex()
+        sourceIndex.parse(tempDir)
+
+        when:
+        new GroovyConstructorInputTraceVisitor().visit(sourceIndex, identityState)
+
+        then:
+        def trace = identityState.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'demo.PlaceholderIdentityTraceSpec' &&
+                    it.sourceMethodName == 'same and different unresolved names preserve identity semantics' &&
+                    it.sourceBindingName == 'saga' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas'
+        }
+
+        trace != null
+        trace.constructorArguments()*.expectedTypeFqn() == [
+                'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
+                'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork',
+                'java.lang.Integer',
+                'java.lang.Integer'
+        ]
+        trace.constructorArguments()*.recipe()*.metadata()*.category() == [
+                GroovyValueResolutionCategory.SOURCE_PLACEHOLDER,
+                GroovyValueResolutionCategory.SOURCE_PLACEHOLDER,
+                GroovyValueResolutionCategory.SOURCE_PLACEHOLDER,
+                GroovyValueResolutionCategory.SOURCE_PLACEHOLDER
+        ]
+
+        and:
+        def placeholderIds = trace.constructorArguments()*.recipe()*.metadata()*.placeholderId()
+        placeholderIds.every { it?.trim() }
+        placeholderIds[0] == placeholderIds[1]
+        placeholderIds[2] != placeholderIds[3]
+        placeholderIds[0] != placeholderIds[2]
+        placeholderIds[1] != placeholderIds[3]
     }
 
     def 'recognizes local toSet collection transforms as structured recipes'() {

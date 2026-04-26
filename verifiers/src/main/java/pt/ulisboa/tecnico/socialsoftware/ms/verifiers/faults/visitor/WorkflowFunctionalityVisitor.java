@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
@@ -24,6 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaConstructorSignature;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaFunctionalityBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaStepBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchMultiplicity;
@@ -34,6 +36,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAn
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.util.TypeUtils;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -59,6 +62,8 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
             SagaFunctionalityBuildingBlock sagaBlock =
                     new SagaFunctionalityBuildingBlock(filePath, packageName, sagaFqn);
 
+            extractConstructorSignatures(decl, sagaBlock);
+
             // Extract all saga steps from new SagaStep(...) expressions
             extractSagaSteps(decl, state, filePath, packageName, sagaClassName, sagaBlock);
 
@@ -83,6 +88,26 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
 
     private boolean declaresSagaUnitOfWorkService(FieldDeclaration field) {
         return TypeUtils.isSubtypeOf(field.getCommonType(), SagaUnitOfWorkService.class);
+    }
+
+    private void extractConstructorSignatures(ClassOrInterfaceDeclaration decl,
+                                              SagaFunctionalityBuildingBlock sagaBlock) {
+        decl.getConstructors().forEach(constructor -> {
+            List<String> parameterTypeFqns = constructor.getParameters().stream()
+                    .map(parameter -> resolveParameterTypeFqn(constructor, parameter))
+                    .toList();
+            sagaBlock.addConstructorSignature(new SagaConstructorSignature(parameterTypeFqns));
+        });
+    }
+
+    private String resolveParameterTypeFqn(ConstructorDeclaration constructor, com.github.javaparser.ast.body.Parameter parameter) {
+        try {
+            return parameter.getType().resolve().describe();
+        } catch (Exception e) {
+            logger.debug("Could not resolve constructor param type '{}' in {}: {}",
+                    parameter.getTypeAsString(), constructor.getNameAsString(), e.getMessage());
+            return parameter.getTypeAsString();
+        }
     }
 
     /**

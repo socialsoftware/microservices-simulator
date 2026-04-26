@@ -6,6 +6,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.Acces
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchPhase
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchMultiplicityKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory
 import org.slf4j.LoggerFactory
 import spock.lang.Shared
 
@@ -122,6 +126,59 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
                 'CreateItemDependencyGraphFunctionalitySagas::prepareStep',
                 'CreateItemDependencyGraphFunctionalitySagas::splitStep'
         ] as Set
+    }
+
+    def "WorkflowFunctionalityVisitor captures constructor parameter type signatures"() {
+        given:
+        def saga = state.sagas.find { it.fqn.contains('CreateItemFunctionalitySagas') }
+
+        expect:
+        saga != null
+        saga.constructorSignatures.size() == 1
+        saga.constructorSignatures.first().parameterTypeFqns == [
+                'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
+                'com.example.dummyapp.item.aggregate.ItemDto',
+                'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork',
+                'pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway'
+        ]
+    }
+
+    def "WorkflowFunctionalityVisitor inventories overloaded constructor parameter types"() {
+        given:
+        def saga = state.sagas.find { it.fqn.contains('CreateOrderFunctionalitySagas') }
+
+        expect:
+        saga != null
+        saga.constructorSignatures.size() == 3
+        saga.constructorSignatures*.parameterTypeFqns == [
+                [
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork'
+                ],
+                [
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork',
+                        'java.util.Set<java.lang.Integer>',
+                        'java.lang.Integer',
+                        'java.lang.Integer'
+                ],
+                [
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork',
+                        'java.lang.Integer',
+                        'java.lang.Integer'
+                ]
+        ]
+    }
+
+    def "legacy recipe constructors default metadata"() {
+        given:
+        def recipe = new GroovyValueRecipe(GroovyValueKind.LITERAL, 'hello', [])
+
+        expect:
+        recipe.metadata() != null
+        recipe.metadata().category() == GroovyValueResolutionCategory.RESOLVED
+        new GroovyTraceArgument(0, 'hello', recipe).expectedTypeFqn() == null
     }
 
     def "WorkflowFunctionalityVisitor ignores unresolved dependency references and warns"() {

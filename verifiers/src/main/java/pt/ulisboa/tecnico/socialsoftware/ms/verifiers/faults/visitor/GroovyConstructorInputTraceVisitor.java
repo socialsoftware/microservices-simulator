@@ -6,6 +6,7 @@ import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.Parameter;
 import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
+import org.codehaus.groovy.ast.expr.CastExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.ConstructorCallExpression;
 import org.codehaus.groovy.ast.expr.DeclarationExpression;
@@ -34,12 +35,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAn
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyConstructorInputTrace;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyImportMetadata;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyRuntimeCallArgument;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyRuntimeCallRecipe;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceClassMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowCreationArgumentSource;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowCreationArgumentSourceKind;
@@ -557,6 +562,8 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         WorkflowFunctionalityCreationSite creationSite = selectedCreationSite.creationSite();
+        List<String> expectedTypeFqns = resolveConstructorParameterTypeFqns(creationSite.sagaClassFqn(),
+                creationSite.argumentSources().size(), state).orElse(null);
         List<GroovyTraceArgument> constructorArguments = new ArrayList<>();
         for (WorkflowCreationArgumentSource argumentSource : creationSite.argumentSources()) {
             ValueTrace argumentTrace = describeFacadeArgument(argumentSource, callArguments, classNode, metadata, state,
@@ -568,6 +575,11 @@ public class GroovyConstructorInputTraceVisitor {
             if (argumentTrace == null) {
                 return Optional.empty();
             }
+
+            argumentTrace = decorateWithExpectedType(argumentTrace,
+                    expectedTypeFqns == null || argumentSource.argumentIndex() >= expectedTypeFqns.size()
+                            ? null
+                            : expectedTypeFqns.get(argumentSource.argumentIndex()));
 
             constructorArguments.add(new GroovyTraceArgument(argumentSource.argumentIndex(),
                     argumentTrace.provenance(), argumentTrace.recipe()));
@@ -873,18 +885,56 @@ public class GroovyConstructorInputTraceVisitor {
                         helperScope,
                         rebindingFallbackScopes);
             }
-            case LOCAL_VARIABLE -> describeConservativeSourceBackedValue(source,
-                    "local " + defaultText(source.name()),
-                    "source-backed local variable");
-            case FIELD_REFERENCE -> describeConservativeSourceBackedValue(source,
+            case LOCAL_VARIABLE -> describeLocalVariableSource(source, traceScopeKey);
+            case FIELD_REFERENCE -> buildPlaceholderValueTrace(source,
                     "field " + defaultText(source.name()),
-                    "source-backed field reference");
+                    traceScopeKey,
+                    GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER,
+                    " [unresolved source-backed variable]");
             case INLINE_EXPRESSION -> {
                 String text = defaultText(source.text());
                 yield new ValueTrace(text + " [unresolved external/runtime edge]",
-                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, text, List.of()));
+                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, text, List.of(),
+                                new GroovyValueMetadata(GroovyValueResolutionCategory.UNKNOWN_UNRESOLVED,
+                                        null, null, null)));
             }
         };
+    }
+
+    private ValueTrace describeLocalVariableSource(WorkflowCreationArgumentSource source,
+                                                   String traceScopeKey) {
+        String sourceText = source.text();
+        String valueName = defaultText(source.name());
+
+        if (sourceText == null || sourceText.isBlank() || JAVA_IDENTIFIER.matcher(sourceText).matches()) {
+            return buildPlaceholderValueTrace(source,
+                    "local " + valueName,
+                    traceScopeKey,
+                    GroovyValueResolutionCategory.SOURCE_PLACEHOLDER,
+                    " [unresolved source-backed variable]");
+        }
+
+        Optional<RuntimeCallParseResult> runtimeCall = parseRuntimeCallFromText(sourceText);
+        if (runtimeCall.isPresent()) {
+            RuntimeCallParseResult parsed = runtimeCall.get();
+            return new ValueTrace(valueName + " <- " + parsed.displayText() + " [unresolved external/runtime edge]",
+                    new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE,
+                            sourceText,
+                            List.of(),
+                            new GroovyValueMetadata(GroovyValueResolutionCategory.RUNTIME_CALL,
+                                    null,
+                                    null,
+                                    parsed.runtimeCallRecipe())));
+        }
+
+        return new ValueTrace(valueName + " <- " + sourceText + " [unresolved external/runtime edge]",
+                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE,
+                        sourceText,
+                        List.of(),
+                        new GroovyValueMetadata(GroovyValueResolutionCategory.UNKNOWN_UNRESOLVED,
+                                null,
+                                null,
+                                null)));
     }
 
     private ValueTrace describeConservativeSourceBackedValue(WorkflowCreationArgumentSource source,
@@ -902,6 +952,320 @@ public class GroovyConstructorInputTraceVisitor {
         return new ValueTrace(provenanceText + " [unresolved source-backed variable]",
                 new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE,
                         defaultText(source.name()), List.of()));
+    }
+
+    private ValueTrace buildPlaceholderValueTrace(WorkflowCreationArgumentSource source,
+                                                  String fallbackProvenance,
+                                                  String traceScopeKey,
+                                                  GroovyValueResolutionCategory category,
+                                                  String unresolvedSuffix) {
+        String provenanceText = source.text() == null || source.text().isBlank()
+                ? fallbackProvenance
+                : defaultText(source.name()) + " <- " + source.text();
+        String placeholderName = defaultText(source.name());
+        GroovyValueMetadata metadata = new GroovyValueMetadata(category,
+                null,
+                placeholderId(traceScopeKey, placeholderName, category),
+                null);
+        return new ValueTrace(provenanceText + unresolvedSuffix,
+                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE,
+                        placeholderName,
+                        List.of(),
+                        metadata));
+    }
+
+    private ValueTrace buildRuntimeCallValueTrace(MethodCallExpression methodCallExpression,
+                                                  String provenanceText,
+                                                  GroovyValueResolutionCategory category,
+                                                  ValueTrace receiverTrace,
+                                                  List<ValueTrace> argumentTraces) {
+        List<GroovyRuntimeCallArgument> runtimeArguments = new ArrayList<>();
+        for (int index = 0; index < argumentTraces.size(); index++) {
+            ValueTrace argumentTrace = argumentTraces.get(index);
+            runtimeArguments.add(new GroovyRuntimeCallArgument(index,
+                    argumentTrace.provenance(),
+                    argumentTrace.recipe()));
+        }
+
+        Expression objectExpression = methodCallExpression.getObjectExpression();
+        String receiverText = objectExpression == null ? null : objectExpression.getText();
+        GroovyRuntimeCallRecipe runtimeCall = category == GroovyValueResolutionCategory.RUNTIME_CALL
+                ? new GroovyRuntimeCallRecipe(receiverText,
+                        methodCallExpression.getMethodAsString(),
+                        runtimeArguments,
+                        methodCallExpression.getText())
+                : null;
+        GroovyValueMetadata metadata = new GroovyValueMetadata(category,
+                null,
+                null,
+                runtimeCall);
+        List<GroovyValueRecipe> children = receiverTrace == null ? List.of() : List.of(receiverTrace.recipe());
+        return new ValueTrace(provenanceText,
+                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE,
+                        methodCallExpression.getText(),
+                        children,
+                        metadata));
+    }
+
+    private Optional<RuntimeCallParseResult> parseRuntimeCallFromText(String sourceText) {
+        if (sourceText == null) {
+            return Optional.empty();
+        }
+
+        String trimmedText = sourceText.trim();
+        int openParen = trimmedText.indexOf('(');
+        int closeParen = trimmedText.lastIndexOf(')');
+        if (openParen <= 0 || closeParen != trimmedText.length() - 1 || closeParen < openParen) {
+            return Optional.empty();
+        }
+
+        String beforeParen = trimmedText.substring(0, openParen).trim();
+        if (beforeParen.isBlank()) {
+            return Optional.empty();
+        }
+
+        String receiverText = null;
+        String methodName = beforeParen;
+        int lastDot = beforeParen.lastIndexOf('.');
+        if (lastDot > 0 && lastDot < beforeParen.length() - 1) {
+            receiverText = beforeParen.substring(0, lastDot).trim();
+            methodName = beforeParen.substring(lastDot + 1).trim();
+        }
+
+        if (methodName.isBlank()) {
+            return Optional.empty();
+        }
+
+        if (!JAVA_IDENTIFIER.matcher(methodName).matches()) {
+            return Optional.empty();
+        }
+
+        String argumentsText = trimmedText.substring(openParen + 1, closeParen).trim();
+        List<GroovyRuntimeCallArgument> runtimeArguments = parseRuntimeCallArguments(argumentsText);
+        GroovyRuntimeCallRecipe runtimeCallRecipe = new GroovyRuntimeCallRecipe(receiverText,
+                methodName,
+                runtimeArguments,
+                trimmedText);
+        String displayText = (receiverText == null || receiverText.isBlank())
+                ? methodName + "(...)"
+                : receiverText + "." + methodName + "(...)";
+        return Optional.of(new RuntimeCallParseResult(displayText, runtimeCallRecipe));
+    }
+
+    private List<GroovyRuntimeCallArgument> parseRuntimeCallArguments(String argumentsText) {
+        if (argumentsText == null || argumentsText.isBlank()) {
+            return List.of();
+        }
+
+        List<String> rawArguments = splitTopLevelArguments(argumentsText);
+        List<GroovyRuntimeCallArgument> parsedArguments = new ArrayList<>();
+        for (int index = 0; index < rawArguments.size(); index++) {
+            String rawArgument = rawArguments.get(index).trim();
+            if (rawArgument.isBlank()) {
+                continue;
+            }
+
+            parsedArguments.add(new GroovyRuntimeCallArgument(index,
+                    rawArgument,
+                    parseRuntimeCallArgumentRecipe(rawArgument)));
+        }
+
+        return parsedArguments;
+    }
+
+    private List<String> splitTopLevelArguments(String argumentsText) {
+        List<String> arguments = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        int parenDepth = 0;
+        int bracketDepth = 0;
+        int braceDepth = 0;
+        boolean inSingleQuotes = false;
+        boolean inDoubleQuotes = false;
+        boolean escaping = false;
+
+        for (int i = 0; i < argumentsText.length(); i++) {
+            char c = argumentsText.charAt(i);
+            current.append(c);
+
+            if (escaping) {
+                escaping = false;
+                continue;
+            }
+
+            if (c == '\\') {
+                escaping = true;
+                continue;
+            }
+
+            if (c == '\'' && !inDoubleQuotes) {
+                inSingleQuotes = !inSingleQuotes;
+                continue;
+            }
+
+            if (c == '"' && !inSingleQuotes) {
+                inDoubleQuotes = !inDoubleQuotes;
+                continue;
+            }
+
+            if (inSingleQuotes || inDoubleQuotes) {
+                continue;
+            }
+
+            switch (c) {
+                case '(' -> parenDepth++;
+                case ')' -> parenDepth = Math.max(0, parenDepth - 1);
+                case '[' -> bracketDepth++;
+                case ']' -> bracketDepth = Math.max(0, bracketDepth - 1);
+                case '{' -> braceDepth++;
+                case '}' -> braceDepth = Math.max(0, braceDepth - 1);
+                case ',' -> {
+                    if (parenDepth == 0 && bracketDepth == 0 && braceDepth == 0) {
+                        current.setLength(current.length() - 1);
+                        arguments.add(current.toString().trim());
+                        current.setLength(0);
+                    }
+                }
+                default -> {
+                }
+            }
+        }
+
+        String tail = current.toString().trim();
+        if (!tail.isBlank()) {
+            arguments.add(tail);
+        }
+
+        return arguments;
+    }
+
+    private GroovyValueRecipe parseRuntimeCallArgumentRecipe(String rawArgument) {
+        if (rawArgument == null) {
+            return new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, null, List.of());
+        }
+
+        String trimmedArgument = rawArgument.trim();
+        if (trimmedArgument.isEmpty()) {
+            return new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, trimmedArgument, List.of());
+        }
+
+        if ((trimmedArgument.startsWith("\"") && trimmedArgument.endsWith("\""))
+                || (trimmedArgument.startsWith("'") && trimmedArgument.endsWith("'"))) {
+            return new GroovyValueRecipe(GroovyValueKind.LITERAL,
+                    trimmedArgument.substring(1, trimmedArgument.length() - 1),
+                    List.of());
+        }
+
+        if ("null".equals(trimmedArgument)
+                || "true".equals(trimmedArgument)
+                || "false".equals(trimmedArgument)
+                || trimmedArgument.matches("-?\\d+(?:\\.\\d+)?")) {
+            return new GroovyValueRecipe(GroovyValueKind.LITERAL, trimmedArgument, List.of());
+        }
+
+        return new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, trimmedArgument, List.of());
+    }
+
+    private ValueTrace buildUnknownUnresolvedVariableTrace(String provenanceText,
+                                                           String recipeText) {
+        return new ValueTrace(provenanceText,
+                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE,
+                        recipeText,
+                        List.of(),
+                        new GroovyValueMetadata(GroovyValueResolutionCategory.UNKNOWN_UNRESOLVED,
+                                null,
+                                null,
+                                null)));
+    }
+
+    private ValueTrace buildUnknownUnresolvedRuntimeTrace(String provenanceText,
+                                                           String recipeText) {
+        return new ValueTrace(provenanceText,
+                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE,
+                        recipeText,
+                        List.of(),
+                        new GroovyValueMetadata(GroovyValueResolutionCategory.UNKNOWN_UNRESOLVED,
+                                null,
+                                null,
+                                null)));
+    }
+
+    private record RuntimeCallParseResult(String displayText,
+                                          GroovyRuntimeCallRecipe runtimeCallRecipe) {
+    }
+
+    private ValueTrace buildSourcePlaceholderTrace(String provenanceText,
+                                                    String recipeText,
+                                                    String traceScopeKey,
+                                                    String valueName) {
+        return new ValueTrace(provenanceText,
+                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE,
+                        recipeText,
+                        List.of(),
+                        new GroovyValueMetadata(GroovyValueResolutionCategory.SOURCE_PLACEHOLDER,
+                                null,
+                                placeholderId(traceScopeKey, valueName, GroovyValueResolutionCategory.SOURCE_PLACEHOLDER),
+                                null)));
+    }
+
+    private ValueTrace buildInjectablePlaceholderTrace(String provenanceText,
+                                                       String recipeText,
+                                                       String traceScopeKey,
+                                                       String valueName) {
+        return new ValueTrace(provenanceText,
+                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE,
+                        recipeText,
+                        List.of(),
+                        new GroovyValueMetadata(GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER,
+                                null,
+                                placeholderId(traceScopeKey, valueName, GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER),
+                                null)));
+    }
+
+    private ValueTrace decorateWithExpectedType(ValueTrace trace, String expectedTypeFqn) {
+        if (trace == null || expectedTypeFqn == null || expectedTypeFqn.isBlank()) {
+            return trace;
+        }
+
+        return new ValueTrace(trace.provenance(), withExpectedType(trace.recipe(), expectedTypeFqn));
+    }
+
+    private GroovyValueRecipe withExpectedType(GroovyValueRecipe recipe, String expectedTypeFqn) {
+        if (recipe == null || expectedTypeFqn == null || expectedTypeFqn.isBlank()) {
+            return recipe;
+        }
+
+        GroovyValueMetadata metadata = recipe.metadata();
+        if (Objects.equals(metadata.expectedTypeFqn(), expectedTypeFqn)) {
+            return recipe;
+        }
+
+        return new GroovyValueRecipe(recipe.kind(), recipe.text(), recipe.children(),
+                new GroovyValueMetadata(metadata.category(), expectedTypeFqn, metadata.placeholderId(), metadata.runtimeCall()));
+    }
+
+    private Optional<List<String>> resolveConstructorParameterTypeFqns(String sagaClassFqn,
+                                                                       int constructorArity,
+                                                                       ApplicationAnalysisState state) {
+        if (sagaClassFqn == null || state == null || constructorArity < 0) {
+            return Optional.empty();
+        }
+
+        return state.findSagaByFqn(sagaClassFqn)
+                .map(saga -> saga.getConstructorSignatures().stream()
+                        .filter(signature -> signature.parameterTypeFqns().size() == constructorArity)
+                        .toList())
+                .filter(signatures -> signatures.size() == 1)
+                .map(signatures -> signatures.get(0).parameterTypeFqns());
+    }
+
+    private String placeholderId(String traceScopeKey,
+                                 String valueName,
+                                 GroovyValueResolutionCategory category) {
+        return (category == null ? "unknown" : category.name().toLowerCase())
+                + ":"
+                + defaultText(traceScopeKey)
+                + ":"
+                + defaultText(valueName);
     }
 
     private String defaultText(String value) {
@@ -1034,6 +1398,8 @@ public class GroovyConstructorInputTraceVisitor {
                                                 Map<String, List<MethodResolutionContext>> methodsByName,
                                                 Map<String, Map<String, String>> visibleFieldKeysByClassFqn) {
         List<Expression> argumentExpressions = extractArguments(constructorExpression.getArguments());
+        List<String> expectedTypeFqns = resolveConstructorParameterTypeFqns(builder.sagaClassFqn,
+                argumentExpressions.size(), state).orElse(null);
         String builderScopeKey = traceScopeKey(classNode == null ? "(unknown)" : classNode.getName(),
                 builder.sourceMethodName);
         Set<String> emittedNestedFacadeTraceKeys = new LinkedHashSet<>();
@@ -1050,6 +1416,8 @@ public class GroovyConstructorInputTraceVisitor {
                     builder.sourceMethodName,
                     builderScopeKey,
                     false);
+            trace = decorateWithExpectedType(trace,
+                    expectedTypeFqns == null || index >= expectedTypeFqns.size() ? null : expectedTypeFqns.get(index));
             builder.appendInputLine(index, trace.provenance(), trace.recipe());
         }
     }
@@ -1211,12 +1579,12 @@ public class GroovyConstructorInputTraceVisitor {
                                                boolean helperScope,
                                                Map<String, Expression> rebindingFallbackScopes) {
         if (expression == null) {
-            return new ValueTrace("(unknown)", new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, "(unknown)", List.of()));
+            return buildUnknownUnresolvedVariableTrace("(unknown)", "(unknown)");
         }
 
         if (depth > MAX_TRACE_DEPTH) {
-            return new ValueTrace(expression.getText() + " [unresolved depth-limit]",
-                    new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, expression.getText(), List.of()));
+            return buildUnknownUnresolvedVariableTrace(expression.getText() + " [unresolved depth-limit]",
+                    expression.getText());
         }
 
         if (expression instanceof ConstantExpression constantExpression) {
@@ -1266,6 +1634,30 @@ public class GroovyConstructorInputTraceVisitor {
                             nestedTraces.stream().map(ValueTrace::recipe).toList()));
         }
 
+        if (expression instanceof CastExpression castExpression) {
+            ValueTrace nestedTrace = describeExpressionTrace(castExpression.getExpression(),
+                    classNode, metadata, state,
+                    methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                    visibleFieldKeysByClassFqn,
+                    helperCallStack,
+                    visitedVariables,
+                    emittedNestedFacadeTraceKeys,
+                    depth + 1,
+                    traceSourceClassFqn,
+                    traceMethodName,
+                    traceScopeKey,
+                    helperScope,
+                    rebindingFallbackScopes);
+
+            String targetType = castExpression.getType() == null
+                    ? "(unknown)"
+                    : castExpression.getType().getNameWithoutPackage();
+            return new ValueTrace(nestedTrace.provenance() + " as " + targetType,
+                    new GroovyValueRecipe(GroovyValueKind.LOCAL_TRANSFORM,
+                            "as " + targetType,
+                            List.of(nestedTrace.recipe())));
+        }
+
         if (expression instanceof VariableExpression variableExpression) {
             String variableName = variableExpression.getName();
             if ("this".equals(variableName) || "super".equals(variableName)) {
@@ -1276,12 +1668,17 @@ public class GroovyConstructorInputTraceVisitor {
             Expression resolvedExpression = resolveExpressionFromScopes(variableName,
                     methodExpressionScopes, classFieldExpressionScopes);
             if (resolvedExpression == null) {
-                return new ValueTrace(variableName + " [unresolved source-backed variable]",
-                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, variableName, List.of()));
+                FieldNode fieldNode = classNode == null ? null : classNode.getField(variableName);
+                String provenanceText = variableName + " [unresolved source-backed variable]";
+                if (fieldNode != null && fieldNode.getInitialExpression() == null) {
+                    return buildInjectablePlaceholderTrace(provenanceText, variableName, traceScopeKey, variableName);
+                }
+
+                return buildSourcePlaceholderTrace(provenanceText, variableName, traceScopeKey, variableName);
             }
             if (isSelfReference(variableExpression, resolvedExpression)) {
-                return new ValueTrace(variableName + " [unresolved self-reference]",
-                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, variableName, List.of()));
+                return buildUnknownUnresolvedVariableTrace(variableName + " [unresolved self-reference]",
+                        variableName);
             }
             String scopedVariableKey = scopedVariableKey(traceScopeKey, variableName);
             if (scopedVariableKey != null && !visitedVariables.add(scopedVariableKey)) {
@@ -1289,7 +1686,7 @@ public class GroovyConstructorInputTraceVisitor {
                         && isSelfRebindingExpression(resolvedExpression, variableName)
                         && rebindingFallbackScopes != null) {
                     Expression fallbackExpression = rebindingFallbackScopes.get(variableName);
-                    if (fallbackExpression != null
+                        if (fallbackExpression != null
                             && !isSelfReference(variableExpression, fallbackExpression)
                             && !Objects.equals(textOf(fallbackExpression), textOf(resolvedExpression))) {
                         ValueTrace fallbackTrace = describeExpressionTrace(fallbackExpression,
@@ -1308,8 +1705,8 @@ public class GroovyConstructorInputTraceVisitor {
                         return new ValueTrace(variableName + " <- " + fallbackTrace.provenance(), fallbackTrace.recipe());
                     }
                 }
-                return new ValueTrace(variableName + " [unresolved cyclic reference]",
-                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, variableName, List.of()));
+                return buildUnknownUnresolvedVariableTrace(variableName + " [unresolved cyclic reference]",
+                        variableName);
             }
 
             ValueTrace resolvedTrace = describeExpressionTrace(resolvedExpression,
@@ -1358,8 +1755,8 @@ public class GroovyConstructorInputTraceVisitor {
         if (expression instanceof MethodCallExpression methodCallExpression) {
             String calledMethod = methodCallExpression.getMethodAsString();
             if (calledMethod == null) {
-                return new ValueTrace(methodCallExpression.getText() + " [unresolved dynamic-method-call]",
-                        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, methodCallExpression.getText(), List.of()));
+                return buildUnknownUnresolvedRuntimeTrace(methodCallExpression.getText() + " [unresolved dynamic-method-call]",
+                        methodCallExpression.getText());
             }
 
             if (isAccessorMethod(methodCallExpression)) {
@@ -1393,18 +1790,55 @@ public class GroovyConstructorInputTraceVisitor {
                     depth + 1,
                     traceSourceClassFqn,
                     traceMethodName,
-                    traceScopeKey,
-                    helperScope,
-                    rebindingFallbackScopes);
+                        traceScopeKey,
+                        helperScope,
+                        rebindingFallbackScopes);
                 if (!isCollectionLikeRecipe(receiverTrace.recipe())) {
-                    return new ValueTrace(methodCallExpression.getText() + " [unresolved external/runtime edge]",
-                            new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, methodCallExpression.getText(),
-                                    List.of(receiverTrace.recipe())));
+                    return buildRuntimeCallValueTrace(methodCallExpression,
+                            methodCallExpression.getText() + " [unresolved external/runtime edge]",
+                            GroovyValueResolutionCategory.RUNTIME_CALL,
+                            receiverTrace,
+                            List.of());
                 }
                 return new ValueTrace(receiverTrace.provenance() + ".toSet()",
                         new GroovyValueRecipe(GroovyValueKind.LOCAL_TRANSFORM, "toSet",
                                 List.of(receiverTrace.recipe())));
             }
+
+            ValueTrace runtimeReceiverTrace = null;
+            Expression runtimeObjectExpression = methodCallExpression.getObjectExpression();
+            if (runtimeObjectExpression != null && !(runtimeObjectExpression instanceof VariableExpression variableExpression
+                    && "this".equals(variableExpression.getName()))) {
+                runtimeReceiverTrace = describeExpressionTrace(runtimeObjectExpression,
+                        classNode, metadata, state,
+                        methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                        visibleFieldKeysByClassFqn,
+                        helperCallStack,
+                        visitedVariables,
+                        emittedNestedFacadeTraceKeys,
+                        depth + 1,
+                        traceSourceClassFqn,
+                        traceMethodName,
+                        traceScopeKey,
+                        helperScope,
+                        rebindingFallbackScopes);
+            }
+
+            List<ValueTrace> runtimeArgumentTraces = extractArguments(methodCallExpression.getArguments()).stream()
+                    .map(argument -> describeExpressionTrace(argument,
+                            classNode, metadata, state,
+                            methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                            visibleFieldKeysByClassFqn,
+                            helperCallStack,
+                            visitedVariables,
+                            emittedNestedFacadeTraceKeys,
+                            depth + 1,
+                            traceSourceClassFqn,
+                            traceMethodName,
+                            traceScopeKey,
+                            helperScope,
+                            rebindingFallbackScopes))
+                    .toList();
 
             if (helperScope) {
                 Optional<FacadeResolution> nestedFacadeResolution = resolveFacadeResolution(
@@ -1434,10 +1868,11 @@ public class GroovyConstructorInputTraceVisitor {
                             methodCallExpression,
                             emittedNestedFacadeTraceKeys,
                             traceScopeKey);
-                    return new ValueTrace(methodCallExpression.getText(),
-                            new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE,
-                                    methodCallExpression.getText(),
-                                    List.of()));
+                    return buildRuntimeCallValueTrace(methodCallExpression,
+                            methodCallExpression.getText() + " [unresolved external/runtime edge]",
+                            GroovyValueResolutionCategory.RUNTIME_CALL,
+                            runtimeReceiverTrace,
+                            runtimeArgumentTraces);
                 }
             }
 
@@ -1445,22 +1880,31 @@ public class GroovyConstructorInputTraceVisitor {
                 MethodResolutionContext helperMethodContext = resolveLocalHelperMethod(methodCallExpression, methodsByName)
                         .orElse(null);
                 if (helperMethodContext == null) {
-                    return new ValueTrace(calledMethod + "(...) [unresolved local-helper-method]",
-                            new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, calledMethod + "(...)", List.of()));
+                    return buildRuntimeCallValueTrace(methodCallExpression,
+                            calledMethod + "(...) [unresolved local-helper-method]",
+                            GroovyValueResolutionCategory.RUNTIME_CALL,
+                            runtimeReceiverTrace,
+                            runtimeArgumentTraces);
                 }
                 MethodNode helperMethod = helperMethodContext.methodNode();
 
                 String helperKey = helperMethodContext.layer().classFqn() + "#" + helperMethod.getTypeDescriptor();
                 if (helperCallStack.contains(helperKey)) {
-                    return new ValueTrace(calledMethod + "(...) [unresolved helper-cycle]",
-                            new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, calledMethod + "(...)", List.of()));
+                    return buildRuntimeCallValueTrace(methodCallExpression,
+                            calledMethod + "(...) [unresolved helper-cycle]",
+                            GroovyValueResolutionCategory.RUNTIME_CALL,
+                            runtimeReceiverTrace,
+                            runtimeArgumentTraces);
                 }
 
                 HelperReturnResolution helperReturn = resolveHelperReturn(methodCallExpression, helperMethodContext,
                         methodExpressionScopes, classFieldExpressionScopes, visibleFieldKeysByClassFqn);
                 if (helperReturn == null) {
-                    return new ValueTrace(calledMethod + "(...) [unresolved local-helper-return]",
-                            new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, calledMethod + "(...)", List.of()));
+                    return buildRuntimeCallValueTrace(methodCallExpression,
+                            calledMethod + "(...) [unresolved local-helper-return]",
+                            GroovyValueResolutionCategory.RUNTIME_CALL,
+                            runtimeReceiverTrace,
+                            runtimeArgumentTraces);
                 }
 
                 helperCallStack.push(helperKey);
@@ -1484,31 +1928,15 @@ public class GroovyConstructorInputTraceVisitor {
                                 List.of(helperReturnTrace.recipe())));
             }
 
-            ValueTrace receiverTrace = null;
-            Expression objectExpression = methodCallExpression.getObjectExpression();
-            if (objectExpression != null && !(objectExpression instanceof VariableExpression variableExpression && "this".equals(variableExpression.getName()))) {
-                receiverTrace = describeExpressionTrace(objectExpression,
-                        classNode, metadata, state,
-                        methodExpressionScopes, classFieldExpressionScopes, methodsByName,
-                        visibleFieldKeysByClassFqn,
-                        helperCallStack,
-                        visitedVariables,
-                        emittedNestedFacadeTraceKeys,
-                        depth + 1,
-                        traceSourceClassFqn,
-                        traceMethodName,
-                        traceScopeKey,
-                        helperScope,
-                        rebindingFallbackScopes);
-            }
-
-            List<GroovyValueRecipe> children = receiverTrace == null ? List.of() : List.of(receiverTrace.recipe());
-            return new ValueTrace(methodCallExpression.getText() + " [unresolved external/runtime edge]",
-                    new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, methodCallExpression.getText(), children));
+            return buildRuntimeCallValueTrace(methodCallExpression,
+                    methodCallExpression.getText() + " [unresolved external/runtime edge]",
+                    GroovyValueResolutionCategory.RUNTIME_CALL,
+                    runtimeReceiverTrace,
+                    runtimeArgumentTraces);
         }
 
-        return new ValueTrace(expression.getText() + " [unresolved external/runtime edge]",
-                new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, expression.getText(), List.of()));
+        return buildUnknownUnresolvedRuntimeTrace(expression.getText() + " [unresolved external/runtime edge]",
+                expression.getText());
     }
 
     private void registerNestedHelperFacadeTrace(ApplicationAnalysisState state,
@@ -1874,6 +2302,10 @@ public class GroovyConstructorInputTraceVisitor {
         if (expression instanceof ConstructorCallExpression constructorCallExpression) {
             return extractArguments(constructorCallExpression.getArguments()).stream()
                     .anyMatch(argument -> expressionReferencesVariable(argument, variableName));
+        }
+
+        if (expression instanceof CastExpression castExpression) {
+            return expressionReferencesVariable(castExpression.getExpression(), variableName);
         }
 
         if (expression instanceof ListExpression listExpression) {

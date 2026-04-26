@@ -6,6 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaU
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.workflow.SagaWorkflow;
 
+import java.util.Set;
+
 public class CreateOrderFunctionalitySagas extends WorkflowFunctionality {
 
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -19,8 +21,16 @@ public class CreateOrderFunctionalitySagas extends WorkflowFunctionality {
 
     public CreateOrderFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
                                          SagaUnitOfWork unitOfWork,
+                                         Set<Integer> excludedCustomerIds,
                                          Integer customerId,
                                          Integer projectedCustomerId) {
+        this(unitOfWorkService, unitOfWork, customerId, projectedCustomerId);
+    }
+
+    public CreateOrderFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                          SagaUnitOfWork unitOfWork,
+                                          Integer customerId,
+                                          Integer projectedCustomerId) {
         this.unitOfWorkService = unitOfWorkService;
         this.customerId = customerId;
         this.projectedCustomerId = projectedCustomerId;

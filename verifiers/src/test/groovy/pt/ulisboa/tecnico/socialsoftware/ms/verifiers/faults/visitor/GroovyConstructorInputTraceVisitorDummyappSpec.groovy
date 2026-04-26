@@ -5,6 +5,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTra
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe
 
 class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport {
@@ -53,6 +54,12 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         }
         fullTraces.size() == 2
         fullTraces*.sourceBindingName as Set == ['firstOrderSaga', 'secondOrderSaga'] as Set
+        fullTraces.every { trace ->
+            trace.constructorArguments()*.expectedTypeFqn() == [
+                    'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
+                    'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork'
+            ]
+        }
     }
 
     def 'traces setup, setupSpec, and field constructor contexts from dummyapp fixture'() {
@@ -145,8 +152,18 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         assignmentTrace.workflowCalls().isEmpty()
         assignmentTrace.constructorArguments()[1].provenance().contains('dto <- new ItemDto(')
         recipeContainsKind(assignmentTrace.constructorArguments()[1].recipe(), GroovyValueKind.CONSTRUCTOR)
+        assignmentTrace.constructorArguments()[2].recipe().kind() == GroovyValueKind.UNRESOLVED_RUNTIME_EDGE
+        assignmentTrace.constructorArguments()[2].recipe().metadata().category() == GroovyValueResolutionCategory.RUNTIME_CALL
+        assignmentTrace.constructorArguments()[2].recipe().metadata().runtimeCall() != null
+        assignmentTrace.constructorArguments()[2].recipe().metadata().runtimeCall().methodName() == 'createUnitOfWork'
+        assignmentTrace.constructorArguments()[2].recipe().metadata().runtimeCall().receiverText().contains('sagaUnitOfWorkService')
+        assignmentTrace.constructorArguments()[2].recipe().metadata().runtimeCall().sourceText() == 'sagaUnitOfWorkService.createUnitOfWork("createItem")'
+        assignmentTrace.constructorArguments()[2].recipe().metadata().runtimeCall().arguments().size() == 1
+        assignmentTrace.constructorArguments()[2].recipe().metadata().runtimeCall().arguments()[0].recipe().kind() == GroovyValueKind.LITERAL
+        assignmentTrace.constructorArguments()[2].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork'
         assignmentTraceText.contains('resolved via facade ItemFunctionalitiesFacade.createItem(...)')
         assignmentTraceText.contains('arg[1]: dto <- new ItemDto(')
+        assignmentTraceText.contains('arg[2]: unitOfWork <- sagaUnitOfWorkService.createUnitOfWork(...) [unresolved external/runtime edge]')
 
         and:
         bareTrace != null
@@ -169,6 +186,37 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         helperTraceText.contains('resolved via helper createItemSaga(...)')
         helperTraceText.contains('buildItemDtoViaFacade(...) <- itemDto <- itemFunctionalities.createItem(itemDto)')
         !helperTraceText.contains('[unresolved cyclic reference]')
+    }
+
+    def 'injectable placeholders carry identity and expected type'() {
+        given:
+        def trace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'assignment from facade call traces item saga recipe' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+
+        expect:
+        trace != null
+        trace.constructorArguments()[0].recipe().metadata().category() == GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER
+        trace.constructorArguments()[0].recipe().metadata().placeholderId()?.trim()
+        trace.constructorArguments()[0].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService'
+        trace.constructorArguments()[0].recipe().metadata().expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService'
+        trace.constructorArguments()[2].recipe().kind() == GroovyValueKind.UNRESOLVED_RUNTIME_EDGE
+        trace.constructorArguments()[2].recipe().metadata().category() == GroovyValueResolutionCategory.RUNTIME_CALL
+        trace.constructorArguments()[2].recipe().metadata().runtimeCall() != null
+        trace.constructorArguments()[2].recipe().metadata().runtimeCall().methodName() == 'createUnitOfWork'
+        trace.constructorArguments()[2].recipe().metadata().runtimeCall().receiverText().contains('sagaUnitOfWorkService')
+        trace.constructorArguments()[2].recipe().metadata().runtimeCall().sourceText() == 'sagaUnitOfWorkService.createUnitOfWork("createItem")'
+        trace.constructorArguments()[2].recipe().metadata().runtimeCall().arguments().size() == 1
+        trace.constructorArguments()[2].recipe().metadata().runtimeCall().arguments()[0].recipe().kind() == GroovyValueKind.LITERAL
+        trace.constructorArguments()[2].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork'
+        trace.constructorArguments()[2].recipe().metadata().expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork'
+        trace.constructorArguments()[3].recipe().metadata().category() == GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER
+        trace.constructorArguments()[3].recipe().metadata().placeholderId()?.trim()
+        trace.constructorArguments()[3].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway'
+        trace.constructorArguments()[3].recipe().metadata().expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway'
+        trace.constructorArguments()[0].recipe().metadata().placeholderId() != trace.constructorArguments()[3].recipe().metadata().placeholderId()
     }
 
     def 'nested helper facade traces are emitted once'() {
@@ -196,6 +244,32 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         recipeContainsKind(helperFacadeTrace.constructorArguments()[1].recipe(), GroovyValueKind.HELPER_CALL_RESULT)
         parentTraceText.contains('buildItemDtoViaFacade(...) <- itemDto <- itemFunctionalities.createItem(itemDto)')
         parentTraceText.contains('resolved via helper createItemSaga(...)')
+    }
+
+    def 'functionality runtime edge retains call arguments'() {
+        given:
+        def trace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'helper returning facade result feeds item saga constructor' &&
+                    it.sourceBindingName == 'helperSaga' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+
+        expect:
+        trace != null
+        trace.constructorArguments()[1].recipe().kind() == GroovyValueKind.HELPER_CALL_RESULT
+        trace.constructorArguments()[1].recipe().children().size() == 1
+
+        and:
+        def runtimeEdge = trace.constructorArguments()[1].recipe().children()[0]
+        runtimeEdge.metadata().category() == GroovyValueResolutionCategory.RUNTIME_CALL
+        runtimeEdge.metadata().runtimeCall() != null
+        runtimeEdge.metadata().runtimeCall().methodName() == 'createItem'
+        runtimeEdge.metadata().runtimeCall().receiverText().contains('itemFunctionalities')
+        runtimeEdge.metadata().runtimeCall().sourceText() == 'itemFunctionalities.createItem(itemDto)'
+        runtimeEdge.metadata().runtimeCall().arguments().size() == 1
+        runtimeEdge.metadata().runtimeCall().arguments()[0].index() == 0
+        runtimeEdge.metadata().runtimeCall().arguments()[0].recipe() != null
     }
 
     def 'same-name caller/helper locals no longer produce a cyclic marker'() {
@@ -293,6 +367,35 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         traceText.contains('arg[2]: aggregateCount <- [1, 2, 3].toSet().size()')
     }
 
+    def 'keeps Groovy as Set coercion as local transform for dummyapp literal'() {
+        given:
+        def trace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'empty list as Set feeds order saga constructor' &&
+                    it.sourceBindingName == 'asSetSaga' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas'
+        }
+
+        when:
+        def traceText = traceTextFor(
+                'com.example.dummyapp.GroovySagaTracingSpec',
+                'empty list as Set feeds order saga constructor',
+                'asSetSaga',
+                'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas'
+        )
+
+        then:
+        trace != null
+        trace.constructorArguments()[2].recipe().kind() == GroovyValueKind.LOCAL_TRANSFORM
+        trace.constructorArguments()[2].recipe().text() == 'as Set'
+        trace.constructorArguments()[2].recipe().metadata().category() == GroovyValueResolutionCategory.RESOLVED
+        trace.constructorArguments()[2].recipe().children()[0].kind() == GroovyValueKind.COLLECTION_LITERAL
+        trace.constructorArguments()[2].expectedTypeFqn() == 'java.util.Set<java.lang.Integer>'
+        !recipeContainsKind(trace.constructorArguments()[2].recipe(), GroovyValueKind.UNRESOLVED_RUNTIME_EDGE)
+        traceText.contains('arg[2]: [] as Set')
+        !traceText.contains('arg[2]: [] as Set [unresolved external/runtime edge]')
+    }
+
     def 'keeps toSet as local transform when dummyapp collection leaves stay unresolved'() {
         given:
         def trace = state.groovyFullTraceResults.find {
@@ -344,6 +447,14 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
     }
 
     def 'keeps unresolved runtime edges conservative for dummyapp item saga input'() {
+        given:
+        def trace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'runtime edge stays conservative for item saga input' &&
+                    it.sourceBindingName == 'runtimeSaga' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+
         when:
         def traceText = traceTextFor(
                 'com.example.dummyapp.GroovySagaTracingSpec',
@@ -353,6 +464,14 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         )
 
         then:
+        trace != null
+        trace.constructorArguments()[1].recipe().metadata().category() == GroovyValueResolutionCategory.RUNTIME_CALL
+        trace.constructorArguments()[1].recipe().metadata().runtimeCall() != null
+        trace.constructorArguments()[1].recipe().metadata().runtimeCall().methodName() == 'loadExternalDto'
+        trace.constructorArguments()[1].recipe().metadata().runtimeCall().receiverText().contains('runtimeGateway')
+        trace.constructorArguments()[1].recipe().metadata().runtimeCall().sourceText() == 'runtimeGateway.loadExternalDto()'
+        trace.constructorArguments()[1].recipe().metadata().runtimeCall().arguments().isEmpty()
+        trace.constructorArguments()[1].expectedTypeFqn() == 'com.example.dummyapp.item.aggregate.ItemDto'
         traceText.contains('arg[1]: runtimeDto <- runtimeGateway.loadExternalDto() [unresolved external/runtime edge]')
     }
 
@@ -395,9 +514,16 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
                 GroovyValueKind.LITERAL,
                 GroovyValueKind.UNRESOLVED_VARIABLE
         ]
+        assignmentTrace.constructorArguments()[1].recipe().metadata().category() == GroovyValueResolutionCategory.RUNTIME_CALL
+        assignmentTrace.constructorArguments()[1].recipe().metadata().runtimeCall() != null
+        assignmentTrace.constructorArguments()[1].recipe().metadata().runtimeCall().methodName() == 'createUnitOfWork'
+        assignmentTrace.constructorArguments()[1].recipe().metadata().runtimeCall().receiverText().contains('sagaUnitOfWorkService')
+        assignmentTrace.constructorArguments()[1].recipe().metadata().runtimeCall().sourceText() == 'sagaUnitOfWorkService.createUnitOfWork("createOrder")'
+        assignmentTrace.constructorArguments()[1].recipe().metadata().runtimeCall().arguments().size() == 1
+        assignmentTrace.constructorArguments()[1].recipe().metadata().runtimeCall().arguments()[0].recipe().kind() == GroovyValueKind.LITERAL
         assignmentTraceText.contains('orderFunctionalities.createOrder(null)')
         assignmentTraceText.contains('resolved via facade OrderFunctionalitiesFacade.createOrder(...)')
-        assignmentTraceText.contains('arg[2]: null')
+        assignmentTraceText.contains('arg[1]: unitOfWork <- sagaUnitOfWorkService.createUnitOfWork(...) [unresolved external/runtime edge]')
 
         and:
         bareTrace != null
@@ -411,9 +537,16 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
                 GroovyValueKind.LITERAL,
                 GroovyValueKind.UNRESOLVED_VARIABLE
         ]
+        bareTrace.constructorArguments()[1].recipe().metadata().category() == GroovyValueResolutionCategory.RUNTIME_CALL
+        bareTrace.constructorArguments()[1].recipe().metadata().runtimeCall() != null
+        bareTrace.constructorArguments()[1].recipe().metadata().runtimeCall().methodName() == 'createUnitOfWork'
+        bareTrace.constructorArguments()[1].recipe().metadata().runtimeCall().receiverText().contains('sagaUnitOfWorkService')
+        bareTrace.constructorArguments()[1].recipe().metadata().runtimeCall().sourceText() == 'sagaUnitOfWorkService.createUnitOfWork("createOrder")'
+        bareTrace.constructorArguments()[1].recipe().metadata().runtimeCall().arguments().size() == 1
+        bareTrace.constructorArguments()[1].recipe().metadata().runtimeCall().arguments()[0].recipe().kind() == GroovyValueKind.LITERAL
         bareTraceText.contains('orderFunctionalities.createOrder(null)')
         bareTraceText.contains('resolved via facade OrderFunctionalitiesFacade.createOrder(...)')
-        bareTraceText.contains('arg[2]: null')
+        bareTraceText.contains('arg[1]: unitOfWork <- sagaUnitOfWorkService.createUnitOfWork(...) [unresolved external/runtime edge]')
     }
 
     def 'traces inherited setup and shadowed field contexts from dummyapp fixture classes'() {

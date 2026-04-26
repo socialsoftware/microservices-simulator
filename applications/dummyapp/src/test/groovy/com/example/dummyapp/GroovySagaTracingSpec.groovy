@@ -112,6 +112,17 @@ class GroovySagaTracingSpec extends Specification {
         true
     }
 
+    def 'empty list as Set feeds order saga constructor'() {
+        given:
+        def asSetSaga = new CreateOrderFunctionalitySagas(null, null, [] as Set, null, null)
+
+        when:
+        asSetSaga.executeWorkflow(null)
+
+        then:
+        true
+    }
+
     def 'local toSet with unresolved child leaves feeds order saga constructor'() {
         given:
         def runtimeAwareIds = [runtimeGateway.loadExternalDto().getAggregateId(), 9].toSet()

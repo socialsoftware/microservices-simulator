@@ -6,6 +6,7 @@ import java.util.List;
 
 public class SagaFunctionalityBuildingBlock extends BuildingBlock {
     private final List<SagaStepBuildingBlock> steps = new ArrayList<>();
+    private final List<SagaConstructorSignature> constructorSignatures = new ArrayList<>();
 
     public SagaFunctionalityBuildingBlock(Path file, String packageName, String fqn) {
         super(file, packageName, fqn);
@@ -15,7 +16,15 @@ public class SagaFunctionalityBuildingBlock extends BuildingBlock {
         return steps;
     }
 
+    public List<SagaConstructorSignature> getConstructorSignatures() {
+        return constructorSignatures;
+    }
+
     public void addStep(SagaStepBuildingBlock step) {
         steps.add(step);
+    }
+
+    public void addConstructorSignature(SagaConstructorSignature constructorSignature) {
+        constructorSignatures.add(constructorSignature);
     }
 }
