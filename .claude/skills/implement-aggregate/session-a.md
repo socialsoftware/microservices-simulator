@@ -148,6 +148,17 @@ Path: `{test}sagas/{aggregate}/{Aggregate}Test.groovy`
 
 Open `{src}microservices/exception/{AppClass}ErrorMessage.java` and add one `public static final String` constant per P1 rule enforced in `verifyInvariants()` for this aggregate. Append to the existing file; do not remove existing constants.
 
+### `{Aggregate}ServiceApplication.java`
+
+Path: `{src}microservices/{aggregate}/{Aggregate}ServiceApplication.java`
+
+- `@Profile("{aggregate}-service")` — gates activation to the named profile only; does not activate during normal `mvn test` runs
+- `@SpringBootApplication(scanBasePackages = {"pt.ulisboa.tecnico.socialsoftware.{pkg}.microservices.{aggregate}", "pt.ulisboa.tecnico.socialsoftware.ms"})`
+- Same two packages for `@EnableJpaRepositories` and `@EntityScan`
+- `@EnableScheduling`
+- Implements `InitializingBean`; `@Autowired EventService eventService`; calls `eventService.clearEventsAtApplicationStartUp()` in `afterPropertiesSet()`
+- `main` method calls `SpringApplication.run({Aggregate}ServiceApplication.class, args)`
+
 ---
 
 ## Update BeanConfigurationSagas.groovy

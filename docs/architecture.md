@@ -93,6 +93,17 @@ microservices/{serviceName}/
 **Optional directories:**
 - `coordination/eventProcessing/` and `notification/` are present only in aggregates that **consume events** from other services (e.g., Tournament). Aggregates that only **publish events** (e.g., User) omit both directories.
 
+### `{Xxx}ServiceApplication.java`
+
+Each microservice has a `@SpringBootApplication` entry point gated by `@Profile("{xxx}-service")`. This lets the service run in isolation (activated by its named profile) while remaining inert inside the simulator's monolithic `{AppClass}Simulator` context (which does not activate any per-service profile). The class:
+- Scans only its own `microservices/{xxx}` package plus `pt.ulisboa.tecnico.socialsoftware.ms`
+- Implements `InitializingBean` to call `eventService.clearEventsAtApplicationStartUp()` on startup
+- Is profile-gated and does not conflict with the monolithic simulator entry point
+
+### `{Xxx}Controller.java`
+
+A minimal `@RestController` stub under `coordination/webapi/`. In the simulator, HTTP endpoints are not exercised by the test harness (tests drive operations directly via `{Xxx}Functionalities`). The controller is created as an empty stub to mark the architectural slot and match the reference app structure. Endpoints can be filled in when a web-API layer is needed.
+
 ---
 
 ## Request Lifecycle

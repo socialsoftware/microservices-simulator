@@ -147,6 +147,15 @@ Open `{src}microservices/exception/{AppClass}ErrorMessage.java` and add constant
 
 Append to the existing file; do not remove existing constants.
 
+### `{Aggregate}Controller.java`
+
+Path: `{src}microservices/{aggregate}/coordination/webapi/{Aggregate}Controller.java`
+
+- Single `@RestController` annotation; empty body
+- Package: `pt.ulisboa.tecnico.socialsoftware.{pkg}.microservices.{aggregate}.coordination.webapi`
+- No methods needed — REST endpoints are not exercised by the test harness; this stub marks the architectural slot
+- Import: `org.springframework.web.bind.annotation.RestController`
+
 ---
 
 ## Update BeanConfigurationSagas.groovy
