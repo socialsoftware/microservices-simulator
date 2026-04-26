@@ -153,6 +153,58 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 }
 ```
 
+### Service-Command Tests (T2 variant)
+
+Some aggregates expose service methods that are invoked via command handlers from **other**
+aggregates' sagas (e.g., `decrementExecutionCount` called when a CourseExecution is deleted)
+but are NOT exposed through `{Aggregate}Functionalities`. These methods still call
+`registerChanged`, which triggers `verifyInvariants()`, so they can raise invariant violations.
+
+For each such method, write T2-style tests covering:
+- **Happy path** — state changes as expected, no exception
+- **Floor/ceiling behaviour** — e.g., decrement at zero stays at zero
+- **Invariant violations** — every `verifyInvariants()` path the method can reach
+
+**No saga step interleaving is needed** (there are no saga steps to interleave).
+
+**Location:** `sagas/coordination/{aggregate}/`  
+**Naming:** `{OperationName}Test.groovy`, or combine related operations into one file
+(e.g., `{Aggregate}CountsTest.groovy`) when they share setup.
+
+**Template:**
+```groovy
+def "setup"() {
+    aggregate = create<Aggregate>(/* valid args */)
+}
+
+def "<op>: success"() {
+    when:
+    def uow = unitOfWorkService.createUnitOfWork("<op>")
+    <aggregate>Service.<op>(aggregate.aggregateId, uow)
+    unitOfWorkService.commit(uow)
+
+    then:
+    def result = <aggregate>Functionalities.get<Aggregate>ById(aggregate.aggregateId)
+    result.<field> == <expectedValue>
+}
+
+def "<op>: <RULE_NAME> violation"() {
+    given: '<aggregate> in state that will violate invariant after <op>'
+    // set up prerequisite state via prior service calls + commit
+
+    when:
+    def uow = unitOfWorkService.createUnitOfWork("<op>")
+    <aggregate>Service.<op>(aggregate.aggregateId, uow)
+    unitOfWorkService.commit(uow)   // verifyInvariants fires here
+
+    then:
+    def ex = thrown(<App>Exception)
+    ex.message == <RULE_NAME>
+}
+```
+
+---
+
 ### Not-Found Assertions
 
 Aggregate-not-found is thrown by the infrastructure (`SagaUnitOfWorkService.aggregateLoadAndRegisterRead`) as `SimulatorException` — **not** the app-level exception. Use `thrown(SimulatorException)` for these cases and import it at the top of the test file:

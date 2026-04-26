@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.functionalities.CourseFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.service.CourseService
 
 class QuizzesFullSpockTest extends SpockTest {
 
@@ -25,6 +26,9 @@ class QuizzesFullSpockTest extends SpockTest {
 
     @Autowired(required = false)
     protected CourseFunctionalities courseFunctionalities
+
+    @Autowired(required = false)
+    protected CourseService courseService
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)

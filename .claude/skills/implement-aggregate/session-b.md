@@ -113,6 +113,22 @@ Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 - **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., creator not enrolled in execution)
 - **P1 invariant violation tests**: for each P1 rule that a write operation can put at risk, add a test that exercises the service method causing the violation. The service calls `registerChanged`, which automatically invokes `verifyInvariants` — **never call `verifyInvariants()` directly**.
 
+### Service-command method tests (T2 variant)
+
+After writing the coordinator-level T2 tests above, scan `{Aggregate}Service.java` for any
+additional methods that call `registerChanged` but are **not** exposed through
+`{Aggregate}Functionalities`. These are invoked via commands from other aggregates' sagas
+(e.g., `decrementExecutionCount` called when a related aggregate is deleted).
+
+For each such method:
+1. Write T2-style tests (happy path + invariant violations) — no saga step interleaving needed.
+2. If a mirror method is missing (e.g., `incrementExecutionCount` exists in the reference app but
+   not here), add it now — it will be needed when the other aggregate's saga is implemented and
+   is required for invariant-violation test setup.
+3. Place the test file in `{test}sagas/coordination/{aggregate}/`, naming it
+   `{OperationName}Test.groovy` or combining related operations into one file
+   (e.g., `{Aggregate}CountsTest.groovy`) when they share setup.
+
 ### Event classes (if this aggregate publishes events)
 
 For each event listed in plan.md Events published that does not yet exist:

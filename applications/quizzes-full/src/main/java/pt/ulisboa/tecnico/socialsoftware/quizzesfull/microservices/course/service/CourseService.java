@@ -59,10 +59,26 @@ public class CourseService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void incrementExecutionCount(Integer courseAggregateId, UnitOfWork unitOfWork) {
+        Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+        Course newCourse = courseFactory.createCourseCopy(oldCourse);
+        newCourse.setExecutionCount(newCourse.getExecutionCount() + 1);
+        unitOfWorkService.registerChanged(newCourse, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void decrementExecutionCount(Integer courseAggregateId, UnitOfWork unitOfWork) {
         Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
         Course newCourse = courseFactory.createCourseCopy(oldCourse);
         newCourse.setExecutionCount(Math.max(0, newCourse.getExecutionCount() - 1));
+        unitOfWorkService.registerChanged(newCourse, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void incrementQuestionCount(Integer courseAggregateId, UnitOfWork unitOfWork) {
+        Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+        Course newCourse = courseFactory.createCourseCopy(oldCourse);
+        newCourse.setQuestionCount(newCourse.getQuestionCount() + 1);
         unitOfWorkService.registerChanged(newCourse, unitOfWork);
     }
 
