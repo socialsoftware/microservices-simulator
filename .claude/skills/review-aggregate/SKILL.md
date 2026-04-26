@@ -270,13 +270,12 @@ Flag any test using `thrown({AppClass}Exception)` for a not-found assertion — 
 
 ## Step 8: Retro Cross-Reference
 
-For each action item from Step 2.c retros, where the target is a source file:
+List all action items from the retros found in Step 2.c.
 
-| Retro | Session | Priority | Action Item | Resolved? | Evidence |
-|-------|---------|----------|-------------|-----------|----------|
+| Retro | Session | Priority | Action Item |
+|-------|---------|----------|-------------|
 
-Check each High-priority item targeting a source file by reading the relevant file and verifying the fix
-is present. Items targeting skill or doc files: note as "Out of scope (doc/skill fix)" — do not investigate.
+For High-priority items targeting a source file, read the relevant file and verify the fix is present; raise a Major action item if unresolved. Items targeting skill or doc files require no investigation.
 
 ---
 
@@ -360,8 +359,8 @@ lines, status.)
 
 ## Retro Cross-Reference
 
-| Retro | Session | Priority | Action Item | Resolved? | Evidence |
-|-------|---------|----------|-------------|-----------|----------|
+| Retro | Session | Priority | Action Item |
+|-------|---------|----------|-------------|
 
 ---
 

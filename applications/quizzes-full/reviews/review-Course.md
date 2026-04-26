@@ -318,20 +318,18 @@ All five commands (`CreateCourseCommand`, `UpdateCourseCommand`, `DeleteCourseCo
 
 ## Retro Cross-Reference
 
-| Retro | Session | Priority | Action Item | Resolved? | Evidence |
-|-------|---------|----------|-------------|-----------|----------|
-| retro-2.1.a | 2.1.a | (no High-priority items targeting source files) | — | Out of scope (doc/skill fix) | All retro-2.1.a items target `session-a.md`, `docs/concepts/aggregate.md`, etc. |
-| retro-2.1.b | 2.1.b | High | Add `{Aggregate}Functionalities.java` to session-b Produce section | Out of scope (doc/skill fix) | Targets `.claude/skills/implement-aggregate/session-b.md` |
-| retro-2.1.b | 2.1.b | High | Add prerequisite check for `Get{Aggregate}ByIdCommand` in session-b | Out of scope (doc/skill fix) | Targets `.claude/skills/implement-aggregate/session-b.md` |
-| retro-2.1.b | 2.1.b | High | Add SagaCommand subsection to `docs/concepts/sagas.md` | Out of scope (doc/skill fix) | Targets `docs/concepts/sagas.md` |
-| retro-2.1.b | 2.1.b | High | Fix `getAggregateTypeName()` claim in `docs/concepts/commands.md` | Out of scope (doc/skill fix) | Targets `docs/concepts/commands.md` |
-| retro-2.1.b | 2.1.b | Medium | Add delete exception note to `docs/concepts/service.md` | Out of scope (doc/skill fix) | Targets `docs/concepts/service.md` |
-| retro-2.1.b | 2.1.b | Medium | Add `ServiceMapping.java` prerequisite check to session-b | Out of scope (doc/skill fix) | Targets `.claude/skills/implement-aggregate/session-b.md` |
-| retro-2.1.c | 2.1.c | High | Replace `@Bean FunctionalitySagas` template in session-c; add instruction to append read method to Functionalities coordinator | Out of scope (doc/skill fix) | Targets `.claude/skills/implement-aggregate/session-c.md` |
-| retro-2.1.c | 2.1.c | High | Add not-found subsection to `docs/concepts/testing.md` clarifying `SimulatorException` | Out of scope (doc/skill fix) | Targets `docs/concepts/testing.md` |
-| retro-2.1.c | 2.1.c | Medium | Add "Read Functionality Sagas" subsection to `docs/concepts/sagas.md` | Out of scope (doc/skill fix) | Targets `docs/concepts/sagas.md` |
-
-No retro action items target source files. All are doc/skill fixes — out of scope for this review.
+| Retro | Session | Priority | Action Item |
+|-------|---------|----------|-------------|
+| retro-2.1.a | 2.1.a | (no High-priority items targeting source files) | — |
+| retro-2.1.b | 2.1.b | High | Add `{Aggregate}Functionalities.java` to session-b Produce section |
+| retro-2.1.b | 2.1.b | High | Add prerequisite check for `Get{Aggregate}ByIdCommand` in session-b |
+| retro-2.1.b | 2.1.b | High | Add SagaCommand subsection to `docs/concepts/sagas.md` |
+| retro-2.1.b | 2.1.b | High | Fix `getAggregateTypeName()` claim in `docs/concepts/commands.md` |
+| retro-2.1.b | 2.1.b | Medium | Add delete exception note to `docs/concepts/service.md` |
+| retro-2.1.b | 2.1.b | Medium | Add `ServiceMapping.java` prerequisite check to session-b |
+| retro-2.1.c | 2.1.c | High | Replace `@Bean FunctionalitySagas` template in session-c; add instruction to append read method to Functionalities coordinator |
+| retro-2.1.c | 2.1.c | High | Add not-found subsection to `docs/concepts/testing.md` clarifying `SimulatorException` |
+| retro-2.1.c | 2.1.c | Medium | Add "Read Functionality Sagas" subsection to `docs/concepts/sagas.md` |
 
 ---
 
