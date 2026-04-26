@@ -13,7 +13,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyConstru
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyRuntimeCallRecipe;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueMetadata;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall;
 
 import java.time.OffsetDateTime;
@@ -170,6 +173,11 @@ public class AnalysisHtmlReportRenderer {
                     }
                     details.subsection > summary::-webkit-details-marker { display: none; }
                     .subsection-content { padding: 0 11px 10px; }
+                    .table-wrap {
+                      width: 100%;
+                      overflow-x: auto;
+                      margin: 8px 0 0;
+                    }
                     table {
                       width: 100%;
                       border-collapse: collapse;
@@ -180,6 +188,8 @@ public class AnalysisHtmlReportRenderer {
                       padding: 7px 8px;
                       text-align: left;
                       vertical-align: top;
+                      overflow-wrap: anywhere;
+                      word-break: break-word;
                     }
                     th {
                       font-size: 0.78rem;
@@ -218,6 +228,8 @@ public class AnalysisHtmlReportRenderer {
                     code {
                       font-family: "IBM Plex Mono", "Source Code Pro", monospace;
                       font-size: 0.85em;
+                      overflow-wrap: anywhere;
+                      word-break: break-word;
                     }
                     a {
                       color: var(--accent);
@@ -243,21 +255,129 @@ public class AnalysisHtmlReportRenderer {
                       flex-wrap: wrap;
                       gap: 6px;
                     }
+                    .trace-actions {
+                      display: flex;
+                      flex-wrap: wrap;
+                      gap: 8px;
+                      margin: 0 0 10px;
+                    }
                     .severity-high { background: #ffe4e4; color: #8d2020; }
                     .severity-medium { background: #fff2de; color: #8a5300; }
                     .severity-low { background: #e8f2ff; color: #1b4f86; }
-                    .trace-mini-graph {
-                      width: 100%;
-                      max-width: 780px;
+                    .trace-browser {
+                      margin-top: 12px;
+                    }
+                    .trace-browser-controls {
+                      position: sticky;
+                      top: 10px;
+                      z-index: 4;
+                      background: rgba(255, 255, 255, 0.96);
+                      border: 1px solid var(--line);
+                      border-radius: 10px;
+                      padding: 10px 12px;
+                      box-shadow: 0 4px 16px rgba(17, 32, 38, 0.08);
+                      margin-bottom: 12px;
+                    }
+                    .trace-browser-title {
+                      margin: 0 0 8px;
+                      font-size: 1rem;
+                    }
+                    .trace-browser-toolbar {
+                      display: flex;
+                      flex-wrap: wrap;
+                      gap: 10px;
+                      align-items: center;
+                    }
+                    .trace-view-switcher {
+                      display: flex;
+                      gap: 8px;
+                      flex-wrap: wrap;
+                    }
+                    .trace-toolbar-actions {
+                      display: flex;
+                      gap: 8px;
+                      flex-wrap: wrap;
+                    }
+                    .trace-toggle {
+                      border: 1px solid var(--line);
+                      background: #f6fbfc;
+                      color: var(--text);
+                      border-radius: 999px;
+                      padding: 6px 12px;
+                      cursor: pointer;
+                      font: inherit;
+                    }
+                    .trace-toggle.active {
+                      background: var(--accent);
+                      color: #ffffff;
+                      border-color: var(--accent);
+                    }
+                    .trace-filter,
+                    .trace-sort {
                       border: 1px solid var(--line);
                       border-radius: 8px;
-                      background: #fbfeff;
-                      margin: 8px 0;
+                      padding: 6px 9px;
+                      font: inherit;
+                      color: var(--text);
+                      background: #ffffff;
                     }
-                    .trace-mini-graph text {
-                      font-family: "IBM Plex Sans", "Source Sans 3", sans-serif;
-                      font-size: 11px;
-                      fill: #17333c;
+                    .trace-filter {
+                      min-width: 250px;
+                      flex: 1 1 250px;
+                    }
+                    .trace-filter-status {
+                      margin: 8px 0 0;
+                      color: var(--muted);
+                      font-size: 0.85rem;
+                    }
+                    .trace-group-view[hidden] {
+                      display: none;
+                    }
+                    .trace-group,
+                    .trace-cluster {
+                      margin-bottom: 10px;
+                    }
+                    .trace-cluster > summary code,
+                    .trace-group > summary code {
+                      overflow-wrap: anywhere;
+                    }
+                    .trace-flow-card {
+                      border: 1px solid var(--line);
+                      border-radius: 10px;
+                      background: linear-gradient(180deg, #fbfeff 0%, #f5fafb 100%);
+                      padding: 10px 12px;
+                      margin: 8px 0 10px;
+                    }
+                    .trace-flow-grid {
+                      display: grid;
+                      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                      gap: 8px 12px;
+                    }
+                    .trace-flow-item {
+                      min-width: 0;
+                    }
+                    .trace-flow-label {
+                      display: block;
+                      font-size: 0.73rem;
+                      text-transform: uppercase;
+                      letter-spacing: 0.04em;
+                      color: var(--muted);
+                      margin-bottom: 3px;
+                    }
+                    .trace-flow-value {
+                      margin: 0;
+                    }
+                    .trace-instance {
+                      scroll-margin-top: 84px;
+                    }
+                    .trace-instance-collection {
+                      display: grid;
+                      gap: 10px;
+                    }
+                    .trace-empty {
+                      margin: 8px 0 0;
+                      color: var(--muted);
+                      font-style: italic;
                     }
                     .legacy-trace-hook {
                       display: none;
@@ -268,7 +388,7 @@ public class AnalysisHtmlReportRenderer {
                 <main>
                 """);
 
-        html.append("<section class=\"top\">\n");
+        html.append("<section class=\"top\" id=\"top\">\n");
         html.append("  <h1 class=\"title\">Verifier Analysis Report</h1>\n");
         html.append("  <div class=\"meta\">Generated <code>")
                 .append(escapeHtml(metadata.generatedAtIso()))
@@ -317,7 +437,7 @@ public class AnalysisHtmlReportRenderer {
         if (constructorTraces.isEmpty()) {
             html.append("<p class=\"no-data\">No constructor traces found.</p>\n");
         } else {
-            html.append("<table><thead><tr><th>Source class</th><th>Method</th><th>Binding</th><th>Saga constructor</th></tr></thead><tbody>\n");
+            html.append("<div class=\"table-wrap\"><table><thead><tr><th>Source class</th><th>Method</th><th>Binding</th><th>Saga constructor</th></tr></thead><tbody>\n");
             constructorTraces.forEach(trace -> {
                 html.append("<tr><td><code>")
                         .append(escapeHtml(simpleName(trace.sourceClassFqn())))
@@ -329,9 +449,11 @@ public class AnalysisHtmlReportRenderer {
                         .append(escapeHtml(simpleName(trace.sagaClassFqn())))
                         .append("</code></td></tr>\n");
             });
-            html.append("</tbody></table>\n");
+            html.append("</tbody></table></div>\n");
         }
         html.append("</div></details>\n");
+
+        appendReplayCategorySummary(html, fullTraceViews);
 
         html.append("<details class=\"subsection\"><summary>Detailed to deeper: unresolved input markers (")
                 .append(unresolvedByCategory.values().stream().mapToInt(Integer::intValue).sum())
@@ -339,7 +461,7 @@ public class AnalysisHtmlReportRenderer {
         if (unresolvedByCategory.isEmpty()) {
             html.append("<p class=\"no-data\">No unresolved markers found in Groovy full traces.</p>\n");
         } else {
-            html.append("<table><thead><tr><th>Marker category</th><th>Count</th></tr></thead><tbody>\n");
+            html.append("<div class=\"table-wrap\"><table><thead><tr><th>Marker category</th><th>Count</th></tr></thead><tbody>\n");
             unresolvedByCategory.entrySet().stream()
                     .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()
                             .thenComparing(Map.Entry.comparingByKey()))
@@ -348,100 +470,204 @@ public class AnalysisHtmlReportRenderer {
                             .append("</span></td><td>")
                             .append(entry.getValue())
                             .append("</td></tr>\n"));
-            html.append("</tbody></table>\n");
+            html.append("</tbody></table></div>\n");
         }
         html.append("</div></details>\n");
 
-        appendGroupedGroovyTraceViews(html, fullTraceViews);
-        appendCanonicalTraceCards(html, fullTraceViews);
+        appendTraceBrowser(html, fullTraceViews);
 
         html.append("</div></details>\n");
     }
 
-    private void appendGroupedGroovyTraceViews(StringBuilder html, List<GroovyTraceView> fullTraceViews) {
-        Map<String, List<GroovyTraceView>> bySourceMethod = fullTraceViews.stream()
-                .collect(Collectors.groupingBy(this::formatSourceMethodLabel, LinkedHashMap::new, Collectors.toList()));
-        Map<String, List<GroovyTraceView>> bySagaTarget = fullTraceViews.stream()
-                .collect(Collectors.groupingBy(trace -> simpleName(trace.sagaClassFqn()), LinkedHashMap::new, Collectors.toList()));
-        Map<String, List<GroovyTraceView>> byUnresolvedMarker = new LinkedHashMap<>();
+    private void appendTraceBrowser(StringBuilder html, List<GroovyTraceView> fullTraceViews) {
+        List<TraceGroupView> sagaGroups = buildTraceGroupViews(fullTraceViews, "saga");
+        List<TraceGroupView> sourceGroups = buildTraceGroupViews(fullTraceViews, "source");
 
-        for (GroovyTraceView trace : fullTraceViews) {
-            for (String marker : new LinkedHashSet<>(trace.unresolvedMarkers())) {
-                byUnresolvedMarker.computeIfAbsent(marker, ignored -> new ArrayList<>()).add(trace);
+        html.append("<section class=\"trace-browser\" id=\"groovy-trace-browser\" data-role=\"groovy-trace-browser\" data-default-view=\"saga\" data-active-view=\"saga\">\n");
+        html.append("<div class=\"trace-browser-controls\" data-role=\"trace-browser-controls\">\n")
+                .append("<h4 class=\"trace-browser-title\">Compare traces by saga target or source method</h4>\n")
+                .append("<div class=\"trace-browser-toolbar\">\n")
+                .append("<div class=\"trace-view-switcher\">\n")
+                .append("<button type=\"button\" class=\"trace-toggle active\" data-role=\"trace-view-toggle\" data-view=\"saga\">By saga target</button>\n")
+                .append("<button type=\"button\" class=\"trace-toggle\" data-role=\"trace-view-toggle\" data-view=\"source\">By source method</button>\n")
+                .append("</div>\n")
+                .append("<div class=\"trace-toolbar-actions\">\n")
+                .append("<button type=\"button\" class=\"trace-toggle\" data-role=\"trace-expand-all\">Expand all</button>\n")
+                .append("<button type=\"button\" class=\"trace-toggle\" data-role=\"trace-collapse-all\">Collapse all</button>\n")
+                .append("</div>\n")
+                .append("<input class=\"trace-filter\" type=\"search\" data-role=\"trace-filter\" placeholder=\"Filter saga, source method, binding, expression…\" />\n")
+                .append("<select class=\"trace-sort\" data-role=\"trace-sort\">\n")
+                .append("<option value=\"label\">Sort: label</option>\n")
+                .append("<option value=\"traceCount\">Sort: trace count</option>\n")
+                .append("<option value=\"unresolvedCount\">Sort: unresolved count</option>\n")
+                .append("</select>\n")
+                .append("</div>\n")
+                .append("<p class=\"trace-filter-status\" data-role=\"trace-filter-status\">Showing ")
+                .append(fullTraceViews.size())
+                .append(fullTraceViews.size() == 1 ? " trace" : " traces")
+                .append(" in the saga-target view.</p>\n")
+                .append("</div>\n");
+
+        appendTraceGroupView(html, "saga", sagaGroups, false);
+        appendTraceGroupView(html, "source", sourceGroups, true);
+        appendTraceBrowserData(html, sagaGroups, sourceGroups, fullTraceViews);
+        appendTraceBrowserScript(html);
+        html.append("</section>\n");
+    }
+
+    private List<TraceGroupView> buildTraceGroupViews(List<GroovyTraceView> fullTraceViews, String viewKind) {
+        Map<String, List<GroovyTraceView>> grouped = fullTraceViews.stream()
+                .collect(Collectors.groupingBy(
+                        trace -> "source".equals(viewKind) ? formatSourceMethodLabel(trace) : simpleName(trace.sagaClassFqn()),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+
+        List<TraceGroupView> groups = new ArrayList<>();
+        List<String> labels = grouped.keySet().stream().sorted().toList();
+        int groupCounter = 1;
+        int clusterCounter = 1;
+
+        for (String label : labels) {
+            Map<String, List<GroovyTraceView>> clusterMap = grouped.get(label).stream()
+                    .collect(Collectors.groupingBy(
+                            trace -> formatSourceMethodLabel(trace) + "→" + simpleName(trace.sagaClassFqn()),
+                            LinkedHashMap::new,
+                            Collectors.toList()
+                    ));
+            List<TraceClusterView> clusters = new ArrayList<>();
+            for (String clusterKey : clusterMap.keySet().stream().sorted().toList()) {
+                List<GroovyTraceView> traces = clusterMap.get(clusterKey).stream()
+                        .sorted(Comparator.comparing((GroovyTraceView trace) -> trace.sourceBindingName() == null ? "" : trace.sourceBindingName())
+                                .thenComparing(trace -> trace.sourceExpressionText() == null ? "" : trace.sourceExpressionText())
+                                .thenComparing(GroovyTraceView::traceCardId))
+                        .toList();
+                GroovyTraceView anchor = traces.getFirst();
+                clusters.add(new TraceClusterView(
+                        "cluster-" + clusterCounter++,
+                        formatSourceMethodLabel(anchor),
+                        simpleName(anchor.sagaClassFqn()),
+                        traces,
+                        traces.size(),
+                        traces.stream().mapToInt(trace -> trace.unresolvedMarkers().size()).sum()
+                ));
             }
+            clusters.sort(Comparator.comparing(TraceClusterView::sourceMethodLabel).thenComparing(TraceClusterView::sagaLabel));
+            groups.add(new TraceGroupView(
+                    "group-" + groupCounter++,
+                    viewKind,
+                    label,
+                    clusters,
+                    clusters.stream().mapToInt(TraceClusterView::instanceCount).sum(),
+                    clusters.stream().mapToInt(TraceClusterView::unresolvedCount).sum()
+            ));
         }
 
-        appendGroupedTraceSubsection(html, "Grouped by source method", bySourceMethod, null);
-        appendGroupedTraceSubsection(html, "Grouped by saga target", bySagaTarget, null);
-
-        Map<String, Integer> unresolvedMarkerCounts = fullTraceViews.stream()
-                .flatMap(trace -> trace.unresolvedMarkers().stream())
-                .collect(Collectors.toMap(marker -> marker, marker -> 1, Integer::sum, LinkedHashMap::new));
-        appendGroupedTraceSubsection(html, "Grouped by unresolved marker category", byUnresolvedMarker, unresolvedMarkerCounts);
+        return groups;
     }
 
-    private void appendGroupedTraceSubsection(StringBuilder html,
-                                              String title,
-                                              Map<String, List<GroovyTraceView>> groupedTraces,
-                                              Map<String, Integer> markerCounts) {
-        html.append("<details class=\"subsection\" open><summary>")
-                .append(escapeHtml(title))
-                .append("</summary><div class=\"subsection-content\">\n");
-
-        if (groupedTraces.isEmpty()) {
-            html.append("<p class=\"no-data\">No traces found.</p>\n");
-            html.append("</div></details>\n");
+    private void appendTraceGroupView(StringBuilder html,
+                                      String viewKind,
+                                      List<TraceGroupView> groups,
+                                      boolean hidden) {
+        html.append("<section class=\"trace-group-view\" data-role=\"trace-group-view\" data-view=\"")
+                .append(viewKind)
+                .append("\"");
+        if (hidden) {
+            html.append(" hidden");
+        }
+        html.append(">\n");
+        if (groups.isEmpty()) {
+            html.append("<p class=\"trace-empty\">No traces available for this view.</p>\n</section>\n");
             return;
         }
+        groups.forEach(group -> appendTraceGroup(html, group));
+        html.append("<p class=\"trace-empty\" data-role=\"trace-empty\" hidden>No matches for the current filter.</p>\n</section>\n");
+    }
 
-        groupedTraces.forEach((groupKey, traces) -> {
-            html.append("<details class=\"subsection\"><summary><code>")
-                    .append(escapeHtml(groupKey))
-                    .append("</code> <span class=\"chip\">trace(s): ")
-                    .append(traces.size())
-                    .append("</span>");
-
-            if (markerCounts != null) {
-                int markerCount = markerCounts.getOrDefault(groupKey, traces.size());
-                html.append(" <span class=\"chip warn\">marker(s): ")
-                        .append(markerCount)
-                        .append("</span>");
-            }
-
-            html.append("</summary><div class=\"subsection-content\">\n<ul class=\"clean\">\n");
-            traces.forEach(trace -> html.append("<li><a href=\"#")
-                    .append(escapeHtml(trace.traceCardId()))
-                    .append("\"><code>")
-                    .append(escapeHtml(formatSourceMethodLabel(trace)))
-                    .append("</code> -> <code>")
-                    .append(escapeHtml(simpleName(trace.sagaClassFqn())))
-                    .append("</code></a></li>\n"));
-            html.append("</ul>\n</div></details>\n");
-        });
-
+    private void appendTraceGroup(StringBuilder html, TraceGroupView group) {
+        html.append("<details class=\"subsection trace-group\" data-role=\"trace-group\" data-group-kind=\"")
+                .append(escapeHtml(group.viewKind()))
+                .append("\" data-group-id=\"")
+                .append(escapeHtml(group.groupId()))
+                .append("\" data-group-label=\"")
+                .append(escapeHtml(group.label()))
+                .append("\" data-trace-count=\"")
+                .append(group.traceCount())
+                .append("\" data-unresolved-count=\"")
+                .append(group.unresolvedCount())
+                .append("\" id=\"")
+                .append(escapeHtml(group.groupId()))
+                .append("\" open><summary><code>")
+                .append(escapeHtml(group.label()))
+                .append("</code> <span class=\"chip\">trace(s): ")
+                .append(group.traceCount())
+                .append("</span> <span class=\"chip warn\">unresolved: ")
+                .append(group.unresolvedCount())
+                .append("</span></summary><div class=\"subsection-content\">\n");
+        group.clusters().forEach(cluster -> appendTraceCluster(html, group, cluster));
         html.append("</div></details>\n");
     }
 
-    private void appendCanonicalTraceCards(StringBuilder html, List<GroovyTraceView> fullTraceViews) {
-        html.append("<details class=\"subsection\" open><summary>Canonical trace cards (")
-                .append(fullTraceViews.size())
-                .append(")</summary><div class=\"subsection-content\">\n");
+    private void appendTraceCluster(StringBuilder html, TraceGroupView group, TraceClusterView cluster) {
+        html.append("<details class=\"subsection trace-cluster\" data-role=\"trace-cluster\" data-cluster-id=\"")
+                .append(escapeHtml(cluster.clusterId()))
+                .append("\" data-cluster-source-label=\"")
+                .append(escapeHtml(cluster.sourceMethodLabel()))
+                .append("\" data-cluster-saga-label=\"")
+                .append(escapeHtml(cluster.sagaLabel()))
+                .append("\" data-instance-count=\"")
+                .append(cluster.instanceCount())
+                .append("\" data-unresolved-count=\"")
+                .append(cluster.unresolvedCount())
+                .append("\" id=\"")
+                .append(escapeHtml(cluster.clusterId()))
+                .append("\"><summary><code>")
+                .append(escapeHtml(cluster.sourceMethodLabel()))
+                .append("</code> &rarr; <code>")
+                .append(escapeHtml(cluster.sagaLabel()))
+                .append("</code> <span class=\"chip\">")
+                .append(cluster.instanceCount())
+                .append(cluster.instanceCount() == 1 ? " instance" : " instance(s)")
+                .append("</span> <span class=\"chip warn\">unresolved: ")
+                .append(cluster.unresolvedCount())
+                .append("</span></summary><div class=\"subsection-content\">\n");
 
-        if (fullTraceViews.isEmpty()) {
-            html.append("<p class=\"no-data\">No full traces found.</p>\n");
+        if ("saga".equals(group.viewKind())) {
+            html.append("<div class=\"trace-instance-collection\">\n");
+            cluster.traces().forEach(trace -> appendGroovyTraceInstance(html, trace, group));
+            html.append("</div>\n");
         } else {
-            fullTraceViews.forEach(trace -> appendGroovyTraceCard(html, trace));
+            html.append("<ul class=\"clean\">\n");
+            cluster.traces().forEach(trace -> html.append("<li><a data-role=\"trace-jump\" href=\"#")
+                    .append(escapeHtml(trace.traceCardId()))
+                    .append("\"><code>")
+                    .append(escapeHtml(trace.traceCardId()))
+                    .append("</code></a> &mdash; <code>")
+                    .append(escapeHtml(trace.sourceBindingName() == null || trace.sourceBindingName().isBlank() ? "(unknown binding)" : trace.sourceBindingName()))
+                    .append("</code></li>\n"));
+            html.append("</ul>\n");
         }
 
         html.append("</div></details>\n");
     }
 
-    private void appendGroovyTraceCard(StringBuilder html, GroovyTraceView trace) {
+    private void appendGroovyTraceInstance(StringBuilder html, GroovyTraceView trace, TraceGroupView group) {
         int argumentCount = constructorArgumentCount(trace.constructorArguments());
 
-        html.append("<article class=\"trace-card\" id=\"")
+        html.append("<article class=\"trace-card trace-instance\" data-role=\"trace-instance\" data-trace-id=\"")
+                .append(escapeHtml(trace.traceCardId()))
+                .append("\" data-group-id=\"")
+                .append(escapeHtml(group.groupId()))
+                .append("\" id=\"")
                 .append(escapeHtml(trace.traceCardId()))
                 .append("\">\n");
+
+        html.append("<p class=\"trace-actions\"><a href=\"#")
+                .append(escapeHtml(group.groupId()))
+                .append("\">Back to ")
+                .append(escapeHtml("source".equals(group.viewKind()) ? "source group" : "saga group"))
+                .append("</a> <a href=\"#groovy-trace-browser\">Back to browser</a> <a href=\"#top\">Back to top</a></p>\n");
 
         html.append("<h4 class=\"trace-story\">Story: <code>")
                 .append(escapeHtml(formatSourceMethodLabel(trace)))
@@ -470,27 +696,18 @@ public class AnalysisHtmlReportRenderer {
         }
         html.append("</p>\n");
 
-        if (!trace.unresolvedCategories().isEmpty()) {
+        if (!trace.replayCategories().isEmpty()) {
             html.append("<p class=\"trace-chip-row\">\n");
-            trace.unresolvedCategories().forEach(category -> html.append("<span class=\"chip ")
+            trace.replayCategories().forEach(category -> html.append("<span class=\"chip ")
                     .append(escapeHtml(category.severityClass()))
-                    .append("\">Severity: ")
+                    .append("\">replay: ")
                     .append(escapeHtml(category.normalizedLabel()))
-                    .append(" (")
-                    .append(escapeHtml(category.severityLevel()))
-                    .append(")")
                     .append(category.occurrences() > 1 ? " x" + category.occurrences() : "")
                     .append("</span>\n"));
             html.append("</p>\n");
         }
 
-        if (trace.sourceExpressionText() != null && !trace.sourceExpressionText().isBlank()) {
-            html.append("<p class=\"muted\">Source expression: <code>")
-                    .append(escapeHtml(trace.sourceExpressionText()))
-                    .append("</code></p>\n");
-        }
-
-        appendTraceMiniGraph(html, trace);
+        appendTraceFlowCard(html, trace);
         appendTraceArgumentsTable(html, trace.constructorArguments());
         appendWorkflowBreadcrumbs(html, trace.workflowCalls());
         appendResolutionNotes(html, trace.resolutionNotes());
@@ -504,7 +721,7 @@ public class AnalysisHtmlReportRenderer {
                 .append(escapeHtml(legacyMethodName))
                 .append("()</code></p>\n");
 
-        html.append("<details class=\"subsection trace-raw\"><summary>Raw trace block</summary><div class=\"subsection-content\">\n")
+        html.append("<details class=\"subsection trace-raw\" data-role=\"trace-instance-raw\"><summary>Raw trace block</summary><div class=\"subsection-content\">\n")
                 .append("<pre class=\"trace-pre\">")
                 .append(escapeHtml(trace.traceText()))
                 .append("</pre>\n")
@@ -513,37 +730,38 @@ public class AnalysisHtmlReportRenderer {
         html.append("</article>\n");
     }
 
-    private void appendTraceMiniGraph(StringBuilder html, GroovyTraceView trace) {
-        String sourceLabel = trace.sourceExpressionText() == null || trace.sourceExpressionText().isBlank()
-                ? formatSourceMethodLabel(trace)
-                : trace.sourceExpressionText();
-        String sourceGraphLabel = trimForGraphLabel(sourceLabel);
-        String sagaGraphLabel = trimForGraphLabel("new " + simpleName(trace.sagaClassFqn()) + "(...)");
+    private void appendTraceFlowCard(StringBuilder html, GroovyTraceView trace) {
+        html.append("<section class=\"trace-flow-card\" data-role=\"trace-flow-card\">\n<div class=\"trace-flow-grid\">\n");
+        appendTraceFlowItem(html, "Source method", formatSourceMethodLabel(trace), true);
+        appendTraceFlowItem(html, "Source expression",
+                trace.sourceExpressionText() == null || trace.sourceExpressionText().isBlank()
+                        ? "(none)"
+                        : trace.sourceExpressionText(), true);
+        appendTraceFlowItem(html, "Binding",
+                trace.sourceBindingName() == null || trace.sourceBindingName().isBlank()
+                        ? "(unknown)"
+                        : trace.sourceBindingName(), true);
+        appendTraceFlowItem(html, "Origin", formatOriginLabel(trace.originKind()), false);
+        appendTraceFlowItem(html, "Target saga", simpleName(trace.sagaClassFqn()), true);
+        html.append("</div>\n</section>\n");
+    }
 
-        html.append("<svg class=\"trace-mini-graph\" viewBox=\"0 0 760 106\" role=\"img\" id=\"")
-                .append(escapeHtml(trace.miniGraphId()))
-                .append("\" data-trace-card-ref=\"")
-                .append(escapeHtml(trace.traceCardId()))
-                .append("\" aria-label=\"Trace mini graph\">\n")
-                .append("<rect x=\"14\" y=\"18\" width=\"300\" height=\"54\" rx=\"8\" fill=\"#eef7f9\" stroke=\"#b8d3d8\" />\n")
-                .append("<text x=\"28\" y=\"40\">source expression</text>\n")
-                .append("<text x=\"28\" y=\"58\">")
-                .append(escapeHtml(sourceGraphLabel))
-                .append("</text>\n")
-                .append("<line x1=\"326\" y1=\"45\" x2=\"436\" y2=\"45\" stroke=\"#5a7880\" stroke-width=\"2\" />\n")
-                .append("<polygon points=\"436,45 426,39 426,51\" fill=\"#5a7880\" />\n")
-                .append("<rect x=\"448\" y=\"18\" width=\"298\" height=\"54\" rx=\"8\" fill=\"#edf7ee\" stroke=\"#b9d8bb\" />\n")
-                .append("<text x=\"462\" y=\"40\">saga constructor</text>\n")
-                .append("<text x=\"462\" y=\"58\">")
-                .append(escapeHtml(sagaGraphLabel))
-                .append("</text>\n")
-                .append("</svg>\n");
+    private void appendTraceFlowItem(StringBuilder html, String label, String value, boolean codeStyle) {
+        html.append("<div class=\"trace-flow-item\"><span class=\"trace-flow-label\">")
+                .append(escapeHtml(label))
+                .append("</span><p class=\"trace-flow-value\">");
+        if (codeStyle) {
+            html.append("<code>").append(escapeHtml(value)).append("</code>");
+        } else {
+            html.append(escapeHtml(value));
+        }
+        html.append("</p></div>\n");
     }
 
     private void appendTraceArgumentsTable(StringBuilder html, List<GroovyTraceArgument> constructorArguments) {
-        html.append("<table data-role=\"trace-arguments\"><thead><tr><th>Arg</th><th>Provenance</th><th>Value recipe</th></tr></thead><tbody>\n");
+        html.append("<div class=\"table-wrap\"><table data-role=\"trace-arguments\"><thead><tr><th>Arg</th><th>Provenance</th><th>Replay</th><th>Value recipe</th></tr></thead><tbody>\n");
         if (constructorArguments.isEmpty()) {
-            html.append("<tr><td colspan=\"3\" class=\"muted\">No constructor arguments were traced.</td></tr>\n");
+            html.append("<tr><td colspan=\"4\" class=\"muted\">No constructor arguments were traced.</td></tr>\n");
         } else {
             constructorArguments.stream()
                     .sorted(Comparator.comparingInt(GroovyTraceArgument::index))
@@ -555,11 +773,268 @@ public class AnalysisHtmlReportRenderer {
                                 .append("</td><td>")
                                 .append(escapeHtml(argument.provenance() == null ? "(unknown)" : argument.provenance()))
                                 .append("</td><td>");
+                        appendReplayClassification(html, argument);
+                        html.append("</td><td>");
                         appendValueRecipe(html, argument.recipe());
                         html.append("</td></tr>\n");
                     });
         }
-        html.append("</tbody></table>\n");
+        html.append("</tbody></table></div>\n");
+    }
+
+    private void appendReplayClassification(StringBuilder html, GroovyTraceArgument argument) {
+        GroovyValueRecipe recipe = argument == null ? null : argument.recipe();
+        GroovyValueMetadata metadata = recipe == null ? null : recipe.metadata();
+        if (metadata == null) {
+            html.append("<span class=\"muted\">(none)</span>");
+            return;
+        }
+
+        GroovyValueResolutionCategory category = metadata.category();
+        if (category != null && category != GroovyValueResolutionCategory.RESOLVED) {
+            ReplayCategoryView replayCategory = toReplayCategoryView(category, 1);
+            appendChip(html, "replay: " + replayCategory.normalizedLabel(), replayCategory.severityClass());
+            html.append(" ");
+        }
+
+        String expectedTypeFqn = argument == null ? null : argument.expectedTypeFqn();
+        if (expectedTypeFqn != null && !expectedTypeFqn.isBlank()) {
+            appendChip(html, "type: " + expectedTypeFqn, null);
+            html.append(" ");
+        }
+
+        GroovyRuntimeCallRecipe runtimeCall = metadata.runtimeCall();
+        if (runtimeCall != null) {
+            appendChip(html, "call: " + formatRuntimeCallLabel(runtimeCall), null);
+        }
+
+    }
+
+    private void appendChip(StringBuilder html, String text, String severityClass) {
+        html.append("<span class=\"chip");
+        if (severityClass != null && !severityClass.isBlank()) {
+            html.append(" ").append(escapeHtml(severityClass));
+        }
+        html.append("\">")
+                .append(escapeHtml(text))
+                .append("</span>");
+    }
+
+    private String formatRuntimeCallLabel(GroovyRuntimeCallRecipe runtimeCall) {
+        if (runtimeCall == null) {
+            return "(unknown)";
+        }
+
+        String methodName = runtimeCall.methodName();
+        if (methodName == null || methodName.isBlank()) {
+            return "(unknown)";
+        }
+
+        String receiverText = runtimeCall.receiverText();
+        if (receiverText == null || receiverText.isBlank()) {
+            return methodName + "()";
+        }
+
+        return receiverText + "." + methodName + "()";
+    }
+
+    private void appendReplayCategorySummary(StringBuilder html, List<GroovyTraceView> traceViews) {
+        Map<GroovyValueResolutionCategory, Integer> counts = new LinkedHashMap<>();
+        traceViews.stream()
+                .flatMap(trace -> trace.replayCategories().stream())
+                .forEach(category -> counts.put(category.category(), counts.getOrDefault(category.category(), 0) + category.occurrences()));
+
+        int total = counts.values().stream().mapToInt(Integer::intValue).sum();
+        html.append("<details class=\"subsection\"><summary>Replay-oriented unresolved categories (")
+                .append(total)
+                .append(")</summary><div class=\"subsection-content\">\n");
+        if (counts.isEmpty()) {
+            html.append("<p class=\"no-data\">No replay-oriented categories found in Groovy full traces.</p>\n");
+        } else {
+            html.append("<div class=\"table-wrap\"><table><thead><tr><th>Replay category</th><th>Severity</th><th>Count</th></tr></thead><tbody>\n");
+            counts.entrySet().stream()
+                    .map(entry -> toReplayCategoryView(entry.getKey(), entry.getValue()))
+                    .sorted(Comparator.comparingInt(ReplayCategoryView::severityRank).reversed()
+                            .thenComparing(ReplayCategoryView::normalizedLabel))
+                    .forEach(category -> html.append("<tr><td>")
+                            .append("<span class=\"chip ")
+                            .append(escapeHtml(category.severityClass()))
+                            .append("\">replay: ")
+                            .append(escapeHtml(category.normalizedLabel()))
+                            .append("</span></td><td><span class=\"chip ")
+                            .append(escapeHtml(category.severityClass()))
+                            .append("\">")
+                            .append(escapeHtml(category.severityLevel()))
+                            .append("</span></td><td>")
+                            .append(category.occurrences())
+                            .append("</td></tr>\n"));
+            html.append("</tbody></table></div>\n");
+        }
+        html.append("</div></details>\n");
+    }
+
+    private void appendTraceBrowserData(StringBuilder html,
+                                        List<TraceGroupView> sagaGroups,
+                                        List<TraceGroupView> sourceGroups,
+                                        List<GroovyTraceView> traces) {
+        html.append("<script id=\"groovy-trace-browser-data\" type=\"application/json\">");
+        html.append("{\"defaultView\":\"saga\",\"views\":[");
+        appendTraceGroupJson(html, "saga", sagaGroups);
+        html.append(",");
+        appendTraceGroupJson(html, "source", sourceGroups);
+        html.append("],\"traces\":[");
+        for (int i = 0; i < traces.size(); i++) {
+            GroovyTraceView trace = traces.get(i);
+            if (i > 0) {
+                html.append(",");
+            }
+            html.append("{\"traceId\":\"")
+                    .append(escapeJsonString(trace.traceCardId()))
+                    .append("\",\"sourceMethodLabel\":\"")
+                    .append(escapeJsonString(formatSourceMethodLabel(trace)))
+                    .append("\",\"sagaLabel\":\"")
+                    .append(escapeJsonString(simpleName(trace.sagaClassFqn())))
+                    .append("\",\"sourceExpressionText\":\"")
+                    .append(escapeJsonString(trace.sourceExpressionText() == null ? "" : trace.sourceExpressionText()))
+                    .append("\"}");
+        }
+        html.append("]}</script>\n");
+    }
+
+    private void appendTraceGroupJson(StringBuilder html, String viewKind, List<TraceGroupView> groups) {
+        html.append("{\"view\":\"")
+                .append(escapeJsonString(viewKind))
+                .append("\",\"groups\":[");
+        for (int i = 0; i < groups.size(); i++) {
+            TraceGroupView group = groups.get(i);
+            if (i > 0) {
+                html.append(",");
+            }
+            html.append("{\"groupId\":\"")
+                    .append(escapeJsonString(group.groupId()))
+                    .append("\",\"label\":\"")
+                    .append(escapeJsonString(group.label()))
+                    .append("\",\"traceCount\":")
+                    .append(group.traceCount())
+                    .append(",\"unresolvedCount\":")
+                    .append(group.unresolvedCount())
+                    .append(",\"clusters\":[");
+            for (int j = 0; j < group.clusters().size(); j++) {
+                TraceClusterView cluster = group.clusters().get(j);
+                if (j > 0) {
+                    html.append(",");
+                }
+                html.append("{\"clusterId\":\"")
+                        .append(escapeJsonString(cluster.clusterId()))
+                        .append("\",\"sourceMethodLabel\":\"")
+                        .append(escapeJsonString(cluster.sourceMethodLabel()))
+                        .append("\",\"sagaLabel\":\"")
+                        .append(escapeJsonString(cluster.sagaLabel()))
+                        .append("\",\"instanceCount\":")
+                        .append(cluster.instanceCount())
+                        .append("}");
+            }
+            html.append("]}");
+        }
+        html.append("]}");
+    }
+
+    private void appendTraceBrowserScript(StringBuilder html) {
+        html.append("<script>\n")
+                .append("(() => {\n")
+                .append("  const browser = document.querySelector('[data-role=\\\"groovy-trace-browser\\\"]');\n")
+                .append("  if (!browser) return;\n")
+                .append("  const views = Array.from(browser.querySelectorAll('[data-role=\\\"trace-group-view\\\"]'));\n")
+                .append("  const toggles = Array.from(browser.querySelectorAll('[data-role=\\\"trace-view-toggle\\\"]'));\n")
+                .append("  const expandAllButton = browser.querySelector('[data-role=\\\"trace-expand-all\\\"]');\n")
+                .append("  const collapseAllButton = browser.querySelector('[data-role=\\\"trace-collapse-all\\\"]');\n")
+                .append("  const filterInput = browser.querySelector('[data-role=\\\"trace-filter\\\"]');\n")
+                .append("  const sortSelect = browser.querySelector('[data-role=\\\"trace-sort\\\"]');\n")
+                .append("  const status = browser.querySelector('[data-role=\\\"trace-filter-status\\\"]');\n")
+                .append("  const dataScript = document.getElementById('groovy-trace-browser-data');\n")
+                .append("  let parsedData = { traces: [] };\n")
+                .append("  try { parsedData = JSON.parse(dataScript.textContent || '{}'); } catch (error) { parsedData = { traces: [] }; }\n")
+                .append("\n")
+                .append("  const activeView = () => browser.dataset.activeView || browser.dataset.defaultView || 'saga';\n")
+                .append("\n")
+                .append("  const updateStatus = () => {\n")
+                .append("    const current = views.find(view => !view.hasAttribute('hidden'));\n")
+                .append("    if (!current || !status) return;\n")
+                .append("    const visibleGroups = current.querySelectorAll('[data-role=\\\"trace-group\\\"]:not([hidden])').length;\n")
+                .append("    const query = (filterInput?.value || '').trim();\n")
+                .append("    const traceCount = parsedData.traces?.length || 0;\n")
+                .append("    status.textContent = query\n")
+                .append("      ? `Showing ${visibleGroups} group(s) for “${query}” in the ${activeView()} view (${traceCount} trace(s) total).`\n")
+                .append("      : `Showing ${traceCount} trace(s) in the ${activeView()} view.`;\n")
+                .append("  };\n")
+                .append("\n")
+                .append("  const sortGroups = (view) => {\n")
+                .append("    const groups = Array.from(view.querySelectorAll('[data-role=\\\"trace-group\\\"]'));\n")
+                .append("    const sortKey = sortSelect?.value || 'label';\n")
+                .append("    groups.sort((left, right) => {\n")
+                .append("      if (sortKey === 'traceCount') {\n")
+                .append("        return Number(right.dataset.traceCount || 0) - Number(left.dataset.traceCount || 0)\n")
+                .append("          || (left.dataset.groupLabel || '').localeCompare(right.dataset.groupLabel || '');\n")
+                .append("      }\n")
+                .append("      if (sortKey === 'unresolvedCount') {\n")
+                .append("        return Number(right.dataset.unresolvedCount || 0) - Number(left.dataset.unresolvedCount || 0)\n")
+                .append("          || (left.dataset.groupLabel || '').localeCompare(right.dataset.groupLabel || '');\n")
+                .append("      }\n")
+                .append("      return (left.dataset.groupLabel || '').localeCompare(right.dataset.groupLabel || '');\n")
+                .append("    });\n")
+                .append("    groups.forEach(group => view.appendChild(group));\n")
+                .append("  };\n")
+                .append("\n")
+                .append("  const applyFilter = () => {\n")
+                .append("    const current = views.find(view => !view.hasAttribute('hidden'));\n")
+                .append("    if (!current) return;\n")
+                .append("    const query = (filterInput?.value || '').trim().toLowerCase();\n")
+                .append("    const groups = Array.from(current.querySelectorAll('[data-role=\\\"trace-group\\\"]'));\n")
+                .append("    groups.forEach(group => {\n")
+                .append("      let visibleClusters = 0;\n")
+                .append("      group.querySelectorAll('[data-role=\\\"trace-cluster\\\"]').forEach(cluster => {\n")
+                .append("        const haystack = `${cluster.dataset.clusterSourceLabel || ''} ${cluster.dataset.clusterSagaLabel || ''} ${cluster.textContent || ''}`.toLowerCase();\n")
+                .append("        const matches = !query || haystack.includes(query);\n")
+                .append("        cluster.hidden = !matches;\n")
+                .append("        if (matches) visibleClusters += 1;\n")
+                .append("      });\n")
+                .append("      group.hidden = visibleClusters === 0;\n")
+                .append("    });\n")
+                .append("    const empty = current.querySelector('[data-role=\\\"trace-empty\\\"]');\n")
+                .append("    if (empty) {\n")
+                .append("      const anyVisible = groups.some(group => !group.hidden);\n")
+                .append("      empty.hidden = anyVisible;\n")
+                .append("    }\n")
+                .append("    updateStatus();\n")
+                .append("  };\n")
+                .append("\n")
+                .append("  const setAllDetails = (open) => {\n")
+                .append("    const current = views.find(view => !view.hasAttribute('hidden'));\n")
+                .append("    if (!current) return;\n")
+                .append("    current.querySelectorAll('details').forEach(detail => { detail.open = open; });\n")
+                .append("  };\n")
+                .append("\n")
+                .append("  const setView = (viewName) => {\n")
+                .append("    browser.dataset.activeView = viewName;\n")
+                .append("    views.forEach(view => {\n")
+                .append("      view.hidden = view.dataset.view !== viewName;\n")
+                .append("      if (!view.hidden) sortGroups(view);\n")
+                .append("    });\n")
+                .append("    toggles.forEach(toggle => toggle.classList.toggle('active', toggle.dataset.view === viewName));\n")
+                .append("    applyFilter();\n")
+                .append("  };\n")
+                .append("\n")
+                .append("  toggles.forEach(toggle => toggle.addEventListener('click', () => setView(toggle.dataset.view || 'saga')));\n")
+                .append("  expandAllButton?.addEventListener('click', () => setAllDetails(true));\n")
+                .append("  collapseAllButton?.addEventListener('click', () => setAllDetails(false));\n")
+                .append("  browser.querySelectorAll('[data-role=\\\"trace-jump\\\"]').forEach(link => {\n")
+                .append("    link.addEventListener('click', () => { setView('saga'); });\n")
+                .append("  });\n")
+                .append("  filterInput?.addEventListener('input', applyFilter);\n")
+                .append("  sortSelect?.addEventListener('change', () => { const current = views.find(view => !view.hidden); if (current) sortGroups(current); applyFilter(); });\n")
+                .append("  setView(activeView());\n")
+                .append("})();\n")
+                .append("</script>\n");
     }
 
     private void appendValueRecipe(StringBuilder html, GroovyValueRecipe recipe) {
@@ -867,21 +1342,20 @@ public class AnalysisHtmlReportRenderer {
     }
 
     private List<GroovyTraceView> toGroovyTraceViews(List<GroovyFullTraceResult> traceResults) {
-        Map<String, Integer> seenBySlug = new LinkedHashMap<>();
         List<GroovyTraceView> views = new ArrayList<>();
 
+        int index = 1;
         for (GroovyFullTraceResult traceResult : traceResults) {
-            String baseSlug = buildTraceSlug(traceResult.sourceClassFqn(), traceResult.sourceMethodName(), traceResult.sagaClassFqn());
-            int seen = seenBySlug.getOrDefault(baseSlug, 0);
-            seenBySlug.put(baseSlug, seen + 1);
-            String traceSlug = seen == 0 ? baseSlug : baseSlug + "-" + (seen + 1);
-            views.add(toGroovyTraceView(traceResult, traceSlug));
+            String traceId = "trace-" + index;
+            String graphId = "graph-" + index;
+            index += 1;
+            views.add(toGroovyTraceView(traceResult, traceId, graphId));
         }
 
         return views;
     }
 
-    private GroovyTraceView toGroovyTraceView(GroovyFullTraceResult traceResult, String traceSlug) {
+    private GroovyTraceView toGroovyTraceView(GroovyFullTraceResult traceResult, String traceId, String graphId) {
         String traceText = traceResult.traceText() == null ? "" : traceResult.traceText();
         List<GroovyTraceArgument> constructorArguments =
                 traceResult.constructorArguments() == null ? List.of() : traceResult.constructorArguments();
@@ -898,11 +1372,7 @@ public class AnalysisHtmlReportRenderer {
             traceText.lines().forEach(line -> collectUnresolvedMarkers(line, unresolved));
         }
 
-        List<UnresolvedCategoryView> unresolvedCategories = unresolved.stream()
-                .collect(Collectors.groupingBy(marker -> marker, LinkedHashMap::new, Collectors.counting()))
-                .entrySet().stream()
-                .map(entry -> toUnresolvedCategoryView(entry.getKey(), entry.getValue().intValue()))
-                .toList();
+        List<ReplayCategoryView> replayCategories = collectReplayCategories(constructorArguments);
 
         return new GroovyTraceView(
                 traceResult.sourceClassFqn(),
@@ -916,40 +1386,49 @@ public class AnalysisHtmlReportRenderer {
                 workflowCalls,
                 resolutionNotes,
                 unresolved,
-                unresolvedCategories,
-                traceCardId(traceSlug),
-                miniGraphId(traceSlug)
+                replayCategories,
+                traceId,
+                graphId
         );
     }
 
-    private UnresolvedCategoryView toUnresolvedCategoryView(String rawMarker, int occurrences) {
-        String normalized = normalizeUnresolvedCategory(rawMarker);
-        String lower = normalized.toLowerCase();
+    private List<ReplayCategoryView> collectReplayCategories(List<GroovyTraceArgument> constructorArguments) {
+        Map<GroovyValueResolutionCategory, Integer> counts = new LinkedHashMap<>();
+        constructorArguments.stream()
+                .map(this::replayCategoryOf)
+                .filter(category -> category != null && category != GroovyValueResolutionCategory.RESOLVED)
+                .forEach(category -> counts.put(category, counts.getOrDefault(category, 0) + 1));
 
-        if (lower.contains("runtime edge")) {
-            return new UnresolvedCategoryView(rawMarker, normalized, "high", "severity-high", occurrences);
-        }
-        if (lower.contains("cyclic reference")) {
-            return new UnresolvedCategoryView(rawMarker, normalized, "high", "severity-high", occurrences);
-        }
-        if (lower.contains("source-backed")) {
-            return new UnresolvedCategoryView(rawMarker, normalized, "medium", "severity-medium", occurrences);
-        }
-
-        return new UnresolvedCategoryView(rawMarker, normalized, "low", "severity-low", occurrences);
+        return counts.entrySet().stream()
+                .map(entry -> toReplayCategoryView(entry.getKey(), entry.getValue()))
+                .sorted(Comparator.comparingInt(ReplayCategoryView::severityRank).reversed()
+                        .thenComparing(ReplayCategoryView::normalizedLabel))
+                .toList();
     }
 
-    private String normalizeUnresolvedCategory(String rawMarker) {
-        if (rawMarker == null || rawMarker.isBlank()) {
-            return "(unknown unresolved)";
+    private GroovyValueResolutionCategory replayCategoryOf(GroovyTraceArgument argument) {
+        if (argument == null) {
+            return null;
         }
 
-        String trimmed = rawMarker.trim();
-        String unresolvedPrefix = "unresolved ";
-        if (trimmed.startsWith(unresolvedPrefix)) {
-            return trimmed.substring(unresolvedPrefix.length());
+        GroovyValueRecipe recipe = argument.recipe();
+        if (recipe == null) {
+            return null;
         }
-        return trimmed;
+
+        GroovyValueMetadata metadata = recipe.metadata();
+        return metadata == null ? null : metadata.category();
+    }
+
+    private ReplayCategoryView toReplayCategoryView(GroovyValueResolutionCategory category, int occurrences) {
+        GroovyValueResolutionCategory safeCategory = category == null ? GroovyValueResolutionCategory.UNKNOWN_UNRESOLVED : category;
+        return switch (safeCategory) {
+            case RUNTIME_CALL -> new ReplayCategoryView(safeCategory, "runtime call", "high", "severity-high", 3, occurrences);
+            case SOURCE_PLACEHOLDER -> new ReplayCategoryView(safeCategory, "source placeholder", "low", "severity-low", 1, occurrences);
+            case INJECTABLE_PLACEHOLDER -> new ReplayCategoryView(safeCategory, "injectable placeholder", "low", "severity-low", 1, occurrences);
+            case UNKNOWN_UNRESOLVED -> new ReplayCategoryView(safeCategory, "unknown unresolved", "medium", "severity-medium", 2, occurrences);
+            case RESOLVED -> new ReplayCategoryView(safeCategory, "resolved", "low", "severity-low", 0, occurrences);
+        };
     }
 
     private String formatSourceMethodLabel(GroovyTraceView trace) {
@@ -1055,6 +1534,37 @@ public class AnalysisHtmlReportRenderer {
         return lastDot < 0 ? fqn : fqn.substring(lastDot + 1);
     }
 
+    private static String escapeJsonString(String value) {
+        if (value == null || value.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder escaped = new StringBuilder(value.length() + 16);
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            switch (ch) {
+                case '\\' -> escaped.append("\\\\");
+                case '"' -> escaped.append("\\\"");
+                case '\b' -> escaped.append("\\b");
+                case '\f' -> escaped.append("\\f");
+                case '\n' -> escaped.append("\\n");
+                case '\r' -> escaped.append("\\r");
+                case '\t' -> escaped.append("\\t");
+                case '<' -> escaped.append("\\u003c");
+                case '>' -> escaped.append("\\u003e");
+                case '&' -> escaped.append("\\u0026");
+                default -> {
+                    if (ch < 0x20 || ch == 0x2028 || ch == 0x2029) {
+                        escaped.append(String.format("\\u%04x", (int) ch));
+                    } else {
+                        escaped.append(ch);
+                    }
+                }
+            }
+        }
+        return escaped.toString();
+    }
+
     private static String escapeHtml(String value) {
         if (value == null || value.isEmpty()) {
             return "";
@@ -1096,18 +1606,35 @@ public class AnalysisHtmlReportRenderer {
                                    String sagaClassFqn,
                                    String traceText,
                                    List<GroovyTraceArgument> constructorArguments,
-                                   List<GroovyWorkflowCall> workflowCalls,
-                                   List<String> resolutionNotes,
-                                   List<String> unresolvedMarkers,
-                                   List<UnresolvedCategoryView> unresolvedCategories,
-                                   String traceCardId,
-                                   String miniGraphId) {
+                                    List<GroovyWorkflowCall> workflowCalls,
+                                    List<String> resolutionNotes,
+                                    List<String> unresolvedMarkers,
+                                    List<ReplayCategoryView> replayCategories,
+                                    String traceCardId,
+                                    String miniGraphId) {
     }
 
-    private record UnresolvedCategoryView(String rawMarker,
-                                          String normalizedLabel,
-                                          String severityLevel,
-                                          String severityClass,
-                                          int occurrences) {
+    private record TraceGroupView(String groupId,
+                                  String viewKind,
+                                  String label,
+                                  List<TraceClusterView> clusters,
+                                  int traceCount,
+                                  int unresolvedCount) {
+    }
+
+    private record TraceClusterView(String clusterId,
+                                    String sourceMethodLabel,
+                                    String sagaLabel,
+                                    List<GroovyTraceView> traces,
+                                    int instanceCount,
+                                    int unresolvedCount) {
+    }
+
+    private record ReplayCategoryView(GroovyValueResolutionCategory category,
+                                      String normalizedLabel,
+                                      String severityLevel,
+                                      String severityClass,
+                                      int severityRank,
+                                      int occurrences) {
     }
 }
