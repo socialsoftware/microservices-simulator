@@ -33,9 +33,20 @@ public class ApplicationAnalysisState {
      * FQNs of concrete service types that are directly injected by at least one CommandHandler.
      * Populated by CommandHandlerIndexVisitor (Phase 1).
      * Used by ServiceVisitor (Phase 2) to restrict state.services to dispatch targets only.
-     * Interface types are excluded — only concrete class FQNs are collected.
      */
     public final Set<String> dispatchTargetFqns = new LinkedHashSet<>();
+
+    /**
+     * FQNs of interface types injected by at least one CommandHandler. These are resolved later
+     * to concrete services only when the application source has a single @Service implementation.
+     */
+    public final Set<String> dispatchTargetInterfaceFqns = new LinkedHashSet<>();
+
+    /**
+     * Counts @Service implementations per interface, populated during the index pass before
+     * ServiceVisitor applies its dispatch-target guard.
+     */
+    public final Map<String, Integer> serviceImplementationCountsByInterface = new LinkedHashMap<>();
 
     public final Optional<CommandDispatchInfo> getCommandDispatchInfo(Type commandType) {
         String commandTypeFqn;

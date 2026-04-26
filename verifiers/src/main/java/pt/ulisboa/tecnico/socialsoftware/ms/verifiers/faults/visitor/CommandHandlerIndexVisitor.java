@@ -18,10 +18,10 @@ import java.util.Optional;
  * service fields (both @Autowired field and constructor injection) into
  * {@code state.dispatchTargetFqns}.
  * <p>
- * Only concrete class FQNs are recorded. Interface types are skipped so that
- * interface-typed injection points (e.g. OrderServiceApi) do not cause
- * unrelated implementations (e.g. AmbiguousServiceImplA/B) to be admitted by
- * ServiceVisitor when those implementations have no direct dispatch path.
+ * Concrete class FQNs are recorded in {@code state.dispatchTargetFqns}. Interface
+ * FQNs are recorded separately in {@code state.dispatchTargetInterfaceFqns} so
+ * ServiceVisitor can admit exactly one implementation while keeping ambiguous
+ * interface dispatches conservative.
  * <p>
  * Must run before ServiceVisitor.
  */
@@ -31,6 +31,8 @@ public class CommandHandlerIndexVisitor extends VoidVisitorAdapter<ApplicationAn
     @Override
     public void visit(CompilationUnit cu, ApplicationAnalysisState state) {
         cu.findFirst(ClassOrInterfaceDeclaration.class).ifPresent(decl -> {
+            indexServiceInterfaceImplementations(decl, state);
+
             if (!TypeUtils.isSubclassOf(decl, CommandHandler.class)) return;
 
             String handlerName = decl.getNameAsString();
@@ -48,12 +50,31 @@ public class CommandHandlerIndexVisitor extends VoidVisitorAdapter<ApplicationAn
 
     private void indexFieldType(Type type, ApplicationAnalysisState state, String handlerName) {
         if (isInterfaceType(type)) {
-            logger.debug("CommandHandler {}: skipping interface type '{}'", handlerName, type.asString());
+            resolveTypeFqn(type).ifPresent(fqn -> {
+                state.dispatchTargetInterfaceFqns.add(fqn);
+                logger.debug("CommandHandler {}: indexed service interface type {}", handlerName, fqn);
+            });
             return;
         }
         resolveTypeFqn(type).ifPresent(fqn -> {
             state.dispatchTargetFqns.add(fqn);
             logger.debug("CommandHandler {}: indexed service type {}", handlerName, fqn);
+        });
+    }
+
+    private void indexServiceInterfaceImplementations(ClassOrInterfaceDeclaration decl,
+                                                      ApplicationAnalysisState state) {
+        if (!decl.isAnnotationPresent("Service")) {
+            return;
+        }
+
+        decl.getImplementedTypes().forEach(impl -> {
+            try {
+                String ifaceFqn = impl.resolve().asReferenceType().getQualifiedName();
+                state.serviceImplementationCountsByInterface.merge(ifaceFqn, 1, Integer::sum);
+            } catch (Exception e) {
+                logger.debug("Could not resolve implemented interface '{}': {}", impl.asString(), e.getMessage());
+            }
         });
     }
 

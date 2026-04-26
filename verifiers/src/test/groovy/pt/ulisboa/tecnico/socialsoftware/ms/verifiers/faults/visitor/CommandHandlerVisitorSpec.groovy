@@ -149,6 +149,27 @@ class CommandHandlerVisitorSpec extends VisitorTestSupport {
         dispatch.accessPolicy() == AccessPolicy.READ
     }
 
+    def "maps command dispatched through interface-only service implementation"() {
+        given:
+        def handler = state.commandHandlers.find { it.fqn.endsWith('.InterfaceOnlyCommandHandler') }
+        def dispatch = handler?.commandDispatch['com.example.dummyapp.shared.commands.InterfaceOnlyCommand']
+
+        expect:
+        handler != null
+        dispatch != null
+        dispatch.serviceMethodName() == 'loadInterfaceOnly'
+        dispatch.serviceClassName() == 'com.example.dummyapp.shared.service.InterfaceOnlyService'
+        dispatch.accessPolicy() == AccessPolicy.READ
+    }
+
+    def "service registry admits single implementation interface-only dispatch target"() {
+        expect:
+        state.services*.fqn.contains('com.example.dummyapp.shared.service.InterfaceOnlyService')
+        state.interfaceToServices['com.example.dummyapp.shared.service.InterfaceOnlyServiceApi']*.fqn == [
+                'com.example.dummyapp.shared.service.InterfaceOnlyService'
+        ]
+    }
+
     // -----------------------------------------------------------------------
     // Interface injection — ambiguous (two implementations → skipped)
     // -----------------------------------------------------------------------
@@ -159,6 +180,8 @@ class CommandHandlerVisitorSpec extends VisitorTestSupport {
         expect:
         handler != null
         handler.commandDispatch.isEmpty()
+        !state.services*.fqn.contains('com.example.dummyapp.shared.service.AmbiguousServiceImplA')
+        !state.services*.fqn.contains('com.example.dummyapp.shared.service.AmbiguousServiceImplB')
     }
 
     // -----------------------------------------------------------------------

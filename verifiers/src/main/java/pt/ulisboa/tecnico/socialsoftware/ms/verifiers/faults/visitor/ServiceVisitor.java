@@ -103,16 +103,30 @@ public class ServiceVisitor extends VoidVisitorAdapter<ApplicationAnalysisState>
     }
 
     /**
-     * Returns true if the class's own FQN appears in state.dispatchTargetFqns.
-     * Interface types are not collected by CommandHandlerIndexVisitor, so no
-     * interface-walking is needed here.
+     * Returns true if the class's own FQN appears in state.dispatchTargetFqns, or if it is
+     * the only @Service implementation of an interface injected by a command handler.
      */
     private boolean isDispatchTarget(ClassOrInterfaceDeclaration decl, ApplicationAnalysisState state) {
         try {
-            return state.dispatchTargetFqns.contains(decl.resolve().getQualifiedName());
+            if (state.dispatchTargetFqns.contains(decl.resolve().getQualifiedName())) {
+                return true;
+            }
+
+            return decl.getImplementedTypes().stream().anyMatch(impl -> isSingleImplementationDispatchInterface(impl, state));
         } catch (Exception e) {
             logger.debug("Could not resolve FQN for dispatch-target check of {}: {}",
                     decl.getNameAsString(), e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean isSingleImplementationDispatchInterface(Type implementedType, ApplicationAnalysisState state) {
+        try {
+            String ifaceFqn = implementedType.resolve().asReferenceType().getQualifiedName();
+            return state.dispatchTargetInterfaceFqns.contains(ifaceFqn)
+                    && state.serviceImplementationCountsByInterface.getOrDefault(ifaceFqn, 0) == 1;
+        } catch (Exception e) {
+            logger.debug("Could not resolve implemented interface '{}': {}", implementedType.asString(), e.getMessage());
             return false;
         }
     }
