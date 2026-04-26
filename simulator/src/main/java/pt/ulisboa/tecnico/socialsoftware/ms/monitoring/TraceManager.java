@@ -11,9 +11,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,7 +34,7 @@ public class TraceManager {
     private final Map<String, Span> functionalitySpans = new ConcurrentHashMap<>();
     private final Map<String, Span> stepSpans = new ConcurrentHashMap<>();
     private final Map<String, AtomicInteger> functionalityCounters = new ConcurrentHashMap<>();
-    private final Map<String, java.util.concurrent.ConcurrentLinkedQueue<String>> activeInvocationKeys = new ConcurrentHashMap<>();
+    private final ThreadLocal<Map<String, Deque<String>>> threadInvocations = ThreadLocal.withInitial(HashMap::new);
 
     // --- Constructor ---
     private TraceManager(String serviceName) {
@@ -149,7 +147,7 @@ public class TraceManager {
         if (rootSpan != null) {
             rootSpan.end();
             rootSpan = null;
-            activeInvocationKeys.clear();
+            threadInvocations.get().clear();
             functionalityCounters.clear();
             functionalitySpans.clear();
             stepSpans.clear();
@@ -181,17 +179,16 @@ public class TraceManager {
         span.setAttribute("functionality", func);
 
         functionalitySpans.put(invocationKey, span);
-        activeInvocationKeys.computeIfAbsent(func, k -> new java.util.concurrent.ConcurrentLinkedQueue<>())
-                .add(invocationKey);
+        threadInvocations.get().computeIfAbsent(func, k -> new ArrayDeque<>()).push(invocationKey);
 
         return invocationKey;
     }
 
     public void endSpanForFunctionality(String func) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty())
+        Deque<String> stack = threadInvocations.get().get(func);
+        if (stack == null || stack.isEmpty())
             return;
-        String invocationKey = queue.poll();
+        String invocationKey = stack.pop();
         if (invocationKey == null)
             return;
 
@@ -208,10 +205,10 @@ public class TraceManager {
     }
 
     public Span getSpanForFunctionality(String func) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty())
+        Deque<String> stack = threadInvocations.get().get(func);
+        if (stack == null || stack.isEmpty())
             return null;
-        String latestKey = queue.peek();
+        String latestKey = stack.peek();
         return functionalitySpans.get(latestKey);
     }
 
@@ -220,9 +217,10 @@ public class TraceManager {
         if (rootSpan == null) {
             return;
         }
-        int counter = functionalityCounters.computeIfAbsent("[Compensate]" + func, k -> new AtomicInteger(0))
+        String funcKey = "[Compensate]" + func;
+        int counter = functionalityCounters.computeIfAbsent(funcKey, k -> new AtomicInteger(0))
                 .getAndIncrement();
-        String invocationKey = "[Compensate]" + func + "::" + counter;
+        String invocationKey = funcKey + "::" + counter;
         Span span = tracer.spanBuilder(invocationKey)
                 .setParent(Context.current().with(rootSpan))
                 .setSpanKind(SpanKind.INTERNAL)
@@ -232,16 +230,15 @@ public class TraceManager {
         span.setAttribute("functionality", func);
 
         functionalitySpans.put(invocationKey, span);
-        activeInvocationKeys
-                .computeIfAbsent("[Compensate]" + func, k -> new java.util.concurrent.ConcurrentLinkedQueue<>())
-                .add(invocationKey);
+        threadInvocations.get().computeIfAbsent(funcKey, k -> new ArrayDeque<>()).push(invocationKey);
     }
 
     public void endSpanForCompensation(String func) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get("[Compensate]" + func);
-        if (queue == null || queue.isEmpty())
+        String funcKey = "[Compensate]" + func;
+        Deque<String> stack = threadInvocations.get().get(funcKey);
+        if (stack == null || stack.isEmpty())
             return;
-        String invocationKey = queue.poll();
+        String invocationKey = stack.pop();
         if (invocationKey == null)
             return;
 
@@ -255,21 +252,21 @@ public class TraceManager {
 
     // --- Step Span Management ---
     public Span getStepSpan(String func, String stepName) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty()) {
+        Deque<String> stack = threadInvocations.get().get(func);
+        if (stack == null || stack.isEmpty()) {
             return null;
         }
-        String firstInvocationKey = queue.peek();
+        String firstInvocationKey = stack.peek();
         String key = key(firstInvocationKey, stepName);
         return stepSpans.get(key);
     }
 
     public void startStepSpan(String func, String stepName) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty()) {
+        Deque<String> stack = threadInvocations.get().get(func);
+        if (stack == null || stack.isEmpty()) {
             return;
         }
-        String firstInvocationKey = queue.peek();
+        String firstInvocationKey = stack.peek();
         Span parentSpan = functionalitySpans.get(firstInvocationKey);
 
         if (parentSpan == null) {
@@ -288,11 +285,11 @@ public class TraceManager {
     }
 
     public void endStepSpan(String func, String stepName) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty()) {
+        Deque<String> stack = threadInvocations.get().get(func);
+        if (stack == null || stack.isEmpty()) {
             return;
         }
-        String firstInvocationKey = queue.peek();
+        String firstInvocationKey = stack.peek();
         String key = key(firstInvocationKey, stepName);
         Span stepSpan = stepSpans.get(key);
         if (stepSpan != null) {
