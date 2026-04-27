@@ -283,7 +283,7 @@ scenario mapping is in [Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2
 * The tests of the [Quizzes Tutor](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes) for
   Sagas and TCC
 
-![Application Decomposition](data/figs/application_decomposition.png)
+![Application Decomposition](data/figs/application_decomposition.svg)
 
 The API Gateway is used when running the quizzes application as microservices to route API requests to the appropriate
 microservice. The gateway operates as an MVC application using a custom dynamic proxy controller to forward REST
