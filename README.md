@@ -15,12 +15,16 @@
   - [Service URLs and Ports](#service-urls-and-ports)
   - [API Gateway Configuration](#api-gateway-configuration)
 - [Test Cases](#test-cases)
+- [Benchmarking and Performance Tests](#benchmarking-and-performance-tests)
 - [Code Structure](#code-structure)
   - [Simulator](#simulator)
   - [Quizzes Microservice System](#quizzes-microservice-system)
 - [How to Implement Your Own Business Logic](#how-to-implement-your-own-business-logic)
+  - [Developer Effort Checklist](#developer-effort-checklist)
+  - [Consistency Enforcement Quick Guide](#consistency-enforcement-quick-guide)
   - [Implementing a Single Aggregate](#implementing-a-single-aggregate)
   - [Implementing a Single Functionality](#implementing-a-single-functionality)
+- [Operational Scope and Current Limits](#operational-scope-and-current-limits)
 - [Publications](#publications)
 
 ## Overview
@@ -34,6 +38,10 @@ from communication and transactional infrastructure. By modeling distributed sys
 allows developers to evaluate identical application code under varying consistency guarantees and network constraints.
 It features support for multiple transactional models (Sagas, TCC) and seamless transitions across diverse deployment
 topologies, ranging from centralized execution to fully distributed environments.
+
+In practice, this allows developers to compare Saga semantic-lock strategies against TCC snapshot-based conflict
+resolution without rewriting domain services, and benchmark the same workflows across local, stream, and gRPC
+deployment profiles.
 
 This tool acts as a deterministic sandbox for the shift-left validation and optimization of microservice architectures,
 minimizing developer effort while enabling robust architectural validation.
@@ -54,15 +62,17 @@ The system architecture is divided into three primary layers:
 The simulator supports multiple execution topologies, ranging from deterministic single-process runs to fully
 distributed microservice deployments.
 
-| Topology | Process and Data Layout | Command Transport | Event Transport | Typical Profiles | Core Infrastructure |
-|----------|-------------------------|-------------------|-----------------|------------------|---------------------|
-| **Centralized Local** | Single application process, shared database | In-memory (local) | Internal event persistence and polling | `sagas\|tcc, local` | PostgreSQL, Jaeger |
-| **Centralized Stream** | Single application process, shared database | RabbitMQ command channels | RabbitMQ `event-channel` | `sagas\|tcc, stream` | PostgreSQL, RabbitMQ, Jaeger |
-| **Centralized gRPC** | Single application process, shared database | gRPC (discovery-based resolution) | RabbitMQ `event-channel` | `sagas\|tcc, grpc` | PostgreSQL, Eureka, RabbitMQ, Jaeger |
-| **Distributed Stream** | Independent service processes, database-per-service | RabbitMQ command channels | RabbitMQ `event-channel` | Service profile + `sagas\|tcc, stream` (e.g., `quiz-service, sagas, stream`) | PostgreSQL per service, Eureka or Spring Cloud Kubernetes, API Gateway, RabbitMQ, Jaeger |
-| **Distributed gRPC** | Independent service processes, database-per-service | gRPC (service-to-service via discovery) | RabbitMQ `event-channel` | Service profile + `sagas\|tcc, grpc` (e.g., `quiz-service, tcc, grpc`) | PostgreSQL per service, Eureka or Spring Cloud Kubernetes, API Gateway, RabbitMQ, Jaeger |
+| Topology | Process and Data Layout | Command Transport | Event Transport | Typical Profiles | Strategic Value | Core Infrastructure |
+|----------|-------------------------|-------------------|-----------------|------------------|-----------------|---------------------|
+| **Centralized Local** | Single application process, shared database | In-memory (local) | Internal event persistence and polling | `sagas\|tcc, local` | Deterministic baseline to debug invariants, workflow ordering, and concurrency interleavings | PostgreSQL, Jaeger |
+| **Centralized Stream** | Single application process, shared database | RabbitMQ command channels | RabbitMQ `event-channel` | `sagas\|tcc, stream` | Intermediate topology to benchmark broker-based communication with shared persistence | PostgreSQL, RabbitMQ, Jaeger |
+| **Centralized gRPC** | Single application process, shared database | gRPC (discovery-based resolution) | RabbitMQ `event-channel` | `sagas\|tcc, grpc` | Intermediate topology to benchmark point-to-point RPC and discovery with shared persistence | PostgreSQL, Eureka, RabbitMQ, Jaeger |
+| **Distributed Stream** | Independent service processes, database-per-service | RabbitMQ command channels | RabbitMQ `event-channel` | Service profile + `sagas\|tcc, stream` (e.g., `quiz-service, sagas, stream`) | Production-like isolation with broker-mediated coordination across independent services | PostgreSQL per service, Eureka or Spring Cloud Kubernetes, API Gateway, RabbitMQ, Jaeger |
+| **Distributed gRPC** | Independent service processes, database-per-service | gRPC (service-to-service via discovery) | RabbitMQ `event-channel` | Service profile + `sagas\|tcc, grpc` (e.g., `quiz-service, tcc, grpc`) | Production-like hybrid model with direct RPC commands and asynchronous event propagation | PostgreSQL per service, Eureka or Spring Cloud Kubernetes, API Gateway, RabbitMQ, Jaeger |
 
-Versioning option across topologies: add `distributed-version` only with `sagas` to use local Snowflake ID generation; `tcc` requires centralized version management.
+Versioning option across topologies: add `distributed-version` only with `sagas` to use local Snowflake ID generation.
+TCC requires centralized version management because causal conflict resolution depends on a centralized, monotonically
+increasing version sequence.
 
 ## Running an Application
 
@@ -95,6 +105,8 @@ requests across microservices.
   protocol.
 * **Instrumentation**: Custom instrumentation is implemented in `TraceManager` using the OpenTelemetry SDK to trace
   functionalities and their steps.
+* **Cross-service correlation**: Trace IDs are propagated through workflow execution, command dispatching, and event
+  processing, allowing end-to-end inspection of one functionality across microservices.
 
 ### Service Discovery
 
@@ -130,6 +142,12 @@ in [application.yaml](applications/quizzes/src/main/resources/application.yaml):
 Service-specific bindings override only the channels relevant to that service, as shown
 in [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml).
 
+Operational intent of channel types:
+
+* **Command channels** are directional, aggregate-targeted paths for explicit downstream-to-upstream requests.
+* **Event channel** is a shared broadcast path for upstream-to-downstream propagation and eventual consistency.
+* **Response channel** supports correlated replies for synchronous behavior over asynchronous transports.
+
 ### gRPC Command Gateway
 
 Alternative remote transport is available with the `grpc` profile. Each service exposes a gRPC endpoint for
@@ -149,6 +167,8 @@ machine ID (derived from `spring.application.name`), and a 12-bit sequence numbe
 monotonically increasing versions across services.
 
 This option is only supported with the **sagas** transactional model (TCC requires centralized version management).
+In TCC, centralized ordering is part of causal conflict detection and merge correctness, so decentralized Snowflake
+generation is intentionally disabled.
 
 | Profile               | Version Source               | Requires version-service? |
 |-----------------------|------------------------------|---------------------------|
@@ -188,32 +208,70 @@ The [Gateway application-gateway.yaml](simulator/src/main/resources/application-
 
 ## Test Cases
 
-**Sagas test cases:**
+How these tests map to simulator capabilities:
+
+* **Functionality orchestration and ordering**: validate workflow step dependencies and execution order.
+* **Concurrency interleavings**: force race scenarios with controlled step progression (for example,
+  `executeUntilStep(...)` in coordination tests).
+* **Fault and recovery behavior**: inject failures and verify compensation and abort paths.
+* **Model comparison**: run analogous Sagas and TCC tests to compare lock-based and merge-based conflict handling.
+
+Sagas-focused test suites:
 
 - [Workflow Test Plan (Simulator)](simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/workflow/PlanOrderTest.groovy)
 - [Circuit Breaker Tests (Simulator)](simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/workflow/CircuitBreakerTest.groovy)
 - [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/)
 - [Tournament Async Coordination Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/tournament/AddParticipantAsyncTest.groovy)
+- [Fault and Recovery Behavior Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/behaviour/)
 
-**TCC test cases:**
+TCC-focused test suites:
 
 - [Tournament Merge Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/aggregates/TournamentMergeUnitTest.groovy)
 - [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy)
 
-For details on testing complex concurrency interleavings from the DAIS2023 paper,
-see [Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2023.md).
+For deterministic concurrency scenarios and paper-aligned walkthroughs, see
+[Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2023.md).
+
+## Benchmarking and Performance Tests
+
+For repeated deployment benchmarking of tournament scenarios, use:
+
+```bash
+./scripts/benchmark-deployments.sh --test concurrentAddparticipant.jmx
+```
+
+Run with a specific transaction mode and number of repetitions:
+
+```bash
+./scripts/benchmark-deployments.sh --test concurrentAddparticipant.jmx --tx-mode sagas --repetitions 5
+./scripts/benchmark-deployments.sh --test 5a-updateStudentName-addParticipant-processUpdateNameEvent.jmx --tx-mode tcc --repetitions 5
+```
+
+What this script does:
+
+* Boots each configured topology (`centralized-*`, `distributed-*`, and `distributed-version` variants).
+* Runs the selected `.jmx` test for each deployment, across the configured repetitions.
+* Writes per-run and aggregate results under [jmeter-results](jmeter-results) in a timestamped benchmark folder.
+* Returns non-zero on benchmark failures, so it can be used in CI/regression workflows.
+
+Requirements and setup details are in [Run Using Maven](guides/run-maven.md#running-jmeter-tests). DAIS paper
+scenario mapping is in [Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2023.md).
 
 ## Code Structure
 
 ### Simulator
 
-* The core concepts of [Domain-Driven Design](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/aggregate)
-* The core concepts for the distributed
-  functionalities [Coordination](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination)
-* The core concepts for management
-  of [Sagas](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/sagas)
-* The core concepts for management
-  of [TCC](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/causal)
+| Module | Purpose | Main Code |
+|--------|---------|-----------|
+| Aggregate | Aggregate identity, invariants, and event subscription contracts | [simulator aggregate package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/aggregate) |
+| Coordination | Workflow orchestration, step dependency ordering, and execution plans | [simulator coordination package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination) |
+| Transaction (Sagas) | Semantic locks, compensation, and Saga-specific command wrappers | [simulator sagas package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/sagas) |
+| Transaction (TCC) | Causal snapshots, optimistic conflict detection, and merge commit path | [simulator causal package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/causal) |
+| Notification | Event persistence, publication/subscription transport, and polling support | [simulator notification package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/notification) |
+| Messaging | Command gateway abstraction across local, stream, and gRPC modes | [simulator messaging package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging) |
+| Impairment | Fault and delay injection hooks for resilience and behavior testing | [simulator impairment package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/impairment) |
+| Monitoring | Tracing and observability support for functionalities and workflow steps | [simulator monitoring package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring) |
+| Versioning | Version ID generation and version-service support across topologies | [simulator versioning package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/versioning) |
 
 ### Quizzes Microservice System
 
@@ -235,6 +293,18 @@ requests.
 
 The framework significantly minimizes the cognitive load for developers by abstracting distributed infrastructure. The
 workflow focuses strictly on domain modeling, defining events, and orchestrating business logic.
+
+### Developer Effort Checklist
+
+This checklist summarizes recurring effort for simulator integration in a new application.
+
+1. Define one command contract per aggregate service method that must be remotely invoked.
+2. Create and tune shared and service-specific YAML profiles (`application.yaml` and `application-<service>.yaml`).
+3. Ensure aggregate serialization boundaries are explicit (for example, avoid leaking nested entities through JSON
+  getters).
+4. Implement one command handler per microservice to route commands to domain services.
+5. Wire event subscriptions and handlers for cross-aggregate eventual consistency where needed.
+6. Validate deterministic functionality behavior before running distributed benchmarks.
 
 ### Implementing a Single Aggregate
 
@@ -265,13 +335,6 @@ workflow focuses strictly on domain modeling, defining events, and orchestrating
 | **Define Functionality**   | Extend [`WorkflowFunctionality`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/WorkflowFunctionality.java) to coordinate a specific use-case, e.g., [`AddParticipantFunctionalitySagas.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java). | Encapsulates one business use case as a reusable coordination unit.                                |
 | **Workflow Orchestration** | Map execution [`Step`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/Step.java)s, dependencies, and transaction triggers within [`buildWorkflow()`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java), e.g., defining `getUserStep` and `addParticipantStep` dependencies.                                                              | Makes ordering, dependency, and rollback/compensation boundaries explicit.                         |
 | **Command Dispatching**    | Instantiate remote [`Command`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/Command.java)s and dispatch via the abstract [`CommandGateway`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/CommandGateway.java), e.g., sending [`AddParticipantCommand`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/commands/tournament/AddParticipantCommand.java) wrapped in a [`SagaCommand`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/sagas/messaging/SagaCommand.java) with semantic locks.                                                                                                                          | Executes distributed steps through transport-agnostic contracts while preserving domain isolation. |
-
-For step-by-step execution details of your own business logic or new aggregates:
-
-1. Identify upstream dependencies and subscribe to the correct events in your Aggregate class.
-2. Implement transaction-specific structures (like `SagaState` or `mergeFields`).
-3. Define the workflows that coordinate changes utilizing `CommandGateway` to send requests across microservices.
-4. Update `application.yaml` bindings so streams or gRPC channels resolve correctly to the new microservice.
 
 ## Publications
 
