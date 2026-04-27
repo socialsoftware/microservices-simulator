@@ -21,10 +21,8 @@
   - [Quizzes Microservice System](#quizzes-microservice-system)
 - [How to Implement Your Own Business Logic](#how-to-implement-your-own-business-logic)
   - [Developer Effort Checklist](#developer-effort-checklist)
-  - [Consistency Enforcement Quick Guide](#consistency-enforcement-quick-guide)
   - [Implementing a Single Aggregate](#implementing-a-single-aggregate)
   - [Implementing a Single Functionality](#implementing-a-single-functionality)
-- [Operational Scope and Current Limits](#operational-scope-and-current-limits)
 - [Publications](#publications)
 
 ## Overview
