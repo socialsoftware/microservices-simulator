@@ -389,7 +389,7 @@ public EnrollmentDto removeEnrollmentTeacher(Integer enrollmentId,
 
 **Reduction ratio:** ~60-75% less code to write.
 
-> For details on how the generators produce this code, see the [Developer Guide](../developer-guide/03-Generator-System.md).
+> For details on how the generators produce this code, see the [Developer Guide](../developer-guide/04-Generators-Templates.md).
 
 ---
 

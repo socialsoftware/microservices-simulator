@@ -387,7 +387,7 @@ code --install-extension dsl/extensions/nebula-extension-<version>.vsix
 3. Syntax errors should appear as red underlines
 4. Type an aggregate name after `from` to see cross-file references resolve
 
-For details on the extension architecture and development, see the [Developer Guide: VSCode Extension](../developer-guide/07-VSCode-Extension.md).
+For details on the extension architecture, see the [Developer Guide](../developer-guide/01-Architecture.md).
 
 ## Troubleshooting
 
