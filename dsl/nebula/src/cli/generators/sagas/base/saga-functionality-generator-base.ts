@@ -76,10 +76,13 @@ export abstract class SagaFunctionalityGeneratorBase {
             imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.shared.dtos.${rootEntity.name}Dto;`);
         }
 
+        imports.push(`import ${basePackage}.ms.sagas.aggregate.SagaAggregate.SagaState;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`);
         imports.push(`import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`);
         imports.push(`import ${basePackage}.ms.sagas.workflow.SagaStep;`);
         imports.push(`import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`);
+        const capitalizedAggregate = aggregate.name.charAt(0).toUpperCase() + aggregate.name.slice(1);
+        imports.push(`import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.sagas.states.${capitalizedAggregate}SagaState;`);
 
 
         const enumTypes = new Set<string>();

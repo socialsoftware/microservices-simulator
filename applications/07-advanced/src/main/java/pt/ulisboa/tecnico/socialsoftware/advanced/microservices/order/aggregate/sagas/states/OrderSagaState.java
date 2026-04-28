@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum OrderSagaState implements SagaState {
+    CREATE_ORDER {
+        @Override
+        public String getStateName() {
+            return "CREATE_ORDER";
+        }
+    },
     DELETE_ORDER {
         @Override
         public String getStateName() {

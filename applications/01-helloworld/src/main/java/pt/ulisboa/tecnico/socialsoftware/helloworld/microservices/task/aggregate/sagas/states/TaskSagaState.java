@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.helloworld.microservices.task.aggregat
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum TaskSagaState implements SagaState {
+    CREATE_TASK {
+        @Override
+        public String getStateName() {
+            return "CREATE_TASK";
+        }
+    },
     DELETE_TASK {
         @Override
         public String getStateName() {

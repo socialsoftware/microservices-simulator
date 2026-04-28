@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.tutorial.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.command.loan.*;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.LoanDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.aggregate.sagas.states.LoanSagaState;
 
 public class GetLoanByIdFunctionalitySagas extends WorkflowFunctionality {
     private LoanDto loanDto;
@@ -26,6 +28,8 @@ public class GetLoanByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep getLoanStep = new SagaStep("getLoanStep", () -> {
+            unitOfWorkService.verifySagaState(loanAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(LoanSagaState.UPDATE_LOAN, LoanSagaState.DELETE_LOAN)));
+            unitOfWorkService.registerSagaState(loanAggregateId, LoanSagaState.READ_LOAN, unitOfWork);
             GetLoanByIdCommand cmd = new GetLoanByIdCommand(unitOfWork, ServiceMapping.LOAN.getServiceName(), loanAggregateId);
             LoanDto loanDto = (LoanDto) commandGateway.send(cmd);
             setLoanDto(loanDto);

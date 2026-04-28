@@ -4,10 +4,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.advanced.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.advanced.command.invoice.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.sagas.states.InvoiceSagaState;
 
 public class DeleteInvoiceFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -24,6 +26,8 @@ public class DeleteInvoiceFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep deleteInvoiceStep = new SagaStep("deleteInvoiceStep", () -> {
+            unitOfWorkService.verifySagaState(invoiceAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(InvoiceSagaState.READ_INVOICE, InvoiceSagaState.UPDATE_INVOICE, InvoiceSagaState.DELETE_INVOICE)));
+            unitOfWorkService.registerSagaState(invoiceAggregateId, InvoiceSagaState.DELETE_INVOICE, unitOfWork);
             DeleteInvoiceCommand cmd = new DeleteInvoiceCommand(unitOfWork, ServiceMapping.INVOICE.getServiceName(), invoiceAggregateId);
             commandGateway.send(cmd);
         });

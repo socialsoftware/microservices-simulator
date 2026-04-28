@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum TournamentSagaState implements SagaState {
+    CREATE_TOURNAMENT {
+        @Override
+        public String getStateName() {
+            return "CREATE_TOURNAMENT";
+        }
+    },
     DELETE_TOURNAMENT {
         @Override
         public String getStateName() {

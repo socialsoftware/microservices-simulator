@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.aggrega
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum BookingSagaState implements SagaState {
+    CREATE_BOOKING {
+        @Override
+        public String getStateName() {
+            return "CREATE_BOOKING";
+        }
+    },
     DELETE_BOOKING {
         @Override
         public String getStateName() {

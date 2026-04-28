@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.answers.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.answers.command.quiz.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.sagas.states.QuizSagaState;
 
 public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
     private QuizDto updatedQuizDto;
@@ -26,6 +28,8 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep updateQuizStep = new SagaStep("updateQuizStep", () -> {
+            unitOfWorkService.verifySagaState(quizDto.getAggregateId(), new java.util.ArrayList<SagaState>(java.util.Arrays.asList(QuizSagaState.READ_QUIZ, QuizSagaState.UPDATE_QUIZ, QuizSagaState.DELETE_QUIZ)));
+            unitOfWorkService.registerSagaState(quizDto.getAggregateId(), QuizSagaState.UPDATE_QUIZ, unitOfWork);
             UpdateQuizCommand cmd = new UpdateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizDto);
             QuizDto updatedQuizDto = (QuizDto) commandGateway.send(cmd);
             setUpdatedQuizDto(updatedQuizDto);

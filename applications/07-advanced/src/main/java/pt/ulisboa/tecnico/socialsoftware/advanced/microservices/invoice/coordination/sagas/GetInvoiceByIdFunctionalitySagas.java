@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.advanced.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.advanced.command.invoice.*;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.sagas.states.InvoiceSagaState;
 
 public class GetInvoiceByIdFunctionalitySagas extends WorkflowFunctionality {
     private InvoiceDto invoiceDto;
@@ -26,6 +28,8 @@ public class GetInvoiceByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep getInvoiceStep = new SagaStep("getInvoiceStep", () -> {
+            unitOfWorkService.verifySagaState(invoiceAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(InvoiceSagaState.UPDATE_INVOICE, InvoiceSagaState.DELETE_INVOICE)));
+            unitOfWorkService.registerSagaState(invoiceAggregateId, InvoiceSagaState.READ_INVOICE, unitOfWork);
             GetInvoiceByIdCommand cmd = new GetInvoiceByIdCommand(unitOfWork, ServiceMapping.INVOICE.getServiceName(), invoiceAggregateId);
             InvoiceDto invoiceDto = (InvoiceDto) commandGateway.send(cmd);
             setInvoiceDto(invoiceDto);

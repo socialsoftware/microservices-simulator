@@ -4,10 +4,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.showcase.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.showcase.command.room.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.room.aggregate.sagas.states.RoomSagaState;
 
 public class DeleteRoomFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -24,6 +26,8 @@ public class DeleteRoomFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep deleteRoomStep = new SagaStep("deleteRoomStep", () -> {
+            unitOfWorkService.verifySagaState(roomAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(RoomSagaState.READ_ROOM, RoomSagaState.UPDATE_ROOM, RoomSagaState.DELETE_ROOM)));
+            unitOfWorkService.registerSagaState(roomAggregateId, RoomSagaState.DELETE_ROOM, unitOfWork);
             DeleteRoomCommand cmd = new DeleteRoomCommand(unitOfWork, ServiceMapping.ROOM.getServiceName(), roomAggregateId);
             commandGateway.send(cmd);
         });

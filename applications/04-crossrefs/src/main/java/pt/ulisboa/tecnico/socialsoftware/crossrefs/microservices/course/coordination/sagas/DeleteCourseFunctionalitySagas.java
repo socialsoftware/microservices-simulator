@@ -4,10 +4,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.command.course.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggregate.sagas.states.CourseSagaState;
 
 public class DeleteCourseFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -24,6 +26,8 @@ public class DeleteCourseFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep deleteCourseStep = new SagaStep("deleteCourseStep", () -> {
+            unitOfWorkService.verifySagaState(courseAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(CourseSagaState.READ_COURSE, CourseSagaState.UPDATE_COURSE, CourseSagaState.DELETE_COURSE)));
+            unitOfWorkService.registerSagaState(courseAggregateId, CourseSagaState.DELETE_COURSE, unitOfWork);
             DeleteCourseCommand cmd = new DeleteCourseCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
             commandGateway.send(cmd);
         });

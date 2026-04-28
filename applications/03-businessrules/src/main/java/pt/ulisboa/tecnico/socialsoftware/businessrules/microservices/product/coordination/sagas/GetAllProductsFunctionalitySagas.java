@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.businessrules.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.businessrules.command.product.*;
 import pt.ulisboa.tecnico.socialsoftware.businessrules.shared.dtos.ProductDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.businessrules.microservices.product.aggregate.sagas.states.ProductSagaState;
 import java.util.List;
 
 public class GetAllProductsFunctionalitySagas extends WorkflowFunctionality {

@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggrega
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum CourseSagaState implements SagaState {
+    CREATE_COURSE {
+        @Override
+        public String getStateName() {
+            return "CREATE_COURSE";
+        }
+    },
     DELETE_COURSE {
         @Override
         public String getStateName() {

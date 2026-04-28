@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.teastore.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.teastore.command.cart.*;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CartDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.aggregate.sagas.states.CartSagaState;
 
 public class UpdateCartFunctionalitySagas extends WorkflowFunctionality {
     private CartDto updatedCartDto;
@@ -26,6 +28,8 @@ public class UpdateCartFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep updateCartStep = new SagaStep("updateCartStep", () -> {
+            unitOfWorkService.verifySagaState(cartDto.getAggregateId(), new java.util.ArrayList<SagaState>(java.util.Arrays.asList(CartSagaState.READ_CART, CartSagaState.UPDATE_CART, CartSagaState.DELETE_CART)));
+            unitOfWorkService.registerSagaState(cartDto.getAggregateId(), CartSagaState.UPDATE_CART, unitOfWork);
             UpdateCartCommand cmd = new UpdateCartCommand(unitOfWork, ServiceMapping.CART.getServiceName(), cartDto);
             CartDto updatedCartDto = (CartDto) commandGateway.send(cmd);
             setUpdatedCartDto(updatedCartDto);

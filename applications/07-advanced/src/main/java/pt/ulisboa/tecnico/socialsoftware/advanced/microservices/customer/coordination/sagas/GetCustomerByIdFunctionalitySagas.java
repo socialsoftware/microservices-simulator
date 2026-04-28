@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.advanced.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.advanced.command.customer.*;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.CustomerDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.aggregate.sagas.states.CustomerSagaState;
 
 public class GetCustomerByIdFunctionalitySagas extends WorkflowFunctionality {
     private CustomerDto customerDto;
@@ -26,6 +28,8 @@ public class GetCustomerByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep getCustomerStep = new SagaStep("getCustomerStep", () -> {
+            unitOfWorkService.verifySagaState(customerAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(CustomerSagaState.UPDATE_CUSTOMER, CustomerSagaState.DELETE_CUSTOMER)));
+            unitOfWorkService.registerSagaState(customerAggregateId, CustomerSagaState.READ_CUSTOMER, unitOfWork);
             GetCustomerByIdCommand cmd = new GetCustomerByIdCommand(unitOfWork, ServiceMapping.CUSTOMER.getServiceName(), customerAggregateId);
             CustomerDto customerDto = (CustomerDto) commandGateway.send(cmd);
             setCustomerDto(customerDto);

@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.answers.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.answers.command.execution.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.sagas.states.ExecutionSagaState;
 
 public class GetExecutionByIdFunctionalitySagas extends WorkflowFunctionality {
     private ExecutionDto executionDto;
@@ -26,6 +28,8 @@ public class GetExecutionByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep getExecutionStep = new SagaStep("getExecutionStep", () -> {
+            unitOfWorkService.verifySagaState(executionAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(ExecutionSagaState.UPDATE_EXECUTION, ExecutionSagaState.DELETE_EXECUTION)));
+            unitOfWorkService.registerSagaState(executionAggregateId, ExecutionSagaState.READ_EXECUTION, unitOfWork);
             GetExecutionByIdCommand cmd = new GetExecutionByIdCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
             ExecutionDto executionDto = (ExecutionDto) commandGateway.send(cmd);
             setExecutionDto(executionDto);

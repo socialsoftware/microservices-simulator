@@ -4,10 +4,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.command.book.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.aggregate.sagas.states.BookSagaState;
 
 public class DeleteBookFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -24,6 +26,8 @@ public class DeleteBookFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep deleteBookStep = new SagaStep("deleteBookStep", () -> {
+            unitOfWorkService.verifySagaState(bookAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(BookSagaState.READ_BOOK, BookSagaState.UPDATE_BOOK, BookSagaState.DELETE_BOOK)));
+            unitOfWorkService.registerSagaState(bookAggregateId, BookSagaState.DELETE_BOOK, unitOfWork);
             DeleteBookCommand cmd = new DeleteBookCommand(unitOfWork, ServiceMapping.BOOK.getServiceName(), bookAggregateId);
             commandGateway.send(cmd);
         });

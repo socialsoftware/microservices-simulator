@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.advanced.microservices.product.aggrega
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum ProductSagaState implements SagaState {
+    CREATE_PRODUCT {
+        @Override
+        public String getStateName() {
+            return "CREATE_PRODUCT";
+        }
+    },
     DELETE_PRODUCT {
         @Override
         public String getStateName() {

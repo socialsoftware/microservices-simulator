@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.agg
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum EnrollmentSagaState implements SagaState {
+    CREATE_ENROLLMENT {
+        @Override
+        public String getStateName() {
+            return "CREATE_ENROLLMENT";
+        }
+    },
     DELETE_ENROLLMENT {
         @Override
         public String getStateName() {

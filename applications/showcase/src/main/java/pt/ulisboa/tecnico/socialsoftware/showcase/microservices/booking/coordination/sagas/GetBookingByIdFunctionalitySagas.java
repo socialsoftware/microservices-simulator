@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.showcase.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.showcase.command.booking.*;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.BookingDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.booking.aggregate.sagas.states.BookingSagaState;
 
 public class GetBookingByIdFunctionalitySagas extends WorkflowFunctionality {
     private BookingDto bookingDto;
@@ -26,6 +28,8 @@ public class GetBookingByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep getBookingStep = new SagaStep("getBookingStep", () -> {
+            unitOfWorkService.verifySagaState(bookingAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(BookingSagaState.UPDATE_BOOKING, BookingSagaState.DELETE_BOOKING)));
+            unitOfWorkService.registerSagaState(bookingAggregateId, BookingSagaState.READ_BOOKING, unitOfWork);
             GetBookingByIdCommand cmd = new GetBookingByIdCommand(unitOfWork, ServiceMapping.BOOKING.getServiceName(), bookingAggregateId);
             BookingDto bookingDto = (BookingDto) commandGateway.send(cmd);
             setBookingDto(bookingDto);

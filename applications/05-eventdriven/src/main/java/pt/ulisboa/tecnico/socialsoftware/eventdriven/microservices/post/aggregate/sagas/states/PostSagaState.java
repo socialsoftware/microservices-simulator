@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.post.aggrega
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum PostSagaState implements SagaState {
+    CREATE_POST {
+        @Override
+        public String getStateName() {
+            return "CREATE_POST";
+        }
+    },
     DELETE_POST {
         @Override
         public String getStateName() {

@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.typesenums.microservices.contact.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum ContactSagaState implements SagaState {
+    CREATE_CONTACT {
+        @Override
+        public String getStateName() {
+            return "CREATE_CONTACT";
+        }
+    },
     DELETE_CONTACT {
         @Override
         public String getStateName() {

@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.answers.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.answers.command.tournament.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 
 public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
     private TournamentDto updatedTournamentDto;
@@ -26,6 +28,8 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep updateTournamentStep = new SagaStep("updateTournamentStep", () -> {
+            unitOfWorkService.verifySagaState(tournamentDto.getAggregateId(), new java.util.ArrayList<SagaState>(java.util.Arrays.asList(TournamentSagaState.READ_TOURNAMENT, TournamentSagaState.UPDATE_TOURNAMENT, TournamentSagaState.DELETE_TOURNAMENT)));
+            unitOfWorkService.registerSagaState(tournamentDto.getAggregateId(), TournamentSagaState.UPDATE_TOURNAMENT, unitOfWork);
             UpdateTournamentCommand cmd = new UpdateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentDto);
             TournamentDto updatedTournamentDto = (TournamentDto) commandGateway.send(cmd);
             setUpdatedTournamentDto(updatedTournamentDto);

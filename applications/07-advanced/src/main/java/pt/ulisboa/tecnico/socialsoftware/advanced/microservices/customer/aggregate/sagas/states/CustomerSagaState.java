@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.advanced.microservices.customer.aggreg
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum CustomerSagaState implements SagaState {
+    CREATE_CUSTOMER {
+        @Override
+        public String getStateName() {
+            return "CREATE_CUSTOMER";
+        }
+    },
     DELETE_CUSTOMER {
         @Override
         public String getStateName() {

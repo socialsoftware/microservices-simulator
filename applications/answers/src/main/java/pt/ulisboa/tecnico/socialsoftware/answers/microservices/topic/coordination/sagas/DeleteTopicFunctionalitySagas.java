@@ -4,10 +4,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.answers.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.answers.command.topic.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.sagas.states.TopicSagaState;
 
 public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -24,6 +26,8 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep deleteTopicStep = new SagaStep("deleteTopicStep", () -> {
+            unitOfWorkService.verifySagaState(topicAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(TopicSagaState.READ_TOPIC, TopicSagaState.UPDATE_TOPIC, TopicSagaState.DELETE_TOPIC)));
+            unitOfWorkService.registerSagaState(topicAggregateId, TopicSagaState.DELETE_TOPIC, unitOfWork);
             DeleteTopicCommand cmd = new DeleteTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
             commandGateway.send(cmd);
         });

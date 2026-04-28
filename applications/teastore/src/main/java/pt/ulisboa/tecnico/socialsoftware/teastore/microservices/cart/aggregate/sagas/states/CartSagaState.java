@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum CartSagaState implements SagaState {
+    CREATE_CART {
+        @Override
+        public String getStateName() {
+            return "CREATE_CART";
+        }
+    },
     DELETE_CART {
         @Override
         public String getStateName() {

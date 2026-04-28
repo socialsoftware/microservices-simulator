@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.loan.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum LoanSagaState implements SagaState {
+    CREATE_LOAN {
+        @Override
+        public String getStateName() {
+            return "CREATE_LOAN";
+        }
+    },
     DELETE_LOAN {
         @Override
         public String getStateName() {

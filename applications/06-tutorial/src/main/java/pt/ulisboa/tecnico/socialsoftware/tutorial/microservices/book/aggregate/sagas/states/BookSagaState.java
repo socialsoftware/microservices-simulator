@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum BookSagaState implements SagaState {
+    CREATE_BOOK {
+        @Override
+        public String getStateName() {
+            return "CREATE_BOOK";
+        }
+    },
     DELETE_BOOK {
         @Override
         public String getStateName() {

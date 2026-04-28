@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.showcase.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.showcase.command.room.*;
 import pt.ulisboa.tecnico.socialsoftware.showcase.shared.dtos.RoomDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.showcase.microservices.room.aggregate.sagas.states.RoomSagaState;
 
 public class UpdateRoomFunctionalitySagas extends WorkflowFunctionality {
     private RoomDto updatedRoomDto;
@@ -26,6 +28,8 @@ public class UpdateRoomFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep updateRoomStep = new SagaStep("updateRoomStep", () -> {
+            unitOfWorkService.verifySagaState(roomDto.getAggregateId(), new java.util.ArrayList<SagaState>(java.util.Arrays.asList(RoomSagaState.READ_ROOM, RoomSagaState.UPDATE_ROOM, RoomSagaState.DELETE_ROOM)));
+            unitOfWorkService.registerSagaState(roomDto.getAggregateId(), RoomSagaState.UPDATE_ROOM, unitOfWork);
             UpdateRoomCommand cmd = new UpdateRoomCommand(unitOfWork, ServiceMapping.ROOM.getServiceName(), roomDto);
             RoomDto updatedRoomDto = (RoomDto) commandGateway.send(cmd);
             setUpdatedRoomDto(updatedRoomDto);

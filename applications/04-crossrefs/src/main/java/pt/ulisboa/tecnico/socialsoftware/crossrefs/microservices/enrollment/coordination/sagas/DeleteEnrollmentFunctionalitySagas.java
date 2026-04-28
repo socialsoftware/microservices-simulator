@@ -4,10 +4,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.command.enrollment.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggregate.sagas.states.EnrollmentSagaState;
 
 public class DeleteEnrollmentFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -24,6 +26,8 @@ public class DeleteEnrollmentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep deleteEnrollmentStep = new SagaStep("deleteEnrollmentStep", () -> {
+            unitOfWorkService.verifySagaState(enrollmentAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(EnrollmentSagaState.READ_ENROLLMENT, EnrollmentSagaState.UPDATE_ENROLLMENT, EnrollmentSagaState.DELETE_ENROLLMENT)));
+            unitOfWorkService.registerSagaState(enrollmentAggregateId, EnrollmentSagaState.DELETE_ENROLLMENT, unitOfWork);
             DeleteEnrollmentCommand cmd = new DeleteEnrollmentCommand(unitOfWork, ServiceMapping.ENROLLMENT.getServiceName(), enrollmentAggregateId);
             commandGateway.send(cmd);
         });

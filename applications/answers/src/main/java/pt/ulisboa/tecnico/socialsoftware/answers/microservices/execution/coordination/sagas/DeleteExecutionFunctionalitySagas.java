@@ -4,10 +4,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.WorkflowFuncti
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.answers.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.answers.command.execution.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.sagas.states.ExecutionSagaState;
 
 public class DeleteExecutionFunctionalitySagas extends WorkflowFunctionality {
     private final SagaUnitOfWorkService unitOfWorkService;
@@ -24,6 +26,8 @@ public class DeleteExecutionFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep deleteExecutionStep = new SagaStep("deleteExecutionStep", () -> {
+            unitOfWorkService.verifySagaState(executionAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(ExecutionSagaState.READ_EXECUTION, ExecutionSagaState.UPDATE_EXECUTION, ExecutionSagaState.DELETE_EXECUTION)));
+            unitOfWorkService.registerSagaState(executionAggregateId, ExecutionSagaState.DELETE_EXECUTION, unitOfWork);
             DeleteExecutionCommand cmd = new DeleteExecutionCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
             commandGateway.send(cmd);
         });

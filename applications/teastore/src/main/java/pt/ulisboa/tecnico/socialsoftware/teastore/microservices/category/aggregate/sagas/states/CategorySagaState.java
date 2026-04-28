@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.teastore.microservices.category.aggreg
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum CategorySagaState implements SagaState {
+    CREATE_CATEGORY {
+        @Override
+        public String getStateName() {
+            return "CREATE_CATEGORY";
+        }
+    },
     DELETE_CATEGORY {
         @Override
         public String getStateName() {

@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.helloworld.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.helloworld.command.task.*;
 import pt.ulisboa.tecnico.socialsoftware.helloworld.shared.dtos.TaskDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.helloworld.microservices.task.aggregate.sagas.states.TaskSagaState;
 
 public class UpdateTaskFunctionalitySagas extends WorkflowFunctionality {
     private TaskDto updatedTaskDto;
@@ -26,6 +28,8 @@ public class UpdateTaskFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep updateTaskStep = new SagaStep("updateTaskStep", () -> {
+            unitOfWorkService.verifySagaState(taskDto.getAggregateId(), new java.util.ArrayList<SagaState>(java.util.Arrays.asList(TaskSagaState.READ_TASK, TaskSagaState.UPDATE_TASK, TaskSagaState.DELETE_TASK)));
+            unitOfWorkService.registerSagaState(taskDto.getAggregateId(), TaskSagaState.UPDATE_TASK, unitOfWork);
             UpdateTaskCommand cmd = new UpdateTaskCommand(unitOfWork, ServiceMapping.TASK.getServiceName(), taskDto);
             TaskDto updatedTaskDto = (TaskDto) commandGateway.send(cmd);
             setUpdatedTaskDto(updatedTaskDto);

@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.command.course.*;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggregate.sagas.states.CourseSagaState;
 
 public class UpdateCourseFunctionalitySagas extends WorkflowFunctionality {
     private CourseDto updatedCourseDto;
@@ -26,6 +28,8 @@ public class UpdateCourseFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep updateCourseStep = new SagaStep("updateCourseStep", () -> {
+            unitOfWorkService.verifySagaState(courseDto.getAggregateId(), new java.util.ArrayList<SagaState>(java.util.Arrays.asList(CourseSagaState.READ_COURSE, CourseSagaState.UPDATE_COURSE, CourseSagaState.DELETE_COURSE)));
+            unitOfWorkService.registerSagaState(courseDto.getAggregateId(), CourseSagaState.UPDATE_COURSE, unitOfWork);
             UpdateCourseCommand cmd = new UpdateCourseCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseDto);
             CourseDto updatedCourseDto = (CourseDto) commandGateway.send(cmd);
             setUpdatedCourseDto(updatedCourseDto);

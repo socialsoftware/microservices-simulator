@@ -246,6 +246,7 @@ export class SagaGenerator {
         }
 
         const upperName = capitalizedAggregate.toUpperCase();
+        states.add(`CREATE_${upperName}`);
         states.add(`READ_${upperName}`);
         states.add(`UPDATE_${upperName}`);
         states.add(`DELETE_${upperName}`);

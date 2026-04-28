@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.advanced.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.advanced.command.order.*;
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.OrderDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.order.aggregate.sagas.states.OrderSagaState;
 
 public class UpdateOrderFunctionalitySagas extends WorkflowFunctionality {
     private OrderDto updatedOrderDto;
@@ -26,6 +28,8 @@ public class UpdateOrderFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep updateOrderStep = new SagaStep("updateOrderStep", () -> {
+            unitOfWorkService.verifySagaState(orderDto.getAggregateId(), new java.util.ArrayList<SagaState>(java.util.Arrays.asList(OrderSagaState.READ_ORDER, OrderSagaState.UPDATE_ORDER, OrderSagaState.DELETE_ORDER)));
+            unitOfWorkService.registerSagaState(orderDto.getAggregateId(), OrderSagaState.UPDATE_ORDER, unitOfWork);
             UpdateOrderCommand cmd = new UpdateOrderCommand(unitOfWork, ServiceMapping.ORDER.getServiceName(), orderDto);
             OrderDto updatedOrderDto = (OrderDto) commandGateway.send(cmd);
             setUpdatedOrderDto(updatedOrderDto);

@@ -35,10 +35,14 @@ export class SagaUpdateGenerator extends SagaFunctionalityGeneratorBase {
         const enumName = this.toEnumCase(aggregate.name);
         const buildWorkflowParams = [...metadata.params.map(p => `${p.type} ${p.name}`), 'SagaUnitOfWork unitOfWork'];
 
+        const upperAggregate = capitalizedAggregate.toUpperCase();
+
         return `    public void buildWorkflow(${buildWorkflowParams.join(', ')}) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep ${metadata.stepName} = new SagaStep("${metadata.stepName}", () -> {
+            unitOfWorkService.verifySagaState(${lowerAggregate}Dto.getAggregateId(), new java.util.ArrayList<SagaState>(java.util.Arrays.asList(${capitalizedAggregate}SagaState.READ_${upperAggregate}, ${capitalizedAggregate}SagaState.UPDATE_${upperAggregate}, ${capitalizedAggregate}SagaState.DELETE_${upperAggregate})));
+            unitOfWorkService.registerSagaState(${lowerAggregate}Dto.getAggregateId(), ${capitalizedAggregate}SagaState.UPDATE_${upperAggregate}, unitOfWork);
             Update${capitalizedAggregate}Command cmd = new Update${capitalizedAggregate}Command(unitOfWork, ServiceMapping.${enumName}.getServiceName(), ${lowerAggregate}Dto);
             ${metadata.resultType} ${metadata.resultField} = (${metadata.resultType}) commandGateway.send(cmd);
             ${metadata.resultSetter}(${metadata.resultField});

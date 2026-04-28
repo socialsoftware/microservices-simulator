@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.command.enrollment.*;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.EnrollmentDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.enrollment.aggregate.sagas.states.EnrollmentSagaState;
 
 public class UpdateEnrollmentFunctionalitySagas extends WorkflowFunctionality {
     private EnrollmentDto updatedEnrollmentDto;
@@ -26,6 +28,8 @@ public class UpdateEnrollmentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep updateEnrollmentStep = new SagaStep("updateEnrollmentStep", () -> {
+            unitOfWorkService.verifySagaState(enrollmentDto.getAggregateId(), new java.util.ArrayList<SagaState>(java.util.Arrays.asList(EnrollmentSagaState.READ_ENROLLMENT, EnrollmentSagaState.UPDATE_ENROLLMENT, EnrollmentSagaState.DELETE_ENROLLMENT)));
+            unitOfWorkService.registerSagaState(enrollmentDto.getAggregateId(), EnrollmentSagaState.UPDATE_ENROLLMENT, unitOfWork);
             UpdateEnrollmentCommand cmd = new UpdateEnrollmentCommand(unitOfWork, ServiceMapping.ENROLLMENT.getServiceName(), enrollmentDto);
             EnrollmentDto updatedEnrollmentDto = (EnrollmentDto) commandGateway.send(cmd);
             setUpdatedEnrollmentDto(updatedEnrollmentDto);

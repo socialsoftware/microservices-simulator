@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.s
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum QuizSagaState implements SagaState {
+    CREATE_QUIZ {
+        @Override
+        public String getStateName() {
+            return "CREATE_QUIZ";
+        }
+    },
     DELETE_QUIZ {
         @Override
         public String getStateName() {

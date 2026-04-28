@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum AuthorSagaState implements SagaState {
+    CREATE_AUTHOR {
+        @Override
+        public String getStateName() {
+            return "CREATE_AUTHOR";
+        }
+    },
     DELETE_AUTHOR {
         @Override
         public String getStateName() {

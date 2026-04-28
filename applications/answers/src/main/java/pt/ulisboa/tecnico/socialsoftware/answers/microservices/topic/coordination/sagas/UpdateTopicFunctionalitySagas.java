@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.answers.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.answers.command.topic.*;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.sagas.states.TopicSagaState;
 
 public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
     private TopicDto updatedTopicDto;
@@ -26,6 +28,8 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep updateTopicStep = new SagaStep("updateTopicStep", () -> {
+            unitOfWorkService.verifySagaState(topicDto.getAggregateId(), new java.util.ArrayList<SagaState>(java.util.Arrays.asList(TopicSagaState.READ_TOPIC, TopicSagaState.UPDATE_TOPIC, TopicSagaState.DELETE_TOPIC)));
+            unitOfWorkService.registerSagaState(topicDto.getAggregateId(), TopicSagaState.UPDATE_TOPIC, unitOfWork);
             UpdateTopicCommand cmd = new UpdateTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto);
             TopicDto updatedTopicDto = (TopicDto) commandGateway.send(cmd);
             setUpdatedTopicDto(updatedTopicDto);

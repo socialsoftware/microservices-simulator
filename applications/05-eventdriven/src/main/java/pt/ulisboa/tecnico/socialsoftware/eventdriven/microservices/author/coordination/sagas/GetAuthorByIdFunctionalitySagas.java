@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.command.author.*;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.AuthorDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.aggregate.sagas.states.AuthorSagaState;
 
 public class GetAuthorByIdFunctionalitySagas extends WorkflowFunctionality {
     private AuthorDto authorDto;
@@ -26,6 +28,8 @@ public class GetAuthorByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep getAuthorStep = new SagaStep("getAuthorStep", () -> {
+            unitOfWorkService.verifySagaState(authorAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(AuthorSagaState.UPDATE_AUTHOR, AuthorSagaState.DELETE_AUTHOR)));
+            unitOfWorkService.registerSagaState(authorAggregateId, AuthorSagaState.READ_AUTHOR, unitOfWork);
             GetAuthorByIdCommand cmd = new GetAuthorByIdCommand(unitOfWork, ServiceMapping.AUTHOR.getServiceName(), authorAggregateId);
             AuthorDto authorDto = (AuthorDto) commandGateway.send(cmd);
             setAuthorDto(authorDto);

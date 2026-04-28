@@ -31,16 +31,19 @@ export class SagaDeleteGenerator extends SagaFunctionalityGeneratorBase {
     protected override buildImports(metadata: SagaOperationMetadata, aggregate: any, options: SagaGenerationOptions): string[] {
         const basePackage = this.getBasePackage(options);
         const lowerAggregate = aggregate.name.toLowerCase();
+        const capitalizedAggregate = StringUtils.capitalize(aggregate.name);
 
         return [
             `import ${basePackage}.ms.coordination.workflow.WorkflowFunctionality;`,
             `import ${basePackage}.ms.coordination.workflow.command.CommandGateway;`,
             `import ${basePackage}.${options.projectName.toLowerCase()}.ServiceMapping;`,
             `import ${basePackage}.${options.projectName.toLowerCase()}.command.${lowerAggregate}.*;`,
+            `import ${basePackage}.ms.sagas.aggregate.SagaAggregate.SagaState;`,
             `import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWork;`,
             `import ${basePackage}.ms.sagas.unitOfWork.SagaUnitOfWorkService;`,
             `import ${basePackage}.ms.sagas.workflow.SagaStep;`,
-            `import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`
+            `import ${basePackage}.ms.sagas.workflow.SagaWorkflow;`,
+            `import ${basePackage}.${options.projectName.toLowerCase()}.microservices.${lowerAggregate}.aggregate.sagas.states.${capitalizedAggregate}SagaState;`
         ];
     }
 
@@ -50,10 +53,14 @@ export class SagaDeleteGenerator extends SagaFunctionalityGeneratorBase {
         const enumName = this.toEnumCase(aggregate.name);
         const buildWorkflowParams = [...metadata.params.map(p => `${p.type} ${p.name}`), 'SagaUnitOfWork unitOfWork'];
 
+        const upperAggregate = capitalizedAggregate.toUpperCase();
+
         return `    public void buildWorkflow(${buildWorkflowParams.join(', ')}) {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep ${metadata.stepName} = new SagaStep("${metadata.stepName}", () -> {
+            unitOfWorkService.verifySagaState(${lowerAggregate}AggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(${capitalizedAggregate}SagaState.READ_${upperAggregate}, ${capitalizedAggregate}SagaState.UPDATE_${upperAggregate}, ${capitalizedAggregate}SagaState.DELETE_${upperAggregate})));
+            unitOfWorkService.registerSagaState(${lowerAggregate}AggregateId, ${capitalizedAggregate}SagaState.DELETE_${upperAggregate}, unitOfWork);
             Delete${capitalizedAggregate}Command cmd = new Delete${capitalizedAggregate}Command(unitOfWork, ServiceMapping.${enumName}.getServiceName(), ${lowerAggregate}AggregateId);
             commandGateway.send(cmd);
         });

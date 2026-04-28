@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.answers.microservices.topic.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum TopicSagaState implements SagaState {
+    CREATE_TOPIC {
+        @Override
+        public String getStateName() {
+            return "CREATE_TOPIC";
+        }
+    },
     DELETE_TOPIC {
         @Override
         public String getStateName() {

@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.showcase.microservices.room.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum RoomSagaState implements SagaState {
+    CREATE_ROOM {
+        @Override
+        public String getStateName() {
+            return "CREATE_ROOM";
+        }
+    },
     DELETE_ROOM {
         @Override
         public String getStateName() {

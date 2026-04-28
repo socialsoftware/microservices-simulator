@@ -5,10 +5,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Comman
 import pt.ulisboa.tecnico.socialsoftware.tutorial.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.command.book.*;
 import pt.ulisboa.tecnico.socialsoftware.tutorial.shared.dtos.BookDto;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.tutorial.microservices.book.aggregate.sagas.states.BookSagaState;
 
 public class GetBookByIdFunctionalitySagas extends WorkflowFunctionality {
     private BookDto bookDto;
@@ -26,6 +28,8 @@ public class GetBookByIdFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep getBookStep = new SagaStep("getBookStep", () -> {
+            unitOfWorkService.verifySagaState(bookAggregateId, new java.util.ArrayList<SagaState>(java.util.Arrays.asList(BookSagaState.UPDATE_BOOK, BookSagaState.DELETE_BOOK)));
+            unitOfWorkService.registerSagaState(bookAggregateId, BookSagaState.READ_BOOK, unitOfWork);
             GetBookByIdCommand cmd = new GetBookByIdCommand(unitOfWork, ServiceMapping.BOOK.getServiceName(), bookAggregateId);
             BookDto bookDto = (BookDto) commandGateway.send(cmd);
             setBookDto(bookDto);
