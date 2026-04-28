@@ -259,6 +259,22 @@ The `test-sagas` profile activates `test,sagas,local` and enables the Groovy/Spo
 
 For distributed transports (`stream`, `grpc`) or microservices-mode deployments, see the [project README](../../../README.md). Those concerns belong to the simulator framework rather than the DSL.
 
+### Test Scripts
+
+Three scripts in `dsl/tests/` automate the full test workflow across all projects:
+
+```bash
+bash dsl/tests/generate.sh     # Build DSL, regenerate all 10 projects, copy Spock specs
+bash dsl/tests/test-spock.sh    # Run all Spock test suites (includes generate.sh)
+bash dsl/tests/test-crud.sh     # Boot each app, run REST endpoint smoke tests
+```
+
+- **`generate.sh`** rebuilds the DSL, regenerates all 10 example projects, and copies Spock specs from `dsl/tests/spock/<project>/` into each application's `src/test/groovy/`
+- **`test-spock.sh`** runs `generate.sh` then executes `mvn test` for each project that has specs. Retries on transient filesystem races.
+- **`test-crud.sh`** compiles and boots each application, then runs curl-based CRUD smoke tests defined in `dsl/tests/crud/<project>.sh`
+
+Test specs live in `dsl/tests/spock/<project>/` (not inside the generated applications). They are copied during generation so that regeneration doesn't delete your tests.
+
 ## Making Changes and Regenerating
 
 ### Modify a `.nebula` file
