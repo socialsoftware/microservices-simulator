@@ -255,7 +255,7 @@ ErrorHandler.handle(
 ## Design Philosophy
 
 ### Convention Over Configuration
-Smart defaults with override capability: service names auto-generated, CRUD operations generated with `@GenerateCrud`, standard package structure.
+Smart defaults with override capability: service names auto-generated, CRUD operations auto-generated for every aggregate, standard package structure.
 
 ### Type Safety
 Strong typing throughout: grammar enforces valid constructs, type inference reduces boilerplate, generated code is type-safe Java.

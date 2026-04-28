@@ -2,7 +2,7 @@
 
 This chapter covers the Nebula type system: shared enumerations, all supported data types, and property modifiers that control how fields behave.
 
-> **Tied example:** [`02-typesenums`](../examples/abstractions/02-typesenums/): a Contact aggregate with enums, temporal types, and default values.
+> **Tied example:** [`02-typesenums`](../../abstractions/02-typesenums/): a Contact aggregate with enums, temporal types, and default values.
 
 ## Shared Enums
 
@@ -10,7 +10,7 @@ Enumerations are defined in a `SharedEnums` block, typically in a dedicated `sha
 
 ```nebula
 SharedEnums {
-    enum ContactCategory { PERSONAL, WORK, FAMILY }
+    ContactCategory { PERSONAL, WORK, FAMILY }
 }
 ```
 
@@ -18,9 +18,9 @@ Multiple enums can be defined in one block:
 
 ```nebula
 SharedEnums {
-    enum MembershipType { BASIC, PREMIUM }
-    enum OrderStatus { PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED }
-    enum PaymentMethod { CREDIT_CARD, DEBIT_CARD, BANK_TRANSFER, PAYPAL }
+    MembershipType { BASIC, PREMIUM }
+    OrderStatus { PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED }
+    PaymentMethod { CREDIT_CARD, DEBIT_CARD, BANK_TRANSFER, PAYPAL }
 }
 ```
 
@@ -63,10 +63,10 @@ List<Integer> scores
 Set<ExecutionUser> users
 ```
 
-- `List<T>`:ordered, allows duplicates
-- `Set<T>`:unordered, no duplicates
+- `List<T>`: ordered, allows duplicates
+- `Set<T>`: unordered, no duplicates
 
-Collections of entities generate additional add/remove service methods (see [Chapter 10](10-Generated-Code.md)).
+Collections of entities generate additional add/remove/get/update service methods (see [Chapter 12](12-Generated-Code.md)).
 
 **Constraint:** Nested collections (`List<List<T>>`) are not supported.
 
@@ -124,10 +124,11 @@ Assign a default value that applies when the property is not explicitly set:
 Boolean available = true
 Integer count = 0
 Boolean favorite = false
-AggregateState state = AggregateState.ACTIVE
+RoomStatus status = RoomStatus.AVAILABLE
+MembershipTier tier = MembershipTier.BRONZE
 ```
 
-Default values are used in the DTO and factory layers to populate fields when no explicit value is provided. Note that default value initializers are **not** added to the JPA entity field declarations; the defaults are applied through the factory creation flow.
+Default values are used in the DTO and factory layers to populate fields when no explicit value is provided.
 
 ### DTO Exclusion (`dto-exclude`)
 
@@ -137,7 +138,7 @@ Exclude a property from DTOs, useful for internal fields that shouldn't be expos
 String internalId dto-exclude
 ```
 
-The field exists in the JPA entity but not in `TaskDto` or `CreateTaskRequestDto`.
+The field exists in the JPA entity but not in the DTO or create request DTO.
 
 ### Multi-Declaration
 
@@ -161,11 +162,10 @@ The `02-typesenums` example puts these features together:
 
 ```nebula
 SharedEnums {
-    enum ContactCategory { PERSONAL, WORK, FAMILY }
+    ContactCategory { PERSONAL, WORK, FAMILY }
 }
 
 Aggregate Contact {
-    @GenerateCrud
 
     Root Entity Contact {
         String firstName
@@ -180,16 +180,16 @@ Aggregate Contact {
 ```
 
 This demonstrates:
-- **Enum type**:`ContactCategory category` uses a shared enum
-- **Temporal type**:`LocalDateTime createdAt` for a timestamp
-- **Default values**:`favorite = false` and `callCount = 0`
-- **Multiple string properties**:could also be written as `String firstName, lastName, email`
+- **Enum type**: `ContactCategory category` uses a shared enum
+- **Temporal type**: `LocalDateTime createdAt` for a timestamp
+- **Default values**: `favorite = false` and `callCount = 0`
+- **Multiple string properties**: could also be written as `String firstName, lastName, email`
 
 ### Generate and verify:
 
 ```bash
 cd dsl/nebula
-./bin/cli.js generate ../docs/examples/abstractions/02-typesenums/ -o ../docs/examples/generated
+./bin/cli.js generate ../abstractions/02-typesenums/
 ```
 
 The generated `Contact.java` entity includes all types with correct Java mappings, and the `ContactCategory.java` enum is placed in `shared/enums/`.

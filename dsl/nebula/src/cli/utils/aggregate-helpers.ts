@@ -330,6 +330,7 @@ declare module "../../language/generated/ast.js" {
         methods: Method[];
         repository?: Repository;
         events?: Events;
+        webApiEndpoints?: any;
     }
 }
 
@@ -397,6 +398,12 @@ export function initializeAggregateProperties(aggregate: Aggregate): void {
 
     Object.defineProperty(aggregate, 'events', {
         get: () => getEvents(aggregate),
+        enumerable: true,
+        configurable: true
+    });
+
+    Object.defineProperty(aggregate, 'webApiEndpoints', {
+        get: () => getWebAPIEndpoints(aggregate),
         enumerable: true,
         configurable: true
     });

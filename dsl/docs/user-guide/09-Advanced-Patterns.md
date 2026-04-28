@@ -1,8 +1,8 @@
 # Advanced Patterns
 
-This chapter covers advanced DSL features that go beyond the basics: extract patterns, DTO entities, custom services and endpoints, exception messages, and real-world case study summaries.
+This chapter covers advanced DSL features that go beyond the basics: extract patterns, DTO entities, exception messages, and real-world case study summaries.
 
-> **Tied example:** [`07-advanced`](../examples/abstractions/07-advanced/): Customer, Product, Order, and Invoice aggregates with advanced patterns.
+> **Tied example:** [`07-advanced`](../../abstractions/07-advanced/): Customer, Product, Order, and Invoice aggregates with advanced patterns.
 
 ## Extract Pattern
 
@@ -11,16 +11,16 @@ The extract pattern lets you extract specific fields from collection properties 
 ### Syntax
 
 ```nebula
-Entity InvoiceOrder from Order {
-    map items.key as orderItemKeys
+Entity InvoiceOrder {
+    from Order { items.key as orderItemKeys }
     AggregateState orderState
 }
 ```
 
 The dotted path `items.key` means:
-1. `items`:a `Set<OrderItem>` collection in the Order root entity
-2. `.key`:the `key` field on each `OrderItem`
-3. Result: `Set<String>`:the collection type is preserved, the element type becomes the field's type
+1. `items`: a `Set<OrderItem>` collection in the Order root entity
+2. `.key`: the `key` field on each `OrderItem`
+3. Result: `Set<String>` — the collection type is preserved, the element type becomes the field's type
 
 ### How It Works
 
@@ -36,23 +36,19 @@ Dto Entity OrderItem {
 
 Root Entity Order {
     Set<OrderItem> items
-    // ...
 }
 ```
 
-The extract `map items.key as orderItemKeys`:
-1. Finds `items` in Order's root entity → `Set<OrderItem>`
-2. Finds `key` in `OrderItem` → `String`
-3. Wraps the field type in the collection type → `Set<String>`
+The extract `items.key as orderItemKeys`:
+1. Finds `items` in Order's root entity -> `Set<OrderItem>`
+2. Finds `key` in `OrderItem` -> `String`
+3. Wraps the field type in the collection type -> `Set<String>`
 
 ### Generated Code
 
 ```java
-// InvoiceOrder entity
 private Set<String> orderItemKeys = new HashSet<>();
 
-// InvoiceOrder DTO
-private Set<String> orderItemKeys;
 public Set<String> getOrderItemKeys() { ... }
 public void setOrderItemKeys(Set<String> orderItemKeys) { ... }
 ```
@@ -60,22 +56,16 @@ public void setOrderItemKeys(Set<String> orderItemKeys) { ... }
 ### Common Use Cases
 
 ```nebula
-// Extract aggregate IDs from a collection
-map participants.aggregateId as participantIds    // Set<Integer>
-
-// Extract business fields
-map products.sku as productSkus                   // Set<String>
-
-// Extract status fields
-map orders.status as orderStatuses                // List<OrderStatus>
+from Quiz { questions.aggregateId as quizQuestionsAggregateIds }    // Set<Integer>
+from Order { items.key as orderItemKeys }                            // Set<String>
 ```
 
 ### Limitations
 
-- **Single-level only**:`map a.b` works, `map a.b.c` does not
-- **Root entity properties only**:the source collection must be on the root entity
-- **No filtering**:extracts from all elements in the collection
-- **List and Set only**:works with `List<T>` and `Set<T>` collection types
+- **Single-level only**: `items.key` works, `items.nested.key` does not
+- **Root entity properties only**: the source collection must be on the root entity
+- **No filtering**: extracts from all elements in the collection
+- **List and Set only**: works with `List<T>` and `Set<T>` collection types
 
 ## Dto Entity
 
@@ -100,65 +90,20 @@ DTO entities are generated as JPA `@Entity` classes with their own `@Id` and dat
 ```nebula
 Root Entity Order {
     Set<OrderItem> items
-    // ...
 }
 ```
-
-## Custom Service Methods
-
-When `@GenerateCrud` isn't enough, define additional service methods:
-
-```nebula
-Service UserService {
-    @Transactional
-
-    methods {
-        activateUser(Integer userId, UnitOfWork unitOfWork): UserDto
-        deactivateUser(Integer userId, UnitOfWork unitOfWork): UserDto
-    }
-}
-```
-
-If the service name is omitted, it defaults to `<Aggregate>Service`:
-
-```nebula
-Service {
-    @Transactional
-}
-```
-
-Custom methods generate method stubs in the service class that you can implement with your specific business logic.
-
-## Custom Web API Endpoints
-
-Define REST endpoints when `@GenerateCrud` doesn't cover all your API needs:
-
-```nebula
-WebAPIEndpoints {
-    Endpoint activateUser {
-        httpMethod: POST
-        path: "/users/{id}/activate"
-        methodName: activateUser
-        parameters: [id: Integer: "@PathVariable"]
-        returnType: UserDto
-        desc: "Activate a user account"
-    }
-}
-```
-
-This generates a controller method with the specified HTTP method, path, parameters, and return type.
 
 ## Exception Messages
 
-Define project-specific error messages with format specifiers:
+Define project-specific error messages with format specifiers in a dedicated `exceptions.nebula` file:
 
 ```nebula
 exceptions {
     ORDER_NOT_FOUND: "Order with id %d does not exist"
     CUSTOMER_NOT_FOUND: "Customer with id %d does not exist"
-    INVOICE_NOT_FOUND: "Invoice with id %d does not exist"
     INSUFFICIENT_STOCK: "Insufficient stock for product %s"
-    INVALID_ORDER_STATUS: "Cannot transition order to status %s"
+    AGGREGATE_NOT_FOUND: "Aggregate with aggregate id %d does not exist."
+    INVARIANT_BREAK: "Aggregate %d breaks invariants"
 }
 ```
 
@@ -179,17 +124,17 @@ The `07-advanced` example builds a complete e-commerce system with 4 aggregates 
 
 ```nebula
 SharedEnums {
-    enum OrderStatus { PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED }
-    enum PaymentMethod { CREDIT_CARD, DEBIT_CARD, BANK_TRANSFER, PAYPAL }
+    OrderStatus { PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED }
+    PaymentMethod { CREDIT_CARD, DEBIT_CARD, BANK_TRANSFER, PAYPAL }
 }
 ```
 
 ### Aggregate Relationships
 
 ```
-Customer ◄────── Order ──────► Product
+Customer <────── Order ──────> Product
                   │
-                  ▼
+                  v
                Invoice (extract pattern: items.key)
 ```
 
@@ -197,50 +142,62 @@ Customer ◄────── Order ──────► Product
 
 | Feature | Where Used |
 |---------|-----------|
-| Extract pattern | `invoice.nebula`:`map items.key as orderItemKeys` |
-| Dto Entity | `order.nebula`:`Dto Entity OrderItem` |
-| AggregateState reference | `invoice.nebula`:`AggregateState orderState` |
-| Custom JPQL query | `order.nebula`:`findOrderIdsAboveAmount` |
-| Multiple shared enums | `shared-enums.nebula`:`OrderStatus`, `PaymentMethod` |
-| Custom exceptions | `exceptions.nebula`:5 error message constants |
-| Cascading references | `invoice.nebula`:cascade on Order delete |
-| Prevent references | `order.nebula`:prevent Customer delete |
+| Extract pattern | `invoice.nebula`: `from Order { items.key as orderItemKeys }` |
+| Dto Entity | `order.nebula`: `Dto Entity OrderItem` |
+| AggregateState reference | `invoice.nebula`: `AggregateState orderState` |
+| Custom JPQL query | `order.nebula`: `findOrderIdsAboveAmount` |
+| Multiple shared enums | `shared-enums.nebula`: `OrderStatus`, `PaymentMethod` |
+| Event-driven cascade | `order.nebula` and `invoice.nebula`: `subscribe ... when ... action { this.state = INACTIVE }` |
 
 ### Generate and verify:
 
 ```bash
 cd dsl/nebula
-./bin/cli.js generate ../docs/examples/abstractions/07-advanced/ -o ../docs/examples/generated
+./bin/cli.js generate ../abstractions/07-advanced/
 ```
 
 ## Real-World Case Studies
 
 ### Answers Project (8 aggregates)
 
-Located in `dsl/abstractions/answers/`, this is a complete course management system (plus `shared-enums.nebula` and `exceptions.nebula`):
+Located in `dsl/abstractions/answers/`, this is a complete course management system:
 
 | Aggregate | Features |
 |-----------|----------|
-| User | Basic CRUD, events, role-based |
-| Course | Basic CRUD, events |
-| Execution | Cross-refs to Course and User, collection references (`Set<ExecutionUser>`), multiple inter-invariants, custom JPQL |
-| Topic | Basic CRUD, events |
-| Question | Cross-ref to Topic, invariants |
+| User | CRUD, custom methods (`signUp`, `awardLoyaltyPoints`), events |
+| Course | CRUD, events |
+| Execution | Cross-refs to Course and User, collection references (`Set<ExecutionUser>`), custom JPQL |
+| Topic | Cross-ref to Course, events |
+| Question | Cross-ref to Topic, `find` action statement, invariants |
 | Quiz | Cross-ref to Question, collection references |
-| Tournament | Cross-ref to Execution and Quiz, complex temporal invariants |
-| Answer | Cross-refs, extract pattern (`map questions.aggregateId as quizQuestionsAggregateIds`), complex queries |
+| Tournament | Cross-ref to Execution and Quiz, complex temporal invariants, custom methods |
+| Answer | Cross-refs, extract pattern (`questions.aggregateId as quizQuestionsAggregateIds`), complex queries |
 
 ### TeaStore Project (5 aggregates)
 
-Located in `dsl/abstractions/teastore/`, this is an e-commerce storefront (plus `shared-enums.nebula`):
+Located in `dsl/abstractions/teastore/`, this is an e-commerce storefront:
 
 | Aggregate | Features |
 |-----------|----------|
-| User | Basic CRUD |
-| Category | Basic CRUD, events |
+| User | CRUD |
+| Category | CRUD, events |
 | Product | Cross-ref to Category, events, invariants |
 | Cart | Cross-ref to User and Product, collection references |
 | Order | Cross-ref to User and Product, collection references |
+
+### Showcase Project (3 aggregates + workflow)
+
+Located in `dsl/abstractions/showcase/`, this is a hotel booking system demonstrating all advanced features:
+
+| Aggregate/File | Features |
+|-----------|----------|
+| User | Custom methods (`signUp`, `awardLoyaltyPoints`), `@PostMapping` endpoints, preconditions, `publishes`, `query` method body |
+| Room | State transitions (`reserve`, `checkIn`, `checkOut`, `release`, `retire`), `find ... where ... as` action, collection entities |
+| Booking | Cross-aggregate projections with aliases, event cascade, invariants, custom `confirmBooking` method |
+| Workflow | Cross-aggregate saga orchestration with compensation and saga-state locking |
+| SagaStates | Shared saga state declarations for concurrent access control |
+
+See [Chapter 10: Methods and Custom Endpoints](10-Methods-Custom-Endpoints.md) and [Chapter 11: Workflows and Sagas](11-Workflows-Sagas.md) for detailed coverage of the showcase features.
 
 ## Best Practices
 
@@ -248,21 +205,17 @@ Located in `dsl/abstractions/teastore/`, this is an e-commerce storefront (plus 
 
 Keep each aggregate in its own `.nebula` file, named after the aggregate (lowercase). This keeps files focused and manageable.
 
-### Use `@GenerateCrud` Liberally
-
-Most aggregates need CRUD operations. Start with `@GenerateCrud` and add custom methods only when needed.
-
 ### Prefer Cross-References Over Duplication
 
 Instead of duplicating fields, reference other aggregates:
 
 ```nebula
-// ✅ Good: reference with type inference
-Entity LoanMember from Member {
-    map name as memberName
+// Good: reference with type inference
+Entity LoanMember {
+    from Member { name as memberName }
 }
 
-// ❌ Bad: manual duplication
+// Bad: manual duplication
 Root Entity Loan {
     Integer memberId
     String memberName  // Duplicated, can go stale
@@ -274,34 +227,26 @@ Root Entity Loan {
 Business rules in invariants are enforced automatically. Always include descriptive error messages:
 
 ```nebula
-check pricePositive { price > 0.0 } error "Product price must be positive"
+invariants {
+    price > 0.0 : "Product price must be positive"
+}
 ```
 
-### Use References for Integrity
+### Event-Driven Referential Integrity
 
-Always define `References` blocks when you have cross-aggregate references. They make delete handling declarative and consistent.
-
-### Combine References with Inter-Invariants
-
-For complete referential integrity, pair every reference with an inter-invariant:
+For cross-aggregate references, always subscribe to the source's delete event with an explicit cascade action:
 
 ```nebula
-References {
-    author -> Author {
-        onDelete: cascade
-        message: "Author deleted, removing posts"
-    }
-}
-
-Events {
-    interInvariant AUTHOR_EXISTS {
-        subscribe AuthorDeletedEvent from Author {
-            author.authorAggregateId == event.aggregateId
-        }
+subscribe AuthorDeletedEvent from Author {
+    when author.authorAggregateId == event.aggregateId
+    action {
+        this.state = INACTIVE
     }
 }
 ```
+
+This matches the simulator's native architecture: deletes always succeed, affected subscribers react asynchronously.
 
 ---
 
-**Previous:** [08-Tutorial-Library-System](08-Tutorial-Library-System.md) | **Next:** [10-Generated-Code](10-Generated-Code.md)
+**Previous:** [08-Tutorial-Library-System](08-Tutorial-Library-System.md) | **Next:** [10-Methods-Custom-Endpoints](10-Methods-Custom-Endpoints.md)

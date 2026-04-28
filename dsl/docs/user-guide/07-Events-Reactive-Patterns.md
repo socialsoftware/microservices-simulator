@@ -1,24 +1,28 @@
 # Events and Reactive Patterns
 
-This chapter covers Nebula's event system: publishing events, subscribing to events from other aggregates, and using inter-invariants for referential integrity across aggregate boundaries.
+This chapter covers Nebula's event system: publishing events, subscribing to events from other aggregates, and reacting to cross-aggregate changes.
 
-> **Tied example:** [`05-eventdriven`](../examples/abstractions/05-eventdriven/): Author and Post aggregates with event publishing and subscription.
+> **Tied example:** [`05-eventdriven`](../../abstractions/05-eventdriven/): Author and Post aggregates with event publishing and subscription.
 
 ## Domain Overview
 
 The `05-eventdriven` example models a blog domain:
 
 ```
-Author ──publishes──→ AuthorUpdatedEvent ──subscribed by──→ Post
-Author ──publishes──→ AuthorDeletedEvent ──subscribed by──→ Post (inter-invariant)
+Author ──publishes──→ AuthorUpdatedEvent ──subscribed by──→ Post (projection sync)
+Author ──publishes──→ AuthorDeletedEvent ──subscribed by──→ Post (cascade INACTIVE)
 ```
 
 - **Author** publishes events when updated or deleted
-- **Post** subscribes to those events to keep its local author data in sync and enforce referential integrity
+- **Post** subscribes to those events to keep its local author data in sync and to cascade state changes
 
 ## Publishing Events
 
-Define events that an aggregate emits using the `publish` keyword inside an `Events` block:
+Events can be published in two ways.
+
+### Explicit Declaration in Events Block
+
+Define events with typed fields in the `Events` block:
 
 ```nebula
 Events {
@@ -33,40 +37,53 @@ Events {
 }
 ```
 
-Each published event has:
-- A **name**:becomes the Java event class name
-- **Fields**:data carried by the event
-
-### What Gets Generated
-
-For each published event, Nebula generates:
-
-1. **Event class**:extends the simulator's `Event` base class:
+Each published event generates a Java event class extending the simulator's `Event` base class:
 
 ```java
 public class AuthorUpdatedEvent extends Event {
     private String name;
     private String bio;
-
     // Constructor, getters, setters
 }
 ```
 
-2. **Publishing logic** in the service: events are registered via the Unit of Work Service:
+### Inferred from `publishes` in Methods
 
-```java
-AuthorDeletedEvent event = new AuthorDeletedEvent(author.getAggregateId());
-event.setPublisherAggregateVersion(author.getVersion());
-unitOfWorkService.registerEvent(event, unitOfWork);
+Events can also be published inline from method action bodies using `publishes`:
+
+```nebula
+Methods {
+    @PostMapping("/users/{userId}/loyalty")
+    awardLoyaltyPoints(Integer userId, Integer points) {
+        action {
+            load User(userId) as user
+            user.loyaltyPoints = points
+        }
+        publishes UserLoyaltyAwardedEvent {
+            userAggregateId: user.aggregateId,
+            pointsAwarded: points
+        }
+    }
+}
 ```
 
-Events are dispatched only when the Unit of Work commits, ensuring they are not sent if the transaction fails.
+When using `publishes`, the event class is auto-generated with field types inferred from the assignment expressions. No separate `publish` declaration in the `Events` block is needed.
+
+### Event Dispatch
+
+Events are registered on the Unit of Work and dispatched only when the transaction commits:
+
+```java
+unitOfWorkService.registerEvent(new AuthorDeletedEvent(author.getAggregateId()), unitOfWork);
+```
+
+If the transaction fails, no events are sent.
 
 ## Subscribing to Events
 
-### Simple Subscriptions
+### Simple Subscriptions (Projection Sync)
 
-Subscribe to events from other aggregates for data synchronization:
+Subscribe to update events to keep local projection data in sync:
 
 ```nebula
 Events {
@@ -74,11 +91,9 @@ Events {
 }
 ```
 
-This generates an event handler that updates local copies of data when the source aggregate changes. For example, when an Author's name changes, all Posts referencing that author get their local `authorName` updated.
+This generates an event handler that refreshes local copies of data when the source aggregate changes. For example, when an Author's name changes, all Posts referencing that author get their local `authorName` updated automatically.
 
 ### Event Flow
-
-Events flow through the system via scheduled polling:
 
 ```
 1. AuthorService registers event
@@ -87,109 +102,83 @@ Events flow through the system via scheduled polling:
 2. UnitOfWork commits → event persisted
 
 3. PostEventProcessing polls for new events (@Scheduled)
-   eventApplicationService.handleSubscribedEvent(...)
 
 4. Subscription classes match events to affected aggregates
    PostSubscribesAuthorUpdated
 
 5. Event handlers process updates
-   AuthorUpdatedEventHandler updates local data
+   AuthorUpdatedEventHandler refreshes local projection data
 ```
 
-## Inter-Invariants
+## Reactive Subscriptions with `when` + `action`
 
-Inter-invariants are the mechanism for enforcing referential integrity across aggregate boundaries. They combine event subscriptions with matching conditions.
-
-### Syntax
+For subscriptions that need to react to an event with specific logic, use `when` (match condition) and `action` (what to do):
 
 ```nebula
 Events {
-    interInvariant AUTHOR_EXISTS {
-        subscribe AuthorDeletedEvent from Author {
-            author.authorAggregateId == event.aggregateId
+    subscribe AuthorDeletedEvent from Author {
+        when author.authorAggregateId == event.aggregateId
+        action {
+            this.state = INACTIVE
         }
     }
 }
 ```
 
 Breaking this down:
-- `interInvariant AUTHOR_EXISTS`:named constraint group
-- `subscribe AuthorDeletedEvent from Author`:listen for this event from the Author aggregate
-- `{ author.authorAggregateId == event.aggregateId }`:matching condition: applies to Posts whose local author reference matches the deleted Author's ID
+- **`subscribe AuthorDeletedEvent from Author`**: listen for this event from the Author aggregate
+- **`when author.authorAggregateId == event.aggregateId`**: only react if the deleted author is the one this Post references
+- **`action { this.state = INACTIVE }`**: mark this Post as INACTIVE
 
-### How They Work
+This is the simulator's native referential integrity model. Deletes always succeed on the source side; affected subscribers react by cascading their state.
 
-Inter-invariants work together with the `References` block from [Chapter 06](06-Cross-Aggregate-References.md):
+### Both `when` and `action` Are Explicit
 
-1. The **inter-invariant** detects the event and identifies affected aggregates
-2. The **reference action** (`prevent`, `cascade`, `setNull`) determines the response
+The DSL requires you to specify both what triggers the reaction and what happens. There is no hidden cascade logic — a reader of the `.nebula` file sees exactly what the subscription does.
 
-For example:
+### Multiple Subscriptions
+
+An aggregate can subscribe to events from multiple sources:
 
 ```nebula
-References {
-    author -> Author {
-        onDelete: cascade
-        message: "Author deleted, removing their posts"
-    }
-}
-
 Events {
-    interInvariant AUTHOR_EXISTS {
-        subscribe AuthorDeletedEvent from Author {
-            author.authorAggregateId == event.aggregateId
+    subscribe MemberDeletedEvent from Member {
+        when member.memberAggregateId == event.aggregateId
+        action {
+            this.state = INACTIVE
+        }
+    }
+
+    subscribe BookDeletedEvent from Book {
+        when book.bookAggregateId == event.aggregateId
+        action {
+            this.state = INACTIVE
         }
     }
 }
 ```
 
-When an Author is deleted:
-1. `AuthorDeletedEvent` is published
-2. Post's inter-invariant matches Posts with `author.authorAggregateId == event.aggregateId`
-3. The generated `processAuthorDeletedEvent` method in `PostEventProcessing` provides the event processing hook. The reference constraint logic (cascade, prevent, setNull) should be implemented here
+Each subscription independently monitors its referenced aggregate.
 
-> **Note:** The generated event processing method for delete inter-invariants is a stub that needs to be completed with the specific constraint logic. The subscription and event matching infrastructure is fully generated.
+### Mixing Simple and Reactive Subscriptions
 
-### Multiple Subscriptions Per Inter-Invariant
-
-An inter-invariant can subscribe to multiple events when the same constraint applies to different event types:
+You can combine bare subscriptions (for projection sync) with reactive subscriptions (for cascade logic):
 
 ```nebula
 Events {
-    interInvariant USERS_EXIST {
-        subscribe UserDeletedEvent from User {
-            users.userAggregateId == event.aggregateId
-        }
-        subscribe UserUpdatedEvent from User {
-            users.userAggregateId == event.aggregateId
+    subscribe AuthorUpdatedEvent
+
+    subscribe AuthorDeletedEvent from Author {
+        when author.authorAggregateId == event.aggregateId
+        action {
+            this.state = INACTIVE
         }
     }
 }
 ```
 
-This is useful when both deletion and updates of the referenced aggregate need to be tracked.
-
-### Multiple Inter-Invariants
-
-An aggregate can define multiple inter-invariants when it references multiple aggregates:
-
-```nebula
-Events {
-    interInvariant MEMBER_EXISTS {
-        subscribe MemberDeletedEvent from Member {
-            member.memberAggregateId == event.aggregateId
-        }
-    }
-
-    interInvariant BOOK_EXISTS {
-        subscribe BookDeletedEvent from Book {
-            book.bookAggregateId == event.aggregateId
-        }
-    }
-}
-```
-
-Each inter-invariant independently monitors its referenced aggregate.
+- `subscribe AuthorUpdatedEvent`: auto-refreshes projection fields when author data changes
+- `subscribe AuthorDeletedEvent ... { when ... action ... }`: cascades to INACTIVE when author is deleted
 
 ## Complete Example: Author and Post
 
@@ -197,14 +186,13 @@ Each inter-invariant independently monitors its referenced aggregate.
 
 ```nebula
 Aggregate Author {
-    @GenerateCrud
 
     Root Entity Author {
         String name
         String bio
 
         invariants {
-            check nameNotBlank { name.length() > 0 } error "Author name cannot be blank"
+            name.length() > 0 : "Author name cannot be blank"
         }
     }
 
@@ -225,10 +213,9 @@ Aggregate Author {
 
 ```nebula
 Aggregate Post {
-    @GenerateCrud
 
-    Entity PostAuthor from Author {
-        map name as authorName
+    Entity PostAuthor {
+        from Author { name as authorName }
     }
 
     Root Entity Post {
@@ -238,24 +225,18 @@ Aggregate Post {
         LocalDateTime publishedAt
 
         invariants {
-            check titleNotBlank { title.length() > 0 } error "Post title cannot be blank"
-            check authorNotNull { author != null } error "Post must have an author"
-        }
-    }
-
-    References {
-        author -> Author {
-            onDelete: cascade
-            message: "Author deleted, removing their posts"
+            title.length() > 0 : "Post title cannot be blank"
+            author != null : "Post must have an author"
         }
     }
 
     Events {
         subscribe AuthorUpdatedEvent
 
-        interInvariant AUTHOR_EXISTS {
-            subscribe AuthorDeletedEvent from Author {
-                author.authorAggregateId == event.aggregateId
+        subscribe AuthorDeletedEvent from Author {
+            when author.authorAggregateId == event.aggregateId
+            action {
+                this.state = INACTIVE
             }
         }
     }
@@ -263,22 +244,21 @@ Aggregate Post {
 ```
 
 This demonstrates:
-- **Event publishing**:Author emits `AuthorUpdatedEvent` and `AuthorDeletedEvent`
-- **Simple subscription**:Post subscribes to `AuthorUpdatedEvent` for data sync
-- **Inter-invariant**:Post uses `AUTHOR_EXISTS` to enforce referential integrity on Author deletion
-- **Cascade delete**:When an Author is deleted, their Posts are also deleted
+- **Event publishing**: Author emits `AuthorUpdatedEvent` and `AuthorDeletedEvent`
+- **Simple subscription**: Post subscribes to `AuthorUpdatedEvent` for projection data sync
+- **Reactive subscription**: Post subscribes to `AuthorDeletedEvent` with `when` + `action` for referential integrity cascade
 
 ### Generate and verify:
 
 ```bash
 cd dsl/nebula
-./bin/cli.js generate ../docs/examples/abstractions/05-eventdriven/ -o ../docs/examples/generated
+./bin/cli.js generate ../abstractions/05-eventdriven/
 ```
 
 Explore the generated event infrastructure:
-- `AuthorUpdatedEvent.java` / `AuthorDeletedEvent.java`:event classes
-- `PostEventProcessing.java`:event routing
-- `PostEventHandling.java`:subscription handlers
+- `AuthorUpdatedEvent.java` / `AuthorDeletedEvent.java`: event classes
+- `PostEventProcessing.java`: event routing and cascade logic
+- `PostSubscribesAuthorDeletedAuthorRef.java`: subscription class matching events to affected Posts
 
 ---
 

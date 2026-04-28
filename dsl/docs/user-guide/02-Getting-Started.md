@@ -49,7 +49,7 @@ Commands:
 Nebula reads `.nebula` files from an abstractions directory. Each file typically defines one aggregate:
 
 ```
-dsl/docs/examples/abstractions/
+dsl/abstractions/
 ├── 01-helloworld/        # Simplest example, start here (Ch 03)
 │   ├── nebula.config.json
 │   └── task.nebula
@@ -86,24 +86,19 @@ dsl/docs/examples/abstractions/
 dsl/abstractions/
 ├── answers/              # Answers case study (8 aggregates)
 │   ├── nebula.config.json
-│   ├── user.nebula
-│   ├── course.nebula
-│   ├── execution.nebula
-│   ├── topic.nebula
-│   ├── question.nebula
-│   ├── quiz.nebula
-│   ├── tournament.nebula
-│   ├── answer.nebula
 │   ├── shared-enums.nebula
-│   └── exceptions.nebula
-└── teastore/             # TeaStore case study (5 aggregates)
+│   ├── exceptions.nebula
+│   ├── user.nebula, course.nebula, execution.nebula, topic.nebula
+│   ├── question.nebula, quiz.nebula, tournament.nebula, answer.nebula
+├── showcase/             # Hotel booking system (Ch 10-11)
+│   ├── nebula.config.json
+│   ├── shared-enums.nebula, saga-states.nebula, exceptions.nebula
+│   ├── user.nebula, room.nebula, booking.nebula
+│   └── reserve-room-workflow.nebula
+└── teastore/             # TeaStore e-commerce (5 aggregates)
     ├── nebula.config.json
-    ├── user.nebula
-    ├── category.nebula
-    ├── product.nebula
-    ├── cart.nebula
-    ├── order.nebula
-    └── shared-enums.nebula
+    ├── shared-enums.nebula
+    └── user.nebula, category.nebula, product.nebula, cart.nebula, order.nebula
 ```
 
 > **Note:** Examples 01-07 map directly to guide chapters 03-09. Each chapter references its tied example with generation commands.
@@ -132,18 +127,18 @@ Generate Spring Boot code from an abstractions directory. Let's start with the s
 
 ```bash
 cd dsl/nebula
-./bin/cli.js generate ../docs/examples/abstractions/01-helloworld/ -o ../docs/examples/generated
+./bin/cli.js generate ../abstractions/01-helloworld/ -o ../../applications
 ```
 
 For a more complete example, try the tutorial project:
 
 ```bash
-./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ../docs/examples/generated
+./bin/cli.js generate ../abstractions/06-tutorial/ -o ../../applications
 ```
 
 Expected output:
 ```
-Starting generation for: ../docs/examples/abstractions/06-tutorial/
+Starting generation for: ../abstractions/06-tutorial/
 Found 4 Nebula files
 Validating DSL files... OK
 
@@ -155,17 +150,17 @@ Generating code...
 Generated project files (integration, pom.xml, .gitignore, 1 shared enum)
 
 Code generation completed successfully!
-Output: ../docs/examples/generated/06-tutorial
+Output: ../../applications/tutorial
 ```
 
 ### CLI Options
 
 ```bash
 # Generate tutorial to examples directory
-./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ../docs/examples/generated
+./bin/cli.js generate ../abstractions/06-tutorial/ -o ../../applications
 
 # Generate to custom output directory
-./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ./output
+./bin/cli.js generate ../abstractions/06-tutorial/ -o ./output
 
 # Generate a larger project
 ./bin/cli.js generate ../abstractions/answers/ -o ../../applications/answers
@@ -185,7 +180,7 @@ mvn clean install -DskipTests
 ### Compile Generated Code
 
 ```bash
-cd dsl/docs/examples/generated/06-tutorial
+cd applications/06-tutorial
 mvn clean compile
 ```
 
@@ -210,7 +205,7 @@ docker exec -i postgres psql -U postgres -c "CREATE DATABASE tutorial_db;"
 **2. Start the app**
 
 ```bash
-cd dsl/docs/examples/generated/06-tutorial
+cd applications/06-tutorial
 mvn spring-boot:run
 ```
 
@@ -235,7 +230,7 @@ When you see `Started TutorialSimulator in N seconds`, the app is ready. You can
 H2 is a tiny embedded SQL database that lives in your JVM's memory. It's useful for verifying the app boots and the bean wiring is correct without installing or starting Postgres. Override the datasource on the command line:
 
 ```bash
-cd dsl/docs/examples/generated/06-tutorial
+cd applications/06-tutorial
 mvn spring-boot:run -Dspring-boot.run.arguments="\
     --spring.datasource.url=jdbc:h2:mem:tutorial \
     --spring.datasource.driver-class-name=org.h2.Driver \
@@ -249,7 +244,7 @@ mvn spring-boot:run -Dspring-boot.run.arguments="\
 ### Run Tests
 
 ```bash
-cd dsl/docs/examples/generated/06-tutorial
+cd applications/06-tutorial
 mvn test -P test-sagas
 ```
 
@@ -260,7 +255,7 @@ The `test-sagas` profile activates `test,sagas,local` and enables the Groovy/Spo
 | `sagas`        | `sagas,local`            | Run the app (saga model + in-process transport, default) |
 | `test-sagas`   | `test,sagas,local`       | Compile and run Spock/Groovy tests                       |
 
-> **Nebula does not generate tests for you.** The `test-sagas` profile is plumbing: it sets up the Spock/Groovy compiler so that *your own* tests can run. A freshly generated project contains no test files, so `mvn test -P test-sagas` will succeed with zero tests executed until you add them under `src/test/groovy/`. See the hand-written `applications/quizzes` and `applications/answers` projects for examples of Spock test files you can use as templates.
+> **Nebula does not generate tests for you.** The `test-sagas` profile is plumbing: it sets up the Spock/Groovy compiler so that *your own* tests can run. A freshly generated project contains no test files, so `mvn test -P test-sagas` will succeed with zero tests executed until you add them under `src/test/groovy/`. See the test specs in `dsl/tests/spock/` for examples of Spock test files you can use as templates.
 
 For distributed transports (`stream`, `grpc`) or microservices-mode deployments, see the [project README](../../../README.md). Those concerns belong to the simulator framework rather than the DSL.
 
@@ -268,11 +263,10 @@ For distributed transports (`stream`, `grpc`) or microservices-mode deployments,
 
 ### Modify a `.nebula` file
 
-Edit `dsl/docs/examples/abstractions/06-tutorial/member.nebula` and add a property:
+Edit `dsl/abstractions/06-tutorial/member.nebula` and add a property:
 
 ```nebula
 Aggregate Member {
-    @GenerateCrud
 
     Root Entity Member {
         String name
@@ -287,7 +281,7 @@ Aggregate Member {
 
 ```bash
 cd dsl/nebula
-./bin/cli.js generate ../docs/examples/abstractions/06-tutorial/ -o ../docs/examples/generated
+./bin/cli.js generate ../abstractions/06-tutorial/ -o ../../applications
 ```
 
 The `phone` field is now part of the entity, DTO, and all CRUD operations.
@@ -328,7 +322,7 @@ npm run watch               # Watch mode (auto-rebuild on changes)
 ### Generated Application
 
 ```bash
-cd dsl/docs/examples/generated/06-tutorial   # or applications/answers, etc.
+cd applications/06-tutorial   # or applications/answers, etc.
 mvn clean compile                   # Compile generated code
 ```
 

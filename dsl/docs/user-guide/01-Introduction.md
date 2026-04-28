@@ -30,7 +30,6 @@ Define aggregates, entities, and relationships using intuitive syntax:
 
 ```nebula
 Aggregate User {
-    @GenerateCrud
     Root Entity User {
         String name
         String username
@@ -44,24 +43,24 @@ Aggregate User {
 Reference entities from other aggregates with automatic type resolution:
 
 ```nebula
-Entity ExecutionCourse from Course {
-    map name as courseName
-    map type as courseType
+Entity ExecutionCourse {
+    from Course { name as courseName, type as courseType }
 }
 ```
 
 Types are automatically inferred from the `Course` aggregate's root entity.
 
 ### 3. Event-Driven Architecture
-Built-in support for publish/subscribe patterns:
+Built-in support for publish/subscribe with explicit reactive actions:
 
 ```nebula
 Events {
-    publish UserDeleted {
-        Integer userId
-        String username
+    subscribe UserDeletedEvent from User {
+        when user.userAggregateId == event.aggregateId
+        action {
+            this.state = INACTIVE
+        }
     }
-    subscribe ExecutionDeletedEvent
 }
 ```
 
@@ -70,8 +69,8 @@ Define invariants that are enforced at the aggregate level:
 
 ```nebula
 invariants {
-    check nameNotBlank { name.length() > 0 } error "User name cannot be blank"
-    check roleNotNull { role != null } error "User role is required"
+    name.length() > 0 : "User name cannot be blank"
+    role != null : "User role is required"
 }
 ```
 
@@ -151,18 +150,20 @@ Modify DSL, regenerate, compile. The cycle takes seconds, not hours.
 
 ## What This Guide Covers
 
-This guide is for anyone writing `.nebula` abstractions and generating Java code. It uses **7 progressive examples** (from a single-aggregate hello world to a complex e-commerce system) that introduce DSL features incrementally. Each chapter is tied to its example project in `dsl/docs/examples/`.
+This guide is for anyone writing `.nebula` abstractions and generating Java code. It uses progressive examples (from a single-aggregate hello world to a full hotel booking system) that introduce DSL features incrementally.
 
 1. **[Getting Started](02-Getting-Started.md)**: Install, build, first generation
-2. **[Your First Aggregate](03-Your-First-Aggregate.md)**: Build a microservice in 10 lines
+2. **[Your First Aggregate](03-Your-First-Aggregate.md)**: Build a microservice in 7 lines
 3. **[Types, Enums, and Properties](04-Types-Enums-Properties.md)**: Data types, enums, modifiers
 4. **[Business Rules and Repositories](05-Business-Rules-Repositories.md)**: Invariants and custom queries
 5. **[Cross-Aggregate References](06-Cross-Aggregate-References.md)**: Reference data across aggregates
 6. **[Events and Reactive Patterns](07-Events-Reactive-Patterns.md)**: Event publishing and subscriptions
 7. **[Tutorial: Building a Library System](08-Tutorial-Library-System.md)**: Combines all features end-to-end
-8. **[Advanced Patterns](09-Advanced-Patterns.md)**: Extract patterns, DTO entities, custom endpoints
-9. **[Generated Code](10-Generated-Code.md)**: What gets generated and how to use it
-10. **[Reference](11-Reference.md)**: Complete grammar and CLI reference
+8. **[Advanced Patterns](09-Advanced-Patterns.md)**: Extract patterns, DTO entities, exceptions
+9. **[Methods and Custom Endpoints](10-Methods-Custom-Endpoints.md)**: Action bodies, HTTP endpoints, preconditions
+10. **[Workflows and Sagas](11-Workflows-Sagas.md)**: Cross-aggregate orchestration with compensation
+11. **[Generated Code](12-Generated-Code.md)**: What gets generated and how to use it
+12. **[Reference](13-Reference.md)**: Complete grammar and CLI reference
 
 > For information on extending or modifying the DSL tooling itself (grammar, generators, templates), see the [Developer Guide](../developer-guide/01-Architecture.md).
 

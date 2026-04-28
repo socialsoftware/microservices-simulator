@@ -108,7 +108,7 @@ Auto-generate test suites from DSL definitions:
 
 ### OpenAPI/Swagger Spec Generation
 
-Generate OpenAPI 3.0 specifications from `WebAPIEndpoints` and `@GenerateCrud`:
+Generate OpenAPI 3.0 specifications from aggregate definitions and `@PostMapping` endpoints:
 - Complete API documentation from DSL
 - Client SDK generation from OpenAPI specs
 - API versioning support

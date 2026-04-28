@@ -134,7 +134,7 @@ The `contributes` section registers the language with VSCode:
 
 Provides syntax highlighting by matching token patterns:
 
-- **Keywords** - `Aggregate`, `Entity`, `Events`, `Repository`, `Service`, `WebAPIEndpoints`, `@GenerateCrud`, `@Query`, etc.
+- **Keywords** - `Aggregate`, `Entity`, `Events`, `Repository`, `Methods`, `SagaStates`, `Workflow`, `@Query`, etc.
 - **Strings** - double-quoted strings with escape sequences
 - **Comments** - line comments (`//`) and block comments (`/* */`)
 

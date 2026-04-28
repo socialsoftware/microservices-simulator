@@ -317,7 +317,7 @@ generators/microservices/command/
 └── command-handler-generator.ts   # Command routing + stream handler
 ```
 
-**`CommandGenerator`** — Generates command classes that extend `Command` from the simulator framework. For each aggregate with `@GenerateCrud`, it produces:
+**`CommandGenerator`** — Generates command classes that extend `Command` from the simulator framework. For each aggregate, it produces:
 - `Create{Aggregate}Command`
 - `Get{Aggregate}ByIdCommand`
 - `GetAll{Aggregate}sCommand`
@@ -436,12 +436,11 @@ How a `.nebula` Entity becomes a Java class:
 
 ### Command Data Flow (v3.0)
 
-How `@GenerateCrud` on an aggregate produces the command/handler pattern:
+How an aggregate definition produces the command/handler pattern:
 
 ```
 1. DSL Input:
    Aggregate User {
-       @GenerateCrud
        Root Entity User {
            String name
            UserRole role

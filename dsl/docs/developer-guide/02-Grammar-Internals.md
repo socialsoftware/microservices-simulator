@@ -68,7 +68,6 @@ When you define a grammar rule, Langium auto-generates a TypeScript interface in
 Aggregate:
     (annotations+=Annotation)*
     'Aggregate' name=ID '{'
-        (generateCrud?='@GenerateCrud')?
         (aggregateElements+=AggregateElement)*
     '}';
 ```

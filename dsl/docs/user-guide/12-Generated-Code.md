@@ -9,7 +9,7 @@ This chapter explains what Nebula generates, how the generated code is structure
 For each project, Nebula generates a complete Spring Boot application. The structure shown below uses the **Member** aggregate as a representative example; Book and Loan follow the same pattern within their own `microservices/<aggregate>/` directories:
 
 ```
-dsl/docs/examples/generated/06-tutorial/
+applications/06-tutorial/
 ├── pom.xml                                        # Maven build configuration
 ├── .gitignore
 └── src/main/
@@ -95,7 +95,7 @@ dsl/docs/examples/generated/06-tutorial/
 
 ## What Gets Generated Per Aggregate
 
-For an aggregate with `@GenerateCrud` ([Chapter 03](03-Your-First-Aggregate.md)):
+For every aggregate ([Chapter 03](03-Your-First-Aggregate.md)):
 
 | Component | Files | Purpose |
 |-----------|-------|---------|
@@ -393,4 +393,4 @@ public EnrollmentDto removeEnrollmentTeacher(Integer enrollmentId,
 
 ---
 
-**Previous:** [09-Advanced-Patterns](09-Advanced-Patterns.md) | **Next:** [11-Reference](11-Reference.md)
+**Previous:** [11-Workflows-Sagas](11-Workflows-Sagas.md) | **Next:** [13-Reference](13-Reference.md)
