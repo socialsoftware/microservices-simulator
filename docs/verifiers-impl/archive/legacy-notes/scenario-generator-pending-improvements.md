@@ -325,6 +325,52 @@ This keeps the early verifier surface smaller while the saga scenario generator 
 
 ---
 
+## 6. Scenario Catalog Export Contract (2026-04-27)
+
+### Status
+
+Implemented: when `verifiers.scenario-catalog.enabled=true`, the verifier now writes a versioned machine export beside the existing HTML report.
+
+### Contract
+
+- `scenario-catalog.jsonl`: one JSON object per `ScenarioPlan`, schema `microservices-simulator.scenario-catalog.v1`.
+- `scenario-catalog-manifest.json`: generated-at timestamp, effective config, counts, warnings, and resolved output paths.
+- The HTML report remains a separate human view; it is not the machine contract.
+
+### Safe Defaults
+
+- export disabled by default
+- `includeSingles=true`
+- `maxSagaSetSize=1`
+- `maxScenarios=100`
+- `maxInputVariantsPerSaga=3`
+- `maxSchedulesPerInputTuple=20`
+- `allowTypeOnlyFallback=false`
+- `inputPolicy=RESOLVED_OR_REPLAYABLE`
+- `scheduleStrategy=SERIAL`
+- `deterministicSeed=1234`
+
+### Confidence / Current Limits
+
+- Confidence labels are explicit: `EXACT`, `SYMBOLIC`, `TYPE_ONLY`, `UNKNOWN`.
+- Exact aggregate-instance keys are still a follow-up; the current adapter stays conservative and does not overstate exact shared-instance matching.
+- Missing aggregate names stay skipped/unknown rather than being mislabeled.
+- Current configuration assertions are text/YAML-based; follow-up coverage should validate effective bound properties through Spring binding or application wiring.
+- ScenarioExecutor execution, behavior CSV generation, and runtime fault injection remain follow-up work; this catalog is only the machine-readable scenario contract.
+- Include/exclude filters from the broader brief are not exposed yet; treat them as follow-up configuration work.
+
+### Bounded Smoke Shape
+
+Use the existing verifier entrypoint against Quizzes with catalog export enabled, `maxSagaSetSize=1`, and a small `maxScenarios` (for example 5–10). Verify only these invariants:
+
+- JSONL parses
+- manifest exists
+- scenario IDs are unique
+- each schedule step references known saga/step IDs
+- `analysis-report.html` still writes, along with the archived HTML sibling
+
+---
+
 ## Suggested Order
 
 1. Workflow step graph extraction
