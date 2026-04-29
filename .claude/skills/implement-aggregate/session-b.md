@@ -112,6 +112,7 @@ Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 - **P3 guard tests**: test each P3 rule violation (own-table duplicate, DTO field check)
 - **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., creator not enrolled in execution)
 - **P1 invariant violation tests**: for each P1 rule that a write operation can put at risk, add a test that exercises the service method causing the violation. The service calls `registerChanged`, which automatically invokes `verifyInvariants` — **never call `verifyInvariants()` directly**.
+  - **Skip P1 tests for `final` fields:** If a P1 rule is enforced by a Java `final` field (plan.md note: `Java \`final\` field`), no write path can violate it. Omit the invariant test for that rule and note the omission in the session report.
 
 ### Service-command method tests (T2 variant)
 

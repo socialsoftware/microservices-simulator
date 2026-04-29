@@ -349,8 +349,12 @@ For each aggregate, generate the full file list using the template from `docs/wo
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.b | `service/{Aggregate}Service.java` (write methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op) |
+| 2.N.b | `service/{Aggregate}Service.java` (write methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), `coordination/functionalities/{Aggregate}Functionalities.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op) |
 ```
+
+> **Event classes:** If Events published is non-empty, append one `events/{Event}.java` per published event to the session-b file list. These are produced in session b alongside the service methods that publish them.
+
+> **`{Aggregate}Functionalities.java`:** Always include this file — it is required as a Spring bean for test wiring regardless of whether read functionalities exist. Do not omit it even when no session-c exists.
 
 **Session 2.N.c — Read Functionalities:**
 ```

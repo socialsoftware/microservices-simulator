@@ -127,6 +127,7 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
         ex.message == <RULE_NAME>
     }
     // one case per invariant/guard
+    // Skip P1 tests for Java `final` fields — no write path can violate them.
 
     // ─── Concurrent interleaving ───────────────────────────────────────────────
     // One case per saga step that declares setForbiddenStates

@@ -137,6 +137,8 @@ unitOfWorkService.registerChanged(course, unitOfWork);
 
 No factory copy is needed. `remove()` is a terminal state transition; it does not interact with version-merge conflict detection.
 
+> **Note:** Some reference implementations (e.g., the `quizzes` `UserService`) still create a factory copy before calling `remove()` for defensive consistency. Both are valid. For new aggregates in `quizzes-full`, follow the no-copy pattern shown above — the `CourseService` is the canonical precedent.
+
 ---
 
 ## P3 Guard Placement

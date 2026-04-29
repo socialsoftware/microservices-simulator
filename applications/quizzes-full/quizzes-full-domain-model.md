@@ -371,6 +371,7 @@ These rules inspect only fields of a single entity.
 | CreateQuestion | Question | Course, Topic | Create a question linked to a course and topics |
 | UpdateQuestion | Question | Topic | Update question content or topics |
 | DeleteQuestion | Question | Course | Delete a question and decrement course question counter |
+| CreateUser | User | — | Create a user account |
 | DeleteUser | User | Execution | Soft-delete a user account |
 | CreateQuiz | Quiz | Execution, Question | Create a quiz linked to an execution and questions |
 | UpdateQuiz | Quiz | — | Update quiz dates or questions (before available date) |
