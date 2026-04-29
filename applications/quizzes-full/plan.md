@@ -141,12 +141,12 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 | Session | Files |
 |---------|-------|
 | 2.2.a | `aggregate/User.java`, `aggregate/UserRole.java`, `aggregate/sagas/SagaUser.java`, `aggregate/sagas/states/UserSagaState.java`, `aggregate/UserFactory.java`, `aggregate/sagas/factories/SagasUserFactory.java`, `aggregate/UserCustomRepository.java`, `aggregate/sagas/repositories/UserCustomRepositorySagas.java`, `aggregate/UserDto.java`, `aggregate/UserRepository.java`, `sagas/user/UserTest.groovy`, `microservices/user/UserServiceApplication.java` |
-| 2.2.b | `service/UserService.java` (write methods), `messaging/UserCommandHandler.java`, `commands/user/DeleteUserCommand.java`, `commands/user/UpdateUserNameCommand.java`, `commands/user/AnonymizeUserCommand.java`, `coordination/sagas/DeleteUserFunctionalitySagas.java`, `sagas/coordination/user/DeleteUserTest.groovy`, `microservices/user/coordination/webapi/UserController.java` |
-| 2.2.c | `service/UserService.java` (read methods appended), `commands/user/GetUserByIdCommand.java`, `coordination/sagas/GetUserByIdFunctionalitySagas.java`, `sagas/coordination/user/GetUserByIdTest.groovy` |
+| 2.2.b | `service/UserService.java` (write + getUserById methods), `messaging/UserCommandHandler.java`, `commands/user/DeleteUserCommand.java`, `commands/user/UpdateUserNameCommand.java`, `commands/user/AnonymizeUserCommand.java`, `commands/user/GetUserByIdCommand.java` (moved from 2.2.c — delete saga needs it for semantic lock), `commands/user/CreateUserCommand.java` (added — needed for test setup helper), `events/DeleteUserEvent.java`, `events/UpdateStudentNameEvent.java`, `events/AnonymizeStudentEvent.java`, `coordination/sagas/DeleteUserFunctionalitySagas.java`, `coordination/sagas/CreateUserFunctionalitySagas.java` (added — needed for createUser test helper), `coordination/functionalities/UserFunctionalities.java` (added — needed as Spring bean for test wiring), `sagas/coordination/user/DeleteUserTest.groovy`, `sagas/coordination/user/UpdateUserNameTest.groovy` (added — T2 for service-command method), `sagas/coordination/user/AnonymizeUserTest.groovy` (added — T2 for service-command method), `microservices/user/coordination/webapi/UserController.java` |
+| 2.2.c | `coordination/sagas/GetUserByIdFunctionalitySagas.java`, `sagas/coordination/user/GetUserByIdTest.groovy` |
 
 **Checklist:**
 - [x] 2.2.a — Domain layer
-- [ ] 2.2.b — Write functionalities
+- [x] 2.2.b — Write functionalities
 - [ ] 2.2.c — Read functionalities
 
 ---

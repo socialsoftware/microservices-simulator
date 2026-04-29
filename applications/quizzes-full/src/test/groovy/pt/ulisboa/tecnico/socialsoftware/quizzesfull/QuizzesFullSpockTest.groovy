@@ -9,6 +9,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.functionalities.CourseFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.service.CourseService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.coordination.functionalities.UserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.service.UserService
 
 class QuizzesFullSpockTest extends SpockTest {
 
@@ -18,6 +21,11 @@ class QuizzesFullSpockTest extends SpockTest {
     public static final String COURSE_NAME_2 = "Distributed Systems"
     public static final String COURSE_TYPE_TECNICO = "TECNICO"
     public static final String COURSE_TYPE_EXTERNAL = "EXTERNAL"
+
+    public static final String USER_NAME_1 = "John Doe"
+    public static final String USER_NAME_2 = "Jane Doe"
+    public static final String USER_USERNAME_1 = "johndoe"
+    public static final String STUDENT_ROLE = "STUDENT"
 
     @Autowired
     public ImpairmentService impairmentService
@@ -29,6 +37,12 @@ class QuizzesFullSpockTest extends SpockTest {
 
     @Autowired(required = false)
     protected CourseService courseService
+
+    @Autowired(required = false)
+    protected UserFunctionalities userFunctionalities
+
+    @Autowired(required = false)
+    protected UserService userService
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -44,5 +58,9 @@ class QuizzesFullSpockTest extends SpockTest {
 
     CourseDto createCourse(String name, String type) {
         return courseFunctionalities.createCourse(name, type)
+    }
+
+    UserDto createUser(String name, String username, String role) {
+        return userFunctionalities.createUser(new UserDto(null, name, username, role, false))
     }
 }
