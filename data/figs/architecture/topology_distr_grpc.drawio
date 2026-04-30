@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
   <diagram name="Page-1" id="OKtcppsgw3qZPiAinFhy">
-    <mxGraphModel dx="1675" dy="2091" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+    <mxGraphModel dx="1582" dy="2036" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -10,7 +10,7 @@
         <mxCell id="raOJkX93GDVC1-9GxKJl-5" parent="1" style="whiteSpace=wrap;strokeWidth=1;dashed=1;dashPattern=3 3;verticalAlign=top;" value="ms1 : Microservice 1 System" vertex="1">
           <mxGeometry height="320" width="350" x="330" y="-190" as="geometry" />
         </mxCell>
-        <mxCell id="aRH5gR7TgQE8s6I4811S-1" parent="1" style="whiteSpace=wrap;html=1;verticalAlign=top;strokeWidth=2;" value="Message Broker&lt;div&gt;&amp;nbsp;(RabbitMQ)&lt;/div&gt;" vertex="1">
+        <mxCell id="aRH5gR7TgQE8s6I4811S-1" parent="1" style="whiteSpace=wrap;html=1;verticalAlign=top;strokeWidth=2;" value=": Message Broker&lt;div&gt;&amp;nbsp;(RabbitMQ)&lt;/div&gt;" vertex="1">
           <mxGeometry height="110" width="190" x="625" y="510" as="geometry" />
         </mxCell>
         <mxCell id="aRH5gR7TgQE8s6I4811S-11" edge="1" parent="1" source="raOJkX93GDVC1-9GxKJl-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeWidth=1;jumpStyle=arc;" target="aRH5gR7TgQE8s6I4811S-5">
