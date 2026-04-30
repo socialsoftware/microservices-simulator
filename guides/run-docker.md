@@ -10,9 +10,7 @@
 - [Running as Centralized with Remote Service Calls](#running-as-centralized-with-remote-service-calls)
 - [Running as Distributed](#running-as-distributed)
 - [Service Access & Ports](#service-access--ports)
-- [Verification & Debugging](#verification--debugging)
 - [Stopping Containers](#stopping-containers)
-- [Cleaning Maven Cache](#cleaning-maven-cache)
 - [Troubleshooting](#troubleshooting)
 - [Running Local Tests](#running-local-tests)
 
@@ -37,41 +35,23 @@ cd applications/quizzes
 
 ### Version IDs: Centralized vs. Distributed
 
-The simulator supports two strategies for generating version IDs:
+For the full behavior and rationale, see **[README: Distributed Version Service](../README.md#distributed-version-service)**.
 
-**Centralized ID generation (version-service container).** A dedicated `version-service` container issues monotonically increasing IDs. Required for:
-- `quizzes-remote` when running with centralized IDs
-- **Distributed microservices** (all services) when you want centralized IDs
-- **TCC mode** (always required, since TCC conflict resolution depends on a centralized version sequence)
+Quick run rules:
+- Default (no `VERSION_MODE`) uses centralized version management.
+- `VERSION_MODE=distributed-version` is supported only with `sagas`.
+- TCC always requires centralized version management.
 
-Not required for `quizzes-local` (single process), where centralized IDs are generated in-memory without a separate container.
-
-**Start the version-service:**
+Operational commands:
 
 ```bash
+# Start centralized version-service (when needed)
 docker compose up version-service -d
-# with gRPC
+# or with gRPC
 COMM_LAYER=grpc docker compose up version-service -d
-```
 
-**Distributed ID generation (no version-service).** Enable with `VERSION_MODE=distributed-version`. Each service generates version IDs locally using Snowflake IDs. Supported for:
-- `quizzes-local` (centralized execution, local ID generation)
-- `quizzes-remote` (centralized execution, local ID generation)
-- **Distributed microservices** (database-per-service, local ID generation)
-
-**Note:** Distributed ID generation is only supported with **Sagas**. TCC requires centralized version management.
-
-**Quick examples (distributed IDs):**
-
-```bash
-# quizzes-local with distributed IDs
+# Use distributed IDs (sagas only)
 VERSION_MODE=distributed-version docker compose up quizzes-local -d
-
-# quizzes-remote with distributed IDs
-VERSION_MODE=distributed-version docker compose up quizzes-remote -d
-
-# microservices with distributed IDs
-VERSION_MODE=distributed-version docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 ```
 
 ### Environment Variables Quick Reference

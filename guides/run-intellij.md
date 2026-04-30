@@ -27,6 +27,15 @@ IntelliJ, these configurations will be automatically available in the Run/Debug 
 3. Select a run configuration from the dropdown (e.g., **Quizzes**)
 4. Click the **Run** button
 
+Minimum run configurations by mode:
+
+| Mode | Run Configurations to Start |
+|------|------------------------------|
+| Centralized Local | `sagas local` or `tcc local` |
+| Centralized Remote (Stream/gRPC) | One from `quizzes` (`sagas-stream`, `sagas-grpc`, `tcc-stream`, `tcc-grpc`) + matching `version-service` (`version-stream` or `version-grpc`) |
+| Distributed (Centralized version IDs) | One from `microservices-*` (`microservices-sagas-stream`, `microservices-sagas-grpc`, `microservices-tcc-stream`, `microservices-tcc-grpc`) + matching `version-service` + `api-gateway` |
+| Distributed (Distributed version IDs, Sagas only) | `microservices-sagas-stream-distributed` or `microservices-sagas-grpc-distributed` + `api-gateway` |
+
 ### Running as Centralized with Local Service Calls
 
 - Run the `sagas local` or the `tcc local` configuration
