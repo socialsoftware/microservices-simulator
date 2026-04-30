@@ -63,9 +63,6 @@ public abstract class Workflow {
         if (this.executionPlan == null) {
             this.executionPlan = planOrder(this.stepsWithDependencies);
         }
-        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "behaviour", this.executionPlan.getBehaviour());
-        String hasBehaviour = this.executionPlan.getBehaviour() != "{}" ? "true" : "false";
-        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "hasBehaviour", hasBehaviour);
 
         FlowStep targetStep = getStepByName(stepName);
         executionPlan.executeUntilStep(targetStep, unitOfWork).join();
@@ -120,9 +117,6 @@ public abstract class Workflow {
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", functionalityName, unitOfWork.getVersion());
         this.traceManager.startSpanForFunctionality(functionalityName);
         this.executionPlan = planOrder(this.stepsWithDependencies);
-        this.traceManager.setSpanAttribute(functionalityName, "behaviour", this.executionPlan.getBehaviour());
-        String hasBehaviour = this.executionPlan.getBehaviour() != "{}" ? "true" : "false";
-        this.traceManager.setSpanAttribute(functionalityName, "hasBehaviour", hasBehaviour);
 
         try {
 

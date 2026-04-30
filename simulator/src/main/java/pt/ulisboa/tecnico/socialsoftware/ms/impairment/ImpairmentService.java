@@ -35,7 +35,7 @@ public class ImpairmentService {
     }
 
     public void cleanDirectory() {
-        ImpairmentHandler.getInstance().setDirectory("");
+        ImpairmentHandler.setDirectory("");
     }
 
     public int getRetryValue(String funcName) {
