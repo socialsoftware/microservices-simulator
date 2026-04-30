@@ -18,6 +18,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -264,6 +266,10 @@ public class AnalysisHtmlReportRenderer {
                     .severity-high { background: #ffe4e4; color: #8d2020; }
                     .severity-medium { background: #fff2de; color: #8a5300; }
                     .severity-low { background: #e8f2ff; color: #1b4f86; }
+                    .source-mode-sagas { background: #e4f7ea; color: #176334; }
+                    .source-mode-tcc { background: #ffe4e4; color: #8d2020; }
+                    .source-mode-mixed { background: #fff2de; color: #8a5300; }
+                    .source-mode-unknown { background: #edf2f4; color: #43565f; }
                     .trace-browser {
                       margin-top: 12px;
                     }
@@ -454,6 +460,7 @@ public class AnalysisHtmlReportRenderer {
         html.append("</div></details>\n");
 
         appendReplayCategorySummary(html, fullTraceViews);
+        appendSourceModeSummary(html, fullTraceViews);
 
         html.append("<details class=\"subsection\"><summary>Detailed to deeper: unresolved input markers (")
                 .append(unresolvedByCategory.values().stream().mapToInt(Integer::intValue).sum())
@@ -688,6 +695,14 @@ public class AnalysisHtmlReportRenderer {
                 .append("</span>")
                 .append("<span class=\"chip warn\">unresolved: ")
                 .append(trace.unresolvedMarkers().size())
+                .append("</span>")
+                .append("<span class=\"chip ")
+                .append(escapeHtml(sourceModeClass(trace.sourceMode())))
+                .append("\">source mode: ")
+                .append(escapeHtml(trace.sourceMode().name()))
+                .append("</span>")
+                .append("<span class=\"chip\">confidence: ")
+                .append(escapeHtml(trace.sourceModeConfidence() == null ? "UNKNOWN" : trace.sourceModeConfidence().name()))
                 .append("</span>");
         if (trace.sourceBindingName() != null && !trace.sourceBindingName().isBlank()) {
             html.append("<span class=\"chip\">binding: ")
@@ -743,7 +758,18 @@ public class AnalysisHtmlReportRenderer {
                         : trace.sourceBindingName(), true);
         appendTraceFlowItem(html, "Origin", formatOriginLabel(trace.originKind()), false);
         appendTraceFlowItem(html, "Target saga", simpleName(trace.sagaClassFqn()), true);
-        html.append("</div>\n</section>\n");
+        appendTraceFlowItem(html, "Source mode", trace.sourceMode().name(), false);
+        appendTraceFlowItem(html, "Mode confidence",
+                trace.sourceModeConfidence() == null ? "UNKNOWN" : trace.sourceModeConfidence().name(), false);
+        html.append("</div>\n");
+        if (!trace.sourceModeEvidence().isEmpty()) {
+            html.append("<div class=\"table-wrap\"><table><thead><tr><th>Source-mode evidence</th></tr></thead><tbody>\n");
+            trace.sourceModeEvidence().forEach(evidence -> html.append("<tr><td><code>")
+                    .append(escapeHtml(evidence))
+                    .append("</code></td></tr>\n"));
+            html.append("</tbody></table></div>\n");
+        }
+        html.append("</section>\n");
     }
 
     private void appendTraceFlowItem(StringBuilder html, String label, String value, boolean codeStyle) {
@@ -873,6 +899,63 @@ public class AnalysisHtmlReportRenderer {
         html.append("</div></details>\n");
     }
 
+    private void appendSourceModeSummary(StringBuilder html, List<GroovyTraceView> traceViews) {
+        html.append("<details class=\"subsection\"><summary>Source-mode classification (")
+                .append(traceViews.size())
+                .append(" trace(s))</summary><div class=\"subsection-content\">\n");
+        if (traceViews.isEmpty()) {
+            html.append("<p class=\"no-data\">No Groovy full traces available for source-mode classification.</p>\n");
+            html.append("</div></details>\n");
+            return;
+        }
+
+        Map<SourceMode, Integer> modeCounts = new LinkedHashMap<>();
+        Map<SourceMode, Integer> evidenceCounts = new LinkedHashMap<>();
+        Map<SourceMode, LinkedHashSet<String>> evidenceSamples = new LinkedHashMap<>();
+        traceViews.forEach(trace -> {
+            SourceMode mode = trace.sourceMode();
+            modeCounts.put(mode, modeCounts.getOrDefault(mode, 0) + 1);
+            evidenceCounts.put(mode, evidenceCounts.getOrDefault(mode, 0) + trace.sourceModeEvidence().size());
+            if (!trace.sourceModeEvidence().isEmpty()) {
+                evidenceSamples.computeIfAbsent(mode, ignored -> new LinkedHashSet<>()).addAll(trace.sourceModeEvidence());
+            }
+        });
+
+        html.append("<div class=\"table-wrap\"><table><thead><tr><th>Mode</th><th>Trace count</th><th>Evidence samples</th></tr></thead><tbody>\n");
+        for (SourceMode mode : SourceMode.values()) {
+            int count = modeCounts.getOrDefault(mode, 0);
+            if (count == 0) {
+                continue;
+            }
+            html.append("<tr><td><span class=\"chip ")
+                    .append(escapeHtml(sourceModeClass(mode)))
+                    .append("\">")
+                    .append(escapeHtml(mode.name()))
+                    .append("</span></td><td>")
+                    .append(count)
+                    .append("</td><td>");
+            List<String> samples = evidenceSamples.getOrDefault(mode, new LinkedHashSet<>()).stream().limit(3).toList();
+            if (samples.isEmpty()) {
+                html.append("<span class=\"muted\">(no direct evidence recorded)</span>");
+            } else {
+                html.append("<ul class=\"clean\">");
+                samples.forEach(sample -> html.append("<li><code>")
+                        .append(escapeHtml(sample))
+                        .append("</code></li>"));
+                html.append("</ul>");
+                int hiddenSamples = evidenceCounts.getOrDefault(mode, 0) - samples.size();
+                if (hiddenSamples > 0) {
+                    html.append(" <span class=\"muted\">+")
+                            .append(hiddenSamples)
+                            .append(" more evidence item(s)</span>");
+                }
+            }
+            html.append("</td></tr>\n");
+        }
+        html.append("</tbody></table></div>\n");
+        html.append("</div></details>\n");
+    }
+
     private void appendTraceBrowserData(StringBuilder html,
                                         List<TraceGroupView> sagaGroups,
                                         List<TraceGroupView> sourceGroups,
@@ -896,6 +979,8 @@ public class AnalysisHtmlReportRenderer {
                     .append(escapeJsonString(simpleName(trace.sagaClassFqn())))
                     .append("\",\"sourceExpressionText\":\"")
                     .append(escapeJsonString(trace.sourceExpressionText() == null ? "" : trace.sourceExpressionText()))
+                    .append("\",\"sourceMode\":\"")
+                    .append(escapeJsonString(trace.sourceMode().name()))
                     .append("\"}");
         }
         html.append("]}</script>\n");
@@ -1381,6 +1466,9 @@ public class AnalysisHtmlReportRenderer {
                 traceResult.originKind(),
                 traceResult.sourceExpressionText(),
                 traceResult.sagaClassFqn(),
+                traceResult.sourceMode() == null ? SourceMode.UNKNOWN : traceResult.sourceMode(),
+                traceResult.sourceModeConfidence(),
+                traceResult.sourceModeEvidence() == null ? List.of() : traceResult.sourceModeEvidence(),
                 traceText,
                 constructorArguments,
                 workflowCalls,
@@ -1502,6 +1590,11 @@ public class AnalysisHtmlReportRenderer {
         return counts;
     }
 
+    private String sourceModeClass(SourceMode sourceMode) {
+        SourceMode safeMode = sourceMode == null ? SourceMode.UNKNOWN : sourceMode;
+        return "source-mode-" + safeMode.name().toLowerCase();
+    }
+
     private String formatOriginLabel(GroovyTraceOriginKind originKind) {
         if (originKind == null) {
             return "unknown";
@@ -1604,6 +1697,9 @@ public class AnalysisHtmlReportRenderer {
                                    GroovyTraceOriginKind originKind,
                                    String sourceExpressionText,
                                    String sagaClassFqn,
+                                   SourceMode sourceMode,
+                                   SourceModeConfidence sourceModeConfidence,
+                                   List<String> sourceModeEvidence,
                                    String traceText,
                                    List<GroovyTraceArgument> constructorArguments,
                                     List<GroovyWorkflowCall> workflowCalls,

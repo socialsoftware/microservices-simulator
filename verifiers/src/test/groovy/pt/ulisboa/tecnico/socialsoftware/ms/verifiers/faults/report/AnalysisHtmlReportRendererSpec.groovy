@@ -8,6 +8,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceAr
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueMetadata
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe
@@ -172,6 +174,46 @@ class AnalysisHtmlReportRendererSpec extends Specification {
         runtimeTraceSection.contains('UNRESOLVED_RUNTIME_EDGE: runtimeGateway.loadExternalDto()')
     }
 
+    def 'report exposes source-mode summary and per-trace evidence badges'() {
+        given:
+        def state = sourceModeState()
+
+        and:
+        def metadata = reportMetadata()
+        def renderer = new AnalysisHtmlReportRenderer()
+
+        when:
+        def html = renderer.render(state, metadata, 'Analysis Summary')
+
+        then:
+        def sourceModeSummary = sourceModeSummarySection(html)
+        sourceModeSummary.contains('<span class="chip source-mode-sagas">SAGAS</span>')
+        sourceModeSummary.contains('<span class="chip source-mode-tcc">TCC</span>')
+        sourceModeSummary.contains('<td>1</td>')
+        sourceModeSummary.contains('LocalBeanConfiguration -&gt; @Bean unitOfWorkService returns SagaUnitOfWorkService')
+        sourceModeSummary.contains('LocalBeanConfigurationCausal -&gt; @Bean unitOfWorkService returns CausalUnitOfWorkService')
+
+        and:
+        def sagaTraceSection = firstTraceInstanceSectionByLabels(
+                html,
+                'SagaSpec.createSagaOrder()',
+                'CreateOrderFunctionalitySagas'
+        )
+        sagaTraceSection.contains('source mode: SAGAS')
+        sagaTraceSection.contains('confidence: TEST_CONFIGURATION')
+        sagaTraceSection.contains('LocalBeanConfiguration -&gt; @Bean unitOfWorkService returns SagaUnitOfWorkService')
+
+        and:
+        def tccTraceSection = firstTraceInstanceSectionByLabels(
+                html,
+                'CausalSpec.createCausalOrder()',
+                'CreateOrderFunctionalitySagas'
+        )
+        tccTraceSection.contains('source mode: TCC')
+        tccTraceSection.contains('confidence: TEST_CONFIGURATION')
+        tccTraceSection.contains('LocalBeanConfigurationCausal -&gt; @Bean unitOfWorkService returns CausalUnitOfWorkService')
+    }
+
     def 'report summary separates injectable placeholders from runtime edges'() {
         given:
         def state = replayClassificationState()
@@ -214,6 +256,12 @@ class AnalysisHtmlReportRendererSpec extends Specification {
     private static String replaySummarySection(String html) {
         def matcher = (html =~ /(?s)<details class="subsection"><summary>Replay-oriented unresolved categories \(\d+\)<\/summary><div class="subsection-content">(.*?)<\/div><\/details>/)
         assert matcher.find(): 'Missing replay summary section'
+        matcher.group(1)
+    }
+
+    private static String sourceModeSummarySection(String html) {
+        def matcher = (html =~ /(?s)<details class="subsection"><summary>Source-mode classification \(\d+ trace\(s\)\)<\/summary><div class="subsection-content">(.*?)<\/div><\/details>/)
+        assert matcher.find(): 'Missing source-mode summary section'
         matcher.group(1)
     }
 
@@ -369,6 +417,49 @@ class AnalysisHtmlReportRendererSpec extends Specification {
                 '''
                 htmlFacade.render("</script><tag>")
                 arg[0]: payload <- "</script><tag>"
+                '''.stripIndent().trim()
+        ))
+        state
+    }
+
+    private static ApplicationAnalysisState sourceModeState() {
+        def state = new ApplicationAnalysisState()
+        state.groovyFullTraceResults.add(new GroovyFullTraceResult(
+                'com.example.demo.SagaSpec',
+                'createSagaOrder',
+                null,
+                GroovyTraceOriginKind.FACADE_CALL,
+                'orderFunctionalities.createOrder(dto)',
+                'com.example.demo.CreateOrderFunctionalitySagas',
+                SourceMode.SAGAS,
+                SourceModeConfidence.TEST_CONFIGURATION,
+                ['LocalBeanConfiguration -> @Bean unitOfWorkService returns SagaUnitOfWorkService'],
+                [new GroovyTraceArgument(0, 'dto <- new OrderDto()',
+                        new GroovyValueRecipe(GroovyValueKind.CONSTRUCTOR, 'OrderDto', []))],
+                [new GroovyWorkflowCall('orderFunctionalities.createOrder(...)', 'when')],
+                ['resolved via facade OrderFunctionalities.createOrder(...)'],
+                '''
+                orderFunctionalities.createOrder(dto)
+                arg[0]: dto <- new OrderDto()
+                '''.stripIndent().trim()
+        ))
+        state.groovyFullTraceResults.add(new GroovyFullTraceResult(
+                'com.example.demo.CausalSpec',
+                'createCausalOrder',
+                null,
+                GroovyTraceOriginKind.FACADE_CALL,
+                'orderFunctionalities.createOrder(dto)',
+                'com.example.demo.CreateOrderFunctionalitySagas',
+                SourceMode.TCC,
+                SourceModeConfidence.TEST_CONFIGURATION,
+                ['LocalBeanConfigurationCausal -> @Bean unitOfWorkService returns CausalUnitOfWorkService'],
+                [new GroovyTraceArgument(0, 'dto <- new OrderDto()',
+                        new GroovyValueRecipe(GroovyValueKind.CONSTRUCTOR, 'OrderDto', []))],
+                [new GroovyWorkflowCall('orderFunctionalities.createOrder(...)', 'when')],
+                ['resolved via facade OrderFunctionalities.createOrder(...)'],
+                '''
+                orderFunctionalities.createOrder(dto)
+                arg[0]: dto <- new OrderDto()
                 '''.stripIndent().trim()
         ))
         state
