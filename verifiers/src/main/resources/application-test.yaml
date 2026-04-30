@@ -1,3 +1,18 @@
 verifiers:
   applications-root: ${VERIFIERS_APPLICATIONS_ROOT:/applications}
   application-base-dir: ${VERIFIERS_APPLICATION_BASE_DIR:dummyapp}
+  output-root: ${VERIFIERS_OUTPUT_ROOT:output}
+  scenario-catalog:
+    enabled: false
+    catalog-path: scenario-catalog.jsonl
+    manifest-path: scenario-catalog-manifest.json
+    rejected-inputs-path: scenario-catalog-rejected-inputs.jsonl
+    include-singles: true
+    max-saga-set-size: 1
+    max-scenarios: 100
+    max-input-variants-per-saga: 3
+    max-schedules-per-input-tuple: 20
+    allow-type-only-fallback: false
+    input-policy: RESOLVED_OR_REPLAYABLE
+    schedule-strategy: SERIAL
+    deterministic-seed: 1234

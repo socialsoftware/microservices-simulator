@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.SpringApplication
 import spock.lang.TempDir
 
@@ -9,12 +10,15 @@ import java.util.regex.Pattern
 
 class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.VisitorTestSupport {
 
+    private final ObjectMapper objectMapper = new ObjectMapper()
+
     @TempDir
     Path tempDir
 
     def 'application starts when configured application directory exists'() {
         given:
         def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
         def applicationBaseDir = 'dummyapp'
 
         Files.createDirectories(applicationsRoot.resolve(applicationBaseDir))
@@ -25,7 +29,8 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         when:
         def context = app.run(
                 "--verifiers.applications-root=${applicationsRoot}",
-                "--verifiers.application-base-dir=${applicationBaseDir}"
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}"
         )
 
         then:
@@ -35,9 +40,97 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         context?.close()
     }
 
+    def 'catalog export is disabled by default'() {
+        given:
+        def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
+        def applicationBaseDir = 'dummyapp'
+
+        Files.createDirectories(applicationsRoot.resolve(applicationBaseDir))
+
+        and:
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        def context = app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}"
+        )
+
+        then:
+        noExceptionThrown()
+
+        and:
+        def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
+        Files.exists(runDirectory.resolve('analysis-report.html'))
+        !Files.exists(runDirectory.resolve('scenario-catalog.jsonl'))
+        !Files.exists(runDirectory.resolve('scenario-catalog-manifest.json'))
+
+        cleanup:
+        context?.close()
+    }
+
+    def 'configured relative output paths cannot escape verifier run directory'() {
+        given:
+        def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
+        def applicationBaseDir = 'dummyapp'
+        Files.createDirectories(applicationsRoot.resolve(applicationBaseDir))
+
+        and:
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}",
+                '--verifiers.report-html-path=../outside-analysis-report.html'
+        )
+
+        then:
+        thrown(Exception)
+        !Files.exists(outputRoot.resolve('outside-analysis-report.html'))
+    }
+
+    def 'configured absolute artifact paths are rejected'() {
+        given:
+        def applicationsRoot = tempDir.resolve("applications-${propertyName}")
+        def outputRoot = tempDir.resolve("verifier-output-${propertyName}")
+        def applicationBaseDir = 'dummyapp'
+        Files.createDirectories(applicationsRoot.resolve(applicationBaseDir))
+        def absolutePath = tempDir.resolve("outside-${propertyName}.artifact").toAbsolutePath()
+
+        and:
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}",
+                '--verifiers.scenario-catalog.enabled=true',
+                "--${propertyName}=${absolutePath}"
+        )
+
+        then:
+        thrown(Exception)
+        !Files.exists(absolutePath)
+
+        where:
+        propertyName << [
+                'verifiers.report-html-path',
+                'verifiers.scenario-catalog.catalog-path',
+                'verifiers.scenario-catalog.manifest-path',
+                'verifiers.scenario-catalog.rejected-inputs-path'
+        ]
+    }
+
     def 'Groovy tracing runs after Java saga discovery and report includes Groovy traces'() {
         given:
         def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
         def applicationBaseDir = 'integration-app'
 
         writeSource(applicationsRoot, applicationBaseDir, 'src/main/java/com/example/demo/order/coordination/DemoFunctionalitySagas.java', '''
@@ -200,18 +293,23 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         when:
         def context = app.run(
                 "--verifiers.applications-root=${applicationsRoot}",
-                "--verifiers.application-base-dir=${applicationBaseDir}"
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}"
         )
 
         then:
         noExceptionThrown()
 
         and:
-        def htmlReportPath = applicationsRoot.resolve(applicationBaseDir).resolve('analysis-report.html')
+        def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
+        runDirectory.fileName.toString() ==~ /integration-app-\d{8}-\d{6}-\d{3}/
+        def htmlReportPath = runDirectory.resolve('analysis-report.html')
         Files.exists(htmlReportPath)
         def htmlReport = Files.readString(htmlReportPath)
         htmlReport.contains('Verifier Analysis Report')
         htmlReport.contains('Groovy Trace Explorer')
+        htmlReport.contains('Source-mode classification (1 trace(s))')
+        htmlReport.contains('source mode: UNKNOWN')
         htmlReport.contains('Services (1)')
         htmlReport.contains('DemoService')
         htmlReport.contains('Command handlers (1)')
@@ -227,10 +325,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         htmlReport.contains('Raw Text Report (verbatim)')
 
         and:
-        def archivedReports = findTimestampedSiblingReports(htmlReportPath)
-        archivedReports.size() == 1
-        archivedReports[0].getFileName().toString() ==~ /analysis-report-\d{8}-\d{6}-\d{3}\.html/
-        Files.readString(archivedReports[0]) == htmlReport
+        findTimestampedSiblingReports(htmlReportPath).isEmpty()
 
         cleanup:
         context?.close()
@@ -239,22 +334,22 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
     def 'quizzes report exposes nested helper provenance for CreateTournamentFaultTest'() {
         given:
         def applicationsRoot = resolveProjectPath('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
         def applicationBaseDir = 'quizzes'
-        def reportPath = tempDir.resolve('quizzes-analysis-report.html')
         def app = new SpringApplication(ScenarioGeneratorApplication)
 
         when:
         def context = app.run(
                 "--verifiers.applications-root=${applicationsRoot}",
                 "--verifiers.application-base-dir=${applicationBaseDir}",
-                "--verifiers.report-html-path=${reportPath}"
+                "--verifiers.output-root=${outputRoot}"
         )
 
         then:
         noExceptionThrown()
 
         and:
-        def htmlReport = Files.readString(reportPath)
+        def htmlReport = Files.readString(singleRunDirectory(outputRoot, applicationBaseDir).resolve('analysis-report.html'))
         htmlReport.contains('CreateTournamentFaultTest')
 
         and:
@@ -339,6 +434,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
     def 'Groovy tracing scans only src/test/groovy and ignores src/main/groovy specifications'() {
         given:
         def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
         def applicationBaseDir = 'integration-app-main-groovy'
 
         writeSource(applicationsRoot, applicationBaseDir, 'src/main/java/com/example/demo/order/coordination/DemoFunctionalitySagas.java', '''
@@ -389,14 +485,15 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         when:
         def context = app.run(
                 "--verifiers.applications-root=${applicationsRoot}",
-                "--verifiers.application-base-dir=${applicationBaseDir}"
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}"
         )
 
         then:
         noExceptionThrown()
 
         and:
-        def htmlReportPath = applicationsRoot.resolve(applicationBaseDir).resolve('analysis-report.html')
+        def htmlReportPath = singleRunDirectory(outputRoot, applicationBaseDir).resolve('analysis-report.html')
         Files.exists(htmlReportPath)
         def htmlReport = Files.readString(htmlReportPath)
         htmlReport.contains('No constructor traces found.')
@@ -409,6 +506,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
     def 'application writes html report to configured relative path'() {
         given:
         def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
         def applicationBaseDir = 'custom-report-app'
         Files.createDirectories(applicationsRoot.resolve(applicationBaseDir))
 
@@ -419,6 +517,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         def context = app.run(
                 "--verifiers.applications-root=${applicationsRoot}",
                 "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}",
                 '--verifiers.report-html-path=reports/custom-analysis.html'
         )
 
@@ -426,18 +525,149 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         noExceptionThrown()
 
         and:
-        def customReport = applicationsRoot.resolve(applicationBaseDir)
-                .resolve('reports/custom-analysis.html')
-        def defaultReport = applicationsRoot.resolve(applicationBaseDir)
-                .resolve('analysis-report.html')
+        def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
+        def customReport = runDirectory.resolve('reports/custom-analysis.html')
+        def defaultReport = runDirectory.resolve('analysis-report.html')
         Files.exists(customReport)
         !Files.exists(defaultReport)
+        findTimestampedSiblingReports(customReport).isEmpty()
+
+        cleanup:
+        context?.close()
+    }
+
+    def 'enabled catalog export writes jsonl and manifest'() {
+        given:
+        def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
+        def applicationBaseDir = 'dummyapp'
+        def sourceDummyappRoot = resolveProjectPath('applications', 'dummyapp', 'src')
+        def applicationPath = applicationsRoot.resolve(applicationBaseDir)
+        copyDirectory(sourceDummyappRoot, applicationPath.resolve('src'))
 
         and:
-        def archivedReports = findTimestampedSiblingReports(customReport)
-        archivedReports.size() == 1
-        archivedReports[0].getFileName().toString() ==~ /custom-analysis-\d{8}-\d{6}-\d{3}\.html/
-        Files.readString(archivedReports[0]) == Files.readString(customReport)
+        def catalogRelativePath = 'exports/scenario-catalog.jsonl'
+        def manifestRelativePath = 'exports/scenario-catalog-manifest.json'
+        def rejectedRelativePath = 'exports/scenario-catalog-rejected-inputs.jsonl'
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        def context = app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}",
+                '--verifiers.scenario-catalog.enabled=true',
+                '--verifiers.scenario-catalog.max-saga-set-size=1',
+                "--verifiers.scenario-catalog.catalog-path=${catalogRelativePath}",
+                "--verifiers.scenario-catalog.manifest-path=${manifestRelativePath}",
+                "--verifiers.scenario-catalog.rejected-inputs-path=${rejectedRelativePath}"
+        )
+
+        then:
+        noExceptionThrown()
+
+        and:
+        def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
+        def catalogPath = runDirectory.resolve(catalogRelativePath)
+        def manifestPath = runDirectory.resolve(manifestRelativePath)
+        def rejectedPath = runDirectory.resolve(rejectedRelativePath)
+        Files.exists(catalogPath)
+        Files.exists(manifestPath)
+        Files.exists(rejectedPath)
+
+        and:
+        def lines = Files.readAllLines(catalogPath)
+        lines.size() > 0
+        lines.each { line ->
+            def scenario = objectMapper.readTree(line)
+            scenario.path('inputs').each { input ->
+                assert input.path('sourceMode').asText()
+                assert input.path('sourceModeConfidence').asText()
+                assert input.has('sourceModeEvidence')
+                assert !['TCC', 'MIXED'].contains(input.path('sourceMode').asText())
+            }
+        }
+
+        and:
+        def rejectedLines = Files.readAllLines(rejectedPath)
+        rejectedLines.size() > 0
+        def rejectedInputs = rejectedLines.collect { objectMapper.readTree(it) }
+        rejectedInputs.every { rejected ->
+            ['TCC', 'MIXED'].contains(rejected.path('sourceMode').asText()) &&
+                    rejected.path('rejectionReason').asText()
+        }
+        def tccFixtureRejection = rejectedInputs.find {
+            it.path('sourceClassFqn').asText() == 'com.example.dummyapp.GroovyTccSourceModeTracingSpec'
+        }
+        tccFixtureRejection != null
+        tccFixtureRejection.path('sourceMode').asText() == 'TCC'
+        tccFixtureRejection.path('rejectionReason').asText() == 'SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG'
+        def rejectedIds = rejectedInputs.collect { it.path('deterministicId').asText() } as Set
+        lines.every { line ->
+            def scenario = objectMapper.readTree(line)
+            scenario.path('inputs').every { input -> !rejectedIds.contains(input.path('deterministicId').asText()) }
+        }
+
+        and:
+        def manifest = objectMapper.readTree(Files.readString(manifestPath))
+        manifest.path('counts').path('scenariosExported').asInt() == lines.size()
+        manifest.path('catalogPath').asText() == catalogPath.toString()
+        manifest.path('manifestPath').asText() == manifestPath.toString()
+        manifest.path('rejectedInputsPath').asText() == rejectedPath.toString()
+        manifest.has('catalogArchivePath') == false
+        manifest.has('manifestArchivePath') == false
+        manifest.has('rejectedInputsArchivePath') == false
+        manifest.path('counts').path('rejectedInputsExported').asInt() == rejectedLines.size()
+        manifest.path('inputVariantsBySourceMode').has('SAGAS')
+        manifest.path('inputVariantsAcceptedBySourceMode').has('SAGAS')
+        manifest.path('inputVariantsRejectedBySourceModeReason').path('SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG').asInt() >= 1
+        manifest.path('inputVariantsBySourceMode').path('TCC').asInt() >= 1
+        manifest.path('inputVariantsAcceptedBySourceMode').path('TCC').asInt() == 0
+        manifest.path('effectiveConfig').path('exportEnabled').asBoolean()
+        manifest.path('effectiveConfig').path('maxSagaSetSize').asInt() == 1
+
+        and:
+        findTimestampedSiblingReports(catalogPath).isEmpty()
+        findTimestampedSiblingReports(manifestPath).isEmpty()
+        findTimestampedSiblingReports(rejectedPath).isEmpty()
+
+        cleanup:
+        context?.close()
+    }
+
+    def 'html report still writes when catalog export is enabled'() {
+        given:
+        def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
+        def applicationBaseDir = 'dummyapp'
+        def sourceDummyappRoot = resolveProjectPath('applications', 'dummyapp', 'src')
+        def applicationPath = applicationsRoot.resolve(applicationBaseDir)
+        copyDirectory(sourceDummyappRoot, applicationPath.resolve('src'))
+
+        and:
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        def context = app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}",
+                '--verifiers.scenario-catalog.enabled=true',
+                '--verifiers.scenario-catalog.max-saga-set-size=1'
+        )
+
+        then:
+        noExceptionThrown()
+
+        and:
+        def htmlReportPath = singleRunDirectory(outputRoot, applicationBaseDir).resolve('analysis-report.html')
+        Files.exists(htmlReportPath)
+        def htmlReport = Files.readString(htmlReportPath)
+        htmlReport.contains('Source-mode classification')
+        htmlReport.contains('source mode: TCC')
+        htmlReport.contains('source mode: UNKNOWN')
+        htmlReport.contains('@ActiveProfiles(tcc)')
+        findTimestampedSiblingReports(htmlReportPath).isEmpty()
 
         cleanup:
         context?.close()
@@ -450,10 +680,40 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         return file
     }
 
+    private static void copyDirectory(Path sourceRoot, Path targetRoot) {
+        Files.walk(sourceRoot).withCloseable { stream ->
+            stream.forEach { source ->
+                def relativePath = sourceRoot.relativize(source)
+                def destination = relativePath.toString().isEmpty() ? targetRoot : targetRoot.resolve(relativePath.toString())
+                if (Files.isDirectory(source)) {
+                    Files.createDirectories(destination)
+                } else {
+                    Files.createDirectories(destination.parent)
+                    Files.copy(source, destination)
+                }
+            }
+        }
+    }
+
+    private static Path singleRunDirectory(Path outputRoot, String applicationBaseDir) {
+        def stream = Files.list(outputRoot)
+        try {
+            def runDirectories = stream
+                    .filter { Files.isDirectory(it) }
+                    .filter { it.fileName.toString().startsWith(applicationBaseDir + '-') }
+                    .sorted()
+                    .toList()
+            assert runDirectories.size() == 1
+            return runDirectories[0]
+        } finally {
+            stream.close()
+        }
+    }
+
     private static String findTraceBlock(String htmlReport,
-                                         String sourceClassSimpleName,
-                                         String sourceMethodName,
-                                         String requiredSnippet) {
+                                          String sourceClassSimpleName,
+                                          String sourceMethodName,
+                                          String requiredSnippet) {
         def pattern = Pattern.compile(
                 '(?s)<code>' + Pattern.quote(sourceClassSimpleName)
                         + '\\.</code><code>'
