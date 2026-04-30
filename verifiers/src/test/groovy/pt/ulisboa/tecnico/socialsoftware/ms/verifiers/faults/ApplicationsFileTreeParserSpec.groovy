@@ -91,7 +91,8 @@ class ApplicationsFileTreeParserSpec extends Specification {
         parser.groovyFilePaths.keySet() ==~ [
             'com.example.dummyapp.DummyAppSpec',
             'com.example.dummyapp.GroovyNestedFacadeTracingSpec',
-            'com.example.dummyapp.GroovySagaTracingSpec'
+            'com.example.dummyapp.GroovySagaTracingSpec',
+            'com.example.dummyapp.GroovyTccSourceModeTracingSpec'
         ]
     }
 
@@ -112,6 +113,8 @@ class ApplicationsFileTreeParserSpec extends Specification {
                 'applications/dummyapp/src/test/groovy/com/example/dummyapp/DummyAppSpec.groovy')
         parser.groovyFilePaths['com.example.dummyapp.GroovySagaTracingSpec'].toString().endsWith(
                 'applications/dummyapp/src/test/groovy/com/example/dummyapp/GroovySagaTracingSpec.groovy')
+        parser.groovyFilePaths['com.example.dummyapp.GroovyTccSourceModeTracingSpec'].toString().endsWith(
+                'applications/dummyapp/src/test/groovy/com/example/dummyapp/GroovyTccSourceModeTracingSpec.groovy')
     }
 
     def 'parser rejects non-directory path'() {
