@@ -1,12 +1,23 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state;
 
+import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassCodeVisitorSupport;
 import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.FieldNode;
 import org.codehaus.groovy.ast.ImportNode;
+import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.ast.PackageNode;
+import org.codehaus.groovy.ast.CodeVisitorSupport;
+import org.codehaus.groovy.ast.expr.ConstantExpression;
+import org.codehaus.groovy.ast.expr.ConstructorCallExpression;
+import org.codehaus.groovy.ast.expr.Expression;
+import org.codehaus.groovy.ast.expr.ListExpression;
+import org.codehaus.groovy.ast.expr.PropertyExpression;
+import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.SourceUnit;
+import org.objectweb.asm.Opcodes;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -184,7 +195,12 @@ public class GroovySourceIndex {
                         sourceFile,
                         packageName,
                         List.copyOf(imports),
-                        declaredSuperclassName
+                        declaredSuperclassName,
+                        annotationMetadata(node.getAnnotations()),
+                        fieldMetadata(node),
+                        methodMetadata(node),
+                        enclosingClassFqn(node),
+                        (node.getModifiers() & Opcodes.ACC_STATIC) != 0
                 ));
             }
 
@@ -219,6 +235,124 @@ public class GroovySourceIndex {
             }
 
             return unresolvedName;
+        }
+
+        private List<GroovySourceFieldMetadata> fieldMetadata(ClassNode node) {
+            return node.getFields().stream()
+                    .filter(field -> !field.isSynthetic())
+                    .map(field -> new GroovySourceFieldMetadata(
+                            field.getName(),
+                            fieldTypeName(field),
+                            annotationMetadata(field.getAnnotations())))
+                    .toList();
+        }
+
+        private String fieldTypeName(FieldNode field) {
+            ClassNode originType = field.getOriginType();
+            ClassNode type = originType == null ? field.getType() : originType;
+            String name = type == null ? null : type.getName();
+            return resolveTypeName(name);
+        }
+
+        private List<GroovySourceMethodMetadata> methodMetadata(ClassNode node) {
+            return node.getMethods().stream()
+                    .filter(method -> !method.isSynthetic())
+                    .map(method -> new GroovySourceMethodMetadata(
+                            method.getName(),
+                            methodReturnTypeName(method),
+                            annotationMetadata(method.getAnnotations()),
+                            constructedTypeNames(method)))
+                    .toList();
+        }
+
+        private String methodReturnTypeName(MethodNode method) {
+            ClassNode returnType = method.getReturnType();
+            String name = returnType == null ? null : returnType.getName();
+            return resolveTypeName(name);
+        }
+
+        private List<String> constructedTypeNames(MethodNode method) {
+            if (method.getCode() == null) {
+                return List.of();
+            }
+            List<String> constructedTypeNames = new ArrayList<>();
+            method.getCode().visit(new CodeVisitorSupport() {
+                @Override
+                public void visitConstructorCallExpression(ConstructorCallExpression call) {
+                    if (call != null && call.getType() != null) {
+                        constructedTypeNames.add(resolveTypeName(call.getType().getName()));
+                    }
+                    super.visitConstructorCallExpression(call);
+                }
+            });
+            return List.copyOf(constructedTypeNames);
+        }
+
+        private List<GroovySourceAnnotationMetadata> annotationMetadata(List<AnnotationNode> annotations) {
+            if (annotations == null || annotations.isEmpty()) {
+                return List.of();
+            }
+
+            return annotations.stream()
+                    .map(annotation -> new GroovySourceAnnotationMetadata(
+                            resolveTypeName(annotation.getClassNode().getName()),
+                            annotationAttributes(annotation)))
+                    .toList();
+        }
+
+        private Map<String, Object> annotationAttributes(AnnotationNode annotation) {
+            Map<String, Object> attributes = new LinkedHashMap<>();
+            annotation.getMembers().forEach((name, expression) -> attributes.put(name, annotationValue(expression)));
+            return attributes;
+        }
+
+        private Object annotationValue(Expression expression) {
+            if (expression instanceof ListExpression listExpression) {
+                return listExpression.getExpressions().stream()
+                        .map(this::annotationValue)
+                        .flatMap(value -> value instanceof List<?> list ? list.stream() : java.util.stream.Stream.of(value))
+                        .toList();
+            }
+
+            if (expression instanceof ConstantExpression constantExpression) {
+                return constantExpression.getValue();
+            }
+
+            if (expression instanceof VariableExpression variableExpression) {
+                return variableExpression.getName();
+            }
+
+            if (expression instanceof PropertyExpression propertyExpression) {
+                return propertyExpression.getText();
+            }
+
+            return expression == null ? null : expression.getText();
+        }
+
+        private String enclosingClassFqn(ClassNode node) {
+            ClassNode outerClass = node.getOuterClass();
+            return outerClass == null ? null : outerClass.getName();
+        }
+
+        private String resolveTypeName(String typeName) {
+            if (typeName == null || typeName.isBlank()) {
+                return typeName;
+            }
+
+            if (typeName.contains(".")) {
+                return typeName;
+            }
+
+            for (GroovyImportMetadata importMetadata : imports) {
+                if (importMetadata.staticImport() || importMetadata.star()) {
+                    continue;
+                }
+                if (typeName.equals(importMetadata.alias()) || typeName.equals(simpleName(importMetadata.importedType()))) {
+                    return importMetadata.importedType();
+                }
+            }
+
+            return typeName;
         }
 
         private String normalizePackageName(String packageName) {

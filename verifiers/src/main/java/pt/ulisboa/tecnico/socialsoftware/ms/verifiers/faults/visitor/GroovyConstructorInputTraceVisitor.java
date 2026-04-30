@@ -41,6 +41,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOr
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceClassMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeClassification;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeClassifier;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe;
@@ -77,6 +79,8 @@ public class GroovyConstructorInputTraceVisitor {
     private static final Pattern JAVA_IDENTIFIER = Pattern.compile("[A-Za-z_$][A-Za-z\\d_$]*");
     private static final int MAX_TRACE_DEPTH = 12;
 
+    private SourceModeClassification activeSourceModeClassification = SourceModeClassification.unknown();
+
     public void visit(GroovySourceIndex sourceIndex, ApplicationAnalysisState state) {
         Objects.requireNonNull(sourceIndex, "sourceIndex cannot be null");
         Objects.requireNonNull(state, "state cannot be null");
@@ -110,13 +114,21 @@ public class GroovyConstructorInputTraceVisitor {
                         return;
                     }
 
-                    traceClass(classFqn, hierarchy, state);
+                    SourceModeClassification sourceModeClassification = new SourceModeClassifier(
+                            sourceIndex.getClassesByFqn(),
+                            sourceIndex.getSourceBackedSuperclassByClassFqn())
+                            .classify(entry.getValue());
+                    traceClass(classFqn, hierarchy, state, sourceModeClassification);
                 });
     }
 
     private void traceClass(String traceSourceClassFqn,
                             List<InheritanceLayer> hierarchy,
-                            ApplicationAnalysisState state) {
+                            ApplicationAnalysisState state,
+                            SourceModeClassification sourceModeClassification) {
+        activeSourceModeClassification = sourceModeClassification == null
+                ? SourceModeClassification.unknown()
+                : sourceModeClassification;
         InheritanceLayer targetLayer = hierarchy.get(hierarchy.size() - 1);
         Map<String, TraceBuilder> classFieldScopes = new LinkedHashMap<>();
         Map<String, Expression> classFieldExpressionScopes = new LinkedHashMap<>();
@@ -177,6 +189,9 @@ public class GroovyConstructorInputTraceVisitor {
                 builder.originKind,
                 builder.sourceExpressionText,
                 builder.sagaClassFqn,
+                sourceModeClassification.sourceMode(),
+                sourceModeClassification.confidence(),
+                sourceModeClassification.evidence(),
                 List.copyOf(builder.constructorArguments),
                 List.copyOf(builder.workflowCalls),
                 List.copyOf(builder.resolutionNotes),
@@ -1867,7 +1882,8 @@ public class GroovyConstructorInputTraceVisitor {
                             traceMethodName,
                             methodCallExpression,
                             emittedNestedFacadeTraceKeys,
-                            traceScopeKey);
+                            traceScopeKey,
+                            activeSourceModeClassification);
                     return buildRuntimeCallValueTrace(methodCallExpression,
                             methodCallExpression.getText() + " [unresolved external/runtime edge]",
                             GroovyValueResolutionCategory.RUNTIME_CALL,
@@ -1945,7 +1961,8 @@ public class GroovyConstructorInputTraceVisitor {
                                                  String traceMethodName,
                                                  MethodCallExpression methodCallExpression,
                                                  Set<String> emittedNestedFacadeTraceKeys,
-                                                 String traceScopeKey) {
+                                                 String traceScopeKey,
+                                                 SourceModeClassification sourceModeClassification) {
         String nestedTraceKey = traceScopeKey + "::" + methodCallExpression.getText()
                 + "::" + facadeResolution.creationSite().sagaClassFqn();
         if (!emittedNestedFacadeTraceKeys.add(nestedTraceKey)) {
@@ -1965,6 +1982,9 @@ public class GroovyConstructorInputTraceVisitor {
                 GroovyTraceOriginKind.FACADE_CALL,
                 methodCallExpression.getText(),
                 facadeResolution.creationSite().sagaClassFqn(),
+                sourceModeClassification.sourceMode(),
+                sourceModeClassification.confidence(),
+                sourceModeClassification.evidence(),
                 List.copyOf(facadeResolution.constructorArguments()),
                 List.of(),
                 List.copyOf(facadeResolution.resolutionNotes()),

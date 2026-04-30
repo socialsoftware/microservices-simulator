@@ -7,6 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOr
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence
 import spock.lang.TempDir
 
 import java.nio.file.Files
@@ -34,6 +36,8 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
 
             import com.example.dummyapp.DummyAggregate
             import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
+            import org.springframework.beans.factory.annotation.Autowired
+            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
             import spock.lang.Specification
 
             class RuntimeGateway {
@@ -87,6 +91,9 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
             }
 
             class GroovyTraceSpec extends Specification {
+                @Autowired
+                private SagaUnitOfWorkService unitOfWorkService
+
                 def sagaInField = new CreateOrderFunctionalitySagas(null, null)
                 def plainAggregateInField = new DummyAggregate(999, 'plain')
                 def runtimeGateway = new RuntimeGateway()
@@ -967,6 +974,15 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
         then:
         traceArgLineFor(edgeState, 'demo.HelperCycleOnlySpec', 'helper cycle stays conservative', 0)
                 .contains('[unresolved helper-cycle]')
+    }
+
+    def 'trace carries classified source mode metadata'() {
+        expect:
+        with(traceFor('labels are context only')) {
+            sourceMode() == SourceMode.SAGAS
+            sourceModeConfidence() == SourceModeConfidence.TYPE_EVIDENCE
+            sourceModeEvidence().any { it.contains('SagaUnitOfWorkService') }
+        }
     }
 
     def 'surfaces label context in trace text and report output'() {
