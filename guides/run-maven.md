@@ -22,6 +22,8 @@
 - [Quizzes Distributed Simulation Deployment](#quizzes-distributed-simulation-deployment)
   - [Prerequisites](#prerequisites)
   - [Running the Microservices](#running-the-microservices)
+- [Maven Profiles Quick Reference](#maven-profiles-quick-reference)
+- [Service Access & Ports](#service-access--ports)
 - [Running JMeter tests](#running-jmeter-tests)
   - [Viewing JMeter tests structure](#viewing-jmeter-tests-structure)
 
@@ -197,6 +199,8 @@ mvn clean -Pversion-service,stream spring-boot:run
 cd applications/quizzes
 ```
 
+Start each microservice in separate terminal windows. Use the corresponding Maven profiles for transaction model and communication layer:
+
 | Service                  | Command                                                            |
 |--------------------------|--------------------------------------------------------------------|
 | Answer Service           | `mvn spring-boot:run -Panswer-service,sagas\|tcc,stream\|grpc`     |
@@ -208,17 +212,11 @@ cd applications/quizzes
 | Tournament Service       | `mvn spring-boot:run -Ptournament-service,sagas\|tcc,stream\|grpc` |
 | User Service             | `mvn spring-boot:run -Puser-service,sagas\|tcc,stream\|grpc`       |
 
-To use the distributed version profile (no version-service needed), add `distributed-version` to the Maven profiles.
-This also works in centralized mode with any communication profile:
+**Distributed Version Profile (optional):** To use the `distributed-version` profile (no version-service needed), add `distributed-version` to the profiles list:
 
 ```bash
-# Distributed mode example
+# Example: Answer Service with Sagas + Stream + Distributed Version
 mvn spring-boot:run -Panswer-service,sagas,stream,distributed-version
-
-# Centralized mode examples
-mvn spring-boot:run -Psagas,local,distributed-version
-mvn spring-boot:run -Psagas,stream,distributed-version
-mvn spring-boot:run -Psagas,grpc,distributed-version
 ```
 
 **3. Start the Gateway (from `simulator/`):**
@@ -230,7 +228,59 @@ mvn -Pgateway spring-boot:run
 
 ---
 
-## Running JMeter tests
+### Maven Profiles Quick Reference
+
+Maven profiles in this project combine three dimensions: **transaction model**, **communication layer**, and **deployment mode**.
+
+**Transaction Model:**
+- `sagas` — Semantic locks (default)
+- `tcc` — Transactional Causal Consistency
+
+**Communication Layer:**
+- `local` — In-process calls (centralized only)
+- `stream` — RabbitMQ broker (default)
+- `grpc` — Point-to-point gRPC
+
+**Deployment Mode:**
+- `<service-name>` — Distributed microservice (e.g., `answer-service`, `quiz-service`)
+- `gateway` — API Gateway (requires distributed mode)
+- `version-service` — Version ID generation service (optional if using `distributed-version`)
+- `test-sagas` / `test-tcc` — Test suites
+
+**Common combinations:**
+
+```bash
+# Centralized (single process)
+mvn spring-boot:run -Psagas,local          # Sagas + Local (default)
+mvn spring-boot:run -Ptcc,local            # TCC + Local
+
+# Centralized with Remote Calls
+mvn spring-boot:run -Psagas,stream         # Sagas + Stream (RabbitMQ)
+mvn spring-boot:run -Psagas,grpc           # Sagas + gRPC
+mvn spring-boot:run -Ptcc,stream           # TCC + Stream
+
+# Distributed (requires version-service or distributed-version)
+mvn spring-boot:run -Ptournament-service,sagas,stream   # Tournament service
+mvn spring-boot:run -Pgateway,sagas,stream              # API Gateway
+mvn spring-boot:run -Pversion-service,stream            # Version Service
+
+# With Distributed Version (no version-service needed)
+mvn spring-boot:run -Psagas,local,distributed-version
+mvn spring-boot:run -Panswer-service,sagas,stream,distributed-version
+```
+
+---
+
+### Service Access & Ports
+
+See the **[Service URLs and Ports](../README.md#service-urls-and-ports)** section in the main README for a complete list of endpoints, including:
+* Gateway and Microservice REST APIs
+* Infrastructure UIs (Jaeger, RabbitMQ, Eureka)
+* Default credentials for databases and message brokers
+
+---
+
+### Running JMeter tests
 
 * After starting application with the tcc profile, either using Docker or Maven, and installing JMeter
 

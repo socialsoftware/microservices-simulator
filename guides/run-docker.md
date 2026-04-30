@@ -4,13 +4,16 @@
 
 - [Technology Requirements](#technology-requirements)
 - [Docker Compose Structure](#docker-compose-structure)
+- [Version IDs: Centralized vs. Distributed](#version-ids-centralized-vs-distributed)
+- [Environment Variables Quick Reference](#environment-variables-quick-reference)
 - [Running as Centralized with Local Service Calls](#running-as-centralized-with-local-service-calls)
 - [Running as Centralized with Remote Service Calls](#running-as-centralized-with-remote-service-calls)
 - [Running as Distributed](#running-as-distributed)
-  - [Version IDs: Centralized vs. Distributed](#version-ids-centralized-vs-distributed)
-  - [Running with Distributed Version (no version-service needed)](#running-with-distributed-version-no-version-service-needed)
+- [Service Access & Ports](#service-access--ports)
+- [Verification & Debugging](#verification--debugging)
 - [Stopping Containers](#stopping-containers)
 - [Cleaning Maven Cache](#cleaning-maven-cache)
+- [Troubleshooting](#troubleshooting)
 - [Running Local Tests](#running-local-tests)
 
 ### Technology Requirements
@@ -30,6 +33,66 @@ To run the full system, always execute Docker Compose commands from the `applica
 
 ```bash
 cd applications/quizzes
+```
+
+### Version IDs: Centralized vs. Distributed
+
+The simulator supports two strategies for generating version IDs:
+
+**Centralized ID generation (version-service container).** A dedicated `version-service` container issues monotonically increasing IDs. Required for:
+- `quizzes-remote` when running with centralized IDs
+- **Distributed microservices** (all services) when you want centralized IDs
+- **TCC mode** (always required, since TCC conflict resolution depends on a centralized version sequence)
+
+Not required for `quizzes-local` (single process), where centralized IDs are generated in-memory without a separate container.
+
+**Start the version-service:**
+
+```bash
+docker compose up version-service -d
+# with gRPC
+COMM_LAYER=grpc docker compose up version-service -d
+```
+
+**Distributed ID generation (no version-service).** Enable with `VERSION_MODE=distributed-version`. Each service generates version IDs locally using Snowflake IDs. Supported for:
+- `quizzes-local` (centralized execution, local ID generation)
+- `quizzes-remote` (centralized execution, local ID generation)
+- **Distributed microservices** (database-per-service, local ID generation)
+
+**Note:** Distributed ID generation is only supported with **Sagas**. TCC requires centralized version management.
+
+**Quick examples (distributed IDs):**
+
+```bash
+# quizzes-local with distributed IDs
+VERSION_MODE=distributed-version docker compose up quizzes-local -d
+
+# quizzes-remote with distributed IDs
+VERSION_MODE=distributed-version docker compose up quizzes-remote -d
+
+# microservices with distributed IDs
+VERSION_MODE=distributed-version docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
+```
+
+### Environment Variables Quick Reference
+
+| Variable | Options | Default | Purpose | Applies To |
+|----------|---------|---------|---------|------------|
+| `TX_MODE` | `sagas`, `tcc` | `sagas` | Transaction consistency model | All topologies |
+| `COMM_LAYER` | `stream`, `grpc` | `stream` | Command/event transport layer | Remote & Distributed |
+| `VERSION_MODE` | `<unset>`, `distributed-version` | centralized | Version ID generation strategy | All topologies |
+
+**Quick examples combining variables:**
+
+```bash
+# Sagas + Stream + Centralized IDs (typical default)
+docker compose up quizzes-remote version-service -d
+
+# TCC + gRPC + Centralized IDs (strongest consistency, point-to-point RPC)
+TX_MODE=tcc COMM_LAYER=grpc docker compose up quizzes-remote version-service -d
+
+# Sagas + Stream + Distributed IDs (high throughput, no version-service needed)
+VERSION_MODE=distributed-version docker compose up quizzes-remote -d
 ```
 
 ### Running as Centralized with Local Service Calls
@@ -90,53 +153,7 @@ COMM_LAYER=grpc docker compose up gateway answer-service course-service executio
 TX_MODE=tcc COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
 ```
 
-#### Version IDs: Centralized vs. Distributed
-
-There are two supported strategies:
-
-**Centralized ID generation (version-service container).** Required for `quizzes-remote` and **microservices** when you
-want centralized IDs. Not required for `quizzes-local` (single process), so centralized IDs work without a separate
-container. Start it with:
-
-```bash
-docker compose up version-service -d
-# with gRPC
-COMM_LAYER=grpc docker compose up version-service -d
-```
-
-**Distributed ID generation (no version-service).** Enable with `VERSION_MODE=distributed-version`. Works with
-`quizzes-local`, `quizzes-remote`, and **microservices**.
-
-**Quick examples (distributed IDs):**
-
-```bash
-# quizzes-local (distributed IDs)
-VERSION_MODE=distributed-version docker compose up quizzes-local -d
-
-# quizzes-remote (distributed IDs)
-VERSION_MODE=distributed-version docker compose up quizzes-remote -d
-
-# microservices (distributed IDs)
-VERSION_MODE=distributed-version docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
-```
-
-#### Running with Distributed Version (no version-service needed)
-
-Use the `VERSION_MODE` environment variable to enable the `distributed-version` Spring profile. Each service will
-generate
-version IDs locally using Snowflake IDs.
-
-```bash
-# Sagas + Stream + Distributed Version
-VERSION_MODE=distributed-version docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
-
-# Sagas + gRPC + Distributed Version
-VERSION_MODE=distributed-version COMM_LAYER=grpc docker compose up gateway answer-service course-service execution-service question-service quiz-service topic-service tournament-service user-service -d
-```
-
-> **Note:** The `distributed-version` profile can also be used with the centralized quizzes-local and quizzes-remote.
-
-Distributed ecosystem:
+**Distributed ecosystem:**
 
 **Infrastructure:**
 
@@ -145,16 +162,14 @@ Distributed ecosystem:
 * `jaeger`: Distributed tracing
 * `gateway`: API Gateway (entry point for distributed application)
 
-**Microservices:** (One Database per Service)
+*(For microservice-to-database mapping, see the [Database Configuration](../README.md#database-configuration) section in the main README).*
 
-* `answer-service` -> `answer-db`
-* `course-service` -> `course-db`
-* `execution-service` -> `execution-db`
-* `question-service` -> `question-db`
-* `quiz-service` -> `quiz-db`
-* `topic-service` -> `topic-db`
-* `tournament-service` -> `tournament-db`
-* `user-service` -> `user-db`
+### Service Access & Ports
+
+See the **[Service URLs and Ports](../README.md#service-urls-and-ports)** section in the main README for a complete list of endpoints, including:
+* Gateway and Microservice REST APIs
+* Infrastructure UIs (Jaeger, RabbitMQ, Eureka)
+* Default credentials for databases and message brokers
 
 ### Stopping Containers
 
@@ -169,27 +184,42 @@ docker compose down
 docker compose down -v
 ```
 
-### Cleaning Maven Cache
+### Troubleshooting
 
-If the simulator library version is updated in `simulator/pom.xml`, you must clean the Maven cache volume to ensure the
-test containers use the updated version.
+**Maven/JAR build issues ("simulator version not found")**
+
+If you updated `simulator/pom.xml` but containers still use old version:
 
 ```bash
+# Clean Maven cache volume
 docker volume rm microservices-simulator_m2_cache
+
+# Rebuild and restart
+docker compose down -v
+docker compose up quizzes-local -d
 ```
 
 ### Running Local Tests
 
-**Simulator Sagas:**
+Run automated test suites against the running containers:
 
 ```bash
+# Simulator Sagas tests
 docker compose up test-simulator-sagas
-```
 
-```bash
-# Quizzes Sagas:
+# Quizzes Sagas tests
 docker compose up test-quizzes-sagas
 
-# Quizzes TCC:
+# Quizzes TCC tests
 docker compose up test-quizzes-tcc
+```
+
+Tests will output results to the console and exit with:
+- Exit code `0`: All tests passed
+- Exit code non-zero: One or more tests failed (check logs above)
+
+To view test logs after completion:
+
+```bash
+docker compose logs test-quizzes-sagas | tail -100
 ```

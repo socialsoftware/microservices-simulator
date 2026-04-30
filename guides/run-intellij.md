@@ -8,10 +8,14 @@
 - [Running as Centralized with Remote Service Calls](#running-as-centralized-with-remote-service-calls)
 - [Running as Distributed](#running-as-distributed)
   - [Running with Distributed Version](#running-with-distributed-version)
+- [Service Access & Ports](#service-access--ports)
 
 ### Technology Requirements
 
 - [IntelliJ IDEA](https://www.jetbrains.com/idea/download/) (Ultimate or Community Edition)
+
+The runtime prerequisites are the same as in [Run Using Maven](run-maven.md): database setup, Jaeger tracing, and any
+broker or service-discovery infrastructure needed by the selected profile.
 
 ### Pre-configured Run Configurations
 
@@ -52,3 +56,12 @@ version-service needed**.
     - `microservices-sagas-stream-distributed` — Sagas with RabbitMQ (distributed version)
     - `microservices-sagas-grpc-distributed` — Sagas with gRPC (distributed version)
 - Run the `api-gateway` configuration
+
+---
+
+### Service Access & Ports
+
+See the **[Service URLs and Ports](../README.md#service-urls-and-ports)** section in the main README for a complete list of endpoints, including:
+* Gateway and Microservice REST APIs
+* Infrastructure UIs (Jaeger, RabbitMQ, Eureka)
+* Default credentials for databases and message brokers

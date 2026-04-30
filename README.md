@@ -125,6 +125,16 @@ Database settings are defined in [application.yaml](applications/quizzes/src/mai
 | Centralized | `msdb`          | Single database for all aggregates                                 |
 | Distributed | Per-service DBs | Each service has its own database (e.g., `tournamentdb`, `userdb`) |
 
+When running in distributed mode, the Quizzes microservices map to the following individual databases:
+* `answer-service` -> `answerdb`
+* `course-service` -> `coursedb`
+* `execution-service` -> `executiondb`
+* `question-service` -> `questiondb`
+* `quiz-service` -> `quizdb`
+* `topic-service` -> `topicdb`
+* `tournament-service` -> `tournamentdb`
+* `user-service` -> `userdb`
+
 Service-specific database URLs are configured in profile files
 like [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml).
 
@@ -179,6 +189,8 @@ generation is intentionally disabled.
 
 ### Service URLs and Ports
 
+**Microservices:**
+
 Each microservice runs on a dedicated port:
 
 | Service            | Port | Profile File                                                                                                       |
@@ -195,6 +207,20 @@ Each microservice runs on a dedicated port:
 
 Every service port can be changed, including `version-service` port 8081, and `gateway` port 8080. Service Discovery
 will map the service name to the service port automatically.
+
+**Observability & Infrastructure:**
+
+| Service | URL / Port | Purpose |
+|---------|------------|----------|
+| **Jaeger UI** | [http://localhost:16686](http://localhost:16686) | Distributed tracing; view spans, traces, service dependencies |
+| **RabbitMQ Management** | [http://localhost:15672](http://localhost:15672) | Message broker admin |
+| **Eureka Service Discovery** | [http://localhost:8761](http://localhost:8761) | View registered services and their instances |
+| **PostgreSQL** | `localhost:5432` | Database access (centralized mode: `msdb`; distributed: `*db`) |
+
+**Default Credentials:**
+
+- PostgreSQL: `postgres` / `postgres`
+- RabbitMQ: `guest` / `guest`
 
 ### API Gateway Configuration
 

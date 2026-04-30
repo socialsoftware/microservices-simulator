@@ -10,6 +10,7 @@ The distributed mode can also be deployed on Kubernetes, using Spring Cloud Kube
   - [Deploy to Kubernetes](#deploy-to-kubernetes)
   - [Access the Application](#access-the-application)
   - [Access Jaeger UI](#access-jaeger-ui)
+  - [Verification & Debugging](#verification--debugging)
   - [Cleanup](#cleanup)
 - [Azure Kubernetes Service (AKS) Deployment](#azure-kubernetes-service-aks-deployment)
   - [Prerequisites](#prerequisites-1)
@@ -77,6 +78,7 @@ kubectl get pods -n microservices-simulator
 # Port-forward to gateway
 kubectl port-forward svc/gateway 8080:8080 -n microservices-simulator
 ```
+*(For all default endpoints including rabbitmq and service discovery, see the **[Service URLs and Ports](../README.md#service-urls-and-ports)** section in the main README).*
 
 ### Access Jaeger UI
 ```bash
