@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-04-27
+Last updated: 2026-04-30
 
 ## Scope
 
@@ -8,10 +8,10 @@ The verifier module statically analyses simulator-based applications to extract 
 
 Current boundaries:
 
-- Saga-only scope.
+- Saga-catalog scope with source-mode classification for SAGAS/TCC/MIXED/UNKNOWN test inputs.
 - Static extraction and bounded scenario catalog generation.
 - Focus on structural facts from source and tests, not runtime fault injection.
-- TCC analysis is out of scope unless explicitly requested.
+- TCC runtime analysis/execution remains out of scope; TCC-classified saga-catalog candidates are rejected and exported diagnostically.
 - `applications/dummyapp/` is the synthetic fixture corpus for verifier assumptions.
 - `applications/quizzes/` is the main real-world case study and smoke target.
 
@@ -62,13 +62,19 @@ Current boundaries:
 - Local collection transforms such as `toSet()` and cast/coercion shapes are represented as local transforms.
 - Replay-oriented metadata classifies unresolved values as source placeholders, injectable placeholders, runtime calls, unknown unresolved values, or resolved values.
 - Expected constructor argument types are attached when available.
+- Source-mode classification is attached to Groovy full traces and scenario input variants using generic simulator/Spring evidence:
+  - `@Autowired` saga/causal unit-of-work service fields;
+  - nested/local `@TestConfiguration` bean evidence;
+  - explicit `@ActiveProfiles`, `@TestPropertySource`, and `@SpringBootTest(properties=...)` profile evidence.
+- Conflicting evidence classifies as `MIXED`; unsupported aliases/placeholders are not guessed.
 
 ### Human reports
 
 - HTML analysis report generation.
-- Stable latest report path remains `analysis-report.html` unless configured otherwise.
-- Timestamped archived HTML sibling is also written.
+- Each verifier run writes to a dedicated run directory under `verifiers/output` by default, named `<application>-<yyyyMMdd-HHmmss-SSS>/`.
+- Stable artifact filenames live inside that run directory, e.g. `analysis-report.html` unless configured otherwise.
 - Groovy traces are surfaced with origin, readable provenance, replay categories, and unresolved summaries.
+- Source-mode classification is surfaced in the Groovy Trace Explorer through a summary table, per-trace source-mode/confidence chips, and per-trace evidence tables.
 
 ### Scenario catalog export
 
@@ -81,9 +87,18 @@ Current boundaries:
 - Connected saga-set enumeration is bounded by configuration.
 - Input tuple joining rejects incompatible exact logical-key bindings.
 - Schedule enumeration preserves intra-saga order and reports caps only when useful branches are truncated.
-- JSONL catalog writer emits one `ScenarioPlan` per line.
-- Manifest writer records schema, generated timestamp, effective config, counts, warnings, and output paths.
+- Source-mode policy for saga catalogs is applied before scenario planning:
+  - `SAGAS` accepted;
+  - `TCC` rejected;
+  - `MIXED` rejected;
+  - `UNKNOWN` accepted with a warning.
+- JSONL catalog writer emits one accepted `ScenarioPlan` per line, including input source-mode metadata.
+- Rejected TCC/MIXED candidates are written to `scenario-catalog-rejected-inputs.jsonl` with rejection reasons; the file is written even when empty.
+- Manifest writer records schema, generated timestamp, effective config, counts, warnings, artifact paths, and source-mode/rejection counters.
 - CLI wiring runs export after HTML generation when `verifiers.scenario-catalog.enabled=true`.
+- Catalog, manifest, rejected-input, and HTML artifacts use stable filenames inside the per-run output directory.
+- The run directory is the archive; per-file timestamp sibling archives are not written and archive-path fields are absent from the manifest.
+- Relative configured output paths are resolved under the verifier run output directory, cannot traverse outside it, and cannot cross existing symlink path segments; absolute artifact-path overrides are rejected.
 - Catalog export is disabled by default.
 
 ## Current safe defaults for scenario catalog export
@@ -98,6 +113,9 @@ Current boundaries:
 - `inputPolicy=RESOLVED_OR_REPLAYABLE`
 - `scheduleStrategy=SERIAL`
 - `deterministicSeed=1234`
+- `outputRoot=output`
+- run directory name `<application>-<yyyyMMdd-HHmmss-SSS>` under `outputRoot`
+- `rejectedInputsPath=scenario-catalog-rejected-inputs.jsonl`
 
 ## Partially implemented / current limitations
 
@@ -109,8 +127,11 @@ Current boundaries:
 - Scenario catalog records are executor-facing, but not directly executed by the simulator yet.
 - Segment-compressed scheduling exists as a strategy concept, but the current safe/default path is serial or bounded order-preserving scheduling; verify before relying on compression for evaluation claims.
 - Include/exclude filters from the broader scenario-catalog design are not exposed yet.
+- Source-mode classification is evidence-based, not a full Spring profile/environment solver.
+- Package/name hints are not primary source-mode evidence.
+- `UNKNOWN` source mode is accepted by default with a warning to preserve coverage.
 - Effective Spring binding of all scenario-catalog properties should receive stronger coverage; current assertions include text/config-level checks.
-- Quizzes-scale smoke checks should validate invariants such as parseability, unique scenario IDs, known schedule references, and report generation rather than exact scenario counts.
+- Quizzes-scale smoke checks should validate invariants such as parseability, unique scenario IDs, known schedule references, source-mode filtering, rejected-input artifacts, and report generation rather than exact scenario counts.
 
 ## Not implemented
 
@@ -121,34 +142,51 @@ Current boundaries:
 - Execution trace/domain-state impact scoring.
 - Genetic Algorithm search over fault bit vectors.
 - Multi-armed bandit or contextual bandit scenario picker.
-- TCC verifier/scenario-generation support.
+- TCC verifier/scenario-generation runtime support.
 - Profile-aware resolution for ambiguous multiple `@Service` implementations.
 
 ## Validation baseline
 
-Recent documentation sources report focused verifier specs and full verifier runs during earlier implementation phases. Before using this file for a report or milestone claim, refresh the validation baseline with:
+Refreshed during the source-mode classification workflow on 2026-04-30:
 
 ```bash
-cd verifiers && mvn test
+cd verifiers && mvn test -Dtest=SourceModeClassifierSpec,GroovySourceIndexSpec,GroovyConstructorInputTraceVisitorSpec,GroovyConstructorInputTraceVisitorDummyappSpec,ApplicationAnalysisScenarioModelAdapterSpec,ScenarioGeneratorSpec,ScenarioCatalogJsonlWriterSpec,ScenarioGeneratorApplicationSpec,ApplicationsFileTreeParserSpec -q
+cd verifiers && mvn test -q
 ```
 
-For scenario catalog work, useful focused commands include:
+Both commands passed in the local agent environment. Before using this file for a later report or milestone claim, refresh with the current branch state.
+
+A bounded Quizzes smoke with catalog export was also run after source-mode workflow completion and refreshed after moving verifier artifacts to per-run directories. The latest run wrote artifacts under `verifiers/output/quizzes-20260430-120345-251/` and produced:
+
+- `inputVariantsAdapted=549`
+- `inputVariantsAccepted=468`
+- `inputVariantsRejectedBySourceMode=69`
+- `inputVariantsExcludedByPolicy=12`
+- `scenariosExported=468`
+- HTML raw trace source modes before scenario-catalog dedup/filtering: `SAGAS=1323`, `TCC=258`, `MIXED=0`, `UNKNOWN=0`
+- accepted source modes: `SAGAS=468`, `TCC=0`, `MIXED=0`, `UNKNOWN=0`
+- rejected source-mode reasons: `SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG=69`
+
+Compared with the previous no-source-mode-filter interpretation of the same strict replayable/non-partial input set (`537` accepted candidates), the classifier removes `69` causal/TCC-derived inputs from the accepted saga catalog and preserves them in `scenario-catalog-rejected-inputs.jsonl` with static evidence.
+
+For scenario catalog and source-mode work, useful focused commands include:
 
 ```bash
 cd verifiers
-mvn test -Dtest=ScenarioModelSpec,ScenarioGeneratorSpec
-mvn test -Dtest=ScenarioCatalogJsonlWriterSpec
-mvn test -Dtest=ApplicationAnalysisScenarioModelAdapterSpec,ScenarioGeneratorApplicationSpec
+mvn test -Dtest=SourceModeClassifierSpec,GroovySourceIndexSpec
+mvn test -Dtest=GroovyConstructorInputTraceVisitorSpec,ApplicationAnalysisScenarioModelAdapterSpec,ScenarioGeneratorSpec
+mvn test -Dtest=ScenarioCatalogJsonlWriterSpec,ScenarioGeneratorApplicationSpec,ApplicationsFileTreeParserSpec
+mvn test -Dtest=GroovyConstructorInputTraceVisitorDummyappSpec,ScenarioGeneratorApplicationSpec,ApplicationsFileTreeParserSpec,ScenarioGeneratorSpec
 ```
 
 ## Current next priorities
 
-1. Run or refresh a bounded Quizzes smoke with catalog export enabled and small caps.
-2. Inspect catalog manifest diagnostics for skipped traces, unresolved inputs, type-only footprints, and sagas without usable inputs.
-3. Improve exact aggregate-instance key extraction from input variants into step footprints.
-4. Design the minimal ScenarioExecutor/generic runner contract over the JSONL catalog.
-5. Decide whether behavior CSV is a generated adapter format or whether JSONL remains the primary runtime contract.
-6. After executable scenarios exist, implement impact scoring and then search components.
+1. Inspect catalog manifest diagnostics for skipped traces, unresolved inputs, type-only footprints, rejected TCC/MIXED inputs, and sagas without usable inputs.
+2. Improve exact aggregate-instance key extraction from input variants into step footprints.
+3. Design the minimal ScenarioExecutor/generic runner contract over the JSONL catalog.
+4. Decide whether behavior CSV is a generated adapter format or whether JSONL remains the primary runtime contract.
+5. After executable scenarios exist, implement impact scoring and then search components.
+6. Decide whether future TCC-specific catalogs/executors should consume rejected TCC input variants directly.
 
 ## Meeting discussion points
 
