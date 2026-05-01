@@ -60,23 +60,37 @@ Path: `{src}microservices/{aggregate}/notification/handling/{Aggregate}EventHand
 Path: `{src}microservices/{aggregate}/notification/handling/handlers/{Aggregate}EventHandler.java`
 
 - Spring `@Component`
-- One `handle{Event}({Event} event)` method per subscribed event type
-- Each method: loads the affected aggregate(s) via `{Aggregate}CustomRepositorySagas`, calls `{Aggregate}EventProcessing.process{Event}(aggregate, event)` for each, commits changes
+- Extends the `{Aggregate}EventHandler` base class (which holds the repository and EventProcessing references)
+- One concrete subclass per subscribed event type (matching the quizzes pattern — e.g., `UpdateStudentNameEventHandler`, `DeleteTopicEventHandler`)
+- `handleEvent(Integer subscriberAggregateId, Event event)`: casts the event to the concrete type and calls `this.{aggregate}EventProcessing.process{Xxx}Event(subscriberAggregateId, ({EventName}) event)`
+- Does NOT load the aggregate — that responsibility belongs to Functionalities
 
 ### `{Aggregate}EventProcessing.java`
 
 Path: `{src}microservices/{aggregate}/coordination/eventProcessing/{Aggregate}EventProcessing.java`
 
-- Spring `@Component`
-- One `process{Event}(Saga{Aggregate} aggregate, {Event} event)` method per subscribed event
-- Each method:
-  1. Check `aggregate.getSagaState() != NOT_IN_SAGA` — if aggregate is in a saga, skip (or defer) to avoid conflicts
-  2. Update the cached snapshot field(s) on the aggregate from the event payload (e.g., update `studentName` from `UpdateStudentNameEvent`)
-  3. For deletion events: mark the aggregate or its sub-entity as deleted/invalid
-  4. Call `aggregate.verifyInvariants()` — this re-evaluates all P1 and P2 invariants; throws `{AppClass}Exception` if a P2 rule is now violated
-  5. Persist the updated aggregate
+- Spring `@Service`
+- Injects `{Aggregate}Functionalities` via `@Autowired`
+- One `process{Xxx}Event(Integer aggregateId, {EventName} event)` method per subscribed event
+- Each method delegates entirely to Functionalities:
 
-**P2 rule enforcement:** The invariant violation is caught here. For example, if `DeleteTopicEvent` arrives and the aggregate's `verifyInvariants()` now fails because the deleted topic was the last valid topic, the exception propagates and the event is not marked as processed (allowing retry or manual intervention).
+```java
+@Service
+public class {Aggregate}EventProcessing {
+
+    @Autowired
+    private {Aggregate}Functionalities {aggregate}Functionalities;
+
+    public void process{Xxx}Event(Integer aggregateId, {EventName} event) {
+        {aggregate}Functionalities.{updateMethod}(aggregateId, event.get{RelevantField}());
+    }
+}
+```
+
+- Does NOT load, mutate, or persist the aggregate directly
+- The sagaState guard, cached-field update, `verifyInvariants()`, and UoW commit all happen inside the Functionalities update method
+
+**P2 rule enforcement:** The invariant check happens inside the Functionalities update method, which loads the aggregate, applies the cached-field change, and calls `verifyInvariants()` before committing. If the invariant fails, the exception propagates and the event is not marked as processed (allowing retry or manual intervention).
 
 ### `{Aggregate}InterInvariantTest.groovy` (T3)
 

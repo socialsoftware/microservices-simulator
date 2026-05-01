@@ -181,7 +181,7 @@ public class <Consumer>EventProcessing {
 }
 ```
 
-`aggregateId` is the consumer aggregate's ID (passed down from the handler). The `<Consumer>Functionalities` update method opens its own UoW, loads the consumer aggregate, applies the cached-state update, and commits.
+`aggregateId` is the consumer aggregate's ID (passed down from the handler). The `<Consumer>Functionalities` update method opens its own UoW, loads the consumer aggregate, checks `sagaState != NOT_IN_SAGA` (skipping the update if the aggregate is mid-saga to avoid conflicting with its in-progress state), applies the cached-field update, calls `verifyInvariants()`, and commits.
 
 ---
 
