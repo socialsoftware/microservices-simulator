@@ -171,12 +171,12 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 
 | Session | Files |
 |---------|-------|
-| 2.3.a | `aggregate/Topic.java`, `aggregate/sagas/SagaTopic.java`, `aggregate/sagas/states/TopicSagaState.java`, `aggregate/sagas/factories/SagasTopicFactory.java`, `aggregate/sagas/repositories/TopicCustomRepositorySagas.java`, `aggregate/TopicDto.java`, `aggregate/TopicRepository.java`, `sagas/topic/TopicTest.groovy`, `microservices/topic/TopicServiceApplication.java` |
+| 2.3.a | `aggregate/Topic.java`, `aggregate/TopicCourse.java`, `aggregate/TopicFactory.java`, `aggregate/TopicCustomRepository.java`, `aggregate/sagas/SagaTopic.java`, `aggregate/sagas/states/TopicSagaState.java`, `aggregate/sagas/factories/SagasTopicFactory.java`, `aggregate/sagas/repositories/TopicCustomRepositorySagas.java`, `aggregate/TopicDto.java`, `aggregate/TopicRepository.java`, `sagas/topic/TopicTest.groovy`, `microservices/topic/TopicServiceApplication.java` |
 | 2.3.b | `service/TopicService.java` (write methods), `messaging/TopicCommandHandler.java`, `commands/topic/CreateTopicCommand.java`, `commands/topic/DeleteTopicCommand.java`, `coordination/sagas/CreateTopicFunctionalitySagas.java`, `coordination/sagas/DeleteTopicFunctionalitySagas.java`, `sagas/coordination/topic/CreateTopicTest.groovy`, `sagas/coordination/topic/DeleteTopicTest.groovy`, `microservices/topic/coordination/webapi/TopicController.java` |
 | 2.3.c | `service/TopicService.java` (read methods appended), `commands/topic/GetTopicByIdCommand.java`, `commands/topic/GetTopicsByCourseIdCommand.java`, `coordination/sagas/GetTopicByIdFunctionalitySagas.java`, `coordination/sagas/GetTopicsByCourseIdFunctionalitySagas.java`, `sagas/coordination/topic/GetTopicByIdTest.groovy`, `sagas/coordination/topic/GetTopicsByCourseIdTest.groovy` |
 
 **Checklist:**
-- [ ] 2.3.a — Domain layer
+- [x] 2.3.a — Domain layer
 - [ ] 2.3.b — Write functionalities
 - [ ] 2.3.c — Read functionalities
 

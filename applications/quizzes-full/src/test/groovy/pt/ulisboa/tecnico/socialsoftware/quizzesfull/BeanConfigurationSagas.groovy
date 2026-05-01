@@ -34,6 +34,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.messaging.UserCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.service.UserService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.sagas.factories.SagasTopicFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.sagas.repositories.TopicCustomRepositorySagas
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -182,5 +184,16 @@ class BeanConfigurationSagas {
     @Bean
     UserFunctionalities userFunctionalities() {
         return new UserFunctionalities()
+    }
+
+    // Topic — session 2.3.a
+    @Bean
+    SagasTopicFactory sagasTopicFactory() {
+        return new SagasTopicFactory()
+    }
+
+    @Bean
+    TopicCustomRepositorySagas topicCustomRepositorySagas() {
+        return new TopicCustomRepositorySagas()
     }
 }

@@ -1,0 +1,63 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState;
+
+import java.io.Serializable;
+
+public class TopicDto implements Serializable {
+    private Integer aggregateId;
+    private Long version;
+    private Integer courseId;
+    private String name;
+    private AggregateState state;
+
+    public TopicDto() {}
+
+    public TopicDto(Topic topic) {
+        setAggregateId(topic.getAggregateId());
+        setVersion(topic.getVersion());
+        setCourseId(topic.getTopicCourse().getCourseAggregateId());
+        setName(topic.getName());
+        setState(topic.getState());
+    }
+
+    public Integer getAggregateId() {
+        return aggregateId;
+    }
+
+    public void setAggregateId(Integer aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
+    public Integer getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(Integer courseId) {
+        this.courseId = courseId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public AggregateState getState() {
+        return state;
+    }
+
+    public void setState(AggregateState state) {
+        this.state = state;
+    }
+}
