@@ -313,7 +313,7 @@ Add `Sagas{Aggregate}Factory` and `{Aggregate}CustomRepositorySagas` beans.
   class in `events/{Event}.java` if it does not exist yet
 
 **Updates `BeanConfigurationSagas.groovy`:**  
-Add `{Aggregate}Service`, `{Aggregate}CommandHandler`, and all write `FunctionalitySagas` beans.
+Add `{Aggregate}Service`, `{Aggregate}CommandHandler`, and `{Aggregate}Functionalities`.
 
 **Ticks:** `[ ] 2.N.b`
 
@@ -335,7 +335,7 @@ Add `{Aggregate}Service`, `{Aggregate}CommandHandler`, and all write `Functional
   `sagas/coordination/{aggregate}/{Query}Test.groovy`
 
 **Updates `BeanConfigurationSagas.groovy`:**  
-Add read `FunctionalitySagas` beans.
+No changes needed — `{Op}FunctionalitySagas` are per-request objects, not Spring beans.
 
 **Ticks:** `[ ] 2.N.c`
 
@@ -428,6 +428,6 @@ automatically (Step 8), with message: `feat({app-name}): 2.{N}{type} ({Aggregate
 |---------|-------------|
 | Phase 0 | Infrastructure: UoW service, command gateway, version service, event service, aggregate id generator, impairment, retry, trace, messaging object mapper, saga command handler, version command handler, command response aggregator |
 | 2.N.a | `Sagas{Aggregate}Factory`, `{Aggregate}CustomRepositorySagas` |
-| 2.N.b | `{Aggregate}Service`, `{Aggregate}CommandHandler`, write `FunctionalitySagas` classes |
-| 2.N.c | Read `FunctionalitySagas` classes |
+| 2.N.b | `{Aggregate}Service`, `{Aggregate}CommandHandler`, `{Aggregate}Functionalities` |
+| 2.N.c | (none — `{Op}FunctionalitySagas` are per-request objects, not Spring beans) |
 | 2.N.d | `{Aggregate}EventHandling`, `{Aggregate}EventHandler`, `{Aggregate}EventProcessing` |
