@@ -110,6 +110,7 @@ public class Get{Aggregate}ByIdFunctionalitySagas extends WorkflowFunctionality 
             Get{Aggregate}ByIdCommand cmd = new Get{Aggregate}ByIdCommand(
                     unitOfWork, ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}AggregateId);
             this.{aggregate}Dto = ({Aggregate}Dto) commandGateway.send(cmd);
+            // A setter (this.set{Aggregate}Dto(...)) is also acceptable but direct assignment is preferred.
         });
 
         this.workflow.addStep(get{Aggregate}Step);

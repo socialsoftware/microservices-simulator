@@ -42,6 +42,8 @@ Produce every file listed in the plan.md `2.{N}.c` row. The authoritative file l
 
 Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 
+> **Pre-emption check:** If plan.md notes that `Get{Aggregate}ByIdCommand` and the service read method were moved to session `b` (because a write saga needed to fetch the aggregate for semantic lock acquisition), **skip this step and the command step below**. Still produce the `FunctionalitySagas` class, the coordinator method in `{Aggregate}Functionalities.java`, and the test.
+
 - **Append** new methods to the existing service class — do not rewrite the file
 - One method per read functionality listed in plan.md
 - Method signature: receives query parameters (ids, filters) + `UnitOfWork unitOfWork`
@@ -52,6 +54,8 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 ### One `{Query}Command.java` per read functionality
 
 Path: `commands/{aggregate}/{Query}Command.java`
+
+> **Pre-emption check:** Skip if plan.md moved this command to session `b` (see note above).
 
 - Implements `Command`
 - Fields: all parameters needed by the service read method (e.g., `aggregateId`, filter fields)
@@ -71,6 +75,8 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySag
 ### Read method appended to `{Aggregate}Functionalities.java`
 
 Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Functionalities.java`
+
+> **Always required**, even if `{Aggregate}Functionalities.java` is not listed in the plan.md `2.{N}.c` file table (it may have been created in session `b` and therefore appears there instead). Read the file, append the method, update it.
 
 - **Append** one method per read functionality — do not rewrite the file
 - The method creates a `SagaUnitOfWork`, instantiates the `{Query}FunctionalitySagas` inline, calls `executeWorkflow`, and returns the DTO via `saga.get{Aggregate}Dto()`
