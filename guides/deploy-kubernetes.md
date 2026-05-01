@@ -10,7 +10,6 @@ The distributed mode can also be deployed on Kubernetes, using Spring Cloud Kube
   - [Deploy to Kubernetes](#deploy-to-kubernetes)
   - [Access the Application](#access-the-application)
   - [Access Jaeger UI](#access-jaeger-ui)
-  - [Verification & Debugging](#verification--debugging)
   - [Cleanup](#cleanup)
 - [Azure Kubernetes Service (AKS) Deployment](#azure-kubernetes-service-aks-deployment)
   - [Prerequisites](#prerequisites-1)

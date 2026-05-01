@@ -77,8 +77,6 @@ VERSION_MODE=distributed-version docker compose up quizzes-remote -d
 
 ### Running as Centralized with Local Service Calls
 
-![Centralized Local Topology](../data/figs/architecture/topology_local.svg)
-
 ```bash
 # Sagas (default)
 docker compose up quizzes-local -d
@@ -88,12 +86,6 @@ TX_MODE=tcc docker compose up quizzes-local -d
 ```
 
 ### Running as Centralized with Remote Service Calls
-
-![Centralized Stream Topology](../data/figs/architecture/topology_stream.svg)
-*Centralized Stream Topology*
-
-![Centralized gRPC Topology](../data/figs/architecture/topology_grpc.svg)
-*Centralized gRPC Topology*
 
 ```bash
 # Sagas with Stream (default) + centralized IDs (version-service)
@@ -110,12 +102,6 @@ TX_MODE=tcc COMM_LAYER=grpc docker compose up quizzes-remote version-service -d
 ```
 
 ### Running as Distributed
-
-![Distributed Stream Topology](../data/figs/architecture/topology_distr_stream.svg)
-*Distributed Stream Topology*
-
-![Distributed gRPC Topology](../data/figs/architecture/topology_distr_grpc.svg)
-*Distributed gRPC Topology*
 
 Run the gateway and all microservices:
 
