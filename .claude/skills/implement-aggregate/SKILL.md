@@ -138,11 +138,136 @@ After ticking the checkbox, output a concise structured report:
 
 ## Step 7: Write Retro
 
-All session context variables are already resolved (`{session-id}`, `{N}`, `{type}`, `{Aggregate}`, `{app-name}`, `{session-type-name}`). Load `.claude/skills/retro/SKILL.md` and execute **Steps 3–5 only** (Steps 1 and 2 are already done):
+All session context variables are already resolved. Derive retro paths:
+- `{session-id}` = `2.{N}.{type}`
+- `{session-type-name}` = map: a→"Domain Layer", b→"Write Functionalities", c→"Read Functionalities", d→"Event Wiring"
+- `{retro-dir}` = `applications/{app-name}/retros/`
+- `{retro-file}` = `{retro-dir}retro-{session-id}-{Aggregate}.md`
 
-- **Step 3** — Gather evidence from conversation context. Do NOT re-read files or run filesystem commands. Answer from what happened during this session: which files were produced, which concept docs were read (and whether they were sufficient), which reference-app files were consulted (and why), which skill instructions were unclear, any naming/path decisions not covered, any mid-session bugs or corrections, any undocumented patterns observed.
-- **Step 4** — Fill in the retro template exactly as specified in the retro skill.
-- **Step 5** — Create `applications/{app-name}/retros/` if it does not exist, then write the retro file to `applications/{app-name}/retros/retro-{session-id}-{Aggregate}.md`.
+### 7.a — Gather Evidence from Conversation Context
+
+This is a synthesis step — do NOT run filesystem audits, grep, or re-read files to reconstruct history. Use only what is already in the conversation context.
+
+Answer these questions by reviewing what happened during the session:
+
+1. **Which files were produced?** List every file created or modified.
+2. **Which concept docs were read?** For each: which sections were actually used? Was the doc sufficient?
+3. **Was the reference app (`applications/quizzes/`) consulted?** If yes: exactly which files, and what gap did each fill? Every reference-app lookup means the docs or skill didn't cover something.
+4. **Which instructions in the skill sub-file (`session-{type}.md`) were unclear, missing, or required inference beyond what was written?**
+5. **Were there any naming, path, or pattern decisions the skill/docs didn't cover?**
+6. **Were there any bugs, corrections, or fixes applied mid-session?** What triggered them?
+7. **Were any patterns observed that aren't yet documented anywhere?**
+
+### 7.b — Write the Retro File
+
+Create `{retro-file}` using this exact template. Write "none" for any section with nothing to report — do not omit sections.
+
+```markdown
+# Retro — {session-id} — {Aggregate}
+
+**App:** {app-name}
+**Session:** {session-id} ({session-type-name})
+**Date:** {today}
+
+---
+
+## Files Produced
+
+List every file created or modified this session (absolute paths).
+
+- `/path/to/file1`
+- `/path/to/file2`
+
+---
+
+## Docs Consulted
+
+| Doc file | Sections used | Sufficient? | Notes |
+|----------|--------------|-------------|-------|
+| `docs/concepts/aggregate.md` | § verifyInvariants, § SagaAggregate | Yes | — |
+
+**Sufficient?** = `Yes` / `Partial` / `No`
+- `Partial` = doc existed but was missing something important
+- `No` = doc didn't address the need; fell back to reference app or inference
+
+---
+
+## Reference App Consulted
+
+Each entry here is a gap signal — it means the docs or skill didn't cover something.
+
+| Reference file | Why consulted | Gap it reveals |
+|---------------|--------------|----------------|
+| `applications/quizzes/...` | needed to see X pattern | session-a.md doesn't explain X |
+
+If nothing was consulted from the reference app, write: **none**
+
+---
+
+## Skill Instructions Feedback
+
+### What worked well
+
+- (specific instructions or patterns in the skill that produced correct output without ambiguity)
+
+### What was unclear or missing
+
+- (gaps or ambiguities that required guessing or looking elsewhere)
+
+### Suggested wording / structure changes
+
+- (optional: concrete rewrite proposals; reference the exact file and section)
+
+---
+
+## Documentation Gaps
+
+Gaps in `docs/concepts/` files that caused friction or required reference-app consultation.
+
+| Doc | Missing / unclear | Impact | Suggested fix |
+|-----|------------------|--------|---------------|
+| `docs/concepts/aggregate.md` | X not explained | High | Add section on X |
+
+---
+
+## Patterns to Capture
+
+Patterns or conventions observed during this session that aren't yet documented. Candidates for
+adding to docs or skills.
+
+- **Pattern:** (name or brief title)
+  **Observed in:** (file path)
+  **Description:** (what it does, when to use it)
+
+---
+
+## Action Items
+
+Prioritised improvements to docs and skills based on this retro.
+
+| Priority | Target file | Action |
+|----------|------------|--------|
+| High | `.claude/skills/implement-aggregate/session-a.md` | ... |
+| Medium | `docs/concepts/aggregate.md` | ... |
+
+---
+
+## One-Line Summary
+
+(One sentence: the single most important finding from this retro.)
+```
+
+### 7.c — Create Directory and Write File
+
+Create `{retro-dir}` if it does not already exist, then write the completed retro to `{retro-file}`.
+
+**Hard rules for the retro:**
+1. **Synthesis only.** No filesystem audits, no grep sweeps, no re-reading files to reconstruct history.
+2. **Never omit sections.** If a section has nothing to report, write "none".
+3. **Absolute paths in Files Produced.**
+4. **Every reference-app consultation must appear in "Reference App Consulted".**
+5. **No emojis, no hype.** Terse and concrete — paths, file names, section names, decisions.
+6. **Does not modify plan.md, source files, or BeanConfigurationSagas.groovy.**
 
 Do not print a separate retro completion report — the retro file path is included in the Step 8 commit output.
 
