@@ -345,6 +345,8 @@ For each aggregate, generate the full file list using the template from `docs/wo
 | 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per entity), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
 ```
 
+> **Never omit from 2.N.a:** `{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` must always appear in the 2.N.a row — even when the aggregate has no cross-table lookups. Every owned entity class listed in the §1 "Entities contained" column must also appear individually (e.g., `aggregate/TopicCourse.java`, `aggregate/QuestionDetails.java`). Do not collapse them into a single placeholder and then drop them during substitution.
+
 **Session 2.N.b — Write Functionalities:**
 ```
 | Session | Files |
