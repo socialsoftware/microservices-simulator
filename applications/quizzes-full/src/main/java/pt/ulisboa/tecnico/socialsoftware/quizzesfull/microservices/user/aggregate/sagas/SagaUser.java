@@ -23,7 +23,7 @@ public class SagaUser extends User implements SagaAggregate {
 
     public SagaUser(SagaUser other) {
         super(other);
-        this.sagaState = other.getSagaState();
+        this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 
     @Override
