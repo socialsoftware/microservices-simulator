@@ -136,6 +136,38 @@ After ticking the checkbox, output a concise structured report:
 
 ---
 
+## Step 7: Write Retro
+
+All session context variables are already resolved (`{session-id}`, `{N}`, `{type}`, `{Aggregate}`, `{app-name}`, `{session-type-name}`). Load `.claude/skills/retro/SKILL.md` and execute **Steps 3–5 only** (Steps 1 and 2 are already done):
+
+- **Step 3** — Gather evidence from conversation context. Do NOT re-read files or run filesystem commands. Answer from what happened during this session: which files were produced, which concept docs were read (and whether they were sufficient), which reference-app files were consulted (and why), which skill instructions were unclear, any naming/path decisions not covered, any mid-session bugs or corrections, any undocumented patterns observed.
+- **Step 4** — Fill in the retro template exactly as specified in the retro skill.
+- **Step 5** — Create `applications/{app-name}/retros/` if it does not exist, then write the retro file to `applications/{app-name}/retros/retro-{session-id}-{Aggregate}.md`.
+
+Do not print a separate retro completion report — the retro file path is included in the Step 8 commit output.
+
+---
+
+## Step 8: Commit
+
+Stage all files produced during this session using `git add <specific files>` (never `git add -A`). Include:
+- Every file created or modified (from the Step 6 report)
+- The retro file written in Step 7
+
+Issue a single commit using HEREDOC format:
+
+```
+feat({app-name}): 2.{N}{type} ({Aggregate} {session-type-name})
+```
+
+Where `{session-type-name}` maps: `a`→"Domain Layer", `b`→"Write Functionalities", `c`→"Read Functionalities", `d`→"Event Wiring".
+
+Example: `feat(quizzes-full): 2.2c (User Read Functionalities)`
+
+After the commit, output the commit hash and message as the final line of the session report.
+
+---
+
 ## Reference App
 
 If a pattern is unclear from the concept docs alone, consult the equivalent file in `applications/quizzes/src/` — it is the authoritative working example. Note what you consulted so the docs can be improved later.

@@ -395,25 +395,17 @@ All files go under `sagas/behaviour/` (or `sagas/behaviour/{aggregate}/` if mult
 
 ## Post-Session Retrospective
 
-**Run after every Phase 2 or Phase 3 session.**
+**Generated automatically by `/implement-aggregate` as Step 7.**
 
-Invoke `/retro` immediately after `/implement-aggregate` (or any session that shipped files), while
-the implementation context is still fresh. The skill synthesises what actually happened —
-which docs were consulted, whether they were sufficient, whether the reference app was needed,
-and what patterns or gaps emerged — and writes the findings to a structured Markdown file.
-
-### Output
+No separate invocation required. After all session files are produced and the plan.md checkbox is
+ticked, `/implement-aggregate` synthesises the retro from conversation context and writes it to:
 
 `applications/{app-name}/retros/retro-{session-id}-{Aggregate}.md`
 
 Example: `applications/quizzes-full/retros/retro-2.3.b-Tournament.md`
 
-### When to invoke
-
-```
-/retro                 # auto-detects the last completed session in plan.md
-/retro 2.3.b           # target a specific session
-```
+A single commit covering both the implementation files and the retro file is then issued
+automatically (Step 8), with message: `feat({app-name}): 2.{N}{type} ({Aggregate} {session-type-name})`.
 
 ### What it produces
 
@@ -427,10 +419,6 @@ Example: `applications/quizzes-full/retros/retro-2.3.b-Tournament.md`
 | Patterns to Capture | Undocumented patterns discovered during implementation |
 | Action Items | Prioritised list of improvements to make to docs and skills |
 | One-Line Summary | The single most important finding |
-
-### Does not modify
-
-plan.md, source files, BeanConfigurationSagas.groovy, or memory. Output is the retro file only.
 
 ---
 
