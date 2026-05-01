@@ -161,8 +161,8 @@ One section per aggregate in implementation order.
 
 | Session | Files |
 |---------|-------|
-| 2.1.a | `aggregate/{Aggregate}.java`, `aggregate/Xxx.java` (owned entities), `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
-| 2.1.b | `service/{Aggregate}Service.java` (write methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/Create{Aggregate}Command.java` (one per write op), `coordination/sagas/{Op}FunctionalitySagas.java` (one per write op), `sagas/coordination/{aggregate}/{Op}Test.groovy` (one per write op) |
+| 2.1.a | `aggregate/{Aggregate}.java`, `aggregate/Xxx.java` (owned entities), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
+| 2.1.b | `service/{Aggregate}Service.java` (write methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/Create{Aggregate}Command.java` (one per write op), `coordination/functionalities/{Aggregate}Functionalities.java`, `coordination/sagas/{Op}FunctionalitySagas.java` (one per write op), `sagas/coordination/{aggregate}/{Op}Test.groovy` (one per write op) |
 | 2.1.c | `service/{Aggregate}Service.java` (read methods appended), `commands/{aggregate}/Get{Aggregate}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
 | 2.1.d | `notification/subscribe/{Aggregate}Subscribes{Event}.java` (one per subscribed event), `notification/handling/{Aggregate}EventHandling.java`, `notification/handling/handlers/{Aggregate}EventHandler.java`, `coordination/eventProcessing/{Aggregate}EventProcessing.java`, `sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` |
 
@@ -271,12 +271,14 @@ Each session agent follows these steps:
 **Produces:**
 - Aggregate root entity (`{Aggregate}.java`) — JPA annotated; owns internal entities
 - Owned entity classes (e.g., `{Aggregate}Option.java`)
+- `{Aggregate}Factory.java` — abstract factory interface (profile-agnostic; injected by service)
+- `{Aggregate}CustomRepository.java` — abstract custom repository interface
 - `Saga{Aggregate}.java` — extends `{Aggregate}`, implements `SagaAggregate`
 - `{Aggregate}SagaState.java` — enum; one value per write functionality that locks this aggregate,
   plus `NOT_IN_SAGA`
-- `Sagas{Aggregate}Factory.java` — creates `Saga{Aggregate}` instances
+- `Sagas{Aggregate}Factory.java` — implements `{Aggregate}Factory`; creates `Saga{Aggregate}` instances
 - `{Aggregate}Repository.java` — standard JPA repository
-- `{Aggregate}CustomRepositorySagas.java` — `getLatestVersion`, `findSagaAggregateById`
+- `{Aggregate}CustomRepositorySagas.java` — implements `{Aggregate}CustomRepository`; `getLatestVersion`, `findSagaAggregateById`
 - `{Aggregate}Dto.java`
 - `{Aggregate}Test.groovy` (T1) — stored at `sagas/{aggregate}/{Aggregate}Test.groovy`
 - Error message constants for this aggregate's intra-invariants added to `{App}ErrorMessage.java`
@@ -303,6 +305,7 @@ Add `Sagas{Aggregate}Factory` and `{Aggregate}CustomRepositorySagas` beans.
 - `{Aggregate}Service.java` — one method per write functionality; P3 service guards here (own-table reads and DTO field checks)
 - `{Aggregate}CommandHandler.java`
 - One command per write operation: `{Op}{Aggregate}Command.java`
+- `{Aggregate}Functionalities.java` — coordinator bean; one method per write functionality
 - One `{Op}FunctionalitySagas.java` per write operation — saga steps with `setForbiddenStates`
   for every cross-aggregate prerequisite (P4a rule) on that step
 - One `{Op}Test.groovy` (T2) per write operation — stored at

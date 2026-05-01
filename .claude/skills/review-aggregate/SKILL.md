@@ -159,7 +159,7 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 - Contains `READ_{AGGREGATE}` state only if this aggregate is locked by a downstream saga's read-then-lock step
 
 ### `aggregate/sagas/factories/SagasXxxFactory.java`
-- `@Service @Profile("sagas")` — NOT implementing an interface
+- `@Service @Profile("sagas")` implements `{Aggregate}Factory` (abstract interface defined in `aggregate/` — enables profile-agnostic service injection)
 - Three methods: `create{Aggregate}(...)`, `create{Aggregate}Copy(Saga{Aggregate} existing)`, `create{Aggregate}Dto({Aggregate} agg)`
 
 ### `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`

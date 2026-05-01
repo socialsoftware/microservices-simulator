@@ -92,10 +92,6 @@
 
 ## Patterns to Capture
 
-- **Pattern:** createUser-as-infrastructure for aggregates without a planned CreateAggregate functionality
-  **Observed in:** `UserFunctionalities.java`, `CreateUserFunctionalitySagas.java`, `QuizzesFullSpockTest.groovy`
-  **Description:** When an aggregate's domain-level write functionalities don't include a create operation (e.g., User in quizzes-full only plans DeleteUser), the test setup still needs a way to persist a valid aggregate instance. The solution: add `CreateUserCommand`, `CreateUserFunctionalitySagas`, and `UserFunctionalities.createUser(...)` as undocumented infrastructure and mark them as plan.md additions. This ensures the `createUser` helper in SpockTest has a real codepath to invoke.
-
 - **Pattern:** Event publisher remapping (Execution→User)
   **Observed in:** `events/UpdateStudentNameEvent.java`, `events/AnonymizeStudentEvent.java`
   **Description:** In the reference quizzes app, `UpdateStudentNameEvent` and `AnonymizeStudentEvent` are published by Execution. In quizzes-full, the aggregate-grouping reassigns publication to User. The event constructor signature changes: the first argument (publisher aggregateId passed to `super(...)`) becomes the User's aggregateId, and `studentAggregateId` is set to the same value (publisher IS the student). Downstream consumers do not change — they still match on `studentAggregateId`.
@@ -106,7 +102,6 @@
 
 | Priority | Target file | Action |
 |----------|------------|--------|
-| High | `.claude/skills/implement-aggregate/session-b.md` | Add guidance for aggregates with no planned CreateAggregate functionality: describe the createUser-as-infrastructure pattern, including what extra files to produce and how to mark them in plan.md. |
 | High | `.claude/skills/classify-and-plan` | Ensure plan.md file tables for session b always include event class files when "Events published" is non-empty, and always include `{Aggregate}Functionalities.java`. |
 | Medium | `docs/concepts/service.md` | Resolve the soft-delete copy-on-write contradiction: clarify that quizzes-full uses no copy (in-place mutate) for soft-delete, reference the CourseService as the canonical pattern. |
 | Medium | `docs/concepts/testing.md` | Add note: skip P1 invariant tests when the P1 rule is enforced by a Java `final` field. |
@@ -117,3 +112,9 @@
 ## One-Line Summary
 
 The biggest friction point was the absence of a `CreateUser` write functionality in the plan combined with skill instructions that assume `create{Aggregate}` always exists — requiring undocumented infrastructure (CreateUserCommand, CreateUserFunctionalitySagas, UserFunctionalities.createUser) to be added as plan.md patches before any T2 test could run.
+
+---
+
+## Post-Session Note
+
+The High-priority action item above ("no guidance for aggregates that have no `Create{Aggregate}` functionality; every T2 test requires a created aggregate, so infrastructure helpers must be added") turned out to reveal a **domain problem**, not a skill gap. The quizzes-full domain model does not assign a `CreateUser` write functionality to any aggregate, which means there is no intended first-class way to create a User through the coordination layer. The skill had no guidance because the situation should not arise in a well-formed domain. The correct fix is to revisit the domain model / aggregate-grouping and add `CreateUser` as a proper write functionality — not to patch the skill to handle the missing case silently.

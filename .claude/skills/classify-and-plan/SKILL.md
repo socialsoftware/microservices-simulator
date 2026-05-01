@@ -46,15 +46,15 @@ Before processing:
    - Error if pattern doesn't match: `"Domain model filename must match pattern '{AppName}-domain-model.md'. Got: {filename}"`
 
 3. **Verify required sections exist** in domain-model.md (check for section headers):
-   - Section heading: `## §3 — Consistency Rules` (contains §3.1 and §3.2 subsections)
-   - Section heading: `### §3.1 — Single-Entity Rules` (table)
-   - Section heading: `### §3.2 — Cross-Entity Rules` (blocks with headings)
+   - Section heading: `## §3 — Rules` (contains §3.1 and §3.2 subsections)
+   - Section heading: `### 3.1 — Single-entity rules` (table)
+   - Section heading: `### 3.2 — Cross-entity rules` (blocks with headings)
    - Section heading: `## §4 — Functionalities` (table)
    - Halt if any are missing: `"Domain model is missing required section {section}. Please check the file structure."`
 
 4. **Verify required sections exist** in aggregate-grouping.md:
-   - Section heading: `## §1 — Aggregates` (table)
-   - Section heading: `## §3 — Dependency DAG` (ASCII diagram)
+   - Section heading: `## §1 — Aggregate Grouping` (table)
+   - Section heading: `## §3 — Upstream / Downstream Event Dependencies` (ASCII diagram)
    - Section heading: `## §4 — Events` (table)
    - Halt if any are missing: `"Aggregate grouping is missing required section {section}. Please check the file structure."`
 

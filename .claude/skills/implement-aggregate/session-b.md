@@ -23,7 +23,7 @@ Load these files before writing any code:
 
 4. **`docs/concepts/sagas.md`** — the full file. Pay attention to:
    - Saga step anatomy: `executeStep` / `compensateStep` pairs
-   - `setForbiddenStates` — where to call it and why (P4a prerequisite enforcement)
+   - `setForbiddenStates` — where to call it and why (R4 semantic lock: blocks concurrent operations that would conflict with this one)
    - How data-assembly steps fetch DTOs from upstream aggregates
    - How the final step calls the service and commits the `UnitOfWork`
    - Compensation: which steps need compensation and what they do
@@ -87,6 +87,7 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Op}FunctionalitySagas.
   3. Execute step: send the command to `{Aggregate}CommandHandler`
   4. *(For multi-aggregate sagas)* Steps for other aggregates involved
 - Each data-assembly step that enforces a **P4a rule**: if the upstream command/query fails (throws), the prerequisite is considered violated — no extra guard needed in the service
+- **R8 — upstream-only commands**: sagas for this aggregate may only send commands to aggregates that are upstream (i.e., aggregates this one depends on, not aggregates that depend on it). Never dispatch a write command to a downstream aggregate from within this aggregate's sagas.
 - Each `executeStep` that can fail has a matching `compensateStep` that rolls back the change
 
 ### `{Aggregate}Functionalities.java`

@@ -81,7 +81,7 @@ public CourseExecutionDto createCourseExecution(CourseExecutionDto dto, UnitOfWo
 
 ### Mutate method
 
-Loads the current version, copies it via the factory's `createFromExisting` method, applies mutations on the copy, then registers the copy as changed.
+Loads the current version, copies it via the factory's `create{Aggregate}Copy` method, applies mutations on the copy, then registers the copy as changed.
 
 ```java
 @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -95,7 +95,7 @@ public void enrollStudent(Integer executionAggregateId, UserDto userDto, UnitOfW
     }
 
     // copy-on-write: mutations go on the new version, not the loaded one
-    Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
+    Execution newExecution = courseExecutionFactory.createCourseExecutionCopy(oldExecution);
     newExecution.addStudent(new CourseExecutionStudent(userDto));
 
     unitOfWorkService.registerChanged(newExecution, unitOfWork);
@@ -111,7 +111,7 @@ After `registerChanged`, register the event. The event is persisted atomically w
 public void removeCourseExecution(Integer executionAggregateId, UnitOfWork unitOfWork) {
     Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
             executionAggregateId, unitOfWork);
-    Execution newExecution = courseExecutionFactory.createCourseExecutionFromExisting(oldExecution);
+    Execution newExecution = courseExecutionFactory.createCourseExecutionCopy(oldExecution);
 
     newExecution.remove();   // sets state = DELETED
 
@@ -138,6 +138,12 @@ unitOfWorkService.registerChanged(course, unitOfWork);
 No factory copy is needed. `remove()` is a terminal state transition; it does not interact with version-merge conflict detection.
 
 > **Note:** Some reference implementations (e.g., the `quizzes` `UserService`) still create a factory copy before calling `remove()` for defensive consistency. Both are valid. For new aggregates in `quizzes-full`, follow the no-copy pattern shown above — the `CourseService` is the canonical precedent.
+
+---
+
+## DTO Immutability (R7)
+
+A Functionality method receives saga-assembled DTOs from preceding steps. Never mutate a DTO passed into a service method — it is a read-only snapshot from an upstream aggregate. Extract the field values you need and pass them directly to the aggregate or a new value object; do not call any setters on the DTO itself.
 
 ---
 
