@@ -37,4 +37,7 @@ public final class QuizzesFullErrorMessage {
     // User
     public static final String USER_DELETED_STATE =
             "A deleted user must have active set to false.";
+
+    // Topic
+    public static final String TOPIC_MISSING_NAME = "Topic name is required.";
 }

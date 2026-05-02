@@ -100,3 +100,15 @@ List every file created or modified this session (absolute paths).
 ## One-Line Summary
 
 TopicFunctionalities (missing from plan) and GetTopicByIdCommand (moved from 2.3.c) were both unambiguous omissions that had to be created to make the delete saga compile and tests pass.
+
+---
+
+## Resolution
+
+Resolved after retro review:
+
+| Action item | Status | Notes |
+|-------------|--------|-------|
+| **High** — session-b.md GetByIdCommand prerequisite note | ✅ Applied | Extended the callout to explicitly say: also add service method + handler case, or a compile error results even when the command class exists. |
+| **Medium** — classify-and-plan auto-include `{Aggregate}Functionalities.java` | ✅ Already present | `coordination/functionalities/{Aggregate}Functionalities.java` is in the 2.N.b template row AND has an explicit "Always include" callout note in `classify-and-plan/SKILL.md`. No change needed. |
+| **Low** — Resolve UpdateTopicEvent contradiction in plan.md | ✅ Resolved | Added `UpdateTopic(topicId, name)` as a write functionality: domain model §4 updated, plan.md 2.3.b file list extended, Phase 3 T4 entry 3.25 (UpdateTopic + DeleteTopic) added. Implementation: `UpdateTopicCommand.java`, `UpdateTopicFunctionalitySagas.java`, `UpdateTopicTest.groovy` created; `TopicService`, `TopicCommandHandler`, `TopicFunctionalities` patched. |

@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.CreateTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.DeleteTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.GetTopicByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.UpdateTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.service.TopicService;
 
 import java.util.logging.Logger;
@@ -28,6 +29,7 @@ public class TopicCommandHandler extends CommandHandler {
         return switch (command) {
             case GetTopicByIdCommand cmd -> handleGetTopicById(cmd);
             case CreateTopicCommand cmd -> handleCreateTopic(cmd);
+            case UpdateTopicCommand cmd -> handleUpdateTopic(cmd);
             case DeleteTopicCommand cmd -> handleDeleteTopic(cmd);
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
@@ -42,6 +44,11 @@ public class TopicCommandHandler extends CommandHandler {
 
     private Object handleCreateTopic(CreateTopicCommand command) {
         return topicService.createTopic(command.getTopicDto(), command.getCourse(), command.getUnitOfWork());
+    }
+
+    private Object handleUpdateTopic(UpdateTopicCommand command) {
+        topicService.updateTopic(command.getTopicDto(), command.getUnitOfWork());
+        return null;
     }
 
     private Object handleDeleteTopic(DeleteTopicCommand command) {

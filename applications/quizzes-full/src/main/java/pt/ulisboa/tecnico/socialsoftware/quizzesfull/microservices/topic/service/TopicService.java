@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorServic
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.events.DeleteTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.events.UpdateTopicEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicCustomRepository;
@@ -43,6 +44,15 @@ public class TopicService {
                 topicDto.getName(), course);
         unitOfWorkService.registerChanged(topic, unitOfWork);
         return topicFactory.createTopicDto(topic);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateTopic(TopicDto topicDto, UnitOfWork unitOfWork) {
+        Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.getAggregateId(), unitOfWork);
+        Topic newTopic = topicFactory.createTopicCopy(oldTopic);
+        newTopic.setName(topicDto.getName());
+        unitOfWorkService.registerChanged(newTopic, unitOfWork);
+        unitOfWorkService.registerEvent(new UpdateTopicEvent(newTopic.getAggregateId(), newTopic.getName()), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

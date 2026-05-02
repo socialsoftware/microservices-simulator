@@ -360,6 +360,7 @@ These rules inspect only fields of a single entity.
 | UpdateCourse | Course | — | Update course name or type |
 | DeleteCourse | Course | — | Soft-delete a course |
 | CreateTopic | Topic | Course | Create a topic linked to a course |
+| UpdateTopic | Topic | — | Update the name of an existing topic; publishes `UpdateTopicEvent` |
 | DeleteTopic | Topic | Question, Tournament | Soft-delete a topic and propagate removal to subscribers |
 | CreateExecution | Execution | Course | Create a course execution linked to a course |
 | UpdateExecution | Execution | — | Update execution acronym or academic term |

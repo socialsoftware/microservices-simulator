@@ -6,8 +6,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.DeleteTopicFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas;
+
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOPIC_MISSING_NAME;
 
 @Service
 public class TopicFunctionalities {
@@ -25,6 +29,17 @@ public class TopicFunctionalities {
                 unitOfWorkService, courseAggregateId, topicDto, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
         return saga.getCreatedTopicDto();
+    }
+
+    public void updateTopic(TopicDto topicDto) {
+        if (topicDto.getName() == null) {
+            throw new QuizzesFullException(TOPIC_MISSING_NAME);
+        }
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        UpdateTopicFunctionalitySagas saga = new UpdateTopicFunctionalitySagas(
+                unitOfWorkService, topicDto, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
     }
 
     public void deleteTopic(Integer topicAggregateId) {
