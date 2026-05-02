@@ -15,6 +15,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicFactory;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class TopicService {
 
@@ -62,5 +65,13 @@ public class TopicService {
         newTopic.remove();
         unitOfWorkService.registerChanged(newTopic, unitOfWork);
         unitOfWorkService.registerEvent(new DeleteTopicEvent(newTopic.getAggregateId()), unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public List<TopicDto> getTopicsByCourseId(Integer courseAggregateId, UnitOfWork unitOfWork) {
+        return topicRepository.findTopicIdsByCourseId(courseAggregateId).stream()
+                .map(aggregateId -> (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork))
+                .map(t -> topicFactory.createTopicDto(t))
+                .collect(Collectors.toList());
     }
 }

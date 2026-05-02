@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.CreateTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.DeleteTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.GetTopicByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.GetTopicsByCourseIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.UpdateTopicCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.service.TopicService;
 
@@ -28,6 +29,7 @@ public class TopicCommandHandler extends CommandHandler {
     public Object handleDomainCommand(Command command) {
         return switch (command) {
             case GetTopicByIdCommand cmd -> handleGetTopicById(cmd);
+            case GetTopicsByCourseIdCommand cmd -> handleGetTopicsByCourseId(cmd);
             case CreateTopicCommand cmd -> handleCreateTopic(cmd);
             case UpdateTopicCommand cmd -> handleUpdateTopic(cmd);
             case DeleteTopicCommand cmd -> handleDeleteTopic(cmd);
@@ -40,6 +42,10 @@ public class TopicCommandHandler extends CommandHandler {
 
     private Object handleGetTopicById(GetTopicByIdCommand command) {
         return topicService.getTopicById(command.getTopicAggregateId(), command.getUnitOfWork());
+    }
+
+    private Object handleGetTopicsByCourseId(GetTopicsByCourseIdCommand command) {
+        return topicService.getTopicsByCourseId(command.getCourseAggregateId(), command.getUnitOfWork());
     }
 
     private Object handleCreateTopic(CreateTopicCommand command) {
