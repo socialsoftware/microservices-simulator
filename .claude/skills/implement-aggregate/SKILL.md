@@ -8,6 +8,20 @@ argument-hint: "[session] (e.g. 2.3.b — optional, auto-detects if omitted)"
 
 This skill drives one Phase 2 session at a time, advancing the plan.md job queue by one checkbox per invocation. It reads plan.md, identifies the next unchecked session, loads only the instructions relevant to that session type, and produces the files listed in plan.md for that session.
 
+---
+
+## Anti-Pattern: Do Not Consult the Reference App
+
+**Never read files under `applications/quizzes/` during implementation.** The docs and skills are the authoritative source. The reference app contains known bugs that the docs have already corrected; consulting it will reproduce those bugs in the target implementation.
+
+**Known examples of reference app bugs propagated to quizzes-full:**
+- `TopicCommandHandler` uses `@Service` instead of `@Component` — all handlers must use `@Component` per the skill; the reference is the only outlier.
+- `TopicService.deleteTopic` uses copy-on-write instead of in-place mutation — the correct delete pattern is load → mutate same instance → `registerChanged(same)`.
+
+**If the docs or skill don't cover something:** flag it explicitly in the Step 6 report and the retro. Do not silently fill the gap from the reference. Surfacing the gap is the correct behavior — it becomes a documentation improvement, not a hidden copy of a potentially buggy pattern.
+
+---
+
 ## Input
 
 Invoked as:
@@ -130,8 +144,8 @@ After ticking the checkbox, output a concise structured report:
 1. **Files produced** — list all files created or modified (full paths)
 2. **Checkbox ticked** — e.g., `[x] 2.1.a`
 3. **plan.md additions** — any files added to the plan.md file table during this session (Step 5b), and why
-4. **Contradictions / problems** — any contradiction between plan.md and the domain model or rule classification (e.g., a write functionality that mutates a field marked P1 final), or any pattern that didn't match the docs and required consulting the reference app
-5. **Reference app consulted** — list any files read from `applications/quizzes/` and what question each resolved (signals for future doc improvement)
+4. **Contradictions / problems** — any contradiction between plan.md and the domain model or rule classification (e.g., a write functionality that mutates a field marked P1 final), or any pattern that required inference or guessing beyond what the docs cover
+5. **Doc gaps** — any pattern that wasn't covered by the docs or skill and required inference or guessing; each gap is a candidate for a documentation improvement
 6. **Next session** — "Next: 2.{N}.{next-type}" or "Aggregate {Aggregate} complete. Next: aggregate {N+1}."
 
 ---
@@ -152,7 +166,7 @@ Answer these questions by reviewing what happened during the session:
 
 1. **Which files were produced?** List every file created or modified.
 2. **Which concept docs were read?** For each: which sections were actually used? Was the doc sufficient?
-3. **Was the reference app (`applications/quizzes/`) consulted?** If yes: exactly which files, and what gap did each fill? Every reference-app lookup means the docs or skill didn't cover something.
+3. **Was the reference app (`applications/quizzes/`) consulted?** Consulting it is a violation of the anti-pattern rule. If it happened, note exactly which files and what gap caused it — add a High-priority Action Item to document that gap so it never needs the reference again.
 4. **Which instructions in the skill sub-file (`session-{type}.md`) were unclear, missing, or required inference beyond what was written?**
 5. **Were there any naming, path, or pattern decisions the skill/docs didn't cover?**
 6. **Were there any bugs, corrections, or fixes applied mid-session?** What triggered them?
@@ -188,19 +202,7 @@ List every file created or modified this session (absolute paths).
 
 **Sufficient?** = `Yes` / `Partial` / `No`
 - `Partial` = doc existed but was missing something important
-- `No` = doc didn't address the need; fell back to reference app or inference
-
----
-
-## Reference App Consulted
-
-Each entry here is a gap signal — it means the docs or skill didn't cover something.
-
-| Reference file | Why consulted | Gap it reveals |
-|---------------|--------------|----------------|
-| `applications/quizzes/...` | needed to see X pattern | session-a.md doesn't explain X |
-
-If nothing was consulted from the reference app, write: **none**
+- `No` = doc didn't address the need; fell back to inference or guessing
 
 ---
 
@@ -222,7 +224,7 @@ If nothing was consulted from the reference app, write: **none**
 
 ## Documentation Gaps
 
-Gaps in `docs/concepts/` files that caused friction or required reference-app consultation.
+Gaps in `docs/concepts/` files that caused friction or required inference or guessing.
 
 | Doc | Missing / unclear | Impact | Suggested fix |
 |-----|------------------|--------|---------------|
@@ -265,7 +267,7 @@ Create `{retro-dir}` if it does not already exist, then write the completed retr
 1. **Synthesis only.** No filesystem audits, no grep sweeps, no re-reading files to reconstruct history.
 2. **Never omit sections.** If a section has nothing to report, write "none".
 3. **Absolute paths in Files Produced.**
-4. **Every reference-app consultation must appear in "Reference App Consulted".**
+4. **Any reference-app consultation is a violation** — flag the gap in Action Items as High priority.
 5. **No emojis, no hype.** Terse and concrete — paths, file names, section names, decisions.
 6. **Does not modify plan.md, source files, or BeanConfigurationSagas.groovy.**
 
@@ -290,9 +292,3 @@ Where `{session-type-name}` maps: `a`→"Domain Layer", `b`→"Write Functionali
 Example: `feat(quizzes-full): 2.2c (User Read Functionalities)`
 
 After the commit, output the commit hash and message as the final line of the session report.
-
----
-
-## Reference App
-
-If a pattern is unclear from the concept docs alone, consult the equivalent file in `applications/quizzes/src/` — it is the authoritative working example. Note what you consulted so the docs can be improved later.
