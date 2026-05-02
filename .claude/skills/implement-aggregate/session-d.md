@@ -60,10 +60,12 @@ Path: `{src}microservices/{aggregate}/notification/handling/{Aggregate}EventHand
 Path: `{src}microservices/{aggregate}/notification/handling/handlers/{Aggregate}EventHandler.java`
 
 - Spring `@Component`
-- Extends the `{Aggregate}EventHandler` base class (which holds the repository and EventProcessing references)
-- One concrete subclass per subscribed event type (matching the quizzes pattern — e.g., `UpdateStudentNameEventHandler`, `DeleteTopicEventHandler`)
-- `handleEvent(Integer subscriberAggregateId, Event event)`: casts the event to the concrete type and calls `this.{aggregate}EventProcessing.process{Xxx}Event(subscriberAggregateId, ({EventName}) event)`
+- A **single concrete class** that extends `EventHandler` and dispatches all subscribed event types
+- Constructor: accepts `{Aggregate}Repository` (required by `EventHandler`) and `{Aggregate}EventProcessing`
+- `handleEvent(Integer subscriberAggregateId, Event event)`: dispatches via `instanceof` to the appropriate `process{Xxx}Event` call on `{Aggregate}EventProcessing`
 - Does NOT load the aggregate — that responsibility belongs to Functionalities
+
+> **Why single-class?** One `@Component` with an `instanceof` dispatch is simpler than a separate class per event type and requires only one bean in BeanConfig. Use the quizzes `CourseExecutionEventHandler` as a reference for the multi-event dispatch pattern.
 
 ### `{Aggregate}EventProcessing.java`
 
@@ -82,7 +84,7 @@ public class {Aggregate}EventProcessing {
     private {Aggregate}Functionalities {aggregate}Functionalities;
 
     public void process{Xxx}Event(Integer aggregateId, {EventName} event) {
-        {aggregate}Functionalities.{updateMethod}(aggregateId, event.get{RelevantField}());
+        {aggregate}Functionalities.{updateMethod}ByEvent(aggregateId, event.get{RelevantField}());
     }
 }
 ```
@@ -91,6 +93,30 @@ public class {Aggregate}EventProcessing {
 - The sagaState guard, cached-field update, `verifyInvariants()`, and UoW commit all happen inside the Functionalities update method
 
 **P2 rule enforcement:** The invariant check happens inside the Functionalities update method, which loads the aggregate, applies the cached-field change, and calls `verifyInvariants()` before committing. If the invariant fails, the exception propagates and the event is not marked as processed (allowing retry or manual intervention).
+
+#### "ByEvent" methods in Functionalities — mandatory pattern
+
+For every event that mirrors an operation that also has a saga Functionalities method (e.g., `updateStudentName`, `anonymizeStudent`, `removeStudentFromExecution`), you **must add a separate `{operation}ByEvent` method** to `{Aggregate}Functionalities` that:
+
+1. Opens its own `UnitOfWork`
+2. Loads the aggregate from the service directly
+3. Applies the cached-field change
+4. Calls `verifyInvariants()`
+5. Commits — **without starting a new saga**
+
+**Do NOT call the existing saga Functionalities method from EventProcessing.** Saga methods set a semantic lock (`sagaState`) and trigger compensations; calling them from an event handler creates a circular saga loop (the saga emits another event → handler fires again → infinite loop). The `ByEvent` method sidesteps this by talking directly to the service layer.
+
+```java
+// In {Aggregate}Functionalities:
+public void {operation}ByEvent(Integer aggregateId, ...) {
+    UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork();
+    {Aggregate} aggregate = {aggregate}Service.get{Aggregate}ById(aggregateId, unitOfWork);
+    {aggregate}Service.{operation}(aggregate, ..., unitOfWork);
+    unitOfWorkService.commit(unitOfWork);
+}
+```
+
+Add the corresponding service helper if needed (pure mutation + `verifyInvariants()`, no saga).
 
 ### `{Aggregate}InterInvariantTest.groovy` (T3)
 
@@ -119,8 +145,8 @@ Open `{bean-config}` and add three new `@Bean` methods:
 }
 
 @Bean
-{Aggregate}EventHandler {aggregate}EventHandler() {
-    return new {Aggregate}EventHandler()
+{Aggregate}EventHandler {aggregate}EventHandler({Aggregate}Repository {aggregate}Repository) {
+    return new {Aggregate}EventHandler({aggregate}Repository)
 }
 
 @Bean
@@ -128,6 +154,8 @@ Open `{bean-config}` and add three new `@Bean` methods:
     return new {Aggregate}EventProcessing()
 }
 ```
+
+> **Note:** `{Aggregate}EventHandler` requires the repository as a constructor arg because `EventHandler` (simulator core) accepts it. The `{Aggregate}Repository` bean is provided automatically by `@DataJpaTest` auto-configuration in tests.
 
 Add the corresponding `import` statements. Place new beans after the write/read functionality beans for this aggregate.
 

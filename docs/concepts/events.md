@@ -42,7 +42,7 @@ Each subscriber aggregate declares which events it watches via `getEventSubscrip
 ```java
 public class ExecutionSubscribesCreateQuestion extends EventSubscription {
     public ExecutionSubscribesCreateQuestion(CourseExecutionCourse course) {
-        super(course.getCourseAggregateId(), course.getCourseVersion(), CreateQuestionEvent.class);
+        super(course.getCourseAggregateId(), course.getCourseVersion(), CreateQuestionEvent.class.getSimpleName());
     }
 
     @Override
@@ -54,6 +54,8 @@ public class ExecutionSubscribesCreateQuestion extends EventSubscription {
 ```
 
 `subscribedAggregateId` must match `publisherAggregateId` in the event.
+
+**`subscribedVersion`:** pass the anchor entity's current version so that only events published *after* the snapshot was taken are processed. If the subscriber entity does not track the publisher's version (e.g., a `User` cached inside an `Execution` that has no `userVersion` field), use `0L` — this means all events from that user since the beginning are eligible for processing, which is functionally correct but slightly broader than necessary.
 
 ## EventHandler
 
@@ -123,7 +125,7 @@ public class <EventName> extends Event {
 ```java
 public class <Consumer>Subscribes<Xxx> extends EventSubscription {
     public <Consumer>Subscribes<Xxx>(SomeRef ref) {
-        super(ref.getAnchorAggregateId(), ref.getAnchorVersion(), <EventName>.class);
+        super(ref.getAnchorAggregateId(), ref.getAnchorVersion(), <EventName>.class.getSimpleName());
     }
 
     public <Consumer>Subscribes<Xxx>() {}
