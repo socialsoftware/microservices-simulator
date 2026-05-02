@@ -50,6 +50,15 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 - Body: fetch aggregate via `{Aggregate}CustomRepositorySagas.getLatestVersion(...)`, map to `{Aggregate}Dto`, return it
 - Throw `{AppClass}Exception` with `AGGREGATE_NOT_FOUND` (or domain-specific constant) if not found
 - If the read joins a foreign aggregate: fetch the foreign aggregate's DTO via its service and include in the response
+- **List-return reads**: If the read returns a collection (e.g., all topics for a course), the service method iterates all aggregate instances. When no suitable query method exists on `{Aggregate}CustomRepository`, add `findXxxIdsBy{Field}(Integer fieldValue)` to the interface and implement it in `{Aggregate}CustomRepositorySagas` via:
+  ```java
+  jpaRepo.findAll().stream()
+      .filter(a -> fieldValue.equals(a.get{Field}()))
+      .map({Aggregate}::getAggregateId)
+      .distinct()
+      .collect(Collectors.toList())
+  ```
+  The service method then maps each id to a DTO via `aggregateLoadAndRegisterRead`.
 
 ### One `{Query}Command.java` per read functionality
 
@@ -81,6 +90,26 @@ Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Fu
 - **Append** one method per read functionality — do not rewrite the file
 - The method creates a `SagaUnitOfWork`, instantiates the `{Query}FunctionalitySagas` inline, calls `executeWorkflow`, and returns the DTO via `saga.get{Aggregate}Dto()`
 - Follow the same pattern as the write coordinator methods added in session `b`
+
+### Update `{Aggregate}CommandHandler`
+
+Path: `{src}microservices/{aggregate}/messaging/{Aggregate}CommandHandler.java`
+
+> **Always required** — append one case per new read command added in this session, even if the file is not listed in the plan.md `2.{N}.c` file table.
+
+- **Append** one `case` in `handleDomainCommand` for each new read command
+- Delegate to a matching private handler method that calls the corresponding service read method
+- Pattern:
+  ```java
+  case Get{Aggregate}By{Field}Command cmd -> handleGet{Aggregate}By{Field}(cmd);
+  ```
+  ```java
+  private Object handleGet{Aggregate}By{Field}(Get{Aggregate}By{Field}Command command) {
+      return {aggregate}Service.get{Aggregate}By{Field}(command.get{Field}(), command.getUnitOfWork());
+  }
+  ```
+
+---
 
 ### One `{Query}Test.groovy` per read functionality (T2)
 

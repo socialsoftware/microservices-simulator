@@ -132,6 +132,53 @@ return saga.get{Aggregate}Dto();
 
 Reference: `applications/quizzes/.../execution/coordination/sagas/GetCourseExecutionByIdFunctionalitySagas.java`
 
+### List-return read variant
+
+When a read functionality returns multiple aggregates (e.g., all topics for a course), the result field is `List<{Aggregate}Dto>`, the cast is `(List<{Aggregate}Dto>)`, and the getter returns the list:
+
+```java
+public class Get{Aggregates}By{Field}FunctionalitySagas extends WorkflowFunctionality {
+    private List<{Aggregate}Dto> {aggregates};
+    private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
+
+    public Get{Aggregates}By{Field}FunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+            Integer {field}Id,
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
+        buildWorkflow({field}Id, unitOfWork);
+    }
+
+    public void buildWorkflow(Integer {field}Id, SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+        SagaStep get{Aggregates}Step = new SagaStep("get{Aggregates}Step", () -> {
+            Get{Aggregates}By{Field}Command cmd = new Get{Aggregates}By{Field}Command(
+                    unitOfWork, ServiceMapping.{AGGREGATE}.getServiceName(), {field}Id);
+            this.{aggregates} = (List<{Aggregate}Dto>) commandGateway.send(cmd);
+        });
+
+        this.workflow.addStep(get{Aggregates}Step);
+    }
+
+    public List<{Aggregate}Dto> get{Aggregates}() {
+        return {aggregates};
+    }
+}
+```
+
+The coordinator method returns the list via the getter:
+
+```java
+Get{Aggregates}By{Field}FunctionalitySagas saga = new Get{Aggregates}By{Field}FunctionalitySagas(
+        unitOfWorkService, {field}Id, unitOfWork, commandGateway);
+saga.executeWorkflow(unitOfWork);
+return saga.get{Aggregates}();
+```
+
+Reference: `applications/quizzes-full/.../topic/coordination/sagas/GetTopicsByCourseIdFunctionalitySagas.java`
+
 ## Write Workflow Structure
 
 ```java
