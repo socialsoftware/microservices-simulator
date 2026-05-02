@@ -60,11 +60,10 @@ public class TopicService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteTopic(Integer topicAggregateId, UnitOfWork unitOfWork) {
-        Topic oldTopic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
-        Topic newTopic = topicFactory.createTopicCopy(oldTopic);
-        newTopic.remove();
-        unitOfWorkService.registerChanged(newTopic, unitOfWork);
-        unitOfWorkService.registerEvent(new DeleteTopicEvent(newTopic.getAggregateId()), unitOfWork);
+        Topic topic = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicAggregateId, unitOfWork);
+        topic.remove();
+        unitOfWorkService.registerChanged(topic, unitOfWork);
+        unitOfWorkService.registerEvent(new DeleteTopicEvent(topic.getAggregateId()), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

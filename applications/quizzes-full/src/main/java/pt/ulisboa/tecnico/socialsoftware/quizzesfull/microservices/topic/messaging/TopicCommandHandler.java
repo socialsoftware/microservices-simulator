@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.messaging;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.CreateTopicCommand;
@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.service
 
 import java.util.logging.Logger;
 
-@Service
+@Component
 public class TopicCommandHandler extends CommandHandler {
     private static final Logger logger = Logger.getLogger(TopicCommandHandler.class.getName());
 
