@@ -6,11 +6,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionStudentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.CreateExecutionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.DeleteExecutionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.DisenrollStudentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.EnrollStudentInExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.GetExecutionByIdFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.GetStudentByExecutionIdAndUserIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.UpdateExecutionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.service.ExecutionService;
@@ -87,6 +90,18 @@ public class ExecutionFunctionalities {
     public ExecutionDto getExecutionById(Integer executionId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
-        return executionService.getExecutionById(executionId, unitOfWork);
+        GetExecutionByIdFunctionalitySagas saga = new GetExecutionByIdFunctionalitySagas(
+                unitOfWorkService, executionId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getExecutionDto();
+    }
+
+    public ExecutionStudentDto getStudentByExecutionIdAndUserId(Integer executionId, Integer userId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        GetStudentByExecutionIdAndUserIdFunctionalitySagas saga = new GetStudentByExecutionIdAndUserIdFunctionalitySagas(
+                unitOfWorkService, executionId, userId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getExecutionStudentDto();
     }
 }

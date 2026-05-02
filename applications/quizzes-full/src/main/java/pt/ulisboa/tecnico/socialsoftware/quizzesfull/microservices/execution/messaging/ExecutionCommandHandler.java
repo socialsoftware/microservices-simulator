@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.DeleteEx
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.DisenrollStudentFromExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.EnrollStudentInExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.GetExecutionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.UpdateExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.UpdateStudentNameInExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.service.ExecutionService;
@@ -33,6 +34,8 @@ public class ExecutionCommandHandler extends CommandHandler {
         return switch (command) {
             case GetExecutionByIdCommand cmd -> executionService.getExecutionById(
                     cmd.getExecutionAggregateId(), cmd.getUnitOfWork());
+            case GetStudentByExecutionIdAndUserIdCommand cmd -> executionService.getStudentByExecutionIdAndUserId(
+                    cmd.getExecutionAggregateId(), cmd.getUserId(), cmd.getUnitOfWork());
             case CreateExecutionCommand cmd -> executionService.createExecution(
                     cmd.getAcronym(), cmd.getAcademicTerm(), cmd.getExecutionCourse(), cmd.getUnitOfWork());
             case UpdateExecutionCommand cmd -> {
