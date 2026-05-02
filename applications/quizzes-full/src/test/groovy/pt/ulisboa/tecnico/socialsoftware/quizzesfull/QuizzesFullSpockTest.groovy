@@ -12,6 +12,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.servic
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.service.UserService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.functionalities.TopicFunctionalities
 
 class QuizzesFullSpockTest extends SpockTest {
 
@@ -44,6 +46,9 @@ class QuizzesFullSpockTest extends SpockTest {
     @Autowired(required = false)
     protected UserService userService
 
+    @Autowired(required = false)
+    protected TopicFunctionalities topicFunctionalities
+
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
         def scriptDir = "groovy/" + this.class.simpleName
@@ -62,5 +67,11 @@ class QuizzesFullSpockTest extends SpockTest {
 
     UserDto createUser(String name, String username, String role) {
         return userFunctionalities.createUser(new UserDto(null, name, username, role, false))
+    }
+
+    TopicDto createTopic(Integer courseId, String name) {
+        TopicDto dto = new TopicDto()
+        dto.name = name
+        return topicFunctionalities.createTopic(courseId, dto)
     }
 }

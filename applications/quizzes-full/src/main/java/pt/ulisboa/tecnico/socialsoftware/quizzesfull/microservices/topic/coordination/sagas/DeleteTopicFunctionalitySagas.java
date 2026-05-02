@@ -1,0 +1,65 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.DeleteTopicCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.GetTopicByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.sagas.states.TopicSagaState;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
+    private TopicDto topic;
+    private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
+
+    public DeleteTopicFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                         Integer topicAggregateId,
+                                         SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
+        this.buildWorkflow(topicAggregateId, unitOfWork);
+    }
+
+    public void buildWorkflow(Integer topicAggregateId, SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+        SagaStep getTopicStep = new SagaStep("getTopicStep", () -> {
+            GetTopicByIdCommand getTopicByIdCommand = new GetTopicByIdCommand(
+                    unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
+            SagaCommand sagaCommand = new SagaCommand(getTopicByIdCommand);
+            sagaCommand.setSemanticLock(TopicSagaState.READ_TOPIC);
+            this.topic = (TopicDto) commandGateway.send(sagaCommand);
+        });
+
+        getTopicStep.registerCompensation(() -> {
+            Command command = new Command(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
+            SagaCommand sagaCommand = new SagaCommand(command);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
+        }, unitOfWork);
+
+        SagaStep deleteTopicStep = new SagaStep("deleteTopicStep", () -> {
+            DeleteTopicCommand deleteTopicCommand = new DeleteTopicCommand(
+                    unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
+            commandGateway.send(deleteTopicCommand);
+        }, new ArrayList<>(Arrays.asList(getTopicStep)));
+
+        workflow.addStep(getTopicStep);
+        workflow.addStep(deleteTopicStep);
+    }
+
+    public TopicDto getTopic() {
+        return topic;
+    }
+}
