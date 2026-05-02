@@ -47,6 +47,13 @@ public abstract class Workflow {
         return this.executionPlan;
     }
 
+    public synchronized ExecutionPlan getOrCreateExecutionPlan() {
+        if (this.executionPlan == null) {
+            this.executionPlan = planOrder(this.stepsWithDependencies);
+        }
+        return this.executionPlan;
+    }
+
     public int getWorkflowTotalDelay() {
         return this.executionPlan.getTotalDelay();
     }

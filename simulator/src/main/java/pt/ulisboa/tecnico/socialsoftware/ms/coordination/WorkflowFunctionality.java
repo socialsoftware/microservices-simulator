@@ -47,4 +47,8 @@ public abstract class WorkflowFunctionality {
     public int getWorkflowTotalDelay() {
         return workflow.getWorkflowTotalDelay();
     }
+
+    public Workflow getWorkflow() {
+        return workflow;
+    }
 }
