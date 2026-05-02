@@ -25,6 +25,6 @@ class CreateUserTest extends QuizzesFullSpockTest {
         result.name == USER_NAME_1
         result.username == USER_USERNAME_1
         result.role == STUDENT_ROLE
-        result.active == false
+        result.active == true
     }
 }

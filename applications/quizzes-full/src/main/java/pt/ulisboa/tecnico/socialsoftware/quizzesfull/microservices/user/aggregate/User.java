@@ -47,7 +47,7 @@ public abstract class User extends Aggregate {
         setName(userDto.getName());
         setUsername(userDto.getUsername());
         this.role = UserRole.valueOf(userDto.getRole());
-        setActive(false);
+        setActive(true);
     }
 
     public User(User other) {

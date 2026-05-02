@@ -31,6 +31,6 @@ class UserTest extends QuizzesFullSpockTest {
         user.name == "John Doe"
         user.username == "johndoe"
         user.role.toString() == "STUDENT"
-        user.isActive() == false
+        user.isActive() == true
     }
 }

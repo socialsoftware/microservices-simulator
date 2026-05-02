@@ -41,6 +41,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.messagi
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.service.TopicService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.factories.SagasExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.repositories.ExecutionCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.functionalities.ExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.messaging.ExecutionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.service.ExecutionService
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -227,5 +230,21 @@ class BeanConfigurationSagas {
     @Bean
     ExecutionCustomRepositorySagas executionCustomRepositorySagas() {
         return new ExecutionCustomRepositorySagas()
+    }
+
+    // Execution — session 2.4.b
+    @Bean
+    ExecutionService executionService(SagaUnitOfWorkService unitOfWorkService, ExecutionCustomRepositorySagas executionRepository) {
+        return new ExecutionService(unitOfWorkService, executionRepository)
+    }
+
+    @Bean
+    ExecutionCommandHandler executionCommandHandler() {
+        return new ExecutionCommandHandler()
+    }
+
+    @Bean
+    ExecutionFunctionalities executionFunctionalities() {
+        return new ExecutionFunctionalities()
     }
 }

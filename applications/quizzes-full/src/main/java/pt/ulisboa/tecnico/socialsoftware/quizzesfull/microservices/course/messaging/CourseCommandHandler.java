@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.GetCourseBy
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.DecrementExecutionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.DecrementQuestionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.DeleteCourseCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.IncrementExecutionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.UpdateCourseCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.service.CourseService;
 
@@ -40,6 +41,10 @@ public class CourseCommandHandler extends CommandHandler {
             }
             case DeleteCourseCommand cmd -> {
                 courseService.deleteCourse(cmd.getCourseAggregateId(), cmd.getUnitOfWork());
+                yield null;
+            }
+            case IncrementExecutionCountCommand cmd -> {
+                courseService.incrementExecutionCount(cmd.getCourseAggregateId(), cmd.getUnitOfWork());
                 yield null;
             }
             case DecrementExecutionCountCommand cmd -> {

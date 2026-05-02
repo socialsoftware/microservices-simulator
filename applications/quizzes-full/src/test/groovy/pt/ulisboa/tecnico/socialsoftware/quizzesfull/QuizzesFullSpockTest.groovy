@@ -12,6 +12,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.servic
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.service.UserService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.functionalities.ExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.service.ExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.functionalities.TopicFunctionalities
 
@@ -49,6 +52,12 @@ class QuizzesFullSpockTest extends SpockTest {
     @Autowired(required = false)
     protected TopicFunctionalities topicFunctionalities
 
+    @Autowired(required = false)
+    protected ExecutionFunctionalities executionFunctionalities
+
+    @Autowired(required = false)
+    protected ExecutionService executionService
+
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
         def scriptDir = "groovy/" + this.class.simpleName
@@ -73,5 +82,9 @@ class QuizzesFullSpockTest extends SpockTest {
         TopicDto dto = new TopicDto()
         dto.name = name
         return topicFunctionalities.createTopic(courseId, dto)
+    }
+
+    ExecutionDto createExecution(Integer courseId, String acronym, String academicTerm) {
+        return executionFunctionalities.createExecution(acronym, academicTerm, courseId)
     }
 }

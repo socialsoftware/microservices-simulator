@@ -46,4 +46,10 @@ public final class QuizzesFullErrorMessage {
             "A deleted execution must have no enrolled students.";
     public static final String STUDENT_ALREADY_ENROLLED =
             "A student may only be enrolled in an execution once.";
+    public static final String INACTIVE_USER =
+            "User %d is not active and cannot be enrolled.";
+    public static final String NO_DUPLICATE_COURSE_EXECUTION =
+            "A course execution with acronym '%s' and academic term '%s' already exists.";
+    public static final String COURSE_EXECUTION_STUDENT_NOT_FOUND =
+            "Student with userId %d is not enrolled in execution %d.";
 }
