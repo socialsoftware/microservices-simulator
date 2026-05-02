@@ -40,4 +40,10 @@ public final class QuizzesFullErrorMessage {
 
     // Topic
     public static final String TOPIC_MISSING_NAME = "Topic name is required.";
+
+    // Execution
+    public static final String REMOVE_NO_STUDENTS =
+            "A deleted execution must have no enrolled students.";
+    public static final String STUDENT_ALREADY_ENROLLED =
+            "A student may only be enrolled in an execution once.";
 }
