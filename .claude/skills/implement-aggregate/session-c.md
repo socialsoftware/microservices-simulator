@@ -88,6 +88,7 @@ Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Fu
 > **Always required**, even if `{Aggregate}Functionalities.java` is not listed in the plan.md `2.{N}.c` file table (it may have been created in session `b` and therefore appears there instead). Read the file, append the method, update it.
 
 - **Append** one method per read functionality — do not rewrite the file
+- **Exception — stub upgrade:** If session `b` placed a direct-service call (e.g., `return {aggregate}Service.get{Aggregate}ById(...)`) in this coordinator as a temporary stub for test wiring, **replace the body** of that existing method with the full saga-based implementation. Do not append a duplicate method; the signature stays the same, only the body changes.
 - The method creates a `SagaUnitOfWork`, instantiates the `{Query}FunctionalitySagas` inline, calls `executeWorkflow`, and returns the DTO via `saga.get{Aggregate}Dto()`
 - Follow the same pattern as the write coordinator methods added in session `b`
 
