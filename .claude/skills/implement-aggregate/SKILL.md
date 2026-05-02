@@ -14,10 +14,6 @@ This skill drives one Phase 2 session at a time, advancing the plan.md job queue
 
 **Never read files under `applications/quizzes/` during implementation.** The docs and skills are the authoritative source. The reference app contains known bugs that the docs have already corrected; consulting it will reproduce those bugs in the target implementation.
 
-**Known examples of reference app bugs propagated to quizzes-full:**
-- `TopicCommandHandler` uses `@Service` instead of `@Component` — all handlers must use `@Component` per the skill; the reference is the only outlier.
-- `TopicService.deleteTopic` uses copy-on-write instead of in-place mutation — the correct delete pattern is load → mutate same instance → `registerChanged(same)`.
-
 **If the docs or skill don't cover something:** flag it explicitly in the Step 6 report and the retro. Do not silently fill the gap from the reference. Surfacing the gap is the correct behavior — it becomes a documentation improvement, not a hidden copy of a potentially buggy pattern.
 
 ---

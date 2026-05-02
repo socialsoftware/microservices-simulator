@@ -45,11 +45,12 @@ public class UserService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteUser(Integer userAggregateId, UnitOfWork unitOfWork) {
-        User user = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
-        user.setActive(false);
-        user.remove();
-        unitOfWorkService.registerChanged(user, unitOfWork);
-        unitOfWorkService.registerEvent(new DeleteUserEvent(user.getAggregateId()), unitOfWork);
+        User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
+        User newUser = userFactory.createUserCopy(oldUser);
+        newUser.setActive(false);
+        newUser.remove();
+        unitOfWorkService.registerChanged(newUser, unitOfWork);
+        unitOfWorkService.registerEvent(new DeleteUserEvent(newUser.getAggregateId()), unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

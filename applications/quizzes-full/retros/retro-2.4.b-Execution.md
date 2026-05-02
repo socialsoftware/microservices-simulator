@@ -114,7 +114,6 @@ List every file created or modified this session (absolute paths).
 |----------|------------|--------|
 | High | `.claude/skills/implement-aggregate/session-b.md` | Add to §Event classes: "Events must extend `pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event` and carry `@Entity` — they are JPA-persisted domain events. Do NOT implement `DomainEvent` interface." |
 | High | `docs/concepts/service.md` | Add note in §Copy-on-Write Rule: for aggregates whose `verifyInvariants()` checks `state==DELETED` (e.g., REMOVE_NO_STUDENTS), use copy-on-write even for soft-delete to prevent JPA auto-flush from hiding the aggregate during saga abort. |
-| High | `docs/concepts/aggregate.md` or new section | Document User.active lifecycle: created as true, set to false by deleteUser. Add this to the User aggregate section or as a general pattern for aggregate active/inactive fields. |
 | Medium | `.claude/skills/implement-aggregate/session-b.md` | Add `ExecutionFunctionalities.java` explicitly to plan.md file table for aggregates with write functionalities, as it is always needed as a Spring bean. |
 
 ---

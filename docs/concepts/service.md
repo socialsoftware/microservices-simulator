@@ -127,17 +127,18 @@ public void removeCourseExecution(Integer executionAggregateId, UnitOfWork unitO
 
 Never mutate the aggregate instance returned by `aggregateLoadAndRegisterRead`. Always create a new version via `factory.createXxxFromExisting(old)` and mutate that copy. The old version remains in the UoW read set for conflict detection; the new version is the write target.
 
-**Exception — soft-delete (`remove()`):** When a service method calls `aggregate.remove()` to transition the aggregate to a terminal deleted state, mutate the loaded aggregate in-place and register it directly:
+**Soft-delete (`remove()`) — use copy-on-write:** Even for soft-delete, always create a factory copy before calling `remove()`:
 
 ```java
-Course course = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
-course.remove();
-unitOfWorkService.registerChanged(course, unitOfWork);
+Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+Course newCourse = courseFactory.createCourseCopy(oldCourse);
+newCourse.remove();
+unitOfWorkService.registerChanged(newCourse, unitOfWork);
 ```
 
-No factory copy is needed. `remove()` is a terminal state transition; it does not interact with version-merge conflict detection.
+**Why copy-on-write is required here:** If you call `remove()` on the managed JPA entity returned by `aggregateLoadAndRegisterRead`, JPA marks that entity dirty immediately. Before the saga abort path can run its `findNonDeletedSagaAggregate` JPQL query, JPA may auto-flush the dirty state — setting the aggregate's state to `DELETED` in the DB. The abort query then finds nothing (it filters `state != DELETED`), causing the abort to fail silently. Copy-on-write keeps the original managed entity unmodified; only the new (unmanaged) copy carries the `DELETED` state, so the abort query always succeeds. This problem surfaces specifically when `verifyInvariants()` contains a rule that checks `state == DELETED` (e.g., `REMOVE_NO_STUDENTS`): the abort path re-loads the aggregate and calls `verifyInvariants`, which fires the check — but JPA's auto-flush has already written the `DELETED` state, so the invariant throws a `SimulatorException` instead of the expected application exception.
 
-> **Note:** Some reference implementations (e.g., the `quizzes` `UserService`) still create a factory copy before calling `remove()` for defensive consistency. Both are valid. For new aggregates in `quizzes-full`, follow the no-copy pattern shown above — the `CourseService` is the canonical precedent.
+> **Note:** The `quizzes` reference `CourseService` uses in-place mutation for soft-delete — this is a latent bug in the reference that has not manifested only because Course invariants happen not to be checked during its abort path. Do not follow that pattern.
 
 ---
 

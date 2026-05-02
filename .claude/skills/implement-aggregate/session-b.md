@@ -55,6 +55,7 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 - **P3 own-table uniqueness guards** (if listed in plan.md P3 rules): query the repository for duplicates before creating; throw `{AppClass}Exception` with the appropriate error message constant if found
 - **P3 DTO field checks** (if listed in plan.md cross-aggregate prerequisites): receive the saga-assembled DTO as a parameter; validate the field; throw `{AppClass}Exception` on violation
 - After validation: fetch the target aggregate via `{Aggregate}CustomRepositorySagas`, mutate its fields via setters, call `verifyInvariants()`, then `unitOfWork.registerChanged(aggregate)`
+- **Soft-delete** (`remove()`): use copy-on-write — load the aggregate, create a factory copy via `factory.create{Aggregate}Copy(old)`, call `copy.remove()`, then `registerChanged(copy)`. Never call `remove()` on the managed entity returned by `aggregateLoadAndRegisterRead`; doing so lets JPA auto-flush the deleted state before the saga abort query runs, making the aggregate invisible to the abort path.
 - **Event publishing**: for each event this aggregate publishes (see plan.md Events published), call `unitOfWork.registerEvent(new {Event}(...))` at the end of the relevant service method
 
 ### `{Aggregate}CommandHandler.java`
@@ -137,7 +138,7 @@ For each event listed in plan.md Events published that does not yet exist:
 
 Path: `{src}events/{Event}.java`
 
-- Plain Java class implementing the `DomainEvent` interface (from simulator core)
+- Extends `pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event` from simulator core — it is a JPA `@Entity` and must be annotated `@Entity`. Do **NOT** implement `DomainEvent` directly.
 - Fields: all payload fields needed by consumers (check aggregate-grouping §4 event table in domain spec for payload)
 - Constructor, getters
 

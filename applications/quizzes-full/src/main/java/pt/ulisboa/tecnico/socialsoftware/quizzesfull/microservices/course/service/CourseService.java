@@ -53,9 +53,10 @@ public class CourseService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteCourse(Integer courseAggregateId, UnitOfWork unitOfWork) {
-        Course course = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
-        course.remove();
-        unitOfWorkService.registerChanged(course, unitOfWork);
+        Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+        Course newCourse = courseFactory.createCourseCopy(oldCourse);
+        newCourse.remove();
+        unitOfWorkService.registerChanged(newCourse, unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
