@@ -39,10 +39,14 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.functionalities.TopicFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.messaging.TopicCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.service.TopicService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.factories.SagasExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.repositories.ExecutionCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.messaging.ExecutionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.notification.handling.ExecutionEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.notification.handling.handlers.ExecutionEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.service.ExecutionService
 
 @TestConfiguration
@@ -246,5 +250,21 @@ class BeanConfigurationSagas {
     @Bean
     ExecutionFunctionalities executionFunctionalities() {
         return new ExecutionFunctionalities()
+    }
+
+    // Execution — session 2.4.d
+    @Bean
+    ExecutionEventHandling executionEventHandling() {
+        return new ExecutionEventHandling()
+    }
+
+    @Bean
+    ExecutionEventHandler executionEventHandler(ExecutionRepository executionRepository) {
+        return new ExecutionEventHandler(executionRepository)
+    }
+
+    @Bean
+    ExecutionEventProcessing executionEventProcessing() {
+        return new ExecutionEventProcessing()
     }
 }

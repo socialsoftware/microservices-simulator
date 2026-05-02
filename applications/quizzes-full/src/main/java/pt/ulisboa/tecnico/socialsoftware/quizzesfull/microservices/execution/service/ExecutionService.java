@@ -140,6 +140,18 @@ public class ExecutionService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeStudentFromExecutionByEvent(Integer executionAggregateId, Integer userId, UnitOfWork unitOfWork) {
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
+                executionAggregateId, unitOfWork);
+        Execution newExecution = executionFactory.createExecutionCopy(oldExecution);
+        newExecution.getStudents().stream()
+                .filter(s -> s.getUserAggregateId().equals(userId))
+                .findFirst()
+                .ifPresent(newExecution::removeStudent);
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public ExecutionStudentDto getStudentByExecutionIdAndUserId(Integer executionAggregateId, Integer userId,
                                                                 UnitOfWork unitOfWork) {
         Execution execution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(

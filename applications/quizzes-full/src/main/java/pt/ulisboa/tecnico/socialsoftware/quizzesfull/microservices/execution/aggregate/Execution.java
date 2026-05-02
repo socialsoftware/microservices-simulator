@@ -5,6 +5,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.notification.subscribe.ExecutionSubscribesAnonymizeStudent;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.notification.subscribe.ExecutionSubscribesDeleteUser;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.notification.subscribe.ExecutionSubscribesUpdateStudentName;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -82,7 +85,13 @@ public abstract class Execution extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> subscriptions = new HashSet<>();
+        for (ExecutionStudent student : students) {
+            subscriptions.add(new ExecutionSubscribesDeleteUser(student));
+            subscriptions.add(new ExecutionSubscribesUpdateStudentName(student));
+            subscriptions.add(new ExecutionSubscribesAnonymizeStudent(student));
+        }
+        return subscriptions;
     }
 
     public String getAcronym() { return acronym; }

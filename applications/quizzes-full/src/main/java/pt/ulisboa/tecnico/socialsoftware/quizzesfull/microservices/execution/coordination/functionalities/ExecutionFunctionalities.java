@@ -96,6 +96,24 @@ public class ExecutionFunctionalities {
         return saga.getExecutionDto();
     }
 
+    public void removeStudentFromExecutionByEvent(Integer executionId, Integer userId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("removeStudentFromExecutionByEvent");
+        executionService.removeStudentFromExecutionByEvent(executionId, userId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void updateStudentNameByEvent(Integer executionId, Integer userId, String name) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateStudentNameByEvent");
+        executionService.updateStudentNameInExecution(executionId, userId, name, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void anonymizeStudentByEvent(Integer executionId, Integer userId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("anonymizeStudentByEvent");
+        executionService.anonymizeStudentInExecution(executionId, userId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
     public ExecutionStudentDto getStudentByExecutionIdAndUserId(Integer executionId, Integer userId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
