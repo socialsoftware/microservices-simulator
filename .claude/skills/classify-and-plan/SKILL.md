@@ -54,6 +54,7 @@ Before processing:
 
 4. **Verify required sections exist** in aggregate-grouping.md:
    - Section heading: `## §1 — Aggregate Grouping` (table)
+   - Section heading: `## §2 — Snapshots` (table)
    - Section heading: `## §3 — Upstream / Downstream Event Dependencies` (ASCII diagram)
    - Section heading: `## §4 — Events` (table)
    - Halt if any are missing: `"Aggregate grouping is missing required section {section}. Please check the file structure."`
@@ -169,6 +170,20 @@ Extract from the §4 table (columns: Event, Publisher, Trigger, Payload fields, 
 **Output:** List of event tuples `{event_name, publisher, trigger, payload_fields, consumers}`. Build maps:
 - `event_name → {publisher, trigger, payload_fields, consumers}`
 - `(publisher, consumer) pair → [event_names]` for quick lookup
+
+#### 3.d: Parse §2 — Snapshots (for Dto generation)
+
+From the §2 table (columns: Aggregate, Snapshots of, Fields cached, Updated on event):
+- `aggregate_name` = the aggregate that caches the snapshot
+- `snapshots_of` = the source entity name being cached (string, may contain `× N`)
+
+**Identify collection snapshots:** If the "Snapshots of" value contains `× N` (e.g., `User × N (students)`, `Topic × N`), it is a **collection snapshot** — stored as a `@OneToMany` set of owned entities. Extract the owned entity name as `{Aggregate}{SourceLabel}` (e.g., `ExecutionStudent`, `QuestionTopic`).
+
+**Identify single snapshots:** If `× N` is absent, it is a **single snapshot** — stored as a `@OneToOne` owned entity (e.g., `ExecutionCourse`). No separate Dto is needed for single snapshots.
+
+**Output:** For each aggregate, two lists:
+- `collection_snapshot_entities[agg]` → list of owned entity class names that need a `{OwnedEntity}Dto.java` (one per `× N` row)
+- `single_snapshot_entities[agg]` → list of owned entity class names that do NOT need a separate Dto
 
 ---
 
@@ -342,10 +357,10 @@ For each aggregate, generate the full file list using the template from `docs/wo
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per entity), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
+| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per entity), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
 ```
 
-> **Never omit from 2.N.a:** `{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` must always appear in the 2.N.a row — even when the aggregate has no cross-table lookups. Every owned entity class listed in the §1 "Entities contained" column must also appear individually (e.g., `aggregate/TopicCourse.java`, `aggregate/QuestionDetails.java`). Do not collapse them into a single placeholder and then drop them during substitution.
+> **Never omit from 2.N.a:** `{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` must always appear in the 2.N.a row — even when the aggregate has no cross-table lookups. Every owned entity class listed in the §1 "Entities contained" column must also appear individually (e.g., `aggregate/TopicCourse.java`, `aggregate/QuestionDetails.java`). Do not collapse them into a single placeholder and then drop them during substitution. Additionally, **every collection snapshot** (`× N` rows in §2 for this aggregate) requires its own `{OwnedEntity}Dto.java` — e.g., `ExecutionStudentDto.java` for `Execution | User × N (students)`, `QuestionTopicDto.java` for `Question | Topic × N`. Single snapshots (`×1`, no `× N` marker) do NOT need a separate Dto.
 
 **Session 2.N.b — Write Functionalities:**
 ```
@@ -374,7 +389,8 @@ For each aggregate, generate the full file list using the template from `docs/wo
 
 **Substitution rules:**
 - `{Aggregate}` → aggregate name (PascalCase, e.g., "Tournament")
-- `{OwnedEntity}` → entity name per owned entity in aggregate
+- `{OwnedEntity}` → entity name per owned entity in aggregate (from §1 "Entities contained")
+- `{CollectionSnapshotEntity}` → owned entity name for each `× N` snapshot in §2 (e.g., "ExecutionStudent", "QuestionTopic"); omit if no `× N` rows exist for this aggregate
 - `{Operation}` → write operation name (PascalCase, e.g., "AddParticipant")
 - `{Query}` → read operation name (PascalCase, e.g., "GetOpenTournaments")
 - `{Event}` → event name without "Event" suffix (e.g., "UpdateUserName" for "UpdateUserNameEvent")
