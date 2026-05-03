@@ -122,4 +122,26 @@ class ExecutionInterInvariantTest extends QuizzesFullSpockTest {
         student.userName == "ANONYMOUS"
         student.userUsername == "ANONYMOUS"
     }
+
+    def "execution ignores AnonymizeStudentEvent for unrelated user"() {
+        given:
+        def user1 = createUser(USER_NAME_1, USER_USERNAME_1, STUDENT_ROLE)
+        def user2 = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
+        def course = createCourse(COURSE_NAME_1, COURSE_TYPE_TECNICO)
+        def execution = createExecution(course.aggregateId, "EA001", "1st Semester 2024/25")
+        executionFunctionalities.enrollStudentInExecution(execution.aggregateId, user1.aggregateId)
+
+        when: 'an unrelated user is anonymized'
+        def uow = unitOfWorkService.createUnitOfWork("anonymizeUser")
+        userService.anonymizeUser(user2.aggregateId, uow)
+        unitOfWorkService.commit(uow)
+
+        and: 'execution polls for anonymize student events'
+        executionEventHandling.handleAnonymizeStudentEvents()
+
+        then: "user1's cached data in execution is unchanged"
+        def student = executionFunctionalities.getStudentByExecutionIdAndUserId(execution.aggregateId, user1.aggregateId)
+        student.userName == USER_NAME_1
+        student.userUsername == USER_USERNAME_1
+    }
 }

@@ -5,6 +5,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
@@ -59,15 +60,18 @@ class EnrollStudentInExecutionTest extends QuizzesFullSpockTest {
         thrown(QuizzesFullException)
     }
 
-    def "enrollStudentInExecution: INACTIVE_USER violation — inactive user cannot be enrolled"() {
-        given: 'user is deleted (inactive)'
+    def "enrollStudentInExecution: INACTIVE_USER — deleted user causes prerequisite failure"() {
+        given: 'user is deleted'
         userFunctionalities.deleteUser(userDto.aggregateId)
 
         when:
         executionFunctionalities.enrollStudentInExecution(executionDto.aggregateId, userDto.aggregateId)
 
         then:
-        thrown(Exception)
+        // deleteUser sets state=DELETED; GetUserByIdCommand cannot find a DELETED aggregate,
+        // so the saga's data-assembly step fails with SimulatorException (P4a prerequisite failure)
+        // before the INACTIVE_USER P3 guard in ExecutionService is reached
+        thrown(SimulatorException)
     }
 
     def "enrollStudentInExecution: getExecutionStep acquires IN_ENROLL_STUDENT semantic lock"() {

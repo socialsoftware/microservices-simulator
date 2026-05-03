@@ -123,10 +123,13 @@ Add the corresponding service helper if needed (pure mutation + `verifyInvariant
 Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
 
 - Extends `{AppClass}SpockTest`
-- One test per subscribed event type:
-  - **Field-update events** (e.g., `UpdateStudentNameEvent`): create the aggregate, publish the event, assert the cached field is updated on the aggregate
-  - **Deletion events** (e.g., `DeleteTopicEvent`): create the aggregate referencing the entity, publish the deletion event, assert the aggregate reflects the deletion (entity removed, aggregate marked invalid, etc.)
-  - **Invariant-violation tests**: if processing the event causes `verifyInvariants()` to throw, assert the exception is raised with the correct error message
+- **Two tests per subscribed event type:**
+  1. **Reflects event** — create the aggregate, publish the event for the enrolled/owned entity, call the polling method directly, assert the effect:
+     - **Field-update events** (e.g., `UpdateStudentNameEvent`): assert the cached field is updated on the aggregate
+     - **Deletion events** (e.g., `DeleteUserEvent`): assert the entity is removed from the aggregate
+  2. **Ignores unrelated** — enroll entity A, publish the same event for an unrelated entity B, call the polling method directly, assert entity A's cached data is unchanged
+- **Invariant-violation tests**: if processing the event causes `verifyInvariants()` to throw, assert the exception is raised with the correct error message
+- Both the "reflects" and "ignores unrelated" tests are required for every subscribed event type
 
 ### Error message constants
 

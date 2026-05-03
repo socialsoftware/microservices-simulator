@@ -142,9 +142,13 @@ Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}Dto.java`
 Path: `{test}sagas/{aggregate}/{Aggregate}Test.groovy`
 
 - Extends `{AppClass}SpockTest`
-- **One happy-path creation test only**: `def "create {Aggregate}"()` — instantiate `Saga{Aggregate}` directly and assert fields are set correctly
+- **One happy-path creation test**: `def "create {Aggregate}"()` — instantiate `Saga{Aggregate}` directly and assert fields are set correctly
 - **Do not** use `{AppClass}Functionalities.create{Aggregate}(...)` — write functionalities are not available until session b
-- **Do not** add invariant-violation cases — no service methods exist in session-a. P1 violation tests belong in session-b, triggered by service method calls that invoke `registerChanged → verifyInvariants` automatically. Never call `verifyInvariants()` directly.
+- **Invariant-violation tests** — for each P1 intra-invariant in `verifyInvariants()`, add one test that:
+  1. Instantiates `Saga{Aggregate}` directly and manipulates its state to violate the invariant (e.g., add owned entities via `addXxx()`, call `aggregate.remove()` to set state to DELETED, etc.)
+  2. Calls `verifyInvariants()` directly on the aggregate
+  3. Asserts `thrown({AppClass}Exception)`
+- These tests exercise the aggregate layer in isolation — no service or saga needed
 - If the aggregate constructor takes `{Aggregate}Dto` rather than raw args, build the DTO in the `given:` block before calling `new Saga{Aggregate}(id, dto)`
 
 ### Error message constants
