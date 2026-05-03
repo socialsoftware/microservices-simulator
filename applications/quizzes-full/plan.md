@@ -241,13 +241,13 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 
 | Session | Files |
 |---------|-------|
-| 2.5.a | `aggregate/Question.java`, `aggregate/Option.java`, `aggregate/sagas/SagaQuestion.java`, `aggregate/sagas/states/QuestionSagaState.java`, `aggregate/sagas/factories/SagasQuestionFactory.java`, `aggregate/sagas/repositories/QuestionCustomRepositorySagas.java`, `aggregate/QuestionDto.java`, `aggregate/QuestionRepository.java`, `sagas/question/QuestionTest.groovy`, `microservices/question/QuestionServiceApplication.java` |
+| 2.5.a | `aggregate/Question.java`, `aggregate/Option.java`, `aggregate/QuestionCourse.java`, `aggregate/QuestionTopic.java`, `aggregate/QuestionFactory.java`, `aggregate/QuestionCustomRepository.java`, `aggregate/sagas/SagaQuestion.java`, `aggregate/sagas/states/QuestionSagaState.java`, `aggregate/sagas/factories/SagasQuestionFactory.java`, `aggregate/sagas/repositories/QuestionCustomRepositorySagas.java`, `aggregate/QuestionDto.java`, `aggregate/QuestionRepository.java`, `sagas/question/QuestionTest.groovy`, `microservices/question/QuestionServiceApplication.java` |
 | 2.5.b | `service/QuestionService.java` (write methods), `messaging/QuestionCommandHandler.java`, `commands/question/CreateQuestionCommand.java`, `commands/question/UpdateQuestionCommand.java`, `commands/question/DeleteQuestionCommand.java`, `coordination/sagas/CreateQuestionFunctionalitySagas.java`, `coordination/sagas/UpdateQuestionFunctionalitySagas.java`, `coordination/sagas/DeleteQuestionFunctionalitySagas.java`, `sagas/coordination/question/CreateQuestionTest.groovy`, `sagas/coordination/question/UpdateQuestionTest.groovy`, `sagas/coordination/question/DeleteQuestionTest.groovy`, `microservices/question/coordination/webapi/QuestionController.java` |
 | 2.5.c | `service/QuestionService.java` (read methods appended), `commands/question/GetQuestionByIdCommand.java`, `commands/question/GetQuestionsByCourseExecutionIdCommand.java`, `coordination/sagas/GetQuestionByIdFunctionalitySagas.java`, `coordination/sagas/GetQuestionsByCourseExecutionIdFunctionalitySagas.java`, `sagas/coordination/question/GetQuestionByIdTest.groovy`, `sagas/coordination/question/GetQuestionsByCourseExecutionIdTest.groovy` |
 | 2.5.d | `notification/subscribe/QuestionSubscribesUpdateTopic.java`, `notification/subscribe/QuestionSubscribesDeleteTopic.java`, `notification/handling/QuestionEventHandling.java`, `notification/handling/handlers/QuestionEventHandler.java`, `coordination/eventProcessing/QuestionEventProcessing.java`, `sagas/question/QuestionInterInvariantTest.groovy` |
 
 **Checklist:**
-- [ ] 2.5.a — Domain layer
+- [x] 2.5.a — Domain layer
 - [ ] 2.5.b — Write functionalities
 - [ ] 2.5.c — Read functionalities
 - [ ] 2.5.d — Event wiring
