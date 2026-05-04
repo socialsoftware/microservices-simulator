@@ -9,6 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggr
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.DeleteQuestionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.GetQuestionByIdFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.GetQuestionsByCourseExecutionIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.UpdateQuestionFunctionalitySagas;
 
 import java.util.List;
@@ -47,5 +49,23 @@ public class QuestionFunctionalities {
         DeleteQuestionFunctionalitySagas saga = new DeleteQuestionFunctionalitySagas(
                 unitOfWorkService, questionId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
+    }
+
+    public QuestionDto getQuestionById(Integer questionId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        GetQuestionByIdFunctionalitySagas saga = new GetQuestionByIdFunctionalitySagas(
+                unitOfWorkService, questionId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getQuestionDto();
+    }
+
+    public List<QuestionDto> getQuestionsByCourseExecutionId(Integer executionId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        GetQuestionsByCourseExecutionIdFunctionalitySagas saga = new GetQuestionsByCourseExecutionIdFunctionalitySagas(
+                unitOfWorkService, executionId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getQuestions();
     }
 }

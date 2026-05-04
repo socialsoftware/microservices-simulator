@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.question.CreateQuestionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.question.DeleteQuestionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.question.GetQuestionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.question.GetQuestionsByCourseExecutionIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.question.UpdateQuestionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.service.QuestionService;
 
@@ -29,6 +30,8 @@ public class QuestionCommandHandler extends CommandHandler {
         return switch (command) {
             case GetQuestionByIdCommand cmd -> questionService.getQuestionById(
                     cmd.getQuestionAggregateId(), cmd.getUnitOfWork());
+            case GetQuestionsByCourseExecutionIdCommand cmd -> questionService.getQuestionsByCourseExecutionId(
+                    cmd.getCourseAggregateId(), cmd.getUnitOfWork());
             case CreateQuestionCommand cmd -> questionService.createQuestion(
                     cmd.getTitle(), cmd.getContent(), cmd.getQuestionCourse(),
                     cmd.getOptions(), cmd.getTopics(), cmd.getUnitOfWork());
