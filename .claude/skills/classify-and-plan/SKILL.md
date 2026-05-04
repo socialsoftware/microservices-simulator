@@ -357,10 +357,10 @@ For each aggregate, generate the full file list using the template from `docs/wo
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per entity), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
+| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{SingleSnapshotEntity}.java` (per single snapshot from §2), `aggregate/{CollectionSnapshotEntity}.java` (per collection × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
 ```
 
-> **Never omit from 2.N.a:** `{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` must always appear in the 2.N.a row — even when the aggregate has no cross-table lookups. Every owned entity class listed in the §1 "Entities contained" column must also appear individually (e.g., `aggregate/TopicCourse.java`, `aggregate/QuestionDetails.java`). Do not collapse them into a single placeholder and then drop them during substitution. Additionally, **every collection snapshot** (`× N` rows in §2 for this aggregate) requires its own `{OwnedEntity}Dto.java` — e.g., `ExecutionStudentDto.java` for `Execution | User × N (students)`, `QuestionTopicDto.java` for `Question | Topic × N`. Single snapshots (`×1`, no `× N` marker) do NOT need a separate Dto.
+> **Never omit from 2.N.a:** `{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` must always appear in the 2.N.a row — even when the aggregate has no cross-table lookups. Every owned entity class listed in the §1 "Entities contained" column must appear individually. **Every §2 snapshot entity — whether single or collection — also requires its own `{Entity}.java` entity class file**: e.g., `aggregate/QuestionCourse.java` for a single Course snapshot in Question, `aggregate/QuestionTopic.java` for a Topic × N snapshot in Question. Do not collapse any of these into a single placeholder and then drop them during substitution. Additionally, **every collection snapshot** (`× N` rows in §2) also requires a `{OwnedEntity}Dto.java` — e.g., `ExecutionStudentDto.java` for `Execution | User × N (students)`, `QuestionTopicDto.java` for `Question | Topic × N`. Single snapshots do NOT need a separate Dto.
 
 **Session 2.N.b — Write Functionalities:**
 ```
@@ -390,7 +390,8 @@ For each aggregate, generate the full file list using the template from `docs/wo
 **Substitution rules:**
 - `{Aggregate}` → aggregate name (PascalCase, e.g., "Tournament")
 - `{OwnedEntity}` → entity name per owned entity in aggregate (from §1 "Entities contained")
-- `{CollectionSnapshotEntity}` → owned entity name for each `× N` snapshot in §2 (e.g., "ExecutionStudent", "QuestionTopic"); omit if no `× N` rows exist for this aggregate
+- `{SingleSnapshotEntity}` → owned entity class name for each single (non-× N) §2 snapshot in this aggregate (e.g., "QuestionCourse", "ExecutionCourse"); omit if no single-snapshot rows exist for this aggregate
+- `{CollectionSnapshotEntity}` → owned entity class name for each `× N` snapshot in §2 (e.g., "ExecutionStudent", "QuestionTopic"); appears twice in 2.N.a — once for the entity class, once for the Dto; omit if no `× N` rows exist for this aggregate
 - `{Operation}` → write operation name (PascalCase, e.g., "AddParticipant")
 - `{Query}` → read operation name (PascalCase, e.g., "GetOpenTournaments")
 - `{Event}` → event name without "Event" suffix (e.g., "UpdateUserName" for "UpdateUserNameEvent")
