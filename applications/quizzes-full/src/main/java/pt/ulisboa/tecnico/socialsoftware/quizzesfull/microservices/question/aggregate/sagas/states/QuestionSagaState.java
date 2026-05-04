@@ -9,4 +9,16 @@ public enum QuestionSagaState implements SagaState {
             return "READ_QUESTION";
         }
     },
+    IN_UPDATE_QUESTION {
+        @Override
+        public String getStateName() {
+            return "IN_UPDATE_QUESTION";
+        }
+    },
+    IN_DELETE_QUESTION {
+        @Override
+        public String getStateName() {
+            return "IN_DELETE_QUESTION";
+        }
+    },
 }

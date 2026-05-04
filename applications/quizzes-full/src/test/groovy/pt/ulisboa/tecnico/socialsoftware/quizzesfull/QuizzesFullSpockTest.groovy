@@ -17,6 +17,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coo
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.service.ExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.functionalities.TopicFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Option
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.functionalities.QuestionFunctionalities
 
 class QuizzesFullSpockTest extends SpockTest {
 
@@ -58,6 +61,9 @@ class QuizzesFullSpockTest extends SpockTest {
     @Autowired(required = false)
     protected ExecutionService executionService
 
+    @Autowired(required = false)
+    protected QuestionFunctionalities questionFunctionalities
+
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
         def scriptDir = "groovy/" + this.class.simpleName
@@ -86,5 +92,13 @@ class QuizzesFullSpockTest extends SpockTest {
 
     ExecutionDto createExecution(Integer courseId, String acronym, String academicTerm) {
         return executionFunctionalities.createExecution(acronym, academicTerm, courseId)
+    }
+
+    QuestionDto createQuestion(Integer courseId, List<Integer> topicIds, String title, String content) {
+        Set<Option> options = new HashSet<>([
+            new Option(1, 1, "Option A", true),
+            new Option(2, 2, "Option B", false)
+        ])
+        return questionFunctionalities.createQuestion(title, content, courseId, topicIds, options)
     }
 }
