@@ -81,6 +81,12 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySag
 - No compensation needed (reads are non-mutating)
 - See `docs/concepts/sagas.md` — "Read Functionality Sagas" section for the full class template
 
+> **Two-step read saga:** If the read's filter parameter is a foreign aggregate's ID that must be resolved before the primary read command can be sent (e.g., `executionId → courseAggregateId`), use a two-step saga instead:
+> - Step 1: fetch the foreign aggregate DTO (plain read step, no compensation needed)
+> - Step 2: send the primary read command using the resolved field from step 1 (declare step 1 as a dependency)
+>
+> No compensation is needed on either step since reads are non-mutating. See `docs/concepts/sagas.md` — "Two-step read saga variant" section for the full class template.
+
 ### Read method appended to `{Aggregate}Functionalities.java`
 
 Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Functionalities.java`

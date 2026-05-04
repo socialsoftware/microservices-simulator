@@ -179,6 +179,69 @@ return saga.get{Aggregates}();
 
 Reference: `applications/quizzes-full/.../topic/coordination/sagas/GetTopicsByCourseIdFunctionalitySagas.java`
 
+### Two-step read saga variant
+
+When a read functionality's filter parameter is a foreign aggregate's ID (e.g., `executionId`) that must be resolved to the primary aggregate's actual filter field (e.g., `courseAggregateId`), use a two-step saga:
+
+- **Step 1** — fetch the foreign aggregate DTO (plain read, no lock, no compensation).
+- **Step 2** — send the primary read command with the resolved field; declare step 1 as a dependency.
+
+No compensation is needed on either step because reads are non-mutating.
+
+```java
+public class Get{Aggregates}By{ForeignField}FunctionalitySagas extends WorkflowFunctionality {
+    private List<{Aggregate}Dto> {aggregates};
+    private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
+
+    public Get{Aggregates}By{ForeignField}FunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+            Integer {foreignField}Id,
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
+        buildWorkflow({foreignField}Id, unitOfWork);
+    }
+
+    public void buildWorkflow(Integer {foreignField}Id, SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+        // Step 1: resolve the foreign aggregate to obtain the primary filter field
+        final Integer[] resolvedFilterId = new Integer[1];
+        SagaStep get{ForeignAggregate}Step = new SagaStep("get{ForeignAggregate}Step", () -> {
+            Get{ForeignAggregate}ByIdCommand cmd = new Get{ForeignAggregate}ByIdCommand(
+                    unitOfWork, ServiceMapping.{FOREIGN_AGGREGATE}.getServiceName(), {foreignField}Id);
+            {ForeignAggregate}Dto dto = ({ForeignAggregate}Dto) commandGateway.send(cmd);
+            resolvedFilterId[0] = dto.get{FilterField}();
+        });
+
+        // Step 2: fetch primary aggregates using the resolved filter
+        SagaStep get{Aggregates}Step = new SagaStep("get{Aggregates}Step", () -> {
+            Get{Aggregates}By{FilterField}Command cmd = new Get{Aggregates}By{FilterField}Command(
+                    unitOfWork, ServiceMapping.{AGGREGATE}.getServiceName(), resolvedFilterId[0]);
+            this.{aggregates} = (List<{Aggregate}Dto>) commandGateway.send(cmd);
+        }, new ArrayList<>(Arrays.asList(get{ForeignAggregate}Step)));
+
+        this.workflow.addStep(get{ForeignAggregate}Step);
+        this.workflow.addStep(get{Aggregates}Step);
+    }
+
+    public List<{Aggregate}Dto> get{Aggregates}() {
+        return {aggregates};
+    }
+}
+```
+
+The coordinator method returns the list via the getter (same as the list-return variant):
+
+```java
+Get{Aggregates}By{ForeignField}FunctionalitySagas saga = new Get{Aggregates}By{ForeignField}FunctionalitySagas(
+        unitOfWorkService, {foreignField}Id, unitOfWork, commandGateway);
+saga.executeWorkflow(unitOfWork);
+return saga.get{Aggregates}();
+```
+
+Reference: `applications/quizzes-full/.../question/coordination/sagas/GetQuestionsByCourseExecutionIdFunctionalitySagas.java`
+
 ## Write Workflow Structure
 
 ```java

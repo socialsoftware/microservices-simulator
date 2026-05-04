@@ -92,6 +92,8 @@ cases that validate semantic locks at each saga step boundary.
 
 **Upstream-invariant rule:** When a saga increments a counter cached on an upstream aggregate (e.g., `questionCount` on `Course`), verify that the upstream aggregate's invariants permit the new counter value *before the first test runs*. If not, add the necessary prerequisite state to the `setup:` block. For example, if `Course` enforces `executionCount > 0` when `questionCount > 0`, every `CreateQuestion` test must call `createExecution(courseId, ...)` in `setup:` first.
 
+> **Read tests are not exempt.** Even though a read functionality itself does not mutate state, its `setup:` block typically creates the aggregate under test (e.g., `createQuestion`), which may increment a counter on an upstream aggregate. That increment can trigger the upstream's invariants, so any prerequisite state must be established in `setup:` *before* the aggregate creation call, regardless of whether the test exercises a read or write functionality.
+
 **Template:**
 ```groovy
 @DataJpaTest
