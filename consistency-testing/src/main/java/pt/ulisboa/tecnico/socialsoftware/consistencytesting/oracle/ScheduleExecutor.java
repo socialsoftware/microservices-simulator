@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -16,19 +15,20 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 
-public class ScheduleExecutor {
-    private static final int MAX_STEPS_EXECUTED = 500;
+class ScheduleExecutor {
+    private static final int STEP_EXECUTION_LIMIT = 500;
 
     private final List<WorkflowFunctionality> functionalities;
-    private final Map<FlowStep, Set<FlowStep>> stepDependenciesMap = new HashMap<>();
+    private final StepDependencies stepDependencies = new StepDependencies();
     private final Map<FlowStep, WorkflowFunctionality> stepFunctionalityMap = new HashMap<>();
-    private final Set<FlowStep> executedSteps = new LinkedHashSet<>(); // LinkedHashSet keeps insertion order
+    private final List<FlowStep> schedule = new ArrayList<>();
+    private final Set<FlowStep> successfulSteps = new HashSet<>();
     private final Map<FlowStep, Exception> stepExceptionsMap = new HashMap<>();
     private final Set<TestStatus> detectedStatuses = new HashSet<>();
 
     public ScheduleExecutor(
             List<WorkflowFunctionality> functionalities,
-            Map<FlowStep, Set<FlowStep>> interDependencies) {
+            StepDependencies interDependencies) {
 
         this.functionalities = Objects.requireNonNull(List.copyOf(functionalities));
         initStepMaps(this.functionalities, interDependencies);
@@ -36,64 +36,60 @@ public class ScheduleExecutor {
 
     private void initStepMaps(
             List<WorkflowFunctionality> functionalities,
-            Map<FlowStep, Set<FlowStep>> interDependencies) {
+            StepDependencies interDependencies) {
 
         for (WorkflowFunctionality func : functionalities) {
             Workflow workflow = func.getWorkflow();
             Objects.requireNonNull(workflow);
 
             for (FlowStep step : WorkflowUtils.getWorkflowSteps(workflow)) {
-                stepDependenciesMap.put(step, new HashSet<>(step.getDependencies()));
+                stepDependencies.setStepDependencies(step, new HashSet<>(step.getDependencies()));
                 stepFunctionalityMap.put(step, func);
             }
         }
 
         // merge interleavings inter-functionality-dependencies into the existing
         // intra-functionality-dependencies (functionality's step sequence)
-        interDependencies.forEach((key, value) -> {
-            stepDependenciesMap.merge(key, new HashSet<>(value), (dependenciesSet, interDependenciesSet) -> {
-                dependenciesSet.addAll(interDependenciesSet);
-                return dependenciesSet;
-            });
-        });
+        stepDependencies.merge(interDependencies);
     }
 
     public TestResult execute() {
-        int stepsExecuted = 0;
-
-        while (stepsExecuted < MAX_STEPS_EXECUTED) {
+        while (schedule.size() < STEP_EXECUTION_LIMIT) {
             var stepOpt = getNextStep();
             if (stepOpt.isEmpty()) {
                 break;
             }
 
             FlowStep step = stepOpt.get();
+            if (schedule.contains(step)) {
+                throw new IllegalStateException("Step '" + step.getName() + "' cannot be executed more than once.");
+            }
+
+            schedule.add(step);
             try {
                 WorkflowFunctionality func = stepFunctionalityMap.get(step);
                 func.executeUntilStep(step.getName(), func.getWorkflow().getUnitOfWork());
+                successfulSteps.add(step);
             } catch (Exception e) {
                 stepExceptionsMap.put(step, e);
                 e.printStackTrace();
                 if (!(e instanceof SimulatorException)) {
                     detectedStatuses.add(TestStatus.INTERNAL_EXCEPTION);
-                    e.printStackTrace();
                     break; // defensive break to not continue to test on a broken app state
                 }
             }
 
-            executedSteps.add(step);
-            stepsExecuted++;
+            
         }
 
-        int totalSteps = stepDependenciesMap.size();
-        if (stepsExecuted >= MAX_STEPS_EXECUTED) {
-            detectedStatuses.add(TestStatus.RUN_LIMIT_EXCEEDED);
-        } else if (executedSteps.size() < totalSteps) {
+        int totalSteps = stepDependencies.getSteps().size();
+        if (schedule.size() >= STEP_EXECUTION_LIMIT) {
+            detectedStatuses.add(TestStatus.EXECUTION_LIMIT_EXCEEDED);
+        } else if (schedule.size() < totalSteps) {
             detectedStatuses.add(TestStatus.SCHEDULE_REJECTED);
         }
 
-        List<FlowStep> schedule = new ArrayList<>(executedSteps);
-        return new TestResult(schedule, stepExceptionsMap, detectedStatuses);
+        return new TestResult(functionalities, schedule, stepExceptionsMap, detectedStatuses);
     }
 
     private Optional<FlowStep> getNextStep() {
@@ -103,16 +99,16 @@ public class ScheduleExecutor {
 
     private List<FlowStep> getAvailableSteps() {
         // TODO this could be better optimized
-        return stepDependenciesMap.keySet().stream()
+        return stepDependencies.getSteps().stream()
                 .filter(this::stepCanExecute)
                 .toList();
     }
 
     private boolean stepCanExecute(FlowStep step) {
-        return !executedSteps.contains(step) && stepDependenciesSatisfied(step);
+        return !schedule.contains(step) && stepDependenciesSatisfied(step);
     }
 
     private boolean stepDependenciesSatisfied(FlowStep step) {
-        return executedSteps.containsAll(step.getDependencies());
+        return successfulSteps.containsAll(step.getDependencies());
     }
 }

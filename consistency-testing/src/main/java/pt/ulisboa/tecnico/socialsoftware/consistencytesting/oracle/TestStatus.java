@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 public enum TestStatus {
     INTERNAL_EXCEPTION,
-    RUN_LIMIT_EXCEEDED,
+    EXECUTION_LIMIT_EXCEEDED,
     SCHEDULE_REJECTED
 
     // TODO possible future status

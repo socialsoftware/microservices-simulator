@@ -49,7 +49,6 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <version>1.19.7</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- PostgreSQL component for Testcontainers -->
@@ -57,7 +56,6 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
             <version>1.19.7</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- Jspecify null-annotation -->

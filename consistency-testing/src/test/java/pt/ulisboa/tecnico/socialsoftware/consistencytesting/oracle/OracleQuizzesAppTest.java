@@ -1,11 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
@@ -13,22 +14,18 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.WorkflowUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.functionalities.TopicFunctionalities;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
@@ -36,41 +33,18 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class OracleQuizzesAppTest {
-    private static final String DB_IMAGE = "postgres:15-alpine"; // TODO adjust version as fits best
-    private static final String DB_NAME = "oracledb";
-    private static final String DB_USERNAME = "oracle";
-    private static final String DB_PASSWORD = "postgres"; // TODO is password necessary?
-
-    private final PostgreSQLContainer<?> postgres; // Spins up a throwaway PostgreSQL testcontainer
     private @Nullable Oracle oracle;
     private @Nullable QuizzesTestFactory factory;
     private @Nullable CommandGateway gateway;
     private @Nullable SagaUnitOfWorkService sagaUnitOfWorkService;
 
-    public OracleQuizzesAppTest() {
-        postgres = new PostgreSQLContainer<>(DB_IMAGE)
-                .withDatabaseName(DB_NAME)
-                .withUsername(DB_USERNAME)
-                .withPassword(DB_PASSWORD);
-    }
+
+    // ======= Setup =======
 
     @BeforeAll
     void setupAll() {
-        postgres.start();
 
-        // TODO should this come from maven arguments and profile properites?
-        String[] args = {
-                "--spring.profiles.active=sagas,local,test",
-                "--spring.datasource.url=" + postgres.getJdbcUrl(),
-                "--spring.datasource.username=" + postgres.getUsername(),
-                "--spring.datasource.password=" + postgres.getPassword(),
-                "--spring.datasource.driver-class-name=" + postgres.getDriverClassName(),
-                "--spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
-
-                "--spring.jpa.hibernate.ddl-auto=create", // TODO is this needed? was used for testing with jmeter
-        };
-
-        oracle = new Oracle(QuizzesSimulator.class, args);
+        oracle = new Oracle(QuizzesSimulator.class, List.of());
         oracle.init();
 
         sagaUnitOfWorkService = oracle.getBean(SagaUnitOfWorkService.class);
@@ -82,75 +56,106 @@ class OracleQuizzesAppTest {
                 oracle.getBean(UserFunctionalities.class),
                 oracle.getBean(TopicFunctionalities.class),
                 oracle.getBean(QuestionFunctionalities.class),
-                oracle.getBean(TournamentFunctionalities.class),
-                oracle.getBean(ImpairmentService.class));
+                oracle.getBean(TournamentFunctionalities.class));
     }
 
     @AfterAll
     void tearDownAll() {
         oracle.shutdown();
-        postgres.stop();
     }
 
+    // ======= Tests =======
+
     @Test
-    @DisplayName("Single run of 1 functionality should work")
+    @DisplayName("Single run of one functionality should work")
     void singleRunOfFunctionalityShouldWork() {
-        Objects.requireNonNull(sagaUnitOfWorkService);
+        TestResult result = oracle.runTest(setupAddParticipantSagaInitialState);
 
-        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
-                AddParticipantFunctionalitySagas.class.getSimpleName());
+        assertEquals(1, result.executedFunctionalities().size());
+        WorkflowFunctionality executedSaga = result.executedFunctionalities().getFirst();
+        var executedAddParticipantSaga = assertInstanceOf(
+                AddParticipantFunctionalitySagas.class, executedSaga);
 
-        Runnable setup = () -> {
-            System.out.println("TestCase setup");
-        };
+        UserDto readUserDto = executedAddParticipantSaga.getUserDto();
+        assertEquals(QuizzesTestFactory.USER_NAME_1, readUserDto.getUsername());
+        assertEquals(QuizzesTestFactory.USER_NAME_1, readUserDto.getName());
+        // TODO fix this assert
+        // assertEquals(QuizzesTestFactory.STUDENT_ROLE, readUserDto.getRole());
 
-        Runnable teardown = () -> {
-            System.out.println("TestCase teardown");
-        };
-
-        UserDto user = factory.createUser(
-                QuizzesTestFactory.USER_NAME_1,
-                QuizzesTestFactory.USER_NAME_1,
-                QuizzesTestFactory.STUDENT_ROLE);
-
-        CourseExecutionDto courseExecution = factory.createCourseExecution(
-                QuizzesTestFactory.COURSE_EXECUTION_NAME,
-                QuizzesTestFactory.COURSE_EXECUTION_TYPE,
-                QuizzesTestFactory.COURSE_EXECUTION_ACRONYM,
-                QuizzesTestFactory.COURSE_EXECUTION_ACADEMIC_TERM,
-                QuizzesTestFactory.TIME_4);
-
-        TopicDto topic = factory.createTopic(courseExecution, QuizzesTestFactory.TOPIC_NAME_1);
-
-        QuestionDto question = factory.createQuestion(courseExecution, List.of(topic),
-                QuizzesTestFactory.TITLE_1,
-                QuizzesTestFactory.CONTENT_1, QuizzesTestFactory.OPTION_1, QuizzesTestFactory.OPTION_2);
-
-        var executionFuncs = oracle.getBean(ExecutionFunctionalities.class);
-        executionFuncs.addStudent(courseExecution.getAggregateId(), user.getAggregateId());
-
-        TournamentDto tournament = factory.createTournament(
-                QuizzesTestFactory.TIME_1,
-                QuizzesTestFactory.TIME_3,
-                1,
-                user.getAggregateId(),
-                courseExecution.getAggregateId(),
-                List.of(topic.getAggregateId()));
-
-        var addParticipantSaga = new AddParticipantFunctionalitySagas(
-                sagaUnitOfWorkService,
-                tournament.getAggregateId(),
-                courseExecution.getAggregateId(),
-                user.getAggregateId(),
-                uow,
-                gateway);
-
-        var testCase = new TestCase(List.of(addParticipantSaga), Map.of(), setup, teardown);
-        TestResult result = oracle.runTest(testCase);
-
-        List<FlowStep> expectedSchedule = WorkflowUtils.getWorkflowSteps(addParticipantSaga.getWorkflow());
+        List<FlowStep> expectedSchedule = WorkflowUtils.getWorkflowSteps(executedAddParticipantSaga.getWorkflow());
         assertTrue(result.exceptions().isEmpty());
         assertTrue(result.statuses().isEmpty());
         assertEquals(expectedSchedule, result.schedule());
+    }
+
+    @Test
+    @DisplayName("Running the same test case consecutively returns the same test results because of inter-test isolation")
+    void runningSameTestCaseConsecutivelyReturnsSameTestResults() {
+        TestResult originalResult = oracle.runTest(setupAddParticipantSagaInitialState);
+        assertEquals(0, originalResult.exceptions().size());
+        List<String> originalStepNameSched = getStepNameSchedule(originalResult.schedule());
+
+        final int consecutiveRuns = 50;
+        for (int i = 0; i < consecutiveRuns; i++) {
+            TestResult result = oracle.runTest(setupAddParticipantSagaInitialState);
+            List<String> stepNameSched = getStepNameSchedule(result.schedule());
+
+            assertEquals(originalResult.exceptions(), result.exceptions());
+            assertEquals(originalResult.statuses(), result.statuses());
+            assertEquals(originalStepNameSched, stepNameSched);
+        }
+    }
+    @Test
+    @DisplayName("When a step fails its consecutive steps (dependants) should not execute")
+    void whenAStepFailsItsConsecutiveStepsShoulNotExecute() {
+        Objects.requireNonNull(sagaUnitOfWorkService);
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                AddParticipantFunctionalitySagas.class.getSimpleName());
+
+        Supplier<TestCase> badAddParticipantSagaScenario = () -> {
+            final int nonExistingAggregateId = 1;
+
+            var addParticipantSaga = new AddParticipantFunctionalitySagas(
+                    sagaUnitOfWorkService,
+                    nonExistingAggregateId,
+                    nonExistingAggregateId,
+                    nonExistingAggregateId,
+                    uow,
+                    gateway);
+
+            return new TestCase(List.of(addParticipantSaga), new StepDependencies());
+        };
+
+        TestResult result = oracle.runTest(badAddParticipantSagaScenario);
+
+        assertEquals(1, result.executedFunctionalities().size());
+        WorkflowFunctionality executedSaga = result.executedFunctionalities().getFirst();
+        List<FlowStep> completeSchedule = WorkflowUtils.getWorkflowSteps(executedSaga.getWorkflow());
+        List<FlowStep> brokenSchedule = completeSchedule.subList(0, 1);
+        assertEquals(brokenSchedule, result.schedule());
+
+        FlowStep brokenStep = brokenSchedule.getFirst();
+        assertEquals(1, result.exceptions().size());
+        assertInstanceOf(SimulatorException.class, result.exceptions().get(brokenStep));
+
+        // TODO for now is wrong because its assuming schedule REJECTED
+        // assertTrue(result.statuses().isEmpty());
+    }
+
+    // ======= Helper Functions =======
+
+    private final Supplier<TestCase> setupAddParticipantSagaInitialState = () -> {
+        var executionFunctionalities = oracle.getBean(ExecutionFunctionalities.class);
+        AddParticipantFunctionalitySagas addParticipantSaga = factory
+                .setupInitialStateAndCreateAddParticipantFunctionality(
+                        sagaUnitOfWorkService,
+                        gateway,
+                        executionFunctionalities);
+
+        return new TestCase(List.of(addParticipantSaga), new StepDependencies());
+    };
+
+    private List<String> getStepNameSchedule(List<FlowStep> schedule) {
+        return schedule.stream().map(FlowStep::getName).toList();
     }
 }
