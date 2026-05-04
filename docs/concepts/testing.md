@@ -90,6 +90,8 @@ cases that validate semantic locks at each saga step boundary.
 - Use `executeUntilStep("stepName", uow)` to pause before the named step, then
   `resumeWorkflow(uow)` to continue after injecting the conflict.
 
+**Upstream-invariant rule:** When a saga increments a counter cached on an upstream aggregate (e.g., `questionCount` on `Course`), verify that the upstream aggregate's invariants permit the new counter value *before the first test runs*. If not, add the necessary prerequisite state to the `setup:` block. For example, if `Course` enforces `executionCount > 0` when `questionCount > 0`, every `CreateQuestion` test must call `createExecution(courseId, ...)` in `setup:` first.
+
 **Template:**
 ```groovy
 @DataJpaTest
