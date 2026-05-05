@@ -360,15 +360,14 @@ scenario mapping is in [Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2
 
 ## Publications
 
-* "[A Domain-Driven Design Simulator for Business Logic-Rich Microservice Systems]
-  (https://doi.org/10.48550/arXiv.2605.01159),"
-  D. P. Pereira and A. R. Silva,
+* "[A Domain-Driven Design Simulator for Business Logic-Rich Microservice Systems](https://doi.org/10.48550/arXiv.2605.01159),"
+  Daniel da Palma Pereira and António Rito Silva,
   *arXiv*, 2026.
-* "[Microservices simulator: An object-oriented framework for transactional causal consistency](https://www.sciencedirect.com/science/article/pii/S0167642324001047),"
-  P. Pereira and A. R. Silva,
+* "[Microservices simulator: An object-oriented framework for transactional causal consistency](https://doi.org/10.1016/j.scico.2024.103181),"
+  Pedro Pereira and António Rito Silva,
   *Science of Computer Programming*, 2025.
 * "[Transactional Causal Consistent Microservices Simulator](https://doi.org/10.1007/978-3-031-35260-7_4),"
-  D. Pereira and A. R. Silva, 
+  Pedro Pereira and António Rito Silva, 
   *Distributed Applications and Interoperable Systems (DAIS)*, 2023.
 
 
