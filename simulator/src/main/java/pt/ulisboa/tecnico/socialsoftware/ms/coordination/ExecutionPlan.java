@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentHandler;
-import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -13,8 +11,6 @@ public class ExecutionPlan {
     private HashMap<FlowStep, ArrayList<FlowStep>> dependencies;
     private HashMap<FlowStep, Boolean> executedSteps = new HashMap<>();
     private HashMap<FlowStep, CompletableFuture<Void>> stepFutures = new HashMap<>();
-    private int totalDelay;
-    private WorkflowFunctionality functionality;
     private static final Logger logger = LoggerFactory.getLogger(ExecutionPlan.class);
 
     public ExecutionPlan(ArrayList<FlowStep> plan, HashMap<FlowStep, ArrayList<FlowStep>> dependencies,
@@ -24,7 +20,6 @@ public class ExecutionPlan {
         for (FlowStep step : plan) {
             executedSteps.put(step, false);
         }
-        this.functionality = functionality;
     }
 
     public ArrayList<FlowStep> getPlan() {
@@ -33,14 +28,6 @@ public class ExecutionPlan {
 
     public void setPlan(ArrayList<FlowStep> plan) {
         this.plan = plan;
-    }
-
-    public int getTotalDelay() {
-        return this.totalDelay;
-    }
-
-    public void addDelay(int val) {
-        this.totalDelay += val;
     }
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
@@ -108,24 +95,10 @@ public class ExecutionPlan {
         final String stepName = step.getName();
         final String funcName = unitOfWork.getFunctionalityName();
 
-        ImpairmentHandler.getInstance().injectFault(functionality, step);
-
         logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-        TraceManager.getInstance().startStepSpan(funcName, stepName);
-
-        int delayBefore = ImpairmentHandler.getInstance().injectDelayBefore(functionality,
-                unitOfWork.getFunctionalityName(), step);
-        addDelay(delayBefore);
-
         CompletableFuture<Void> stepFuture = step.execute(unitOfWork);
+        logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
 
-        return stepFuture.whenComplete((ignored, throwable) -> {
-            int delayAfter = ImpairmentHandler.getInstance().injectDelayAfter(functionality,
-                    unitOfWork.getFunctionalityName(), step);
-            addDelay(delayAfter);
-
-            TraceManager.getInstance().endStepSpan(funcName, stepName);
-            logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-        });
+        return stepFuture;
     }
 }

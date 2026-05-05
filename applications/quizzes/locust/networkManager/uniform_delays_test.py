@@ -19,7 +19,7 @@ class NetworkAutomationUser(HttpUser):
             "Delays": {
                 "USE_CSV_INJECTION": False,
                 "USE_RANDOM_DISTRIBUTIONS": True,
-                "intraservice": {"uni": [0, 10]},
+                "intraservice": {"uni": [1, 10]},
                 "intranode":    {"uni": [50, 100]},
                 "internode":    {"uni": [100, 200]}
             }
@@ -38,11 +38,11 @@ class NetworkAutomationUser(HttpUser):
             report = NetworkValidatorUtils.get_report()
             logging.info("### RESULTS ###")
             NetworkValidatorUtils.assert_range(
-                "Intraservice", NetworkValidatorUtils.get_delays(report, "createUserStep"), 0, 10)
+                "Intraservice", NetworkValidatorUtils.get_delays(report, "CreateUserCommand"), 0, 10)
             NetworkValidatorUtils.assert_range("Intranode", NetworkValidatorUtils.get_delays(
-                report, "generateQuizStep"), 50, 100)
+                report, "GenerateQuizCommand"), 50, 100)
             NetworkValidatorUtils.assert_range("Internode", NetworkValidatorUtils.get_delays(
-                report, "getCourseExecutionStep"), 100, 200)
+                report, "GetCourseExecutionByIdCommand"), 100, 200)
             SimulatorAdminUtils.stop_and_cleanup()
 
             logging.info("############# TEST END #############")

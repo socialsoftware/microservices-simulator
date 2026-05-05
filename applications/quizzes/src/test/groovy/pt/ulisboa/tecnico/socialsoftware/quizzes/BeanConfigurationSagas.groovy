@@ -7,10 +7,12 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
+import pt.ulisboa.tecnico.socialsoftware.ms.impairment.NetworkManager
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
@@ -77,6 +79,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.service.User
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
+@Import(NetworkManager)
 class BeanConfigurationSagas {
     @Bean
     AggregateIdGeneratorService aggregateIdGeneratorService() {

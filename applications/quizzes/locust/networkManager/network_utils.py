@@ -20,10 +20,10 @@ class NetworkValidatorUtils:
             return ""
 
     @staticmethod
-    def get_delays(report, step_name):
-        """Extracts delayBefore values for a specific step in the report"""
-        # Java map format: stepName=[fault, delayBefore, delayAfter]
-        pattern = rf"{step_name}=\[(\d+),\s*(\d+),\s*(\d+)\]"
+    def get_delays(report, command_name):
+        """Extracts delayBefore values for a specific command in the report"""
+        # Format: Impairing <funcName>\n  >> on command <command> (<src>-><trg>): Fault [X] | Before [Yms] | After [Zms]
+        pattern = rf"Impairing\s+\w+\n\s*>>\s*on\s+command\s+{command_name}\s+\([^)]+\):\s+Fault\s+\[(\d+)\]\s+\|\s+Before\s+\[(\d+)ms\]\s+\|\s+After\s+\[(\d+)ms\]"
         matches = re.findall(pattern, report)
         return [int(m[1]) for m in matches]
 
@@ -113,7 +113,8 @@ class QuizzesInteractionUtils:
         topic_data = r.json()
 
         # 3. Questions (Need at least 2 for the tournament)
-        QuizzesInteractionUtils.create_questions(exec_data["courseAggregateId"], topic_data)
+        QuizzesInteractionUtils.create_questions(
+            exec_data["courseAggregateId"], topic_data)
 
         return {
             "execution_id": exec_data["aggregateId"],

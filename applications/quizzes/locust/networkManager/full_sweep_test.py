@@ -38,15 +38,17 @@ class FullSweepNetworkUser(HttpUser):
 
     @staticmethod
     def validate_full_sweep(report):
-        if not report or "Functionality" not in report:
+        if not report or "on command" not in report:
             logging.error("### >> FAIL: Report is empty or invalid.")
             return False
 
         errors = []
-        zero_delays = re.findall(r"(\w+)=\[0,\s*0,\s*0\]", report)
+        # Check for commands with all zero delays: Fault [0] | Before [0ms] | After [0ms]
+        zero_delays = re.findall(r"Impairing\s+\w+\n\s*>>\s*on\s+command\s+(\w+)\s+\([^)]+\):\s+Fault\s+\[0\]\s+\|\s+Before\s+\[0ms\]\s+\|\s+After\s+\[0ms\]", report)
         if zero_delays:
-            errors.append(f"Steps with zero delay: {set(zero_delays)}")
+            errors.append(f"Commands with zero delay: {set(zero_delays)}")
 
+        # Look for non-defined steps (steps that should have been called but weren't)
         non_defined = re.findall(r"Non Defined Steps: \[(.+)\]", report)
         for nd in non_defined:
             if nd.strip():

@@ -38,11 +38,11 @@ class NetworkExponentialUser(HttpUser):
             report = NetworkValidatorUtils.get_report()
             logging.info("### RESULTS ###")
             NetworkValidatorUtils.assert_statistical_range(
-                "Intraservice", NetworkValidatorUtils.get_delays(report, "createUserStep"), 3)
+                "Intraservice", NetworkValidatorUtils.get_delays(report, "CreateUserCommand"), 3)
             NetworkValidatorUtils.assert_statistical_range(
-                "Intranode", NetworkValidatorUtils.get_delays(report, "generateQuizStep"), 55)
+                "Intranode", NetworkValidatorUtils.get_delays(report, "GenerateQuizCommand"), 55)
             NetworkValidatorUtils.assert_statistical_range(
-                "Internode", NetworkValidatorUtils.get_delays(report, "getCourseExecutionStep"), 1100)
+                "Internode", NetworkValidatorUtils.get_delays(report, "GetCourseExecutionByIdCommand"), 1100)
             SimulatorAdminUtils.stop_and_cleanup()
 
             logging.info("############# TEST END #############")

@@ -47,10 +47,6 @@ public abstract class Workflow {
         return this.executionPlan;
     }
 
-    public int getWorkflowTotalDelay() {
-        return this.executionPlan.getTotalDelay();
-    }
-
     public void addStep(FlowStep step){
         this.stepsWithDependencies.put(step, step.getDependencies());
         stepNameMap.put(step.getName(), step);
