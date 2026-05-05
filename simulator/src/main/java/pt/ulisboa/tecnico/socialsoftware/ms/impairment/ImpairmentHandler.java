@@ -73,78 +73,23 @@ public class ImpairmentHandler {
         directory = dir;
     }
 
-    public void reset() {
-        NetworkManager.getInstance().reset();
-    }
-
     // ********************************
     // * --- Behaviour Management --- *
     // ********************************
 
     private Map<String, List<Integer>> fetchBehaviour(WorkflowFunctionality functionality, FlowStep step) {
-        Map<String, List<Integer>> map = new LinkedHashMap<>();
         String funcName = functionality.getClass().getSimpleName();
 
-        boolean useDistribution = NetworkManager.getInstance().isUseRandomDistributions();
-        boolean useCSV = NetworkManager.getInstance().isUseCSVInjection();
+        Map<String, List<Integer>> loadedBehaviour = behaviourCache.get(functionality);
+        boolean behaviourIsNew = (loadedBehaviour == null);
 
-        if (useDistribution) {
-            // Extract source service from functionality package
-            String packageName = functionality.getClass().getPackageName();
-            String[] parts = packageName.split("\\.");
-            String sourceService = (parts.length >= 7) ? parts[6] : "unknown";
-
-            String targetService = findTargetService(step.getName());
-
-            int delayBefore = NetworkManager.getInstance().generateDelay(sourceService,
-                    targetService);
-            int delayAfter = NetworkManager.getInstance().generateDelay(sourceService,
-                    targetService);
-            int fault = NetworkManager.getInstance().generateFault();
-
-            map.put(step.getName(), Arrays.asList(fault, delayBefore, delayAfter));
+        if (behaviourIsNew) {
+            loadedBehaviour = loadFunctionalityBehaviour(funcName);
+            behaviourCache.put(functionality, loadedBehaviour);
+            System.out.println("Cache size: " + behaviourCache.size());
         }
 
-        if (useCSV) {
-            Map<String, List<Integer>> loadedBehaviour = behaviourCache.get(functionality);
-            boolean behaviourIsNew = (loadedBehaviour == null);
-
-            if (behaviourIsNew) {
-                loadedBehaviour = loadFunctionalityBehaviour(funcName);
-                behaviourCache.put(functionality, loadedBehaviour);
-                System.out.println("Cache size: " + behaviourCache.size());
-            }
-            map.putAll(loadedBehaviour);
-        }
-
-        return map;
-    }
-
-    private String findTargetService(String stepName) {
-        String lowerStepName = stepName.toLowerCase();
-        try {
-            // Iterate through ServiceMapping using Java Reflection
-            Class<?> serviceMappingClass = Class.forName("pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping");
-            Object[] constants = serviceMappingClass.getEnumConstants();
-            for (Object constant : constants) {
-                String serviceName = (String) serviceMappingClass.getMethod("getServiceName").invoke(constant);
-                if (lowerStepName.contains(serviceName.toLowerCase())) {
-                    return serviceName;
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Reflection failed on ServiceMapping: " + e.getMessage());
-        }
-
-        // Edge cases where service name is not explicitly in the step name
-        if (lowerStepName.contains("creator") || lowerStepName.contains("student")
-                || lowerStepName.contains("enroll")) {
-            return "execution";
-        } else if (lowerStepName.contains("participant")) {
-            return "tournament";
-        }
-
-        return null;
+        return loadedBehaviour;
     }
 
     private Map<String, List<Integer>> loadFunctionalityBehaviour(String funcName) {
@@ -245,7 +190,7 @@ public class ImpairmentHandler {
         String stepName = step.getName();
 
         if (behaviour.containsKey(stepName)) {
-            TraceManager.getInstance().setSpanAttribute(funcName, "hasBehaviour", "true");
+            TraceManager.getInstance().setSpanAttribute(funcName, "hasBehaviour", true);
             int faultValue = behaviour.get(stepName).get(0);
 
             Boolean faultSpecified = (faultValue == 1);
@@ -255,7 +200,7 @@ public class ImpairmentHandler {
                 throw new SimulatorException("Fault on " + stepName);
             }
         } else {
-            TraceManager.getInstance().setSpanAttribute(funcName, "hasBehaviour", "false");
+            TraceManager.getInstance().setSpanAttribute(funcName, "hasBehaviour", false);
         }
     }
 
@@ -264,13 +209,13 @@ public class ImpairmentHandler {
         String stepName = step.getName();
 
         if (behaviour.containsKey(stepName)) {
-            TraceManager.getInstance().setSpanAttribute(spanName, "hasBehaviour", "true");
+            TraceManager.getInstance().setSpanAttribute(spanName, "hasBehaviour", true);
             int delayBeforeValue = behaviour.get(stepName).get(1);
             delay(spanName, stepName, delayBeforeValue, true);
             return delayBeforeValue;
         }
 
-        TraceManager.getInstance().setSpanAttribute(spanName, "hasBehaviour", "false");
+        TraceManager.getInstance().setSpanAttribute(spanName, "hasBehaviour", false);
         return 0;
     }
 

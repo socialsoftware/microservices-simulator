@@ -45,6 +45,7 @@ jmeter-results/
 
 **/BehaviourReport.txt
 **/CapacityReport.txt
+**/NetworkReport.txt
 .vscode/*
 
 **/logs/

@@ -14,10 +14,10 @@ import java.io.File;
 @RestController
 public class ImpairmentController {
     private static final String mavenBaseDir = System.getProperty("maven.basedir", new File(".").getAbsolutePath());
-
     @Autowired
     private ImpairmentService impairmentService;
 
+    // ! TODO - Remove -> Remove on admin controller
     @PostMapping("/behaviour/load")
     public String load(@RequestParam String dir) {
         System.out.println("Behaviour load started");
@@ -28,7 +28,6 @@ public class ImpairmentController {
 
     @GetMapping("/behaviour/reset")
     public String reset() {
-        System.out.println("Behaviour reset started");
         impairmentService.reset();
         return "OK";
     }
@@ -49,7 +48,7 @@ public class ImpairmentController {
 
     @PostMapping(value = "/behaviour/inject")
     public String injectPlacement(@RequestBody JsonNode json) {
-        impairmentService.injectPlacement(json);
+        impairmentService.injectPlacement(json.toString());
         return "OK";
     }
 }

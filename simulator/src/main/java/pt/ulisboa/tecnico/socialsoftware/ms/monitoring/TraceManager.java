@@ -32,7 +32,7 @@ public class TraceManager {
     private final Tracer masterRootTracer;
     private final SdkTracerProvider masterRootTracerProvider;
     private final Map<String, Span> functionalitySpans = new ConcurrentHashMap<>();
-    private final Map<String, Span> stepSpans = new ConcurrentHashMap<>();
+    private final Map<String, Span> commandSpans = new ConcurrentHashMap<>();
     private final Map<String, AtomicInteger> functionalityCounters = new ConcurrentHashMap<>();
     private final ThreadLocal<Map<String, Deque<String>>> threadInvocations = ThreadLocal.withInitial(HashMap::new);
 
@@ -150,7 +150,7 @@ public class TraceManager {
             threadInvocations.get().clear();
             functionalityCounters.clear();
             functionalitySpans.clear();
-            stepSpans.clear();
+            commandSpans.clear();
         } else {
             throw new IllegalStateException("Root span has not been started");
         }
@@ -177,6 +177,7 @@ public class TraceManager {
 
         span.setAttribute("func.name", invocationKey);
         span.setAttribute("functionality", func);
+        span.setAttribute("isImpaired", false); // defaut behaviour is not being impaired
 
         functionalitySpans.put(invocationKey, span);
         threadInvocations.get().computeIfAbsent(func, k -> new ArrayDeque<>()).push(invocationKey);
@@ -192,7 +193,7 @@ public class TraceManager {
         if (invocationKey == null)
             return;
 
-        forceEndAllActiveStepsSpans(invocationKey);
+        forceEndAllActiveCommandsSpans(invocationKey);
 
         functionalitySpans.computeIfPresent(invocationKey, (f, span) -> {
             span.end();
@@ -242,7 +243,7 @@ public class TraceManager {
         if (invocationKey == null)
             return;
 
-        forceEndAllActiveStepsSpans(invocationKey);
+        forceEndAllActiveCommandsSpans(invocationKey);
 
         functionalitySpans.computeIfPresent(invocationKey, (f, span) -> {
             span.end();
@@ -250,18 +251,18 @@ public class TraceManager {
         });
     }
 
-    // --- Step Span Management ---
-    public Span getStepSpan(String func, String stepName) {
+    // --- Command Span Management ---
+    public Span getCommandSpan(String func, String commandName) {
         Deque<String> stack = threadInvocations.get().get(func);
         if (stack == null || stack.isEmpty()) {
             return null;
         }
         String firstInvocationKey = stack.peek();
-        String key = key(firstInvocationKey, stepName);
-        return stepSpans.get(key);
+        String key = key(firstInvocationKey, commandName);
+        return commandSpans.get(key);
     }
 
-    public void startStepSpan(String func, String stepName) {
+    public void startCommandSpan(String func, String commandName) {
         Deque<String> stack = threadInvocations.get().get(func);
         if (stack == null || stack.isEmpty()) {
             return;
@@ -273,36 +274,36 @@ public class TraceManager {
             return;
         }
 
-        Span stepSpan = tracer.spanBuilder(stepName)
+        Span commandSpan = tracer.spanBuilder(commandName)
                 .setParent(Context.current().with(parentSpan))
                 .setSpanKind(SpanKind.INTERNAL)
                 .startSpan();
 
-        stepSpan.setAttribute("step.name", stepName);
-        stepSpan.setAttribute("functionality", func);
+        commandSpan.setAttribute("command.name", commandName);
+        commandSpan.setAttribute("functionality", func);
 
-        stepSpans.put(key(firstInvocationKey, stepName), stepSpan);
+        commandSpans.put(key(firstInvocationKey, commandName), commandSpan);
     }
 
-    public void endStepSpan(String func, String stepName) {
+    public void endCommandSpan(String func, String commandName) {
         Deque<String> stack = threadInvocations.get().get(func);
         if (stack == null || stack.isEmpty()) {
             return;
         }
         String firstInvocationKey = stack.peek();
-        String key = key(firstInvocationKey, stepName);
-        Span stepSpan = stepSpans.get(key);
-        if (stepSpan != null) {
-            stepSpan.end();
+        String key = key(firstInvocationKey, commandName);
+        Span commandSpan = commandSpans.get(key);
+        if (commandSpan != null) {
+            commandSpan.end();
         }
     }
 
     // --- Delay Span Management ---
-    public Span startDelaySpan(String func, String step, int delay, boolean isBefore) {
+    public Span startDelaySpan(String func, String command, int delay, boolean isBefore) {
         if (delay <= 0) {
             return null;
         }
-        Span parentSpan = getStepSpan(func, step);
+        Span parentSpan = getCommandSpan(func, command);
         if (parentSpan == null)
             return null;
         String spanName = (isBefore ? "before" : "after");
@@ -312,7 +313,7 @@ public class TraceManager {
                 .startSpan();
 
         span.setAttribute("functionality", func);
-        span.setAttribute("step", step);
+        span.setAttribute("command", command);
         span.setAttribute("value", Integer.toString(delay) + " ms");
 
         return span;
@@ -354,7 +355,7 @@ public class TraceManager {
                 AttributeKey.stringKey("message"), message));
     }
 
-    public void setSpanAttribute(String func, String key, String value) {
+    public void setSpanAttribute(String func, String key, Boolean value) {
         Span span = getSpanForFunctionality(func);
         if (span != null) {
             span.setAttribute(key, value);
@@ -362,25 +363,24 @@ public class TraceManager {
     }
 
     // --- Private Helpers ---
-    private void forceEndAllActiveStepsSpans(String invocationKey) {
+    private void forceEndAllActiveCommandsSpans(String invocationKey) {
         String prefix = invocationKey + "::";
-        List<String> stepSpansList = stepSpans.keySet().stream()
+        List<String> commandSpansList = commandSpans.keySet().stream()
                 .filter(key -> key.startsWith(prefix))
                 .collect(Collectors.toList());
-        for (String key : stepSpansList) {
-            String stepName = key.substring(prefix.length());
-            Span stepSpan = stepSpans.get(key);
-            if (stepSpan != null) {
-                stepSpan.setAttribute("Warning", "Forced end step span");
-                stepSpan.addEvent("forced-end", Attributes.of(
+        for (String key : commandSpansList) {
+            Span commandSpan = commandSpans.get(key);
+            if (commandSpan != null) {
+                commandSpan.setAttribute("Warning", "Forced end command span");
+                commandSpan.addEvent("forced-end", Attributes.of(
                         AttributeKey.stringKey("reason"), "Functionality was aborted!"));
-                stepSpan.end();
-                stepSpans.remove(key);
+                commandSpan.end();
+                commandSpans.remove(key);
             }
         }
     }
 
-    private String key(String func, String stepName) {
-        return func + "::" + stepName;
+    private String key(String func, String commandName) {
+        return func + "::" + commandName;
     }
 }

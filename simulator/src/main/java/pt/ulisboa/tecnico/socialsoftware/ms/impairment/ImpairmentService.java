@@ -1,9 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.impairment;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.databind.JsonNode;
-import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,34 +10,37 @@ import java.nio.file.Paths;
 public class ImpairmentService {
     private static String directory;
 
+    @Autowired(required = false)
+    private NetworkManager networkManager;
+
+    // ! TODO - Remove
     public void LoadDir(String dir, String testNameFile) {
         directory = dir + "/src/test/resources/" + testNameFile + "/";
         ImpairmentHandler.getInstance();
         ImpairmentHandler.setDirectory(directory);
-        NetworkManager.getInstance().reset();
-        NetworkManager.setDirectory(directory);
-        NetworkManager.getInstance().load();
     }
 
-    public void reset() {
-        ImpairmentHandler.getInstance().reset();
-    }
-
-    public void cleanUpCounter() {
-        ImpairmentHandler.getInstance().cleanUpCounter();
-    }
-
-    public void cleanReportFile() {
-        ImpairmentHandler.getInstance().cleanReportFile();
-        
-    }
-
+    // ! TODO - Remove
     public void cleanDirectory() {
         ImpairmentHandler.setDirectory("");
     }
 
-    public int getRetryValue(String funcName) {
-        return ImpairmentHandler.getInstance().getRetryValue(funcName);
+    // ! TODO - Remove
+    public void cleanUpCounter() {
+        ImpairmentHandler.getInstance().cleanUpCounter();
+    }
+
+    public void reset() {
+        if (networkManager != null) {
+            networkManager.reset();
+        }
+    }
+
+    public void cleanReportFile() {
+        if (networkManager != null) {
+            networkManager.cleanReportFile();
+        }
+
     }
 
     public void generateTestBehaviour(String fileName) {
@@ -53,17 +54,18 @@ public class ImpairmentService {
         new ImpairmentGenerator(directory, filePath);
     }
 
-    public void flush() {
-        TraceManager.getInstance().forceFlush();
-    }
-
     // *TESTING METHODS*
 
     public String getReport() {
-        return ImpairmentHandler.getInstance().getReport();
+        if (networkManager != null) {
+            return networkManager.getReport();
+        }
+        return "";
     }
 
-    public void injectPlacement(JsonNode json) {
-        NetworkManager.getInstance().loadConfig(json);
+    public void injectPlacement(String json) {
+        if (networkManager != null) {
+            networkManager.injectConfiguration(json);
+        }
     }
 }
