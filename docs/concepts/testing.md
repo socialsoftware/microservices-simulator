@@ -237,6 +237,15 @@ is updated; and that an event for an unrelated entity leaves state unchanged.
 **Key constraint:** `@Scheduled` does **not** run in `@DataJpaTest`. Call the polling method
 directly: `<consumer>EventHandling.handle<Xxx>Events()`.
 
+**Upstream-invariant rule applies.** T3 tests typically create the consumer aggregate in `given:`, which may increment a counter on an upstream aggregate and trigger its invariants. Apply the same rule as T2: establish any prerequisite upstream state (e.g., `createExecution()`) *before* the consumer aggregate creation call.
+
+**Asserting cached sub-entity fields.** The template uses `<consumer>Service.get<Consumer>(...)`, which returns a DTO. If the DTO does not expose a cached sub-entity field (e.g., `topicName` stored inside a `QuestionTopic` embedded in the aggregate), load the aggregate directly instead:
+```groovy
+def agg = unitOfWorkService.aggregateLoadAndRegisterRead(
+        consumer.aggregateId, unitOfWorkService.createUnitOfWork("check")) as <Consumer>
+agg.<subEntity>.<cachedField> == <expectedValue>
+```
+
 **Template:**
 ```groovy
 @DataJpaTest

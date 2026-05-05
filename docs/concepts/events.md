@@ -45,13 +45,11 @@ public class ExecutionSubscribesCreateQuestion extends EventSubscription {
         super(course.getCourseAggregateId(), course.getCourseVersion(), CreateQuestionEvent.class.getSimpleName());
     }
 
-    @Override
-    public boolean filter(Event event) {
-        CreateQuestionEvent e = (CreateQuestionEvent) event;
-        return e.getCourseAggregateId().equals(this.subscribedAggregateId);
-    }
+    public ExecutionSubscribesCreateQuestion() {}
 }
 ```
+
+Matching is done by `EventSubscription.subscribesEvent()` in the simulator core, which checks that the event's `publisherAggregateId` equals `subscribedAggregateId` and that the event was published after `subscribedVersion`. There is no `filter()` method on `EventSubscription`. Override `subscribesEvent()` only when additional filtering is needed (e.g., checking a sub-entity's active status) — always call `super.subscribesEvent(event) && <additionalCheck>`.
 
 `subscribedAggregateId` must match `publisherAggregateId` in the event.
 
@@ -129,16 +127,10 @@ public class <Consumer>Subscribes<Xxx> extends EventSubscription {
     }
 
     public <Consumer>Subscribes<Xxx>() {}
-
-    @Override
-    public boolean filter(Event event) {
-        <EventName> e = (<EventName>) event;
-        return e.getAnchorAggregateId().equals(this.subscribedAggregateId);
-    }
 }
 ```
 
-`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor.
+`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. Matching is handled by `EventSubscription.subscribesEvent()` — no `filter()` override is needed. Override `subscribesEvent()` only for additional filtering (always chain with `super.subscribesEvent(event) && ...`).
 
 ### Handler
 ```java

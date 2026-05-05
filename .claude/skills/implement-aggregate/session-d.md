@@ -26,7 +26,6 @@ Load these files before writing any code:
 3. **Domain files from session 2.{N}.a** — specifically:
    - `{Aggregate}.java`: field names of the cached snapshot fields that will be updated by events
    - `Saga{Aggregate}.java`: the full class (needed by EventProcessing to load and mutate the aggregate)
-   - `{Aggregate}SagaState.java`: state enum (EventProcessing must skip aggregates in a saga)
 
 4. **For each event in the "Events subscribed" list**: read the source files of the aggregate that publishes it. Specifically:
    - The event class itself (`{src}events/{Event}.java`) — to know the payload fields
@@ -43,9 +42,9 @@ Produce every file listed in the plan.md `2.{N}.d` row. The authoritative file l
 Path: `{src}microservices/{aggregate}/notification/subscribe/{Aggregate}Subscribes{Event}.java`
 
 - Extends `EventSubscription` (from simulator core)
-- Constructor: calls `super({Event}.class)` (or equivalent registration call — check events.md)
-- `getAggregateId(DomainEvent event)`: casts `event` to `{Event}`, returns the field that identifies this aggregate (the "anchor" — e.g., for `DeleteUserEvent` subscribed by Execution, the anchor is `userId`, filtered to find all Execution aggregates that have that `userId` in their students list)
-- `getEventType()`: returns `{Event}.class`
+- Constructor: calls `super(anchorRef.getAnchorAggregateId(), anchorRef.getAnchorVersion(), {EventName}.class.getSimpleName())`. The anchor is the owning/parent aggregate whose ID and version are stored in the cached reference (e.g., for `UpdateTopicEvent` subscribed by `Question`, the anchor is the `QuestionTopic` reference that holds `topicAggregateId` and `topicVersion`).
+- Empty default constructor: `public {Aggregate}Subscribes{Event}() {}`
+- Matching is done entirely by `EventSubscription.subscribesEvent()` in the simulator core — it checks that the event's `publisherAggregateId` equals `subscribedAggregateId` and that the event was published after `subscribedVersion`. No `filter()` method exists on `EventSubscription`; override `subscribesEvent()` only if additional filtering is required (e.g., checking a sub-entity's active status), and always call `super.subscribesEvent(event) && <additionalCheck>`.
 
 ### `{Aggregate}EventHandling.java`
 
@@ -90,7 +89,7 @@ public class {Aggregate}EventProcessing {
 ```
 
 - Does NOT load, mutate, or persist the aggregate directly
-- The sagaState guard, cached-field update, `verifyInvariants()`, and UoW commit all happen inside the Functionalities update method
+- The cached-field update, `verifyInvariants()`, and UoW commit all happen inside the Functionalities update method
 
 **P2 rule enforcement:** The invariant check happens inside the Functionalities update method, which loads the aggregate, applies the cached-field change, and calls `verifyInvariants()` before committing. If the invariant fails, the exception propagates and the event is not marked as processed (allowing retry or manual intervention).
 
