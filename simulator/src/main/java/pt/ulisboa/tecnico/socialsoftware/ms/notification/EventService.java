@@ -32,7 +32,11 @@ public class EventService {
                 eventClass,
                 eventSubscription.getSubscribedAggregateId(),
                 eventSubscription.getSubscribedVersion()
-        ).stream().map(eventClass::cast).toList();
+        )
+                .stream()
+                .map(eventClass::cast)
+                .filter(eventSubscription::subscribesEvent)
+                .toList();
     }
 
     public void clearEventsAtApplicationStartUp() {
