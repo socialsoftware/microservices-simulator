@@ -77,6 +77,29 @@ public class QuestionService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateTopicNameInQuestion(Integer questionAggregateId, Integer topicAggregateId, String topicName, UnitOfWork unitOfWork) {
+        Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(
+                questionAggregateId, unitOfWork);
+        Question newQuestion = questionFactory.createQuestionCopy(oldQuestion);
+        for (QuestionTopic topic : newQuestion.getTopics()) {
+            if (topic.getTopicAggregateId().equals(topicAggregateId)) {
+                topic.setTopicName(topicName);
+                break;
+            }
+        }
+        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeTopicFromQuestion(Integer questionAggregateId, Integer topicAggregateId, UnitOfWork unitOfWork) {
+        Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(
+                questionAggregateId, unitOfWork);
+        Question newQuestion = questionFactory.createQuestionCopy(oldQuestion);
+        newQuestion.getTopics().removeIf(t -> t.getTopicAggregateId().equals(topicAggregateId));
+        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteQuestion(Integer questionAggregateId, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(
                 questionAggregateId, unitOfWork);

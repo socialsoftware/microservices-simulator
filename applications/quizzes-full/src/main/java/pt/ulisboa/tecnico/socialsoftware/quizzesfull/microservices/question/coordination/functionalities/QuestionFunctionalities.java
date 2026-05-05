@@ -12,6 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coor
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.GetQuestionByIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.GetQuestionsByCourseExecutionIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.UpdateQuestionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.service.QuestionService;
 
 import java.util.List;
 import java.util.Set;
@@ -24,6 +25,9 @@ public class QuestionFunctionalities {
 
     @Autowired
     private CommandGateway commandGateway;
+
+    @Autowired
+    private QuestionService questionService;
 
     public QuestionDto createQuestion(String title, String content, Integer courseId,
                                       List<Integer> topicIds, Set<Option> options) {
@@ -67,5 +71,17 @@ public class QuestionFunctionalities {
                 unitOfWorkService, executionId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
         return saga.getQuestions();
+    }
+
+    public void updateTopicNameInQuestionByEvent(Integer questionId, Integer topicId, String topicName) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateTopicNameInQuestionByEvent");
+        questionService.updateTopicNameInQuestion(questionId, topicId, topicName, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void removeTopicFromQuestionByEvent(Integer questionId, Integer topicId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("removeTopicFromQuestionByEvent");
+        questionService.removeTopicFromQuestion(questionId, topicId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 }

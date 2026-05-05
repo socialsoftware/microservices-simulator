@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.agg
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -68,7 +70,12 @@ public abstract class Question extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> subscriptions = new HashSet<>();
+        for (QuestionTopic topic : topics) {
+            subscriptions.add(new QuestionSubscribesUpdateTopic(topic));
+            subscriptions.add(new QuestionSubscribesDeleteTopic(topic));
+        }
+        return subscriptions;
     }
 
     public String getTitle() { return title; }

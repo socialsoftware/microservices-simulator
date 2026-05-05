@@ -50,8 +50,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.not
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.service.ExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.sagas.factories.SagasQuestionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.sagas.repositories.QuestionCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.eventProcessing.QuestionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.messaging.QuestionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.notification.handling.QuestionEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.notification.handling.handlers.QuestionEventHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.service.QuestionService
 
 @TestConfiguration
@@ -298,5 +302,21 @@ class BeanConfigurationSagas {
     @Bean
     ExecutionEventProcessing executionEventProcessing() {
         return new ExecutionEventProcessing()
+    }
+
+    // Question — session 2.5.d
+    @Bean
+    QuestionEventHandling questionEventHandling() {
+        return new QuestionEventHandling()
+    }
+
+    @Bean
+    QuestionEventHandler questionEventHandler(QuestionRepository questionRepository) {
+        return new QuestionEventHandler(questionRepository)
+    }
+
+    @Bean
+    QuestionEventProcessing questionEventProcessing() {
+        return new QuestionEventProcessing()
     }
 }

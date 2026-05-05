@@ -250,7 +250,7 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 - [x] 2.5.a — Domain layer
 - [x] 2.5.b — Write functionalities
 - [x] 2.5.c — Read functionalities
-- [ ] 2.5.d — Event wiring
+- [x] 2.5.d — Event wiring
 
 ---
 
