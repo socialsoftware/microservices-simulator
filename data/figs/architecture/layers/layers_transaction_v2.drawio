@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
   <diagram name="Page-1" id="noZ1wKUipLXtCmZbxdww">
-    <mxGraphModel dx="1238" dy="732" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1499" dy="886" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -22,17 +22,11 @@
         <mxCell id="3zSQiElDbu736wYzGrpD-12" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#B7DF9E;strokeColor=#000000;" value="SagaUnitOfWork" vertex="1">
           <mxGeometry height="50" width="110" x="1270" y="830" as="geometry" />
         </mxCell>
-        <mxCell id="3zSQiElDbu736wYzGrpD-14" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#B7DF9E;strokeColor=#000000;" value="&lt;&lt;interface&gt;&gt;&#xa;SagaAggregate" vertex="1">
-          <mxGeometry height="50" width="130" x="340" y="710" as="geometry" />
-        </mxCell>
         <mxCell id="3zSQiElDbu736wYzGrpD-15" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#B7DF9E;strokeColor=#000000;" value="SagaCommand" vertex="1">
           <mxGeometry height="50" width="110" x="1740" y="605" as="geometry" />
         </mxCell>
         <mxCell id="3zSQiElDbu736wYzGrpD-19" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#B7DF9E;strokeColor=#000000;" value="CausalUnitOfWork" vertex="1">
           <mxGeometry height="50" width="110" x="1400" y="830" as="geometry" />
-        </mxCell>
-        <mxCell id="3zSQiElDbu736wYzGrpD-21" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#B7DF9E;strokeColor=#000000;" value="&lt;&lt;interface&gt;&gt;&#xa;CausalAggregate" vertex="1">
-          <mxGeometry height="50" width="130" x="490" y="710" as="geometry" />
         </mxCell>
         <mxCell id="3zSQiElDbu736wYzGrpD-23" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#B7DF9E;strokeColor=#000000;" value="CausalCommand" vertex="1">
           <mxGeometry height="50" width="110" x="1870" y="605" as="geometry" />
@@ -354,6 +348,38 @@
         </mxCell>
         <mxCell id="mSUbMgt34P-W6XKQNHtU-4" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#FFE599;strokeColor=#000000;" value="EventService" vertex="1">
           <mxGeometry height="50" width="130" x="920" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="K73twWjBqh_zS7yiP1ci-7" edge="1" parent="1" source="K73twWjBqh_zS7yiP1ci-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="K73twWjBqh_zS7yiP1ci-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="K73twWjBqh_zS7yiP1ci-8" connectable="0" parent="K73twWjBqh_zS7yiP1ci-7" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="has" vertex="1">
+          <mxGeometry relative="1" x="-0.1214" y="-1" as="geometry">
+            <mxPoint x="1" y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="K73twWjBqh_zS7yiP1ci-1" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#B7DF9E;strokeColor=default;" value="&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;br style=&quot;padding: 0px; margin: 0px;&quot;&gt;SagaAggregate" vertex="1">
+          <mxGeometry height="80" width="130" x="410" y="750" as="geometry">
+            <mxRectangle height="30" width="70" x="340" y="830" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="K73twWjBqh_zS7yiP1ci-2" parent="K73twWjBqh_zS7yiP1ci-1" style="text;strokeColor=default;fillColor=#B7DF9E;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;strokeWidth=2;" value="+&amp;nbsp;setSagaState()&lt;div&gt;+&amp;nbsp;getSagaState()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="40" width="130" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="K73twWjBqh_zS7yiP1ci-3" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#B7DF9E;strokeColor=default;" value="&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;br style=&quot;padding: 0px; margin: 0px;&quot;&gt;CausalAggregate" vertex="1">
+          <mxGeometry height="110" width="130" x="580" y="750" as="geometry">
+            <mxRectangle height="30" width="70" x="340" y="830" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="K73twWjBqh_zS7yiP1ci-4" parent="K73twWjBqh_zS7yiP1ci-3" style="text;strokeColor=default;fillColor=#B7DF9E;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;strokeWidth=2;" value="+&amp;nbsp;mergeFields()&lt;div&gt;+&amp;nbsp;getIntentions()&lt;/div&gt;&lt;div&gt;+&amp;nbsp;getMutableFields()&lt;/div&gt;&lt;div&gt;+ merge()&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="130" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="K73twWjBqh_zS7yiP1ci-5" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#B7DF9E;verticalAlign=top;" value="&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;div&gt;SagaState&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="130" x="410" y="870" as="geometry">
+            <mxRectangle height="30" width="70" x="340" y="830" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="K73twWjBqh_zS7yiP1ci-6" parent="K73twWjBqh_zS7yiP1ci-5" style="text;strokeColor=default;fillColor=#B7DF9E;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=12;" value="&lt;span&gt;+&amp;nbsp;getStateName()&lt;/span&gt;" vertex="1">
+          <mxGeometry height="30" width="130" y="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

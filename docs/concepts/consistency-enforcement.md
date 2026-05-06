@@ -47,6 +47,8 @@ Understanding which layer is responsible for what prevents redundant checks and 
 
 **Centralization principle:** Layer 1 is the canonical home for aggregate-state invariants. Whenever a rule can be expressed purely in terms of a single aggregate's state — regardless of which operation triggered the change — it belongs here. Because `verifyInvariants()` runs on every commit, a Layer 1 check fires uniformly across all operations, eliminating the need to repeat the same logic in individual service guards (Layer 2) or workflow steps (Layer 3). **If a rule fits Layer 1, define it only there — do not add the same check at another layer.**
 
+**Exception pattern:** Each invariant has its own `if` block and throws the most descriptive specific exception available (e.g., `COURSE_MISSING_NAME`). Use `INVARIANT_BREAK` only as a last resort if no domain-specific constant fits.
+
 > **Restriction:** Mutation methods on aggregate classes (`add()`, `remove()`, setters) must **not** throw domain exceptions. All state-consistency rules must be placed in `verifyInvariants()`. Throwing from a mutation method bypasses the centralized invariant check and breaks the UoW commit contract — the UoW may partially apply mutations before the exception fires, leaving the aggregate in an inconsistent in-memory state.
 
 **Examples:**
@@ -57,7 +59,7 @@ Understanding which layer is responsible for what prevents redundant checks and 
 
 ### Variant: transition invariant via mutation timestamp
 
-Some invariants express a *transition* rule of the form "field X cannot change once condition Y is met", where Y involves wall-clock time. These cannot call `DateHandler.now()` directly inside `verifyInvariants()` because the check would be non-idempotent (the same aggregate state could pass at T1 and fail at T2), and in TCC the UoW calls `verifyInvariants()` a second time after a concurrent-version merge.
+Some invariants express a *transition* rule of the form "field X cannot change once condition Y is met", where Y involves wall-clock time. These cannot call `DateHandler.now()` directly inside `verifyInvariants()` because the check would be non-idempotent (the same aggregate state could pass at T1 and fail at T2).
 
 **Pattern:** the setter stamps the mutation time as a persistent field (`lastModifiedTime`) before applying the change. `verifyInvariants()` then compares `this.lastModifiedTime` against the threshold — never calling `DateHandler.now()` inside the invariant check itself.
 
@@ -100,7 +102,7 @@ Placing a uniqueness check at Layer 4 (event cache) when the authoritative data 
 
 ## Layer 3 — Functionality Cross-Aggregate State Guard
 
-**Definition:** A workflow step that loads a *different* aggregate (not the operation's primary target) under a semantic lock (Sagas) or causal snapshot (TCC) to verify a cross-aggregate precondition before the mutating step is allowed to run.
+**Definition:** A workflow step that loads a *different* aggregate (not the operation's primary target) under a semantic lock (Sagas) to verify a cross-aggregate precondition before the mutating step is allowed to run.
 
 **Where it lives:** `*FunctionalitySagas.java` / `*FunctionalityTCC.java` — a named step that issues a read command to another service.
 

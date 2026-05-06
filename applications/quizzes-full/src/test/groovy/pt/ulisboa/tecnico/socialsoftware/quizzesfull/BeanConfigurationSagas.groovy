@@ -16,16 +16,28 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.stream.CommandResponseAggregator
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.stream.StreamCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceService
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventApplicationService
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.messaging.SagaCommandHandler
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.DistributedVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
 
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.factories.SagasCourseFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.repositories.CourseCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.service.CourseService
+
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.sagas.factories.SagasUserFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.sagas.repositories.UserCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.service.UserService
+
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.sagas.factories.SagasTopicFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.sagas.repositories.TopicCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.service.TopicService
+
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.courseexecution.aggregate.sagas.factories.SagasCourseExecutionFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.courseexecution.aggregate.sagas.repositories.CourseExecutionCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.courseexecution.service.CourseExecutionService
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -123,5 +135,55 @@ class BeanConfigurationSagas {
     @Bean
     CourseService courseService(SagaUnitOfWorkService uowService, CourseCustomRepositorySagas courseCustomRepository) {
         return new CourseService(uowService, courseCustomRepository)
+    }
+
+    // User
+    @Bean
+    UserCustomRepositorySagas userCustomRepositorySagas() {
+        return new UserCustomRepositorySagas()
+    }
+
+    @Bean
+    SagasUserFactory sagasUserFactory() {
+        return new SagasUserFactory()
+    }
+
+    @Bean
+    UserService userService(SagaUnitOfWorkService uowService, UserCustomRepositorySagas userCustomRepository) {
+        return new UserService(uowService, userCustomRepository)
+    }
+
+    // Topic
+    @Bean
+    TopicCustomRepositorySagas topicCustomRepositorySagas() {
+        return new TopicCustomRepositorySagas()
+    }
+
+    @Bean
+    SagasTopicFactory sagasTopicFactory() {
+        return new SagasTopicFactory()
+    }
+
+    @Bean
+    TopicService topicService(SagaUnitOfWorkService uowService, TopicCustomRepositorySagas topicCustomRepository) {
+        return new TopicService(uowService, topicCustomRepository)
+    }
+
+    // CourseExecution
+    @Bean
+    CourseExecutionCustomRepositorySagas courseExecutionCustomRepositorySagas() {
+        return new CourseExecutionCustomRepositorySagas()
+    }
+
+    @Bean
+    SagasCourseExecutionFactory sagasCourseExecutionFactory() {
+        return new SagasCourseExecutionFactory()
+    }
+
+    @Bean
+    CourseExecutionService courseExecutionService(
+            SagaUnitOfWorkService uowService,
+            CourseExecutionCustomRepositorySagas courseExecutionCustomRepository) {
+        return new CourseExecutionService(uowService, courseExecutionCustomRepository)
     }
 }

@@ -2,6 +2,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.versioning;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
@@ -14,11 +15,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.versioning.command.IncrementVersionC
 import java.util.logging.Logger;
 
 @Component
-@Profile("version-service")
+@Profile("(local & !distributed-version) | version-service")
 public class VersionCommandHandler extends CommandHandler {
     private static final Logger logger = Logger.getLogger(VersionCommandHandler.class.getName());
 
     @Autowired
+    @Qualifier("centralizedVersionService")
     private IVersionService versionService;
 
     @Override

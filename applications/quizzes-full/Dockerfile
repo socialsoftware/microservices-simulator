@@ -18,7 +18,7 @@ ARG PROFILE=sagas,stream
 RUN mvn clean -P$PROFILE,kubernetes -Dmaven.test.skip=true package
 
 FROM eclipse-temurin:21-jre
-ARG APP_VERSION=3.1.3-SNAPSHOT
+ARG APP_VERSION=3.2.0-SNAPSHOT
 ENV JAR_FILE=QuizzesFullSimulator-${APP_VERSION}.jar
 ENV START_CLASS=pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSimulator
 COPY --from=run target/QuizzesFullSimulator-*.jar ./app.jar

@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 
 import static pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState.ACTIVE;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
@@ -13,7 +13,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.Qui
 import java.util.HashSet;
 import java.util.Set;
 
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.INVARIANT_BREAK;
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.COURSE_MISSING_NAME;
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.COURSE_MISSING_TYPE;
 
 /*
     INTRA-INVARIANTS:
@@ -40,8 +41,8 @@ public abstract class Course extends Aggregate {
     private final CourseType type;
 
     public Course() {
-        this.name = "COURSE NAME";
-        this.type = CourseType.TECNICO;
+        this.name = null;
+        this.type = null;
     }
 
     public Course(Integer aggregateId, CourseDto courseDto) {
@@ -81,9 +82,11 @@ public abstract class Course extends Aggregate {
     @Override
     public void verifyInvariants() {
         if (getState() == ACTIVE) {
-            if (!(invariantCourseNameNotBlank()
-                    && invariantCourseTypeNotNull())) {
-                throw new QuizzesFullException(INVARIANT_BREAK, getAggregateId());
+            if (!invariantCourseNameNotBlank()) {
+                throw new QuizzesFullException(COURSE_MISSING_NAME);
+            }
+            if (!invariantCourseTypeNotNull()) {
+                throw new QuizzesFullException(COURSE_MISSING_TYPE);
             }
         }
     }

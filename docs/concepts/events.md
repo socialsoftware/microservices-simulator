@@ -23,7 +23,7 @@ public class CreateQuestionEvent extends Event {
 }
 ```
 
-**Critical:** `publisherAggregateId` (the argument to `super(...)`) must be the aggregate ID used as the **subscription anchor**. For TCC, this is used for version-tracking. Using the wrong ID breaks TCC causal consistency.
+**Critical:** `publisherAggregateId` (the argument to `super(...)`) must be the aggregate ID used as the **subscription anchor**. Using the wrong ID breaks event filtering.
 
 ## Publishing Events
 

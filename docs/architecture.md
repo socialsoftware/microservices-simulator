@@ -9,10 +9,9 @@ This document is the system-level companion to the per-concept docs. Read it bef
 | Concept | One-liner | Deep dive |
 |---------|-----------|-----------|
 | **Aggregate** | Unit of consistency; each write creates a new row; `aggregateId` is the logical identity; `version` is global | [`concepts/aggregate.md`](concepts/aggregate.md) |
-| **Unit of Work** | Coordinates reads and writes for one functionality execution; committed or aborted atomically. Saga: `SagaUnitOfWork`. TCC: `CausalUnitOfWork` | [`concepts/sagas.md`](concepts/sagas.md), [`concepts/tcc.md`](concepts/tcc.md) |
+| **Unit of Work** | Coordinates reads and writes for one functionality execution; committed or aborted atomically. Saga: `SagaUnitOfWork` | [`concepts/sagas.md`](concepts/sagas.md) |
 | **Functionality** | A `WorkflowFunctionality` subclass that orchestrates a cross-service operation as a DAG of `Step`s | [`concepts/sagas.md`](concepts/sagas.md) |
 | **Sagas** | Concurrency protocol using semantic locks (`SagaState`); conflicting steps declare `forbiddenStates` | [`concepts/sagas.md`](concepts/sagas.md) |
-| **TCC (Causal)** | Concurrency protocol using field-level merge; concurrent writes to different fields can both succeed | [`concepts/tcc.md`](concepts/tcc.md) |
 
 ---
 
@@ -22,7 +21,6 @@ This document is the system-level companion to the per-concept docs. Read it bef
 |-------|------|------|
 | `Aggregate` | `simulator/.../ms/domain/aggregate/Aggregate.java` | Base for all domain aggregates; defines `verifyInvariants()`, `getEventSubscriptions()`, version chain |
 | `SagaAggregate` | `simulator/.../ms/sagas/aggregate/SagaAggregate.java` | Interface for semantic-lock protocol; adds `getSagaState()` / `setSagaState()` |
-| `CausalAggregate` | `simulator/.../ms/causal/aggregate/CausalAggregate.java` | Interface for field-level merge; adds `getMutableFields()`, `getIntentions()`, `mergeFields()` |
 | `WorkflowFunctionality` | `simulator/.../ms/coordination/workflow/WorkflowFunctionality.java` | Base for all cross-service workflows; provides `executeWorkflow()`, `executeUntilStep()`, `resumeWorkflow()` |
 
 ---
@@ -34,10 +32,10 @@ Every application built on the simulator has five synchronous layers plus an asy
 | Layer | Key class(es) | Responsibility |
 |-------|--------------|----------------|
 | **Controller** | `*Controller` | HTTP entry points; maps requests to commands and returns DTOs |
-| **Functionality** | `*FunctionalitySagas`, `*FunctionalityTCC` | Orchestrates cross-aggregate workflows as a DAG of steps |
+| **Functionality** | `*FunctionalitySagas` | Orchestrates cross-aggregate workflows as a DAG of steps |
 | **Command Handler** | `*CommandHandler` | Routes commands from `CommandGateway` to service methods |
 | **Service** | `*Service` | Holds business logic; reads and writes its own aggregate type via `aggregateLoadAndRegisterRead` |
-| **Aggregate** | `Xxx`, `SagaXxx`, `CausalXxx` | Encapsulates domain state; enforces intra-invariants at UoW commit |
+| **Aggregate** | `Xxx`, `SagaXxx` | Encapsulates domain state; enforces intra-invariants at UoW commit |
 
 **Asynchronous event pipeline** (one per inter-invariant dependency):
 
@@ -56,40 +54,44 @@ Canonical directory layout for one microservice. Each package maps to an archite
 
 ```
 microservices/{serviceName}/
-├── aggregate/                              ← LAYER: Aggregate
-│   ├── {Xxx}.java                          (base abstract aggregate)
-│   ├── {Xxx}Dto.java                       (immutable DTO for inter-service reads)
+├── {Xxx}ServiceApplication.java
+├── aggregate/                                      ← LAYER: Aggregate
+│   ├── {Xxx}.java                                  (base abstract aggregate)
+│   ├── {Xxx}Dto.java                               (immutable DTO)
 │   ├── {Xxx}Repository.java
+│   ├── {Xxx}CustomRepository.java
 │   ├── {Xxx}Factory.java
-│   ├── sagas/
-│   │   ├── Saga{Xxx}.java                  (implements SagaAggregate)
-│   │   ├── {Xxx}SagaState.java             (semantic-lock state enum)
-│   │   └── factories/, repositories/
-│   └── causal/
-│       ├── Causal{Xxx}.java                (implements CausalAggregate)
-│       └── factories/, repositories/
-├── service/                                ← LAYER: Service
+│   └── sagas/
+│       ├── Saga{Xxx}.java                          (implements SagaAggregate)
+│       ├── states/{Xxx}SagaState.java
+│       ├── factories/
+│       └── repositories/
+├── service/                                        ← LAYER: Service
 │   └── {Xxx}Service.java
-├── commandHandler/                         ← LAYER: Command Handler
+├── messaging/                                      ← LAYER: Command Handler
 │   └── {Xxx}CommandHandler.java
-├── coordination/                           ← LAYER: Functionality + Controller
+├── coordination/                                   ← LAYER: Functionality + Controller
 │   ├── webapi/
 │   │   └── {Xxx}Controller.java
+│   ├── functionalities/
+│   │   └── {Xxx}Functionalities.java               (entry point / dispatch)
 │   ├── sagas/
 │   │   └── {Operation}FunctionalitySagas.java
-│   ├── causal/
-│   │   └── {Operation}FunctionalityTCC.java
-│   ├── functionalities/
-│   │   └── {Xxx}Functionalities.java       (entry point / dispatch)
-│   └── eventProcessing/
-│       └── {Xxx}EventHandling.java
-├── events/
-│   ├── subscribe/
-│   │   └── {Xxx}Subscribes{Event}.java
-│   └── handling/handlers/
-└── exception/
-    └── {App}ErrorMessage.java
+│   └── eventProcessing/                            ← optional: only if aggregate consumes events
+│       └── {Xxx}EventProcessing.java
+└── notification/                                   ← optional: only if aggregate consumes events
+    ├── api/
+    │   └── {Xxx}EventController.java
+    ├── handling/
+    │   ├── {Xxx}EventHandling.java                 (polling loop)
+    │   └── handlers/
+    │       └── {Event}EventHandler.java
+    └── subscribe/
+        └── {Xxx}Subscribes{Event}.java
 ```
+
+**Optional directories:**
+- `coordination/eventProcessing/` and `notification/` are present only in aggregates that **consume events** from other services (e.g., Tournament). Aggregates that only **publish events** (e.g., User) omit both directories.
 
 ---
 
@@ -184,13 +186,7 @@ See [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md)
 
 ---
 
-### R6 — Every aggregate must implement both `SagaXxx` and `CausalXxx` variants
-
-The simulator test suite runs under two Maven profiles (`test-sagas`, `test-tcc`). An aggregate that implements only one protocol will fail the other profile's tests. Each variant requires its own factory and repository.
-
----
-
-### R7 — `verifyInvariants()` must not perform DB reads
+### R6 — `verifyInvariants()` must not perform DB reads
 
 `verifyInvariants()` is called inside the UoW commit path, after all mutations have been applied. Repository calls at this point risk deadlocks and violate the layering contract. Intra-invariants must check only fields already present on the aggregate instance.
 
@@ -198,7 +194,7 @@ The simulator test suite runs under two Maven profiles (`test-sagas`, `test-tcc`
 
 ---
 
-### R8 — Aggregate DTOs must be immutable
+### R7 — Aggregate DTOs must be immutable
 
 DTOs are point-in-time snapshots of an aggregate's observable state. A Functionality step must not mutate a DTO it received from a `Get*Command`. Mutations must be expressed as new commands dispatched to the owning service.
 
@@ -223,7 +219,6 @@ For a quick decision, use this table. For full rationale and examples for each l
 |-------|------|
 | Aggregate versioning | [`concepts/aggregate.md`](concepts/aggregate.md) |
 | Sagas semantic locks | [`concepts/sagas.md`](concepts/sagas.md) |
-| TCC field-level merge | [`concepts/tcc.md`](concepts/tcc.md) |
 | Domain events | [`concepts/events.md`](concepts/events.md) |
 | Invariant taxonomy (full) | [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) |
 | Bootstrap a new application | `/new-application` skill |

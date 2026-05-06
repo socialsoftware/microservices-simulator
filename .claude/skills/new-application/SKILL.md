@@ -11,7 +11,7 @@ You are building a new application on top of the simulator library from scratch.
 > **Critical constraints:**
 > 1. **Domain model and aggregate boundaries are human-defined.** The domain expert has filled the templates `{AppName}-domain-model.md` and `{AppName}-aggregate-grouping.md` before this skill is invoked. Do not change entity definitions, aggregate groupings, functionalities, event names, or rule semantics — read them as given.
 > 2. **Consistency layer placement is AI-decided.** For each rule in the domain model, use `docs/concepts/decision-guide.md` to classify it into the correct layer (1, 2, 3, or 4) and confirm with the user before coding.
-> 3. **Sagas only.** All TCC/Causal classes are empty stubs. See `docs/concepts/tcc-placeholder-pattern.md`.
+> 3. **Sagas only.** Development focuses on the Sagas pattern exclusively.
 
 ---
 
@@ -29,7 +29,7 @@ You are building a new application on top of the simulator library from scratch.
    ```
    Use the app name lowercased with hyphens removed as the package leaf (e.g., `quizzes-full` → `pt.ulisboa.tecnico.socialsoftware.quizzesfull`).
 3. Add the simulator dependency to `pom.xml` and define the Maven profile following `applications/quizzes/pom.xml`:
-   - `test-sagas` profile only (Sagas only — do not add `test-tcc` unless TCC is explicitly required).
+   - `test-sagas` profile only.
    - **Only carry over the `test-sagas` profile.** Omit the microservice deployment profiles (`answer-service`, `execution-service`, …), communication layer profiles (`local`, `stream`, `grpc`), and kubernetes profile — those are for the quizzes production deployment and are not needed in a new application.
 4. Define shared exception class and error message constants class (e.g., `<App>Exception.java`, `<App>ErrorMessage.java`). Follow `applications/quizzes/src/main/java/.../exception/QuizzesException.java` and `QuizzesErrorMessage.java` as references. Note: `QuizzesErrorMessage` is a `final class` with `static final String` constants — not a Java `enum`.
 
@@ -50,7 +50,7 @@ You are building a new application on top of the simulator library from scratch.
    - **`Dockerfile`** — multi-stage build: install simulator to local Maven, package app JAR, copy into minimal JRE image. `START_CLASS` and JAR name reference the new app's `<AppName>Simulator`.
    - **`Dockerfile.test`** — two stages: cache simulator in `.m2`, then copy app source for `mvn test`.
    - **`.gitignore`** and **`.dockerignore`** — identical to `applications/quizzes/`.
-   - **Update `pom.xml`**: add `<start-class>` property; add `<resources><resource><filtering>true</filtering>` build block for `@activatedProperties@` substitution; add `sagas`, `tcc`, `local`, `stream`, `grpc`, `distributed-version`, `kubernetes` profiles; add one microservice profile per service (sets `<start-class>` to its `ServiceApplication` and `<activatedProperties>` to `<service>-service,${transaction.pattern},${communication.layer}${version.suffix}`).
+   - **Update `pom.xml`**: add `<start-class>` property; add `<resources><resource><filtering>true</filtering>` build block for `@activatedProperties@` substitution; add `sagas`, `local`, `stream`, `grpc`, `distributed-version`, `kubernetes` profiles; add one microservice profile per service (sets `<start-class>` to its `ServiceApplication` and `<activatedProperties>` to `<service>-service,${transaction.pattern},${communication.layer}${version.suffix}`).
 
 > **STOP after Phase 0.** Report what was created and ask: "Phase 0 complete. Ready to proceed to Phase 1 (read templates and classify rules)?"
 
@@ -117,13 +117,28 @@ Ask: "Does this classification look correct? Any adjustments before I start Phas
 
 Once the user approves the classification, write `applications/<appName>/plan.md` — the authoritative progress tracker for all remaining phases. This file is the single source of truth that any agent (or the user) can open to see what has been done and what remains.
 
-Structure the file with one section per phase. Use GitHub-flavored **checkboxes** (`- [ ]` / `- [x]`) for every discrete work item so that the executing agent can tick items off as it completes them. Include:
+Structure the file with one section per phase. Use GitHub-flavored **checkboxes** (`- [ ]` / `- [x]`) for every discrete work item so that the executing agent can tick items off as it completes them.
 
-- **Phase 0 section** — pre-filled with `[x]` for everything already done.
-- **Phase 2 section** — one sub-section per aggregate; each sub-section has checkboxes for: scaffold, snapshot fields added, Layer 1 intra-invariants added (list each rule), registered in `BeanConfigurationSagas`, creation test passes.
+**Ordering Phase 2 aggregates:** Before writing the Phase 2 section, perform a topological sort of the aggregates based on their **creation-test dependencies** — which other aggregates' `create<X>()` helpers must already be registered in `BeanConfigurationSagas` when this aggregate's creation test runs. An aggregate A must precede B if B's creation test needs to call `createA()` (or any helper that routes a command through A's service). Use the snapshot fields in §2 of the grouping template and the event DAG in §3 as signals, but the key criterion is which aggregates are needed *at creation time* (not just for event-driven updates wired in Phase 4). Roots (no upstream creation-time deps) come first.
+
+Include:
+- **Phase 2 section** — one sub-section per aggregate; each sub-section has checkboxes for: scaffold; snapshot (see below for how to format); Layer 1 intra-invariants added (list each rule); registered in `BeanConfigurationSagas`; creation test passes.
+
+  **Snapshot checkpoint format** — inspect §2 of the grouping template for each aggregate and classify each snapshot as one of two patterns:
+  - **Scalar** (a single primitive/ID field that lives directly on the aggregate, e.g. `Integer courseAggregateId`): emit one checkbox: `- [ ] Snapshot field added: \`fieldName\` (scalar — no entity class needed, from \`EventName\`)`
+  - **Structured / collection** (a related object's full state, or one record per entity — e.g. cached course attributes, per-student data): emit two checkboxes:
+    ```
+    - [ ] Snapshot entity classes created:
+      - `<Aggregate><RelatedEntity>` (<field list> — from `EventName`)
+    - [ ] Snapshot references added to aggregate class (`@OneToOne <ClassName>` / `@OneToMany Set<ClassName>`)
+    ```
+  An aggregate may have both patterns simultaneously (e.g., Question has a scalar `courseAggregateId` plus a `Set<QuestionTopic>` collection). Emit separate checkboxes for each. Root publishers with no snapshot data (e.g., Course, User) get: `- [ ] Snapshot fields added: none — root publisher`.
 - **Phase 3 section** — one checkbox per functionality with its `/implement-functionality` invocation; list Layer 3 rules (and which saga step they wire into) as sub-bullets; if a Layer 2 guard applies, add a nested `- [ ] Layer 2 guard applied: <GUARD_NAME>` checkbox inside the functionality block.
 - **Phase 4 section** — one checkbox per (event, consumer) inter-invariant pair grouped by event, with the expected test class noted.
-- **Phase 5 section** — checkboxes for cross-functionality concurrency tests and the full suite run.
+- **Phase 5 section** — an explicit, named list of T4, T5, and T6 tests (not just "examples"), plus the full suite run checkbox. Derive the list using the rules in `docs/concepts/testing.md § Phase 5 — How to Derive the Test List`:
+  - **T4 Cross-Functionality tests**: build a map of aggregate → functionalities; for each aggregate shared by ≥2 functionalities, enumerate the high-risk (A, B) pairs and name a `<PrimaryOpA>And<PrimaryOpB>Test`
+  - **T5 Fault tests**: one `<Functionality>FaultTest` per functionality whose saga has ≥2 steps
+  - **T6 Async tests**: one `<Functionality>AsyncTest` for the 2–3 most concurrency-prone operations
 
 ### 1.5 Write `PROMPT.md` and `run.sh` after user confirms
 

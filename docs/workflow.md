@@ -55,7 +55,7 @@ Each invocation of `./run.sh` is a **fresh isolated Claude session** that does e
   ├─ Phase 3 — Cross-service functionalities  (one session per functionality)
   │     Session reads plan.md → finds first functionality with unchecked items
   │       /implement-functionality <FunctionalityName>
-  │         implements Sagas workflow, TCC stub, commands, handler, service methods,
+  │         implements Sagas workflow, commands, handler, service methods,
   │         controller, wires Layer 3 setForbiddenStates,
   │         applies Layer 2 guard inline (if listed in plan.md for this functionality),
   │         runs test
@@ -69,7 +69,8 @@ Each invocation of `./run.sh` is a **fresh isolated Claude session** that does e
   │     STOP at phase boundary → user reviews, re-runs ./run.sh
   │
   └─ Phase 5 — Full Suite  (one session)
-        Write cross-functionality concurrency tests
+        Write T4 cross-functionality tests, T5 fault/compensation tests, T6 async tests
+        (see docs/concepts/testing.md for selection rules and templates)
         mvn clean -Ptest-sagas test
 ```
 
@@ -95,6 +96,26 @@ cd applications/<appName>
 
 ---
 
+## Testing
+
+Every application must have all six test types defined in [`docs/concepts/testing.md`](concepts/testing.md).
+
+| Test type | Phase created | Skill that writes it | Naming pattern |
+|-----------|---------------|----------------------|----------------|
+| T1 Creation | Phase 2 | `/scaffold-aggregate` | `<Aggregate>Test` |
+| T2 Functionality | Phase 3 | `/implement-functionality` | `<FunctionalityName>Test` |
+| T3 Inter-Invariant | Phase 4 | `/wire-event` | `<Consumer>InterInvariantTest` |
+| T4 Cross-Functionality | Phase 5 | manual | `<Op1>And<Op2>Test` |
+| T5 Fault/Behavior | Phase 5 | manual | `<Functionality>FaultTest` |
+| T6 Async | Phase 5 | manual | `<Functionality>AsyncTest` |
+
+**Phase 5 must have an explicit, named test list** — not just examples. Use the derivation rules in
+`docs/concepts/testing.md § Phase 5 — How to Derive the Test List` to enumerate T4, T5, and T6
+tests before any Phase 5 code is written. The `/new-application` skill generates this list
+automatically in `plan.md`.
+
+---
+
 ## Skill-to-Phase Mapping
 
 ### Phase driver skills (loop entry points)
@@ -104,8 +125,8 @@ Self-contained: each reads detail files within its skill directory — no sub-sk
 | Skill | Phase | Does |
 |---|---|---|
 | `/scaffold-aggregate <Name>` | Phase 2 (one call per aggregate) | creates all aggregate files, adds snapshot fields, adds Layer 1 intra-invariants, registers in BeanConfigurationSagas, runs creation test, ticks all plan.md boxes |
-| `/implement-functionality <Name>` | Phase 3 (one call per functionality) | implements Sagas workflow + TCC stub, commands, command handler, service methods, controller, wires Layer 3 `setForbiddenStates`, applies Layer 2 guard if listed in plan.md, runs test, ticks plan.md box |
-| `/wire-event <Consumer> <Event>` | Phase 4 (one call per event-consumer pair) | implements event class, subscription, handler, polling, EventProcessing chain, update functionality + TCC stub, tracked fields in service, runs test, ticks plan.md box |
+| `/implement-functionality <Name>` | Phase 3 (one call per functionality) | implements Sagas workflow, commands, command handler, service methods, controller, wires Layer 3 `setForbiddenStates`, applies Layer 2 guard if listed in plan.md, runs test, ticks plan.md box |
+| `/wire-event <Consumer> <Event>` | Phase 4 (one call per event-consumer pair) | implements event class, subscription, handler, polling, EventProcessing chain, update functionality, tracked fields in service, runs test, ticks plan.md box |
 
 ---
 
@@ -138,9 +159,8 @@ For each §3.2 rule:
 | Cross-aggregate state through DTOs only | R3 | `new-functionality` command classes |
 | Mutation steps must declare `forbiddenStates` | R4 | `new-functionality` Step 3 |
 | Subscriptions belong in consumer only | R5 | `inter-invariant` Step 6 |
-| Both Sagas + Causal variants required | R6 | `new-aggregate` Steps 5–7 |
-| `verifyInvariants()` must not DB-read | R7 | `intra-invariant` doc block + `service-guard` placement |
-| DTOs are immutable | R8 | `new-aggregate` DTO pattern |
+| `verifyInvariants()` must not DB-read | R6 | `intra-invariant` doc block + `service-guard` placement |
+| DTOs are immutable | R7 | `new-aggregate` DTO pattern |
 
 ---
 

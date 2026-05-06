@@ -14,14 +14,11 @@ The goal is to make the process as smooth and self-contained as possible for fut
 # Install core library first
 cd simulator && mvn install
 
-# Run tests in a specific application (example: quizzes reference app)
-cd applications/quizzes
+# Run tests in a specific application (example: quizzes reference app or quizzes-full)
+cd applications/<appName>
 
-mvn clean -Ptest-sagas test          # all sagas tests
-mvn clean -Ptest-tcc test            # all TCC tests
-mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest  # single class
-
-# For new applications, run the same commands from applications/<appName>/
+mvn clean -Ptest-sagas test                                     # all sagas tests
+mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test class
 ```
 
 ---
@@ -44,11 +41,9 @@ mvn clean -Ptest-sagas test -Dtest=AddParticipantAndUpdateStudentNameTest  # sin
 | Aggregate versioning | [`docs/concepts/aggregate.md`](docs/concepts/aggregate.md) |
 | Domain events + canonical wiring snippet | [`docs/concepts/events.md`](docs/concepts/events.md) |
 | Sagas semantic locks | [`docs/concepts/sagas.md`](docs/concepts/sagas.md) |
-| TCC merge | [`docs/concepts/tcc.md`](docs/concepts/tcc.md) |
 | Invariant & guard taxonomy | [`docs/concepts/consistency-enforcement.md`](docs/concepts/consistency-enforcement.md) |
 | Consistency layer decision flowchart (AI agent) | [`docs/concepts/decision-guide.md`](docs/concepts/decision-guide.md) |
 | New-application loop-based workflow | [`docs/workflow.md`](docs/workflow.md) |
-| TCC placeholder stub pattern | [`docs/concepts/tcc-placeholder-pattern.md`](docs/concepts/tcc-placeholder-pattern.md) |
 | Domain model template | [`docs/templates/domain-model-template.md`](docs/templates/domain-model-template.md) |
 | Aggregate grouping template | [`docs/templates/aggregate-grouping-template.md`](docs/templates/aggregate-grouping-template.md) |
 | Worked examples | [`docs/examples/README.md`](docs/examples/README.md) |
