@@ -31,8 +31,8 @@ simulator:
     enabled: false
     configuration-file: /src/test/resources/locust/quizzes-configuration.json
     report-file: /src/test/resources/locust/CapacityReport.txt
-  network-management:
-    enabled: true
+  network-impairment:
+    enabled: false
     configuration-file: /src/test/resources/locust/quizzes-configuration.json
     report-file: /src/test/resources/locust/NetworkReport.txt
 

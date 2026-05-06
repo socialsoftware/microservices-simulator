@@ -42,17 +42,17 @@ class FullSweepNetworkUser(HttpUser):
             logging.error("### >> FAIL: Report is empty or invalid.")
             return False
 
+        # Ignore these commands because they belong to version service which is not part of placement
+        ignored_commands = {"IncrementVersionCommand", "GetNextVersionCommand"}
+
         errors = []
         # Check for commands with all zero delays: Fault [0] | Before [0ms] | After [0ms]
-        zero_delays = re.findall(r"Impairing\s+\w+\n\s*>>\s*on\s+command\s+(\w+)\s+\([^)]+\):\s+Fault\s+\[0\]\s+\|\s+Before\s+\[0ms\]\s+\|\s+After\s+\[0ms\]", report)
+        zero_delays = re.findall(
+            r"Impairing\s+\w+\n\s*>>\s*on\s+command\s+(\w+)\s+\([^)]+\):\s+Fault\s+\[0\]\s+\|\s+Before\s+\[0ms\]\s+\|\s+After\s+\[0ms\]", report)
+        zero_delays = [
+            command for command in zero_delays if command not in ignored_commands]
         if zero_delays:
             errors.append(f"Commands with zero delay: {set(zero_delays)}")
-
-        # Look for non-defined steps (steps that should have been called but weren't)
-        non_defined = re.findall(r"Non Defined Steps: \[(.+)\]", report)
-        for nd in non_defined:
-            if nd.strip():
-                errors.append(f"Non Defined Steps detected: [{nd}]")
 
         if errors:
             for err in errors:

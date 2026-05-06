@@ -31,19 +31,19 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Aspect
 @Component
-@ConditionalOnProperty(prefix = "simulator.network-management", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class NetworkManager {
     // TODO - Change paths
-    @Value("${simulator.network-management.configuration-file:#{null}}")
+    @Value("${simulator.network-impairment.enabled:false}")
+    private boolean impairmentEnabled;
+    @Value("${simulator.network-impairment.configuration-file:#{null}}")
     private String CONFIG_FILE;
-    @Value("${simulator.network-management.report-file:#{null}}")
+    @Value("${simulator.network-impairment.report-file:#{null}}")
     private String REPORT_FILE;
 
     private Map<String, String> microserviceToNode = new HashMap<>();
@@ -78,22 +78,30 @@ public class NetworkManager {
 
     // --- Private Helpers ---
 
+    private void terminateWithError(String msg) {
+        logger.error(msg);
+        appendToReport(msg);
+        reset();
+    }
+
     private void load() {
-        // Checks if the configuration file exists and loads it if possible
-        if (CONFIG_FILE == null || REPORT_FILE == null) {
-            logger.error(
-                    "NetworkManager configuration-file and report-file must be specified in application.yaml");
+        if (!impairmentEnabled) {
+            logger.info("Impairment not enabled");
             return;
         }
 
         initReport();
 
+        // Checks if the configuration file exists and loads it if possible
+        if (CONFIG_FILE == null || REPORT_FILE == null) {
+            terminateWithError("Configuration-file and report-file must be specified in application.yaml");
+            return;
+        }
+
         Path filePath = Paths.get(CONFIG_FILE);
         File jsonFile = filePath.toFile();
         if (!jsonFile.exists()) {
-            String msg = "[NetworkManager] CRITICAL: File not found at " + jsonFile.getAbsolutePath();
-            logger.error(msg);
-            // appendToReport(msg);
+            terminateWithError("Configuration file not found at " + jsonFile.getAbsolutePath());
             return;
         }
 
@@ -102,50 +110,54 @@ public class NetworkManager {
             JsonNode root = mapper.readTree(jsonFile);
             parseConfig(root);
         } catch (IOException e) {
-            String errorMsg = "Error loading network configuration: " + e.getMessage();
-            logger.error(errorMsg);
-            // appendToReport("### " + errorMsg + " ###");
-            reset();
+            terminateWithError("Error loading network configuration: " + e.getMessage());
         }
     }
 
     private void parseConfig(JsonNode root) {
+        if (!(root.has("Placement") && root.has("Delays"))) {
+            terminateWithError("ConfigurationError: Must have fields 'Placement' and 'Delays'");
+            return;
+        }
+
+        JsonNode placement = root.get("Placement");
+        if (!placement.has("nodes")) {
+            terminateWithError("ConfigurationError: 'Placement' must have field 'nodes");
+            return;
+        }
+
         // Load nodes from Placement field
-        if (root.has("Placement")) {
-            JsonNode placement = root.get("Placement");
-            JsonNode nodes = placement.get("nodes");
-            if (nodes != null && nodes.isArray()) {
-                for (JsonNode node : nodes) {
-                    String nodeName = node.get("name").asText();
-                    JsonNode mss = node.get("microservices");
-                    if (mss != null && mss.isArray()) {
-                        for (JsonNode ms : mss) {
-                            microserviceToNode.put(ms.asText().toLowerCase(), nodeName);
-                        }
+        JsonNode nodes = placement.get("nodes");
+        if (nodes != null && nodes.isArray()) {
+            for (JsonNode node : nodes) {
+                String nodeName = node.get("name").asText();
+                JsonNode mss = node.get("microservices");
+                if (mss != null && mss.isArray()) {
+                    for (JsonNode ms : mss) {
+                        microserviceToNode.put(ms.asText().toLowerCase(), nodeName);
                     }
                 }
             }
         }
 
         // Load delays
-        if (root.has("Delays")) {
-            JsonNode delays = root.get("Delays");
-            loadDelayConfig(delays, "intraservice");
-            loadDelayConfig(delays, "intranode");
-            loadDelayConfig(delays, "internode");
-        }
+        JsonNode delays = root.get("Delays");
+        loadDelayConfig(delays, "intraservice");
+        loadDelayConfig(delays, "intranode");
+        loadDelayConfig(delays, "internode");
     }
 
     private void loadDelayConfig(JsonNode delaysNode, String type) {
+        if (!delaysNode.has(type))
+            return;
+
         JsonNode config = delaysNode.get(type);
-        if (config != null) {
-            if (config.has("uni")) {
-                JsonNode params = config.get("uni");
-                delayConfigs.put(type, new DelayConfig("uni", params.get(0).asDouble(), params.get(1).asDouble()));
-            } else if (config.has("exp")) {
-                JsonNode params = config.get("exp");
-                delayConfigs.put(type, new DelayConfig("exp", params.get(0).asDouble(), params.get(1).asDouble()));
-            }
+        if (config.has("uni")) {
+            JsonNode params = config.get("uni");
+            delayConfigs.put(type, new DelayConfig("uni", params.get(0).asDouble(), params.get(1).asDouble()));
+        } else if (config.has("exp")) {
+            JsonNode params = config.get("exp");
+            delayConfigs.put(type, new DelayConfig("exp", params.get(0).asDouble(), params.get(1).asDouble()));
         }
     }
 
@@ -154,6 +166,7 @@ public class NetworkManager {
     public synchronized void injectConfiguration(String json) {
         // Receives a configuration and overrides the current one - used for testing
         reset();
+        this.impairmentEnabled = true;
         initReport();
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -161,16 +174,14 @@ public class NetworkManager {
             parseConfig(root);
             logger.info("Network configuration loaded from JSON string");
         } catch (IOException | NumberFormatException | SimulatorException e) {
-            String errorMsg = "Error loading network configuration from JSON: " + e.getMessage();
-            logger.error(errorMsg);
-            // appendToReport("### CONFIGURATION ERROR: " + errorMsg + " ###");
-            reset();
+            terminateWithError("Error injecting network configuration: " + e.getMessage());
         }
     }
 
     public void reset() {
         this.microserviceToNode.clear();
         this.delayConfigs.clear();
+        this.impairmentEnabled = false;
     }
 
     // ******************************
@@ -257,7 +268,7 @@ public class NetworkManager {
         }
     }
 
-    private Boolean commandShouldNotBeDelayed(Command command) {
+    private Boolean isTransactionalCommand(Command command) {
         if (command == null) {
             return true;
         }
@@ -271,50 +282,60 @@ public class NetworkManager {
         return false;
     }
 
+    private Command unwrapCommand(Command command) {
+        if (command.getClass() == SagaCommand.class) {
+            return ((SagaCommand) command).getPayload();
+        }
+        return command;
+    }
+
     // --- Main Method ---
 
     @Around("execution(public * pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway.send(pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command)) && args(command) && target(gateway)")
-    public Object delaySend(ProceedingJoinPoint joinPoint, Command command, CommandGateway gateway) throws Throwable {
-        if (commandShouldNotBeDelayed(command)) {
+    public Object wrapSend(ProceedingJoinPoint joinPoint, Command command, CommandGateway gateway) throws Throwable {
+        if (isTransactionalCommand(command)) {
             return joinPoint.proceed();
         }
 
-        if (command.getClass() == SagaCommand.class) {
-            // If the command is wrapped in a SagaCommand, get the payload
-            SagaCommand sagaCommand = (SagaCommand) command;
-            command = sagaCommand.getPayload();
-        }
-
-        String sourceService = resolveMicroserviceName(gateway);
-        String targetService = command.getServiceName();
+        command = unwrapCommand(command);
         String commandName = command.getClass().getSimpleName();
-        String funcName = (command.getUnitOfWork() != null) ? command.getUnitOfWork().getFunctionalityName() : "unkown";
+        String funcName = command.getUnitOfWork() != null ? command.getUnitOfWork().getFunctionalityName() : "unknown";
 
-        // Generate behaviour
-        final int faultValue = generateFault(commandName);
-        final int delayBeforeValue = generateDelay(sourceService, targetService);
-        final int delayAfterValue = generateDelay(sourceService, targetService);
+        TraceManager.getInstance().startCommandSpan(funcName, commandName);
+        try {
+            if (!impairmentEnabled) {
+                return joinPoint.proceed();
+            }
 
-        Boolean isImpaired = (faultValue + delayBeforeValue + delayAfterValue > 0);
+            String sourceService = resolveMicroserviceName(gateway);
+            String targetService = command.getServiceName();
+            return executeWithImpairment(joinPoint, command, sourceService, targetService, commandName, funcName);
+        } finally {
+            TraceManager.getInstance().endCommandSpan(funcName, commandName);
+        }
+    }
+
+    private Object executeWithImpairment(ProceedingJoinPoint joinPoint, Command command, String sourceService,
+            String targetService, String commandName, String funcName) throws Throwable {
+        int faultValue = generateFault(commandName);
+        int delayBeforeValue = generateDelay(sourceService, targetService);
+        int delayAfterValue = generateDelay(sourceService, targetService);
+
+        boolean isImpaired = (faultValue + delayBeforeValue + delayAfterValue > 0);
         if (isImpaired) {
             TraceManager.getInstance().setSpanAttribute(funcName, "isImpaired", true);
         }
 
-        // Report & log
         logStep(funcName, commandName, sourceService, targetService, faultValue, delayBeforeValue, delayAfterValue);
 
-        // Inject and execute
-        Boolean shouldInjectFault = (faultValue == 1);
-        if (shouldInjectFault) {
+        if (faultValue == 1) {
             logger.error("EXCEPTION THROWN during {}", funcName);
             throw new SimulatorException("Fault on " + commandName);
         }
 
-        TraceManager.getInstance().startCommandSpan(funcName, commandName);
-        delay(funcName, commandName, delayBeforeValue, true); // Delay before step execution
-        Object result = joinPoint.proceed(); // Send()
-        delay(funcName, commandName, delayAfterValue, false); // Delay after step execution
-        TraceManager.getInstance().endCommandSpan(funcName, commandName);
+        delay(funcName, commandName, delayBeforeValue, true);
+        Object result = joinPoint.proceed();
+        delay(funcName, commandName, delayAfterValue, false);
 
         return result;
     }
