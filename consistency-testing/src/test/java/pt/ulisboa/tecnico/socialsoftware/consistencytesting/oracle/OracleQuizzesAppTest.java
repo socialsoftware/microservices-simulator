@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.WorkflowUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
@@ -141,6 +144,88 @@ class OracleQuizzesAppTest {
         // TODO for now is wrong because its assuming schedule REJECTED
         // assertTrue(result.statuses().isEmpty());
     }
+
+    @ParameterizedTest()
+    @ValueSource(ints = { 0, 1, 2 })
+    @DisplayName("Inter dependencies are respected")
+    void interDependenciesAreRespected(int selectDependencies) {
+        Supplier<TestCase> setupTestCase = () -> {
+            InitialState initialState = factory.setupInitialState();
+
+            AddParticipantFunctionalitySagas func1 = factory.createAddParticipantFunctionality(
+                    sagaUnitOfWorkService,
+                    initialState.tournamentDto().getAggregateId(),
+                    initialState.courseExecutionDto().getAggregateId(),
+                    initialState.userDto().getAggregateId(),
+                    gateway);
+
+            AddParticipantFunctionalitySagas func2 = factory.createAddParticipantFunctionality(
+                    sagaUnitOfWorkService,
+                    initialState.tournamentDto().getAggregateId(),
+                    initialState.courseExecutionDto().getAggregateId(),
+                    initialState.userDto().getAggregateId(),
+                    gateway);
+
+            var func1Steps = WorkflowUtils.getWorkflowSteps(func1.getWorkflow());
+            var func2Steps = WorkflowUtils.getWorkflowSteps(func2.getWorkflow());
+
+            StepDependencies dependencies = new StepDependencies();
+            switch (selectDependencies) {
+                case 0 -> {
+                    // f1 step 1 depends on f2 step 1
+                    dependencies.setStepDependencies(func1Steps.get(0), Set.of(func2Steps.get(0)));
+                    // f2 step 2 depends on f1 step 2
+                    dependencies.setStepDependencies(func2Steps.get(1), Set.of(func1Steps.get(1)));
+                }
+                case 1 -> {
+                    // f2 step 1 depends on f1 step 1
+                    dependencies.setStepDependencies(func2Steps.get(0), Set.of(func1Steps.get(0)));
+                    // f1 step 2 depends on f2 step 2
+                    dependencies.setStepDependencies(func1Steps.get(1), Set.of(func2Steps.get(1)));
+                }
+                case 2 -> {
+                    // f1 step 1 depends on f2 step 2 (cross-step dependency)
+                    dependencies.setStepDependencies(func1Steps.get(0), Set.of(func2Steps.get(1)));
+                }
+                default -> {
+                    throw new IllegalArgumentException("Invalid selectDependencies value: " + selectDependencies);
+                }
+            }
+
+            return new TestCase(List.of(func1, func2), dependencies);
+        };
+
+        TestResult result = oracle.runTest(setupTestCase);
+        List<FlowStep> schedule = result.schedule();
+        assertEquals(2, result.executedFunctionalities().size());
+        WorkflowFunctionality executedFunc1 = result.executedFunctionalities().get(0);
+        WorkflowFunctionality executedFunc2 = result.executedFunctionalities().get(1);
+        List<FlowStep> func1Steps = WorkflowUtils.getWorkflowSteps(executedFunc1.getWorkflow());
+        List<FlowStep> func2Steps = WorkflowUtils.getWorkflowSteps(executedFunc2.getWorkflow());
+
+        switch (selectDependencies) {
+            case 0 -> {
+                // f1 step 1 depends on f2 step 1
+                assertTrue(schedule.indexOf(func1Steps.get(0)) > schedule.indexOf(func2Steps.get(0)));
+                // f2 step 2 depends on f1 step 2
+                assertTrue(schedule.indexOf(func2Steps.get(1)) > schedule.indexOf(func1Steps.get(1)));
+            }
+            case 1 -> {
+                // f2 step 1 depends on f1 step 1
+                assertTrue(schedule.indexOf(func2Steps.get(0)) > schedule.indexOf(func1Steps.get(0)));
+                // f1 step 2 depends on f2 step 2
+                assertTrue(schedule.indexOf(func1Steps.get(1)) > schedule.indexOf(func2Steps.get(1)));
+            }
+            case 2 -> {
+                // f1 step 1 depends on f2 step 2 (cross-step dependency)
+                assertTrue(schedule.indexOf(func1Steps.get(0)) > schedule.indexOf(func2Steps.get(1)));
+            }
+            default -> {
+                throw new IllegalArgumentException("Invalid selectDependencies value: " + selectDependencies);
+            }
+        }
+    }
+
 
     // ======= Helper Functions =======
 

@@ -30,6 +30,12 @@
 
     <dependencies>
 
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- QuizzesTutor is used in Oracle tests as an example Spring Boot app -->
         <dependency>
             <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>

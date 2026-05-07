@@ -28,11 +28,12 @@ public class StepDependencies {
         return dependencies;
     }
 
-    public void setStepDependencies(FlowStep step, Set<FlowStep> dependencies) {
+    public StepDependencies setStepDependencies(FlowStep step, Set<FlowStep> dependencies) {
         if (dependencies.contains(step)) {
             throw new IllegalArgumentException("Step '" + step.getName() + "' cannot depend on itself.");
         }
         stepDependencies.put(step, new HashSet<>(dependencies));
+        return this;
     }
 
     /**
@@ -41,12 +42,13 @@ public class StepDependencies {
      * 
      * @param other the other dependencies to be merged into this object
      */
-    public void merge(StepDependencies other) {
+    public StepDependencies merge(StepDependencies other) {
         other.stepDependencies.forEach((key, value) -> {
             this.stepDependencies.merge(key, new HashSet<>(value), (thisDependencies, otherDependencies) -> {
                 thisDependencies.addAll(otherDependencies);
                 return thisDependencies;
             });
         });
+        return this;
     }
 }

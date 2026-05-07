@@ -19,7 +19,10 @@ class ScheduleExecutor {
     private static final int STEP_EXECUTION_LIMIT = 500;
 
     private final List<WorkflowFunctionality> functionalities;
-    private final StepDependencies stepDependencies = new StepDependencies();
+    private final StepDependencies interDependencies;
+    private final StepDependencies intraDependencies = new StepDependencies();
+    private final Set<FlowStep> allStepsFound;
+
     private final Map<FlowStep, WorkflowFunctionality> stepFunctionalityMap = new HashMap<>();
     private final List<FlowStep> schedule = new ArrayList<>();
     private final Set<FlowStep> successfulSteps = new HashSet<>();
@@ -31,26 +34,25 @@ class ScheduleExecutor {
             StepDependencies interDependencies) {
 
         this.functionalities = Objects.requireNonNull(List.copyOf(functionalities));
-        initStepMaps(this.functionalities, interDependencies);
+        this.interDependencies = Objects.requireNonNull(interDependencies);
+        initStepFuncMapAndIntraDependencies(functionalities);
+        // allFoundSteps is the union of the steps that had intraDependencies with the
+        // steps that had interDependencies which should represent all the steps that
+        // were initially expected plus the ones found dynamically
+        allStepsFound = new HashSet<>(intraDependencies.getSteps());
+        allStepsFound.addAll(interDependencies.getSteps());
     }
 
-    private void initStepMaps(
-            List<WorkflowFunctionality> functionalities,
-            StepDependencies interDependencies) {
-
+    private void initStepFuncMapAndIntraDependencies(List<WorkflowFunctionality> functionalities) {
         for (WorkflowFunctionality func : functionalities) {
             Workflow workflow = func.getWorkflow();
             Objects.requireNonNull(workflow);
 
             for (FlowStep step : WorkflowUtils.getWorkflowSteps(workflow)) {
-                stepDependencies.setStepDependencies(step, new HashSet<>(step.getDependencies()));
+                intraDependencies.setStepDependencies(step, new HashSet<>(step.getDependencies()));
                 stepFunctionalityMap.put(step, func);
             }
         }
-
-        // merge interleavings inter-functionality-dependencies into the existing
-        // intra-functionality-dependencies (functionality's step sequence)
-        stepDependencies.merge(interDependencies);
     }
 
     public TestResult execute() {
@@ -78,11 +80,9 @@ class ScheduleExecutor {
                     break; // defensive break to not continue to test on a broken app state
                 }
             }
-
-            
         }
 
-        int totalSteps = stepDependencies.getSteps().size();
+        int totalSteps = allStepsFound.size();
         if (schedule.size() >= STEP_EXECUTION_LIMIT) {
             detectedStatuses.add(TestStatus.EXECUTION_LIMIT_EXCEEDED);
         } else if (schedule.size() < totalSteps) {
@@ -99,7 +99,7 @@ class ScheduleExecutor {
 
     private List<FlowStep> getAvailableSteps() {
         // TODO this could be better optimized
-        return stepDependencies.getSteps().stream()
+        return allStepsFound.stream()
                 .filter(this::stepCanExecute)
                 .toList();
     }
@@ -109,6 +109,12 @@ class ScheduleExecutor {
     }
 
     private boolean stepDependenciesSatisfied(FlowStep step) {
-        return successfulSteps.containsAll(step.getDependencies());
+        // intra-dependencies need to be successful to release
+        boolean intraDepsSatisfied = successfulSteps.containsAll(intraDependencies.getStepDependencies(step));
+
+        // inter-dependencies only need to have executed (successful or not) to release
+        boolean interDepsSatisfied = schedule.containsAll(interDependencies.getStepDependencies(step));
+
+        return intraDepsSatisfied && interDepsSatisfied;
     }
 }
