@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregateRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionRepository;
 
 public class Oracle {
@@ -103,7 +104,8 @@ public class Oracle {
     public <T> T getBean(Class<T> beanClass) {
         ConfigurableApplicationContext context = springContext;
         if (context == null || !context.isActive()) {
-            throw new IllegalStateException("Cannot fetch bean: Context is inactive.");
+            throw new IllegalStateException(
+                    "Cannot fetch bean %s : Context is inactive.".formatted(beanClass.getName()));
         }
         return context.getBean(beanClass);
     }
@@ -112,7 +114,8 @@ public class Oracle {
             List<WorkflowFunctionality> functionalities,
             StepDependencies interDependencies) {
 
-        ScheduleExecutor scheduleExecutor = new ScheduleExecutor(functionalities, interDependencies);
+        var uowService = getBean(SagaUnitOfWorkService.class);
+        ScheduleExecutor scheduleExecutor = new ScheduleExecutor(functionalities, interDependencies, uowService);
         return scheduleExecutor.execute();
     }
     public TestResult runTest(Supplier<TestCase> setupInitialState) {

@@ -3,6 +3,9 @@ package pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
@@ -32,6 +35,11 @@ public class SagaUnitOfWork extends UnitOfWork {
 
     public void registerCompensation(Runnable compensationAction) {
         this.compensatingActions.add(compensationAction);
+    }
+
+    @JsonIgnore
+    public List<Runnable> getRegisteredCompensations() {
+        return List.copyOf(this.compensatingActions);
     }
 
     public void compensate() {

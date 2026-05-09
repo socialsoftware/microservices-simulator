@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.WorkflowUtils;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.FunctionalityUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
@@ -85,7 +86,7 @@ class OracleQuizzesAppTest {
         // TODO fix this assert
         // assertEquals(QuizzesTestFactory.STUDENT_ROLE, readUserDto.getRole());
 
-        List<FlowStep> expectedSchedule = WorkflowUtils.getWorkflowSteps(executedAddParticipantSaga.getWorkflow());
+        List<FlowStep> expectedSchedule = FunctionalityUtils.getSteps(executedAddParticipantSaga);
         assertTrue(result.exceptions().isEmpty());
         assertTrue(result.statuses().isEmpty());
         assertEquals(expectedSchedule, result.schedule());
@@ -109,8 +110,8 @@ class OracleQuizzesAppTest {
         }
     }
     @Test
-    @DisplayName("When a step fails its consecutive steps (dependants) should not execute")
-    void whenAStepFailsItsConsecutiveStepsShoulNotExecute() {
+    @DisplayName("When a step fails its consecutive functionality steps (intra-dependants) should not execute")
+    void whenAStepFailsItsConsecutiveFunctionalityStepsShoulNotExecute() {
         Objects.requireNonNull(sagaUnitOfWorkService);
         SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
                 AddParticipantFunctionalitySagas.class.getSimpleName());
@@ -131,9 +132,14 @@ class OracleQuizzesAppTest {
 
         TestResult result = oracle.runTest(badAddParticipantSagaScenario);
 
-        assertEquals(1, result.executedFunctionalities().size());
-        WorkflowFunctionality executedSaga = result.executedFunctionalities().getFirst();
-        List<FlowStep> completeSchedule = WorkflowUtils.getWorkflowSteps(executedSaga.getWorkflow());
+        assertEquals(2, result.executedFunctionalities().size());
+        WorkflowFunctionality executedSaga = result.executedFunctionalities().get(0);
+        WorkflowFunctionality compensationSaga = result.executedFunctionalities().get(1);
+
+        assertInstanceOf(AddParticipantFunctionalitySagas.class, executedSaga);
+        assertInstanceOf(CompensationFunctionality.class, compensationSaga);
+
+        List<FlowStep> completeSchedule = FunctionalityUtils.getSteps(executedSaga);
         List<FlowStep> brokenSchedule = completeSchedule.subList(0, 1);
         assertEquals(brokenSchedule, result.schedule());
 
@@ -143,6 +149,89 @@ class OracleQuizzesAppTest {
 
         // TODO for now is wrong because its assuming schedule REJECTED
         // assertTrue(result.statuses().isEmpty());
+    }
+
+    @Test
+    @DisplayName("When a functionality step fails with a unexpected exception the test result registers INTERNAL_ERROR status")
+    void whenAFunctionalityStepFailsWithAUnexpectedExceptionTheTestResultRegistersInternalErrorStatus() {
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                TestBrokenFunctionality.class.getSimpleName());
+
+        var runTimeException = new RuntimeException("This step is breaks unexpectedly");
+        var testFunc = new TestBrokenFunctionality(sagaUnitOfWorkService, uow, runTimeException);
+
+        Supplier<TestCase> testFuncScenario = () -> new TestCase(List.of(testFunc), new StepDependencies());
+        TestResult result = oracle.runTest(testFuncScenario);
+
+        // if it broke unexpectedly the test halts and the compensations are skipped
+        assertEquals(1, result.executedFunctionalities().size());
+        WorkflowFunctionality executedFunc = result.executedFunctionalities().getFirst();
+        assertFalse(executedFunc instanceof CompensationFunctionality);
+        assertInstanceOf(TestBrokenFunctionality.class, executedFunc);
+        TestBrokenFunctionality executedTestFunc = (TestBrokenFunctionality) executedFunc;
+
+        assertTrue(executedTestFunc.hasFirstStepExecuted());
+        assertTrue(executedTestFunc.hasSecondStepExecuted());
+        assertTrue(executedTestFunc.hasThirdStepFailed());
+
+        // third step does not compensate because it failed (nothing to compensate)
+        assertFalse(executedTestFunc.hasThirdStepCompensated());
+
+        // second and first step don't compensate because test halted
+        assertFalse(executedTestFunc.hasSecondStepCompensated());
+        assertFalse(executedTestFunc.hasFirstStepCompensated());
+
+        // INTERNAL_ERROR status is registered
+        assertEquals(1, result.statuses().size());
+        assertEquals(Set.of(TestStatus.INTERNAL_EXCEPTION), result.statuses());
+
+        // the exception registered in the test result is the expected one
+        FlowStep brokenStep = FunctionalityUtils.getSteps(executedTestFunc).get(2);
+        assertEquals(runTimeException, result.exceptions().get(brokenStep));
+    }
+
+    @Test
+    @DisplayName("When a functionality step fails the compensation plan is executed")
+    void whenAFunctionalityStepFailsTheCompensationPlanIsExecuted() {
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                TestBrokenFunctionality.class.getSimpleName());
+        var expectedException = new SimulatorException("This step is expected to break");
+        var testFunc = new TestBrokenFunctionality(sagaUnitOfWorkService, uow, expectedException);
+
+        Supplier<TestCase> testFuncScenario = () -> new TestCase(List.of(testFunc), new StepDependencies());
+        TestResult result = oracle.runTest(testFuncScenario);
+
+        assertEquals(2, result.executedFunctionalities().size());
+        WorkflowFunctionality executedFunc = result.executedFunctionalities().get(0);
+        WorkflowFunctionality compensationFunc = result.executedFunctionalities().get(1);
+
+        assertInstanceOf(CompensationFunctionality.class, compensationFunc);
+        assertInstanceOf(TestBrokenFunctionality.class, executedFunc);
+        TestBrokenFunctionality executedTestFunc = (TestBrokenFunctionality) executedFunc;
+
+        assertTrue(executedTestFunc.hasFirstStepExecuted());
+        assertTrue(executedTestFunc.hasSecondStepExecuted());
+        assertTrue(executedTestFunc.hasThirdStepFailed());
+
+        // third step does not compensate because it failed (nothing to compensate)
+        assertFalse(executedTestFunc.hasThirdStepCompensated());
+
+        // second and first step compensate because they had been succesfully executed
+        assertTrue(executedTestFunc.hasSecondStepCompensated());
+        assertTrue(executedTestFunc.hasFirstStepCompensated());
+
+        List<String> scheduleStepNames = result.schedule().stream().map(FlowStep::getName).toList();
+        List<String> expectedSchedule = List.of(
+                TestBrokenFunctionality.FIRST_STEP_NAME,
+                TestBrokenFunctionality.SECOND_STEP_NAME,
+                TestBrokenFunctionality.THIRD_STEP_NAME,
+                FunctionalityUtils.getCompensationStepName(1), // compensation of second step
+                FunctionalityUtils.getCompensationStepName(0) // compensation of first step
+        );
+
+        assertEquals(expectedSchedule, scheduleStepNames);
+
+        // TODO do same test but for ConcludeQuizFunctionalitySagas
     }
 
     @ParameterizedTest()
@@ -166,8 +255,8 @@ class OracleQuizzesAppTest {
                     initialState.userDto().getAggregateId(),
                     gateway);
 
-            var func1Steps = WorkflowUtils.getWorkflowSteps(func1.getWorkflow());
-            var func2Steps = WorkflowUtils.getWorkflowSteps(func2.getWorkflow());
+            var func1Steps = FunctionalityUtils.getSteps(func1);
+            var func2Steps = FunctionalityUtils.getSteps(func2);
 
             StepDependencies dependencies = new StepDependencies();
             switch (selectDependencies) {
@@ -188,7 +277,8 @@ class OracleQuizzesAppTest {
                     dependencies.setStepDependencies(func1Steps.get(0), Set.of(func2Steps.get(1)));
                 }
                 default -> {
-                    throw new IllegalArgumentException("Invalid selectDependencies value: " + selectDependencies);
+                    throw new IllegalArgumentException(
+                            "Invalid selectDependencies value: %d".formatted(selectDependencies));
                 }
             }
 
@@ -200,8 +290,8 @@ class OracleQuizzesAppTest {
         assertEquals(2, result.executedFunctionalities().size());
         WorkflowFunctionality executedFunc1 = result.executedFunctionalities().get(0);
         WorkflowFunctionality executedFunc2 = result.executedFunctionalities().get(1);
-        List<FlowStep> func1Steps = WorkflowUtils.getWorkflowSteps(executedFunc1.getWorkflow());
-        List<FlowStep> func2Steps = WorkflowUtils.getWorkflowSteps(executedFunc2.getWorkflow());
+        List<FlowStep> func1Steps = FunctionalityUtils.getSteps(executedFunc1);
+        List<FlowStep> func2Steps = FunctionalityUtils.getSteps(executedFunc2);
 
         switch (selectDependencies) {
             case 0 -> {
@@ -221,7 +311,8 @@ class OracleQuizzesAppTest {
                 assertTrue(schedule.indexOf(func1Steps.get(0)) > schedule.indexOf(func2Steps.get(1)));
             }
             default -> {
-                throw new IllegalArgumentException("Invalid selectDependencies value: " + selectDependencies);
+                throw new IllegalArgumentException(
+                        "Invalid selectDependencies value: %d".formatted(selectDependencies));
             }
         }
     }

@@ -8,20 +8,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletionException;
 
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.WorkflowUtils;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.FunctionalityUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+
 
 class ScheduleExecutor {
     private static final int STEP_EXECUTION_LIMIT = 500;
 
-    private final List<WorkflowFunctionality> functionalities;
+    private final SagaUnitOfWorkService uowService;
+    private final List<WorkflowFunctionality> functionalities = new ArrayList<>();
     private final StepDependencies interDependencies;
     private final StepDependencies intraDependencies = new StepDependencies();
-    private final Set<FlowStep> allStepsFound;
+    private final Set<FlowStep> allStepsFound = new HashSet<>();
 
     private final Map<FlowStep, WorkflowFunctionality> stepFunctionalityMap = new HashMap<>();
     private final List<FlowStep> schedule = new ArrayList<>();
@@ -31,11 +34,15 @@ class ScheduleExecutor {
 
     public ScheduleExecutor(
             List<WorkflowFunctionality> functionalities,
-            StepDependencies interDependencies) {
+            StepDependencies interDependencies,
+            SagaUnitOfWorkService uowService) {
 
-        this.functionalities = Objects.requireNonNull(List.copyOf(functionalities));
+        this.uowService = uowService;
         this.interDependencies = Objects.requireNonNull(interDependencies);
-        initStepFuncMapAndIntraDependencies(functionalities);
+        for (WorkflowFunctionality func : functionalities) {
+            addFunctionality(func);
+        }
+
         // allFoundSteps is the union of the steps that had intraDependencies with the
         // steps that had interDependencies which should represent all the steps that
         // were initially expected plus the ones found dynamically
@@ -43,16 +50,17 @@ class ScheduleExecutor {
         allStepsFound.addAll(interDependencies.getSteps());
     }
 
-    private void initStepFuncMapAndIntraDependencies(List<WorkflowFunctionality> functionalities) {
-        for (WorkflowFunctionality func : functionalities) {
-            Workflow workflow = func.getWorkflow();
-            Objects.requireNonNull(workflow);
+    private void addFunctionality(WorkflowFunctionality func) {
+        functionalities.add(func);
+        var workflowSteps = FunctionalityUtils.getSteps(func);
 
-            for (FlowStep step : WorkflowUtils.getWorkflowSteps(workflow)) {
-                intraDependencies.setStepDependencies(step, new HashSet<>(step.getDependencies()));
-                stepFunctionalityMap.put(step, func);
-            }
+        intraDependencies.merge(StepDependencies.of(workflowSteps));
+
+        for (FlowStep step : workflowSteps) {
+            stepFunctionalityMap.put(step, func);
         }
+
+        allStepsFound.addAll(workflowSteps);
     }
 
     public TestResult execute() {
@@ -64,21 +72,29 @@ class ScheduleExecutor {
 
             FlowStep step = stepOpt.get();
             if (schedule.contains(step)) {
-                throw new IllegalStateException("Step '" + step.getName() + "' cannot be executed more than once.");
+                throw new IllegalStateException("Step %s cannot be executed more than once.".formatted(step.getName()));
             }
 
+            WorkflowFunctionality func = stepFunctionalityMap.get(step);
             schedule.add(step);
             try {
-                WorkflowFunctionality func = stepFunctionalityMap.get(step);
                 func.executeUntilStep(step.getName(), func.getWorkflow().getUnitOfWork());
                 successfulSteps.add(step);
             } catch (Exception e) {
+                if (e instanceof CompletionException ce && ce.getCause() instanceof Exception cause) {
+                    // unwrap CompletionExceptions if they wrap Exception(excludes Throwables, null)
+                    e = cause;
+                }
+
                 stepExceptionsMap.put(step, e);
                 e.printStackTrace();
                 if (!(e instanceof SimulatorException)) {
                     detectedStatuses.add(TestStatus.INTERNAL_EXCEPTION);
                     break; // defensive break to not continue to test on a broken app state
                 }
+
+                var compensationFunc = new CompensationFunctionality(func, uowService);
+                addFunctionality(compensationFunc);
             }
         }
 
