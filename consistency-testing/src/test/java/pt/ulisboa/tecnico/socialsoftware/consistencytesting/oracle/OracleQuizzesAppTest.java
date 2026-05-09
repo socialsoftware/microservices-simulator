@@ -48,6 +48,7 @@ class OracleQuizzesAppTest {
     @BeforeAll
     void setupAll() {
 
+        // TODO should test with the real app args?
         oracle = new Oracle(QuizzesSimulator.class, List.of());
         oracle.init();
 

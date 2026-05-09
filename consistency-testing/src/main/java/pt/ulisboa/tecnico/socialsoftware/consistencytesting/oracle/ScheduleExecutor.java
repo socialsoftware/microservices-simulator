@@ -16,8 +16,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 
-
 class ScheduleExecutor {
+    // TODO internal StepDependencyGraph could be more efficient and cleaner
+
     private static final int STEP_EXECUTION_LIMIT = 500;
 
     private final SagaUnitOfWorkService uowService;
@@ -38,15 +39,15 @@ class ScheduleExecutor {
             SagaUnitOfWorkService uowService) {
 
         this.uowService = uowService;
-        this.interDependencies = Objects.requireNonNull(interDependencies);
+        this.interDependencies = Objects.requireNonNull(new StepDependencies(interDependencies));
         for (WorkflowFunctionality func : functionalities) {
             addFunctionality(func);
         }
 
+        // TODO review the allStepsFound concept, should it be changed?
         // allFoundSteps is the union of the steps that had intraDependencies with the
         // steps that had interDependencies which should represent all the steps that
         // were initially expected plus the ones found dynamically
-        allStepsFound = new HashSet<>(intraDependencies.getSteps());
         allStepsFound.addAll(interDependencies.getSteps());
     }
 
@@ -72,6 +73,7 @@ class ScheduleExecutor {
 
             FlowStep step = stepOpt.get();
             if (schedule.contains(step)) {
+                // TODO change to step id when it is avaialable
                 throw new IllegalStateException("Step %s cannot be executed more than once.".formatted(step.getName()));
             }
 
@@ -88,6 +90,8 @@ class ScheduleExecutor {
 
                 stepExceptionsMap.put(step, e);
                 e.printStackTrace();
+
+                // ! TODO verify that SimulatorException represents all the benign exceptions
                 if (!(e instanceof SimulatorException)) {
                     detectedStatuses.add(TestStatus.INTERNAL_EXCEPTION);
                     break; // defensive break to not continue to test on a broken app state
@@ -102,6 +106,7 @@ class ScheduleExecutor {
         if (schedule.size() >= STEP_EXECUTION_LIMIT) {
             detectedStatuses.add(TestStatus.EXECUTION_LIMIT_EXCEEDED);
         } else if (schedule.size() < totalSteps) {
+            // ! TODO review SCHEDULE_REJECTED and DEADLOCK statuses
             detectedStatuses.add(TestStatus.SCHEDULE_REJECTED);
         }
 
@@ -109,7 +114,7 @@ class ScheduleExecutor {
     }
 
     private Optional<FlowStep> getNextStep() {
-        // TODO use random sampling, maybe keep a deterministic version for testing
+        // TODO should be changed to pseudo-random pick (or determinisitic for testing)
         return getAvailableSteps().stream().findFirst();
     }
 
