@@ -18,10 +18,12 @@ COPY ./verifiers/src ./src
 FROM base AS run
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:21-jdk
+FROM maven:3.9.7-eclipse-temurin-21
 ARG PROFILE=sagas,local
 ARG APP_VERSION=1.0.0-SNAPSHOT
-COPY --from=run target/verifiers-*-exec.jar ./app.jar
+WORKDIR /verifiers
+COPY --from=run /target/verifiers-*-exec.jar ./app.jar
+COPY --from=run /root/.m2 /root/.m2
 COPY --from=base /applications /applications
 ENV SPRING_PROFILES_ACTIVE=$PROFILE
 CMD ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "./app.jar"]

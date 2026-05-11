@@ -204,7 +204,13 @@ services:
       SPRING_PROFILES_ACTIVE: sagas,local
       VERIFIERS_APPLICATIONS_ROOT: /applications
       VERIFIERS_APPLICATION_BASE_DIR: quizzes
-      VERIFIERS_REPORT_HTML_PATH: /reports/analysis-report.html
+      VERIFIERS_OUTPUT_ROOT: /reports
+      VERIFIERS_REPORT_HTML_PATH: analysis-report.html
+      VERIFIERS_SCENARIO_CATALOG_ENABLED: "true"
+      VERIFIERS_DYNAMIC_ENRICHMENT_ENABLED: "true"
+      VERIFIERS_DYNAMIC_ENRICHMENT_ALLOW_PARTIAL_TEST_RUN: "true"
+      VERIFIERS_DYNAMIC_ENRICHMENT_INCLUDE_TEST_DIRS: pt/ulisboa/tecnico/socialsoftware/quizzes/sagas
+      VERIFIERS_DYNAMIC_ENRICHMENT_EXCLUDE_TEST_DIRS: pt/ulisboa/tecnico/socialsoftware/quizzes/causal,pt/ulisboa/tecnico/socialsoftware/quizzes/tcc
     volumes:
       - ./verifiers/target:/reports
     <<: *limits-medium
