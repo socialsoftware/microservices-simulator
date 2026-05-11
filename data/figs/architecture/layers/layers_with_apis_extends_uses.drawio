@@ -1,6 +1,6 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36">
   <diagram id="arch_diagram" name="Architecture">
-    <mxGraphModel dx="1675" dy="991" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1486" dy="886" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -80,7 +80,7 @@
           <mxGeometry relative="1" x="0.518" y="10" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
-              <mxPoint x="720" y="230" />
+              <mxPoint x="720" y="240" />
             </Array>
             <mxPoint x="940" y="210" as="sourcePoint" />
           </mxGeometry>
@@ -102,7 +102,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="j9R4vumW2I8ECUKVBteT-109" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-96" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;edgeStyle=orthogonalEdgeStyle;endFill=1;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fontSize=9;html=1;align=right;" target="j9R4vumW2I8ECUKVBteT-103" value="&lt;div style=&quot;&quot;&gt;&lt;b style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;API:&lt;/b&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;implements(&lt;/span&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;EventHandling)&lt;/span&gt;&lt;/div&gt;">
+        <mxCell id="j9R4vumW2I8ECUKVBteT-109" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-96" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;edgeStyle=orthogonalEdgeStyle;endFill=1;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fontSize=9;html=1;align=right;" target="j9R4vumW2I8ECUKVBteT-103" value="&lt;div style=&quot;&quot;&gt;&lt;b style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;API:&lt;/b&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;extends(&lt;/span&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;EventHandling)&lt;/span&gt;&lt;/div&gt;">
           <mxGeometry relative="1" x="0.7321" y="20" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
@@ -111,11 +111,11 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="j9R4vumW2I8ECUKVBteT-110" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-96" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;endFill=1;strokeWidth=2;edgeStyle=orthogonalEdgeStyle;fontSize=9;align=left;labelBackgroundColor=default;html=1;" target="j9R4vumW2I8ECUKVBteT-98" value="&lt;span&gt;&lt;b style=&quot;&quot;&gt;API:&lt;/b&gt; implements(SagaAggregate,&amp;nbsp;&lt;br&gt;SagaState, CausalAggregate)&amp;nbsp;&lt;/span&gt;&lt;div&gt;&lt;span&gt;uses(UnitOfWorkService)&lt;/span&gt;&lt;/div&gt;">
+        <mxCell id="j9R4vumW2I8ECUKVBteT-110" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-96" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;endFill=1;strokeWidth=2;edgeStyle=orthogonalEdgeStyle;fontSize=9;align=left;labelBackgroundColor=default;html=1;" target="j9R4vumW2I8ECUKVBteT-98" value="&lt;span&gt;&lt;b style=&quot;&quot;&gt;API:&lt;/b&gt; extends(SagaAggregate,&amp;nbsp;&lt;br&gt;SagaState, CausalAggregate)&amp;nbsp;&lt;/span&gt;&lt;div&gt;&lt;span&gt;uses(UnitOfWorkService)&lt;/span&gt;&lt;/div&gt;">
           <mxGeometry relative="1" x="0.501" y="-10" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
-              <mxPoint x="870" y="230" />
+              <mxPoint x="870" y="240" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -218,15 +218,36 @@
             <mxPoint x="32" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FybjBV_X5J8AtwRonK3s-8" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-96" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;endFill=1;strokeWidth=2;edgeStyle=orthogonalEdgeStyle;fontSize=9;align=left;labelBackgroundColor=default;html=1;" target="j9R4vumW2I8ECUKVBteT-95" value="&lt;span&gt;&lt;b style=&quot;&quot;&gt;API:&lt;/b&gt;&amp;nbsp;uses(AggregateFunctionalities)&lt;br&gt;&lt;/span&gt;">
-          <mxGeometry relative="1" x="0.501" y="-10" as="geometry">
+        <mxCell id="FybjBV_X5J8AtwRonK3s-8" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-96" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;endFill=1;strokeWidth=2;edgeStyle=orthogonalEdgeStyle;fontSize=9;align=left;labelBackgroundColor=default;html=1;" target="j9R4vumW2I8ECUKVBteT-95" value="&lt;span&gt;&lt;br&gt;&lt;/span&gt;">
+          <mxGeometry relative="1" x="0.4696" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
-              <mxPoint x="880" y="217" />
-              <mxPoint x="880" y="217" />
+              <mxPoint x="800" y="200" />
+              <mxPoint x="800" y="200" />
             </Array>
             <mxPoint x="890" y="190" as="sourcePoint" />
             <mxPoint x="810" y="328" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="FagnyuMMprSJkMG6RbUq-4" connectable="0" parent="FybjBV_X5J8AtwRonK3s-8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;b style=&quot;font-size: 9px; text-align: left;&quot;&gt;API:&lt;/b&gt;&lt;span style=&quot;font-size: 9px; text-align: left;&quot;&gt;&amp;nbsp;uses(AggregateFunctionalities)&lt;/span&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.0168" y="2" as="geometry">
+            <mxPoint x="4" y="-4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="FagnyuMMprSJkMG6RbUq-2" edge="1" parent="1" source="j9R4vumW2I8ECUKVBteT-95" style="startArrow=none;endArrow=classic;rounded=1;flowAnimation=0;shadow=0;jumpStyle=arc;endFill=1;strokeWidth=2;edgeStyle=orthogonalEdgeStyle;fontSize=9;align=left;labelBackgroundColor=default;html=1;" target="j9R4vumW2I8ECUKVBteT-96" value="&lt;span&gt;&lt;br&gt;&lt;/span&gt;">
+          <mxGeometry relative="1" x="-0.0224" y="-2" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="800" y="220" />
+              <mxPoint x="800" y="220" />
+            </Array>
+            <mxPoint x="637" y="228" as="sourcePoint" />
+            <mxPoint x="950.0000000000002" y="228" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="FagnyuMMprSJkMG6RbUq-3" connectable="0" parent="FagnyuMMprSJkMG6RbUq-2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;b style=&quot;font-size: 9px; text-align: left;&quot;&gt;API:&lt;/b&gt;&lt;span style=&quot;font-size: 9px; text-align: left;&quot;&gt;&amp;nbsp;uses(ServiceCommand)&lt;/span&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0397" y="1" as="geometry">
+            <mxPoint x="8" as="offset" />
           </mxGeometry>
         </mxCell>
       </root>

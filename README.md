@@ -4,25 +4,28 @@
 
 - [Overview](#overview)
 - [Architecture](#architecture)
+- [Code Structure](#code-structure)
+    - [Simulator](#simulator)
+    - [Quizzes Microservice System](#quizzes-microservice-system)
+    - [How to Implement Your Own Business Logic](#how-to-implement-your-own-business-logic)
+        - [Implementing a Single Aggregate](#implementing-a-single-aggregate)
+        - [Implementing a Single Functionality](#implementing-a-single-functionality)
 - [Running an Application](#running-an-application)
+    - [Run Using Docker](guides/run-docker.md)
+    - [Run Using Maven](guides/run-maven.md)
+    - [Run Using IntelliJ](guides/run-intellij.md)
+    - [Deploy to Kubernetes](guides/deploy-kubernetes.md)
 - [Configuration Reference](#configuration-reference)
-  - [Jaeger Tracing](#jaeger-tracing)
-  - [Service Discovery](#service-discovery)
-  - [Database Configuration](#database-configuration)
-  - [Spring Cloud Stream Bindings](#spring-cloud-stream-bindings)
-  - [gRPC Command Gateway](#grpc-command-gateway)
-  - [Distributed Version Service](#distributed-version-service)
-  - [Service URLs and Ports](#service-urls-and-ports)
-  - [API Gateway Configuration](#api-gateway-configuration)
+    - [Jaeger Tracing](#jaeger-tracing)
+    - [Service Discovery](#service-discovery)
+    - [Database Configuration](#database-configuration)
+    - [Spring Cloud Stream Bindings](#spring-cloud-stream-bindings)
+    - [gRPC Command Gateway](#grpc-command-gateway)
+    - [Distributed Version Service](#distributed-version-service)
+    - [Service URLs and Ports](#service-urls-and-ports)
+    - [API Gateway Configuration](#api-gateway-configuration)
 - [Test Cases](#test-cases)
 - [Benchmarking and Performance Tests](#benchmarking-and-performance-tests)
-- [Code Structure](#code-structure)
-  - [Simulator](#simulator)
-  - [Quizzes Microservice System](#quizzes-microservice-system)
-- [How to Implement Your Own Business Logic](#how-to-implement-your-own-business-logic)
-  - [Developer Effort Checklist](#developer-effort-checklist)
-  - [Implementing a Single Aggregate](#implementing-a-single-aggregate)
-  - [Implementing a Single Functionality](#implementing-a-single-functionality)
 - [Publications](#publications)
 
 ## Overview
@@ -60,17 +63,90 @@ The system architecture is divided into three primary layers:
 The simulator supports multiple execution topologies, ranging from deterministic single-process runs to fully
 distributed microservice deployments.
 
-| Topology | Process and Data Layout | Command Transport | Event Transport | Typical Profiles | Strategic Value | Core Infrastructure |
-|----------|-------------------------|-------------------|-----------------|------------------|-----------------|---------------------|
-| **Centralized Local** | Single application process, shared database | In-memory (local) | Internal event persistence and polling | `sagas\|tcc, local` | Deterministic baseline to debug invariants, workflow ordering, and concurrency interleavings | PostgreSQL, Jaeger |
-| **Centralized Stream** | Single application process, shared database | RabbitMQ command channels | RabbitMQ `event-channel` | `sagas\|tcc, stream` | Intermediate topology to benchmark broker-based communication with shared persistence | PostgreSQL, RabbitMQ, Jaeger |
-| **Centralized gRPC** | Single application process, shared database | gRPC (discovery-based resolution) | RabbitMQ `event-channel` | `sagas\|tcc, grpc` | Intermediate topology to benchmark point-to-point RPC and discovery with shared persistence | PostgreSQL, Eureka, RabbitMQ, Jaeger |
-| **Distributed Stream** | Independent service processes, database-per-service | RabbitMQ command channels | RabbitMQ `event-channel` | Service profile + `sagas\|tcc, stream` (e.g., `quiz-service, sagas, stream`) | Production-like isolation with broker-mediated coordination across independent services | PostgreSQL per service, Eureka or Spring Cloud Kubernetes, API Gateway, RabbitMQ, Jaeger |
-| **Distributed gRPC** | Independent service processes, database-per-service | gRPC (service-to-service via discovery) | RabbitMQ `event-channel` | Service profile + `sagas\|tcc, grpc` (e.g., `quiz-service, tcc, grpc`) | Production-like hybrid model with direct RPC commands and asynchronous event propagation | PostgreSQL per service, Eureka or Spring Cloud Kubernetes, API Gateway, RabbitMQ, Jaeger |
+| Topology                                                                   | Process and Data Layout                             | Command Transport                       | Event Transport                        | Typical Profiles                                                             | Strategic Value                                                                              | Core Infrastructure                                                                      |
+|----------------------------------------------------------------------------|-----------------------------------------------------|-----------------------------------------|----------------------------------------|------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| **[Centralized Local](data/figs/architecture/topology_local.svg)**         | Single application process, shared database         | In-memory (local)                       | Internal event persistence and polling | `sagas\|tcc, local`                                                          | Deterministic baseline to debug invariants, workflow ordering, and concurrency interleavings | PostgreSQL, Jaeger                                                                       |
+| **[Centralized Stream](data/figs/architecture/topology_stream.svg)**       | Single application process, shared database         | RabbitMQ command channels               | RabbitMQ `event-channel`               | `sagas\|tcc, stream`                                                         | Intermediate topology to benchmark broker-based communication with shared persistence        | PostgreSQL, RabbitMQ, Jaeger                                                             |
+| **[Centralized gRPC](data/figs/architecture/topology_grpc.svg)**           | Single application process, shared database         | gRPC (discovery-based resolution)       | RabbitMQ `event-channel`               | `sagas\|tcc, grpc`                                                           | Intermediate topology to benchmark point-to-point RPC and discovery with shared persistence  | PostgreSQL, Eureka, RabbitMQ, Jaeger                                                     |
+| **[Distributed Stream](data/figs/architecture/topology_distr_stream.svg)** | Independent service processes, database-per-service | RabbitMQ command channels               | RabbitMQ `event-channel`               | Service profile + `sagas\|tcc, stream` (e.g., `quiz-service, sagas, stream`) | Production-like isolation with broker-mediated coordination across independent services      | PostgreSQL per service, Eureka or Spring Cloud Kubernetes, API Gateway, RabbitMQ, Jaeger |
+| **[Distributed gRPC](data/figs/architecture/topology_distr_grpc.svg)**     | Independent service processes, database-per-service | gRPC (service-to-service via discovery) | RabbitMQ `event-channel`               | Service profile + `sagas\|tcc, grpc` (e.g., `quiz-service, tcc, grpc`)       | Production-like hybrid model with direct RPC commands and asynchronous event propagation     | PostgreSQL per service, Eureka or Spring Cloud Kubernetes, API Gateway, RabbitMQ, Jaeger |
 
 Versioning option across topologies: add `distributed-version` only with `sagas` to use local Snowflake ID generation.
 TCC requires centralized version management because causal conflict resolution depends on a centralized, monotonically
 increasing version sequence.
+
+## Code Structure
+
+### Simulator
+
+| Module              | Purpose                                                                    | Main Code                                                                                                   |
+|---------------------|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| Aggregate           | Aggregate identity, invariants, and event subscription contracts           | [simulator aggregate package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/aggregate)       |
+| Coordination        | Workflow orchestration, step dependency ordering, and execution plans      | [simulator coordination package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination) |
+| Transaction (Sagas) | Semantic locks, compensation, and Saga-specific command wrappers           | [simulator sagas package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/sagas)   |
+| Transaction (TCC)   | Causal snapshots, optimistic conflict detection, and merge commit path     | [simulator causal package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/causal) |
+| Notification        | Event persistence, publication/subscription transport, and polling support | [simulator notification package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/notification) |
+| Messaging           | Command gateway abstraction across local, stream, and gRPC modes           | [simulator messaging package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging)       |
+| Impairment          | Fault and delay injection hooks for resilience and behavior testing        | [simulator impairment package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/impairment)     |
+| Monitoring          | Tracing and observability support for functionalities and workflow steps   | [simulator monitoring package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring)     |
+| Versioning          | Version ID generation and version-service support across topologies        | [simulator versioning package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/versioning)     |
+
+### Quizzes Microservice System
+
+* A case study for [Quizzes Tutor](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes)
+    * The transactional model
+      independent [Microservices](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices)
+    * The Sagas implementation for Aggregates and Coordination
+    * The TCC implementation for Aggregates and Coordination
+* The tests of the [Quizzes Tutor](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes) for
+  Sagas and TCC
+
+![Application Decomposition](data/figs/application_decomposition.svg)
+
+The API Gateway is used when running the quizzes application as microservices to route API requests to the appropriate
+microservice. The gateway operates as an MVC application using a custom dynamic proxy controller to forward REST
+requests.
+
+## How to Implement Your Own Business Logic
+
+The framework significantly minimizes the cognitive load for developers by abstracting distributed infrastructure. The
+workflow focuses strictly on domain modeling, defining events, and orchestrating business logic.
+
+While the majority of the effort is focused on the microservice being developed, supporting centralized deployment
+topologies (such as Centralized Stream or Centralized gRPC) introduces a minor configuration step: the developer must
+append the new aggregate's specific network bindings (e.g., stream channels and event broker bindings) into a shared,
+unified `application.yaml` file to ensure the centralized execution environment can correctly route messages between the
+aggregates.
+
+### Implementing a Single Aggregate
+
+| Development Task                    | Implementation Details & Example                                                                                                                                                                                                                                                                                                                                                                                         | Rationale (Why)                                                                                    |
+|-------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| **Define Spring Boot Application**  | Create the microservice entry point, e.g., [`TournamentServiceApplication.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/TournamentServiceApplication.java) with `@SpringBootApplication`.                                                                                                                                                                 | Establishes the bounded context runtime and independent deployability.                             |
+| **Define Aggregate**                | Define the JPA root entity, e.g., [`Tournament.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java), and associated value objects, e.g., [`TournamentCreator`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/TournamentCreator.java).                               | Defines the transactional consistency boundary where invariants are enforced.                      |
+| **Define DTOs and Repositories**    | Create data transfer objects and Spring Data JPA interfaces for data access, e.g., [`TournamentDto.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/TournamentDto.java), [`TournamentRepository.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/TournamentRepository.java). | Separates persistence/API contracts from domain behavior and supports query/update paths.          |
+| **Specify Invariants**              | Override the [`verifyInvariants()`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java) method, e.g., asserting tournament start date is before end date.                                                                                                                                                                                   | Prevents invalid aggregate versions from being committed.                                          |
+| **Define Events**                   | Define the events published/subscribed, e.g., [`UpdateStudentNameEvent.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/events/UpdateStudentNameEvent.java).                                                                                                                                                                                                                          | Makes upstream changes observable by downstream aggregates for eventual consistency.               |
+| **Subscribe Events**                | Override the [`getEventSubscriptions()`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java) method, adding concrete subscriptions.                                                                                                                                                                                                         | Declares upstream-downstream dependencies explicitly at the domain level.                          |
+| **Define Event Subscriptions**      | Define subscription conditions, e.g., in [`TournamentSubscribesUpdateStudentName.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/notification/subscribe/TournamentSubscribesUpdateStudentName.java) a tournament subscribes to creator/participant name updates.                                                                                            | Filters only relevant upstream events, avoiding unnecessary or inconsistent updates.               |
+| **Define Event Handlers**           | Delegate handling to processing functionalities, e.g., [`UpdateStudentNameEventHandler.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/notification/handling/handlers/UpdateStudentNameEventHandler.java).                                                                                                                                                  | Converts raw event intake into deterministic domain actions.                                       |
+| **Define Aggregate Services**       | Define the microservice API to register changes, e.g., [`updateUserName(...)`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/service/TournamentService.java).                                                                                                                                                                                                    | Provides stable operation-level contracts used by commands and controllers.                        |
+| **Define Web Controllers**          | Expose REST API endpoints to external clients, e.g., [`TournamentController.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/webapi/TournamentController.java).                                                                                                                                                                                 | Enables external access while preserving application/domain layering.                              |
+| **Define Event Handling**           | Define polling logic for the event table, e.g., [`TournamentEventHandling.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/notification/handling/TournamentEventHandling.java).                                                                                                                                                                              | Drives periodic event processing cycles for eventual consistency.                                  |
+| **Define Event Subscriber Service** | Subscribe to Spring Cloud Stream events, e.g., [`EventSubscriberService.java`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/notification/EventSubscriberService.java).                                                                                                                                                                                                                                   | Bridges broker transport to local event persistence/processing.                                    |
+| **Define Transactional Aggregates** | Extend aggregate for specific models, e.g., [`SagaTournament.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/sagas/SagaTournament.java) (locks) and [`CausalTournament.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/causal/CausalTournament.java) (merging).            | Adapts the same domain to model-specific consistency semantics without duplicating business logic. |
+| **Define Commands**                 | Define remote commands for aggregate services, e.g., [`AddParticipantCommand.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/commands/tournament/AddParticipantCommand.java).                                                                                                                                                                                                        | Formalizes inter-service invocation contracts independent of transport protocol.                   |
+| **Create CommandHandler**           | Receive remote commands and map to services, e.g., [`TournamentCommandHandler.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/messaging/TournamentCommandHandler.java).                                                                                                                                                                                     | Centralizes command routing and isolates transport concerns from domain services.                  |
+| **Configure Network Bindings**      | Set `stream` channels or `grpc` ports in the aggregate yaml file, e.g., in [`application-tournament-service.yaml`](applications/quizzes/src/main/resources/application-tournament-service.yaml) and append them to the unified [`application.yaml`](applications/quizzes/src/main/resources/application.yaml).                                                                                                           | Activates deployment topologies (both distributed and centralized) without changing business code. |
+| **Configure API Gateway Routes**    | Define route mappings in the microservice yaml to route HTTP requests.                                                                                                                                                                                                                                                                                                                                                   | Decouples external API paths from internal service locations.                                      |
+
+### Implementing a Single Functionality
+
+| Development Task           | Implementation Details & Example                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Rationale (Why)                                                                                    |
+|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| **Define Functionality**   | Extend [`WorkflowFunctionality`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/WorkflowFunctionality.java) to coordinate a specific use-case, e.g., [`AddParticipantFunctionalitySagas.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java).                                                                                                                                                                                                           | Encapsulates one business use case as a reusable coordination unit.                                |
+| **Workflow Orchestration** | Map execution [`Step`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/Step.java)s, dependencies, and transaction triggers within [`buildWorkflow()`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java), e.g., defining `getUserStep` and `addParticipantStep` dependencies.                                                                                                                                                                                 | Makes ordering, dependency, and rollback/compensation boundaries explicit.                         |
+| **Command Dispatching**    | Instantiate remote [`Command`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/Command.java)s and dispatch via the abstract [`CommandGateway`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/CommandGateway.java), e.g., sending [`AddParticipantCommand`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/commands/tournament/AddParticipantCommand.java) wrapped in a [`SagaCommand`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/sagas/messaging/SagaCommand.java) with semantic locks. | Executes distributed steps through transport-agnostic contracts while preserving domain isolation. |
 
 ## Running an Application
 
@@ -120,6 +196,17 @@ Database settings are defined in [application.yaml](applications/quizzes/src/mai
 |-------------|-----------------|--------------------------------------------------------------------|
 | Centralized | `msdb`          | Single database for all aggregates                                 |
 | Distributed | Per-service DBs | Each service has its own database (e.g., `tournamentdb`, `userdb`) |
+
+When running in distributed mode, the Quizzes microservices map to the following individual databases:
+
+* `answer-service` -> `answerdb`
+* `course-service` -> `coursedb`
+* `execution-service` -> `executiondb`
+* `question-service` -> `questiondb`
+* `quiz-service` -> `quizdb`
+* `topic-service` -> `topicdb`
+* `tournament-service` -> `tournamentdb`
+* `user-service` -> `userdb`
 
 Service-specific database URLs are configured in profile files
 like [application-tournament-service.yaml](applications/quizzes/src/main/resources/application-tournament-service.yaml).
@@ -175,6 +262,8 @@ generation is intentionally disabled.
 
 ### Service URLs and Ports
 
+**Microservices:**
+
 Each microservice runs on a dedicated port:
 
 | Service            | Port | Profile File                                                                                                       |
@@ -191,6 +280,20 @@ Each microservice runs on a dedicated port:
 
 Every service port can be changed, including `version-service` port 8081, and `gateway` port 8080. Service Discovery
 will map the service name to the service port automatically.
+
+**Observability & Infrastructure:**
+
+| Service                      | URL / Port                                       | Purpose                                                        |
+|------------------------------|--------------------------------------------------|----------------------------------------------------------------|
+| **Jaeger UI**                | [http://localhost:16686](http://localhost:16686) | Distributed tracing; view spans, traces, service dependencies  |
+| **RabbitMQ Management**      | [http://localhost:15672](http://localhost:15672) | Message broker admin                                           |
+| **Eureka Service Discovery** | [http://localhost:8761](http://localhost:8761)   | View registered services and their instances                   |
+| **PostgreSQL**               | `localhost:5432`                                 | Database access (centralized mode: `msdb`; distributed: `*db`) |
+
+**Default Credentials:**
+
+- PostgreSQL: `postgres` / `postgres`
+- RabbitMQ: `guest` / `guest`
 
 ### API Gateway Configuration
 
@@ -238,7 +341,7 @@ For repeated deployment benchmarking of tournament scenarios, use:
 ./scripts/benchmark-deployments.sh --test concurrentAddparticipant.jmx
 ```
 
-Run with a specific transaction mode and number of repetitions:
+Run with a specific transaction mode and a number of repetitions:
 
 ```bash
 ./scripts/benchmark-deployments.sh --test concurrentAddparticipant.jmx --tx-mode sagas --repetitions 5
@@ -255,90 +358,18 @@ What this script does:
 Requirements and setup details are in [Run Using Maven](guides/run-maven.md#running-jmeter-tests). DAIS paper
 scenario mapping is in [Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2023.md).
 
-## Code Structure
-
-### Simulator
-
-| Module | Purpose | Main Code |
-|--------|---------|-----------|
-| Aggregate | Aggregate identity, invariants, and event subscription contracts | [simulator aggregate package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/aggregate) |
-| Coordination | Workflow orchestration, step dependency ordering, and execution plans | [simulator coordination package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination) |
-| Transaction (Sagas) | Semantic locks, compensation, and Saga-specific command wrappers | [simulator sagas package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/sagas) |
-| Transaction (TCC) | Causal snapshots, optimistic conflict detection, and merge commit path | [simulator causal package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/causal) |
-| Notification | Event persistence, publication/subscription transport, and polling support | [simulator notification package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/notification) |
-| Messaging | Command gateway abstraction across local, stream, and gRPC modes | [simulator messaging package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging) |
-| Impairment | Fault and delay injection hooks for resilience and behavior testing | [simulator impairment package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/impairment) |
-| Monitoring | Tracing and observability support for functionalities and workflow steps | [simulator monitoring package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring) |
-| Versioning | Version ID generation and version-service support across topologies | [simulator versioning package](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/versioning) |
-
-### Quizzes Microservice System
-
-* A case study for [Quizzes Tutor](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes)
-    * The transactional model
-      independent [Microservices](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices)
-    * The Sagas implementation for Aggregates and Coordination
-    * The TCC implementation for Aggregates and Coordination
-* The tests of the [Quizzes Tutor](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes) for
-  Sagas and TCC
-
-![Application Decomposition](data/figs/application_decomposition.svg)
-
-The API Gateway is used when running the quizzes application as microservices to route API requests to the appropriate
-microservice. The gateway operates as an MVC application using a custom dynamic proxy controller to forward REST
-requests.
-
-## How to Implement Your Own Business Logic
-
-The framework significantly minimizes the cognitive load for developers by abstracting distributed infrastructure. The
-workflow focuses strictly on domain modeling, defining events, and orchestrating business logic.
-
-### Developer Effort Checklist
-
-This checklist summarizes recurring effort for simulator integration in a new application.
-
-1. Define one command contract per aggregate service method that must be remotely invoked.
-2. Create and tune shared and service-specific YAML profiles (`application.yaml` and `application-<service>.yaml`).
-3. Ensure aggregate serialization boundaries are explicit (for example, avoid leaking nested entities through JSON
-  getters).
-4. Implement one command handler per microservice to route commands to domain services.
-5. Wire event subscriptions and handlers for cross-aggregate eventual consistency where needed.
-6. Validate deterministic functionality behavior before running distributed benchmarks.
-
-### Implementing a Single Aggregate
-
-| Development Task                    | Implementation Details & Example                                                                                                                                                                                                                                                                                                                                                                                         | Rationale (Why)                                                                                    |
-|-------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| **Define Spring Boot Application**  | Create the microservice entry point, e.g., [`TournamentServiceApplication.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/TournamentServiceApplication.java) with `@SpringBootApplication`.                                                                                                                                                                 | Establishes the bounded context runtime and independent deployability.                             |
-| **Define Aggregate**                | Define the JPA root entity, e.g., [`Tournament.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java), and associated value objects, e.g., [`TournamentCreator`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/TournamentCreator.java).                               | Defines the transactional consistency boundary where invariants are enforced.                      |
-| **Define DTOs and Repositories**    | Create data transfer objects and Spring Data JPA interfaces for data access, e.g., [`TournamentDto.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/TournamentDto.java), [`TournamentRepository.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/TournamentRepository.java). | Separates persistence/API contracts from domain behavior and supports query/update paths.          |
-| **Specify Invariants**              | Override the [`verifyInvariants()`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java) method, e.g., asserting tournament start date is before end date.                                                                                                                                                                                   | Prevents invalid aggregate versions from being committed.                                          |
-| **Define Events**                   | Define the events published/subscribed, e.g., [`UpdateStudentNameEvent.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/events/UpdateStudentNameEvent.java).                                                                                                                                                                                                                          | Makes upstream changes observable by downstream aggregates for eventual consistency.               |
-| **Subscribe Events**                | Override the [`getEventSubscriptions()`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/Tournament.java) method, adding concrete subscriptions.                                                                                                                                                                                                         | Declares upstream-downstream dependencies explicitly at the domain level.                          |
-| **Define Event Subscriptions**      | Define subscription conditions, e.g., in [`TournamentSubscribesUpdateStudentName.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/notification/subscribe/TournamentSubscribesUpdateStudentName.java) a tournament subscribes to creator/participant name updates.                                                                                            | Filters only relevant upstream events, avoiding unnecessary or inconsistent updates.               |
-| **Define Event Handlers**           | Delegate handling to processing functionalities, e.g., [`UpdateStudentNameEventHandler.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/notification/handling/handlers/UpdateStudentNameEventHandler.java).                                                                                                                                                  | Converts raw event intake into deterministic domain actions.                                       |
-| **Define Aggregate Services**       | Define the microservice API to register changes, e.g., [`updateUserName(...)`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/service/TournamentService.java).                                                                                                                                                                                                    | Provides stable operation-level contracts used by commands and controllers.                        |
-| **Define Web Controllers**          | Expose REST API endpoints to external clients, e.g., [`TournamentController.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/webapi/TournamentController.java).                                                                                                                                                                                 | Enables external access while preserving application/domain layering.                              |
-| **Define Event Handling**           | Define polling logic for the event table, e.g., [`TournamentEventHandling.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/notification/handling/TournamentEventHandling.java).                                                                                                                                                                              | Drives periodic event processing cycles for eventual consistency.                                  |
-| **Define Event Subscriber Service** | Subscribe to Spring Cloud Stream events, e.g., [`EventSubscriberService.java`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/notification/EventSubscriberService.java).                                                                                                                                                                                                                                   | Bridges broker transport to local event persistence/processing.                                    |
-| **Define Transactional Aggregates** | Extend aggregate for specific models, e.g., [`SagaTournament.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/sagas/SagaTournament.java) (locks) and [`CausalTournament.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/causal/CausalTournament.java) (merging).            | Adapts the same domain to model-specific consistency semantics without duplicating business logic. |
-| **Define Commands**                 | Define remote commands for aggregate services, e.g., [`AddParticipantCommand.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/commands/tournament/AddParticipantCommand.java).                                                                                                                                                                                                        | Formalizes inter-service invocation contracts independent of transport protocol.                   |
-| **Create CommandHandler**           | Receive remote commands and map to services, e.g., [`TournamentCommandHandler.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/messaging/TournamentCommandHandler.java).                                                                                                                                                                                     | Centralizes command routing and isolates transport concerns from domain services.                  |
-| **Configure Network Bindings**      | Set `stream` channels or `grpc` ports in [`application-tournament-service.yaml`](applications/quizzes/src/main/resources/application-tournament-service.yaml).                                                                                                                                                                                                                                                           | Activates a deployment topology without changing business code.                                    |
-| **Configure API Gateway Routes**    | Define route mappings in the microservice yaml to route HTTP requests.                                                                                                                                                                                                                                                                                                                                                   | Decouples external API paths from internal service locations.                                      |
-
-### Implementing a Single Functionality
-
-| Development Task           | Implementation Details & Example                                                                                                                                                                                                                                                                                                                                                           | Rationale (Why)                                                                                    |
-|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| **Define Functionality**   | Extend [`WorkflowFunctionality`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/WorkflowFunctionality.java) to coordinate a specific use-case, e.g., [`AddParticipantFunctionalitySagas.java`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java). | Encapsulates one business use case as a reusable coordination unit.                                |
-| **Workflow Orchestration** | Map execution [`Step`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/Step.java)s, dependencies, and transaction triggers within [`buildWorkflow()`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java), e.g., defining `getUserStep` and `addParticipantStep` dependencies.                                                              | Makes ordering, dependency, and rollback/compensation boundaries explicit.                         |
-| **Command Dispatching**    | Instantiate remote [`Command`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/Command.java)s and dispatch via the abstract [`CommandGateway`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/CommandGateway.java), e.g., sending [`AddParticipantCommand`](applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/commands/tournament/AddParticipantCommand.java) wrapped in a [`SagaCommand`](simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/sagas/messaging/SagaCommand.java) with semantic locks.                                                                                                                          | Executes distributed steps through transport-agnostic contracts while preserving domain isolation. |
-
 ## Publications
 
-* **DAIS 2023**: D. Pereira and A. R.
-  Silva, "[Transactional Causal Consistent Microservices Simulator](https://doi.org/10.1007/978-3-031-35260-7_4)," in
+* "[A Domain-Driven Design Simulator for Business Logic-Rich Microservice Systems](https://doi.org/10.48550/arXiv.2605.01159),"
+  Daniel da Palma Pereira and António Rito Silva,
+  *arXiv*, 2026.
+* "[Microservices simulator: An object-oriented framework for transactional causal consistency](https://doi.org/10.1016/j.scico.2024.103181),"
+  Pedro Pereira and António Rito Silva,
+  *Science of Computer Programming*, 2025.
+* "[Transactional Causal Consistent Microservices Simulator](https://doi.org/10.1007/978-3-031-35260-7_4),"
+  Pedro Pereira and António Rito Silva, 
   *Distributed Applications and Interoperable Systems (DAIS)*, 2023.
+
 
 ## License
 

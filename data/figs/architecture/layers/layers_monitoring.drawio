@@ -1,20 +1,20 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36">
   <diagram name="Page-1" id="pHv8kHWQmDJBnx0ZYzL-">
-    <mxGraphModel dx="1424" dy="842" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="807" dy="481" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-2" parent="1" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;container=0;fontSize=14;fontStyle=1" value="Monitoring Module" vertex="1">
-          <mxGeometry height="360" width="240" x="280" y="150" as="geometry" />
+          <mxGeometry height="350" width="240" x="285" y="150" as="geometry" />
         </mxCell>
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E58A8C;strokeColor=default;container=0;" value="TraceManager" vertex="1">
-          <mxGeometry height="50" width="160" x="320" y="430" as="geometry" />
+          <mxGeometry height="50" width="160" x="325" y="430" as="geometry" />
         </mxCell>
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-4" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E58A8C;strokeColor=default;container=0;" value="TraceController" vertex="1">
-          <mxGeometry height="50" width="170" x="315" y="190" as="geometry" />
+          <mxGeometry height="50" width="160" x="325" y="190" as="geometry" />
         </mxCell>
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-5" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E58A8C;strokeColor=default;container=0;" value="TraceService" vertex="1">
-          <mxGeometry height="50" width="150" x="325" y="310" as="geometry" />
+          <mxGeometry height="50" width="160" x="325" y="310" as="geometry" />
         </mxCell>
         <mxCell id="_XiC_DoUsB0LQRGW9mxb-6" edge="1" parent="1" source="_XiC_DoUsB0LQRGW9mxb-4" style="curved=1;startArrow=none;endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;endFill=1;" target="_XiC_DoUsB0LQRGW9mxb-5" value="">
           <mxGeometry relative="1" as="geometry">
@@ -22,7 +22,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="yipJN_pMcTOLN9qWdQk6-2" connectable="0" parent="_XiC_DoUsB0LQRGW9mxb-6" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="delegates tracing&amp;nbsp;&lt;div&gt;API calls&lt;/div&gt;" vertex="1">
-          <mxGeometry relative="1" x="-0.2286" as="geometry">
+          <mxGeometry relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
@@ -32,7 +32,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="yipJN_pMcTOLN9qWdQk6-3" connectable="0" parent="_XiC_DoUsB0LQRGW9mxb-7" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="forwards calls&amp;nbsp;&lt;div&gt;to singleton&lt;/div&gt;" vertex="1">
-          <mxGeometry relative="1" x="-0.0857" as="geometry">
+          <mxGeometry relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>

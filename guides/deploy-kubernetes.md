@@ -77,6 +77,7 @@ kubectl get pods -n microservices-simulator
 # Port-forward to gateway
 kubectl port-forward svc/gateway 8080:8080 -n microservices-simulator
 ```
+*(For all default endpoints including rabbitmq and service discovery, see the **[Service URLs and Ports](../README.md#service-urls-and-ports)** section in the main README).*
 
 ### Access Jaeger UI
 ```bash
