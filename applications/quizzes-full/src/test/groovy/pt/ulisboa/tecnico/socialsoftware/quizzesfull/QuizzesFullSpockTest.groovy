@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull
 
+import java.time.LocalDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import pt.ulisboa.tecnico.socialsoftware.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
@@ -20,6 +21,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordin
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Option
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.functionalities.QuestionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizDto
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.functionalities.QuizFunctionalities
 
 class QuizzesFullSpockTest extends SpockTest {
 
@@ -64,6 +67,9 @@ class QuizzesFullSpockTest extends SpockTest {
     @Autowired(required = false)
     protected QuestionFunctionalities questionFunctionalities
 
+    @Autowired(required = false)
+    protected QuizFunctionalities quizFunctionalities
+
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
         def scriptDir = "groovy/" + this.class.simpleName
@@ -100,5 +106,16 @@ class QuizzesFullSpockTest extends SpockTest {
             new Option(2, 2, "Option B", false)
         ])
         return questionFunctionalities.createQuestion(title, content, courseId, topicIds, options)
+    }
+
+    QuizDto createQuiz(Integer executionId, List<Integer> questionIds) {
+        return quizFunctionalities.createQuiz(
+                "Test Quiz",
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(2),
+                LocalDateTime.now().plusDays(3),
+                "GENERATED",
+                executionId,
+                questionIds)
     }
 }

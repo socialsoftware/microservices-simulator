@@ -9,4 +9,10 @@ public enum QuizSagaState implements SagaState {
             return "READ_QUIZ";
         }
     },
+    IN_UPDATE_QUIZ {
+        @Override
+        public String getStateName() {
+            return "IN_UPDATE_QUIZ";
+        }
+    },
 }

@@ -59,6 +59,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggr
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.service.QuestionService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.factories.SagasQuizFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.repositories.QuizCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.functionalities.QuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.messaging.QuizCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.service.QuizService
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -331,5 +334,21 @@ class BeanConfigurationSagas {
     @Bean
     QuizCustomRepositorySagas quizCustomRepositorySagas() {
         return new QuizCustomRepositorySagas()
+    }
+
+    // Quiz — session 2.6.b
+    @Bean
+    QuizService quizService(SagaUnitOfWorkService unitOfWorkService, QuizCustomRepositorySagas quizRepository) {
+        return new QuizService(unitOfWorkService, quizRepository)
+    }
+
+    @Bean
+    QuizCommandHandler quizCommandHandler() {
+        return new QuizCommandHandler()
+    }
+
+    @Bean
+    QuizFunctionalities quizFunctionalities() {
+        return new QuizFunctionalities()
     }
 }
