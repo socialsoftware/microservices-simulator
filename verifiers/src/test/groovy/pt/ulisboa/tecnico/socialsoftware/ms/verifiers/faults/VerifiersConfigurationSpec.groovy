@@ -26,4 +26,16 @@ class VerifiersConfigurationSpec extends Specification {
         applicationYaml.contains('max-scenarios: 100')
         applicationYaml.contains('output-root: ${VERIFIERS_OUTPUT_ROOT:output}')
     }
+
+    def 'dynamic enrichment defaults are disabled and bounded'() {
+        expect:
+        def applicationYaml = Files.readString(Path.of('src/main/resources/application.yaml'))
+        applicationYaml.contains('dynamic-enrichment:')
+        applicationYaml.contains('allow-partial-test-run: true')
+        applicationYaml.contains('test-source-root: src/test/groovy')
+        applicationYaml.contains('exclude-test-classes:')
+        applicationYaml.contains('CreateTournamentDynamicEvidenceSmokeTest')
+        applicationYaml.contains('DynamicEvidenceDisabledSmokeTest')
+        applicationYaml.contains('profile: test-sagas')
+    }
 }

@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentConfig;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentOrchestrator;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentTestClassDiscoveryService;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.report.AnalysisHtmlReportRenderer;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
@@ -64,6 +67,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
     private final String scenarioCatalogInputPolicy;
     private final String scenarioCatalogScheduleStrategy;
     private final long scenarioCatalogDeterministicSeed;
+    private final DynamicEnrichmentConfig dynamicEnrichmentConfig;
 
     private final Path applicationsRootPath;
     private final Path applicationPath;
@@ -87,7 +91,20 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             @Value("${verifiers.scenario-catalog.allow-type-only-fallback:false}") boolean scenarioCatalogAllowTypeOnlyFallback,
             @Value("${verifiers.scenario-catalog.input-policy:RESOLVED_OR_REPLAYABLE}") String scenarioCatalogInputPolicy,
             @Value("${verifiers.scenario-catalog.schedule-strategy:SERIAL}") String scenarioCatalogScheduleStrategy,
-            @Value("${verifiers.scenario-catalog.deterministic-seed:1234}") long scenarioCatalogDeterministicSeed
+            @Value("${verifiers.scenario-catalog.deterministic-seed:1234}") long scenarioCatalogDeterministicSeed,
+            @Value("${verifiers.dynamic-enrichment.enabled:false}") boolean dynamicEnrichmentEnabled,
+            @Value("${verifiers.dynamic-enrichment.allow-partial-test-run:true}") boolean allowPartialTestRun,
+            @Value("${verifiers.dynamic-enrichment.dynamic-evidence-subdir:dynamic-evidence}") String dynamicEvidenceSubdir,
+            @Value("${verifiers.dynamic-enrichment.enriched-catalog-path:scenario-catalog-enriched.jsonl}") String enrichedCatalogPath,
+            @Value("${verifiers.dynamic-enrichment.enriched-manifest-path:scenario-catalog-enriched-manifest.json}") String enrichedManifestPath,
+            @Value("${verifiers.dynamic-enrichment.join-report-path:dynamic-evidence-join-report.json}") String joinReportPath,
+            @Value("${verifiers.dynamic-enrichment.test-source-root:src/test/groovy}") String testSourceRoot,
+            @Value("${verifiers.dynamic-enrichment.include-test-dirs:}") List<String> includeTestDirs,
+            @Value("${verifiers.dynamic-enrichment.exclude-test-dirs:}") List<String> excludeTestDirs,
+            @Value("${verifiers.dynamic-enrichment.exclude-test-classes:CreateTournamentDynamicEvidenceSmokeTest,DynamicEvidenceDisabledSmokeTest}") List<String> excludeTestClasses,
+            @Value("${verifiers.dynamic-enrichment.per-test-timeout-seconds:300}") int perTestTimeoutSeconds,
+            @Value("${verifiers.dynamic-enrichment.maven.executable:mvn}") String mavenExecutable,
+            @Value("${verifiers.dynamic-enrichment.maven.profile:test-sagas}") String mavenProfile
     ) {
         this.applicationsRoot = Objects.requireNonNull(applicationsRoot, "applicationsRoot cannot be null");
         this.applicationBaseDir = Objects.requireNonNull(applicationBaseDir, "applicationBaseDir cannot be null");
@@ -106,8 +123,21 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         this.scenarioCatalogInputPolicy = Objects.requireNonNull(scenarioCatalogInputPolicy, "scenarioCatalogInputPolicy cannot be null");
         this.scenarioCatalogScheduleStrategy = Objects.requireNonNull(scenarioCatalogScheduleStrategy, "scenarioCatalogScheduleStrategy cannot be null");
         this.scenarioCatalogDeterministicSeed = scenarioCatalogDeterministicSeed;
+        this.dynamicEnrichmentConfig = new DynamicEnrichmentConfig(
+                dynamicEnrichmentEnabled,
+                allowPartialTestRun,
+                dynamicEvidenceSubdir,
+                enrichedCatalogPath,
+                enrichedManifestPath,
+                joinReportPath,
+                testSourceRoot,
+                includeTestDirs,
+                excludeTestDirs,
+                excludeTestClasses,
+                perTestTimeoutSeconds,
+                new DynamicEnrichmentConfig.DynamicEnrichmentMavenConfig(mavenExecutable, mavenProfile));
         this.applicationsRootPath = Path.of(this.applicationsRoot).toAbsolutePath().normalize();
-        this.applicationPath = this.applicationsRootPath.resolve(this.applicationBaseDir).normalize();
+        this.applicationPath = resolveApplicationPath(this.applicationsRootPath, this.applicationBaseDir);
         this.outputRootPath = Path.of(this.outputRoot).toAbsolutePath().normalize();
     }
 
@@ -146,6 +176,10 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         logger.info("STARTING FAULT ANALYSIS MODULE");
+
+        if (dynamicEnrichmentConfig.enabled() && !scenarioCatalogEnabled) {
+            throw new IllegalStateException("Dynamic enrichment requires scenario catalog export to be enabled (verifiers.scenario-catalog.enabled=true)");
+        }
 
         if (!Files.isDirectory(applicationPath)) {
             throw new IllegalArgumentException("Configured application base dir does not exist: " + applicationPath);
@@ -250,13 +284,14 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         Files.writeString(htmlOutputPath, htmlReport);
         logger.info("Analysis HTML report written to {}", htmlOutputPath.toAbsolutePath().normalize());
 
-        runScenarioCatalogExport(applicationAnalysisState, generatedAt);
+        ScenarioGenerationResult scenarioGenerationResult = runScenarioCatalogExport(applicationAnalysisState, generatedAt);
+        runDynamicEnrichmentIfEnabled(scenarioGenerationResult, generatedAt);
     }
 
-    private void runScenarioCatalogExport(ApplicationAnalysisState applicationAnalysisState,
-                                          OffsetDateTime generatedAt) throws IOException {
+    private ScenarioGenerationResult runScenarioCatalogExport(ApplicationAnalysisState applicationAnalysisState,
+                                                              OffsetDateTime generatedAt) throws IOException {
         if (!scenarioCatalogEnabled) {
-            return;
+            return null;
         }
 
         ApplicationAnalysisScenarioModelAdapter adapter = new ApplicationAnalysisScenarioModelAdapter();
@@ -304,6 +339,37 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 catalogOutputPath.toAbsolutePath().normalize(),
                 rejectedInputsOutputPath.toAbsolutePath().normalize(),
                 manifestOutputPath.toAbsolutePath().normalize());
+        return exportResult;
+    }
+
+    private void runDynamicEnrichmentIfEnabled(ScenarioGenerationResult scenarioGenerationResult,
+                                               OffsetDateTime generatedAt) throws IOException {
+        if (!dynamicEnrichmentConfig.enabled()) {
+            return;
+        }
+        if (scenarioGenerationResult == null) {
+            throw new IllegalStateException("Dynamic enrichment requires a static scenario catalog result");
+        }
+
+        validateDynamicEnrichmentOutputPaths();
+        List<String> testClassFqns = new DynamicEnrichmentTestClassDiscoveryService().discover(applicationPath, dynamicEnrichmentConfig);
+        logger.info("Dynamic enrichment selected {} test classes", testClassFqns.size());
+        new DynamicEnrichmentOrchestrator().run(
+                dynamicEnrichmentConfig,
+                applicationPath,
+                sanitizeRunDirectoryName(applicationBaseDir),
+                requireRunOutputDirectory(),
+                testClassFqns,
+                scenarioGenerationResult.scenarioPlans(),
+                resolveScenarioCatalogPath(),
+                generatedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+    }
+
+    private void validateDynamicEnrichmentOutputPaths() {
+        resolveRunRelativePath(dynamicEnrichmentConfig.dynamicEvidenceSubdir(), "dynamic-evidence");
+        resolveRunRelativePath(dynamicEnrichmentConfig.enrichedCatalogPath(), "scenario-catalog-enriched.jsonl");
+        resolveRunRelativePath(dynamicEnrichmentConfig.enrichedManifestPath(), "scenario-catalog-enriched-manifest.json");
+        resolveRunRelativePath(dynamicEnrichmentConfig.joinReportPath(), "dynamic-evidence-join-report.json");
     }
 
     private Path resolveHtmlReportPath() {
@@ -377,6 +443,14 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         }
         Files.createDirectories(candidate);
         return candidate;
+    }
+
+    private static Path resolveApplicationPath(Path applicationsRootPath, String applicationBaseDir) {
+        Path resolved = applicationsRootPath.resolve(applicationBaseDir).normalize();
+        if (!resolved.startsWith(applicationsRootPath)) {
+            throw new IllegalArgumentException("Configured application base dir must stay under applications root: " + applicationBaseDir);
+        }
+        return resolved;
     }
 
     private static String sanitizeRunDirectoryName(String applicationBaseDir) {

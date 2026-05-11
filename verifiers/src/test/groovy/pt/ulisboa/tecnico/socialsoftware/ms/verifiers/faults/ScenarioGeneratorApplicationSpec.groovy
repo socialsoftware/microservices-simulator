@@ -40,6 +40,30 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         context?.close()
     }
 
+    def 'dynamic enrichment enabled with scenario catalog disabled fails clearly'() {
+        given:
+        def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
+        def applicationBaseDir = 'dummyapp'
+        Files.createDirectories(applicationsRoot.resolve(applicationBaseDir))
+
+        and:
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}",
+                '--verifiers.dynamic-enrichment.enabled=true',
+                '--verifiers.scenario-catalog.enabled=false'
+        )
+
+        then:
+        def ex = thrown(Exception)
+        rootCause(ex).message.contains('Dynamic enrichment requires scenario catalog export to be enabled')
+    }
+
     def 'catalog export is disabled by default'() {
         given:
         def applicationsRoot = tempDir.resolve('applications')
@@ -92,6 +116,29 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         then:
         thrown(Exception)
         !Files.exists(outputRoot.resolve('outside-analysis-report.html'))
+    }
+
+    def 'configured application base dir cannot escape applications root'() {
+        given:
+        def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
+        def applicationBaseDir = '../outside-app'
+        Files.createDirectories(applicationsRoot)
+        Files.createDirectories(tempDir.resolve('outside-app'))
+
+        and:
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}"
+        )
+
+        then:
+        def ex = thrown(Exception)
+        rootCause(ex).message.contains('must stay under applications root')
     }
 
     def 'configured absolute artifact paths are rejected'() {
@@ -693,6 +740,14 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
                 }
             }
         }
+    }
+
+    private static Throwable rootCause(Throwable throwable) {
+        Throwable current = throwable
+        while (current.cause != null) {
+            current = current.cause
+        }
+        current
     }
 
     private static Path singleRunDirectory(Path outputRoot, String applicationBaseDir) {
