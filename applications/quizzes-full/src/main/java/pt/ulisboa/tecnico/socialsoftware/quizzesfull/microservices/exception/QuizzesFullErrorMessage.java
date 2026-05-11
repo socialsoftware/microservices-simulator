@@ -41,6 +41,9 @@ public final class QuizzesFullErrorMessage {
     // Topic
     public static final String TOPIC_MISSING_NAME = "Topic name is required.";
 
+    // Question
+    public static final String QUESTION_TOPIC_INVALID_COURSE = "Topic %d does not belong to course %d.";
+
     // Execution
     public static final String REMOVE_NO_STUDENTS =
             "A deleted execution must have no enrolled students.";

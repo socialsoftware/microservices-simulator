@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.agg
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic;
 
@@ -12,10 +14,9 @@ import java.util.Set;
 
 /*
     INTRA-INVARIANTS:
-        (none)
+        TOPIC_BELONGS_TO_QUESTION_COURSE: each topic's courseAggregateId must equal questionCourse.courseAggregateId
     INTER-INVARIANTS:
         TOPICS_EXIST (subscribes to UpdateTopicEvent, DeleteTopicEvent)
-        TOPIC_BELONGS_TO_QUESTION_COURSE (P2 — enforced at saga level)
  */
 @Entity
 public abstract class Question extends Aggregate {
@@ -66,14 +67,23 @@ public abstract class Question extends Aggregate {
     }
 
     @Override
-    public void verifyInvariants() {}
+    public void verifyInvariants() {
+        for (QuestionTopic topic : topics) {
+            if (!topic.getCourseAggregateId().equals(questionCourse.getCourseAggregateId())) {
+                throw new QuizzesFullException(QuizzesFullErrorMessage.QUESTION_TOPIC_INVALID_COURSE,
+                        topic.getTopicAggregateId(), questionCourse.getCourseAggregateId());
+            }
+        }
+    }
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> subscriptions = new HashSet<>();
-        for (QuestionTopic topic : topics) {
-            subscriptions.add(new QuestionSubscribesUpdateTopic(topic));
-            subscriptions.add(new QuestionSubscribesDeleteTopic(topic));
+        if (getState() == AggregateState.ACTIVE) {
+            for (QuestionTopic topic : topics) {
+                subscriptions.add(new QuestionSubscribesUpdateTopic(topic));
+                subscriptions.add(new QuestionSubscribesDeleteTopic(topic));
+            }
         }
         return subscriptions;
     }

@@ -13,6 +13,7 @@ public class QuestionTopic {
     private Integer topicAggregateId;
     private Long topicVersion;
     private String topicName;
+    private Integer courseAggregateId;
 
     public QuestionTopic() {}
 
@@ -20,12 +21,14 @@ public class QuestionTopic {
         this.topicAggregateId = topicDto.getAggregateId();
         this.topicVersion = topicDto.getVersion();
         this.topicName = topicDto.getName();
+        this.courseAggregateId = topicDto.getCourseId();
     }
 
     public QuestionTopic(QuestionTopic other) {
         this.topicAggregateId = other.getTopicAggregateId();
         this.topicVersion = other.getTopicVersion();
         this.topicName = other.getTopicName();
+        this.courseAggregateId = other.getCourseAggregateId();
     }
 
     public Integer getId() { return id; }
@@ -39,4 +42,7 @@ public class QuestionTopic {
 
     public String getTopicName() { return topicName; }
     public void setTopicName(String topicName) { this.topicName = topicName; }
+
+    public Integer getCourseAggregateId() { return courseAggregateId; }
+    public void setCourseAggregateId(Integer courseAggregateId) { this.courseAggregateId = courseAggregateId; }
 }
