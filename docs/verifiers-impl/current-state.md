@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-04-30
+Last updated: 2026-05-01
 
 ## Scope
 
@@ -68,6 +68,43 @@ Current boundaries:
   - explicit `@ActiveProfiles`, `@TestPropertySource`, and `@SpringBootTest(properties=...)` profile evidence.
 - Conflicting evidence classifies as `MIXED`; unsupported aliases/placeholders are not guessed.
 
+### Dynamic enrichment foundation
+
+- Disabled-by-default `verifiers.dynamic-enrichment` config is present in `verifiers/src/main/resources/application.yaml` with include/exclude directory selection, self-test exclusions, timeout, and Maven settings.
+- `DynamicEnrichmentConfig` and `DynamicEnrichmentTestClassDiscoveryService` scan Groovy/Java test files under the configured test source root, normalize/reject traversal, derive FQNs from package declarations or path conventions, and return deterministic sorted class names.
+- `DynamicEvidenceReader` recursively ingests `dynamic-evidence.jsonl` files, captures source path/line metadata, and reports malformed lines as warnings.
+- `DynamicEvidenceJoiner` provides a pure, conservative scenario-plan-to-evidence transformation with the approved join statuses and observed step/command/aggregate summaries.
+- `EnrichedScenarioCatalogWriter` writes sidecar-only enriched JSONL, manifest, and join-report artifacts; the original `scenario-catalog.jsonl` writer remains unchanged.
+- `DummyappDynamicEnrichmentIntegrationSpec` exercises the dummyapp static catalog plus synthetic dynamic-evidence bridge end-to-end with the same sidecar schema planned for Quizzes, proving `MATCHED_HIGH_CONFIDENCE` and `NOT_COVERED` paths before runtime wiring.
+- `ProcessRunner` / `DefaultProcessRunner` and `DynamicEnrichmentOrchestrator` run selected application test classes one by one with Maven argument lists, per-class evidence directories, `test-run.json`, captured `maven-output.log`, interrupt-safe cleanup, and run-relative output-path guards.
+- The orchestrated Maven command appends simulator/test-context flags per class:
+  - `-Dsimulator.dynamic-evidence.enabled=true`
+  - `-Dsimulator.dynamic-evidence.test-context.enabled=true`
+  - `-Djunit.platform.listeners.autodetection.enabled=true`
+  - `-Dsimulator.dynamic-evidence.output-dir=<run-dir>/dynamic-evidence/<safe-test-class-fqn>`
+  - `-Dsimulator.dynamic-evidence.application-name=<application-base-dir>`
+- `ScenarioGeneratorApplication` wires dynamic enrichment after static catalog export when `verifiers.dynamic-enrichment.enabled=true`, using the same per-run output directory for HTML, static catalog, dynamic evidence, and enriched sidecars.
+- Docker Compose `fault-analysis-scenario-gen` now enables the full static + dynamic flow with `VERIFIERS_OUTPUT_ROOT=/reports`, run-relative `VERIFIERS_REPORT_HTML_PATH=analysis-report.html`, scenario-catalog and dynamic-enrichment flags enabled, partial mode enabled, and sagas-only Quizzes selection.
+- Dynamic enrichment fails fast if enabled while scenario catalog export is disabled; partial test-run handling is enabled by default and strict mode preserves artifacts before failing.
+
+### Dynamic-enrichment artifact layout (same run directory)
+
+When enrichment is enabled, each verifier run directory now contains:
+
+- `analysis-report.html`
+- `scenario-catalog.jsonl`
+- `scenario-catalog-manifest.json`
+- `scenario-catalog-rejected-inputs.jsonl`
+- `dynamic-evidence/<safe-test-class-fqn>/dynamic-evidence.jsonl`
+- `dynamic-evidence/<safe-test-class-fqn>/dynamic-evidence-manifest.json`
+- `dynamic-evidence/<safe-test-class-fqn>/test-run.json`
+- `dynamic-evidence/<safe-test-class-fqn>/maven-output.log`
+- `scenario-catalog-enriched.jsonl`
+- `scenario-catalog-enriched-manifest.json`
+- `dynamic-evidence-join-report.json`
+
+The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as the static contract.
+
 ### Human reports
 
 - HTML analysis report generation.
@@ -117,9 +154,42 @@ Current boundaries:
 - run directory name `<application>-<yyyyMMdd-HHmmss-SSS>` under `outputRoot`
 - `rejectedInputsPath=scenario-catalog-rejected-inputs.jsonl`
 
+## Current safe defaults for dynamic enrichment
+
+- `enabled=false`
+- `allowPartialTestRun=true`
+- `dynamicEvidenceSubdir=dynamic-evidence`
+- `enrichedCatalogPath=scenario-catalog-enriched.jsonl`
+- `enrichedManifestPath=scenario-catalog-enriched-manifest.json`
+- `joinReportPath=dynamic-evidence-join-report.json`
+- `testSourceRoot=src/test/groovy`
+- `includeTestDirs=[]`
+- `excludeTestDirs=[]`
+- `excludeTestClasses=[CreateTournamentDynamicEvidenceSmokeTest, DynamicEvidenceDisabledSmokeTest]`
+- `perTestTimeoutSeconds=300`
+- `maven.executable=mvn`
+- `maven.profile=test-sagas`
+
+### Related simulator/test-context defaults and orchestration flags
+
+- Simulator dynamic evidence is also disabled by default:
+  - `simulator.dynamic-evidence.enabled=false`
+  - `simulator.dynamic-evidence.test-context.enabled=false`
+- Verifier orchestration enables both properties per Maven class-run and also sets:
+  - `junit.platform.listeners.autodetection.enabled=true`
+- This keeps generic test-context capture infrastructure opt-in for non-orchestrated runs while requiring no Quizzes-specific hooks.
+
 ## Partially implemented / current limitations
 
 - Exact aggregate-instance key extraction is still incomplete.
+- Dynamic enrichment currently correlates via runtime test identity + saga/functionality/step evidence; direct runtime `inputVariantId` propagation is not implemented.
+- No Quizzes source/test hooks are required or used by orchestration; this is intentional and should be preserved.
+- Dynamic evidence/runtime parity is still local/sagas only:
+  - no stream/gRPC instrumentation parity;
+  - no distributed runtime orchestration parity;
+  - no causal/TCC runtime parity.
+- Enrichment remains sidecar-only; `scenario-catalog.jsonl` is intentionally unchanged.
+- Partial test-run behavior is the default (`allowPartialTestRun=true`); strict mode is opt-in.
 - Dispatch footprints usually remain type-only unless exact key data is available.
 - Missing aggregate names remain non-matchable/unknown rather than being mislabeled as type-only.
 - Type-only fallback is opt-in and should not be described as exact shared-instance evidence.
@@ -130,8 +200,8 @@ Current boundaries:
 - Source-mode classification is evidence-based, not a full Spring profile/environment solver.
 - Package/name hints are not primary source-mode evidence.
 - `UNKNOWN` source mode is accepted by default with a warning to preserve coverage.
-- Effective Spring binding of all scenario-catalog properties should receive stronger coverage; current assertions include text/config-level checks.
-- Quizzes-scale smoke checks should validate invariants such as parseability, unique scenario IDs, known schedule references, source-mode filtering, rejected-input artifacts, and report generation rather than exact scenario counts.
+- Full/default Quizzes enrichment currently has high ambiguity/warning volume (`AMBIGUOUS=44`, enriched-manifest `warningCount=8238` on run `task8-quizzes-full/quizzes-20260501-132052-052`) and should be interpreted as diagnostic output, not exact mapping certainty.
+- On the same full run, enriched matched execution entries still show `testRunStatus: null` even though join-report per-class status counts are present; treat per-record run status as provisional until this is tightened.
 
 ## Not implemented
 
@@ -155,6 +225,52 @@ cd verifiers && mvn test -q
 ```
 
 Both commands passed in the local agent environment. Before using this file for a later report or milestone claim, refresh with the current branch state.
+
+Dynamic-enrichment foundation validation performed in the local agent environment:
+
+- `cd verifiers && mvn test -Dtest=DynamicEnrichmentTestDiscoverySpec -DfailIfNoTests=false` — PASS.
+- `cd verifiers && mvn test -Dtest=DynamicEnrichmentTestDiscoverySpec,VerifiersConfigurationSpec,ScenarioGeneratorApplicationSpec -DfailIfNoTests=false` — PASS.
+- `DynamicEnrichmentTestDiscoverySpec` now also covers symlink-escape skipping and package declarations with whitespace around dots.
+- `cd verifiers && mvn test -Dtest=DynamicEvidenceReaderSpec,DynamicEvidenceJoinerSpec,EnrichedScenarioCatalogWriterSpec -DfailIfNoTests=false` — PASS (`13` tests, `0` failures/errors).
+- `cd verifiers && mvn test -Dtest=DynamicEvidenceReaderSpec,DynamicEvidenceJoinerSpec,EnrichedScenarioCatalogWriterSpec,DynamicEnrichmentTestDiscoverySpec,VerifiersConfigurationSpec -DfailIfNoTests=false` — PASS (`26` tests, `0` failures/errors).
+- `DynamicEvidenceJoinerSpec` now includes a regression for duplicate simple saga names across scenario plans, confirming the joiner emits `AMBIGUOUS` with candidate warnings when runtime evidence only provides an unqualified saga name.
+- `DynamicEvidenceJoinerSpec` also covers expanded static schedule labels like `...::reserve#0` against raw runtime `reserve` evidence, and now separately guards against runtime suffixes like `reserve#0` being normalized away.
+
+Dynamic-enrichment orchestration validation performed in the local agent environment:
+
+- `cd verifiers && mvn test -Dtest=DefaultProcessRunnerSpec,DynamicEnrichmentOrchestratorSpec,ScenarioGeneratorApplicationSpec -DfailIfNoTests=false` — PASS (`22` tests, `0` failures/errors).
+- `cd verifiers && mvn test -Dtest='*Dynamic*Spec,*Enriched*Spec' -DfailIfNoTests=false` — PASS (`29` tests, `0` failures/errors).
+- `cd verifiers && mvn test` — PASS (`206` tests, `0` failures/errors).
+- The orchestrator specs use a fake process runner to prove Maven command construction, interrupt-safe cleanup, run-relative output guards, partial vs strict behavior, per-class artifacts, same-run-directory sidecars, and the scenario-catalog-required startup guard without launching Quizzes tests.
+
+Docker runtime/service validation performed in the local agent environment:
+
+- `docker compose build fault-analysis-scenario-gen` — PASS.
+- `docker compose run --rm --no-deps --entrypoint mvn fault-analysis-scenario-gen -version` — PASS (Maven 3.9.7 with Java 21 in the final image).
+
+Dummyapp dynamic-enrichment integration validation performed in the local agent environment:
+
+- `cd verifiers && mvn test -Dtest=DummyappDynamicEnrichmentIntegrationSpec -DfailIfNoTests=false` — PASS.
+- `cd verifiers && mvn test -Dtest=DummyappDynamicEnrichmentIntegrationSpec,DynamicEvidenceJoinerSpec,EnrichedScenarioCatalogWriterSpec -DfailIfNoTests=false` — PASS (`12` tests, `0` failures/errors).
+- `cd verifiers && mvn test -Dtest=ScenarioGeneratorApplicationSpec,ApplicationAnalysisScenarioModelAdapterSpec,DummyappDynamicEnrichmentIntegrationSpec -DfailIfNoTests=false` — PASS (`23` tests, `0` failures/errors).
+- The first failing-first run exposed two integration details that are now encoded in the spec: the runtime evidence should use raw step names like `getOrderStep`, while the joiner only normalizes expanded static schedule labels like `getOrderStep#0` and leaves runtime suffixes untouched; dynamic enrichment counts for `dynamicEventsRead` / `eventsMissingTestContext` live in the join report rather than the enriched-catalog manifest.
+
+Real Quizzes dynamic-enrichment validation (Tasks 7-8) was performed in the local agent environment:
+
+- Narrow orchestration smoke:
+  - command: `cd verifiers && mvn spring-boot:run -Dspring-boot.run.arguments="--verifiers.applications-root=/Users/andre/meic/thesis/microservices-simulator/applications --verifiers.application-base-dir=quizzes --verifiers.output-root=/Users/andre/meic/thesis/microservices-simulator/verifiers/target/task7-quizzes-smoke-final2 --verifiers.report-html-path=analysis-report.html --verifiers.scenario-catalog.enabled=true --verifiers.dynamic-enrichment.enabled=true --verifiers.dynamic-enrichment.allow-partial-test-run=true --verifiers.dynamic-enrichment.include-test-dirs=pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/behaviour --verifiers.dynamic-enrichment.exclude-test-dirs=pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/behaviour/execution --verifiers.dynamic-enrichment.exclude-test-classes=CreateTournamentDynamicEvidenceSmokeTest,DynamicEvidenceDisabledSmokeTest,AbortUpdateAndRetryTest,AddParticipantAndRecoverTest,AddParticipantWithDelaysTest,GenerateBehaviourTest,HandleEventBehaviour --verifiers.scenario-catalog.max-scenarios=200 --verifiers.scenario-catalog.max-input-variants-per-saga=20"`
+  - run dir: `verifiers/target/task7-quizzes-smoke-final2/quizzes-20260501-124230-037/`
+  - result: `runStatus=COMPLETE`, `testClassesSelected=2`, `testClassesPassed=2`, `dynamicEventsRead=362`, `eventsMissingTestContext=0`, join counts `MATCHED_HIGH_CONFIDENCE=1`, `UNMATCHED=199`.
+- Full/default sagas-only orchestration (partial default behavior):
+  - command: `cd verifiers && mvn spring-boot:run -Dspring-boot.run.arguments="--verifiers.applications-root=/Users/andre/meic/thesis/microservices-simulator/applications --verifiers.application-base-dir=quizzes --verifiers.output-root=/Users/andre/meic/thesis/microservices-simulator/verifiers/target/task8-quizzes-full --verifiers.report-html-path=analysis-report.html --verifiers.scenario-catalog.enabled=true --verifiers.dynamic-enrichment.enabled=true --verifiers.dynamic-enrichment.allow-partial-test-run=true --verifiers.dynamic-enrichment.include-test-dirs=pt/ulisboa/tecnico/socialsoftware/quizzes/sagas --verifiers.dynamic-enrichment.exclude-test-dirs=pt/ulisboa/tecnico/socialsoftware/quizzes/causal,pt/ulisboa/tecnico/socialsoftware/quizzes/tcc"`
+  - run dir: `verifiers/target/task8-quizzes-full/quizzes-20260501-132052-052/`
+  - result: `runStatus=PARTIAL`, `testClassesSelected=42`, `testClassesPassed=40`, `testClassesFailed=2`, `evidenceFilesRead=42`, `dynamicEventsRead=18868`, `eventsMissingTestContext=0`.
+  - join counts: `MATCHED_HIGH_CONFIDENCE=2`, `AMBIGUOUS=44`, `UNMATCHED=20`, `NOT_COVERED=0`.
+  - enriched manifest caveat: `counts.warningCount=8238` on the same run; warnings are dominated by repeated ambiguity candidate diagnostics.
+  - sidecar caveat: enriched `matchedTestExecutions[].testRunStatus` is still `null` in this run, while `dynamic-evidence-join-report.json` correctly records per-class statuses.
+- Failure interpretation for the two Task 8 failed classes was reproduced without enrichment instrumentation:
+  - command: `cd applications/quizzes && mvn -Ptest-sagas test -Dtest=pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.AnonymizeStudentAndRemoveStudentTest,pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest`
+  - result: FAIL with the same `Expected SimulatorException, but got CompletionException` mismatch, supporting the interpretation that these are existing test/runtime issues rather than orchestration regressions.
 
 A bounded Quizzes smoke with catalog export was also run after source-mode workflow completion and refreshed after moving verifier artifacts to per-run directories. The latest run wrote artifacts under `verifiers/output/quizzes-20260430-120345-251/` and produced:
 
@@ -181,12 +297,13 @@ mvn test -Dtest=GroovyConstructorInputTraceVisitorDummyappSpec,ScenarioGenerator
 
 ## Current next priorities
 
-1. Inspect catalog manifest diagnostics for skipped traces, unresolved inputs, type-only footprints, rejected TCC/MIXED inputs, and sagas without usable inputs.
+1. Reduce full-run enrichment ambiguity (`AMBIGUOUS=44`, `warningCount=8238`) by tightening static/dynamic correlation and candidate-pruning heuristics without inventing false exactness.
 2. Improve exact aggregate-instance key extraction from input variants into step footprints.
-3. Design the minimal ScenarioExecutor/generic runner contract over the JSONL catalog.
-4. Decide whether behavior CSV is a generated adapter format or whether JSONL remains the primary runtime contract.
-5. After executable scenarios exist, implement impact scoring and then search components.
-6. Decide whether future TCC-specific catalogs/executors should consume rejected TCC input variants directly.
+3. Decide and implement whether enriched `matchedTestExecutions[].testRunStatus` should be populated directly from orchestrator test-run metadata.
+4. Design the minimal ScenarioExecutor/generic runner contract over the JSONL catalog.
+5. Decide whether behavior CSV is a generated adapter format or whether JSONL remains the primary runtime contract.
+6. After executable scenarios exist, implement impact scoring and then search components.
+7. Decide whether future TCC-specific catalogs/executors should consume rejected TCC input variants directly.
 
 ## Meeting discussion points
 

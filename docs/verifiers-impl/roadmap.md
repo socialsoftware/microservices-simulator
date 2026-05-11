@@ -11,10 +11,11 @@ The implementation should remain application-agnostic: agents and algorithms sho
 ## Pipeline overview
 
 1. **Static scenario synthesis** — analyse source/tests and generate relevant scenario plans.
-2. **Scenario execution** — materialize inputs, instantiate sagas, execute steps in generated order, and apply fault bits.
-3. **Impact analysis** — convert logs, traces, exceptions, compensation state, and domain state into impact scores.
-4. **Local GA fault search** — search fault bit vectors within a fixed scenario.
-5. **Scenario prioritization** — use bandit/RL-style selection to allocate budget across scenarios.
+2. **Dynamic evidence bridge** — optionally collect simulator JSONL evidence to enrich exact runtime key bindings before execution work.
+3. **Scenario execution** — materialize inputs, instantiate sagas, execute steps in generated order, and apply fault bits.
+4. **Impact analysis** — convert logs, traces, exceptions, compensation state, and domain state into impact scores.
+5. **Local GA fault search** — search fault bit vectors within a fixed scenario.
+6. **Scenario prioritization** — use bandit/RL-style selection to allocate budget across scenarios.
 
 ## Stage 1 — Static scenario synthesis
 
@@ -47,6 +48,36 @@ Remaining gaps:
 - Exact aggregate-instance key binding is incomplete.
 - Segment compression should be verified/matured before being claimed as an evaluation-ready optimization.
 - Catalog entries are not yet executable by a runtime runner.
+
+## Stage 1.5 — Dynamic evidence bridge
+
+### Target
+
+Before building a generic executor, the simulator can emit opt-in runtime evidence that confirms which concrete aggregate instances real application executions touched. This bridge should help convert conservative static/type-only footprints into exact key bindings without replacing the static catalog contract.
+
+### Current status
+
+Implemented as a verifier-orchestrated local/sagas bridge with sidecar enrichment:
+
+- simulator dynamic evidence remains disabled by default (`simulator.dynamic-evidence.enabled=false`, `simulator.dynamic-evidence.test-context.enabled=false`);
+- verifier dynamic enrichment remains disabled by default (`verifiers.dynamic-enrichment.enabled=false`);
+- when enabled, the verifier runs selected test classes one by one with Maven, passing:
+  - `-Dsimulator.dynamic-evidence.enabled=true`
+  - `-Dsimulator.dynamic-evidence.test-context.enabled=true`
+  - `-Djunit.platform.listeners.autodetection.enabled=true`
+  - run-local dynamic-evidence output directories;
+- each class writes per-class runtime artifacts (`dynamic-evidence.jsonl`, `dynamic-evidence-manifest.json`, `test-run.json`, `maven-output.log`) under `<run-dir>/dynamic-evidence/<safe-test-class-fqn>/`;
+- dynamic evidence is joined back to the static catalog with conservative statuses (`MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `MATCHED_PARTIAL`, `AMBIGUOUS`, `UNMATCHED`, `NOT_COVERED`);
+- enriched outputs are sidecar-only (`scenario-catalog-enriched.jsonl`, `scenario-catalog-enriched-manifest.json`, `dynamic-evidence-join-report.json`), keeping `scenario-catalog.jsonl` unchanged;
+- Docker `fault-analysis-scenario-gen` enables this full static+dynamic flow with run-relative report path behavior.
+
+Remaining gaps:
+
+- No direct runtime `inputVariantId` propagation yet; correlation remains identity+semantic and can be ambiguous.
+- No stream/gRPC/distributed or causal/TCC runtime hooks/parity yet.
+- Full/default Quizzes run still shows high ambiguity volume (`AMBIGUOUS=44`, manifest `warningCount=8238` on Task 8 baseline).
+- Matched enriched entries still expose `testRunStatus: null` in the current Task 8 baseline, even though join-report test-run statuses exist.
+- Logs and Jaeger traces remain auxiliary diagnostics rather than the primary evidence source.
 
 ## Stage 2 — Scenario execution / generic runner
 
@@ -163,7 +194,8 @@ Dependencies:
 | Facade call recipe extraction | Implemented | dummyapp and Quizzes report/spec assertions | Keep expanding real syntax coverage |
 | HTML report | Implemented | renderer/application specs | Human view only, not machine contract |
 | Scenario catalog JSONL/manifest | Implemented MVP | scenario package, writer, application specs | Exact keys, filters, executor integration |
-| Bounded Quizzes smoke | Recommended | current-state next priority | Refresh evidence and inspect diagnostics |
+| Dynamic evidence + sidecar enrichment | Implemented MVP | simulator dynamic-evidence package, verifier orchestrator, sidecar writer, Task 7/8 Quizzes runs | Direct `inputVariantId` propagation; stream/gRPC/distributed/TCC parity; ambiguity reduction |
+| Quizzes orchestration smoke baseline | Implemented | Task 7 narrow run + Task 8 full/default run in `current-state.md` | Refresh periodically and track ambiguity/warning trends |
 | ScenarioExecutor | Not implemented | none | Design and runtime integration |
 | Behavior CSV generation | Not implemented | none | Decide whether adapter or canonical contract |
 | Impact scoring | Not implemented | none | Requires executable scenarios |
@@ -172,11 +204,12 @@ Dependencies:
 
 ## Near-term milestone proposal
 
-1. Stabilize and validate the static scenario catalog on dummyapp and bounded Quizzes runs.
-2. Improve aggregate-instance key binding enough to support meaningful multi-saga conflict evidence.
-3. Define the ScenarioExecutor input contract and decide JSONL-vs-CSV responsibilities.
-4. Implement a minimal executor for single-saga scenarios.
-5. Extend executor to bounded multi-saga schedules.
-6. Add first impact metrics.
-7. Add local GA search for a fixed scenario.
-8. Add scenario prioritization after scenario execution and impact scoring exist.
+1. Keep static scenario catalog and sidecar-enrichment baselines reproducible on dummyapp and Quizzes (narrow + default runs).
+2. Improve aggregate-instance key binding and reduce enrichment ambiguity without over-claiming exactness.
+3. Tighten sidecar metadata completeness (including per-match test-run status population) and warning ergonomics.
+4. Define the ScenarioExecutor input contract and decide JSONL-vs-CSV responsibilities.
+5. Implement a minimal executor for single-saga scenarios.
+6. Extend executor to bounded multi-saga schedules.
+7. Add first impact metrics.
+8. Add local GA search for a fixed scenario.
+9. Add scenario prioritization after scenario execution and impact scoring exist.
