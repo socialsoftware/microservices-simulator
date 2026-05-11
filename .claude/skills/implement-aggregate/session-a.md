@@ -40,6 +40,7 @@ Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}.java`
     - **Single** (`@OneToOne`): `@OneToOne(cascade = CascadeType.ALL, mappedBy = "{entityField}")` — aggregate holds the inverse side; the entity class holds the FK via a plain `@OneToOne` back-reference. The aggregate's setter must call `entity.set{Aggregate}(this)` to wire the bidirectional link before the entity is persisted
 - Constructor: accepts all required fields; sets `state = ACTIVE`; does **not** call `verifyInvariants()` — the framework calls it automatically via `registerChanged` at commit time
 - `verifyInvariants()`: enforces all **P1 rules** for this aggregate listed in plan.md. Throws `{AppClass}Exception` with the appropriate error message constant on violation.
+- `getEventSubscriptions()`: in session a, always return `new HashSet<>()` — do **not** reference any subscribe classes yet (they do not exist until session d). Session d will update this method to return the proper set of subscribe class instances.
 - Getters and setters for all mutable fields
 - No business logic methods (sagas call service; service calls setters then verifyInvariants)
 
