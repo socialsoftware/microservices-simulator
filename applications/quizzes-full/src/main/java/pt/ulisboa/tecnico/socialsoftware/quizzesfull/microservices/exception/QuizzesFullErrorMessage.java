@@ -55,4 +55,10 @@ public final class QuizzesFullErrorMessage {
             "A course execution with acronym '%s' and academic term '%s' already exists.";
     public static final String COURSE_EXECUTION_STUDENT_NOT_FOUND =
             "Student with userId %d is not enrolled in execution %d.";
+
+    // Quiz
+    public static final String QUIZ_DATE_ORDERING =
+            "Quiz dates must satisfy: creationDate < availableDate < conclusionDate <= resultsDate.";
+    public static final String QUIZ_FIELDS_FINAL_AFTER_AVAILABLE_DATE =
+            "Quiz availableDate, conclusionDate, resultsDate and questions cannot be changed after the quiz becomes available.";
 }

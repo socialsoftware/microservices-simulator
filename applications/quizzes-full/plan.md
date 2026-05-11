@@ -274,13 +274,13 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 
 | Session | Files |
 |---------|-------|
-| 2.6.a | `aggregate/Quiz.java`, `aggregate/sagas/SagaQuiz.java`, `aggregate/sagas/states/QuizSagaState.java`, `aggregate/sagas/factories/SagasQuizFactory.java`, `aggregate/sagas/repositories/QuizCustomRepositorySagas.java`, `aggregate/QuizDto.java`, `aggregate/QuizRepository.java`, `sagas/quiz/QuizTest.groovy`, `microservices/quiz/QuizServiceApplication.java` |
+| 2.6.a | `aggregate/Quiz.java`, `aggregate/QuizExecution.java`, `aggregate/QuizQuestion.java`, `aggregate/QuizType.java`, `aggregate/QuizFactory.java`, `aggregate/QuizCustomRepository.java`, `aggregate/sagas/SagaQuiz.java`, `aggregate/sagas/states/QuizSagaState.java`, `aggregate/sagas/factories/SagasQuizFactory.java`, `aggregate/sagas/repositories/QuizCustomRepositorySagas.java`, `aggregate/QuizDto.java`, `aggregate/QuizRepository.java`, `sagas/quiz/QuizTest.groovy`, `microservices/quiz/QuizServiceApplication.java` |
 | 2.6.b | `service/QuizService.java` (write methods), `messaging/QuizCommandHandler.java`, `commands/quiz/CreateQuizCommand.java`, `commands/quiz/UpdateQuizCommand.java`, `coordination/sagas/CreateQuizFunctionalitySagas.java`, `coordination/sagas/UpdateQuizFunctionalitySagas.java`, `sagas/coordination/quiz/CreateQuizTest.groovy`, `sagas/coordination/quiz/UpdateQuizTest.groovy`, `microservices/quiz/coordination/webapi/QuizController.java` |
 | 2.6.c | `service/QuizService.java` (read methods appended), `commands/quiz/GetQuizByIdCommand.java`, `coordination/sagas/GetQuizByIdFunctionalitySagas.java`, `sagas/coordination/quiz/GetQuizByIdTest.groovy` |
 | 2.6.d | `notification/subscribe/QuizSubscribesUpdateQuestion.java`, `notification/subscribe/QuizSubscribesDeleteQuestion.java`, `notification/subscribe/QuizSubscribesDeleteCourseExecution.java`, `notification/handling/QuizEventHandling.java`, `notification/handling/handlers/QuizEventHandler.java`, `coordination/eventProcessing/QuizEventProcessing.java`, `sagas/quiz/QuizInterInvariantTest.groovy` |
 
 **Checklist:**
-- [ ] 2.6.a — Domain layer
+- [x] 2.6.a — Domain layer
 - [ ] 2.6.b — Write functionalities
 - [ ] 2.6.c — Read functionalities
 - [ ] 2.6.d — Event wiring
