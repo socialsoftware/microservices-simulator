@@ -132,6 +132,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>

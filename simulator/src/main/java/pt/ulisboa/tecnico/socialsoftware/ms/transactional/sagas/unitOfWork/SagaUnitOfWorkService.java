@@ -20,6 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAg
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.command.AbortSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.command.CommitSagaCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.version.IVersionService;
@@ -60,6 +61,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         logger.info("Loaded and registered read for aggregate ID: {} - {}", aggregateId, aggregate.getAggregateType());
+        recordAggregateAccess("READ", aggregate, unitOfWork, "SagaUnitOfWorkService.aggregateLoadAndRegisterRead");
         return aggregate;
     }
 
@@ -172,6 +174,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         entityManager.merge(aggregate);
 
         unitOfWork.setVersion(commitVersion);
+        recordAggregateAccess("WRITE", aggregate, unitOfWork, "SagaUnitOfWorkService.registerChanged");
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -184,6 +187,23 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             event.setPublished(true);
         }
         eventRepository.save(event);
+    }
+
+    private void recordAggregateAccess(String accessMode, Aggregate aggregate, SagaUnitOfWork unitOfWork,
+                                        String sourceMethod) {
+        try {
+            DynamicEvidenceRecorderHolder.recordAggregateAccessed(
+                    accessMode,
+                    aggregate,
+                    unitOfWork,
+                    sourceMethod);
+        } catch (RuntimeException e) {
+            logger.warn("Failed to record dynamic evidence AGGREGATE_ACCESSED for {} on aggregate {}: {}",
+                    sourceMethod,
+                    aggregate != null ? aggregate.getAggregateId() : null,
+                    e.getMessage(),
+                    e);
+        }
     }
 
     @Override

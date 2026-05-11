@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceContext;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
 
 import java.util.*;
@@ -103,35 +105,9 @@ public class ExecutionPlan {
             }
             if (dependencies.get(step).isEmpty()) {
                 this.stepFutures.put(step, CompletableFuture.completedFuture(null)
-                .thenAccept(ignored -> {
-                    try {
-                        TraceManager.getInstance().startStepSpan(funcName, stepName);
-                        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayBeforeValue, true);
-                        Thread.sleep(delayBeforeValue);
-                        TraceManager.getInstance().endDelaySpan(delaySpan);
-                        logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                    } catch (InterruptedException e) {
-                        TraceManager.getInstance().endStepSpan(funcName, stepName);
-                        Thread.currentThread().interrupt();
-                        throw new CompletionException(e);
-                    }
-                    
-                })
-                .thenCompose(ignored -> step.execute(unitOfWork))
-                .thenAccept(ignored -> {
-                    try {
-                        logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, true);
-                        Thread.sleep(delayAfterValue);
-                        TraceManager.getInstance().endDelaySpan(delaySpan);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new CompletionException(e);
-                    } finally {
-                        TraceManager.getInstance().endStepSpan(funcName, stepName);
-                    }
-                })
-            ); // Execute and save the steps with no dependencies
+                    .thenCompose(ignored -> executeInstrumentedStep(step, unitOfWork, funcName, stepName,
+                            delayBeforeValue, delayAfterValue))
+                ); // Execute and save the steps with no dependencies
                 executedSteps.put(step, true);
             }
             
@@ -157,33 +133,8 @@ public class ExecutionPlan {
                     deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
                 );
                 this.stepFutures.put(step,combinedFuture
-                    .thenAccept(ignored -> {
-                        try {
-                            TraceManager.getInstance().startStepSpan(funcName, stepName);
-                            Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayBeforeValue, true);
-                            Thread.sleep(delayBeforeValue);
-                            TraceManager.getInstance().endDelaySpan(delaySpan);
-                            logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                        } catch (InterruptedException e) {
-                            TraceManager.getInstance().endStepSpan(funcName, stepName);
-                            Thread.currentThread().interrupt();
-                            throw new CompletionException(e);
-                        }
-                    })
-                    .thenCompose(ignored -> step.execute(unitOfWork))
-                    .thenAccept(ignored -> {
-                        try {
-                            logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                            Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, true);
-                            Thread.sleep(delayAfterValue);
-                            TraceManager.getInstance().endDelaySpan(delaySpan);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            throw new CompletionException(e);
-                        } finally {
-                            TraceManager.getInstance().endStepSpan(funcName, stepName);
-                        }
-                    })
+                    .thenCompose(ignored -> executeInstrumentedStep(step, unitOfWork, funcName, stepName,
+                            delayBeforeValue, delayAfterValue))
                 );
                 executedSteps.put(step, true);
             }
@@ -192,6 +143,92 @@ public class ExecutionPlan {
 
         // Wait for all steps to complete
         return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]));
+    }
+
+    private CompletableFuture<Void> executeInstrumentedStep(FlowStep step, UnitOfWork unitOfWork, String funcName,
+                                                            String stepName, int delayBeforeValue, int delayAfterValue) {
+        Long unitOfWorkVersion = unitOfWork != null ? unitOfWork.getVersion() : null;
+        DynamicEvidenceContext.Scope scope = DynamicEvidenceContext.enterStep(funcName, stepName, unitOfWorkVersion);
+        DynamicEvidenceContext.StepContext context = scope.context();
+        DynamicEvidenceRecorderHolder.recordStepStarted(context);
+
+        try {
+            startStepTrace(funcName, stepName);
+            runDelay(funcName, stepName, delayBeforeValue, true);
+            logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
+
+            CompletableFuture<Void> stepFuture = step.execute(unitOfWork);
+            if (stepFuture == null) {
+                stepFuture = CompletableFuture.completedFuture(null);
+            }
+
+            if (stepFuture.isDone()) {
+                return stepFuture.whenComplete((ignored, error) -> finishInstrumentedStep(context, scope, funcName,
+                        stepName, delayAfterValue, error));
+            }
+
+            // Dynamic evidence step context uses ThreadLocal state. For async continuations that complete on
+            // a different thread, we close the originating scope here and rely on the captured StepContext when
+            // emitting STEP_FINISHED. This first implementation slice therefore supports local/synchronous smoke
+            // scenarios for in-step context lookup, but does not propagate ThreadLocal context across thread hops.
+            scope.close();
+            return stepFuture.whenComplete((ignored, error) -> finishInstrumentedStep(context, null, funcName,
+                    stepName, delayAfterValue, error));
+        } catch (Throwable error) {
+            finishInstrumentedStep(context, scope, funcName, stepName, delayAfterValue, error);
+            throw error;
+        }
+    }
+
+    private void finishInstrumentedStep(DynamicEvidenceContext.StepContext context, DynamicEvidenceContext.Scope scope,
+                                        String funcName, String stepName, int delayAfterValue, Throwable error) {
+        try {
+            if (error == null) {
+                logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
+                try {
+                    runDelay(funcName, stepName, delayAfterValue, false);
+                } catch (CompletionException delayError) {
+                    DynamicEvidenceRecorderHolder.recordStepFinished(context, "ERROR", delayError);
+                    throw delayError;
+                }
+                DynamicEvidenceRecorderHolder.recordStepFinished(context, "SUCCESS", null);
+            } else {
+                DynamicEvidenceRecorderHolder.recordStepFinished(context, "ERROR", error);
+            }
+        } finally {
+            endStepTrace(funcName, stepName);
+            if (scope != null) {
+                scope.close();
+            }
+        }
+    }
+
+    private void startStepTrace(String funcName, String stepName) {
+        TraceManager traceManager = TraceManager.getInstance();
+        if (traceManager != null) {
+            traceManager.startStepSpan(funcName, stepName);
+        }
+    }
+
+    private void endStepTrace(String funcName, String stepName) {
+        TraceManager traceManager = TraceManager.getInstance();
+        if (traceManager != null) {
+            traceManager.endStepSpan(funcName, stepName);
+        }
+    }
+
+    private void runDelay(String funcName, String stepName, int delay, boolean isBefore) {
+        try {
+            TraceManager traceManager = TraceManager.getInstance();
+            Span delaySpan = traceManager != null ? traceManager.startDelaySpan(funcName, stepName, delay, isBefore) : null;
+            Thread.sleep(delay);
+            if (traceManager != null) {
+                traceManager.endDelaySpan(delaySpan);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CompletionException(e);
+        }
     }
 
     private String reportSteps(Map<String, List<Integer>> behaviour) {
@@ -263,48 +300,48 @@ public class ExecutionPlan {
 
     public CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork) {
 
-        String stepName;
-        final String funcName = unitOfWork.getFunctionalityName();
-        List<Integer> behaviourValues = new ArrayList<>();
-
+        final String funcName = (unitOfWork != null)
+                ? unitOfWork.getFunctionalityName()
+                : this.functionalityName;
 
         for (FlowStep step: steps) {
-            stepName = step.getName();
+            final String stepName = step.getName();
 
             // Check if the step is in the behaviour map
-            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
-            if (behaviourValues.get(0) == THROW_EXCEPTION) {  
-                logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion()); 
+            List<Integer> behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
+            if (behaviourValues.get(0) == THROW_EXCEPTION) {
+                logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork != null ? unitOfWork.getVersion() : null);
                 throw new SimulatorException("Fault on " + stepName );
 
             }
-            if (dependencies.get(step).isEmpty()) {
-                TraceManager.getInstance().startStepSpan(funcName, stepName);
-                logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                this.stepFutures.put(step, step.execute(unitOfWork)); // Execute and save the steps with no dependencies
-                logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                TraceManager.getInstance().endStepSpan(funcName, stepName);
+            if (dependencies.get(step).isEmpty() && !this.stepFutures.containsKey(step)) {
+                final int delayBeforeValue = behaviourValues.get(1);
+                final int delayAfterValue = behaviourValues.get(2);
+                this.stepFutures.put(step, CompletableFuture.completedFuture(null)
+                        .thenCompose(ignored -> executeInstrumentedStep(step, unitOfWork, funcName, stepName,
+                                delayBeforeValue, delayAfterValue))
+                ); // Execute and save the steps with no dependencies
             }
         }
-            
 
         for (FlowStep step: steps) {
-            stepName = step.getName();
-            behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
-            if (behaviourValues.get(0) == THROW_EXCEPTION) {   
-                logger.info("EXCEPTION THROWN: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+            final String stepName = step.getName();
+            List<Integer> behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
+            if (behaviourValues.get(0) == THROW_EXCEPTION) {
+                logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork != null ? unitOfWork.getVersion() : null);
                 throw new SimulatorException("Fault on " + stepName );
             }
             if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies
-                TraceManager.getInstance().startStepSpan(funcName, stepName);
-                logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);         
                 ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
                 CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
                     deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
                 );
-                TraceManager.getInstance().endStepSpan(funcName, stepName);
-                logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                this.stepFutures.put(step, combinedFuture.thenCompose(ignored -> step.execute(unitOfWork))); // only executes after all dependencies are completed
+                final int delayBeforeValue = behaviourValues.get(1);
+                final int delayAfterValue = behaviourValues.get(2);
+                this.stepFutures.put(step, combinedFuture
+                        .thenCompose(ignored -> executeInstrumentedStep(step, unitOfWork, funcName, stepName,
+                                delayBeforeValue, delayAfterValue))
+                ); // only executes after all dependencies are completed
             }
             
         }

@@ -20,6 +20,20 @@ command:
   gateway:
     timeout-seconds: 10
 
+simulator:
+  dynamic-evidence:
+    enabled: false
+    output-root: ../verifiers/output
+    output-dir: ""
+    application-name: ${spring.application.name:application}
+    evidence-file-name: dynamic-evidence.jsonl
+    manifest-file-name: dynamic-evidence-manifest.json
+    include-command-fields: true
+    test-context:
+      enabled: false
+    max-field-depth: 2
+    max-field-value-length: 500
+
 resilience4j:
   retry:
     instances:
