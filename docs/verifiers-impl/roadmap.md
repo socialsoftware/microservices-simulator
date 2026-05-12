@@ -70,16 +70,16 @@ Implemented as a verifier-orchestrated local/sagas bridge with sidecar enrichmen
 - dynamic evidence is joined back to the static catalog with conservative statuses (`MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `MATCHED_PARTIAL`, `AMBIGUOUS`, `UNMATCHED`, `NOT_COVERED`);
 - enriched outputs are sidecar-only (`scenario-catalog-enriched.jsonl`, `scenario-catalog-enriched-manifest.json`, `dynamic-evidence-join-report.json`), keeping `scenario-catalog.jsonl` unchanged;
 - the simulator loads the verifier-written `dynamic-input-map.json` and emits `inputVariantId` when current test identity + runtime functionality class FQN + runtime step name resolve to exactly one accepted static input variant;
-- before/after measurement is based on join-report status counts: first-pass propagation should increase `MATCHED_EXACT` by upgrading previously high-confidence records, while ambiguity reduction requires later runtime refinement;
+- before/after measurement is based on join-report status counts: first-pass propagation should increase `MATCHED_EXACT` when runtime evidence carries direct `inputVariantId`, and remaining ambiguity/unmatched records require later runtime refinement;
 - Docker `fault-analysis-scenario-gen` enables this full static+dynamic flow with run-relative report path behavior.
 
 Remaining gaps:
 
-- Direct runtime `inputVariantId` propagation is still first-pass only; it does not yet use runtime command payloads, aggregate accesses, literal argument values, or aggregate keys to reduce ambiguous candidates.
-- Quizzes before/after counts have not been refreshed since direct runtime input attribution landed.
+- Direct runtime `inputVariantId` propagation is still first-pass only; it does not yet use runtime command payloads, aggregate accesses, literal argument values, or aggregate keys to reduce the remaining ambiguous/unmatched candidates.
+- Quizzes before/after counts were refreshed on 2026-05-12 against the comparable sagas-only 42-class run: `MATCHED_EXACT` improved `0 -> 46`, `AMBIGUOUS` dropped `44 -> 3`, `UNMATCHED` dropped `20 -> 17`, and enriched-manifest `warningCount` dropped `8238 -> 328`.
 - No stream/gRPC/distributed or causal/TCC runtime hooks/parity yet.
-- Full/default Quizzes run still shows high ambiguity volume (`AMBIGUOUS=44`, manifest `warningCount=8238` on Task 8 baseline).
-- Matched enriched entries still expose `testRunStatus: null` in the current Task 8 baseline, even though join-report test-run statuses exist.
+- Remaining Quizzes ambiguity is now concentrated in a few same-shape neighboring-input cases rather than broad semantic fallback noise.
+- Matched enriched entries still expose `testRunStatus: null` in the refreshed run, even though join-report test-run statuses exist.
 - Logs and Jaeger traces remain auxiliary diagnostics rather than the primary evidence source.
 
 ## Stage 2 — Scenario execution / generic runner
@@ -197,8 +197,8 @@ Dependencies:
 | Facade call recipe extraction | Implemented | dummyapp and Quizzes report/spec assertions | Keep expanding real syntax coverage |
 | HTML report | Implemented | renderer/application specs | Human view only, not machine contract |
 | Scenario catalog JSONL/manifest | Implemented MVP | scenario package, writer, application specs | Exact keys, filters, executor integration |
-| Dynamic evidence + sidecar enrichment | Implemented MVP | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, Task 7/8 Quizzes runs | Runtime attribution refinement; stream/gRPC/distributed/TCC parity; ambiguity reduction |
-| Quizzes orchestration smoke baseline | Implemented | Task 7 narrow run + Task 8 full/default run in `current-state.md` | Refresh periodically and track ambiguity/warning trends |
+| Dynamic evidence + sidecar enrichment | Implemented MVP | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, Task 7/8 Quizzes runs, 2026-05-12 exact-attribution refresh | Runtime attribution refinement; stream/gRPC/distributed/TCC parity; remaining ambiguity/unmatched analysis |
+| Quizzes orchestration smoke baseline | Implemented | Task 7 narrow run + Task 8 full/default run in `current-state.md` | Refresh periodically and track exact/ambiguous/unmatched trends |
 | ScenarioExecutor | Not implemented | none | Design and runtime integration |
 | Behavior CSV generation | Not implemented | none | Decide whether adapter or canonical contract |
 | Impact scoring | Not implemented | none | Requires executable scenarios |

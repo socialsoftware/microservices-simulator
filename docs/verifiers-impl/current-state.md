@@ -89,6 +89,7 @@ Current boundaries:
   - `AMBIGUOUS` means dynamic evidence was relevant but still mapped to more than one possible static input;
   - `NOT_COVERED` means no useful runtime evidence was seen for that scenario.
 - `DummyappDynamicEnrichmentIntegrationSpec` now checks the before/after shape for the same selected dummyapp plan: semantic-only evidence produces one `MATCHED_HIGH_CONFIDENCE` record, while the same events with direct runtime `inputVariantId` produce one `MATCHED_EXACT` record.
+- A refreshed full/default Quizzes sagas-only run after runtime input attribution moved the comparable baseline from `MATCHED_EXACT=0`, `MATCHED_HIGH_CONFIDENCE=2`, `AMBIGUOUS=44`, `UNMATCHED=20`, `warningCount=8238` to `MATCHED_EXACT=46`, `MATCHED_HIGH_CONFIDENCE=0`, `AMBIGUOUS=3`, `UNMATCHED=17`, `warningCount=328`.
 - The orchestrated Maven command appends simulator/test-context flags per class:
   - `-Dsimulator.dynamic-evidence.enabled=true`
   - `-Dsimulator.dynamic-evidence.test-context.enabled=true`
@@ -198,7 +199,7 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 
 - Exact aggregate-instance key extraction is still incomplete.
 - Dynamic enrichment can now propagate runtime `inputVariantId` for the first exact case: current test identity + runtime functionality class FQN + runtime step name must leave exactly one static input candidate. It does not yet use command fields, aggregate access evidence, literal runtime values, or aggregate keys to reduce ambiguous candidates further.
-- First-pass propagation mainly upgrades match certainty (`MATCHED_HIGH_CONFIDENCE` to `MATCHED_EXACT`). It is not expected to increase total covered/matched scenario counts unless a later refinement can emit `inputVariantId` for cases that are currently ambiguous or unmatched.
+- First-pass propagation mainly upgrades match certainty by turning runtime events with direct `inputVariantId` into `MATCHED_EXACT`. In Quizzes it also reduced broad semantic ambiguity, but it only modestly increased non-unmatched coverage (`46 -> 49` plans).
 - No Quizzes source/test hooks are required or used by orchestration; this is intentional and should be preserved.
 - Dynamic evidence/runtime parity is still local/sagas only:
   - no stream/gRPC instrumentation parity;
@@ -216,8 +217,9 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 - Source-mode classification is evidence-based, not a full Spring profile/environment solver.
 - Package/name hints are not primary source-mode evidence.
 - `UNKNOWN` source mode is accepted by default with a warning to preserve coverage.
-- Full/default Quizzes enrichment currently has high ambiguity/warning volume (`AMBIGUOUS=44`, enriched-manifest `warningCount=8238` on run `task8-quizzes-full/quizzes-20260501-132052-052`) and should be interpreted as diagnostic output, not exact mapping certainty.
-- On the same full run, enriched matched execution entries still show `testRunStatus: null` even though join-report per-class status counts are present; treat per-record run status as provisional until this is tightened.
+- Full/default Quizzes enrichment is no longer dominated by ambiguity after first-pass runtime input attribution, but the remaining `AMBIGUOUS=3` and `UNMATCHED=17` records still need interpretation as diagnostic output rather than proof of exact coverage.
+- Remaining ambiguous Quizzes records are cases where runtime did emit direct `inputVariantId`s, but the direct ids belonged to neighboring static input variants with the same test/functionality/step shape rather than the scenario plan being enriched. The joiner correctly avoids guessing in those cases.
+- Enriched matched execution entries still show `testRunStatus: null` even though join-report per-class status counts are present; treat per-record run status as provisional until this is tightened.
 
 ## Not implemented
 
@@ -284,6 +286,15 @@ Real Quizzes dynamic-enrichment validation (Tasks 7-8) was performed in the loca
   - join counts: `MATCHED_HIGH_CONFIDENCE=2`, `AMBIGUOUS=44`, `UNMATCHED=20`, `NOT_COVERED=0`.
   - enriched manifest caveat: `counts.warningCount=8238` on the same run; warnings are dominated by repeated ambiguity candidate diagnostics.
   - sidecar caveat: enriched `matchedTestExecutions[].testRunStatus` is still `null` in this run, while `dynamic-evidence-join-report.json` correctly records per-class statuses.
+- Refreshed full/default sagas-only orchestration after runtime `inputVariantId` attribution:
+  - command: `cd verifiers && mvn spring-boot:run -Dspring-boot.run.arguments="--verifiers.applications-root=/Users/andre/meic/thesis/microservices-simulator/applications --verifiers.application-base-dir=quizzes --verifiers.output-root=/private/tmp/ms-simulator-quizzes-measure-20260512-sagas-only --verifiers.scenario-catalog.enabled=true --verifiers.dynamic-enrichment.enabled=true --verifiers.dynamic-enrichment.allow-partial-test-run=true --verifiers.dynamic-enrichment.include-test-dirs=pt/ulisboa/tecnico/socialsoftware/quizzes/sagas --verifiers.dynamic-enrichment.exclude-test-dirs=pt/ulisboa/tecnico/socialsoftware/quizzes/causal,pt/ulisboa/tecnico/socialsoftware/quizzes/tcc --verifiers.scenario-catalog.max-scenarios=100 --verifiers.scenario-catalog.max-input-variants-per-saga=3 --verifiers.scenario-catalog.max-schedules-per-input-tuple=20"`
+  - run dir: `/private/tmp/ms-simulator-quizzes-measure-20260512-sagas-only/quizzes-20260512-184921-906/`
+  - result: `runStatus=PARTIAL`, `testClassesSelected=42`, `testClassesPassed=40`, `testClassesFailed=2`, `evidenceFilesRead=42`, `dynamicEventsRead=18868`, `eventsMissingTestContext=0`.
+  - join counts: `MATCHED_EXACT=46`, `MATCHED_HIGH_CONFIDENCE=0`, `MATCHED_PARTIAL=0`, `AMBIGUOUS=3`, `UNMATCHED=17`, `NOT_COVERED=0`.
+  - enriched manifest: `recordCount=66`, `warningCount=328`, `testRunStatusCounts={PASSED=40, FAILED=2}`.
+  - runtime attribution diagnostics: `226` step events carried `payload.inputVariantAttributionStatus=MATCHED`; `270` command/aggregate events carried the propagated top-level `inputVariantId` without a step attribution status; `8096` step events reported `NO_MATCH`.
+  - remaining ambiguity examples are `FindQuizFunctionalitySagas.findQuizStep`, `StartQuizFunctionalitySagas.getQuizStep/startQuizStep`, and `RemoveTournamentFunctionalitySagas.getTournamentStep/removeTournamentStep`, where direct runtime ids pointed to other static input variants with the same semantic shape.
+  - interpretation: exact scenario attribution improved materially (`0 -> 46` exact plans), ambiguity dropped (`44 -> 3`), and warning volume dropped (`8238 -> 328`). Covered-but-not-exact evidence increased only slightly (`46 -> 49` non-unmatched plans), so this is mainly a precision/certainty improvement rather than proof that every useful static input is now dynamically exercised.
 - Failure interpretation for the two Task 8 failed classes was reproduced without enrichment instrumentation:
   - command: `cd applications/quizzes && mvn -Ptest-sagas test -Dtest=pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.AnonymizeStudentAndRemoveStudentTest,pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest`
   - result: FAIL with the same `Expected SimulatorException, but got CompletionException` mismatch, supporting the interpretation that these are existing test/runtime issues rather than orchestration regressions.
@@ -313,7 +324,7 @@ mvn test -Dtest=GroovyConstructorInputTraceVisitorDummyappSpec,ScenarioGenerator
 
 ## Current next priorities
 
-1. Reduce full-run enrichment ambiguity (`AMBIGUOUS=44`, `warningCount=8238`) by tightening static/dynamic correlation and candidate-pruning heuristics without inventing false exactness.
+1. Explain or reduce the remaining full-run enrichment misses (`AMBIGUOUS=3`, `UNMATCHED=17`) by tightening static/dynamic correlation and candidate-pruning heuristics without inventing false exactness.
 2. Improve exact aggregate-instance key extraction from input variants into step footprints.
 3. Decide and implement whether enriched `matchedTestExecutions[].testRunStatus` should be populated directly from orchestrator test-run metadata.
 4. Design the minimal ScenarioExecutor/generic runner contract over the JSONL catalog.
