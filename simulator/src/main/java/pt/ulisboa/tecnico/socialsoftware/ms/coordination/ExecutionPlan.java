@@ -23,6 +23,8 @@ public class ExecutionPlan {
     private HashMap<FlowStep, CompletableFuture<Void>> stepFutures = new HashMap<>();
     private WorkflowFunctionality functionality;
     private String functionalityName;
+    private String functionalityClassFqn;
+    private String functionalityClassSimpleName;
     private Map<String, List<Integer>> behaviour;
     private static final int DEFAULT_VALUE = 0;
     private static final int THROW_EXCEPTION = 1;
@@ -37,7 +39,9 @@ public class ExecutionPlan {
             executedSteps.put(step, false);
         }
         this.functionality = functionality;
-        this.functionalityName = functionality.getClass().getSimpleName();
+        this.functionalityClassFqn = functionality.getClass().getName();
+        this.functionalityClassSimpleName = functionality.getClass().getSimpleName();
+        this.functionalityName = functionalityClassSimpleName;
 
         behaviour = ImpairmentHandler.getInstance().loadStepsFile(functionalityName);
         ImpairmentHandler.getInstance().appendToReport(reportSteps(behaviour));
@@ -148,7 +152,8 @@ public class ExecutionPlan {
     private CompletableFuture<Void> executeInstrumentedStep(FlowStep step, UnitOfWork unitOfWork, String funcName,
                                                             String stepName, int delayBeforeValue, int delayAfterValue) {
         Long unitOfWorkVersion = unitOfWork != null ? unitOfWork.getVersion() : null;
-        DynamicEvidenceContext.Scope scope = DynamicEvidenceContext.enterStep(funcName, stepName, unitOfWorkVersion);
+        DynamicEvidenceContext.Scope scope = DynamicEvidenceContext.enterStep(funcName, functionalityClassFqn,
+                functionalityClassSimpleName, stepName, unitOfWorkVersion);
         DynamicEvidenceContext.StepContext context = scope.context();
         DynamicEvidenceRecorderHolder.recordStepStarted(context);
 

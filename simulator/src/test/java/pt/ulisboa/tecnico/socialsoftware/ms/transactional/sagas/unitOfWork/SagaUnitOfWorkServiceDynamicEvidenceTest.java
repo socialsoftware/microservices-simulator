@@ -90,7 +90,11 @@ class SagaUnitOfWorkServiceDynamicEvidenceTest {
         SagaUnitOfWork unitOfWork = new SagaUnitOfWork(90L, "fallbackFunctionality");
 
         try (DynamicEvidenceContext.Scope ignored = DynamicEvidenceContext.enterStep(
-                "CreateTournamentFunctionalitySagas", "getCourseExecutionStep", 307L)) {
+                "CreateTournamentFunctionalitySagas",
+                "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.CreateTournamentFunctionalitySagas",
+                "CreateTournamentFunctionalitySagas",
+                "getCourseExecutionStep",
+                307L)) {
             service.registerChanged(aggregate, unitOfWork);
         }
 
@@ -101,6 +105,9 @@ class SagaUnitOfWorkServiceDynamicEvidenceTest {
         DynamicEvidenceEvent event = recorder.events.getFirst();
         assertThat(event.getEventKind()).isEqualTo("AGGREGATE_ACCESSED");
         assertThat(event.getFunctionalityName()).isEqualTo("CreateTournamentFunctionalitySagas");
+        assertThat(event.getFunctionalityClassFqn())
+                .isEqualTo("pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.CreateTournamentFunctionalitySagas");
+        assertThat(event.getFunctionalityClassSimpleName()).isEqualTo("CreateTournamentFunctionalitySagas");
         assertThat(event.getFunctionalityInvocationId()).isEqualTo("CreateTournamentFunctionalitySagas-307");
         assertThat(event.getStepName()).isEqualTo("getCourseExecutionStep");
         assertThat(event.getUnitOfWorkVersion()).isEqualTo(307L);

@@ -45,6 +45,8 @@ class LocalCommandGatewayDynamicEvidenceTest {
             DynamicEvidenceEvent event = recorder.events.getFirst();
             assertThat(event.getEventKind()).isEqualTo("COMMAND_SENT");
             assertThat(event.getFunctionalityName()).isEqualTo("checkout");
+            assertThat(event.getFunctionalityClassFqn()).isEqualTo("example.CheckoutSaga");
+            assertThat(event.getFunctionalityClassSimpleName()).isEqualTo("CheckoutSaga");
             assertThat(event.getStepName()).isEqualTo("reserveStock");
             assertThat(event.getUnitOfWorkVersion()).isEqualTo(88L);
             assertThat(event.getPayload()).containsEntry("commandType", DispatchCommand.class.getSimpleName());
@@ -61,7 +63,8 @@ class LocalCommandGatewayDynamicEvidenceTest {
 
         DispatchCommand command = new DispatchCommand(new TestUnitOfWork(88L, "checkout"), "inventory", 55, "reserve-55");
 
-        try (DynamicEvidenceContext.Scope scope = DynamicEvidenceContext.enterStep("checkout", "reserveStock", 88L)) {
+        try (DynamicEvidenceContext.Scope scope = DynamicEvidenceContext.enterStep(
+                "checkout", "example.CheckoutSaga", "CheckoutSaga", "reserveStock", 88L)) {
             Object result = gateway.send(command);
             assertThat(result).isEqualTo("dispatched");
         }

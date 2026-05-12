@@ -12,8 +12,15 @@ public final class DynamicEvidenceContext {
     }
 
     public static Scope enterStep(String functionalityName, String stepName, Long unitOfWorkVersion) {
+        return enterStep(functionalityName, null, null, stepName, unitOfWorkVersion);
+    }
+
+    public static Scope enterStep(String functionalityName, String functionalityClassFqn,
+                                  String functionalityClassSimpleName, String stepName, Long unitOfWorkVersion) {
         StepContext context = new StepContext(
                 functionalityName,
+                functionalityClassFqn,
+                functionalityClassSimpleName,
                 invocationId(functionalityName, unitOfWorkVersion),
                 stepName,
                 unitOfWorkVersion,
@@ -32,6 +39,10 @@ public final class DynamicEvidenceContext {
         return current().map(StepContext::functionalityName);
     }
 
+    public static Optional<String> currentFunctionalityClassFqn() {
+        return current().map(StepContext::functionalityClassFqn);
+    }
+
     public static Optional<String> currentStepName() {
         return current().map(StepContext::stepName);
     }
@@ -47,8 +58,14 @@ public final class DynamicEvidenceContext {
         return UUID.randomUUID().toString();
     }
 
-    public record StepContext(String functionalityName, String functionalityInvocationId, String stepName,
+    public record StepContext(String functionalityName, String functionalityClassFqn,
+                              String functionalityClassSimpleName, String functionalityInvocationId, String stepName,
                               Long unitOfWorkVersion, long startedAtMillis, long startedAtNanos) {
+        public StepContext(String functionalityName, String functionalityInvocationId, String stepName,
+                           Long unitOfWorkVersion, long startedAtMillis, long startedAtNanos) {
+            this(functionalityName, null, null, functionalityInvocationId, stepName, unitOfWorkVersion,
+                    startedAtMillis, startedAtNanos);
+        }
     }
 
     public static final class Scope implements AutoCloseable {

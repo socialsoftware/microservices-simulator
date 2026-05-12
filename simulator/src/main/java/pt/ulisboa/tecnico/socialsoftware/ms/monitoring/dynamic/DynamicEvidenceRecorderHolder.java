@@ -28,6 +28,8 @@ public final class DynamicEvidenceRecorderHolder {
         record(DynamicEvidenceEvent.of(
                 "STEP_STARTED",
                 context.functionalityName(),
+                context.functionalityClassFqn(),
+                context.functionalityClassSimpleName(),
                 context.functionalityInvocationId(),
                 context.stepName(),
                 context.unitOfWorkVersion(),
@@ -48,6 +50,8 @@ public final class DynamicEvidenceRecorderHolder {
         record(DynamicEvidenceEvent.of(
                 "STEP_FINISHED",
                 context.functionalityName(),
+                context.functionalityClassFqn(),
+                context.functionalityClassSimpleName(),
                 context.functionalityInvocationId(),
                 context.stepName(),
                 context.unitOfWorkVersion(),
@@ -81,6 +85,8 @@ public final class DynamicEvidenceRecorderHolder {
                 ? context.functionalityInvocationId()
                 : buildInvocationId(functionalityName, unitOfWorkVersion);
         String stepName = context != null ? context.stepName() : null;
+        String functionalityClassFqn = context != null ? context.functionalityClassFqn() : null;
+        String functionalityClassSimpleName = context != null ? context.functionalityClassSimpleName() : null;
 
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("accessMode", accessMode);
@@ -93,6 +99,8 @@ public final class DynamicEvidenceRecorderHolder {
         record(DynamicEvidenceEvent.of(
                 "AGGREGATE_ACCESSED",
                 functionalityName,
+                functionalityClassFqn,
+                functionalityClassSimpleName,
                 invocationId,
                 stepName,
                 unitOfWorkVersion,

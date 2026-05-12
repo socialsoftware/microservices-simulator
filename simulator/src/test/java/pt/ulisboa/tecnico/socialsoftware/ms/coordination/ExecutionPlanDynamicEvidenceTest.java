@@ -48,6 +48,7 @@ class ExecutionPlanDynamicEvidenceTest {
         FlowStep reserveStock = new TestStep("reserveStock", () -> {
             contextDuringStep.set(DynamicEvidenceContext.current().orElseThrow());
             assertThat(DynamicEvidenceContext.currentFunctionalityName()).contains("checkout");
+            assertThat(DynamicEvidenceContext.currentFunctionalityClassFqn()).contains(TestFunctionality.class.getName());
             assertThat(DynamicEvidenceContext.currentStepName()).contains("reserveStock");
         });
         ArrayList<FlowStep> plan = new ArrayList<>(List.of(reserveStock));
@@ -60,6 +61,8 @@ class ExecutionPlanDynamicEvidenceTest {
                 .containsExactly("STEP_STARTED", "STEP_FINISHED");
         assertThat(recorder.events).allSatisfy(event -> {
             assertThat(event.getFunctionalityName()).isEqualTo("checkout");
+            assertThat(event.getFunctionalityClassFqn()).isEqualTo(TestFunctionality.class.getName());
+            assertThat(event.getFunctionalityClassSimpleName()).isEqualTo(TestFunctionality.class.getSimpleName());
             assertThat(event.getStepName()).isEqualTo("reserveStock");
             assertThat(event.getUnitOfWorkVersion()).isEqualTo(41L);
         });
@@ -67,6 +70,8 @@ class ExecutionPlanDynamicEvidenceTest {
         assertThat(recorder.events.get(1).getPayload()).containsEntry("outcome", "SUCCESS");
         assertThat(recorder.events.get(1).getPayload()).containsKey("durationMillis");
         assertThat(contextDuringStep.get().functionalityName()).isEqualTo("checkout");
+        assertThat(contextDuringStep.get().functionalityClassFqn()).isEqualTo(TestFunctionality.class.getName());
+        assertThat(contextDuringStep.get().functionalityClassSimpleName()).isEqualTo(TestFunctionality.class.getSimpleName());
         assertThat(contextDuringStep.get().stepName()).isEqualTo("reserveStock");
         assertThat(contextDuringStep.get().unitOfWorkVersion()).isEqualTo(41L);
         assertThat(DynamicEvidenceContext.current()).isEmpty();

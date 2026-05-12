@@ -69,10 +69,14 @@ public final class CommandEvidenceExtractor {
                 ? context.functionalityInvocationId()
                 : buildInvocationId(functionalityName, unitOfWorkVersion);
         String stepName = context != null ? context.stepName() : null;
+        String functionalityClassFqn = context != null ? context.functionalityClassFqn() : null;
+        String functionalityClassSimpleName = context != null ? context.functionalityClassSimpleName() : null;
 
         return DynamicEvidenceEvent.of(
                 "COMMAND_SENT",
                 functionalityName,
+                functionalityClassFqn,
+                functionalityClassSimpleName,
                 invocationId,
                 stepName,
                 unitOfWorkVersion,

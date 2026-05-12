@@ -97,6 +97,30 @@ class DynamicEvidenceRecorderTest {
     }
 
     @Test
+    void enabledRecorderWritesFunctionalityClassIdentityWhenPresent() throws Exception {
+        DynamicEvidenceProperties properties = enabledProperties();
+        properties.setOutputDir(tempDir.resolve("with-functionality-class").toString());
+
+        DynamicEvidenceRecorder recorder = new DynamicEvidenceJsonlRecorder(properties, objectMapper);
+        recorder.record(DynamicEvidenceEvent.of(
+                "STEP_STARTED",
+                "checkout",
+                "example.CheckoutSaga",
+                "CheckoutSaga",
+                "invocation-1",
+                "reserve",
+                7L,
+                Map.of()));
+        recorder.close();
+
+        Path evidencePath = tempDir.resolve("with-functionality-class/dynamic-evidence.jsonl");
+        JsonNode event = objectMapper.readTree(Files.readString(evidencePath));
+        assertThat(event.get("functionalityName").asText()).isEqualTo("checkout");
+        assertThat(event.get("functionalityClassFqn").asText()).isEqualTo("example.CheckoutSaga");
+        assertThat(event.get("functionalityClassSimpleName").asText()).isEqualTo("CheckoutSaga");
+    }
+
+    @Test
     void enabledRecorderWritesCurrentTestContextFieldsWhenPresent() throws Exception {
         DynamicEvidenceProperties properties = enabledProperties();
         properties.setOutputDir(tempDir.resolve("with-test-context").toString());

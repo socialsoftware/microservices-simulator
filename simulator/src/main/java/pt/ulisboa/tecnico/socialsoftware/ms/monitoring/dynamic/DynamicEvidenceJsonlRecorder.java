@@ -195,6 +195,8 @@ public class DynamicEvidenceJsonlRecorder implements DynamicEvidenceRecorder {
         json.put("applicationName", properties.getApplicationName());
         addTestIdentity(json, event);
         json.put("functionalityName", event.getFunctionalityName());
+        putIfPresent(json, "functionalityClassFqn", event.getFunctionalityClassFqn());
+        putIfPresent(json, "functionalityClassSimpleName", event.getFunctionalityClassSimpleName());
         json.put("functionalityInvocationId", event.getFunctionalityInvocationId());
         json.put("stepName", event.getStepName());
         json.put("unitOfWorkVersion", event.getUnitOfWorkVersion());
