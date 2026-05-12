@@ -11,6 +11,7 @@ public class DynamicEvidenceProperties {
     private String applicationName = "application";
     private String evidenceFileName = "dynamic-evidence.jsonl";
     private String manifestFileName = "dynamic-evidence-manifest.json";
+    private String inputMapPath = "";
     private boolean includeCommandFields = true;
     @NestedConfigurationProperty
     private final TestContext testContext = new TestContext();
@@ -29,6 +30,8 @@ public class DynamicEvidenceProperties {
     public void setEvidenceFileName(String evidenceFileName) { this.evidenceFileName = evidenceFileName; }
     public String getManifestFileName() { return manifestFileName; }
     public void setManifestFileName(String manifestFileName) { this.manifestFileName = manifestFileName; }
+    public String getInputMapPath() { return inputMapPath; }
+    public void setInputMapPath(String inputMapPath) { this.inputMapPath = inputMapPath; }
     public boolean isIncludeCommandFields() { return includeCommandFields; }
     public void setIncludeCommandFields(boolean includeCommandFields) { this.includeCommandFields = includeCommandFields; }
     public TestContext getTestContext() { return testContext; }

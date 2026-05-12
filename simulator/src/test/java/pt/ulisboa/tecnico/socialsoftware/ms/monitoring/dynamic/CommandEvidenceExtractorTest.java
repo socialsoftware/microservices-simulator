@@ -128,6 +128,42 @@ class CommandEvidenceExtractorTest {
         assertThat(event.getUnitOfWorkVersion()).isEqualTo(88L);
     }
 
+    @Test
+    void usesCurrentStepInputVariantIdWhenContextIsPresent() {
+        DynamicEvidenceProperties properties = new DynamicEvidenceProperties();
+        CommandEvidenceExtractor extractor = new CommandEvidenceExtractor(properties);
+        SampleCommand command = new SampleCommand(
+                new TestUnitOfWork(19L, "fallback"),
+                "execution",
+                42,
+                "invoice-123",
+                7,
+                true,
+                SampleStatus.ACTIVE,
+                new SampleNestedDto(99, "student-1", "should-not-appear"),
+                List.of(),
+                Map.of(),
+                "simple-description",
+                "top-secret-token");
+        DynamicEvidenceContext.StepContext context = new DynamicEvidenceContext.StepContext(
+                "checkout",
+                "example.CheckoutSaga",
+                "CheckoutSaga",
+                "input-1",
+                "MATCHED",
+                "TEST_FUNCTIONALITY_CLASS_STEP",
+                List.of("input-1"),
+                "checkout-88",
+                "reserve",
+                88L,
+                System.currentTimeMillis(),
+                System.nanoTime());
+
+        DynamicEvidenceEvent event = extractor.buildCommandSentEvent(command, context);
+
+        assertThat(event.getInputVariantId()).isEqualTo("input-1");
+    }
+
     @SuppressWarnings("unchecked")
     private Map<String, Object> map(Object value) {
         assertThat(value).isInstanceOf(Map.class);

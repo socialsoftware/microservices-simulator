@@ -176,6 +176,7 @@ public class DynamicEnrichmentOrchestrator {
         arguments.add("-Dsimulator.dynamic-evidence.test-context.enabled=true");
         arguments.add("-Djunit.platform.listeners.autodetection.enabled=true");
         arguments.add("-Dsimulator.dynamic-evidence.output-dir=" + evidenceDir);
+        arguments.add("-Dsimulator.dynamic-evidence.input-map-path=" + evidenceDir.resolve(DynamicInputMapWriter.FILE_NAME));
         arguments.add("-Dsimulator.dynamic-evidence.application-name=" + applicationName);
         return List.copyOf(arguments);
     }

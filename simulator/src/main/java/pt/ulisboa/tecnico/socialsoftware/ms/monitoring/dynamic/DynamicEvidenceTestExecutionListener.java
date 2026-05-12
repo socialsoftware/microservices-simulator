@@ -18,6 +18,7 @@ public final class DynamicEvidenceTestExecutionListener implements TestExecution
     private static final String DYNAMIC_EVIDENCE_ENABLED_PROPERTY = "simulator.dynamic-evidence.enabled";
     private static final String DYNAMIC_EVIDENCE_OUTPUT_DIR_PROPERTY = "simulator.dynamic-evidence.output-dir";
     private static final String DYNAMIC_EVIDENCE_APPLICATION_NAME_PROPERTY = "simulator.dynamic-evidence.application-name";
+    private static final String DYNAMIC_EVIDENCE_INPUT_MAP_PATH_PROPERTY = "simulator.dynamic-evidence.input-map-path";
     private static final String DYNAMIC_EVIDENCE_INCLUDE_COMMAND_FIELDS_PROPERTY = "simulator.dynamic-evidence.include-command-fields";
     private static final String DYNAMIC_EVIDENCE_MAX_FIELD_DEPTH_PROPERTY = "simulator.dynamic-evidence.max-field-depth";
     private static final String DYNAMIC_EVIDENCE_MAX_FIELD_VALUE_LENGTH_PROPERTY = "simulator.dynamic-evidence.max-field-value-length";
@@ -78,6 +79,7 @@ public final class DynamicEvidenceTestExecutionListener implements TestExecution
         properties.setTestContextEnabled(Boolean.getBoolean(TEST_CONTEXT_ENABLED_PROPERTY));
         setStringProperty(DYNAMIC_EVIDENCE_OUTPUT_DIR_PROPERTY, properties::setOutputDir);
         setStringProperty(DYNAMIC_EVIDENCE_APPLICATION_NAME_PROPERTY, properties::setApplicationName);
+        setStringProperty(DYNAMIC_EVIDENCE_INPUT_MAP_PATH_PROPERTY, properties::setInputMapPath);
         setBooleanProperty(DYNAMIC_EVIDENCE_INCLUDE_COMMAND_FIELDS_PROPERTY, properties::setIncludeCommandFields);
         setIntegerProperty(DYNAMIC_EVIDENCE_MAX_FIELD_DEPTH_PROPERTY, properties::setMaxFieldDepth);
         setIntegerProperty(DYNAMIC_EVIDENCE_MAX_FIELD_VALUE_LENGTH_PROPERTY, properties::setMaxFieldValueLength);

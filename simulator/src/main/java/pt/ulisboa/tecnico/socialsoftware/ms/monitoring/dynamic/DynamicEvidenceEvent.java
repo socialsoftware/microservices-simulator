@@ -12,6 +12,7 @@ public class DynamicEvidenceEvent {
     private String functionalityName;
     private String functionalityClassFqn;
     private String functionalityClassSimpleName;
+    private String inputVariantId;
     private String functionalityInvocationId;
     private String stepName;
     private String testClassFqn;
@@ -30,11 +31,20 @@ public class DynamicEvidenceEvent {
     public static DynamicEvidenceEvent of(String eventKind, String functionalityName, String functionalityClassFqn,
                                           String functionalityClassSimpleName, String functionalityInvocationId,
                                           String stepName, Long unitOfWorkVersion, Map<String, Object> payload) {
+        return of(eventKind, functionalityName, functionalityClassFqn, functionalityClassSimpleName, null,
+                functionalityInvocationId, stepName, unitOfWorkVersion, payload);
+    }
+
+    public static DynamicEvidenceEvent of(String eventKind, String functionalityName, String functionalityClassFqn,
+                                          String functionalityClassSimpleName, String inputVariantId,
+                                          String functionalityInvocationId, String stepName, Long unitOfWorkVersion,
+                                          Map<String, Object> payload) {
         DynamicEvidenceEvent event = new DynamicEvidenceEvent();
         event.setEventKind(eventKind);
         event.setFunctionalityName(functionalityName);
         event.setFunctionalityClassFqn(functionalityClassFqn);
         event.setFunctionalityClassSimpleName(functionalityClassSimpleName);
+        event.setInputVariantId(inputVariantId);
         event.setFunctionalityInvocationId(functionalityInvocationId);
         event.setStepName(stepName);
         event.setUnitOfWorkVersion(unitOfWorkVersion);
@@ -58,6 +68,8 @@ public class DynamicEvidenceEvent {
     public void setFunctionalityClassFqn(String functionalityClassFqn) { this.functionalityClassFqn = functionalityClassFqn; }
     public String getFunctionalityClassSimpleName() { return functionalityClassSimpleName; }
     public void setFunctionalityClassSimpleName(String functionalityClassSimpleName) { this.functionalityClassSimpleName = functionalityClassSimpleName; }
+    public String getInputVariantId() { return inputVariantId; }
+    public void setInputVariantId(String inputVariantId) { this.inputVariantId = inputVariantId; }
     public String getFunctionalityInvocationId() { return functionalityInvocationId; }
     public void setFunctionalityInvocationId(String functionalityInvocationId) { this.functionalityInvocationId = functionalityInvocationId; }
     public String getStepName() { return stepName; }

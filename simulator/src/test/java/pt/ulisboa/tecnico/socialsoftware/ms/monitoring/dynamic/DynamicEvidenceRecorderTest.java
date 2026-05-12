@@ -24,6 +24,9 @@ class DynamicEvidenceRecorderTest {
     @AfterEach
     void clearDynamicEvidenceTestContext() {
         DynamicEvidenceTestContext.clear();
+        DynamicEvidenceContext.clear();
+        DynamicInputAttributionHolder.clear();
+        DynamicEvidenceRecorderHolder.setRecorder(new DynamicEvidenceNoopRecorder());
     }
 
     @Test
@@ -118,6 +121,67 @@ class DynamicEvidenceRecorderTest {
         assertThat(event.get("functionalityName").asText()).isEqualTo("checkout");
         assertThat(event.get("functionalityClassFqn").asText()).isEqualTo("example.CheckoutSaga");
         assertThat(event.get("functionalityClassSimpleName").asText()).isEqualTo("CheckoutSaga");
+    }
+
+    @Test
+    void enabledRecorderLoadsInputMapAndWritesResolvedInputVariantId() throws Exception {
+        Path inputMapPath = tempDir.resolve("dynamic-input-map.json");
+        Files.writeString(inputMapPath, """
+                {
+                  "schemaVersion": "microservices-simulator.dynamic-input-map.v1",
+                  "generatedAt": "2026-05-12T00:00:00Z",
+                  "testClassFqn": "example.OrderSpec",
+                  "inputCount": 1,
+                  "inputs": [
+                    {
+                      "inputVariantId": "input-1",
+                      "sagaFqn": "example.OrderSaga",
+                      "sourceClassFqn": "example.OrderSpec",
+                      "sourceMethodName": "createsOrder",
+                      "sourceBindingName": "order",
+                      "resolutionStatus": "RESOLVED",
+                      "sourceMode": "CONSTRUCTOR",
+                      "sourceModeConfidence": "HIGH",
+                      "stepNameHints": ["reserve"],
+                      "literalArgumentValueHints": [],
+                      "constructorArgumentSummaries": [],
+                      "expectedCommands": [],
+                      "expectedAggregateTypes": [],
+                      "logicalKeyBindings": {},
+                      "scenarioPlanIds": ["scenario-1"],
+                      "stableSourceText": "new OrderSaga(order)",
+                      "provenanceText": "test constructor",
+                      "warnings": []
+                    }
+                  ]
+                }
+                """);
+        DynamicEvidenceProperties properties = enabledProperties();
+        properties.setOutputDir(tempDir.resolve("with-input-map").toString());
+        properties.setTestContextEnabled(true);
+        properties.setInputMapPath(inputMapPath.toString());
+        DynamicEvidenceTestContext.set(new DynamicEvidenceTestContext.TestIdentity(
+                "example.OrderSpec", "createsOrder", "createsOrder", "unique-id"));
+
+        DynamicEvidenceRecorder recorder = new DynamicEvidenceJsonlRecorder(properties, objectMapper);
+        DynamicEvidenceRecorderHolder.setRecorder(recorder);
+        try (DynamicEvidenceContext.Scope scope = DynamicEvidenceContext.enterStep(
+                "createOrder", "example.OrderSaga", "OrderSaga", "reserve", 7L)) {
+            DynamicEvidenceRecorderHolder.recordStepStarted(scope.context());
+        }
+        recorder.close();
+
+        Path evidencePath = tempDir.resolve("with-input-map/dynamic-evidence.jsonl");
+        JsonNode event = objectMapper.readTree(Files.readString(evidencePath));
+        JsonNode payload = event.get("payload");
+        assertThat(event.get("inputVariantId").asText()).isEqualTo("input-1");
+        assertThat(payload.get("inputVariantAttributionStatus").asText()).isEqualTo("MATCHED");
+        assertThat(payload.get("inputVariantAttributionBasis").asText()).isEqualTo("TEST_FUNCTIONALITY_CLASS_STEP");
+        assertThat(payload.get("candidateInputVariantIds")).extracting(JsonNode::asText).containsExactly("input-1");
+
+        JsonNode manifest = objectMapper.readTree(tempDir.resolve("with-input-map/dynamic-evidence-manifest.json").toFile());
+        assertThat(manifest.get("effectiveConfig").get("inputMapPath").asText()).isEqualTo(inputMapPath.toString());
+        assertThat(manifest.get("counts").get("warnings").asInt()).isZero();
     }
 
     @Test

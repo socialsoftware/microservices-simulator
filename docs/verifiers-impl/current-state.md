@@ -78,11 +78,17 @@ Current boundaries:
 - `DummyappDynamicEnrichmentIntegrationSpec` exercises the dummyapp static catalog plus synthetic dynamic-evidence bridge end-to-end with the same sidecar schema planned for Quizzes, proving `MATCHED_HIGH_CONFIDENCE` and `NOT_COVERED` paths before runtime wiring.
 - `ProcessRunner` / `DefaultProcessRunner` and `DynamicEnrichmentOrchestrator` run selected application test classes one by one with Maven argument lists, per-class evidence directories, `test-run.json`, captured `maven-output.log`, interrupt-safe cleanup, and run-relative output-path guards.
 - `DynamicInputMapWriter` now writes a per-test-class `dynamic-input-map.json` before each dynamic Maven class run. The map is built only from accepted final `ScenarioPlan.inputs()` for the selected test class and includes input variant ids, static saga FQNs, source method metadata, static step-name hints, simple literal argument hints, aggregate-type hints from conflict evidence when available, scenario plan ids, and diagnostic source/provenance text.
+- The simulator can now load that per-class `dynamic-input-map.json` and attach `inputVariantId` to runtime evidence when the current test identity, runtime functionality class FQN, and runtime step name resolve to exactly one static input variant.
+- Runtime attribution is intentionally conservative:
+  - one candidate writes top-level `inputVariantId` plus `payload.inputVariantAttributionStatus=MATCHED`;
+  - zero candidates records `NO_MATCH` diagnostics on step events;
+  - multiple candidates records `AMBIGUOUS` with candidate ids and does not guess an `inputVariantId`.
 - The orchestrated Maven command appends simulator/test-context flags per class:
   - `-Dsimulator.dynamic-evidence.enabled=true`
   - `-Dsimulator.dynamic-evidence.test-context.enabled=true`
   - `-Djunit.platform.listeners.autodetection.enabled=true`
   - `-Dsimulator.dynamic-evidence.output-dir=<run-dir>/dynamic-evidence/<safe-test-class-fqn>`
+  - `-Dsimulator.dynamic-evidence.input-map-path=<run-dir>/dynamic-evidence/<safe-test-class-fqn>/dynamic-input-map.json`
   - `-Dsimulator.dynamic-evidence.application-name=<application-base-dir>`
 - `ScenarioGeneratorApplication` wires dynamic enrichment after static catalog export when `verifiers.dynamic-enrichment.enabled=true`, using the same per-run output directory for HTML, static catalog, dynamic evidence, and enriched sidecars.
 - Docker Compose `fault-analysis-scenario-gen` now enables the full static + dynamic flow with `VERIFIERS_OUTPUT_ROOT=/reports`, run-relative `VERIFIERS_REPORT_HTML_PATH=analysis-report.html`, scenario-catalog and dynamic-enrichment flags enabled, partial mode enabled, and sagas-only Quizzes selection.
@@ -179,12 +185,13 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
   - `simulator.dynamic-evidence.test-context.enabled=false`
 - Verifier orchestration enables both properties per Maven class-run and also sets:
   - `junit.platform.listeners.autodetection.enabled=true`
+  - `simulator.dynamic-evidence.input-map-path=<per-class dynamic-input-map.json>`
 - This keeps generic test-context capture infrastructure opt-in for non-orchestrated runs while requiring no Quizzes-specific hooks.
 
 ## Partially implemented / current limitations
 
 - Exact aggregate-instance key extraction is still incomplete.
-- Dynamic enrichment currently correlates via runtime test identity + saga/functionality/step evidence; the verifier now writes per-class static input maps, but the simulator does not yet load them and direct runtime `inputVariantId` propagation is not implemented.
+- Dynamic enrichment can now propagate runtime `inputVariantId` for the first exact case: current test identity + runtime functionality class FQN + runtime step name must leave exactly one static input candidate. It does not yet use command fields, aggregate access evidence, literal runtime values, or aggregate keys to reduce ambiguous candidates further.
 - No Quizzes source/test hooks are required or used by orchestration; this is intentional and should be preserved.
 - Dynamic evidence/runtime parity is still local/sagas only:
   - no stream/gRPC instrumentation parity;

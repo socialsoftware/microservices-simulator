@@ -44,6 +44,7 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
                 '-Dsimulator.dynamic-evidence.test-context.enabled=true',
                 '-Djunit.platform.listeners.autodetection.enabled=true',
                 "-Dsimulator.dynamic-evidence.output-dir=${runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS))}",
+                "-Dsimulator.dynamic-evidence.input-map-path=${runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve(DynamicInputMapWriter.FILE_NAME)}",
                 '-Dsimulator.dynamic-evidence.application-name=quizzes'
         ]
         result.testRuns()[0].status() == 'PASSED'

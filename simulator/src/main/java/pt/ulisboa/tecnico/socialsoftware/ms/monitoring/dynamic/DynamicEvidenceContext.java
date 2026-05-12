@@ -17,10 +17,15 @@ public final class DynamicEvidenceContext {
 
     public static Scope enterStep(String functionalityName, String functionalityClassFqn,
                                   String functionalityClassSimpleName, String stepName, Long unitOfWorkVersion) {
+        DynamicInputAttribution attribution = DynamicInputAttributionHolder.resolve(functionalityClassFqn, stepName);
         StepContext context = new StepContext(
                 functionalityName,
                 functionalityClassFqn,
                 functionalityClassSimpleName,
+                attribution.inputVariantId(),
+                attribution.status(),
+                attribution.basis(),
+                attribution.candidateInputVariantIds(),
                 invocationId(functionalityName, unitOfWorkVersion),
                 stepName,
                 unitOfWorkVersion,
@@ -43,6 +48,10 @@ public final class DynamicEvidenceContext {
         return current().map(StepContext::functionalityClassFqn);
     }
 
+    public static Optional<String> currentInputVariantId() {
+        return current().map(StepContext::inputVariantId);
+    }
+
     public static Optional<String> currentStepName() {
         return current().map(StepContext::stepName);
     }
@@ -59,12 +68,27 @@ public final class DynamicEvidenceContext {
     }
 
     public record StepContext(String functionalityName, String functionalityClassFqn,
-                              String functionalityClassSimpleName, String functionalityInvocationId, String stepName,
+                              String functionalityClassSimpleName, String inputVariantId,
+                              String inputVariantAttributionStatus, String inputVariantAttributionBasis,
+                              java.util.List<String> candidateInputVariantIds,
+                              String functionalityInvocationId, String stepName,
                               Long unitOfWorkVersion, long startedAtMillis, long startedAtNanos) {
+        public StepContext(String functionalityName, String functionalityClassFqn,
+                           String functionalityClassSimpleName, String functionalityInvocationId, String stepName,
+                           Long unitOfWorkVersion, long startedAtMillis, long startedAtNanos) {
+            this(functionalityName, functionalityClassFqn, functionalityClassSimpleName, null, null, null,
+                    java.util.List.of(), functionalityInvocationId, stepName, unitOfWorkVersion, startedAtMillis,
+                    startedAtNanos);
+        }
+
         public StepContext(String functionalityName, String functionalityInvocationId, String stepName,
                            Long unitOfWorkVersion, long startedAtMillis, long startedAtNanos) {
-            this(functionalityName, null, null, functionalityInvocationId, stepName, unitOfWorkVersion,
+            this(functionalityName, null, null, null, null, null, java.util.List.of(), functionalityInvocationId, stepName, unitOfWorkVersion,
                     startedAtMillis, startedAtNanos);
+        }
+
+        public StepContext {
+            candidateInputVariantIds = candidateInputVariantIds == null ? java.util.List.of() : java.util.List.copyOf(candidateInputVariantIds);
         }
     }
 

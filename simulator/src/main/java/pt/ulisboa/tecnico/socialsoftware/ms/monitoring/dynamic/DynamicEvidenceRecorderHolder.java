@@ -25,15 +25,19 @@ public final class DynamicEvidenceRecorderHolder {
     }
 
     public static void recordStepStarted(DynamicEvidenceContext.StepContext context) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("stepPhase", "FORWARD");
+        addAttributionPayload(payload, context);
         record(DynamicEvidenceEvent.of(
                 "STEP_STARTED",
                 context.functionalityName(),
                 context.functionalityClassFqn(),
                 context.functionalityClassSimpleName(),
+                context.inputVariantId(),
                 context.functionalityInvocationId(),
                 context.stepName(),
                 context.unitOfWorkVersion(),
-                Map.of("stepPhase", "FORWARD")));
+                payload));
     }
 
     public static void recordStepFinished(DynamicEvidenceContext.StepContext context, String outcome, Throwable error) {
@@ -47,11 +51,13 @@ public final class DynamicEvidenceRecorderHolder {
                 payload.put("errorMessage", cause.getMessage());
             }
         }
+        addAttributionPayload(payload, context);
         record(DynamicEvidenceEvent.of(
                 "STEP_FINISHED",
                 context.functionalityName(),
                 context.functionalityClassFqn(),
                 context.functionalityClassSimpleName(),
+                context.inputVariantId(),
                 context.functionalityInvocationId(),
                 context.stepName(),
                 context.unitOfWorkVersion(),
@@ -101,10 +107,24 @@ public final class DynamicEvidenceRecorderHolder {
                 functionalityName,
                 functionalityClassFqn,
                 functionalityClassSimpleName,
+                context == null ? null : context.inputVariantId(),
                 invocationId,
                 stepName,
                 unitOfWorkVersion,
                 payload));
+    }
+
+    private static void addAttributionPayload(Map<String, Object> payload, DynamicEvidenceContext.StepContext context) {
+        if (context.inputVariantAttributionStatus() == null) {
+            return;
+        }
+        payload.put("inputVariantAttributionStatus", context.inputVariantAttributionStatus());
+        if (context.inputVariantAttributionBasis() != null) {
+            payload.put("inputVariantAttributionBasis", context.inputVariantAttributionBasis());
+        }
+        if (!context.candidateInputVariantIds().isEmpty()) {
+            payload.put("candidateInputVariantIds", context.candidateInputVariantIds());
+        }
     }
 
     private static void record(DynamicEvidenceEvent event) {

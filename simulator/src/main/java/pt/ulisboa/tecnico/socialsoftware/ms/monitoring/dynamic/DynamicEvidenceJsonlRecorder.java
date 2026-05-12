@@ -47,6 +47,7 @@ public class DynamicEvidenceJsonlRecorder implements DynamicEvidenceRecorder {
     private Path manifestPath;
     private BufferedWriter writer;
     private boolean closed;
+    private boolean installedInputMap;
 
     public DynamicEvidenceJsonlRecorder(DynamicEvidenceProperties properties, ObjectMapper objectMapper) {
         this.properties = properties;
@@ -54,6 +55,7 @@ public class DynamicEvidenceJsonlRecorder implements DynamicEvidenceRecorder {
         this.enabled = properties.isEnabled();
         if (enabled) {
             initializeWriter();
+            initializeInputMap();
         }
     }
 
@@ -70,6 +72,7 @@ public class DynamicEvidenceJsonlRecorder implements DynamicEvidenceRecorder {
                 && Objects.equals(properties.getApplicationName(), other.getApplicationName())
                 && Objects.equals(properties.getEvidenceFileName(), other.getEvidenceFileName())
                 && Objects.equals(properties.getManifestFileName(), other.getManifestFileName())
+                && Objects.equals(properties.getInputMapPath(), other.getInputMapPath())
                 && properties.isIncludeCommandFields() == other.isIncludeCommandFields()
                 && properties.isTestContextEnabled() == other.isTestContextEnabled()
                 && properties.getMaxFieldDepth() == other.getMaxFieldDepth()
@@ -111,6 +114,9 @@ public class DynamicEvidenceJsonlRecorder implements DynamicEvidenceRecorder {
             logger.warn("Failed to close dynamic evidence file", e);
         }
         writeManifest();
+        if (installedInputMap) {
+            DynamicInputAttributionHolder.clear();
+        }
         logger.info("Dynamic evidence recorder closed: eventsWritten={}, writeErrors={}, warnings={}, evidencePath={}, manifestPath={}",
                 sequence.get(),
                 writeErrors.get(),
@@ -136,6 +142,13 @@ public class DynamicEvidenceJsonlRecorder implements DynamicEvidenceRecorder {
         } catch (IOException e) {
             throw new IllegalStateException("Failed to initialize dynamic evidence recorder", e);
         }
+    }
+
+    private void initializeInputMap() {
+        DynamicInputMapLoader.LoadResult loadResult = new DynamicInputMapLoader(objectMapper).load(properties.getInputMapPath());
+        DynamicInputAttributionHolder.setInputMap(loadResult.inputMap(), loadResult.active());
+        installedInputMap = true;
+        warnings.addAll(loadResult.warnings());
     }
 
     private Path resolveOutputDirectory() {
@@ -197,6 +210,7 @@ public class DynamicEvidenceJsonlRecorder implements DynamicEvidenceRecorder {
         json.put("functionalityName", event.getFunctionalityName());
         putIfPresent(json, "functionalityClassFqn", event.getFunctionalityClassFqn());
         putIfPresent(json, "functionalityClassSimpleName", event.getFunctionalityClassSimpleName());
+        putIfPresent(json, "inputVariantId", event.getInputVariantId());
         json.put("functionalityInvocationId", event.getFunctionalityInvocationId());
         json.put("stepName", event.getStepName());
         json.put("unitOfWorkVersion", event.getUnitOfWorkVersion());
@@ -301,6 +315,7 @@ public class DynamicEvidenceJsonlRecorder implements DynamicEvidenceRecorder {
         config.put("applicationName", properties.getApplicationName());
         config.put("evidenceFileName", properties.getEvidenceFileName());
         config.put("manifestFileName", properties.getManifestFileName());
+        config.put("inputMapPath", properties.getInputMapPath());
         config.put("includeCommandFields", properties.isIncludeCommandFields());
         config.put("testContextEnabled", properties.isTestContextEnabled());
         config.put("maxFieldDepth", properties.getMaxFieldDepth());

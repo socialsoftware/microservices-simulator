@@ -77,6 +77,7 @@ public final class CommandEvidenceExtractor {
                 functionalityName,
                 functionalityClassFqn,
                 functionalityClassSimpleName,
+                context == null ? null : context.inputVariantId(),
                 invocationId,
                 stepName,
                 unitOfWorkVersion,

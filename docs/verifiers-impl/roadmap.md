@@ -66,15 +66,15 @@ Implemented as a verifier-orchestrated local/sagas bridge with sidecar enrichmen
   - `-Dsimulator.dynamic-evidence.test-context.enabled=true`
   - `-Djunit.platform.listeners.autodetection.enabled=true`
   - run-local dynamic-evidence output directories;
-- each class writes per-class runtime artifacts (`dynamic-evidence.jsonl`, `dynamic-evidence-manifest.json`, `test-run.json`, `maven-output.log`) under `<run-dir>/dynamic-evidence/<safe-test-class-fqn>/`;
+- each class writes per-class runtime artifacts (`dynamic-evidence.jsonl`, `dynamic-evidence-manifest.json`, `dynamic-input-map.json`, `test-run.json`, `maven-output.log`) under `<run-dir>/dynamic-evidence/<safe-test-class-fqn>/`;
 - dynamic evidence is joined back to the static catalog with conservative statuses (`MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `MATCHED_PARTIAL`, `AMBIGUOUS`, `UNMATCHED`, `NOT_COVERED`);
 - enriched outputs are sidecar-only (`scenario-catalog-enriched.jsonl`, `scenario-catalog-enriched-manifest.json`, `dynamic-evidence-join-report.json`), keeping `scenario-catalog.jsonl` unchanged;
-- each per-class evidence directory now also receives a verifier-written `dynamic-input-map.json` containing accepted static input variants for that test class, ready for later simulator attribution;
+- the simulator loads the verifier-written `dynamic-input-map.json` and emits `inputVariantId` when current test identity + runtime functionality class FQN + runtime step name resolve to exactly one accepted static input variant;
 - Docker `fault-analysis-scenario-gen` enables this full static+dynamic flow with run-relative report path behavior.
 
 Remaining gaps:
 
-- The simulator does not yet load `dynamic-input-map.json`; no direct runtime `inputVariantId` propagation yet, so correlation remains identity+semantic and can be ambiguous.
+- Direct runtime `inputVariantId` propagation is still first-pass only; it does not yet use runtime command payloads, aggregate accesses, literal argument values, or aggregate keys to reduce ambiguous candidates.
 - No stream/gRPC/distributed or causal/TCC runtime hooks/parity yet.
 - Full/default Quizzes run still shows high ambiguity volume (`AMBIGUOUS=44`, manifest `warningCount=8238` on Task 8 baseline).
 - Matched enriched entries still expose `testRunStatus: null` in the current Task 8 baseline, even though join-report test-run statuses exist.
@@ -195,7 +195,7 @@ Dependencies:
 | Facade call recipe extraction | Implemented | dummyapp and Quizzes report/spec assertions | Keep expanding real syntax coverage |
 | HTML report | Implemented | renderer/application specs | Human view only, not machine contract |
 | Scenario catalog JSONL/manifest | Implemented MVP | scenario package, writer, application specs | Exact keys, filters, executor integration |
-| Dynamic evidence + sidecar enrichment | Implemented MVP | simulator dynamic-evidence package, verifier orchestrator, sidecar writer, Task 7/8 Quizzes runs | Direct `inputVariantId` propagation; stream/gRPC/distributed/TCC parity; ambiguity reduction |
+| Dynamic evidence + sidecar enrichment | Implemented MVP | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, Task 7/8 Quizzes runs | Runtime attribution refinement; stream/gRPC/distributed/TCC parity; ambiguity reduction |
 | Quizzes orchestration smoke baseline | Implemented | Task 7 narrow run + Task 8 full/default run in `current-state.md` | Refresh periodically and track ambiguity/warning trends |
 | ScenarioExecutor | Not implemented | none | Design and runtime integration |
 | Behavior CSV generation | Not implemented | none | Decide whether adapter or canonical contract |
