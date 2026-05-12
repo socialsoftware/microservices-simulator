@@ -67,6 +67,13 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         def positiveEvidenceFile = positiveEvidenceRoot
                 .resolve(fixture.selectedInput().sourceClassFqn())
                 .resolve('dynamic-evidence.jsonl')
+        def exactEvidenceRoot = runRoot.resolve('dynamic-evidence-direct-input')
+        def exactEvidenceFile = exactEvidenceRoot
+                .resolve(fixture.selectedInput().sourceClassFqn())
+                .resolve('dynamic-evidence.jsonl')
+        def exactEnrichedCatalogPath = runRoot.resolve('direct/scenario-catalog-enriched.jsonl')
+        def exactEnrichedManifestPath = runRoot.resolve('direct/scenario-catalog-enriched-manifest.json')
+        def exactJoinReportPath = runRoot.resolve('direct/dynamic-evidence-join-report.json')
         def emptyEvidenceRoot = runRoot.resolve('dynamic-evidence-empty')
         def emptyEnrichedCatalogPath = runRoot.resolve('empty/scenario-catalog-enriched.jsonl')
         def emptyEnrichedManifestPath = runRoot.resolve('empty/scenario-catalog-enriched-manifest.json')
@@ -203,6 +210,58 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         positiveReport.path('warnings').isEmpty()
 
         when:
+        Files.createDirectories(exactEvidenceFile.parent)
+        writeJsonl(exactEvidenceFile, positiveEvidenceEvents(fixture, currentThreadName, fixture.selectedInput().deterministicId()))
+        DynamicEvidenceReadResult exactRead = new DynamicEvidenceReader().read(exactEvidenceRoot)
+        DynamicEvidenceJoinResult exactJoin = new DynamicEvidenceJoiner().join(
+                fixture.scenarioResult().scenarioPlans(),
+                exactRead.events(),
+                exactRead.evidenceFilesRead(),
+                exactRead.warnings())
+        enrichedWriter.write(
+                exactJoin,
+                exactEnrichedCatalogPath,
+                exactEnrichedManifestPath,
+                exactJoinReportPath,
+                staticCatalogPath.toString(),
+                exactEvidenceRoot.toString(),
+                EFFECTIVE_DYNAMIC_ENRICHMENT_CONFIG,
+                [],
+                GENERATED_AT)
+
+        then:
+        exactRead.evidenceFilesRead() == 1
+        exactRead.events().size() == 5
+        exactRead.events().findAll { it.inputVariantId() == fixture.selectedInput().deterministicId() }.size() == 4
+        exactRead.events().last().inputVariantId() == null
+        def exactRecord = exactJoin.records().find { record -> record.scenarioPlanId() == fixture.selectedPlan().deterministicId() }
+        exactRecord != null
+        exactRecord.dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.MATCHED_EXACT
+        exactRecord.dynamicEvidence().matchedInputVariantIds() == [fixture.selectedInput().deterministicId()]
+        exactRecord.dynamicEvidence().observedSteps()[0].eventKinds() == ['STEP_STARTED', 'COMMAND_SENT', 'AGGREGATE_ACCESSED', 'STEP_FINISHED']
+        exactRecord.dynamicEvidence().observedAggregateAccesses()[0].aggregateType() == fixture.selectedDispatch().aggregateName()
+        exactRecord.dynamicEvidence().observedCommands()[0].commandType() == simpleName(fixture.selectedDispatch().commandTypeFqn())
+        exactRecord.dynamicEvidence().warnings().isEmpty()
+
+        and:
+        def exactEnrichedRecord = readEnrichedRecord(exactEnrichedCatalogPath, fixture.selectedPlan().deterministicId())
+        exactEnrichedRecord.path('dynamicEvidence').path('joinStatus').asText() == DynamicEvidenceJoinStatus.MATCHED_EXACT.name()
+        exactEnrichedRecord.path('dynamicEvidence').path('matchedInputVariantIds').collect { it.asText() } == [fixture.selectedInput().deterministicId()]
+        def exactManifest = mapper.readTree(Files.readString(exactEnrichedManifestPath))
+        exactManifest.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_EXACT.name()).asInt() == 1
+        exactManifest.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() == 0
+        exactManifest.path('counts').path(DynamicEvidenceJoinStatus.UNMATCHED.name()).asInt() == fixture.scenarioResult().scenarioPlans().size() - 1
+        exactManifest.path('counts').path('recordCount').asInt() == fixture.scenarioResult().scenarioPlans().size()
+        def exactReport = mapper.readTree(Files.readString(exactJoinReportPath))
+        exactReport.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_EXACT.name()).asInt() == 1
+        exactReport.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() == 0
+        exactReport.path('counts').path(DynamicEvidenceJoinStatus.UNMATCHED.name()).asInt() == fixture.scenarioResult().scenarioPlans().size() - 1
+        exactReport.path('counts').path('dynamicEventsRead').asInt() == 5
+        exactReport.path('counts').path('eventsMissingTestContext').asInt() == 1
+        exactReport.path('counts').path('evidenceFilesRead').asInt() == 1
+        exactReport.path('warnings').isEmpty()
+
+        when:
         DynamicEvidenceReadResult emptyRead = new DynamicEvidenceReader().read(emptyEvidenceRoot)
         DynamicEvidenceJoinResult emptyJoin = new DynamicEvidenceJoiner().join(
                 fixture.scenarioResult().scenarioPlans(),
@@ -333,7 +392,8 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         [input.sagaFqn(), input.sourceClassFqn(), input.sourceMethodName()].join('|')
     }
 
-    private List<Map<String, Object>> positiveEvidenceEvents(DummyappFixture fixture, String threadName) {
+    private List<Map<String, Object>> positiveEvidenceEvents(DummyappFixture fixture, String threadName,
+                                                             String inputVariantId = null) {
         def input = fixture.selectedInput()
         def testClassFqn = input.sourceClassFqn()
         def testMethodName = input.sourceMethodName()
@@ -349,13 +409,13 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         def functionalityInvocationId = "${functionalityName}-90"
 
         [
-                event('positive-step-started', 'STEP_STARTED', testClassFqn, testMethodName, testDisplayName, testUniqueId, functionalityName, functionalityInvocationId, 90L, runtimeStepName, threadName, [stepPhase: 'FORWARD']),
+                event('positive-step-started', 'STEP_STARTED', testClassFqn, testMethodName, testDisplayName, testUniqueId, functionalityName, functionalityInvocationId, 90L, runtimeStepName, threadName, [stepPhase: 'FORWARD'], inputVariantId),
                 event('positive-command-sent', 'COMMAND_SENT', testClassFqn, testMethodName, testDisplayName, testUniqueId, functionalityName, functionalityInvocationId, 90L, runtimeStepName, threadName,
-                        [commandType: commandType, commandFqn: commandTypeFqn, serviceName: aggregateName, rootAggregateId: '7', fields: [orderAggregateId: 7]]),
+                        [commandType: commandType, commandFqn: commandTypeFqn, serviceName: aggregateName, rootAggregateId: '7', fields: [orderAggregateId: 7]], inputVariantId),
                 event('positive-aggregate-accessed', 'AGGREGATE_ACCESSED', testClassFqn, testMethodName, testDisplayName, testUniqueId, functionalityName, functionalityInvocationId, 90L, runtimeStepName, threadName,
-                        [aggregateType: aggregateName, aggregateId: '7', accessMode: accessMode, sourceMethod: sourceMethod]),
+                        [aggregateType: aggregateName, aggregateId: '7', accessMode: accessMode, sourceMethod: sourceMethod], inputVariantId),
                 event('positive-step-finished', 'STEP_FINISHED', testClassFqn, testMethodName, testDisplayName, testUniqueId, functionalityName, functionalityInvocationId, 90L, runtimeStepName, threadName,
-                        [outcome: 'SUCCESS', durationMillis: 12]),
+                        [outcome: 'SUCCESS', durationMillis: 12], inputVariantId),
                 event('missing-context-step-started', 'STEP_STARTED', null, null, null, null, functionalityName, functionalityInvocationId, 90L, runtimeStepName, threadName, [stepPhase: 'FORWARD'])
         ]
     }
@@ -371,7 +431,8 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
                                              Long unitOfWorkVersion,
                                              String stepName,
                                              String threadName,
-                                             Map<String, Object> payload) {
+                                             Map<String, Object> payload,
+                                             String inputVariantId = null) {
         def event = new LinkedHashMap<String, Object>()
         event.schema = DYNAMIC_EVIDENCE_SCHEMA
         event.eventId = eventId
@@ -384,6 +445,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         putIfPresent(event, 'testMethodName', testMethodName)
         putIfPresent(event, 'testDisplayName', testDisplayName)
         putIfPresent(event, 'testUniqueId', testUniqueId)
+        putIfPresent(event, 'inputVariantId', inputVariantId)
         putIfPresent(event, 'functionalityName', functionalityName)
         putIfPresent(event, 'functionalityInvocationId', functionalityInvocationId)
         putIfPresent(event, 'unitOfWorkVersion', unitOfWorkVersion)

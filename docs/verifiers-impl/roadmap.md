@@ -70,11 +70,13 @@ Implemented as a verifier-orchestrated local/sagas bridge with sidecar enrichmen
 - dynamic evidence is joined back to the static catalog with conservative statuses (`MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `MATCHED_PARTIAL`, `AMBIGUOUS`, `UNMATCHED`, `NOT_COVERED`);
 - enriched outputs are sidecar-only (`scenario-catalog-enriched.jsonl`, `scenario-catalog-enriched-manifest.json`, `dynamic-evidence-join-report.json`), keeping `scenario-catalog.jsonl` unchanged;
 - the simulator loads the verifier-written `dynamic-input-map.json` and emits `inputVariantId` when current test identity + runtime functionality class FQN + runtime step name resolve to exactly one accepted static input variant;
+- before/after measurement is based on join-report status counts: first-pass propagation should increase `MATCHED_EXACT` by upgrading previously high-confidence records, while ambiguity reduction requires later runtime refinement;
 - Docker `fault-analysis-scenario-gen` enables this full static+dynamic flow with run-relative report path behavior.
 
 Remaining gaps:
 
 - Direct runtime `inputVariantId` propagation is still first-pass only; it does not yet use runtime command payloads, aggregate accesses, literal argument values, or aggregate keys to reduce ambiguous candidates.
+- Quizzes before/after counts have not been refreshed since direct runtime input attribution landed.
 - No stream/gRPC/distributed or causal/TCC runtime hooks/parity yet.
 - Full/default Quizzes run still shows high ambiguity volume (`AMBIGUOUS=44`, manifest `warningCount=8238` on Task 8 baseline).
 - Matched enriched entries still expose `testRunStatus: null` in the current Task 8 baseline, even though join-report test-run statuses exist.

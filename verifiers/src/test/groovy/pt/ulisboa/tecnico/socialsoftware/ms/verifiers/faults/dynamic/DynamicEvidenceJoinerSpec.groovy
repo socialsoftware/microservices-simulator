@@ -144,6 +144,26 @@ class DynamicEvidenceJoinerSpec extends Specification {
         ]).records()[0].dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.AMBIGUOUS
     }
 
+    def 'direct input variant id resolves otherwise ambiguous static identity evidence'() {
+        given:
+        def ambiguousPlan = plan('scenario-ambiguous-direct', [input('input-1'), input('input-2')])
+
+        when:
+        def result = new DynamicEvidenceJoiner().join([ambiguousPlan], [
+                event('STEP_STARTED', [
+                        testClassFqn  : 'com.example.OrderSpec',
+                        testMethodName: 'creates order',
+                        functionalityName: 'OrderSaga',
+                        stepName      : 'reserve',
+                        inputVariantId: 'input-2'])
+        ]).records()[0]
+
+        then:
+        result.dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.MATCHED_EXACT
+        result.dynamicEvidence().matchedInputVariantIds() == ['input-2']
+        result.dynamicEvidence().warnings().isEmpty()
+    }
+
     def 'assigns unmatched when dynamic evidence exists but cannot map to scenario'() {
         expect:
         new DynamicEvidenceJoiner().join([plan('scenario-unmatched', [input('input-1')])], [

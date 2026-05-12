@@ -83,6 +83,12 @@ Current boundaries:
   - one candidate writes top-level `inputVariantId` plus `payload.inputVariantAttributionStatus=MATCHED`;
   - zero candidates records `NO_MATCH` diagnostics on step events;
   - multiple candidates records `AMBIGUOUS` with candidate ids and does not guess an `inputVariantId`.
+- Quantification uses the existing enriched manifest/join-report status counts:
+  - `MATCHED_EXACT` means dynamic evidence carried a direct `inputVariantId` that belongs to the scenario plan;
+  - `MATCHED_HIGH_CONFIDENCE` means dynamic evidence matched through test identity + static semantic shape, but no direct input id was present;
+  - `AMBIGUOUS` means dynamic evidence was relevant but still mapped to more than one possible static input;
+  - `NOT_COVERED` means no useful runtime evidence was seen for that scenario.
+- `DummyappDynamicEnrichmentIntegrationSpec` now checks the before/after shape for the same selected dummyapp plan: semantic-only evidence produces one `MATCHED_HIGH_CONFIDENCE` record, while the same events with direct runtime `inputVariantId` produce one `MATCHED_EXACT` record.
 - The orchestrated Maven command appends simulator/test-context flags per class:
   - `-Dsimulator.dynamic-evidence.enabled=true`
   - `-Dsimulator.dynamic-evidence.test-context.enabled=true`
@@ -192,6 +198,7 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 
 - Exact aggregate-instance key extraction is still incomplete.
 - Dynamic enrichment can now propagate runtime `inputVariantId` for the first exact case: current test identity + runtime functionality class FQN + runtime step name must leave exactly one static input candidate. It does not yet use command fields, aggregate access evidence, literal runtime values, or aggregate keys to reduce ambiguous candidates further.
+- First-pass propagation mainly upgrades match certainty (`MATCHED_HIGH_CONFIDENCE` to `MATCHED_EXACT`). It is not expected to increase total covered/matched scenario counts unless a later refinement can emit `inputVariantId` for cases that are currently ambiguous or unmatched.
 - No Quizzes source/test hooks are required or used by orchestration; this is intentional and should be preserved.
 - Dynamic evidence/runtime parity is still local/sagas only:
   - no stream/gRPC instrumentation parity;
