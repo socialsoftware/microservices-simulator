@@ -22,7 +22,13 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         def appDir = tempDir.resolve('applications/quizzes')
         Files.createDirectories(appDir.resolve('src/test/groovy/com/example/quiz'))
         def runDir = tempDir.resolve('runs/quizzes-1')
-        def runner = new FakeProcessRunner([new ProcessRunner.ProcessResult(0, 'ok', '', false)])
+        def runner = new FakeProcessRunner([new ProcessRunner.ProcessResult(0, 'ok', '', false)], { ProcessRunner.ProcessCommand command ->
+            def evidenceDir = runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS))
+            assert Files.exists(evidenceDir.resolve(DynamicInputMapWriter.FILE_NAME))
+            def inputMap = mapper.readTree(Files.readString(evidenceDir.resolve(DynamicInputMapWriter.FILE_NAME)))
+            assert inputMap.path('inputCount').asInt() == 1
+            assert inputMap.path('inputs')[0].path('inputVariantId').asText() == 'input-1'
+        })
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
 
         when:
@@ -42,6 +48,7 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         ]
         result.testRuns()[0].status() == 'PASSED'
         Files.exists(runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve('test-run.json'))
+        Files.exists(runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve(DynamicInputMapWriter.FILE_NAME))
         Files.readString(runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve('maven-output.log')).contains('ok')
     }
 
@@ -141,7 +148,7 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
 
     private ScenarioPlan scenarioPlan() {
         def sagaFqn = 'com.example.quiz.CreateTournamentFunctionalitySagas'
-        def input = new InputVariant('input-1', sagaFqn, TEST_CLASS, 'createsTournament', 'binding', InputResolutionStatus.RESOLVED, 'source', 'prov', [], [:], [])
+        def input = new InputVariant('input-1', sagaFqn, TEST_CLASS, 'createsTournament', 'binding', InputResolutionStatus.RESOLVED, 'source', 'prov', ['arg[0]: 11'], [:], [])
         def saga = new SagaInstance('saga-1', sagaFqn, 'input-1', [])
         def step = new ScheduledStep('step-1', 'saga-1', sagaFqn + '::getCourseExecutionStep', 0, [])
         new ScenarioPlan(ScenarioPlan.SCHEMA_VERSION, 'scenario-1', ScenarioKind.SINGLE_SAGA, [saga], [input], [step], null, [], [])

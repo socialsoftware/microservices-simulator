@@ -25,6 +25,7 @@ public class DynamicEnrichmentOrchestrator {
     private final DynamicEvidenceReader evidenceReader;
     private final DynamicEvidenceJoiner joiner;
     private final EnrichedScenarioCatalogWriter writer;
+    private final DynamicInputMapWriter inputMapWriter;
     private final ObjectMapper objectMapper;
 
     public DynamicEnrichmentOrchestrator() {
@@ -32,7 +33,7 @@ public class DynamicEnrichmentOrchestrator {
     }
 
     public DynamicEnrichmentOrchestrator(ProcessRunner processRunner) {
-        this(processRunner, new DynamicEvidenceReader(), new DynamicEvidenceJoiner(), new EnrichedScenarioCatalogWriter(), new ObjectMapper());
+        this(processRunner, new DynamicEvidenceReader(), new DynamicEvidenceJoiner(), new EnrichedScenarioCatalogWriter(), new DynamicInputMapWriter(), new ObjectMapper());
     }
 
     public DynamicEnrichmentOrchestrator(ProcessRunner processRunner,
@@ -40,10 +41,20 @@ public class DynamicEnrichmentOrchestrator {
                                          DynamicEvidenceJoiner joiner,
                                          EnrichedScenarioCatalogWriter writer,
                                          ObjectMapper objectMapper) {
+        this(processRunner, evidenceReader, joiner, writer, new DynamicInputMapWriter(objectMapper), objectMapper);
+    }
+
+    public DynamicEnrichmentOrchestrator(ProcessRunner processRunner,
+                                         DynamicEvidenceReader evidenceReader,
+                                         DynamicEvidenceJoiner joiner,
+                                         EnrichedScenarioCatalogWriter writer,
+                                         DynamicInputMapWriter inputMapWriter,
+                                         ObjectMapper objectMapper) {
         this.processRunner = Objects.requireNonNull(processRunner, "processRunner cannot be null");
         this.evidenceReader = Objects.requireNonNull(evidenceReader, "evidenceReader cannot be null");
         this.joiner = Objects.requireNonNull(joiner, "joiner cannot be null");
         this.writer = Objects.requireNonNull(writer, "writer cannot be null");
+        this.inputMapWriter = Objects.requireNonNull(inputMapWriter, "inputMapWriter cannot be null");
         this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper cannot be null")
                 .copy()
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -68,7 +79,8 @@ public class DynamicEnrichmentOrchestrator {
         boolean hasFailure = false;
 
         for (String testClassFqn : testClassFqns == null ? List.<String>of() : testClassFqns) {
-            TestRunRecord record = runOne(config, applicationPath, applicationName, evidenceRoot, testClassFqn);
+            TestRunRecord record = runOne(config, applicationPath, applicationName, evidenceRoot, testClassFqn,
+                    scenarioPlans == null ? List.of() : scenarioPlans, generatedAt);
             testRuns.add(record);
             if ("FAILED".equals(record.status()) || "TIMED_OUT".equals(record.status())) {
                 hasFailure = true;
@@ -107,9 +119,12 @@ public class DynamicEnrichmentOrchestrator {
                                  Path applicationPath,
                                  String applicationName,
                                  Path evidenceRoot,
-                                 String testClassFqn) throws IOException {
+                                 String testClassFqn,
+                                 List<ScenarioPlan> scenarioPlans,
+                                 String generatedAt) throws IOException {
         Path evidenceDir = evidenceRoot.resolve(safeTestClassDirectoryName(testClassFqn)).normalize();
         Files.createDirectories(evidenceDir);
+        inputMapWriter.write(evidenceDir.resolve(DynamicInputMapWriter.FILE_NAME), testClassFqn, scenarioPlans, generatedAt);
         List<String> arguments = commandArguments(config, testClassFqn, evidenceDir, applicationName);
         ProcessRunner.ProcessCommand command = new ProcessRunner.ProcessCommand(
                 applicationPath,

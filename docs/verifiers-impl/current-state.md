@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-05-01
+Last updated: 2026-05-12
 
 ## Scope
 
@@ -77,6 +77,7 @@ Current boundaries:
 - `EnrichedScenarioCatalogWriter` writes sidecar-only enriched JSONL, manifest, and join-report artifacts; the original `scenario-catalog.jsonl` writer remains unchanged.
 - `DummyappDynamicEnrichmentIntegrationSpec` exercises the dummyapp static catalog plus synthetic dynamic-evidence bridge end-to-end with the same sidecar schema planned for Quizzes, proving `MATCHED_HIGH_CONFIDENCE` and `NOT_COVERED` paths before runtime wiring.
 - `ProcessRunner` / `DefaultProcessRunner` and `DynamicEnrichmentOrchestrator` run selected application test classes one by one with Maven argument lists, per-class evidence directories, `test-run.json`, captured `maven-output.log`, interrupt-safe cleanup, and run-relative output-path guards.
+- `DynamicInputMapWriter` now writes a per-test-class `dynamic-input-map.json` before each dynamic Maven class run. The map is built only from accepted final `ScenarioPlan.inputs()` for the selected test class and includes input variant ids, static saga FQNs, source method metadata, static step-name hints, simple literal argument hints, aggregate-type hints from conflict evidence when available, scenario plan ids, and diagnostic source/provenance text.
 - The orchestrated Maven command appends simulator/test-context flags per class:
   - `-Dsimulator.dynamic-evidence.enabled=true`
   - `-Dsimulator.dynamic-evidence.test-context.enabled=true`
@@ -97,6 +98,7 @@ When enrichment is enabled, each verifier run directory now contains:
 - `scenario-catalog-rejected-inputs.jsonl`
 - `dynamic-evidence/<safe-test-class-fqn>/dynamic-evidence.jsonl`
 - `dynamic-evidence/<safe-test-class-fqn>/dynamic-evidence-manifest.json`
+- `dynamic-evidence/<safe-test-class-fqn>/dynamic-input-map.json`
 - `dynamic-evidence/<safe-test-class-fqn>/test-run.json`
 - `dynamic-evidence/<safe-test-class-fqn>/maven-output.log`
 - `scenario-catalog-enriched.jsonl`
@@ -182,7 +184,7 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 ## Partially implemented / current limitations
 
 - Exact aggregate-instance key extraction is still incomplete.
-- Dynamic enrichment currently correlates via runtime test identity + saga/functionality/step evidence; direct runtime `inputVariantId` propagation is not implemented.
+- Dynamic enrichment currently correlates via runtime test identity + saga/functionality/step evidence; the verifier now writes per-class static input maps, but the simulator does not yet load them and direct runtime `inputVariantId` propagation is not implemented.
 - No Quizzes source/test hooks are required or used by orchestration; this is intentional and should be preserved.
 - Dynamic evidence/runtime parity is still local/sagas only:
   - no stream/gRPC instrumentation parity;

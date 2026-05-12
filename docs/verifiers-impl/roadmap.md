@@ -69,11 +69,12 @@ Implemented as a verifier-orchestrated local/sagas bridge with sidecar enrichmen
 - each class writes per-class runtime artifacts (`dynamic-evidence.jsonl`, `dynamic-evidence-manifest.json`, `test-run.json`, `maven-output.log`) under `<run-dir>/dynamic-evidence/<safe-test-class-fqn>/`;
 - dynamic evidence is joined back to the static catalog with conservative statuses (`MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `MATCHED_PARTIAL`, `AMBIGUOUS`, `UNMATCHED`, `NOT_COVERED`);
 - enriched outputs are sidecar-only (`scenario-catalog-enriched.jsonl`, `scenario-catalog-enriched-manifest.json`, `dynamic-evidence-join-report.json`), keeping `scenario-catalog.jsonl` unchanged;
+- each per-class evidence directory now also receives a verifier-written `dynamic-input-map.json` containing accepted static input variants for that test class, ready for later simulator attribution;
 - Docker `fault-analysis-scenario-gen` enables this full static+dynamic flow with run-relative report path behavior.
 
 Remaining gaps:
 
-- No direct runtime `inputVariantId` propagation yet; correlation remains identity+semantic and can be ambiguous.
+- The simulator does not yet load `dynamic-input-map.json`; no direct runtime `inputVariantId` propagation yet, so correlation remains identity+semantic and can be ambiguous.
 - No stream/gRPC/distributed or causal/TCC runtime hooks/parity yet.
 - Full/default Quizzes run still shows high ambiguity volume (`AMBIGUOUS=44`, manifest `warningCount=8238` on Task 8 baseline).
 - Matched enriched entries still expose `testRunStatus: null` in the current Task 8 baseline, even though join-report test-run statuses exist.
