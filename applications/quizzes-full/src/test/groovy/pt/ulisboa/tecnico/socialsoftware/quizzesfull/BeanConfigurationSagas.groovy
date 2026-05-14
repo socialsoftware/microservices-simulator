@@ -57,10 +57,14 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.noti
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.notification.handling.handlers.QuestionEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.service.QuestionService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.factories.SagasQuizFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.repositories.QuizCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.eventProcessing.QuizEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.messaging.QuizCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.notification.handling.QuizEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.notification.handling.handlers.QuizEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.service.QuizService
 
 @TestConfiguration
@@ -350,5 +354,21 @@ class BeanConfigurationSagas {
     @Bean
     QuizFunctionalities quizFunctionalities() {
         return new QuizFunctionalities()
+    }
+
+    // Quiz — session 2.6.d
+    @Bean
+    QuizEventHandling quizEventHandling() {
+        return new QuizEventHandling()
+    }
+
+    @Bean
+    QuizEventHandler quizEventHandler(QuizRepository quizRepository) {
+        return new QuizEventHandler(quizRepository)
+    }
+
+    @Bean
+    QuizEventProcessing quizEventProcessing() {
+        return new QuizEventProcessing()
     }
 }

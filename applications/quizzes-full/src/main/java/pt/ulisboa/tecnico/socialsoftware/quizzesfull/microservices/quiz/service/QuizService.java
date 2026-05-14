@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.events.InvalidateQuizEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizCustomRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizDto;
@@ -17,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregat
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class QuizService {
@@ -64,5 +66,40 @@ public class QuizService {
         newQuiz.setResultsDate(resultsDate);
         newQuiz.setQuestions(questions);
         unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateQuestionInQuiz(Integer quizAggregateId, Integer questionAggregateId,
+                                     String title, String content, UnitOfWork unitOfWork) {
+        Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+        Quiz newQuiz = quizFactory.createQuizCopy(oldQuiz);
+        for (QuizQuestion q : newQuiz.getQuestions()) {
+            if (q.getQuestionAggregateId().equals(questionAggregateId)) {
+                q.setTitle(title);
+                q.setContent(content);
+                break;
+            }
+        }
+        unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeQuestionFromQuiz(Integer quizAggregateId, Integer questionAggregateId,
+                                       UnitOfWork unitOfWork) {
+        Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+        Quiz newQuiz = quizFactory.createQuizCopy(oldQuiz);
+        newQuiz.getQuestions().removeIf(q -> q.getQuestionAggregateId().equals(questionAggregateId));
+        newQuiz.remove();
+        unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+        unitOfWorkService.registerEvent(new InvalidateQuizEvent(quizAggregateId), unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void invalidateQuiz(Integer quizAggregateId, UnitOfWork unitOfWork) {
+        Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+        Quiz newQuiz = quizFactory.createQuizCopy(oldQuiz);
+        newQuiz.remove();
+        unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+        unitOfWorkService.registerEvent(new InvalidateQuizEvent(quizAggregateId), unitOfWork);
     }
 }

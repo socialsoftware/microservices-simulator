@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.GetQuizByIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.UpdateQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.service.QuizService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +22,9 @@ public class QuizFunctionalities {
 
     @Autowired
     private CommandGateway commandGateway;
+
+    @Autowired
+    private QuizService quizService;
 
     public QuizDto createQuiz(String title, LocalDateTime availableDate, LocalDateTime conclusionDate,
                                LocalDateTime resultsDate, String quizType, Integer executionId,
@@ -51,5 +55,23 @@ public class QuizFunctionalities {
                 unitOfWorkService, quizAggregateId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
         return saga.getQuizDto();
+    }
+
+    public void updateQuestionInQuizByEvent(Integer quizId, Integer questionAggregateId, String title, String content) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateQuestionInQuizByEvent");
+        quizService.updateQuestionInQuiz(quizId, questionAggregateId, title, content, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void removeQuestionFromQuizByEvent(Integer quizId, Integer questionAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("removeQuestionFromQuizByEvent");
+        quizService.removeQuestionFromQuiz(quizId, questionAggregateId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void invalidateQuizByEvent(Integer quizId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("invalidateQuizByEvent");
+        quizService.invalidateQuiz(quizId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 }
