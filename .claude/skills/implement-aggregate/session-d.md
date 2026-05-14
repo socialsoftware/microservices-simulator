@@ -117,6 +117,17 @@ public void {operation}ByEvent(Integer aggregateId, ...) {
 
 Add the corresponding service helper if needed (pure mutation + `verifyInvariants()`, no saga).
 
+#### Deletion events: `remove()` on the whole consumer vs. remove a sub-entity
+
+When the inbound event signals that a publisher aggregate has been deleted, choose between two actions based on whether the consumer remains valid without that entity:
+
+| Case | When to use | Action in the ByEvent method |
+|------|-------------|------------------------------|
+| **Remove sub-entity from collection** | The deleted entity is one member of a collection and the consumer remains valid with it absent (e.g., `DeleteTopicEvent` removing one topic from a `Question`'s topic list) | Remove the sub-entity from the collection; do **not** call `remove()` on the aggregate |
+| **Invalidate the whole consumer** | The deleted entity is structurally required for the consumer to function (e.g., `DeleteQuestionEvent` for a `Quiz`, `DeleteCourseExecutionEvent` for a `Quiz`) | Call `copy.remove()` to mark the consumer `DELETED`; publish an outbound invalidation event so downstream aggregates can react (see `docs/concepts/events.md` — Cascade Invalidation Pattern) |
+
+The distinguishing question is: *can this consumer aggregate still fulfil its purpose if the referenced entity is gone?* If the answer is no, invalidate the whole consumer.
+
 ### `{Aggregate}InterInvariantTest.groovy` (T3)
 
 Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
@@ -125,7 +136,8 @@ Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
 - **Two tests per subscribed event type:**
   1. **Reflects event** — create the aggregate, publish the event for the enrolled/owned entity, call the polling method directly, assert the effect:
      - **Field-update events** (e.g., `UpdateStudentNameEvent`): assert the cached field is updated on the aggregate
-     - **Deletion events** (e.g., `DeleteUserEvent`): assert the entity is removed from the aggregate
+     - **Sub-entity removal events** (e.g., `DeleteTopicEvent`): assert the sub-entity is removed from the aggregate's collection
+     - **Whole-consumer deletion events** (e.g., `DeleteQuestionEvent` / `DeleteCourseExecutionEvent` received by `Quiz`): the consumer aggregate is marked `DELETED`. Do **not** load it in `then:` — instead move `aggregateLoadAndRegisterRead` into an `and:` block and assert `thrown(SimulatorException)` in `then:`. See the T3 Deletion-Event Tests section in `docs/concepts/testing.md`.
   2. **Ignores unrelated** — enroll entity A, publish the same event for an unrelated entity B, call the polling method directly, assert entity A's cached data is unchanged
 - **Invariant-violation tests**: if processing the event causes `verifyInvariants()` to throw, assert the exception is raised with the correct error message
 - Both the "reflects" and "ignores unrelated" tests are required for every subscribed event type

@@ -179,6 +179,38 @@ public class <Consumer>EventProcessing {
 
 ---
 
+## Cascade Invalidation Pattern
+
+A consumer aggregate that processes a deletion event and becomes non-functional should both mark itself deleted **and** publish its own outbound event so its downstream consumers can react.
+
+**When to use:** when the ByEvent method for a deletion event calls `copy.remove()` on the consumer (see `implement-aggregate/session-d.md` — "Deletion events: remove() on the whole consumer"). Simply marking the consumer `DELETED` and committing is not enough if other aggregates cache references to it.
+
+**Steps:**
+
+1. In the ByEvent service method, after calling `copy.remove()`, register an outbound invalidation event:
+
+```java
+// In {Consumer}Service.{operation}ByEvent(...)
+copy.remove();
+unitOfWorkService.registerEvent(new Invalidate{Consumer}Event(copy.getAggregateId()), unitOfWork);
+```
+
+2. Define `Invalidate{Consumer}Event` with `publisherAggregateId` set to the consumer's own aggregate ID:
+
+```java
+public class Invalidate{Consumer}Event extends Event {
+    public Invalidate{Consumer}Event(Integer consumerAggregateId) {
+        super(consumerAggregateId);  // publisherAggregateId = this aggregate's ID
+    }
+}
+```
+
+3. Downstream aggregates that cache a reference to `{Consumer}` subscribe to `Invalidate{Consumer}Event` and process it the same way — either removing the sub-entity from a collection or cascading their own invalidation.
+
+**Key invariant:** the outbound invalidation event must use the consumer's own aggregate ID as `publisherAggregateId` so that downstream `EventSubscription` instances anchored to that ID receive it. This is the same rule that applies to all events: `super(anchorAggregateId)` must match the `subscribedAggregateId` of the downstream subscriber.
+
+---
+
 ## Reference Implementations (Quizzes)
 
 - `applications/quizzes/src/main/java/.../events/CreateQuestionEvent.java`

@@ -294,6 +294,35 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
 }
 ```
 
+### Deletion-Event Tests (T3)
+
+When a deletion event causes the consumer aggregate itself to be marked `DELETED` (i.e., the processing method calls `remove()` on the aggregate), `aggregateLoadAndRegisterRead` filters out `DELETED` aggregates and throws `SimulatorException`. The standard `then:` assertion pattern — loading the aggregate and asserting a field value — does not work here.
+
+**Structure:** move the load attempt into an `and:` block (which extends the `when:` phase in Spock), then assert `thrown(SimulatorException)` in `then:`.
+
+```groovy
+def "<consumer> is deleted when <Publisher> deletion event is processed"() {
+    given:
+    def publisher = create<Publisher>(/* args */)
+    def consumer  = create<Consumer>(/* args linked to publisher */)
+
+    when: '<publisher> is deleted'
+    <publisher>Functionalities.delete<Publisher>(publisher.aggregateId)
+
+    and: 'consumer polls for the deletion event'
+    <consumer>EventHandling.handle<Xxx>Events()
+
+    and: 'attempt to load the now-deleted consumer aggregate'
+    unitOfWorkService.aggregateLoadAndRegisterRead(
+            consumer.aggregateId, unitOfWorkService.createUnitOfWork("check"))
+
+    then: 'DELETED aggregate is not loadable — infrastructure throws SimulatorException'
+    thrown(SimulatorException)
+}
+```
+
+> **Why `and:` not `then:`?** In Spock, `then:` captures the first exception thrown by the immediately preceding `when:` block; subsequent `and:` blocks inside the `when:` phase extend that same exception-capture scope. Moving the load into `and:` keeps it within that scope so `thrown(SimulatorException)` can match it. Placing the load in `then:` would require using `notThrown()` first and then separately calling the load, which breaks the Spock block model.
+
 ---
 
 ## T4 — Cross-Functionality Test
