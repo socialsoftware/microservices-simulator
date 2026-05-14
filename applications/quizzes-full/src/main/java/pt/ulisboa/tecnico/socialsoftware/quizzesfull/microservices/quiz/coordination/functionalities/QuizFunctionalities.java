@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.GetQuizByIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.UpdateQuizFunctionalitySagas;
 
 import java.time.LocalDateTime;
@@ -41,5 +42,14 @@ public class QuizFunctionalities {
                 unitOfWorkService, quizId, availableDate, conclusionDate, resultsDate,
                 questionIds, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
+    }
+
+    public QuizDto getQuizById(Integer quizAggregateId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        GetQuizByIdFunctionalitySagas saga = new GetQuizByIdFunctionalitySagas(
+                unitOfWorkService, quizAggregateId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getQuizDto();
     }
 }
