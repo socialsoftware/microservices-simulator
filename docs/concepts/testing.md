@@ -214,7 +214,11 @@ def "<op>: <RULE_NAME> violation"() {
 
 ### Not-Found Assertions
 
-Aggregate-not-found is thrown by the infrastructure (`SagaUnitOfWorkService.aggregateLoadAndRegisterRead`) as `SimulatorException` — **not** the app-level exception. Use `thrown(SimulatorException)` for these cases and import it at the top of the test file:
+There are two distinct not-found paths, and they throw different exception types:
+
+**Path A — primary-key lookup via `aggregateLoadAndRegisterRead`**
+
+The infrastructure method throws `SimulatorException` when no aggregate exists for a given primary ID. Use `thrown(SimulatorException)` for these cases:
 
 ```groovy
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
@@ -227,7 +231,21 @@ def "<functionalityName>: aggregate not found"() {
 }
 ```
 
-Domain and guard violations (invariants, business rules enforced in the service layer) throw `<App>Exception`. Infrastructure not-found always throws `SimulatorException`.
+**Path B — composite-key lookup via custom repository**
+
+When a service method first queries by non-primary-key fields (e.g., `quizId + userId`) using a custom repository that returns `Optional`, an empty result is detected at the **service level** and the service throws `<App>Exception`. Use `thrown(<App>Exception)` for these cases:
+
+```groovy
+def "<functionalityName>: not found by composite key"() {
+    when:
+    <primary>Functionalities.<functionalityName>(999 /* non-existent quizId */, 999 /* non-existent userId */)
+    then:
+    def ex = thrown(<App>Exception)
+    ex.message == <NOT_FOUND_ERROR_MESSAGE>
+}
+```
+
+**Rule of thumb:** if the service calls `aggregateLoadAndRegisterRead` directly with an ID, expect `SimulatorException`. If the service first calls a custom repository returning `Optional` and throws on empty, expect `<App>Exception`.
 
 ---
 
