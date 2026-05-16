@@ -64,7 +64,8 @@ Path: `{src}microservices/{aggregate}/aggregate/{Entity}.java`
 - `@Entity` + `@Table`; `@Id` auto-generated
 - Fields matching the domain model
 - Constructor, getters, setters
-- **Bidirectional `@OneToOne` (when applicable):** If the aggregate side uses `@OneToOne(mappedBy = "{entityField}")`, this entity class holds the owning side: declare a plain `@OneToOne {Aggregate} {aggregate}` field (no `mappedBy`) with a getter/setter. The aggregate's setter for this entity must call `entity.set{Aggregate}(this)` to wire the back-reference before persisting.
+- **Bidirectional `@OneToOne` (aggregate → entity):** If the aggregate side uses `@OneToOne(mappedBy = "{entityField}")`, this entity class holds the owning side: declare a plain `@OneToOne {Aggregate} {aggregate}` field (no `mappedBy`) with a getter/setter. The aggregate's setter for this entity must call `entity.set{Aggregate}(this)` to wire the back-reference before persisting.
+- **Nested entity-to-entity `@OneToOne` (entity owns a sub-entity):** When an owned entity itself exclusively owns one sub-entity (e.g., `TournamentParticipant → TournamentParticipantQuizAnswer`), use a unidirectional `@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)` on the outer entity — no `mappedBy`, no back-reference field on the sub-entity unless explicitly needed. The outer entity's copy constructor must deep-copy the sub-entity via `new SubEntity(existing.getSubEntity())`.
 
 ### Domain enum (conditional)
 
@@ -93,8 +94,8 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
 Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaState.java`
 
 - Enum implementing `SagaState`
-- Always includes `NOT_IN_SAGA`
-- Include `IN_UPDATE_{AGGREGATE}` or `IN_DELETE_{AGGREGATE}` only when the saga has additional steps **after** the primary write step that must observe the aggregate under a distinct locked state. For a simple two-step saga (read → write-as-final-step), `READ_{AGGREGATE}` is sufficient as the only non-`NOT_IN_SAGA` state.
+- **Do not** include `NOT_IN_SAGA` — the initial state is set to `GenericSagaState.NOT_IN_SAGA` (from the framework) in the `Saga{Aggregate}` constructor. This enum only holds operation-specific locked states.
+- Include `IN_UPDATE_{AGGREGATE}` or `IN_DELETE_{AGGREGATE}` only when the saga has additional steps **after** the primary write step that must observe the aggregate under a distinct locked state. For a simple two-step saga (read → write-as-final-step), `READ_{AGGREGATE}` is sufficient as the only state in this enum.
 - **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock
 - Include `READ_{AGGREGATE}` if other aggregates use this aggregate as a cross-aggregate prerequisite (another aggregate's write saga fetches this one's DTO — check plan.md's write functionalities for other aggregates)
 

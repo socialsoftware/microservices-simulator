@@ -386,6 +386,8 @@ For each aggregate, generate the full file list using the template from `docs/wo
 ```
 
 > **Never omit from 2.N.a:** `{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` must always appear in the 2.N.a row — even when the aggregate has no cross-table lookups. Every owned entity class listed in the §1 "Entities contained" column must appear individually, named `{Aggregate}{Entity}.java` (e.g., `QuizExecution.java`, `QuizQuestion.java` — not `Execution.java`, `Question.java`). **Every §2 snapshot entity — whether single or collection — also requires its own `{Entity}.java` entity class file**: e.g., `aggregate/QuestionCourse.java` for a single Course snapshot in Question, `aggregate/QuestionTopic.java` for a Topic × N snapshot in Question. Do not collapse any of these into a single placeholder and then drop them during substitution. Additionally, **every collection snapshot** (`× N` rows in §2) also requires a `{OwnedEntity}Dto.java` — e.g., `ExecutionStudentDto.java` for `Execution | User × N (students)`, `QuestionTopicDto.java` for `Question | Topic × N`. Single snapshots do NOT need a separate Dto.
+>
+> **⚠️ Collection-snapshot entity classes are commonly missed.** After filling in the 2.N.a file cell, do a final pass: for every `× N` row in §2 for this aggregate, verify that `aggregate/{Aggregate}{SourceLabel}.java` appears as a separate line (e.g., `aggregate/TournamentTopic.java` for `Tournament | Topic × N`). If it is absent, add it now — the entity class is required for the aggregate to compile even before any service code is written.
 
 **Session 2.N.b — Write Functionalities:**
 ```
