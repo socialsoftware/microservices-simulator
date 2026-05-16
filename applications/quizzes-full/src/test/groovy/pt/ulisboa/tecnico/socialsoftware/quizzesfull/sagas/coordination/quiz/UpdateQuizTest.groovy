@@ -70,6 +70,10 @@ class UpdateQuizTest extends QuizzesFullSpockTest {
         thrown(QuizzesFullException)
     }
 
+    // QUIZ_FIELDS_FINAL_AFTER_AVAILABLE_DATE violation is not tested because it requires
+    // setting lastModifiedTime > availableDate after the quiz is already created, which
+    // demands clock manipulation not available in this test context (retro 2.6.b).
+
     def "updateQuiz: getQuizStep acquires IN_UPDATE_QUIZ semantic lock"() {
         given: 'updateQuiz workflow pauses after getQuizStep has acquired IN_UPDATE_QUIZ lock'
         def newAvailableDate = LocalDateTime.now().plusDays(2)

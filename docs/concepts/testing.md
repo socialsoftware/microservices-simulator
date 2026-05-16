@@ -51,6 +51,8 @@ src/test/groovy/<pkg>/
 **not** tested here — they belong in T2, where service method calls trigger `registerChanged →
 verifyInvariants` automatically. Never call `verifyInvariants()` directly.
 
+**P1 Java-`final` fields need no test coverage anywhere** (T1, T2, or otherwise). The Java compiler enforces immutability; there is no write path that can violate the constraint, so testing it would be testing the language, not the domain logic.
+
 **Template:**
 ```groovy
 @DataJpaTest

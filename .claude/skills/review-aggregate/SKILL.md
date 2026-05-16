@@ -249,12 +249,17 @@ Expected scenarios per type (from `docs/concepts/testing.md`):
 
 **T1 (`{Aggregate}Test.groovy`):**
 - One "create with valid data" case
-- One case per P1 intra-invariant (conditions checked in `verifyInvariants()`, not simply final fields)
+
+Violations are **not** expected in T1 — they belong in T2. Do not flag missing violation cases in T1 as a deficiency.
+
+**P1 Java-`final` fields require no test coverage at any tier.** The Java compiler enforces the constraint; there is no write path to violate it. Do not flag missing tests for final-field rules.
 
 **T2 — write operations:**
 - Happy path ("success")
+- One case per P1 intra-invariant violation (conditions enforced in `verifyInvariants()`)
 - One case per P3 guard violation
 - One step-interleaving case per saga step that calls `setSemanticLock` (create ops with no lock step need no interleaving case)
+- Skip P1 tests for Java `final` fields — no write path can violate them (see above)
 
 **T2 — read operations:**
 - Happy path

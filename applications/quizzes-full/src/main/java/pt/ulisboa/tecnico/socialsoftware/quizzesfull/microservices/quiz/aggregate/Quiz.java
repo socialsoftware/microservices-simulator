@@ -29,7 +29,7 @@ public abstract class Quiz extends Aggregate {
     private String title;
 
     @Column
-    private LocalDateTime creationDate;
+    private final LocalDateTime creationDate;
 
     @Column
     private LocalDateTime availableDate;
@@ -52,7 +52,7 @@ public abstract class Quiz extends Aggregate {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<QuizQuestion> questions = new HashSet<>();
 
-    public Quiz() {}
+    public Quiz() { this.creationDate = null; }
 
     public Quiz(Integer aggregateId, String title, LocalDateTime availableDate, LocalDateTime conclusionDate,
                 LocalDateTime resultsDate, QuizType quizType, QuizExecution quizExecution, Set<QuizQuestion> questions) {
@@ -128,13 +128,21 @@ public abstract class Quiz extends Aggregate {
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> subscriptions = new HashSet<>();
         if (getState() == AggregateState.ACTIVE) {
-            for (QuizQuestion question : questions) {
-                subscriptions.add(new QuizSubscribesUpdateQuestion(question));
-                subscriptions.add(new QuizSubscribesDeleteQuestion(question));
-            }
-            subscriptions.add(new QuizSubscribesDeleteCourseExecution(quizExecution));
+            interInvariantQuestionsExist(subscriptions);
+            interInvariantCourseExecutionExists(subscriptions);
         }
         return subscriptions;
+    }
+
+    private void interInvariantQuestionsExist(Set<EventSubscription> subscriptions) {
+        for (QuizQuestion question : questions) {
+            subscriptions.add(new QuizSubscribesUpdateQuestion(question));
+            subscriptions.add(new QuizSubscribesDeleteQuestion(question));
+        }
+    }
+
+    private void interInvariantCourseExecutionExists(Set<EventSubscription> subscriptions) {
+        subscriptions.add(new QuizSubscribesDeleteCourseExecution(quizExecution));
     }
 
     public String getTitle() { return title; }
