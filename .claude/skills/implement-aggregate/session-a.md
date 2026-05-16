@@ -23,6 +23,17 @@ Load these files before writing any code:
 
 ---
 
+## Verify Mandatory Files in plan.md
+
+Before producing any files, check the plan.md `2.{N}.a` row for this aggregate and verify that **both** of the following interface files are listed:
+
+- `aggregate/{Aggregate}Factory.java`
+- `aggregate/{Aggregate}CustomRepository.java`
+
+If either is missing, add it to the plan.md `2.{N}.a` file cell now. These two files are mandatory for every aggregate — `{Aggregate}Factory.java` because the service layer and `BeanConfigurationSagas.groovy` always inject the factory interface, and `{Aggregate}CustomRepository.java` because `{Aggregate}CustomRepositorySagas.java` always implements it. Neither may be omitted regardless of whether the aggregate has cross-table lookups.
+
+---
+
 ## Produce
 
 Produce every file listed in the plan.md `2.{N}.a` row for this aggregate. The authoritative file list is in plan.md — use it exactly. The descriptions below explain what each file must contain.
