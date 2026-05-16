@@ -106,7 +106,7 @@ public abstract class QuizAnswer extends Aggregate {
         }
     }
 
-    private boolean questionAlreadyAnswered() {
+    private boolean allQuestionsDistinct() {
         Set<Integer> ids = questionAnswers.stream()
                 .map(QuestionAnswer::getQuestionAggregateId)
                 .collect(Collectors.toSet());
@@ -115,7 +115,7 @@ public abstract class QuizAnswer extends Aggregate {
 
     @Override
     public void verifyInvariants() {
-        if (!questionAlreadyAnswered()) {
+        if (!allQuestionsDistinct()) {
             throw new QuizzesFullException(QuizzesFullErrorMessage.QUESTION_ALREADY_ANSWERED);
         }
     }

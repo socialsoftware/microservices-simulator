@@ -290,7 +290,7 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 ### 7. QuizAnswer
 
 **Write functionalities:**
-- `CreateQuizAnswer(quizId, userId, executionId)` — record student's quiz answer session; saga fetches Quiz + User + Execution; enforces UNIQUE_QUIZ_ANSWER_PER_STUDENT (P3) and COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION (P4b — `executionId` taken from `QuizDto.executionId`)
+- `CreateQuizAnswer(quizId, userId, executionId)` — record student's quiz answer session; saga fetches Quiz + User; execution data derived from QuizDto (P4b — executionId taken from QuizDto.executionId); enforces UNIQUE_QUIZ_ANSWER_PER_STUDENT (P3) and COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION (P4b)
 - `AnswerQuestion(quizAnswerId, questionId, optionKey, timeTaken)` — record one question answer; enforces ANSWER_BEFORE_START (P3 — saga fetches TournamentDto for this quiz/student; checks `startTime ≤ now`); publishes `QuizAnswerQuestionAnswerEvent`
 - `ConcludeQuiz(quizAnswerId)` — mark session completed
 

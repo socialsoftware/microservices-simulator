@@ -1,11 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.coordination.quizanswer
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.sagas.states.QuizAnswerSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.ConcludeQuizFunctionalitySagas
 
 @DataJpaTest
 @Transactional
@@ -14,6 +18,9 @@ class ConcludeQuizTest extends QuizzesFullSpockTest {
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
+
+    @Autowired
+    CommandGateway commandGateway
 
     Integer courseId
     Integer userId
@@ -56,5 +63,22 @@ class ConcludeQuizTest extends QuizzesFullSpockTest {
         def uow = unitOfWorkService.createUnitOfWork("check")
         def dto = quizAnswerService.getQuizAnswerById(quizAnswerId, uow)
         dto.completed == true
+    }
+
+    def "concludeQuiz: getQuizAnswerStep acquires IN_CONCLUDE_QUIZ semantic lock"() {
+        given: 'a concludeQuiz workflow pauses after getQuizAnswerStep has acquired IN_CONCLUDE_QUIZ lock'
+        def uow = unitOfWorkService.createUnitOfWork("concludeQuiz")
+        def func = new ConcludeQuizFunctionalitySagas(
+                unitOfWorkService, quizAnswerId, uow, commandGateway)
+        func.executeUntilStep("getQuizAnswerStep", uow)
+
+        expect: 'quiz answer saga state is IN_CONCLUDE_QUIZ'
+        sagaStateOf(quizAnswerId) == QuizAnswerSagaState.IN_CONCLUDE_QUIZ
+
+        when: 'workflow resumes and completes'
+        func.resumeWorkflow(uow)
+
+        then:
+        noExceptionThrown()
     }
 }

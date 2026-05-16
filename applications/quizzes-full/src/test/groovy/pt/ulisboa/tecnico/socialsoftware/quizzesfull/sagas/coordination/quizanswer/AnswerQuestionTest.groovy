@@ -1,12 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.coordination.quizanswer
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.sagas.states.QuizAnswerSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.AnswerQuestionFunctionalitySagas
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUESTION_ALREADY_ANSWERED
 
@@ -17,6 +21,9 @@ class AnswerQuestionTest extends QuizzesFullSpockTest {
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
+
+    @Autowired
+    CommandGateway commandGateway
 
     Integer courseId
     Integer userId
@@ -71,5 +78,22 @@ class AnswerQuestionTest extends QuizzesFullSpockTest {
         then:
         def ex = thrown(QuizzesFullException)
         ex.message == QUESTION_ALREADY_ANSWERED
+    }
+
+    def "answerQuestion: getQuizAnswerStep acquires IN_ANSWER_QUESTION semantic lock"() {
+        given: 'an answerQuestion workflow pauses after getQuizAnswerStep has acquired IN_ANSWER_QUESTION lock'
+        def uow = unitOfWorkService.createUnitOfWork("answerQuestion")
+        def func = new AnswerQuestionFunctionalitySagas(
+                unitOfWorkService, quizAnswerId, questionId, 1, 30, uow, commandGateway)
+        func.executeUntilStep("getQuizAnswerStep", uow)
+
+        expect: 'quiz answer saga state is IN_ANSWER_QUESTION'
+        sagaStateOf(quizAnswerId) == QuizAnswerSagaState.IN_ANSWER_QUESTION
+
+        when: 'workflow resumes and completes'
+        func.resumeWorkflow(uow)
+
+        then:
+        noExceptionThrown()
     }
 }

@@ -1,13 +1,18 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.coordination.quizanswer
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.states.QuizSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.CreateQuizAnswerFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.sagas.states.UserSagaState
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.UNIQUE_QUIZ_ANSWER_PER_STUDENT
 
@@ -18,6 +23,9 @@ class CreateQuizAnswerTest extends QuizzesFullSpockTest {
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
+
+    @Autowired
+    CommandGateway commandGateway
 
     Integer courseId
     Integer userId
@@ -69,5 +77,47 @@ class CreateQuizAnswerTest extends QuizzesFullSpockTest {
         then:
         def ex = thrown(QuizzesFullException)
         ex.message == UNIQUE_QUIZ_ANSWER_PER_STUDENT
+    }
+
+    def "createQuizAnswer: getQuizStep acquires READ_QUIZ semantic lock"() {
+        given: 'a createQuizAnswer workflow pauses after getQuizStep has acquired READ_QUIZ lock'
+        def uow = unitOfWorkService.createUnitOfWork("createQuizAnswer")
+        def func = new CreateQuizAnswerFunctionalitySagas(
+                unitOfWorkService, quizId, userId, uow, commandGateway)
+        func.executeUntilStep("getQuizStep", uow)
+
+        expect: 'quiz saga state is READ_QUIZ'
+        sagaStateOf(quizId) == QuizSagaState.READ_QUIZ
+
+        when: 'workflow resumes and completes'
+        func.resumeWorkflow(uow)
+
+        then:
+        noExceptionThrown()
+
+        and: 'quiz answer was created'
+        func.getCreatedQuizAnswerDto().aggregateId != null
+        func.getCreatedQuizAnswerDto().quizAggregateId == quizId
+    }
+
+    def "createQuizAnswer: getUserStep acquires READ_USER semantic lock"() {
+        given: 'a createQuizAnswer workflow pauses after getUserStep has acquired READ_USER lock'
+        def uow = unitOfWorkService.createUnitOfWork("createQuizAnswer")
+        def func = new CreateQuizAnswerFunctionalitySagas(
+                unitOfWorkService, quizId, userId, uow, commandGateway)
+        func.executeUntilStep("getUserStep", uow)
+
+        expect: 'user saga state is READ_USER'
+        sagaStateOf(userId) == UserSagaState.READ_USER
+
+        when: 'workflow resumes and completes'
+        func.resumeWorkflow(uow)
+
+        then:
+        noExceptionThrown()
+
+        and: 'quiz answer was created'
+        func.getCreatedQuizAnswerDto().aggregateId != null
+        func.getCreatedQuizAnswerDto().userAggregateId == userId
     }
 }
