@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.ag
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.QuizAnswerFactory;
 
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUIZ_ANSWER_NOT_FOUND;
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.UNIQUE_QUIZ_ANSWER_PER_STUDENT;
 
 @Service
@@ -78,5 +79,13 @@ public class QuizAnswerService {
         QuizAnswer newQA = quizAnswerFactory.createQuizAnswerCopy(old);
         newQA.setCompleted(true);
         unitOfWorkService.registerChanged(newQA, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public QuizAnswerDto getQuizAnswerByQuizIdAndStudentId(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        QuizAnswer found = quizAnswerRepository.findByQuizAggregateIdAndUserAggregateId(quizAggregateId, userAggregateId)
+                .orElseThrow(() -> new QuizzesFullException(QUIZ_ANSWER_NOT_FOUND));
+        return quizAnswerFactory.createQuizAnswerDto(
+                (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(found.getAggregateId(), unitOfWork));
     }
 }

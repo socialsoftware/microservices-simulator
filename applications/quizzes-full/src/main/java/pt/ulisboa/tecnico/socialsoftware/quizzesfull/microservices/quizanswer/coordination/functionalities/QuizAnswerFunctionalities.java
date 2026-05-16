@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.ag
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.AnswerQuestionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.ConcludeQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.CreateQuizAnswerFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.GetQuizAnswerByQuizIdAndStudentIdFunctionalitySagas;
 
 @Service
 public class QuizAnswerFunctionalities {
@@ -42,5 +43,14 @@ public class QuizAnswerFunctionalities {
         ConcludeQuizFunctionalitySagas saga = new ConcludeQuizFunctionalitySagas(
                 unitOfWorkService, quizAnswerId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
+    }
+
+    public QuizAnswerDto getQuizAnswerByQuizIdAndStudentId(Integer quizId, Integer userId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        GetQuizAnswerByQuizIdAndStudentIdFunctionalitySagas saga = new GetQuizAnswerByQuizIdAndStudentIdFunctionalitySagas(
+                unitOfWorkService, quizId, userId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getQuizAnswerDto();
     }
 }

@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.quizanswer.AnswerQ
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.quizanswer.ConcludeQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.quizanswer.CreateQuizAnswerCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.quizanswer.GetQuizAnswerByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.quizanswer.GetQuizAnswerByQuizIdAndStudentIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.service.QuizAnswerService;
 
 import java.util.logging.Logger;
@@ -46,6 +47,8 @@ public class QuizAnswerCommandHandler extends CommandHandler {
                 quizAnswerService.concludeQuiz(cmd.getQuizAnswerAggregateId(), cmd.getUnitOfWork());
                 yield null;
             }
+            case GetQuizAnswerByQuizIdAndStudentIdCommand cmd -> quizAnswerService.getQuizAnswerByQuizIdAndStudentId(
+                    cmd.getQuizAggregateId(), cmd.getUserAggregateId(), cmd.getUnitOfWork());
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 yield null;

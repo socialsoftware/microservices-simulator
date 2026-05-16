@@ -67,4 +67,6 @@ public final class QuizzesFullErrorMessage {
             "A quiz answer cannot contain duplicate entries for the same question.";
     public static final String UNIQUE_QUIZ_ANSWER_PER_STUDENT =
             "A student can only have one quiz answer per quiz.";
+    public static final String QUIZ_ANSWER_NOT_FOUND =
+            "No quiz answer found for the given quiz and student.";
 }
