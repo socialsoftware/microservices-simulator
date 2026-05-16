@@ -69,4 +69,20 @@ public final class QuizzesFullErrorMessage {
             "A student can only have one quiz answer per quiz.";
     public static final String QUIZ_ANSWER_NOT_FOUND =
             "No quiz answer found for the given quiz and student.";
+
+    // Tournament
+    public static final String TOURNAMENT_START_BEFORE_END_TIME =
+            "Tournament startTime must be before endTime.";
+    public static final String TOURNAMENT_UNIQUE_AS_PARTICIPANT =
+            "A user may only be enrolled in a tournament once.";
+    public static final String TOURNAMENT_ENROLL_UNTIL_START_TIME =
+            "A participant's enrolment time must be before the tournament startTime.";
+    public static final String TOURNAMENT_FINAL_AFTER_START =
+            "Tournament startTime, endTime, numberOfQuestions, topics and cancelled cannot be changed after the tournament starts.";
+    public static final String TOURNAMENT_IS_CANCELED =
+            "A cancelled tournament's fields and participants cannot be changed.";
+    public static final String TOURNAMENT_DELETE =
+            "A deleted tournament must have no participants.";
+    public static final String TOURNAMENT_CREATOR_PARTICIPANT_CONSISTENCY =
+            "Creator's cached data in the participant list must match the tournament's creator snapshot.";
 }
