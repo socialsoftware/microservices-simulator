@@ -148,6 +148,23 @@ A Functionality method receives saga-assembled DTOs from preceding steps. Never 
 
 ---
 
+## Partial-Data Owned Entities
+
+When a service method creates an owned entity (e.g. `QuestionAnswer`) and one of its constructor fields cannot be derived from the DTOs available at that point in the implementation order, initialize that field to `null` as a placeholder:
+
+```java
+// TODO: correct cannot be determined from QuestionDto — no correctness data
+// available until Tournament (session 2.8) is implemented.
+new QuestionAnswer(questionId, sequenceChoice, /*correct=*/ null);
+```
+
+Rules:
+- Add the `// TODO` comment inline explaining which field is missing and why.
+- Flag the placeholder explicitly in the session retro — it is **not** an implicit placeholder; a future session must revisit it.
+- When the missing upstream aggregate is implemented, search for the `TODO` and fill in the field.
+
+---
+
 ## P3 Guard Placement
 
 P3 guards (own-table reads, uniqueness checks, and DTO field validation from preceding saga steps) belong at the **top** of the service method, before any `createFromExisting` call. Throwing at this point ensures no aggregate is dirtied before the guard fires. See [`rule-enforcement-patterns.md`](rule-enforcement-patterns.md) for the full taxonomy.

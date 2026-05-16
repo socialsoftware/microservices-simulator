@@ -299,6 +299,31 @@ Using edges from §3 (DAG):
 
 ---
 
+### Step 5.5: Detect Reverse P3 Dependencies (Deferred Guards)
+
+After the topological sort, check for P3 DTO-check rules where the required data comes from an aggregate ordered _later_ than the aggregate that owns the guard. The topological sort is driven by P2 event-subscription edges only — P3 read-time edges are not DAG edges and do not affect ordering, but they create a runtime dependency that must be tracked explicitly.
+
+```
+FOR each aggregate A at position i in sorted_aggregates:
+  FOR each P3 rule R that requires a saga data-assembly fetch from aggregate B
+      (i.e. R is classified P3 DTO-check variant and R.data_source_aggregate == B):
+    IF position(B) > position(A):
+      // B is ordered after A, but A's service guard reads B's DTO
+      // This is a reverse P3 dependency — cannot be implemented in session 2.i.b
+      Annotate R in A's cross-aggregate prerequisites as:
+        "⚠️ DEFERRED — requires {B}Dto; implement in session 2.{j}.b after {B} is done"
+      Add a note to B's aggregate section in plan.md:
+        "After completing 2.{j}.b, revisit {A} session 2.{i}.b to add the deferred {R.name} guard"
+```
+
+**Why this matters:** Without this step, the dependency is silently invisible in plan.md and the session-b agent discovers the gap mid-implementation with no guidance. Surfacing it as a ⚠️ DEFERRED marker lets the session-b agent apply the deferred-guard protocol from `session-b.md` immediately.
+
+**Output:** For each detected reverse P3 dependency, plan.md must show:
+- In aggregate `A`'s cross-aggregate prerequisites: the ⚠️ DEFERRED marker with a pointer to the unblocking session.
+- In aggregate `B`'s section: a "revisit" note for session 2.{j}.b implementers.
+
+---
+
 ### Step 6: Map Functionalities to Aggregates and Identify Phase 3 Scenarios
 
 For each aggregate in sorted order:

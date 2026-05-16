@@ -72,6 +72,11 @@ public enum ServiceMapping {
 }
 ```
 
+> **Multi-word aggregates — camelCase required:** The framework derives the commit/abort service bean at runtime by calling `resolveServiceName(aggregateClass)`, which strips "Saga" from the simple class name and lowercases the first character. For multi-word aggregates this produces camelCase: `SagaQuizAnswer` → `"quizAnswer"`. The `ServiceMapping` value **must** match this result exactly. A shortened alias (e.g. `"answer"`) causes a silent bean-lookup failure that only manifests when the aggregate is locked via `SagaCommand` at runtime. Example of a correct entry:
+> ```java
+> QUIZ_ANSWER("quizAnswer"),  // SagaQuizAnswer → resolveServiceName → "quizAnswer"
+> ```
+
 Pass `ServiceMapping.TOURNAMENT.getServiceName()` as the `serviceName` argument to a command constructor.
 
 ---
@@ -142,7 +147,7 @@ public class TournamentCommandHandler extends CommandHandler {
 
 `getAggregateTypeName()` returns a PascalCase name (e.g. `"Course"`) used by `CommandHandlerDecorator` for decorator lookup — it is **not** the routing key.
 
-**Actual routing:** `LocalCommandService.send()` resolves the handler via `applicationContext.getBean(command.getServiceName() + "CommandHandler")`. The Spring bean name of the `CommandHandler` **must** equal `ServiceMapping.{AGGREGATE}.getServiceName() + "CommandHandler"` (e.g. `"courseCommandHandler"`). The `@Bean` method in `BeanConfigurationSagas` must use that exact lowercase camelCase name.
+**Actual routing:** `LocalCommandService.send()` resolves the handler via `applicationContext.getBean(command.getServiceName() + "CommandHandler")`. The Spring bean name of the `CommandHandler` **must** equal `ServiceMapping.{AGGREGATE}.getServiceName() + "CommandHandler"` (e.g. `"courseCommandHandler"`). The `@Bean` method in `BeanConfigurationSagas` must use that exact lowercase camelCase name. For multi-word aggregates this is a camelCase name — e.g. the bean method for QuizAnswer must be named `quizAnswerCommandHandler`, not `answerCommandHandler`.
 
 Mutating handlers return `null`; read handlers return the DTO produced by the service method.
 

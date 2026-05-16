@@ -86,6 +86,8 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
 - Implements `getSagaState()` returning the field; `setSagaState(SagaState state)` sets it directly (field type is the interface, no cast needed)
 - No other logic
 
+> **Bean naming constraint:** The simple class name of this saga aggregate determines the service routing string used by `resolveServiceName()` in session b. For multi-word aggregates (e.g. `SagaQuizAnswer`), `resolveServiceName` produces `"quizAnswer"` — camelCase, not a shortened alias like `"answer"`. The `ServiceMapping` entry created in session b **must** use this exact value. Note it now to avoid a silent routing failure later.
+
 ### `{Aggregate}SagaState.java`
 
 Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaState.java`
