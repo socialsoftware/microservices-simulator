@@ -311,13 +311,13 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 
 | Session | Files |
 |---------|-------|
-| 2.7.a | `aggregate/QuizAnswer.java`, `aggregate/QuestionAnswer.java`, `aggregate/sagas/SagaQuizAnswer.java`, `aggregate/sagas/states/QuizAnswerSagaState.java`, `aggregate/sagas/factories/SagasQuizAnswerFactory.java`, `aggregate/sagas/repositories/QuizAnswerCustomRepositorySagas.java`, `aggregate/QuizAnswerDto.java`, `aggregate/QuizAnswerRepository.java`, `sagas/quizanswer/QuizAnswerTest.groovy`, `microservices/quizanswer/QuizAnswerServiceApplication.java` |
+| 2.7.a | `aggregate/QuizAnswer.java`, `aggregate/QuestionAnswer.java`, `aggregate/sagas/SagaQuizAnswer.java`, `aggregate/sagas/states/QuizAnswerSagaState.java`, `aggregate/sagas/factories/SagasQuizAnswerFactory.java`, `aggregate/sagas/repositories/QuizAnswerCustomRepositorySagas.java`, `aggregate/QuizAnswerDto.java`, `aggregate/QuizAnswerRepository.java`, `aggregate/QuizAnswerCustomRepository.java` (added: interface required by SagasImpl), `aggregate/QuizAnswerFactory.java` (added: interface required by SagasFactory), `sagas/quizanswer/QuizAnswerTest.groovy`, `microservices/quizanswer/QuizAnswerServiceApplication.java` |
 | 2.7.b | `service/QuizAnswerService.java` (write methods), `messaging/QuizAnswerCommandHandler.java`, `commands/quizanswer/CreateQuizAnswerCommand.java`, `commands/quizanswer/AnswerQuestionCommand.java`, `commands/quizanswer/ConcludeQuizCommand.java`, `coordination/sagas/CreateQuizAnswerFunctionalitySagas.java`, `coordination/sagas/AnswerQuestionFunctionalitySagas.java`, `coordination/sagas/ConcludeQuizFunctionalitySagas.java`, `coordination/functionalities/QuizAnswerFunctionalities.java`, `sagas/coordination/quizanswer/CreateQuizAnswerTest.groovy`, `sagas/coordination/quizanswer/AnswerQuestionTest.groovy`, `sagas/coordination/quizanswer/ConcludeQuizTest.groovy`, `microservices/quizanswer/coordination/webapi/QuizAnswerController.java` |
 | 2.7.c | `service/QuizAnswerService.java` (read methods appended), `commands/quizanswer/GetQuizAnswerByQuizIdAndStudentIdCommand.java`, `coordination/sagas/GetQuizAnswerByQuizIdAndStudentIdFunctionalitySagas.java`, `sagas/coordination/quizanswer/GetQuizAnswerByQuizIdAndStudentIdTest.groovy` |
 | 2.7.d | `notification/subscribe/QuizAnswerSubscribesDeleteUser.java`, `notification/subscribe/QuizAnswerSubscribesUpdateStudentName.java`, `notification/subscribe/QuizAnswerSubscribesAnonymizeStudent.java`, `notification/subscribe/QuizAnswerSubscribesUpdateQuestion.java`, `notification/subscribe/QuizAnswerSubscribesDeleteCourseExecution.java`, `notification/subscribe/QuizAnswerSubscribesDisenrollStudentFromCourseExecution.java`, `notification/subscribe/QuizAnswerSubscribesInvalidateQuiz.java`, `notification/handling/QuizAnswerEventHandling.java`, `notification/handling/handlers/QuizAnswerEventHandler.java`, `coordination/eventProcessing/QuizAnswerEventProcessing.java`, `sagas/quizanswer/QuizAnswerInterInvariantTest.groovy` |
 
 **Checklist:**
-- [ ] 2.7.a — Domain layer
+- [x] 2.7.a — Domain layer
 - [ ] 2.7.b — Write functionalities
 - [ ] 2.7.c — Read functionalities
 - [ ] 2.7.d — Event wiring

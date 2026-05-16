@@ -61,4 +61,8 @@ public final class QuizzesFullErrorMessage {
             "Quiz dates must satisfy: creationDate < availableDate < conclusionDate <= resultsDate.";
     public static final String QUIZ_FIELDS_FINAL_AFTER_AVAILABLE_DATE =
             "Quiz availableDate, conclusionDate, resultsDate and questions cannot be changed after the quiz becomes available.";
+
+    // QuizAnswer
+    public static final String QUESTION_ALREADY_ANSWERED =
+            "A quiz answer cannot contain duplicate entries for the same question.";
 }
