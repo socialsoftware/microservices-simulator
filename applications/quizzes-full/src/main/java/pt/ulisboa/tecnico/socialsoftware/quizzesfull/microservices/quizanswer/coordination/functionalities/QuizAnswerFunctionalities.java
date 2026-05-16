@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.co
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.ConcludeQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.CreateQuizAnswerFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.GetQuizAnswerByQuizIdAndStudentIdFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.service.QuizAnswerService;
 
 @Service
 public class QuizAnswerFunctionalities {
@@ -19,6 +20,9 @@ public class QuizAnswerFunctionalities {
 
     @Autowired
     private CommandGateway commandGateway;
+
+    @Autowired
+    private QuizAnswerService quizAnswerService;
 
     public QuizAnswerDto createQuizAnswer(Integer quizId, Integer userId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
@@ -43,6 +47,36 @@ public class QuizAnswerFunctionalities {
         ConcludeQuizFunctionalitySagas saga = new ConcludeQuizFunctionalitySagas(
                 unitOfWorkService, quizAnswerId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
+    }
+
+    public void removeQuizAnswerByEvent(Integer quizAnswerId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("removeQuizAnswerByEvent");
+        quizAnswerService.removeQuizAnswer(quizAnswerId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void removeQuizAnswerIfDisenrolledByEvent(Integer quizAnswerId, Integer userId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("removeQuizAnswerIfDisenrolledByEvent");
+        quizAnswerService.removeQuizAnswerIfUserMatches(quizAnswerId, userId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void updateStudentNameByEvent(Integer quizAnswerId, String name) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateStudentNameByEvent");
+        quizAnswerService.updateStudentName(quizAnswerId, name, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void anonymizeStudentByEvent(Integer quizAnswerId, String name, String username) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("anonymizeStudentByEvent");
+        quizAnswerService.anonymizeStudent(quizAnswerId, name, username, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void updateQuestionVersionByEvent(Integer quizAnswerId, Integer questionAggregateId, Long newVersion) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateQuestionVersionByEvent");
+        quizAnswerService.updateQuestionVersionInQuizAnswer(quizAnswerId, questionAggregateId, newVersion, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 
     public QuizAnswerDto getQuizAnswerByQuizIdAndStudentId(Integer quizId, Integer userId) {

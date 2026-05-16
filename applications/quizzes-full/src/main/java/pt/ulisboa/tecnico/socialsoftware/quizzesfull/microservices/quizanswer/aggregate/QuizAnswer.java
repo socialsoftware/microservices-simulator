@@ -6,6 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
 
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.notification.subscribe.*;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -120,7 +122,17 @@ public abstract class QuizAnswer extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> subscriptions = new HashSet<>();
+        subscriptions.add(new QuizAnswerSubscribesDeleteUser(this));
+        subscriptions.add(new QuizAnswerSubscribesUpdateStudentName(this));
+        subscriptions.add(new QuizAnswerSubscribesAnonymizeStudent(this));
+        subscriptions.add(new QuizAnswerSubscribesDeleteCourseExecution(this));
+        subscriptions.add(new QuizAnswerSubscribesDisenrollStudentFromCourseExecution(this));
+        subscriptions.add(new QuizAnswerSubscribesInvalidateQuiz(this));
+        for (QuestionAnswer qa : questionAnswers) {
+            subscriptions.add(new QuizAnswerSubscribesUpdateQuestion(qa));
+        }
+        return subscriptions;
     }
 
     public LocalDateTime getCreationDate() { return creationDate; }

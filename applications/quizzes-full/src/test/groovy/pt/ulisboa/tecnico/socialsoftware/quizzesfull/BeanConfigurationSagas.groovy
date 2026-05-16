@@ -66,10 +66,14 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.messagin
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.notification.handling.QuizEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.notification.handling.handlers.QuizEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.service.QuizService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.QuizAnswerRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.sagas.factories.SagasQuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.sagas.repositories.QuizAnswerCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.eventProcessing.QuizAnswerEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.functionalities.QuizAnswerFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.messaging.QuizAnswerCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.notification.handling.QuizAnswerEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.notification.handling.handlers.QuizAnswerEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.service.QuizAnswerService
 
 @TestConfiguration
@@ -402,5 +406,21 @@ class BeanConfigurationSagas {
     @Bean
     QuizAnswerFunctionalities quizAnswerFunctionalities() {
         return new QuizAnswerFunctionalities()
+    }
+
+    // QuizAnswer — session 2.7.d
+    @Bean
+    QuizAnswerEventHandling quizAnswerEventHandling() {
+        return new QuizAnswerEventHandling()
+    }
+
+    @Bean
+    QuizAnswerEventHandler quizAnswerEventHandler(QuizAnswerRepository quizAnswerRepository) {
+        return new QuizAnswerEventHandler(quizAnswerRepository)
+    }
+
+    @Bean
+    QuizAnswerEventProcessing quizAnswerEventProcessing() {
+        return new QuizAnswerEventProcessing()
     }
 }

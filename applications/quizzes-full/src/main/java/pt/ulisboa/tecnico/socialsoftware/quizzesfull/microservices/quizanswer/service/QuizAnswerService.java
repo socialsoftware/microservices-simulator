@@ -82,6 +82,55 @@ public class QuizAnswerService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeQuizAnswer(Integer quizAnswerAggregateId, UnitOfWork unitOfWork) {
+        QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
+        copy.remove();
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeQuizAnswerIfUserMatches(Integer quizAnswerAggregateId, Integer userId, UnitOfWork unitOfWork) {
+        QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        if (!old.getUserAggregateId().equals(userId)) {
+            return;
+        }
+        QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
+        copy.remove();
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateStudentName(Integer quizAnswerAggregateId, String name, UnitOfWork unitOfWork) {
+        QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
+        copy.setUserName(name);
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void anonymizeStudent(Integer quizAnswerAggregateId, String name, String username, UnitOfWork unitOfWork) {
+        QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
+        copy.setUserName(name);
+        copy.setUserUsername(username);
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateQuestionVersionInQuizAnswer(Integer quizAnswerAggregateId, Integer questionAggregateId, Long newVersion, UnitOfWork unitOfWork) {
+        QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
+        for (QuestionAnswer qa : copy.getQuestionAnswers()) {
+            if (qa.getQuestionAggregateId().equals(questionAggregateId)) {
+                qa.setQuestionVersion(newVersion);
+                break;
+            }
+        }
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public QuizAnswerDto getQuizAnswerByQuizIdAndStudentId(Integer quizAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         QuizAnswer found = quizAnswerRepository.findByQuizAggregateIdAndUserAggregateId(quizAggregateId, userAggregateId)
                 .orElseThrow(() -> new QuizzesFullException(QUIZ_ANSWER_NOT_FOUND));
