@@ -8,7 +8,7 @@ public enum ServiceMapping {
     EXECUTION("execution"),
     TOURNAMENT("tournament"),
     QUIZ("quiz"),
-    ANSWER("answer");
+    ANSWER("quizAnswer");
 
     private final String serviceName;
 

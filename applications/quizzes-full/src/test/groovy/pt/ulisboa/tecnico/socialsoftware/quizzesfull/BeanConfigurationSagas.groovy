@@ -68,6 +68,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.notifica
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.sagas.factories.SagasQuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.sagas.repositories.QuizAnswerCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.functionalities.QuizAnswerFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.messaging.QuizAnswerCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.service.QuizAnswerService
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -383,5 +386,21 @@ class BeanConfigurationSagas {
     @Bean
     QuizAnswerCustomRepositorySagas quizAnswerCustomRepositorySagas() {
         return new QuizAnswerCustomRepositorySagas()
+    }
+
+    // QuizAnswer — session 2.7.b
+    @Bean
+    QuizAnswerService quizAnswerService(SagaUnitOfWorkService unitOfWorkService, QuizAnswerCustomRepositorySagas quizAnswerRepository) {
+        return new QuizAnswerService(unitOfWorkService, quizAnswerRepository)
+    }
+
+    @Bean
+    QuizAnswerCommandHandler quizAnswerCommandHandler() {
+        return new QuizAnswerCommandHandler()
+    }
+
+    @Bean
+    QuizAnswerFunctionalities quizAnswerFunctionalities() {
+        return new QuizAnswerFunctionalities()
     }
 }

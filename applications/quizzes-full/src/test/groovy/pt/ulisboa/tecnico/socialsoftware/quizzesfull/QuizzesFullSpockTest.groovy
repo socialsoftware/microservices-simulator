@@ -23,6 +23,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggr
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.functionalities.QuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.QuizAnswerDto
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.functionalities.QuizAnswerFunctionalities
 
 class QuizzesFullSpockTest extends SpockTest {
 
@@ -69,6 +71,12 @@ class QuizzesFullSpockTest extends SpockTest {
 
     @Autowired(required = false)
     protected QuizFunctionalities quizFunctionalities
+
+    @Autowired(required = false)
+    protected QuizAnswerFunctionalities quizAnswerFunctionalities
+
+    @Autowired(required = false)
+    protected pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.service.QuizAnswerService quizAnswerService
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -117,5 +125,9 @@ class QuizzesFullSpockTest extends SpockTest {
                 "GENERATED",
                 executionId,
                 questionIds)
+    }
+
+    QuizAnswerDto createQuizAnswer(Integer quizId, Integer userId) {
+        return quizAnswerFunctionalities.createQuizAnswer(quizId, userId)
     }
 }
