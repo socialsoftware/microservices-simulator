@@ -44,7 +44,27 @@ Path: `{src}microservices/{aggregate}/notification/subscribe/{Aggregate}Subscrib
 - Extends `EventSubscription` (from simulator core)
 - Constructor: calls `super(anchorRef.getAnchorAggregateId(), anchorRef.getAnchorVersion(), {EventName}.class.getSimpleName())`. The anchor is the owning/parent aggregate whose ID and version are stored in the cached reference (e.g., for `UpdateTopicEvent` subscribed by `Question`, the anchor is the `QuestionTopic` reference that holds `topicAggregateId` and `topicVersion`).
 - Empty default constructor: `public {Aggregate}Subscribes{Event}() {}`
-- Matching is done entirely by `EventSubscription.subscribesEvent()` in the simulator core — it checks that the event's `publisherAggregateId` equals `subscribedAggregateId` and that the event was published after `subscribedVersion`. No `filter()` method exists on `EventSubscription`; override `subscribesEvent()` only if additional filtering is required (e.g., checking a sub-entity's active status), and always call `super.subscribesEvent(event) && <additionalCheck>`.
+- In the **sagas profile**, matching is done by the infrastructure via a DB query on `subscribedAggregateId` and `subscribedVersion` — `EventApplicationService.handleSubscribedEvent()` does **not** call `subscribesEvent()`. Overriding it for sagas event filtering has no effect; any additional filtering must go in the service-layer ByEvent method (see "Shared-anchor events" below). (The TCC profile's `CausalUnitOfWork` does call `subscribesEvent()` for causal consistency checks, but that is out of scope here.)
+
+#### Shared-anchor events: service-layer filtering
+
+When a deletion event is anchored on a **collection-owner** aggregate (e.g., `DisenrollStudentFromCourseExecutionEvent` anchored on `executionAggregateId`), **every** consumer aggregate for that owner receives the event — even those that belong to a different member. The subscription infrastructure cannot distinguish them because it only filters by anchor ID.
+
+In these cases the discriminating check (e.g., `userId`) must happen inside the service ByEvent method before taking action:
+
+```java
+// In {Aggregate}Service:
+public void removeIfUserMatches(Integer aggregateId, Integer userId, UnitOfWork unitOfWork) {
+    {Aggregate} aggregate = get{Aggregate}ById(aggregateId, unitOfWork);
+    if (!aggregate.getUserId().equals(userId)) {
+        return; // not the affected consumer — ignore silently
+    }
+    aggregate.remove();
+    unitOfWork.registerChanged(aggregate);
+}
+```
+
+Do **not** attempt to move this check into a `subscribesEvent()` override — it is not called by the sagas event processing infrastructure.
 
 ### `{Aggregate}EventHandling.java`
 
@@ -128,6 +148,26 @@ When the inbound event signals that a publisher aggregate has been deleted, choo
 
 The distinguishing question is: *can this consumer aggregate still fulfil its purpose if the referenced entity is gone?* If the answer is no, invalidate the whole consumer.
 
+#### UpdateQuestionEvent for consumers that cache only `questionVersion`
+
+If the consumer aggregate caches no question payload (no title, no content — only a `questionVersion` field on a sub-entity like `QuestionAnswer`), the `UpdateQuestionEvent` subscription exists solely to update that version field:
+
+```java
+// In {Aggregate}Service:
+public void updateQuestionVersionIn{SubEntity}(Integer aggregateId, Integer questionAggregateId,
+                                               Integer publisherVersion, UnitOfWork unitOfWork) {
+    {Aggregate} aggregate = get{Aggregate}ById(aggregateId, unitOfWork);
+    aggregate.get{SubEntities}().stream()
+        .filter(e -> e.getQuestionAggregateId().equals(questionAggregateId))
+        .findFirst()
+        .ifPresent(e -> e.setQuestionVersion(publisherVersion));
+    aggregate.verifyInvariants();
+    unitOfWork.registerChanged(aggregate);
+}
+```
+
+The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the question aggregate at the time the event was emitted).
+
 ### `{Aggregate}InterInvariantTest.groovy` (T3)
 
 Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
@@ -141,6 +181,8 @@ Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
   2. **Ignores unrelated** — enroll entity A, publish the same event for an unrelated entity B, call the polling method directly, assert entity A's cached data is unchanged
 - **Invariant-violation tests**: if processing the event causes `verifyInvariants()` to throw, assert the exception is raised with the correct error message
 - Both the "reflects" and "ignores unrelated" tests are required for every subscribed event type
+
+> **Version numbers:** Aggregate versions start much higher than `1L` because the multi-step test setup issues several commits. Always capture `versionBefore` *after* the setup call completes, then assert `versionAfter > versionBefore` (reflects) or `versionAfter == versionBefore` (ignores). Never hardcode `== 1L` or any specific version number.
 
 ### Error message constants
 

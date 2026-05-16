@@ -49,7 +49,7 @@ public class ExecutionSubscribesCreateQuestion extends EventSubscription {
 }
 ```
 
-Matching is done by `EventSubscription.subscribesEvent()` in the simulator core, which checks that the event's `publisherAggregateId` equals `subscribedAggregateId` and that the event was published after `subscribedVersion`. There is no `filter()` method on `EventSubscription`. Override `subscribesEvent()` only when additional filtering is needed (e.g., checking a sub-entity's active status) — always call `super.subscribesEvent(event) && <additionalCheck>`.
+In the **sagas profile**, matching is performed by the infrastructure via a DB query on `subscribedAggregateId` and `subscribedVersion` — `EventApplicationService.handleSubscribedEvent()` does **not** call `subscribesEvent()`. Any additional filtering (e.g., checking a discriminating field for shared-anchor events) must be implemented in the service-layer ByEvent method. Note: the TCC profile's `CausalUnitOfWork` does call `subscribesEvent()` for causal consistency checks — a `subscribesEvent()` override is meaningful there but irrelevant for sagas.
 
 `subscribedAggregateId` must match `publisherAggregateId` in the event.
 
@@ -130,7 +130,7 @@ public class <Consumer>Subscribes<Xxx> extends EventSubscription {
 }
 ```
 
-`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. Matching is handled by `EventSubscription.subscribesEvent()` — no `filter()` override is needed. Override `subscribesEvent()` only for additional filtering (always chain with `super.subscribesEvent(event) && ...`).
+`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. In the sagas profile, `EventApplicationService` does **not** call `subscribesEvent()` — do not override it for sagas event filtering; use the service-layer ByEvent method instead.
 
 ### Handler
 ```java
