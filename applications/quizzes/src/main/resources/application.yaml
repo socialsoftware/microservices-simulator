@@ -24,7 +24,7 @@ spring:
     open-in-view: false
 
 simulator:
-  service-method-profiling:
+  hardware-profiling:
     enabled: false
     output-file: /src/test/resources/service-hardware-profiling.txt
   capacity-management:

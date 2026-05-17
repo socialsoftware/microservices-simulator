@@ -3,9 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.ms.monitoring;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,79 +14,85 @@ import java.nio.file.StandardOpenOption;
 
 @Aspect
 @Component
-public class ServiceMethodMeasurementAspect {
-    private static final String ENABLED = "simulator.service-method-profiling.enabled";
-    private static final String OUTPUT_FILE = "simulator.service-method-profiling.output-file";
+@ConditionalOnProperty(name = "simulator.hardware-profiling.enabled", havingValue = "true", matchIfMissing = false)
+public class HardwareProfiler {
+    @Value("${simulator.hardware-profiling.output-file:#{null}}")
+    private String OUTPUT_FILE;
     private static final String DEFAULT_OUTPUT_FILE = "/src/test/resources/service-method-profiling.txt";
-    private static final ThreadLocal<Integer> nestingDepth = ThreadLocal.withInitial(() -> 0);
+
+    private final HardwareCounterService hardwareCounterService = HardwareCounterService.getInstance();
     private static final Object write_lock = new Object();
+    private static final ThreadLocal<Integer> nestingDepth = ThreadLocal.withInitial(() -> 0);
 
-    private final HardwareCounterService hardwareCounterService;
-    private final Environment environment;
-
-    public ServiceMethodMeasurementAspect(Environment environment) {
-        this.environment = environment;
-        this.hardwareCounterService = HardwareCounterService.getInstance();
-        clearOutputFile();
-        appendMeasurementLine(String.format(
-                "SERVICE_METHOD_PROFILE status=boot enabled=%s hwAvailable=%s outputFile=%s",
-                isProfilingEnabled(),
-                hardwareCounterService.isAvailable(),
-                resolveOutputPath()));
+    public HardwareProfiler() {
     }
 
-    private boolean isProfilingEnabled() {
-        return environment.getProperty(ENABLED, Boolean.class, false);
+    @PostConstruct
+    public void init() {
+        clearOutputFile();
     }
 
     private Path resolveOutputPath() {
-        return Path.of(environment.getProperty(OUTPUT_FILE, DEFAULT_OUTPUT_FILE));
+        if (OUTPUT_FILE != null) {
+            return Path.of(OUTPUT_FILE);
+        }
+        return Path.of(DEFAULT_OUTPUT_FILE);
     }
 
     @Around("execution(public * pt.ulisboa.tecnico.socialsoftware.quizzes.microservices..service.*.*(..))")
     public Object profileServiceMethod(ProceedingJoinPoint joinPoint) throws Throwable {
-        if (!isProfilingEnabled()) {
-            return joinPoint.proceed();
-        }
-
+        /*
+         * Nesting depth is used to prevent counting nested service calls
+         * If a service A() invokes A->B() and A->C()
+         * B() and C() should not count toward A() #instructions since they
+         * are diferent services
+         */
         int depth = nestingDepth.get();
         nestingDepth.set(depth + 1);
-        boolean owner = depth == 0;
+        boolean atTopLevel = (depth == 0);
+
         long startThreadId = Thread.currentThread().threadId();
         long[] startValues = null;
-        if (owner) {
+        if (atTopLevel) {
             hardwareCounterService.startThreadCounters();
             startValues = hardwareCounterService.readValues();
         }
 
         try {
+            // Execute Service
             return joinPoint.proceed();
         } finally {
             nestingDepth.set(depth);
-            if (owner) {
+
+            if (atTopLevel) {
                 long endThreadId = Thread.currentThread().threadId();
                 String serviceClass = joinPoint.getTarget().getClass().getSimpleName();
                 String methodName = joinPoint.getSignature().getName();
 
-                if (!hardwareCounterService.isAvailable()) {
+                // Validation Checks
+                boolean hardwardCounterIsUnavailable = (!hardwareCounterService.isAvailable());
+                boolean failedInitialReading = (startValues == null || startValues.length < 2);
+                boolean startAndEndThreadDiffer = (startThreadId != endThreadId);
+
+                if (hardwardCounterIsUnavailable) {
+                    appendMeasurementLine("FAILED: status=hardware-counter-service-unavailable");
+                } else if (failedInitialReading) {
                     appendMeasurementLine(String.format(
-                            "SERVICE_METHOD_PROFILE status=hardware-unavailable service=%s method=%s",
-                            serviceClass, methodName));
-                } else if (startValues == null || startValues.length < 2) {
+                            "FAILED: status=invalid-init-reading service=%s method=%s", serviceClass, methodName));
+                } else if (startAndEndThreadDiffer) {
                     appendMeasurementLine(String.format(
-                            "SERVICE_METHOD_PROFILE status=unavailable service=%s method=%s",
-                            serviceClass, methodName));
-                } else if (startThreadId != endThreadId) {
-                    appendMeasurementLine(String.format(
-                            "SERVICE_METHOD_PROFILE status=invalid-thread-hop service=%s method=%s threadStart=%d threadEnd=%d",
+                            "FAILED: status=invalid-thread-hop service=%s method=%s threadStart=%d threadEnd=%d",
                             serviceClass, methodName, startThreadId, endThreadId));
+
                 } else {
                     long[] endValues = hardwareCounterService.readValues();
-                    if (endValues == null || endValues.length < 2) {
+                    boolean failedFinalReading = (endValues == null || endValues.length < 2);
+
+                    if (failedFinalReading) {
                         appendMeasurementLine(String.format(
-                                "SERVICE_METHOD_PROFILE status=empty service=%s method=%s",
-                                serviceClass, methodName));
+                                "status=invalid-final-reading service=%s method=%s", serviceClass, methodName));
                     } else {
+                        // Report Instruction Counting
                         long instructions = Math.max(0, endValues[0] - startValues[0]);
                         long cycles = Math.max(0, endValues[1] - startValues[1]);
                         double cpi = instructions > 0 ? (double) cycles / instructions : 0.0;
@@ -118,6 +125,11 @@ public class ServiceMethodMeasurementAspect {
     }
 
     private void clearOutputFile() {
+        if (OUTPUT_FILE == null) {
+            System.err.println("HardwareProfilerError: No output-file found");
+            return;
+        }
+
         Path outputPath = resolveOutputPath();
         synchronized (write_lock) {
             try {
