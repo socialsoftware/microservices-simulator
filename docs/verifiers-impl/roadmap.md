@@ -208,11 +208,12 @@ Dependencies:
 ## Near-term milestone proposal
 
 1. Keep static scenario catalog and sidecar-enrichment baselines reproducible on dummyapp and Quizzes (narrow + default runs).
-2. Improve aggregate-instance key binding and reduce enrichment ambiguity without over-claiming exactness.
-3. Tighten sidecar metadata completeness (including per-match test-run status population) and warning ergonomics.
-4. Define the ScenarioExecutor input contract and decide JSONL-vs-CSV responsibilities.
-5. Implement a minimal executor for single-saga scenarios.
-6. Extend executor to bounded multi-saga schedules.
-7. Add first impact metrics.
-8. Add local GA search for a fixed scenario.
-9. Add scenario prioritization after scenario execution and impact scoring exist.
+2. Classify the remaining Quizzes enrichment misses (`AMBIGUOUS=3`, `UNMATCHED=17`) into uncovered static inputs, joiner limitations, and refinable attribution gaps.
+3. Improve aggregate-instance key binding and reduce enrichment ambiguity without over-claiming exactness.
+4. Tighten sidecar metadata completeness (including per-match test-run status population) and warning ergonomics.
+5. Define the ScenarioExecutor input contract and decide JSONL-vs-CSV responsibilities.
+6. Implement a minimal executor for single-saga scenarios.
+7. Extend executor to bounded multi-saga schedules.
+8. Add first impact metrics.
+9. Add local GA search for a fixed scenario.
+10. Add scenario prioritization after scenario execution and impact scoring exist.

@@ -324,13 +324,18 @@ mvn test -Dtest=GroovyConstructorInputTraceVisitorDummyappSpec,ScenarioGenerator
 
 ## Current next priorities
 
-1. Explain or reduce the remaining full-run enrichment misses (`AMBIGUOUS=3`, `UNMATCHED=17`) by tightening static/dynamic correlation and candidate-pruning heuristics without inventing false exactness.
-2. Improve exact aggregate-instance key extraction from input variants into step footprints.
-3. Decide and implement whether enriched `matchedTestExecutions[].testRunStatus` should be populated directly from orchestrator test-run metadata.
-4. Design the minimal ScenarioExecutor/generic runner contract over the JSONL catalog.
-5. Decide whether behavior CSV is a generated adapter format or whether JSONL remains the primary runtime contract.
-6. After executable scenarios exist, implement impact scoring and then search components.
-7. Decide whether future TCC-specific catalogs/executors should consume rejected TCC input variants directly.
+1. Classify the remaining full-run enrichment misses (`AMBIGUOUS=3`, `UNMATCHED=17`) before adding new attribution rules:
+   - decide which records are real static inputs not exercised by the selected Quizzes tests;
+   - decide which records are joiner limitations where useful runtime evidence exists but is assigned to a neighboring input variant;
+   - decide which records can be improved with command payloads, aggregate access evidence, literal argument hints, or aggregate keys;
+   - keep false exactness out of the output: direct `inputVariantId` wins only when it belongs to the scenario plan being enriched.
+2. Implement the smallest next attribution refinement supported by the classification results, likely command/aggregate/literal pruning rather than broad name matching.
+3. Improve exact aggregate-instance key extraction from input variants into step footprints.
+4. Populate enriched `matchedTestExecutions[].testRunStatus` directly from orchestrator test-run metadata, or document why the join report remains the source of truth.
+5. Design the minimal ScenarioExecutor/generic runner contract over the JSONL catalog.
+6. Decide whether behavior CSV is a generated adapter format or whether JSONL remains the primary runtime contract.
+7. After executable scenarios exist, implement impact scoring and then search components.
+8. Decide whether future TCC-specific catalogs/executors should consume rejected TCC input variants directly.
 
 ## Meeting discussion points
 
