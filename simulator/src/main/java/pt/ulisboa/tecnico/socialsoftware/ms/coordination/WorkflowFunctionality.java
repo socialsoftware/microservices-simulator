@@ -21,7 +21,7 @@ public abstract class WorkflowFunctionality {
         } catch (SimulatorException e) {
             throw e;
         }
-        
+
     }
 
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
@@ -41,10 +41,6 @@ public abstract class WorkflowFunctionality {
         } catch (SimulatorException e) {
             throw e;
         }
-        
-    }
 
-    public int getWorkflowTotalDelay() {
-        return workflow.getWorkflowTotalDelay();
     }
 }

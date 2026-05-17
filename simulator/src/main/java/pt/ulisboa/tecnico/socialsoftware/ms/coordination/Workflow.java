@@ -47,10 +47,6 @@ public abstract class Workflow {
         return this.executionPlan;
     }
 
-    public int getWorkflowTotalDelay() {
-        return this.executionPlan.getTotalDelay();
-    }
-
     public void addStep(FlowStep step){
         this.stepsWithDependencies.put(step, step.getDependencies());
         stepNameMap.put(step.getName(), step);
@@ -133,7 +129,7 @@ public abstract class Workflow {
 
                     this.traceManager.recordException(functionalityName, ex, ex.getMessage());
                     if (ex.getMessage() != null && ex.getMessage().contains("invariant"))
-                        this.traceManager.setSpanAttribute(functionalityName, "invariantBreak", "true");
+                        this.traceManager.setSpanAttribute(functionalityName, "invariantBreak", true);
 
                     this.traceManager.endSpanForFunctionality(functionalityName);
                     unitOfWorkService.abort(unitOfWork);

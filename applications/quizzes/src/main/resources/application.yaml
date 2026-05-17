@@ -7,7 +7,6 @@ spring:
       stream: remote
       grpc: remote
 
-
   datasource:
     url: jdbc:postgresql://localhost:5432/msdb
     driver-class-name: org.postgresql.Driver
@@ -28,9 +27,14 @@ simulator:
     enabled: false
     output-file: /src/test/resources/service-hardware-profiling.txt
   capacity-management:
-    enabled: true
+    enabled: false
     configuration-file: /src/test/resources/locust/quizzes-configuration.json
     report-file: /src/test/resources/locust/CapacityReport.txt
+  impairment:
+    report-file: /src/test/resources/locust/ImpairmentReport.txt
+    network-delays:
+      enabled: false
+      configuration-file: /src/test/resources/locust/quizzes-configuration.json
 
 management:
   endpoints:
@@ -61,6 +65,7 @@ eureka:
   client:
     enabled: false
 
+
 # Local-specific health tuning
 ---
 spring:
@@ -72,6 +77,7 @@ management:
   health:
     rabbit:
       enabled: false
+
 
 # Tech-agnostic remote configuration
 ---
@@ -128,7 +134,7 @@ eureka:
       defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
-    registry-fetch-interval-seconds: 5 
+    registry-fetch-interval-seconds: 5
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.uuid}
@@ -146,6 +152,7 @@ quizzes:
       courseEventSubscriber;
       topicEventSubscriber;
       userEventSubscriber
+
 
 # Spring Cloud Stream specific (commands via RabbitMQ)
 ---
@@ -219,6 +226,7 @@ spring:
           destination: ${spring.application.name}-command-responses
           group: response-group
 
+
 # gRPC specific (commands via gRPC)
 ---
 spring:
@@ -239,6 +247,7 @@ grpc:
     version:
       port: 9091
 
+
 # Kubernetes specific
 ---
 spring:
@@ -247,4 +256,3 @@ spring:
       on-profile: kubernetes
     import:
       - "classpath:application-kubernetes.yaml"
-

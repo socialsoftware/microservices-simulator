@@ -2,6 +2,12 @@ package pt.ulisboa.tecnico.socialsoftware.ms.impairment;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.opentelemetry.api.trace.Span;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
+import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -9,25 +15,32 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CompletionException;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
+@ConditionalOnProperty(prefix = "simulator.impairment.network-delays", name = "enabled", havingValue = "true")
 public class NetworkManager {
-    private static final String PLACEMENT_FILE = "quizzes-configuration.json";
-    private static NetworkManager instance;
-    private static String directory;
-    private Random random = new Random();
-    private boolean loaded = false;
-    private boolean useCSVInjection = true;
-    private boolean useRandomDistributions = false;
+    // TODO - Change paths
+    @Value("${simulator.impairment.network-delays.configuration-file:#{null}}")
+    private String CONFIG_FILE;
 
     private Map<String, String> microserviceToNode = new HashMap<>();
     private Map<String, DelayConfig> delayConfigs = new HashMap<>();
+    private Random random = new Random();
 
-    public boolean isUseCSVInjection() {
-        return useCSVInjection;
+    private final ImpairmentReportService reportService;
+
+    public NetworkManager(ImpairmentReportService reportService) {
+        this.reportService = reportService;
     }
 
-    public boolean isUseRandomDistributions() {
-        return useRandomDistributions;
+    @PostConstruct
+    public void init() {
+        load();
     }
 
     private static class DelayConfig {
@@ -42,92 +55,134 @@ public class NetworkManager {
         }
     }
 
-    public static synchronized NetworkManager getInstance() {
-        if (instance == null) {
-            instance = new NetworkManager();
+    // ****************************
+    // * --- Public Interface --- *
+    // ****************************
+
+    public Object executeWithImpairment(CommandGateway gateway, ProceedingJoinPoint joinPoint, Command command,
+            String commandName, String funcName) throws Throwable {
+
+        String sourceService = resolveMicroserviceName(gateway);
+        String targetService = command.getServiceName();
+
+        int delayBeforeValue = generateDelay(sourceService, targetService);
+        int delayAfterValue = generateDelay(sourceService, targetService);
+
+        boolean isImpaired = (delayBeforeValue + delayAfterValue > 0);
+        if (isImpaired) {
+            TraceManager.getInstance().setSpanAttribute(funcName, "isImpaired", true);
         }
-        return instance;
+
+        logStep(funcName, commandName, sourceService, targetService, delayBeforeValue,
+                delayAfterValue);
+
+        delay(funcName, commandName, delayBeforeValue, true);
+        Object result = joinPoint.proceed();
+        delay(funcName, commandName, delayAfterValue, false);
+
+        return result;
     }
 
-    public static void setDirectory(String dir) {
-        directory = dir;
+    public synchronized void injectConfiguration(String json) {
+        // Receives a configuration and overrides the current one - used for testing
+        reset();
+        report("INJECTING NEW CONFIGURATION");
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode root = mapper.readTree(json);
+            parseConfig(root);
+            reportService.logInfo("Network configuration loaded from JSON string");
+        } catch (IOException | NumberFormatException | SimulatorException e) {
+            terminateWithError("Error injecting network configuration: " + e.getMessage());
+        }
     }
 
-    public void load() {
-        if (loaded || directory == null) {
+    public void reset() {
+        this.microserviceToNode.clear();
+        this.delayConfigs.clear();
+    }
+
+    // ******************
+    // * --- Set Up --- *
+    // ******************
+
+    private void load() {
+        // Checks if the configuration file exists and loads it if possible
+        if (CONFIG_FILE == null) {
+            terminateWithError("Configuration-file must be specified in application.yaml");
             return;
         }
 
-        Path filePath = Paths.get(directory, PLACEMENT_FILE);
-        File file = filePath.toFile();
-        if (!file.exists()) {
+        Path filePath = Paths.get(CONFIG_FILE);
+        File jsonFile = filePath.toFile();
+        if (!jsonFile.exists()) {
+            terminateWithError("Configuration file not found at " + jsonFile.getAbsolutePath());
             return;
         }
 
         ObjectMapper mapper = new ObjectMapper();
         try {
-            JsonNode root = mapper.readTree(file);
+            JsonNode root = mapper.readTree(jsonFile);
             parseConfig(root);
-            loaded = true;
         } catch (IOException e) {
-            e.printStackTrace();
+            terminateWithError("Error loading network configuration: " + e.getMessage());
         }
-    }
 
-    public void loadConfig(JsonNode root) {
-        reset();
-        parseConfig(root);
-        loaded = true;
+        report("Configuration fully loaded!");
     }
 
     private void parseConfig(JsonNode root) {
+        if (!(root.has("Placement") && root.has("Delays"))) {
+            terminateWithError("ConfigurationError: Must have fields 'Placement' and 'Delays'");
+            return;
+        }
+
+        JsonNode placement = root.get("Placement");
+        if (!placement.has("nodes")) {
+            terminateWithError("ConfigurationError: 'Placement' must have field 'nodes");
+            return;
+        }
+
         // Load nodes from Placement field
-        if (root.has("Placement")) {
-            JsonNode placement = root.get("Placement");
-            JsonNode nodes = placement.get("nodes");
-            if (nodes != null && nodes.isArray()) {
-                for (JsonNode node : nodes) {
-                    String nodeName = node.get("name").asText();
-                    JsonNode mss = node.get("microservices");
-                    if (mss != null && mss.isArray()) {
-                        for (JsonNode ms : mss) {
-                            microserviceToNode.put(ms.asText().toLowerCase(), nodeName);
-                        }
+        JsonNode nodes = placement.get("nodes");
+        if (nodes != null && nodes.isArray()) {
+            for (JsonNode node : nodes) {
+                String nodeName = node.get("name").asText();
+                JsonNode mss = node.get("microservices");
+                if (mss != null && mss.isArray()) {
+                    for (JsonNode ms : mss) {
+                        microserviceToNode.put(ms.asText().toLowerCase(), nodeName);
                     }
                 }
             }
         }
 
         // Load delays
-        if (root.has("Delays")) {
-            JsonNode delays = root.get("Delays");
-            if (delays.has("USE_CSV_INJECTION")) {
-                useCSVInjection = delays.get("USE_CSV_INJECTION").asBoolean();
-            }
-            if (delays.has("USE_RANDOM_DISTRIBUTIONS")) {
-                useRandomDistributions = delays.get("USE_RANDOM_DISTRIBUTIONS").asBoolean();
-            }
-            loadDelayConfig(delays, "intraservice");
-            loadDelayConfig(delays, "intranode");
-            loadDelayConfig(delays, "internode");
-        }
+        JsonNode delays = root.get("Delays");
+        loadDelayConfig(delays, "intraservice");
+        loadDelayConfig(delays, "intranode");
+        loadDelayConfig(delays, "internode");
     }
 
     private void loadDelayConfig(JsonNode delaysNode, String type) {
+        if (!delaysNode.has(type))
+            return;
+
         JsonNode config = delaysNode.get(type);
-        if (config != null) {
-            if (config.has("uni")) {
-                JsonNode params = config.get("uni");
-                delayConfigs.put(type, new DelayConfig("uni", params.get(0).asDouble(), params.get(1).asDouble()));
-            } else if (config.has("exp")) {
-                JsonNode params = config.get("exp");
-                delayConfigs.put(type, new DelayConfig("exp", params.get(0).asDouble(), params.get(1).asDouble()));
-            }
+        if (config.has("uni")) {
+            JsonNode params = config.get("uni");
+            delayConfigs.put(type, new DelayConfig("uni", params.get(0).asDouble(), params.get(1).asDouble()));
+        } else if (config.has("exp")) {
+            JsonNode params = config.get("exp");
+            delayConfigs.put(type, new DelayConfig("exp", params.get(0).asDouble(), params.get(1).asDouble()));
         }
     }
 
-    public int generateDelay(String sourceService, String targetService) {
-        System.out.println("FLOW: " + sourceService + " -> " + targetService);
+    // ***************************************
+    // * --- Network Management & Delays --- *
+    // ***************************************
+
+    private int generateDelay(String sourceService, String targetService) {
         String delayType;
 
         if (sourceService == null || targetService == null) {
@@ -135,20 +190,23 @@ public class NetworkManager {
             return 0;
         }
 
-        if (sourceService != null && targetService != null && sourceService.equalsIgnoreCase(targetService)) {
+        String sourceNode = microserviceToNode.get(sourceService.toLowerCase());
+        String targetNode = microserviceToNode.get(targetService.toLowerCase());
+
+        if (sourceNode == null || targetNode == null) {
+            // No delay if a service placement isnt specified
+            return 0;
+        }
+
+        if (sourceService.equalsIgnoreCase(targetService)) {
             // Same service communication
             delayType = "intraservice";
+        } else if (sourceNode.equals(targetNode)) {
+            // Same node communication
+            delayType = "intranode";
         } else {
-            String sourceNode = microserviceToNode.get(sourceService != null ? sourceService.toLowerCase() : "");
-            String targetNode = microserviceToNode.get(targetService != null ? targetService.toLowerCase() : "");
-
-            if (sourceNode != null && targetNode != null && sourceNode.equals(targetNode)) {
-                // Same node communication
-                delayType = "intranode";
-            } else {
-                // Different node communication
-                delayType = "internode";
-            }
+            // Different node communication
+            delayType = "internode";
         }
 
         DelayConfig config = delayConfigs.get(delayType);
@@ -168,16 +226,56 @@ public class NetworkManager {
         }
     }
 
-    public int generateFault() {
-        // TODO - Implement this to randomly generate faults at runtime
-        return 0;
+    private String resolveMicroserviceName(CommandGateway gateway) {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        for (StackTraceElement element : stackTrace) {
+            String className = element.getClassName();
+            if (className.contains(".microservices.")) {
+                String[] parts = className.split("\\.");
+                for (int i = 0; i < parts.length - 1; i++) {
+                    if (parts[i].equals("microservices")) {
+                        return parts[i + 1];
+                    }
+                }
+            }
+        }
+
+        return "unknown";
     }
 
-    public void reset() {
-        this.loaded = false;
-        this.useCSVInjection = true;
-        this.useRandomDistributions = false;
-        this.microserviceToNode.clear();
-        this.delayConfigs.clear();
+    private void delay(String funcName, String commandName, int delayValue, boolean isBefore) {
+        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, commandName, delayValue, isBefore);
+        try {
+            Thread.sleep(delayValue);
+        } catch (InterruptedException e) {
+            // Thread.currentThread().interrupt();
+            throw new CompletionException(e);
+        } finally {
+            TraceManager.getInstance().endDelaySpan(delaySpan);
+        }
+    }
+
+    // **************************
+    // * --- Report Logging --- *
+    // **************************
+
+    private void report(String msg) {
+        reportService.report(String.format("[NetworkManager]: %s", msg));
+    }
+
+    private void terminateWithError(String msg) {
+        reportService.logError(String.format("[NetworkManager]: %s", msg));
+        reset();
+    }
+
+    private void logStep(String funcName, String commandName, String sourceService, String targetService,
+            int delayBeforeValue, int delayAfterValue) {
+
+        String ln = String.format(
+                "Impairing %s\n" + "  >> on command %s (%s->%s): Before [%dms] | After [%dms]",
+                funcName, commandName, sourceService, targetService, delayBeforeValue, delayAfterValue);
+
+        reportService.logInfo(ln);
+        report(ln);
     }
 }

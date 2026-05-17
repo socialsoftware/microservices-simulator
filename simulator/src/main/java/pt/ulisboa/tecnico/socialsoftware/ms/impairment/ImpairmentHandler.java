@@ -1,12 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.impairment;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,17 +13,26 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.concurrent.CompletionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import io.opentelemetry.api.trace.Span;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.AbortCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.CommitCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.PrepareCausalCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.AbortSagaCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.CommitSagaCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 
 /* 
-    ! TODO - 3 Main Problems:
+    ! TODO - Main Problems:
     
     ! 1. A test is failling because of the way we handle retries. When a retry is specified, the functionality is executed again, 
     ! but the behaviour is not re-injected, which means that the same behaviour is applied to all retries. This honeslty should be the case
@@ -33,34 +40,123 @@ import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
 
     ! 2. No missmatches are checked when loading the behaviour from the CSV file.
 
-    ! 3. execute() and executeSteps() in ExecutionPlan() were originally assynchronous and synchronous, respectively. Right now runStep() 
-    ! is a hybrid of both, which is a bit confusing. We should decide on one approach and stick to it.
+    ! 3. This class is responsible for command tracing
  */
 
+@Aspect
+@Component
 public class ImpairmentHandler {
-    private static ImpairmentHandler instance;
-    private static String directory;
-    private static Map<String, Integer> funcCounter = new HashMap<>();
-    private static Map<String, Integer> funcRetry = new HashMap<>();
-    private static final String REPORT_FILE = "BehaviourReport.txt";
-    private static final Logger logger = LoggerFactory.getLogger(ImpairmentHandler.class);
+    @Autowired(required = false)
+    private NetworkManager networkManager;
+
+    @Autowired
+    private ImpairmentReportService reportService;
+
+    @Value("${simulator.impairment.network-delays.enabled:false}")
+    private boolean networkDelaysEnabled;
+
+    // Legacy code for functionality behaviour management (deprecated)
+    private String directory;
+    private Map<String, Integer> funcCounter = new HashMap<>();
+    private Map<String, Integer> funcRetry = new HashMap<>();
     private Map<WorkflowFunctionality, Map<String, List<Integer>>> behaviourCache = Collections
             .synchronizedMap(new WeakHashMap<>());
+
+    public ImpairmentHandler() {
+    }
 
     // ****************************
     // * --- Public Interface --- *
     // ****************************
 
-    public static synchronized ImpairmentHandler getInstance() {
-        if (instance == null) {
-            instance = new ImpairmentHandler();
+    public void reset() {
+        if (networkDelaysEnabled) {
+            networkManager.reset();
         }
-        return instance;
+        // Reset other components such as faults if needed here
     }
+
+    public void injectDelayConfiguration(String json) {
+        if (networkDelaysEnabled) {
+            networkManager.injectConfiguration(json);
+        }
+    }
+
+    public String getReport() {
+        return reportService.getReport();
+    }
+
+    public void cleanReportFile() {
+        reportService.cleanReportFile();
+    }
+
+    // *******************************
+    // * --- Behaviour Injection --- *
+    // *******************************
+
+    private Boolean isTransactionalCommand(Command command) {
+        if (command == null) {
+            return true;
+        }
+
+        Class<? extends Command> type = command.getClass();
+        if (type == CommitSagaCommand.class || type == AbortSagaCommand.class || type == PrepareCausalCommand.class
+                || type == CommitCausalCommand.class || type == AbortCausalCommand.class) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private Command unwrapCommand(Command command) {
+        if (command.getClass() == SagaCommand.class) {
+            return ((SagaCommand) command).getPayload();
+        }
+        return command;
+    }
+
+    // --- Main Method ---
+
+    @Around("execution(public * pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway.send(pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command)) && args(command) && target(gateway)")
+    public Object wrapSend(ProceedingJoinPoint joinPoint, Command command, CommandGateway gateway) throws Throwable {
+        if (isTransactionalCommand(command)) {
+            return joinPoint.proceed();
+        }
+
+        command = unwrapCommand(command);
+        String commandName = command.getClass().getSimpleName();
+        String funcName = command.getUnitOfWork() != null ? command.getUnitOfWork().getFunctionalityName() : "unknown";
+
+        TraceManager.getInstance().startCommandSpan(funcName, commandName);
+        try {
+            // TODO - Implement fault injection
+            /*
+             * if (faultValue == 1) {
+             * reportService.logInfo("EXCEPTION THROWN during " + funcName);
+             * throw new SimulatorException("Fault on " + commandName);
+             * }
+             */
+
+            if (networkDelaysEnabled) {
+                return networkManager.executeWithImpairment(gateway, joinPoint, command, commandName, funcName);
+            } else {
+                return joinPoint.proceed();
+            }
+
+        } finally {
+            TraceManager.getInstance().endCommandSpan(funcName, commandName);
+        }
+    }
+
+    // ************************************
+    // * --- Legacy Code (Deprecated) --- *
+    // ************************************
+
+    // --- Public Interface ---
 
     public void cleanUpCounter() {
         funcCounter.clear();
-        appendToReport("Test finished\n");
+        reportService.report("Test finished\n");
     }
 
     public int getRetryValue(String funcName) {
@@ -69,82 +165,25 @@ public class ImpairmentHandler {
         return funcRetry.getOrDefault(funcName, 0);
     }
 
-    public static void setDirectory(String dir) {
+    public void setDirectory(String dir) {
         directory = dir;
     }
 
-    public void reset() {
-        NetworkManager.getInstance().reset();
-    }
-
-    // ********************************
-    // * --- Behaviour Management --- *
-    // ********************************
+    // --- Behaviour Management ---
 
     private Map<String, List<Integer>> fetchBehaviour(WorkflowFunctionality functionality, FlowStep step) {
-        Map<String, List<Integer>> map = new LinkedHashMap<>();
         String funcName = functionality.getClass().getSimpleName();
 
-        boolean useDistribution = NetworkManager.getInstance().isUseRandomDistributions();
-        boolean useCSV = NetworkManager.getInstance().isUseCSVInjection();
+        Map<String, List<Integer>> loadedBehaviour = behaviourCache.get(functionality);
+        boolean behaviourIsNew = (loadedBehaviour == null);
 
-        if (useDistribution) {
-            // Extract source service from functionality package
-            String packageName = functionality.getClass().getPackageName();
-            String[] parts = packageName.split("\\.");
-            String sourceService = (parts.length >= 7) ? parts[6] : "unknown";
-
-            String targetService = findTargetService(step.getName());
-
-            int delayBefore = NetworkManager.getInstance().generateDelay(sourceService,
-                    targetService);
-            int delayAfter = NetworkManager.getInstance().generateDelay(sourceService,
-                    targetService);
-            int fault = NetworkManager.getInstance().generateFault();
-
-            map.put(step.getName(), Arrays.asList(fault, delayBefore, delayAfter));
+        if (behaviourIsNew) {
+            loadedBehaviour = loadFunctionalityBehaviour(funcName);
+            behaviourCache.put(functionality, loadedBehaviour);
+            System.out.println("Cache size: " + behaviourCache.size());
         }
 
-        if (useCSV) {
-            Map<String, List<Integer>> loadedBehaviour = behaviourCache.get(functionality);
-            boolean behaviourIsNew = (loadedBehaviour == null);
-
-            if (behaviourIsNew) {
-                loadedBehaviour = loadFunctionalityBehaviour(funcName);
-                behaviourCache.put(functionality, loadedBehaviour);
-                System.out.println("Cache size: " + behaviourCache.size());
-            }
-            map.putAll(loadedBehaviour);
-        }
-
-        return map;
-    }
-
-    private String findTargetService(String stepName) {
-        String lowerStepName = stepName.toLowerCase();
-        try {
-            // Iterate through ServiceMapping using Java Reflection
-            Class<?> serviceMappingClass = Class.forName("pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping");
-            Object[] constants = serviceMappingClass.getEnumConstants();
-            for (Object constant : constants) {
-                String serviceName = (String) serviceMappingClass.getMethod("getServiceName").invoke(constant);
-                if (lowerStepName.contains(serviceName.toLowerCase())) {
-                    return serviceName;
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Reflection failed on ServiceMapping: " + e.getMessage());
-        }
-
-        // Edge cases where service name is not explicitly in the step name
-        if (lowerStepName.contains("creator") || lowerStepName.contains("student")
-                || lowerStepName.contains("enroll")) {
-            return "execution";
-        } else if (lowerStepName.contains("participant")) {
-            return "tournament";
-        }
-
-        return null;
+        return loadedBehaviour;
     }
 
     private Map<String, List<Integer>> loadFunctionalityBehaviour(String funcName) {
@@ -180,11 +219,11 @@ public class ImpairmentHandler {
         return map;
     }
 
-    private static synchronized int getFuncionalityCounter(String functionality) {
+    private synchronized int getFuncionalityCounter(String functionality) {
         return funcCounter.compute(functionality, (k, v) -> (v == null) ? 1 : v + 1);
     }
 
-    private static List<String[]> parseCSVForBlock(Path filePath, String funcName, int targetBlock) throws IOException {
+    private List<String[]> parseCSVForBlock(Path filePath, String funcName, int targetBlock) throws IOException {
         List<String[]> currentBlock = new ArrayList<>();
         int blockNumber = 0;
 
@@ -212,155 +251,5 @@ public class ImpairmentHandler {
         }
 
         return currentBlock;
-    }
-
-    // *******************************
-    // * --- Behaviour Injection --- *
-    // *******************************
-
-    // --- Private Helpers ---
-
-    private void delay(String funcName, String stepName, int delayValue, boolean isBefore) {
-        if (delayValue <= 0) {
-            return;
-        }
-
-        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayValue, isBefore);
-        try {
-            Thread.sleep(delayValue);
-        } catch (InterruptedException e) {
-            // Thread.currentThread().interrupt();
-            throw new CompletionException(e);
-        } finally {
-            TraceManager.getInstance().endDelaySpan(delaySpan);
-        }
-    }
-
-    // --- Main Methods ---
-
-    public void injectFault(WorkflowFunctionality functionality, FlowStep step)
-            throws SimulatorException {
-        Map<String, List<Integer>> behaviour = fetchBehaviour(functionality, step);
-        String funcName = functionality.getClass().getSimpleName();
-        String stepName = step.getName();
-
-        if (behaviour.containsKey(stepName)) {
-            TraceManager.getInstance().setSpanAttribute(funcName, "hasBehaviour", "true");
-            int faultValue = behaviour.get(stepName).get(0);
-
-            Boolean faultSpecified = (faultValue == 1);
-            if (faultSpecified) {
-                logStep(funcName, stepName, behaviour.get(stepName));
-                logger.info("EXCEPTION THROWN: {} with version {}", funcName, funcRetry.getOrDefault(funcName, 0));
-                throw new SimulatorException("Fault on " + stepName);
-            }
-        } else {
-            TraceManager.getInstance().setSpanAttribute(funcName, "hasBehaviour", "false");
-        }
-    }
-
-    public int injectDelayBefore(WorkflowFunctionality functionality, String spanName, FlowStep step) {
-        Map<String, List<Integer>> behaviour = fetchBehaviour(functionality, step);
-        String stepName = step.getName();
-
-        if (behaviour.containsKey(stepName)) {
-            TraceManager.getInstance().setSpanAttribute(spanName, "hasBehaviour", "true");
-            int delayBeforeValue = behaviour.get(stepName).get(1);
-            delay(spanName, stepName, delayBeforeValue, true);
-            return delayBeforeValue;
-        }
-
-        TraceManager.getInstance().setSpanAttribute(spanName, "hasBehaviour", "false");
-        return 0;
-    }
-
-    public int injectDelayAfter(WorkflowFunctionality functionality, String spanName, FlowStep step) {
-        Map<String, List<Integer>> behaviour = fetchBehaviour(functionality, step);
-        String stepName = step.getName();
-
-        if (behaviour.containsKey(stepName)) {
-            int delayAfterValue = behaviour.get(stepName).get(2);
-            delay(spanName, stepName, delayAfterValue, false);
-            logStep(spanName, stepName, behaviour.get(stepName));
-            return delayAfterValue;
-        }
-
-        return 0;
-    }
-
-    // **************************
-    // * --- Report Logging --- *
-    // **************************
-
-    // --- Private Helpers ---
-
-    private void logStep(String funcName, String stepName, List<Integer> stepBehaviour) {
-        StringBuilder report = new StringBuilder();
-        StringBuilder colorReport = new StringBuilder();
-
-        report.append("Functionality: ").append(funcName).append("\n");
-        colorReport.append("Functionality: ").append(funcName).append("\n");
-
-        report.append("Step: ").append(stepName).append("\n");
-        colorReport.append("Step: ").append(stepName).append("\n");
-
-        report.append("Behaviour: ").append(stepBehaviour).append("\n");
-        colorReport.append("Behaviour: ").append(stepBehaviour).append("\n");
-
-        logger.info(colorReport.toString());
-        appendToReport(report.toString());
-    }
-
-    private void appendToReport(String content) {
-
-        if (directory == null) {
-            return;
-        }
-        if (content == null || content.isEmpty()) {
-            return;
-        }
-
-        Path filePath = Paths.get(directory, REPORT_FILE);
-        try (BufferedWriter writer = Files.newBufferedWriter(filePath,
-                java.nio.file.StandardOpenOption.CREATE,
-                java.nio.file.StandardOpenOption.APPEND)) {
-            writer.write(content);
-            writer.newLine();
-        } catch (IOException e) {
-            System.err.println("Failed to write to file: " + filePath);
-            e.printStackTrace();
-        }
-    }
-
-    // --- Public Methods ---
-
-    public String getReport() {
-        if (directory == null) {
-            return "";
-        }
-        Path filePath = Paths.get(directory, REPORT_FILE);
-        if (!Files.exists(filePath)) {
-            return "";
-        }
-        try {
-            return Files.readString(filePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "";
-        }
-    }
-
-    public void cleanReportFile() {
-        if (directory == null) {
-            System.out.println("Directory not set. Please set the directory first.");
-            return;
-        }
-        Path filePath = Paths.get(directory, REPORT_FILE);
-        try {
-            Files.writeString(filePath, "", StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException e) {
-            System.err.println("Failed to clean file: " + filePath);
-            e.printStackTrace();
-        }
     }
 }
