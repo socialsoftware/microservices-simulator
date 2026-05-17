@@ -38,19 +38,21 @@ class FullSweepNetworkUser(HttpUser):
 
     @staticmethod
     def validate_full_sweep(report):
-        if not report or "Functionality" not in report:
+        if not report or "on command" not in report:
             logging.error("### >> FAIL: Report is empty or invalid.")
             return False
 
-        errors = []
-        zero_delays = re.findall(r"(\w+)=\[0,\s*0,\s*0\]", report)
-        if zero_delays:
-            errors.append(f"Steps with zero delay: {set(zero_delays)}")
+        # Ignore these commands because they belong to version service which is not part of placement
+        ignored_commands = {"IncrementVersionCommand", "GetNextVersionCommand"}
 
-        non_defined = re.findall(r"Non Defined Steps: \[(.+)\]", report)
-        for nd in non_defined:
-            if nd.strip():
-                errors.append(f"Non Defined Steps detected: [{nd}]")
+        errors = []
+        # Check for commands with all zero delays: Fault [0] | Before [0ms] | After [0ms]
+        zero_delays = re.findall(
+            r"Impairing\s+\w+\n\s*>>\s*on\s+command\s+(\w+)\s+\([^)]+\):\s+Fault\s+\[0\]\s+\|\s+Before\s+\[0ms\]\s+\|\s+After\s+\[0ms\]", report)
+        zero_delays = [
+            command for command in zero_delays if command not in ignored_commands]
+        if zero_delays:
+            errors.append(f"Commands with zero delay: {set(zero_delays)}")
 
         if errors:
             for err in errors:
