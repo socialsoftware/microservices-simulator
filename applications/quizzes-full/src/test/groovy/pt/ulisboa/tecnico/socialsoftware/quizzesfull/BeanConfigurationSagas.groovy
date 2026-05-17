@@ -77,6 +77,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.no
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.factories.SagasTournamentFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.repositories.TournamentCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.messaging.TournamentCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.service.TournamentService
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -435,5 +438,21 @@ class BeanConfigurationSagas {
     @Bean
     TournamentCustomRepositorySagas tournamentCustomRepositorySagas() {
         return new TournamentCustomRepositorySagas()
+    }
+
+    // Tournament — session 2.8.b
+    @Bean
+    TournamentService tournamentService(SagaUnitOfWorkService unitOfWorkService, TournamentCustomRepositorySagas tournamentRepository) {
+        return new TournamentService(unitOfWorkService, tournamentRepository)
+    }
+
+    @Bean
+    TournamentCommandHandler tournamentCommandHandler() {
+        return new TournamentCommandHandler()
+    }
+
+    @Bean
+    TournamentFunctionalities tournamentFunctionalities() {
+        return new TournamentFunctionalities()
     }
 }

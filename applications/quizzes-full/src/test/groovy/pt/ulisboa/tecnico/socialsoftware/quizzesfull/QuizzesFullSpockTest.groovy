@@ -25,6 +25,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.QuizAnswerDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.functionalities.QuizAnswerFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.TournamentDto
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 
 class QuizzesFullSpockTest extends SpockTest {
 
@@ -78,6 +80,9 @@ class QuizzesFullSpockTest extends SpockTest {
     @Autowired(required = false)
     protected pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.service.QuizAnswerService quizAnswerService
 
+    @Autowired(required = false)
+    protected TournamentFunctionalities tournamentFunctionalities
+
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
         def scriptDir = "groovy/" + this.class.simpleName
@@ -129,5 +134,12 @@ class QuizzesFullSpockTest extends SpockTest {
 
     QuizAnswerDto createQuizAnswer(Integer quizId, Integer userId) {
         return quizAnswerFunctionalities.createQuizAnswer(quizId, userId)
+    }
+
+    TournamentDto createTournament(Integer executionId, Integer creatorId,
+                                    List<Integer> topicIds, Integer numberOfQuestions,
+                                    LocalDateTime startTime, LocalDateTime endTime) {
+        return tournamentFunctionalities.createTournament(
+                executionId, creatorId, topicIds, numberOfQuestions, startTime, endTime)
     }
 }

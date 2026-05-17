@@ -71,6 +71,9 @@ public final class QuizzesFullErrorMessage {
             "No quiz answer found for the given quiz and student.";
 
     // Tournament
+    public static final String TOURNAMENT_TOPIC_COURSE_MISMATCH =
+            "Topic %d does not belong to the course of execution %d.";
+
     public static final String TOURNAMENT_START_BEFORE_END_TIME =
             "Tournament startTime must be before endTime.";
     public static final String TOURNAMENT_UNIQUE_AS_PARTICIPANT =

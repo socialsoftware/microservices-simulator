@@ -64,7 +64,9 @@ public class QuizService {
         newQuiz.setAvailableDate(availableDate);
         newQuiz.setConclusionDate(conclusionDate);
         newQuiz.setResultsDate(resultsDate);
-        newQuiz.setQuestions(questions);
+        if (questions != null) {
+            newQuiz.setQuestions(questions);
+        }
         unitOfWorkService.registerChanged(newQuiz, unitOfWork);
     }
 
