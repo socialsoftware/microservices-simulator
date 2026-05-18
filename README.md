@@ -3,6 +3,22 @@
 The artifact supports the test of business logic of a microservices application designed on the concept of Domain-Driven
 Design Aggregate and using several transactional models.
 
+## Verifier Docs Site
+
+The verifier implementation knowledge base can be served from the repository root as a private MkDocs Material site:
+
+```bash
+./scripts/verifier-docs serve
+```
+
+The preview binds to `0.0.0.0:8000` by default for private remote reading over Tailscale. Build the static site with:
+
+```bash
+./scripts/verifier-docs build
+```
+
+The static output is generated under `target/verifier-docs-site/`.
+
 The currently supported transactional models are:
 
 * Eventual Consistency

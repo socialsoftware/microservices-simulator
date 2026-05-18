@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+set -eu
+
+CONFIG="mkdocs.verifier.yml"
+ADDRESS="${VERIFIER_DOCS_ADDR:-0.0.0.0:8000}"
+
+usage() {
+  printf 'Usage: %s serve|build\n' "$0" >&2
+  printf '  serve  Start verifier docs preview on %s. Override with VERIFIER_DOCS_ADDR.\n' "$ADDRESS" >&2
+  printf '  build  Build static verifier docs site into target/verifier-docs-site.\n' >&2
+}
+
+case "${1:-serve}" in
+  serve)
+    exec uvx --with mkdocs-material mkdocs serve -f "$CONFIG" -a "$ADDRESS"
+    ;;
+  build)
+    exec uvx --with mkdocs-material mkdocs build -f "$CONFIG"
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    usage
+    exit 2
+    ;;
+esac

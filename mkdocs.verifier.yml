@@ -1,0 +1,75 @@
+site_name: Verifier Knowledge Base
+site_description: Verifier implementation, roadmap, evidence, and thesis-support documentation.
+docs_dir: docs/verifiers-impl
+site_dir: target/verifier-docs-site
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.suggest
+nav:
+  - Start: README.md
+  - Reading Guide: reading-guide.md
+  - Glossary: glossary.md
+  - Thesis Claims Evidence Map: thesis-claims-evidence-map.md
+  - Current State: current-state.md
+  - Roadmap: roadmap.md
+  - Site Workflow: site-workflow.md
+  - Deep Dives:
+      - Dynamic Enrichment Overview: dynamic-enrichment-joining-explained.md
+      - Dynamic Enrichment Detailed Reference: dynamic-enrichment-joining-reference.md
+      - Dynamic Analysis Observability Investigation: dynamic-analysis-observability-investigation.md
+      - Verifier Pipeline Plain Explanation: verifier-pipeline-plain-explanation.md
+      - Test Analysis Saga Input Flow: test-analysis-saga-input-flow.md
+  - Decisions:
+      - Overview: decisions/index.md
+      - Saga Only Verifier Scope: decisions/2026-04-05-saga-only-verifier-scope.md
+      - Domain Service vs Coordination Facade: decisions/2026-04-06-domain-service-vs-coordination-facade.md
+      - HTML Report Archiving: decisions/2026-04-21-html-report-archiving.md
+      - Scenario Catalog Export Contract: decisions/2026-04-27-scenario-catalog-export-contract.md
+      - Hybrid Static Dynamic Key Binding: decisions/2026-04-28-hybrid-static-dynamic-key-binding.md
+      - Runtime Input Variant Attribution: decisions/2026-05-12-runtime-input-variant-attribution.md
+  - History:
+      - Engineering Log:
+          - Overview: implementation-log/index.md
+          - 2026 W20: implementation-log/2026-W20.md
+          - 2026 W18: implementation-log/2026-W18.md
+          - 2026 W17: implementation-log/2026-W17.md
+          - 2026 W16: implementation-log/2026-W16.md
+          - 2026 W15: implementation-log/2026-W15.md
+          - 2026 W14: implementation-log/2026-W14.md
+      - Advisor Meeting Notes:
+          - Overview: meeting-notes/index.md
+          - 2026 W21 Thesis Meeting: meeting-notes/2026-W21-thesis-meeting.md
+          - 2026 W20 Thesis Meeting: meeting-notes/2026-W20-thesis-meeting.md
+          - 2026 W19 Thesis Meeting: meeting-notes/2026-W19-thesis-meeting.md
+          - 2026 W18 Thesis Meeting: meeting-notes/2026-W18-thesis-meeting.md
+  - Archive and Handoff:
+      - Overview: archive/index.md
+      - Legacy Notes: archive/legacy-notes/README.md
+      - Parser and Dummyapp: archive/legacy-notes/2026-03-28-parser-and-dummyapp.md
+      - Saga Construction Recipe Extraction Spec: archive/legacy-notes/saga-construction-recipe-extraction-spec.md
+      - Scenario Generator Pending Improvements: archive/legacy-notes/scenario-generator-pending-improvements.md
+      - Scenario Catalog Follow-up Prompt: scenario-catalog-followup-prompt.md
+plugins:
+  - search
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
