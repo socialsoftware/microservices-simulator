@@ -2,6 +2,10 @@
 
 Last updated: 2026-05-12
 
+This page is the present-tense source of truth for verifier implementation status. Use it before relying on roadmap notes, weekly logs, meeting notes, decision records, or archived material.
+
+For terminology used here, especially scenario/input and dynamic-enrichment status labels, see [`glossary.md`](glossary.md).
+
 ## Scope
 
 The verifier module statically analyses simulator-based applications to extract the semantic structure needed for scenario generation.
