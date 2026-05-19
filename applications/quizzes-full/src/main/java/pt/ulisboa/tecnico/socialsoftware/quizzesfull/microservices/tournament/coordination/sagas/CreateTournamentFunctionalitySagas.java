@@ -22,6 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizType;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto;
 
 import java.time.LocalDateTime;
@@ -58,11 +59,18 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
         this.topicDtos = new ArrayList<>();
 
+        SagaStep validateDatesStep = new SagaStep("validateDatesStep", () -> {
+            if (startTime == null || endTime == null || !startTime.isBefore(endTime)) {
+                throw new QuizzesFullException(
+                        pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_START_BEFORE_END_TIME);
+            }
+        });
+
         SagaStep getExecutionStep = new SagaStep("getExecutionStep", () -> {
             GetExecutionByIdCommand cmd = new GetExecutionByIdCommand(
                     unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionId);
             this.executionDto = (ExecutionDto) commandGateway.send(cmd);
-        });
+        }, new ArrayList<>(Arrays.asList(validateDatesStep)));
 
         SagaStep getStudentStep = new SagaStep("getStudentStep", () -> {
             // P4a: throws COURSE_EXECUTION_STUDENT_NOT_FOUND if creator not enrolled
@@ -127,6 +135,7 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
             this.createdTournamentDto = (TournamentDto) commandGateway.send(cmd);
         }, new ArrayList<>(Arrays.asList(createQuizStep)));
 
+        this.workflow.addStep(validateDatesStep);
         this.workflow.addStep(getExecutionStep);
         this.workflow.addStep(getStudentStep);
         this.workflow.addStep(getCreatorUserStep);

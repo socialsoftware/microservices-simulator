@@ -5,7 +5,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
@@ -65,8 +65,13 @@ class DeleteTournamentTest extends QuizzesFullSpockTest {
         tournamentFunctionalities.deleteTournament(tournamentId)
 
         then:
-        def dto = tournamentFunctionalities.getTournamentById(tournamentId)
-        dto.state == AggregateState.DELETED
+        noExceptionThrown()
+
+        and: 'deleted tournament is no longer accessible'
+        when:
+        tournamentFunctionalities.getTournamentById(tournamentId)
+        then:
+        thrown(SimulatorException)
     }
 
     def "deleteTournament: success — cancelled tournament with no participants"() {
@@ -77,8 +82,13 @@ class DeleteTournamentTest extends QuizzesFullSpockTest {
         tournamentFunctionalities.deleteTournament(tournamentId)
 
         then:
-        def dto = tournamentFunctionalities.getTournamentById(tournamentId)
-        dto.state == AggregateState.DELETED
+        noExceptionThrown()
+
+        and: 'deleted tournament is no longer accessible'
+        when:
+        tournamentFunctionalities.getTournamentById(tournamentId)
+        then:
+        thrown(SimulatorException)
     }
 
     def "deleteTournament: TOURNAMENT_IS_CANCELED violation — cancelled tournament with participants"() {

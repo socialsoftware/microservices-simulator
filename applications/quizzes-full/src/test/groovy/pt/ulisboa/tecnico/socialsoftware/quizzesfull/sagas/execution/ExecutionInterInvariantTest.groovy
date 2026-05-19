@@ -5,6 +5,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.notification.handling.ExecutionEventHandling
@@ -35,8 +36,11 @@ class ExecutionInterInvariantTest extends QuizzesFullSpockTest {
         and: 'execution polls for delete user events'
         executionEventHandling.handleDeleteUserEvents()
 
-        then: 'student is removed from execution'
-        executionFunctionalities.getStudentByExecutionIdAndUserId(execution.aggregateId, user.aggregateId) == null
+        then: 'student is no longer enrolled — not found'
+        when:
+        executionFunctionalities.getStudentByExecutionIdAndUserId(execution.aggregateId, user.aggregateId)
+        then:
+        thrown(SimulatorException)
     }
 
     def "execution ignores DeleteUserEvent for unrelated user"() {

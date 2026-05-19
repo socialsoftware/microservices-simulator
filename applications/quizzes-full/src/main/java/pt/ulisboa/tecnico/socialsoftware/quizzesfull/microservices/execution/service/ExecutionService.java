@@ -19,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.agg
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionStudentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto;
 
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND;
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.INACTIVE_USER;
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.NO_DUPLICATE_COURSE_EXECUTION;
 
@@ -160,6 +161,6 @@ public class ExecutionService {
                 .filter(s -> s.getUserAggregateId().equals(userId))
                 .findFirst()
                 .map(ExecutionStudentDto::new)
-                .orElse(null);
+                .orElseThrow(() -> new QuizzesFullException(COURSE_EXECUTION_STUDENT_NOT_FOUND));
     }
 }

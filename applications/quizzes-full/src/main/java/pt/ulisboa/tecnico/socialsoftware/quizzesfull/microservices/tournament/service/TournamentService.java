@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_IS_CANCELED;
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_TOPIC_COURSE_MISMATCH;
 
 @Service
@@ -59,8 +60,7 @@ public class TournamentService {
         // [P3] TOPIC_COURSE_EXECUTION: all topics must belong to the execution's course
         for (TopicDto topic : topicDtos) {
             if (!topic.getCourseId().equals(executionCourseId)) {
-                throw new QuizzesFullException(TOURNAMENT_TOPIC_COURSE_MISMATCH,
-                        topic.getAggregateId(), executionAggregateId);
+                throw new QuizzesFullException(TOURNAMENT_TOPIC_COURSE_MISMATCH);
             }
         }
 
@@ -128,6 +128,9 @@ public class TournamentService {
     public void cancelTournament(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
         Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(
                 tournamentAggregateId, unitOfWork);
+        if (Boolean.TRUE.equals(oldTournament.getCancelled())) {
+            throw new QuizzesFullException(TOURNAMENT_IS_CANCELED);
+        }
         Tournament newTournament = tournamentFactory.createTournamentCopy(oldTournament);
 
         newTournament.setCancelled(true);

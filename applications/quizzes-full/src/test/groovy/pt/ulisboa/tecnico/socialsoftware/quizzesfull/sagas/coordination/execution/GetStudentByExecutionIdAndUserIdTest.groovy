@@ -49,11 +49,11 @@ class GetStudentByExecutionIdAndUserIdTest extends QuizzesFullSpockTest {
         thrown(SimulatorException)
     }
 
-    def "getStudentByExecutionIdAndUserId: student not enrolled returns null"() {
+    def "getStudentByExecutionIdAndUserId: student not enrolled throws"() {
         when:
-        def result = executionFunctionalities.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId)
+        executionFunctionalities.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId)
 
         then:
-        result == null
+        thrown(SimulatorException)
     }
 }

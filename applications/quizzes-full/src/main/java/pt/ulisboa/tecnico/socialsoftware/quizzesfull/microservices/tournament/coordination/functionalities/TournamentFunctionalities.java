@@ -7,10 +7,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.DeleteTournamentFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.GetOpenTournamentsFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.GetTournamentByIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas;
 
 import java.time.LocalDateTime;
@@ -25,12 +26,22 @@ public class TournamentFunctionalities {
     @Autowired
     private CommandGateway commandGateway;
 
-    @Autowired
-    private TournamentService tournamentService;
-
     public TournamentDto getTournamentById(Integer tournamentId) {
-        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("getTournamentById");
-        return tournamentService.getTournamentById(tournamentId, unitOfWork);
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        GetTournamentByIdFunctionalitySagas saga = new GetTournamentByIdFunctionalitySagas(
+                unitOfWorkService, tournamentId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getTournamentDto();
+    }
+
+    public List<TournamentDto> getOpenTournaments(Integer executionId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        GetOpenTournamentsFunctionalitySagas saga = new GetOpenTournamentsFunctionalitySagas(
+                unitOfWorkService, executionId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getTournaments();
     }
 
     public TournamentDto createTournament(Integer executionId, Integer creatorId,

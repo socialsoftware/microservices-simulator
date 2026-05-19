@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.tournament.AddPart
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.tournament.CancelTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.tournament.CreateTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.tournament.DeleteTournamentCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.tournament.GetOpenTournamentsCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.tournament.UpdateTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.service.TournamentService;
@@ -31,6 +32,8 @@ public class TournamentCommandHandler extends CommandHandler {
         return switch (command) {
             case GetTournamentByIdCommand cmd -> tournamentService.getTournamentById(
                     cmd.getTournamentAggregateId(), cmd.getUnitOfWork());
+            case GetOpenTournamentsCommand cmd -> tournamentService.getOpenTournaments(
+                    cmd.getExecutionAggregateId(), cmd.getUnitOfWork());
             case CreateTournamentCommand cmd -> tournamentService.createTournament(
                     cmd.getExecutionAggregateId(), cmd.getExecutionVersion(), cmd.getExecutionCourseId(),
                     cmd.getCreatorAggregateId(), cmd.getCreatorName(), cmd.getCreatorUsername(), cmd.getCreatorVersion(),
