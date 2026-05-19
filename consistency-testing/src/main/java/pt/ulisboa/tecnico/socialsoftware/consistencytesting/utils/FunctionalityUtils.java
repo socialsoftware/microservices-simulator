@@ -1,55 +1,88 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import java.util.stream.Stream;
 
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.CompensationFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.Step;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 
 public class FunctionalityUtils {
 
+    /**
+     * Returns an immutable list of the workflow steps for the given functionality,
+     * in order according to the execution plan.
+     *
+     * @param func the workflow functionality
+     * @return an immutable list of flow steps
+     */
     public static List<FlowStep> getSteps(WorkflowFunctionality func) {
         Workflow workflow = func.getWorkflow();
         ExecutionPlan plan = workflow.getOrCreateExecutionPlan();
-        return Objects.requireNonNull(plan.getPlan());
+        ArrayList<FlowStep> funcSteps = Objects.requireNonNull(plan.getPlan());
+        return List.copyOf(funcSteps);
     }
 
-    public static Set<FlowStep> getCurrentCompensationSteps(WorkflowFunctionality func) {
+    public static FlowStep createCommitStep(WorkflowFunctionality func, SagaUnitOfWorkService uowService) {
+        if (func instanceof CompensationFunctionality) {
+            throw new IllegalArgumentException("Cannot create a commit step for a compensation functionality");
+        }
+
         Workflow workflow = func.getWorkflow();
         if (!(workflow.getUnitOfWork() instanceof SagaUnitOfWork uow)) {
             throw new IllegalArgumentException(
-                    "Cannot retrive compensation plan from a unit of work of type %s expected type was %s"
+                    "Cannot retrive commit step from a unit of work of type %s expected type was %s"
                             .formatted(workflow.getUnitOfWork().getClass(), SagaUnitOfWork.class));
         }
 
-        Set<FlowStep> compensationSteps = new HashSet<>();
+        // TODO should the commit step depend on all steps or just the last one?
+        Runnable commitAction = () -> uowService.commit(uow);
+        var stepDeps = new ArrayList<FlowStep>(getSteps(func));
+        var commitStep = new Step(getCommitStepName(func), commitAction, stepDeps);
 
-        List<Runnable> registeredCompensations = uow.getRegisteredCompensations();
-        for (Runnable compensation : registeredCompensations.reversed()) {
-            // compensation index goes from highest index to 0 (representing the order in
-            // which the compensations are being created)
-            int compensationIndex = (registeredCompensations.size() - 1) - compensationSteps.size();
-            String compensationStepName = getCompensationStepName(compensationIndex);
+        // workflow needs the commit step so it can execute it with executeUntilStep
+        workflow.addStep(commitStep);
+        return commitStep;
+    }
 
-            // TODO do steps need to depend on all the previous or just the last?
-            // should depend on all the previous, instead of just depending on the single
-            // previous step
-            var dependencies = new ArrayList<FlowStep>(compensationSteps);
+    public static FlowStep createAbortStep(
+            CompensationFunctionality compensationFunc,
+            SagaUnitOfWorkService uowService) {
 
-            // using Step instead of SagaStep to guarantee the assumption that compensation
-            // steps cannot have compensations themselves
-            var compensationStep = new Step(compensationStepName, compensation, dependencies);
-            compensationSteps.add(compensationStep);
+        Workflow workflow = compensationFunc.getWorkflow();
+        if (!(workflow.getUnitOfWork() instanceof SagaUnitOfWork uow)) {
+            throw new IllegalArgumentException(
+                    "Cannot retrive abort step from a unit of work of type %s expected type was %s"
+                            .formatted(workflow.getUnitOfWork().getClass(), SagaUnitOfWork.class));
         }
 
-        return compensationSteps;
+        // TODO should the abort step depend on all steps or just the last one?
+        Runnable abortAction = () -> uowService.abort(uow);
+        var stepDeps = new ArrayList<FlowStep>(getSteps(compensationFunc));
+        var abortStep = new Step(getAbortStepName(compensationFunc), abortAction, stepDeps);
+
+        // workflow needs the abort step so it can execute it with executeUntilStep
+        workflow.addStep(abortStep);
+        return abortStep;
+    }
+
+    // TODO review if this function makes sense, or is hiding a desing issue
+    public static List<String> getStepsWithCommitNames(WorkflowFunctionality func) {
+        var stepNamesStream = getSteps(func).stream().map(FlowStep::getName);
+        return Stream.concat(stepNamesStream, Stream.of(getCommitStepName(func))).toList();
+    }
+
+    // TODO review if this function makes sense, or is hiding a desing issue
+    public static List<String> getCompensationStepsWithAbortNames(CompensationFunctionality compensationFunc) {
+        var compensationStepNamesStream = getSteps(compensationFunc).stream().map(FlowStep::getName);
+        return Stream.concat(compensationStepNamesStream, Stream.of(getAbortStepName(compensationFunc))).toList();
     }
 
     /**
@@ -63,5 +96,15 @@ public class FunctionalityUtils {
     public static String getCompensationStepName(int compensationIndex) {
         // TODO could be extended with original step or func name to be more descriptive
         return "compensate-step-" + compensationIndex;
+    }
+
+    public static String getCommitStepName(WorkflowFunctionality func) {
+        // TODO should be changed for funcId or something uniquely identifiable
+        return "%s-commit".formatted(func.getClass().getSimpleName());
+    }
+
+    public static String getAbortStepName(WorkflowFunctionality func) {
+        // TODO should be changed for funcId or something uniquely identifiable
+        return "%s-abort".formatted(func.getClass().getSimpleName());
     }
 }

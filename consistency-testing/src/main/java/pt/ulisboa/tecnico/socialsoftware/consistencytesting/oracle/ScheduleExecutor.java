@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
+import java.util.stream.Stream;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.FunctionalityUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
@@ -53,15 +54,25 @@ class ScheduleExecutor {
 
     private void addFunctionality(WorkflowFunctionality func) {
         functionalities.add(func);
-        var workflowSteps = FunctionalityUtils.getSteps(func);
+        List<FlowStep> funcSteps = FunctionalityUtils.getSteps(func);
 
-        intraDependencies.merge(StepDependencies.of(workflowSteps));
+        if (func instanceof CompensationFunctionality compensationFunc) {
+            // add abort step to compensation functionalities
+            FlowStep abortStep = FunctionalityUtils.createAbortStep(compensationFunc, uowService);
+            funcSteps = Stream.concat(funcSteps.stream(), Stream.of(abortStep)).toList();
+        } else {
+            // add commit step to non-compensation functionalities
+            FlowStep commitStep = FunctionalityUtils.createCommitStep(func, uowService);
+            funcSteps = Stream.concat(funcSteps.stream(), Stream.of(commitStep)).toList();
+        }
 
-        for (FlowStep step : workflowSteps) {
+        intraDependencies.merge(StepDependencies.of(funcSteps));
+
+        for (FlowStep step : funcSteps) {
             stepFunctionalityMap.put(step, func);
         }
 
-        allStepsFound.addAll(workflowSteps);
+        allStepsFound.addAll(funcSteps);
     }
 
     public TestResult execute() {
@@ -87,6 +98,9 @@ class ScheduleExecutor {
                     // unwrap CompletionExceptions if they wrap Exception(excludes Throwables, null)
                     e = cause;
                 }
+
+                // TODO if compensation steps can fail (e.g., exception), needs to be handled
+                // TODO can the commit step fail? should it run abort() with compensations?
 
                 stepExceptionsMap.put(step, e);
                 e.printStackTrace();
