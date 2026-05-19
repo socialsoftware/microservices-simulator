@@ -444,6 +444,20 @@ class <Functionality>FaultTest extends <AppName>SpockTest {
 
 ---
 
+## Test Profile — Serialization Behavior
+
+When `local.messaging.serialize: true` is set in the test profile (typically in `application-test-sagas.properties`), commands and their responses are serialized/deserialized through Jackson. This affects how `CommandResponse.result` — which is declared as `Object` — round-trips.
+
+### List returns and type erasure
+
+`CommandResponse.result` is typed as `Object`. When a read saga stores a `List<XxxDto>` in that field, Jackson cannot embed per-element `@class` metadata (the `isCollectionLikeType()` guard prevents it). On deserialization, each element comes back as a `LinkedHashMap` rather than the expected `XxxDto`.
+
+**The fix is in `MessagingObjectMapperProvider.useForType()`:** the method must return `true` when `raw == Object.class`. This tells Jackson to embed `@class` on any value stored in an `Object`-typed field, which in turn enables element-level type information even inside an untyped collection. Without this fix, any read saga that returns a list via `CommandResponse.result` will fail at deserialization with a `ClassCastException` (`LinkedHashMap` cannot be cast to `XxxDto`).
+
+**When this matters:** Only when `local.messaging.serialize: true` is active. Tests that run without this flag are unaffected; production code (which does not serialize locally) is unaffected.
+
+---
+
 ## T6 — Async Test
 
 **Purpose:** Verify that multiple concurrent invocations of the same operation (fire-and-forget,

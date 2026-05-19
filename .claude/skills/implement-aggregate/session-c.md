@@ -50,15 +50,9 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 - Body: fetch aggregate via `{Aggregate}CustomRepositorySagas.getLatestVersion(...)`, map to `{Aggregate}Dto`, return it
 - Throw `{AppClass}Exception` with `AGGREGATE_NOT_FOUND` (or domain-specific constant) if not found
 - If the read joins a foreign aggregate: fetch the foreign aggregate's DTO via its service and include in the response
-- **List-return reads**: If the read returns a collection (e.g., all topics for a course), the service method iterates all aggregate instances. When no suitable query method exists on `{Aggregate}CustomRepository`, add `findXxxIdsBy{Field}(Integer fieldValue)` to the interface and implement it in `{Aggregate}CustomRepositorySagas` via:
-  ```java
-  jpaRepo.findAll().stream()
-      .filter(a -> fieldValue.equals(a.get{Field}()))
-      .map({Aggregate}::getAggregateId)
-      .distinct()
-      .collect(Collectors.toList())
-  ```
-  The service method then maps each id to a DTO via `aggregateLoadAndRegisterRead`.
+- **List-return reads**: If the read returns a collection (e.g., all open tournaments for an execution), the service method iterates all matching aggregate instances. Use a JPQL "latest-active-version" query rather than `jpaRepo.findAll()` — `findAll()` returns every historical version, not just the current one. Add `findAllLatestActive()` (or a narrower variant) to the JPA repository interface and call it from `{Aggregate}CustomRepositorySagas`. See `docs/concepts/service.md` — "Custom Repository — Latest-Active-Version Query" for the JPQL pattern.
+
+  The service method then maps each matching aggregate to a DTO via `aggregateLoadAndRegisterRead`.
 
 ### One `{Query}Command.java` per read functionality
 
@@ -81,6 +75,10 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySag
 - No compensation needed (reads are non-mutating)
 - See `docs/concepts/sagas.md` — "Read Functionality Sagas" section for the full class template
 
+> **One-step vs two-step read saga decision:**
+> - **One step** — when every filter criterion is stored directly on the aggregate (e.g., `executionAggregateId` is a field on `Tournament`). The saga sends one command and returns the result; no foreign-ID resolution is needed.
+> - **Two steps** — when the filter parameter is a foreign aggregate's ID that must be resolved to a different field before the primary query can run (e.g., `executionId → courseAggregateId`).
+>
 > **Two-step read saga:** If the read's filter parameter is a foreign aggregate's ID that must be resolved before the primary read command can be sent (e.g., `executionId → courseAggregateId`), use a two-step saga instead:
 > - Step 1: fetch the foreign aggregate DTO (plain read step, no compensation needed)
 > - Step 2: send the primary read command using the resolved field from step 1 (declare step 1 as a dependency)

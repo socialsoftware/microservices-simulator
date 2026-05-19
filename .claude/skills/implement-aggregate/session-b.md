@@ -97,10 +97,11 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Op}FunctionalitySagas.
 - Extends `FunctionalitySagas` (or the appropriate saga base class from the simulator core)
 - Steps are defined as `SagaStep` instances in the constructor or `defineSteps()` method
 - **Step ordering** (typical pattern):
-  1. Data-assembly steps: fetch DTOs from upstream aggregates (required for P4a and P3 DTO-check rules listed in plan.md cross-aggregate prerequisites)
-  2. Lock step: call `setForbiddenStates(aggregate, [...states...])` on the primary aggregate — use every `SagaState` value except `NOT_IN_SAGA`
-  3. Execute step: send the command to `{Aggregate}CommandHandler`
-  4. *(For multi-aggregate sagas)* Steps for other aggregates involved
+  1. *(Conditional)* **Validate-dates step** — if the saga creates or updates an aggregate with `startTime`/`endTime` fields **and** a later step also creates/updates a downstream aggregate that independently validates dates (e.g., a Quiz), add a dedicated `validateDatesStep` as the very first step to check date constraints on the primary aggregate's DTO. If you omit this step, the downstream aggregate's date invariant fires first and masks the primary aggregate's date error, making the wrong exception surface to tests.
+  2. Data-assembly steps: fetch DTOs from upstream aggregates (required for P4a and P3 DTO-check rules listed in plan.md cross-aggregate prerequisites)
+  3. Lock step: call `setForbiddenStates(aggregate, [...states...])` on the primary aggregate — use every `SagaState` value except `NOT_IN_SAGA`
+  4. Execute step: send the command to `{Aggregate}CommandHandler`
+  5. *(For multi-aggregate sagas)* Steps for other aggregates involved
 - Each data-assembly step that enforces a **P4a rule**: if the upstream command/query fails (throws), the prerequisite is considered violated — no extra guard needed in the service
 - **R8 — upstream-only commands**: sagas for this aggregate may only send commands to aggregates that are upstream (i.e., aggregates this one depends on, not aggregates that depend on it). Never dispatch a write command to a downstream aggregate from within this aggregate's sagas.
 - Each `executeStep` that can fail has a matching `compensateStep` that rolls back the change

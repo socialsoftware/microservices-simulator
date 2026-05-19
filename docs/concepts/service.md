@@ -194,6 +194,41 @@ Rules:
 
 ---
 
+## Exception-Throw Convention
+
+**Always throw exceptions with the raw error-message constant and no format arguments**, unless the constant string contains a `%` placeholder that must be filled in and the test assertion checks the formatted value.
+
+```java
+// Correct — test can assert: ex.message == TOURNAMENT_ALREADY_CANCELLED
+throw new QuizzesFullException(TOURNAMENT_ALREADY_CANCELLED);
+
+// Avoid unless the test expects the formatted string, not the constant
+throw new QuizzesFullException(TOURNAMENT_ALREADY_CANCELLED, tournamentId);
+```
+
+**Why:** Test assertions use `ex.message == CONSTANT` (raw format string comparison). When a format argument is passed, `getMessage()` returns the interpolated string (e.g., `"Tournament 42 is already cancelled"`), not the literal constant `"TOURNAMENT_ALREADY_CANCELLED"`, breaking the equality check. Only use format args when the assertion explicitly verifies the interpolated value.
+
+---
+
+## Custom Repository — Latest-Active-Version Query
+
+`findAll()` (or `jpaRepo.findAll()`) returns **all versions** of every aggregate, including historical, superseded, and soft-deleted ones. Any bulk read that must reflect current state must use a "latest active version per aggregateId" query.
+
+**JPQL pattern:**
+
+```java
+@Query("select t from Tournament t " +
+       "where t.state = 'ACTIVE' " +
+       "and t.version = (select max(t2.version) from Tournament t2 where t2.aggregateId = t.aggregateId)")
+List<Tournament> findAllLatestActive();
+```
+
+**When to add this:** Whenever a custom repository method performs a bulk read (returns multiple aggregate instances) — e.g., `findAll`, `findAllByExecutionId`, `findAllOpen`. Scoped reads via `aggregateLoadAndRegisterRead` are unaffected (they already load the latest version).
+
+Add the JPQL method to `{Aggregate}Repository.java` (JPA repo interface) and call it from `{Aggregate}CustomRepositorySagas` — never call `jpaRepo.findAll()` directly in bulk-read implementations.
+
+---
+
 ## P3 Guard Placement
 
 P3 guards (own-table reads, uniqueness checks, and DTO field validation from preceding saga steps) belong at the **top** of the service method, before any `createFromExisting` call. Throwing at this point ensures no aggregate is dirtied before the guard fires. See [`rule-enforcement-patterns.md`](rule-enforcement-patterns.md) for the full taxonomy.
