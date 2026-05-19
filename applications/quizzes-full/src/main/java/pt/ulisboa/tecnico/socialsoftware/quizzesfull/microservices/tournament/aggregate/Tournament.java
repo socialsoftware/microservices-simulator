@@ -5,6 +5,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.subscribe.TournamentSubscribesAnonymizeStudent;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteUser;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.subscribe.TournamentSubscribesInvalidateQuiz;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.subscribe.TournamentSubscribesQuizAnswerQuestionAnswer;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateStudentName;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -247,7 +255,32 @@ public abstract class Tournament extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> subscriptions = new HashSet<>();
+        // CREATOR_EXISTS / PARTICIPANT_EXISTS
+        subscriptions.add(new TournamentSubscribesDeleteUser(creatorAggregateId, creatorVersion));
+        subscriptions.add(new TournamentSubscribesUpdateStudentName(creatorAggregateId, creatorVersion));
+        subscriptions.add(new TournamentSubscribesAnonymizeStudent(creatorAggregateId, creatorVersion));
+        for (TournamentParticipant p : participants) {
+            subscriptions.add(new TournamentSubscribesDeleteUser(p.getParticipantAggregateId(), p.getParticipantVersion()));
+            subscriptions.add(new TournamentSubscribesUpdateStudentName(p.getParticipantAggregateId(), p.getParticipantVersion()));
+            subscriptions.add(new TournamentSubscribesAnonymizeStudent(p.getParticipantAggregateId(), p.getParticipantVersion()));
+        }
+        // TOPIC_EXISTS
+        for (TournamentTopic topic : topics) {
+            subscriptions.add(new TournamentSubscribesUpdateTopic(topic));
+            subscriptions.add(new TournamentSubscribesDeleteTopic(topic));
+        }
+        // COURSE_EXECUTION_EXISTS
+        subscriptions.add(new TournamentSubscribesDeleteCourseExecution(this));
+        // QUIZ_EXISTS
+        subscriptions.add(new TournamentSubscribesInvalidateQuiz(this));
+        // QUIZ_ANSWER_EXISTS — only for participants with a known quiz answer ID
+        for (TournamentParticipant p : participants) {
+            if (p.getQuizAnswer() != null && p.getQuizAnswer().getQuizAnswerAggregateId() != null) {
+                subscriptions.add(new TournamentSubscribesQuizAnswerQuestionAnswer(p.getQuizAnswer()));
+            }
+        }
+        return subscriptions;
     }
 
     public Integer getExecutionAggregateId() { return executionAggregateId; }

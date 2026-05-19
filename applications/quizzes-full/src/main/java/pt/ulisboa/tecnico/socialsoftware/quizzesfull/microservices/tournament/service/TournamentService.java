@@ -159,4 +159,119 @@ public class TournamentService {
                 .map(tournamentFactory::createTournamentDto)
                 .collect(Collectors.toList());
     }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeUserFromTournamentByEvent(Integer tournamentAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        Tournament copy = tournamentFactory.createTournamentCopy(old);
+        if (copy.getCreatorAggregateId().equals(userAggregateId)) {
+            copy.setParticipants(new HashSet<>());
+            copy.remove();
+        } else {
+            copy.getParticipants().stream()
+                    .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
+                    .findFirst()
+                    .ifPresent(copy::removeParticipant);
+        }
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateStudentNameByEvent(Integer tournamentAggregateId, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
+        Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        Tournament copy = tournamentFactory.createTournamentCopy(old);
+        if (copy.getCreatorAggregateId().equals(userAggregateId)) {
+            copy.setCreatorName(name);
+        }
+        copy.getParticipants().stream()
+                .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
+                .forEach(p -> p.setParticipantName(name));
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void anonymizeStudentByEvent(Integer tournamentAggregateId, Integer userAggregateId, String name, String username, UnitOfWork unitOfWork) {
+        Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        Tournament copy = tournamentFactory.createTournamentCopy(old);
+        if (copy.getCreatorAggregateId().equals(userAggregateId)) {
+            copy.setCreatorName(name);
+            copy.setCreatorUsername(username);
+        }
+        copy.getParticipants().stream()
+                .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
+                .forEach(p -> {
+                    p.setParticipantName(name);
+                    p.setParticipantUsername(username);
+                });
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateTopicNameByEvent(Integer tournamentAggregateId, Integer topicAggregateId, String topicName, UnitOfWork unitOfWork) {
+        Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        Tournament copy = tournamentFactory.createTournamentCopy(old);
+        copy.getTopics().stream()
+                .filter(t -> t.getTopicAggregateId().equals(topicAggregateId))
+                .forEach(t -> t.setTopicName(topicName));
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeTopicByEvent(Integer tournamentAggregateId, Integer topicAggregateId, UnitOfWork unitOfWork) {
+        Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        Tournament copy = tournamentFactory.createTournamentCopy(old);
+        copy.getTopics().stream()
+                .filter(t -> t.getTopicAggregateId().equals(topicAggregateId))
+                .findFirst()
+                .ifPresent(copy::removeTopic);
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeTournamentByExecutionByEvent(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
+        Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        Tournament copy = tournamentFactory.createTournamentCopy(old);
+        copy.setParticipants(new HashSet<>());
+        copy.remove();
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeTournamentByQuizByEvent(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
+        Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        Tournament copy = tournamentFactory.createTournamentCopy(old);
+        copy.setParticipants(new HashSet<>());
+        copy.remove();
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateParticipantAnsweredByEvent(Integer tournamentAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        Tournament copy = tournamentFactory.createTournamentCopy(old);
+        copy.getParticipants().stream()
+                .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
+                .findFirst()
+                .ifPresent(p -> {
+                    p.getQuizAnswer().setAnswered(true);
+                    p.getQuizAnswer().setNumberOfAnswered(p.getQuizAnswer().getNumberOfAnswered() + 1);
+                });
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void setParticipantQuizAnswer(Integer tournamentAggregateId, Integer userAggregateId,
+                                          Integer quizAnswerAggregateId, Long quizAnswerVersion,
+                                          UnitOfWork unitOfWork) {
+        Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        Tournament copy = tournamentFactory.createTournamentCopy(old);
+        copy.getParticipants().stream()
+                .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
+                .findFirst()
+                .ifPresent(p -> {
+                    p.getQuizAnswer().setQuizAnswerAggregateId(quizAnswerAggregateId);
+                    p.getQuizAnswer().setQuizAnswerVersion(quizAnswerVersion);
+                });
+        unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
 }

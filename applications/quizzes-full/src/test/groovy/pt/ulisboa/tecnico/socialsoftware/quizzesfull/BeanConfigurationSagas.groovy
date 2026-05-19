@@ -77,8 +77,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.no
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.factories.SagasTournamentFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.repositories.TournamentCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.TournamentRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.eventProcessing.TournamentEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.messaging.TournamentCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.handling.TournamentEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.handling.handlers.TournamentEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.service.TournamentService
 
 @TestConfiguration
@@ -427,6 +431,22 @@ class BeanConfigurationSagas {
     @Bean
     QuizAnswerEventProcessing quizAnswerEventProcessing() {
         return new QuizAnswerEventProcessing()
+    }
+
+    // Tournament — session 2.8.d
+    @Bean
+    TournamentEventHandling tournamentEventHandling() {
+        return new TournamentEventHandling()
+    }
+
+    @Bean
+    TournamentEventHandler tournamentEventHandler(TournamentRepository tournamentRepository) {
+        return new TournamentEventHandler(tournamentRepository)
+    }
+
+    @Bean
+    TournamentEventProcessing tournamentEventProcessing() {
+        return new TournamentEventProcessing()
     }
 
     // Tournament — session 2.8.a

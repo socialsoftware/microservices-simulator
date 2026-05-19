@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.TournamentDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas;
@@ -25,6 +26,9 @@ public class TournamentFunctionalities {
 
     @Autowired
     private CommandGateway commandGateway;
+
+    @Autowired
+    private TournamentService tournamentService;
 
     public TournamentDto getTournamentById(Integer tournamentId) {
         String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
@@ -87,5 +91,53 @@ public class TournamentFunctionalities {
         DeleteTournamentFunctionalitySagas saga = new DeleteTournamentFunctionalitySagas(
                 unitOfWorkService, tournamentId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
+    }
+
+    public void removeUserFromTournamentByEvent(Integer tournamentId, Integer userAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("removeUserFromTournamentByEvent");
+        tournamentService.removeUserFromTournamentByEvent(tournamentId, userAggregateId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void updateStudentNameByEvent(Integer tournamentId, Integer userAggregateId, String name) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateStudentNameByEvent");
+        tournamentService.updateStudentNameByEvent(tournamentId, userAggregateId, name, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void anonymizeStudentByEvent(Integer tournamentId, Integer userAggregateId, String name, String username) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("anonymizeStudentByEvent");
+        tournamentService.anonymizeStudentByEvent(tournamentId, userAggregateId, name, username, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void updateTopicNameByEvent(Integer tournamentId, Integer topicAggregateId, String topicName) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateTopicNameByEvent");
+        tournamentService.updateTopicNameByEvent(tournamentId, topicAggregateId, topicName, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void removeTopicByEvent(Integer tournamentId, Integer topicAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("removeTopicByEvent");
+        tournamentService.removeTopicByEvent(tournamentId, topicAggregateId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void removeTournamentByExecutionByEvent(Integer tournamentId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("removeTournamentByExecutionByEvent");
+        tournamentService.removeTournamentByExecutionByEvent(tournamentId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void removeTournamentByQuizByEvent(Integer tournamentId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("removeTournamentByQuizByEvent");
+        tournamentService.removeTournamentByQuizByEvent(tournamentId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void updateParticipantAnsweredByEvent(Integer tournamentId, Integer userAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateParticipantAnsweredByEvent");
+        tournamentService.updateParticipantAnsweredByEvent(tournamentId, userAggregateId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
     }
 }
