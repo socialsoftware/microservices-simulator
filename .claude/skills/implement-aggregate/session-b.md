@@ -46,6 +46,8 @@ Produce every file listed in the plan.md `2.{N}.b` row. The authoritative file l
 > **Multi-word aggregate naming:** The value must equal `resolveServiceName(SagaXxx)`, which strips "Saga" from the aggregate's simple class name and lowercases the first character. For multi-word aggregates this is camelCase — e.g. `SagaQuizAnswer` → `"quizAnswer"`. Never use a shortened alias; mismatches cause silent bean-lookup failures that only appear at commit/abort time.
 
 > **Prerequisite — `Get{Aggregate}ByIdCommand`**: If `Get{Aggregate}ByIdCommand` does not yet exist (it may be planned for session-c), create it now. Write sagas that use a get-then-lock step require this read command in session-b. Also add `get{Aggregate}ById` to `{Aggregate}Service` (if not yet present) and a handler case for `Get{Aggregate}ByIdCommand` in `{Aggregate}CommandHandler` — missing either will cause a compile error even when the command class exists.
+>
+> **Recording this in plan.md:** After creating `Get{Aggregate}ByIdCommand` here, add a note in plan.md under the session-b row (or as a separate inline comment) stating that the command was already created in session-b. This prevents session-c from creating a duplicate when it encounters the command in the session-c file list.
 
 > **Prerequisite — Upstream count-manipulation commands**: If any saga for this aggregate sends an `Increment{Xxx}CountCommand` or `Decrement{Xxx}CountCommand` to an upstream aggregate's `CommandHandler`, verify that handler already routes the command. If the case is missing, add it before running tests — an unrouted command silently does nothing and will cause invariant violations or state corruption that are difficult to diagnose after the fact.
 

@@ -121,6 +121,35 @@ public void removeCourseExecution(Integer executionAggregateId, UnitOfWork unitO
 }
 ```
 
+### Mutate method with optional sub-collection parameter
+
+When a saga updates an aggregate that contains a sub-collection, but cannot reconstruct the full sub-objects from the DTOs available at that point (e.g. the DTO only carries IDs, not full objects), pass `null` for the sub-collection parameter and guard the setter with an explicit null check:
+
+```java
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public void updateTournament(Integer tournamentAggregateId, TournamentDto tournamentDto,
+                             Set<QuizQuestion> quizQuestions,  // may be null
+                             UnitOfWork unitOfWork) {
+    Tournament oldTournament = (Tournament) unitOfWorkService
+            .aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+    Tournament newTournament = tournamentFactory.createTournamentCopy(oldTournament);
+
+    if (tournamentDto.getStartTime() != null) {
+        newTournament.setStartTime(tournamentDto.getStartTime());
+    }
+    // ...
+    if (quizQuestions != null) {          // skip if caller couldn't reconstruct sub-objects
+        newTournament.setQuizQuestions(quizQuestions);
+    }
+
+    unitOfWorkService.registerChanged(newTournament, unitOfWork);
+}
+```
+
+**When to use:** The calling saga fetches an upstream aggregate's DTO but that DTO only returns IDs for sub-objects (e.g. `QuizDto.questionIds`). Fetching each sub-object individually would require N extra command steps and is disproportionate when the update intent covers only scalar fields. Passing `null` and guarding the setter keeps the update intent explicit without polluting the saga with unnecessary reads.
+
+**When not to use:** If the sub-collection update is the primary intent of the operation (the caller always has the data), make the parameter non-null and remove the guard — a missing `null` check is then a silent data loss bug.
+
 ---
 
 ## Copy-on-Write Rule

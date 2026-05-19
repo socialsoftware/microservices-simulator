@@ -10,6 +10,8 @@
 
 List every file created or modified this session (absolute paths).
 
+### Application files (quizzes-full)
+
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/commands/tournament/GetOpenTournamentsCommand.java` (created)
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/coordination/sagas/GetOpenTournamentsFunctionalitySagas.java` (created)
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/coordination/sagas/GetTournamentByIdFunctionalitySagas.java` (created)
@@ -19,10 +21,8 @@ List every file created or modified this session (absolute paths).
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzesfull/sagas/coordination/tournament/GetTournamentByIdTest.groovy` (created)
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/plan.md` (checkbox ticked)
 
-Bugs fixed during session (in earlier-session files):
+### Application bug fixes (earlier-session files)
 
-- `/Users/frleitao/thesis/microservices-simulator/simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/MessagingObjectMapperProvider.java` (two fixes: removed Dto exclusion; added `Object.class → true` for per-element type info in untyped collections)
-- `/Users/frleitao/thesis/microservices-simulator/simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/WorkflowFunctionality.java` (added CompletionException unwrapping in `executeUntilStep`)
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/aggregate/TournamentRepository.java` (added `findAllLatestActive()` JPQL query)
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/aggregate/sagas/repositories/TournamentCustomRepositorySagas.java` (use `findAllLatestActive()` to get only latest version per aggregate)
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/service/ExecutionService.java` (throw `QuizzesFullException(COURSE_EXECUTION_STUDENT_NOT_FOUND)` instead of returning null)
@@ -31,6 +31,61 @@ Bugs fixed during session (in earlier-session files):
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzesfull/sagas/coordination/tournament/DeleteTournamentTest.groovy` (updated success tests to verify deleted aggregate is inaccessible)
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzesfull/sagas/coordination/execution/GetStudentByExecutionIdAndUserIdTest.groovy` (updated "returns null" test to "throws")
 - `/Users/frleitao/thesis/microservices-simulator/applications/quizzes-full/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzesfull/sagas/execution/ExecutionInterInvariantTest.groovy` (updated student-removed check to expect exception)
+
+---
+
+> ## ⚠️ SIMULATOR FRAMEWORK CHANGES
+>
+> The following files belong to `simulator/` — the **shared core library** used by all applications. Changes here affect every consumer of the library and must be treated as framework patches, not application fixes. Each change below includes a root-cause explanation and a justification for why the fix belongs in the framework rather than in application code.
+
+### `simulator/src/main/java/.../ms/messaging/MessagingObjectMapperProvider.java`
+
+**What changed (diff summary):**
+```diff
+-  if (raw.getSimpleName().endsWith("Dto")) {
+-      return false;
+-  }
++  if (raw == Object.class) return true;
+```
+
+**Root cause:** When `local.messaging.serialize: true` is enabled, commands and their responses are serialized/deserialized through Jackson using this mapper. `CommandResponse.result` is typed as `Object`. When a `List<TournamentDto>` is stored in that field, Jackson performs type erasure at the container level (the list itself is excluded from polymorphic typing by the `isCollectionLikeType()` guard), so it cannot embed `@class` metadata per element. On deserialization, each element comes back as a `LinkedHashMap` instead of the expected `TournamentDto`.
+
+**Why the old Dto exclusion was wrong:** The `endsWith("Dto")` guard was intended to avoid embedding `@class` on plain data objects, but it had the opposite effect on untyped fields: because `Object`-typed fields were also falling through to the `pt.ulisboa.tecnico` package check (which returned `false` for `Object.class`), the entire field lost type info rather than gaining per-element info.
+
+**Fix rationale:** Two changes work together:
+1. Removing the `Dto` exclusion — Dto classes now correctly participate in polymorphic typing when stored inside typed fields, consistent with every other domain class.
+2. Adding `if (raw == Object.class) return true` — this is the critical fix. When a field is declared as `Object`, Jackson's `useForType` is called with `JavaType` wrapping `Object.class`. Returning `true` here tells Jackson to embed `@class` on the value, which in turn enables element-level type information to be written even inside untyped collections. Without this, any value stored in an `Object`-typed field (including the contents of `CommandResponse.result`) loses its concrete type on round-trip.
+
+**Impact scope:** Affects all applications that use `local.messaging.serialize: true` in test profiles. No production impact (production does not serialize locally). Required before any read saga returning a list via `CommandResponse.result` can be tested.
+
+---
+
+### `simulator/src/main/java/.../ms/coordination/WorkflowFunctionality.java`
+
+**What changed (diff summary):**
+```diff
+ public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
+-    workflow.executeUntilStep(stepName, unitOfWork);
++    try {
++        workflow.executeUntilStep(stepName, unitOfWork);
++    } catch (CompletionException e) {
++        Throwable cause = e.getCause();
++        if (cause instanceof SimulatorException) {
++            throw (SimulatorException) cause;
++        } else {
++            throw e;
++        }
++    }
+ }
+```
+
+**Root cause:** `Workflow.executeUntilStep` internally uses `CompletableFuture` chains. When a step throws a domain exception (`SimulatorException`), the future wraps it inside a `CompletionException` before propagating. `executeWorkflow` and `resumeWorkflow` already had a `catch (CompletionException e)` block that unwrapped it back to the original `SimulatorException`. `executeUntilStep` was the only method in the class that did not — domain exceptions thrown inside steps called via `executeUntilStep` surfaced to tests as `CompletionException`, not `SimulatorException`.
+
+**Why this matters for tests:** Test assertions follow the pattern `thrown.cause instanceof QuizzesFullException` or `ex.message == SOME_CONSTANT`. A `CompletionException` wrapping the real exception breaks both checks: `instanceof` fails on the wrapper, and `.message` returns the `CompletionException` message rather than the domain error constant.
+
+**Fix rationale:** `executeUntilStep` is used exclusively in test helpers (to run a saga up to a specific step and then assert on intermediate state). It must propagate domain exceptions with the same fidelity as `executeWorkflow`. The fix aligns it with the already-established pattern in the same class. This is a framework consistency bug, not a test-code issue — fixing it in test helpers would mask the root cause and leave all future callers of `executeUntilStep` vulnerable to the same wrapping problem.
+
+**Impact scope:** Affects all applications that write saga step-isolation tests using `executeUntilStep`. Any existing test that caught `CompletionException` directly would need updating (none existed in quizzes-full at the time of this fix).
 
 ---
 

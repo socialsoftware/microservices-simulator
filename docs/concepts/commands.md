@@ -153,6 +153,36 @@ Mutating handlers return `null`; read handlers return the DTO produced by the se
 
 ---
 
+## Known DTO Gaps and Compensating Command Steps
+
+Some DTOs returned by upstream service commands are structurally incomplete — they carry enough data for display or enrollment checks but omit fields (such as `version`) that a saga needs to construct a dependent aggregate. When this happens, insert an extra command step to fetch the missing data rather than inferring or hardcoding it.
+
+### `ExecutionStudentDto` lacks `version`
+
+`ExecutionStudentDto` (returned as part of `CourseExecutionDto.students`) does not carry a `version` field. Any saga that needs to record a user's `version` when creating or modifying an aggregate that embeds user data (e.g. `Tournament.creator`, `Tournament.participants`) cannot derive the version from the enrollment check step alone.
+
+**Compensating pattern:** insert a dedicated `GetUserByIdCommand` step immediately after the enrollment-check step to retrieve the full `UserDto`, which does carry `version`:
+
+```java
+// Step 1 — verify creator is enrolled (returns CourseExecutionDto)
+SagaStep getExecutionStep = new SagaStep("getExecutionStep", () -> {
+    this.executionDto = (CourseExecutionDto) commandGateway.send(
+            new GetCourseExecutionByIdCommand(unitOfWork,
+                    ServiceMapping.EXECUTION.getServiceName(), executionAggregateId));
+});
+
+// Step 2 — fetch full UserDto so we have the version field
+SagaStep getCreatorUserStep = new SagaStep("getCreatorUserStep", () -> {
+    this.creatorDto = (UserDto) commandGateway.send(
+            new GetUserByIdCommand(unitOfWork,
+                    ServiceMapping.USER.getServiceName(), creatorAggregateId));
+}, List.of(getExecutionStep));
+```
+
+Name the step `getCreatorUserStep` for the tournament creator pattern, or `getUserStep` for the add-participant pattern. The `UserDto` returned by `GetUserByIdCommand` carries `version` and can be passed directly to the downstream command.
+
+---
+
 ## Reference Implementations (Quizzes)
 
 - `applications/quizzes/src/main/java/.../quizzes/commands/tournament/AddParticipantCommand.java` — mutate command with a DTO payload

@@ -167,6 +167,7 @@ Answer these questions by reviewing what happened during the session:
 5. **Were there any naming, path, or pattern decisions the skill/docs didn't cover?**
 6. **Were there any bugs, corrections, or fixes applied mid-session?** What triggered them?
 7. **Were any patterns observed that aren't yet documented anywhere?**
+8. **Were any files under `simulator/` modified?** If yes, list each one with: the exact diff (what was removed vs added), the root cause that required the change, and why the fix belongs in the framework rather than in application code.
 
 ### 7.b — Write the Retro File
 
@@ -185,8 +186,40 @@ Create `{retro-file}` using this exact template. Write "none" for any section wi
 
 List every file created or modified this session (absolute paths).
 
+### Application files ({app-name})
+
 - `/path/to/file1`
 - `/path/to/file2`
+
+### Application bug fixes (earlier-session files)
+
+- (none) OR list files fixed this session that were produced in a previous session
+
+---
+
+> ## ⚠️ SIMULATOR FRAMEWORK CHANGES
+>
+> [Include this block ONLY if one or more files under `simulator/` were modified. Delete this entire block if no simulator files changed.]
+>
+> The following files belong to `simulator/` — the **shared core library** used by all applications. Changes here affect every consumer of the library and must be treated as framework patches, not application fixes. Each change below includes a root-cause explanation and a justification for why the fix belongs in the framework rather than in application code.
+
+### `simulator/path/to/ChangedFile.java`
+
+**What changed (diff summary):**
+```diff
+- removed line(s)
++ added line(s)
+```
+
+**Root cause:** (What application-level symptom triggered the investigation? What was wrong in the framework?)
+
+**Fix rationale:** (Why is this the correct fix? Why does the fix belong here and not in the application?)
+
+**Impact scope:** (Which other applications or test profiles are affected? Any production impact?)
+
+---
+
+[Repeat the `### simulator/...` block for each additional simulator file changed.]
 
 ---
 
@@ -266,6 +299,7 @@ Create `{retro-dir}` if it does not already exist, then write the completed retr
 4. **Any reference-app consultation is a violation** — flag the gap in Action Items as High priority.
 5. **No emojis, no hype.** Terse and concrete — paths, file names, section names, decisions.
 6. **Does not modify plan.md, source files, or BeanConfigurationSagas.groovy.**
+7. **Simulator changes are mandatory to document.** If any file under `simulator/` was modified during the session, the `⚠️ SIMULATOR FRAMEWORK CHANGES` block is **required** in the Files Produced section — not optional. For each changed file include: exact diff, root cause, fix rationale, and impact scope. If no simulator files changed, remove the block entirely rather than leaving it blank.
 
 Do not print a separate retro completion report — the retro file path is included in the Step 8 commit output.
 
