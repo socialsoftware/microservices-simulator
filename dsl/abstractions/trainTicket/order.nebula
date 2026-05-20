@@ -1,0 +1,44 @@
+Aggregate Order {
+    @GenerateCrud
+
+     Root Entity Order {
+        String boughtDate
+        String travelDate
+        String travelTime
+        Integer coachNumber
+        Integer seatClass
+        String seatNumber
+        OrderStatus status
+        String price
+
+        OrderUser user
+        OrderContacts contacts
+        OrderTrainType train
+        OrderFromStation fromStation
+        OrderToStation toStation
+    }
+
+    Entity OrderUser from User {
+        map userId as accountId
+    }
+
+    Entity OrderContacts from Contacts {
+        map name as contactsName
+        map documentType as documentType
+        map documentNumber as contactsDocumentNumber
+    }
+
+    Entity OrderTrainType from TrainType {
+        map name as trainNumber
+    }
+
+    Entity OrderFromStation from Station {
+        map name as fromName
+    }
+
+    Entity OrderToStation from Station {
+        map name as toName
+    }
+
+    
+}

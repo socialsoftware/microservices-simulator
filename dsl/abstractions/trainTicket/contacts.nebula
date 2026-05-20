@@ -1,0 +1,9 @@
+Aggregate Contacts {
+    @GenerateCrud
+
+    Root Entity Contacts {
+        String name
+        String documentType
+        String documentNumber
+    }
+}

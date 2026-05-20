@@ -1,0 +1,7 @@
+Aggregate Station {
+    @GenerateCrud
+
+    Root Entity Station {
+        String name
+    }
+}

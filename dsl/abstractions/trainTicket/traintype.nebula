@@ -1,0 +1,7 @@
+Aggregate TrainType {
+    @GenerateCrud
+
+    Root Entity TrainType {
+        String name
+    }
+}

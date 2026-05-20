@@ -1,0 +1,7 @@
+Aggregate User {
+    @GenerateCrud
+
+    Root Entity User {
+        String userId
+    }
+}
