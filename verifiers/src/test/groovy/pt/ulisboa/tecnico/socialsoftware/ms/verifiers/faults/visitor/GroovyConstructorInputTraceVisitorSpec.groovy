@@ -931,6 +931,71 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
                 .contains('[unresolved dynamic-method-call]')
     }
 
+    def 'marks conditional and loop dto mutations as non deterministic assignment blockers'() {
+        given:
+        def mutationState = new ApplicationAnalysisState()
+        def workflowVisitor = new WorkflowFunctionalityVisitor()
+        parseAllDummyappFiles().each { cu -> workflowVisitor.visit(cu, mutationState) }
+
+        writeSource('demo/MutationBlockerSpec.groovy', '''
+            package demo
+
+            import com.example.dummyapp.item.aggregate.ItemDto
+            import com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas
+            import spock.lang.Specification
+
+            class MutationBlockerSpec extends Specification {
+                def 'conditional dto mutation is blocked'() {
+                    given:
+                    def dto = new ItemDto()
+                    if (System.currentTimeMillis() > 0) {
+                        dto.setAggregateId(17)
+                    }
+                    def saga = new CreateItemFunctionalitySagas(null, dto, null, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def 'loop dto mutation is blocked'() {
+                    given:
+                    def dto = new ItemDto()
+                    for (int i = 0; i < 2; i++) {
+                        dto.orderId = i
+                    }
+                    def saga = new CreateItemFunctionalitySagas(null, dto, null, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+            }
+        ''')
+
+        def sourceIndex = new GroovySourceIndex()
+        sourceIndex.parse(tempDir)
+
+        when:
+        new GroovyConstructorInputTraceVisitor().visit(sourceIndex, mutationState)
+
+        then:
+        def conditionalTrace = mutationState.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'demo.MutationBlockerSpec' && it.sourceMethodName == 'conditional dto mutation is blocked'
+        }
+        conditionalTrace.constructorArguments()[1].recipe().metadata().assignments()*.blocker().contains('CONDITIONAL_MUTATION')
+
+        and:
+        def loopTrace = mutationState.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'demo.MutationBlockerSpec' && it.sourceMethodName == 'loop dto mutation is blocked'
+        }
+        loopTrace.constructorArguments()[1].recipe().metadata().assignments()*.blocker().contains('LOOP_DEPENDENT_MUTATION')
+    }
+
     def 'existing helper-cycle regression remains conservative'() {
         given:
         def edgeState = new ApplicationAnalysisState()

@@ -150,7 +150,8 @@ public final class InputVariantNormalizer {
                 input.owners(),
                 constructorArgs,
                 logicalBindings,
-                warnings);
+                warnings,
+                input.inputRecipe());
 
         String deterministicId = ScenarioIdGenerator.inputVariantId(
                 normalized.sagaFqn(),
@@ -161,7 +162,8 @@ public final class InputVariantNormalizer {
                 normalized.stableSourceText(),
                 normalized.provenanceText(),
                 normalized.constructorArgumentSummaries(),
-                normalized.logicalKeyBindings());
+                normalized.logicalKeyBindings(),
+                normalized.inputRecipe() == null ? null : normalized.inputRecipe().recipeFingerprint());
 
         return new InputVariant(
                 deterministicId,
@@ -178,7 +180,8 @@ public final class InputVariantNormalizer {
                 normalized.owners(),
                 normalized.constructorArgumentSummaries(),
                 normalized.logicalKeyBindings(),
-                normalized.warnings());
+                normalized.warnings(),
+                normalized.inputRecipe());
     }
 
     private static SourceModeRejectionReason sourceModeRejectionReason(SourceMode sourceMode) {
@@ -210,7 +213,8 @@ public final class InputVariantNormalizer {
                 mergeOwners(left, right),
                 left.constructorArgumentSummaries(),
                 left.logicalKeyBindings(),
-                List.copyOf(mergedWarnings));
+                List.copyOf(mergedWarnings),
+                left.inputRecipe());
     }
 
     private static InputVariant chooseSourceModeSource(InputVariant left, InputVariant right) {
@@ -247,7 +251,8 @@ public final class InputVariantNormalizer {
                 input.owners(),
                 input.constructorArgumentSummaries(),
                 input.logicalKeyBindings(),
-                List.copyOf(mergedWarnings));
+                List.copyOf(mergedWarnings),
+                input.inputRecipe());
     }
 
     private static boolean isAllowedByPolicy(InputResolutionStatus status, ScenarioGeneratorConfig.InputPolicy policy) {
@@ -287,7 +292,8 @@ public final class InputVariantNormalizer {
                 mergeOwners(left, right),
                 left.constructorArgumentSummaries(),
                 left.logicalKeyBindings(),
-                List.copyOf(mergedWarnings));
+                List.copyOf(mergedWarnings),
+                left.inputRecipe());
     }
 
     private static List<InputOwner> mergeOwners(InputVariant left, InputVariant right) {

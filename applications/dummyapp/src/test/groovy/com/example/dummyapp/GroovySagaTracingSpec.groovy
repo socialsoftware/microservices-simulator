@@ -91,6 +91,7 @@ class GroovySagaTracingSpec extends Specification {
         def setterDto = new ItemDto()
         setterDto.setAggregateId(namedDto.getAggregateId())
         setterDto.setOrderId([1, 2, 3].toSet().size())
+        setterDto.name = 'sample-item'
         def saga = new CreateItemFunctionalitySagas(null, setterDto, null, null)
 
         when:

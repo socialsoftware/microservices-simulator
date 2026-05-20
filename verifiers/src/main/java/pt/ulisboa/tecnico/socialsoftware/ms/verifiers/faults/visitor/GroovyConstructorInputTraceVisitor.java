@@ -13,6 +13,9 @@ import org.codehaus.groovy.ast.expr.DeclarationExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.ListExpression;
+import org.codehaus.groovy.ast.expr.MapEntryExpression;
+import org.codehaus.groovy.ast.expr.MapExpression;
+import org.codehaus.groovy.ast.expr.NamedArgumentListExpression;
 import org.codehaus.groovy.ast.expr.PropertyExpression;
 import org.codehaus.groovy.ast.expr.TupleExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
@@ -32,6 +35,7 @@ import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.SourceUnit;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyAssignmentRecipe;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyConstructorInputTrace;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyImportMetadata;
@@ -80,6 +84,8 @@ public class GroovyConstructorInputTraceVisitor {
     private static final int MAX_TRACE_DEPTH = 12;
 
     private SourceModeClassification activeSourceModeClassification = SourceModeClassification.unknown();
+    private Map<String, List<ScopedMutation>> activeMutationScopes = Map.of();
+    private String activeMutationBlocker;
 
     public void visit(GroovySourceIndex sourceIndex, ApplicationAnalysisState state) {
         Objects.requireNonNull(sourceIndex, "sourceIndex cannot be null");
@@ -150,6 +156,7 @@ public class GroovyConstructorInputTraceVisitor {
                     layer.classNode(), layer.metadata(), state,
                     classFieldScopes, classFieldScopes,
                     classFieldExpressionScopes, classFieldExpressionScopes,
+                    new LinkedHashMap<>(),
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName,
                     fieldContextName, null);
         }));
@@ -173,11 +180,13 @@ public class GroovyConstructorInputTraceVisitor {
                     methodContext.layer().classFqn(), visibleFieldKeysByClassFqn, classFieldScopes);
             Map<String, Expression> methodExpressionScopes = buildMethodExpressionScopes(
                     methodContext.layer().classFqn(), visibleFieldKeysByClassFqn, classFieldExpressionScopes);
+            Map<String, List<ScopedMutation>> methodMutationScopes = new LinkedHashMap<>();
 
             traceBlock(blockStatement, traceSourceClassFqn,
                     methodContext.layer().classNode(), methodContext.layer().metadata(), state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName,
                     methodContext.methodNode().getName());
         });
@@ -208,6 +217,7 @@ public class GroovyConstructorInputTraceVisitor {
                             Map<String, TraceBuilder> classFieldScopes,
                             Map<String, Expression> methodExpressionScopes,
                             Map<String, Expression> classFieldExpressionScopes,
+                            Map<String, List<ScopedMutation>> methodMutationScopes,
                             Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
                             List<TraceBuilder> tracedBuilders,
                             Map<String, List<MethodResolutionContext>> methodsByName,
@@ -216,6 +226,7 @@ public class GroovyConstructorInputTraceVisitor {
             traceStatement(statement, traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
         }
     }
@@ -229,6 +240,7 @@ public class GroovyConstructorInputTraceVisitor {
                                 Map<String, TraceBuilder> classFieldScopes,
                                 Map<String, Expression> methodExpressionScopes,
                                 Map<String, Expression> classFieldExpressionScopes,
+                                Map<String, List<ScopedMutation>> methodMutationScopes,
                                 Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
                                 List<TraceBuilder> tracedBuilders,
                                 Map<String, List<MethodResolutionContext>> methodsByName,
@@ -241,6 +253,7 @@ public class GroovyConstructorInputTraceVisitor {
             traceBlock(nestedBlock, traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
             return;
         }
@@ -250,6 +263,7 @@ public class GroovyConstructorInputTraceVisitor {
                     traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
 
             for (CatchStatement catchStatement : tryCatchStatement.getCatchStatements()) {
@@ -257,6 +271,7 @@ public class GroovyConstructorInputTraceVisitor {
                         traceSourceClassFqn, classNode, metadata, state,
                         methodScopes, classFieldScopes,
                         methodExpressionScopes, classFieldExpressionScopes,
+                        methodMutationScopes,
                         visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
             }
 
@@ -264,57 +279,91 @@ public class GroovyConstructorInputTraceVisitor {
                     traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
             return;
         }
 
         if (statement instanceof WhileStatement whileStatement) {
+            String previousBlocker = activeMutationBlocker;
+            activeMutationBlocker = "LOOP_DEPENDENT_MUTATION";
+            try {
             traceStatement(whileStatement.getLoopBlock(),
                     traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            } finally {
+                activeMutationBlocker = previousBlocker;
+            }
             return;
         }
 
         if (statement instanceof DoWhileStatement doWhileStatement) {
+            String previousBlocker = activeMutationBlocker;
+            activeMutationBlocker = "LOOP_DEPENDENT_MUTATION";
+            try {
             traceStatement(doWhileStatement.getLoopBlock(),
                     traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            } finally {
+                activeMutationBlocker = previousBlocker;
+            }
             return;
         }
 
         if (statement instanceof ForStatement forStatement) {
+            String previousBlocker = activeMutationBlocker;
+            activeMutationBlocker = "LOOP_DEPENDENT_MUTATION";
+            try {
             traceStatement(forStatement.getLoopBlock(),
                     traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            } finally {
+                activeMutationBlocker = previousBlocker;
+            }
             return;
         }
 
         if (statement instanceof IfStatement ifStatement) {
+            String previousBlocker = activeMutationBlocker;
+            activeMutationBlocker = "CONDITIONAL_MUTATION";
+            try {
             traceStatement(ifStatement.getIfBlock(),
                     traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
             traceStatement(ifStatement.getElseBlock(),
                     traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            } finally {
+                activeMutationBlocker = previousBlocker;
+            }
             return;
         }
 
         if (statement instanceof SwitchStatement switchStatement) {
+            String previousBlocker = activeMutationBlocker;
+            activeMutationBlocker = "CONDITIONAL_MUTATION";
+            try {
             for (CaseStatement caseStatement : switchStatement.getCaseStatements()) {
                 traceStatement(caseStatement.getCode(),
                         traceSourceClassFqn, classNode, metadata, state,
                         methodScopes, classFieldScopes,
                         methodExpressionScopes, classFieldExpressionScopes,
+                        methodMutationScopes,
                         visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
             }
 
@@ -322,7 +371,11 @@ public class GroovyConstructorInputTraceVisitor {
                     traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName);
+            } finally {
+                activeMutationBlocker = previousBlocker;
+            }
             return;
         }
 
@@ -331,6 +384,7 @@ public class GroovyConstructorInputTraceVisitor {
             traceExpression(expression, traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName,
                     statement.getStatementLabel());
         }
@@ -342,10 +396,11 @@ public class GroovyConstructorInputTraceVisitor {
                                  GroovySourceClassMetadata metadata,
                                  ApplicationAnalysisState state,
                                  Map<String, TraceBuilder> methodScopes,
-                                 Map<String, TraceBuilder> classFieldScopes,
-                                 Map<String, Expression> methodExpressionScopes,
-                                 Map<String, Expression> classFieldExpressionScopes,
-                                 Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                   Map<String, TraceBuilder> classFieldScopes,
+                                   Map<String, Expression> methodExpressionScopes,
+                                   Map<String, Expression> classFieldExpressionScopes,
+                                   Map<String, List<ScopedMutation>> methodMutationScopes,
+                                   Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
                                  List<TraceBuilder> tracedBuilders,
                                  Map<String, List<MethodResolutionContext>> methodsByName,
                                  String methodName,
@@ -360,12 +415,16 @@ public class GroovyConstructorInputTraceVisitor {
                     classNode, metadata,
                     state, methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName,
                     label);
             return;
         }
 
         if (expression instanceof BinaryExpression binaryExpression && isAssignment(binaryExpression)) {
+            if (capturePropertyAssignmentMutation(binaryExpression, methodMutationScopes)) {
+                return;
+            }
             String variableName = resolveAssignedVariableName(binaryExpression.getLeftExpression());
             if (variableName == null) {
                 return;
@@ -375,12 +434,14 @@ public class GroovyConstructorInputTraceVisitor {
                     classNode, metadata,
                     state, methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName,
                     label);
             return;
         }
 
         if (expression instanceof MethodCallExpression methodCallExpression) {
+            captureSetterMutation(methodCallExpression, methodMutationScopes);
             if (traceFacadeCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
@@ -402,6 +463,7 @@ public class GroovyConstructorInputTraceVisitor {
                                   Map<String, TraceBuilder> classFieldScopes,
                                   Map<String, Expression> methodExpressionScopes,
                                   Map<String, Expression> classFieldExpressionScopes,
+                                  Map<String, List<ScopedMutation>> methodMutationScopes,
                                   Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
                                   List<TraceBuilder> tracedBuilders,
                                   Map<String, List<MethodResolutionContext>> methodsByName,
@@ -419,6 +481,7 @@ public class GroovyConstructorInputTraceVisitor {
                 }
 
                 methodExpressionScopes.put(variableName, rightExpression);
+                methodMutationScopes.remove(variableName);
                 if (visibleClassFieldKey != null) {
                     classFieldExpressionScopes.put(visibleClassFieldKey, rightExpression);
                 }
@@ -430,8 +493,9 @@ public class GroovyConstructorInputTraceVisitor {
                 && traceFacadeCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
                 methodScopes, classFieldScopes,
                 methodExpressionScopes, classFieldExpressionScopes,
-                visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName, label)) {
+                 visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName, label)) {
             methodExpressionScopes.put(variableName, rightExpression);
+            methodMutationScopes.remove(variableName);
             if (visibleClassFieldKey != null) {
                 classFieldExpressionScopes.put(visibleClassFieldKey, rightExpression);
             }
@@ -455,7 +519,7 @@ public class GroovyConstructorInputTraceVisitor {
             appendConstructorArgumentLines(builder, constructorResolution.constructorExpression(),
                     constructorResolution.resolutionClassNode(), constructorResolution.resolutionMetadata(), state,
                     constructorResolution.expressionScopes(), classFieldExpressionScopes, methodsByName,
-                    visibleFieldKeysByClassFqn);
+                    visibleFieldKeysByClassFqn, methodMutationScopes);
             constructorResolution.resolutionNotes().forEach(builder::appendDetailLine);
             registerConstructorTrace(builder, state);
             tracedBuilders.add(builder);
@@ -467,6 +531,7 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         methodExpressionScopes.put(variableName, rightExpression);
+        methodMutationScopes.remove(variableName);
         if (visibleClassFieldKey != null) {
             classFieldExpressionScopes.put(visibleClassFieldKey, rightExpression);
         }
@@ -492,6 +557,100 @@ public class GroovyConstructorInputTraceVisitor {
 
         builder.appendContextLabel(label);
         builder.appendCallLine(scopeName + "." + calledMethod + "(...)", label);
+    }
+
+    private void captureSetterMutation(MethodCallExpression methodCallExpression,
+                                       Map<String, List<ScopedMutation>> methodMutationScopes) {
+        String methodName = methodCallExpression.getMethodAsString();
+        if (methodName == null || !methodName.startsWith("set") || methodName.length() <= 3) {
+            return;
+        }
+
+        List<Expression> arguments = extractArguments(methodCallExpression.getArguments());
+        if (arguments.size() != 1) {
+            return;
+        }
+
+        String targetVariable = variableName(methodCallExpression.getObjectExpression());
+        if (targetVariable == null) {
+            return;
+        }
+
+        addScopedMutation(methodMutationScopes,
+                targetVariable,
+                "setter",
+                decapitalize(methodName.substring(3)),
+                methodName,
+                methodCallExpression.getText(),
+                arguments.get(0),
+                null);
+    }
+
+    private boolean capturePropertyAssignmentMutation(BinaryExpression binaryExpression,
+                                                      Map<String, List<ScopedMutation>> methodMutationScopes) {
+        if (!(binaryExpression.getLeftExpression() instanceof PropertyExpression propertyExpression)) {
+            return false;
+        }
+
+        String targetVariable = variableName(propertyExpression.getObjectExpression());
+        if (targetVariable == null) {
+            return false;
+        }
+
+        String propertyName = propertyExpression.getPropertyAsString();
+        if (propertyName == null || propertyName.isBlank()) {
+            propertyName = propertyExpression.getProperty().getText();
+        }
+        addScopedMutation(methodMutationScopes,
+                targetVariable,
+                "property",
+                propertyName,
+                null,
+                binaryExpression.getText(),
+                binaryExpression.getRightExpression(),
+                null);
+        return true;
+    }
+
+    private void addScopedMutation(Map<String, List<ScopedMutation>> mutationScopes,
+                                   String targetVariable,
+                                   String assignmentKind,
+                                   String propertyName,
+                                   String sourceName,
+                                   String sourceText,
+                                   Expression valueExpression,
+                                   String blocker) {
+        if (mutationScopes == null || targetVariable == null || targetVariable.isBlank()) {
+            return;
+        }
+        List<ScopedMutation> existing = mutationScopes.getOrDefault(targetVariable, List.of());
+        List<ScopedMutation> updated = new ArrayList<>(existing);
+        updated.add(new ScopedMutation(assignmentKind,
+                propertyName,
+                sourceName,
+                updated.size(),
+                sourceText,
+                valueExpression,
+                firstNonBlank(blocker, activeMutationBlocker)));
+        mutationScopes.put(targetVariable, List.copyOf(updated));
+    }
+
+    private String firstNonBlank(String first, String second) {
+        if (first != null && !first.isBlank()) {
+            return first;
+        }
+        if (second != null && !second.isBlank()) {
+            return second;
+        }
+        return null;
+    }
+
+    private String variableName(Expression expression) {
+        if (expression instanceof VariableExpression variableExpression) {
+            String name = variableExpression.getName();
+            return "this".equals(name) || "super".equals(name) ? null : name;
+        }
+        return null;
     }
 
     private boolean traceFacadeCall(MethodCallExpression methodCallExpression,
@@ -1255,7 +1414,7 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         return new GroovyValueRecipe(recipe.kind(), recipe.text(), recipe.children(),
-                new GroovyValueMetadata(metadata.category(), expectedTypeFqn, metadata.placeholderId(), metadata.runtimeCall()));
+                new GroovyValueMetadata(metadata.category(), expectedTypeFqn, metadata.placeholderId(), metadata.runtimeCall(), metadata.assignments()));
     }
 
     private Optional<List<String>> resolveConstructorParameterTypeFqns(String sagaClassFqn,
@@ -1408,16 +1567,20 @@ public class GroovyConstructorInputTraceVisitor {
                                                 ClassNode classNode,
                                                 GroovySourceClassMetadata metadata,
                                                 ApplicationAnalysisState state,
-                                                Map<String, Expression> methodExpressionScopes,
-                                                Map<String, Expression> classFieldExpressionScopes,
-                                                Map<String, List<MethodResolutionContext>> methodsByName,
-                                                Map<String, Map<String, String>> visibleFieldKeysByClassFqn) {
+                                                 Map<String, Expression> methodExpressionScopes,
+                                                 Map<String, Expression> classFieldExpressionScopes,
+                                                 Map<String, List<MethodResolutionContext>> methodsByName,
+                                                 Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                                 Map<String, List<ScopedMutation>> mutationScopes) {
         List<Expression> argumentExpressions = extractArguments(constructorExpression.getArguments());
         List<String> expectedTypeFqns = resolveConstructorParameterTypeFqns(builder.sagaClassFqn,
                 argumentExpressions.size(), state).orElse(null);
         String builderScopeKey = traceScopeKey(classNode == null ? "(unknown)" : classNode.getName(),
                 builder.sourceMethodName);
         Set<String> emittedNestedFacadeTraceKeys = new LinkedHashSet<>();
+        Map<String, List<ScopedMutation>> previousMutationScopes = activeMutationScopes;
+        activeMutationScopes = mutationScopes == null ? Map.of() : mutationScopes;
+        try {
         for (int index = 0; index < argumentExpressions.size(); index++) {
             Expression argumentExpression = argumentExpressions.get(index);
             ValueTrace trace = describeExpressionTrace(argumentExpression, classNode, metadata, state,
@@ -1434,6 +1597,9 @@ public class GroovyConstructorInputTraceVisitor {
             trace = decorateWithExpectedType(trace,
                     expectedTypeFqns == null || index >= expectedTypeFqns.size() ? null : expectedTypeFqns.get(index));
             builder.appendInputLine(index, trace.provenance(), trace.recipe());
+        }
+        } finally {
+            activeMutationScopes = previousMutationScopes;
         }
     }
 
@@ -1608,30 +1774,103 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         if (expression instanceof ConstructorCallExpression constructorCallExpression) {
-            List<ValueTrace> nestedArgumentTraces = extractArguments(constructorCallExpression.getArguments()).stream()
-                    .map(argument -> describeExpressionTrace(argument, classNode, metadata, state,
-                            methodExpressionScopes, classFieldExpressionScopes, methodsByName,
-                            visibleFieldKeysByClassFqn,
-                            helperCallStack,
-                            visitedVariables,
-                            emittedNestedFacadeTraceKeys,
-                            depth + 1,
-                            traceSourceClassFqn,
-                            traceMethodName,
-                            traceScopeKey,
-                            helperScope,
-                            rebindingFallbackScopes))
-                    .toList();
+            ConstructorArgumentTrace constructorArguments = describeConstructorArguments(constructorCallExpression,
+                    classNode, metadata, state,
+                    methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                    visibleFieldKeysByClassFqn,
+                    helperCallStack,
+                    visitedVariables,
+                    emittedNestedFacadeTraceKeys,
+                    depth,
+                    traceSourceClassFqn,
+                    traceMethodName,
+                    traceScopeKey,
+                    helperScope,
+                    rebindingFallbackScopes);
+            String targetTypeFqn = constructorTypeFqn(constructorCallExpression);
+            GroovyValueMetadata constructorMetadata = new GroovyValueMetadata(
+                    GroovyValueResolutionCategory.RESOLVED,
+                    targetTypeFqn,
+                    null,
+                    null,
+                    constructorArguments.assignments());
             return new ValueTrace("new " + constructorCallExpression.getType().getNameWithoutPackage() + "(" +
-                    nestedArgumentTraces.stream().map(ValueTrace::provenance).collect(Collectors.joining(", ")) + ")",
+                    constructorArguments.positionalTraces().stream().map(ValueTrace::provenance).collect(Collectors.joining(", ")) + ")",
                     new GroovyValueRecipe(GroovyValueKind.CONSTRUCTOR,
                             constructorCallExpression.getType().getNameWithoutPackage(),
-                            nestedArgumentTraces.stream().map(ValueTrace::recipe).toList()));
+                            constructorArguments.positionalTraces().stream().map(ValueTrace::recipe).toList(),
+                            constructorMetadata));
+        }
+
+        if (expression instanceof MapExpression mapExpression) {
+            List<ValueTrace> entryTraces = new ArrayList<>();
+            for (MapEntryExpression entryExpression : mapExpression.getMapEntryExpressions()) {
+                entryTraces.add(describeExpressionTrace(entryExpression.getKeyExpression(), classNode, metadata, state,
+                        methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                        visibleFieldKeysByClassFqn,
+                        helperCallStack,
+                        visitedVariables,
+                        emittedNestedFacadeTraceKeys,
+                        depth + 1,
+                        traceSourceClassFqn,
+                        traceMethodName,
+                        traceScopeKey,
+                        helperScope,
+                        rebindingFallbackScopes));
+                entryTraces.add(describeExpressionTrace(entryExpression.getValueExpression(), classNode, metadata, state,
+                        methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                        visibleFieldKeysByClassFqn,
+                        helperCallStack,
+                        visitedVariables,
+                        emittedNestedFacadeTraceKeys,
+                        depth + 1,
+                        traceSourceClassFqn,
+                        traceMethodName,
+                        traceScopeKey,
+                        helperScope,
+                        rebindingFallbackScopes));
+            }
+            return new ValueTrace("[" + entryTraces.stream().map(ValueTrace::provenance).collect(Collectors.joining(", ")) + "]",
+                    new GroovyValueRecipe(GroovyValueKind.COLLECTION_LITERAL, "map",
+                            entryTraces.stream().map(ValueTrace::recipe).toList()));
+        }
+
+        if (expression instanceof NamedArgumentListExpression namedArgumentListExpression) {
+            List<ValueTrace> entryTraces = new ArrayList<>();
+            for (MapEntryExpression entryExpression : namedArgumentListExpression.getMapEntryExpressions()) {
+                entryTraces.add(describeExpressionTrace(entryExpression.getKeyExpression(), classNode, metadata, state,
+                        methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                        visibleFieldKeysByClassFqn,
+                        helperCallStack,
+                        visitedVariables,
+                        emittedNestedFacadeTraceKeys,
+                        depth + 1,
+                        traceSourceClassFqn,
+                        traceMethodName,
+                        traceScopeKey,
+                        helperScope,
+                        rebindingFallbackScopes));
+                entryTraces.add(describeExpressionTrace(entryExpression.getValueExpression(), classNode, metadata, state,
+                        methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                        visibleFieldKeysByClassFqn,
+                        helperCallStack,
+                        visitedVariables,
+                        emittedNestedFacadeTraceKeys,
+                        depth + 1,
+                        traceSourceClassFqn,
+                        traceMethodName,
+                        traceScopeKey,
+                        helperScope,
+                        rebindingFallbackScopes));
+            }
+            return new ValueTrace("[" + entryTraces.stream().map(ValueTrace::provenance).collect(Collectors.joining(", ")) + "]",
+                    new GroovyValueRecipe(GroovyValueKind.COLLECTION_LITERAL, "map",
+                            entryTraces.stream().map(ValueTrace::recipe).toList()));
         }
 
         if (expression instanceof ListExpression listExpression) {
             List<ValueTrace> nestedTraces = listExpression.getExpressions().stream()
-                    .map(item -> describeExpressionTrace(item, classNode, metadata, state,
+                    .map(argument -> describeExpressionTrace(argument, classNode, metadata, state,
                             methodExpressionScopes, classFieldExpressionScopes, methodsByName,
                             visibleFieldKeysByClassFqn,
                             helperCallStack,
@@ -1740,6 +1979,25 @@ public class GroovyConstructorInputTraceVisitor {
             if (scopedVariableKey != null) {
                 visitedVariables.remove(scopedVariableKey);
             }
+
+            resolvedTrace = applyScopedMutations(variableName,
+                    resolvedTrace,
+                    classNode,
+                    metadata,
+                    state,
+                    methodExpressionScopes,
+                    classFieldExpressionScopes,
+                    methodsByName,
+                    visibleFieldKeysByClassFqn,
+                    helperCallStack,
+                    visitedVariables,
+                    emittedNestedFacadeTraceKeys,
+                    depth,
+                    traceSourceClassFqn,
+                    traceMethodName,
+                    traceScopeKey,
+                    helperScope,
+                    rebindingFallbackScopes);
 
             return new ValueTrace(variableName + " <- " + resolvedTrace.provenance(), resolvedTrace.recipe());
         }
@@ -1953,6 +2211,198 @@ public class GroovyConstructorInputTraceVisitor {
 
         return buildUnknownUnresolvedRuntimeTrace(expression.getText() + " [unresolved external/runtime edge]",
                 expression.getText());
+    }
+
+    private ConstructorArgumentTrace describeConstructorArguments(ConstructorCallExpression constructorCallExpression,
+                                                                  ClassNode classNode,
+                                                                  GroovySourceClassMetadata metadata,
+                                                                  ApplicationAnalysisState state,
+                                                                  Map<String, Expression> methodExpressionScopes,
+                                                                  Map<String, Expression> classFieldExpressionScopes,
+                                                                  Map<String, List<MethodResolutionContext>> methodsByName,
+                                                                  Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                                                  Deque<String> helperCallStack,
+                                                                  Set<String> visitedVariables,
+                                                                  Set<String> emittedNestedFacadeTraceKeys,
+                                                                  int depth,
+                                                                  String traceSourceClassFqn,
+                                                                  String traceMethodName,
+                                                                  String traceScopeKey,
+                                                                  boolean helperScope,
+                                                                  Map<String, Expression> rebindingFallbackScopes) {
+        List<ValueTrace> positionalTraces = new ArrayList<>();
+        List<GroovyAssignmentRecipe> assignments = new ArrayList<>();
+        List<Expression> argumentExpressions = extractArguments(constructorCallExpression.getArguments());
+        for (Expression argumentExpression : argumentExpressions) {
+            if (argumentExpression instanceof NamedArgumentListExpression namedArgumentListExpression) {
+                appendNamedArgumentAssignments(assignments,
+                        namedArgumentListExpression.getMapEntryExpressions(),
+                        classNode,
+                        metadata,
+                        state,
+                        methodExpressionScopes,
+                        classFieldExpressionScopes,
+                        methodsByName,
+                        visibleFieldKeysByClassFqn,
+                        helperCallStack,
+                        visitedVariables,
+                        emittedNestedFacadeTraceKeys,
+                        depth,
+                        traceSourceClassFqn,
+                        traceMethodName,
+                        traceScopeKey,
+                        helperScope,
+                        rebindingFallbackScopes);
+                continue;
+            }
+
+            ValueTrace trace = describeExpressionTrace(argumentExpression, classNode, metadata, state,
+                    methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                    visibleFieldKeysByClassFqn,
+                    helperCallStack,
+                    visitedVariables,
+                    emittedNestedFacadeTraceKeys,
+                    depth + 1,
+                    traceSourceClassFqn,
+                    traceMethodName,
+                    traceScopeKey,
+                    helperScope,
+                    rebindingFallbackScopes);
+            positionalTraces.add(trace);
+        }
+        return new ConstructorArgumentTrace(positionalTraces, assignments);
+    }
+
+    private void appendNamedArgumentAssignments(List<GroovyAssignmentRecipe> assignments,
+                                                List<MapEntryExpression> entryExpressions,
+                                                ClassNode classNode,
+                                                GroovySourceClassMetadata metadata,
+                                                ApplicationAnalysisState state,
+                                                Map<String, Expression> methodExpressionScopes,
+                                                Map<String, Expression> classFieldExpressionScopes,
+                                                Map<String, List<MethodResolutionContext>> methodsByName,
+                                                Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                                Deque<String> helperCallStack,
+                                                Set<String> visitedVariables,
+                                                Set<String> emittedNestedFacadeTraceKeys,
+                                                int depth,
+                                                String traceSourceClassFqn,
+                                                String traceMethodName,
+                                                String traceScopeKey,
+                                                boolean helperScope,
+                                                Map<String, Expression> rebindingFallbackScopes) {
+        if (entryExpressions == null) {
+            return;
+        }
+        for (MapEntryExpression entryExpression : entryExpressions) {
+            String propertyName = propertyNameFromKey(entryExpression.getKeyExpression());
+            ValueTrace valueTrace = describeExpressionTrace(entryExpression.getValueExpression(), classNode, metadata, state,
+                    methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                    visibleFieldKeysByClassFqn,
+                    helperCallStack,
+                    visitedVariables,
+                    emittedNestedFacadeTraceKeys,
+                    depth + 1,
+                    traceSourceClassFqn,
+                    traceMethodName,
+                    traceScopeKey,
+                    helperScope,
+                    rebindingFallbackScopes);
+            assignments.add(new GroovyAssignmentRecipe("named_argument",
+                    propertyName,
+                    null,
+                    assignments.size(),
+                    entryExpression.getText(),
+                    valueTrace.recipe(),
+                    propertyName == null ? "MISSING_ASSIGNMENT_PROPERTY" : null));
+        }
+    }
+
+    private ValueTrace applyScopedMutations(String variableName,
+                                            ValueTrace resolvedTrace,
+                                            ClassNode classNode,
+                                            GroovySourceClassMetadata metadata,
+                                            ApplicationAnalysisState state,
+                                            Map<String, Expression> methodExpressionScopes,
+                                            Map<String, Expression> classFieldExpressionScopes,
+                                            Map<String, List<MethodResolutionContext>> methodsByName,
+                                            Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                            Deque<String> helperCallStack,
+                                            Set<String> visitedVariables,
+                                            Set<String> emittedNestedFacadeTraceKeys,
+                                            int depth,
+                                            String traceSourceClassFqn,
+                                            String traceMethodName,
+                                            String traceScopeKey,
+                                            boolean helperScope,
+                                            Map<String, Expression> rebindingFallbackScopes) {
+        if (resolvedTrace == null || resolvedTrace.recipe() == null
+                || resolvedTrace.recipe().kind() != GroovyValueKind.CONSTRUCTOR
+                || variableName == null) {
+            return resolvedTrace;
+        }
+        List<ScopedMutation> mutations = activeMutationScopes.getOrDefault(variableName, List.of());
+        if (mutations.isEmpty()) {
+            return resolvedTrace;
+        }
+
+        GroovyValueMetadata metadataBefore = resolvedTrace.recipe().metadata() == null
+                ? GroovyValueMetadata.defaultMetadata()
+                : resolvedTrace.recipe().metadata();
+        List<GroovyAssignmentRecipe> assignments = new ArrayList<>(metadataBefore.assignments());
+        for (ScopedMutation mutation : mutations) {
+            ValueTrace valueTrace = describeExpressionTrace(mutation.valueExpression(), classNode, metadata, state,
+                    methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                    visibleFieldKeysByClassFqn,
+                    helperCallStack,
+                    visitedVariables,
+                    emittedNestedFacadeTraceKeys,
+                    depth + 1,
+                    traceSourceClassFqn,
+                    traceMethodName,
+                    traceScopeKey,
+                    helperScope,
+                    rebindingFallbackScopes);
+            assignments.add(new GroovyAssignmentRecipe(mutation.assignmentKind(),
+                    mutation.propertyName(),
+                    mutation.sourceName(),
+                    assignments.size(),
+                    mutation.sourceText(),
+                    valueTrace.recipe(),
+                    mutation.blocker()));
+        }
+
+        GroovyValueMetadata metadataAfter = new GroovyValueMetadata(metadataBefore.category(),
+                metadataBefore.expectedTypeFqn(),
+                metadataBefore.placeholderId(),
+                metadataBefore.runtimeCall(),
+                assignments);
+        GroovyValueRecipe recipe = resolvedTrace.recipe();
+        return new ValueTrace(resolvedTrace.provenance(),
+                new GroovyValueRecipe(recipe.kind(), recipe.text(), recipe.children(), metadataAfter));
+    }
+
+    private String propertyNameFromKey(Expression keyExpression) {
+        if (keyExpression == null) {
+            return null;
+        }
+        String keyText = keyExpression.getText();
+        if (keyText == null || keyText.isBlank()) {
+            return null;
+        }
+        if ((keyText.startsWith("\"") && keyText.endsWith("\""))
+                || (keyText.startsWith("'") && keyText.endsWith("'"))) {
+            return keyText.substring(1, keyText.length() - 1);
+        }
+        return keyText;
+    }
+
+    private String constructorTypeFqn(ConstructorCallExpression constructorCallExpression) {
+        if (constructorCallExpression == null || constructorCallExpression.getType() == null) {
+            return null;
+        }
+        String typeName = constructorCallExpression.getType().getName();
+        return typeName == null || typeName.isBlank() || !typeName.contains(".") ? null : typeName;
     }
 
     private void registerNestedHelperFacadeTrace(ApplicationAnalysisState state,
@@ -2764,6 +3214,19 @@ public class GroovyConstructorInputTraceVisitor {
     }
 
     private record ValueTrace(String provenance, GroovyValueRecipe recipe) {
+    }
+
+    private record ConstructorArgumentTrace(List<ValueTrace> positionalTraces,
+                                            List<GroovyAssignmentRecipe> assignments) {
+    }
+
+    private record ScopedMutation(String assignmentKind,
+                                  String propertyName,
+                                  String sourceName,
+                                  int orderIndex,
+                                  String sourceText,
+                                  Expression valueExpression,
+                                  String blocker) {
     }
 
     private record MethodBodyScanResult(List<Expression> returnExpressions,

@@ -38,10 +38,32 @@ public final class ScenarioIdGenerator {
                                         String sourceMethodName,
                                         String sourceBindingName,
                                         InputResolutionStatus resolutionStatus,
+                                         String stableSourceText,
+                                         String provenanceText,
+                                         List<String> constructorArgumentSummaries,
+                                         Map<String, String> logicalKeyBindings) {
+        return inputVariantId(sagaFqn,
+                sourceClassFqn,
+                sourceMethodName,
+                sourceBindingName,
+                resolutionStatus,
+                stableSourceText,
+                provenanceText,
+                constructorArgumentSummaries,
+                logicalKeyBindings,
+                null);
+    }
+
+    public static String inputVariantId(String sagaFqn,
+                                        String sourceClassFqn,
+                                        String sourceMethodName,
+                                        String sourceBindingName,
+                                        InputResolutionStatus resolutionStatus,
                                         String stableSourceText,
                                         String provenanceText,
                                         List<String> constructorArgumentSummaries,
-                                        Map<String, String> logicalKeyBindings) {
+                                        Map<String, String> logicalKeyBindings,
+                                        String recipeFingerprint) {
         return hash(digest -> {
             updateString(digest, "input-variant");
             updateString(digest, normalize(sagaFqn));
@@ -53,6 +75,9 @@ public final class ScenarioIdGenerator {
             updateString(digest, normalize(provenanceText));
             updateStrings(digest, sortedStrings(constructorArgumentSummaries));
             updateMap(digest, logicalKeyBindings);
+            if (normalize(recipeFingerprint) != null) {
+                updateString(digest, normalize(recipeFingerprint));
+            }
         });
     }
 

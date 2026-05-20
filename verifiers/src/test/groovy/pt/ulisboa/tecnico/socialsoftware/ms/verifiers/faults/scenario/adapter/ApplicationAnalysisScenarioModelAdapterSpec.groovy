@@ -137,6 +137,50 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         variant.sourceModeConfidence() == SourceModeConfidence.UNKNOWN
         variant.sourceModeEvidence().isEmpty()
         variant.warnings().any { it.toLowerCase().contains('partial') || it.toLowerCase().contains('unresolved') }
+        variant.inputRecipe() != null
+        !variant.inputRecipe().executorReady()
+        variant.inputRecipe().arguments()*.index() == [0, 1]
+        variant.inputRecipe().arguments()[0].recipe().kind() == 'literal'
+        variant.inputRecipe().arguments()[1].recipe().kind() == 'unresolved'
+    }
+
+    def 'adapter includes recipe fingerprints in input identity without using owners as identity'() {
+        given:
+        def state = new ApplicationAnalysisState()
+        state.sagas << saga('com.example.order.coordination.CreateOrderFunctionalitySagas',
+                step('com.example.order.coordination.CreateOrderFunctionalitySagas', 'createOrderStep', 0,
+                        AccessPolicy.WRITE, 'Order'))
+        state.groovyFullTraceResults << trace(
+                'com.example.order.OrderSpec',
+                'same source',
+                'orderSaga',
+                'com.example.order.coordination.CreateOrderFunctionalitySagas',
+                'createOrder(customerDto)',
+                'same trace',
+                [resolvedArg(0, 'customerId <- value', '1', 'java.lang.Integer')],
+                'createOrder(customerDto)',
+                [],
+                'same provenance')
+        state.groovyFullTraceResults << trace(
+                'com.example.order.OrderSpec',
+                'same source',
+                'orderSaga',
+                'com.example.order.coordination.CreateOrderFunctionalitySagas',
+                'createOrder(customerDto)',
+                'same trace',
+                [resolvedArg(0, 'customerId <- value', '2', 'java.lang.Integer')],
+                'createOrder(customerDto)',
+                [],
+                'same provenance')
+
+        when:
+        def result = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
+
+        then:
+        result.inputVariants().size() == 2
+        result.inputVariants()*.inputRecipe()*.recipeFingerprint().toSet().size() == 2
+        result.inputVariants()*.deterministicId().toSet().size() == 2
+        result.inputVariants().every { it.owners()*.testMethodName() == ['same source'] }
     }
 
     def 'adapter copies source-mode metadata into input variants'() {
@@ -270,6 +314,38 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         result.counts().get('typeOnlyFootprints') > 0
     }
 
+    def 'dummyapp adapter integration exports representative input recipe shapes'() {
+        given:
+        def state = buildDummyappAnalysisState()
+
+        when:
+        def result = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
+        def recipes = result.inputVariants()*.inputRecipe().findAll { it != null }
+        def allNodes = recipes.collectMany { flattenRecipeNodes(it) }
+        def namedSetterInput = result.inputVariants().find { it.sourceMethodName() == 'named args, setters, and toSet provenance feed item saga constructor' }
+        def helperInput = result.inputVariants().find { it.sourceMethodName() == 'helper chain and accessor provenance feed item saga constructor' }
+        def runtimeInput = result.inputVariants().find { it.sourceMethodName() == 'runtime edge stays conservative for item saga input' }
+
+        then:
+        recipes
+        recipes.every { it.schemaVersion() == 'microservices-simulator.input-recipe.v1' }
+        recipes.every { it.recipeFingerprint() }
+        allNodes*.kind().containsAll(['literal', 'constructor', 'collection', 'local_transform', 'helper_result', 'property_access', 'call_result', 'placeholder'])
+        !allNodes*.kind().contains('facade_call')
+
+        and:
+        def namedSetterNodes = flattenRecipeNodes(namedSetterInput.inputRecipe())
+        namedSetterNodes.find { it.kind() == 'constructor' && it.targetTypeFqn() == 'com.example.dummyapp.item.aggregate.ItemDto' }
+                .assignments()*.assignmentKind().containsAll(['setter', 'property'])
+        namedSetterNodes.find { it.kind() == 'constructor' && it.targetTypeFqn() == 'com.example.dummyapp.item.aggregate.ItemDto' }
+                .assignments()*.propertyName().containsAll(['aggregateId', 'orderId', 'name'])
+        namedSetterNodes.any { it.kind() == 'local_transform' && it.transformName() == 'toSet' }
+
+        and:
+        flattenRecipeNodes(helperInput.inputRecipe())*.kind().containsAll(['helper_result', 'property_access'])
+        flattenRecipeNodes(runtimeInput.inputRecipe())*.kind().contains('call_result')
+    }
+
     private ApplicationAnalysisState buildDummyappAnalysisState() {
         configureParser()
 
@@ -354,5 +430,24 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
                                                                    String expectedTypeFqn) {
         def recipe = new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, text, [])
         new GroovyTraceArgument(index, provenance, recipe, expectedTypeFqn)
+    }
+
+    private static List flattenRecipeNodes(recipe) {
+        recipe.arguments().collectMany { flattenNode(it.recipe()) }
+    }
+
+    private static List flattenNode(node) {
+        if (node == null) {
+            return []
+        }
+        def children = []
+        children.addAll(node.arguments().collectMany { flattenNode(it.recipe()) })
+        children.addAll(node.assignments().collectMany { flattenNode(it.valueRecipe()) })
+        children.addAll(node.elements().collectMany { flattenNode(it) })
+        children.addAll(node.entries().collectMany { flattenNode(it.keyRecipe()) + flattenNode(it.valueRecipe()) })
+        children.addAll(node.callArguments().collectMany { flattenNode(it.recipe()) })
+        children.addAll(flattenNode(node.receiver()))
+        children.addAll(flattenNode(node.resultRecipe()))
+        [node] + children
     }
 }

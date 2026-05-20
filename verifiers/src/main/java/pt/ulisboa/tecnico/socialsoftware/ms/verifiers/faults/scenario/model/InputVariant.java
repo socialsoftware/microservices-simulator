@@ -23,7 +23,8 @@ public record InputVariant(
         List<InputOwner> owners,
         List<String> constructorArgumentSummaries,
         Map<String, String> logicalKeyBindings,
-        List<String> warnings) {
+        List<String> warnings,
+        InputRecipe inputRecipe) {
 
     public InputVariant {
         deterministicId = normalize(deterministicId);
@@ -51,6 +52,69 @@ public record InputVariant(
                         String sourceMethodName,
                         String sourceBindingName,
                         InputResolutionStatus resolutionStatus,
+                        SourceMode sourceMode,
+                        SourceModeConfidence sourceModeConfidence,
+                        List<String> sourceModeEvidence,
+                        String stableSourceText,
+                        String provenanceText,
+                        List<InputOwner> owners,
+                        List<String> constructorArgumentSummaries,
+                        Map<String, String> logicalKeyBindings,
+                        List<String> warnings) {
+        this(deterministicId,
+                sagaFqn,
+                sourceClassFqn,
+                sourceMethodName,
+                sourceBindingName,
+                resolutionStatus,
+                sourceMode,
+                sourceModeConfidence,
+                sourceModeEvidence,
+                stableSourceText,
+                provenanceText,
+                owners,
+                constructorArgumentSummaries,
+                logicalKeyBindings,
+                warnings,
+                null);
+    }
+
+    public InputVariant(String deterministicId,
+                        String sagaFqn,
+                        String sourceClassFqn,
+                        String sourceMethodName,
+                        String sourceBindingName,
+                        InputResolutionStatus resolutionStatus,
+                        String stableSourceText,
+                        String provenanceText,
+                        List<String> constructorArgumentSummaries,
+                        Map<String, String> logicalKeyBindings,
+                        List<String> warnings,
+                        InputRecipe inputRecipe) {
+        this(deterministicId,
+                sagaFqn,
+                sourceClassFqn,
+                sourceMethodName,
+                sourceBindingName,
+                resolutionStatus,
+                SourceMode.UNKNOWN,
+                SourceModeConfidence.UNKNOWN,
+                List.of(),
+                stableSourceText,
+                provenanceText,
+                defaultOwners(sourceClassFqn, sourceMethodName),
+                constructorArgumentSummaries,
+                logicalKeyBindings,
+                warnings,
+                inputRecipe);
+    }
+
+    public InputVariant(String deterministicId,
+                        String sagaFqn,
+                        String sourceClassFqn,
+                        String sourceMethodName,
+                        String sourceBindingName,
+                        InputResolutionStatus resolutionStatus,
                         String stableSourceText,
                         String provenanceText,
                         List<String> constructorArgumentSummaries,
@@ -70,7 +134,8 @@ public record InputVariant(
                 defaultOwners(sourceClassFqn, sourceMethodName),
                 constructorArgumentSummaries,
                 logicalKeyBindings,
-                warnings);
+                warnings,
+                null);
     }
 
     public InputVariant(String deterministicId,
@@ -101,7 +166,8 @@ public record InputVariant(
                 defaultOwners(sourceClassFqn, sourceMethodName),
                 constructorArgumentSummaries,
                 logicalKeyBindings,
-                warnings);
+                warnings,
+                null);
     }
 
     private static String normalize(String value) {

@@ -6,6 +6,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Acce
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition
@@ -52,6 +56,31 @@ class ScenarioGeneratorSpec extends Specification {
         then:
         result.scenarioPlans().size() == 1
         result.counts().inputVariantsDeduplicated == 1
+    }
+
+    def 'recipe fingerprints and logical keys participate in input identity while owners remain metadata'() {
+        given:
+        def saga = saga('com.example.A', step('com.example.A', 'step-1', 0, AccessMode.WRITE, 'order-1'))
+        def ownerOne = new InputOwner('com.example.OrderSpec', 'feature one')
+        def ownerTwo = new InputOwner('com.example.OrderSpec', 'feature two')
+        def recipeOne = recipeForLiteral('1')
+        def recipeTwo = recipeForLiteral('2')
+        def sameRecipeOwnerOne = inputWithRecipe('com.example.A', recipeOne, [orderId: 'order-1'], [ownerOne])
+        def sameRecipeOwnerTwo = inputWithRecipe('com.example.A', recipeOne, [orderId: 'order-1'], [ownerTwo])
+        def differentRecipe = inputWithRecipe('com.example.A', recipeTwo, [orderId: 'order-1'], [ownerOne])
+        def differentLogicalKey = inputWithRecipe('com.example.A', recipeOne, [orderId: 'order-2'], [ownerOne])
+
+        when:
+        def result = ScenarioGenerator.generate([saga], [sameRecipeOwnerOne, sameRecipeOwnerTwo, differentRecipe, differentLogicalKey],
+                config(maxInputVariantsPerSaga: 10))
+        def accepted = result.scenarioPlans()*.inputs().flatten()
+        def mergedSameRecipe = accepted.find { it.inputRecipe().recipeFingerprint() == recipeOne.recipeFingerprint() && it.logicalKeyBindings().orderId == 'order-1' }
+
+        then:
+        accepted.size() == 3
+        accepted*.deterministicId().toSet().size() == 3
+        result.counts().inputVariantsDeduplicated == 1
+        mergedSameRecipe.owners().toSet() == [ownerOne, ownerTwo] as Set
     }
 
     def 'source-mode policy accepts sagas rejects tcc and mixed and accepts unknown with warning'() {
@@ -427,6 +456,44 @@ class ScenarioGeneratorSpec extends Specification {
                 ['arg'],
                 [orderId: 'order-1'],
                 [])
+    }
+
+    private static InputVariant inputWithRecipe(String sagaFqn, InputRecipe recipe, Map<String, String> logicalKeyBindings, List<InputOwner> owners) {
+        new InputVariant(
+                null,
+                sagaFqn,
+                'com.example.TestInput',
+                'build',
+                'sagaField',
+                InputResolutionStatus.RESOLVED,
+                SourceMode.SAGAS,
+                SourceModeConfidence.TYPE_EVIDENCE,
+                ['mode evidence'],
+                'same-source',
+                'same-provenance',
+                owners,
+                ['arg[0]: literal'],
+                logicalKeyBindings,
+                [],
+                recipe)
+    }
+
+    private static InputRecipe recipeForLiteral(String text) {
+        def node = InputRecipeNode.builder('literal')
+                .sourceText(text)
+                .executorReady(true)
+                .literalKind('integer')
+                .value(Long.valueOf(text))
+                .expectedTypeFqn('java.lang.Integer')
+                .build()
+        def argument = new InputRecipeArgument(0,
+                'java.lang.Integer',
+                InputResolutionStatus.RESOLVED,
+                true,
+                [],
+                'literal',
+                node)
+        new InputRecipe(InputRecipe.SCHEMA_VERSION, null, true, [], [argument])
     }
 
     private static InputVariant input(String deterministicId, String sagaFqn, Map<String, String> logicalKeyBindings) {

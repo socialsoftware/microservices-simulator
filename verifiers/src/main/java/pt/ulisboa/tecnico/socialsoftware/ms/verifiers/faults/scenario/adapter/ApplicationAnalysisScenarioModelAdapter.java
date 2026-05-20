@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Acce
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
@@ -37,6 +38,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class ApplicationAnalysisScenarioModelAdapter {
+
+    private final InputRecipeMapper inputRecipeMapper = new InputRecipeMapper();
 
     public ScenarioModelAdapterResult adapt(ApplicationAnalysisState state) {
         Objects.requireNonNull(state, "state");
@@ -354,6 +357,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
             warnings.add("trace " + traceDescriptor(trace) + " is " + status.name().toLowerCase(Locale.ROOT));
         }
 
+        InputRecipe inputRecipe = inputRecipeMapper.map(constructorArguments, status);
+
         String stableSourceText = normalize(trace.sourceExpressionText());
         if (stableSourceText == null) {
             stableSourceText = traceDescriptor(trace);
@@ -382,7 +387,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 ownersForTrace(sourceClassFqn, sourceMethodName, featureOwnersByClass),
                 summaries,
                 Map.of(),
-                warnings);
+                warnings,
+                inputRecipe);
 
         String deterministicId = ScenarioIdGenerator.inputVariantId(
                 variant.sagaFqn(),
@@ -393,7 +399,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 variant.stableSourceText(),
                 variant.provenanceText(),
                 variant.constructorArgumentSummaries(),
-                variant.logicalKeyBindings());
+                variant.logicalKeyBindings(),
+                variant.inputRecipe() == null ? null : variant.inputRecipe().recipeFingerprint());
 
         return TraceAdaptation.usable(new InputVariant(
                 deterministicId,
@@ -410,7 +417,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 variant.owners(),
                 variant.constructorArgumentSummaries(),
                 variant.logicalKeyBindings(),
-                variant.warnings()),
+                variant.warnings(),
+                variant.inputRecipe()),
                 status,
                 "trace " + traceDescriptor(trace) + " is " + status.name().toLowerCase(Locale.ROOT));
     }
@@ -471,7 +479,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 mergeOwners(left, right),
                 left.constructorArgumentSummaries(),
                 left.logicalKeyBindings(),
-                List.copyOf(mergedWarnings));
+                List.copyOf(mergedWarnings),
+                left.inputRecipe());
     }
 
     private List<InputOwner> mergeOwners(InputVariant left, InputVariant right) {
