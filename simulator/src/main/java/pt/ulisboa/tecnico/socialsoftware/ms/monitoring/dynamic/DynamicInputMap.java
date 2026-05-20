@@ -6,26 +6,25 @@ import java.util.Objects;
 public record DynamicInputMap(
         String schemaVersion,
         String generatedAt,
-        String testClassFqn,
+        List<String> selectedTestClassFqns,
         int inputCount,
         List<Entry> inputs) {
 
     static final String BASIS_TEST_FUNCTIONALITY_CLASS_STEP = "TEST_FUNCTIONALITY_CLASS_STEP";
 
     public DynamicInputMap {
-        testClassFqn = normalize(testClassFqn);
+        selectedTestClassFqns = selectedTestClassFqns == null ? List.of() : List.copyOf(selectedTestClassFqns);
         inputs = inputs == null ? List.of() : List.copyOf(inputs);
     }
 
     public static DynamicInputMap empty() {
-        return new DynamicInputMap(null, null, null, 0, List.of());
+        return new DynamicInputMap(null, null, List.of(), 0, List.of());
     }
 
     DynamicInputAttribution resolve(DynamicEvidenceTestContext.TestIdentity testIdentity,
                                     String functionalityClassFqn,
                                     String stepName) {
         if (testIdentity == null || isBlank(testIdentity.testClassFqn())
-                || !Objects.equals(testClassFqn, testIdentity.testClassFqn())
                 || isBlank(functionalityClassFqn)
                 || isBlank(stepName)) {
             return DynamicInputAttribution.noMatch(BASIS_TEST_FUNCTIONALITY_CLASS_STEP);
@@ -64,6 +63,7 @@ public record DynamicInputMap(
             String sourceClassFqn,
             String sourceMethodName,
             String sourceBindingName,
+            List<InputOwner> owners,
             String resolutionStatus,
             String sourceMode,
             String sourceModeConfidence,
@@ -83,6 +83,7 @@ public record DynamicInputMap(
             sagaFqn = normalize(sagaFqn);
             sourceClassFqn = normalize(sourceClassFqn);
             sourceMethodName = normalize(sourceMethodName);
+            owners = owners == null ? List.of() : List.copyOf(owners);
             stepNameHints = stepNameHints == null ? List.of() : List.copyOf(stepNameHints);
         }
 
@@ -90,16 +91,35 @@ public record DynamicInputMap(
                                 String functionalityClassFqn,
                                 String stepName) {
             return !isBlank(inputVariantId)
-                    && Objects.equals(sourceClassFqn, testIdentity.testClassFqn())
-                    && methodMatches(testIdentity)
+                    && ownerMatches(testIdentity)
                     && Objects.equals(sagaFqn, functionalityClassFqn)
                     && stepNameHints.contains(stepName.trim());
+        }
+
+        private boolean ownerMatches(DynamicEvidenceTestContext.TestIdentity testIdentity) {
+            if (!owners.isEmpty()) {
+                return owners.stream().anyMatch(owner -> owner.matches(testIdentity));
+            }
+            return Objects.equals(sourceClassFqn, testIdentity.testClassFqn()) && methodMatches(testIdentity);
         }
 
         private boolean methodMatches(DynamicEvidenceTestContext.TestIdentity testIdentity) {
             return isBlank(sourceMethodName)
                     || Objects.equals(sourceMethodName, testIdentity.testMethodName())
                     || Objects.equals(sourceMethodName, testIdentity.testDisplayName());
+        }
+    }
+
+    public record InputOwner(String testClassFqn, String testMethodName) {
+        public InputOwner {
+            testClassFqn = normalize(testClassFqn);
+            testMethodName = normalize(testMethodName);
+        }
+
+        private boolean matches(DynamicEvidenceTestContext.TestIdentity testIdentity) {
+            return Objects.equals(testClassFqn, testIdentity.testClassFqn())
+                    && (Objects.equals(testMethodName, testIdentity.testMethodName())
+                    || Objects.equals(testMethodName, testIdentity.testDisplayName()));
         }
     }
 }

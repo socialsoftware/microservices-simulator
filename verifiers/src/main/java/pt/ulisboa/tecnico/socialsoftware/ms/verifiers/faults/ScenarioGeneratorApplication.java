@@ -102,7 +102,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             @Value("${verifiers.dynamic-enrichment.include-test-dirs:}") List<String> includeTestDirs,
             @Value("${verifiers.dynamic-enrichment.exclude-test-dirs:}") List<String> excludeTestDirs,
             @Value("${verifiers.dynamic-enrichment.exclude-test-classes:CreateTournamentDynamicEvidenceSmokeTest,DynamicEvidenceDisabledSmokeTest}") List<String> excludeTestClasses,
-            @Value("${verifiers.dynamic-enrichment.per-test-timeout-seconds:300}") int perTestTimeoutSeconds,
+            @Value("${verifiers.dynamic-enrichment.per-test-timeout-seconds:900}") int perTestTimeoutSeconds,
             @Value("${verifiers.dynamic-enrichment.maven.executable:mvn}") String mavenExecutable,
             @Value("${verifiers.dynamic-enrichment.maven.profile:test-sagas}") String mavenProfile
     ) {

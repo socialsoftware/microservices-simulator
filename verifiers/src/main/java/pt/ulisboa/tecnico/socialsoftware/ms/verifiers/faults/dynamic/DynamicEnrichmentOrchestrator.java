@@ -75,24 +75,79 @@ public class DynamicEnrichmentOrchestrator {
 
         Path evidenceRoot = resolveRunRelativePath(runDirectory, config.dynamicEvidenceSubdir(), "dynamic-evidence");
         Files.createDirectories(evidenceRoot);
-        List<TestRunRecord> testRuns = new ArrayList<>();
-        boolean hasFailure = false;
+        List<String> selectedTestClassFqns = selectedTestClassFqns(testClassFqns);
+        List<ScenarioPlan> safeScenarioPlans = scenarioPlans == null ? List.of() : scenarioPlans;
+        inputMapWriter.write(evidenceRoot.resolve(DynamicInputMapWriter.FILE_NAME), selectedTestClassFqns, safeScenarioPlans, generatedAt);
 
-        for (String testClassFqn : testClassFqns == null ? List.<String>of() : testClassFqns) {
-            TestRunRecord record = runOne(config, applicationPath, applicationName, evidenceRoot, testClassFqn,
-                    scenarioPlans == null ? List.of() : scenarioPlans, generatedAt);
-            testRuns.add(record);
-            if ("FAILED".equals(record.status()) || "TIMED_OUT".equals(record.status())) {
-                hasFailure = true;
-            }
+        List<String> arguments = commandArguments(config, selectedTestClassFqns, evidenceRoot, applicationName);
+        ProcessRunner.ProcessCommand command = new ProcessRunner.ProcessCommand(
+                applicationPath,
+                arguments,
+                Duration.ofSeconds(config.perTestTimeoutSeconds()));
+
+        String startedAt = nowIso();
+        long startedNanos = System.nanoTime();
+        ProcessRunner.ProcessResult processResult;
+        try {
+            processResult = processRunner.run(command);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            processResult = new ProcessRunner.ProcessResult(-1, "", e.getMessage(), true);
+        } catch (IOException e) {
+            processResult = new ProcessRunner.ProcessResult(-1, "", e.getMessage(), false);
         }
+        long durationMillis = Duration.ofNanos(System.nanoTime() - startedNanos).toMillis();
+        String finishedAt = nowIso();
+        Path outputLog = evidenceRoot.resolve("maven-output.log");
+        Files.writeString(outputLog, processResult.stdout() + (processResult.stderr().isBlank() ? "" : System.lineSeparator() + processResult.stderr()));
 
+        SurefireTestRunReporter.Result reportedRuns = new SurefireTestRunReporter(objectMapper).write(
+                applicationPath.resolve("target/surefire-reports"),
+                applicationPath,
+                evidenceRoot,
+                selectedTestClassFqns,
+                processResult.timedOut());
+        String batchStatus = batchStatus(processResult, reportedRuns.records());
+        int exitCode = processResult.exitCode();
+        boolean timedOut = processResult.timedOut();
+        List<TestRunRecord> testRuns = reportedRuns.records().stream()
+                .map(record -> new TestRunRecord(
+                        record.testClassFqn(),
+                        arguments,
+                        command.workingDirectory().toString(),
+                        startedAt,
+                        finishedAt,
+                        durationMillis,
+                        exitCode,
+                        record.status(),
+                        evidenceRoot.toString(),
+                        outputLog.toString(),
+                        timedOut,
+                        record.reportPath(),
+                        record.tests(),
+                        record.failures(),
+                        record.errors(),
+                        record.skipped(),
+                        record.warning(),
+                        staticCatalogPath.toString()))
+                .toList();
+        writeBatchTestRunArtifacts(evidenceRoot, selectedTestClassFqns, arguments, command.workingDirectory().toString(),
+                startedAt, finishedAt, durationMillis, processResult, batchStatus, staticCatalogPath, outputLog,
+                reportedRuns.statusCounts(), reportedRuns.warnings(), testRuns);
+        boolean hasFailure = processResult.timedOut()
+                || processResult.exitCode() != 0
+                || testRuns.stream().anyMatch(record -> "FAILED".equals(record.status()) || "TIMED_OUT".equals(record.status()) || "NO_REPORT".equals(record.status()));
+
+        long readJoinWriteStartedNanos = System.nanoTime();
         DynamicEvidenceReadResult readResult = evidenceReader.read(evidenceRoot);
         DynamicEvidenceJoinResult joinResult = joiner.join(
-                scenarioPlans == null ? List.of() : scenarioPlans,
+                safeScenarioPlans,
                 readResult.events(),
                 readResult.evidenceFilesRead(),
-                readResult.warnings());
+                readResult.warnings(),
+                readResult.evidenceBytesRead());
+        long readJoinWriteDurationMillis = Duration.ofNanos(System.nanoTime() - readJoinWriteStartedNanos).toMillis();
+        String dynamicRunFinishedAt = nowIso();
 
         Path enrichedCatalogPath = resolveRunRelativePath(runDirectory, config.enrichedCatalogPath(), "scenario-catalog-enriched.jsonl");
         Path enrichedManifestPath = resolveRunRelativePath(runDirectory, config.enrichedManifestPath(), "scenario-catalog-enriched-manifest.json");
@@ -106,7 +161,19 @@ public class DynamicEnrichmentOrchestrator {
                 evidenceRoot.toString(),
                 effectiveConfig(config),
                 testRuns.stream().map(TestRunRecord::toMap).toList(),
-                generatedAt);
+                generatedAt,
+                reportMetadata(
+                        startedAt,
+                        dynamicRunFinishedAt,
+                        durationMillis,
+                        readJoinWriteDurationMillis,
+                        batchStatus,
+                        selectedTestClassFqns,
+                        arguments,
+                        staticCatalogPath,
+                        evidenceRoot,
+                        enrichedCatalogPath,
+                        outputLog));
 
         Result result = new Result(testRuns, joinResult, evidenceRoot, enrichedCatalogPath, enrichedManifestPath, joinReportPath);
         if (hasFailure && !config.allowPartialTestRun()) {
@@ -115,63 +182,16 @@ public class DynamicEnrichmentOrchestrator {
         return result;
     }
 
-    private TestRunRecord runOne(DynamicEnrichmentConfig config,
-                                 Path applicationPath,
-                                 String applicationName,
-                                 Path evidenceRoot,
-                                 String testClassFqn,
-                                 List<ScenarioPlan> scenarioPlans,
-                                 String generatedAt) throws IOException {
-        Path evidenceDir = evidenceRoot.resolve(safeTestClassDirectoryName(testClassFqn)).normalize();
-        Files.createDirectories(evidenceDir);
-        inputMapWriter.write(evidenceDir.resolve(DynamicInputMapWriter.FILE_NAME), testClassFqn, scenarioPlans, generatedAt);
-        List<String> arguments = commandArguments(config, testClassFqn, evidenceDir, applicationName);
-        ProcessRunner.ProcessCommand command = new ProcessRunner.ProcessCommand(
-                applicationPath,
-                arguments,
-                Duration.ofSeconds(config.perTestTimeoutSeconds()));
-
-        String startedAt = nowIso();
-        long startedNanos = System.nanoTime();
-        ProcessRunner.ProcessResult result;
-        try {
-            result = processRunner.run(command);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            result = new ProcessRunner.ProcessResult(-1, "", e.getMessage(), true);
-        } catch (IOException e) {
-            result = new ProcessRunner.ProcessResult(-1, "", e.getMessage(), false);
-        }
-        long durationMillis = Duration.ofNanos(System.nanoTime() - startedNanos).toMillis();
-        String finishedAt = nowIso();
-        String status = result.timedOut() ? "TIMED_OUT" : result.exitCode() == 0 ? "PASSED" : "FAILED";
-        Path outputLog = evidenceDir.resolve("maven-output.log");
-        Files.writeString(outputLog, result.stdout() + (result.stderr().isBlank() ? "" : System.lineSeparator() + result.stderr()));
-        TestRunRecord record = new TestRunRecord(
-                testClassFqn,
-                arguments,
-                command.workingDirectory().toString(),
-                startedAt,
-                finishedAt,
-                durationMillis,
-                result.exitCode(),
-                status,
-                evidenceDir.toString(),
-                outputLog.toString(),
-                result.timedOut());
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(evidenceDir.resolve("test-run.json").toFile(), record.toMap());
-        return record;
-    }
-
     private List<String> commandArguments(DynamicEnrichmentConfig config,
-                                          String testClassFqn,
+                                          List<String> testClassFqns,
                                           Path evidenceDir,
                                           String applicationName) {
         List<String> arguments = new ArrayList<>();
         arguments.add(config.maven().executable());
         arguments.add("-P" + config.maven().profile());
         arguments.add("test");
-        arguments.add("-Dtest=" + testClassFqn);
+        arguments.add("-Dtest=" + String.join(",", testClassFqns));
+        arguments.add("-Dspring.test.context.cache.maxSize=1");
         arguments.add("-Dsimulator.dynamic-evidence.enabled=true");
         arguments.add("-Dsimulator.dynamic-evidence.test-context.enabled=true");
         arguments.add("-Djunit.platform.listeners.autodetection.enabled=true");
@@ -179,6 +199,92 @@ public class DynamicEnrichmentOrchestrator {
         arguments.add("-Dsimulator.dynamic-evidence.input-map-path=" + evidenceDir.resolve(DynamicInputMapWriter.FILE_NAME));
         arguments.add("-Dsimulator.dynamic-evidence.application-name=" + applicationName);
         return List.copyOf(arguments);
+    }
+
+    private Map<String, Object> reportMetadata(String dynamicRunStartedAt,
+                                               String dynamicRunFinishedAt,
+                                               long mavenDurationMillis,
+                                               long readJoinWriteDurationMillis,
+                                               String batchStatus,
+                                               List<String> selectedTestClassFqns,
+                                               List<String> commandArguments,
+                                               Path staticCatalogPath,
+                                               Path evidenceRoot,
+                                               Path enrichedCatalogPath,
+                                               Path outputLog) {
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("dynamicRunStartedAt", dynamicRunStartedAt);
+        metadata.put("dynamicRunFinishedAt", dynamicRunFinishedAt);
+        metadata.put("mavenDurationMillis", mavenDurationMillis);
+        metadata.put("readJoinWriteDurationMillis", readJoinWriteDurationMillis);
+        metadata.put("batchStatus", batchStatus);
+        metadata.put("selectedTestClassFqns", selectedTestClassFqns);
+        metadata.put("commandArguments", commandArguments);
+        metadata.put("staticCatalogPath", staticCatalogPath.toString());
+        metadata.put("dynamicEvidenceRoot", evidenceRoot.toString());
+        metadata.put("enrichedCatalogPath", enrichedCatalogPath.toString());
+        metadata.put("mavenOutputLogPath", outputLog.toString());
+        return metadata;
+    }
+
+    private void writeBatchTestRunArtifacts(Path evidenceRoot,
+                                            List<String> selectedTestClassFqns,
+                                            List<String> arguments,
+                                            String workingDirectory,
+                                            String startedAt,
+                                            String finishedAt,
+                                            long durationMillis,
+                                            ProcessRunner.ProcessResult processResult,
+                                            String batchStatus,
+                                            Path staticCatalogPath,
+                                            Path outputLog,
+                                            Map<String, Integer> statusCounts,
+                                            List<String> warnings,
+                                            List<TestRunRecord> testRuns) throws IOException {
+        Map<String, Object> batch = new LinkedHashMap<>();
+        batch.put("selectedTestClassFqns", selectedTestClassFqns);
+        batch.put("commandArguments", arguments);
+        batch.put("workingDirectory", workingDirectory);
+        batch.put("startedAt", startedAt);
+        batch.put("finishedAt", finishedAt);
+        batch.put("durationMillis", durationMillis);
+        batch.put("exitCode", processResult.exitCode());
+        batch.put("status", batchStatus);
+        batch.put("timedOut", processResult.timedOut());
+        batch.put("staticCatalogPath", staticCatalogPath.toString());
+        batch.put("evidenceRoot", evidenceRoot.toString());
+        batch.put("outputLogPath", outputLog.toString());
+        batch.put("statusCounts", statusCounts);
+        batch.put("warnings", warnings);
+        batch.put("testRuns", testRuns.stream().map(TestRunRecord::toMap).toList());
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(evidenceRoot.resolve(SurefireTestRunReporter.TEST_RUN_FILE_NAME).toFile(), batch);
+
+        Path sidecarDirectory = evidenceRoot.resolve(SurefireTestRunReporter.TEST_RUNS_DIRECTORY);
+        Files.createDirectories(sidecarDirectory);
+        for (TestRunRecord testRun : testRuns) {
+            objectMapper.writerWithDefaultPrettyPrinter()
+                    .writeValue(sidecarDirectory.resolve(safeTestClassDirectoryName(testRun.testClassFqn()) + ".json").toFile(), testRun.toMap());
+        }
+    }
+
+    private String batchStatus(ProcessRunner.ProcessResult processResult, List<SurefireTestRunReporter.TestRunRecord> records) {
+        if (processResult.timedOut()) {
+            return "TIMED_OUT";
+        }
+        if (processResult.exitCode() != 0 || records.stream().anyMatch(record -> "FAILED".equals(record.status()) || "NO_REPORT".equals(record.status()))) {
+            return "FAILED";
+        }
+        return "PASSED";
+    }
+
+    private List<String> selectedTestClassFqns(List<String> testClassFqns) {
+        return (testClassFqns == null ? List.<String>of() : testClassFqns).stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .distinct()
+                .sorted()
+                .toList();
     }
 
     private Map<String, Object> effectiveConfig(DynamicEnrichmentConfig config) {
@@ -241,16 +347,23 @@ public class DynamicEnrichmentOrchestrator {
     }
 
     public record TestRunRecord(String testClassFqn,
-                                List<String> commandArguments,
-                                String workingDirectory,
-                                String startedAt,
-                                String finishedAt,
-                                long durationMillis,
-                                int exitCode,
-                                String status,
-                                String evidenceDirectory,
-                                String outputLogPath,
-                                boolean timedOut) {
+                                 List<String> commandArguments,
+                                 String workingDirectory,
+                                 String startedAt,
+                                 String finishedAt,
+                                 long durationMillis,
+                                 int exitCode,
+                                 String status,
+                                 String evidenceDirectory,
+                                 String outputLogPath,
+                                 boolean timedOut,
+                                 String reportPath,
+                                 int tests,
+                                 int failures,
+                                 int errors,
+                                 int skipped,
+                                 String warning,
+                                 String staticCatalogPath) {
         public Map<String, Object> toMap() {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("testClassFqn", testClassFqn);
@@ -264,6 +377,15 @@ public class DynamicEnrichmentOrchestrator {
             map.put("evidenceDirectory", evidenceDirectory);
             map.put("outputLogPath", outputLogPath);
             map.put("timedOut", timedOut);
+            map.put("reportPath", reportPath);
+            map.put("tests", tests);
+            map.put("failures", failures);
+            map.put("errors", errors);
+            map.put("skipped", skipped);
+            map.put("staticCatalogPath", staticCatalogPath);
+            if (warning != null) {
+                map.put("warning", warning);
+            }
             return map;
         }
     }

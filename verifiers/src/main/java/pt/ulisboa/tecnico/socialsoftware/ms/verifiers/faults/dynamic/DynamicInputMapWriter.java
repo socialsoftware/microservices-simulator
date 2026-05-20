@@ -43,7 +43,7 @@ public class DynamicInputMapWriter {
     }
 
     public DynamicInputMap write(Path path,
-                                 String testClassFqn,
+                                 List<String> selectedTestClassFqns,
                                  List<ScenarioPlan> scenarioPlans,
                                  String generatedAt) throws IOException {
         Objects.requireNonNull(path, "path cannot be null");
@@ -52,20 +52,16 @@ public class DynamicInputMapWriter {
             Files.createDirectories(parent);
         }
 
-        DynamicInputMap map = build(testClassFqn, scenarioPlans, generatedAt);
+        DynamicInputMap map = build(selectedTestClassFqns, scenarioPlans, generatedAt);
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), map);
         return map;
     }
 
-    DynamicInputMap build(String testClassFqn, List<ScenarioPlan> scenarioPlans, String generatedAt) {
-        String safeTestClassFqn = normalize(testClassFqn);
+    DynamicInputMap build(List<String> selectedTestClassFqns, List<ScenarioPlan> scenarioPlans, String generatedAt) {
         Map<String, EntryBuilder> entries = new LinkedHashMap<>();
         for (ScenarioPlan plan : sortedPlans(scenarioPlans)) {
             for (InputVariant input : sortedInputs(plan.inputs())) {
                 if (input == null || isBlank(input.deterministicId())) {
-                    continue;
-                }
-                if (!Objects.equals(input.sourceClassFqn(), safeTestClassFqn)) {
                     continue;
                 }
 
@@ -80,7 +76,16 @@ public class DynamicInputMapWriter {
                 .sorted(Comparator.comparing(builder -> builder.input.deterministicId(), Comparator.nullsFirst(String::compareTo)))
                 .map(EntryBuilder::toEntry)
                 .toList();
-        return new DynamicInputMap(SCHEMA_VERSION, generatedAt, safeTestClassFqn, inputEntries.size(), inputEntries);
+        return new DynamicInputMap(SCHEMA_VERSION, generatedAt, sortedSelectedTestClassFqns(selectedTestClassFqns), inputEntries.size(), inputEntries);
+    }
+
+    private List<String> sortedSelectedTestClassFqns(List<String> selectedTestClassFqns) {
+        return (selectedTestClassFqns == null ? List.<String>of() : selectedTestClassFqns).stream()
+                .map(DynamicInputMapWriter::normalize)
+                .filter(value -> !isBlank(value))
+                .distinct()
+                .sorted()
+                .toList();
     }
 
     private List<ScenarioPlan> sortedPlans(List<ScenarioPlan> scenarioPlans) {
@@ -194,11 +199,12 @@ public class DynamicInputMapWriter {
     public record DynamicInputMap(
             String schemaVersion,
             String generatedAt,
-            String testClassFqn,
+            List<String> selectedTestClassFqns,
             int inputCount,
             List<DynamicInputMapEntry> inputs) {
         public DynamicInputMap {
             schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;
+            selectedTestClassFqns = selectedTestClassFqns == null ? List.of() : List.copyOf(selectedTestClassFqns);
             inputs = inputs == null ? List.of() : List.copyOf(inputs);
         }
     }
@@ -209,6 +215,7 @@ public class DynamicInputMapWriter {
             String sourceClassFqn,
             String sourceMethodName,
             String sourceBindingName,
+            List<InputOwnerEntry> owners,
             String resolutionStatus,
             String sourceMode,
             String sourceModeConfidence,
@@ -223,6 +230,7 @@ public class DynamicInputMapWriter {
             String provenanceText,
             List<String> warnings) {
         public DynamicInputMapEntry {
+            owners = owners == null ? List.of() : List.copyOf(owners);
             stepNameHints = stepNameHints == null ? List.of() : List.copyOf(stepNameHints);
             literalArgumentValueHints = literalArgumentValueHints == null ? List.of() : List.copyOf(literalArgumentValueHints);
             constructorArgumentSummaries = constructorArgumentSummaries == null ? List.of() : List.copyOf(constructorArgumentSummaries);
@@ -234,6 +242,9 @@ public class DynamicInputMapWriter {
             scenarioPlanIds = scenarioPlanIds == null ? List.of() : List.copyOf(scenarioPlanIds);
             warnings = warnings == null ? List.of() : List.copyOf(warnings);
         }
+    }
+
+    public record InputOwnerEntry(String testClassFqn, String testMethodName) {
     }
 
     private static final class EntryBuilder {
@@ -253,6 +264,9 @@ public class DynamicInputMapWriter {
                     input.sourceClassFqn(),
                     input.sourceMethodName(),
                     input.sourceBindingName(),
+                    input.owners().stream()
+                            .map(owner -> new InputOwnerEntry(owner.testClassFqn(), owner.testMethodName()))
+                            .toList(),
                     input.resolutionStatus().name(),
                     input.sourceMode().name(),
                     input.sourceModeConfidence().name(),

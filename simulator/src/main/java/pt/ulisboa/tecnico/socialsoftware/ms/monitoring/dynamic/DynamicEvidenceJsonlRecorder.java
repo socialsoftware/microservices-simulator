@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -134,7 +135,8 @@ public class DynamicEvidenceJsonlRecorder implements DynamicEvidenceRecorder {
             Files.createDirectories(outputDirectory);
             this.evidencePath = outputDirectory.resolve(evidenceFileName);
             this.manifestPath = outputDirectory.resolve(manifestFileName);
-            this.writer = Files.newBufferedWriter(evidencePath, StandardCharsets.UTF_8);
+            this.writer = Files.newBufferedWriter(evidencePath, StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             logger.info("Dynamic evidence recording enabled: outputDirectory={}, evidencePath={}, manifestPath={}",
                     outputDirectory.toAbsolutePath().normalize(),
                     evidencePath.toAbsolutePath().normalize(),

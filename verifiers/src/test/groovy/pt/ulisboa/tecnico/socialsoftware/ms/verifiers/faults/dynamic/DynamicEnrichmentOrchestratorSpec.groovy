@@ -17,16 +17,18 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
     @TempDir
     Path tempDir
 
-    def 'command args include dynamic evidence properties and class output dir'() {
+    def 'command args include run scoped dynamic evidence properties'() {
         given:
         def appDir = tempDir.resolve('applications/quizzes')
         Files.createDirectories(appDir.resolve('src/test/groovy/com/example/quiz'))
         def runDir = tempDir.resolve('runs/quizzes-1')
         def runner = new FakeProcessRunner([new ProcessRunner.ProcessResult(0, 'ok', '', false)], { ProcessRunner.ProcessCommand command ->
-            def evidenceDir = runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS))
+            writeReport(appDir, TEST_CLASS, 1, 0, 0, 0)
+            def evidenceDir = runDir.resolve('dynamic-evidence')
             assert Files.exists(evidenceDir.resolve(DynamicInputMapWriter.FILE_NAME))
             def inputMap = mapper.readTree(Files.readString(evidenceDir.resolve(DynamicInputMapWriter.FILE_NAME)))
             assert inputMap.path('inputCount').asInt() == 1
+            assert inputMap.path('selectedTestClassFqns')*.asText() == [TEST_CLASS]
             assert inputMap.path('inputs')[0].path('inputVariantId').asText() == 'input-1'
         })
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
@@ -40,17 +42,21 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         runner.commands[0].workingDirectory() == appDir
         runner.commands[0].arguments() == [
                 'mvn', '-Ptest-sagas', 'test', "-Dtest=${TEST_CLASS}",
+                '-Dspring.test.context.cache.maxSize=1',
                 '-Dsimulator.dynamic-evidence.enabled=true',
                 '-Dsimulator.dynamic-evidence.test-context.enabled=true',
                 '-Djunit.platform.listeners.autodetection.enabled=true',
-                "-Dsimulator.dynamic-evidence.output-dir=${runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS))}",
-                "-Dsimulator.dynamic-evidence.input-map-path=${runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve(DynamicInputMapWriter.FILE_NAME)}",
+                "-Dsimulator.dynamic-evidence.output-dir=${runDir.resolve('dynamic-evidence')}",
+                "-Dsimulator.dynamic-evidence.input-map-path=${runDir.resolve('dynamic-evidence').resolve(DynamicInputMapWriter.FILE_NAME)}",
                 '-Dsimulator.dynamic-evidence.application-name=quizzes'
         ]
+        !runner.commands[0].arguments().any { it.toLowerCase().contains('parallel') }
         result.testRuns()[0].status() == 'PASSED'
-        Files.exists(runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve('test-run.json'))
-        Files.exists(runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve(DynamicInputMapWriter.FILE_NAME))
-        Files.readString(runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve('maven-output.log')).contains('ok')
+        Files.exists(runDir.resolve('dynamic-evidence').resolve('test-run.json'))
+        Files.exists(runDir.resolve('dynamic-evidence').resolve('test-runs').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS) + '.json'))
+        Files.exists(runDir.resolve('dynamic-evidence').resolve(DynamicInputMapWriter.FILE_NAME))
+        Files.readString(runDir.resolve('dynamic-evidence').resolve('maven-output.log')).contains('ok')
+        !Files.exists(runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)))
     }
 
     def 'dynamic evidence and sidecar paths cannot escape the run directory when orchestrator is used directly'() {
@@ -75,23 +81,24 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         def appDir = tempDir.resolve('applications/quizzes')
         Files.createDirectories(appDir)
         def runDir = tempDir.resolve('run')
-        def runner = new FakeProcessRunner([
-                new ProcessRunner.ProcessResult(1, 'failed output', 'boom', false),
-                new ProcessRunner.ProcessResult(0, 'passed output', '', false)
-        ])
+        def runner = new FakeProcessRunner([new ProcessRunner.ProcessResult(1, 'failed output', 'boom', false)], {
+            writeReport(appDir, TEST_CLASS, 1, 1, 0, 0)
+            writeReport(appDir, SECOND_TEST_CLASS, 1, 0, 0, 0)
+        })
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
 
         when:
         orchestrator.run(config(true), appDir, 'quizzes', runDir, [TEST_CLASS, SECOND_TEST_CLASS], [scenarioPlan()], runDir.resolve('scenario-catalog.jsonl'), GENERATED_AT)
 
         then:
-        runner.commands.size() == 2
+        runner.commands.size() == 1
+        runner.commands[0].arguments().any { it == "-Dtest=${TEST_CLASS},${SECOND_TEST_CLASS}".toString() }
         def report = mapper.readTree(Files.readString(runDir.resolve('dynamic-evidence-join-report.json')))
         report.path('runStatus').asText() == 'PARTIAL'
         report.path('counts').path('testClassesFailed').asInt() == 1
         report.path('counts').path('testClassesPassed').asInt() == 1
         report.path('testRuns')*.path('status')*.asText() == ['FAILED', 'PASSED']
-        Files.exists(runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve('test-run.json'))
+        Files.exists(runDir.resolve('dynamic-evidence').resolve('test-run.json'))
     }
 
     def 'strict mode fails on fake failed class after preserving artifacts'() {
@@ -99,7 +106,9 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         def appDir = tempDir.resolve('applications/quizzes')
         Files.createDirectories(appDir)
         def runDir = tempDir.resolve('run')
-        def runner = new FakeProcessRunner([new ProcessRunner.ProcessResult(1, 'failed output', 'boom', false)])
+        def runner = new FakeProcessRunner([new ProcessRunner.ProcessResult(1, 'failed output', 'boom', false)], {
+            writeReport(appDir, TEST_CLASS, 1, 1, 0, 0)
+        })
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
 
         when:
@@ -111,7 +120,7 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         runner.commands.size() == 1
         Files.exists(runDir.resolve('dynamic-evidence-join-report.json'))
         mapper.readTree(Files.readString(runDir.resolve('dynamic-evidence-join-report.json'))).path('runStatus').asText() == 'PARTIAL'
-        Files.exists(runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve('test-run.json'))
+        Files.exists(runDir.resolve('dynamic-evidence').resolve('test-run.json'))
     }
 
     def 'orchestration writes sidecar artifacts from fake evidence in same run directory'() {
@@ -124,6 +133,7 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
             def evidenceDir = Path.of(outDirArg.substring(outDirArg.indexOf('=') + 1))
             Files.createDirectories(evidenceDir)
             Files.writeString(evidenceDir.resolve('dynamic-evidence.jsonl'), dynamicEvidenceLine() + System.lineSeparator())
+            writeReport(appDir, TEST_CLASS, 1, 0, 0, 0)
         })
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
 
@@ -134,9 +144,28 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         Files.exists(runDir.resolve('scenario-catalog-enriched.jsonl'))
         Files.exists(runDir.resolve('scenario-catalog-enriched-manifest.json'))
         Files.exists(runDir.resolve('dynamic-evidence-join-report.json'))
-        Files.exists(runDir.resolve('dynamic-evidence').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(TEST_CLASS)).resolve('dynamic-evidence.jsonl'))
+        Files.exists(runDir.resolve('dynamic-evidence').resolve('dynamic-evidence.jsonl'))
         mapper.readTree(Files.readString(runDir.resolve('dynamic-evidence-join-report.json'))).path('counts').path('dynamicEventsRead').asInt() == 1
         mapper.readTree(Files.readAllLines(runDir.resolve('scenario-catalog-enriched.jsonl'))[0]).path('dynamicEvidence').path('joinStatus').asText() == 'MATCHED_HIGH_CONFIDENCE'
+
+        and:
+        def report = mapper.readTree(Files.readString(runDir.resolve('dynamic-evidence-join-report.json')))
+        report.path('dynamicRunStartedAt').asText()
+        report.path('dynamicRunFinishedAt').asText()
+        report.path('mavenDurationMillis').asLong() >= 0L
+        report.path('readJoinWriteDurationMillis').asLong() >= 0L
+        report.path('batchStatus').asText() == 'PASSED'
+        report.path('staticCatalogPath').asText() == runDir.resolve('scenario-catalog.jsonl').toString()
+        report.path('dynamicEvidenceRoot').asText() == runDir.resolve('dynamic-evidence').toString()
+        report.path('enrichedCatalogPath').asText() == runDir.resolve('scenario-catalog-enriched.jsonl').toString()
+        report.path('selectedTestClassFqns')*.asText() == [TEST_CLASS]
+        report.path('commandArguments')*.asText().contains("-Dtest=${TEST_CLASS}".toString())
+        report.path('testRuns')[0].path('status').asText() == 'PASSED'
+        report.path('testRuns')[0].path('evidenceDirectory').asText() == runDir.resolve('dynamic-evidence').toString()
+        report.path('counts').path('evidenceBytesRead').asLong() > 0L
+        report.path('counts').path('evidenceFilesRead').asInt() == 1
+        report.path('counts').path('eventsMissingTestContext').asInt() == 0
+        report.path('counts').path('testClassesNoReport').asInt() == 0
     }
 
     private DynamicEnrichmentConfig config(boolean partial = true,
@@ -162,6 +191,15 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
                 testClassFqn: TEST_CLASS, testMethodName: 'createsTournament', testDisplayName: 'createsTournament', testUniqueId: TEST_CLASS + '#createsTournament',
                 payload: [stepPhase: 'FORWARD']
         ])
+    }
+
+    private static void writeReport(Path appDir, String testClassFqn, int tests, int failures, int errors, int skipped) {
+        def reportsDir = appDir.resolve('target/surefire-reports')
+        Files.createDirectories(reportsDir)
+        Files.writeString(reportsDir.resolve("TEST-${testClassFqn}.xml"), """
+                <testsuite name="${testClassFqn}" classname="${testClassFqn}" tests="${tests}" failures="${failures}" errors="${errors}" skipped="${skipped}">
+                </testsuite>
+                """)
     }
 
     private static class FakeProcessRunner implements ProcessRunner {

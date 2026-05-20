@@ -100,6 +100,28 @@ class DynamicEvidenceRecorderTest {
     }
 
     @Test
+    void enabledRecorderAppendsToExistingEvidenceFile() throws Exception {
+        DynamicEvidenceProperties properties = enabledProperties();
+        properties.setOutputDir(tempDir.resolve("append-run").toString());
+
+        DynamicEvidenceRecorder firstRecorder = new DynamicEvidenceJsonlRecorder(properties, objectMapper);
+        firstRecorder.record(DynamicEvidenceEvent.of("STEP_STARTED", "checkout", "invocation-1", "reserve", 7L,
+                Map.of("aggregate", "cart")));
+        firstRecorder.close();
+
+        DynamicEvidenceRecorder secondRecorder = new DynamicEvidenceJsonlRecorder(properties, objectMapper);
+        secondRecorder.record(DynamicEvidenceEvent.of("STEP_FINISHED", "checkout", "invocation-2", "reserve", 7L,
+                Map.of("outcome", "SUCCESS")));
+        secondRecorder.close();
+
+        Path evidencePath = tempDir.resolve("append-run/dynamic-evidence.jsonl");
+        List<String> lines = Files.readAllLines(evidencePath);
+        assertThat(lines).hasSize(2);
+        assertThat(parseJsonLine(lines.getFirst()).get("eventKind").asText()).isEqualTo("STEP_STARTED");
+        assertThat(parseJsonLine(lines.get(1)).get("eventKind").asText()).isEqualTo("STEP_FINISHED");
+    }
+
+    @Test
     void enabledRecorderWritesFunctionalityClassIdentityWhenPresent() throws Exception {
         DynamicEvidenceProperties properties = enabledProperties();
         properties.setOutputDir(tempDir.resolve("with-functionality-class").toString());
@@ -130,7 +152,7 @@ class DynamicEvidenceRecorderTest {
                 {
                   "schemaVersion": "microservices-simulator.dynamic-input-map.v1",
                   "generatedAt": "2026-05-12T00:00:00Z",
-                  "testClassFqn": "example.OrderSpec",
+                  "selectedTestClassFqns": ["example.OrderSpec"],
                   "inputCount": 1,
                   "inputs": [
                     {
