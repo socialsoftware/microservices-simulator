@@ -1,97 +1,93 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when authoring `.nebula` abstractions in this repo.
+
+The work here is to **use** the Nebula DSL to model new applications — not to change the DSL itself. The user guide under `docs/user-guide/` is the authoritative source for syntax and semantics; this file only orients you and points you there.
 
 ---
 
-## Build Commands
+## Where work happens
 
-```bash
-cd nebula
+| Path | Purpose |
+|------|---------|
+| `abstractions/<app>/` | Where you write `.nebula` files (one per aggregate) plus `shared-enums.nebula`, `nebula.config.json`, optional `exceptions.nebula`. |
+| `abstractions/answers/` | Reference application — 11 aggregates, saga-style flows. The richer of the two examples. |
+| `abstractions/teastore/` | Reference application — 6 aggregates, simpler CRUD-heavy domain. |
+| `docs/user-guide/` | Authoritative syntax and concept docs. Read the relevant chapter before inventing patterns. |
+| `docs/examples/abstractions/` | Worked examples tied to each user-guide chapter. |
+| `nebula/` | DSL compiler (Langium). Engine code — do not edit unless explicitly asked. |
 
-# First-time setup
-npm install
+---
 
-# Full build (grammar → TypeScript → bundle → copy templates)
-npm run langium:generate && npm run build
+## User guide — read these before authoring
 
-# Generate Java code from .nebula abstractions
-./bin/cli.js generate ../abstractions/answers/
-./bin/cli.js generate ../abstractions/answers/ -o ./output -d -v
+| Chapter | When to consult |
+|---------|----------------|
+| [`01-Introduction.md`](docs/user-guide/01-Introduction.md) | First time touching the DSL. |
+| [`02-Getting-Started.md`](docs/user-guide/02-Getting-Started.md) | Project setup, install, generate. |
+| [`03-Your-First-Aggregate.md`](docs/user-guide/03-Your-First-Aggregate.md) | Top-level shape of an `Aggregate`, `Root Entity`, `@GenerateCrud`. |
+| [`04-Types-Enums-Properties.md`](docs/user-guide/04-Types-Enums-Properties.md) | Primitives, `List/Set/Optional`, `SharedEnums`, defaults, `final`, `dto-exclude`. |
+| [`05-Business-Rules-Repositories.md`](docs/user-guide/05-Business-Rules-Repositories.md) | `invariants {}` and the expression grammar; custom `Repository {}` queries. |
+| [`06-Cross-Aggregate-References.md`](docs/user-guide/06-Cross-Aggregate-References.md) | Projected entities (`Entity X from Y { map ... as ... }`) and `References { onDelete }`. |
+| [`07-Events-Reactive-Patterns.md`](docs/user-guide/07-Events-Reactive-Patterns.md) | `Events { publish / subscribe / interInvariant }`. |
+| [`08-Tutorial-Library-System.md`](docs/user-guide/08-Tutorial-Library-System.md) | End-to-end synthesis (Member/Book/Loan). |
+| [`09-Advanced-Patterns.md`](docs/user-guide/09-Advanced-Patterns.md) | Extract patterns, `Dto Entity`, custom `Service` / `WebAPIEndpoints`, `exceptions {}`. |
+| [`10-Generated-Code.md`](docs/user-guide/10-Generated-Code.md) | What the engine emits — useful for debugging output, not for authoring. |
+| [`11-Reference.md`](docs/user-guide/11-Reference.md) | Complete grammar + CLI reference. Use as lookup. |
 
-# Lint
-npm run lint
+---
+
+## Reference applications — copy patterns from these
+
+When the user guide leaves a stylistic question open (naming, ordering, when to use a projected entity vs an owned snapshot, how to structure a saga functionality), read the closest aggregate in `answers/` or `teastore/` and follow that pattern.
+
+| Pattern you need | Where to look |
+|------------------|---------------|
+| Single-aggregate CRUD with `@GenerateCrud` | `teastore/category.nebula`, `teastore/product.nebula` |
+| Projected entities + `References` | `teastore/order.nebula`, `teastore/cart.nebula` |
+| `interInvariant` delete-guards | `teastore/order.nebula`, `answers/quiz.nebula` |
+| Multiple projected entities + `Set<>` of projections | `answers/quiz.nebula`, `answers/tournament.nebula` |
+| Custom `exceptions {}` block | `answers/exceptions.nebula` |
+| Rich event publish/subscribe graph | `answers/answer.nebula`, `answers/question.nebula` |
+| `shared-enums.nebula` with multiple enums | `answers/shared-enums.nebula` |
+
+If neither reference app does the thing you're trying to do, double-check `11-Reference.md` and the tied example for the relevant chapter under `docs/examples/abstractions/`.
+
+---
+
+## Authoring workflow
+
+1. **Read the prep docs** for the target app (e.g. `dsl/prep/<app>-prep/*.md`) to know aggregates, fields, events, references, invariants.
+2. **Add enums first** to `<app>/shared-enums.nebula` so entities can reference them.
+3. **One `.nebula` file per aggregate**, in this internal order (matches the reference apps):
+   1. `@GenerateCrud` (if applicable)
+   2. Projected `Entity X from Y { map ... }` blocks
+   3. `Root Entity` with owned fields and `invariants {}`
+   4. `Events {}` — `publish` first, then `subscribe`, then `interInvariant`
+   5. `References {}` with `onDelete` policies
+   6. Optional `Repository {}` / `Service {}` / `WebAPIEndpoints {}` / `Functionalities {}`
+4. **Cross-check** against the closest reference aggregate before declaring the file done.
+5. **Generate** only after all aggregates parse (see chapter 02 for CLI usage).
+
+---
+
+## Common pitfalls (not always covered in the guide)
+
+- **Cross-aggregate checks do not belong in `invariants {}`.** Use `interInvariant` (event-driven) or `References` (delete policy) — see chapters 06 and 07.
+- **`subscribe` conditions can only see fields declared in the corresponding `publish` block** of the source aggregate. If the field isn't published, you can't filter on it.
+- **Projected fields must be `map`-ed before they can be used** in invariants or other expressions on that entity.
+- **An aggregate must declare exactly one `Root Entity`** — missing or duplicate roots will fail generation.
+- **Enums referenced in entity properties must exist in `shared-enums.nebula`** of the same project.
+- **If a method/operator isn't in chapter 11's expression grammar, it won't parse.** Restructure the rule rather than reaching for Java syntax.
+
+---
+
+## Engine internals (reference only — do not modify unless explicitly asked)
+
+The compiler lives under `nebula/` and is a Langium project. Pipeline:
+
+```
+.nebula → Parser → AST → Validators → Generator Registry → Feature Facades → Handlebars Templates → Java
 ```
 
-The `build` script runs: `tsc -b tsconfig.src.json && node esbuild.mjs && cp -r src/cli/templates out/cli/`. Templates are plain Handlebars files and must be copied separately since they are not TypeScript.
-
-After editing the grammar (`nebula.langium`), always run `npm run langium:generate` before `npm run build` — Langium auto-generates the AST types in `src/language/generated/`.
-
----
-
-## Architecture
-
-Nebula is a **Langium-based DSL** that transforms `.nebula` aggregate definitions into Spring Boot Java microservices for the [Microservices Simulator](../README.md).
-
-### Generation Pipeline
-
-```
-.nebula files → Langium Parser → AST → Validators → Generator Registry → Feature Facades → Handlebars Templates → Java files
-```
-
-Six phases in `CodeGenerator.generateCode()` (`src/cli/engine/code-generator.ts`):
-
-1. **Discovery** — scan directory for `.nebula` files
-2. **Parsing** — Langium builds AST, resolves cross-references, registers models globally
-3. **Validation** — structural + semantic checks
-4. **Configuration** — load `nebula.config.json`, initialize generator registry
-5. **Generation** — iterate aggregates through feature facades
-6. **Completion** — write project-level files (pom.xml, application.yml, entry point)
-
-### Key Layers
-
-| Layer | Location | Role |
-|-------|----------|------|
-| Grammar | `src/language/nebula.langium` | DSL syntax (~500 lines), defines all constructs: Aggregate, Entity, Method, Workflow, Events, References, etc. |
-| Validators | `src/language/validation/` | Semantic checks (entity, property, invariant, repository, method, naming) |
-| Engine | `src/cli/engine/` | Orchestration: `code-generator.ts` (pipeline), `generator-registry.ts` (22 generators with dependency tracking), `project-setup.ts` |
-| Feature facades | `src/cli/features/` | Coordinate multiple generators per domain concern: Entity, Service, Events, Coordination, WebApi, Saga, Validation |
-| Generators | `src/cli/generators/` | Organized by layer: `base/`, `microservices/`, `coordination/`, `sagas/`, `validation/`, `common/` |
-| Templates | `src/cli/templates/` | Handlebars templates organized by domain: entity, repository, service, events, saga, web, config, plus `_partials/` |
-| Utilities | `src/cli/utils/` | Type resolution (`unified-type-resolver.ts`), file writing, naming helpers |
-| Services | `src/cli/services/` | DTO schema registry for cross-generator coordination |
-
-### Design Patterns
-
-- **Registry** — `GeneratorRegistryFactory` registers all 22 generators with metadata, versioning, and dependency tracking
-- **Facade** — Each feature facade (e.g., `EntityFeature`, `SagaFeature`) coordinates multiple generators for a single concern
-- **Template Method** — `GeneratorBase` provides shared helpers (type resolution, naming, template rendering) to all generators
-- **Builder** — `EventContextBuilder`, `DtoSetterBuilder` for complex object construction
-
-### Inline vs Template Generation
-
-Most generators render Handlebars templates via `GeneratorBase.renderTemplate()`. However, `CommandGenerator`, `CommandHandlerGenerator`, and `ServiceMappingGenerator` (v3.0) use **inline string concatenation** because their output depends heavily on runtime analysis and is too dynamic for templates.
-
-### Cross-File Type Resolution
-
-A global model registry (`aggregate-helpers.ts`) enables aggregates in different `.nebula` files to reference each other. `UnifiedTypeResolver` (`src/cli/utils/unified-type-resolver.ts`) maps DSL types to Java types with context awareness (entity vs DTO vs WebApi vs Service contexts).
-
----
-
-## Abstractions
-
-`.nebula` files in `abstractions/` define domain models. Each project folder contains:
-- One `.nebula` file per aggregate
-- `shared-enums.nebula` for shared enum types
-- `exceptions.nebula` for custom exception messages (optional)
-- `nebula.config.json` for project settings (package name, database, Java version, consistency model)
-
-Current case studies: `answers/` (11 aggregates, saga-based) and `teastore/` (6 aggregates).
-
----
-
-## VSCode Extension
-
-Pre-built at `extensions/nebula-extension-0.0.2.vsix`. Provides syntax highlighting, autocomplete, and real-time validation for `.nebula` files via LSP. Extension source is in `nebula/src/extension/`.
-
-To rebuild: `npm run vscode:prepublish` then `npm run release`.
+For build / generate commands and pipeline detail, see [`02-Getting-Started.md`](docs/user-guide/02-Getting-Started.md) and [`10-Generated-Code.md`](docs/user-guide/10-Generated-Code.md). A pre-built VSCode extension at `extensions/nebula-extension-0.0.2.vsix` provides syntax highlighting and live validation while editing `.nebula` files — install it.
