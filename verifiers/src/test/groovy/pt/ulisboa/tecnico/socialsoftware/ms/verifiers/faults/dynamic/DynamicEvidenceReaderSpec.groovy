@@ -1,7 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEvidenceReader
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEvidenceJoiner
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinStatus
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep
 import spock.lang.Specification
+import spock.lang.Timeout
 
 import java.nio.file.Files
 
@@ -24,6 +33,10 @@ class DynamicEvidenceReaderSpec extends Specification {
 
         then:
         result.warnings().isEmpty()
+        result.evidenceFilesRead() == 2
+        result.dynamicEventsRead() == 2
+        result.eventsMissingTestContext() == 0
+        result.evidenceBytesRead() > 0
         result.events()*.eventId() == ['e1', 'e2']
         result.events()[0].sourcePath() == firstFile
         result.events()[0].lineNumber() == 2
@@ -44,8 +57,84 @@ class DynamicEvidenceReaderSpec extends Specification {
 
         then:
         result.events()*.eventId() == ['ok']
+        result.dynamicEventsRead() == 1
         result.warnings().size() == 1
         result.warnings()[0].contains('dynamic-evidence.jsonl:2')
         result.warnings()[0].contains('Malformed dynamic evidence JSON')
+    }
+
+    def 'reader and joiner preserve fixture join behavior through compact events'() {
+        given:
+        def root = Files.createTempDirectory('dynamic-evidence-reader-joiner')
+        def evidenceDir = root.resolve('dynamic-evidence')
+        Files.createDirectories(evidenceDir)
+        Files.writeString(evidenceDir.resolve('dynamic-evidence.jsonl'), '''
+{"eventId":"step-started","eventKind":"STEP_STARTED","testClassFqn":"com.example.OrderSpec","testMethodName":"creates order","functionalityName":"OrderSaga","functionalityInvocationId":"inv-1","stepName":"reserve"}
+{"eventId":"command-sent","eventKind":"COMMAND_SENT","testClassFqn":"com.example.OrderSpec","testMethodName":"creates order","functionalityName":"OrderSaga","functionalityInvocationId":"inv-1","stepName":"reserve","payload":{"commandType":"ReserveOrderCommand","commandFqn":"com.example.ReserveOrderCommand","serviceName":"orders","rootAggregateId":"42"}}
+{"eventId":"aggregate-read","eventKind":"AGGREGATE_ACCESSED","testClassFqn":"com.example.OrderSpec","testMethodName":"creates order","functionalityName":"OrderSaga","functionalityInvocationId":"inv-1","stepName":"reserve","payload":{"aggregateType":"Order","aggregateId":"42","accessMode":"READ","sourceMethod":"aggregateLoadAndRegisterRead"}}
+{"eventId":"step-finished","eventKind":"STEP_FINISHED","testClassFqn":"com.example.OrderSpec","testMethodName":"creates order","functionalityName":"OrderSaga","functionalityInvocationId":"inv-1","stepName":"reserve","payload":{"outcome":"SUCCESS"}}
+''')
+        def plan = plan('scenario-high', [input('input-1')])
+
+        when:
+        def read = new DynamicEvidenceReader().read(root)
+        def result = new DynamicEvidenceJoiner().join([plan], read.events(), read.evidenceFilesRead(), read.warnings())
+        def enriched = result.records()[0]
+
+        then:
+        read.warnings().isEmpty()
+        read.dynamicEventsRead() == 4
+        read.eventsMissingTestContext() == 0
+        result.warnings().isEmpty()
+        enriched.dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE
+        enriched.dynamicEvidence().matchedInputVariantIds() == ['input-1']
+        enriched.dynamicEvidence().observedSteps()[0].eventKinds() == ['STEP_STARTED', 'COMMAND_SENT', 'AGGREGATE_ACCESSED', 'STEP_FINISHED']
+        enriched.dynamicEvidence().observedSteps()[0].outcomes() == ['SUCCESS']
+        enriched.dynamicEvidence().observedAggregateAccesses()[0].aggregateType() == 'Order'
+        enriched.dynamicEvidence().observedCommands()[0].commandType() == 'ReserveOrderCommand'
+    }
+
+    @Timeout(10)
+    def 'reads generated twenty thousand event fixture with byte metrics quickly'() {
+        given:
+        def root = Files.createTempDirectory('dynamic-evidence-reader-large')
+        def evidenceDir = root.resolve('dynamic-evidence')
+        Files.createDirectories(evidenceDir)
+        def builder = new StringBuilder()
+        for (int i = 0; i < 20_000; i++) {
+            builder.append('{"eventId":"e').append(i).append('","eventKind":"STEP_STARTED","testClassFqn":"com.example.LoadSpec","testMethodName":"load","functionalityName":"OrderSaga","stepName":"reserve"}\n')
+        }
+        Files.writeString(evidenceDir.resolve('dynamic-evidence.jsonl'), builder.toString())
+
+        when:
+        def started = System.nanoTime()
+        def result = new DynamicEvidenceReader().read(root)
+        def elapsedMillis = (System.nanoTime() - started) / 1_000_000L
+
+        then:
+        result.warnings().isEmpty()
+        result.evidenceFilesRead() == 1
+        result.dynamicEventsRead() == 20_000
+        result.eventsMissingTestContext() == 0
+        result.evidenceBytesRead() > 0
+        elapsedMillis < 10_000L
+    }
+
+    private ScenarioPlan plan(String id, List<InputVariant> inputs, String sagaFqn = 'com.example.OrderSaga') {
+        new ScenarioPlan(
+                ScenarioPlan.SCHEMA_VERSION,
+                id,
+                ScenarioKind.SINGLE_SAGA,
+                [new SagaInstance("${id}-instance".toString(), sagaFqn, inputs[0].deterministicId(), [])],
+                inputs,
+                [new ScheduledStep("${id}-step".toString(), "${id}-instance".toString(), "${sagaFqn}::reserve".toString(), 0, [])],
+                null,
+                [],
+                []
+        )
+    }
+
+    private static InputVariant input(String id, String sagaFqn = 'com.example.OrderSaga') {
+        new InputVariant(id, sagaFqn, 'com.example.OrderSpec', 'creates order', 'orderSaga', InputResolutionStatus.RESOLVED, 'source', 'provenance', [], [:], [])
     }
 }

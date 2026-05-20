@@ -5,12 +5,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.Dynam
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEvidenceJoiner
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep
 import spock.lang.Specification
+import spock.lang.Timeout
 
 import java.nio.file.Path
 
@@ -164,6 +166,60 @@ class DynamicEvidenceJoinerSpec extends Specification {
         result.dynamicEvidence().warnings().isEmpty()
     }
 
+    def 'foreign direct input variant id does not promote neighboring plan through fallback'() {
+        given:
+        def planA = plan('scenario-a', [input('input-a')])
+        def planB = plan('scenario-b', [input('input-b')])
+
+        when:
+        def result = new DynamicEvidenceJoiner().join([planA, planB], [
+                event('STEP_STARTED', [
+                        testClassFqn  : 'com.example.OrderSpec',
+                        testMethodName: 'creates order',
+                        functionalityName: 'OrderSaga',
+                        stepName      : 'reserve',
+                        inputVariantId: 'input-a'])
+        ])
+
+        then:
+        result.records()*.dynamicEvidence()*.joinStatus() == [DynamicEvidenceJoinStatus.MATCHED_EXACT, DynamicEvidenceJoinStatus.UNMATCHED]
+    }
+
+    def 'ambiguity is limited to plan inputs that participate in the ambiguous identity set'() {
+        given:
+        def ambiguousPlan = plan('scenario-ambiguous', [input('input-1'), input('input-2')])
+        def neighboringPlan = plan('scenario-neighbor', [input('input-3')])
+
+        when:
+        def result = new DynamicEvidenceJoiner().join([ambiguousPlan, neighboringPlan], [
+                event('STEP_STARTED', [testClassFqn: 'com.example.OrderSpec', testMethodName: 'creates order', functionalityName: 'OrderSaga', stepName: 'reserve'])
+        ])
+
+        then:
+        result.records()*.dynamicEvidence()*.joinStatus() == [DynamicEvidenceJoinStatus.AMBIGUOUS, DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE]
+        result.records()[0].dynamicEvidence().matchedInputVariantIds() == ['input-1', 'input-2']
+        result.records()[1].dynamicEvidence().matchedInputVariantIds() == ['input-3']
+    }
+
+    def 'fallback uses declared owners before class and method provenance'() {
+        given:
+        def helperInput = input('input-helper', 'com.example.OrderSaga', [
+                new InputOwner('com.example.OrderSpec', 'owner one'),
+                new InputOwner('com.example.OrderSpec', 'owner two')])
+        def plan = plan('scenario-owned-helper', [helperInput])
+
+        expect:
+        new DynamicEvidenceJoiner().join([plan], [
+                event('STEP_STARTED', [testClassFqn: 'com.example.OrderSpec', testMethodName: methodName, functionalityName: 'OrderSaga', stepName: 'reserve'])
+        ]).records()[0].dynamicEvidence().joinStatus() == status
+
+        where:
+        methodName      || status
+        'owner one'     || DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE
+        'owner two'     || DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE
+        'creates order' || DynamicEvidenceJoinStatus.UNMATCHED
+    }
+
     def 'assigns unmatched when dynamic evidence exists but cannot map to scenario'() {
         expect:
         new DynamicEvidenceJoiner().join([plan('scenario-unmatched', [input('input-1')])], [
@@ -174,6 +230,43 @@ class DynamicEvidenceJoinerSpec extends Specification {
     def 'assigns not covered when no dynamic evidence exists'() {
         expect:
         new DynamicEvidenceJoiner().join([plan('scenario-not-covered', [input('input-1')])], []).records()[0].dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.NOT_COVERED
+    }
+
+    @Timeout(10)
+    def 'joins generated full baseline sized fixture through public outputs quickly'() {
+        given:
+        def plans = (1..66).collect { index ->
+            plan("scenario-${index}".toString(), [input("input-${index}".toString())])
+        }
+        def events = (1..20_000).collect { index ->
+            event(index % 3 == 0 ? 'COMMAND_SENT' : 'STEP_STARTED', [
+                    testClassFqn    : 'com.example.OrderSpec',
+                    testMethodName  : 'creates order',
+                    functionalityName: 'OrderSaga',
+                    stepName         : 'reserve',
+                    inputVariantId   : 'input-1',
+                    payload          : [commandType: 'ReserveOrderCommand', commandFqn: 'com.example.ReserveOrderCommand', serviceName: 'orders', rootAggregateId: '42']
+            ], index)
+        }
+
+        when:
+        def started = System.nanoTime()
+        def result = new DynamicEvidenceJoiner().join(plans, events, 1, [])
+        def elapsedMillis = (System.nanoTime() - started) / 1_000_000L
+
+        then:
+        result.dynamicEventsRead() == 20_000
+        result.evidenceFilesRead() == 1
+        result.eventsMissingTestContext() == 0
+        result.warnings().isEmpty()
+        result.records().count { it.dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.MATCHED_EXACT } == 1
+        result.records().count { it.dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.UNMATCHED } == 65
+        def exact = result.records().find { it.scenarioPlanId() == 'scenario-1' }
+        exact.dynamicEvidence().matchedInputVariantIds() == ['input-1']
+        exact.dynamicEvidence().observedSteps()[0].stepName() == 'reserve'
+        exact.dynamicEvidence().observedSteps()[0].eventKinds() == ['STEP_STARTED', 'COMMAND_SENT']
+        exact.dynamicEvidence().observedCommands()[0].commandType() == 'ReserveOrderCommand'
+        elapsedMillis < 10_000L
     }
 
     private ScenarioPlan plan(String id, List<InputVariant> inputs, String sagaFqn = 'com.example.OrderSaga', String stepId = null) {
@@ -195,8 +288,28 @@ class DynamicEvidenceJoinerSpec extends Specification {
         new InputVariant(id, sagaFqn, 'com.example.OrderSpec', 'creates order', 'orderSaga', InputResolutionStatus.RESOLVED, 'source', 'provenance', [], [:], [])
     }
 
-    private DynamicEvidenceEvent event(String kind, Map values) {
-        def json = mapper.valueToTree(([eventId: UUID.randomUUID().toString(), eventKind: kind, sourcePath: 'ignored'] + values))
-        DynamicEvidenceEvent.fromJson(json, Path.of('dynamic-evidence/test/dynamic-evidence.jsonl'), 1)
+    private static InputVariant input(String id, String sagaFqn, List<InputOwner> owners) {
+        new InputVariant(id, sagaFqn, 'com.example.OrderSpec', 'createHelperSaga', 'orderSaga', InputResolutionStatus.RESOLVED,
+                pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode.UNKNOWN,
+                pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence.UNKNOWN,
+                [], 'source', 'provenance', owners, [], [:], [])
+    }
+
+    private DynamicEvidenceEvent event(String kind, Map values, int lineNumber = 1) {
+        def event = [eventId: UUID.randomUUID().toString(), eventKind: kind] + values
+        new DynamicEvidenceEvent(
+                event.eventId as String,
+                event.eventKind as String,
+                event.testClassFqn as String,
+                event.testMethodName as String,
+                event.testDisplayName as String,
+                event.testUniqueId as String,
+                event.inputVariantId as String,
+                event.functionalityName as String,
+                event.functionalityInvocationId as String,
+                event.stepName as String,
+                event.payload == null ? [:] : event.payload as Map<String, Object>,
+                Path.of('dynamic-evidence/test/dynamic-evidence.jsonl'),
+                lineNumber)
     }
 }

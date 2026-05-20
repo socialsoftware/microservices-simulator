@@ -116,26 +116,26 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         positiveRead.events().every { event -> assertRealSchemaFields(event, currentThreadName, event.lineNumber(), unitOfWorkVersion, functionalityName, functionalityInvocationId, runtimeStepName) }
         positiveRead.events().first().sourcePath() == positiveEvidenceFile
         positiveRead.events().first().lineNumber() == 1
-        positiveRead.events().first().raw().path('testClassFqn').asText() == fixture.selectedInput().sourceClassFqn()
-        positiveRead.events().first().raw().path('testMethodName').asText() == fixture.selectedInput().sourceMethodName()
-        positiveRead.events().first().raw().path('testDisplayName').asText() == fixture.selectedInput().sourceMethodName()
-        positiveRead.events().first().raw().path('testUniqueId').asText() == "${fixture.selectedInput().sourceClassFqn()}#${fixture.selectedInput().sourceMethodName()}"
-        positiveRead.events().first().raw().path('payload').path('stepPhase').asText() == 'FORWARD'
-        positiveRead.events()[1].raw().path('payload').path('commandType').asText() == simpleName(fixture.selectedDispatch().commandTypeFqn())
-        positiveRead.events()[1].raw().path('payload').path('commandFqn').asText() == fixture.selectedDispatch().commandTypeFqn()
-        positiveRead.events()[1].raw().path('payload').path('serviceName').asText() == fixture.selectedDispatch().aggregateName()
-        positiveRead.events()[1].raw().path('payload').path('rootAggregateId').asText() == '7'
-        positiveRead.events()[1].raw().path('payload').path('fields').path('orderAggregateId').asInt() == 7
-        positiveRead.events()[2].raw().path('payload').path('aggregateType').asText() == fixture.selectedDispatch().aggregateName()
-        positiveRead.events()[2].raw().path('payload').path('aggregateId').asText() == '7'
-        positiveRead.events()[2].raw().path('payload').path('accessMode').asText() == fixture.selectedDispatch().accessPolicy().name()
-        positiveRead.events()[2].raw().path('payload').path('sourceMethod').asText() == aggregateAccessSourceMethod(fixture.selectedDispatch())
-        positiveRead.events()[3].raw().path('payload').path('outcome').asText() == 'SUCCESS'
-        positiveRead.events()[3].raw().path('payload').path('durationMillis').asLong() >= 0
-        positiveRead.events().last().raw().path('testClassFqn').isMissingNode()
-        positiveRead.events().last().raw().path('testMethodName').isMissingNode()
-        positiveRead.events().last().raw().path('testDisplayName').isMissingNode()
-        positiveRead.events().last().raw().path('testUniqueId').isMissingNode()
+        positiveRead.events().first().testClassFqn() == fixture.selectedInput().sourceClassFqn()
+        positiveRead.events().first().testMethodName() == fixture.selectedInput().sourceMethodName()
+        positiveRead.events().first().testDisplayName() == fixture.selectedInput().sourceMethodName()
+        positiveRead.events().first().testUniqueId() == "${fixture.selectedInput().sourceClassFqn()}#${fixture.selectedInput().sourceMethodName()}"
+        positiveRead.events().first().payloadText('stepPhase') == 'FORWARD'
+        positiveRead.events()[1].payloadText('commandType') == simpleName(fixture.selectedDispatch().commandTypeFqn())
+        positiveRead.events()[1].payloadText('commandFqn') == fixture.selectedDispatch().commandTypeFqn()
+        positiveRead.events()[1].payloadText('serviceName') == fixture.selectedDispatch().aggregateName()
+        positiveRead.events()[1].payloadText('rootAggregateId') == '7'
+        positiveRead.events()[1].payloadMap('fields').orderAggregateId == 7
+        positiveRead.events()[2].payloadText('aggregateType') == fixture.selectedDispatch().aggregateName()
+        positiveRead.events()[2].payloadText('aggregateId') == '7'
+        positiveRead.events()[2].payloadText('accessMode') == fixture.selectedDispatch().accessPolicy().name()
+        positiveRead.events()[2].payloadText('sourceMethod') == aggregateAccessSourceMethod(fixture.selectedDispatch())
+        positiveRead.events()[3].payloadText('outcome') == 'SUCCESS'
+        (positiveRead.events()[3].payloadValue('durationMillis') as Long) >= 0L
+        positiveRead.events().last().testClassFqn() == null
+        positiveRead.events().last().testMethodName() == null
+        positiveRead.events().last().testDisplayName() == null
+        positiveRead.events().last().testUniqueId() == null
         positiveRead.warnings().isEmpty()
 
         and:
@@ -312,6 +312,84 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         emptyReport.path('runStatus').asText() == 'COMPLETE'
     }
 
+    def 'dummyapp dynamic enrichment runs through run scoped batched orchestrator path'() {
+        given:
+        def fixture = buildFixture()
+        def currentThreadName = Thread.currentThread().name
+        def runRoot = tempDir.resolve('dummyapp-batched-dynamic-enrichment')
+        def applicationPath = tempDir.resolve('applications/dummyapp')
+        Files.createDirectories(applicationPath)
+        def selectedTestClass = fixture.selectedInput().sourceClassFqn()
+        def secondSelectedTestClass = selectedTestClass + 'CompanionSpec'
+        def selectedClasses = [selectedTestClass, secondSelectedTestClass]
+        def runner = new FakeProcessRunner([new ProcessRunner.ProcessResult(0, 'batched ok', '', false)], { ProcessRunner.ProcessCommand command ->
+            def outputDirArg = command.arguments().find { it.startsWith('-Dsimulator.dynamic-evidence.output-dir=') }
+            def evidenceRoot = Path.of(outputDirArg.substring(outputDirArg.indexOf('=') + 1))
+            writeJsonl(evidenceRoot.resolve('dynamic-evidence.jsonl'), positiveEvidenceEvents(fixture, currentThreadName))
+            writeSurefireReport(applicationPath, selectedTestClass, 1, 0, 0, 0)
+            writeSurefireReport(applicationPath, secondSelectedTestClass, 1, 0, 0, 0)
+        })
+        def orchestrator = new DynamicEnrichmentOrchestrator(runner)
+        def staticCatalogPath = runRoot.resolve('scenario-catalog.jsonl')
+
+        when:
+        def result = orchestrator.run(
+                dynamicConfig(),
+                applicationPath,
+                DUMMYAPP_APPLICATION_NAME,
+                runRoot,
+                selectedClasses,
+                fixture.scenarioResult().scenarioPlans(),
+                staticCatalogPath,
+                GENERATED_AT)
+
+        then:
+        runner.commands.size() == 1
+        runner.commands[0].arguments().any { it == "-Dtest=${selectedTestClass},${secondSelectedTestClass}".toString() }
+        runner.commands[0].arguments().any { it == "-Dsimulator.dynamic-evidence.output-dir=${runRoot.resolve('dynamic-evidence')}".toString() }
+        runner.commands[0].arguments().any { it == "-Dsimulator.dynamic-evidence.input-map-path=${runRoot.resolve('dynamic-evidence').resolve(DynamicInputMapWriter.FILE_NAME)}".toString() }
+
+        and:
+        def evidenceRoot = runRoot.resolve('dynamic-evidence')
+        Files.exists(evidenceRoot.resolve(DynamicInputMapWriter.FILE_NAME))
+        Files.exists(evidenceRoot.resolve('dynamic-evidence.jsonl'))
+        Files.exists(evidenceRoot.resolve('maven-output.log'))
+        Files.exists(evidenceRoot.resolve('test-run.json'))
+        Files.exists(evidenceRoot.resolve('test-runs').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(selectedTestClass) + '.json'))
+        Files.exists(evidenceRoot.resolve('test-runs').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(secondSelectedTestClass) + '.json'))
+        !Files.exists(evidenceRoot.resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(selectedTestClass)))
+
+        and:
+        def inputMap = mapper.readTree(Files.readString(evidenceRoot.resolve(DynamicInputMapWriter.FILE_NAME)))
+        inputMap.path('testClassFqn').isMissingNode()
+        inputMap.path('selectedTestClassFqns')*.asText() == selectedClasses
+        inputMap.path('inputs').find { it.path('inputVariantId').asText() == fixture.selectedInput().deterministicId() } != null
+
+        and:
+        def batchRun = mapper.readTree(Files.readString(evidenceRoot.resolve('test-run.json')))
+        batchRun.path('status').asText() == 'PASSED'
+        batchRun.path('selectedTestClassFqns')*.asText() == selectedClasses
+        batchRun.path('commandArguments')*.asText().contains("-Dtest=${selectedTestClass},${secondSelectedTestClass}".toString())
+        batchRun.path('statusCounts').path('passed').asInt() == 2
+        batchRun.path('staticCatalogPath').asText() == staticCatalogPath.toString()
+        batchRun.path('evidenceRoot').asText() == evidenceRoot.toString()
+        batchRun.path('testRuns')*.path('status')*.asText() == ['PASSED', 'PASSED']
+        mapper.readTree(Files.readString(evidenceRoot.resolve('test-runs').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(selectedTestClass) + '.json'))).path('status').asText() == 'PASSED'
+
+        and:
+        result.testRuns()*.status() == ['PASSED', 'PASSED']
+        def enrichedRecord = readEnrichedRecord(runRoot.resolve('scenario-catalog-enriched.jsonl'), fixture.selectedPlan().deterministicId())
+        enrichedRecord.path('dynamicEvidence').path('joinStatus').asText() == DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()
+        enrichedRecord.path('dynamicEvidence').path('observedSteps').get(0).path('eventKinds').collect { it.asText() } == ['STEP_STARTED', 'COMMAND_SENT', 'AGGREGATE_ACCESSED', 'STEP_FINISHED']
+        def joinReport = mapper.readTree(Files.readString(runRoot.resolve('dynamic-evidence-join-report.json')))
+        joinReport.path('runStatus').asText() == 'COMPLETE'
+        joinReport.path('counts').path('testClassesSelected').asInt() == 2
+        joinReport.path('counts').path('testClassesPassed').asInt() == 2
+        joinReport.path('counts').path('dynamicEventsRead').asInt() == 5
+        joinReport.path('counts').path('eventsMissingTestContext').asInt() == 1
+        joinReport.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() == 1
+    }
+
     private DummyappFixture buildFixture() {
         configureParser()
 
@@ -461,6 +539,19 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         Files.writeString(file, events.collect { event -> mapper.writeValueAsString(event) }.join('\n') + '\n')
     }
 
+    private DynamicEnrichmentConfig dynamicConfig() {
+        new DynamicEnrichmentConfig(true, true, 'dynamic-evidence', 'scenario-catalog-enriched.jsonl', 'scenario-catalog-enriched-manifest.json', 'dynamic-evidence-join-report.json', 'src/test/groovy', [], [], [], 300, new DynamicEnrichmentConfig.DynamicEnrichmentMavenConfig('mvn', 'test-sagas'))
+    }
+
+    private static void writeSurefireReport(Path applicationPath, String testClassFqn, int tests, int failures, int errors, int skipped) {
+        def reportsDir = applicationPath.resolve('target/surefire-reports')
+        Files.createDirectories(reportsDir)
+        Files.writeString(reportsDir.resolve("TEST-${testClassFqn}.xml"), """
+                <testsuite name="${testClassFqn}" classname="${testClassFqn}" tests="${tests}" failures="${failures}" errors="${errors}" skipped="${skipped}">
+                </testsuite>
+                """)
+    }
+
     private JsonNode readEnrichedRecord(Path catalogPath, String planId) {
         def record = Files.readAllLines(catalogPath)
                 .collect { line -> mapper.readTree(line) }
@@ -480,16 +571,11 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
                                                   String expectedFunctionalityName,
                                                   String expectedFunctionalityInvocationId,
                                                   String expectedStepName) {
-        def raw = event.raw()
-        assert raw.path('schema').asText() == DYNAMIC_EVIDENCE_SCHEMA
-        assert raw.path('timestamp').asText() == timestampForSequence(expectedSequence)
-        assert raw.path('sequence').asInt() == expectedSequence
-        assert raw.path('threadName').asText() == expectedThreadName
-        assert raw.path('applicationName').asText() == DUMMYAPP_APPLICATION_NAME
-        assert raw.path('functionalityName').asText() == expectedFunctionalityName
-        assert raw.path('functionalityInvocationId').asText() == expectedFunctionalityInvocationId
-        assert raw.path('unitOfWorkVersion').asLong() == expectedUnitOfWorkVersion
-        assert raw.path('stepName').asText() == expectedStepName
+        assert event.functionalityName() == expectedFunctionalityName
+        assert event.functionalityInvocationId() == expectedFunctionalityInvocationId
+        assert event.stepName() == expectedStepName
+        assert event.eventId() != null
+        assert event.eventKind() != null
         true
     }
 
@@ -526,6 +612,24 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         }
         def index = fqn.lastIndexOf('.')
         index >= 0 ? fqn.substring(index + 1) : fqn
+    }
+
+    private static class FakeProcessRunner implements ProcessRunner {
+        final List<ProcessRunner.ProcessCommand> commands = []
+        private final Queue<ProcessRunner.ProcessResult> results
+        private final Closure sideEffect
+
+        FakeProcessRunner(List<ProcessRunner.ProcessResult> results, Closure sideEffect = {}) {
+            this.results = new ArrayDeque<>(results)
+            this.sideEffect = sideEffect
+        }
+
+        @Override
+        ProcessRunner.ProcessResult run(ProcessRunner.ProcessCommand command) {
+            commands << command
+            sideEffect.call(command)
+            results.remove()
+        }
     }
 
     private static final class DummyappFixture {

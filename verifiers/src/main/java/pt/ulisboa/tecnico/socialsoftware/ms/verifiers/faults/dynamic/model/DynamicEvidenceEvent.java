@@ -1,8 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public record DynamicEvidenceEvent(
         String eventId,
@@ -15,42 +17,46 @@ public record DynamicEvidenceEvent(
         String functionalityName,
         String functionalityInvocationId,
         String stepName,
-        JsonNode payload,
+        Map<String, Object> payload,
         Path sourcePath,
-        int lineNumber,
-        JsonNode raw) {
+        int lineNumber) {
 
-    public static DynamicEvidenceEvent fromJson(JsonNode node, Path sourcePath, int lineNumber) {
-        return new DynamicEvidenceEvent(
-                text(node, "eventId"),
-                text(node, "eventKind"),
-                text(node, "testClassFqn"),
-                text(node, "testMethodName"),
-                text(node, "testDisplayName"),
-                text(node, "testUniqueId"),
-                text(node, "inputVariantId"),
-                text(node, "functionalityName"),
-                text(node, "functionalityInvocationId"),
-                text(node, "stepName"),
-                node == null ? null : node.get("payload"),
-                sourcePath,
-                lineNumber,
-                node);
-    }
-
-    private static String text(JsonNode node, String field) {
-        if (node == null || !node.hasNonNull(field)) {
-            return null;
-        }
-        String value = node.get(field).asText();
-        return value == null || value.isBlank() ? null : value;
+    public DynamicEvidenceEvent {
+        payload = payload == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(payload));
     }
 
     public String payloadText(String field) {
-        if (payload == null || !payload.hasNonNull(field)) {
+        Object value = payloadValue(field);
+        if (value == null) {
             return null;
         }
-        String value = payload.get(field).asText();
-        return value == null || value.isBlank() ? null : value;
+        String text = value.toString();
+        return text.isBlank() ? null : text;
+    }
+
+    public Object payloadValue(String field) {
+        return payload.get(field);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> payloadMap(String field) {
+        Object value = payloadValue(field);
+        return value instanceof Map<?, ?> map ? (Map<String, Object>) map : Map.of();
+    }
+
+    public static Object compactValue(Object value) {
+        if (value instanceof Map<?, ?> map) {
+            Map<String, Object> compact = new LinkedHashMap<>();
+            map.forEach((key, nested) -> {
+                if (key != null) {
+                    compact.put(key.toString(), compactValue(nested));
+                }
+            });
+            return Collections.unmodifiableMap(compact);
+        }
+        if (value instanceof List<?> list) {
+            return list.stream().map(DynamicEvidenceEvent::compactValue).toList();
+        }
+        return value;
     }
 }

@@ -29,30 +29,36 @@ import java.util.stream.Collectors;
 public class DynamicEvidenceJoiner {
 
     public DynamicEvidenceJoinResult join(List<ScenarioPlan> scenarioPlans, List<DynamicEvidenceEvent> events) {
-        return join(scenarioPlans, events, 0, List.of());
+        return join(scenarioPlans, events, 0, List.of(), 0L);
     }
 
     public DynamicEvidenceJoinResult join(List<ScenarioPlan> scenarioPlans,
                                           List<DynamicEvidenceEvent> events,
                                           int evidenceFilesRead,
                                           List<String> readerWarnings) {
+        return join(scenarioPlans, events, evidenceFilesRead, readerWarnings, 0L);
+    }
+
+    public DynamicEvidenceJoinResult join(List<ScenarioPlan> scenarioPlans,
+                                          List<DynamicEvidenceEvent> events,
+                                          int evidenceFilesRead,
+                                          List<String> readerWarnings,
+                                          long evidenceBytesRead) {
         List<ScenarioPlan> plans = scenarioPlans == null ? List.of() : scenarioPlans;
         List<DynamicEvidenceEvent> safeEvents = events == null ? List.of() : events;
         List<String> warnings = new ArrayList<>(readerWarnings == null ? List.of() : readerWarnings);
         CatalogIndex catalogIndex = CatalogIndex.from(plans);
-        List<EventAnalysis> analyses = safeEvents.stream()
-                .map(event -> analyzeEvent(event, plans, catalogIndex))
-                .toList();
+        JoinIndex joinIndex = JoinIndex.build(safeEvents, event -> analyzeEvent(event, plans, catalogIndex));
         int missingContext = (int) safeEvents.stream().filter(event -> isBlank(event.testClassFqn())).count();
 
         List<EnrichedScenarioRecord> records = plans.stream()
-                .map(plan -> enrich(plan, analyses))
+                .map(plan -> enrich(plan, joinIndex))
                 .toList();
-        return new DynamicEvidenceJoinResult(records, warnings, safeEvents.size(), missingContext, evidenceFilesRead);
+        return new DynamicEvidenceJoinResult(records, warnings, safeEvents.size(), missingContext, evidenceFilesRead, evidenceBytesRead);
     }
 
-    private EnrichedScenarioRecord enrich(ScenarioPlan plan, List<EventAnalysis> analyses) {
-        if (analyses.isEmpty()) {
+    private EnrichedScenarioRecord enrich(ScenarioPlan plan, JoinIndex joinIndex) {
+        if (joinIndex.isEmpty()) {
             return record(plan, DynamicEvidenceJoinStatus.NOT_COVERED, List.of(), List.of(), List.of());
         }
 
@@ -61,10 +67,8 @@ public class DynamicEvidenceJoiner {
                 .filter(Objects::nonNull)
                 .toList();
 
-        List<DynamicEvidenceEvent> exactEvents = analyses.stream()
-                .map(EventAnalysis::event)
-                .filter(event -> !isBlank(event.inputVariantId()))
-                .filter(event -> planInputIds.contains(event.inputVariantId()))
+        List<DynamicEvidenceEvent> exactEvents = planInputIds.stream()
+                .flatMap(inputId -> joinIndex.exactEvents(inputId).stream())
                 .sorted(EVENT_ORDER)
                 .toList();
         if (!exactEvents.isEmpty()) {
@@ -77,8 +81,7 @@ public class DynamicEvidenceJoiner {
             return record(plan, DynamicEvidenceJoinStatus.MATCHED_EXACT, matchedIds, exactEvents, List.of());
         }
 
-        List<EventAnalysis> relevantAnalyses = analyses.stream()
-                .filter(analysis -> analysis.relevantTo(plan.deterministicId()))
+        List<EventAnalysis> relevantAnalyses = joinIndex.relevantAnalyses(plan.deterministicId()).stream()
                 .sorted(Comparator.comparing(EventAnalysis::event, EVENT_ORDER))
                 .toList();
         if (relevantAnalyses.isEmpty()) {
@@ -87,15 +90,18 @@ public class DynamicEvidenceJoiner {
 
         Set<String> candidateInputIds = relevantAnalyses.stream()
                 .flatMap(analysis -> analysis.candidateInputs().stream())
+                .filter(ref -> Objects.equals(ref.planId(), plan.deterministicId()))
                 .map(ref -> ref.input().deterministicId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         Set<String> identityMatchIds = relevantAnalyses.stream()
                 .flatMap(analysis -> analysis.identityMatches().stream())
+                .filter(ref -> Objects.equals(ref.planId(), plan.deterministicId()))
                 .map(ref -> ref.input().deterministicId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         boolean hasCompleteTestIdentity = relevantAnalyses.stream().anyMatch(EventAnalysis::completeTestIdentity);
+        boolean hasAmbiguousSagaIdentity = relevantAnalyses.stream().anyMatch(analysis -> analysis.candidateSagaFqns().size() > 1);
 
         if (hasCompleteTestIdentity) {
             if (identityMatchIds.size() == 1) {
@@ -112,6 +118,9 @@ public class DynamicEvidenceJoiner {
         }
 
         if (candidateInputIds.size() == 1) {
+            if (hasAmbiguousSagaIdentity) {
+                return record(plan, DynamicEvidenceJoinStatus.AMBIGUOUS, sorted(candidateInputIds), relevantEvents(relevantAnalyses), ambiguityWarnings(relevantAnalyses, candidateInputIds, identityMatchIds));
+            }
             String matchedId = candidateInputIds.iterator().next();
             if (planInputIds.contains(matchedId)) {
                 return record(plan, DynamicEvidenceJoinStatus.MATCHED_PARTIAL, List.of(), relevantEvents(relevantAnalyses), List.of());
@@ -240,7 +249,15 @@ public class DynamicEvidenceJoiner {
     }
 
     private boolean inputIdentityMatches(InputVariant input, DynamicEvidenceEvent event) {
-        if (isBlank(event.testClassFqn()) || !Objects.equals(input.sourceClassFqn(), event.testClassFqn())) {
+        if (isBlank(event.testClassFqn())) {
+            return false;
+        }
+        if (!input.owners().isEmpty()) {
+            return input.owners().stream().anyMatch(owner -> Objects.equals(owner.testClassFqn(), event.testClassFqn())
+                    && (Objects.equals(owner.testMethodName(), event.testMethodName())
+                    || Objects.equals(owner.testMethodName(), event.testDisplayName())));
+        }
+        if (!Objects.equals(input.sourceClassFqn(), event.testClassFqn())) {
             return false;
         }
         return !isBlank(input.sourceMethodName())
@@ -394,6 +411,60 @@ public class DynamicEvidenceJoiner {
 
         boolean relevantTo(String planId) {
             return candidateInputs.stream().anyMatch(ref -> Objects.equals(ref.planId(), planId));
+        }
+    }
+
+    private record JoinIndex(Map<String, List<DynamicEvidenceEvent>> exactEventsByInputId,
+                             Map<String, List<EventAnalysis>> relevantAnalysesByPlanId,
+                             boolean hasEvents) {
+        static JoinIndex build(List<DynamicEvidenceEvent> events, Function<DynamicEvidenceEvent, EventAnalysis> analyzer) {
+            Map<String, List<DynamicEvidenceEvent>> exactEventsByInputId = new LinkedHashMap<>();
+            Map<String, List<EventAnalysis>> relevantAnalysesByPlanId = new LinkedHashMap<>();
+            for (DynamicEvidenceEvent event : events) {
+                if (!isBlank(event.inputVariantId())) {
+                    exactEventsByInputId.computeIfAbsent(event.inputVariantId(), ignored -> new ArrayList<>()).add(event);
+                    continue;
+                }
+
+                EventAnalysis analysis = analyzer.apply(event);
+                Set<String> relevantPlanIds = analysis.candidateInputs().stream()
+                        .map(CandidateInputRef::planId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+                for (String planId : relevantPlanIds) {
+                    relevantAnalysesByPlanId.computeIfAbsent(planId, ignored -> new ArrayList<>()).add(analysis);
+                }
+            }
+            return new JoinIndex(freezeEventMap(exactEventsByInputId), freezeAnalysisMap(relevantAnalysesByPlanId), !events.isEmpty());
+        }
+
+        private JoinIndex {
+            exactEventsByInputId = exactEventsByInputId == null ? Map.of() : exactEventsByInputId;
+            relevantAnalysesByPlanId = relevantAnalysesByPlanId == null ? Map.of() : relevantAnalysesByPlanId;
+        }
+
+        private List<DynamicEvidenceEvent> exactEvents(String inputVariantId) {
+            return exactEventsByInputId.getOrDefault(inputVariantId, List.of());
+        }
+
+        private List<EventAnalysis> relevantAnalyses(String planId) {
+            return relevantAnalysesByPlanId.getOrDefault(planId, List.of());
+        }
+
+        private boolean isEmpty() {
+            return !hasEvents;
+        }
+
+        private static Map<String, List<DynamicEvidenceEvent>> freezeEventMap(Map<String, List<DynamicEvidenceEvent>> mutable) {
+            Map<String, List<DynamicEvidenceEvent>> frozen = new LinkedHashMap<>();
+            mutable.forEach((key, value) -> frozen.put(key, List.copyOf(value)));
+            return Collections.unmodifiableMap(frozen);
+        }
+
+        private static Map<String, List<EventAnalysis>> freezeAnalysisMap(Map<String, List<EventAnalysis>> mutable) {
+            Map<String, List<EventAnalysis>> frozen = new LinkedHashMap<>();
+            mutable.forEach((key, value) -> frozen.put(key, List.copyOf(value)));
+            return Collections.unmodifiableMap(frozen);
         }
     }
 

@@ -31,14 +31,28 @@ public class EnrichedScenarioCatalogWriter {
     }
 
     public void write(DynamicEvidenceJoinResult joinResult,
-                      Path enrichedCatalogPath,
-                      Path manifestPath,
-                      Path joinReportPath,
-                      String sourceCatalogPath,
-                      String dynamicEvidenceRoot,
-                      Map<String, ?> effectiveConfig,
-                      List<?> testRuns,
-                      String generatedAt) throws IOException {
+                       Path enrichedCatalogPath,
+                       Path manifestPath,
+                       Path joinReportPath,
+                       String sourceCatalogPath,
+                       String dynamicEvidenceRoot,
+                       Map<String, ?> effectiveConfig,
+                       List<?> testRuns,
+                       String generatedAt) throws IOException {
+        write(joinResult, enrichedCatalogPath, manifestPath, joinReportPath, sourceCatalogPath, dynamicEvidenceRoot,
+                effectiveConfig, testRuns, generatedAt, Map.of());
+    }
+
+    public void write(DynamicEvidenceJoinResult joinResult,
+                       Path enrichedCatalogPath,
+                       Path manifestPath,
+                       Path joinReportPath,
+                       String sourceCatalogPath,
+                       String dynamicEvidenceRoot,
+                       Map<String, ?> effectiveConfig,
+                       List<?> testRuns,
+                       String generatedAt,
+                       Map<String, Object> reportMetadata) throws IOException {
         createParent(enrichedCatalogPath);
         createParent(manifestPath);
         createParent(joinReportPath);
@@ -63,6 +77,9 @@ public class EnrichedScenarioCatalogWriter {
         Map<String, Object> report = new LinkedHashMap<>();
         report.put("schema", JOIN_REPORT_SCHEMA);
         report.put("generatedAt", generatedAt);
+        if (reportMetadata != null) {
+            report.putAll(reportMetadata);
+        }
         report.put("runStatus", runStatus(testRuns));
         report.put("staticCatalogPath", sourceCatalogPath);
         report.put("dynamicEvidenceRoot", dynamicEvidenceRoot);
@@ -90,7 +107,9 @@ public class EnrichedScenarioCatalogWriter {
         counts.put("testClassesFailed", statusCounts.getOrDefault("FAILED", 0));
         counts.put("testClassesTimedOut", statusCounts.getOrDefault("TIMED_OUT", 0));
         counts.put("testClassesSkipped", statusCounts.getOrDefault("SKIPPED", 0));
+        counts.put("testClassesNoReport", statusCounts.getOrDefault("NO_REPORT", 0));
         counts.put("evidenceFilesRead", joinResult.evidenceFilesRead());
+        counts.put("evidenceBytesRead", joinResult.evidenceBytesRead());
         counts.put("dynamicEventsRead", joinResult.dynamicEventsRead());
         counts.put("eventsMissingTestContext", joinResult.eventsMissingTestContext());
         counts.put("scenarioPlansRead", joinResult.records().size());
@@ -133,7 +152,9 @@ public class EnrichedScenarioCatalogWriter {
         for (Object run : testRuns) {
             statuses.add(statusOf(run));
         }
-        if (statuses.stream().anyMatch("FAILED"::equals) || statuses.stream().anyMatch("TIMED_OUT"::equals)) {
+        if (statuses.stream().anyMatch("FAILED"::equals)
+                || statuses.stream().anyMatch("TIMED_OUT"::equals)
+                || statuses.stream().anyMatch("NO_REPORT"::equals)) {
             return "PARTIAL";
         }
         return "COMPLETE";

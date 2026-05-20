@@ -7,7 +7,8 @@ public record DynamicEvidenceJoinResult(
         List<String> warnings,
         int dynamicEventsRead,
         int eventsMissingTestContext,
-        int evidenceFilesRead) {
+        int evidenceFilesRead,
+        long evidenceBytesRead) {
     public DynamicEvidenceJoinResult {
         records = records == null ? List.of() : List.copyOf(records);
         warnings = warnings == null ? List.of() : List.copyOf(warnings);
