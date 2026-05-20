@@ -30,6 +30,10 @@ The current workflow has three layers.
 
 The most important current improvement is direct input attribution. Before each dynamic test-class run, the verifier writes a per-class `dynamic-input-map.json`. The simulator loads that map and emits `inputVariantId` when the current test identity, runtime functionality class FQN, and runtime step name resolve to exactly one static input variant.
 
+The input map uses explicit ownership metadata rather than treating source provenance as the owner identity. Provenance explains where the analyzer found an input, such as a direct feature method, helper call, `setup()`, field initializer, inherited fixture path, or `setupSpec()`. Ownership explains which feature methods the input is allowed to belong to at runtime. An input can therefore preserve `sourceClassFqn`, `sourceMethodName`, and `sourceBindingName` for explainability while also listing one or more owning feature methods for attribution.
+
+Ownership contexts currently supported by the analyzed-input and dynamic-input-map model are: direct feature-created inputs, helper-created inputs, `setup()` fixture inputs, field-initialized inputs, inherited helper/setup/field variants, and `setupSpec()` metadata. `setupSpec()` ownership is exported as analysis metadata, but improved runtime attribution for `setupSpec()` execution events is intentionally out of scope for this work.
+
 When that direct id appears in runtime evidence, the join can move from semantic matching to exact matching.
 
 ## Result categories
@@ -75,12 +79,15 @@ That supports a narrow claim: direct runtime input attribution substantially imp
 
 Do not overclaim the dynamic-enrichment bridge.
 
+The join also contains plan-local ambiguity containment. A direct runtime `inputVariantId` still wins for the plan that owns that input, but a direct id for a different input is not reused to semantically promote neighboring plans. `AMBIGUOUS` should stay local to the plan inputs that participate in the ambiguous identity set. Genuine same-feature sibling ambiguity can still remain expected behavior when current runtime evidence cannot distinguish two sibling inputs from the same feature.
+
 Known limits include:
 
 - It is additive sidecar evidence; it does not redefine the static scenario catalog.
 - It is not the arbitrary scenario executor and does not run generated fault schedules.
 - Current runtime attribution is conservative and first-pass.
-- Remaining ambiguity can come from multiple static inputs in one test, neighboring scenario plans with similar shapes, weaker runtime names, missing test context, async boundaries, capped/rejected static inputs, and weak aggregate-key evidence.
+- Remaining ambiguity can come from multiple same-feature static inputs, weaker runtime names, missing test context, async boundaries, capped/rejected static inputs, and weak aggregate-key evidence.
+- Semantic deduplication of value-equivalent inputs, executor materialization, and stronger same-feature sibling disambiguation remain future work.
 - Stream/gRPC/distributed parity and causal/TCC runtime hooks are not established by this baseline.
 - Domain-impact scoring, GA local search, and bandit scenario prioritization remain future stages.
 

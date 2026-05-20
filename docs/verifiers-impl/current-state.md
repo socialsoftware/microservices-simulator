@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-05-12
+Last updated: 2026-05-19
 
 This page is the present-tense source of truth for verifier implementation status. Use it before relying on roadmap notes, weekly logs, meeting notes, decision records, or archived material.
 
@@ -66,6 +66,8 @@ Current boundaries:
 - Local collection transforms such as `toSet()` and cast/coercion shapes are represented as local transforms.
 - Replay-oriented metadata classifies unresolved values as source placeholders, injectable placeholders, runtime calls, unknown unresolved values, or resolved values.
 - Expected constructor argument types are attached when available.
+- Analyzed input variants now carry explicit ownership metadata separate from source provenance. Provenance fields such as source class, source method, and source binding explain where the input was found; owners identify the feature methods allowed to claim that input during runtime attribution.
+- Ownership metadata covers direct feature inputs, helper-created inputs, `setup()` fixtures, field initializers, inherited helper/setup/field variants, and `setupSpec()` analysis metadata. `setupSpec()` runtime-attribution improvement is not implemented or claimed.
 - Source-mode classification is attached to Groovy full traces and scenario input variants using generic simulator/Spring evidence:
   - `@Autowired` saga/causal unit-of-work service fields;
   - nested/local `@TestConfiguration` bean evidence;
@@ -81,8 +83,8 @@ Current boundaries:
 - `EnrichedScenarioCatalogWriter` writes sidecar-only enriched JSONL, manifest, and join-report artifacts; the original `scenario-catalog.jsonl` writer remains unchanged.
 - `DummyappDynamicEnrichmentIntegrationSpec` exercises the dummyapp static catalog plus synthetic dynamic-evidence bridge end-to-end with the same sidecar schema planned for Quizzes, proving `MATCHED_HIGH_CONFIDENCE` and `NOT_COVERED` paths before runtime wiring.
 - `ProcessRunner` / `DefaultProcessRunner` and `DynamicEnrichmentOrchestrator` run selected application test classes one by one with Maven argument lists, per-class evidence directories, `test-run.json`, captured `maven-output.log`, interrupt-safe cleanup, and run-relative output-path guards.
-- `DynamicInputMapWriter` now writes a per-test-class `dynamic-input-map.json` before each dynamic Maven class run. The map is built only from accepted final `ScenarioPlan.inputs()` for the selected test class and includes input variant ids, static saga FQNs, source method metadata, static step-name hints, simple literal argument hints, aggregate-type hints from conflict evidence when available, scenario plan ids, and diagnostic source/provenance text.
-- The simulator can now load that per-class `dynamic-input-map.json` and attach `inputVariantId` to runtime evidence when the current test identity, runtime functionality class FQN, and runtime step name resolve to exactly one static input variant.
+- `DynamicInputMapWriter` now writes a per-test-class `dynamic-input-map.json` before each dynamic Maven class run. The map is built only from accepted final `ScenarioPlan.inputs()` for the selected test class and includes input variant ids, static saga FQNs, source method/provenance metadata, explicit owners, static step-name hints, simple literal argument hints, aggregate-type hints from conflict evidence when available, scenario plan ids, and diagnostic source/provenance text.
+- The simulator can now load that per-class `dynamic-input-map.json` and attach `inputVariantId` to runtime evidence when the current test identity matches an input owner and the runtime functionality class FQN and runtime step name resolve to exactly one static input variant.
 - Runtime attribution is intentionally conservative:
   - one candidate writes top-level `inputVariantId` plus `payload.inputVariantAttributionStatus=MATCHED`;
   - zero candidates records `NO_MATCH` diagnostics on step events;
@@ -93,6 +95,8 @@ Current boundaries:
   - `AMBIGUOUS` means dynamic evidence was relevant but still mapped to more than one possible static input;
   - `NOT_COVERED` means no useful runtime evidence was seen for that scenario.
 - `DummyappDynamicEnrichmentIntegrationSpec` now checks the before/after shape for the same selected dummyapp plan: semantic-only evidence produces one `MATCHED_HIGH_CONFIDENCE` record, while the same events with direct runtime `inputVariantId` produce one `MATCHED_EXACT` record.
+- Verifier fallback matching uses the same ownership semantics as simulator runtime attribution when direct `inputVariantId` evidence is absent. It keeps the existing status model: unique complete-identity owner matches become `MATCHED_HIGH_CONFIDENCE`, incomplete identity remains capped at `MATCHED_PARTIAL`, and direct runtime ids still produce `MATCHED_EXACT` for the owning plan.
+- Dynamic joining now contains plan-local ambiguity containment: foreign direct input ids are not reused to promote neighboring plans through semantic fallback, and `AMBIGUOUS` is scoped to plans whose own inputs participate in the relevant ambiguous identity set. Same-feature sibling ambiguity can remain when current evidence cannot distinguish sibling inputs.
 - A refreshed full/default Quizzes sagas-only run after runtime input attribution moved the comparable baseline from `MATCHED_EXACT=0`, `MATCHED_HIGH_CONFIDENCE=2`, `AMBIGUOUS=44`, `UNMATCHED=20`, `warningCount=8238` to `MATCHED_EXACT=46`, `MATCHED_HIGH_CONFIDENCE=0`, `AMBIGUOUS=3`, `UNMATCHED=17`, `warningCount=328`.
 - The orchestrated Maven command appends simulator/test-context flags per class:
   - `-Dsimulator.dynamic-evidence.enabled=true`
@@ -202,7 +206,7 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 ## Partially implemented / current limitations
 
 - Exact aggregate-instance key extraction is still incomplete.
-- Dynamic enrichment can now propagate runtime `inputVariantId` for the first exact case: current test identity + runtime functionality class FQN + runtime step name must leave exactly one static input candidate. It does not yet use command fields, aggregate access evidence, literal runtime values, or aggregate keys to reduce ambiguous candidates further.
+- Dynamic enrichment can now propagate runtime `inputVariantId` for the ownership-aware exact case: current test identity owner + runtime functionality class FQN + runtime step name must leave exactly one static input candidate. It does not yet use command fields, aggregate access evidence, literal runtime values, or aggregate keys to reduce ambiguous candidates further.
 - First-pass propagation mainly upgrades match certainty by turning runtime events with direct `inputVariantId` into `MATCHED_EXACT`. In Quizzes it also reduced broad semantic ambiguity, but it only modestly increased non-unmatched coverage (`46 -> 49` plans).
 - No Quizzes source/test hooks are required or used by orchestration; this is intentional and should be preserved.
 - Dynamic evidence/runtime parity is still local/sagas only:
@@ -216,6 +220,7 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 - Type-only fallback is opt-in and should not be described as exact shared-instance evidence.
 - Groovy recipes are replay-oriented, but no runtime materializer exists yet.
 - Scenario catalog records are executor-facing, but not directly executed by the simulator yet.
+- Semantic deduplication of value-equivalent inputs and stronger same-feature sibling disambiguation are not implemented.
 - Segment-compressed scheduling exists as a strategy concept, but the current safe/default path is serial or bounded order-preserving scheduling; verify before relying on compression for evaluation claims.
 - Include/exclude filters from the broader scenario-catalog design are not exposed yet.
 - Source-mode classification is evidence-based, not a full Spring profile/environment solver.
