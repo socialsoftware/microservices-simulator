@@ -85,9 +85,27 @@
 |----------|------------|--------|
 | Medium | `.claude/skills/implement-aggregate/session-d.md` | Add note on conditional subscriptions (nullable anchor ID) and the need for test-setup service helpers |
 | Low | `.claude/skills/implement-aggregate/session-d.md` | Note that ByEvent deletion on invariant-constrained aggregates (e.g., TOURNAMENT_IS_CANCELED) behaves consistently with the regular saga deletion |
+| ~~Done~~ | `plan.md` + `TournamentFunctionalities` + `TournamentCommandHandler` + test | Root cause fixed: `SolveQuizFunctionalitySagas` + `SolveQuizCommand` added; `TournamentInterInvariantTest` now calls `tournamentFunctionalities.solveQuiz()` instead of the direct service hack |
+
+---
+
+## Follow-up (post-session diagnosis)
+
+**Root cause of the `quizAnswerAggregateId` null problem:**
+`SolveQuiz` was absent from the plan. In the reference app, `SolveQuizFunctionalitySagas` is a Tournament-owned saga that creates a QuizAnswer and writes the resulting ID back to `TournamentParticipant.quizAnswer.quizAnswerAggregateId`. In quizzes-full, `CreateQuizAnswerFunctionalitySagas` (QuizAnswer-owned) creates the QuizAnswer, but no saga ever performed the write-back, leaving `quizAnswerAggregateId` permanently null in any real workflow.
+
+**Resolution:**
+- Added `SolveQuizCommand` (carries `tournamentId, userId, quizAnswerAggregateId, quizAnswerVersion`)
+- Added `SolveQuizFunctionalitySagas` (3 steps: get Tournament → get QuizAnswer by `(quizId, userId)` → call `SolveQuizCommand`)
+- Wired into `TournamentCommandHandler` (calls `TournamentService.setParticipantQuizAnswer()`)
+- Added `TournamentFunctionalities.solveQuiz(tournamentId, userId)` as the public entry point
+- `TournamentInterInvariantTest` now calls `tournamentFunctionalities.solveQuiz()` instead of the `createUnitOfWork` + direct service call scaffold
+- `TournamentService.setParticipantQuizAnswer()` is NOT dead — it is now properly invoked via the command handler
+
+**Lesson for future sessions:** When a `getEventSubscriptions()` subscription is anchored on a nullable cached ID, the missing piece is always a saga that performs the write-back. Look for a corresponding `SolveX` / `LinkX` saga in the reference app before resorting to a test-setup service method.
 
 ---
 
 ## One-Line Summary
 
-The main finding is that `QuizAnswerQuestionAnswerEvent` requires a nullable-anchor conditional subscription and a test-setup helper (`setParticipantQuizAnswer`) because no existing saga populates `quizAnswerAggregateId` on the tournament participant.
+The main finding is that `QuizAnswerQuestionAnswerEvent` requires a nullable-anchor conditional subscription because no saga populated `quizAnswerAggregateId` — the root cause was a missing `SolveQuiz` saga, which was subsequently added to the plan and implemented.

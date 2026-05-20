@@ -13,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.co
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.DeleteTournamentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.GetOpenTournamentsFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.GetTournamentByIdFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas;
 
 import java.time.LocalDateTime;
@@ -82,6 +83,14 @@ public class TournamentFunctionalities {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
         CancelTournamentFunctionalitySagas saga = new CancelTournamentFunctionalitySagas(
                 unitOfWorkService, tournamentId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+    }
+
+    public void solveQuiz(Integer tournamentId, Integer userId) {
+        String functionalityName = new Throwable().getStackTrace()[0].getMethodName();
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork(functionalityName);
+        SolveQuizFunctionalitySagas saga = new SolveQuizFunctionalitySagas(
+                unitOfWorkService, tournamentId, userId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
     }
 

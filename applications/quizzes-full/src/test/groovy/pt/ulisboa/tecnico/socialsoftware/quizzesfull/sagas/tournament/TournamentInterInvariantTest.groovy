@@ -12,7 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.Tournament
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.handling.TournamentEventHandling
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.service.TournamentService
 
 import java.time.LocalDateTime
 
@@ -26,9 +25,6 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
 
     @Autowired
     TournamentEventHandling tournamentEventHandling
-
-    @Autowired
-    TournamentService tournamentService
 
     Integer courseId
     Integer creatorId
@@ -310,9 +306,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentFunctionalities.addParticipant(tournamentId, executionId, creatorId)
         def tournamentDto = tournamentFunctionalities.getTournamentById(tournamentId)
         def quizAnswer = createQuizAnswer(tournamentDto.quizAggregateId, creatorId)
-        def linkUow = unitOfWorkService.createUnitOfWork("linkQuizAnswer")
-        tournamentService.setParticipantQuizAnswer(tournamentId, creatorId, quizAnswer.aggregateId, quizAnswer.version, linkUow)
-        unitOfWorkService.commit(linkUow)
+        tournamentFunctionalities.solveQuiz(tournamentId, creatorId)
 
         when: 'participant answers a question, publishing QuizAnswerQuestionAnswerEvent'
         quizAnswerFunctionalities.answerQuestion(quizAnswer.aggregateId, questionId, 1, 30)
@@ -331,10 +325,8 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         given: 'creator is added as participant with a linked quiz answer'
         tournamentFunctionalities.addParticipant(tournamentId, executionId, creatorId)
         def tournamentDto = tournamentFunctionalities.getTournamentById(tournamentId)
-        def quizAnswer1 = createQuizAnswer(tournamentDto.quizAggregateId, creatorId)
-        def linkUow = unitOfWorkService.createUnitOfWork("linkQuizAnswer")
-        tournamentService.setParticipantQuizAnswer(tournamentId, creatorId, quizAnswer1.aggregateId, quizAnswer1.version, linkUow)
-        unitOfWorkService.commit(linkUow)
+        createQuizAnswer(tournamentDto.quizAggregateId, creatorId)
+        tournamentFunctionalities.solveQuiz(tournamentId, creatorId)
 
         and: 'a second user creates an unlinked quiz answer'
         def user2 = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
