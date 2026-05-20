@@ -166,7 +166,13 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         def enrichedRecord = readEnrichedRecord(enrichedCatalogPath, fixture.selectedPlan().deterministicId())
         enrichedRecord.path('schemaVersion').asText() == EnrichedScenarioRecord.SCHEMA_VERSION
         enrichedRecord.path('scenarioPlanId').asText() == fixture.selectedPlan().deterministicId()
-        enrichedRecord.path('scenarioPlan') == mapper.valueToTree(fixture.selectedPlan())
+        def enrichedScenarioPlan = enrichedRecord.path('scenarioPlan')
+        enrichedScenarioPlan.path('schemaVersion').asText() == ScenarioPlan.SCHEMA_VERSION
+        enrichedScenarioPlan.path('deterministicId').asText() == fixture.selectedPlan().deterministicId()
+        enrichedScenarioPlan.path('inputs').get(0).path('deterministicId').asText() == fixture.selectedInput().deterministicId()
+        enrichedScenarioPlan.path('inputs').get(0).path('inputRecipe').path('schemaVersion').asText() == fixture.selectedInput().inputRecipe().schemaVersion()
+        enrichedScenarioPlan.path('inputs').get(0).path('inputRecipe').path('recipeFingerprint').asText() == fixture.selectedInput().inputRecipe().recipeFingerprint()
+        enrichedScenarioPlan.path('inputs').get(0).path('inputRecipe').path('executorReady').asBoolean() == fixture.selectedInput().inputRecipe().executorReady()
         enrichedRecord.path('dynamicEvidence').path('joinStatus').asText() == DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()
         enrichedRecord.path('dynamicEvidence').path('matchedInputVariantIds').collect { it.asText() } == [fixture.selectedInput().deterministicId()]
         enrichedRecord.path('dynamicEvidence').path('observedSteps').get(0).path('eventKinds').collect { it.asText() } == ['STEP_STARTED', 'COMMAND_SENT', 'AGGREGATE_ACCESSED', 'STEP_FINISHED']
@@ -184,9 +190,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         and:
         def positiveManifest = mapper.readTree(Files.readString(enrichedManifestPath))
         positiveManifest.path('schema').asText() == EnrichedScenarioCatalogWriter.MANIFEST_SCHEMA
-        positiveManifest.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() == 1
-        positiveManifest.path('counts').path(DynamicEvidenceJoinStatus.UNMATCHED.name()).asInt() == fixture.scenarioResult().scenarioPlans().size() - 1
-        positiveManifest.path('counts').path(DynamicEvidenceJoinStatus.NOT_COVERED.name()).asInt() == 0
+        assertJoinStatusCounts(positiveManifest.path('counts'), positiveJoin)
         positiveManifest.path('counts').path('recordCount').asInt() == fixture.scenarioResult().scenarioPlans().size()
         positiveManifest.path('counts').path('warningCount').asInt() == 0
         positiveManifest.path('counts').path('testRunStatusCounts').isEmpty()
@@ -199,9 +203,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         def positiveReport = mapper.readTree(Files.readString(joinReportPath))
         positiveReport.path('schema').asText() == EnrichedScenarioCatalogWriter.JOIN_REPORT_SCHEMA
         positiveReport.path('runStatus').asText() == 'COMPLETE'
-        positiveReport.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() == 1
-        positiveReport.path('counts').path(DynamicEvidenceJoinStatus.UNMATCHED.name()).asInt() == fixture.scenarioResult().scenarioPlans().size() - 1
-        positiveReport.path('counts').path(DynamicEvidenceJoinStatus.NOT_COVERED.name()).asInt() == 0
+        assertJoinStatusCounts(positiveReport.path('counts'), positiveJoin)
         positiveReport.path('counts').path('scenarioPlansRead').asInt() == fixture.scenarioResult().scenarioPlans().size()
         positiveReport.path('counts').path('scenarioPlansEnriched').asInt() == fixture.scenarioResult().scenarioPlans().size()
         positiveReport.path('counts').path('dynamicEventsRead').asInt() == 5
@@ -248,14 +250,10 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         exactEnrichedRecord.path('dynamicEvidence').path('joinStatus').asText() == DynamicEvidenceJoinStatus.MATCHED_EXACT.name()
         exactEnrichedRecord.path('dynamicEvidence').path('matchedInputVariantIds').collect { it.asText() } == [fixture.selectedInput().deterministicId()]
         def exactManifest = mapper.readTree(Files.readString(exactEnrichedManifestPath))
-        exactManifest.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_EXACT.name()).asInt() == 1
-        exactManifest.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() == 0
-        exactManifest.path('counts').path(DynamicEvidenceJoinStatus.UNMATCHED.name()).asInt() == fixture.scenarioResult().scenarioPlans().size() - 1
+        assertJoinStatusCounts(exactManifest.path('counts'), exactJoin)
         exactManifest.path('counts').path('recordCount').asInt() == fixture.scenarioResult().scenarioPlans().size()
         def exactReport = mapper.readTree(Files.readString(exactJoinReportPath))
-        exactReport.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_EXACT.name()).asInt() == 1
-        exactReport.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() == 0
-        exactReport.path('counts').path(DynamicEvidenceJoinStatus.UNMATCHED.name()).asInt() == fixture.scenarioResult().scenarioPlans().size() - 1
+        assertJoinStatusCounts(exactReport.path('counts'), exactJoin)
         exactReport.path('counts').path('dynamicEventsRead').asInt() == 5
         exactReport.path('counts').path('eventsMissingTestContext').asInt() == 1
         exactReport.path('counts').path('evidenceFilesRead').asInt() == 1
@@ -558,6 +556,13 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
                 .find { node -> node.path('scenarioPlanId').asText() == planId }
         assert record != null : "expected enriched catalog to contain plan ${planId}"
         record
+    }
+
+    private static boolean assertJoinStatusCounts(JsonNode counts, DynamicEvidenceJoinResult joinResult) {
+        DynamicEvidenceJoinStatus.values().each { status ->
+            assert counts.path(status.name()).asInt() == joinResult.records().count { record -> record.dynamicEvidence().joinStatus() == status }
+        }
+        true
     }
 
     private static String aggregateAccessSourceMethod(StepDispatchFootprint dispatch) {

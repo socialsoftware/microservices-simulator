@@ -3,6 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic
 import com.fasterxml.jackson.databind.ObjectMapper
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.export.EnrichedScenarioCatalogWriter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinStatus
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.EnrichedScenarioRecord
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance
@@ -33,9 +37,13 @@ class EnrichedScenarioCatalogWriterSpec extends Specification {
         def lines = Files.readAllLines(catalogPath)
         lines.size() == 1
         def enriched = mapper.readTree(lines[0])
-        enriched.path('schemaVersion').asText() == 'microservices-simulator.scenario-catalog-enriched.v1'
+        enriched.path('schemaVersion').asText() == EnrichedScenarioRecord.SCHEMA_VERSION
         enriched.path('scenarioPlanId').asText() == 'scenario-1'
-        enriched.path('scenarioPlan') == mapper.valueToTree(plan)
+        enriched.path('scenarioPlan').path('schemaVersion').asText() == ScenarioPlan.SCHEMA_VERSION
+        enriched.path('scenarioPlan').path('deterministicId').asText() == plan.deterministicId()
+        enriched.path('scenarioPlan').path('inputs')[0].path('deterministicId').asText() == plan.inputs()[0].deterministicId()
+        enriched.path('scenarioPlan').path('inputs')[0].path('inputRecipe').path('recipeFingerprint').asText() == plan.inputs()[0].inputRecipe().recipeFingerprint()
+        enriched.path('scenarioPlan').path('inputs')[0].path('inputRecipe').path('executorReady').asBoolean()
         enriched.path('dynamicEvidence').path('joinStatus').asText() == DynamicEvidenceJoinStatus.NOT_COVERED.name()
     }
 
@@ -57,7 +65,7 @@ class EnrichedScenarioCatalogWriterSpec extends Specification {
 
         then:
         def manifest = mapper.readTree(Files.readString(manifestPath))
-        manifest.path('schema').asText() == 'microservices-simulator.scenario-catalog-enriched-manifest.v1'
+        manifest.path('schema').asText() == EnrichedScenarioCatalogWriter.MANIFEST_SCHEMA
         manifest.path('counts').path(DynamicEvidenceJoinStatus.NOT_COVERED.name()).asInt() == 2
         manifest.path('counts').path('warningCount').asInt() == 0
         manifest.path('sourceCatalogPath').asText() == 'scenario-catalog.jsonl'
@@ -75,7 +83,7 @@ class EnrichedScenarioCatalogWriterSpec extends Specification {
     }
 
     private static ScenarioPlan scenarioPlan(String id) {
-        def input = new InputVariant("${id}-input".toString(), 'com.example.OrderSaga', 'com.example.OrderSpec', 'creates order', 'orderSaga', InputResolutionStatus.RESOLVED, 'source', 'provenance', [], [:], [])
+        def input = inputWithRecipe("${id}-input".toString())
         new ScenarioPlan(
                 ScenarioPlan.SCHEMA_VERSION,
                 id,
@@ -87,5 +95,35 @@ class EnrichedScenarioCatalogWriterSpec extends Specification {
                 [],
                 []
         )
+    }
+
+    private static InputVariant inputWithRecipe(String id) {
+        def node = InputRecipeNode.builder('literal')
+                .sourceText('17')
+                .executorReady(true)
+                .literalKind('integer')
+                .value(17L)
+                .expectedTypeFqn('java.lang.Integer')
+                .build()
+        def argument = new InputRecipeArgument(0,
+                'java.lang.Integer',
+                InputResolutionStatus.RESOLVED,
+                true,
+                [],
+                'customerId <- 17',
+                node)
+        def recipe = new InputRecipe(InputRecipe.SCHEMA_VERSION, null, true, [], [argument])
+        new InputVariant(id,
+                'com.example.OrderSaga',
+                'com.example.OrderSpec',
+                'creates order',
+                'orderSaga',
+                InputResolutionStatus.RESOLVED,
+                'source',
+                'provenance',
+                ['arg[0]: customerId <- 17'],
+                [:],
+                [],
+                recipe)
     }
 }

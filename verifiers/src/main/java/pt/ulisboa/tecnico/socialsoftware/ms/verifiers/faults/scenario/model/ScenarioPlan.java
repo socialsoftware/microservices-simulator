@@ -13,7 +13,7 @@ public record ScenarioPlan(
         List<ConflictEvidence> conflictEvidence,
         List<String> warnings) {
 
-    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-catalog.v1";
+    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-catalog.v2";
 
     public ScenarioPlan {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;

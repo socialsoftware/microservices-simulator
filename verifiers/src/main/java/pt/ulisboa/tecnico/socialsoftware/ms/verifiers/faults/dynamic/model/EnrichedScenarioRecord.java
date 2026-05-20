@@ -7,7 +7,7 @@ public record EnrichedScenarioRecord(
         String scenarioPlanId,
         ScenarioPlan scenarioPlan,
         DynamicEvidenceSummary dynamicEvidence) {
-    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-catalog-enriched.v1";
+    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-catalog-enriched.v2";
 
     public EnrichedScenarioRecord {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;

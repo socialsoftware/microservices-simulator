@@ -640,16 +640,17 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         rejectedLines.size() > 0
         def rejectedInputs = rejectedLines.collect { objectMapper.readTree(it) }
         rejectedInputs.every { rejected ->
-            ['TCC', 'MIXED'].contains(rejected.path('sourceMode').asText()) &&
+            ['TCC', 'MIXED'].contains(rejected.path('input').path('sourceMode').asText()) &&
                     rejected.path('rejectionReason').asText()
         }
         def tccFixtureRejection = rejectedInputs.find {
-            it.path('sourceClassFqn').asText() == 'com.example.dummyapp.GroovyTccSourceModeTracingSpec'
+            it.path('input').path('sourceClassFqn').asText() == 'com.example.dummyapp.GroovyTccSourceModeTracingSpec'
         }
         tccFixtureRejection != null
-        tccFixtureRejection.path('sourceMode').asText() == 'TCC'
+        tccFixtureRejection.path('schemaVersion').asText() == 'microservices-simulator.scenario-catalog-rejected-input.v2'
+        tccFixtureRejection.path('input').path('sourceMode').asText() == 'TCC'
         tccFixtureRejection.path('rejectionReason').asText() == 'SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG'
-        def rejectedIds = rejectedInputs.collect { it.path('deterministicId').asText() } as Set
+        def rejectedIds = rejectedInputs.collect { it.path('input').path('deterministicId').asText() } as Set
         lines.every { line ->
             def scenario = objectMapper.readTree(line)
             scenario.path('inputs').every { input -> !rejectedIds.contains(input.path('deterministicId').asText()) }

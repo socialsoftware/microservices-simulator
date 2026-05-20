@@ -103,22 +103,11 @@ public final class ScenarioCatalogJsonlWriter {
     }
 
     private static RejectedInputLine toRejectedInputLine(RejectedInputVariant rejected) {
-        InputVariant input = rejected.inputVariant();
         return new RejectedInputLine(
-                input == null ? null : input.deterministicId(),
-                input == null ? null : input.sagaFqn(),
-                input == null ? null : input.sourceClassFqn(),
-                input == null ? null : input.sourceMethodName(),
-                input == null ? null : input.sourceBindingName(),
-                input == null ? null : input.stableSourceText(),
-                input == null ? null : input.resolutionStatus(),
-                input == null ? null : input.sourceMode(),
-                input == null ? null : input.sourceModeConfidence(),
-                input == null ? List.of() : input.sourceModeEvidence(),
+                RejectedInputVariant.SCHEMA_VERSION,
+                rejected.inputVariant(),
                 rejected.rejectionReason(),
-                input == null ? List.of() : input.warnings(),
-                rejected.warnings(),
-                input == null ? null : input.provenanceText());
+                rejected.warnings());
     }
 
     private static ScenarioCatalogManifest buildManifest(ScenarioGenerationResult result,
@@ -220,19 +209,9 @@ public final class ScenarioCatalogJsonlWriter {
     }
 
     private record RejectedInputLine(
-            String deterministicId,
-            String sagaFqn,
-            String sourceClassFqn,
-            String sourceMethodName,
-            String sourceBindingName,
-            String stableSourceText,
-            Object resolutionStatus,
-            Object sourceMode,
-            Object sourceModeConfidence,
-            List<String> sourceModeEvidence,
+            String schemaVersion,
+            InputVariant input,
             Object rejectionReason,
-            List<String> warnings,
-            List<String> rejectionWarnings,
-            String provenanceText) {
+            List<String> rejectionWarnings) {
     }
 }

@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 public class EnrichedScenarioCatalogWriter {
-    public static final String MANIFEST_SCHEMA = "microservices-simulator.scenario-catalog-enriched-manifest.v1";
+    public static final String MANIFEST_SCHEMA = "microservices-simulator.scenario-catalog-enriched-manifest.v2";
     public static final String JOIN_REPORT_SCHEMA = "microservices-simulator.dynamic-evidence-join-report.v1";
 
     private final ObjectMapper objectMapper;

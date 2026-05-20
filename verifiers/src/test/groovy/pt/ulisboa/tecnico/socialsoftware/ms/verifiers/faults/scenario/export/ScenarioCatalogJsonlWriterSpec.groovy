@@ -7,6 +7,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Aggr
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictEvidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.RejectedInputVariant
@@ -98,6 +102,35 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         manifest.path('manifestPath').asText() == manifestPath.toString()
     }
 
+    def 'writes accepted input recipe payloads without sidecar files'() {
+        given:
+        def tempRoot = Files.createTempDirectory('scenario-catalog-writer-recipes')
+        def catalogPath = tempRoot.resolve('exports/scenario-catalog.jsonl')
+        def manifestPath = tempRoot.resolve('exports/scenario-catalog-manifest.json')
+        def writer = new ScenarioCatalogJsonlWriter()
+        def recipeInput = inputVariantWithRecipe('recipe-input', 'com.example.OrderSaga', SourceMode.SAGAS)
+        def result = generationResult([singleScenarioPlan('scenario-with-recipe', recipeInput)])
+
+        when:
+        writer.write(result, catalogPath, manifestPath, '2026-04-27T00:00:00Z')
+
+        then:
+        def catalogJson = mapper.readTree(Files.readAllLines(catalogPath)[0])
+        catalogJson.path('schemaVersion').asText() == ScenarioPlan.SCHEMA_VERSION
+        def inputJson = catalogJson.path('inputs')[0]
+        inputJson.path('constructorArgumentSummaries').collect { it.asText() } == ['arg[0]: customerId <- 17']
+        inputJson.path('provenanceText').asText() == 'provenance-recipe-input'
+        inputJson.path('sourceMode').asText() == SourceMode.SAGAS.name()
+        inputJson.path('inputRecipe').path('schemaVersion').asText() == InputRecipe.SCHEMA_VERSION
+        inputJson.path('inputRecipe').path('recipeFingerprint').asText() == recipeInput.inputRecipe().recipeFingerprint()
+        inputJson.path('inputRecipe').path('executorReady').asBoolean()
+        inputJson.path('inputRecipe').path('arguments')[0].path('index').asInt() == 0
+        inputJson.path('inputRecipe').path('arguments')[0].path('recipe').path('kind').asText() == 'literal'
+        inputJson.path('inputRecipe').path('arguments')[0].path('recipe').path('literalKind').asText() == 'integer'
+        inputJson.path('inputRecipe').path('arguments')[0].path('recipe').path('value').asInt() == 17
+        !Files.exists(tempRoot.resolve('exports/input-recipes.jsonl'))
+    }
+
     def 'empty catalog still writes manifest'() {
         given:
         def tempRoot = Files.createTempDirectory('scenario-catalog-writer-empty')
@@ -128,7 +161,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         def manifestArchivePath = tempRoot.resolve('exports/scenario-catalog-manifest-20260427-000000-000.json')
         def rejectedArchivePath = tempRoot.resolve('exports/scenario-catalog-rejected-inputs-20260427-000000-000.jsonl')
         def writer = new ScenarioCatalogJsonlWriter()
-        def rejectedInput = inputVariant('rejected-input', 'com.example.OrderSaga', SourceMode.TCC)
+        def rejectedInput = inputVariantWithRecipe('rejected-input', 'com.example.OrderSaga', SourceMode.TCC)
         def result = new ScenarioGenerationResult(
                 ScenarioPlan.SCHEMA_VERSION,
                 config(),
@@ -154,12 +187,19 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         def rejectedLines = Files.readAllLines(rejectedPath)
         rejectedLines.size() == 1
         def rejectedJson = mapper.readTree(rejectedLines[0])
-        rejectedJson.path('deterministicId').asText() == 'rejected-input'
-        rejectedJson.path('sourceMode').asText() == SourceMode.TCC.name()
-        rejectedJson.path('sourceModeConfidence').asText() == SourceModeConfidence.TYPE_EVIDENCE.name()
-        rejectedJson.path('sourceModeEvidence').collect { it.asText() } == ['evidence-rejected-input']
+        rejectedJson.path('schemaVersion').asText() == RejectedInputVariant.SCHEMA_VERSION
+        rejectedJson.path('input').path('deterministicId').asText() == 'rejected-input'
+        rejectedJson.path('input').path('sourceMode').asText() == SourceMode.TCC.name()
+        rejectedJson.path('input').path('sourceModeConfidence').asText() == SourceModeConfidence.TYPE_EVIDENCE.name()
+        rejectedJson.path('input').path('sourceModeEvidence').collect { it.asText() } == ['evidence-rejected-input']
+        rejectedJson.path('input').path('owners').size() == 1
+        rejectedJson.path('input').path('constructorArgumentSummaries').collect { it.asText() } == ['arg[0]: customerId <- 17']
+        rejectedJson.path('input').path('provenanceText').asText() == 'provenance-rejected-input'
+        rejectedJson.path('input').path('warnings').collect { it.asText() } == ['input-warning']
+        rejectedJson.path('input').path('inputRecipe').path('schemaVersion').asText() == InputRecipe.SCHEMA_VERSION
         rejectedJson.path('rejectionReason').asText() == SourceModeRejectionReason.SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG.name()
         rejectedJson.path('rejectionWarnings').collect { it.asText() } == ['rejected because tcc']
+        rejectedJson.has('deterministicId') == false
 
         and:
         def acceptedJson = mapper.readTree(Files.readAllLines(catalogPath)[0])
@@ -223,9 +263,13 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
     }
 
     private static ScenarioPlan singleScenarioPlan(String scenarioId) {
+        singleScenarioPlan(scenarioId, inputVariant("${scenarioId}-input".toString(), 'com.example.OrderSaga'))
+    }
+
+    private static ScenarioPlan singleScenarioPlan(String scenarioId, InputVariant input) {
         def sagaFqn = 'com.example.OrderSaga'
         def sagaInstanceId = "${scenarioId}-instance"
-        def inputVariantId = "${scenarioId}-input"
+        def inputVariantId = input.deterministicId()
         def scheduledStepId = "${scenarioId}-scheduled-step"
 
         new ScenarioPlan(
@@ -233,7 +277,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
                 scenarioId,
                 ScenarioKind.SINGLE_SAGA,
                 [new SagaInstance(sagaInstanceId, sagaFqn, inputVariantId, ['instance-warning'])],
-                [inputVariant(inputVariantId, sagaFqn)],
+                [input],
                 [new ScheduledStep(scheduledStepId, sagaInstanceId, "${sagaFqn}::step-1", 0, ['scheduled-warning'])],
                 null,
                 [],
@@ -296,6 +340,43 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
                 ['arg'],
                 [orderId: 'order-1'],
                 ['input-warning']
+        )
+    }
+
+    private static InputVariant inputVariantWithRecipe(String deterministicId, String sagaFqn, SourceMode sourceMode) {
+        def literalNode = InputRecipeNode.builder('literal')
+                .sourceText('17')
+                .provenanceText('customerId <- 17')
+                .executorReady(true)
+                .literalKind('integer')
+                .value(17L)
+                .expectedTypeFqn('java.lang.Integer')
+                .build()
+        def recipeArgument = new InputRecipeArgument(0,
+                'java.lang.Integer',
+                InputResolutionStatus.RESOLVED,
+                true,
+                [],
+                'customerId <- 17',
+                literalNode)
+        def recipe = new InputRecipe(InputRecipe.SCHEMA_VERSION, null, true, [], [recipeArgument])
+        new InputVariant(
+                deterministicId,
+                sagaFqn,
+                'com.example.TestInput',
+                'build',
+                'sagaField',
+                InputResolutionStatus.RESOLVED,
+                sourceMode,
+                SourceModeConfidence.TYPE_EVIDENCE,
+                ["evidence-${deterministicId}".toString()],
+                "source-${deterministicId}",
+                "provenance-${deterministicId}",
+                [new InputOwner('com.example.TestInput', 'build')],
+                ['arg[0]: customerId <- 17'],
+                [orderId: 'order-1'],
+                ['input-warning'],
+                recipe
         )
     }
 }
