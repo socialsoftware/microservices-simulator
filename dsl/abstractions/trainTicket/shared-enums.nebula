@@ -1,0 +1,13 @@
+SharedEnums {
+
+    enum OrderStatus {
+        NOTPAID,
+        PAID,
+        COLLECTED,
+        CHANGE,
+        CANCEL,
+        REFUNDS,
+        USED
+    }
+
+}
