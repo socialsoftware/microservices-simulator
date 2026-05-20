@@ -1,10 +1,10 @@
 # Verifier current state
 
-Last updated: 2026-05-19
+Last updated: 2026-05-20
 
 This page is the present-tense source of truth for verifier implementation status. Use it before relying on roadmap notes, weekly logs, meeting notes, decision records, or archived material.
 
-For terminology used here, especially scenario/input and dynamic-enrichment status labels, see [`glossary.md`](glossary.md).
+For terminology used here, especially scenario/input and dynamic-enrichment status labels, see [`glossary.md`](glossary.md). For the embedded structured input recipe export contract, see [`structured-input-recipes.md`](structured-input-recipes.md).
 
 ## Scope
 
@@ -59,13 +59,14 @@ Current boundaries:
 - Groovy test source indexing.
 - Direct saga constructor tracing from tests.
 - Helper-chain tracing for constructor inputs.
-- Structured value recipes for constructor arguments.
+- Structured value recipes for constructor arguments, exported as embedded `inputRecipe` payloads on scenario input variants.
 - Facade/functionality call extraction into saga construction recipes.
 - Assignment and bare-statement facade calls are represented as `FACADE_CALL` trace origins.
 - Common helper-return patterns no longer appear as fake cyclic references.
 - Local collection transforms such as `toSet()` and cast/coercion shapes are represented as local transforms.
 - Replay-oriented metadata classifies unresolved values as source placeholders, injectable placeholders, runtime calls, unknown unresolved values, or resolved values.
 - Expected constructor argument types are attached when available.
+- Public input recipes cover literals, constructors, DTO named-argument/setter/property assignments, collections, local transforms/coercions, helper results, property access, generic call results, placeholders, and unresolved values. Recipe readiness and deterministic blockers are explicit; existing summaries/provenance remain diagnostics.
 - Analyzed input variants now carry explicit ownership metadata separate from source provenance. Provenance fields such as source class, source method, and source binding explain where the input was found; owners identify the feature methods allowed to claim that input during runtime attribution.
 - Ownership metadata covers direct feature inputs, helper-created inputs, `setup()` fixtures, field initializers, inherited helper/setup/field variants, and `setupSpec()` analysis metadata. `setupSpec()` runtime-attribution improvement is not implemented or claimed.
 - Source-mode classification is attached to Groovy full traces and scenario input variants using generic simulator/Spring evidence:
@@ -152,8 +153,8 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
   - `TCC` rejected;
   - `MIXED` rejected;
   - `UNKNOWN` accepted with a warning.
-- JSONL catalog writer emits one accepted `ScenarioPlan` per line, including input source-mode metadata.
-- Rejected TCC/MIXED candidates are written to `scenario-catalog-rejected-inputs.jsonl` with rejection reasons; the file is written even when empty.
+- JSONL catalog writer emits one accepted `ScenarioPlan` per line with schema `microservices-simulator.scenario-catalog.v2`, including input source-mode metadata and embedded `inputRecipe` payloads when available.
+- Rejected TCC/MIXED candidates are written to `scenario-catalog-rejected-inputs.jsonl` with schema `microservices-simulator.scenario-catalog-rejected-input.v2`, wrapping the full input object plus `rejectionReason` and `rejectionWarnings`; the file is written even when empty.
 - Manifest writer records schema, generated timestamp, effective config, counts, warnings, artifact paths, and source-mode/rejection counters.
 - CLI wiring runs export after HTML generation when `verifiers.scenario-catalog.enabled=true`.
 - Catalog, manifest, rejected-input, and HTML artifacts use stable filenames inside the per-run output directory.

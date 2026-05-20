@@ -19,6 +19,7 @@ Use [`thesis-claims-evidence-map.md`](thesis-claims-evidence-map.md) when drafti
 | What comes next | [`roadmap.md`](roadmap.md) |
 | High-level verifier narrative | [`verifier-pipeline-plain-explanation.md`](verifier-pipeline-plain-explanation.md) |
 | Test-to-input extraction detail | [`test-analysis-saga-input-flow.md`](test-analysis-saga-input-flow.md) |
+| Structured recipe export contract | [`structured-input-recipes.md`](structured-input-recipes.md) |
 | Static/dynamic evidence joining overview | [`dynamic-enrichment-joining-explained.md`](dynamic-enrichment-joining-explained.md) |
 | Static/dynamic evidence joining reference | [`dynamic-enrichment-joining-reference.md`](dynamic-enrichment-joining-reference.md) |
 | Durable design rationale | [`decisions/`](decisions/index.md) |
@@ -53,10 +54,11 @@ For verifier work, read these files in order:
 5. [`roadmap.md`](roadmap.md) — planned pipeline stages and how current work maps to the broader solution.
 6. The latest weekly log under [`implementation-log/`](implementation-log/index.md) — recent progress, validation, deferred work, and meeting notes.
 7. Decision records under [`decisions/`](decisions/index.md) — durable architectural choices and rejected alternatives.
-8. [`dynamic-enrichment-joining-explained.md`](dynamic-enrichment-joining-explained.md) — shorter overview of static/dynamic joining, result categories, current evidence, and limits.
-9. [`dynamic-enrichment-joining-reference.md`](dynamic-enrichment-joining-reference.md) — preserved detailed walkthrough of static inputs, runtime evidence, the dynamic input map, join statuses, ambiguity, and current `inputVariantId` propagation.
-10. [`site-workflow.md`](site-workflow.md) — how to preview and build the verifier docs site.
-11. [`archive/`](archive/index.md) — historical source material preserved for traceability, not current instructions.
+8. [`structured-input-recipes.md`](structured-input-recipes.md) — embedded recipe schema semantics, readiness, accepted/rejected export, and out-of-scope executor boundaries.
+9. [`dynamic-enrichment-joining-explained.md`](dynamic-enrichment-joining-explained.md) — shorter overview of static/dynamic joining, result categories, current evidence, and limits.
+10. [`dynamic-enrichment-joining-reference.md`](dynamic-enrichment-joining-reference.md) — preserved detailed walkthrough of static inputs, runtime evidence, the dynamic input map, join statuses, ambiguity, and current `inputVariantId` propagation.
+11. [`site-workflow.md`](site-workflow.md) — how to preview and build the verifier docs site.
+12. [`archive/`](archive/index.md) — historical source material preserved for traceability, not current instructions.
 
 ## Documentation roles
 
@@ -67,6 +69,7 @@ For verifier work, read these files in order:
 | `glossary.md` | Shared terminology for scenario generation, source modes, dynamic enrichment, join statuses, and status labels. |
 | `thesis-claims-evidence-map.md` | Thesis claim drafts mapped to support docs, validation evidence, and limitations. |
 | `roadmap.md` | High-level staged plan from static scenario synthesis to execution and search. |
+| `structured-input-recipes.md` | Public embedded recipe export contract, readiness semantics, examples, and executor/materializer scope boundaries. |
 | `implementation-log/YYYY-WW.md` | Weekly progress record, including what was not done. |
 | `decisions/YYYY-MM-DD-topic.md` | Lasting rationale for important technical choices. |
 | `meeting-notes/YYYY-WW-thesis-meeting.md` | Advisor-facing history and thesis framing at a point in time. |
