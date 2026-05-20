@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Objects;
@@ -12,6 +14,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultProcessRunner implements ProcessRunner {
+    private static final int MAX_CAPTURED_OUTPUT_BYTES = 1_048_576;
+
     private final ProcessFactory processFactory;
 
     public DefaultProcessRunner() {
@@ -126,9 +130,26 @@ public class DefaultProcessRunner implements ProcessRunner {
         }
     }
 
-    private static String readUtf8(java.io.InputStream inputStream) {
+    private static String readUtf8(InputStream inputStream) {
         try (inputStream) {
-            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            ByteArrayOutputStream captured = new ByteArrayOutputStream(Math.min(8192, MAX_CAPTURED_OUTPUT_BYTES));
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            int remaining = MAX_CAPTURED_OUTPUT_BYTES;
+            boolean truncated = false;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                int bytesToCapture = 0;
+                if (remaining > 0) {
+                    bytesToCapture = Math.min(bytesRead, remaining);
+                    captured.write(buffer, 0, bytesToCapture);
+                    remaining -= bytesToCapture;
+                }
+                if (bytesToCapture < bytesRead) {
+                    truncated = true;
+                }
+            }
+            String text = captured.toString(StandardCharsets.UTF_8);
+            return truncated ? text + System.lineSeparator() + "<process output truncated after " + MAX_CAPTURED_OUTPUT_BYTES + " bytes>" : text;
         } catch (IOException e) {
             return "<failed to capture process output: " + e.getMessage() + ">";
         }

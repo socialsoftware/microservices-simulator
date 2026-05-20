@@ -4,9 +4,11 @@ import spock.lang.Specification
 import spock.lang.TempDir
 
 import java.io.ByteArrayOutputStream
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
@@ -56,6 +58,27 @@ class DefaultProcessRunnerSpec extends Specification {
         process.stdout.closed.get()
         process.stderr.closed.get()
         !process.isAlive()
+    }
+
+    def 'large process output is drained but bounded in memory'() {
+        given:
+        def workingDir = tempDir.resolve('working-dir')
+        Files.createDirectories(workingDir)
+        def largeOutput = 'x'.repeat(2_000_000).getBytes(StandardCharsets.UTF_8)
+        def runner = new DefaultProcessRunner({ ProcessRunner.ProcessCommand command ->
+            new FinishedProcess(largeOutput, new byte[0], 0)
+        })
+        def command = new ProcessRunner.ProcessCommand(workingDir, ['mvn', 'test'], Duration.ofSeconds(30))
+
+        when:
+        def result = runner.run(command)
+
+        then:
+        result.exitCode() == 0
+        !result.timedOut()
+        result.stdout().contains('<process output truncated after 1048576 bytes>')
+        result.stdout().length() < 1_100_000
+        result.stderr() == ''
     }
 
     private static final class ControlledProcess extends Process {
@@ -125,6 +148,62 @@ class DefaultProcessRunnerSpec extends Specification {
         @Override
         boolean isAlive() {
             alive.get()
+        }
+    }
+
+    private static final class FinishedProcess extends Process {
+        private final byte[] stdout
+        private final byte[] stderr
+        private final int exitCode
+
+        FinishedProcess(byte[] stdout, byte[] stderr, int exitCode) {
+            this.stdout = stdout
+            this.stderr = stderr
+            this.exitCode = exitCode
+        }
+
+        @Override
+        OutputStream getOutputStream() {
+            new ByteArrayOutputStream()
+        }
+
+        @Override
+        InputStream getInputStream() {
+            new ByteArrayInputStream(stdout)
+        }
+
+        @Override
+        InputStream getErrorStream() {
+            new ByteArrayInputStream(stderr)
+        }
+
+        @Override
+        int waitFor() {
+            exitCode
+        }
+
+        @Override
+        boolean waitFor(long timeout, TimeUnit unit) {
+            true
+        }
+
+        @Override
+        int exitValue() {
+            exitCode
+        }
+
+        @Override
+        void destroy() {
+        }
+
+        @Override
+        Process destroyForcibly() {
+            this
+        }
+
+        @Override
+        boolean isAlive() {
+            false
         }
     }
 
