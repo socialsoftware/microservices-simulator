@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioId
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
@@ -92,7 +93,6 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(SagaFunctionalityBuildingBlock::getFqn, Comparator.nullsFirst(String::compareTo)))
                 .toList();
-
         List<SagaDefinition> sagaDefinitions = new ArrayList<>();
         int totalSteps = 0;
         int totalFootprints = 0;
@@ -239,8 +239,9 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                         .comparing(GroovyFullTraceResult::sourceClassFqn, Comparator.nullsFirst(String::compareTo))
                         .thenComparing(GroovyFullTraceResult::sourceMethodName, Comparator.nullsFirst(String::compareTo))
                         .thenComparing(trace -> trace.sourceBindingName() == null ? "" : trace.sourceBindingName())
-                        .thenComparing(GroovyFullTraceResult::sagaClassFqn, Comparator.nullsFirst(String::compareTo)))
+                .thenComparing(GroovyFullTraceResult::sagaClassFqn, Comparator.nullsFirst(String::compareTo)))
                 .toList();
+        Map<String, List<InputOwner>> featureOwnersByClass = featureOwnersByClass(traces);
 
         LinkedHashMap<String, InputVariant> variantsBySagaAndId = new LinkedHashMap<>();
         int skippedCount = 0;
@@ -250,7 +251,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         int replayableTraceCount = 0;
 
         for (GroovyFullTraceResult trace : traces) {
-            TraceAdaptation traceAdaptation = adaptTrace(trace, sagaDefinitionsByFqn);
+            TraceAdaptation traceAdaptation = adaptTrace(trace, sagaDefinitionsByFqn, featureOwnersByClass);
             if (!traceAdaptation.usable()) {
                 skippedCount++;
                 diagnostics.add(traceAdaptation.diagnostic());
@@ -299,7 +300,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
     }
 
     private TraceAdaptation adaptTrace(GroovyFullTraceResult trace,
-                                       Map<String, SagaDefinition> sagaDefinitionsByFqn) {
+                                       Map<String, SagaDefinition> sagaDefinitionsByFqn,
+                                       Map<String, List<InputOwner>> featureOwnersByClass) {
         String sagaFqn = normalize(trace.sagaClassFqn());
         String sourceClassFqn = normalize(trace.sourceClassFqn());
         String sourceMethodName = normalize(trace.sourceMethodName());
@@ -377,6 +379,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 trace.sourceModeEvidence(),
                 stableSourceText,
                 provenanceText,
+                ownersForTrace(sourceClassFqn, sourceMethodName, featureOwnersByClass),
                 summaries,
                 Map.of(),
                 warnings);
@@ -404,11 +407,46 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 variant.sourceModeEvidence(),
                 variant.stableSourceText(),
                 variant.provenanceText(),
+                variant.owners(),
                 variant.constructorArgumentSummaries(),
                 variant.logicalKeyBindings(),
                 variant.warnings()),
                 status,
                 "trace " + traceDescriptor(trace) + " is " + status.name().toLowerCase(Locale.ROOT));
+    }
+
+    private Map<String, List<InputOwner>> featureOwnersByClass(List<GroovyFullTraceResult> traces) {
+        LinkedHashMap<String, LinkedHashSet<InputOwner>> ownersByClass = new LinkedHashMap<>();
+        for (GroovyFullTraceResult trace : traces) {
+            String sourceClassFqn = normalize(trace.sourceClassFqn());
+            String sourceMethodName = normalize(trace.sourceMethodName());
+            if (sourceClassFqn == null || sourceMethodName == null || isFixtureContext(sourceMethodName)) {
+                continue;
+            }
+            ownersByClass.computeIfAbsent(sourceClassFqn, ignored -> new LinkedHashSet<>())
+                    .add(new InputOwner(sourceClassFqn, sourceMethodName));
+        }
+        LinkedHashMap<String, List<InputOwner>> result = new LinkedHashMap<>();
+        ownersByClass.forEach((sourceClassFqn, owners) -> result.put(sourceClassFqn, List.copyOf(owners)));
+        return Collections.unmodifiableMap(result);
+    }
+
+    private List<InputOwner> ownersForTrace(String sourceClassFqn,
+                                            String sourceMethodName,
+                                            Map<String, List<InputOwner>> featureOwnersByClass) {
+        if (isFixtureContext(sourceMethodName)) {
+            return featureOwnersByClass.getOrDefault(sourceClassFqn, List.of());
+        }
+        if (sourceClassFqn == null || sourceMethodName == null) {
+            return List.of();
+        }
+        return List.of(new InputOwner(sourceClassFqn, sourceMethodName));
+    }
+
+    private boolean isFixtureContext(String sourceMethodName) {
+        return "setup".equals(sourceMethodName)
+                || "setupSpec".equals(sourceMethodName)
+                || (sourceMethodName != null && sourceMethodName.startsWith("field:"));
     }
 
     private InputVariant mergeWarnings(InputVariant left, InputVariant right) {
@@ -430,9 +468,17 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 sourceModeSource.sourceModeEvidence(),
                 left.stableSourceText(),
                 left.provenanceText(),
+                mergeOwners(left, right),
                 left.constructorArgumentSummaries(),
                 left.logicalKeyBindings(),
                 List.copyOf(mergedWarnings));
+    }
+
+    private List<InputOwner> mergeOwners(InputVariant left, InputVariant right) {
+        LinkedHashSet<InputOwner> owners = new LinkedHashSet<>();
+        owners.addAll(left.owners());
+        owners.addAll(right.owners());
+        return List.copyOf(owners);
     }
 
     private ValueEvidence summarizeValue(GroovyValueRecipe recipe, Set<GroovyValueRecipe> visited) {

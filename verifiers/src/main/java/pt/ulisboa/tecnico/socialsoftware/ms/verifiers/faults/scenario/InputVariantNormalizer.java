@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.RejectedInputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode;
@@ -146,6 +147,7 @@ public final class InputVariantNormalizer {
                 input.sourceModeEvidence(),
                 normalize(input.stableSourceText()),
                 normalize(input.provenanceText()),
+                input.owners(),
                 constructorArgs,
                 logicalBindings,
                 warnings);
@@ -173,6 +175,7 @@ public final class InputVariantNormalizer {
                 normalized.sourceModeEvidence(),
                 normalized.stableSourceText(),
                 normalized.provenanceText(),
+                normalized.owners(),
                 normalized.constructorArgumentSummaries(),
                 normalized.logicalKeyBindings(),
                 normalized.warnings());
@@ -204,6 +207,7 @@ public final class InputVariantNormalizer {
                 sourceModeSource.sourceModeEvidence(),
                 left.stableSourceText(),
                 left.provenanceText(),
+                mergeOwners(left, right),
                 left.constructorArgumentSummaries(),
                 left.logicalKeyBindings(),
                 List.copyOf(mergedWarnings));
@@ -240,6 +244,7 @@ public final class InputVariantNormalizer {
                 input.sourceModeEvidence(),
                 input.stableSourceText(),
                 input.provenanceText(),
+                input.owners(),
                 input.constructorArgumentSummaries(),
                 input.logicalKeyBindings(),
                 List.copyOf(mergedWarnings));
@@ -279,9 +284,17 @@ public final class InputVariantNormalizer {
                 left.sourceModeEvidence(),
                 left.stableSourceText(),
                 left.provenanceText(),
+                mergeOwners(left, right),
                 left.constructorArgumentSummaries(),
                 left.logicalKeyBindings(),
                 List.copyOf(mergedWarnings));
+    }
+
+    private static List<InputOwner> mergeOwners(InputVariant left, InputVariant right) {
+        LinkedHashSet<InputOwner> owners = new LinkedHashSet<>();
+        owners.addAll(left.owners());
+        owners.addAll(right.owners());
+        return List.copyOf(owners);
     }
 
     private static List<String> normalizeStrings(List<String> values) {

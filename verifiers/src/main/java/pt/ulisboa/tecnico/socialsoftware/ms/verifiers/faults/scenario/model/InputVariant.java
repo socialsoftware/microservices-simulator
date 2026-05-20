@@ -20,6 +20,7 @@ public record InputVariant(
         List<String> sourceModeEvidence,
         String stableSourceText,
         String provenanceText,
+        List<InputOwner> owners,
         List<String> constructorArgumentSummaries,
         Map<String, String> logicalKeyBindings,
         List<String> warnings) {
@@ -36,6 +37,7 @@ public record InputVariant(
         sourceModeEvidence = sourceModeEvidence == null ? List.of() : List.copyOf(sourceModeEvidence);
         stableSourceText = normalize(stableSourceText);
         provenanceText = normalize(provenanceText);
+        owners = normalizeOwners(owners);
         constructorArgumentSummaries = constructorArgumentSummaries == null ? List.of() : List.copyOf(constructorArgumentSummaries);
         logicalKeyBindings = logicalKeyBindings == null
                 ? Map.of()
@@ -65,6 +67,38 @@ public record InputVariant(
                 List.of(),
                 stableSourceText,
                 provenanceText,
+                defaultOwners(sourceClassFqn, sourceMethodName),
+                constructorArgumentSummaries,
+                logicalKeyBindings,
+                warnings);
+    }
+
+    public InputVariant(String deterministicId,
+                        String sagaFqn,
+                        String sourceClassFqn,
+                        String sourceMethodName,
+                        String sourceBindingName,
+                        InputResolutionStatus resolutionStatus,
+                        SourceMode sourceMode,
+                        SourceModeConfidence sourceModeConfidence,
+                        List<String> sourceModeEvidence,
+                        String stableSourceText,
+                        String provenanceText,
+                        List<String> constructorArgumentSummaries,
+                        Map<String, String> logicalKeyBindings,
+                        List<String> warnings) {
+        this(deterministicId,
+                sagaFqn,
+                sourceClassFqn,
+                sourceMethodName,
+                sourceBindingName,
+                resolutionStatus,
+                sourceMode,
+                sourceModeConfidence,
+                sourceModeEvidence,
+                stableSourceText,
+                provenanceText,
+                defaultOwners(sourceClassFqn, sourceMethodName),
                 constructorArgumentSummaries,
                 logicalKeyBindings,
                 warnings);
@@ -72,5 +106,24 @@ public record InputVariant(
 
     private static String normalize(String value) {
         return value == null || value.isBlank() ? null : value;
+    }
+
+    private static List<InputOwner> defaultOwners(String sourceClassFqn, String sourceMethodName) {
+        String normalizedClass = normalize(sourceClassFqn);
+        String normalizedMethod = normalize(sourceMethodName);
+        if (normalizedClass == null || normalizedMethod == null) {
+            return List.of();
+        }
+        return List.of(new InputOwner(normalizedClass, normalizedMethod));
+    }
+
+    private static List<InputOwner> normalizeOwners(List<InputOwner> owners) {
+        if (owners == null || owners.isEmpty()) {
+            return List.of();
+        }
+        return owners.stream()
+                .filter(owner -> owner != null && owner.isComplete())
+                .distinct()
+                .toList();
     }
 }

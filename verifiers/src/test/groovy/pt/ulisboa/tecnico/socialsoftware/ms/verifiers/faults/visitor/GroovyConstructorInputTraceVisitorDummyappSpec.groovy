@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor
 
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
@@ -566,6 +567,44 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         shadowMethods.contains('setupSpec')
     }
 
+    def 'adapted dummyapp inputs expose conservative owners for helper setup field and inherited fixtures'() {
+        given:
+        def inputs = new ApplicationAnalysisScenarioModelAdapter().adapt(state).inputVariants()
+
+        expect:
+        ownersFor(inputs,
+                'com.example.dummyapp.GroovySagaTracingSpec',
+                'helper chain and accessor provenance feed item saga constructor',
+                'helperSaga') == ['helper chain and accessor provenance feed item saga constructor']
+
+        and:
+        ownersFor(inputs,
+                'com.example.dummyapp.GroovySagaTracingSpec',
+                'setup',
+                'setupAlias').containsAll([
+                'same method tracks two order saga instances',
+                'helper chain and accessor provenance feed item saga constructor'
+        ])
+
+        and:
+        ownersFor(inputs,
+                'com.example.dummyapp.GroovySagaTracingSpec',
+                'field:orderSagaInField',
+                'orderSagaInField').contains('same method tracks two order saga instances')
+
+        and:
+        ownersFor(inputs,
+                'com.example.dummyapp.GroovySagaTracingChildSpec',
+                'setup',
+                'setupSaga') == ['child uses inherited helper saga']
+
+        and:
+        ownersFor(inputs,
+                'com.example.dummyapp.GroovySagaTracingChildSpec',
+                'setupSpec',
+                'setupSpecSaga') == ['child uses inherited helper saga']
+    }
+
     def 'captures workflow calls inside try-catch and retry loop blocks'() {
         when:
         def traceText = traceTextFor(
@@ -649,6 +688,14 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         }
 
         return recipe.children().any { child -> recipeContainsKind(child, kind) }
+    }
+
+    private static List<String> ownersFor(inputs, String sourceClassFqn, String sourceMethodName, String sourceBindingName) {
+        inputs.findAll {
+            it.sourceClassFqn() == sourceClassFqn &&
+                    it.sourceMethodName() == sourceMethodName &&
+                    it.sourceBindingName() == sourceBindingName
+        }*.owners().flatten()*.testMethodName().unique().sort()
     }
 
 }
