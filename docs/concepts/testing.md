@@ -160,6 +160,17 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 }
 ```
 
+**P1 intra-invariant violation coverage:** For every rule checked in `verifyInvariants()` (non-`final`-field P1 rules from `plan.md §3.1`), add one T2 scenario that triggers the violation. Skip only rules marked "Java `final` field".
+
+For **time-based invariants** (e.g., `ENROLL_UNTIL_START_TIME`, `FINAL_AFTER_START`), create the aggregate with a past `startTime` in `given:`:
+
+```groovy
+def pastTournamentId = createTournament(executionId, creatorId, [topicId], 1,
+        LocalDateTime.now().minusMinutes(1), LocalDateTime.now().plusDays(1)).aggregateId
+```
+
+Then call the functionality and assert `thrown(<App>Exception)` with the exact error message constant. This works because `verifyInvariants()` fires inside `registerChanged` — when the setters stamp `lastModifiedTime = now() > prev.startTime`, the invariant detects the violation.
+
 ### Service-Command Tests (T2 variant)
 
 Some aggregates expose service methods that are invoked via command handlers from **other**

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
@@ -196,6 +197,7 @@ public class TournamentService {
         if (copy.getCreatorAggregateId().equals(userAggregateId)) {
             copy.setCreatorName(name);
             copy.setCreatorUsername(username);
+            copy.setState(Aggregate.AggregateState.INACTIVE);
         }
         copy.getParticipants().stream()
                 .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))

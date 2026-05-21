@@ -88,4 +88,6 @@ public final class QuizzesFullErrorMessage {
             "A deleted tournament must have no participants.";
     public static final String TOURNAMENT_CREATOR_PARTICIPANT_CONSISTENCY =
             "Creator's cached data in the participant list must match the tournament's creator snapshot.";
+    public static final String CREATOR_IS_NOT_ANONYMOUS =
+            "Tournament creator must not be anonymous.";
 }

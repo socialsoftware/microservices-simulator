@@ -114,10 +114,17 @@ public class CreateTournamentFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep createQuizStep = new SagaStep("createQuizStep", () -> {
             QuizExecution quizExecution = new QuizExecution(this.executionDto);
+            // The quiz's availableDate must satisfy creationDate < availableDate.
+            // If the tournament's startTime is already in the past (e.g. in tests that
+            // exercise the ENROLL_UNTIL_START_TIME invariant), use now+1s so the quiz
+            // date-ordering invariant is not violated.
+            LocalDateTime quizAvailableDate = startTime.isAfter(LocalDateTime.now())
+                    ? startTime
+                    : LocalDateTime.now().plusSeconds(1);
             CreateQuizCommand cmd = new CreateQuizCommand(
                     unitOfWork, ServiceMapping.QUIZ.getServiceName(),
                     "Tournament Quiz",
-                    startTime, endTime, endTime,
+                    quizAvailableDate, endTime, endTime,
                     QuizType.GENERATED, quizExecution, this.quizQuestions);
             this.createdQuizDto = (QuizDto) commandGateway.send(cmd);
         }, new ArrayList<>(Arrays.asList(getQuestionsStep)));

@@ -228,6 +228,10 @@ public abstract class Tournament extends Aggregate {
         return true;
     }
 
+    private boolean creatorIsNotAnonymous() {
+        return !creatorName.equals("ANONYMOUS") && !creatorUsername.equals("ANONYMOUS");
+    }
+
     @Override
     public void verifyInvariants() {
         if (!startBeforeEndTime()) {
@@ -251,33 +255,38 @@ public abstract class Tournament extends Aggregate {
         if (!creatorParticipantConsistency()) {
             throw new QuizzesFullException(QuizzesFullErrorMessage.TOURNAMENT_CREATOR_PARTICIPANT_CONSISTENCY);
         }
+        if (getState() == AggregateState.ACTIVE && !creatorIsNotAnonymous()) {
+            throw new QuizzesFullException(QuizzesFullErrorMessage.CREATOR_IS_NOT_ANONYMOUS);
+        }
     }
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         Set<EventSubscription> subscriptions = new HashSet<>();
-        // CREATOR_EXISTS / PARTICIPANT_EXISTS
-        subscriptions.add(new TournamentSubscribesDeleteUser(creatorAggregateId, creatorVersion));
-        subscriptions.add(new TournamentSubscribesUpdateStudentName(creatorAggregateId, creatorVersion));
-        subscriptions.add(new TournamentSubscribesAnonymizeStudent(creatorAggregateId, creatorVersion));
-        for (TournamentParticipant p : participants) {
-            subscriptions.add(new TournamentSubscribesDeleteUser(p.getParticipantAggregateId(), p.getParticipantVersion()));
-            subscriptions.add(new TournamentSubscribesUpdateStudentName(p.getParticipantAggregateId(), p.getParticipantVersion()));
-            subscriptions.add(new TournamentSubscribesAnonymizeStudent(p.getParticipantAggregateId(), p.getParticipantVersion()));
-        }
-        // TOPIC_EXISTS
-        for (TournamentTopic topic : topics) {
-            subscriptions.add(new TournamentSubscribesUpdateTopic(topic));
-            subscriptions.add(new TournamentSubscribesDeleteTopic(topic));
-        }
-        // COURSE_EXECUTION_EXISTS
-        subscriptions.add(new TournamentSubscribesDeleteCourseExecution(this));
-        // QUIZ_EXISTS
-        subscriptions.add(new TournamentSubscribesInvalidateQuiz(this));
-        // QUIZ_ANSWER_EXISTS — only for participants with a known quiz answer ID
-        for (TournamentParticipant p : participants) {
-            if (p.getQuizAnswer() != null && p.getQuizAnswer().getQuizAnswerAggregateId() != null) {
-                subscriptions.add(new TournamentSubscribesQuizAnswerQuestionAnswer(p.getQuizAnswer()));
+        if (getState() == AggregateState.ACTIVE) {
+            // CREATOR_EXISTS / PARTICIPANT_EXISTS
+            subscriptions.add(new TournamentSubscribesDeleteUser(creatorAggregateId, creatorVersion));
+            subscriptions.add(new TournamentSubscribesUpdateStudentName(creatorAggregateId, creatorVersion));
+            subscriptions.add(new TournamentSubscribesAnonymizeStudent(creatorAggregateId, creatorVersion));
+            for (TournamentParticipant p : participants) {
+                subscriptions.add(new TournamentSubscribesDeleteUser(p.getParticipantAggregateId(), p.getParticipantVersion()));
+                subscriptions.add(new TournamentSubscribesUpdateStudentName(p.getParticipantAggregateId(), p.getParticipantVersion()));
+                subscriptions.add(new TournamentSubscribesAnonymizeStudent(p.getParticipantAggregateId(), p.getParticipantVersion()));
+            }
+            // TOPIC_EXISTS
+            for (TournamentTopic topic : topics) {
+                subscriptions.add(new TournamentSubscribesUpdateTopic(topic));
+                subscriptions.add(new TournamentSubscribesDeleteTopic(topic));
+            }
+            // COURSE_EXECUTION_EXISTS
+            subscriptions.add(new TournamentSubscribesDeleteCourseExecution(this));
+            // QUIZ_EXISTS
+            subscriptions.add(new TournamentSubscribesInvalidateQuiz(this));
+            // QUIZ_ANSWER_EXISTS — only for participants with a known quiz answer ID
+            for (TournamentParticipant p : participants) {
+                if (p.getQuizAnswer() != null && p.getQuizAnswer().getQuizAnswerAggregateId() != null) {
+                    subscriptions.add(new TournamentSubscribesQuizAnswerQuestionAnswer(p.getQuizAnswer()));
+                }
             }
         }
         return subscriptions;

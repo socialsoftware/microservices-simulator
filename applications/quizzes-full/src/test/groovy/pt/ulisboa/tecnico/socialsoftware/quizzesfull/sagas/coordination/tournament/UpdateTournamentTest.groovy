@@ -12,6 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.Qui
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.states.TournamentSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
 
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_FINAL_AFTER_START
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_IS_CANCELED
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_START_BEFORE_END_TIME
 
@@ -98,6 +99,20 @@ class UpdateTournamentTest extends QuizzesFullSpockTest {
         then:
         def ex = thrown(QuizzesFullException)
         ex.message == TOURNAMENT_IS_CANCELED
+    }
+
+    def "updateTournament: TOURNAMENT_FINAL_AFTER_START violation — tournament already started"() {
+        given: 'a tournament whose start time is already in the past'
+        def pastTournamentId = createTournament(executionId, userId, [topicId], 1,
+                LocalDateTime.now().minusMinutes(1), LocalDateTime.now().plusDays(1)).aggregateId
+
+        when: 'update is attempted after start time with new times'
+        tournamentFunctionalities.updateTournament(pastTournamentId,
+                LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2), [])
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.message == TOURNAMENT_FINAL_AFTER_START
     }
 
     def "updateTournament: getTournamentStep acquires IN_UPDATE_TOURNAMENT semantic lock"() {

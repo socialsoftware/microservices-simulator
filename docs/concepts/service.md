@@ -165,6 +165,19 @@ newCourse.remove();
 unitOfWorkService.registerChanged(newCourse, unitOfWork);
 ```
 
+**Sub-collection clearing before `remove()`:** When an aggregate's `verifyInvariants()` enforces a rule like "must have no members when deleted" (e.g., `TOURNAMENT_DELETE` requires `participants.isEmpty()` when `state == DELETED`), clear the collection on the copy *before* calling `remove()`:
+
+```java
+Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(
+        tournamentAggregateId, unitOfWork);
+Tournament newTournament = tournamentFactory.createTournamentCopy(oldTournament);
+newTournament.setParticipants(new HashSet<>());   // satisfy TOURNAMENT_DELETE invariant
+newTournament.remove();
+unitOfWorkService.registerChanged(newTournament, unitOfWork);
+```
+
+This is required when two invariants interact: a deletion invariant checks a collection, and a cancellation invariant forbids mutations on cancelled aggregates. The clear step satisfies the deletion invariant before `remove()` fires `verifyInvariants()`.
+
 **Why copy-on-write is required here:** If you call `remove()` on the managed JPA entity returned by `aggregateLoadAndRegisterRead`, JPA marks that entity dirty immediately. Before the saga abort path can run its `findNonDeletedSagaAggregate` JPQL query, JPA may auto-flush the dirty state — setting the aggregate's state to `DELETED` in the DB. The abort query then finds nothing (it filters `state != DELETED`), causing the abort to fail silently. Copy-on-write keeps the original managed entity unmodified; only the new (unmanaged) copy carries the `DELETED` state, so the abort query always succeeds. This problem surfaces specifically when `verifyInvariants()` contains a rule that checks `state == DELETED` (e.g., `REMOVE_NO_STUDENTS`): the abort path re-loads the aggregate and calls `verifyInvariants`, which fires the check — but JPA's auto-flush has already written the `DELETED` state, so the invariant throws a `SimulatorException` instead of the expected application exception.
 
 > **Note:** The `quizzes` reference `CourseService` uses in-place mutation for soft-delete — this is a latent bug in the reference that has not manifested only because Course invariants happen not to be checked during its abort path. Do not follow that pattern.

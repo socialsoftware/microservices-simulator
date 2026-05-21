@@ -184,6 +184,37 @@ Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
 
 > **Version numbers:** Aggregate versions start much higher than `1L` because the multi-step test setup issues several commits. Always capture `versionBefore` *after* the setup call completes, then assert `versionAfter > versionBefore` (reflects) or `versionAfter == versionBefore` (ignores). Never hardcode `== 1L` or any specific version number.
 
+### `getEventSubscriptions()` — required ACTIVE guard
+
+Every aggregate that subscribes to events **must** wrap all subscription construction inside an `if (getState() == AggregateState.ACTIVE)` guard. Without it, deleted/inactive aggregates return subscriptions on every commit and trigger spurious event handlers:
+
+```java
+@Override
+public Set<EventSubscription> getEventSubscriptions() {
+    Set<EventSubscription> eventSubscriptions = new HashSet<>();
+    if (getState() == AggregateState.ACTIVE) {
+        // ... build all subscriptions here ...
+    }
+    return eventSubscriptions;
+}
+```
+
+See `docs/concepts/aggregate.md` for the full rationale.
+
+### Conditional subscriptions (nullable anchor IDs)
+
+When a cached reference may be `null` until populated by a saga step or test setup (e.g., `quizAnswerAggregateId` is `null` until a participant solves the quiz), guard the subscription construction with a null check:
+
+```java
+for (TournamentParticipant p : participants) {
+    if (p.getQuizAnswer() != null && p.getQuizAnswer().getQuizAnswerAggregateId() != null) {
+        subscriptions.add(new TournamentSubscribesQuizAnswerQuestionAnswer(p.getQuizAnswer()));
+    }
+}
+```
+
+In the corresponding T3 test, the "ignores unrelated" scenario can use a second entity whose anchor ID is never registered with the consumer aggregate — no extra setup is needed.
+
 ### Error message constants
 
 If event processing can violate any invariant not already covered, open `{src}microservices/exception/{AppClass}ErrorMessage.java` and add the new constant. Append only — do not remove existing constants.

@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.co
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_UNIQUE_AS_PARTICIPANT
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_ENROLL_UNTIL_START_TIME
 
 import java.time.LocalDateTime
 
@@ -126,5 +127,18 @@ class AddParticipantTest extends QuizzesFullSpockTest {
         then:
         def ex = thrown(QuizzesFullException)
         ex.message == pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_IS_CANCELED
+    }
+
+    def "addParticipant: TOURNAMENT_ENROLL_UNTIL_START_TIME violation — tournament already started"() {
+        given: 'a tournament whose start time is in the past'
+        def pastTournamentId = createTournament(executionId, creatorId, [topicId], 1,
+                LocalDateTime.now().minusMinutes(1), LocalDateTime.now().plusDays(1)).aggregateId
+
+        when: 'participant tries to enroll after start time'
+        tournamentFunctionalities.addParticipant(pastTournamentId, executionId, participantId)
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.message == TOURNAMENT_ENROLL_UNTIL_START_TIME
     }
 }
