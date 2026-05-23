@@ -28,9 +28,9 @@ Each entity lists only its own scalar attributes. Cross-entity references appear
 | **QuestionAnswer** | `optionSequenceChoice: Integer`, `optionKey: Integer`, `correct: Boolean`, `timeTaken: Integer` | — |
 | **Tournament** | `startTime: LocalDateTime`, `endTime: LocalDateTime`, `numberOfQuestions: Integer`, `cancelled: Boolean`, `lastModifiedTime: LocalDateTime` (technical) | `TournamentParticipant × N` |
 | **TournamentParticipant** | `participantAggregateId: Integer`, `participantName: String`, `participantUsername: String`, `participantVersion: Long`, `enrollTime: LocalDateTime` | `TournamentParticipantQuizAnswer × 1` |
-| **TournamentParticipantQuizAnswer** | `quizAnswerAggregateId: Integer`, `quizAnswerVersion: Long`, `answered: Boolean` (default: false), `numberOfAnswered: Integer` (default: 0), `numberOfCorrect: Integer` (default: 0) | — |
+| **TournamentParticipantQuizAnswer** | `quizAnswerAggregateId: Integer`, `quizAnswerVersion: Long`, `answered: Boolean` (default: false), `numberOfAnswered: Integer` (default: 0), `numberOfCorrect: Integer` (default: 0), `firstAnswerTime: LocalDateTime` (technical, default: null) | — |
 
-> **Technical field note:** `lastModifiedTime` on `Quiz` and `Tournament` is not a domain attribute. It is stamped at mutation time by each setter so that `verifyInvariants()` can check temporal constraints (e.g., "fields are final after `availableDate`") without calling `now()` inside the invariant check, which would make it non-idempotent across TCC merges.
+> **Technical field note:** `lastModifiedTime` on `Quiz` and `Tournament`, and `firstAnswerTime` on `TournamentParticipantQuizAnswer`, are not domain attributes. They are stamped at mutation time so that `verifyInvariants()` can check temporal constraints (e.g., "fields are final after `availableDate`", "answer was linked after `startTime`") without calling `now()` inside the invariant, which would make it non-deterministic across TCC merges. `firstAnswerTime` is set once (idempotent) when `quizAnswerAggregateId` is first linked via `linkQuizAnswer()`.
 
 ---
 
@@ -82,6 +82,7 @@ These rules inspect only fields of a single entity.
 | TOURNAMENT_IS_CANCELED | Tournament | `prev.cancelled == true ⟹ startTime, endTime, numberOfQuestions, topics, cancelled, participants are unchanged from prev` |
 | TOURNAMENT_DELETE | Tournament | `Tournament.state == DELETED ⟹ Tournament.participants.isEmpty()` |
 | TOURNAMENT_CREATOR_PARTICIPANT_CONSISTENCY | Tournament | `∀p ∈ participants where p.userId == creator.userId: p.name == creator.name ∧ p.username == creator.username ∧ p.version == creator.version` |
+| TOURNAMENT_ANSWER_BEFORE_START | Tournament | `∀p ∈ participants: p.quizAnswer.firstAnswerTime != null → p.quizAnswer.firstAnswerTime ≥ startTime` |
 
 > **Immutability fields:** `TOURNAMENT_CREATOR_IS_FINAL`, `TOURNAMENT_COURSE_EXECUTION_IS_FINAL`, `TOURNAMENT_QUIZ_IS_FINAL`, `QUIZ_COURSE_EXECUTION_FINAL`, `QUIZANSWER_FINAL_USER`, `QUIZANSWER_FINAL_QUIZ`, `QUIZANSWER_FINAL_COURSE_EXECUTION`, `QUIZANSWER_FINAL_CREATION_DATE` are all enforced by Java `final` fields or by absence of setters after construction. No `verifyInvariants()` check is needed.
 
@@ -232,15 +233,6 @@ These rules inspect only fields of a single entity.
 |---|---|
 | Entities | QuizAnswer, Execution |
 | Predicate | `QuizAnswer.execution references an Execution that has not been deleted` |
-
----
-
-#### Rule: ANSWER_BEFORE_START (Tournament)
-
-| Field | Value |
-|---|---|
-| Entities | Tournament, QuizAnswer |
-| Predicate | `now < Tournament.startTime ⟹ ∀p ∈ participants: p.answer.quizAnswerId == null` |
 
 ---
 

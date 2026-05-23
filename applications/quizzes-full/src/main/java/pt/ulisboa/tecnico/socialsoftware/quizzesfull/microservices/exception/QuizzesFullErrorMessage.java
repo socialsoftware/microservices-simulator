@@ -90,4 +90,8 @@ public final class QuizzesFullErrorMessage {
             "Creator's cached data in the participant list must match the tournament's creator snapshot.";
     public static final String CREATOR_IS_NOT_ANONYMOUS =
             "Tournament creator must not be anonymous.";
+    public static final String TOURNAMENT_ANSWER_BEFORE_START =
+            "A participant cannot have a linked quiz answer before the tournament starts.";
+    public static final String TOURNAMENT_AFTER_END =
+            "A participant's quiz answer cannot be updated after the tournament ends.";
 }

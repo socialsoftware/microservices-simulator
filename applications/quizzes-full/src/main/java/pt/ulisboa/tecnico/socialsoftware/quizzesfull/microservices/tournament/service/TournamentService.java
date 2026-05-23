@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_AFTER_END;
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_IS_CANCELED;
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_TOPIC_COURSE_MISMATCH;
 
@@ -266,14 +269,19 @@ public class TournamentService {
                                           Integer quizAnswerAggregateId, Long quizAnswerVersion,
                                           UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+
+        if (Boolean.TRUE.equals(old.getCancelled())) {
+            throw new QuizzesFullException(TOURNAMENT_IS_CANCELED);
+        }
+        if (old.getEndTime() != null && DateHandler.now().isAfter(old.getEndTime())) {
+            throw new QuizzesFullException(TOURNAMENT_AFTER_END);
+        }
+
         Tournament copy = tournamentFactory.createTournamentCopy(old);
         copy.getParticipants().stream()
                 .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
                 .findFirst()
-                .ifPresent(p -> {
-                    p.getQuizAnswer().setQuizAnswerAggregateId(quizAnswerAggregateId);
-                    p.getQuizAnswer().setQuizAnswerVersion(quizAnswerVersion);
-                });
+                .ifPresent(p -> p.getQuizAnswer().linkQuizAnswer(quizAnswerAggregateId, quizAnswerVersion));
         unitOfWorkService.registerChanged(copy, unitOfWork);
     }
 }

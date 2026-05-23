@@ -1,9 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tournament_participant_quiz_answer")
@@ -19,6 +23,9 @@ public class TournamentParticipantQuizAnswer {
     private Integer numberOfAnswered;
     private Integer numberOfCorrect;
 
+    @Column
+    private LocalDateTime firstAnswerTime;
+
     public TournamentParticipantQuizAnswer() {
         this.answered = false;
         this.numberOfAnswered = 0;
@@ -31,6 +38,16 @@ public class TournamentParticipantQuizAnswer {
         this.answered = other.getAnswered();
         this.numberOfAnswered = other.getNumberOfAnswered();
         this.numberOfCorrect = other.getNumberOfCorrect();
+        this.firstAnswerTime = other.getFirstAnswerTime();
+    }
+
+    public void linkQuizAnswer(Integer quizAnswerAggregateId, Long quizAnswerVersion) {
+        this.quizAnswerAggregateId = quizAnswerAggregateId;
+        this.quizAnswerVersion = quizAnswerVersion;
+        if (this.firstAnswerTime == null) {
+            this.firstAnswerTime = DateHandler.now();
+        }
+        this.answered = true;
     }
 
     public Integer getId() { return id; }
@@ -50,4 +67,7 @@ public class TournamentParticipantQuizAnswer {
 
     public Integer getNumberOfCorrect() { return numberOfCorrect; }
     public void setNumberOfCorrect(Integer numberOfCorrect) { this.numberOfCorrect = numberOfCorrect; }
+
+    public LocalDateTime getFirstAnswerTime() { return firstAnswerTime; }
+    public void setFirstAnswerTime(LocalDateTime firstAnswerTime) { this.firstAnswerTime = firstAnswerTime; }
 }

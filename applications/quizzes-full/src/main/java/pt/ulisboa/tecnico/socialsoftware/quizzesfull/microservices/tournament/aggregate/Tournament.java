@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
         TOURNAMENT_IS_CANCELED: once cancelled, all fields and participants are frozen
         TOURNAMENT_DELETE: state==DELETED → participants.isEmpty()
         TOURNAMENT_CREATOR_PARTICIPANT_CONSISTENCY: creator-as-participant has consistent name/username/version
+        TOURNAMENT_ANSWER_BEFORE_START: ∀p: p.quizAnswer.firstAnswerTime != null → p.quizAnswer.firstAnswerTime >= startTime
     INTER-INVARIANTS:
         CREATOR_EXISTS / PARTICIPANT_EXISTS (DeleteUserEvent, UpdateStudentNameEvent, AnonymizeStudentEvent)
         TOPIC_EXISTS (UpdateTopicEvent, DeleteTopicEvent)
@@ -232,6 +233,18 @@ public abstract class Tournament extends Aggregate {
         return !creatorName.equals("ANONYMOUS") && !creatorUsername.equals("ANONYMOUS");
     }
 
+    private boolean answerBeforeStart() {
+        if (startTime == null) return true;
+        for (TournamentParticipant p : participants) {
+            LocalDateTime fat = p.getQuizAnswer() != null
+                    ? p.getQuizAnswer().getFirstAnswerTime() : null;
+            if (fat != null && fat.isBefore(startTime)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public void verifyInvariants() {
         if (!startBeforeEndTime()) {
@@ -257,6 +270,9 @@ public abstract class Tournament extends Aggregate {
         }
         if (getState() == AggregateState.ACTIVE && !creatorIsNotAnonymous()) {
             throw new QuizzesFullException(QuizzesFullErrorMessage.CREATOR_IS_NOT_ANONYMOUS);
+        }
+        if (!answerBeforeStart()) {
+            throw new QuizzesFullException(QuizzesFullErrorMessage.TOURNAMENT_ANSWER_BEFORE_START);
         }
     }
 

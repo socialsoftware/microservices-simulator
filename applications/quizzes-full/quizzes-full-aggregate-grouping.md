@@ -43,7 +43,7 @@ All eight entities are placed in separate aggregates. This maximises deployment 
 | Tournament | User/participant × N | `userId`, `userName`, `userUsername`, `enrollTime`, `userVersion` | `UpdateStudentNameEvent`, `AnonymizeStudentEvent`, `DeleteUserEvent` |
 | Tournament | Topic × N | `topicId`, `topicName` | `UpdateTopicEvent`, `DeleteTopicEvent` |
 | Tournament | Quiz | `quizId`, `quizVersion` | `InvalidateQuizEvent` |
-| Tournament | QuizAnswer per participant | `quizAnswerId`, `quizAnswerVersion`, `answered`, `numberOfAnswered`, `numberOfCorrect` | `QuizAnswerQuestionAnswerEvent` |
+| Tournament | QuizAnswer per participant | `quizAnswerId`, `quizAnswerVersion`, `answered`, `numberOfAnswered`, `numberOfCorrect`, `firstAnswerTime` | `QuizAnswerQuestionAnswerEvent` |
 
 ---
 
