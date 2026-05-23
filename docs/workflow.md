@@ -196,7 +196,7 @@ One row per aggregate that has concurrent-op conflicts or compensatable sagas.
 **One session. No plan.md exists yet.**
 
 ### Reads
-- Root `CLAUDE.md` (build commands, module map)
+- Root `AGENTS.md` (build commands, module map)
 - `docs/architecture.md` (layer overview)
 - `applications/quizzes/pom.xml` (template for new pom)
 - `applications/quizzes/src/test/groovy/.../BeanConfigurationSagas.groovy` (template for bean config)
