@@ -128,12 +128,19 @@ For every event that mirrors an operation that also has a saga Functionalities m
 ```java
 // In {Aggregate}Functionalities:
 public void {operation}ByEvent(Integer aggregateId, ...) {
-    UnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork();
-    {Aggregate} aggregate = {aggregate}Service.get{Aggregate}ById(aggregateId, unitOfWork);
+    SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork();
+    {Aggregate} aggregate = ({Aggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+    if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
+        return;  // skip — aggregate is mid-saga; avoid conflicting with in-progress state
+    }
     {aggregate}Service.{operation}(aggregate, ..., unitOfWork);
     unitOfWorkService.commit(unitOfWork);
 }
 ```
+
+**When to skip the guard:** only when the event must apply even while the aggregate is mid-saga (rare). For standard cached-field updates and sub-entity removals, always skip when `sagaState != NOT_IN_SAGA`. For whole-consumer invalidation via `copy.remove()`, apply the same guard unless a T3 test explicitly requires processing during an in-flight saga on the same aggregate.
+
+**Shared service methods:** if a service method is called from both saga steps and ByEvent paths (e.g., `updateStudentNameInExecution`), put the guard in the Functionalities `{operation}ByEvent` method after load — **not** in the shared service method, or saga steps on the same aggregate would be skipped.
 
 Add the corresponding service helper if needed (pure mutation + `verifyInvariants()`, no saga).
 

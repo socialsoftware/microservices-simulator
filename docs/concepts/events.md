@@ -59,30 +59,60 @@ In the **sagas profile**, matching is performed by the infrastructure via a DB q
 
 Located in `microservices/<aggregate>/notification/handling/handlers/`.
 
-Each handler receives a matching event, verifies it passes the subscription filter, extracts needed data, and calls `<Aggregate>EventProcessing`.
+Use **one concrete `{Consumer}EventHandler` class** per consumer aggregate. It extends `EventHandler` from the simulator core and dispatches all subscribed event types via `instanceof`, delegating to `{Consumer}EventProcessing`. Do **not** create a separate handler subclass per event type.
 
 ```java
-public class CreateQuestionEventHandler extends EventHandler {
+@Component
+public class ExecutionEventHandler extends EventHandler {
+
+    private final ExecutionEventProcessing executionEventProcessing;
+
+    public ExecutionEventHandler(ExecutionRepository repository,
+                                 ExecutionEventProcessing executionEventProcessing) {
+        super(repository);
+        this.executionEventProcessing = executionEventProcessing;
+    }
+
     @Override
-    public void handleEvent(Event event) {
-        // filter already applied by EventApplicationService
-        CreateQuestionEvent e = (CreateQuestionEvent) event;
-        eventProcessing.processCreateQuestionEvent(e);
+    public void handleEvent(Integer subscriberAggregateId, Event event) {
+        if (event instanceof DeleteUserEvent e) {
+            executionEventProcessing.processDeleteUserEvent(subscriberAggregateId, e);
+        } else if (event instanceof UpdateStudentNameEvent e) {
+            executionEventProcessing.processUpdateStudentNameEvent(subscriberAggregateId, e);
+        } else if (event instanceof AnonymizeStudentEvent e) {
+            executionEventProcessing.processAnonymizeStudentEvent(subscriberAggregateId, e);
+        }
     }
 }
 ```
+
+The handler does **not** load or mutate the aggregate — that happens inside `{Consumer}Functionalities` ByEvent methods.
 
 ## Polling
 
 Located in `microservices/<aggregate>/notification/handling/<Aggregate>EventHandling.java`.
 
-Each event type gets one `@Scheduled` method:
+Each event type gets one `@Scheduled` method. All methods pass the **same** `{Consumer}EventHandler` bean instance:
 
 ```java
-@Scheduled(fixedDelay = 1000)
-public void handleCreateQuestionEvents() {
-    eventApplicationService.handleSubscribedEvent(CreateQuestionEvent.class,
-            new CreateQuestionEventHandler(repository, eventProcessing));
+@Component
+public class ExecutionEventHandling {
+
+    @Autowired
+    private EventApplicationService eventApplicationService;
+
+    @Autowired
+    private ExecutionEventHandler executionEventHandler;
+
+    @Scheduled(fixedDelay = 1000)
+    public void handleDeleteUserEvents() {
+        eventApplicationService.handleSubscribedEvent(DeleteUserEvent.class, executionEventHandler);
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    public void handleUpdateStudentNameEvents() {
+        eventApplicationService.handleSubscribedEvent(UpdateStudentNameEvent.class, executionEventHandler);
+    }
 }
 ```
 
@@ -94,8 +124,8 @@ The `@Scheduled` annotation does **not** run in `@DataJpaTest` — call the meth
 |-------|---------|---------|
 | Event class | `XxxEvent` | `CreateQuestionEvent` |
 | Subscription | `ConsumerSubscribesXxx` | `ExecutionSubscribesCreateQuestion` |
-| Handler | `XxxEventHandler` | `CreateQuestionEventHandler` |
-| Polling bean | `<Consumer>EventHandling` | `CourseExecutionEventHandling` |
+| Handler | `{Consumer}EventHandler` (single dispatcher) | `ExecutionEventHandler` |
+| Polling bean | `<Consumer>EventHandling` | `ExecutionEventHandling` |
 | Processing | `<Consumer>EventProcessing` | `ExecutionEventProcessing` |
 
 ## Canonical Wiring Snippet
@@ -132,29 +162,40 @@ public class <Consumer>Subscribes<Xxx> extends EventSubscription {
 
 `subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. In the sagas profile, `EventApplicationService` does **not** call `subscribesEvent()` — do not override it for sagas event filtering; use the service-layer ByEvent method instead.
 
-### Handler
+### Handler (single dispatcher)
+
+One `{Consumer}EventHandler` bean per consumer aggregate — **not** one subclass per event type:
+
 ```java
-public class <Xxx>EventHandler extends <Consumer>EventHandler {
-    public <Xxx>EventHandler(<Consumer>Repository repo, <Consumer>EventProcessing processing) {
-        super(repo, processing);
+@Component
+public class {Consumer}EventHandler extends EventHandler {
+
+    private final {Consumer}EventProcessing {consumer}EventProcessing;
+
+    public {Consumer}EventHandler({Consumer}Repository repository,
+                                  {Consumer}EventProcessing {consumer}EventProcessing) {
+        super(repository);
+        this.{consumer}EventProcessing = {consumer}EventProcessing;
     }
 
     @Override
-    public void handleEvent(Integer aggregateId, Event event) {
-        this.consumerEventProcessing.process<Xxx>Event(aggregateId, (<EventName>) event);
+    public void handleEvent(Integer subscriberAggregateId, Event event) {
+        if (event instanceof <EventName> e) {
+            {consumer}EventProcessing.process<Xxx>Event(subscriberAggregateId, e);
+        }
+        // additional instanceof branches for each subscribed event type
     }
 }
 ```
 
 ### Polling method
+
+Each `@Scheduled` method passes the shared handler bean:
+
 ```java
-/*
-    <INVARIANT_NAME>
-*/
 @Scheduled(fixedDelay = 1000)
 public void handle<Xxx>Events() {
-    eventApplicationService.handleSubscribedEvent(<EventName>.class,
-            new <Xxx>EventHandler(consumerRepository, eventProcessing));
+    eventApplicationService.handleSubscribedEvent(<EventName>.class, {consumer}EventHandler);
 }
 ```
 

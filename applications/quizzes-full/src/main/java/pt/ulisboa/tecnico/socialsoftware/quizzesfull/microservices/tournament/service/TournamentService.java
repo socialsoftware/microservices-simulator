@@ -8,6 +8,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.Tournament;
@@ -167,6 +169,9 @@ public class TournamentService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeUserFromTournamentByEvent(Integer tournamentAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
         if (copy.getCreatorAggregateId().equals(userAggregateId)) {
             copy.setParticipants(new HashSet<>());
@@ -183,6 +188,9 @@ public class TournamentService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateStudentNameByEvent(Integer tournamentAggregateId, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
         if (copy.getCreatorAggregateId().equals(userAggregateId)) {
             copy.setCreatorName(name);
@@ -196,6 +204,9 @@ public class TournamentService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void anonymizeStudentByEvent(Integer tournamentAggregateId, Integer userAggregateId, String name, String username, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
         if (copy.getCreatorAggregateId().equals(userAggregateId)) {
             copy.setCreatorName(name);
@@ -214,6 +225,9 @@ public class TournamentService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateTopicNameByEvent(Integer tournamentAggregateId, Integer topicAggregateId, String topicName, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
         copy.getTopics().stream()
                 .filter(t -> t.getTopicAggregateId().equals(topicAggregateId))
@@ -224,6 +238,9 @@ public class TournamentService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeTopicByEvent(Integer tournamentAggregateId, Integer topicAggregateId, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
         copy.getTopics().stream()
                 .filter(t -> t.getTopicAggregateId().equals(topicAggregateId))
@@ -235,6 +252,9 @@ public class TournamentService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeTournamentByExecutionByEvent(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
         copy.setParticipants(new HashSet<>());
         copy.remove();
@@ -244,6 +264,9 @@ public class TournamentService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeTournamentByQuizByEvent(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
         copy.setParticipants(new HashSet<>());
         copy.remove();
@@ -253,6 +276,9 @@ public class TournamentService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateParticipantAnsweredByEvent(Integer tournamentAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
         copy.getParticipants().stream()
                 .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))

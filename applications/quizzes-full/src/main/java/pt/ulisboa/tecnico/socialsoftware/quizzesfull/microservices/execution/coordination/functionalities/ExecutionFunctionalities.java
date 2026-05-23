@@ -3,8 +3,11 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.co
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionStudentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas;
@@ -104,12 +107,20 @@ public class ExecutionFunctionalities {
 
     public void updateStudentNameByEvent(Integer executionId, Integer userId, String name) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateStudentNameByEvent");
+        Execution aggregate = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
+            return;
+        }
         executionService.updateStudentNameInExecution(executionId, userId, name, unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 
     public void anonymizeStudentByEvent(Integer executionId, Integer userId) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("anonymizeStudentByEvent");
+        Execution aggregate = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
+            return;
+        }
         executionService.anonymizeStudentInExecution(executionId, userId, unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }

@@ -38,6 +38,8 @@ find .claude/skills -type f -name "*.md" | sort
 Hold both lists. These are the complete artifact sets. Any file path referenced in a skill
 or doc must appear in one of these lists to be a valid reference.
 
+**Generated outputs excluded from input set:** files under `docs/reviews/` (e.g., `review-YYYY-MM-DD.md`) are produced by `/review-artifacts` and are **not** part of the input artifact enumeration. Do not flag them as untracked artifacts or broken references when they appear on disk but not in the `find docs` list.
+
 ### 1.c — Enumerate and read all retro files
 
 Run: `find applications -name "retro-*.md" | sort`

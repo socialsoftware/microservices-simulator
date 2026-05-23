@@ -87,6 +87,15 @@ SagaStep addParticipantStep = new SagaStep("addParticipantStep", () -> {
 
 `setForbiddenStates(...)` causes the command handler to check the current saga state and throw if it matches any forbidden state.
 
+## R4 Decision Table — `SagaCommand` vs `setForbiddenStates`
+
+| Step target | Pattern | When to use |
+|-------------|---------|-------------|
+| **Primary aggregate** (the aggregate owning this saga) | `SagaCommand` wrapping the read command + `setSemanticLock(state)` + compensation releasing `NOT_IN_SAGA` | Lock acquisition before mutating the saga's own aggregate — see § Lock-Acquisition Step Pattern |
+| **Foreign aggregate** (upstream aggregate touched by a cross-aggregate step) | Plain command + `setForbiddenStates([...])` listing states that must block this step | Abort if the foreign aggregate is already mid-saga in a conflicting state; does **not** acquire a new lock |
+
+**Rule of thumb:** if the step must **acquire** a lock on an aggregate before writing to it, use `SagaCommand` + `setSemanticLock`. If the step only needs to **check** that another aggregate is not already locked, use `setForbiddenStates`.
+
 ## Read Functionality Sagas
 
 Read sagas are a thin single-step wrapper. They have no compensation, no forbidden states, and no semantic lock acquisition — reads are non-mutating.

@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.events.DeleteCourseExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.events.DisenrollStudentFromCourseExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
@@ -144,6 +146,9 @@ public class ExecutionService {
     public void removeStudentFromExecutionByEvent(Integer executionAggregateId, Integer userId, UnitOfWork unitOfWork) {
         Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
                 executionAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) oldExecution).getSagaState())) {
+            return;
+        }
         Execution newExecution = executionFactory.createExecutionCopy(oldExecution);
         newExecution.getStudents().stream()
                 .filter(s -> s.getUserAggregateId().equals(userId))

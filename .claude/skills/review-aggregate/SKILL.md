@@ -172,7 +172,7 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 - Every method has `@Transactional(isolation = Isolation.SERIALIZABLE)`
 - Create: generates ID via `aggregateIdGeneratorService`, calls factory, calls `registerChanged`
 - Mutate methods: load via `aggregateLoadAndRegisterRead`, create copy via factory, mutate copy, call `registerChanged` on the copy (NOT the original)
-- Delete: load via `aggregateLoadAndRegisterRead`, call `aggregate.remove()`, call `registerChanged` on the SAME instance (in-place mutation — intentional exception to copy-on-write)
+- Delete: load via `aggregateLoadAndRegisterRead`, create copy via factory, call `remove()` on the copy, call `registerChanged` on the copy (copy-on-write — same rule as other mutates; flag in-place delete as **Incorrect**)
 - P3 rule guards: placed in the service method body (own-table uniqueness check or DTO field validation)
 - UpdateCourse specifically: if COURSE_NAME_FINAL and COURSE_TYPE_FINAL are P1 final fields, the update method should throw `{AppClass}Exception({AppClass}ErrorMessage.XXX)`
 

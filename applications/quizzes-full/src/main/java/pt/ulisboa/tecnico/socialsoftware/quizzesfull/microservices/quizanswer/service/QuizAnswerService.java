@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.events.QuizAnswerQuestionAnswerEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.QuestionAnswer;
@@ -84,6 +86,9 @@ public class QuizAnswerService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeQuizAnswer(Integer quizAnswerAggregateId, UnitOfWork unitOfWork) {
         QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
         copy.remove();
         unitOfWorkService.registerChanged(copy, unitOfWork);
@@ -92,6 +97,9 @@ public class QuizAnswerService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeQuizAnswerIfUserMatches(Integer quizAnswerAggregateId, Integer userId, UnitOfWork unitOfWork) {
         QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         if (!old.getUserAggregateId().equals(userId)) {
             return;
         }
@@ -103,6 +111,9 @@ public class QuizAnswerService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateStudentName(Integer quizAnswerAggregateId, String name, UnitOfWork unitOfWork) {
         QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
         copy.setUserName(name);
         unitOfWorkService.registerChanged(copy, unitOfWork);
@@ -111,6 +122,9 @@ public class QuizAnswerService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void anonymizeStudent(Integer quizAnswerAggregateId, String name, String username, UnitOfWork unitOfWork) {
         QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
         copy.setUserName(name);
         copy.setUserUsername(username);
@@ -120,6 +134,9 @@ public class QuizAnswerService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateQuestionVersionInQuizAnswer(Integer quizAnswerAggregateId, Integer questionAggregateId, Long newVersion, UnitOfWork unitOfWork) {
         QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
+            return;
+        }
         QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
         for (QuestionAnswer qa : copy.getQuestionAnswers()) {
             if (qa.getQuestionAggregateId().equals(questionAggregateId)) {

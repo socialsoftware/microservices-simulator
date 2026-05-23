@@ -67,15 +67,13 @@
 
 ### What was unclear or missing
 
-- **CreateUser infrastructure gap:** The plan.md for User lists no `CreateUser` write functionality, yet every T2 test requires creating a user first. The skill says to add a `create{Aggregate}(...)` helper to SpockTest that calls `{aggregate}Functionalities.create{Aggregate}(...)`, but gives no guidance for aggregates where there is no create functionality. The agent must infer that `createUser` must be added as undocumented infrastructure. This caused significant exploration overhead (checking domain model, plan, and reference app before deciding to add createUser as infrastructure).
 - **Event file omission from plan.md:** The plan.md 2.2.b row listed no event class files. The skill instructions mention "Event classes (if this aggregate publishes events)" and correctly describe the pattern, but the plan.md file table did not list the events, so they required a plan.md patch. This is a recurring gap: whenever an aggregate publishes events, event files must appear in the plan.md file table for session b.
 - **UserFunctionalities omission from plan.md:** As with Course in session 2.1.b, UserFunctionalities was not listed in the plan.md file table but is required as a Spring bean. The same pattern of adding it as a plan.md patch was applied, but the classify-and-plan skill should include it by default.
-- **Soft-delete copy-on-write ambiguity:** service.md says "no copy for soft-delete" but the reference app's UserService makes a copy. The contradiction caused unnecessary reference-app lookup. The existing quizzes-full CourseService (no copy) was the deciding precedent.
+- **Soft-delete copy-on-write ambiguity:** service.md says "no copy for soft-delete" but the reference app's UserService makes a copy. The contradiction caused unnecessary reference-app lookup. Copy-on-write is now the canonical rule in `service.md`.
 - **T2 for P1 invariants when P1 = final field:** testing.md says to add tests for P1 invariant violations. User's invariant USER_ROLE_FINAL is enforced by a Java `final` field — no write op can violate it. The skill gives no guidance on when P1 tests are impossible. Agent must infer and skip them.
 
 ### Suggested wording / structure changes
 
-- **session-b.md — createUser infrastructure:** Add a note after the "Update `{AppClass}SpockTest.groovy`" section: "If `{Aggregate}` has no `Create{Aggregate}` functionality in the plan, still add `createUser`/create helper infrastructure: add a `CreateUserCommand`, a `CreateUserFunctionalitySagas`, and a `createUser` method to `{Aggregate}Functionalities`. Mark these as plan.md additions in Step 5b. Without this, no T2 test can have a valid aggregate in setup."
 - **session-b.md — event files in plan:** Add to the "Produce" preamble: "If the plan.md 2.{N}.b row does not list event class files but the aggregate publishes events (per plan.md Events published), add them to the file table as a plan.md patch."
 - **session-b.md — T2 for P1 final fields:** Add to the T2 section: "If a P1 rule is enforced by a Java `final` field, no write path can violate it — skip the invariant test for that rule and note the omission in the session report."
 
@@ -111,10 +109,6 @@
 
 ## One-Line Summary
 
-The biggest friction point was the absence of a `CreateUser` write functionality in the plan combined with skill instructions that assume `create{Aggregate}` always exists — requiring undocumented infrastructure (CreateUserCommand, CreateUserFunctionalitySagas, UserFunctionalities.createUser) to be added as plan.md patches before any T2 test could run.
+The biggest friction points were event/Functionalities omissions from plan.md file tables and soft-delete copy-on-write ambiguity in the docs. `CreateUser` was subsequently added to the domain model and plan as a proper write functionality — every aggregate must have a `Create{Aggregate}` op.
 
 ---
-
-## Post-Session Note
-
-The High-priority action item above ("no guidance for aggregates that have no `Create{Aggregate}` functionality; every T2 test requires a created aggregate, so infrastructure helpers must be added") turned out to reveal a **domain problem**, not a skill gap. The quizzes-full domain model does not assign a `CreateUser` write functionality to any aggregate, which means there is no intended first-class way to create a User through the coordination layer. The skill had no guidance because the situation should not arise in a well-formed domain. The correct fix is to revisit the domain model / aggregate-grouping and add `CreateUser` as a proper write functionality — not to patch the skill to handle the missing case silently.

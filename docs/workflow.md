@@ -333,6 +333,8 @@ Add `{Aggregate}Service`, `{Aggregate}CommandHandler`, and `{Aggregate}Functiona
 **Produces:**
 - Read methods appended to `{Aggregate}Service.java`
 - One command per read operation: `Get{Aggregate}Command.java` etc.
+- Read command cases appended to `{Aggregate}CommandHandler.java`
+- Read methods appended to `{Aggregate}Functionalities.java`
 - One `{Query}FunctionalitySagas.java` per read operation
 - One `{Query}Test.groovy` (T2) per read operation — stored at
   `sagas/coordination/{aggregate}/{Query}Test.groovy`

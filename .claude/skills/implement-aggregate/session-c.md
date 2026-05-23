@@ -122,7 +122,10 @@ Path: `{test}sagas/coordination/{aggregate}/{Query}Test.groovy`
 
 - Extends `{AppClass}SpockTest`
 - **Happy-path test**: create the aggregate using the `{AppClass}SpockTest` helper (or directly), execute the read, assert the returned DTO matches the aggregate's state
-- **Not-found test**: execute the read with a non-existent id, assert `SimulatorException` is thrown (the infrastructure throws `SimulatorException` when an aggregate ID does not exist — not the app-level exception; the app exception is only thrown by domain/service guards)
+- **Not-found tests** — two paths (see `docs/concepts/testing.md` lines 226–259):
+  - **Path A (PK load):** read uses `aggregateLoadAndRegisterRead` with a non-existent ID → assert `thrown(SimulatorException)`
+  - **Path B (composite/custom-repo lookup):** aggregate exists but the queried sub-entity or composite key is absent → assert `thrown({AppClass}Exception)`
+  - **Decision rule:** if the failure happens at infrastructure PK load, use Path A; if the PK load succeeds but a service/repository guard throws because the sub-entity or composite key is missing, use Path B
 
 ---
 

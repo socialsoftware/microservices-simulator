@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.events.InvalidateQuizEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.Quiz;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizCustomRepository;
@@ -74,6 +76,9 @@ public class QuizService {
     public void updateQuestionInQuiz(Integer quizAggregateId, Integer questionAggregateId,
                                      String title, String content, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) oldQuiz).getSagaState())) {
+            return;
+        }
         Quiz newQuiz = quizFactory.createQuizCopy(oldQuiz);
         for (QuizQuestion q : newQuiz.getQuestions()) {
             if (q.getQuestionAggregateId().equals(questionAggregateId)) {
@@ -89,6 +94,9 @@ public class QuizService {
     public void removeQuestionFromQuiz(Integer quizAggregateId, Integer questionAggregateId,
                                        UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) oldQuiz).getSagaState())) {
+            return;
+        }
         Quiz newQuiz = quizFactory.createQuizCopy(oldQuiz);
         newQuiz.getQuestions().removeIf(q -> q.getQuestionAggregateId().equals(questionAggregateId));
         newQuiz.remove();
@@ -99,6 +107,9 @@ public class QuizService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void invalidateQuiz(Integer quizAggregateId, UnitOfWork unitOfWork) {
         Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) oldQuiz).getSagaState())) {
+            return;
+        }
         Quiz newQuiz = quizFactory.createQuizCopy(oldQuiz);
         newQuiz.remove();
         unitOfWorkService.registerChanged(newQuiz, unitOfWork);

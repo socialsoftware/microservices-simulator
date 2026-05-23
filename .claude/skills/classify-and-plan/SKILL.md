@@ -197,10 +197,10 @@ The flowchart asks:
    - If YES: → **P1** (intra-invariant, implement in `verifyInvariants()`)
    - If NO: → continue to question 2
 
-2. **"Must be synchronous?"**
-   - If YES: → **P3** (service guard)
+2. **"Must be synchronous?"** — see the **Implementation algorithm** below for the full ordering (P4a/P4b are checked before P3).
+   - If YES (after P4a/P4b ruled out): → **P3** (service guard)
      - If check needs data from another aggregate: add a data-assembly saga step to fetch it as a DTO, then validate in the service.
-     - If the precondition is implicit in the fetch query (query fails when unmet): → **Construction prerequisite** (no explicit guard code needed).
+     - If the precondition is implicit in the fetch query (query fails when unmet): → **P4a** (construction prerequisite — no explicit guard code needed).
    - If NO: → continue to question 3
 
 3. (From NO branch) **"Eventually consistent acceptable?"**

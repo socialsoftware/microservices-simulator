@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.events.DeleteQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.events.UpdateQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Option;
@@ -80,6 +82,9 @@ public class QuestionService {
     public void updateTopicNameInQuestion(Integer questionAggregateId, Integer topicAggregateId, String topicName, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(
                 questionAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) oldQuestion).getSagaState())) {
+            return;
+        }
         Question newQuestion = questionFactory.createQuestionCopy(oldQuestion);
         for (QuestionTopic topic : newQuestion.getTopics()) {
             if (topic.getTopicAggregateId().equals(topicAggregateId)) {
@@ -94,6 +99,9 @@ public class QuestionService {
     public void removeTopicFromQuestion(Integer questionAggregateId, Integer topicAggregateId, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(
                 questionAggregateId, unitOfWork);
+        if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) oldQuestion).getSagaState())) {
+            return;
+        }
         Question newQuestion = questionFactory.createQuestionCopy(oldQuestion);
         newQuestion.getTopics().removeIf(t -> t.getTopicAggregateId().equals(topicAggregateId));
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
