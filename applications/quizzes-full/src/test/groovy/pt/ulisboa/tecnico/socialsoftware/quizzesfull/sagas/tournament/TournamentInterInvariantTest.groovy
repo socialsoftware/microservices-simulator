@@ -301,12 +301,18 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
 
     // ─── QUIZ_ANSWER_EXISTS — QuizAnswerQuestionAnswerEvent ───────────────────
 
+    private Integer prepareTournamentReadyForSolveQuiz() {
+        def tournament = createStartedTournament(executionId, creatorId, [topicId], 1)
+        addParticipantEnrolledBeforeStart(tournament.aggregateId, creatorId, tournament.startTime)
+        return tournament.aggregateId
+    }
+
     def "tournament reflects QuizAnswerQuestionAnswerEvent for linked participant"() {
-        given: 'creator is added as participant and a quiz answer is linked'
-        tournamentFunctionalities.addParticipant(tournamentId, executionId, creatorId)
-        def tournamentDto = tournamentFunctionalities.getTournamentById(tournamentId)
+        given: 'creator is added as participant and a quiz answer is linked on a started tournament'
+        def readyTournamentId = prepareTournamentReadyForSolveQuiz()
+        def tournamentDto = tournamentFunctionalities.getTournamentById(readyTournamentId)
         def quizAnswer = createQuizAnswer(tournamentDto.quizAggregateId, creatorId)
-        tournamentFunctionalities.solveQuiz(tournamentId, creatorId)
+        tournamentFunctionalities.solveQuiz(readyTournamentId, creatorId)
 
         when: 'participant answers a question, publishing QuizAnswerQuestionAnswerEvent'
         quizAnswerFunctionalities.answerQuestion(quizAnswer.aggregateId, questionId, 1, 30)
@@ -314,19 +320,20 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         and: 'tournament polls for quiz answer question answer events'
         tournamentEventHandling.handleQuizAnswerQuestionAnswerEvents()
 
-        then: 'participant answered flag is set to true in tournament'
+        then: 'participant answered flag is set and answer count reflects the event'
         def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def updated = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, checkUow) as Tournament
+        def updated = unitOfWorkService.aggregateLoadAndRegisterRead(readyTournamentId, checkUow) as Tournament
         def participant = updated.participants.find { it.participantAggregateId == creatorId }
         participant != null && participant.quizAnswer.answered == true
+        participant.quizAnswer.numberOfAnswered == 1
     }
 
     def "tournament ignores QuizAnswerQuestionAnswerEvent for unlinked quiz answer"() {
-        given: 'creator is added as participant with a linked quiz answer'
-        tournamentFunctionalities.addParticipant(tournamentId, executionId, creatorId)
-        def tournamentDto = tournamentFunctionalities.getTournamentById(tournamentId)
+        given: 'creator is added as participant with a linked quiz answer on a started tournament'
+        def readyTournamentId = prepareTournamentReadyForSolveQuiz()
+        def tournamentDto = tournamentFunctionalities.getTournamentById(readyTournamentId)
         createQuizAnswer(tournamentDto.quizAggregateId, creatorId)
-        tournamentFunctionalities.solveQuiz(tournamentId, creatorId)
+        tournamentFunctionalities.solveQuiz(readyTournamentId, creatorId)
 
         and: 'a second user creates an unlinked quiz answer'
         def user2 = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
@@ -340,10 +347,10 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         and: 'tournament polls for quiz answer question answer events'
         tournamentEventHandling.handleQuizAnswerQuestionAnswerEvents()
 
-        then: 'creator participant answered flag is unchanged'
+        then: 'creator participant answer count is unchanged by the unlinked event'
         def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, checkUow) as Tournament
+        def unchanged = unitOfWorkService.aggregateLoadAndRegisterRead(readyTournamentId, checkUow) as Tournament
         def participant = unchanged.participants.find { it.participantAggregateId == creatorId }
-        participant != null && participant.quizAnswer.answered == false
+        participant != null && participant.quizAnswer.numberOfAnswered == 0
     }
 }

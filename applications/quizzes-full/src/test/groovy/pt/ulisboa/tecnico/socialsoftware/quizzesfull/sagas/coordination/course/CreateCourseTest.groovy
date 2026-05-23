@@ -3,13 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.coordination.course
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
+import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseType
 
 @DataJpaTest
-@org.springframework.transaction.annotation.Transactional
+@Transactional
 @Import(LocalBeanConfiguration)
 class CreateCourseTest extends QuizzesFullSpockTest {
 

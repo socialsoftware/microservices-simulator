@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.functionalities.CourseFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.service.CourseService
@@ -26,6 +27,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordina
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.QuizAnswerDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.functionalities.QuizAnswerFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.TournamentDto
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.Tournament
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.TournamentParticipant
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.factories.SagasTournamentFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 
 class QuizzesFullSpockTest extends SpockTest {
@@ -82,6 +86,9 @@ class QuizzesFullSpockTest extends SpockTest {
 
     @Autowired(required = false)
     protected TournamentFunctionalities tournamentFunctionalities
+
+    @Autowired(required = false)
+    protected SagasTournamentFactory sagasTournamentFactory
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -141,5 +148,24 @@ class QuizzesFullSpockTest extends SpockTest {
                                     LocalDateTime startTime, LocalDateTime endTime) {
         return tournamentFunctionalities.createTournament(
                 executionId, creatorId, topicIds, numberOfQuestions, startTime, endTime)
+    }
+
+    TournamentDto createStartedTournament(Integer executionId, Integer creatorId,
+                                           List<Integer> topicIds, Integer numberOfQuestions) {
+        def startTime = DateHandler.now().minusMinutes(5)
+        def endTime = DateHandler.now().plusDays(1)
+        return createTournament(executionId, creatorId, topicIds, numberOfQuestions, startTime, endTime)
+    }
+
+    void addParticipantEnrolledBeforeStart(Integer tournamentId, Integer userId, LocalDateTime startTime) {
+        def user = userFunctionalities.getUserById(userId)
+        def uow = unitOfWorkService.createUnitOfWork("addParticipantEnrolledBeforeStart")
+        def old = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, uow) as Tournament
+        def copy = sagasTournamentFactory.createTournamentCopy(old)
+        copy.addParticipant(new TournamentParticipant(
+                user.aggregateId, user.name, user.username, user.version,
+                startTime.minusMinutes(1)))
+        unitOfWorkService.registerChanged(copy, uow)
+        unitOfWorkService.commit(uow)
     }
 }

@@ -16,7 +16,7 @@ class CourseTest extends QuizzesFullSpockTest {
 
     def "create course"() {
         when:
-        def courseDto = createCourse(COURSE_NAME_1, COURSE_TYPE_TECNICO)
+        def courseDto = courseFunctionalities.createCourse(COURSE_NAME_1, COURSE_TYPE_TECNICO)
 
         then:
         courseDto.name == COURSE_NAME_1
