@@ -50,21 +50,15 @@ class DeleteCourseTest extends QuizzesFullSpockTest {
         def func1 = new DeleteCourseFunctionalitySagas(
                 unitOfWorkService, courseDto.aggregateId, uow1, commandGateway)
         func1.executeUntilStep("getCourseStep", uow1)
+        assert sagaStateOf(courseDto.aggregateId) == CourseSagaState.IN_DELETE_COURSE
 
-        expect: 'course saga state is IN_DELETE_COURSE'
-        sagaStateOf(courseDto.aggregateId) == CourseSagaState.IN_DELETE_COURSE
+        and: 'concurrent saga deletes the same course'
+        courseFunctionalities.deleteCourse(courseDto.aggregateId)
 
-        when: 'workflow resumes and completes'
+        when: 'original workflow resumes; deleteCourseStep tries to load the now-deleted course'
         func1.resumeWorkflow(uow1)
 
-        then:
-        noExceptionThrown()
-
-        when: 'course is no longer retrievable after deletion'
-        def uow2 = unitOfWorkService.createUnitOfWork("verify")
-        unitOfWorkService.aggregateLoadAndRegisterRead(courseDto.aggregateId, uow2)
-
-        then:
+        then: 'loading the already-deleted course throws SimulatorException'
         thrown(SimulatorException)
     }
 }
