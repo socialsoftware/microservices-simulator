@@ -1,15 +1,14 @@
 ---
 name: review-tests
-description: Review Phase 2 tests (T1/T2/T3) for one aggregate in quizzes-full. Checks completeness against testing.md requirements, detects fake/weak tests by reading implementation, adds missing edge cases and adversarial scenarios, runs the full test suite. Phase 3 tests (T4/T5/T6) are out of scope.
+description: Phase 3 — Test Review. Audits T1/T2/T3 test completeness for one aggregate, detects fake/weak tests by reading the implementation, adds missing edge cases and adversarial scenarios, and runs the full test suite.
 argument-hint: "<AggregateName> (e.g. Course, Execution, Tournament)"
 ---
 
-# Review Tests
+# Phase 3 — Test Review
 
-Phase 2 test review for one aggregate in `quizzes-full`. Checks T1/T2/T3 test completeness and quality
-against the implementation, adds missing tests, fixes fake/wrong tests, and runs the build.
+Phase 3 test review for one aggregate. Audits T1/T2/T3 completeness and quality against the
+implementation, adds missing tests, fixes fake/wrong tests, and runs the build.
 
-Phase 3 tests (T4/T5/T6) are **out of scope**. Do not add or modify them.
 One aggregate per invocation.
 
 **See also:**
@@ -276,7 +275,6 @@ Follow the patterns in `docs/concepts/testing.md` exactly:
 - T3 deletion-event tests: use the `and:` extension-block pattern from `testing.md`
 
 **Do NOT add tests for:**
-- Phase 3 scenarios (concurrent multi-operation conflicts listed in `plan.md` § Phase 3 Session List)
 - P1 Java-final field violations
 - Infrastructure details (Spring wiring, bean configuration)
 
@@ -336,24 +334,31 @@ Sections:
 
 ---
 
+## Step 12: Tick plan.md Checkbox
+
+After writing the review report and printing the summary, tick the Phase 3 checkbox in plan.md.
+
+The aggregate's ordinal `{N}` is the number from the plan.md section header `### {N}. {Aggregate}`.
+Replace `- [ ] 3.{N} — {Aggregate}` with `- [x] 3.{N} — {Aggregate}` in plan.md.
+
+---
+
 ## Hard Rules
 
-1. **Phase 3 is out of scope.** Never add T4/T5/T6 tests. These are the sessions listed under
-   `plan.md` § Phase 3 Session List.
-2. **Read implementation before reviewing.** Every Fake or Wrong finding must cite the specific
+1. **Read implementation before reviewing.** Every Fake or Wrong finding must cite the specific
    implementation file and line that proves the test is incorrect.
-3. **Not-found exception type is conditional.** Read the service method to determine Path A vs Path B
+2. **Not-found exception type is conditional.** Read the service method to determine Path A vs Path B
    before flagging. Path A (`aggregateLoadAndRegisterRead` by ID) → `thrown(SimulatorException)`.
    Path B (custom repository returning `Optional`, service throws on empty) → `thrown({App}Exception)`.
    Flagging a correct Path B test as Fake is itself a Wrong review finding
    (`docs/concepts/testing.md:229-262`).
-4. **P1 final-field rules need no tests.** Skip them in Steps 3 and 7.
-5. **Do not modify non-test files.** This review touches only `*.groovy` test files and the review
+3. **P1 final-field rules need no tests.** Skip them in Steps 3 and 7.
+4. **Do not modify non-test files.** This review touches only `*.groovy` test files and the review
    report.
-6. **Build must run.** Do not skip Step 9.
-7. **One aggregate per invocation.**
-8. **No emojis. Terse and specific. File paths, method names, line numbers.**
-9. **Every `setSemanticLock` and `setForbiddenStates` step must have a matching interleaving test.**
+5. **Build must run.** Do not skip Step 9.
+6. **One aggregate per invocation.**
+7. **No emojis. Terse and specific. File paths, method names, line numbers.**
+8. **Every `setSemanticLock` and `setForbiddenStates` step must have a matching interleaving test.**
    "Appears safe by inspection" is not an exception. A missing interleaving test is a **Missing**
    finding in the Step 4 inventory. Walk the saga file step-by-step in Step 5.D — do not rely on
    counting existing tests to determine completeness.

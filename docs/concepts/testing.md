@@ -13,9 +13,6 @@ and provides structure templates for each category.
 | **T1 Creation** | `<Aggregate>Test` | Aggregate instantiation + all intra-invariants pass on a fresh instance |
 | **T2 Functionality** | `<FunctionalityName>Test` | Happy path · invariant/guard violations · ≥1 step-interleaving case per saga step boundary |
 | **T3 Inter-Invariant** | `<Consumer>InterInvariantTest` | Event received → cached state updated; unrelated event → state unchanged |
-| **T4 Cross-Functionality** | `<Op1>And<Op2>Test` | Two operations on overlapping aggregates, step-interleaved to expose semantic lock conflicts |
-| **T5 Fault/Behavior** | `<Functionality>FaultTest` / `<Functionality>RecoveryTest` | Saga compensation correctness under injected failures; consistent state after abort |
-| **T6 Async** | `<Functionality>AsyncTest` | Multiple concurrent fire-and-forget executions without step coordination |
 
 ---
 
@@ -32,15 +29,9 @@ src/test/groovy/<pkg>/
     │   │   ├── <FunctionalityName>Test.groovy      (T2)
     │   │   └── ...
     │   └── ...
-    ├── <aggregate>/                  ← one dir per consumer aggregate
-    │   ├── <Aggregate>Test.groovy                  (T1)
-    │   └── <Aggregate>InterInvariantTest.groovy    (T3)
-    └── behaviour/                    
-        ├── <Op1>And<Op2>Test.groovy                (T4)
-        ├── <Functionality>FaultTest.groovy          (T5)
-        ├── <Functionality>RecoveryTest.groovy       (T5)
-        ├── <Functionality>AsyncTest.groovy          (T6)
-        └── <aggregate>/              ← sub-folder if many behaviour tests for one aggregate
+    └── <aggregate>/                  ← one dir per consumer aggregate
+        ├── <Aggregate>Test.groovy                  (T1)
+        └── <Aggregate>InterInvariantTest.groovy    (T3)
 ```
 
 ---
@@ -359,7 +350,27 @@ def "<consumer> is deleted when <Publisher> deletion event is processed"() {
 
 ---
 
-## T4 — Cross-Functionality Test
+## Test Profile — Serialization Behavior
+
+When `local.messaging.serialize: true` is set in the test profile (typically in `application-test-sagas.properties`), commands and their responses are serialized/deserialized through Jackson. This affects how `CommandResponse.result` — which is declared as `Object` — round-trips.
+
+### List returns and type erasure
+
+`CommandResponse.result` is typed as `Object`. When a read saga stores a `List<XxxDto>` in that field, Jackson cannot embed per-element `@class` metadata (the `isCollectionLikeType()` guard prevents it). On deserialization, each element comes back as a `LinkedHashMap` rather than the expected `XxxDto`.
+
+**The fix is in `MessagingObjectMapperProvider.useForType()`:** the method must return `true` when `raw == Object.class`. This tells Jackson to embed `@class` on any value stored in an `Object`-typed field, which in turn enables element-level type information even inside an untyped collection. Without this fix, any read saga that returns a list via `CommandResponse.result` will fail at deserialization with a `ClassCastException` (`LinkedHashMap` cannot be cast to `XxxDto`).
+
+**When this matters:** Only when `local.messaging.serialize: true` is active. Tests that run without this flag are unaffected; production code (which does not serialize locally) is unaffected.
+
+---
+
+## Appendix — Deferred Test Types (T4/T5/T6)
+
+These test types are documented for future work but are **not** part of the current workflow. They are preserved here for reference only.
+
+---
+
+### T4 — Cross-Functionality Test
 
 **Purpose:** Validate that two concurrent operations on overlapping aggregates either produce a
 consistent result or correctly reject one operation via semantic locks.
@@ -414,7 +425,7 @@ class <Op1>And<Op2>Test extends <AppName>SpockTest {
 
 ---
 
-## T5 — Fault / Behavior Test
+### T5 — Fault / Behavior Test
 
 **Purpose:** Verify saga compensation when a step fails mid-workflow. The aggregate must be
 in a consistent state (either fully applied or fully rolled back) after the fault.
@@ -459,21 +470,7 @@ class <Functionality>FaultTest extends <AppName>SpockTest {
 
 ---
 
-## Test Profile — Serialization Behavior
-
-When `local.messaging.serialize: true` is set in the test profile (typically in `application-test-sagas.properties`), commands and their responses are serialized/deserialized through Jackson. This affects how `CommandResponse.result` — which is declared as `Object` — round-trips.
-
-### List returns and type erasure
-
-`CommandResponse.result` is typed as `Object`. When a read saga stores a `List<XxxDto>` in that field, Jackson cannot embed per-element `@class` metadata (the `isCollectionLikeType()` guard prevents it). On deserialization, each element comes back as a `LinkedHashMap` rather than the expected `XxxDto`.
-
-**The fix is in `MessagingObjectMapperProvider.useForType()`:** the method must return `true` when `raw == Object.class`. This tells Jackson to embed `@class` on any value stored in an `Object`-typed field, which in turn enables element-level type information even inside an untyped collection. Without this fix, any read saga that returns a list via `CommandResponse.result` will fail at deserialization with a `ClassCastException` (`LinkedHashMap` cannot be cast to `XxxDto`).
-
-**When this matters:** Only when `local.messaging.serialize: true` is active. Tests that run without this flag are unaffected; production code (which does not serialize locally) is unaffected.
-
----
-
-## T6 — Async Test
+### T6 — Async Test
 
 **Purpose:** Verify that multiple concurrent invocations of the same operation (fire-and-forget,
 no step coordination) all complete without corrupting aggregate state.

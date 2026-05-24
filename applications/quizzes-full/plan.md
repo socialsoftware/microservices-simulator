@@ -369,61 +369,28 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 
 ---
 
-## Phase 3 Session List
+## Phase 3 — Test Review
 
-One row per concurrent-op conflict or compensatable saga (sagas with 3+ steps).
+One session per aggregate in the same order as Phase 2. Each session invokes the `review-tests`
+skill to audit T1/T2/T3 completeness, fix fake/weak tests, and run the full test suite.
 
-| Session | Primary aggregate | Operations / scenarios | T4/T5/T6 |
-|---------|------------------|------------------------|----------|
-| 3.1 | Course | CreateCourse + DeleteCourse | T4 |
-| 3.2 | Execution | EnrollStudentInExecution + DisenrollStudent | T4 |
-| 3.3 | Execution | EnrollStudentInExecution + DeleteExecution | T4 |
-| 3.4 | Execution | UpdateStudentName + AnonymizeStudent | T4 |
-| 3.5 | Question | UpdateQuestion + DeleteQuestion | T4 |
-| 3.6 | Quiz | CreateQuiz + UpdateQuiz | T4 |
-| 3.7 | QuizAnswer | AnswerQuestion + ConcludeQuiz | T4 |
-| 3.8 | Tournament | AddParticipant + UpdateTournament | T4 |
-| 3.9 | Tournament | AddParticipant + CancelTournament | T4 |
-| 3.10 | Tournament | UpdateTournament + CancelTournament | T4 |
-| 3.11 | Execution | EnrollStudentInExecution Fault | T5 |
-| 3.12 | Execution | EnrollStudentInExecution Recovery | T5 |
-| 3.13 | Question | CreateQuestion Fault | T5 |
-| 3.14 | Question | CreateQuestion Recovery | T5 |
-| 3.15 | Quiz | CreateQuiz Fault | T5 |
-| 3.16 | Quiz | CreateQuiz Recovery | T5 |
-| 3.17 | QuizAnswer | CreateQuizAnswer Fault | T5 |
-| 3.18 | QuizAnswer | CreateQuizAnswer Recovery | T5 |
-| 3.19 | Tournament | CreateTournament Fault | T5 |
-| 3.20 | Tournament | CreateTournament Recovery | T5 |
-| 3.21 | Tournament | AddParticipant Fault | T5 |
-| 3.22 | Tournament | AddParticipant Recovery | T5 |
-| 3.23 | Execution | EnrollStudentInExecution Async | T6 |
-| 3.24 | Tournament | AddParticipant Async | T6 |
-| 3.25 | Topic | UpdateTopic + DeleteTopic | T4 |
+| Session | Aggregate | Skill invocation |
+|---------|-----------|------------------|
+| 3.1 | Course | `/review-tests Course` |
+| 3.2 | User | `/review-tests User` |
+| 3.3 | Topic | `/review-tests Topic` |
+| 3.4 | Execution | `/review-tests Execution` |
+| 3.5 | Question | `/review-tests Question` |
+| 3.6 | Quiz | `/review-tests Quiz` |
+| 3.7 | QuizAnswer | `/review-tests QuizAnswer` |
+| 3.8 | Tournament | `/review-tests Tournament` |
 
 **Checklist:**
-- [ ] 3.1
-- [ ] 3.2
-- [ ] 3.3
-- [ ] 3.4
-- [ ] 3.5
-- [ ] 3.6
-- [ ] 3.7
-- [ ] 3.8
-- [ ] 3.9
-- [ ] 3.10
-- [ ] 3.11
-- [ ] 3.12
-- [ ] 3.13
-- [ ] 3.14
-- [ ] 3.15
-- [ ] 3.16
-- [ ] 3.17
-- [ ] 3.18
-- [ ] 3.19
-- [ ] 3.20
-- [ ] 3.21
-- [ ] 3.22
-- [ ] 3.23
-- [ ] 3.24
-- [ ] 3.25
+- [ ] 3.1 — Course
+- [ ] 3.2 — User
+- [ ] 3.3 — Topic
+- [ ] 3.4 — Execution
+- [ ] 3.5 — Question
+- [ ] 3.6 — Quiz
+- [ ] 3.7 — QuizAnswer
+- [ ] 3.8 — Tournament

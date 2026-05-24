@@ -357,20 +357,10 @@ cross_agg_rules = [r for r in rules_classified
 
 Map each rule to the saga data-assembly step that provides the needed data and, for P3 DTO-check rules, to the service method that performs the explicit validation.
 
-#### 6.d: Phase 3 scenario identification (for aggregates with 2+ write functionalities)
+#### 6.d: Phase 3 — test review sessions
 
-**T4 — Concurrent-operation conflicts:**
-- If 2+ write functionalities exist for this aggregate, they could race
-- Create one T4 row per pair of conflicting write ops
-- Example: "AddParticipant and UpdateTournament both modify Tournament → Session 3.N: AddParticipant + UpdateTournament | T4"
-
-**T5 — Fault and Recovery scenarios:**
-- For each write functionality: if its saga has 3+ steps, create T5 Fault and T5 Recovery rows
-- Example: "CreateTournament has 5 saga steps → Session 3.N: CreateTournament Fault | T5; Session 3.N+1: CreateTournament Recovery | T5"
-
-**T6 — Async stress:**
-- If an aggregate has 2+ write functionalities with high concurrency risk, optionally add T6
-- For now: add one T6 row per aggregate with 2+ write ops (user can remove if not needed)
+Phase 3 = one session per aggregate, in the same order as the Implementation Order table.
+No per-scenario or per-functionality analysis is needed. Simply add one row per aggregate.
 
 ---
 
@@ -516,28 +506,28 @@ For each aggregate in sorted order:
 
 (Omit Session 2.N.d section if Events subscribed is empty.)
 
-#### Phase 3 Session List
+#### Phase 3 — Test Review
 ```markdown
-## Phase 3 Session List
+## Phase 3 — Test Review
 
-One row per aggregate that has concurrent-op conflicts or compensatable sagas.
+One session per aggregate in the same order as the Implementation Order table.
+Each session runs `/review-tests {Aggregate}`.
 
-| Session | Primary aggregate | Operations / scenarios | T4/T5/T6 |
-|---------|------------------|------------------------|----------|
+| Session | Aggregate | Skill invocation |
+|---------|-----------|------------------|
+| 3.{N}   | {Aggregate} | `/review-tests {Aggregate}` |
 ```
 
-Rows: one per T4/T5/T6 scenario (from Step 6.d)
-- Column 1: session number (3.1, 3.2, 3.3, ..., incremented per row)
-- Column 2: primary aggregate
-- Column 3: operations / scenarios (e.g., "AddParticipant + UpdateTournament", "CreateTournament Fault")
-- Column 4: test type (T4, T5, or T6)
+Rows: one per aggregate (in Implementation Order)
+- Column 1: session number (3.1, 3.2, ..., one per aggregate)
+- Column 2: aggregate name
+- Column 3: skill invocation command
 
 Followed by checklist:
 ```markdown
 **Checklist:**
-- [ ] 3.1
-- [ ] 3.2
-- [ ] 3.3
+- [ ] 3.1 — {Aggregate1}
+- [ ] 3.2 — {Aggregate2}
 ...
 ```
 
@@ -558,7 +548,7 @@ After writing plan.md:
    - Total rules classified: M (broken down by pattern: P1: X, P2: Y, P3: Z, P4a/b/c: R)
    - Ambiguous rules flagged for review: K (marked "P3 (NEEDS_REVIEW)")
    - Total Phase 2 sessions: count (e.g., "2.1.a through 2.3.d")
-   - Total Phase 3 scenarios: count (e.g., "3.1 through 3.7")
+   - Total Phase 3 sessions: count (= aggregate count, e.g., "3.1 through 3.8")
 
 3. **Next steps:**
    ```
