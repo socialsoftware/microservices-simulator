@@ -11,7 +11,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.UpdateCourseFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Option
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Question
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas
 
@@ -50,6 +53,14 @@ class CreateQuestionTest extends QuizzesFullSpockTest {
         result.content == QUESTION_CONTENT_1
         result.courseAggregateId == courseDto.aggregateId
         result.topicIds.contains(topicDto.aggregateId)
+        result.creationDate != null
+        result.optionKeys.size() == 2
+
+        and: 'question is persisted and retrievable'
+        def uow = unitOfWorkService.createUnitOfWork("verify")
+        Question readBack = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(result.aggregateId, uow)
+        readBack.title == QUESTION_TITLE_1
+        readBack.content == QUESTION_CONTENT_1
     }
 
     def "createQuestion: success with no topics"() {
@@ -60,6 +71,20 @@ class CreateQuestionTest extends QuizzesFullSpockTest {
         result.aggregateId != null
         result.title == QUESTION_TITLE_1
         result.topicIds.isEmpty()
+    }
+
+    def "createQuestion: TOPIC_BELONGS_TO_QUESTION_COURSE — topic from different course raises exception"() {
+        given: 'a second course with its own topic'
+        def courseDto2 = createCourse(COURSE_NAME_2, COURSE_TYPE_TECNICO)
+        createExecution(courseDto2.aggregateId, "OTHER-2025", "2025/2026")
+        def topicFromOtherCourse = createTopic(courseDto2.aggregateId, TOPIC_NAME_1)
+
+        when: 'trying to assign that topic to a question belonging to course 1'
+        createQuestion(courseDto.aggregateId, [topicFromOtherCourse.aggregateId], QUESTION_TITLE_1, QUESTION_CONTENT_1)
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.errorMessage == QuizzesFullErrorMessage.QUESTION_TOPIC_INVALID_COURSE
     }
 
     def "createQuestion: getCourseStep acquires READ_COURSE semantic lock before question is created"() {

@@ -38,6 +38,9 @@ class GetQuestionByIdTest extends QuizzesFullSpockTest {
         result.title == "What is a saga?"
         result.content == "Describe a saga pattern."
         result.courseAggregateId == courseDto.aggregateId
+        result.topicIds.contains(topicDto.aggregateId)
+        result.creationDate != null
+        result.optionKeys.size() == 2
     }
 
     def "getQuestionById: aggregate not found"() {

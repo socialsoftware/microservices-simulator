@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Question
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.sagas.states.QuestionSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.UpdateQuestionFunctionalitySagas
@@ -64,6 +66,20 @@ class UpdateQuestionTest extends QuizzesFullSpockTest {
         Question fetched = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.aggregateId, uow)
         fetched.topics.any { it.topicAggregateId == topicDto2.aggregateId }
         !fetched.topics.any { it.topicAggregateId == topicDto1.aggregateId }
+    }
+
+    def "updateQuestion: TOPIC_BELONGS_TO_QUESTION_COURSE — topic from different course raises exception"() {
+        given: 'a second course with its own topic'
+        def courseDto2 = createCourse(COURSE_NAME_2, COURSE_TYPE_TECNICO)
+        createExecution(courseDto2.aggregateId, "OTHER-2025", "2025/2026")
+        def topicFromOtherCourse = createTopic(courseDto2.aggregateId, TOPIC_NAME_2)
+
+        when: 'updating the question with a topic from a different course'
+        questionFunctionalities.updateQuestion(questionDto.aggregateId, QUESTION_TITLE_UPDATED, QUESTION_CONTENT_UPDATED, [topicFromOtherCourse.aggregateId])
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.errorMessage == QuizzesFullErrorMessage.QUESTION_TOPIC_INVALID_COURSE
     }
 
     def "updateQuestion: getQuestionStep acquires IN_UPDATE_QUESTION semantic lock"() {

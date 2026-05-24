@@ -38,6 +38,8 @@ class GetQuestionsByCourseExecutionIdTest extends QuizzesFullSpockTest {
         result[0].aggregateId == questionDto.aggregateId
         result[0].title == "What is a saga?"
         result[0].courseAggregateId == courseDto.aggregateId
+        result[0].topicIds.contains(topicDto.aggregateId)
+        result[0].optionKeys.size() == 2
     }
 
     def "getQuestionsByCourseExecutionId: no questions returns empty list"() {

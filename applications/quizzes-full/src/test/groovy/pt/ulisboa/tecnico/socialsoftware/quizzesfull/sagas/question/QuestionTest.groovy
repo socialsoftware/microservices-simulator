@@ -7,12 +7,9 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Option
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionCourse
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionTopic
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.sagas.SagaQuestion
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
 
 @DataJpaTest
 @Transactional
@@ -44,26 +41,4 @@ class QuestionTest extends QuizzesFullSpockTest {
         question.topics.isEmpty()
     }
 
-    def "TOPIC_BELONGS_TO_QUESTION_COURSE: topic from different course raises exception"() {
-        given:
-        def courseDto = new CourseDto()
-        courseDto.setAggregateId(100)
-        courseDto.setVersion(1L)
-        def questionCourse = new QuestionCourse(courseDto)
-
-        def topicDto = new TopicDto()
-        topicDto.setAggregateId(200)
-        topicDto.setVersion(1L)
-        topicDto.setName("Topic A")
-        topicDto.setCourseId(999)  // different course
-        def topic = new QuestionTopic(topicDto)
-
-        def question = new SagaQuestion(1, "Q", "Content", questionCourse, [] as Set, [topic] as Set)
-
-        when:
-        question.verifyInvariants()
-
-        then:
-        thrown(QuizzesFullException)
-    }
 }
