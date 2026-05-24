@@ -5,6 +5,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
@@ -12,6 +13,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.Qui
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.Quiz
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.states.QuizSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.UpdateQuizFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
+
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUIZ_DATE_ORDERING
 
 import java.time.LocalDateTime
 
@@ -67,7 +71,8 @@ class UpdateQuizTest extends QuizzesFullSpockTest {
                 [questionDto1.aggregateId])
 
         then:
-        thrown(QuizzesFullException)
+        def ex = thrown(QuizzesFullException)
+        ex.message == QUIZ_DATE_ORDERING
     }
 
     // QUIZ_FIELDS_FINAL_AFTER_AVAILABLE_DATE violation is not tested because it requires
@@ -98,5 +103,39 @@ class UpdateQuizTest extends QuizzesFullSpockTest {
         def uow2 = unitOfWorkService.createUnitOfWork("verify")
         Quiz fetched = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.aggregateId, uow2)
         fetched.availableDate == newAvailableDate
+    }
+
+    def "updateQuiz: IN_UPDATE_QUIZ lock blocks concurrent UpdateTournament from modifying quiz"() {
+        given: 'a tournament associated with a quiz exists'
+        def user = createUser(USER_NAME_1, USER_USERNAME_1, STUDENT_ROLE)
+        executionFunctionalities.enrollStudentInExecution(executionDto.aggregateId, user.aggregateId)
+        def topic = createTopic(courseDto.aggregateId, "Topic A")
+        createQuestion(courseDto.aggregateId, [topic.aggregateId], "Tournament Q", "Content")
+        def tournStartTime = LocalDateTime.now().plusDays(1)
+        def tournEndTime = LocalDateTime.now().plusDays(5)
+        def tournament = createTournament(executionDto.aggregateId, user.aggregateId, [topic.aggregateId], 1, tournStartTime, tournEndTime)
+        def quizId = tournament.quizAggregateId
+
+        and: 'UpdateTournament workflow pauses immediately before updateQuizStep'
+        def uowTournament = unitOfWorkService.createUnitOfWork("updateTournament")
+        def updateTournamentFunc = new UpdateTournamentFunctionalitySagas(
+                unitOfWorkService, tournament.aggregateId,
+                LocalDateTime.now().plusDays(3), LocalDateTime.now().plusDays(6),
+                [], uowTournament, commandGateway)
+        updateTournamentFunc.executeUntilStep("updateTournamentStep", uowTournament)
+
+        and: 'concurrent UpdateQuiz acquires IN_UPDATE_QUIZ on the same quiz'
+        def uowQuiz = unitOfWorkService.createUnitOfWork("updateQuiz")
+        def updateQuizFunc = new UpdateQuizFunctionalitySagas(
+                unitOfWorkService, quizId,
+                LocalDateTime.now().plusDays(4), LocalDateTime.now().plusDays(7),
+                LocalDateTime.now().plusDays(8), [], uowQuiz, commandGateway)
+        updateQuizFunc.executeUntilStep("getQuizStep", uowQuiz)
+
+        when: 'UpdateTournament resumes into the forbidden IN_UPDATE_QUIZ state'
+        updateTournamentFunc.resumeWorkflow(uowTournament)
+
+        then:
+        thrown(SimulatorException)
     }
 }

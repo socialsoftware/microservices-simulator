@@ -8,9 +8,12 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas
+
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUIZ_DATE_ORDERING
 
 import java.time.LocalDateTime
 
@@ -65,6 +68,21 @@ class CreateQuizTest extends QuizzesFullSpockTest {
         then:
         result.aggregateId != null
         result.questionIds.isEmpty()
+    }
+
+    def "createQuiz: violates QUIZ_DATE_ORDERING — availableDate after conclusionDate"() {
+        given:
+        def availableDate = LocalDateTime.now().plusDays(5)
+        def conclusionDate = LocalDateTime.now().plusDays(2)
+        def resultsDate = LocalDateTime.now().plusDays(6)
+
+        when:
+        quizFunctionalities.createQuiz("Bad Quiz", availableDate, conclusionDate, resultsDate,
+                "GENERATED", executionDto.aggregateId, [questionDto.aggregateId])
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.message == QUIZ_DATE_ORDERING
     }
 
     def "createQuiz: getExecutionStep acquires READ_EXECUTION semantic lock"() {
