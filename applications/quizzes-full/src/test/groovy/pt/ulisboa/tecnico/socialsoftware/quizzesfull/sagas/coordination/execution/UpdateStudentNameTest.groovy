@@ -49,6 +49,10 @@ class UpdateStudentNameTest extends QuizzesFullSpockTest {
         and: 'user name is updated in User aggregate'
         def updatedUser = userFunctionalities.getUserById(userDto.aggregateId)
         updatedUser.name == NEW_NAME
+
+        and: 'cached student name in execution is updated'
+        def student = executionFunctionalities.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId)
+        student.userName == NEW_NAME
     }
 
     def "updateStudentName: getExecutionStep acquires IN_UPDATE_STUDENT_NAME semantic lock"() {

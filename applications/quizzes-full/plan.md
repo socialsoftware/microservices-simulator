@@ -389,7 +389,7 @@ skill to audit T1/T2/T3 completeness, fix fake/weak tests, and run the full test
 - [X] 3.1 — Course
 - [x] 3.2 — User
 - [x] 3.3 — Topic
-- [ ] 3.4 — Execution
+- [x] 3.4 — Execution
 - [ ] 3.5 — Question
 - [ ] 3.6 — Quiz
 - [ ] 3.7 — QuizAnswer

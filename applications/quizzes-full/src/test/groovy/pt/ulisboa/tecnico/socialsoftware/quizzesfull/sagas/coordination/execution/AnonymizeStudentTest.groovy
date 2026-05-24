@@ -47,6 +47,11 @@ class AnonymizeStudentTest extends QuizzesFullSpockTest {
         def updatedUser = userFunctionalities.getUserById(userDto.aggregateId)
         updatedUser.name == "ANONYMOUS"
         updatedUser.username == "ANONYMOUS"
+
+        and: 'cached student data in execution is anonymized'
+        def student = executionFunctionalities.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId)
+        student.userName == "ANONYMOUS"
+        student.userUsername == "ANONYMOUS"
     }
 
     def "anonymizeStudent: getExecutionStep acquires IN_ANONYMIZE_STUDENT semantic lock"() {

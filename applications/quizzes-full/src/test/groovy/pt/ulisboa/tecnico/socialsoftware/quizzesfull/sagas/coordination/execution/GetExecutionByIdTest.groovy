@@ -33,6 +33,7 @@ class GetExecutionByIdTest extends QuizzesFullSpockTest {
         result.aggregateId == executionDto.aggregateId
         result.acronym == "ES001"
         result.academicTerm == "1 Semester"
+        result.courseId == executionDto.courseId
     }
 
     def "getExecutionById: execution not found"() {

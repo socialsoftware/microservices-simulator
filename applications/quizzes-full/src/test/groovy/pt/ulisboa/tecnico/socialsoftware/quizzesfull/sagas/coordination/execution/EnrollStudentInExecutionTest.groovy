@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.EnrollStudentInExecutionFunctionalitySagas
@@ -43,10 +44,10 @@ class EnrollStudentInExecutionTest extends QuizzesFullSpockTest {
         executionFunctionalities.enrollStudentInExecution(executionDto.aggregateId, userDto.aggregateId)
 
         then:
-        def result = executionService.getExecutionById(executionDto.aggregateId,
-                unitOfWorkService.createUnitOfWork("check"))
-        // verify via service directly since getExecutionById in functionalities returns ExecutionDto without students
-        noExceptionThrown()
+        def student = executionFunctionalities.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId)
+        student.userAggregateId == userDto.aggregateId
+        student.userName == USER_NAME_1
+        student.userUsername == USER_USERNAME_1
     }
 
     def "enrollStudentInExecution: STUDENT_ALREADY_ENROLLED violation"() {
@@ -57,10 +58,15 @@ class EnrollStudentInExecutionTest extends QuizzesFullSpockTest {
         executionFunctionalities.enrollStudentInExecution(executionDto.aggregateId, userDto.aggregateId)
 
         then:
-        thrown(QuizzesFullException)
+        def ex = thrown(QuizzesFullException)
+        ex.errorMessage == QuizzesFullErrorMessage.STUDENT_ALREADY_ENROLLED
     }
 
-    def "enrollStudentInExecution: INACTIVE_USER — deleted user causes prerequisite failure"() {
+    def "enrollStudentInExecution: deleted user causes data-assembly failure"() {
+        // User.active is always true on creation; there is no deactivate-without-delete path,
+        // so the INACTIVE_USER P3 guard in ExecutionService cannot be reached through normal operations.
+        // This test covers the closest reachable failure: a deleted user, which fails at the
+        // data-assembly step (getUserStep) with a SimulatorException before the service guard fires.
         given: 'user is deleted'
         userFunctionalities.deleteUser(userDto.aggregateId)
 
@@ -68,9 +74,6 @@ class EnrollStudentInExecutionTest extends QuizzesFullSpockTest {
         executionFunctionalities.enrollStudentInExecution(executionDto.aggregateId, userDto.aggregateId)
 
         then:
-        // deleteUser sets state=DELETED; GetUserByIdCommand cannot find a DELETED aggregate,
-        // so the saga's data-assembly step fails with SimulatorException (P4a prerequisite failure)
-        // before the INACTIVE_USER P3 guard in ExecutionService is reached
         thrown(SimulatorException)
     }
 
