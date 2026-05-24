@@ -132,11 +132,9 @@ Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 - **Assertion for all violation tests:** `thrown({AppClass}Exception)`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in T5 fault-injection tests where any infrastructure error is valid.
 - **P1 invariant violation tests**: for each P1 rule that a write operation can put at risk, add a test that exercises the service method causing the violation. The service calls `registerChanged`, which automatically invokes `verifyInvariants` — **never call `verifyInvariants()` directly**.
   - **Skip P1 tests for `final` fields:** If a P1 rule is enforced by a Java `final` field (plan.md note: `Java \`final\` field`), no write path can violate it. Omit the invariant test for that rule and note the omission in the session report.
-- **Concurrent interleaving (required):** Follow `docs/concepts/testing.md` § T2 — Step-interleaving rule (lines 89–93):
-  - One interleaving case per saga step that touches a foreign aggregate with `setForbiddenStates`.
-  - Call `executeUntilStep("precedingStepName", uow)` — this **runs through** (completes) the named step and pauses after it. Pass the step immediately **before** the protected foreign-mutate step (the one that calls `setForbiddenStates`), inject a conflicting operation, then `resumeWorkflow(uow)`.
-  - Assert either a meaningful exception (`SimulatorException` with `AGGREGATE_BEING_USED_IN_OTHER_SAGA`) or consistent final state.
-
+- **Concurrent interleaving (required):** Follow `docs/concepts/testing.md` § T2 — Step-interleaving rule (lines 89–93). **One interleaving case per saga step that calls `setSemanticLock` OR `setForbiddenStates` — no exceptions:**
+  - **`setSemanticLock` step (primary-aggregate lock acquisition):** pause the workflow before the **following mutate step** (the step that reads the locked aggregate as a foreign target). Inject a concurrent saga that acquires the same lock. Resume. Assert `thrown(SimulatorException)`.
+  - **`setForbiddenStates` step (foreign-aggregate state check):** pause at that step via `executeUntilStep("precedingStepName", uow)`. Inject a conflicting operation that puts the foreign aggregate in one of the forbidden states. Resume via `resumeWorkflow(uow)`. Assert `thrown(SimulatorException)`.
 ### Service-command method tests (T2 variant)
 
 After writing the coordinator-level T2 tests above, scan `{Aggregate}Service.java` for any
