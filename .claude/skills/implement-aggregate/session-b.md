@@ -125,11 +125,29 @@ Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Fu
 
 Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 
+> **Anti-pattern:** Do not read `{Aggregate}Service.java` or `{Op}FunctionalitySagas.java` to decide what to assert. Tests derived from the implementation you just wrote are tautological — they verify what the code does, not what the domain says it should do. The remedy is the spec table below.
+
+**Write the spec table first (from `plan.md` only):**
+
+```
+Functionality: {Op}{Aggregate}
+Happy-path postconditions (from plan.md aggregate section):
+  - {Aggregate}.{field} == {expectedValue from inputs}
+  - emitted event {Event} with payload {…}
+  - SagaState after commit == NOT_IN_SAGA
+Violations (one row per P1/P3 rule this op can trip):
+  - {RULE_NAME} → throws {AppClass}Exception, message == {RULE_NAME}
+```
+
+Write the test assertions against this table. If the implementation disagrees with the spec, flag it as an impl deviation — do not adjust the spec to match.
+
+**Kill-mutation check (after writing each happy-path test):** Ask "if `unitOfWork.registerChanged(aggregate)` were removed from the service, would my test still pass?" If yes, the test does not verify persistence. Add an assertion on a field the operation changes that is only readable through the persisted aggregate (i.e. the `then:` reads back via `get{Aggregate}ById`, not from a local variable).
+
 - Extends `{AppClass}SpockTest`
-- **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation, assert the resulting aggregate state
+- **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation, assert all fields from the spec table above
 - **P3 guard tests**: test each P3 rule violation (own-table duplicate, DTO field check)
 - **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., creator not enrolled in execution)
-- **Assertion for all violation tests:** `thrown({AppClass}Exception)`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in T5 fault-injection tests where any infrastructure error is valid.
+- **Assertion for all violation tests:** `thrown({AppClass}Exception)` plus `ex.message == {RULE_NAME}`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in T5 fault-injection tests. Never accept a bare `thrown({AppClass}Exception)` without the message assertion — it passes on any thrown exception of that type, including unrelated bugs. The `{RULE_NAME}` constant must match the name in `plan.md`'s rule list, not be inferred from the implementation.
 - **P1 invariant violation tests**: for each P1 rule that a write operation can put at risk, add a test that exercises the service method causing the violation. The service calls `registerChanged`, which automatically invokes `verifyInvariants` — **never call `verifyInvariants()` directly**.
   - **Skip P1 tests for `final` fields:** If a P1 rule is enforced by a Java `final` field (plan.md note: `Java \`final\` field`), no write path can violate it. Omit the invariant test for that rule and note the omission in the session report.
 - **Concurrent interleaving (required):** Follow `docs/concepts/testing.md` § T2 — Step-interleaving rule (lines 89–93). **One interleaving case per saga step that calls `setSemanticLock` OR `setForbiddenStates` — no exceptions:**

@@ -158,6 +158,7 @@ Path: `{test}sagas/{aggregate}/{Aggregate}Test.groovy`
 
 - Extends `{AppClass}SpockTest`
 - **One happy-path creation test**: `def "create {Aggregate}"()` — instantiate `Saga{Aggregate}` directly and assert fields are set correctly. T1 tests happy-path construction only; invariant-violation tests belong in T2 where `unitOfWorkService.registerChanged` triggers `verifyInvariants()` automatically. Never call `verifyInvariants()` directly.
+- **Assertion provenance:** Fields asserted in the test must trace to the `plan.md` aggregate field list — not to the constructor body you just wrote. If the constructor sets a field the spec doesn't list, that is a planning gap to flag in the session report, not a field to copy into the test.
 - **Do not** use `{AppClass}Functionalities.create{Aggregate}(...)` — write functionalities are not available until session b
 - If the aggregate constructor takes `{Aggregate}Dto` rather than raw args, build the DTO in the `given:` block before calling `new Saga{Aggregate}(id, dto)`
 

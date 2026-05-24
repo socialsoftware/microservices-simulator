@@ -16,6 +16,42 @@ and provides structure templates for each category.
 
 ---
 
+## Anti-Pattern: Reverse-Engineering Tests from the Implementation
+
+AI assistants will, given only a coverage metric, read the implementation they just wrote and produce assertions that mirror what the code does — not what the domain says it should do. These tests are trivially satisfied by the implementation, break on correct refactors, and provide a false sense of security.
+
+**Named smells — flag any of these as Fake or Weak:**
+
+- Test name and message constant were copied verbatim from the implementation without checking against `plan.md`'s rule list.
+- Happy-path `then:` asserts only fields that were already set in `setup:` — the under-test call did not need to run for the assertions to hold.
+- `then:` mirrors the sequence of `set…` calls in the service body.
+- Removing `unitOfWork.registerChanged(aggregate)` from the service would leave the test passing.
+- T3 "ignores unrelated": `<originalValue>` was captured *after* the event was processed rather than before.
+
+See also: `.claude/skills/review-tests/SKILL.md` Step 5.A for the complete Fake/Wrong/Weak detection checklist.
+
+---
+
+## Spec-First Ordering
+
+Before writing any T2 test for a write functionality, derive a spec table from `plan.md` and the domain model — **without consulting the implementation you just wrote**:
+
+```
+Functionality: {Op}{Aggregate}
+Happy-path postconditions (from plan.md):
+  - {Aggregate}.{field} == {expectedValue}
+  - emitted event {Event} with payload {…}
+  - SagaState after commit == NOT_IN_SAGA
+Violations (one row per P1/P3 rule this op can trip, from plan.md):
+  - {RULE_NAME} → throws {AppClass}Exception, message == {RULE_NAME}
+```
+
+The test then asserts the spec table. If the implementation disagrees with the spec, the **implementation** is the bug — not the spec. Assertions should never be adjusted to match surprising implementation behavior; the discrepancy should be flagged and fixed in the implementation.
+
+This ordering also applies to T3: before writing the test, write down the expected cached-field value from the subscribed event's payload per `plan.md`'s subscribed events table — not from reading the `EventProcessing` class.
+
+---
+
 ## Directory Layout
 
 ```
@@ -41,6 +77,11 @@ src/test/groovy/<pkg>/
 **Purpose:** Prove the aggregate can be instantiated with valid state. Invariant violations are
 **not** tested here — they belong in T2, where service method calls trigger `registerChanged →
 verifyInvariants` automatically. Never call `verifyInvariants()` directly.
+
+**Assertion provenance:** Fields asserted in a T1 test must trace to the constructor's documented
+intent — the aggregate field list in the `plan.md` aggregate section. Never read the constructor
+body to decide what to assert; if the constructor sets a field the spec doesn't list, that is a
+planning gap to flag, not a field to copy into the test.
 
 **P1 Java-`final` fields need no test coverage anywhere** (T1, T2, or otherwise). The Java compiler enforces immutability; there is no write path that can violate the constraint, so testing it would be testing the language, not the domain logic.
 
@@ -87,6 +128,21 @@ cases that validate semantic locks at each saga step boundary.
 **Upstream-invariant rule:** When a saga increments a counter cached on an upstream aggregate (e.g., `questionCount` on `Course`), verify that the upstream aggregate's invariants permit the new counter value *before the first test runs*. If not, add the necessary prerequisite state to the `setup:` block. For example, if `Course` enforces `executionCount > 0` when `questionCount > 0`, every `CreateQuestion` test must call `createExecution(courseId, ...)` in `setup:` first.
 
 > **Read tests are not exempt.** Even though a read functionality itself does not mutate state, its `setup:` block typically creates the aggregate under test (e.g., `createQuestion`), which may increment a counter on an upstream aggregate. That increment can trigger the upstream's invariants, so any prerequisite state must be established in `setup:` *before* the aggregate creation call, regardless of whether the test exercises a read or write functionality.
+
+**Spec-first:** Before writing the happy-path test, derive the postcondition spec table from `plan.md`
+(see Spec-First Ordering above). List every field the operation changes, every event emitted, and
+the expected `SagaState` on completion. Write assertions against that list — do not start from the
+service body.
+
+**Kill-mutation check:** For each happy-path test ask: "If I remove `unitOfWork.registerChanged(aggregate)`
+from the service, does this test still pass?" If yes, the test is not exercising the commit. Add an
+assertion that can only pass if the aggregate state was actually persisted and returned through the
+read path.
+
+**Message constant provenance:** In violation tests, `<RULE_NAME>` must be the constant that `plan.md`
+names for this rule, not whatever constant the implementation happens to throw. If the implementation
+uses a different constant, that is an implementation deviation from spec — flag the mismatch rather
+than adjusting the test to match.
 
 **Template:**
 ```groovy
@@ -307,6 +363,9 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
         def publisher1 = create<Publisher>(/* args */)
         def publisher2 = create<Publisher>(/* args — different entity */)
         def consumer   = create<Consumer>(/* linked to publisher1 */)
+        // Capture the expected value BEFORE the event fires — never after
+        def originalValue = <consumer>Service.get<Consumer>(consumer.aggregateId,
+                unitOfWorkService.createUnitOfWork("check")).<cachedField>
 
         when:
         <publisher>Functionalities.<triggeringOp>(publisher2.aggregateId, /* args */)
@@ -314,7 +373,7 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
 
         then: 'consumer state unchanged'
         def unchanged = <consumer>Service.get<Consumer>(consumer.aggregateId, unitOfWorkService.createUnitOfWork("check"))
-        unchanged.<cachedField> == <originalValue>
+        unchanged.<cachedField> == originalValue
     }
 }
 ```

@@ -82,6 +82,8 @@ Read every file in a single parallel batch. Missing files are noted, not errors.
 From `docs/concepts/testing.md` and the `plan.md` aggregate section, derive the complete list of required
 test scenarios. This is the baseline for Steps 4–7.
 
+> **Spec-first principle:** Build this inventory from `plan.md` and the domain model before consulting implementation files. The implementation is ground truth for *how* tests are wired, not for *what* they should assert. When Step 5 finds that an existing test's assertion matches the implementation but not the spec, the implementation is the bug — not the spec.
+
 ### T1 — `{Aggregate}Test.groovy`
 
 - One "create with valid data, all fields correct" scenario verifying every field on the created aggregate.
@@ -166,10 +168,12 @@ For each expected scenario from Step 3, check whether a matching test exists in 
 
 Produce this table:
 
-| Tier | Functionality / Rule | Required Scenario | Test Exists? | Test Name (if exists) |
-|------|----------------------|-------------------|--------------|-----------------------|
+| Tier | Functionality / Rule | Required Scenario | Test Exists? | Test Name (if exists) | Defect caught if absent |
+|------|----------------------|-------------------|--------------|-----------------------|-------------------------|
 
 Flag every **No** as a **Missing** finding — these drive Step 7.
+
+For every **Yes** row, complete the "Defect caught if absent" column with one phrase (e.g. "counter goes negative on decrement", "concurrent enrollment not blocked"). A row left blank in that column is a signal the test may be ceremonial — revisit in Step 5.
 
 ---
 
@@ -188,6 +192,14 @@ A test is **Fake** (always passes regardless of implementation correctness) if:
 - `when:` block does not call the method under test (bypasses the service via a setup helper).
 - `then:` asserts a condition that is logically trivially true (e.g., `result != null` when the method
   always returns non-null).
+- Happy-path `then:` asserts only fields that were already set in `setup:` — the operation under test
+  did not need to run for the assertions to hold. Verify at least one asserted field is a value the
+  operation itself must produce (not pre-existing fixture data).
+- Message constant in a violation test matches what the implementation throws but differs from the
+  constant named in `plan.md` for that rule — flag as **Wrong** (tautological assertion; the impl and
+  spec disagree, and the test validated the impl deviation instead of catching it).
+- T3 "ignores unrelated": `<originalValue>` was read back *after* the event was processed — flag as
+  **Fake** (the assertion is `x == x`). The pre-event value must be captured in `given:` before firing.
 - Not-found test exception type mismatch — read the service method to determine Path A vs Path B (see
   Step 3). Only flag as Fake if the thrown type contradicts the actual lookup mechanism. Flagging a
   correct Path B `thrown({AppClass}Exception)` as Fake is itself a Wrong finding.
@@ -196,6 +208,17 @@ A test is **Fake** (always passes regardless of implementation correctness) if:
   `thrown(SimulatorException)` in `then:` (see `docs/concepts/testing.md:331-358`). Flag as **Wrong**.
 - Interleaving test calls `executeUntilStep` then immediately calls `resumeWorkflow` with no concurrent
   saga in between — the forbidden state is never set, so the test always passes.
+
+### A2. Step-interleaving concurrent-op semantics
+
+For saga-interleaving tests, verify not just that a concurrent operation exists but that it would put
+the foreign aggregate into the *specific* forbidden state listed on that step. A concurrent op that
+throws for an unrelated reason (e.g. its own guard violation rather than a lock conflict) makes the
+test pass for the wrong cause — flag as **Wrong**.
+
+Concretely: read the `setForbiddenStates(…)` call on the step under test and confirm the concurrent
+saga transitions the target aggregate into one of the listed states. If the concurrent call fails
+before reaching that state transition, the forbidden-state check never fires.
 
 ### B. Parameter quality
 
@@ -228,6 +251,12 @@ A test is **Fake** (always passes regardless of implementation correctness) if:
   `docs/reviews/review-2026-05-23-deferred.md:11-27` for seven concrete examples.
 - For saga-interleaving tests: does `executeUntilStep` pause at the correct step (immediately before the
   forbidden-state check), and does the concurrent saga acquire the expected lock?
+
+### D2. Kill-mutation thought experiment
+
+For each happy-path test, mentally remove `unitOfWork.registerChanged(aggregate)` from the service
+method under test. If the test still passes, the test does not verify that the state was committed.
+Flag as **Weak** and note a missing read-back assertion.
 
 Cite the specific implementation file and line number for every Fake or Wrong finding.
 
