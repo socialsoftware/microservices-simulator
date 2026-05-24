@@ -8,10 +8,13 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.Topic
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.sagas.states.TopicSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.DeleteTopicFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas
 
 @DataJpaTest
@@ -61,10 +64,11 @@ class UpdateTopicTest extends QuizzesFullSpockTest {
         topicFunctionalities.updateTopic(update)
 
         then:
-        thrown(QuizzesFullException)
+        def ex = thrown(QuizzesFullException)
+        ex.message == QuizzesFullErrorMessage.TOPIC_MISSING_NAME
     }
 
-    def "updateTopic: getTopicStep acquires READ_TOPIC semantic lock before update completes"() {
+    def "updateTopic: updateTopicStep fails when topic is deleted by concurrent deleteTopic"() {
         given: 'an update payload'
         TopicDto update = new TopicDto()
         update.aggregateId = topicDto.aggregateId
@@ -79,15 +83,17 @@ class UpdateTopicTest extends QuizzesFullSpockTest {
         expect: 'topic saga state is READ_TOPIC'
         sagaStateOf(topicDto.aggregateId) == TopicSagaState.READ_TOPIC
 
-        when: 'workflow resumes and completes'
+        and: 'concurrent deleteTopic acquires READ_TOPIC and completes deletion'
+        def uow2 = unitOfWorkService.createUnitOfWork("deleteTopic")
+        def func2 = new DeleteTopicFunctionalitySagas(
+                unitOfWorkService, topicDto.aggregateId, uow2, commandGateway)
+        func2.executeUntilStep("getTopicStep", uow2)
+        func2.resumeWorkflow(uow2)
+
+        when: 'updateTopic resumes into deleted topic'
         func1.resumeWorkflow(uow1)
 
         then:
-        noExceptionThrown()
-
-        and: 'name was updated'
-        def uow2 = unitOfWorkService.createUnitOfWork("verify")
-        Topic fetched = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.aggregateId, uow2)
-        fetched.name == TOPIC_NAME_UPDATED
+        thrown(SimulatorException)
     }
 }

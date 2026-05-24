@@ -48,7 +48,7 @@ class DeleteTopicTest extends QuizzesFullSpockTest {
         ex.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
     }
 
-    def "deleteTopic: getTopicStep acquires READ_TOPIC semantic lock before deletion completes"() {
+    def "deleteTopic: deleteTopicStep fails when topic is deleted by concurrent deleteTopic"() {
         given: 'deleteTopic workflow pauses after getTopicStep has acquired READ_TOPIC lock'
         def uow1 = unitOfWorkService.createUnitOfWork("deleteTopic")
         def func1 = new DeleteTopicFunctionalitySagas(
@@ -58,15 +58,15 @@ class DeleteTopicTest extends QuizzesFullSpockTest {
         expect: 'topic saga state is READ_TOPIC'
         sagaStateOf(topicDto.aggregateId) == TopicSagaState.READ_TOPIC
 
-        when: 'workflow resumes and completes'
+        and: 'concurrent deleteTopic acquires READ_TOPIC and completes deletion'
+        def uow2 = unitOfWorkService.createUnitOfWork("deleteTopic2")
+        def func2 = new DeleteTopicFunctionalitySagas(
+                unitOfWorkService, topicDto.aggregateId, uow2, commandGateway)
+        func2.executeUntilStep("getTopicStep", uow2)
+        func2.resumeWorkflow(uow2)
+
+        when: 'first deleteTopic resumes into already-deleted topic'
         func1.resumeWorkflow(uow1)
-
-        then:
-        noExceptionThrown()
-
-        when: 'topic is no longer retrievable after deletion'
-        def uow2 = unitOfWorkService.createUnitOfWork("verify")
-        unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.aggregateId, uow2)
 
         then:
         thrown(SimulatorException)

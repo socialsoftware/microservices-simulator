@@ -5,9 +5,12 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.UpdateCourseFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas
@@ -55,7 +58,7 @@ class CreateTopicTest extends QuizzesFullSpockTest {
         result.courseId == courseDto.aggregateId
     }
 
-    def "createTopic: getCourseStep acquires READ_COURSE semantic lock before topic is created"() {
+    def "createTopic: createTopicStep completes when concurrent updateCourse holds course lock"() {
         given: 'a topic DTO to create'
         TopicDto topicDto = new TopicDto()
         topicDto.name = TOPIC_NAME_1
@@ -69,7 +72,13 @@ class CreateTopicTest extends QuizzesFullSpockTest {
         expect: 'course saga state is READ_COURSE'
         sagaStateOf(courseDto.aggregateId) == CourseSagaState.READ_COURSE
 
-        when: 'workflow resumes and completes'
+        and: 'concurrent updateCourse acquires IN_UPDATE_COURSE on the same course'
+        def uow2 = unitOfWorkService.createUnitOfWork("updateCourse")
+        def func2 = new UpdateCourseFunctionalitySagas(
+                unitOfWorkService, courseDto.aggregateId, COURSE_NAME_1, COURSE_TYPE_TECNICO, uow2, commandGateway)
+        func2.executeUntilStep("getCourseStep", uow2)
+
+        when: 'createTopic resumes and completes'
         func1.resumeWorkflow(uow1)
 
         then:
