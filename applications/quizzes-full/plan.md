@@ -386,7 +386,7 @@ skill to audit T1/T2/T3 completeness, fix fake/weak tests, and run the full test
 | 3.8 | Tournament | `/review-tests Tournament` |
 
 **Checklist:**
-- [ ] 3.1 — Course
+- [X] 3.1 — Course
 - [ ] 3.2 — User
 - [ ] 3.3 — Topic
 - [ ] 3.4 — Execution

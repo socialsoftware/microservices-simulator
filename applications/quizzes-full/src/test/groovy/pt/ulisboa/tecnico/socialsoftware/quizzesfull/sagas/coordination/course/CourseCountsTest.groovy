@@ -51,6 +51,17 @@ class CourseCountsTest extends QuizzesFullSpockTest {
         result.questionCount == 1
     }
 
+    def "incrementQuestionCount: CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT — executionCount is 0"() {
+        when: 'increment question count when executionCount is still 0 violates the invariant'
+        def uow = unitOfWorkService.createUnitOfWork("incrementQuestionCount")
+        courseService.incrementQuestionCount(courseDto.aggregateId, uow)
+        unitOfWorkService.commit(uow)
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.message == QuizzesFullErrorMessage.CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+    }
+
     def "decrementExecutionCount: success when questionCount is zero"() {
         given: 'execution count is 1'
         def uow1 = unitOfWorkService.createUnitOfWork("incrementExecutionCount")
@@ -112,6 +123,17 @@ class CourseCountsTest extends QuizzesFullSpockTest {
         def uow2 = unitOfWorkService.createUnitOfWork("decrementQuestionCount")
         courseService.decrementQuestionCount(courseDto.aggregateId, uow2)
         unitOfWorkService.commit(uow2)
+
+        then:
+        def result = courseFunctionalities.getCourseById(courseDto.aggregateId)
+        result.questionCount == 0
+    }
+
+    def "decrementQuestionCount: floor at zero"() {
+        when: 'decrement on a course with questionCount already 0'
+        def uow = unitOfWorkService.createUnitOfWork("decrementQuestionCount")
+        courseService.decrementQuestionCount(courseDto.aggregateId, uow)
+        unitOfWorkService.commit(uow)
 
         then:
         def result = courseFunctionalities.getCourseById(courseDto.aggregateId)
