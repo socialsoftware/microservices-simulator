@@ -44,7 +44,7 @@ class DeleteUserTest extends QuizzesFullSpockTest {
         ex.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
     }
 
-    def "deleteUser: getUserStep acquires READ_USER semantic lock before deletion completes"() {
+    def "deleteUser: deleteUserStep fails when user is deleted by concurrent deleteUser"() {
         given: 'deleteUser workflow pauses after getUserStep has acquired READ_USER lock'
         def uow1 = unitOfWorkService.createUnitOfWork("deleteUser")
         def func1 = new DeleteUserFunctionalitySagas(
@@ -54,14 +54,15 @@ class DeleteUserTest extends QuizzesFullSpockTest {
         expect: 'user saga state is READ_USER'
         sagaStateOf(userDto.aggregateId) == UserSagaState.READ_USER
 
-        when: 'workflow resumes and completes'
+        and: 'concurrent deleteUser acquires READ_USER and completes deletion'
+        def uow2 = unitOfWorkService.createUnitOfWork("deleteUser2")
+        def func2 = new DeleteUserFunctionalitySagas(
+                unitOfWorkService, userDto.aggregateId, uow2, commandGateway)
+        func2.executeUntilStep("getUserStep", uow2)
+        func2.resumeWorkflow(uow2)
+
+        when: 'first deleteUser resumes into already-deleted user'
         func1.resumeWorkflow(uow1)
-
-        then:
-        noExceptionThrown()
-
-        when: 'user is no longer retrievable after deletion'
-        userFunctionalities.getUserById(userDto.aggregateId)
 
         then:
         thrown(SimulatorException)
