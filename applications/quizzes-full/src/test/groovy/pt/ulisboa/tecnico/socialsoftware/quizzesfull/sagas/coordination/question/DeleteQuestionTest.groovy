@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.UpdateCourseFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.sagas.states.QuestionSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.DeleteQuestionFunctionalitySagas
 
@@ -72,6 +73,25 @@ class DeleteQuestionTest extends QuizzesFullSpockTest {
         when: 'question is no longer retrievable after deletion'
         def uow2 = unitOfWorkService.createUnitOfWork("verify")
         unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.aggregateId, uow2)
+
+        then:
+        thrown(SimulatorException)
+    }
+    def "deleteQuestion: decrementCourseQuestionCountStep sees forbidden state when course is locked by concurrent updateCourse"() {
+        given:
+        def uow1 = unitOfWorkService.createUnitOfWork("deleteQuestion")
+        def func1 = new DeleteQuestionFunctionalitySagas(
+                unitOfWorkService, questionDto.aggregateId, uow1, commandGateway)
+        func1.executeUntilStep("deleteQuestionStep", uow1)
+
+        and: 'concurrent updateCourse acquires IN_UPDATE_COURSE on the same course'
+        def uow2 = unitOfWorkService.createUnitOfWork("updateCourse")
+        def func2 = new UpdateCourseFunctionalitySagas(
+                unitOfWorkService, courseDto.aggregateId, COURSE_NAME_1, COURSE_TYPE_TECNICO, uow2, commandGateway)
+        func2.executeUntilStep("getCourseStep", uow2)
+
+        when: 'deleteQuestion resumes into the forbidden course state'
+        func1.resumeWorkflow(uow1)
 
         then:
         thrown(SimulatorException)

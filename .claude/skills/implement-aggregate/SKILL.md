@@ -57,7 +57,7 @@ Scan plan.md for the first line matching `- [ ] 2.\d+\.[abcd]`. Extract:
 - `{N}` = the aggregate number (the `\d+`)
 - `{type}` = the session type (`a`, `b`, `c`, or `d`)
 
-If no unchecked Phase 2 session found, check for unchecked Phase 3 sessions (`- [ ] 3.\d+`). If those exist, inform: "All Phase 2 sessions are complete. Follow `docs/workflow.md` Phase 3 — Complex Test Cases: read the Phase 3 row in plan.md, produce T4/T5/T6 tests under `sagas/behaviour/`." If everything is ticked, inform: "All sessions are complete — nothing left to do."
+If no unchecked Phase 2 session found, inform: "All Phase 2 sessions are complete for {app-name}. Nothing left for /implement-aggregate."
 
 ---
 

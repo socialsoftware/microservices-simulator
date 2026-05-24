@@ -65,7 +65,11 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
         SagaStep incrementCourseExecutionCountStep = new SagaStep("incrementCourseExecutionCountStep", () -> {
             IncrementExecutionCountCommand incrementCommand = new IncrementExecutionCountCommand(
                     unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-            commandGateway.send(incrementCommand);
+            SagaCommand sagaCmd = new SagaCommand(incrementCommand);
+            sagaCmd.setForbiddenStates(new ArrayList<>(Arrays.asList(
+                    CourseSagaState.IN_UPDATE_COURSE,
+                    CourseSagaState.IN_DELETE_COURSE)));
+            commandGateway.send(sagaCmd);
         }, new ArrayList<>(Arrays.asList(createExecutionStep)));
 
         workflow.addStep(getCourseStep);

@@ -13,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.DecrementExecutionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.DeleteExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.GetExecutionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState;
 
@@ -59,7 +60,11 @@ public class DeleteExecutionFunctionalitySagas extends WorkflowFunctionality {
         SagaStep decrementCourseExecutionCountStep = new SagaStep("decrementCourseExecutionCountStep", () -> {
             DecrementExecutionCountCommand decrementCmd = new DecrementExecutionCountCommand(
                     unitOfWork, ServiceMapping.COURSE.getServiceName(), this.executionDto.getCourseId());
-            commandGateway.send(decrementCmd);
+            SagaCommand sagaCmd = new SagaCommand(decrementCmd);
+            sagaCmd.setForbiddenStates(new ArrayList<>(Arrays.asList(
+                    CourseSagaState.IN_UPDATE_COURSE,
+                    CourseSagaState.IN_DELETE_COURSE)));
+            commandGateway.send(sagaCmd);
         }, new ArrayList<>(Arrays.asList(deleteExecutionStep)));
 
         workflow.addStep(getExecutionStep);

@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.GetTopicById
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.tournament.UpdateTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.states.QuizSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 
@@ -83,7 +84,11 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
                     unitOfWork, ServiceMapping.QUIZ.getServiceName(),
                     this.tournamentDto.getQuizAggregateId(),
                     startTime, endTime, endTime, null);
-            commandGateway.send(cmd);
+            SagaCommand sagaCmd = new SagaCommand(cmd);
+            sagaCmd.setForbiddenStates(new ArrayList<>(Arrays.asList(
+                    QuizSagaState.IN_UPDATE_QUIZ,
+                    QuizSagaState.READ_QUIZ)));
+            commandGateway.send(sagaCmd);
         }, new ArrayList<>(Arrays.asList(updateTournamentStep)));
 
         this.workflow.addStep(getTournamentStep);

@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.GetExecu
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.UpdateStudentNameInExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.user.UpdateUserNameCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.sagas.states.UserSagaState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +58,9 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
         SagaStep updateUserNameStep = new SagaStep("updateUserNameStep", () -> {
             UpdateUserNameCommand updateUserCmd = new UpdateUserNameCommand(
                     unitOfWork, ServiceMapping.USER.getServiceName(), userId, name);
-            commandGateway.send(updateUserCmd);
+            SagaCommand sagaCmd = new SagaCommand(updateUserCmd);
+            sagaCmd.setForbiddenStates(new ArrayList<>(Arrays.asList(UserSagaState.READ_USER)));
+            commandGateway.send(sagaCmd);
         }, new ArrayList<>(Arrays.asList(updateStudentNameInExecutionStep)));
 
         workflow.addStep(getExecutionStep);

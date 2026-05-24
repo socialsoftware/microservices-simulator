@@ -32,6 +32,7 @@ Load these files before writing any code:
    - What a T2 test asserts (state after the operation, events emitted, error cases)
    - How to test P3 guard violations
    - How to test P4a prerequisite failures (e.g., sending a command that causes the saga fetch to fail)
+   - **Step-interleaving rule (lines 89–93):** one interleaving case per saga step that touches a foreign aggregate with `setForbiddenStates`; use `executeUntilStep` / `resumeWorkflow` to inject a conflicting operation between steps
 
 6. ***(Conditional)*** If the plan.md aggregate section lists cross-aggregate prerequisites (P4a or P3 DTO-check rules): read the service file and relevant command files of each upstream aggregate involved. You need their command class names, service method signatures, and what they throw on failure.
 
@@ -131,6 +132,10 @@ Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 - **Assertion for all violation tests:** `thrown({AppClass}Exception)`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in T5 fault-injection tests where any infrastructure error is valid.
 - **P1 invariant violation tests**: for each P1 rule that a write operation can put at risk, add a test that exercises the service method causing the violation. The service calls `registerChanged`, which automatically invokes `verifyInvariants` — **never call `verifyInvariants()` directly**.
   - **Skip P1 tests for `final` fields:** If a P1 rule is enforced by a Java `final` field (plan.md note: `Java \`final\` field`), no write path can violate it. Omit the invariant test for that rule and note the omission in the session report.
+- **Concurrent interleaving (required):** Follow `docs/concepts/testing.md` § T2 — Step-interleaving rule (lines 89–93):
+  - One interleaving case per saga step that touches a foreign aggregate with `setForbiddenStates`.
+  - Pause with `executeUntilStep("stepName", uow)`, inject a conflicting operation, then `resumeWorkflow(uow)`.
+  - Assert either a meaningful exception (`SimulatorException` with `AGGREGATE_BEING_USED_IN_OTHER_SAGA`) or consistent final state.
 
 ### Service-command method tests (T2 variant)
 

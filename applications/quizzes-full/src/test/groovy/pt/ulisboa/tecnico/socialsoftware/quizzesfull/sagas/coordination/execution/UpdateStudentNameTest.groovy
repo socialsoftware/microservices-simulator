@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.CreateQuizAnswerFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas
 
@@ -64,5 +66,25 @@ class UpdateStudentNameTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
+    }
+    def "updateStudentName: updateUserNameStep sees forbidden state when user is locked by concurrent createQuizAnswer"() {
+        given:
+        def quiz = createQuiz(executionDto.aggregateId, [])
+        def uow1 = unitOfWorkService.createUnitOfWork("updateStudentName")
+        def func1 = new UpdateStudentNameFunctionalitySagas(
+                unitOfWorkService, executionDto.aggregateId, userDto.aggregateId, NEW_NAME, uow1, commandGateway)
+        func1.executeUntilStep("updateStudentNameInExecutionStep", uow1)
+
+        and: 'concurrent createQuizAnswer acquires READ_USER on the same user'
+        def uow2 = unitOfWorkService.createUnitOfWork("createQuizAnswer")
+        def func2 = new CreateQuizAnswerFunctionalitySagas(
+                unitOfWorkService, quiz.aggregateId, userDto.aggregateId, uow2, commandGateway)
+        func2.executeUntilStep("getUserStep", uow2)
+
+        when: 'updateStudentName resumes into the forbidden user state'
+        func1.resumeWorkflow(uow1)
+
+        then:
+        thrown(SimulatorException)
     }
 }
