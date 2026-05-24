@@ -89,8 +89,9 @@ cases that validate semantic locks at each saga step boundary.
 **Step-interleaving rule:**
 - For each saga step that reads a foreign aggregate (cross-aggregate prerequisite, `setForbiddenStates`), add one
   interleaving case where a conflicting operation locks the foreign aggregate *between* steps.
-- Use `executeUntilStep("stepName", uow)` to pause before the named step, then
-  `resumeWorkflow(uow)` to continue after injecting the conflict.
+- Use `executeUntilStep("precedingStepName", uow)` to run **through** (complete) the named step
+  and pause after it — pass the step immediately **before** the protected foreign-mutate step
+  (the one that calls `setForbiddenStates`). Then `resumeWorkflow(uow)` to continue after injecting the conflict.
 
 **Upstream-invariant rule:** When a saga increments a counter cached on an upstream aggregate (e.g., `questionCount` on `Course`), verify that the upstream aggregate's invariants permit the new counter value *before the first test runs*. If not, add the necessary prerequisite state to the `setup:` block. For example, if `Course` enforces `executionCount > 0` when `questionCount > 0`, every `CreateQuestion` test must call `createExecution(courseId, ...)` in `setup:` first.
 
@@ -138,14 +139,16 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
     // ─── Concurrent interleaving ───────────────────────────────────────────────
     // One case per saga step that declares setForbiddenStates
 
-    def "<functionalityName>: step <stepName> sees forbidden state"() {
+    def "<functionalityName>: step <foreignMutateStep> sees forbidden state"() {
         given:
         def uow1 = unitOfWorkService.createUnitOfWork("<FunctionalityName>")
         def func1 = new <FunctionalityName>FunctionalitySagas(
                 unitOfWorkService, /* args */, uow1, commandGateway)
 
-        when: 'first workflow pauses before <stepName>'
-        func1.executeUntilStep("<stepName>", uow1)
+        when: 'workflow runs through <precedingStep>, halting before <foreignMutateStep>'
+        // executeUntilStep completes the named step and stops — pass the step *before* the
+        // foreign-mutate step (the one that calls setForbiddenStates)
+        func1.executeUntilStep("<precedingStep>", uow1)
 
         and: 'conflicting operation runs and completes'
         <conflicting>Functionalities.<conflictingOp>(/* args */)
@@ -393,7 +396,8 @@ class <Op1>And<Op2>Test extends <AppName>SpockTest {
         def func1 = new <Op1>FunctionalitySagas(unitOfWorkService, /* args */, uow1, commandGateway)
 
         when:
-        func1.executeUntilStep("<sharedStep>", uow1)
+        // executeUntilStep completes <stepBeforeShared>, halting before the shared/conflict step
+        func1.executeUntilStep("<stepBeforeShared>", uow1)
 
         and:
         <primary2>Functionalities.<op2>(/* args */)
