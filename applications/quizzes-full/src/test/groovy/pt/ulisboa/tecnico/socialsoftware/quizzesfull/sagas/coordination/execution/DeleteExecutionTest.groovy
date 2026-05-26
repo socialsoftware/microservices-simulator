@@ -26,9 +26,6 @@ class DeleteExecutionTest extends QuizzesFullSpockTest {
     @Autowired
     CommandGateway commandGateway
 
-    public static final String ACRONYM_1 = "SE01"
-    public static final String ACADEMIC_TERM_1 = "1st Semester 2024/2025"
-
     def courseDto
     def executionDto
 

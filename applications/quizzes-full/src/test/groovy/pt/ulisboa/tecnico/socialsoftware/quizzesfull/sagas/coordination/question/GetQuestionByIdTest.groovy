@@ -45,7 +45,7 @@ class GetQuestionByIdTest extends QuizzesFullSpockTest {
 
     def "getQuestionById: aggregate not found"() {
         when:
-        questionFunctionalities.getQuestionById(999)
+        questionFunctionalities.getQuestionById(NONEXISTENT_AGGREGATE_ID)
 
         then:
         thrown(SimulatorException)

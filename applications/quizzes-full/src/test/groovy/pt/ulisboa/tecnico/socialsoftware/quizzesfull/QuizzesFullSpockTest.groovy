@@ -46,6 +46,11 @@ class QuizzesFullSpockTest extends SpockTest {
     public static final String USER_USERNAME_1 = "johndoe"
     public static final String STUDENT_ROLE = "STUDENT"
 
+    public static final String ACRONYM_1 = "SE01"
+    public static final String ACADEMIC_TERM_1 = "1st Semester 2024/2025"
+
+    public static final Integer NONEXISTENT_AGGREGATE_ID = 999_999
+
     @Autowired
     public ImpairmentService impairmentService
     @Autowired(required = false)
@@ -120,11 +125,14 @@ class QuizzesFullSpockTest extends SpockTest {
         return executionFunctionalities.createExecution(acronym, academicTerm, courseId)
     }
 
-    QuestionDto createQuestion(Integer courseId, List<Integer> topicIds, String title, String content) {
-        Set<Option> options = new HashSet<>([
-            new Option(1, 1, "Option A", true),
-            new Option(2, 2, "Option B", false)
-        ])
+    QuestionDto createQuestion(Integer courseId, List<Integer> topicIds, String title, String content,
+                                Set<Option> options = null) {
+        if (options == null) {
+            options = new HashSet<>([
+                new Option(1, 1, "Option A", true),
+                new Option(2, 2, "Option B", false)
+            ])
+        }
         return questionFunctionalities.createQuestion(title, content, courseId, topicIds, options)
     }
 
@@ -134,6 +142,17 @@ class QuizzesFullSpockTest extends SpockTest {
                 LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2),
                 LocalDateTime.now().plusDays(3),
+                "GENERATED",
+                executionId,
+                questionIds)
+    }
+
+    QuizDto createStartedQuiz(Integer executionId, List<Integer> questionIds) {
+        return quizFunctionalities.createQuiz(
+                "Test Quiz",
+                DateHandler.now().minusMinutes(5),
+                DateHandler.now().plusDays(1),
+                DateHandler.now().plusDays(2),
                 "GENERATED",
                 executionId,
                 questionIds)

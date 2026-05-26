@@ -60,7 +60,7 @@ class GetTournamentByIdTest extends QuizzesFullSpockTest {
 
     def "getTournamentById: aggregate not found"() {
         when:
-        tournamentFunctionalities.getTournamentById(999)
+        tournamentFunctionalities.getTournamentById(NONEXISTENT_AGGREGATE_ID)
 
         then:
         thrown(SimulatorException)

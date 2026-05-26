@@ -37,7 +37,7 @@ class GetUserByIdTest extends QuizzesFullSpockTest {
 
     def "getUserById: user not found"() {
         when:
-        userFunctionalities.getUserById(999)
+        userFunctionalities.getUserById(NONEXISTENT_AGGREGATE_ID)
 
         then:
         def ex = thrown(SimulatorException)

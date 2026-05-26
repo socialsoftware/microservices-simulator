@@ -39,7 +39,7 @@ class GetTopicByIdTest extends QuizzesFullSpockTest {
 
     def "getTopicById: topic not found"() {
         when:
-        topicFunctionalities.getTopicById(999)
+        topicFunctionalities.getTopicById(NONEXISTENT_AGGREGATE_ID)
 
         then:
         thrown(SimulatorException)

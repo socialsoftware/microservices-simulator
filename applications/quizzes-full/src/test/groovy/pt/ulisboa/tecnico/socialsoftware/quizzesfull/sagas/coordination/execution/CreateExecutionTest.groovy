@@ -26,9 +26,7 @@ class CreateExecutionTest extends QuizzesFullSpockTest {
     @Autowired
     CommandGateway commandGateway
 
-    public static final String ACRONYM_1 = "SE01"
     public static final String ACRONYM_2 = "DS01"
-    public static final String ACADEMIC_TERM_1 = "1st Semester 2024/2025"
     public static final String ACADEMIC_TERM_2 = "2nd Semester 2024/2025"
 
     def courseDto
