@@ -91,6 +91,25 @@ class DeleteTournamentTest extends QuizzesFullSpockTest {
         thrown(SimulatorException)
     }
 
+    def "deleteTournament: success — clears participants on delete"() {
+        given: 'tournament has a participant'
+        def participant = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
+        executionFunctionalities.enrollStudentInExecution(executionId, participant.aggregateId)
+        tournamentFunctionalities.addParticipant(tournamentId, executionId, participant.aggregateId)
+
+        when:
+        tournamentFunctionalities.deleteTournament(tournamentId)
+
+        then:
+        noExceptionThrown()
+
+        and: 'deleted tournament is no longer accessible'
+        when:
+        tournamentFunctionalities.getTournamentById(tournamentId)
+        then:
+        thrown(SimulatorException)
+    }
+
     def "deleteTournament: TOURNAMENT_IS_CANCELED violation — cancelled tournament with participants"() {
         given: 'add a participant then cancel'
         def participant = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
