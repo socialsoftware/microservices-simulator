@@ -92,16 +92,16 @@ class SolveQuizTest extends QuizzesFullSpockTest {
     }
 
     def "solveQuiz: TOURNAMENT_IS_CANCELED — solving on a cancelled tournament is rejected"() {
-        given: 'participant is enrolled on a started tournament with a quiz answer'
-        def readyTournamentId = prepareTournamentReadyForSolveQuiz(participantId)
-        def tournamentDto = tournamentFunctionalities.getTournamentById(readyTournamentId)
+        given: 'participant is enrolled in a not-yet-started tournament with a quiz answer'
+        tournamentFunctionalities.addParticipant(tournamentId, executionId, participantId)
+        def tournamentDto = tournamentFunctionalities.getTournamentById(tournamentId)
         createQuizAnswer(tournamentDto.quizAggregateId, participantId)
 
-        and: 'tournament is cancelled'
-        tournamentFunctionalities.cancelTournament(readyTournamentId)
+        and: 'the tournament is cancelled before it starts'
+        tournamentFunctionalities.cancelTournament(tournamentId)
 
         when:
-        tournamentFunctionalities.solveQuiz(readyTournamentId, participantId)
+        tournamentFunctionalities.solveQuiz(tournamentId, participantId)
 
         then:
         def ex = thrown(QuizzesFullException)
