@@ -64,7 +64,19 @@ class CreateQuizAnswerTest extends QuizzesFullSpockTest {
         result.aggregateId != null
         result.quizAggregateId == quizId
         result.userAggregateId == userId
+        result.executionAggregateId == executionId
+        result.userName == USER_NAME_1
+        result.userUsername == USER_USERNAME_1
         result.completed == false
+        result.creationDate != null
+        result.answerDate != null
+        result.questionAnswerIds.isEmpty()
+
+        and: 'the quiz answer is persisted and retrievable'
+        def checkUow = unitOfWorkService.createUnitOfWork("check")
+        def dto = quizAnswerService.getQuizAnswerById(result.aggregateId, checkUow)
+        dto.aggregateId == result.aggregateId
+        dto.completed == false
     }
 
     def "createQuizAnswer: UNIQUE_QUIZ_ANSWER_PER_STUDENT violation"() {

@@ -392,5 +392,5 @@ skill to audit T1/T2/T3 completeness, fix fake/weak tests, and run the full test
 - [x] 3.4 — Execution
 - [x] 3.5 — Question
 - [x] 3.6 — Quiz
-- [ ] 3.7 — QuizAnswer
+- [x] 3.7 — QuizAnswer
 - [ ] 3.8 — Tournament

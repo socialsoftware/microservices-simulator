@@ -62,10 +62,12 @@ class AnswerQuestionTest extends QuizzesFullSpockTest {
         when:
         quizAnswerFunctionalities.answerQuestion(quizAnswerId, questionId, 1, 30)
 
-        then:
+        then: 'the answered question is reflected on the quiz answer state'
         def uow = unitOfWorkService.createUnitOfWork("check")
         def dto = quizAnswerService.getQuizAnswerById(quizAnswerId, uow)
+        dto.questionAnswerIds.size() == 1
         dto.questionAnswerIds.contains(questionId)
+        dto.completed == false
     }
 
     def "answerQuestion: QUESTION_ALREADY_ANSWERED violation"() {

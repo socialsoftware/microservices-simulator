@@ -8,6 +8,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 
+import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUIZ_ANSWER_NOT_FOUND
+
 @DataJpaTest
 @Transactional
 @Import(LocalBeanConfiguration)
@@ -63,6 +65,7 @@ class GetQuizAnswerByQuizIdAndStudentIdTest extends QuizzesFullSpockTest {
         quizAnswerFunctionalities.getQuizAnswerByQuizIdAndStudentId(999, 999)
 
         then:
-        thrown(QuizzesFullException)
+        def ex = thrown(QuizzesFullException)
+        ex.message == QUIZ_ANSWER_NOT_FOUND
     }
 }
