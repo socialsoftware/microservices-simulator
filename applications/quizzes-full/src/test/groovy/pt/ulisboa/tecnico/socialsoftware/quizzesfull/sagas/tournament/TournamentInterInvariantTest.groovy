@@ -70,7 +70,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleDeleteUserEvents()
 
         and: 'attempt to load the now-deleted tournament'
-        unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWorkService.createUnitOfWork("check"))
+        loadForCheck(tournamentId, Tournament)
 
         then:
         thrown(SimulatorException)
@@ -87,8 +87,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleDeleteUserEvents()
 
         then: 'tournament is still active'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, uow)
+        def unchanged = loadForCheck(tournamentId, Tournament)
         unchanged.state == AggregateState.ACTIVE
     }
 
@@ -104,8 +103,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleUpdateStudentNameEvents()
 
         then: 'cached creator name in tournament is updated'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def updated = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, checkUow) as Tournament
+        def updated = loadForCheck(tournamentId, Tournament)
         updated.creatorName == USER_NAME_2
     }
 
@@ -122,8 +120,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleUpdateStudentNameEvents()
 
         then: 'creator name in tournament is unchanged'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, checkUow) as Tournament
+        def unchanged = loadForCheck(tournamentId, Tournament)
         unchanged.creatorName == USER_NAME_1
     }
 
@@ -139,8 +136,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleAnonymizeStudentEvents()
 
         then: 'cached creator name and username in tournament are anonymized'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def updated = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, checkUow) as Tournament
+        def updated = loadForCheck(tournamentId, Tournament)
         updated.creatorName == "ANONYMOUS"
         updated.creatorUsername == "ANONYMOUS"
     }
@@ -158,8 +154,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleAnonymizeStudentEvents()
 
         then: 'creator name and username in tournament are unchanged'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, checkUow) as Tournament
+        def unchanged = loadForCheck(tournamentId, Tournament)
         unchanged.creatorName == USER_NAME_1
         unchanged.creatorUsername == USER_USERNAME_1
     }
@@ -177,8 +172,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleUpdateTopicEvents()
 
         then: 'cached topic name in tournament is updated'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def updated = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, checkUow) as Tournament
+        def updated = loadForCheck(tournamentId, Tournament)
         updated.topics.any { it.topicAggregateId == topicId && it.topicName == "Updated Topic" }
     }
 
@@ -196,8 +190,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleUpdateTopicEvents()
 
         then: 'tournament topic name is unchanged'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, checkUow) as Tournament
+        def unchanged = loadForCheck(tournamentId, Tournament)
         unchanged.topics.any { it.topicAggregateId == topicId && it.topicName == "Topic A" }
     }
 
@@ -211,8 +204,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleDeleteTopicEvents()
 
         then: 'topic is removed from tournament'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def updated = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, checkUow) as Tournament
+        def updated = loadForCheck(tournamentId, Tournament)
         updated.topics.every { it.topicAggregateId != topicId }
     }
 
@@ -227,8 +219,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleDeleteTopicEvents()
 
         then: 'tournament still contains its topic'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, checkUow) as Tournament
+        def unchanged = loadForCheck(tournamentId, Tournament)
         unchanged.topics.any { it.topicAggregateId == topicId }
     }
 
@@ -242,7 +233,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleDeleteCourseExecutionEvents()
 
         and: 'attempt to load the now-deleted tournament'
-        unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWorkService.createUnitOfWork("check"))
+        loadForCheck(tournamentId, Tournament)
 
         then:
         thrown(SimulatorException)
@@ -259,8 +250,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleDeleteCourseExecutionEvents()
 
         then: 'tournament is still active'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, uow)
+        def unchanged = loadForCheck(tournamentId, Tournament)
         unchanged.state == AggregateState.ACTIVE
     }
 
@@ -277,7 +267,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleInvalidateQuizEvents()
 
         and: 'attempt to load the now-deleted tournament'
-        unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, unitOfWorkService.createUnitOfWork("check"))
+        loadForCheck(tournamentId, Tournament)
 
         then:
         thrown(SimulatorException)
@@ -294,8 +284,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleInvalidateQuizEvents()
 
         then: 'tournament is still active'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = unitOfWorkService.aggregateLoadAndRegisterRead(tournamentId, uow)
+        def unchanged = loadForCheck(tournamentId, Tournament)
         unchanged.state == AggregateState.ACTIVE
     }
 
@@ -321,8 +310,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleQuizAnswerQuestionAnswerEvents()
 
         then: 'participant answered flag is set and answer count reflects the event'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def updated = unitOfWorkService.aggregateLoadAndRegisterRead(readyTournamentId, checkUow) as Tournament
+        def updated = loadForCheck(readyTournamentId, Tournament)
         def participant = updated.participants.find { it.participantAggregateId == creatorId }
         participant != null && participant.quizAnswer.answered == true
         participant.quizAnswer.numberOfAnswered == 1
@@ -348,8 +336,7 @@ class TournamentInterInvariantTest extends QuizzesFullSpockTest {
         tournamentEventHandling.handleQuizAnswerQuestionAnswerEvents()
 
         then: 'creator participant answer count is unchanged by the unlinked event'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = unitOfWorkService.aggregateLoadAndRegisterRead(readyTournamentId, checkUow) as Tournament
+        def unchanged = loadForCheck(readyTournamentId, Tournament)
         def participant = unchanged.participants.find { it.participantAggregateId == creatorId }
         participant != null && participant.quizAnswer.numberOfAnswered == 0
     }

@@ -41,8 +41,7 @@ class QuestionInterInvariantTest extends QuizzesFullSpockTest {
         questionEventHandling.handleUpdateTopicEvents()
 
         then: 'cached topic name in question is updated'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def updatedQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(question.aggregateId, uow)
+        def updatedQuestion = loadForCheck(question.aggregateId, Question)
         updatedQuestion.topics.any { it.topicAggregateId == topic.aggregateId && it.topicName == "Updated Topic Name" }
     }
 
@@ -64,8 +63,7 @@ class QuestionInterInvariantTest extends QuizzesFullSpockTest {
         questionEventHandling.handleUpdateTopicEvents()
 
         then: 'cached topic name for topic1 in question is unchanged'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(question.aggregateId, uow)
+        def unchanged = loadForCheck(question.aggregateId, Question)
         unchanged.topics.any { it.topicAggregateId == topic1.aggregateId && it.topicName == "Topic One" }
     }
 
@@ -85,8 +83,7 @@ class QuestionInterInvariantTest extends QuizzesFullSpockTest {
         questionEventHandling.handleDeleteTopicEvents()
 
         then: 'topic is removed from question'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def updatedQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(question.aggregateId, uow)
+        def updatedQuestion = loadForCheck(question.aggregateId, Question)
         updatedQuestion.topics.every { it.topicAggregateId != topic.aggregateId }
     }
 
@@ -105,8 +102,7 @@ class QuestionInterInvariantTest extends QuizzesFullSpockTest {
         questionEventHandling.handleDeleteTopicEvents()
 
         then: 'topic1 is still in question'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(question.aggregateId, uow)
+        def unchanged = loadForCheck(question.aggregateId, Question)
         unchanged.topics.any { it.topicAggregateId == topic1.aggregateId }
     }
 }

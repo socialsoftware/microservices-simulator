@@ -107,6 +107,11 @@ class QuizzesFullSpockTest extends SpockTest {
         return agg.getSagaState()
     }
 
+    protected <T> T loadForCheck(Integer aggregateId, Class<T> type) {
+        def uow = unitOfWorkService.createUnitOfWork("check")
+        return type.cast(unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, uow))
+    }
+
     CourseDto createCourse(String name, String type) {
         return courseFunctionalities.createCourse(name, type)
     }

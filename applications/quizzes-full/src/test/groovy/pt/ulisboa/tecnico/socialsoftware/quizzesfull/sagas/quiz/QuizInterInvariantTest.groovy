@@ -41,8 +41,7 @@ class QuizInterInvariantTest extends QuizzesFullSpockTest {
         quizEventHandling.handleUpdateQuestionEvents()
 
         then: 'cached question fields in quiz are updated'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def updatedQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quiz.aggregateId, uow)
+        def updatedQuiz = loadForCheck(quiz.aggregateId, Quiz)
         updatedQuiz.questions.any { it.questionAggregateId == question.aggregateId && it.title == "Updated Title" && it.content == "Updated Content" }
     }
 
@@ -63,8 +62,7 @@ class QuizInterInvariantTest extends QuizzesFullSpockTest {
         quizEventHandling.handleUpdateQuestionEvents()
 
         then: 'cached question1 fields in quiz are unchanged'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quiz.aggregateId, uow)
+        def unchanged = loadForCheck(quiz.aggregateId, Quiz)
         unchanged.questions.any { it.questionAggregateId == question1.aggregateId && it.title == "Q1 Title" && it.content == "Q1 Content" }
     }
 
@@ -86,7 +84,7 @@ class QuizInterInvariantTest extends QuizzesFullSpockTest {
         quizEventHandling.handleDeleteQuestionEvents()
 
         and: 'loading the quiz is attempted'
-        unitOfWorkService.aggregateLoadAndRegisterRead(quiz.aggregateId, unitOfWorkService.createUnitOfWork("check"))
+        loadForCheck(quiz.aggregateId, Quiz)
 
         then: 'quiz is no longer loadable (deleted)'
         thrown(SimulatorException)
@@ -109,8 +107,7 @@ class QuizInterInvariantTest extends QuizzesFullSpockTest {
         quizEventHandling.handleDeleteQuestionEvents()
 
         then: 'quiz is still active'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quiz.aggregateId, uow)
+        def unchanged = loadForCheck(quiz.aggregateId, Quiz)
         unchanged.state == AggregateState.ACTIVE
     }
 
@@ -132,7 +129,7 @@ class QuizInterInvariantTest extends QuizzesFullSpockTest {
         quizEventHandling.handleDeleteCourseExecutionEvents()
 
         and: 'loading the quiz is attempted'
-        unitOfWorkService.aggregateLoadAndRegisterRead(quiz.aggregateId, unitOfWorkService.createUnitOfWork("check"))
+        loadForCheck(quiz.aggregateId, Quiz)
 
         then: 'quiz is no longer loadable (deleted)'
         thrown(SimulatorException)
@@ -155,8 +152,7 @@ class QuizInterInvariantTest extends QuizzesFullSpockTest {
         quizEventHandling.handleDeleteCourseExecutionEvents()
 
         then: 'quiz is still active'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def unchanged = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quiz.aggregateId, uow)
+        def unchanged = loadForCheck(quiz.aggregateId, Quiz)
         unchanged.state == AggregateState.ACTIVE
     }
 }
