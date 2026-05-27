@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordi
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.CreateExecutionFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 
 @DataJpaTest
 @Transactional
@@ -36,6 +37,9 @@ class CreateExecutionTest extends QuizzesFullSpockTest {
     }
 
     def "createExecution: success"() {
+        // Spec: Execution.{acronym,academicTerm,courseId} = input;
+        //       SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.4 Execution / createExecution.
         when:
         def result = createExecution(courseDto.aggregateId, ACRONYM_1, ACADEMIC_TERM_1)
 
@@ -44,6 +48,7 @@ class CreateExecutionTest extends QuizzesFullSpockTest {
         result.acronym == ACRONYM_1
         result.academicTerm == ACADEMIC_TERM_1
         result.courseId == courseDto.aggregateId
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "createExecution: NO_DUPLICATE_COURSE_EXECUTION violation"() {
@@ -62,12 +67,16 @@ class CreateExecutionTest extends QuizzesFullSpockTest {
         given:
         createExecution(courseDto.aggregateId, ACRONYM_1, ACADEMIC_TERM_1)
 
+        // Spec: Execution.{acronym,academicTerm,courseId} = input;
+        //       SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.4 Execution / createExecution.
         when:
         def result = createExecution(courseDto.aggregateId, ACRONYM_2, ACADEMIC_TERM_1)
 
         then:
         result.aggregateId != null
         result.acronym == ACRONYM_2
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "createExecution: getCourseStep acquires READ_COURSE semantic lock"() {

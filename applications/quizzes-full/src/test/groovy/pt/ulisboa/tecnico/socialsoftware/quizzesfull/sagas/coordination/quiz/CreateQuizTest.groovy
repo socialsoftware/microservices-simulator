@@ -12,6 +12,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.Qui
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUIZ_DATE_ORDERING
 
@@ -44,6 +45,9 @@ class CreateQuizTest extends QuizzesFullSpockTest {
         def conclusionDate = LocalDateTime.now().plusDays(2)
         def resultsDate = LocalDateTime.now().plusDays(3)
 
+        // Spec: Quiz.{title,executionId,questionIds} = input; dates as supplied;
+        //       SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.6 Quiz / createQuiz.
         when:
         QuizDto result = quizFunctionalities.createQuiz("Test Quiz", availableDate, conclusionDate,
                 resultsDate, "GENERATED", executionDto.aggregateId, [questionDto.aggregateId])
@@ -53,6 +57,7 @@ class CreateQuizTest extends QuizzesFullSpockTest {
         result.title == "Test Quiz"
         result.executionId == executionDto.aggregateId
         result.questionIds.contains(questionDto.aggregateId)
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "createQuiz: success with no questions"() {
@@ -61,6 +66,9 @@ class CreateQuizTest extends QuizzesFullSpockTest {
         def conclusionDate = LocalDateTime.now().plusDays(2)
         def resultsDate = LocalDateTime.now().plusDays(3)
 
+        // Spec: Quiz.{title,executionId,questionIds} = input; dates as supplied;
+        //       SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.6 Quiz / createQuiz.
         when:
         QuizDto result = quizFunctionalities.createQuiz("Empty Quiz", availableDate, conclusionDate,
                 resultsDate, "GENERATED", executionDto.aggregateId, [])
@@ -68,6 +76,7 @@ class CreateQuizTest extends QuizzesFullSpockTest {
         then:
         result.aggregateId != null
         result.questionIds.isEmpty()
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "createQuiz: violates QUIZ_DATE_ORDERING — availableDate after conclusionDate"() {

@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordi
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 
 @DataJpaTest
 @Transactional
@@ -36,6 +37,8 @@ class CreateTopicTest extends QuizzesFullSpockTest {
     }
 
     def "createTopic: success"() {
+        // Spec: Topic.{name,courseId} = input; SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.3 Topic / createTopic.
         when:
         TopicDto result = createTopic(courseDto.aggregateId, TOPIC_NAME_1)
 
@@ -43,12 +46,15 @@ class CreateTopicTest extends QuizzesFullSpockTest {
         result.aggregateId != null
         result.name == TOPIC_NAME_1
         result.courseId == courseDto.aggregateId
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "createTopic: success with second topic on same course"() {
         given:
         createTopic(courseDto.aggregateId, TOPIC_NAME_1)
 
+        // Spec: Topic.{name,courseId} = input; SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.3 Topic / createTopic.
         when:
         TopicDto result = createTopic(courseDto.aggregateId, TOPIC_NAME_2)
 
@@ -56,6 +62,7 @@ class CreateTopicTest extends QuizzesFullSpockTest {
         result.aggregateId != null
         result.name == TOPIC_NAME_2
         result.courseId == courseDto.aggregateId
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "createTopic: createTopicStep completes when concurrent updateCourse holds course lock"() {

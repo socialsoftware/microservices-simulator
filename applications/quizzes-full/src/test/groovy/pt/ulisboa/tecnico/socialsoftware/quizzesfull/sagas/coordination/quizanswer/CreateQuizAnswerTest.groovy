@@ -13,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.Qui
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.states.QuizSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.CreateQuizAnswerFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.sagas.states.UserSagaState
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.UNIQUE_QUIZ_ANSWER_PER_STUDENT
 
@@ -57,6 +58,10 @@ class CreateQuizAnswerTest extends QuizzesFullSpockTest {
     }
 
     def "createQuizAnswer: success"() {
+        // Spec: QuizAnswer.{quizAggregateId,userAggregateId,executionAggregateId,
+        //       userName,userUsername} = input refs; completed=false;
+        //       SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.7 QuizAnswer / createQuizAnswer.
         when:
         def result = createQuizAnswer(quizId, userId)
 
@@ -71,6 +76,7 @@ class CreateQuizAnswerTest extends QuizzesFullSpockTest {
         result.creationDate != null
         result.answerDate != null
         result.questionAnswerIds.isEmpty()
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
 
         and: 'the quiz answer is persisted and retrievable'
         def checkUow = unitOfWorkService.createUnitOfWork("check")

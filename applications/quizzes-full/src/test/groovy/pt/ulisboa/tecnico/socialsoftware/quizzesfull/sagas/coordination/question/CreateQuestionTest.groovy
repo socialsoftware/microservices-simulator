@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggr
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Question
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 
 @DataJpaTest
 @Transactional
@@ -44,6 +45,9 @@ class CreateQuestionTest extends QuizzesFullSpockTest {
     }
 
     def "createQuestion: success"() {
+        // Spec: Question.{title,content,courseAggregateId,topicIds} = input;
+        //       creationDate != null; SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.5 Question / createQuestion.
         when:
         QuestionDto result = createQuestion(courseDto.aggregateId, [topicDto.aggregateId], QUESTION_TITLE_1, QUESTION_CONTENT_1)
 
@@ -55,6 +59,7 @@ class CreateQuestionTest extends QuizzesFullSpockTest {
         result.topicIds.contains(topicDto.aggregateId)
         result.creationDate != null
         result.optionKeys.size() == 2
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
 
         and: 'question is persisted and retrievable'
         def uow = unitOfWorkService.createUnitOfWork("verify")
@@ -64,6 +69,9 @@ class CreateQuestionTest extends QuizzesFullSpockTest {
     }
 
     def "createQuestion: success with no topics"() {
+        // Spec: Question.{title,content,courseAggregateId,topicIds} = input;
+        //       creationDate != null; SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.5 Question / createQuestion.
         when:
         QuestionDto result = createQuestion(courseDto.aggregateId, [], QUESTION_TITLE_1, QUESTION_CONTENT_1)
 
@@ -71,6 +79,7 @@ class CreateQuestionTest extends QuizzesFullSpockTest {
         result.aggregateId != null
         result.title == QUESTION_TITLE_1
         result.topicIds.isEmpty()
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "createQuestion: TOPIC_BELONGS_TO_QUESTION_COURSE — topic from different course raises exception"() {

@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 
 @DataJpaTest
 @Transactional
@@ -17,6 +18,9 @@ class CreateUserTest extends QuizzesFullSpockTest {
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 
     def "createUser: success"() {
+        // Spec: User.{name,username,role} = input; active=true (service override);
+        //       SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.2 User / createUser.
         when:
         def result = userFunctionalities.createUser(new UserDto(null, USER_NAME_1, USER_USERNAME_1, STUDENT_ROLE, false))
 
@@ -26,5 +30,6 @@ class CreateUserTest extends QuizzesFullSpockTest {
         result.username == USER_USERNAME_1
         result.role == STUDENT_ROLE
         result.active == true
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 }

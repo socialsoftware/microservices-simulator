@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_TOPIC_COURSE_MISMATCH
@@ -57,6 +58,9 @@ class CreateTournamentTest extends QuizzesFullSpockTest {
     }
 
     def "createTournament: success"() {
+        // Spec: Tournament.{executionAggregateId,creatorAggregateId,numberOfQuestions} = input;
+        //       cancelled=false; SagaState after commit == NOT_IN_SAGA.
+        // Source: plan.md §2.8 Tournament / createTournament.
         when:
         def result = createTournament(executionId, userId, [topicId], 1, startTime, endTime)
 
@@ -66,6 +70,7 @@ class CreateTournamentTest extends QuizzesFullSpockTest {
         result.creatorAggregateId == userId
         result.numberOfQuestions == 1
         result.cancelled == false
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "createTournament: CREATOR_COURSE_EXECUTION violation — creator not enrolled"() {
