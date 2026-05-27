@@ -8,14 +8,14 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.QuizAnswer
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.notification.handling.QuizAnswerEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.InterInvariantTestBase
 
 @DataJpaTest
 @Transactional
 @Import(LocalBeanConfiguration)
-class QuizAnswerInterInvariantTest extends QuizzesFullSpockTest {
+class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
@@ -23,33 +23,8 @@ class QuizAnswerInterInvariantTest extends QuizzesFullSpockTest {
     @Autowired
     QuizAnswerEventHandling quizAnswerEventHandling
 
-    Integer courseId
-    Integer userId
-    Integer executionId
-    Integer topicId
-    Integer questionId
-    Integer quizId
-
     def setup() {
-        def course = createCourse(COURSE_NAME_1, COURSE_TYPE_TECNICO)
-        courseId = course.aggregateId
-
-        def user = createUser(USER_NAME_1, USER_USERNAME_1, STUDENT_ROLE)
-        userId = user.aggregateId
-
-        def execution = createExecution(courseId, "EA001", "1st Semester 2024/25")
-        executionId = execution.aggregateId
-
-        executionFunctionalities.enrollStudentInExecution(executionId, userId)
-
-        def topic = createTopic(courseId, "Topic A")
-        topicId = topic.aggregateId
-
-        def question = createQuestion(courseId, [topicId], "Q1 Title", "Q1 Content")
-        questionId = question.aggregateId
-
-        def quiz = createQuiz(executionId, [questionId])
-        quizId = quiz.aggregateId
+        buildFixture([Stage.QUIZ, Stage.ENROLLMENT] as Set)
     }
 
     // ─── USER_EXISTS — DeleteUserEvent ───────────────────────────────────────
