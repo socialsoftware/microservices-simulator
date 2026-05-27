@@ -9,7 +9,7 @@ and provides structure templates for each category.
 ## Test Taxonomy
 
 | Type | Naming pattern | What it validates |
-|------|------|----------------|-------------------|
+|------|----------------|-------------------|
 | **T1 Creation** | `<Aggregate>Test` | Aggregate instantiation + all intra-invariants pass on a fresh instance |
 | **T2 Functionality** | `<FunctionalityName>Test` | Happy path · invariant/guard violations · ≥1 step-interleaving case per saga step boundary |
 | **T3 Inter-Invariant** | `<Consumer>InterInvariantTest` | Event received → cached state updated; unrelated event → state unchanged |
