@@ -29,7 +29,7 @@ class QuizInterInvariantTest extends InterInvariantTestBase {
 
     // ─── QUESTION_EXISTS — UpdateQuestionEvent ───────────────────────────────
 
-    def "quiz reflects UpdateQuestionEvent"() {
+    def "quiz updates cachedQuestion on UpdateQuestionEvent"() {
         when: 'question is updated, publishing UpdateQuestionEvent'
         questionFunctionalities.updateQuestion(questionId, "Updated Title", "Updated Content", [topicId])
 
@@ -58,7 +58,7 @@ class QuizInterInvariantTest extends InterInvariantTestBase {
 
     // ─── QUESTION_EXISTS — DeleteQuestionEvent ───────────────────────────────
 
-    def "quiz is invalidated on DeleteQuestionEvent"() {
+    def "quiz invalidates self on DeleteQuestionEvent"() {
         when: 'question is deleted, publishing DeleteQuestionEvent'
         questionFunctionalities.deleteQuestion(questionId)
 
@@ -89,7 +89,7 @@ class QuizInterInvariantTest extends InterInvariantTestBase {
 
     // ─── COURSE_EXECUTION_EXISTS — DeleteCourseExecutionEvent ─────────────────
 
-    def "quiz is invalidated on DeleteCourseExecutionEvent"() {
+    def "quiz invalidates self on DeleteCourseExecutionEvent"() {
         when: 'execution is deleted, publishing DeleteCourseExecutionEvent'
         executionFunctionalities.deleteExecution(executionId)
 

@@ -27,7 +27,7 @@ class ExecutionInterInvariantTest extends InterInvariantTestBase {
 
     // ─── USER_EXISTS — DeleteUserEvent ───────────────────────────────────────
 
-    def "execution removes student when user is deleted"() {
+    def "execution removes student on DeleteUserEvent"() {
         when: 'user is deleted, publishing DeleteUserEvent'
         userFunctionalities.deleteUser(userId)
 
@@ -57,7 +57,7 @@ class ExecutionInterInvariantTest extends InterInvariantTestBase {
 
     // ─── USER_EXISTS — UpdateStudentNameEvent ─────────────────────────────────
 
-    def "execution updates cached student name on UpdateStudentNameEvent"() {
+    def "execution updates studentName on UpdateStudentNameEvent"() {
         when: 'user name is updated directly, publishing UpdateStudentNameEvent'
         def uow = unitOfWorkService.createUnitOfWork("updateUserName")
         userService.updateUserName(userId, USER_NAME_2, uow)
@@ -90,7 +90,7 @@ class ExecutionInterInvariantTest extends InterInvariantTestBase {
 
     // ─── USER_EXISTS — AnonymizeStudentEvent ──────────────────────────────────
 
-    def "execution anonymizes cached student data on AnonymizeStudentEvent"() {
+    def "execution anonymizes student on AnonymizeStudentEvent"() {
         when: 'user is anonymized directly, publishing AnonymizeStudentEvent'
         def uow = unitOfWorkService.createUnitOfWork("anonymizeUser")
         userService.anonymizeUser(userId, uow)

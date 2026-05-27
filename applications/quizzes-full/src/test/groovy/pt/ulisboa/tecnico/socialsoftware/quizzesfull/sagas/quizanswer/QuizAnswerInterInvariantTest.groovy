@@ -29,7 +29,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
 
     // ─── USER_EXISTS — DeleteUserEvent ───────────────────────────────────────
 
-    def "quizAnswer is deleted on DeleteUserEvent"() {
+    def "quizAnswer deletes self on DeleteUserEvent"() {
         given:
         def quizAnswer = createQuizAnswer(quizId, userId)
 
@@ -64,7 +64,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
 
     // ─── USER_EXISTS — UpdateStudentNameEvent ─────────────────────────────────
 
-    def "quizAnswer reflects UpdateStudentNameEvent"() {
+    def "quizAnswer updates studentName on UpdateStudentNameEvent"() {
         given:
         def quizAnswer = createQuizAnswer(quizId, userId)
 
@@ -101,7 +101,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
 
     // ─── USER_EXISTS — AnonymizeStudentEvent ──────────────────────────────────
 
-    def "quizAnswer reflects AnonymizeStudentEvent"() {
+    def "quizAnswer anonymizes student on AnonymizeStudentEvent"() {
         given:
         def quizAnswer = createQuizAnswer(quizId, userId)
 
@@ -140,7 +140,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
 
     // ─── USER_EXISTS — DisenrollStudentFromCourseExecutionEvent ──────────────
 
-    def "quizAnswer is deleted on DisenrollStudentFromCourseExecutionEvent"() {
+    def "quizAnswer deletes self on DisenrollStudentFromCourseExecutionEvent"() {
         given:
         def quizAnswer = createQuizAnswer(quizId, userId)
 
@@ -176,7 +176,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
 
     // ─── QUESTION_EXISTS — UpdateQuestionEvent ───────────────────────────────
 
-    def "quizAnswer reflects UpdateQuestionEvent"() {
+    def "quizAnswer updates cachedQuestion on UpdateQuestionEvent"() {
         given:
         def quizAnswer = createQuizAnswer(quizId, userId)
         quizAnswerFunctionalities.answerQuestion(quizAnswer.aggregateId, questionId, 1, 30)
@@ -217,7 +217,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
 
     // ─── COURSE_EXECUTION_EXISTS — DeleteCourseExecutionEvent ─────────────────
 
-    def "quizAnswer is deleted on DeleteCourseExecutionEvent"() {
+    def "quizAnswer deletes self on DeleteCourseExecutionEvent"() {
         given:
         def quizAnswer = createQuizAnswer(quizId, userId)
 
@@ -252,7 +252,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
 
     // ─── QUIZ_EXISTS — InvalidateQuizEvent ───────────────────────────────────
 
-    def "quizAnswer is deleted on InvalidateQuizEvent"() {
+    def "quizAnswer deletes self on InvalidateQuizEvent"() {
         given:
         def quizAnswer = createQuizAnswer(quizId, userId)
 

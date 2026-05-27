@@ -24,15 +24,18 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
     @Autowired
     TournamentEventHandling tournamentEventHandling
 
+    Integer creatorId
+
     def setup() {
         buildFixture([Stage.TOURNAMENT] as Set)
+        creatorId = userId   // semantic alias for tournament-creator role
     }
 
     // ─── CREATOR_EXISTS / PARTICIPANT_EXISTS — DeleteUserEvent ────────────────
 
-    def "tournament is deleted on DeleteUserEvent for creator"() {
+    def "tournament deletes self on DeleteUserEvent for creator"() {
         when: 'creator is deleted, publishing DeleteUserEvent'
-        userFunctionalities.deleteUser(userId)
+        userFunctionalities.deleteUser(creatorId)
 
         and: 'tournament polls for delete user events'
         tournamentEventHandling.handleDeleteUserEvents()
@@ -61,10 +64,10 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
 
     // ─── CREATOR_EXISTS / PARTICIPANT_EXISTS — UpdateStudentNameEvent ─────────
 
-    def "tournament reflects UpdateStudentNameEvent for creator"() {
+    def "tournament updates creatorName on UpdateStudentNameEvent for creator"() {
         when: 'creator name is updated, publishing UpdateStudentNameEvent'
         def uow = unitOfWorkService.createUnitOfWork("updateName")
-        userService.updateUserName(userId, USER_NAME_2, uow)
+        userService.updateUserName(creatorId, USER_NAME_2, uow)
         unitOfWorkService.commit(uow)
 
         and: 'tournament polls for update student name events'
@@ -94,10 +97,10 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
 
     // ─── CREATOR_EXISTS / PARTICIPANT_EXISTS — AnonymizeStudentEvent ──────────
 
-    def "tournament reflects AnonymizeStudentEvent for creator"() {
+    def "tournament anonymizes creator on AnonymizeStudentEvent for creator"() {
         when: 'creator is anonymized, publishing AnonymizeStudentEvent'
         def uow = unitOfWorkService.createUnitOfWork("anonymize")
-        userService.anonymizeUser(userId, uow)
+        userService.anonymizeUser(creatorId, uow)
         unitOfWorkService.commit(uow)
 
         and: 'tournament polls for anonymize student events'
@@ -129,7 +132,7 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
 
     // ─── TOPIC_EXISTS — UpdateTopicEvent ─────────────────────────────────────
 
-    def "tournament reflects UpdateTopicEvent"() {
+    def "tournament updates topicName on UpdateTopicEvent"() {
         when: 'topic name is updated, publishing UpdateTopicEvent'
         def topicDto = new TopicDto()
         topicDto.aggregateId = topicId
@@ -193,7 +196,7 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
 
     // ─── COURSE_EXECUTION_EXISTS — DeleteCourseExecutionEvent ─────────────────
 
-    def "tournament is deleted on DeleteCourseExecutionEvent"() {
+    def "tournament deletes self on DeleteCourseExecutionEvent"() {
         when: 'execution is deleted, publishing DeleteCourseExecutionEvent'
         executionFunctionalities.deleteExecution(executionId)
 
@@ -224,7 +227,7 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
 
     // ─── QUIZ_EXISTS — InvalidateQuizEvent ───────────────────────────────────
 
-    def "tournament is deleted on InvalidateQuizEvent"() {
+    def "tournament deletes self on InvalidateQuizEvent"() {
         given:
         def quizId = tournamentFunctionalities.getTournamentById(tournamentId).quizAggregateId
 
@@ -259,17 +262,17 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
     // ─── QUIZ_ANSWER_EXISTS — QuizAnswerQuestionAnswerEvent ───────────────────
 
     private Integer prepareTournamentReadyForSolveQuiz() {
-        def tournament = createStartedTournament(executionId, userId, [topicId], 1)
-        addParticipantEnrolledBeforeStart(tournament.aggregateId, userId, tournament.startTime)
+        def tournament = createStartedTournament(executionId, creatorId, [topicId], 1)
+        addParticipantEnrolledBeforeStart(tournament.aggregateId, creatorId, tournament.startTime)
         return tournament.aggregateId
     }
 
-    def "tournament reflects QuizAnswerQuestionAnswerEvent for linked participant"() {
+    def "tournament updates participantAnswer on QuizAnswerQuestionAnswerEvent for linked participant"() {
         given: 'creator is added as participant and a quiz answer is linked on a started tournament'
         def readyTournamentId = prepareTournamentReadyForSolveQuiz()
         def tournamentDto = tournamentFunctionalities.getTournamentById(readyTournamentId)
-        def quizAnswer = createQuizAnswer(tournamentDto.quizAggregateId, userId)
-        tournamentFunctionalities.solveQuiz(readyTournamentId, userId)
+        def quizAnswer = createQuizAnswer(tournamentDto.quizAggregateId, creatorId)
+        tournamentFunctionalities.solveQuiz(readyTournamentId, creatorId)
 
         when: 'participant answers a question, publishing QuizAnswerQuestionAnswerEvent'
         quizAnswerFunctionalities.answerQuestion(quizAnswer.aggregateId, questionId, 1, 30)
@@ -279,7 +282,7 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
 
         then: 'participant answered flag is set and answer count reflects the event'
         def updated = loadForCheck(readyTournamentId, Tournament)
-        def participant = updated.participants.find { it.participantAggregateId == userId }
+        def participant = updated.participants.find { it.participantAggregateId == creatorId }
         participant != null && participant.quizAnswer.answered == true
         participant.quizAnswer.numberOfAnswered == 1
     }
@@ -288,8 +291,8 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
         given: 'creator is added as participant with a linked quiz answer on a started tournament'
         def readyTournamentId = prepareTournamentReadyForSolveQuiz()
         def tournamentDto = tournamentFunctionalities.getTournamentById(readyTournamentId)
-        createQuizAnswer(tournamentDto.quizAggregateId, userId)
-        tournamentFunctionalities.solveQuiz(readyTournamentId, userId)
+        createQuizAnswer(tournamentDto.quizAggregateId, creatorId)
+        tournamentFunctionalities.solveQuiz(readyTournamentId, creatorId)
 
         and: 'a second user creates an unlinked quiz answer'
         def user2 = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
@@ -305,7 +308,7 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
 
         then: 'creator participant answer count is unchanged by the unlinked event'
         def unchanged = loadForCheck(readyTournamentId, Tournament)
-        def participant = unchanged.participants.find { it.participantAggregateId == userId }
+        def participant = unchanged.participants.find { it.participantAggregateId == creatorId }
         participant != null && participant.quizAnswer.numberOfAnswered == 0
     }
 }

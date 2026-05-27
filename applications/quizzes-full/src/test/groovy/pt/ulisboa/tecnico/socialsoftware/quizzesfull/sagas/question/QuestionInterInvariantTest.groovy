@@ -28,7 +28,7 @@ class QuestionInterInvariantTest extends InterInvariantTestBase {
 
     // ─── TOPICS_EXIST — UpdateTopicEvent ──────────────────────────────────────
 
-    def "question reflects UpdateTopicEvent"() {
+    def "question updates topicName on UpdateTopicEvent"() {
         when: 'topic name is updated, publishing UpdateTopicEvent'
         def topicDto = new TopicDto()
         topicDto.aggregateId = topicId
