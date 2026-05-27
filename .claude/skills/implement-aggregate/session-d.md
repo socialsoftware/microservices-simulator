@@ -10,15 +10,14 @@ This sub-file is loaded by `implement-aggregate` when the target session type is
 
 Load these files before writing any code:
 
-1. **`docs/concepts/events.md`** — the full file. Pay attention to:
-   - `EventSubscription` subclass structure (anchor field, `getAggregateId()`, `getEventType()`)
-   - `@Scheduled` polling pattern in `{Aggregate}EventHandling`
-   - How `{Aggregate}EventHandler` dispatches to `{Aggregate}EventProcessing`
-   - How `process{Event}(...)` updates cached snapshot fields on the aggregate
-   - The contract: call `verifyInvariants()` after updating snapshot fields
-   - What `anchor aggregate id` means and how to filter events by it
+1. **`docs/concepts/events.md`** — specifically:
+   - § Event Classes, § Publishing Events, § EventSubscription (anchor field, `getAggregateId()`, `getEventType()`)
+   - § EventHandler, § Polling — dispatch and `@Scheduled` polling
+   - § Canonical Wiring Snippet (and all subsections) — the per-file structure for this session
+   - § Canonical Wiring Snippet → EventProcessing class, § ByEvent sagaState guard — the contract: `verifyInvariants()` after the cached-field change, plus the saga-state skip
+   - § Cascade Invalidation Pattern — only if a deletion event causes `copy.remove()` on this aggregate
 
-2. **`docs/concepts/testing.md`** — T3 section only (Inter-Invariant Tests). Note:
+2. **`docs/concepts/testing.md`** — § T3 — Inter-Invariant Test and § T3 Deletion-Event Tests. Note:
    - What a T3 test asserts (event received → cached field updated → invariant re-evaluated)
    - How to publish a domain event in a test and verify the consumer processes it
    - How to test deletion events (aggregate marked deleted/invalid after processing)
@@ -115,32 +114,7 @@ public class {Aggregate}EventProcessing {
 
 #### "ByEvent" methods in Functionalities — mandatory pattern
 
-For every event that mirrors an operation that also has a saga Functionalities method (e.g., `updateStudentName`, `anonymizeStudent`, `removeStudentFromExecution`), you **must add a separate `{operation}ByEvent` method** to `{Aggregate}Functionalities` that:
-
-1. Opens its own `UnitOfWork`
-2. Loads the aggregate from the service directly
-3. Applies the cached-field change
-4. Calls `verifyInvariants()`
-5. Commits — **without starting a new saga**
-
-**Do NOT call the existing saga Functionalities method from EventProcessing.** Saga methods set a semantic lock (`sagaState`) and trigger compensations; calling them from an event handler creates a circular saga loop (the saga emits another event → handler fires again → infinite loop). The `ByEvent` method sidesteps this by talking directly to the service layer.
-
-```java
-// In {Aggregate}Functionalities:
-public void {operation}ByEvent(Integer aggregateId, ...) {
-    SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork();
-    {Aggregate} aggregate = ({Aggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
-    if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
-        return;  // skip — aggregate is mid-saga; avoid conflicting with in-progress state
-    }
-    {aggregate}Service.{operation}(aggregate, ..., unitOfWork);
-    unitOfWorkService.commit(unitOfWork);
-}
-```
-
-**When to skip the guard:** only when the event must apply even while the aggregate is mid-saga (rare). For standard cached-field updates and sub-entity removals, always skip when `sagaState != NOT_IN_SAGA`. For whole-consumer invalidation via `copy.remove()`, apply the same guard unless a T3 test explicitly requires processing during an in-flight saga on the same aggregate.
-
-**Shared service methods:** if a service method is called from both saga steps and ByEvent paths (e.g., `updateStudentNameInExecution`), put the guard in the Functionalities `{operation}ByEvent` method after load — **not** in the shared service method, or saga steps on the same aggregate would be skipped.
+For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateStudentName`, `anonymizeStudent`, `removeStudentFromExecution`), add a separate `{operation}ByEvent` method to `{Aggregate}Functionalities`. The full pattern — method body, `sagaState != NOT_IN_SAGA` guard, where the guard goes (after load, not in the shared service method), and when it may be skipped — is documented in `docs/concepts/events.md` § ByEvent sagaState guard. Follow that section.
 
 Add the corresponding service helper if needed (pure mutation + `verifyInvariants()`, no saga).
 

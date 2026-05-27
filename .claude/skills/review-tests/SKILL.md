@@ -182,32 +182,12 @@ For every **Yes** row, complete the "Defect caught if absent" column with one ph
 Adopt an adversarial tester mindset. For each test that exists, examine it line by line against the
 implementation files read in Step 2.
 
-### A. Fake-test detection
+### A. Fake / Wrong / Weak detection
 
-A test is **Fake** (always passes regardless of implementation correctness) if:
-
-- `then:` block is only `noExceptionThrown()` with no field assertions — flag unless the scenario is
-  explicitly "operation must not throw."
-- `then:` assertions check only non-null / non-empty, never actual values.
-- `when:` block does not call the method under test (bypasses the service via a setup helper).
-- `then:` asserts a condition that is logically trivially true (e.g., `result != null` when the method
-  always returns non-null).
-- Happy-path `then:` asserts only fields that were already set in `setup:` — the operation under test
-  did not need to run for the assertions to hold. Verify at least one asserted field is a value the
-  operation itself must produce (not pre-existing fixture data).
-- Message constant in a violation test matches what the implementation throws but differs from the
-  constant named in `plan.md` for that rule — flag as **Wrong** (tautological assertion; the impl and
-  spec disagree, and the test validated the impl deviation instead of catching it).
-- T3 "ignores unrelated": `<originalValue>` was read back *after* the event was processed — flag as
-  **Fake** (the assertion is `x == x`). The pre-event value must be captured in `given:` before firing.
-- Not-found test exception type mismatch — read the service method to determine Path A vs Path B (see
-  Step 3). Only flag as Fake if the thrown type contradicts the actual lookup mechanism. Flagging a
-  correct Path B `thrown({AppClass}Exception)` as Fake is itself a Wrong finding.
-- T3 deletion-event test puts the post-deletion load attempt in `then:` instead of an `and:` block —
-  the load won't be in the exception-capture scope. Correct pattern: load in `and:`, assert
-  `thrown(SimulatorException)` in `then:` (see `docs/concepts/testing.md:331-358`). Flag as **Wrong**.
-- Interleaving test calls `executeUntilStep` then immediately calls `resumeWorkflow` with no concurrent
-  saga in between — the forbidden state is never set, so the test always passes.
+Apply the **Fake / Wrong / Weak Detection Checklist** in `docs/concepts/testing.md` § Fake / Wrong /
+Weak Detection Checklist. That section is the authoritative list of test smells and the source of the
+three severity levels used in this step's output table. Every Fake or Wrong finding must cite the
+specific implementation file and line that proves the assertion is incorrect.
 
 ### A2. Step-interleaving concurrent-op semantics
 
@@ -254,9 +234,8 @@ before reaching that state transition, the forbidden-state check never fires.
 
 ### D2. Kill-mutation thought experiment
 
-For each happy-path test, mentally remove `unitOfWork.registerChanged(aggregate)` from the service
-method under test. If the test still passes, the test does not verify that the state was committed.
-Flag as **Weak** and note a missing read-back assertion.
+Covered by the **Weak** section of the checklist in `docs/concepts/testing.md` § Fake / Wrong / Weak
+Detection Checklist. Apply it to every happy-path test under review.
 
 Cite the specific implementation file and line number for every Fake or Wrong finding.
 

@@ -251,6 +251,22 @@ return saga.get{Aggregates}();
 
 Reference: `applications/quizzes-full/.../question/coordination/sagas/GetQuestionsByCourseExecutionIdFunctionalitySagas.java`
 
+## Step Ordering
+
+The typical step order inside a write `FunctionalitySagas` class is:
+
+1. *(Conditional)* **Validate-dates step** — if the saga creates or updates an aggregate with `startTime`/`endTime` fields **and** a later step also creates/updates a downstream aggregate that independently validates dates (e.g., a Quiz), add a dedicated `validateDatesStep` as the very first step to check date constraints on the primary aggregate's DTO. If omitted, the downstream aggregate's date invariant fires first and masks the primary aggregate's date error, making the wrong exception surface to tests.
+2. **Data-assembly steps** — fetch DTOs from upstream aggregates (required for P4a and P3 DTO-check rules listed in plan.md cross-aggregate prerequisites).
+3. **Primary lock step** — wrap the read command in `SagaCommand`, call `setSemanticLock(state)` on the primary aggregate, and register a compensation that releases the lock with `GenericSagaState.NOT_IN_SAGA`. See § Lock-Acquisition Step Pattern. Do **not** use `setForbiddenStates` for primary-aggregate lock acquisition.
+4. **Execute step** — send a plain (unwrapped) command to `{Aggregate}CommandHandler`; declare the lock step as a dependency.
+5. *(For multi-aggregate sagas)* **Steps for other aggregates involved** — use `setForbiddenStates` only on steps that touch a **foreign** aggregate to abort if that aggregate is mid-saga (see § R4 Decision Table).
+
+**R8 — upstream-only commands:** a saga may only send commands to aggregates that are upstream (aggregates this one depends on, not aggregates that depend on it). Never dispatch a write command to a downstream aggregate from within an upstream aggregate's saga.
+
+Each `executeStep` that can fail has a matching `compensateStep` that rolls back the change. Each data-assembly step that enforces a **P4a rule** treats an upstream-command failure as the prerequisite violation — no extra guard is needed in the service layer.
+
+---
+
 ## Write Workflow Structure
 
 ```java

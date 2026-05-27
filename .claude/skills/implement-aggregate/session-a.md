@@ -8,18 +8,18 @@ This sub-file is loaded by `implement-aggregate` when the target session type is
 
 Load these files before writing any code:
 
-1. **`docs/concepts/aggregate.md`** — the full file. Pay attention to:
-   - `Aggregate` base class fields and lifecycle methods
-   - `verifyInvariants()` contract (called after every state change; throws on violation)
-   - `SagaAggregate` interface and what `getSagaState()` / `setSagaState()` must return
-   - `CustomRepositorySagas` — `getLatestVersion` and `findSagaAggregateById` queries
-   - How `prev` is used for temporal invariants
+1. **`docs/concepts/aggregate.md`** — all sections. Specifically use:
+   - § Key Fields, § Base Class — base-class fields and lifecycle methods
+   - § Variants → Sagas variant — `SagaAggregate` interface; what `getSagaState()` / `setSagaState()` must return
+   - § Factories, § Repositories — `CustomRepositorySagas` `getLatestVersion` and `findSagaAggregateById` queries
+   - § getEventSubscriptions() Implementation — relevant only if this aggregate has subscribed events (otherwise skip)
+   - References to `prev` (used for temporal invariants) appear under § Key Fields / § Base Class
 
-2. **`docs/concepts/testing.md`** — T1 section only (Creation Tests). Note:
+2. **`docs/concepts/testing.md`** — § T1 — Creation Test only. Note:
    - What a T1 test asserts (fields set correctly, invariants hold, aggregate state)
    - The test class location and naming convention
 
-3. ***(Conditional)*** If the aggregate section in plan.md lists snapshot fields copied from an upstream aggregate (e.g., cached `courseId` from Course, or `name`/`username` from User): read the domain files of those upstream aggregates from `{src}microservices/{upstreamAggregate}/aggregate/`. Read only the fields you need to copy — do not read the whole upstream codebase.
+3. ***(Conditional)*** If the aggregate section in plan.md lists snapshot fields copied from an upstream aggregate (e.g., cached `courseId` from Course, or `name`/`username` from User): read the domain files of those upstream aggregates from `{src}microservices/{upstreamAggregate}/aggregate/` — only the field declarations you need to copy. Do not read the whole upstream codebase.
 
 ---
 

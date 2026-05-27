@@ -14,21 +14,18 @@ Load these files before writing any code:
 
 2. **Service file produced in session 2.{N}.b** — `{Aggregate}Service.java`. You will append read methods to this file; understanding its existing structure is required.
 
-3. **`docs/concepts/service.md`** — the read-operation section specifically. Note:
-   - How a read service method fetches the aggregate and maps it to a DTO
-   - When a read method joins data from a foreign aggregate (fetch that aggregate's DTO too)
+3. **`docs/concepts/service.md`** — specifically:
+   - § Method Patterns → Read method
+   - § Custom Repository — Latest-Active-Version Query (only if the read returns a collection)
 
-4. **`docs/concepts/commands.md`** — the read-command section. Note:
-   - Naming convention for read commands (`Get{Aggregate}By{Field}Command`, etc.)
-   - How read commands differ from write commands (no `UnitOfWork` side-effects)
+4. **`docs/concepts/commands.md`** — specifically:
+   - § What a Command Is, § Naming Conventions (read-command form: `Get{Aggregate}By{Field}Command`)
+   - § Routing Commands (CommandHandler) — adding a new case for the read command
 
-5. **`docs/concepts/sagas.md`** — the read-functionality section. Note:
-   - Read functionalities are single-step (no compensation needed)
-   - How the saga step fetches data and returns it
+5. **`docs/concepts/sagas.md`** — specifically:
+   - § Read Functionality Sagas (and its subsections § List-return read variant, § Two-step read saga variant, as applicable)
 
-6. **`docs/concepts/testing.md`** — T2 section only (specifically the read-functionality test subsection). Note:
-   - What a T2 read test asserts (DTO fields match aggregate state)
-   - How to test not-found cases
+6. **`docs/concepts/testing.md`** — § T2 — Functionality Test (the read-functionality assertions, plus § Not-Found Assertions for the Path A / Path B rule of thumb).
 
 7. ***(Conditional)*** If any read functionality joins data from an upstream aggregate (e.g., a "get with details" that includes Course name alongside Execution): read that upstream aggregate's service file to understand what it returns.
 
@@ -122,10 +119,10 @@ Path: `{test}sagas/coordination/{aggregate}/{Query}Test.groovy`
 
 - Extends `{AppClass}SpockTest`
 - **Happy-path test**: create the aggregate using the `{AppClass}SpockTest` helper (or directly), execute the read, assert the returned DTO matches the aggregate's state
-- **Not-found tests** — two paths (see `docs/concepts/testing.md` lines 226–259):
+- **Not-found tests** — two paths (see `docs/concepts/testing.md` § Not-Found Assertions):
   - **Path A (PK load):** read uses `aggregateLoadAndRegisterRead` with a non-existent ID → assert `thrown(SimulatorException)`
   - **Path B (composite/custom-repo lookup):** aggregate exists but the queried sub-entity or composite key is absent → assert `thrown({AppClass}Exception)`
-  - **Decision rule:** if the failure happens at infrastructure PK load, use Path A; if the PK load succeeds but a service/repository guard throws because the sub-entity or composite key is missing, use Path B
+  - **Rule of thumb:** if the service calls `aggregateLoadAndRegisterRead` directly with an ID, use Path A. If the service first calls a custom repository returning `Optional` and throws on empty, use Path B.
 
 ---
 

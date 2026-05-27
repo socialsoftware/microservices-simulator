@@ -18,37 +18,68 @@ and provides structure templates for each category.
 
 ## Anti-Pattern: Reverse-Engineering Tests from the Implementation
 
-AI assistants will, given only a coverage metric, read the implementation they just wrote and produce assertions that mirror what the code does — not what the domain says it should do. These tests are trivially satisfied by the implementation, break on correct refactors, and provide a false sense of security.
+AI assistants will, given only a coverage metric, read the implementation they just wrote and produce assertions that mirror what the code does — not what the domain says it should do. These tests are trivially satisfied by the implementation, break on correct refactors, and provide a false sense of security. The checklist below is the authoritative list of test smells; both the implementation skill (`.claude/skills/implement-aggregate/`) and the review skill (`.claude/skills/review-tests/SKILL.md` Step 5) consume it.
 
-**Named smells — flag any of these as Fake or Weak:**
+---
 
-- Test name and message constant were copied verbatim from the implementation without checking against `plan.md`'s rule list.
-- Happy-path `then:` asserts only fields that were already set in `setup:` — the under-test call did not need to run for the assertions to hold.
-- `then:` mirrors the sequence of `set…` calls in the service body.
-- Removing `unitOfWork.registerChanged(aggregate)` from the service would leave the test passing.
-- T3 "ignores unrelated": `<originalValue>` was captured *after* the event was processed rather than before.
+## Fake / Wrong / Weak Detection Checklist
 
-See also: `.claude/skills/review-tests/SKILL.md` Step 5.A for the complete Fake/Wrong/Weak detection checklist.
+Findings against this checklist map to three severities used by `review-tests`:
+
+- **Fake** — the test always passes regardless of implementation correctness.
+- **Wrong** — the test tests the wrong thing (typically the implementation rather than the spec, or a different code path than the name suggests).
+- **Weak** — the scenario is real but the assertions under-specify it; a regression could slip through.
+
+### Fake
+
+- `then:` block is only `noExceptionThrown()` with no field assertions — flag unless the scenario is explicitly "operation must not throw."
+- `then:` assertions check only non-null / non-empty, never actual values.
+- `then:` asserts a condition that is logically trivially true (e.g., `result != null` when the method always returns non-null).
+- `when:` block does not call the method under test (bypasses the service via a setup helper).
+- T3 "ignores unrelated": `<originalValue>` was captured *after* the event was processed rather than before — the assertion is `x == x`. The pre-event value must be captured in `given:` before firing.
+- Interleaving test calls `executeUntilStep` then immediately `resumeWorkflow` with no concurrent saga in between — the forbidden state is never set, so the test always passes.
+
+### Wrong
+
+- Test name and message constant were copied verbatim from the implementation without checking against `plan.md`'s rule list. If the implementation uses a different constant than `plan.md` names, the test validated the implementation deviation instead of catching it.
+- Violation test asserts a message constant that matches what the implementation throws but differs from the constant named in `plan.md` for that rule.
+- `then:` mirrors the sequence of `set…` calls in the service body — the test was derived from the implementation, not the spec.
+- T3 deletion-event test puts the post-deletion load attempt in `then:` instead of an `and:` block — the load won't be in the exception-capture scope. Correct pattern: load in `and:`, assert `thrown(SimulatorException)` in `then:` (see § T3 Deletion-Event Tests).
+- Not-found test exception type contradicts the actual lookup mechanism. **Read the service method first.** Rule of thumb: if the service calls `aggregateLoadAndRegisterRead` directly with an ID, expect `SimulatorException` (Path A). If the service first calls a custom repository returning `Optional` and throws on empty, expect `{App}Exception` (Path B). Flagging a correct Path B `thrown({AppClass}Exception)` as Fake is itself a Wrong finding.
+- Concurrent saga in an interleaving test fails for an unrelated reason (e.g., its own guard) before it transitions the foreign aggregate into one of the listed forbidden states — the forbidden-state check never fires. Read the `setForbiddenStates(…)` call on the step under test and confirm the concurrent saga actually reaches the listed state.
+- Test class missing `@Transactional` (T2 classes must be `@DataJpaTest @Transactional @Import(LocalBeanConfiguration)`) — silently allows dirty state to bleed between tests.
+
+### Weak
+
+- Happy-path `then:` asserts only fields that were already set in `setup:` — the under-test call did not need to run for the assertions to hold. Verify at least one asserted field is a value the operation itself must produce, not pre-existing fixture data.
+- Removing `unitOfWork.registerChanged(aggregate)` from the service would leave the test passing (kill-mutation thought experiment). Add an assertion on a field the operation changes that is only readable through the persisted aggregate (the `then:` reads back via `get{Aggregate}ById`, not from a local variable).
+- Violation test asserts `thrown({AppClass}Exception)` without `ex.message == <ERROR_MESSAGE_CONSTANT>`. The bare-throw form passes on any thrown exception of that type, including unrelated bugs.
+- Returned DTO assertions cover only a subset of the semantically important fields.
+- Numeric boundary rule asserted with a value that is not at, above, or below the boundary.
 
 ---
 
 ## Spec-First Ordering
 
-Before writing any T2 test for a write functionality, derive a spec table from `plan.md` and the domain model — **without consulting the implementation you just wrote**:
+Before writing any T2 test for a write functionality, locate the **`plan.md` aggregate section** for the target aggregate. The happy-path postconditions, the events-published list, and the P1/P3 rule list in that section *are* the spec — assertions must trace to them. Do not read the implementation you just wrote to decide what to assert.
+
+Each `plan.md` aggregate section is shaped roughly like:
 
 ```
 Functionality: {Op}{Aggregate}
-Happy-path postconditions (from plan.md):
+Happy-path postconditions:
   - {Aggregate}.{field} == {expectedValue}
   - emitted event {Event} with payload {…}
   - SagaState after commit == NOT_IN_SAGA
-Violations (one row per P1/P3 rule this op can trip, from plan.md):
+Violations (one row per P1/P3 rule this op can trip):
   - {RULE_NAME} → throws {AppClass}Exception, message == {RULE_NAME}
 ```
 
-The test then asserts the spec table. If the implementation disagrees with the spec, the **implementation** is the bug — not the spec. Assertions should never be adjusted to match surprising implementation behavior; the discrepancy should be flagged and fixed in the implementation.
+This is the structure to **cite** when writing the test (see § T2 — Spec-first below for the recommended `// Spec:` comment), not a new artifact to author in the test file. Reading `plan.md` is the spec lookup; the test is the assertion of that spec.
 
-This ordering also applies to T3: before writing the test, write down the expected cached-field value from the subscribed event's payload per `plan.md`'s subscribed events table — not from reading the `EventProcessing` class.
+If the implementation disagrees with the spec, the **implementation** is the bug — not the spec. Assertions should never be adjusted to match surprising implementation behavior; the discrepancy should be flagged and fixed in the implementation.
+
+This ordering also applies to T3: before writing the test, look up the expected cached-field value in `plan.md`'s subscribed events table for the consumer aggregate — not from reading the `EventProcessing` class.
 
 ---
 
@@ -125,14 +156,16 @@ cases that validate semantic locks at each saga step boundary.
   and pause after it — pass the step immediately **before** the protected foreign-mutate step
   (the one that calls `setForbiddenStates`). Then `resumeWorkflow(uow)` to continue after injecting the conflict.
 
-**Upstream-invariant rule:** When a saga increments a counter cached on an upstream aggregate (e.g., `questionCount` on `Course`), verify that the upstream aggregate's invariants permit the new counter value *before the first test runs*. If not, add the necessary prerequisite state to the `setup:` block. For example, if `Course` enforces `executionCount > 0` when `questionCount > 0`, every `CreateQuestion` test must call `createExecution(courseId, ...)` in `setup:` first.
+**Upstream-invariant rule:** When a saga increments a counter cached on an upstream aggregate (e.g., `questionCount` on `Course`), verify that the upstream aggregate's invariants permit the new counter value *before the first test runs*. If not, add the necessary prerequisite state to the `setup:` block. For example, if `Course` enforces `executionCount > 0` when `questionCount > 0`, every `CreateQuestion` test must call `createExecution(courseId, ...)` in `setup:` first. Place these prerequisites in the shared `setup()` block by default; only inline them in a per-method `given:` block when a single test needs a state variant the rest of the file does not share.
 
 > **Read tests are not exempt.** Even though a read functionality itself does not mutate state, its `setup:` block typically creates the aggregate under test (e.g., `createQuestion`), which may increment a counter on an upstream aggregate. That increment can trigger the upstream's invariants, so any prerequisite state must be established in `setup:` *before* the aggregate creation call, regardless of whether the test exercises a read or write functionality.
 
-**Spec-first:** Before writing the happy-path test, derive the postcondition spec table from `plan.md`
-(see Spec-First Ordering above). List every field the operation changes, every event emitted, and
-the expected `SagaState` on completion. Write assertions against that list — do not start from the
-service body.
+**Spec-first:** Before writing the happy-path test, locate the `plan.md` aggregate section for the
+target aggregate. The fields-changed list, events-published list, and expected `SagaState` in that
+section *are* the spec — cite it, do not duplicate it (see Spec-First Ordering above). Write a 1-line
+`// Spec:` comment at the top of each test naming the plan.md section and the rule it asserts, e.g.
+`// Spec: plan.md §3.5 Question / functionalities — UpdateQuestionContent; rule QUESTION_CONTENT_REQUIRED`.
+Write assertions against the cited section — do not start from the service body.
 
 **Kill-mutation check:** For each happy-path test ask: "If I remove `unitOfWork.registerChanged(aggregate)`
 from the service, does this test still pass?" If yes, the test is not exercising the commit. Add an
@@ -342,7 +375,8 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
 
     // ─── <INVARIANT_NAME> ────────────────────────────────────────────────────
 
-    def "<consumer> reflects <Xxx> event"() {
+    def "<consumer> <action> on <Xxx>Event[ for <role>]"() {
+    // <action> should be a concrete verb: updates, removes, deletes self, anonymizes, invalidates self.
         given:
         def publisher = create<Publisher>(/* args */)
         def consumer  = create<Consumer>(/* args linked to publisher */)

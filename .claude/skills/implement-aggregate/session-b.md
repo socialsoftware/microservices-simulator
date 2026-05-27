@@ -10,29 +10,31 @@ Load these files before writing any code:
 
 1. **Domain files produced in session 2.{N}.a** — read every file listed in the plan.md `2.{N}.a` row for this aggregate. You need the aggregate class structure, field names, constructor signature, and `SagaState` enum values.
 
-2. **`docs/concepts/service.md`** — the full file. Pay attention to:
-   - How the service layer is structured (create / mutate / read patterns)
-   - Where P3 service guards are placed (own-table uniqueness checks; DTO field validation)
-   - How the `UnitOfWork` is used to register events and persist changes
-   - How a service method receives saga-assembled DTOs vs. fetching from the repository itself
+2. **`docs/concepts/service.md`** — specifically:
+   - § Method Patterns (Read / Create / Mutate / Mutate with event publication / Mutate with optional sub-collection parameter)
+   - § Copy-on-Write Rule, § DTO Immutability (R7), § Exception-Throw Convention
+   - § P3 Guard Placement — where own-table uniqueness checks and DTO field validation live
+   - § Partial-Data Owned Entities (only if the aggregate has owned sub-entities)
+   - § Custom Repository — Latest-Active-Version Query (only if returning lists)
 
-3. **`docs/concepts/commands.md`** — the full file. Pay attention to:
-   - `Command` structure and field conventions
-   - How `CommandHandler` routes commands to service methods
-   - The `ServiceMapping` wiring
+3. **`docs/concepts/commands.md`** — specifically:
+   - § What a Command Is, § Naming Conventions, § File Location
+   - § ServiceMapping Enum (mandatory entry per aggregate)
+   - § Sending Commands (Functionality Layer), § Routing Commands (CommandHandler)
+   - § Known DTO Gaps and Compensating Command Steps (only if the saga touches a known-gap DTO; see subsection list)
 
-4. **`docs/concepts/sagas.md`** — the full file. Pay attention to:
-   - Saga step anatomy: `executeStep` / `compensateStep` pairs
-   - `setForbiddenStates` — where to call it and why (R4 semantic lock: blocks concurrent operations that would conflict with this one)
-   - How data-assembly steps fetch DTOs from upstream aggregates
-   - How the final step calls the service and commits the `UnitOfWork`
-   - Compensation: which steps need compensation and what they do
+4. **`docs/concepts/sagas.md`** — specifically:
+   - § Step Ordering (authoritative; this session no longer restates it)
+   - § Lock-Acquisition Step Pattern (Two-Step Write Sagas), § Semantic Locks in Practice
+   - § R4 Decision Table — `SagaCommand` vs `setForbiddenStates`
+   - § Write Workflow Structure
 
-5. **`docs/concepts/testing.md`** — T2 section only (Write Functionality Tests). Note:
+5. **`docs/concepts/testing.md`** — § T2 — Functionality Test (and § Service-Command Tests if this aggregate exposes any). Note:
    - What a T2 test asserts (state after the operation, events emitted, error cases)
    - How to test P3 guard violations
    - How to test P4a prerequisite failures (e.g., sending a command that causes the saga fetch to fail)
-   - **Step-interleaving rule (lines 89–93):** one interleaving case per saga step that touches a foreign aggregate with `setForbiddenStates`; use `executeUntilStep` / `resumeWorkflow` to inject a conflicting operation between steps
+   - **Step-interleaving rule:** one interleaving case per saga step that calls `setSemanticLock` OR `setForbiddenStates`; use `executeUntilStep` / `resumeWorkflow` to inject a conflicting operation between steps
+   - § Fake / Wrong / Weak Detection Checklist — apply before committing the test file
 
 6. ***(Conditional)*** If the plan.md aggregate section lists cross-aggregate prerequisites (P4a or P3 DTO-check rules): read the service file and relevant command files of each upstream aggregate involved. You need their command class names, service method signatures, and what they throw on failure.
 
@@ -97,15 +99,8 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Op}FunctionalitySagas.
 
 - Extends `FunctionalitySagas` (or the appropriate saga base class from the simulator core)
 - Steps are defined as `SagaStep` instances in the constructor or `defineSteps()` method
-- **Step ordering** (typical pattern):
-  1. *(Conditional)* **Validate-dates step** — if the saga creates or updates an aggregate with `startTime`/`endTime` fields **and** a later step also creates/updates a downstream aggregate that independently validates dates (e.g., a Quiz), add a dedicated `validateDatesStep` as the very first step to check date constraints on the primary aggregate's DTO. If you omit this step, the downstream aggregate's date invariant fires first and masks the primary aggregate's date error, making the wrong exception surface to tests.
-  2. Data-assembly steps: fetch DTOs from upstream aggregates (required for P4a and P3 DTO-check rules listed in plan.md cross-aggregate prerequisites)
-  3. **Primary lock step** — wrap the read command in `SagaCommand`, call `setSemanticLock(state)` on the primary aggregate, and register a compensation that releases the lock with `GenericSagaState.NOT_IN_SAGA`. See `docs/concepts/sagas.md` § Lock-Acquisition Step Pattern. Do **not** use `setForbiddenStates` for primary-aggregate lock acquisition.
-  4. Execute step: send a plain (unwrapped) command to `{Aggregate}CommandHandler`; declare the lock step as a dependency
-  5. *(For multi-aggregate sagas)* Steps for other aggregates involved — use `setForbiddenStates` only on steps that touch a **foreign** aggregate to abort if that aggregate is mid-saga (see `docs/concepts/sagas.md` § R4 decision table)
-- Each data-assembly step that enforces a **P4a rule**: if the upstream command/query fails (throws), the prerequisite is considered violated — no extra guard needed in the service
-- **R8 — upstream-only commands**: sagas for this aggregate may only send commands to aggregates that are upstream (i.e., aggregates this one depends on, not aggregates that depend on it). Never dispatch a write command to a downstream aggregate from within this aggregate's sagas.
-- Each `executeStep` that can fail has a matching `compensateStep` that rolls back the change
+- **Step ordering, lock-step pattern, R4 foreign-vs-primary distinction, R8 upstream-only rule, and compensation pairing** — follow `docs/concepts/sagas.md` § Step Ordering (and the linked § Lock-Acquisition Step Pattern, § R4 Decision Table). That section is authoritative; do not re-derive the order from the implementation.
+- The **conditional validate-dates step** is per-aggregate guidance, not a generic pattern: if `plan.md` for this aggregate lists time-based invariants on both this aggregate and a downstream aggregate created in the same saga, insert the validate-dates step first.
 
 ### `{Aggregate}Functionalities.java`
 
@@ -127,19 +122,19 @@ Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 
 > **Anti-pattern:** Do not read `{Aggregate}Service.java` or `{Op}FunctionalitySagas.java` to decide what to assert. Tests derived from the implementation you just wrote are tautological — they verify what the code does, not what the domain says it should do. The remedy is the spec table below.
 
-**Write the spec table first (from `plan.md` only):**
+**Cite plan.md as the spec — do not author a parallel artifact.** The `plan.md` aggregate section for the target aggregate already contains the happy-path postconditions, the events-published list, and the P1/P3 rule list. That section *is* the spec; the test asserts it. See `docs/concepts/testing.md` § Spec-First Ordering.
 
-```
-Functionality: {Op}{Aggregate}
-Happy-path postconditions (from plan.md aggregate section):
-  - {Aggregate}.{field} == {expectedValue from inputs}
-  - emitted event {Event} with payload {…}
-  - SagaState after commit == NOT_IN_SAGA
-Violations (one row per P1/P3 rule this op can trip):
-  - {RULE_NAME} → throws {AppClass}Exception, message == {RULE_NAME}
+At the top of every happy-path and violation test, write a single-line `// Spec:` comment that names the plan.md section and the rule (or "happy path") the test asserts. Example:
+
+```groovy
+def "updateQuestionContent: QUESTION_CONTENT_REQUIRED violation"() {
+    // Spec: plan.md §3.5 Question / functionalities — UpdateQuestionContent; rule QUESTION_CONTENT_REQUIRED
+    given:
+    ...
+}
 ```
 
-Write the test assertions against this table. If the implementation disagrees with the spec, flag it as an impl deviation — do not adjust the spec to match.
+If the implementation disagrees with the cited section, flag it as an impl deviation — do not adjust the cited rule to match.
 
 **Kill-mutation check (after writing each happy-path test):** Ask "if `unitOfWork.registerChanged(aggregate)` were removed from the service, would my test still pass?" If yes, the test does not verify persistence. Add an assertion on a field the operation changes that is only readable through the persisted aggregate (i.e. the `then:` reads back via `get{Aggregate}ById`, not from a local variable).
 
@@ -150,9 +145,10 @@ Write the test assertions against this table. If the implementation disagrees wi
 - **Assertion for all violation tests:** `thrown({AppClass}Exception)` plus `ex.message == {RULE_NAME}`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in T5 fault-injection tests. Never accept a bare `thrown({AppClass}Exception)` without the message assertion — it passes on any thrown exception of that type, including unrelated bugs. The `{RULE_NAME}` constant must match the name in `plan.md`'s rule list, not be inferred from the implementation.
 - **P1 invariant violation tests**: for each P1 rule that a write operation can put at risk, add a test that exercises the service method causing the violation. The service calls `registerChanged`, which automatically invokes `verifyInvariants` — **never call `verifyInvariants()` directly**.
   - **Skip P1 tests for `final` fields:** If a P1 rule is enforced by a Java `final` field (plan.md note: `Java \`final\` field`), no write path can violate it. Omit the invariant test for that rule and note the omission in the session report.
-- **Concurrent interleaving (required):** Follow `docs/concepts/testing.md` § T2 — Step-interleaving rule (lines 89–93). **One interleaving case per saga step that calls `setSemanticLock` OR `setForbiddenStates` — no exceptions:**
+- **Concurrent interleaving (required):** Follow `docs/concepts/testing.md` § T2 — Step-interleaving rule. **One interleaving case per saga step that calls `setSemanticLock` OR `setForbiddenStates` — no exceptions:**
   - **`setSemanticLock` step (primary-aggregate lock acquisition):** pause the workflow before the **following mutate step** (the step that reads the locked aggregate as a foreign target). Inject a concurrent saga that acquires the same lock. Resume. Assert `thrown(SimulatorException)`.
   - **`setForbiddenStates` step (foreign-aggregate state check):** pause at that step via `executeUntilStep("precedingStepName", uow)`. Inject a conflicting operation that puts the foreign aggregate in one of the forbidden states. Resume via `resumeWorkflow(uow)`. Assert `thrown(SimulatorException)`.
+  - **Coverage is audited mechanically.** List every such step (one row per call site) in the session retro's **Step-Interleaving Coverage Audit** table — see `.claude/skills/implement-aggregate/SKILL.md` Step 7.b. Unresolved `Present? = No` rows block the Step 8 commit.
 ### Service-command method tests (T2 variant)
 
 After writing the coordinator-level T2 tests above, scan `{Aggregate}Service.java` for any

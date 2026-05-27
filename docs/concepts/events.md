@@ -220,6 +220,30 @@ public class <Consumer>EventProcessing {
 
 ---
 
+### ByEvent sagaState guard
+
+For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateStudentName`, `removeStudentFromExecution`), add a separate `{operation}ByEvent` method to `<Consumer>Functionalities`. It opens its own `UnitOfWork`, loads the aggregate directly from the service, applies the cached-field change, calls `verifyInvariants()`, and commits — **without starting a new saga**.
+
+```java
+public void {operation}ByEvent(Integer aggregateId, ...) {
+    SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork();
+    {Consumer} aggregate = ({Consumer}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+    if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
+        return;  // skip — aggregate is mid-saga; avoid conflicting with in-progress state
+    }
+    {consumer}Service.{operation}(aggregate, ..., unitOfWork);
+    unitOfWorkService.commit(unitOfWork);
+}
+```
+
+**Why not call the saga `Functionalities` method from `EventProcessing`?** Saga methods set a semantic lock (`sagaState`) and trigger compensations; calling them from an event handler creates a circular saga loop (the saga emits another event → handler fires again → infinite loop). The `ByEvent` method sidesteps this by talking directly to the service layer.
+
+**Where the guard goes.** Put the `sagaState != NOT_IN_SAGA` check inside the `{operation}ByEvent` method **after the load** — not in the shared service method. If the guard lived in a service method that is also called from saga steps on the same aggregate, those saga steps would silently be skipped.
+
+**When to skip the guard.** Only when the event must apply even while the aggregate is mid-saga (rare). For standard cached-field updates and sub-entity removals, always skip when `sagaState != NOT_IN_SAGA`. For whole-consumer invalidation via `copy.remove()`, apply the same guard unless a T3 test explicitly requires processing during an in-flight saga on the same aggregate.
+
+---
+
 ## Cascade Invalidation Pattern
 
 A consumer aggregate that processes a deletion event and becomes non-functional should both mark itself deleted **and** publish its own outbound event so its downstream consumers can react.
