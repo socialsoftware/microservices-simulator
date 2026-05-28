@@ -17,11 +17,13 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.ReportService;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.AbortCausalCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.command.CommitCausalCommand;
@@ -50,7 +52,8 @@ public class ImpairmentHandler {
     private NetworkManager networkManager;
 
     @Autowired
-    private ImpairmentReportService reportService;
+    @Qualifier("ImpairmentReportService")
+    private ReportService reportService;
 
     @Value("${simulator.impairment.network-delays.enabled:false}")
     private boolean networkDelaysEnabled;
@@ -62,9 +65,7 @@ public class ImpairmentHandler {
     private Map<WorkflowFunctionality, Map<String, List<Integer>>> behaviourCache = Collections
             .synchronizedMap(new WeakHashMap<>());
 
-    public ImpairmentHandler() {
-    }
-
+    
     // ****************************
     // * --- Public Interface --- *
     // ****************************
@@ -87,7 +88,7 @@ public class ImpairmentHandler {
     }
 
     public void cleanReportFile() {
-        reportService.cleanReportFile();
+        reportService.cleanReport();
     }
 
     // *******************************

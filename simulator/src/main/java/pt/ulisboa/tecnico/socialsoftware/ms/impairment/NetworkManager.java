@@ -6,6 +6,7 @@ import io.opentelemetry.api.trace.Span;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.ReportService;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
@@ -17,7 +18,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletionException;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -31,10 +35,10 @@ public class NetworkManager {
     private Map<String, String> microserviceToNode = new HashMap<>();
     private Map<String, DelayConfig> delayConfigs = new HashMap<>();
     private Random random = new Random();
+    private final ReportService reportService;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final ImpairmentReportService reportService;
-
-    public NetworkManager(ImpairmentReportService reportService) {
+    public NetworkManager(@Qualifier("ImpairmentReportService") ReportService reportService) {
         this.reportService = reportService;
     }
 
@@ -86,12 +90,12 @@ public class NetworkManager {
     public synchronized void injectConfiguration(String json) {
         // Receives a configuration and overrides the current one - used for testing
         reset();
-        report("INJECTING NEW CONFIGURATION");
+        report("Injecting new Configuration");
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode root = mapper.readTree(json);
             parseConfig(root);
-            reportService.logInfo("Network configuration loaded from JSON string");
+            logger.info("Network configuration loaded from JSON string");
         } catch (IOException | NumberFormatException | SimulatorException e) {
             terminateWithError("Error injecting network configuration: " + e.getMessage());
         }
@@ -264,7 +268,9 @@ public class NetworkManager {
     }
 
     private void terminateWithError(String msg) {
-        reportService.logError(String.format("[NetworkManager]: %s", msg));
+        msg = String.format("[NetworkManager]: %s", msg);
+        reportService.report(msg);
+        logger.error(msg);
         reset();
     }
 
@@ -275,7 +281,7 @@ public class NetworkManager {
                 "Impairing %s\n" + "  >> on command %s (%s->%s): Before [%dms] | After [%dms]",
                 funcName, commandName, sourceService, targetService, delayBeforeValue, delayAfterValue);
 
-        reportService.logInfo(ln);
+        logger.info(ln);
         report(ln);
     }
 }

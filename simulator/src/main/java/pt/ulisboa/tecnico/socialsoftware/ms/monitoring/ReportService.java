@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.ms.impairment;
+package pt.ulisboa.tecnico.socialsoftware.ms.monitoring;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -10,22 +10,22 @@ import java.nio.file.StandardOpenOption;
 import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 
-@Component
-public class ImpairmentReportService {
-    private final Logger logger = LoggerFactory.getLogger(ImpairmentReportService.class);
+public class ReportService {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final String reportFile;
     private BufferedWriter writer;
 
-    @Value("${simulator.impairment.report-file:#{null}}")
-    private String reportFile;
+    public ReportService(String reportFile) {
+        this.reportFile = reportFile;
+    }
 
     @PostConstruct
-    public void init() {
-        if (reportFile == null) {
-            logger.error("Report-file for impairment must be specified in application.yaml");
+    public void setup() {
+        if (reportFile == null || reportFile.trim().isEmpty()) {
+            logger.error("Report-file for must be specified in ReportConfigurations");
             return;
         }
 
@@ -46,17 +46,8 @@ public class ImpairmentReportService {
             writer.newLine();
             writer.flush();
         } catch (IOException e) {
-            logger.error("Error writing to impairment report: {}", e.getMessage());
+            logger.error("Error writing to report: {}", e.getMessage());
         }
-    }
-
-    public void logInfo(String msg) {
-        logger.info(msg);
-    }
-
-    public void logError(String msg) {
-        logger.error(msg);
-        report(msg);
     }
 
     public String getReport() {
@@ -72,12 +63,12 @@ public class ImpairmentReportService {
         try {
             return Files.readString(reportPath);
         } catch (IOException e) {
-            logger.error("Error reading impairment report: {}", e.getMessage());
+            logger.error("Error reading report: {}", e.getMessage());
             return "";
         }
     }
 
-    public void cleanReportFile() {
+    public void cleanReport() {
         if (reportFile == null) {
             return;
         }
@@ -86,7 +77,7 @@ public class ImpairmentReportService {
         try {
             Files.writeString(reportPath, "", StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            logger.error("Error cleaning impairment report: {}", e.getMessage());
+            logger.error("Error cleaning report: {}", e.getMessage());
         }
     }
 
@@ -105,9 +96,9 @@ public class ImpairmentReportService {
             }
             Path reportPath = Paths.get(reportFile);
             writer = new BufferedWriter(new FileWriter(reportPath.toFile(), false));
-            report("### IMPAIRMENT REPORT STARTED: " + new Date() + " ###");
+            report("### REPORT STARTED: " + new Date() + " ###");
         } catch (IOException e) {
-            logger.error("Error initializing impairment report: {}", e.getMessage());
+            logger.error("Error initializing report: {}", e.getMessage());
         }
     }
 }
