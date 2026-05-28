@@ -104,6 +104,7 @@ public class NetworkManager {
     public void reset() {
         this.microserviceToNode.clear();
         this.delayConfigs.clear();
+        this.reportService.cleanReport();
     }
 
     // ******************

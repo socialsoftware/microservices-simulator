@@ -36,7 +36,7 @@ public class ReportService {
     // * --- Public Interface --- *
     // ****************************
 
-    public void report(String content) {
+    public synchronized void report(String content) {
         if (writer == null) {
             return;
         }
@@ -68,17 +68,9 @@ public class ReportService {
         }
     }
 
-    public void cleanReport() {
-        if (reportFile == null) {
-            return;
-        }
-
-        Path reportPath = Paths.get(reportFile);
-        try {
-            Files.writeString(reportPath, "", StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException e) {
-            logger.error("Error cleaning report: {}", e.getMessage());
-        }
+    public synchronized void cleanReport() {
+        logger.info("Cleaning report file");
+        initReport();
     }
 
     // ******************

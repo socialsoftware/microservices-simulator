@@ -15,7 +15,7 @@ public class ReportConfigurations {
 
     @Bean(name = "CapacityReportService")
     public ReportService databaseReportService(
-            @Value("${simulator.capacity-management.configuration-file:#{null}}") String reportFile) {
+            @Value("${simulator.capacity-management.report-file:#{null}}") String reportFile) {
         return new ReportService(reportFile);
     }
 }
