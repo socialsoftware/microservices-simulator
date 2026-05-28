@@ -60,8 +60,29 @@ public abstract class Workflow {
             this.executionPlan = planOrder(this.stepsWithDependencies);
         }
 
-        FlowStep targetStep = getStepByName(stepName);
-        executionPlan.executeUntilStep(targetStep, unitOfWork).join();
+        try {
+            FlowStep targetStep = getStepByName(stepName);
+            executionPlan.executeUntilStep(targetStep, unitOfWork).join();
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+
+            this.traceManager.recordException(unitOfWork.getFunctionalityName(), e, e.getMessage());
+            this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
+            unitOfWorkService.abort(unitOfWork);
+            logger.info("ABORT(1) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+
+            if (cause instanceof SimulatorException) {
+                throw (SimulatorException) cause;
+            } else {
+                throw e;
+            }
+        } catch (SimulatorException e) {
+            this.traceManager.recordWarning(unitOfWork.getFunctionalityName(), e, e.getMessage());
+            this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
+            unitOfWorkService.abort(unitOfWork);
+            logger.info("ABORT(2) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+            throw e;
+        }
     }
 
     public CompletableFuture<Void> resume(UnitOfWork unitOfWork) {

@@ -96,7 +96,12 @@ public class ExecutionPlan {
         final String funcName = unitOfWork.getFunctionalityName();
 
         logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-        CompletableFuture<Void> stepFuture = step.execute(unitOfWork);
+        CompletableFuture<Void> stepFuture;
+        try {
+            stepFuture = step.execute(unitOfWork);
+        } catch (RuntimeException e) {
+            stepFuture = CompletableFuture.failedFuture(e);
+        }
         logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
 
         return stepFuture;

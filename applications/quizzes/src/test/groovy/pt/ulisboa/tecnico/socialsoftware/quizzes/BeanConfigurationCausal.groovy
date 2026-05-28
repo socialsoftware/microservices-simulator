@@ -9,6 +9,8 @@ import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
+import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentReportService
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
@@ -286,6 +288,16 @@ class BeanConfigurationCausal {
     @Bean
     TournamentEventHandling tournamentEventDetection() {
         return new TournamentEventHandling()
+    }
+
+    @Bean
+    ImpairmentReportService impairmentReportService() {
+        return new ImpairmentReportService()
+    }
+
+    @Bean
+    ImpairmentHandler impairmentHandler() {
+        return new ImpairmentHandler()
     }
 
     @Bean
