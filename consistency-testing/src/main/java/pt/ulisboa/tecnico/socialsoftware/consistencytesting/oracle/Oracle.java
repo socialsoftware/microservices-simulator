@@ -1,14 +1,22 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.ArgsUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
@@ -50,15 +58,11 @@ public class Oracle {
                 "--spring.datasource.password=" + postgres.getPassword(),
                 "--spring.datasource.driver-class-name=" + postgres.getDriverClassName(),
                 "--spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
+                "--spring.jpa.hibernate.ddl-auto=create-drop");
 
-                "--spring.jpa.hibernate.ddl-auto=create" // TODO is this needed? was used for testing
-                                                         // with jmeter
-        );
-
-        List<String> finalArgsList = ArgsUtils.mergeArgsWithPriority(springPriorityArgs, springAppBaseArgs);
+        List<String> finalArgsList = mergeArgsWithPriority(springPriorityArgs, springAppBaseArgs);
         return finalArgsList.toArray(new String[0]);
     }
-
 
     public void init() {
         postgres.start();
@@ -111,20 +115,72 @@ public class Oracle {
     }
 
     private TestResult executeSchedule(
-            List<WorkflowFunctionality> functionalities,
+            Map<FunctionalityId, WorkflowFunctionality> functionalities,
             StepDependencies interDependencies) {
 
         var uowService = getBean(SagaUnitOfWorkService.class);
         ScheduleExecutor scheduleExecutor = new ScheduleExecutor(functionalities, interDependencies, uowService);
         return scheduleExecutor.execute();
     }
-    public TestResult runTest(Supplier<TestCase> setupInitialState) {
 
+    public TestResult runTest(Supplier<TestCase> setupInitialState) {
+        return runTest(setupInitialState, result -> {
+            // No-op beforeCleanupHook by default
+        });
+    }
+
+    public TestResult runTest(Supplier<TestCase> setupInitialState, Consumer<TestResult> beforeCleanupHook) {
         try {
             TestCase testCase = setupInitialState.get();
-            return executeSchedule(testCase.functionalities(), testCase.interDependencies());
+
+            TestResult result = executeSchedule(
+                    testCase.getFunctionalities(),
+                    testCase.getInterDependencies());
+
+            beforeCleanupHook.accept(result);
+            return result;
         } finally {
             clearDatabase();
         }
+    }
+
+    /**
+     * Merges two lists of arguments, giving precedence to high-priority arguments.
+     * <p>
+     * If a low-priority argument shares the same property key as a high-priority
+     * argument,
+     * the low-priority argument is omitted from the final list. The resulting list
+     * preserves the order, placing all high-priority arguments first, followed by
+     * the non-conflicting low-priority arguments.
+     *
+     * @param highPriorityArgs the list of high-priority arguments.
+     * @param lowPriorityArgs  the list of low-priority arguments.
+     * @return A new list containing the merged arguments.
+     */
+    private static List<String> mergeArgsWithPriority(List<String> highPriorityArgs, List<String> lowPriorityArgs) {
+        // Regex to capture the property of the argument
+        // (e.g., "--spring.profiles.active=sagas,local,test"),
+        // returns the string between "--" and "=" (or end of string)
+        Pattern argPropertyPattern = Pattern.compile("^--([^=]+)");
+
+        Function<String, String> getArgProperty = arg -> {
+            Matcher matcher = argPropertyPattern.matcher(arg);
+            return matcher.find() ? matcher.group(1) : null;
+        };
+
+        Set<String> highPriorityProperties = highPriorityArgs.stream()
+                .map(getArgProperty)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Function<String, Boolean> argDoesNotOverwriteHighPriorityArg = arg -> {
+            return !highPriorityProperties.contains(getArgProperty.apply(arg));
+        };
+
+        List<String> nonConflitctingLowPriorityArgs = lowPriorityArgs.stream()
+                .filter(argDoesNotOverwriteHighPriorityArg::apply)
+                .toList();
+
+        return Stream.concat(highPriorityArgs.stream(), nonConflitctingLowPriorityArgs.stream()).toList();
     }
 }

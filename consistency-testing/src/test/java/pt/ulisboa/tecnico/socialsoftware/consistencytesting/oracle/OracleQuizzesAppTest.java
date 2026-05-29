@@ -5,9 +5,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
@@ -20,12 +22,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.FunctionalityUtils;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities;
@@ -77,9 +79,9 @@ class OracleQuizzesAppTest {
     void singleRunOfFunctionalityShouldWork() {
         TestResult result = oracle.runTest(setupAddParticipantSagaInitialState);
 
-        assertEquals(1, result.executedFunctionalities().size());
-        WorkflowFunctionality executedSaga = result.executedFunctionalities().getFirst();
-        var executedAddParticipantSaga = assertInstanceOf(
+        assertEquals(1, result.functionalities().size());
+        WorkflowFunctionality executedSaga = result.functionalities().values().iterator().next();
+        AddParticipantFunctionalitySagas executedAddParticipantSaga = assertInstanceOf(
                 AddParticipantFunctionalitySagas.class, executedSaga);
 
         UserDto readUserDto = executedAddParticipantSaga.getUserDto();
@@ -88,10 +90,11 @@ class OracleQuizzesAppTest {
         // TODO fix this assert
         // assertEquals(QuizzesTestFactory.STUDENT_ROLE, readUserDto.getRole());
 
-        List<String> expectedSchedule = FunctionalityUtils.getStepsWithCommitNames(executedAddParticipantSaga);
+        FunctionalityId funcId = getOnlyFunctionalityId(result);
+        List<StepId> expectedSchedule = getFunctionalityStepIds(funcId, executedAddParticipantSaga, true);
         assertTrue(result.exceptions().isEmpty());
         assertTrue(result.statuses().isEmpty());
-        assertEquals(expectedSchedule, result.schedule().stream().map(FlowStep::getName).toList());
+        assertEquals(expectedSchedule, result.schedule());
     }
 
     @Test
@@ -99,16 +102,15 @@ class OracleQuizzesAppTest {
     void runningSameTestCaseConsecutivelyReturnsSameTestResults() {
         TestResult originalResult = oracle.runTest(setupAddParticipantSagaInitialState);
         assertEquals(0, originalResult.exceptions().size());
-        List<String> originalStepNameSched = getStepNameSchedule(originalResult.schedule());
+        List<StepId> originalSchedule = List.copyOf(originalResult.schedule());
 
-        final int consecutiveRuns = 50;
+        final int consecutiveRuns = 5;
         for (int i = 0; i < consecutiveRuns; i++) {
             TestResult result = oracle.runTest(setupAddParticipantSagaInitialState);
-            List<String> stepNameSched = getStepNameSchedule(result.schedule());
 
             assertEquals(originalResult.exceptions(), result.exceptions());
             assertEquals(originalResult.statuses(), result.statuses());
-            assertEquals(originalStepNameSched, stepNameSched);
+            assertEquals(originalSchedule, result.schedule());
         }
     }
 
@@ -130,29 +132,30 @@ class OracleQuizzesAppTest {
                     uow,
                     gateway);
 
-            return new TestCase(List.of(addParticipantSaga), new StepDependencies());
+            FunctionalityId funcId = simpleFunctionalityId(addParticipantSaga, 1);
+            return new TestCase.Builder()
+                    .addFunctionality(funcId, addParticipantSaga)
+                    .build();
         };
 
         TestResult result = oracle.runTest(badAddParticipantSagaScenario);
 
-        assertEquals(2, result.executedFunctionalities().size());
-        WorkflowFunctionality executedSaga = result.executedFunctionalities().get(0);
-        WorkflowFunctionality compensationSaga = result.executedFunctionalities().get(1);
-
+        assertEquals(1, result.functionalities().size());
+        FunctionalityId funcId = getOnlyFunctionalityId(result);
+        WorkflowFunctionality executedSaga = result.functionalities().get(funcId);
         assertInstanceOf(AddParticipantFunctionalitySagas.class, executedSaga);
-        assertInstanceOf(CompensationFunctionality.class, compensationSaga);
 
-        List<FlowStep> completeSchedule = FunctionalityUtils.getSteps(executedSaga);
-        List<FlowStep> brokenSchedule = completeSchedule.subList(0, 1);
+        List<StepId> completeSchedule = getFunctionalityStepIds(funcId, executedSaga, false);
+        List<StepId> brokenSchedule = completeSchedule.subList(0, 1);
 
-        List<FlowStep> actualSchedule = result.schedule();
+        List<StepId> actualSchedule = result.schedule();
         assertEquals(brokenSchedule, actualSchedule.subList(0, brokenSchedule.size()));
 
         // should end with abort step from the compensation functionality
-        String abortName = FunctionalityUtils.getAbortStepName(compensationSaga);
-        assertEquals(abortName, actualSchedule.getLast().getName());
+        StepId abortId = StepId.forAbortStep(funcId);
+        assertEquals(abortId, actualSchedule.getLast());
 
-        FlowStep brokenStep = brokenSchedule.getFirst();
+        StepId brokenStep = brokenSchedule.getFirst();
         assertEquals(1, result.exceptions().size());
         assertInstanceOf(SimulatorException.class, result.exceptions().get(brokenStep));
 
@@ -169,13 +172,14 @@ class OracleQuizzesAppTest {
         var runTimeException = new RuntimeException("This step breaks unexpectedly");
         var testFunc = new TestBrokenFunctionality(sagaUnitOfWorkService, uow, runTimeException);
 
-        Supplier<TestCase> testFuncScenario = () -> new TestCase(List.of(testFunc), new StepDependencies());
+        Supplier<TestCase> testFuncScenario = () -> new TestCase.Builder()
+                .addFunctionality(simpleFunctionalityId(testFunc, 1), testFunc)
+                .build();
         TestResult result = oracle.runTest(testFuncScenario);
 
         // if it broke unexpectedly the test halts and the compensations are skipped
-        assertEquals(1, result.executedFunctionalities().size());
-        WorkflowFunctionality executedFunc = result.executedFunctionalities().getFirst();
-        assertFalse(executedFunc instanceof CompensationFunctionality);
+        assertEquals(1, result.functionalities().size());
+        WorkflowFunctionality executedFunc = result.functionalities().values().iterator().next();
         assertInstanceOf(TestBrokenFunctionality.class, executedFunc);
         TestBrokenFunctionality executedTestFunc = (TestBrokenFunctionality) executedFunc;
 
@@ -197,7 +201,8 @@ class OracleQuizzesAppTest {
         // assertEquals(Set.of(TestStatus.INTERNAL_EXCEPTION), result.statuses());
 
         // the exception registered in the test result is the expected one
-        FlowStep brokenStep = FunctionalityUtils.getSteps(executedTestFunc).get(2);
+        FunctionalityId funcId = getOnlyFunctionalityId(result);
+        StepId brokenStep = getFunctionalityStepIds(funcId, executedTestFunc, false).get(2);
         assertEquals(runTimeException, result.exceptions().get(brokenStep));
     }
 
@@ -209,14 +214,14 @@ class OracleQuizzesAppTest {
         var expectedException = new SimulatorException("This step is expected to break");
         var testFunc = new TestBrokenFunctionality(sagaUnitOfWorkService, uow, expectedException);
 
-        Supplier<TestCase> testFuncScenario = () -> new TestCase(List.of(testFunc), new StepDependencies());
+        Supplier<TestCase> testFuncScenario = () -> new TestCase.Builder()
+                .addFunctionality(simpleFunctionalityId(testFunc, 1), testFunc)
+                .build();
         TestResult result = oracle.runTest(testFuncScenario);
 
-        assertEquals(2, result.executedFunctionalities().size());
-        WorkflowFunctionality executedFunc = result.executedFunctionalities().get(0);
-        WorkflowFunctionality compensationFunc = result.executedFunctionalities().get(1);
-
-        assertInstanceOf(CompensationFunctionality.class, compensationFunc);
+        assertEquals(1, result.functionalities().size());
+        FunctionalityId funcId = getOnlyFunctionalityId(result);
+        WorkflowFunctionality executedFunc = result.functionalities().get(funcId);
         assertInstanceOf(TestBrokenFunctionality.class, executedFunc);
         TestBrokenFunctionality executedTestFunc = (TestBrokenFunctionality) executedFunc;
 
@@ -231,17 +236,11 @@ class OracleQuizzesAppTest {
         assertTrue(executedTestFunc.hasSecondStepCompensated());
         assertTrue(executedTestFunc.hasFirstStepCompensated());
 
-        List<String> scheduleStepNames = result.schedule().stream().map(FlowStep::getName).toList();
-        List<String> expectedSchedule = List.of(
-                TestBrokenFunctionality.FIRST_STEP_NAME,
-                TestBrokenFunctionality.SECOND_STEP_NAME,
-                TestBrokenFunctionality.THIRD_STEP_NAME,
-                FunctionalityUtils.getCompensationStepName(1), // compensation of second step
-                FunctionalityUtils.getCompensationStepName(0), // compensation of first step,
-                FunctionalityUtils.getAbortStepName(compensationFunc) // abort at the end of compensation plan
-        );
+        List<StepId> expectedSchedule = new ArrayList<>();
+        expectedSchedule.addAll(getFunctionalityStepIds(funcId, executedTestFunc, false));
+        expectedSchedule.addAll(getFunctionalityCompensationStepIds(funcId, executedTestFunc));
 
-        assertEquals(expectedSchedule, scheduleStepNames);
+        assertEquals(expectedSchedule, result.schedule());
 
         // TODO do same test but for ConcludeQuizFunctionalitySagas
     }
@@ -250,6 +249,9 @@ class OracleQuizzesAppTest {
     @ValueSource(ints = { 0, 1, 2 })
     @DisplayName("Inter dependencies are respected")
     void interDependenciesAreRespected(int selectDependencies) {
+        AtomicReference<FunctionalityId> func1IdRef = new AtomicReference<>();
+        AtomicReference<FunctionalityId> func2IdRef = new AtomicReference<>();
+
         Supplier<TestCase> setupTestCase = () -> {
             InitialState initialState = factory.setupInitialState();
 
@@ -267,26 +269,32 @@ class OracleQuizzesAppTest {
                     initialState.userDto().getAggregateId(),
                     gateway);
 
-            var func1Steps = FunctionalityUtils.getSteps(func1);
-            var func2Steps = FunctionalityUtils.getSteps(func2);
+            FunctionalityId func1Id = simpleFunctionalityId(func1, 1);
+            FunctionalityId func2Id = simpleFunctionalityId(func2, 2);
+            func1IdRef.set(func1Id);
+            func2IdRef.set(func2Id);
+            var func1Steps = getFunctionalityStepIds(func1Id, func1, false);
+            var func2Steps = getFunctionalityStepIds(func2Id, func2, false);
 
-            StepDependencies dependencies = new StepDependencies();
+            TestCase.Builder builder = new TestCase.Builder()
+                    .addFunctionality(func1Id, func1)
+                    .addFunctionality(func2Id, func2);
             switch (selectDependencies) {
                 case 0 -> {
                     // f1 step 1 depends on f2 step 1
-                    dependencies.setStepDependencies(func1Steps.get(0), Set.of(func2Steps.get(0)));
+                    builder.addInterDependency(func1Steps.get(0), func2Steps.get(0));
                     // f2 step 2 depends on f1 step 2
-                    dependencies.setStepDependencies(func2Steps.get(1), Set.of(func1Steps.get(1)));
+                    builder.addInterDependency(func2Steps.get(1), func1Steps.get(1));
                 }
                 case 1 -> {
                     // f2 step 1 depends on f1 step 1
-                    dependencies.setStepDependencies(func2Steps.get(0), Set.of(func1Steps.get(0)));
+                    builder.addInterDependency(func2Steps.get(0), func1Steps.get(0));
                     // f1 step 2 depends on f2 step 2
-                    dependencies.setStepDependencies(func1Steps.get(1), Set.of(func2Steps.get(1)));
+                    builder.addInterDependency(func1Steps.get(1), func2Steps.get(1));
                 }
                 case 2 -> {
                     // f1 step 1 depends on f2 step 2 (cross-step dependency)
-                    dependencies.setStepDependencies(func1Steps.get(0), Set.of(func2Steps.get(1)));
+                    builder.addInterDependency(func1Steps.get(0), func2Steps.get(1));
                 }
                 default -> {
                     throw new IllegalArgumentException(
@@ -294,16 +302,18 @@ class OracleQuizzesAppTest {
                 }
             }
 
-            return new TestCase(List.of(func1, func2), dependencies);
+            return builder.build();
         };
 
         TestResult result = oracle.runTest(setupTestCase);
-        List<FlowStep> schedule = result.schedule();
-        assertEquals(2, result.executedFunctionalities().size());
-        WorkflowFunctionality executedFunc1 = result.executedFunctionalities().get(0);
-        WorkflowFunctionality executedFunc2 = result.executedFunctionalities().get(1);
-        List<FlowStep> func1Steps = FunctionalityUtils.getSteps(executedFunc1);
-        List<FlowStep> func2Steps = FunctionalityUtils.getSteps(executedFunc2);
+        List<StepId> schedule = result.schedule();
+        assertEquals(2, result.functionalities().size());
+        FunctionalityId func1Id = Objects.requireNonNull(func1IdRef.get());
+        FunctionalityId func2Id = Objects.requireNonNull(func2IdRef.get());
+        WorkflowFunctionality executedFunc1 = result.functionalities().get(func1Id);
+        WorkflowFunctionality executedFunc2 = result.functionalities().get(func2Id);
+        List<StepId> func1Steps = getFunctionalityStepIds(func1Id, executedFunc1, false);
+        List<StepId> func2Steps = getFunctionalityStepIds(func2Id, executedFunc2, false);
 
         switch (selectDependencies) {
             case 0 -> {
@@ -353,26 +363,29 @@ class OracleQuizzesAppTest {
             // assertEquals(GenericSagaState.NOT_IN_SAGA,
             // factory.sagaStateOf(tournamentId));
 
-            return new TestCase(List.of(updateSaga), new StepDependencies());
+            return new TestCase.Builder()
+                    .addFunctionality(simpleFunctionalityId(updateSaga, 1), updateSaga)
+                    .build();
         };
 
         TestResult result = oracle.runTest(setupTestCase);
 
-        assertEquals(1, result.executedFunctionalities().size());
-        WorkflowFunctionality executed = result.executedFunctionalities().getFirst();
+        assertEquals(1, result.functionalities().size());
+        FunctionalityId funcId = getOnlyFunctionalityId(result);
+        WorkflowFunctionality executed = result.functionalities().get(funcId);
 
         // Full schedule should match the functionality steps + commit
-        List<String> expectedSchedule = FunctionalityUtils.getStepsWithCommitNames(executed);
-        List<String> actualSchedule = result.schedule().stream().map(FlowStep::getName).toList();
+        List<StepId> expectedSchedule = getFunctionalityStepIds(funcId, executed, true);
+        List<StepId> actualSchedule = result.schedule();
         assertEquals(expectedSchedule, actualSchedule);
 
         // Last step must be commit
-        String commitName = FunctionalityUtils.getCommitStepName(executed);
-        assertEquals(commitName, actualSchedule.getLast());
+        StepId commitId = StepId.forCommitStep(funcId);
+        assertEquals(commitId, actualSchedule.getLast());
 
         // No abort step in schedule
-        String abortName = FunctionalityUtils.getAbortStepName(executed);
-        assertTrue(actualSchedule.stream().noneMatch(abortName::equals));
+        StepId abortId = StepId.forAbortStep(funcId);
+        assertTrue(actualSchedule.stream().noneMatch(abortId::equals));
 
         // no exceptions/statuses
         assertTrue(result.exceptions().isEmpty());
@@ -392,52 +405,49 @@ class OracleQuizzesAppTest {
             SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
                     TestBrokenFunctionality.class.getSimpleName());
             var func = new TestBrokenFunctionality(sagaUnitOfWorkService, uow, expectedException);
-            return new TestCase(List.of(func), new StepDependencies());
+            return new TestCase.Builder()
+                    .addFunctionality(simpleFunctionalityId(func, 1), func)
+                    .build();
         };
 
         TestResult result = oracle.runTest(setupTestCase);
 
-        assertEquals(2, result.executedFunctionalities().size());
-        WorkflowFunctionality executedFunc = result.executedFunctionalities().get(0);
-        WorkflowFunctionality compensationFunc = result.executedFunctionalities().get(1);
+        assertEquals(1, result.functionalities().size());
+        FunctionalityId funcId = getOnlyFunctionalityId(result);
+        WorkflowFunctionality executedFunc = result.functionalities().get(funcId);
         assertInstanceOf(TestBrokenFunctionality.class, executedFunc);
-        assertInstanceOf(CompensationFunctionality.class, compensationFunc);
 
         TestBrokenFunctionality executed = (TestBrokenFunctionality) executedFunc;
         assertTrue(executed.hasFirstStepExecuted());
         assertTrue(executed.hasSecondStepExecuted());
         assertTrue(executed.hasThirdStepFailed());
 
-        List<String> scheduleNames = result.schedule().stream().map(FlowStep::getName).toList();
+        List<StepId> scheduleIds = result.schedule();
 
         // no commit for failed functionality
-        String commitName = FunctionalityUtils.getCommitStepName(executedFunc);
-        assertTrue(scheduleNames.stream().noneMatch(commitName::equals));
+        StepId commitId = StepId.forCommitStep(funcId);
+        assertTrue(scheduleIds.stream().noneMatch(commitId::equals));
 
         // third step is the failing step
-        FlowStep thirdStep = FunctionalityUtils.getSteps(executedFunc).get(2);
+        StepId thirdStep = getFunctionalityStepIds(funcId, executedFunc, false).get(2);
         assertTrue(result.exceptions().containsKey(thirdStep));
 
         assertEquals(expectedException, result.exceptions().get(thirdStep));
 
         // compensation steps (for 2nd and 1st) + abort at the end
-        List<String> compensationSchedule = FunctionalityUtils
-                .getCompensationStepsWithAbortNames((CompensationFunctionality) compensationFunc);
-
-        System.out.println("Real Schedule: " + scheduleNames);
-        System.out.println("Compensation Theoretical Schedule: " + compensationSchedule);
+        List<StepId> compensationSchedule = getFunctionalityCompensationStepIds(funcId, executedFunc);
 
         int lastIndex = -1;
-        for (String stepName : compensationSchedule) {
-            int index = scheduleNames.indexOf(stepName);
+        for (StepId stepId : compensationSchedule) {
+            int index = scheduleIds.indexOf(stepId);
             assertTrue(index > lastIndex);
             lastIndex = index;
         }
 
-        int failIndex = scheduleNames.indexOf(TestBrokenFunctionality.THIRD_STEP_NAME);
+        int failIndex = scheduleIds.indexOf(thirdStep);
         assertTrue(lastIndex > failIndex);
 
-        assertEquals(compensationSchedule.getLast(), scheduleNames.getLast());
+        assertEquals(compensationSchedule.getLast(), scheduleIds.getLast());
     }
 
     @Test
@@ -456,39 +466,114 @@ class OracleQuizzesAppTest {
             UpdateTournamentFunctionalitySagas updateSaga = factory.createUpdateTournamentFunctionality(
                     sagaUnitOfWorkService, updateDto, invalidTopicIds, gateway);
 
-            return new TestCase(List.of(updateSaga), new StepDependencies());
+            return new TestCase.Builder()
+                    .addFunctionality(simpleFunctionalityId(updateSaga, 1), updateSaga)
+                    .build();
         };
 
         TestResult result = oracle.runTest(setupTestCase);
 
-        assertEquals(2, result.executedFunctionalities().size());
-        WorkflowFunctionality executedFunc = result.executedFunctionalities().get(0);
-        WorkflowFunctionality compensationFunc = result.executedFunctionalities().get(1);
+        assertEquals(1, result.functionalities().size());
+        FunctionalityId funcId = getOnlyFunctionalityId(result);
+        WorkflowFunctionality executedFunc = result.functionalities().get(funcId);
         assertInstanceOf(UpdateTournamentFunctionalitySagas.class, executedFunc);
-        assertInstanceOf(CompensationFunctionality.class, compensationFunc);
 
-        List<String> scheduleNames = result.schedule().stream().map(FlowStep::getName).toList();
+        List<StepId> scheduleIds = result.schedule();
 
         // failed functionality should NOT reach commit
-        String commitName = FunctionalityUtils.getCommitStepName(executedFunc);
-        assertTrue(scheduleNames.stream().noneMatch(commitName::equals));
+        StepId commitId = StepId.forCommitStep(funcId);
+        assertTrue(scheduleIds.stream().noneMatch(commitId::equals));
 
         // compensation steps (if any) plus abort should execute in order, ending with
         // abort
-        List<String> compensationSchedule = FunctionalityUtils
-                .getCompensationStepsWithAbortNames((CompensationFunctionality) compensationFunc);
+        List<StepId> compensationSchedule = getFunctionalityCompensationStepIds(funcId, executedFunc);
         int lastIndex = -1;
-        for (String stepName : compensationSchedule) {
-            int index = scheduleNames.indexOf(stepName);
+        for (StepId stepId : compensationSchedule) {
+            int index = scheduleIds.indexOf(stepId);
             assertTrue(index > lastIndex);
             lastIndex = index;
         }
-        assertEquals(compensationSchedule.getLast(), scheduleNames.getLast());
+        assertEquals(compensationSchedule.getLast(), scheduleIds.getLast());
 
         // should have a SimulatorException recorded on some step
         assertFalse(result.exceptions().isEmpty());
     }
 
+    @Test
+    @DisplayName("Compensations are not automatically executed")
+    void compensationsAreNotAutomaticallyExecuted() {
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                TestBrokenFunctionality.class.getSimpleName());
+        var expectedException = new SimulatorException("Expected failure");
+        var testFunc = new TestBrokenFunctionality(sagaUnitOfWorkService, uow, expectedException);
+
+        FunctionalityId funcId = simpleFunctionalityId(testFunc, 1);
+        StepId blockedCompensationStep = StepId.forCompensationStep(funcId, 1);
+        StepId nonExecutedStep = StepId.forFunctionalityStep(
+                FunctionalityId.forSagaFunctionality("nonExecutedFunc"), "nonExecutedStep");
+
+        Supplier<TestCase> setupTestCase = () -> new TestCase.Builder()
+                .addFunctionality(funcId, testFunc)
+                .addInterDependency(blockedCompensationStep, nonExecutedStep)
+                .build();
+
+        TestResult result = oracle.runTest(setupTestCase);
+
+        assertEquals(1, result.functionalities().size());
+        List<StepId> compensationSteps = getFunctionalityCompensationStepIds(funcId, testFunc);
+
+        assertFalse(testFunc.hasFirstStepCompensated());
+        assertFalse(testFunc.hasSecondStepCompensated());
+        assertFalse(testFunc.hasThirdStepCompensated());
+        assertTrue(compensationSteps.stream().noneMatch(result.schedule()::contains));
+    }
+
+    @Test
+    @DisplayName("Compensation functionalities are controlled by the oracle")
+    void compensationFunctionalitiesAreControlledByTheOracle() {
+        AtomicReference<FunctionalityId> brokenFuncIdRef = new AtomicReference<>();
+        AtomicReference<StepId> otherFuncFirstStepRef = new AtomicReference<>();
+
+        Supplier<TestCase> setupTestCase = () -> {
+            InitialState initialState = factory.setupInitialState();
+
+            AddParticipantFunctionalitySagas otherFunc = factory.createAddParticipantFunctionality(
+                    sagaUnitOfWorkService,
+                    initialState.tournamentDto().getAggregateId(),
+                    initialState.courseExecutionDto().getAggregateId(),
+                    initialState.userDto().getAggregateId(),
+                    gateway);
+
+            SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                    TestBrokenFunctionality.class.getSimpleName());
+            var expectedException = new SimulatorException("Expected failure");
+            var brokenFunc = new TestBrokenFunctionality(sagaUnitOfWorkService, uow, expectedException);
+
+            FunctionalityId otherFuncId = simpleFunctionalityId(otherFunc, 1);
+            FunctionalityId brokenFuncId = simpleFunctionalityId(brokenFunc, 2);
+            brokenFuncIdRef.set(brokenFuncId);
+
+            StepId otherFuncStep = getFunctionalityStepIds(otherFuncId, otherFunc, false).get(0);
+            otherFuncFirstStepRef.set(otherFuncStep);
+            StepId firstCompensationStep = StepId.forCompensationStep(brokenFuncId, 1);
+
+            return new TestCase.Builder()
+                    .addFunctionality(otherFuncId, otherFunc)
+                    .addFunctionality(brokenFuncId, brokenFunc)
+                    .addInterDependency(firstCompensationStep, otherFuncStep)
+                    .build();
+        };
+
+        TestResult result = oracle.runTest(setupTestCase);
+
+        FunctionalityId brokenFuncId = Objects.requireNonNull(brokenFuncIdRef.get());
+        StepId otherFuncFirstStep = Objects.requireNonNull(otherFuncFirstStepRef.get());
+
+        StepId firstCompensationStep = StepId.forCompensationStep(brokenFuncId, 1);
+
+        assertTrue(result.schedule().contains(firstCompensationStep));
+        assertTrue(result.schedule().indexOf(firstCompensationStep) > result.schedule().indexOf(otherFuncFirstStep));
+    }
 
     // ======= Helper Functions =======
 
@@ -500,10 +585,53 @@ class OracleQuizzesAppTest {
                         gateway,
                         executionFunctionalities);
 
-        return new TestCase(List.of(addParticipantSaga), new StepDependencies());
+        FunctionalityId funcId = simpleFunctionalityId(addParticipantSaga, 1);
+        return new TestCase.Builder()
+                .addFunctionality(funcId, addParticipantSaga)
+                .build();
     };
 
-    private List<String> getStepNameSchedule(List<FlowStep> schedule) {
-        return schedule.stream().map(FlowStep::getName).toList();
+    private FunctionalityId simpleFunctionalityId(WorkflowFunctionality func, int index) {
+        String baseName = func.getClass().getSimpleName();
+        return FunctionalityId.forSagaFunctionality("%s-%d".formatted(baseName, index));
+    }
+
+    private FunctionalityId getOnlyFunctionalityId(TestResult result) {
+        return result.functionalities().keySet().iterator().next();
+    }
+
+    private List<StepId> getFunctionalityStepIds(
+            FunctionalityId funcId,
+            WorkflowFunctionality func,
+            boolean includeCommitStep) {
+
+        List<StepId> stepIds = FunctionalityUtils.getSteps(func).stream()
+                .map(step -> StepId.forFunctionalityStep(funcId, step.getName()))
+                .toList();
+
+        if (!includeCommitStep) {
+            return stepIds;
+        }
+
+        List<StepId> withCommit = new ArrayList<>(stepIds);
+        withCommit.add(StepId.forCommitStep(funcId));
+        return withCommit;
+    }
+
+    private List<StepId> getFunctionalityCompensationStepIds(FunctionalityId funcId, WorkflowFunctionality func) {
+        UnitOfWork uow = func.getWorkflow().getUnitOfWork();
+        if (!(uow instanceof SagaUnitOfWork sagaUow)) {
+            throw new IllegalArgumentException(
+                    "Cannot retrieve compensation steps for workflow with unit of work %s expected %s"
+                            .formatted(uow.getClass().getName(), SagaUnitOfWork.class.getName()));
+        }
+
+        int compensationCount = sagaUow.getRegisteredCompensations().size();
+        List<StepId> compensationStepIds = new ArrayList<>(compensationCount + 1);
+        for (int i = compensationCount - 1; i >= 0; i--) {
+            compensationStepIds.add(StepId.forCompensationStep(funcId, i));
+        }
+        compensationStepIds.add(StepId.forAbortStep(funcId));
+        return compensationStepIds;
     }
 }

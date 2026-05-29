@@ -1,18 +1,19 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
-import java.util.stream.Stream;
 
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.FunctionalityUtils;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -22,101 +23,56 @@ class ScheduleExecutor {
 
     private static final int STEP_EXECUTION_LIMIT = 500;
 
+    private static final Logger log = LoggerFactory.getLogger(ScheduleExecutor.class);
+
     private final SagaUnitOfWorkService uowService;
-    private final List<WorkflowFunctionality> functionalities = new ArrayList<>();
+    private final Map<FunctionalityId, WorkflowFunctionality> functionalities;
     private final StepDependencies interDependencies;
     private final StepDependencies intraDependencies = new StepDependencies();
-    private final Set<FlowStep> allStepsFound = new HashSet<>();
-
-    private final Map<FlowStep, WorkflowFunctionality> stepFunctionalityMap = new HashMap<>();
-    private final List<FlowStep> schedule = new ArrayList<>();
-    private final Set<FlowStep> successfulSteps = new HashSet<>();
-    private final Map<FlowStep, Exception> stepExceptionsMap = new HashMap<>();
+    private final Map<StepId, OracleStep> steps = new HashMap<>();
+    private final Set<StepId> schedule = new LinkedHashSet<>(); // keeps execution order and allows O(1) contains checks
+    private final Set<StepId> successfulSteps = new HashSet<>();
+    private final Map<StepId, Exception> stepExceptionsMap = new HashMap<>();
     private final Set<TestStatus> detectedStatuses = new HashSet<>();
 
     public ScheduleExecutor(
-            List<WorkflowFunctionality> functionalities,
+            Map<FunctionalityId, WorkflowFunctionality> functionalities,
             StepDependencies interDependencies,
             SagaUnitOfWorkService uowService) {
 
+        this.functionalities = Map.copyOf(functionalities);
+        this.interDependencies = new StepDependencies(interDependencies);
         this.uowService = uowService;
-        this.interDependencies = Objects.requireNonNull(new StepDependencies(interDependencies));
-        for (WorkflowFunctionality func : functionalities) {
-            addFunctionality(func);
-        }
 
-        // TODO review the allStepsFound concept, should it be changed?
-        // allFoundSteps is the union of the steps that had intraDependencies with the
-        // steps that had interDependencies which should represent all the steps that
-        // were initially expected plus the ones found dynamically
-        allStepsFound.addAll(interDependencies.getSteps());
+        for (Entry<FunctionalityId, WorkflowFunctionality> funcEntry : functionalities.entrySet()) {
+            addSteps(OracleStepFactory.buildStepsForFunctionality(
+                    funcEntry.getKey(), funcEntry.getValue(), uowService));
+        }
     }
 
-    private void addFunctionality(WorkflowFunctionality func) {
-        functionalities.add(func);
-        List<FlowStep> funcSteps = FunctionalityUtils.getSteps(func);
+    private void addSteps(Collection<OracleStep> newSteps) {
+        Set<StepId> seenIds = new HashSet<>();
 
-        if (func instanceof CompensationFunctionality compensationFunc) {
-            // add abort step to compensation functionalities
-            FlowStep abortStep = FunctionalityUtils.createAbortStep(compensationFunc, uowService);
-            funcSteps = Stream.concat(funcSteps.stream(), Stream.of(abortStep)).toList();
-        } else {
-            // add commit step to non-compensation functionalities
-            FlowStep commitStep = FunctionalityUtils.createCommitStep(func, uowService);
-            funcSteps = Stream.concat(funcSteps.stream(), Stream.of(commitStep)).toList();
+        for (OracleStep step : newSteps) {
+            StepId id = step.getId();
+
+            // Check if step exists in the main map OR if it's duplicated in this batch
+            if (steps.containsKey(id) || !seenIds.add(id)) {
+                throw new IllegalArgumentException("Step '%s' already exists, can't be overridden".formatted(id));
+            }
         }
 
-        intraDependencies.merge(StepDependencies.of(funcSteps));
-
-        for (FlowStep step : funcSteps) {
-            stepFunctionalityMap.put(step, func);
+        for (OracleStep newStep : newSteps) {
+            steps.put(newStep.getId(), newStep);
         }
 
-        allStepsFound.addAll(funcSteps);
+        intraDependencies.merge(StepDependencies.of(newSteps));
     }
 
     public TestResult execute() {
-        while (schedule.size() < STEP_EXECUTION_LIMIT) {
-            var stepOpt = getNextStep();
-            if (stepOpt.isEmpty()) {
-                break;
-            }
+        executeSteps();
 
-            FlowStep step = stepOpt.get();
-            if (schedule.contains(step)) {
-                // TODO change to step id when it is avaialable
-                throw new IllegalStateException("Step %s cannot be executed more than once.".formatted(step.getName()));
-            }
-
-            WorkflowFunctionality func = stepFunctionalityMap.get(step);
-            schedule.add(step);
-            try {
-                func.executeUntilStep(step.getName(), func.getWorkflow().getUnitOfWork());
-                successfulSteps.add(step);
-            } catch (Exception e) {
-                if (e instanceof CompletionException ce && ce.getCause() instanceof Exception cause) {
-                    // unwrap CompletionExceptions if they wrap Exception(excludes Throwables, null)
-                    e = cause;
-                }
-
-                // TODO if compensation steps can fail (e.g., exception), needs to be handled
-                // TODO can the commit step fail? should it run abort() with compensations?
-
-                stepExceptionsMap.put(step, e);
-                e.printStackTrace();
-
-                // ! TODO verify that SimulatorException represents all the benign exceptions
-                if (!(e instanceof SimulatorException)) {
-                    detectedStatuses.add(TestStatus.INTERNAL_EXCEPTION);
-                    break; // defensive break to not continue to test on a broken app state
-                }
-
-                var compensationFunc = new CompensationFunctionality(func, uowService);
-                addFunctionality(compensationFunc);
-            }
-        }
-
-        int totalSteps = allStepsFound.size();
+        int totalSteps = steps.size(); // TODO should this account for the interdeps?
         if (schedule.size() >= STEP_EXECUTION_LIMIT) {
             detectedStatuses.add(TestStatus.EXECUTION_LIMIT_EXCEEDED);
         } else if (schedule.size() < totalSteps) {
@@ -124,31 +80,125 @@ class ScheduleExecutor {
             detectedStatuses.add(TestStatus.SCHEDULE_REJECTED);
         }
 
-        return new TestResult(functionalities, schedule, stepExceptionsMap, detectedStatuses);
+        return new TestResult(
+                intraDependencies,
+                interDependencies,
+                functionalities,
+                List.copyOf(schedule), // list will reflect the LinkedHashSet order
+                stepExceptionsMap,
+                detectedStatuses);
     }
 
-    private Optional<FlowStep> getNextStep() {
+    private void executeSteps() {
+        while (schedule.size() < STEP_EXECUTION_LIMIT) {
+            Optional<OracleStep> stepOpt = getNextStep();
+            if (stepOpt.isEmpty()) {
+                break;
+            }
+
+            OracleStep step = stepOpt.get();
+            StepId stepId = step.getId();
+
+            if (schedule.contains(stepId)) {
+                throw new IllegalStateException("Step '%s' cannot be executed more than once".formatted(stepId));
+            }
+
+            schedule.add(stepId);
+            try {
+                step.execute();
+                successfulSteps.add(stepId);
+            } catch (Exception e) {
+                boolean isCriticalFailure = handleStepFailure(step, e);
+                if (isCriticalFailure) {
+                    break; // defensive break to not continue to test on a broken system state
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles the failure of a step during test execution.
+     * 
+     * @param step the failed step
+     * @param e    the exception that caused the failure
+     * @return {@code true} if the failure is critical and should stop the
+     *         test execution, {@code false} if its safe to continue the test
+     *         execution (e.g. business exception on functionality step)
+     */
+    private boolean handleStepFailure(OracleStep step, Exception e) {
+        boolean isCriticalFailure = false;
+        StepId stepId = step.getId();
+
+        if (e instanceof CompletionException ce && ce.getCause() instanceof Exception cause) {
+            // unwrap CompletionExceptions if they wrap Exception(excludes Throwables, null)
+            e = cause;
+        }
+
+        stepExceptionsMap.put(stepId, e);
+
+        if (!(e instanceof SimulatorException)) {
+            log.error(
+                    "Step '{}' failed with an unexpected system exception, which indicates a possible broken system state. Stopping test execution",
+                    stepId, e);
+            detectedStatuses.add(TestStatus.INTERNAL_EXCEPTION);
+            isCriticalFailure = true;
+        }
+
+        if (step instanceof CommitStep || step instanceof AbortStep) {
+            log.error(
+                    "{} '{}' failed, resulting in a broken system state. Stopping test execution",
+                    step.getClass().getSimpleName(), stepId, e);
+            detectedStatuses.add(TestStatus.INTERNAL_EXCEPTION);
+            isCriticalFailure = true;
+
+        } else if (step instanceof CompensationStep || step instanceof EventHandlerStep) {
+            log.warn("{} '{}' failed. Continuing test normally",
+                    step.getClass().getSimpleName(), stepId, e);
+
+        } else if (step instanceof FunctionalityStep funcStep) {
+            log.info(
+                    "Functionality step '{}' failed with a domain exception. Injecting compensation path in test",
+                    stepId);
+            injectCompensation(funcStep, stepId);
+
+        } else {
+            throw new IllegalStateException("Unknown %s implementation type for step '%s': %s"
+                    .formatted(OracleStep.class.getSimpleName(), stepId, step.getClass().getSimpleName()));
+        }
+
+        return isCriticalFailure;
+    }
+
+    private void injectCompensation(FunctionalityStep funcStep, StepId stepId) {
+        FunctionalityId funcId = funcStep.getFunctionalityId();
+        WorkflowFunctionality func = functionalities.get(funcId);
+
+        if (func == null) {
+            throw new IllegalStateException(
+                    "Functionality '%s' not found in registered test functionalities for step '%s'"
+                            .formatted(funcId, stepId));
+        }
+
+        addSteps(OracleStepFactory.buildStepsForFunctionalityCompensation(funcId, func, uowService));
+    }
+
+    private Optional<OracleStep> getNextStep() {
         // TODO should be changed to pseudo-random pick (or determinisitic for testing)
-        return getAvailableSteps().stream().findFirst();
+        return steps.values().stream()
+                .filter(step -> stepCanExecute(step.getId()))
+                .findFirst();
     }
 
-    private List<FlowStep> getAvailableSteps() {
-        // TODO this could be better optimized
-        return allStepsFound.stream()
-                .filter(this::stepCanExecute)
-                .toList();
+    private boolean stepCanExecute(StepId stepId) {
+        return !schedule.contains(stepId) && stepDependenciesSatisfied(stepId);
     }
 
-    private boolean stepCanExecute(FlowStep step) {
-        return !schedule.contains(step) && stepDependenciesSatisfied(step);
-    }
-
-    private boolean stepDependenciesSatisfied(FlowStep step) {
+    private boolean stepDependenciesSatisfied(StepId stepId) {
         // intra-dependencies need to be successful to release
-        boolean intraDepsSatisfied = successfulSteps.containsAll(intraDependencies.getStepDependencies(step));
+        boolean intraDepsSatisfied = successfulSteps.containsAll(intraDependencies.getStepDependencies(stepId));
 
         // inter-dependencies only need to have executed (successful or not) to release
-        boolean interDepsSatisfied = schedule.containsAll(interDependencies.getStepDependencies(step));
+        boolean interDepsSatisfied = schedule.containsAll(interDependencies.getStepDependencies(stepId));
 
         return intraDepsSatisfied && interDepsSatisfied;
     }

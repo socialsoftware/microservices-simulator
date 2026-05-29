@@ -6,11 +6,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
-
 public class StepDependencies {
 
-    private final Map<FlowStep, Set<FlowStep>> stepDependencies;
+    private final Map<StepId, Set<StepId>> stepDependencies;
 
     public StepDependencies() {
         this.stepDependencies = new HashMap<>();
@@ -26,10 +24,10 @@ public class StepDependencies {
      */
     public StepDependencies(StepDependencies other) {
         this.stepDependencies = new HashMap<>();
-        other.stepDependencies.forEach((key, value) -> this.stepDependencies.put(key, new HashSet<>(value)));
+        other.stepDependencies.forEach(this::setStepDependencies);
     }
 
-    private StepDependencies(Map<FlowStep, Set<FlowStep>> stepDependencies) {
+    private StepDependencies(Map<StepId, Set<StepId>> stepDependencies) {
         this.stepDependencies = stepDependencies;
     }
 
@@ -43,7 +41,7 @@ public class StepDependencies {
      * @return an immutable copy of {@code original}
      */
     public static StepDependencies copyOf(StepDependencies original) {
-        Map<FlowStep, Set<FlowStep>> stepDependenciesMap = new HashMap<>();
+        Map<StepId, Set<StepId>> stepDependenciesMap = new HashMap<>();
         original.stepDependencies.forEach((key, value) -> stepDependenciesMap.put(key, Set.copyOf(value)));
         return new StepDependencies(Map.copyOf(stepDependenciesMap));
     }
@@ -58,40 +56,61 @@ public class StepDependencies {
      * @param steps the steps used to initialize dependencies
      * @return a mutable instance initialized with each step dependencies
      */
-    public static StepDependencies of(Collection<FlowStep> steps) {
+    public static StepDependencies of(Collection<OracleStep> steps) {
         StepDependencies stepDependencies = new StepDependencies();
-        for (FlowStep step : steps) {
-            stepDependencies.setStepDependencies(step, new HashSet<>(step.getDependencies()));
+        for (OracleStep step : steps) {
+            stepDependencies.setStepDependencies(step.getId(), step.getDependencies());
         }
         return stepDependencies;
     }
 
-    public Set<FlowStep> getSteps() {
+    /**
+     * Returns a set containing all the step IDs that have registered dependencies.
+     */
+    public Set<StepId> getSteps() {
         return stepDependencies.keySet();
     }
 
     /**
-     * @param step the step whose associated dependencies are to be returned
-     * @return the step's dependency set, or an {@code empty} set if the step is not
-     *         found
+     * @return the step's dependency set, or an {@code empty} set if not found
      */
-    public Set<FlowStep> getStepDependencies(FlowStep step) {
-        Set<FlowStep> dependencies = stepDependencies.get(step);
-        if (dependencies == null) {
-            dependencies = new HashSet<>();
-        }
-        return dependencies;
+    public Set<StepId> getStepDependencies(StepId stepId) {
+        Set<StepId> dependencies = stepDependencies.get(stepId);
+        return dependencies != null ? dependencies : new HashSet<>();
     }
 
-    public StepDependencies setStepDependencies(FlowStep step, Set<FlowStep> dependencies) {
-        assertStepWontDependOnItself(step, dependencies);
-        stepDependencies.put(step, new HashSet<>(dependencies));
+    /**
+     * Overwrites the dependency set for a specific step.
+     * <p>
+     * If the step already has associated dependencies, they are discarded and
+     * replaced entirely with a mutable copy of the provided set.
+     *
+     * @param stepId       the ID of the step to configure
+     * @param dependencies the new set of dependencies to assign
+     * @return this {@code StepDependencies} instance for method chaining
+     * @throws IllegalArgumentException if the step attempts to depend on itself
+     */
+    public StepDependencies setStepDependencies(StepId stepId, Set<StepId> dependencies) {
+        assertStepWontDependOnItself(stepId, dependencies);
+        stepDependencies.put(stepId, new HashSet<>(dependencies));
         return this;
     }
 
-    public StepDependencies addStepDependencies(FlowStep step, Set<FlowStep> moreDependencies) {
-        assertStepWontDependOnItself(step, moreDependencies);
-        Set<FlowStep> currentDependencies = getStepDependencies(step);
+    /**
+     * Adds dependencies to an existing step's dependency set.
+     * <p>
+     * If the step already has dependencies, the new dependencies are merged into
+     * the existing set. If the step does not have any dependencies yet, a new
+     * mutable set is initialized with the provided dependencies.
+     *
+     * @param stepId           the ID of the step to update
+     * @param moreDependencies the dependencies to add
+     * @return this {@code StepDependencies} instance for method chaining
+     * @throws IllegalArgumentException if the step attempts to depend on itself
+     */
+    public StepDependencies addStepDependencies(StepId stepId, Set<StepId> moreDependencies) {
+        assertStepWontDependOnItself(stepId, moreDependencies);
+        Set<StepId> currentDependencies = stepDependencies.computeIfAbsent(stepId, key -> new HashSet<>());
         currentDependencies.addAll(moreDependencies);
         return this;
     }
@@ -100,21 +119,16 @@ public class StepDependencies {
      * It's the equivalent of a union of the dependency sets, and the final result
      * is stored in {@code this} object
      * 
-     * @param other the other dependencies to be merged into this object
+     * @param other the other dependencies to be merged into {@code this} object
      */
     public StepDependencies merge(StepDependencies other) {
-        other.stepDependencies.forEach((key, value) -> {
-            this.stepDependencies.merge(key, new HashSet<>(value), (thisDependencies, otherDependencies) -> {
-                thisDependencies.addAll(otherDependencies);
-                return thisDependencies;
-            });
-        });
+        other.stepDependencies.forEach(this::addStepDependencies);
         return this;
     }
 
-    private void assertStepWontDependOnItself(FlowStep step, Set<FlowStep> newDependencies) {
-        if (newDependencies.contains(step)) {
-            throw new IllegalArgumentException("Step %s cannot depend on itself.".formatted(step.getName()));
+    private void assertStepWontDependOnItself(StepId stepId, Set<StepId> newDependencies) {
+        if (newDependencies.contains(stepId)) {
+            throw new IllegalArgumentException("Step '%s' cannot depend on itself".formatted(stepId));
         }
     }
 }
