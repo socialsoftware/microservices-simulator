@@ -64,7 +64,7 @@ public class NetworkManager {
     // ****************************
 
     public Object executeWithImpairment(CommandGateway gateway, ProceedingJoinPoint joinPoint, Command command,
-            String commandName, String funcName) throws Throwable {
+            String commandName, String funcName, String executionId) throws Throwable {
 
         String sourceService = resolveMicroserviceName(gateway);
         String targetService = command.getServiceName();
@@ -74,15 +74,15 @@ public class NetworkManager {
 
         boolean isImpaired = (delayBeforeValue + delayAfterValue > 0);
         if (isImpaired) {
-            TraceManager.getInstance().setSpanAttribute(funcName, "isImpaired", true);
+            TraceManager.getInstance().setSpanAttribute(executionId, "isImpaired", true);
         }
 
         logStep(funcName, commandName, sourceService, targetService, delayBeforeValue,
                 delayAfterValue);
 
-        delay(funcName, commandName, delayBeforeValue, true);
+        delay(executionId, commandName, delayBeforeValue, true);
         Object result = joinPoint.proceed();
-        delay(funcName, commandName, delayAfterValue, false);
+        delay(executionId, commandName, delayAfterValue, false);
 
         return result;
     }
@@ -248,8 +248,8 @@ public class NetworkManager {
         return "unknown";
     }
 
-    private void delay(String funcName, String commandName, int delayValue, boolean isBefore) {
-        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, commandName, delayValue, isBefore);
+    private void delay(String executionId, String commandName, int delayValue, boolean isBefore) {
+        Span delaySpan = TraceManager.getInstance().startDelaySpan(executionId, commandName, delayValue, isBefore);
         try {
             Thread.sleep(delayValue);
         } catch (InterruptedException e) {

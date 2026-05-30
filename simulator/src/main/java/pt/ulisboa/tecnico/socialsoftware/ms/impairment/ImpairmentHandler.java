@@ -65,7 +65,6 @@ public class ImpairmentHandler {
     private Map<WorkflowFunctionality, Map<String, List<Integer>>> behaviourCache = Collections
             .synchronizedMap(new WeakHashMap<>());
 
-    
     // ****************************
     // * --- Public Interface --- *
     // ****************************
@@ -127,8 +126,10 @@ public class ImpairmentHandler {
         command = unwrapCommand(command);
         String commandName = command.getClass().getSimpleName();
         String funcName = command.getUnitOfWork() != null ? command.getUnitOfWork().getFunctionalityName() : "unknown";
+        String executionId = TraceManager.getInstance().resolveExecutionId(command.getUnitOfWork());
 
-        TraceManager.getInstance().startCommandSpan(funcName, commandName);
+        TraceManager.getInstance().startCommandSpan(executionId, command);
+
         try {
             // TODO - Implement fault injection
             /*
@@ -139,13 +140,18 @@ public class ImpairmentHandler {
              */
 
             if (networkDelaysEnabled) {
-                return networkManager.executeWithImpairment(gateway, joinPoint, command, commandName, funcName);
+                return networkManager.executeWithImpairment(gateway, joinPoint, command, commandName, funcName,
+                        executionId);
             } else {
                 return joinPoint.proceed();
             }
 
+        } catch (Throwable e) {
+            TraceManager.getInstance().recordCommandException(executionId, commandName, e,
+                    e.getMessage());
+            throw e;
         } finally {
-            TraceManager.getInstance().endCommandSpan(funcName, commandName);
+            TraceManager.getInstance().endCommandSpan(executionId, command);
         }
     }
 

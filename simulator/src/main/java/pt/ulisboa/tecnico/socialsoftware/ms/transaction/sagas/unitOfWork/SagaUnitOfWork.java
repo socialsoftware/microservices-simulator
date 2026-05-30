@@ -36,17 +36,20 @@ public class SagaUnitOfWork extends UnitOfWork {
 
     public void compensate() {
         Collections.reverse(this.compensatingActions);
-        this.traceManager.startSpanForCompensation(this.getFunctionalityName());
+        String executionId = this.traceManager.resolveExecutionId(this);
+        this.traceManager.startSpanForCompensation(executionId, this.getFunctionalityName());
         for (Runnable action : compensatingActions) {
             logger.info("COMPENSATE: {}", action.getClass().getSimpleName());
             action.run();
         }
-        this.traceManager.endSpanForCompensation(this.getFunctionalityName());
+        this.traceManager.endSpanForCompensation(executionId, this.getFunctionalityName());
     }
 
     public CompletableFuture<Void> compensateAsync(ExecutorService executorService) {
         // Reverse the compensating actions
         Collections.reverse(this.compensatingActions);
+        String executionId = this.traceManager.resolveExecutionId(this);
+        this.traceManager.startSpanForCompensation(executionId, this.getFunctionalityName());
 
         // Execute compensations asynchronously using the provided ExecutorService
         List<CompletableFuture<Void>> compensationFutures = compensatingActions.stream()
@@ -54,7 +57,8 @@ public class SagaUnitOfWork extends UnitOfWork {
                 .collect(Collectors.toList());
 
         // Combine all compensation futures into a single CompletableFuture
-        return CompletableFuture.allOf(compensationFutures.toArray(new CompletableFuture[0]));
+        return CompletableFuture.allOf(compensationFutures.toArray(new CompletableFuture[0]))
+                .whenComplete((result, ex) -> this.traceManager.endSpanForCompensation(executionId, this.getFunctionalityName()));
     }
 
     public Map<Integer, String> getAggregatesInSaga() {
