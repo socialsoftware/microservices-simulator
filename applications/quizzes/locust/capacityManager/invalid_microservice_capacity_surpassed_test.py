@@ -42,7 +42,7 @@ class InvalidNodeCapacityUser(HttpUser):
             logging.info("### RESULTS ###")
             # Node2 sum: 10 + 5 = 15. [Limit is 5 - Invalid]
 
-            if "CONFIGURATION ERROR" in report and "Invalid requirement: Service" in report:
+            if "ConfigurationError" in report and "Invalid requirement:" in report:
                 logging.info(
                     "### >> PASS: Correct validation error found in report.")
             else:
