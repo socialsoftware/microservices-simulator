@@ -29,13 +29,20 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateQuestionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.functionalities.TopicFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.service.TournamentService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.functionalities.UserFunctionalities;
 
@@ -116,7 +123,7 @@ class OracleQuizzesAppTest {
 
     @Test
     @DisplayName("When a step fails its consecutive functionality steps (intra-dependants) should not execute")
-    void whenAStepFailsItsConsecutiveFunctionalityStepsShoulNotExecute() {
+    void whenAStepFailsItsConsecutiveFunctionalityStepsShouldNotExecute() {
         Objects.requireNonNull(sagaUnitOfWorkService);
         SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
                 AddParticipantFunctionalitySagas.class.getSimpleName());
@@ -164,8 +171,8 @@ class OracleQuizzesAppTest {
     }
 
     @Test
-    @DisplayName("When a functionality step fails with a unexpected exception the test result registers INTERNAL_ERROR status")
-    void whenAFunctionalityStepFailsWithAUnexpectedExceptionTheTestResultRegistersInternalErrorStatus() {
+    @DisplayName("When a functionality step fails with an unexpected exception the test result registers INTERNAL_ERROR status")
+    void whenAFunctionalityStepFailsWithAnUnexpectedExceptionTheTestResultRegistersInternalErrorStatus() {
         SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
                 TestBrokenFunctionality.class.getSimpleName());
 
@@ -500,6 +507,94 @@ class OracleQuizzesAppTest {
     }
 
     @Test
+    @DisplayName("Events are not automatically executed (Student Name Update variant)")
+    void studentNameUpdateEventsAreNotAutomaticallyExecuted() {
+        AtomicReference<InitialState> stateRef = new AtomicReference<>();
+        AtomicReference<StepId> eventStepIdRef = new AtomicReference<>();
+        AtomicReference<String> originalNameRef = new AtomicReference<>();
+
+        Supplier<TestCase> setup = () -> {
+            InitialState initialState = factory.setupInitialState();
+            stateRef.set(initialState);
+            originalNameRef.set(initialState.userDto().getName());
+
+            UserDto updatedUserDto = new UserDto();
+            updatedUserDto.setName("UPDATED_NAME");
+
+            SagaUnitOfWork updateNameUow = sagaUnitOfWorkService.createUnitOfWork(
+                    UpdateStudentNameFunctionalitySagas.class.getSimpleName());
+            UpdateStudentNameFunctionalitySagas updateNameFunc = new UpdateStudentNameFunctionalitySagas(
+                    sagaUnitOfWorkService,
+                    initialState.courseExecutionDto().getAggregateId(),
+                    initialState.userDto().getAggregateId(),
+                    updatedUserDto,
+                    updateNameUow,
+                    gateway);
+
+            FunctionalityId funcId = simpleFunctionalityId(updateNameFunc, 1);
+            StepId eventStepId = buildUpdateStudentNameEventStepId(initialState, funcId);
+            eventStepIdRef.set(eventStepId);
+            StepId nonExecutedStep = StepId.forFunctionalityStep(
+                    FunctionalityId.forSagaFunctionality("nonExecutedFunc"),
+                    "nonExecutedStep");
+
+            return new TestCase.Builder()
+                    .addFunctionality(funcId, updateNameFunc)
+                    .addInterDependency(eventStepId, nonExecutedStep)
+                    .build();
+        };
+
+        oracle.runTest(setup, result -> {
+            StepId eventStepId = Objects.requireNonNull(eventStepIdRef.get());
+            assertFalse(result.schedule().contains(eventStepId));
+
+            InitialState initialState = Objects.requireNonNull(stateRef.get());
+            String originalName = Objects.requireNonNull(originalNameRef.get());
+            assertTournamentCreatorName(initialState.tournamentDto().getAggregateId(), originalName);
+        });
+    }
+
+    @Test
+    @DisplayName("Events are not automatically executed (Course Execution Deletion variant)")
+    void courseDeletionEventsAreNotAutomaticallyExecuted() {
+        AtomicReference<InitialState> stateRef = new AtomicReference<>();
+        AtomicReference<StepId> eventStepIdRef = new AtomicReference<>();
+
+        Supplier<TestCase> setup = () -> {
+            InitialState initialState = factory.setupInitialState();
+            stateRef.set(initialState);
+
+            factory.createCourseExecution(
+                    QuizzesTestFactory.COURSE_EXECUTION_NAME,
+                    QuizzesTestFactory.COURSE_EXECUTION_TYPE,
+                    "EXTRA-CE",
+                    "2023/2024",
+                    QuizzesTestFactory.TIME_4);
+
+            RemoveCourseExecutionFunctionalitySagas removeFunc = factory.createRemoveCourseExecutionFunctionality(
+                    sagaUnitOfWorkService,
+                    initialState.courseExecutionDto().getAggregateId(),
+                    gateway);
+
+            FunctionalityId funcId = simpleFunctionalityId(removeFunc, 1);
+            StepId eventStepId = buildDeleteCourseExecutionEventStepId(initialState, funcId);
+            eventStepIdRef.set(eventStepId);
+
+            return new TestCase.Builder()
+                    .addFunctionality(funcId, removeFunc)
+                    .build();
+        };
+
+        oracle.runTest(setup, result -> {
+            StepId eventStepId = Objects.requireNonNull(eventStepIdRef.get());
+            assertFalse(result.schedule().contains(eventStepId));
+
+            InitialState initialState = Objects.requireNonNull(stateRef.get());
+            assertTournamentState(initialState.tournamentDto().getAggregateId(), "ACTIVE");
+        });
+    }
+
+    @Test
     @DisplayName("Compensations are not automatically executed")
     void compensationsAreNotAutomaticallyExecuted() {
         SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
@@ -526,6 +621,92 @@ class OracleQuizzesAppTest {
         assertFalse(testFunc.hasSecondStepCompensated());
         assertFalse(testFunc.hasThirdStepCompensated());
         assertTrue(compensationSteps.stream().noneMatch(result.schedule()::contains));
+    }
+
+    @Test
+    @DisplayName("Event handling routines are controlled by the oracle")
+    void eventHandlingRoutinesAreControlledByTheOracle() {
+        AtomicReference<InitialState> stateRef = new AtomicReference<>();
+        AtomicReference<StepId> eventStepIdRef = new AtomicReference<>();
+        AtomicReference<List<StepId>> removeStepsRef = new AtomicReference<>();
+        AtomicReference<List<StepId>> updateQuestionStepsRef = new AtomicReference<>();
+        AtomicReference<String> updatedNameRef = new AtomicReference<>();
+
+        Supplier<TestCase> setup = () -> {
+            InitialState initialState = factory.setupInitialState();
+            stateRef.set(initialState);
+
+            UserDto updatedUserDto = new UserDto();
+            updatedUserDto.setName("UPDATED_NAME");
+            updatedNameRef.set(updatedUserDto.getName());
+
+            SagaUnitOfWork updateNameUow = sagaUnitOfWorkService.createUnitOfWork(
+                    UpdateStudentNameFunctionalitySagas.class.getSimpleName());
+            UpdateStudentNameFunctionalitySagas updateNameFunc = new UpdateStudentNameFunctionalitySagas(
+                    sagaUnitOfWorkService,
+                    initialState.courseExecutionDto().getAggregateId(),
+                    initialState.userDto().getAggregateId(),
+                    updatedUserDto,
+                    updateNameUow,
+                    gateway);
+
+            QuestionDto updateQuestionDto = new QuestionDto();
+            updateQuestionDto.setAggregateId(initialState.questionDto().getAggregateId());
+            updateQuestionDto.setTitle(QuizzesTestFactory.TITLE_2);
+            updateQuestionDto.setContent(QuizzesTestFactory.CONTENT_2);
+            updateQuestionDto.setTopicDto(initialState.questionDto().getTopicDto());
+            updateQuestionDto.setOptionDtos(initialState.questionDto().getOptionDtos());
+
+            SagaUnitOfWork updateQuestionUow = sagaUnitOfWorkService.createUnitOfWork(
+                    UpdateQuestionFunctionalitySagas.class.getSimpleName());
+            UpdateQuestionFunctionalitySagas updateQuestionFunc = new UpdateQuestionFunctionalitySagas(
+                    sagaUnitOfWorkService,
+                    updateQuestionDto,
+                    updateQuestionUow,
+                    gateway);
+
+            FunctionalityId removeFuncId = simpleFunctionalityId(updateNameFunc, 1);
+            FunctionalityId updateQuestionFuncId = simpleFunctionalityId(updateQuestionFunc, 2);
+
+            StepId eventStepId = buildUpdateStudentNameEventStepId(initialState, removeFuncId);
+            eventStepIdRef.set(eventStepId);
+
+            List<StepId> removeSteps = getFunctionalityStepIds(removeFuncId, updateNameFunc, false);
+            List<StepId> updateQuestionSteps = getFunctionalityStepIds(updateQuestionFuncId, updateQuestionFunc, false);
+            removeStepsRef.set(removeSteps);
+            updateQuestionStepsRef.set(updateQuestionSteps);
+
+            StepId removeLastStep = removeSteps.getLast();
+            StepId updateQuestionFirstStep = updateQuestionSteps.getFirst();
+            StepId updateQuestionLastStep = updateQuestionSteps.getLast();
+
+            return new TestCase.Builder()
+                    .addFunctionality(removeFuncId, updateNameFunc)
+                    .addFunctionality(updateQuestionFuncId, updateQuestionFunc)
+                    .addInterDependency(updateQuestionFirstStep, removeLastStep)
+                    .addInterDependency(eventStepId, updateQuestionFirstStep)
+                    .addInterDependency(updateQuestionLastStep, eventStepId)
+                    .build();
+        };
+
+        oracle.runTest(setup, result -> {
+            StepId eventStepId = Objects.requireNonNull(eventStepIdRef.get());
+            List<StepId> removeSteps = Objects.requireNonNull(removeStepsRef.get());
+            List<StepId> updateQuestionSteps = Objects.requireNonNull(updateQuestionStepsRef.get());
+            StepId removeLastStep = removeSteps.getLast();
+            StepId updateQuestionFirstStep = updateQuestionSteps.getFirst();
+            StepId updateQuestionLastStep = updateQuestionSteps.getLast();
+
+            List<StepId> schedule = result.schedule();
+            assertTrue(schedule.contains(eventStepId));
+            assertTrue(schedule.indexOf(updateQuestionFirstStep) > schedule.indexOf(removeLastStep));
+            assertTrue(schedule.indexOf(eventStepId) > schedule.indexOf(updateQuestionFirstStep));
+            assertTrue(schedule.indexOf(updateQuestionLastStep) > schedule.indexOf(eventStepId));
+
+            InitialState initialState = Objects.requireNonNull(stateRef.get());
+            String updatedName = Objects.requireNonNull(updatedNameRef.get());
+            assertTournamentCreatorName(initialState.tournamentDto().getAggregateId(), updatedName);
+        });
     }
 
     @Test
@@ -590,6 +771,42 @@ class OracleQuizzesAppTest {
                 .addFunctionality(funcId, addParticipantSaga)
                 .build();
     };
+
+    private void assertTournamentCreatorName(Integer tournamentAggregateId, String expectedName) {
+        TournamentService tournamentService = oracle.getBean(TournamentService.class);
+        SagaUnitOfWork readUow = sagaUnitOfWorkService.createUnitOfWork("readTournamentCreatorName");
+        TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, readUow);
+        assertEquals(expectedName, tournamentDto.getCreator().getName());
+    }
+
+    private void assertTournamentState(Integer tournamentAggregateId, String expectedState) {
+        TournamentService tournamentService = Objects.requireNonNull(oracle).getBean(TournamentService.class);
+        SagaUnitOfWork readUow = Objects.requireNonNull(sagaUnitOfWorkService).createUnitOfWork("readTournamentState");
+        TournamentDto tournamentDto = tournamentService.getTournamentById(tournamentAggregateId, readUow);
+        assertEquals(expectedState, tournamentDto.getState());
+    }
+
+    private StepId buildUpdateStudentNameEventStepId(InitialState initialState, FunctionalityId funcId) {
+        StepId emittingStepId = StepId.forFunctionalityStep(funcId, "updateStudentNameStep");
+        FunctionalityId eventFuncId = FunctionalityId.forEventHandlerFunctionality(
+                UpdateStudentNameEvent.class,
+                pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.UpdateStudentNameEventHandler.class,
+                emittingStepId,
+                initialState.tournamentDto().getAggregateId(),
+                initialState.courseExecutionDto().getAggregateId());
+        return StepId.forEventHandlerStep(eventFuncId);
+    }
+
+    private StepId buildDeleteCourseExecutionEventStepId(InitialState initialState, FunctionalityId funcId) {
+        StepId emittingStepId = StepId.forFunctionalityStep(funcId, "removeCourseExecutionStep");
+        FunctionalityId eventFuncId = FunctionalityId.forEventHandlerFunctionality(
+                DeleteCourseExecutionEvent.class,
+                pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.DeleteCourseExecutionEventHandler.class,
+                emittingStepId,
+                initialState.tournamentDto().getAggregateId(),
+                initialState.courseExecutionDto().getAggregateId());
+        return StepId.forEventHandlerStep(eventFuncId);
+    }
 
     private FunctionalityId simpleFunctionalityId(WorkflowFunctionality func, int index) {
         String baseName = func.getClass().getSimpleName();

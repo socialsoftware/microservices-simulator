@@ -25,14 +25,14 @@ public class FunctionalityStep implements OracleStep {
             Set<StepId> dependencies) {
 
         if (!FunctionalityUtils.getSteps(functionality).contains(step)) {
-            throw new IllegalArgumentException("Step %s is not part of the given functionality of type %s"
+            throw new IllegalArgumentException("Step %s is not part of the given functionality of type [%s]"
                     .formatted(step.getName(), functionality.getClass().getName()));
         }
 
         // TODO when name is null should it instead default to index-naming? (step-1)
         String stepName = Objects.requireNonNull(step.getName(),
-                () -> "Cannot create %s for functionality '%s' because step name is null"
-                        .formatted(FunctionalityStep.class.getSimpleName(), functionalityId));
+                () -> "Cannot create [%s] for functionality '%s' because step name is null"
+                        .formatted(FunctionalityStep.class.getName(), functionalityId));
 
         id = StepId.forFunctionalityStep(functionalityId, stepName);
         this.functionalityId = functionalityId;

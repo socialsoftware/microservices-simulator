@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils;
 
 public class StringUtils {
+
     private StringUtils() {
         throw new UnsupportedOperationException("Utility class cannot be instantiated");
     }

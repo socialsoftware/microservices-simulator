@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.OptionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities;
@@ -284,6 +285,30 @@ public class QuizzesTestFactory {
 				sagaUnitOfWorkService,
 				updateDto,
 				topicsAggregateIds,
+				gateway);
+	}
+
+	public RemoveCourseExecutionFunctionalitySagas createRemoveCourseExecutionFunctionality(
+			SagaUnitOfWorkService sagaUnitOfWorkService,
+			Integer executionAggregateId,
+			CommandGateway gateway) {
+
+		SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+				RemoveCourseExecutionFunctionalitySagas.class.getSimpleName());
+
+		return new RemoveCourseExecutionFunctionalitySagas(
+				sagaUnitOfWorkService, executionAggregateId, uow, gateway);
+	}
+
+	public RemoveCourseExecutionFunctionalitySagas setupInitialStateAndCreateRemoveCourseExecutionFunctionality(
+			SagaUnitOfWorkService sagaUnitOfWorkService,
+			CommandGateway gateway) {
+
+		InitialState initialState = setupInitialState();
+
+		return createRemoveCourseExecutionFunctionality(
+				sagaUnitOfWorkService,
+				initialState.courseExecutionDto().getAggregateId(),
 				gateway);
 	}
 

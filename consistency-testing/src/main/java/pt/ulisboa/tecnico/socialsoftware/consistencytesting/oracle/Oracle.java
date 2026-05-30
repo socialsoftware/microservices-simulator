@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -13,13 +14,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateRepository;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EnableDisableEventsController;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandling;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -51,7 +57,9 @@ public class Oracle {
     private static String[] generateFinalSpringArgs(
             PostgreSQLContainer<?> postgres,
             List<String> springAppBaseArgs) {
+
         List<String> springPriorityArgs = List.of(
+                "--spring.main.allow-bean-definition-overriding=true",
                 "--spring.profiles.active=sagas,local,test",
                 "--spring.datasource.url=" + postgres.getJdbcUrl(),
                 "--spring.datasource.username=" + postgres.getUsername(),
@@ -65,14 +73,29 @@ public class Oracle {
     }
 
     public void init() {
-        postgres.start();
-
         if (springContext != null && springContext.isActive()) {
             throw new IllegalStateException("Spring application is already running.");
         }
 
+        postgres.start();
+
+        SpringApplication app = new SpringApplication(springAppClass);
         springAppArgs = generateFinalSpringArgs(postgres, springAppBaseArgs);
-        springContext = SpringApplication.run(springAppClass, springAppArgs);
+
+        // override EventApplicationService bean with DeferredEventApplicationService
+        app.addInitializers(ctx -> {
+            var registry = (BeanDefinitionRegistry) ctx.getBeanFactory();
+            var def = new RootBeanDefinition(DeferredEventApplicationService.class);
+            def.setPrimary(true);
+            registry.registerBeanDefinition("eventApplicationService", def); // TODO change to dynamic class name
+        });
+
+        springContext = app.run(springAppArgs);
+
+        // stop periodic events scheduling handlers, to favor
+        // DeferredEventApplicationService more determinisitc testing capabilities
+        var eventsSchedulerController = springContext.getBean(EnableDisableEventsController.class);
+        eventsSchedulerController.stopSchedule();
     }
 
     public void shutdown() {
@@ -109,24 +132,55 @@ public class Oracle {
         ConfigurableApplicationContext context = springContext;
         if (context == null || !context.isActive()) {
             throw new IllegalStateException(
-                    "Cannot fetch bean %s : Context is inactive.".formatted(beanClass.getName()));
+                    "Cannot fetch bean [%s] : Context is inactive.".formatted(beanClass.getName()));
         }
         return context.getBean(beanClass);
+    }
+
+    public <T> Map<String, T> getBeansOfType(Class<T> beansClass) {
+        ConfigurableApplicationContext context = springContext;
+        if (context == null || !context.isActive()) {
+            throw new IllegalStateException(
+                    "Cannot fetch beans of type [%s] : Context is inactive.".formatted(beansClass.getName()));
+        }
+        return context.getBeansOfType(beansClass);
     }
 
     private TestResult executeSchedule(
             Map<FunctionalityId, WorkflowFunctionality> functionalities,
             StepDependencies interDependencies) {
 
+        EventApplicationService baseEventAppService = getBean(EventApplicationService.class);
+        if (!(baseEventAppService instanceof DeferredEventApplicationService eventAppService)) {
+            throw new IllegalStateException(
+                    "Bean for [%s] must be an instance of [%s], but got: [%s]"
+                            .formatted(EventApplicationService.class.getName(),
+                                    DeferredEventApplicationService.class.getName(),
+                                    baseEventAppService.getClass().getName()));
+        }
+
         var uowService = getBean(SagaUnitOfWorkService.class);
-        ScheduleExecutor scheduleExecutor = new ScheduleExecutor(functionalities, interDependencies, uowService);
-        return scheduleExecutor.execute();
+        Map<String, EventHandling> eventHandlingBeans = getBeansOfType(EventHandling.class);
+        List<EventHandling> eventHandlings = new ArrayList<>(eventHandlingBeans.values());
+
+        try (DeferredEventApplicationService.CaptureSession captureSession = eventAppService.beginCapture()) {
+
+            ScheduleExecutor scheduleExecutor = new ScheduleExecutor(
+                    functionalities,
+                    interDependencies,
+                    uowService,
+                    captureSession,
+                    eventHandlings);
+
+            return scheduleExecutor.execute();
+        }
     }
 
     public TestResult runTest(Supplier<TestCase> setupInitialState) {
-        return runTest(setupInitialState, result -> {
-            // No-op beforeCleanupHook by default
-        });
+        Consumer<TestResult> noBeforeCleanupHook = result -> {
+            // do nothing
+        };
+        return runTest(setupInitialState, noBeforeCleanupHook);
     }
 
     public TestResult runTest(Supplier<TestCase> setupInitialState, Consumer<TestResult> beforeCleanupHook) {

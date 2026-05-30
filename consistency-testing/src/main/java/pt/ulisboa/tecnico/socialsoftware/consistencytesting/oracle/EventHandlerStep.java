@@ -18,8 +18,8 @@ public class EventHandlerStep implements OracleStep {
             Event event,
             EventHandler eventHandler,
             StepId emittingStepId,
-            Integer subscriberAggregateId,
-            Integer publisherAggregateId) {
+            Integer publisherAggregateId,
+            Integer subscriberAggregateId) {
 
         functionalityId = FunctionalityId.forEventHandlerFunctionality(
                 event.getClass(),

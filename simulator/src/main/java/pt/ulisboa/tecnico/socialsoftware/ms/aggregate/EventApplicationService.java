@@ -21,9 +21,17 @@ public class EventApplicationService {
             for (EventSubscription eventSubscription: eventSubscriptions) {
                 List<? extends Event> eventsToProcess = eventService.getSubscribedEvents(eventSubscription, eventClass);
                 for (Event eventToProcess : eventsToProcess) {
-                    eventHandler.handleEvent(subscriberAggregateId, eventToProcess);
+                    dispatchToHandler(eventHandler, subscriberAggregateId, eventToProcess);
                 }
             }
         }
+    }
+
+    /**
+     * Hook for customizing event handling (e.g., defer execution).
+     * Behavior customization can be achieved by overriding this method in subclasses.
+     */
+    protected void dispatchToHandler(EventHandler eventHandler, Integer subscriberAggregateId, Event eventToProcess) {
+        eventHandler.handleEvent(subscriberAggregateId, eventToProcess);
     }
 }

@@ -14,8 +14,11 @@ import java.util.concurrent.CompletionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.DeferredEventApplicationService.CaptureSession;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.EventUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandling;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 
 class ScheduleExecutor {
@@ -26,6 +29,8 @@ class ScheduleExecutor {
     private static final Logger log = LoggerFactory.getLogger(ScheduleExecutor.class);
 
     private final SagaUnitOfWorkService uowService;
+    private final CaptureSession captureSession;
+    private final List<EventHandling> eventHandlings;
     private final Map<FunctionalityId, WorkflowFunctionality> functionalities;
     private final StepDependencies interDependencies;
     private final StepDependencies intraDependencies = new StepDependencies();
@@ -38,11 +43,15 @@ class ScheduleExecutor {
     public ScheduleExecutor(
             Map<FunctionalityId, WorkflowFunctionality> functionalities,
             StepDependencies interDependencies,
-            SagaUnitOfWorkService uowService) {
+            SagaUnitOfWorkService uowService,
+            DeferredEventApplicationService.CaptureSession captureSession,
+            List<EventHandling> eventHandlings) {
 
         this.functionalities = Map.copyOf(functionalities);
         this.interDependencies = new StepDependencies(interDependencies);
         this.uowService = uowService;
+        this.captureSession = captureSession;
+        this.eventHandlings = eventHandlings;
 
         for (Entry<FunctionalityId, WorkflowFunctionality> funcEntry : functionalities.entrySet()) {
             addSteps(OracleStepFactory.buildStepsForFunctionality(
@@ -50,7 +59,7 @@ class ScheduleExecutor {
         }
     }
 
-    private void addSteps(Collection<OracleStep> newSteps) {
+    private void addSteps(Collection<? extends OracleStep> newSteps) {
         Set<StepId> seenIds = new HashSet<>();
 
         for (OracleStep step : newSteps) {
@@ -71,14 +80,7 @@ class ScheduleExecutor {
 
     public TestResult execute() {
         executeSteps();
-
-        int totalSteps = steps.size(); // TODO should this account for the interdeps?
-        if (schedule.size() >= STEP_EXECUTION_LIMIT) {
-            detectedStatuses.add(TestStatus.EXECUTION_LIMIT_EXCEEDED);
-        } else if (schedule.size() < totalSteps) {
-            // ! TODO review SCHEDULE_REJECTED and DEADLOCK statuses
-            detectedStatuses.add(TestStatus.SCHEDULE_REJECTED);
-        }
+        evaluateTestCompletionStatus();
 
         return new TestResult(
                 intraDependencies,
@@ -87,6 +89,17 @@ class ScheduleExecutor {
                 List.copyOf(schedule), // list will reflect the LinkedHashSet order
                 stepExceptionsMap,
                 detectedStatuses);
+    }
+
+    private void evaluateTestCompletionStatus() {
+        int totalSteps = steps.size(); // TODO should this account for the interdeps?
+
+        if (schedule.size() >= STEP_EXECUTION_LIMIT) {
+            detectedStatuses.add(TestStatus.EXECUTION_LIMIT_EXCEEDED);
+        } else if (schedule.size() < totalSteps) {
+            // ! TODO review SCHEDULE_REJECTED and DEADLOCK statuses
+            detectedStatuses.add(TestStatus.SCHEDULE_REJECTED);
+        }
     }
 
     private void executeSteps() {
@@ -113,7 +126,27 @@ class ScheduleExecutor {
                     break; // defensive break to not continue to test on a broken system state
                 }
             }
+
+            captureEmittedEventSteps(stepId);
         }
+    }
+
+    private void captureEmittedEventSteps(StepId stepId) {
+        // Run all event handling routines at once to capture events emitted by the step.
+        EventUtils.runEventHandlingScheduledTasks(eventHandlings);
+        Set<DeferredEventInvocation> eventInvocations = captureSession.drain();
+
+        // TODO should capture all events, or filter to selected EventHandlers for test?
+        List<EventHandlerStep> eventHandlerSteps = eventInvocations.stream()
+                .map(invocation -> new EventHandlerStep(
+                        invocation.event(),
+                        invocation.handler(),
+                        stepId,
+                        invocation.publisherAggregateId(),
+                        invocation.subscriberAggregateId()))
+                .toList();
+
+        addSteps(eventHandlerSteps);
     }
 
     /**
@@ -146,24 +179,24 @@ class ScheduleExecutor {
 
         if (step instanceof CommitStep || step instanceof AbortStep) {
             log.error(
-                    "{} '{}' failed, resulting in a broken system state. Stopping test execution",
-                    step.getClass().getSimpleName(), stepId, e);
+                    "[{}] '{}' failed, resulting in a broken system state. Stopping test execution",
+                    step.getClass().getName(), stepId, e);
             detectedStatuses.add(TestStatus.INTERNAL_EXCEPTION);
             isCriticalFailure = true;
 
         } else if (step instanceof CompensationStep || step instanceof EventHandlerStep) {
-            log.warn("{} '{}' failed. Continuing test normally",
-                    step.getClass().getSimpleName(), stepId, e);
+            log.warn("[{}] '{}' failed. Continuing test normally",
+                    step.getClass().getName(), stepId, e);
 
         } else if (step instanceof FunctionalityStep funcStep) {
             log.info(
-                    "Functionality step '{}' failed with a domain exception. Injecting compensation path in test",
-                    stepId);
+                    "[{}] '{}' failed with a domain exception. Injecting compensation path in test",
+                    step.getClass().getName(), stepId);
             injectCompensation(funcStep, stepId);
 
         } else {
-            throw new IllegalStateException("Unknown %s implementation type for step '%s': %s"
-                    .formatted(OracleStep.class.getSimpleName(), stepId, step.getClass().getSimpleName()));
+            throw new IllegalStateException("Unknown [%s] implementation type for step %s: [%s]"
+                    .formatted(OracleStep.class.getName(), stepId, step.getClass().getName()));
         }
 
         return isCriticalFailure;

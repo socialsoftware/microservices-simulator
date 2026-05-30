@@ -56,7 +56,7 @@ public class StepDependencies {
      * @param steps the steps used to initialize dependencies
      * @return a mutable instance initialized with each step dependencies
      */
-    public static StepDependencies of(Collection<OracleStep> steps) {
+    public static StepDependencies of(Collection<? extends OracleStep> steps) {
         StepDependencies stepDependencies = new StepDependencies();
         for (OracleStep step : steps) {
             stepDependencies.setStepDependencies(step.getId(), step.getDependencies());
