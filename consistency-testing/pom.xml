@@ -140,4 +140,15 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>debug</id>
+            <properties>
+                <maven.surefire.debug>
+                    <!-- Allow attaching debugger at localhost:5005 -->
+                    -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005</maven.surefire.debug>
+            </properties>
+        </profile>
+    </profiles>
 </project>
