@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 @Aspect
 @Component
@@ -235,7 +237,7 @@ public class CapacityManager {
     // * --- Capacity Management --- *
     // *******************************
 
-    private void acquire(String microserviceName, String methodName, String requestId)
+    private void acquire(UnitOfWork unitOfWork, String microserviceName, String methodName, String requestId)
             throws InterruptedException {
         if (microserviceName == null)
             return;
@@ -245,16 +247,26 @@ public class CapacityManager {
             return;
         }
 
+        TraceManager traceManager = TraceManager.getInstance();
+        String executionId = traceManager.resolveExecutionId(unitOfWork);
+        
         String operationKey = microserviceName + "." + methodName.toLowerCase();
         Integer requirement = requirements.get(operationKey);
         if (requirement != null && requirement > 0) {
             waitingRequests.get(microserviceName).add(requestId);
+            traceManager.startQueueWaitTimer(executionId, methodName);
             logState(microserviceName, "WAITING", operationKey, requestId);
 
+            boolean queueWaitEnded = false;
             try {
                 semaphore.acquire(requirement);
+                traceManager.endQueueWaitTimer(executionId, methodName, microserviceName);
+                queueWaitEnded = true;
             } finally {
                 waitingRequests.get(microserviceName).remove(requestId);
+                if (!queueWaitEnded) {
+                    traceManager.endQueueWaitTimer(executionId, methodName, microserviceName);
+                }
             }
 
             activeRequests.get(microserviceName).add(requestId);
@@ -291,15 +303,15 @@ public class CapacityManager {
 
     // --- Main Method ---
 
-    @Around("execution(public * pt.ulisboa.tecnico.socialsoftware.quizzes.microservices..service.*.*(..))")
-    public Object applyMicroserviceCapacity(ProceedingJoinPoint joinPoint) throws Throwable {
+    @Around("execution(public * pt.ulisboa.tecnico.socialsoftware.quizzes.microservices..service.*.*(..)) && args(.., unitOfWork)")
+    public Object applyMicroserviceCapacity(ProceedingJoinPoint joinPoint, UnitOfWork unitOfWork) throws Throwable {
 
         String methodName = joinPoint.getSignature().getName().toLowerCase();
         String microserviceName = resolveMicroserviceName(joinPoint.getTarget().getClass());
         String requestId = UUID.randomUUID().toString().substring(0, 8);
 
         try {
-            acquire(microserviceName, methodName, requestId);
+            acquire(unitOfWork, microserviceName, methodName, requestId);
             return joinPoint.proceed();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

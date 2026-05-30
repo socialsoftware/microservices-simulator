@@ -38,6 +38,7 @@ public class TraceManager {
     private final SdkTracerProvider masterRootTracerProvider;
     private final Map<String, Span> functionalitySpans = new ConcurrentHashMap<>();
     private final Map<String, Span> commandSpans = new ConcurrentHashMap<>();
+    private final Map<String, Long> queueWaitTimesNano = new ConcurrentHashMap<>();
     private final Map<String, Integer> commandRetryCounters = new ConcurrentHashMap<>();
     private final Map<UnitOfWork, String> uowTraceIds = Collections.synchronizedMap(new WeakHashMap<>());
 
@@ -215,6 +216,26 @@ public class TraceManager {
         functionalitySpans.put(invocationKey, span);
     }
 
+    public void startQueueWaitTimer(String executionId, String methodName) {
+        String key = commandKey(executionId, methodName);
+        queueWaitTimesNano.put(key, System.nanoTime());
+    }
+
+    public void endQueueWaitTimer(String executionId, String methodName, String microserviceName) {
+        String key = commandKey(executionId, methodName);
+        Long start = queueWaitTimesNano.remove(key);
+        double durationMs = -1D;
+        if (start != null) {
+            durationMs = (System.nanoTime() - start) / 1_000_000.0;
+        }
+
+        // Fetch command span by adding command at the end of the method
+        Span parentSpan = getCommandSpan(executionId, methodName + "command");
+        if (parentSpan != null) {
+            parentSpan.setAttribute("queue time (ms)", durationMs);
+        }
+    }
+
     public void endSpanForCompensation(String executionId, String func) {
         String invocationKey = compensationKey(executionId, func);
         Span span = functionalitySpans.remove(invocationKey);
@@ -255,6 +276,7 @@ public class TraceManager {
 
         commandSpan.setAttribute("command.name", commandName);
         commandSpan.setAttribute("executionId", executionId);
+        commandSpan.setAttribute("microservice", command.getServiceName());
         if (command.getUnitOfWork() != null) {
             commandSpan.setAttribute("functionality", command.getUnitOfWork().getFunctionalityName());
         }
@@ -379,7 +401,7 @@ public class TraceManager {
     }
 
     private String commandKey(String executionId, String commandName) {
-        return executionId + "::" + commandName;
+        return (executionId + "::" + commandName).toLowerCase();
     }
 
     private String compensationKey(String executionId, String func) {
