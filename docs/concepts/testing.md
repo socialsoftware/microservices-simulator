@@ -55,7 +55,47 @@ Findings against this checklist map to three severities used by `review-tests`:
 - Removing `unitOfWork.registerChanged(aggregate)` from the service would leave the test passing (kill-mutation thought experiment). Add an assertion on a field the operation changes that is only readable through the persisted aggregate (the `then:` reads back via `get{Aggregate}ById`, not from a local variable).
 - Violation test asserts `thrown({AppClass}Exception)` without `ex.message == <ERROR_MESSAGE_CONSTANT>`. The bare-throw form passes on any thrown exception of that type, including unrelated bugs.
 - Returned DTO assertions cover only a subset of the semantically important fields.
-- Numeric boundary rule asserted with a value that is not at, above, or below the boundary.
+- Numeric, temporal, or collection-size boundary rule asserted with only a far-side representative value — see § Choosing Input Values. Missing the on-point **or** the off-point is a *Weak* finding.
+
+---
+
+## Choosing Input Values — Equivalence Partitioning & Boundary Value Analysis
+
+Two complementary test-design techniques decide *which* values to feed a rule. A complete suite uses both.
+
+- **Equivalence Partitioning (EP)** — split a rule's input domain into classes the system treats the same way (e.g. "valid count", "count too low"), then test **one representative per class**. This is the baseline most tests already do: one value that satisfies the rule, one that violates it.
+- **Boundary Value Analysis (BVA)** — defects cluster at the **edges** between those classes (off-by-one, `<` written where `<=` was meant). EP's mid-class representatives sail straight past them. For a rule with an ordered domain, also test the two values **straddling** the boundary.
+
+### Decision rule
+
+> For every P1 invariant or P3 numeric guard whose predicate is a **comparison on an ordered domain**
+> (`<`, `<=`, `>`, `>=`, `==`/`!=` over a **count**, a **timestamp**, or a **collection size**), EP's
+> single representative is **not sufficient**. Add the two **boundary-straddling** cases:
+> - **on-point** — the last value that **satisfies** the rule → assert `notThrown(...)`;
+> - **off-point** — the first value that **violates** it → assert `thrown(...)` **and** `ex.message == <RULE>`.
+>
+> For **categorical** invariants — uniqueness (e.g. `TOURNAMENT_UNIQUE_AS_PARTICIPANT`), boolean/state
+> freezes (`TOURNAMENT_IS_CANCELED`), set membership, presence/absence — there is no ordered edge to
+> probe. EP's one-representative-per-class is correct and complete; do **not** invent boundary cases.
+
+### Worked patterns
+
+| Rule shape | Example invariant | On-point (no throw) | Off-point (throws) |
+|---|---|---|---|
+| `count > 0` | `NUMBER_OF_QUESTIONS_POSITIVE` | `1` | `0` |
+| `count <= N` | `MAX_QUESTIONS` (N=30) | `30` | `31` |
+| `a < b` (timestamps) | `START_BEFORE_END_TIME` | `end − 1 tick` | `start == end` |
+| `a >= b` (timestamps) | `ANSWER_BEFORE_START` (`firstAnswerTime >= startTime`) | `firstAnswerTime == startTime` | `startTime − 1 tick` |
+| `size >= 1` | `MUST_HAVE_ONE_TOPIC` | `1` | `0` |
+
+### Temporal-boundary mechanics
+
+The smallest tick on a `LocalDateTime` is `.minusNanos(1)` / `.plusNanos(1)`. Pin **both** instants
+explicitly so the on-point is exactly equal. Write temporal-boundary cases as **direct-aggregate unit
+tests** (the `<Aggregate>Test.groovy` style that sets fields and asserts), **not** through the full
+saga: the saga path stamps `lastModifiedTime = now()` and cannot pin the exact on-point. This is the
+one place the suite deliberately calls `verifyInvariants()` directly — keep it consistent with how
+`TournamentTest` already does it for `ANSWER_BEFORE_START`.
 
 ---
 
@@ -109,12 +149,24 @@ src/test/groovy/<pkg>/
 **not** tested here — they belong in T2, where service method calls trigger `registerChanged →
 verifyInvariants` automatically. Never call `verifyInvariants()` directly.
 
+**Exception — temporal-boundary cases.** An invariant comparing two timestamps (e.g.
+`ANSWER_BEFORE_START`) needs its on-point pinned to an *exact equal instant*, which the T2 saga path
+cannot do because it stamps `lastModifiedTime = now()`. Those specific boundary pairs are written as
+**direct-aggregate** tests in this file that set the fields and call `verifyInvariants()` explicitly —
+the one sanctioned use of a direct call (see `TournamentTest`'s `ANSWER_BEFORE_START` cases). See
+§ Choosing Input Values — Temporal-boundary mechanics.
+
 **Assertion provenance:** Fields asserted in a T1 test must trace to the constructor's documented
 intent — the aggregate field list in the `plan.md` aggregate section. Never read the constructor
 body to decide what to assert; if the constructor sets a field the spec doesn't list, that is a
 planning gap to flag, not a field to copy into the test.
 
 **P1 Java-`final` fields need no test coverage anywhere** (T1, T2, or otherwise). The Java compiler enforces immutability; there is no write path that can violate the constraint, so testing it would be testing the language, not the domain logic.
+
+**Boundary on-points (valid side):** where the aggregate has a comparison-predicate invariant (count /
+collection-size limit), the T1 creation test may instantiate at the **valid** boundary — e.g. create
+once at the minimum valid `numberOfQuestions` and once at the maximum — to prove a fresh on-point
+instance passes. The violating off-point belongs in T2. See § Choosing Input Values.
 
 **Template:**
 ```groovy
@@ -243,7 +295,7 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 }
 ```
 
-**P1 intra-invariant violation coverage:** For every rule checked in `verifyInvariants()` (non-`final`-field P1 rules from `plan.md §3.1`), add one T2 scenario that triggers the violation. Skip only rules marked "Java `final` field".
+**P1 intra-invariant violation coverage:** For every rule checked in `verifyInvariants()` (non-`final`-field P1 rules from `plan.md §3.1`), add one T2 scenario that triggers the violation. Skip only rules marked "Java `final` field". For rules whose predicate is a **comparison on an ordered domain** (count / timestamp / collection size), one violation case is not enough — add the boundary-straddling off-point per § Choosing Input Values (and cover the on-point as a direct-aggregate case; see § Choosing Input Values — Temporal-boundary mechanics).
 
 For **time-based invariants** (e.g., `ENROLL_UNTIL_START_TIME`, `FINAL_AFTER_START`), create the aggregate with a past `startTime` in `given:`:
 
@@ -253,6 +305,8 @@ def pastTournamentId = createTournament(executionId, creatorId, [topicId], 1,
 ```
 
 Then call the functionality and assert `thrown(<App>Exception)` with the exact error message constant. This works because `verifyInvariants()` fires inside `registerChanged` — when the setters stamp `lastModifiedTime = now() > prev.startTime`, the invariant detects the violation.
+
+This `now()`-stamping is exactly why it cannot pin the **boundary on-point** (the equal-instant case). For comparison-on-timestamp invariants, complement this far-side T2 violation with a boundary-straddling pair — equal-instant on-point (`notThrown`) and one-nanosecond-across off-point (`thrown`) — written as **direct-aggregate** cases in the `<Aggregate>Test.groovy` file (see § T1 — Creation Test, *Exception — temporal-boundary cases*, and § Choosing Input Values).
 
 ### Service-Command Tests (T2 variant)
 

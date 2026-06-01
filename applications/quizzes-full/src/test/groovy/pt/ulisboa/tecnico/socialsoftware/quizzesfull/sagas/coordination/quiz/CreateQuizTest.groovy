@@ -94,6 +94,58 @@ class CreateQuizTest extends QuizzesFullSpockTest {
         ex.message == QUIZ_DATE_ORDERING
     }
 
+    // ─── Boundary Value Analysis: QUIZ_DATE_ORDERING ───────────────────────────
+    // Spec: plan.md §2.6 Quiz — QUIZ_DATE_ORDERING (available < conclusion <= results).
+    // The case above is an equivalence-partitioning representative (available far past conclusion).
+    // The pair below straddles the exact boundary of each comparison link, including the `<=` link
+    // where equality is valid — the classic `<` vs `<=` defect. See docs/concepts/testing.md
+    // § Choosing Input Values. Dates are explicit args, so the saga path pins the on-point exactly.
+
+    def "createQuiz: QUIZ_DATE_ORDERING boundary — availableDate == conclusionDate violates"() {
+        given: 'available and conclusion at the same instant (available < conclusion is strict)'
+        def availableDate = LocalDateTime.now().plusDays(2)
+        def conclusionDate = availableDate
+        def resultsDate = LocalDateTime.now().plusDays(3)
+
+        when:
+        quizFunctionalities.createQuiz("Edge Quiz", availableDate, conclusionDate, resultsDate,
+                "GENERATED", executionDto.aggregateId, [questionDto.aggregateId])
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.message == QUIZ_DATE_ORDERING
+    }
+
+    def "createQuiz: QUIZ_DATE_ORDERING boundary — conclusionDate == resultsDate is allowed"() {
+        given: 'conclusion equal to results (conclusion <= results is inclusive)'
+        def availableDate = LocalDateTime.now().plusDays(1)
+        def conclusionDate = LocalDateTime.now().plusDays(2)
+        def resultsDate = conclusionDate
+
+        when:
+        QuizDto result = quizFunctionalities.createQuiz("Edge Quiz", availableDate, conclusionDate,
+                resultsDate, "GENERATED", executionDto.aggregateId, [questionDto.aggregateId])
+
+        then:
+        result.aggregateId != null
+        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
+    }
+
+    def "createQuiz: QUIZ_DATE_ORDERING boundary — resultsDate one nanosecond before conclusionDate violates"() {
+        given: 'results just before conclusion (off-point of conclusion <= results)'
+        def availableDate = LocalDateTime.now().plusDays(1)
+        def conclusionDate = LocalDateTime.now().plusDays(2)
+        def resultsDate = conclusionDate.minusNanos(1)
+
+        when:
+        quizFunctionalities.createQuiz("Edge Quiz", availableDate, conclusionDate, resultsDate,
+                "GENERATED", executionDto.aggregateId, [questionDto.aggregateId])
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.message == QUIZ_DATE_ORDERING
+    }
+
     def "createQuiz: getExecutionStep acquires READ_EXECUTION semantic lock"() {
         given: 'a createQuiz workflow pauses after getExecutionStep has acquired READ_EXECUTION lock'
         def availableDate = LocalDateTime.now().plusDays(1)

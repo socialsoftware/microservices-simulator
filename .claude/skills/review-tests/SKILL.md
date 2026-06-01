@@ -203,7 +203,10 @@ before reaching that state transition, the forbidden-state check never fires.
 ### B. Parameter quality
 
 - Are test data values semantically realistic, not just non-null stubs?
-- For numeric boundary rules: does the test use a value at, above, or below the boundary?
+- For any **comparison-predicate** rule (count, timestamp, or collection size): are **both** the
+  on-point (last value that satisfies) and the off-point (first value that violates) present? A single
+  far-side representative is **Weak (boundary under-coverage)** — cite `docs/concepts/testing.md`
+  § Choosing Input Values. (Categorical rules — uniqueness, state flags — need no boundary case.)
 - For invariant tests: does the `given:` actually put the system in the violating state, or does it just
   pass an invalid argument while the aggregate state is benign?
 
@@ -255,7 +258,9 @@ Beyond the required scenarios from Step 3, look for realistic edge cases not cur
 gap, state: (a) the scenario, (b) what defect it would catch.
 
 Focus on:
-- Boundary values for numeric fields (zero, negative, exactly-at-limit)
+- Boundary values for **numeric, temporal, or cardinality** comparison rules — the on-point and
+  off-point straddling the threshold (see `docs/concepts/testing.md` § Choosing Input Values). For a
+  rule asserted with only a far-side representative, propose the missing boundary case explicitly.
 - Empty collections where the code iterates
 - Duplicate/already-existing entities where uniqueness is enforced
 - Operations on already-deleted aggregates

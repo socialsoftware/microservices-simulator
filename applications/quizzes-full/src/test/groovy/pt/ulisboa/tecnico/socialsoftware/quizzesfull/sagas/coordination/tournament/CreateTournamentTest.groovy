@@ -112,6 +112,21 @@ class CreateTournamentTest extends QuizzesFullSpockTest {
         ex.message == pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_START_BEFORE_END_TIME
     }
 
+    def "createTournament: TOURNAMENT_START_BEFORE_END_TIME boundary — startTime == endTime"() {
+        // Spec: plan.md §2.8 Tournament — TOURNAMENT_START_BEFORE_END_TIME (startTime < endTime).
+        // BVA off-point: the equal instant is the first violating value (the case above is a far
+        // representative). See docs/concepts/testing.md § Choosing Input Values.
+        given: 'start time equal to end time'
+        def instant = LocalDateTime.now().plusDays(1)
+
+        when:
+        createTournament(executionId, userId, [topicId], 1, instant, instant)
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.message == pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_START_BEFORE_END_TIME
+    }
+
     def "createTournament: getStudentStep enforces CREATOR_COURSE_EXECUTION check"() {
         given: 'workflow paused after getExecutionStep'
         def uow = unitOfWorkService.createUnitOfWork("createTournament")
