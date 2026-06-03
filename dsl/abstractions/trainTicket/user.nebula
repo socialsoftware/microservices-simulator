@@ -2,6 +2,11 @@ Aggregate User {
     @GenerateCrud
 
     Root Entity User {
-        String userId
+        String userName
+        String password
+        Integer gender
+        Integer documentType
+        String documentNum
+        String email
     }
 }

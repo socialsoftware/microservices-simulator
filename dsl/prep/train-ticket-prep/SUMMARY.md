@@ -1,78 +1,77 @@
-# SUMMARY — Train-Ticket DSL Prep
+# SUMMARY — train-ticket DSL prep (booking core)
 
-Output folder: `dsl/prep/train-ticket-prep/`
-Source analysed: `/home/tomas/Tese/train-ticket/` (47 services; ~25 core domain services inspected).
+**Source:** `../train-ticket/` — the FudanSELab train-ticket benchmark (44 microservices).
+**Scope (user-selected):** booking core only — `ts-user`, `ts-contacts`, `ts-station`,
+`ts-train`, `ts-route`, `ts-travel`(+`ts-travel2`), `ts-price`, `ts-order`(+`ts-order-other`).
+**Source of truth:** JPA `@Entity` classes (no domain-model docs, no `.nebula` source).
 
 ## Counts
+| Item | Count |
+|------|-------|
+| Aggregates | **8** — User, Contacts, Station, TrainType, Route, Trip, PriceConfig, Order |
+| Non-aggregate flagged | 1 — Seat (computational service, no entity) |
+| Inferred events | 13 (`*Updated`/`*Deleted` per aggregate) — **none exist in source** |
+| Cross-aggregate references | 13 across 5 consumers (all `onDelete` policies introduced by Nebula) |
+| Inter-invariants (suggested) | 11 |
+| Intra-invariants (suggested) | ~24 (most inferred; source is invariant-poor) |
 
-| Metric | Count |
-|---|---|
-| Candidate aggregates | 20 (18 after collapsing Order/OrderOther and Trip/Trip2 duplicates) |
-| Events discovered in source | **0** |
-| Events proposed (INVENTED) | ~30 (Step 3) |
-| References between aggregates | ~25 (Step 4) |
-| Intra-invariants proposed | ~55 across 18 aggregates (Step 5) |
-| ⚠ Gaps flagged | 29 (see below) |
+> The existing `dsl/abstractions/trainTicket/` already has `.nebula` stubs for 5 of the 8:
+> User, Contacts, Station, TrainType, Order. Missing: **Route, Trip, PriceConfig** (plus the
+> Events/References/invariants blocks on the existing five).
 
-## Consolidated ⚠ Gaps
+## ⚠ Gaps (consolidated)
 
-### 01-aggregates.md
-1. **Order / OrderOther duplicate** — collapse into one aggregate or keep partition? (Order section)
-2. **Trip / Trip2 duplicate** — same question as above. (Trip2 section)
-3. **FoodOrder root ambiguity** — standalone aggregate vs child of Order. (FoodOrder section)
-4. **Payment vs InsidePayment.Payment overlap** — two `Payment` entities; collapse or keep distinct? (Payment, InsidePayment sections)
-5. **FoodOrder vs Delivery overlap** — two aggregates modelling food fulfilment. (Delivery section)
+### Structural
+- **`01` Trip** — `ts-travel2-service` is a field-identical shard of `Trip`; model as one.
+- **`01` Order** — `ts-order-other-service` is a field-identical shard of `Order`; model as one.
+- **`01` Seat** — no persisted entity; seat availability/dispatch is a *computation*, not an
+  aggregate. No `Seat` to scaffold.
 
-### 02-fields.md
-6. **Cross-aggregate name copies without events** — `Order.contactsName/document*`, `Order.from/to`, `Trip.*StationName`, `FoodOrder.foodName/price/stationName/storeName`, `Payment.price`, `InsidePayment.price`, `Delivery.foodName/storeName/stationName` are all copies with no refresh mechanism in source. Each needs a per-field decision: **snapshot** vs **projection** (and, if projection, an invented refresh event).
+### Events (`03`)
+- **`03` g1** — **All events are inferred**; train-ticket has no event bus/sourcing. Validate
+  the whole event set before wiring — don't over-model.
+- **`03` g2 / `04`** — **Reference-by-name** (Station.name, TrainType.name): rename
+  propagation has no source precedent. Decide: treat names as immutable (drop `*Updated`
+  projections) or carry name in events / store aggregateIds (schema change).
+- **`03` g3** — Decide if Order's contact/station/train fields are **frozen snapshots**
+  (recommended → drop `*Updated` subscriptions, keep only `*Deleted` integrity) or live.
 
-### 03-events.md
-7. **No events exist in source** — all ~30 events in Step 3 are inventions. Every event/payload requires user validation.
-8. **Order status machine unknown** — `status:int` is opaque; transition graph (paid → collected → used → refunded …) must be supplied by the user before lifecycle events can be finalised.
-9. **Rename events depend on Gap #6.**
-10. **Idempotency keys undefined** — if events are added, per-handler idempotency keys must be specified.
+### Cross-aggregate (`04`)
+- **`04`** — **Every `onDelete` policy is Nebula-introduced** (source enforces zero
+  referential integrity). Confirm each: Contacts→User (cascade?), Order→User/Contacts/
+  TrainType/Station (prevent?), Trip→TrainType/Route/Station (prevent?), PriceConfig→
+  TrainType/Route (cascade?).
+- **`04` / `05`** — **Seat availability & dispatch** (preserve steps 3–4): cross-aggregate
+  computation over `Order` count vs `TrainType` capacity. No clean reference/invariant home;
+  needs a Sagas guard in `createOrder`. Resolve before implementing the booking functionality.
 
-### 04-cross-aggregate.md
-11. **All `onDelete` policies inferred** — none are actually enforced in Train-Ticket source. Every reference in Step 4 needs the user to pick `prevent` / `cascade` / `setNull`.
-12. **Payment onDelete from Order / User** — audit-trail concerns vs DSL requirement.
-13. **Consign cancellation policy on order cancel** — cascade vs prevent.
-14. **FoodOrder.stationName / storeName nullability on store deletion** — setNull vs cascade.
-15. **Name-based vs id-based references** — Train-Ticket uses unique-name cross-references (`trainNumber`, station names); the DSL reference model may prefer ids. Needs mapping decision.
+### Invariants (`05`)
+- **`05`** — All **uniqueness** constraints (Station.name, TrainType.name, Contacts triple,
+  PriceConfig pair) are cross-instance → not `check` booleans; need repository/Sagas guards.
+- **`05`** — Route list-alignment (`stations`/`distances`) and embedded `TripId` may exceed
+  simple-boolean grammar; verify or push to service code.
+- **`05`** — Numeric-code vs enum modelling (status, seatClass, documentType) changes which
+  checks apply.
 
-### 05-invariants.md
-16. **`Order.status` range speculative** — unknown status enum.
-17. **Most invariants inferred, not enforced in source** — every rule needs confirmation.
-18. **Regex formats illustrative** — phone, email, business hours.
-19. **Route membership rule** (`stations.contains(startStation)`) — grammar-support for `.contains` on list fields unknown; may require refactor.
-20. **`Balance` overdraft rule** — unclear if negative balances are permitted.
-21. **`Order.fromAndToDiffer` location** — entity invariant vs creation-time precondition.
-22. **`PriceConfig.firstClassHigherThanBasic`** — domain assumption, not enforced.
+### Config (`06`)
+- **`06`** — `consistencyModels` is `["sagas"]`; confirm no TCC needed (seat hold/confirm).
+- **`06`** — DB/package intentionally diverge from source (postgres + single base package);
+  not a faithful DB port — confirmed acceptable.
 
-### 06-config.md
-23. **Base package** placeholder — `com.trainticket` guessed.
-24. **Database type** — source is MongoDB; check Nebula support, else translate.
-25. **Sagas vs TCC vs both** — needs user decision.
-26. **Project / package naming** — `train-ticket` vs `trainticket` vs `ts`.
+## Next steps (suggested order)
+1. **Resolve the snapshot-freeze decision (`03` g3)** — it determines half the Order event
+   wiring. Recommended: freeze → keep only `*Deleted` integrity subscriptions.
+2. **Pin the reference-by-name strategy (`03` g2 / `04`)** — affects Route/Trip/PriceConfig/
+   Order events and inter-invariants globally. Recommended: treat Station/TrainType names as
+   immutable.
+3. **Decide seat availability handling (`04`/`05`)** — design the `createOrder` Sagas guard
+   before scaffolding the booking functionality.
+4. **Confirm `onDelete` policies (`04`)** table-by-table.
+5. Then scaffold the 3 missing aggregates (**Route, Trip, PriceConfig**) and backfill
+   Events/References/invariants on the existing 5.
 
-### General
-27. **Status-machine dump required** — tracing controller logic in `ts-order-service` for all `status`-mutating endpoints is a prerequisite for correct event modelling.
-28. **~20 admin/orchestrator services skipped** — `ts-admin-*`, `ts-preserve*`, `ts-execute-service`, `ts-rebook-service`, `ts-cancel-service`, `ts-basic-service`, `ts-wait-order-service`. Their business logic becomes Nebula *functionalities* (cross-aggregate workflows) rather than aggregates. Not modelled here; needs a separate pass once aggregates are agreed.
-29. **Authentication / authorisation** — `ts-auth-service`, `ts-security-service`, `ts-verification-code-service` were skipped as infra; decide whether to model auth inside the DSL project at all.
-
-## Source-location ambiguities / assumptions made
-
-- **Aggregate partitioning (Order/OrderOther, Trip/Trip2):** assumed both halves of the partition have identical schemas (they do, per source survey). Real-world traffic is split by `trainNumber` prefix — a routing concern, not a domain concern.
-- **Event absence:** assumed there is genuinely no eventing layer; I did not exhaustively grep every service for RabbitMQ. If the user knows of one, it overrides Step 3.
-- **FoodOrder as independent aggregate:** assumed it is separate from Order because Train-Ticket places it in its own service with its own repository; could also be modelled as a child.
-- **`ts-inside-payment-service` contains two aggregates** (`Payment` + `Balance`) — assumed they are distinct because they have independent repositories.
-- **Admin & orchestrator services deferred** to a later step (Phase-3 functionalities) rather than folding them into aggregates.
-
-## Recommended next steps (in priority order)
-
-1. **Resolve duplicate aggregates** (Gaps #1, #2) — biggest simplification.
-2. **Dump the Order status machine** (Gap #8) — unlocks event design.
-3. **Decide snapshot vs projection for every cross-copied field** (Gap #6) — determines whether rename/update events exist at all.
-4. **Pick `onDelete` policies** for every reference in `04-cross-aggregate.md`.
-5. **Confirm database target** (Gap #24) — may require denormalisation planning for list-valued fields on `Route` / `Trip`.
-6. **Confirm consistency model(s)** — sagas / tcc / both (Gap #25).
-7. Only *after* the above, start drafting `.nebula` files (recommended order: Station → TrainType → User → Route → Contacts → Trip → PriceConfig → Order → Payment / InsidePayment / Balance → Assurance → Consign → ConsignPrice → Food family → Delivery → Config).
+## Assumptions made
+- Booking-core scope per user selection; security/payment/assurance/food/consign excluded.
+- Treated travel2/order-other as shard duplicates (verified field-identical).
+- Treated Seat as non-aggregate (verified no `@Entity`).
+- Reused the existing `nebula.config.json` rather than drafting a new one.

@@ -3,7 +3,13 @@ Aggregate Contacts {
 
     Root Entity Contacts {
         String name
-        String documentType
+        Integer documentType
         String documentNumber
+        String phoneNumber
+
+        ContactsUser user
+    }
+
+    Entity ContactsUser from User {
     }
 }

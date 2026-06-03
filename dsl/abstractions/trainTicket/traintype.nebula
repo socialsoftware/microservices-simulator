@@ -3,5 +3,8 @@ Aggregate TrainType {
 
     Root Entity TrainType {
         String name
+        Integer economyClass
+        Integer confortClass
+        Integer averageSpeed
     }
 }

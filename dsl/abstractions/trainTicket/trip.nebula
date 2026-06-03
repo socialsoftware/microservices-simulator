@@ -1,0 +1,31 @@
+Aggregate Trip {
+    @GenerateCrud
+
+    Root Entity Trip {
+        // TODO: tripId — embedded value object (type enum + number); to be modeled later
+
+        String stationsName          // intermediate stops, comma-joined Station names (soft ref)
+        String startTime
+        String endTime
+
+        TripTrainType trainType
+        TripRoute route
+        TripStartStation startStation
+        TripTerminalStation terminalStation
+    }
+
+    Entity TripTrainType from TrainType {
+        map name as trainTypeName
+    }
+
+    Entity TripRoute from Route {
+    }
+
+    Entity TripStartStation from Station {
+        map name as startStationName
+    }
+
+    Entity TripTerminalStation from Station {
+        map name as terminalStationName
+    }
+}

@@ -1,178 +1,118 @@
-# 05 — Intra-Aggregate Invariants (Train-Ticket)
+# 05 — Intra-Invariants (train-ticket, booking core)
 
-Rules expressible with only root-entity fields (no cross-aggregate reads). Train-Ticket has very little explicit validation in its Java sources — most of what follows is **inferred from field semantics** and labelled with a comment when so. Flag as **⚠ Gap** where the rule is speculative.
+Rules expressible using **only the root entity's own fields**. Cross-aggregate rules live in
+`04`.
 
-## Order
-```
-check statusWithinRange { status >= 0 && status <= 6 }
-    error "Invalid order status"
-check priceNonNegative { Double.parseDouble(price) >= 0 }
-    error "Price cannot be negative"
-check seatsConsistent { (coachNumber > 0 && seatNumber != null) || (coachNumber == 0 && seatNumber == null) }
-    error "Seat and coach must be set together"
-check fromAndToDiffer { !from.equals(to) }
-    error "Origin and destination cannot be the same"
-check travelTimeAfterBought { travelDate >= boughtDate }
-    error "Travel date must be on or after booking date"
-```
-**⚠ Gap** — exact status-range upper bound is speculative; Train-Ticket encodes statuses as bare ints with no enum. The `fromAndToDiffer` and `travelTimeAfterBought` rules are not enforced in source but are domain-reasonable.
-
-## Trip
-```
-check startBeforeEnd { startingTime < endTime }
-    error "Starting time must be before end time"
-check startAndTerminalDiffer { !startingStationName.equals(terminalStationName) }
-    error "Starting and terminal stations must differ"
-check hasIntermediateOrDirect { stationsName.size() >= 2 }
-    error "Trip must include at least starting and terminal stations"
-```
-**⚠ Gap** — not enforced in source; inferred.
-
-## TrainType
-```
-check capacityPositive { economyClass >= 0 && confortClass >= 0 }
-    error "Capacity must be non-negative"
-check nameNotBlank { name != null && !name.isBlank() }
-    error "Train type name is required"
-check speedPositive { averageSpeed > 0 }
-    error "Average speed must be positive"
-```
-
-## Station
-```
-check nameNotBlank { name != null && !name.isBlank() }
-    error "Station name is required"
-check stayTimeNonNegative { stayTime >= 0 }
-    error "Stay time cannot be negative"
-```
-
-## Route
-```
-check stationsAndDistancesConsistent { distances.size() == stations.size() - 1 }
-    error "Distances list must have one fewer entry than stations"
-check atLeastTwoStations { stations.size() >= 2 }
-    error "A route needs at least start and end stations"
-check endpointsInStations { stations.contains(startStation) && stations.contains(endStation) }
-    error "Start and end stations must appear in the station list"
-check distancesPositive { distances.stream().allMatch(d -> d > 0) }
-    error "Distances must be positive"
-```
-
-## Contacts
-```
-check nameNotBlank { name != null && !name.isBlank() }
-    error "Contact name is required"
-check documentNumberNotBlank { documentNumber != null && !documentNumber.isBlank() }
-    error "Document number is required"
-check phoneNumberFormat { phoneNumber.matches("\\d{7,15}") }
-    error "Phone number must be 7–15 digits"
-```
-**⚠ Gap** — phone regex is illustrative.
+> **train-ticket is invariant-poor.** The JPA entities carry almost no business validation —
+> mostly `@NotNull`, `@Column(unique=...)` and unique `@Index`. The checks below are grounded
+> in those annotations + obvious domain constraints. Anything not directly backed by source
+> is marked ⚠ (inferred). **Uniqueness constraints are NOT single-root booleans** → all
+> flagged ⚠ Gap (need repository-level / Sagas handling, not a `check`).
 
 ## User
 ```
-check userNameNotBlank { userName != null && !userName.isBlank() }
-    error "Username is required"
-check passwordNotBlank { password != null && !password.isBlank() }
-    error "Password is required"
-check emailFormat { email.matches("^[^@]+@[^@]+\\.[^@]+$") }
-    error "Invalid email"
-check genderInRange { gender >= 0 && gender <= 2 }
-    error "Invalid gender code"
+check userNameNotBlank { userName != null && userName.length() > 0 }   # inferred ⚠
+    error "User name cannot be blank"
+check passwordNotBlank { password != null && password.length() > 0 }   # inferred ⚠
+    error "Password cannot be blank"
 ```
+- ⚠ No explicit validation in source `User`; above are reasonable defaults.
+
+## Contacts
+```
+check nameNotBlank { name != null && name.length() > 0 }               # inferred ⚠
+    error "Contact name cannot be blank"
+check documentNumberNotBlank { documentNumber != null && documentNumber.length() > 0 }  # inferred ⚠
+    error "Document number cannot be blank"
+check documentTypeValid { documentType >= 0 && documentType <= 3 }     # from DocumentType enum (0..3)
+    error "Invalid document type"
+```
+- ⚠ **Gap (uniqueness):** unique index on (`accountId`,`documentNumber`,`documentType`) —
+  cross-instance, not a single-root boolean. Handle via repository lookup in create/update.
+
+## Station
+```
+check nameNotBlank { name != null && name.length() > 0 }               # @NotNull on name
+    error "Station name cannot be blank"
+check stayTimeNonNegative { stayTime >= 0 }                            # inferred ⚠
+    error "Station stay time cannot be negative"
+```
+- ⚠ **Gap (uniqueness):** `name` is `@Column(unique=true)` — handle at repository level.
+
+## TrainType
+```
+check nameNotBlank { name != null && name.length() > 0 }               # @NotNull on name
+    error "Train type name cannot be blank"
+check economyClassNonNegative { economyClass >= 0 }                    # capacity, inferred ⚠
+    error "Economy-class capacity cannot be negative"
+check confortClassNonNegative { confortClass >= 0 }                    # capacity, inferred ⚠
+    error "First-class capacity cannot be negative"
+check averageSpeedNonNegative { averageSpeed >= 0 }                    # inferred ⚠
+    error "Average speed cannot be negative"
+```
+- ⚠ **Gap (uniqueness):** `name` unique — repository level.
+
+## Route
+```
+check startStationSet { startStation != null && startStation.length() > 0 }  # inferred ⚠
+    error "Route must have a start station"
+check endStationSet { endStation != null && endStation.length() > 0 }        # inferred ⚠
+    error "Route must have an end station"
+```
+- ⚠ **Gap:** "`stations` and `distances` lists are aligned / non-empty" and
+  "`startStation == stations.first`, `endStation == stations.last`" involve list indexing
+  and may exceed simple boolean support — verify against grammar (`.size()`, indexing). If
+  unsupported, enforce in service code.
+
+## Trip
+```
+check trainTypeNameSet { trainTypeName != null && trainTypeName.length() > 0 }  # @NotNull
+    error "Trip must have a train type"
+check startStationSet { startStationName != null && startStationName.length() > 0 }  # @NotNull
+    error "Trip must have a start station"
+check terminalStationSet { terminalStationName != null && terminalStationName.length() > 0 }  # @NotNull
+    error "Trip must have a terminal station"
+check startTimeSet { startTime != null && startTime.length() > 0 }     # @NotNull
+    error "Trip must have a start time"
+check endTimeSet { endTime != null && endTime.length() > 0 }           # @NotNull
+    error "Trip must have an end time"
+```
+- ⚠ `tripId` is an embedded value (`type` + `number`); model as embeddable or two String
+  fields. Verify embedded-value support in grammar.
 
 ## PriceConfig
 ```
-check ratesPositive { basicPriceRate > 0 && firstClassPriceRate > 0 }
-    error "Price rates must be positive"
-check firstClassHigherThanBasic { firstClassPriceRate >= basicPriceRate }
-    error "First-class rate must be at least as high as basic"
+check basicPriceRateNonNegative { basicPriceRate >= 0 }                # inferred ⚠
+    error "Basic price rate cannot be negative"
+check firstClassPriceRateNonNegative { firstClassPriceRate >= 0 }      # inferred ⚠
+    error "First-class price rate cannot be negative"
 ```
-**⚠ Gap** — second rule is a domain assumption.
+- ⚠ **Gap (uniqueness):** unique (`trainType`,`routeId`) — repository level.
 
-## FoodOrder
+## Order
 ```
-check foodTypeValid { foodType == 1 || foodType == 2 }
-    error "foodType must be 1 (train) or 2 (station)"
-check stationFieldsWhenStationFood { foodType != 2 || (stationName != null && storeName != null) }
-    error "Station food requires stationName and storeName"
-check priceNonNegative { price >= 0 }
-    error "Price cannot be negative"
+check seatClassValid { seatClass >= 0 }                                # SeatClass code, inferred ⚠
+    error "Invalid seat class"
+check coachNumberPositive { coachNumber > 0 }                          # inferred ⚠
+    error "Coach number must be positive"
+check statusValid { status >= 0 && status <= 6 }                       # OrderStatus enum 0..6
+    error "Invalid order status"
+check priceSet { price != null && price.length() > 0 }                 # inferred ⚠
+    error "Order must have a price"
 ```
-
-## StationFoodStore
-```
-check storeNameNotBlank { storeName != null && !storeName.isBlank() }
-    error "Store name required"
-check businessHoursFormat { businessHours.matches("\\d{2}:\\d{2}-\\d{2}:\\d{2}") }
-    error "Business hours must be HH:MM-HH:MM"
-```
-**⚠ Gap** — regex speculative.
-
-## TrainFood
-```
-check priceNonNegative { price >= 0 }
-    error "Price cannot be negative"
-check foodNameNotBlank { foodName != null && !foodName.isBlank() }
-    error "Food name required"
-```
-
-## Assurance
-```
-check typeIsKnown { type == AssuranceType.TRAFFIC_ACCIDENT || type == AssuranceType.DELAYED_MONEY }
-    error "Unknown assurance type"
-```
-
-## Consign
-```
-check weightPositive { weight > 0 }
-    error "Weight must be positive"
-check fromAndToDiffer { !from.equals(to) }
-    error "Origin and destination must differ"
-check phoneNotBlank { phone != null && !phone.isBlank() }
-    error "Phone is required"
-check targetAfterHandle { targetDate >= handleDate }
-    error "Target date must be on or after handle date"
-```
-
-## ConsignPrice
-```
-check weightPositive { initialWeight > 0 }
-    error "Initial weight must be positive"
-check pricesNonNegative { withinPrice >= 0 && outPrice >= 0 }
-    error "Prices must be non-negative"
-```
-
-## Payment / InsidePayment
-```
-check priceNonNegative { Double.parseDouble(price) >= 0 }
-    error "Price cannot be negative"
-```
-
-## Balance
-```
-check balanceNonNegative { balance >= 0 }
-    error "Balance cannot go negative"
-```
-**⚠ Gap** — depends on whether overdraft is permitted; Train-Ticket source doesn't say.
-
-## Config
-```
-check nameNotBlank { name != null && !name.isBlank() }
-    error "Config name required"
-```
-
-## Delivery
-```
-check orderIdNotNull { orderId != null }
-    error "orderId required"
-```
+- ⚠ `status`/`seatClass` are stored as `int` codes; if modelled as the `OrderStatus`/
+  `SeatClass` enums (as `shared-enums.nebula` already does for OrderStatus), replace the
+  numeric range checks with `status != null`.
+- ⚠ **Gap (cross-aggregate, NOT here):** "seat available before booking" needs Trip capacity
+  + sold-order counts → see `04` seat-availability gap.
 
 ---
 
-## ⚠ Gaps in this step
-- Most invariants above are **inferred**; Train-Ticket has no explicit validation layer. User must confirm each before codifying.
-- `Order.status` range and semantics are unclear — the entire order state machine needs to be documented before we can write lifecycle invariants.
-- Several regex/format rules (phone, email, business hours) are illustrative.
-- The rule `stations.contains(startStation)` on Route uses a business-key list — grammar may or may not allow `.contains` on a list field; may require refactor into a computed-field or pre-validation.
-- The rule `Travel.fromAndToDiffer` on Order could instead be enforced at order-creation as a pre-condition rather than an invariant on the entity state.
+## ⚠ Gaps summary (this file)
+- All **uniqueness** constraints (Station.name, TrainType.name, Contacts triple,
+  PriceConfig pair) are cross-instance → not `check` booleans; need repository/Sagas guards.
+- Most "not blank / non-negative" checks are **inferred** — source entities lack explicit
+  validation; confirm desired strictness.
+- Route list-alignment and embedded `TripId` may exceed simple-boolean grammar support —
+  verify, else push to service code.
+- Numeric-code vs enum modelling (status, seatClass, documentType) affects which checks apply.

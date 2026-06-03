@@ -1,102 +1,90 @@
-# 03 — Events (Train-Ticket)
+# 03 — Events (train-ticket, booking core)
 
-## ⚠ MAJOR GAP — no domain events in the source
+> ⚠ **GLOBAL GAP — no source events.** train-ticket has **no event bus, no event sourcing,
+> no `@EventListener`s, no message broker**. All cross-service communication is synchronous
+> REST/Feign (see `04`). Therefore **every event below is INFERRED**, not read from source.
+> They are derived from two needs in the Nebula model:
+>   1. **Projection refresh** — keep snapshotted copies (Order's contact/station/train names)
+>      and any cached fields up to date → `*UpdatedEvent`.
+>   2. **Referential integrity** — react when a referenced aggregate is deleted →
+>      `*DeletedEvent` consumed by inter-invariants (`04`).
+>
+> Payloads follow the Nebula convention: every event carries `aggregateId` + `version`;
+> `*UpdatedEvent`s additionally carry the projected fields actually consumed downstream.
 
-Train-Ticket is a **REST-only** benchmark. The survey of every service turned up:
-- no Kafka / RabbitMQ publishers
-- no `ApplicationEventPublisher` / `@EventListener` usage for cross-service events
-- no outbox tables
+Format per aggregate: **Publishes** (what the Nebula model should emit) / **Subscribes**
+(what it consumes). "Consumed by" links to the downstream need.
 
-Every cross-aggregate flow is a synchronous REST call (see `04-cross-aggregate.md` for the graph). The closest thing to an asynchronous trigger is Spring Cloud's service-discovery, not domain eventing.
+## User
+- **Publishes:**
+  - `UserUpdatedEvent { aggregateId, userName }` — consumed by Contacts/Order projections of account data. *(inferred)*
+  - `UserDeletedEvent { aggregateId }` — consumed by Contacts, Order integrity. *(inferred)*
+- **Subscribes:** none.
 
-This is a fundamental mismatch with the Nebula DSL's event-driven consistency model (sagas subscribe to events; projections refresh on events). To express Train-Ticket in Nebula we have to **invent the events** that the current REST-based flows would emit if re-implemented asynchronously.
+## Contacts
+- **Publishes:**
+  - `ContactsUpdatedEvent { aggregateId, name, documentType, documentNumber }` — consumed by Order projection. *(inferred)*
+  - `ContactsDeletedEvent { aggregateId }` — consumed by Order integrity. *(inferred)*
+- **Subscribes:**
+  - `UserDeletedEvent` from User — integrity / cascade decision (see `04`). *(inferred)*
 
-## Proposed event set (to be validated)
+## Station
+- **Publishes:**
+  - `StationUpdatedEvent { aggregateId, name }` — consumed by Order `from`/`to` projections. *(inferred)*
+  - `StationDeletedEvent { aggregateId }` — consumed by Route, Trip, Order integrity. *(inferred)*
+- **Subscribes:** none.
 
-Below is a minimal, inferred event catalogue derived from the REST operations observed. Each event is labelled **INVENTED** to mark it as not present in the source.
+## TrainType
+- **Publishes:**
+  - `TrainTypeUpdatedEvent { aggregateId, name }` — consumed by Order `trainNumber`, Trip, PriceConfig. *(inferred)*
+  - `TrainTypeDeletedEvent { aggregateId }` — consumed by Trip, PriceConfig, Order integrity. *(inferred)*
+- **Subscribes:** none.
 
-### Order (publishes)
-- **OrderCreatedEvent** (INVENTED) — `orderId:String, accountId:String, trainNumber:String, travelDate:String, from:String, to:String, price:String, status:int`
-- **OrderPaidEvent** (INVENTED) — `orderId:String, accountId:String`
-- **OrderCancelledEvent** (INVENTED) — `orderId:String, accountId:String`
-- **OrderRebookedEvent** (INVENTED) — `previousOrderId:String, newOrderId:String, accountId:String`
-- **OrderStatusChangedEvent** (INVENTED) — `orderId:String, status:int`
+## Route
+- **Publishes:**
+  - `RouteUpdatedEvent { aggregateId, startStation, endStation }` — consumed by Trip/PriceConfig if they cache route data. *(inferred)*
+  - `RouteDeletedEvent { aggregateId }` — consumed by Trip, PriceConfig integrity. *(inferred)*
+- **Subscribes:**
+  - `StationDeletedEvent` from Station — a route references stations by name. *(inferred — see ⚠ below)*
 
-### Order (subscribes)
-- `ContactsUpdatedEvent` → refresh projected `contactsName`, `documentType`, `contactsDocumentNumber` (only if we decide these are projections vs snapshots — see `02-fields.md`)
-- `StationRenamedEvent` → refresh `from`, `to`
+## Trip
+- **Publishes:**
+  - `TripDeletedEvent { aggregateId }` — consumed by Order integrity (an order's trip vanished). *(inferred)*
+- **Subscribes:**
+  - `TrainTypeDeletedEvent` from TrainType — integrity. *(inferred)*
+  - `RouteDeletedEvent` from Route — integrity. *(inferred)*
+  - `StationDeletedEvent` from Station — start/terminal/intermediate references. *(inferred)*
 
-### Trip (publishes)
-- **TripCreatedEvent** (INVENTED) — `tripId, trainNumber, routeId, startingStationName, terminalStationName, startingTime, endTime`
-- **TripUpdatedEvent** (INVENTED) — same payload
-- **TripDeletedEvent** (INVENTED) — `tripId`
+## PriceConfig
+- **Publishes:**
+  - `PriceConfigDeletedEvent { aggregateId }` — *(inferred; likely no downstream consumer)*
+- **Subscribes:**
+  - `TrainTypeDeletedEvent` from TrainType — integrity. *(inferred)*
+  - `RouteDeletedEvent` from Route — integrity. *(inferred)*
 
-### Trip (subscribes)
-- `RouteUpdatedEvent` → invalidate cached station-name list
-- `StationRenamedEvent` → refresh station-name projections
-- `TrainTypeDeletedEvent` → enforce inter-invariant (prevent / cascade)
-
-### TrainType (publishes)
-- **TrainTypeCreatedEvent** / **TrainTypeUpdatedEvent** / **TrainTypeDeletedEvent** — `trainTypeId, name`
-
-### Station (publishes)
-- **StationCreatedEvent** / **StationRenamedEvent** / **StationDeletedEvent** — `stationId, name`
-
-### Route (publishes)
-- **RouteCreatedEvent** / **RouteUpdatedEvent** / **RouteDeletedEvent** — `routeId, startStation, endStation, stations[]`
-
-### User (publishes)
-- **UserCreatedEvent** / **UserUpdatedEvent** / **UserDeletedEvent** — `userId, userName, email`
-
-### Contacts (publishes)
-- **ContactsCreatedEvent** / **ContactsUpdatedEvent** / **ContactsDeletedEvent** — `contactsId, accountId, name, documentType, documentNumber`
-
-### Contacts (subscribes)
-- `UserDeletedEvent` → cascade delete contacts for that account
-
-### PriceConfig (publishes)
-- **PriceConfigUpdatedEvent** (INVENTED) — `priceConfigId, trainType, routeId, basicPriceRate, firstClassPriceRate`
-
-### FoodOrder (publishes)
-- **FoodOrderCreatedEvent** / **FoodOrderCancelledEvent** — `foodOrderId, orderId`
-
-### FoodOrder (subscribes)
-- `OrderCancelledEvent` → cascade cancel food line-items
-
-### StationFoodStore / TrainFood
-- CRUD events if renames should propagate to `FoodOrder.foodName` snapshots.
-
-### Assurance (publishes)
-- **AssuranceCreatedEvent** / **AssuranceCancelledEvent** — `assuranceId, orderId, type`
-
-### Assurance (subscribes)
-- `OrderCancelledEvent` → cascade cancel assurance
-
-### Consign (publishes)
-- **ConsignCreatedEvent** / **ConsignStatusChangedEvent** — `consignId, orderId, status`
-
-### Consign (subscribes)
-- `OrderCancelledEvent` → cancel consign if present
-
-### Payment (publishes)
-- **PaymentSucceededEvent** (INVENTED) — `paymentId, orderId, userId, price`
-- **PaymentRefundedEvent** (INVENTED) — same
-
-### Payment / InsidePayment (subscribes)
-- `OrderCreatedEvent` → enable payment for that order
-- `OrderCancelledEvent` → trigger refund
-
-### Balance (publishes)
-- **BalanceCreditedEvent** / **BalanceDebitedEvent** — `balanceId, accountId, amount`
-
-### Delivery (subscribes)
-- `FoodOrderCreatedEvent` → schedule delivery
-- `OrderCancelledEvent` → cancel delivery
+## Order
+- **Publishes:**
+  - `OrderCreatedEvent` / `OrderStatusChangedEvent` — *(inferred; only needed if payment/
+    consign/assurance services are later brought into scope — out of booking-core)*.
+- **Subscribes:**
+  - `UserDeletedEvent` from User — integrity. *(inferred)*
+  - `ContactsDeletedEvent` from Contacts — integrity. *(inferred)*
+  - `ContactsUpdatedEvent` from Contacts — refresh projected contact snapshot (if not frozen). *(inferred)*
+  - `StationDeletedEvent` / `StationUpdatedEvent` from Station — integrity / projection. *(inferred)*
+  - `TrainTypeDeletedEvent` / `TrainTypeUpdatedEvent` from TrainType — integrity / projection. *(inferred)*
+  - `TripDeletedEvent` from Trip — integrity. *(inferred)*
 
 ---
 
-## ⚠ Gaps in this step
-- **All of the above events are inferred; none exist in the source.** Every event name / payload is a design proposal that the user must validate before Nebula generation.
-- Order-status workflow: Train-Ticket uses a single `status:int` field with opaque integer codes. The exact status-transition graph (paid → collected → used → refunded, etc.) is not explicit in the entity; it lives in controller logic we did not exhaustively trace. Need the user to supply the status-machine or we risk missing events.
-- Whether "rename" events (StationRenamedEvent, etc.) should exist depends on whether projected name-fields on Order/Trip are snapshots or live — pending decision from `02-fields.md`.
-- No evidence that Train-Ticket supports idempotent retries; if events are introduced, idempotency keys must be specified per handler.
+## ⚠ Gaps
+1. **All events inferred** — none exist in source; validate the set against intended
+   behaviour before writing `.nebula`. Over-modelling events adds wiring cost.
+2. **Reference-by-name** (Station/TrainType) complicates `*UpdatedEvent` projection: if a
+   station/train is renamed, every downstream copy keyed by name must update. Source never
+   handles this (names are effectively immutable in practice). Decide: (a) treat names as
+   immutable → drop the `*UpdatedEvent` projections, or (b) carry both aggregateId + name.
+3. **Order snapshot freeze** — if Order's contact/station/train projections are *frozen at
+   booking* (recommended, matches source), Order should **not** subscribe to the
+   corresponding `*UpdatedEvent`s; keep only `*DeletedEvent` integrity subscriptions.
+4. **Seat availability is not event-driven** in source; it is recomputed per request. No
+   event models it. See `04`/`05`.

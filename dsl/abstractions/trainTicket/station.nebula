@@ -3,5 +3,6 @@ Aggregate Station {
 
     Root Entity Station {
         String name
+        Integer stayTime
     }
 }

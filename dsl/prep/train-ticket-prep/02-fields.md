@@ -1,201 +1,102 @@
-# 02 — Field Classification (Train-Ticket)
+# 02 — Field Classification (train-ticket, booking core)
 
-Classification:
-- **Owned** — aggregate is source of truth
-- **Projected from X** — cached copy of data owned by aggregate X
-- **Reference to X** — foreign id, not a data copy
+Classification key: **Owned** (this aggregate is source of truth) · **Projected from X**
+(cached copy of X's data) · **Reference to X** (foreign id/name, not a data copy).
 
-Train-Ticket has **no event-based projections** in its source code (see `03-events.md`). Fields that name other aggregates are almost always **References** — but in several cases a *copied name* (e.g. `contactsName`, `startingStationName`) is present alongside an id-like field. Those copies are de-facto projections and are flagged as such with a **⚠ Gap** noting that Train-Ticket refreshes them by re-querying REST endpoints, not by subscribing to events.
+> **train-ticket links by *name*, not id, in several places** (station `name`, train-type
+> `name`). The existing `order.nebula` already projects those names. References below note
+> whether the link is by id or by name.
 
-## Order
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | aggregate id |
-| boughtDate | String | Owned | |
-| travelDate | String | Owned | |
-| travelTime | String | Owned | |
-| accountId | String | Reference to User | |
-| contactsName | String | Projected from Contacts | **⚠ Gap** — copied from Contacts but no event; refresh story TBD |
-| documentType | int | Projected from Contacts | same as above |
-| contactsDocumentNumber | String | Projected from Contacts | same as above |
-| trainNumber | String | Reference to TrainType | matches `TrainType.name` |
-| coachNumber | int | Owned | |
-| seatClass | int | Owned | |
-| seatNumber | String | Owned | |
-| from | String | Projected from Station | station name copy |
-| to | String | Projected from Station | station name copy |
-| status | int | Owned | lifecycle state |
-| price | String | Owned | computed from PriceConfig at creation time |
-
-## Trip
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| tripId | String | Owned | |
-| trainNumber | String | Reference to TrainType | matches `TrainType.name` |
-| routeId | String | Reference to Route | |
-| startingStationName | String | Projected from Station | name copy |
-| stationsName | List&lt;String&gt; | Projected from Station | name copies along the route |
-| terminalStationName | String | Projected from Station | name copy |
-| startingTime | String | Owned | |
-| endTime | String | Owned | |
-
-## TrainType
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| name | String | Owned | unique business key |
-| economyClass | int | Owned | capacity |
-| confortClass | int | Owned | capacity (typo preserved from source) |
-| averageSpeed | int | Owned | |
-
-## Station
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| name | String | Owned | unique |
-| stayTime | int | Owned | |
-
-## Route
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| stations | List&lt;String&gt; | Reference to Station (list) | station ids |
-| distances | List&lt;int&gt; | Owned | parallel to `stations` |
-| startStation | String | Reference to Station | |
-| endStation | String | Reference to Station | |
-
-## Contacts
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| accountId | String | Reference to User | |
-| name | String | Owned | |
-| documentType | int | Owned | |
-| documentNumber | String | Owned | |
-| phoneNumber | String | Owned | |
+DB-level surrogate `id` (UUID) fields are omitted — Nebula supplies `aggregateId`.
 
 ## User
 | Field | Type | Classification | Notes |
-|---|---|---|---|
-| userId | String | Owned | |
-| userName | String | Owned | unique |
-| password | String | Owned | hashed |
-| gender | int | Owned | |
-| documentType | int | Owned | |
+|-------|------|----------------|-------|
+| userId | String | Owned | business identity (UUID); the "accountId" everyone else references |
+| userName | String | Owned | |
+| password | String | Owned | |
+| gender | Integer | Owned | |
+| documentType | Integer | Owned | code into DocumentType enum |
 | documentNum | String | Owned | |
 | email | String | Owned | |
 
+## Contacts
+| Field | Type | Classification | Notes |
+|-------|------|----------------|-------|
+| accountId | String | Reference to **User** (`User.userId`) | owning account |
+| name | String | Owned | |
+| documentType | Integer | Owned | DocumentType code |
+| documentNumber | String | Owned | |
+| phoneNumber | String | Owned | |
+
+Already modelled in `contacts.nebula` (projects `User.userId as accountId`). ⚠ existing file
+treats `user` as a projection entity; source stores only the raw `accountId` string — either
+is fine, just be consistent (see `04`).
+
+## Station
+| Field | Type | Classification | Notes |
+|-------|------|----------------|-------|
+| name | String | Owned | unique; normalised lowercase/space-stripped |
+| stayTime | Integer | Owned | dwell time |
+
+## TrainType
+| Field | Type | Classification | Notes |
+|-------|------|----------------|-------|
+| name | String | Owned | unique; the "trainNumber" others reference by name |
+| economyClass | Integer | Owned | second-class seat capacity |
+| confortClass | Integer | Owned | first-class seat capacity (source spelling "confort") |
+| averageSpeed | Integer | Owned | |
+
+## Route
+| Field | Type | Classification | Notes |
+|-------|------|----------------|-------|
+| stations | List\<String\> | Reference to **Station** (by `name`) | ⚠ ordered list of station *names*; soft reference, no FK |
+| distances | List\<Integer\> | Owned | parallel to `stations`; cumulative distances |
+| startStation | String | Reference to **Station** (by name) | == stations.first |
+| endStation | String | Reference to **Station** (by name) | == stations.last |
+
+## Trip
+| Field | Type | Classification | Notes |
+|-------|------|----------------|-------|
+| tripId | TripId (embedded) | Owned | value object: `type` (enum) + `number`; from trainNumber |
+| trainTypeName | String | Reference to **TrainType** (by `name`) | |
+| routeId | String | Reference to **Route** (by id) | |
+| startStationName | String | Reference to **Station** (by name) | |
+| stationsName | String | Reference to **Station** (by name) | intermediate stops, comma-joined |
+| terminalStationName | String | Reference to **Station** (by name) | |
+| startTime | String | Owned | |
+| endTime | String | Owned | |
+
 ## PriceConfig
 | Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| trainType | String | Reference to TrainType | matches `TrainType.name` |
-| routeId | String | Reference to Route | |
-| basicPriceRate | double | Owned | |
-| firstClassPriceRate | double | Owned | |
+|-------|------|----------------|-------|
+| trainType | String | Reference to **TrainType** (by `name`) | unique with routeId |
+| routeId | String | Reference to **Route** (by id) | unique with trainType |
+| basicPriceRate | Double | Owned | |
+| firstClassPriceRate | Double | Owned | |
 
-## FoodOrder
+## Order
 | Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| orderId | String | Reference to Order | |
-| foodType | int | Owned | 1=train, 2=store |
-| stationName | String | Projected from Station | present only if foodType=2 |
-| storeName | String | Projected from StationFoodStore | present only if foodType=2 |
-| foodName | String | Projected from TrainFood or StationFoodStore | **⚠ Gap** — copy from whichever catalog applies |
-| price | double | Projected at purchase | **⚠ Gap** — snapshot or live? Likely snapshot |
+|-------|------|----------------|-------|
+| boughtDate | String | Owned | |
+| travelDate | String | Owned | |
+| travelTime | String | Owned | copied from Trip.startTime at creation |
+| accountId | String | Reference to **User** (`userId`) | buyer |
+| contactsName | String | Projected from **Contacts** (`name`) | snapshot at booking |
+| documentType | Integer | Projected from **Contacts** (`documentType`) | |
+| contactsDocumentNumber | String | Projected from **Contacts** (`documentNumber`) | |
+| trainNumber | String | Reference to **TrainType** (by `name`) | also implies Trip |
+| coachNumber | Integer | Owned | seat allocation result |
+| seatClass | Integer | Owned | SeatClass code (chosen at booking) |
+| seatNumber | String | Owned | seat allocation result |
+| from | String | Projected from **Station** (`name`) | mapped `fromName` in order.nebula |
+| to | String | Projected from **Station** (`name`) | mapped `toName` in order.nebula |
+| status | Integer | Owned | OrderStatus enum code |
+| price | String | Owned | computed from PriceConfig at booking; stored as String |
 
-## StationFoodStore
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| stationName | String | Reference to Station | by-name reference |
-| storeName | String | Owned | |
-| telephone | String | Owned | |
-| businessHours | String | Owned | |
-
-## TrainFood
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| trainNumber | String | Reference to TrainType | |
-| foodName | String | Owned | |
-| price | double | Owned | |
-
-## Assurance
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| orderId | String | Reference to Order | |
-| type | enum | Owned | TRAFFIC_ACCIDENT / DELAYED_MONEY |
-
-## Consign
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| orderId | String | Reference to Order | |
-| accountId | String | Reference to User | |
-| handleDate | String | Owned | |
-| targetDate | String | Owned | |
-| from | String | Projected from Station | |
-| to | String | Projected from Station | |
-| consignee | String | Owned | |
-| phone | String | Owned | |
-| weight | double | Owned | |
-| isWithin | boolean | Owned | within-city flag (pricing input) |
-
-## ConsignPrice
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| initialWeight | double | Owned | |
-| withinPrice | double | Owned | |
-| outPrice | double | Owned | |
-
-## Payment (outside)
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| orderId | String | Reference to Order | |
-| userId | String | Reference to User | |
-| price | String | Projected from Order | **⚠ Gap** — snapshot at pay time |
-
-## InsidePayment
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| orderId | String | Reference to Order | |
-| userId | String | Reference to User | |
-| price | String | Projected from Order | snapshot |
-| type | enum | Owned | INSIDE / OUTSIDE |
-
-## Balance
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| accountId | String | Reference to User | unique |
-| balance | double | Owned | |
-
-## Config
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| name | String | Owned | aggregate id (primary key) |
-| value | String | Owned | |
-| description | String | Owned | |
-
-## Delivery
-| Field | Type | Classification | Notes |
-|---|---|---|---|
-| id | String | Owned | |
-| orderId | UUID | Reference to Order | |
-| foodName | String | Projected from TrainFood/StationFoodStore | snapshot |
-| storeName | String | Projected from StationFoodStore | snapshot |
-| stationName | String | Projected from Station | snapshot |
-
----
-
-## ⚠ Gaps in this step
-- Every "Projected from X" field above is populated by REST round-trip, not event subscription. Without events these are really **cached at write time** values. For DSL modelling decide per field: model as `projection` (and invent an event in Step 3) or as `owned snapshot` (copy at creation, never refreshed).
-- `Order.contactsName / documentType / contactsDocumentNumber` — snapshot vs live is a domain decision (changing a contact after purchase: does the order reflect it?).
-- `FoodOrder.foodName`, `FoodOrder.price` — likely snapshot at purchase; confirm.
-- `Payment.price`, `InsidePayment.price` — almost certainly snapshot.
+⚠ **Gap — projection vs reference for Order:** the existing `order.nebula` models
+`user/contacts/train/fromStation/toStation` as **projection entities** (`Entity X from Y`).
+That is reasonable: contact name/document and station/train *names* are snapshotted into the
+order at booking time and shouldn't change retroactively. Confirm whether `from`/`to`/
+`trainNumber` should be **frozen snapshots** (projections — recommended) or **live
+references** (re-resolved). Recommended: keep as projections (booking-time snapshot).

@@ -1,0 +1,10 @@
+Aggregate Route {
+    @GenerateCrud
+
+    Root Entity Route {
+        List<String> stations       
+        List<Integer> distances      
+        String startStation
+        String endStation           
+    }
+}

@@ -8,9 +8,9 @@ Aggregate Order {
         Integer coachNumber
         Integer seatClass
         String seatNumber
-        OrderStatus status
         String price
-
+        
+        OrderStatus status
         OrderUser user
         OrderContacts contacts
         OrderTrainType train
@@ -19,7 +19,6 @@ Aggregate Order {
     }
 
     Entity OrderUser from User {
-        map userId as accountId
     }
 
     Entity OrderContacts from Contacts {
