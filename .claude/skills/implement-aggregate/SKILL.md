@@ -251,15 +251,15 @@ List every file created or modified this session (absolute paths).
 
 ---
 
-## Step-Interleaving Coverage Audit (sessions `b` only — write "n/a" for `a`/`c`/`d`)
+## Semantic-Lock Coverage Audit (sessions `b` only — write "n/a" for `a`/`c`/`d`)
 
-For every saga produced this session, list every saga step that calls `setSemanticLock` OR
-`setForbiddenStates`, and the test name covering its interleaving case.
+For every saga produced this session, list every saga step that calls `setSemanticLock`, and the test
+name covering its lock-acquisition case.
 
-| Saga class | Step name | Lock kind (`setSemanticLock` / `setForbiddenStates`) | Foreign aggregate | Interleaving test name | Present? |
-|------------|-----------|------------------------------------------------------|-------------------|------------------------|---------:|
+| Saga class | Step name | Foreign aggregate locked | Lock-acquisition test name | Present? |
+|------------|-----------|--------------------------|----------------------------|---------:|
 
-- One row per call site (a step that calls both `setSemanticLock` and `setForbiddenStates` counts twice — one row per call).
+- One row per `setSemanticLock` call site.
 - "Present? = No" rows are **Major** findings: add the test in this session, or open an explicit follow-up. **Never tick the session checkbox with an unresolved `No` row** unless it is recorded with explicit deferral rationale in Action Items.
 
 ---
@@ -313,7 +313,7 @@ Create `{retro-dir}` if it does not already exist, then write the completed retr
 5. **No emojis, no hype.** Terse and concrete — paths, file names, section names, decisions.
 6. **Does not modify plan.md, source files, or BeanConfigurationSagas.groovy.**
 7. **Simulator changes are mandatory to document.** If any file under `simulator/` was modified during the session, the `⚠️ SIMULATOR FRAMEWORK CHANGES` block is **required** in the Files Produced section — not optional. For each changed file include: exact diff, root cause, fix rationale, and impact scope. If no simulator files changed, remove the block entirely rather than leaving it blank.
-8. **Step-Interleaving Coverage Audit is mandatory for session-`b` retros.** A session-`b` retro missing the audit table, or containing it with unresolved `Present? = No` rows (without an explicit deferral entry in Action Items), blocks the Step 8 commit. For sessions `a`/`c`/`d` the section is still present with the literal value "n/a".
+8. **Semantic-Lock Coverage Audit is mandatory for session-`b` retros.** A session-`b` retro missing the audit table, or containing it with unresolved `Present? = No` rows (without an explicit deferral entry in Action Items), blocks the Step 8 commit. For sessions `a`/`c`/`d` the section is still present with the literal value "n/a".
 
 Do not print a separate retro completion report — the retro file path is included in the Step 8 commit output.
 

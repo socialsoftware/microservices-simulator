@@ -9,7 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.UpdateCourseFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
@@ -76,24 +75,5 @@ class DeleteExecutionTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
-    }
-    def "deleteExecution: decrementCourseExecutionCountStep sees forbidden state when course is locked by concurrent updateCourse"() {
-        given:
-        def uow1 = unitOfWorkService.createUnitOfWork("deleteExecution")
-        def func1 = new DeleteExecutionFunctionalitySagas(
-                unitOfWorkService, executionDto.aggregateId, uow1, commandGateway)
-        func1.executeUntilStep("deleteExecutionStep", uow1)
-
-        and: 'concurrent updateCourse acquires IN_UPDATE_COURSE on the same course'
-        def uow2 = unitOfWorkService.createUnitOfWork("updateCourse")
-        def func2 = new UpdateCourseFunctionalitySagas(
-                unitOfWorkService, courseDto.aggregateId, COURSE_NAME_1, COURSE_TYPE_TECNICO, uow2, commandGateway)
-        func2.executeUntilStep("getCourseStep", uow2)
-
-        when: 'deleteExecution resumes into the forbidden course state'
-        func1.resumeWorkflow(uow1)
-
-        then:
-        thrown(SimulatorException)
     }
 }

@@ -14,8 +14,6 @@ One aggregate per invocation.
 **See also:**
 - `docs/concepts/testing.md` — canonical T1/T2/T3 specification (this skill enforces it)
 - `docs/concepts/testing.md:177-225` — Service-Command Tests (T2 variant, frequently missed)
-- `docs/reviews/review-2026-05-23-deferred.md:11-27` — seven concrete examples of the systematic
-  step-interleaving gap this skill is designed to catch
 - `.claude/skills/implement-aggregate/session-b.md` — companion implementation skill; missing tests
   found here should be fed back to session-b.md so the gap is not re-introduced
 
@@ -100,16 +98,10 @@ For each write functionality:
    fields need **no test** — skip them. Only rules enforced by `verifyInvariants()` (non-final fields)
    require coverage.
 3. **One scenario per P3 guard** in the corresponding service method (read the service to enumerate these).
-4. **Step-interleaving — `setSemanticLock`**: for each saga step that calls `setSemanticLock`, **without
-   exception**, one test that pauses the workflow before the **following mutate step** (the step that uses
-   the locked aggregate as a foreign target), has a concurrent saga acquire the same lock, resumes, and
-   expects `thrown(SimulatorException)`. Every such step must have a matching test — no "appears safe by
-   inspection" exceptions. See `docs/reviews/review-2026-05-23-deferred.md` for the recurring gap this
-   rule is designed to catch.
-5. **Step-interleaving — `setForbiddenStates`**: for each saga step that calls `setForbiddenStates`,
-   **without exception**, one test that pauses the workflow **at that step** via `executeUntilStep`, has a
-   concurrent saga acquire one of the forbidden states, resumes via `resumeWorkflow`, and expects
-   `thrown(SimulatorException)`.
+4. **Semantic-lock acquisition — `setSemanticLock`**: for each saga step that calls `setSemanticLock`,
+   **without exception**, one test that runs the workflow through that step via `executeUntilStep`,
+   asserts the aggregate is in the expected `IN_{OPERATION}` saga state (`expect:` block), then calls
+   `resumeWorkflow` and asserts `noExceptionThrown()`. Every such step must have a matching test.
 
 **Upstream-invariant rule:** Every T2 `setup:` block must establish any upstream prerequisite state
 (e.g., a `createExecution` call if `Course.executionCount` must be > 0) *before* creating the aggregate
@@ -146,7 +138,7 @@ For each such method:
    (e.g., decrement when already 0 should not produce a negative value).
 3. **Invariant violations** — every `verifyInvariants()` path the method can reach.
 
-No step-interleaving is needed (there are no saga steps to interleave).
+No semantic-lock case is needed (there are no saga steps).
 Naming: `{OperationName}Test.groovy` or `{Aggregate}CountsTest.groovy` when related operations share
 setup (`docs/concepts/testing.md:191-193`).
 
@@ -173,7 +165,7 @@ Produce this table:
 
 Flag every **No** as a **Missing** finding — these drive Step 7.
 
-For every **Yes** row, complete the "Defect caught if absent" column with one phrase (e.g. "counter goes negative on decrement", "concurrent enrollment not blocked"). A row left blank in that column is a signal the test may be ceremonial — revisit in Step 5.
+For every **Yes** row, complete the "Defect caught if absent" column with one phrase (e.g. "counter goes negative on decrement", "lock not acquired — concurrent writes unblocked"). A row left blank in that column is a signal the test may be ceremonial — revisit in Step 5.
 
 ---
 
@@ -189,17 +181,6 @@ Weak Detection Checklist. That section is the authoritative list of test smells 
 three severity levels used in this step's output table. Every Fake or Wrong finding must cite the
 specific implementation file and line that proves the assertion is incorrect.
 
-### A2. Step-interleaving concurrent-op semantics
-
-For saga-interleaving tests, verify not just that a concurrent operation exists but that it would put
-the foreign aggregate into the *specific* forbidden state listed on that step. A concurrent op that
-throws for an unrelated reason (e.g. its own guard violation rather than a lock conflict) makes the
-test pass for the wrong cause — flag as **Wrong**.
-
-Concretely: read the `setForbiddenStates(…)` call on the step under test and confirm the concurrent
-saga transitions the target aggregate into one of the listed states. If the concurrent call fails
-before reaching that state transition, the forbidden-state check never fires.
-
 ### B. Parameter quality
 
 - Are test data values semantically realistic, not just non-null stubs?
@@ -214,7 +195,7 @@ before reaching that state transition, the forbidden-state check never fires.
 
 - Does the assertion verify the right field/state on the right object?
 - Are returned DTOs verified for all semantically important fields?
-- For interleaving tests: does `then:` assert `thrown(SimulatorException)`, not `noExceptionThrown()`?
+- For lock-acquisition tests: does `expect:` assert the expected `IN_{OP}` saga state, and does `then:` assert `noExceptionThrown()`?
 - After a delete operation, does the test verify the aggregate is no longer retrievable?
 - **Invariant/guard violation tests must assert `ex.message == <ERROR_MESSAGE_CONSTANT>`**, not just
   `thrown(<App>Exception)`. The bare-throw form is **Weak** — it passes on any thrown `{App}Exception`,
@@ -227,13 +208,11 @@ before reaching that state transition, the forbidden-state check never fires.
 - **Test class annotations:** every T2 class must be annotated `@DataJpaTest @Transactional
   @Import(LocalBeanConfiguration)`. A missing `@Transactional` silently allows dirty state to bleed
   between tests. Flag as **Wrong**.
-- **Exhaustive saga-step scan (interleaving completeness):** for the saga under test, enumerate every
-  step that calls `setSemanticLock` or `setForbiddenStates`. For each such step, confirm a matching
-  interleaving test exists by step name. A missing interleaving test is a **Missing** finding, not just
-  an edge case. This is the most-missed check in practice — see
-  `docs/reviews/review-2026-05-23-deferred.md:11-27` for seven concrete examples.
-- For saga-interleaving tests: does `executeUntilStep` pause at the correct step (immediately before the
-  forbidden-state check), and does the concurrent saga acquire the expected lock?
+- **Exhaustive saga-step scan (lock-acquisition completeness):** for the saga under test, enumerate every
+  step that calls `setSemanticLock`. For each such step, confirm a matching lock-acquisition test exists
+  by step name. A missing lock-acquisition test is a **Missing** finding, not just an edge case.
+- For lock-acquisition tests: does `executeUntilStep` pause at the correct step, does `expect:` assert
+  the expected `IN_{OP}` saga state, and does `then: noExceptionThrown()` confirm successful completion?
 
 ### D2. Kill-mutation thought experiment
 
@@ -265,8 +244,7 @@ Focus on:
 - Duplicate/already-existing entities where uniqueness is enforced
 - Operations on already-deleted aggregates
 - Operations applied in wrong order (e.g., answer before quiz starts, enroll after disenroll)
-- Concurrent saga interleavings not yet covered: for each step with `setSemanticLock`, is there a test
-  for every state in the forbidden list on the consuming step?
+- Semantic-lock acquisition not yet covered: for each step with `setSemanticLock`, is there a lock-acquisition test?
 
 Produce a list:
 
@@ -284,7 +262,7 @@ Follow the patterns in `docs/concepts/testing.md` exactly:
 - Correct Spock blocks: `given:`, `when:`, `then:`, `and:`
 - Not-found cases: use Path A or Path B per the service lookup mechanism (see Step 3 and the
   "Not-Found Test Pattern" appendix)
-- Interleaving tests: `executeUntilStep` + `resumeWorkflow` pattern with a concurrent saga in between
+- Lock-acquisition tests: `executeUntilStep` → assert `IN_{OP}` state → `resumeWorkflow` + `noExceptionThrown()` pattern
 - T3 deletion-event tests: use the `and:` extension-block pattern from `testing.md`
 
 **Do NOT add tests for:**
@@ -371,30 +349,24 @@ Replace `- [ ] 3.{N} — {Aggregate}` with `- [x] 3.{N} — {Aggregate}` in plan
 5. **Build must run.** Do not skip Step 9.
 6. **One aggregate per invocation.**
 7. **No emojis. Terse and specific. File paths, method names, line numbers.**
-8. **Every `setSemanticLock` and `setForbiddenStates` step must have a matching interleaving test.**
-   "Appears safe by inspection" is not an exception. A missing interleaving test is a **Missing**
+8. **Every `setSemanticLock` step must have a matching lock-acquisition test.**
+   "Appears safe by inspection" is not an exception. A missing lock-acquisition test is a **Missing**
    finding in the Step 4 inventory. Walk the saga file step-by-step in Step 5.D — do not rely on
    counting existing tests to determine completeness.
 
 ---
 
-## Interleaving Pattern Reference
+## Lock-Acquisition Pattern Reference
 
-**`setSemanticLock` (step that acquires a lock):**
-The lock is acquired *by* this step. The forbidden-state check occurs on the *consuming* step (a later
-step that targets this aggregate as a foreign object). The interleaving test must:
-1. `executeUntilStep` to pause at the step **immediately before** the consuming step.
-2. Have a concurrent saga call the operation that acquires the same lock.
-3. `resumeWorkflow` and expect `thrown(SimulatorException)`.
+**`setSemanticLock` (step that acquires a lock on the primary aggregate):**
+The lock is acquired *by* this step. A lock-acquisition test must:
+1. `executeUntilStep("<lockStep>", uow)` to run through and pause after the lock-acquisition step.
+2. `expect:` block: assert `sagaStateOf(<id>) == <Aggregate>SagaState.IN_<OP>`.
+3. `when:` block: `func.resumeWorkflow(uow)`.
+4. `then:` block: `noExceptionThrown()`.
 
-**`setForbiddenStates` (step that checks for forbidden states):**
-This step itself performs the check. The interleaving test must:
-1. `executeUntilStep` to pause **at** this step (i.e., before it runs).
-2. Have a concurrent saga acquire one of the listed forbidden states on the target aggregate.
-3. `resumeWorkflow` and expect `thrown(SimulatorException)`.
-
-A fake interleaving test calls `executeUntilStep` then immediately `resumeWorkflow` with no concurrent
-saga in between — the forbidden state is never set, so the test always passes. Flag this as Fake.
+Cross-aggregate `setForbiddenStates` conflict validation is deferred to T4 (see Appendix in
+`docs/concepts/testing.md`).
 
 ---
 

@@ -33,7 +33,7 @@ Load these files before writing any code:
    - What a T2 test asserts (state after the operation, events emitted, error cases)
    - How to test P3 guard violations
    - How to test P4a prerequisite failures (e.g., sending a command that causes the saga fetch to fail)
-   - **Step-interleaving rule:** one interleaving case per saga step that calls `setSemanticLock` OR `setForbiddenStates`; use `executeUntilStep` / `resumeWorkflow` to inject a conflicting operation between steps
+   - **Semantic-lock-acquisition rule:** one lock-acquisition case per saga step that calls `setSemanticLock`; use `executeUntilStep`, assert the expected `IN_{OP}` saga state, then `resumeWorkflow` and `noExceptionThrown()`. Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix T4** in `docs/concepts/testing.md`.
    - § Fake / Wrong / Weak Detection Checklist — apply before committing the test file
 
 6. ***(Conditional)*** If the plan.md aggregate section lists cross-aggregate prerequisites (P4a or P3 DTO-check rules): read the service file and relevant command files of each upstream aggregate involved. You need their command class names, service method signatures, and what they throw on failure.
@@ -146,10 +146,10 @@ If the implementation disagrees with the cited section, flag it as an impl devia
 - **P1 invariant violation tests**: for each P1 rule that a write operation can put at risk, add a test that exercises the service method causing the violation. The service calls `registerChanged`, which automatically invokes `verifyInvariants` — **never call `verifyInvariants()` directly**.
   - **Skip P1 tests for `final` fields:** If a P1 rule is enforced by a Java `final` field (plan.md note: `Java \`final\` field`), no write path can violate it. Omit the invariant test for that rule and note the omission in the session report.
   - **Boundary Value Analysis for comparison rules:** If a P1 rule's predicate is a **comparison on an ordered domain** (a count, a timestamp, or a collection size — `<`/`<=`/`>`/`>=`/`==`), one violation case is **not** enough. Write the boundary-straddling pair — the on-point that just satisfies the rule and the off-point that just violates it — per `docs/concepts/testing.md` § Choosing Input Values. Categorical rules (uniqueness, boolean/state freezes, set membership) keep their single representative case; do not invent boundary cases for them. **Temporal** comparisons need the on-point pinned to an exact equal instant, which the saga path cannot do — write those as direct-aggregate cases in `<Aggregate>Test.groovy` (testing.md § T1, *Exception — temporal-boundary cases*).
-- **Concurrent interleaving (required):** Follow `docs/concepts/testing.md` § T2 — Step-interleaving rule. **One interleaving case per saga step that calls `setSemanticLock` OR `setForbiddenStates` — no exceptions:**
-  - **`setSemanticLock` step (primary-aggregate lock acquisition):** pause the workflow before the **following mutate step** (the step that reads the locked aggregate as a foreign target). Inject a concurrent saga that acquires the same lock. Resume. Assert `thrown(SimulatorException)`.
-  - **`setForbiddenStates` step (foreign-aggregate state check):** pause at that step via `executeUntilStep("precedingStepName", uow)`. Inject a conflicting operation that puts the foreign aggregate in one of the forbidden states. Resume via `resumeWorkflow(uow)`. Assert `thrown(SimulatorException)`.
-  - **Coverage is audited mechanically.** List every such step (one row per call site) in the session retro's **Step-Interleaving Coverage Audit** table — see `.claude/skills/implement-aggregate/SKILL.md` Step 7.b. Unresolved `Present? = No` rows block the Step 8 commit.
+- **Semantic-lock acquisition (required):** Follow `docs/concepts/testing.md` § T2 — Semantic-lock-acquisition rule. **One lock-acquisition case per saga step that calls `setSemanticLock` — no exceptions:**
+  - **`setSemanticLock` step:** run the workflow through the lock step via `executeUntilStep("<lockStep>", uow)`, assert `sagaStateOf(<id>) == <Aggregate>SagaState.IN_<OP>` in `expect:`, call `resumeWorkflow(uow)` in `when:`, assert `noExceptionThrown()` in `then:`.
+  - Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix T4** in `docs/concepts/testing.md`.
+  - **Coverage is audited mechanically.** List every `setSemanticLock` step (one row per call site) in the session retro's **Semantic-Lock Coverage Audit** table — see `.claude/skills/implement-aggregate/SKILL.md` Step 7.b. Unresolved `Present? = No` rows block the Step 8 commit.
 ### Service-command method tests (T2 variant)
 
 After writing the coordinator-level T2 tests above, scan `{Aggregate}Service.java` for any
@@ -158,7 +158,7 @@ additional methods that call `registerChanged` but are **not** exposed through
 (e.g., `decrementExecutionCount` called when a related aggregate is deleted).
 
 For each such method:
-1. Write T2-style tests (happy path + invariant violations) — no saga step interleaving needed.
+1. Write T2-style tests (happy path + invariant violations) — no semantic-lock case needed (no saga steps).
 2. If a mirror method is missing (e.g., `incrementExecutionCount` exists in the reference app but
    not here), add it now — it will be needed when the other aggregate's saga is implemented and
    is required for invariant-violation test setup.

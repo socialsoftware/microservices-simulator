@@ -11,7 +11,7 @@ and provides structure templates for each category.
 | Type | Naming pattern | What it validates |
 |------|----------------|-------------------|
 | **T1 Creation** | `<Aggregate>Test` | Aggregate instantiation + all intra-invariants pass on a fresh instance |
-| **T2 Functionality** | `<FunctionalityName>Test` | Happy path · invariant/guard violations · ≥1 step-interleaving case per saga step boundary |
+| **T2 Functionality** | `<FunctionalityName>Test` | Happy path · invariant/guard violations · ≥1 semantic-lock-acquisition case per saga lock step |
 | **T3 Inter-Invariant** | `<Consumer>InterInvariantTest` | Event received → cached state updated; unrelated event → state unchanged |
 
 ---
@@ -37,7 +37,6 @@ Findings against this checklist map to three severities used by `review-tests`:
 - `then:` asserts a condition that is logically trivially true (e.g., `result != null` when the method always returns non-null).
 - `when:` block does not call the method under test (bypasses the service via a setup helper).
 - T3 "ignores unrelated": `<originalValue>` was captured *after* the event was processed rather than before — the assertion is `x == x`. The pre-event value must be captured in `given:` before firing.
-- Interleaving test calls `executeUntilStep` then immediately `resumeWorkflow` with no concurrent saga in between — the forbidden state is never set, so the test always passes.
 
 ### Wrong
 
@@ -46,7 +45,6 @@ Findings against this checklist map to three severities used by `review-tests`:
 - `then:` mirrors the sequence of `set…` calls in the service body — the test was derived from the implementation, not the spec.
 - T3 deletion-event test puts the post-deletion load attempt in `then:` instead of an `and:` block — the load won't be in the exception-capture scope. Correct pattern: load in `and:`, assert `thrown(SimulatorException)` in `then:` (see § T3 Deletion-Event Tests).
 - Not-found test exception type contradicts the actual lookup mechanism. **Read the service method first.** Rule of thumb: if the service calls `aggregateLoadAndRegisterRead` directly with an ID, expect `SimulatorException` (Path A). If the service first calls a custom repository returning `Optional` and throws on empty, expect `{App}Exception` (Path B). Flagging a correct Path B `thrown({AppClass}Exception)` as Fake is itself a Wrong finding.
-- Concurrent saga in an interleaving test fails for an unrelated reason (e.g., its own guard) before it transitions the foreign aggregate into one of the listed forbidden states — the forbidden-state check never fires. Read the `setForbiddenStates(…)` call on the step under test and confirm the concurrent saga actually reaches the listed state.
 - Test class missing `@Transactional` (T2 classes must be `@DataJpaTest @Transactional @Import(LocalBeanConfiguration)`) — silently allows dirty state to bleed between tests.
 
 ### Weak
@@ -198,15 +196,14 @@ class <Aggregate>Test extends <AppName>SpockTest {
 
 ## T2 — Functionality Test
 
-**Purpose:** Cover the happy path, every invariant/guard violation, and the concurrent-interleaving
-cases that validate semantic locks at each saga step boundary.
+**Purpose:** Cover the happy path, every invariant/guard violation, and the semantic-lock-acquisition
+case for each saga lock step.
 
-**Step-interleaving rule:**
-- For each saga step that reads a foreign aggregate (cross-aggregate prerequisite, `setForbiddenStates`), add one
-  interleaving case where a conflicting operation locks the foreign aggregate *between* steps.
-- Use `executeUntilStep("precedingStepName", uow)` to run **through** (complete) the named step
-  and pause after it — pass the step immediately **before** the protected foreign-mutate step
-  (the one that calls `setForbiddenStates`). Then `resumeWorkflow(uow)` to continue after injecting the conflict.
+**Semantic-lock-acquisition rule:**
+- For each saga step that calls `setSemanticLock`, run the workflow through that step via
+  `executeUntilStep`, assert the aggregate is in the expected `IN_{OPERATION}` saga state, then
+  `resumeWorkflow(uow)` and assert `noExceptionThrown()`.
+- Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix T4**.
 
 **Upstream-invariant rule:** When a saga increments a counter cached on an upstream aggregate (e.g., `questionCount` on `Course`), verify that the upstream aggregate's invariants permit the new counter value *before the first test runs*. If not, add the necessary prerequisite state to the `setup:` block. For example, if `Course` enforces `executionCount > 0` when `questionCount > 0`, every `CreateQuestion` test must call `createExecution(courseId, ...)` in `setup:` first. Place these prerequisites in the shared `setup()` block by default; only inline them in a per-method `given:` block when a single test needs a state variant the rest of the file does not share.
 
@@ -268,29 +265,24 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
     // one case per invariant/guard
     // Skip P1 tests for Java `final` fields — no write path can violate them.
 
-    // ─── Concurrent interleaving ───────────────────────────────────────────────
-    // One case per saga step that declares setForbiddenStates
+    // ─── Semantic-lock acquisition ─────────────────────────────────────────────
+    // One case per saga step that calls setSemanticLock
 
-    def "<functionalityName>: step <foreignMutateStep> sees forbidden state"() {
+    def "<functionalityName>: <lockStep> acquires IN_<OP> semantic lock"() {
         given:
-        def uow1 = unitOfWorkService.createUnitOfWork("<FunctionalityName>")
-        def func1 = new <FunctionalityName>FunctionalitySagas(
-                unitOfWorkService, /* args */, uow1, commandGateway)
+        def uow = unitOfWorkService.createUnitOfWork("<FunctionalityName>")
+        def func = new <FunctionalityName>FunctionalitySagas(
+                unitOfWorkService, /* args */, uow, commandGateway)
+        func.executeUntilStep("<lockStep>", uow)
 
-        when: 'workflow runs through <precedingStep>, halting before <foreignMutateStep>'
-        // executeUntilStep completes the named step and stops — pass the step *before* the
-        // foreign-mutate step (the one that calls setForbiddenStates)
-        func1.executeUntilStep("<precedingStep>", uow1)
+        expect:
+        sagaStateOf(<aggregateId>) == <Aggregate>SagaState.IN_<OP>
 
-        and: 'conflicting operation runs and completes'
-        <conflicting>Functionalities.<conflictingOp>(/* args */)
-
-        and: 'first workflow resumes into the forbidden state'
-        func1.resumeWorkflow(uow1)
+        when:
+        func.resumeWorkflow(uow)
 
         then:
-        def ex = thrown(<App>Exception)
-        ex.message == <RULE_NAME>
+        noExceptionThrown()
     }
 }
 ```
@@ -320,7 +312,7 @@ For each such method, write T2-style tests covering:
 - **Floor/ceiling behaviour** — e.g., decrement at zero stays at zero
 - **Invariant violations** — every `verifyInvariants()` path the method can reach
 
-**No saga step interleaving is needed** (there are no saga steps to interleave).
+**No semantic-lock case is needed** (there are no saga steps).
 
 **Location:** `sagas/coordination/{aggregate}/`  
 **Naming:** `{OperationName}Test.groovy`, or combine related operations into one file

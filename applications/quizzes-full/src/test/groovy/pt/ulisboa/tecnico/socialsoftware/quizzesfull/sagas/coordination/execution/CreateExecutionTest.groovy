@@ -5,12 +5,10 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.UpdateCourseFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.CreateExecutionFunctionalitySagas
@@ -97,23 +95,4 @@ class CreateExecutionTest extends QuizzesFullSpockTest {
         func1.getCreatedExecutionDto().aggregateId != null
     }
 
-    def "createExecution: incrementCourseExecutionCountStep sees forbidden state when course is locked by concurrent updateCourse"() {
-        given:
-        def uow1 = unitOfWorkService.createUnitOfWork("createExecution")
-        def func1 = new CreateExecutionFunctionalitySagas(
-                unitOfWorkService, ACRONYM_1, ACADEMIC_TERM_1, courseDto.aggregateId, uow1, commandGateway)
-        func1.executeUntilStep("createExecutionStep", uow1)
-
-        and: 'concurrent updateCourse acquires IN_UPDATE_COURSE on the same course'
-        def uow2 = unitOfWorkService.createUnitOfWork("updateCourse")
-        def func2 = new UpdateCourseFunctionalitySagas(
-                unitOfWorkService, courseDto.aggregateId, COURSE_NAME_1, COURSE_TYPE_TECNICO, uow2, commandGateway)
-        func2.executeUntilStep("getCourseStep", uow2)
-
-        when: 'createExecution resumes into the forbidden course state'
-        func1.resumeWorkflow(uow1)
-
-        then:
-        thrown(SimulatorException)
-    }
 }

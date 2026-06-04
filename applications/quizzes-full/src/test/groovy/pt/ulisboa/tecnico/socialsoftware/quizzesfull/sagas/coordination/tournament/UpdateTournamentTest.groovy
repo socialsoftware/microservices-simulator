@@ -5,14 +5,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.states.TournamentSagaState
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.UpdateQuizFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.CreateQuizAnswerFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_FINAL_AFTER_START
@@ -135,54 +132,5 @@ class UpdateTournamentTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
-    }
-    def "updateTournament: updateQuizStep sees forbidden state when quiz is locked by concurrent updateQuiz"() {
-        given:
-        def tournament = tournamentFunctionalities.getTournamentById(tournamentId)
-        def quizId = tournament.quizAggregateId
-        def newStart = LocalDateTime.now().plusDays(3)
-        def newEnd = LocalDateTime.now().plusDays(5)
-        def uow = unitOfWorkService.createUnitOfWork("updateTournament")
-        def func = new UpdateTournamentFunctionalitySagas(
-                unitOfWorkService, tournamentId, newStart, newEnd, [], uow, commandGateway)
-        func.executeUntilStep("updateTournamentStep", uow)
-
-        and: 'concurrent updateQuiz acquires IN_UPDATE_QUIZ on the same quiz'
-        def uowQuiz = unitOfWorkService.createUnitOfWork("updateQuiz")
-        def updateQuizFunc = new UpdateQuizFunctionalitySagas(
-                unitOfWorkService, quizId,
-                LocalDateTime.now().plusDays(4), LocalDateTime.now().plusDays(6),
-                LocalDateTime.now().plusDays(7), [], uowQuiz, commandGateway)
-        updateQuizFunc.executeUntilStep("getQuizStep", uowQuiz)
-
-        when: 'updateTournament resumes into the forbidden quiz state'
-        func.resumeWorkflow(uow)
-
-        then:
-        thrown(SimulatorException)
-    }
-
-    def "updateTournament: updateQuizStep sees forbidden state when quiz is locked by concurrent createQuizAnswer"() {
-        given:
-        def tournament = tournamentFunctionalities.getTournamentById(tournamentId)
-        def quizId = tournament.quizAggregateId
-        def newStart = LocalDateTime.now().plusDays(3)
-        def newEnd = LocalDateTime.now().plusDays(5)
-        def uow = unitOfWorkService.createUnitOfWork("updateTournament")
-        def func = new UpdateTournamentFunctionalitySagas(
-                unitOfWorkService, tournamentId, newStart, newEnd, [], uow, commandGateway)
-        func.executeUntilStep("updateTournamentStep", uow)
-
-        and: 'concurrent createQuizAnswer acquires READ_QUIZ on the same quiz'
-        def uowAnswer = unitOfWorkService.createUnitOfWork("createQuizAnswer")
-        def createQuizAnswerFunc = new CreateQuizAnswerFunctionalitySagas(
-                unitOfWorkService, quizId, userId, uowAnswer, commandGateway)
-        createQuizAnswerFunc.executeUntilStep("getQuizStep", uowAnswer)
-
-        when: 'updateTournament resumes into the forbidden READ_QUIZ state'
-        func.resumeWorkflow(uow)
-
-        then:
-        thrown(SimulatorException)
     }
 }

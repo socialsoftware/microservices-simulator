@@ -258,7 +258,7 @@ Violations are **not** expected in T1 — they belong in T2. Do not flag missing
 - Happy path ("success")
 - One case per P1 intra-invariant violation (conditions enforced in `verifyInvariants()`)
 - One case per P3 guard violation
-- One step-interleaving case per saga step that calls `setSemanticLock` (create ops with no lock step need no interleaving case)
+- One semantic-lock-acquisition case per saga step that calls `setSemanticLock` (create ops with no lock step need no lock-acquisition case)
 - Skip P1 tests for Java `final` fields — no write path can violate them (see above)
 
 **T2 — read operations:**

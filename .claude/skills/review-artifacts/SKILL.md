@@ -210,7 +210,7 @@ From each `session-*.md`, find the test section and extract which test types it 
 Extract these specific rules from `docs/concepts/testing.md`:
 1. Not-found: `thrown(SimulatorException)`, NOT `thrown({AppClass}Exception)`
 2. T1: no direct `verifyInvariants()` call; no call to service methods
-3. T2 step-interleaving: one test case per saga step that calls `setForbiddenStates`
+3. T2 semantic-lock acquisition: one test case per saga step that calls `setSemanticLock`
 4. T3: polling called directly (no `@Scheduled`); event handler called manually
 
 Verify each rule is stated consistently in the relevant session skill:
@@ -219,7 +219,7 @@ Verify each rule is stated consistently in the relevant session skill:
 |------|---------------------|-----------------|-------------|-------|
 | Not-found exception type | ... | session-c.md | ... | ... |
 | T1 no verifyInvariants | ... | session-a.md | ... | ... |
-| T2 step-interleaving | ... | session-b.md | ... | ... |
+| T2 semantic-lock acquisition | ... | session-b.md | ... | ... |
 | T3 direct polling | ... | session-d.md | ... | ... |
 
 ---
