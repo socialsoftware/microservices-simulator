@@ -8,6 +8,14 @@ argument-hint: "[session] (e.g. 2.3.b — optional, auto-detects if omitted)"
 
 This skill drives one Phase 2 session at a time, advancing the plan.md job queue by one checkbox per invocation. It reads plan.md, identifies the next unchecked session, loads only the instructions relevant to that session type, and produces the files listed in plan.md for that session.
 
+Test taxonomy produced by this skill (see `docs/concepts/testing.md` for the authoritative definitions):
+
+| Session | Test type | File |
+|---------|-----------|------|
+| `a` | T1 Intra-Invariant | `{Aggregate}IntraInvariantTest.groovy` — creation happy-path + one violation per non-`final` P1 rule + BVA straddles; all via direct `verifyInvariants()` |
+| `b` | T2 Functionality | `{Op}Test.groovy` — happy-path postconditions, P3 guard violations, not-found, step-interleaving. No P1 predicate tests. |
+| `d` | T3 Inter-Invariant | `{Aggregate}InterInvariantTest.groovy` — event received → cached state updated; unrelated event → state unchanged |
+
 ---
 
 ## Anti-Pattern: Do Not Consult the Reference App

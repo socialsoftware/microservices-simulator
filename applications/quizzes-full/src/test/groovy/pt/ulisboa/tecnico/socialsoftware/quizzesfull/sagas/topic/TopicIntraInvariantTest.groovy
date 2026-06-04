@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggrega
 @DataJpaTest
 @Transactional
 @Import(LocalBeanConfiguration)
-class TopicTest extends QuizzesFullSpockTest {
+class TopicIntraInvariantTest extends QuizzesFullSpockTest {
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}

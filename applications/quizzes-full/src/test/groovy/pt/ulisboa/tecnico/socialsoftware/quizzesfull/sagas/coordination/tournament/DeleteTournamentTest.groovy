@@ -9,11 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.states.TournamentSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.DeleteTournamentFunctionalitySagas
 
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_IS_CANCELED
+// P1 intra-invariant violations are NOT tested here — see TournamentIntraInvariantTest.
 
 import java.time.LocalDateTime
 
@@ -108,21 +107,6 @@ class DeleteTournamentTest extends QuizzesFullSpockTest {
         tournamentFunctionalities.getTournamentById(tournamentId)
         then:
         thrown(SimulatorException)
-    }
-
-    def "deleteTournament: TOURNAMENT_IS_CANCELED violation — cancelled tournament with participants"() {
-        given: 'add a participant then cancel'
-        def participant = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
-        executionFunctionalities.enrollStudentInExecution(executionId, participant.aggregateId)
-        tournamentFunctionalities.addParticipant(tournamentId, executionId, participant.aggregateId)
-        tournamentFunctionalities.cancelTournament(tournamentId)
-
-        when: 'try to delete (would clear participants, violating cancelled-frozen invariant)'
-        tournamentFunctionalities.deleteTournament(tournamentId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == TOURNAMENT_IS_CANCELED
     }
 
     def "deleteTournament: getTournamentStep acquires IN_DELETE_TOURNAMENT semantic lock"() {

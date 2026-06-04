@@ -8,11 +8,10 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.states.TournamentSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas
 
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_IS_CANCELED
+// P1 intra-invariant violations are NOT tested here — see TournamentIntraInvariantTest.
 
 import java.time.LocalDateTime
 
@@ -66,18 +65,6 @@ class CancelTournamentTest extends QuizzesFullSpockTest {
         then:
         def dto = tournamentFunctionalities.getTournamentById(tournamentId)
         dto.cancelled == true
-    }
-
-    def "cancelTournament: TOURNAMENT_IS_CANCELED violation — already cancelled"() {
-        given:
-        tournamentFunctionalities.cancelTournament(tournamentId)
-
-        when:
-        tournamentFunctionalities.cancelTournament(tournamentId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == TOURNAMENT_IS_CANCELED
     }
 
     def "cancelTournament: getTournamentStep acquires IN_CANCEL_TOURNAMENT semantic lock"() {

@@ -11,11 +11,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.states.TournamentSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_UNIQUE_AS_PARTICIPANT
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_ENROLL_UNTIL_START_TIME
+// P1 intra-invariant violations are NOT tested here — see TournamentIntraInvariantTest.
 
 import java.time.LocalDateTime
 
@@ -88,18 +86,6 @@ class AddParticipantTest extends QuizzesFullSpockTest {
         ex.message == COURSE_EXECUTION_STUDENT_NOT_FOUND
     }
 
-    def "addParticipant: TOURNAMENT_UNIQUE_AS_PARTICIPANT violation — participant already enrolled"() {
-        given:
-        tournamentFunctionalities.addParticipant(tournamentId, executionId, participantId)
-
-        when:
-        tournamentFunctionalities.addParticipant(tournamentId, executionId, participantId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == TOURNAMENT_UNIQUE_AS_PARTICIPANT
-    }
-
     def "addParticipant: getTournamentStep acquires IN_ADD_PARTICIPANT semantic lock"() {
         given: 'workflow paused after getTournamentStep has acquired IN_ADD_PARTICIPANT lock'
         def uow = unitOfWorkService.createUnitOfWork("addParticipant")
@@ -117,28 +103,4 @@ class AddParticipantTest extends QuizzesFullSpockTest {
         noExceptionThrown()
     }
 
-    def "addParticipant: TOURNAMENT_IS_CANCELED violation — tournament already cancelled"() {
-        given: 'tournament is cancelled'
-        tournamentFunctionalities.cancelTournament(tournamentId)
-
-        when:
-        tournamentFunctionalities.addParticipant(tournamentId, executionId, participantId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_IS_CANCELED
-    }
-
-    def "addParticipant: TOURNAMENT_ENROLL_UNTIL_START_TIME violation — tournament already started"() {
-        given: 'a tournament whose start time is in the past'
-        def pastTournamentId = createTournament(executionId, creatorId, [topicId], 1,
-                LocalDateTime.now().minusMinutes(1), LocalDateTime.now().plusDays(1)).aggregateId
-
-        when: 'participant tries to enroll after start time'
-        tournamentFunctionalities.addParticipant(pastTournamentId, executionId, participantId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == TOURNAMENT_ENROLL_UNTIL_START_TIME
-    }
 }

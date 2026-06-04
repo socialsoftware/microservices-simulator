@@ -7,8 +7,6 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 
 @DataJpaTest
 @Transactional
@@ -51,17 +49,6 @@ class CourseCountsTest extends QuizzesFullSpockTest {
         result.questionCount == 1
     }
 
-    def "incrementQuestionCount: CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT — executionCount is 0"() {
-        when: 'increment question count when executionCount is still 0 violates the invariant'
-        def uow = unitOfWorkService.createUnitOfWork("incrementQuestionCount")
-        courseService.incrementQuestionCount(courseDto.aggregateId, uow)
-        unitOfWorkService.commit(uow)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == QuizzesFullErrorMessage.CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
-    }
-
     def "decrementExecutionCount: success when questionCount is zero"() {
         given: 'execution count is 1'
         def uow1 = unitOfWorkService.createUnitOfWork("incrementExecutionCount")
@@ -87,26 +74,6 @@ class CourseCountsTest extends QuizzesFullSpockTest {
         then:
         def result = courseFunctionalities.getCourseById(courseDto.aggregateId)
         result.executionCount == 0
-    }
-
-    def "decrementExecutionCount: CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT"() {
-        given: 'execution count = 1 and question count = 1'
-        def uow1 = unitOfWorkService.createUnitOfWork("incrementExecutionCount")
-        courseService.incrementExecutionCount(courseDto.aggregateId, uow1)
-        unitOfWorkService.commit(uow1)
-
-        def uow2 = unitOfWorkService.createUnitOfWork("incrementQuestionCount")
-        courseService.incrementQuestionCount(courseDto.aggregateId, uow2)
-        unitOfWorkService.commit(uow2)
-
-        when: 'decrement brings executionCount to 0 while questionCount > 0'
-        def uow3 = unitOfWorkService.createUnitOfWork("decrementExecutionCount")
-        courseService.decrementExecutionCount(courseDto.aggregateId, uow3)
-        unitOfWorkService.commit(uow3)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == QuizzesFullErrorMessage.CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
     }
 
     def "decrementQuestionCount: success"() {

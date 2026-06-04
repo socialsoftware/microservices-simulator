@@ -11,8 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.UpdateCourseFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Option
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Question
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionDto
@@ -80,20 +78,6 @@ class CreateQuestionTest extends QuizzesFullSpockTest {
         result.title == QUESTION_TITLE_1
         result.topicIds.isEmpty()
         sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
-    }
-
-    def "createQuestion: TOPIC_BELONGS_TO_QUESTION_COURSE — topic from different course raises exception"() {
-        given: 'a second course with its own topic'
-        def courseDto2 = createCourse(COURSE_NAME_2, COURSE_TYPE_TECNICO)
-        createExecution(courseDto2.aggregateId, "OTHER-2025", "2025/2026")
-        def topicFromOtherCourse = createTopic(courseDto2.aggregateId, TOPIC_NAME_1)
-
-        when: 'trying to assign that topic to a question belonging to course 1'
-        createQuestion(courseDto.aggregateId, [topicFromOtherCourse.aggregateId], QUESTION_TITLE_1, QUESTION_CONTENT_1)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.errorMessage == QuizzesFullErrorMessage.QUESTION_TOPIC_INVALID_COURSE
     }
 
     def "createQuestion: getCourseStep acquires READ_COURSE semantic lock before question is created"() {
