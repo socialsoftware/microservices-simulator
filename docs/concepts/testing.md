@@ -10,8 +10,8 @@ and provides structure templates for each category.
 
 | Type | Naming pattern | What it validates |
 |------|----------------|-------------------|
-| **T1 Creation** | `<Aggregate>Test` | Aggregate instantiation + all intra-invariants pass on a fresh instance |
-| **T2 Functionality** | `<FunctionalityName>Test` | Happy path · invariant/guard violations · ≥1 semantic-lock-acquisition case per saga lock step |
+| **T1 Intra-Invariant** | `<Aggregate>IntraInvariantTest` | Creation happy-path (all P1 pass + fields) · one violation per non-`final` P1 rule (EP) · boundary straddle (BVA on/off-point) for ordered-domain predicates. All via direct construction/mutation + `verifyInvariants()`. |
+| **T2 Functionality** | `<FunctionalityName>Test` | Happy path · P3 guard violations · ≥1 semantic-lock-acquisition case per saga lock step |
 | **T3 Inter-Invariant** | `<Consumer>InterInvariantTest` | Event received → cached state updated; unrelated event → state unchanged |
 
 ---
@@ -46,6 +46,7 @@ Findings against this checklist map to three severities used by `review-tests`:
 - T3 deletion-event test puts the post-deletion load attempt in `then:` instead of an `and:` block — the load won't be in the exception-capture scope. Correct pattern: load in `and:`, assert `thrown(SimulatorException)` in `then:` (see § T3 Deletion-Event Tests).
 - Not-found test exception type contradicts the actual lookup mechanism. **Read the service method first.** Rule of thumb: if the service calls `aggregateLoadAndRegisterRead` directly with an ID, expect `SimulatorException` (Path A). If the service first calls a custom repository returning `Optional` and throws on empty, expect `{App}Exception` (Path B). Flagging a correct Path B `thrown({AppClass}Exception)` as Fake is itself a Wrong finding.
 - Test class missing `@Transactional` (T2 classes must be `@DataJpaTest @Transactional @Import(LocalBeanConfiguration)`) — silently allows dirty state to bleed between tests.
+- P1 intra-invariant violation asserted in a service/functionality test (misplaced; belongs in `{Aggregate}IntraInvariantTest`).
 
 ### Weak
 
@@ -72,6 +73,10 @@ Two complementary test-design techniques decide *which* values to feed a rule. A
 > - **on-point** — the last value that **satisfies** the rule → assert `notThrown(...)`;
 > - **off-point** — the first value that **violates** it → assert `thrown(...)` **and** `ex.message == <RULE>`.
 >
+> **P1 ordered-domain boundaries live in the intra-invariant test** (`{Aggregate}IntraInvariantTest`)
+> — direct construction with pinned values, then `verifyInvariants()`. P3 numeric guard boundaries
+> may be added to the corresponding T2 service test.
+>
 > For **categorical** invariants — uniqueness (e.g. `TOURNAMENT_UNIQUE_AS_PARTICIPANT`), boolean/state
 > freezes (`TOURNAMENT_IS_CANCELED`), set membership, presence/absence — there is no ordered edge to
 > probe. EP's one-representative-per-class is correct and complete; do **not** invent boundary cases.
@@ -89,11 +94,10 @@ Two complementary test-design techniques decide *which* values to feed a rule. A
 ### Temporal-boundary mechanics
 
 The smallest tick on a `LocalDateTime` is `.minusNanos(1)` / `.plusNanos(1)`. Pin **both** instants
-explicitly so the on-point is exactly equal. Write temporal-boundary cases as **direct-aggregate unit
-tests** (the `<Aggregate>Test.groovy` style that sets fields and asserts), **not** through the full
-saga: the saga path stamps `lastModifiedTime = now()` and cannot pin the exact on-point. This is the
-one place the suite deliberately calls `verifyInvariants()` directly — keep it consistent with how
-`TournamentTest` already does it for `ANSWER_BEFORE_START`.
+explicitly so the on-point is exactly equal. All temporal P1 boundary cases belong in
+`{Aggregate}IntraInvariantTest` as **direct-aggregate** tests (construct, set fields, call
+`verifyInvariants()`) — the saga path stamps `lastModifiedTime = now()` and cannot pin the exact
+on-point. See `TournamentIntraInvariantTest` for the canonical pattern (`ANSWER_BEFORE_START`).
 
 ---
 
@@ -135,43 +139,44 @@ src/test/groovy/<pkg>/
     │   │   └── ...
     │   └── ...
     └── <aggregate>/                  ← one dir per consumer aggregate
-        ├── <Aggregate>Test.groovy                  (T1)
+        ├── <Aggregate>IntraInvariantTest.groovy    (T1)
         └── <Aggregate>InterInvariantTest.groovy    (T3)
 ```
 
 ---
 
-## T1 — Creation Test
+## T1 — Intra-Invariant Test
 
-**Purpose:** Prove the aggregate can be instantiated with valid state. Invariant violations are
-**not** tested here — they belong in T2, where service method calls trigger `registerChanged →
-verifyInvariants` automatically. Never call `verifyInvariants()` directly.
+**Purpose:** Own the complete P1 matrix for an aggregate: (1) creation happy-path proving all
+intra-invariants pass on a fresh instance, (2) one violation per non-`final` P1 rule (EP), and
+(3) boundary-straddling on/off-point pairs (BVA) for every ordered-domain P1 predicate. All cases
+are **direct-aggregate** tests — construct the aggregate, optionally call aggregate mutators
+(e.g. `addParticipant`), then call `verifyInvariants()` explicitly.
 
-**Exception — temporal-boundary cases.** An invariant comparing two timestamps (e.g.
-`ANSWER_BEFORE_START`) needs its on-point pinned to an *exact equal instant*, which the T2 saga path
-cannot do because it stamps `lastModifiedTime = now()`. Those specific boundary pairs are written as
-**direct-aggregate** tests in this file that set the fields and call `verifyInvariants()` explicitly —
-the one sanctioned use of a direct call (see `TournamentTest`'s `ANSWER_BEFORE_START` cases). See
-§ Choosing Input Values — Temporal-boundary mechanics.
+Direct construction is *the* way to test P1: the saga path stamps `lastModifiedTime = now()` and
+cannot pin exact boundary instants. This generalises what was formerly a narrow "temporal-boundary
+exception" — it is now the standard approach for all P1 coverage.
 
-**Assertion provenance:** Fields asserted in a T1 test must trace to the constructor's documented
-intent — the aggregate field list in the `plan.md` aggregate section. Never read the constructor
-body to decide what to assert; if the constructor sets a field the spec doesn't list, that is a
-planning gap to flag, not a field to copy into the test.
+**Assertion provenance:** Fields asserted in the happy-path case must trace to the constructor's
+documented intent — the aggregate field list in the `plan.md` aggregate section. Never read the
+constructor body to decide what to assert; if the constructor sets a field the spec doesn't list,
+that is a planning gap to flag, not a field to copy into the test.
 
-**P1 Java-`final` fields need no test coverage anywhere** (T1, T2, or otherwise). The Java compiler enforces immutability; there is no write path that can violate the constraint, so testing it would be testing the language, not the domain logic.
+**P1 Java-`final` fields need no test coverage anywhere** (T1, T2, or otherwise). The Java compiler
+enforces immutability; there is no write path that can violate the constraint, so testing it would
+be testing the language, not the domain logic.
 
-**Boundary on-points (valid side):** where the aggregate has a comparison-predicate invariant (count /
-collection-size limit), the T1 creation test may instantiate at the **valid** boundary — e.g. create
-once at the minimum valid `numberOfQuestions` and once at the maximum — to prove a fresh on-point
-instance passes. The violating off-point belongs in T2. See § Choosing Input Values.
+**Boundary on-points (valid side):** for comparison-predicate invariants (count / timestamp /
+collection-size), pin the on-point exactly (e.g. `end − 1 tick` for a strict-less-than timestamp
+rule) and assert `notThrown(...)`. Pin the off-point one step beyond (e.g. `start == end`) and
+assert `thrown(...)` with the exact error-message constant. See § Choosing Input Values.
 
 **Template:**
 ```groovy
 @DataJpaTest
 @Transactional
 @Import(LocalBeanConfiguration)
-class <Aggregate>Test extends <AppName>SpockTest {
+class <Aggregate>IntraInvariantTest extends <AppName>SpockTest {
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
@@ -189,6 +194,42 @@ class <Aggregate>Test extends <AppName>SpockTest {
         result.<field> == <expectedValue>
         // assert all expected fields
     }
+
+    def "<aggregate>: <RULE_NAME> violation"() {
+        given:
+        def agg = new Saga<Aggregate>(/* valid args */)
+        // set field(s) to the violating value directly
+
+        when:
+        agg.verifyInvariants()
+
+        then:
+        def ex = thrown(<App>Exception)
+        ex.message == <RULE_NAME>
+    }
+
+    def "<aggregate>: <RULE_NAME> on-point (boundary — no throw)"() {
+        given:
+        def agg = new Saga<Aggregate>(/* args with field pinned to exact on-point value */)
+
+        when:
+        agg.verifyInvariants()
+
+        then:
+        notThrown(<App>Exception)
+    }
+
+    def "<aggregate>: <RULE_NAME> off-point (boundary — throws)"() {
+        given:
+        def agg = new Saga<Aggregate>(/* args with field pinned to first violating value */)
+
+        when:
+        agg.verifyInvariants()
+
+        then:
+        def ex = thrown(<App>Exception)
+        ex.message == <RULE_NAME>
+    }
 }
 ```
 
@@ -196,8 +237,9 @@ class <Aggregate>Test extends <AppName>SpockTest {
 
 ## T2 — Functionality Test
 
-**Purpose:** Cover the happy path, every invariant/guard violation, and the semantic-lock-acquisition
-case for each saga lock step.
+**Purpose:** Cover the happy path, P3 guard violations, and the semantic-lock-acquisition
+case for each saga lock step. P1 intra-invariants are **not** tested here —
+see § T1.
 
 **Semantic-lock-acquisition rule:**
 - For each saga step that calls `setSemanticLock`, run the workflow through that step via
@@ -262,8 +304,8 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
         def ex = thrown(<App>Exception)
         ex.message == <RULE_NAME>
     }
-    // one case per invariant/guard
-    // Skip P1 tests for Java `final` fields — no write path can violate them.
+    // one P3 guard case per violation
+    // Skip P1 tests — they belong in {Aggregate}IntraInvariantTest.
 
     // ─── Semantic-lock acquisition ─────────────────────────────────────────────
     // One case per saga step that calls setSemanticLock
@@ -287,30 +329,18 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 }
 ```
 
-**P1 intra-invariant violation coverage:** For every rule checked in `verifyInvariants()` (non-`final`-field P1 rules from `plan.md §3.1`), add one T2 scenario that triggers the violation. Skip only rules marked "Java `final` field". For rules whose predicate is a **comparison on an ordered domain** (count / timestamp / collection size), one violation case is not enough — add the boundary-straddling off-point per § Choosing Input Values (and cover the on-point as a direct-aggregate case; see § Choosing Input Values — Temporal-boundary mechanics).
-
-For **time-based invariants** (e.g., `ENROLL_UNTIL_START_TIME`, `FINAL_AFTER_START`), create the aggregate with a past `startTime` in `given:`:
-
-```groovy
-def pastTournamentId = createTournament(executionId, creatorId, [topicId], 1,
-        LocalDateTime.now().minusMinutes(1), LocalDateTime.now().plusDays(1)).aggregateId
-```
-
-Then call the functionality and assert `thrown(<App>Exception)` with the exact error message constant. This works because `verifyInvariants()` fires inside `registerChanged` — when the setters stamp `lastModifiedTime = now() > prev.startTime`, the invariant detects the violation.
-
-This `now()`-stamping is exactly why it cannot pin the **boundary on-point** (the equal-instant case). For comparison-on-timestamp invariants, complement this far-side T2 violation with a boundary-straddling pair — equal-instant on-point (`notThrown`) and one-nanosecond-across off-point (`thrown`) — written as **direct-aggregate** cases in the `<Aggregate>Test.groovy` file (see § T1 — Creation Test, *Exception — temporal-boundary cases*, and § Choosing Input Values).
-
 ### Service-Command Tests (T2 variant)
 
 Some aggregates expose service methods that are invoked via command handlers from **other**
 aggregates' sagas (e.g., `decrementExecutionCount` called when a CourseExecution is deleted)
 but are NOT exposed through `{Aggregate}Functionalities`. These methods still call
-`registerChanged`, which triggers `verifyInvariants()`, so they can raise invariant violations.
+`registerChanged`, which triggers `verifyInvariants()`.
 
 For each such method, write T2-style tests covering:
 - **Happy path** — state changes as expected, no exception
 - **Floor/ceiling behaviour** — e.g., decrement at zero stays at zero
-- **Invariant violations** — every `verifyInvariants()` path the method can reach
+
+P1 intra-invariant violations are **not** tested here — see § T1 (`{Aggregate}IntraInvariantTest`).
 
 **No semantic-lock case is needed** (there are no saga steps).
 
@@ -335,19 +365,7 @@ def "<op>: success"() {
     result.<field> == <expectedValue>
 }
 
-def "<op>: <RULE_NAME> violation"() {
-    given: '<aggregate> in state that will violate invariant after <op>'
-    // set up prerequisite state via prior service calls + commit
-
-    when:
-    def uow = unitOfWorkService.createUnitOfWork("<op>")
-    <aggregate>Service.<op>(aggregate.aggregateId, uow)
-    unitOfWorkService.commit(uow)   // verifyInvariants fires here
-
-    then:
-    def ex = thrown(<App>Exception)
-    ex.message == <RULE_NAME>
-}
+// Invariant violations are not tested here — they belong in {Aggregate}IntraInvariantTest.
 ```
 
 ---

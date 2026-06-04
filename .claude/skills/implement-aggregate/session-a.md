@@ -15,8 +15,9 @@ Load these files before writing any code:
    - § getEventSubscriptions() Implementation — relevant only if this aggregate has subscribed events (otherwise skip)
    - References to `prev` (used for temporal invariants) appear under § Key Fields / § Base Class
 
-2. **`docs/concepts/testing.md`** — § T1 — Creation Test only. Note:
-   - What a T1 test asserts (fields set correctly, invariants hold, aggregate state)
+2. **`docs/concepts/testing.md`** — § T1 — Intra-Invariant Test. Note:
+   - What the full T1 matrix covers: creation happy-path, one violation per non-`final` P1 rule, BVA straddles for ordered predicates
+   - That all T1 cases go via direct construction/mutation + `verifyInvariants()` — never through the service
    - The test class location and naming convention
 
 3. ***(Conditional)*** If the aggregate section in plan.md lists snapshot fields copied from an upstream aggregate (e.g., cached `courseId` from Course, or `name`/`username` from User): read the domain files of those upstream aggregates from `{src}microservices/{upstreamAggregate}/aggregate/` — only the field declarations you need to copy. Do not read the whole upstream codebase.
@@ -152,14 +153,17 @@ Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}Dto.java`
 - Constructor from `{Aggregate}`, all-fields constructor, and no-arg constructor
 - Getters and setters
 
-### `{Aggregate}Test.groovy` (T1)
+### `{Aggregate}IntraInvariantTest.groovy` (T1)
 
-Path: `{test}sagas/{aggregate}/{Aggregate}Test.groovy`
+Path: `{test}sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy`
+
+See `docs/concepts/testing.md` § T1 — Intra-Invariant Test for the full remit and templates.
 
 - Extends `{AppClass}SpockTest`
-- **One happy-path creation test**: `def "create {Aggregate}"()` — instantiate `Saga{Aggregate}` directly and assert fields are set correctly. T1 tests happy-path construction only; invariant-violation tests belong in T2 where `unitOfWorkService.registerChanged` triggers `verifyInvariants()` automatically. Never call `verifyInvariants()` directly.
-- **Assertion provenance:** Fields asserted in the test must trace to the `plan.md` aggregate field list — not to the constructor body you just wrote. If the constructor sets a field the spec doesn't list, that is a planning gap to flag in the session report, not a field to copy into the test.
-- **Do not** use `{AppClass}Functionalities.create{Aggregate}(...)` — write functionalities are not available until session b
+- **Happy-path creation test**: `def "create {Aggregate}"()` — instantiate `Saga{Aggregate}` directly, call `verifyInvariants()`, and assert all fields from the `plan.md` aggregate field list. Assertion provenance: fields must trace to the spec, not to the constructor body you just wrote. If the constructor sets a field the spec doesn't list, flag the planning gap in the session report.
+- **One violation test per non-`final` P1 rule** (from this aggregate's `plan.md` P1 list): construct or mutate a `Saga{Aggregate}` so that exactly one P1 predicate fails, then call `verifyInvariants()` directly and assert `thrown({AppClass}Exception)` with `ex.getErrorMessage() == {RULE_NAME}`. Skip rules marked as Java `final` fields (compiler-enforced; no write path can violate them — note the omission in the session report).
+- **Boundary straddle for every ordered-domain P1 predicate** (count, timestamp, or collection-size comparison — `<`/`<=`/`>`/`>=`/`==`): write the on-point (`verifyInvariants()` must not throw, pinned to the exact boundary value) and the off-point (`verifyInvariants()` must throw, one step beyond the boundary). Categorical rules (uniqueness, boolean/state freezes, set membership) keep their single representative case; do not invent boundary cases for them.
+- **Do not** use `{AppClass}Functionalities.create{Aggregate}(...)` — write functionalities are not available until session b. All T1 cases use direct construction/mutation + `verifyInvariants()`.
 - If the aggregate constructor takes `{Aggregate}Dto` rather than raw args, build the DTO in the `given:` block before calling `new Saga{Aggregate}(id, dto)`
 
 ### Error message constants

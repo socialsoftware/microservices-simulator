@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.Qui
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.Tournament
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUIZ_ANSWER_NOT_FOUND
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_IS_CANCELED
+// P1 intra-invariant violations are NOT tested here — see TournamentIntraInvariantTest.
 
 import java.time.LocalDateTime
 
@@ -91,20 +91,4 @@ class SolveQuizTest extends QuizzesFullSpockTest {
         ex.message == QUIZ_ANSWER_NOT_FOUND
     }
 
-    def "solveQuiz: TOURNAMENT_IS_CANCELED — solving on a cancelled tournament is rejected"() {
-        given: 'participant is enrolled in a not-yet-started tournament with a quiz answer'
-        tournamentFunctionalities.addParticipant(tournamentId, executionId, participantId)
-        def tournamentDto = tournamentFunctionalities.getTournamentById(tournamentId)
-        createQuizAnswer(tournamentDto.quizAggregateId, participantId)
-
-        and: 'the tournament is cancelled before it starts'
-        tournamentFunctionalities.cancelTournament(tournamentId)
-
-        when:
-        tournamentFunctionalities.solveQuiz(tournamentId, participantId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == TOURNAMENT_IS_CANCELED
-    }
 }

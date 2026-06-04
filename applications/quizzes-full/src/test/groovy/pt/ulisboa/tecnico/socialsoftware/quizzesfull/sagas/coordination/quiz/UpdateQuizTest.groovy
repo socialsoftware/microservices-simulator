@@ -8,12 +8,9 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.Quiz
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.states.QuizSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.UpdateQuizFunctionalitySagas
-
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUIZ_DATE_ORDERING
 
 import java.time.LocalDateTime
 
@@ -59,23 +56,6 @@ class UpdateQuizTest extends QuizzesFullSpockTest {
         fetched.questions.any { it.questionAggregateId == questionDto2.aggregateId }
         !fetched.questions.any { it.questionAggregateId == questionDto1.aggregateId }
     }
-
-    def "updateQuiz: violates QUIZ_DATE_ORDERING — availableDate after conclusionDate"() {
-        when:
-        quizFunctionalities.updateQuiz(quizDto.aggregateId,
-                LocalDateTime.now().plusDays(5),
-                LocalDateTime.now().plusDays(2),
-                LocalDateTime.now().plusDays(6),
-                [questionDto1.aggregateId])
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == QUIZ_DATE_ORDERING
-    }
-
-    // QUIZ_FIELDS_FINAL_AFTER_AVAILABLE_DATE violation is not tested because it requires
-    // setting lastModifiedTime > availableDate after the quiz is already created, which
-    // demands clock manipulation not available in this test context (retro 2.6.b).
 
     def "updateQuiz: getQuizStep acquires IN_UPDATE_QUIZ semantic lock"() {
         given: 'updateQuiz workflow pauses after getQuizStep has acquired IN_UPDATE_QUIZ lock'

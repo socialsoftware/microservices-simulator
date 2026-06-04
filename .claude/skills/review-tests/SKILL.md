@@ -1,6 +1,6 @@
 ---
 name: review-tests
-description: Phase 3 — Test Review. Audits T1/T2/T3 test completeness for one aggregate, detects fake/weak tests by reading the implementation, adds missing edge cases and adversarial scenarios, and runs the full test suite.
+description: Phase 3 — Test Review. Audits T1/T2/T3 test completeness for one aggregate, detects fake/weak tests by reading the implementation, adds missing edge cases and adversarial scenarios, and runs the full test suite. T1 = {Aggregate}IntraInvariantTest (full P1 matrix); T2 = service/functionality tests (no P1).
 argument-hint: "<AggregateName> (e.g. Course, Execution, Tournament)"
 ---
 
@@ -56,7 +56,7 @@ Verify that a section `### N. {Aggregate}` exists in `plan.md`. If not found, ha
 Read every file in a single parallel batch. Missing files are noted, not errors.
 
 **Test files (scope of this review):**
-- `{tgt-test}sagas/{aggregate}/{Aggregate}Test.groovy` — T1
+- `{tgt-test}sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy` — T1
 - `{tgt-test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` — T3 (may not exist)
 - All `*.groovy` under `{tgt-test}sagas/coordination/{aggregate}/` — T2 (use `find` to enumerate)
 
@@ -82,9 +82,18 @@ test scenarios. This is the baseline for Steps 4–7.
 
 > **Spec-first principle:** Build this inventory from `plan.md` and the domain model before consulting implementation files. The implementation is ground truth for *how* tests are wired, not for *what* they should assert. When Step 5 finds that an existing test's assertion matches the implementation but not the spec, the implementation is the bug — not the spec.
 
-### T1 — `{Aggregate}Test.groovy`
+### T1 — `{Aggregate}IntraInvariantTest.groovy`
 
-- One "create with valid data, all fields correct" scenario verifying every field on the created aggregate.
+All cases are **direct-aggregate** (construct and/or mutate the aggregate directly, then call `verifyInvariants()`). No saga path.
+
+- One "create with valid data, all fields correct" scenario — every P1 rule passes; assert every field on the aggregate.
+- For each non-`final` P1 rule enforced by `verifyInvariants()`: one **violation** case that puts the aggregate into the violating state and asserts `ex.getErrorMessage() == <RULE_CONSTANT>`. Skip `final`-field rules (compiler-enforced; no test needed).
+- For each non-`final` P1 rule whose predicate is a **comparison on an ordered domain** (count, timestamp, collection size — `<`, `<=`, `>`, `>=`): two **boundary-straddling** cases:
+  - **on-point** — the last value that satisfies the rule → `verifyInvariants()` does **not** throw.
+  - **off-point** — the first value that violates the rule → `verifyInvariants()` throws and `ex.getErrorMessage() == <RULE_CONSTANT>`.
+  Categorical rules (uniqueness, state-freeze, set-membership) get a single representative — no boundary pair.
+
+Source: `plan.md` §3.1 / §3.2 P1 rule list for this aggregate.
 
 ### T2 — per **write** functionality (one test file per write operation under `coordination/{aggregate}/`)
 
@@ -94,14 +103,14 @@ File-naming convention: `{Operation}{Aggregate}Test.groovy` (e.g., `CreateCourse
 For each write functionality:
 
 1. **Happy-path success** — the operation completes without exception; assert all mutated fields.
-2. **One scenario per P1 intra-invariant** that `verifyInvariants()` enforces. P1 rules on Java-final
-   fields need **no test** — skip them. Only rules enforced by `verifyInvariants()` (non-final fields)
-   require coverage.
-3. **One scenario per P3 guard** in the corresponding service method (read the service to enumerate these).
-4. **Semantic-lock acquisition — `setSemanticLock`**: for each saga step that calls `setSemanticLock`,
+2. **One scenario per P3 guard** in the corresponding service method (read the service to enumerate these).
+3. **Semantic-lock acquisition — `setSemanticLock`**: for each saga step that calls `setSemanticLock`,
    **without exception**, one test that runs the workflow through that step via `executeUntilStep`,
    asserts the aggregate is in the expected `IN_{OPERATION}` saga state (`expect:` block), then calls
    `resumeWorkflow` and asserts `noExceptionThrown()`. Every such step must have a matching test.
+   `setForbiddenStates` conflict validation is **deferred — see Appendix T4** in `docs/concepts/testing.md`.
+
+**P1 intra-invariants are not tested here** — they belong exclusively in `{Aggregate}IntraInvariantTest`. A P1 violation scenario in a service/functionality test is a **Wrong (misplaced)** finding.
 
 **Upstream-invariant rule:** Every T2 `setup:` block must establish any upstream prerequisite state
 (e.g., a `createExecution` call if `Course.executionCount` must be > 0) *before* creating the aggregate
@@ -136,9 +145,9 @@ For each such method:
 1. **Happy-path success** — state changes as expected; assert the mutated fields.
 2. **Floor/ceiling behaviour** — if the method decrements/increments a counter, test the boundary
    (e.g., decrement when already 0 should not produce a negative value).
-3. **Invariant violations** — every `verifyInvariants()` path the method can reach.
 
 No semantic-lock case is needed (there are no saga steps).
+P1 invariant violations reachable via these methods belong in `{Aggregate}IntraInvariantTest`, not here.
 Naming: `{OperationName}Test.groovy` or `{Aggregate}CountsTest.groovy` when related operations share
 setup (`docs/concepts/testing.md:191-193`).
 
@@ -180,6 +189,14 @@ Apply the **Fake / Wrong / Weak Detection Checklist** in `docs/concepts/testing.
 Weak Detection Checklist. That section is the authoritative list of test smells and the source of the
 three severity levels used in this step's output table. Every Fake or Wrong finding must cite the
 specific implementation file and line that proves the assertion is incorrect.
+
+
+**Misplacement finding (Wrong):** If a T2 service/functionality test asserts a P1 intra-invariant
+violation (i.e., it calls into a service and expects `verifyInvariants()` to throw for a P1 rule), flag
+it as **Wrong (misplaced)**: "P1 violation asserted in a service test — move to
+`{Aggregate}IntraInvariantTest`." P1 predicate tests belong exclusively in T1; the service test should
+be deleted or replaced with the correct T1 direct-aggregate case.
+
 
 ### B. Parameter quality
 
@@ -237,9 +254,13 @@ Beyond the required scenarios from Step 3, look for realistic edge cases not cur
 gap, state: (a) the scenario, (b) what defect it would catch.
 
 Focus on:
-- Boundary values for **numeric, temporal, or cardinality** comparison rules — the on-point and
-  off-point straddling the threshold (see `docs/concepts/testing.md` § Choosing Input Values). For a
-  rule asserted with only a far-side representative, propose the missing boundary case explicitly.
+- **Intra-invariant test boundary coverage:** for every non-`final` P1 rule with an ordered predicate
+  (count, timestamp, collection size), check that `{Aggregate}IntraInvariantTest` has both the on-point
+  (`notThrown`) and the off-point (`thrown` + `ex.getErrorMessage() == <RULE>`) cases. A single
+  far-side representative is **Weak (boundary under-coverage)**; propose the missing straddle explicitly.
+  Categorical P1 rules (uniqueness, state-freeze) need no boundary pair.
+- Boundary values for **P3 numeric guards** — on-point and off-point straddling the threshold (see
+  `docs/concepts/testing.md` § Choosing Input Values).
 - Empty collections where the code iterates
 - Duplicate/already-existing entities where uniqueness is enforced
 - Operations on already-deleted aggregates
@@ -285,12 +306,15 @@ Use a wildcard pattern to run all test classes for this aggregate without manual
 
 ```bash
 cd applications/{app-name} && mvn clean -Ptest-sagas test \
-  -Dtest="*{Aggregate}*Test,*{Aggregate}*InterInvariantTest" 2>&1 | tail -100
+  -Dtest="*{Aggregate}*Test" 2>&1 | tail -100
 ```
 
-If the wildcard is too broad (picks up unrelated aggregates with similar names), narrow it:
-`-Dtest="{Aggregate}Test,*{Aggregate}*Test"`. The wildcard form avoids stale `-Dtest=` lists when
-new test files are added mid-review.
+`*{Aggregate}*Test` matches `{Aggregate}IntraInvariantTest` (T1), all `{Operation}{Aggregate}Test`
+files (T2), and `{Aggregate}InterInvariantTest` (T3) — no separate `-Dtest` entries needed.
+
+If the wildcard is too broad (picks up unrelated aggregates with similar names), narrow it to explicit
+class names: `-Dtest="{Aggregate}IntraInvariantTest,Create{Aggregate}Test,..."`. The wildcard form
+avoids stale `-Dtest=` lists when new test files are added mid-review.
 
 Report:
 - BUILD SUCCESS / FAILURE
@@ -344,6 +368,8 @@ Replace `- [ ] 3.{N} — {Aggregate}` with `- [x] 3.{N} — {Aggregate}` in plan
    Flagging a correct Path B test as Fake is itself a Wrong review finding
    (`docs/concepts/testing.md:229-262`).
 3. **P1 final-field rules need no tests.** Skip them in Steps 3 and 7.
+3a. **P1 predicate tests belong only in T1 (`{Aggregate}IntraInvariantTest`).** A P1 violation
+    asserted in a T2 service/functionality test is **Wrong (misplaced)**; flag and move it.
 4. **Do not modify non-test files.** This review touches only `*.groovy` test files and the review
    report.
 5. **Build must run.** Do not skip Step 9.

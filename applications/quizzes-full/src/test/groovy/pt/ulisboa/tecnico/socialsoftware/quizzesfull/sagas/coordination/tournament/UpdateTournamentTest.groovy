@@ -8,13 +8,10 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.states.TournamentSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
 
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_FINAL_AFTER_START
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_IS_CANCELED
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_START_BEFORE_END_TIME
+// P1 intra-invariant violations are NOT tested here — see TournamentIntraInvariantTest.
 
 import java.time.LocalDateTime
 
@@ -73,46 +70,6 @@ class UpdateTournamentTest extends QuizzesFullSpockTest {
         def dto = tournamentFunctionalities.getTournamentById(tournamentId)
         dto.startTime == newStart
         dto.endTime == newEnd
-    }
-
-    def "updateTournament: TOURNAMENT_START_BEFORE_END_TIME violation"() {
-        given:
-        def badStart = LocalDateTime.now().plusDays(5)
-        def badEnd = LocalDateTime.now().plusDays(3)
-
-        when:
-        tournamentFunctionalities.updateTournament(tournamentId, badStart, badEnd, [])
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == TOURNAMENT_START_BEFORE_END_TIME
-    }
-
-    def "updateTournament: TOURNAMENT_IS_CANCELED violation — tournament already cancelled"() {
-        given:
-        tournamentFunctionalities.cancelTournament(tournamentId)
-
-        when:
-        tournamentFunctionalities.updateTournament(tournamentId,
-                LocalDateTime.now().plusDays(3), LocalDateTime.now().plusDays(5), [])
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == TOURNAMENT_IS_CANCELED
-    }
-
-    def "updateTournament: TOURNAMENT_FINAL_AFTER_START violation — tournament already started"() {
-        given: 'a tournament whose start time is already in the past'
-        def pastTournamentId = createTournament(executionId, userId, [topicId], 1,
-                LocalDateTime.now().minusMinutes(1), LocalDateTime.now().plusDays(1)).aggregateId
-
-        when: 'update is attempted after start time with new times'
-        tournamentFunctionalities.updateTournament(pastTournamentId,
-                LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2), [])
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == TOURNAMENT_FINAL_AFTER_START
     }
 
     def "updateTournament: getTournamentStep acquires IN_UPDATE_TOURNAMENT semantic lock"() {

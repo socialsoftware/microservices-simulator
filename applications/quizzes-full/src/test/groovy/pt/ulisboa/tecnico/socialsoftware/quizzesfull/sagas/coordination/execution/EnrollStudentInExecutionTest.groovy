@@ -9,8 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.EnrollStudentInExecutionFunctionalitySagas
 
@@ -46,18 +44,6 @@ class EnrollStudentInExecutionTest extends QuizzesFullSpockTest {
         student.userAggregateId == userDto.aggregateId
         student.userName == USER_NAME_1
         student.userUsername == USER_USERNAME_1
-    }
-
-    def "enrollStudentInExecution: STUDENT_ALREADY_ENROLLED violation"() {
-        given: 'student already enrolled'
-        executionFunctionalities.enrollStudentInExecution(executionDto.aggregateId, userDto.aggregateId)
-
-        when:
-        executionFunctionalities.enrollStudentInExecution(executionDto.aggregateId, userDto.aggregateId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.errorMessage == QuizzesFullErrorMessage.STUDENT_ALREADY_ENROLLED
     }
 
     def "enrollStudentInExecution: deleted user causes data-assembly failure"() {

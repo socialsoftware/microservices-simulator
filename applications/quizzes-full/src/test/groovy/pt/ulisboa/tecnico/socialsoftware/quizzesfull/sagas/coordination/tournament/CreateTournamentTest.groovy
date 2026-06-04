@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericS
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_TOPIC_COURSE_MISMATCH
+// P1 intra-invariant violations are NOT tested here — see TournamentIntraInvariantTest.
 
 import java.time.LocalDateTime
 
@@ -97,34 +98,6 @@ class CreateTournamentTest extends QuizzesFullSpockTest {
         then:
         def ex = thrown(QuizzesFullException)
         ex.message == TOURNAMENT_TOPIC_COURSE_MISMATCH
-    }
-
-    def "createTournament: TOURNAMENT_START_BEFORE_END_TIME violation"() {
-        given: 'start time after end time'
-        def badStart = LocalDateTime.now().plusDays(3)
-        def badEnd = LocalDateTime.now().plusDays(1)
-
-        when:
-        createTournament(executionId, userId, [topicId], 1, badStart, badEnd)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_START_BEFORE_END_TIME
-    }
-
-    def "createTournament: TOURNAMENT_START_BEFORE_END_TIME boundary — startTime == endTime"() {
-        // Spec: plan.md §2.8 Tournament — TOURNAMENT_START_BEFORE_END_TIME (startTime < endTime).
-        // BVA off-point: the equal instant is the first violating value (the case above is a far
-        // representative). See docs/concepts/testing.md § Choosing Input Values.
-        given: 'start time equal to end time'
-        def instant = LocalDateTime.now().plusDays(1)
-
-        when:
-        createTournament(executionId, userId, [topicId], 1, instant, instant)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_START_BEFORE_END_TIME
     }
 
     def "createTournament: getStudentStep enforces CREATOR_COURSE_EXECUTION check"() {

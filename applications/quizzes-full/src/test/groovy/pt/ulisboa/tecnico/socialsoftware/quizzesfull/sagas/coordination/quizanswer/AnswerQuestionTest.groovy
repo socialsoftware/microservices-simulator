@@ -8,11 +8,8 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.sagas.states.QuizAnswerSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.AnswerQuestionFunctionalitySagas
-
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUESTION_ALREADY_ANSWERED
 
 @DataJpaTest
 @Transactional
@@ -68,18 +65,6 @@ class AnswerQuestionTest extends QuizzesFullSpockTest {
         dto.questionAnswerIds.size() == 1
         dto.questionAnswerIds.contains(questionId)
         dto.completed == false
-    }
-
-    def "answerQuestion: QUESTION_ALREADY_ANSWERED violation"() {
-        given:
-        quizAnswerFunctionalities.answerQuestion(quizAnswerId, questionId, 1, 30)
-
-        when:
-        quizAnswerFunctionalities.answerQuestion(quizAnswerId, questionId, 1, 30)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == QUESTION_ALREADY_ANSWERED
     }
 
     def "answerQuestion: getQuizAnswerStep acquires IN_ANSWER_QUESTION semantic lock"() {

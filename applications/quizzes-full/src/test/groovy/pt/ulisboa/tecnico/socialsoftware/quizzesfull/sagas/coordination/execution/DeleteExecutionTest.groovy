@@ -9,8 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.DeleteExecutionFunctionalitySagas
 
@@ -45,19 +43,6 @@ class DeleteExecutionTest extends QuizzesFullSpockTest {
 
         then:
         thrown(SimulatorException)
-    }
-
-    def "deleteExecution: REMOVE_NO_STUDENTS violation — cannot delete execution with enrolled students"() {
-        given: 'a student is enrolled'
-        def userDto = createUser(USER_NAME_1, USER_USERNAME_1, STUDENT_ROLE)
-        executionFunctionalities.enrollStudentInExecution(executionDto.aggregateId, userDto.aggregateId)
-
-        when:
-        executionFunctionalities.deleteExecution(executionDto.aggregateId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.errorMessage == QuizzesFullErrorMessage.REMOVE_NO_STUDENTS
     }
 
     def "deleteExecution: getExecutionStep acquires IN_DELETE_EXECUTION semantic lock"() {
