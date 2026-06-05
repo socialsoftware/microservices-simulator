@@ -8,7 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventHandler;
 
-public class DeferredEventApplicationService extends EventApplicationService {
+final class DeferredEventApplicationService extends EventApplicationService {
 
     private volatile @Nullable CaptureSession activeSession;
 
@@ -68,7 +68,7 @@ public class DeferredEventApplicationService extends EventApplicationService {
         }
     }
 
-    public static final class CaptureSession implements AutoCloseable {
+    static final class CaptureSession implements AutoCloseable {
         private final DeferredEventApplicationService owner;
         private final Set<DeferredEventInvocation> currentDeferred = ConcurrentHashMap.newKeySet();
         private final Set<DeferredEventInvocation> allDeferred = ConcurrentHashMap.newKeySet();
@@ -90,7 +90,7 @@ public class DeferredEventApplicationService extends EventApplicationService {
             }
         }
 
-        public Set<DeferredEventInvocation> drain() {
+        Set<DeferredEventInvocation> drain() {
             Set<DeferredEventInvocation> result = Set.copyOf(currentDeferred);
             Objects.requireNonNull(result);
 

@@ -5,7 +5,7 @@ import java.util.Set;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventHandler;
 
-public class EventHandlerStep implements OracleStep {
+final class EventHandlerStep implements OracleStep {
 
     private final StepId id;
     private final FunctionalityId functionalityId;

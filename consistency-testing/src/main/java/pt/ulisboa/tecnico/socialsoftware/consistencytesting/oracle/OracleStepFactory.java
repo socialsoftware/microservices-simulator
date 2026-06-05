@@ -8,12 +8,13 @@ import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 
-public class OracleStepFactory {
+final class OracleStepFactory {
+
     private OracleStepFactory() {
         throw new UnsupportedOperationException("Instantiation is not allowed");
     }
 
-    public static List<OracleStep> buildStepsForFunctionality(
+    static List<OracleStep> buildStepsForFunctionality(
             FunctionalityId functionalityId, WorkflowFunctionality func, SagaUnitOfWorkService uowService) {
 
         List<OracleStep> steps = new ArrayList<>(FunctionalityStep.from(functionalityId, func));
@@ -27,7 +28,7 @@ public class OracleStepFactory {
         return steps;
     }
 
-    public static List<OracleStep> buildStepsForFunctionalityCompensation(
+    static List<OracleStep> buildStepsForFunctionalityCompensation(
             FunctionalityId functionalityId, WorkflowFunctionality func, SagaUnitOfWorkService uowService) {
 
         List<OracleStep> compensationSteps = new ArrayList<>(CompensationStep.from(functionalityId, func));

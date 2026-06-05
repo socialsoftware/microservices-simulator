@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
-public class CompensationStep implements OracleStep {
+final class CompensationStep implements OracleStep {
 
     private final StepId id;
     private final FunctionalityId functionalityId;

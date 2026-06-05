@@ -4,7 +4,7 @@ import org.jspecify.annotations.Nullable;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
 
-public class StepId {
+public final class StepId {
     private static final String ID_SEPARATOR = "::";
     private static final String ID_CONNECTOR = "-";
 

@@ -7,7 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
-public class CommitStep implements OracleStep {
+final class CommitStep implements OracleStep {
 
     private final StepId id;
     private final FunctionalityId functionalityId;

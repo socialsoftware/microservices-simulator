@@ -2,12 +2,12 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 import java.util.Set;
 
-public interface OracleStep {
-    public void execute();
+interface OracleStep {
+    void execute();
 
-    public StepId getId();
+    StepId getId();
 
-    public FunctionalityId getFunctionalityId();
+    FunctionalityId getFunctionalityId();
 
-    public Set<StepId> getDependencies();
+    Set<StepId> getDependencies();
 }

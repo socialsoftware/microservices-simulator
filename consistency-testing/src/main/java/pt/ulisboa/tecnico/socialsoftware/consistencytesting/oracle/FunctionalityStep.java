@@ -10,7 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.FunctionalityU
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 
-public class FunctionalityStep implements OracleStep {
+final class FunctionalityStep implements OracleStep {
 
     private final StepId id;
     private final FunctionalityId functionalityId;

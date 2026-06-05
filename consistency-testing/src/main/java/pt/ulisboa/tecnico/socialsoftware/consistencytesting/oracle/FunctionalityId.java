@@ -5,7 +5,7 @@ import org.jspecify.annotations.Nullable;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventHandler;
 
-public class FunctionalityId {
+public final class FunctionalityId {
     private static final String ID_CONNECTOR = "-";
 
     private final String id;

@@ -13,12 +13,9 @@ record DeferredEventInvocation(
                 Integer subscriberAggregateId,
                 Runnable invocation) {
 
-        public Integer publisherAggregateId() {
+        Integer publisherAggregateId() {
                 return Objects.requireNonNull(event.getPublisherAggregateId());
         }
-
-        // ! TODO is it correct to use event.getId() instead of instance equality?
-        // ! TODO is it correct to use handler.class instead of instance equality?
 
         @Override
         public boolean equals(@Nullable Object o) {

@@ -21,7 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandling;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 
-class ScheduleExecutor {
+final class ScheduleExecutor {
     // TODO internal StepDependencyGraph could be more efficient and cleaner
 
     private static final int STEP_EXECUTION_LIMIT = 500;
@@ -40,7 +40,7 @@ class ScheduleExecutor {
     private final Map<StepId, Exception> stepExceptionsMap = new HashMap<>();
     private final Set<TestStatus> detectedStatuses = new HashSet<>();
 
-    public ScheduleExecutor(
+    ScheduleExecutor(
             Map<FunctionalityId, WorkflowFunctionality> functionalities,
             StepDependencies interDependencies,
             SagaUnitOfWorkService uowService,
@@ -78,7 +78,7 @@ class ScheduleExecutor {
         intraDependencies.merge(StepDependencies.of(newSteps));
     }
 
-    public TestResult execute() {
+    TestResult execute() {
         executeSteps();
         evaluateTestCompletionStatus();
 

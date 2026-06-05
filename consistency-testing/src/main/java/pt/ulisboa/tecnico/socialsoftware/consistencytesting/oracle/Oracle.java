@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
+import java.beans.Introspector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionRepository;
 
-public class Oracle {
+public final class Oracle {
     private static final String DB_IMAGE = "postgres:15-alpine";
     private static final String DB_NAME = "oracledb";
     private static final String DB_USERNAME = "oracle";
@@ -84,10 +85,12 @@ public class Oracle {
 
         // override EventApplicationService bean with DeferredEventApplicationService
         app.addInitializers(ctx -> {
+            String targetBeanName = Introspector.decapitalize(EventApplicationService.class.getSimpleName());
             var registry = (BeanDefinitionRegistry) ctx.getBeanFactory();
             var def = new RootBeanDefinition(DeferredEventApplicationService.class);
+
             def.setPrimary(true);
-            registry.registerBeanDefinition("eventApplicationService", def); // TODO change to dynamic class name
+            registry.registerBeanDefinition(targetBeanName, def);
         });
 
         springContext = app.run(springAppArgs);
@@ -128,7 +131,7 @@ public class Oracle {
         versionRepository.deleteAll();
     }
 
-    public <T> T getBean(Class<T> beanClass) {
+    <T> T getBean(Class<T> beanClass) {
         ConfigurableApplicationContext context = springContext;
         if (context == null || !context.isActive()) {
             throw new IllegalStateException(
@@ -137,7 +140,7 @@ public class Oracle {
         return context.getBean(beanClass);
     }
 
-    public <T> Map<String, T> getBeansOfType(Class<T> beansClass) {
+    <T> Map<String, T> getBeansOfType(Class<T> beansClass) {
         ConfigurableApplicationContext context = springContext;
         if (context == null || !context.isActive()) {
             throw new IllegalStateException(

@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class StepDependencies {
+public final class StepDependencies {
 
     private final Map<StepId, Set<StepId>> stepDependencies;
 

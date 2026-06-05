@@ -7,7 +7,7 @@ import java.util.Set;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 
-record TestResult(
+public record TestResult(
         // TODO add Anomalies detected
 
         StepDependencies intraDependencies,
@@ -19,7 +19,7 @@ record TestResult(
         Map<StepId, Exception> exceptions,
         Set<TestStatus> statuses) {
 
-    TestResult {
+    public TestResult {
         intraDependencies = StepDependencies.copyOf(intraDependencies);
         interDependencies = StepDependencies.copyOf(interDependencies);
         functionalities = Objects.requireNonNull(Map.copyOf(functionalities));
