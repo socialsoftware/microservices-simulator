@@ -25,16 +25,16 @@ spring:
 simulator:
   hardware-profiling:
     enabled: false
-    output-file: /src/test/resources/service-hardware-profiling.txt
+    output-file: /logs/service-hardware-profiling.txt
   capacity-management:
-    enabled: false
-    configuration-file: /src/test/resources/locust/quizzes-configuration.json
-    report-file: /src/test/resources/locust/CapacityReport.txt
+    enabled: true
+    configuration-file: /resources/quizzes-configuration.json
+    report-file: /logs/CapacityReport.txt
   impairment:
-    report-file: /src/test/resources/locust/ImpairmentReport.txt
+    report-file: /logs/ImpairmentReport.txt
     network-delays:
-      enabled: false
-      configuration-file: /src/test/resources/locust/quizzes-configuration.json
+      enabled: true
+      configuration-file: /resources/quizzes-configuration.json
 
 management:
   endpoints:

@@ -133,7 +133,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
     volumes:
-      - ./src/test/resources:/src/test/resources
+      - ./src/main/resources:/resources
+      - ./src/main/logs:/logs
     networks:
       - messaging-network
     <<: *perf-caps
@@ -162,7 +163,8 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
     volumes:
-      - ./src/test/resources:/src/test/resources
+      - ./src/main/resources:/src/main/resources
+      - ./src/main/logs:/src/main/logs
     networks:
       - messaging-network
     <<: *perf-caps
