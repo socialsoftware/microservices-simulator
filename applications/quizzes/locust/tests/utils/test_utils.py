@@ -69,7 +69,8 @@ class TestUtils:
         """Asserts the number of active requests of a service does not surpass the limit"""
         max_active = TestUtils.get_max_concurrency_from_microservice(
             report, ms_name)
-        TestUtils.info(f"Max simultaneous requests: {max_active} (<= {expected_max})")
+        TestUtils.info(
+            f"Max simultaneous requests: {max_active} (<= {expected_max})")
         if not (max_active <= expected_max):
             TestUtils.fail(
                 f"{ms_name} capacity violation! Found {max_active} concurrent requests, expected between 1 and {expected_max}")

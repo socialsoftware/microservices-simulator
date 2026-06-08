@@ -230,7 +230,7 @@ class AppUtils:
         r = AppUtils._post("/tournaments/update", json=payload,
                            params={"topicsId": topic_ids}, client=client)
         if r is not None and r.status_code in [200, 201]:
-            return r.json()
+            return r
 
         logging.error(
             f"Failed to update tournament: {r.text if r else 'No response'}")
