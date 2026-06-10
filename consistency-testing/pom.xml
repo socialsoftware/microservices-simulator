@@ -55,14 +55,14 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>1.19.7</version>
+            <version>1.21.4</version>
         </dependency>
 
         <!-- PostgreSQL component for Testcontainers -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
-            <version>1.19.7</version>
+            <version>1.21.4</version>
         </dependency>
 
         <!-- Jspecify null-annotation -->
