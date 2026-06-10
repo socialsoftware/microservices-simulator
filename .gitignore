@@ -3,6 +3,7 @@ HELP.md
 !.mvn/wrapper/maven-wrapper.jar
 data/figs/.DS_Store
 *.bkp
+.vscode/*
 
 ### STS ###
 .apt_generated
@@ -42,15 +43,13 @@ jmeter.log
 scripts/run-jmeter-tests.sh
 jmeter-results/
 
-
+# Reports and logs
 **/BehaviourReport.txt
 **/CapacityReport.txt
 **/ImpairmentReport.txt
 **/service-hardware-profiling.txt
-.vscode/*
-**/profiling/output/*
-
 **/logs/
+performance-analysis/experiments
 
 ### Python ###
 **/__pycache__/
