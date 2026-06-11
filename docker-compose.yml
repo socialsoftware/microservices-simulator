@@ -109,19 +109,7 @@ services:
       jaeger:
         condition: service_started
     volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    networks:
-      - messaging-network
-
-  trace-collector:
-    image: python:3.12-slim
-    container_name: trace-collector
-    working_dir: /app
-    command: sh -c "pip install --no-cache-dir fastapi uvicorn grpcio opentelemetry-proto && python trace_collector.py"
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./performance-analysis/trace_collector.py:/app/trace_collector.py:ro
+      - ./performance-analysis/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     networks:
       - messaging-network
 

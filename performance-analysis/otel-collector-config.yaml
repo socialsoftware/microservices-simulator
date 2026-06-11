@@ -8,8 +8,8 @@ receivers:
 
 processors:
   batch:
-    send_batch_size: 10
-    timeout: 1s
+    send_batch_size: 50
+    timeout: 10ms
 
 exporters:
   otlp/jaeger:
@@ -17,8 +17,8 @@ exporters:
     tls:
       insecure: true
 
-  otlp/fastapi:
-    endpoint: trace-collector:4317
+  otlp/agent:
+    endpoint: host.docker.internal:4319
     tls:
       insecure: true
 
@@ -30,4 +30,4 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/jaeger, otlp/fastapi]
+      exporters: [otlp/jaeger, otlp/agent]

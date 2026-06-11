@@ -56,9 +56,6 @@ x-microservice-deps: &microservice-deps
   otel-collector:
     condition: service_started
     required: false
-  trace-collector:
-    condition: service_started
-    required: false
 
 x-perf-caps: &perf-caps
   cap_add:
@@ -192,8 +189,6 @@ services:
         eureka-server:
           condition: service_healthy
         otel-collector:
-          condition: service_started
-        trace-collector:
           condition: service_started
       ports:
         - "8080:8080"

@@ -1,0 +1,6 @@
+grpcio
+opentelemetry-proto
+protobuf
+gymnasium
+numpy
+requests

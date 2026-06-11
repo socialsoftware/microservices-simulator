@@ -1,20 +1,12 @@
 from collections import defaultdict
-from concurrent import futures
 import threading
+import time
 from typing import Any, Dict, List
 
-import grpc
-import uvicorn
-from fastapi import FastAPI
-from opentelemetry.proto.collector.trace.v1 import (
-    trace_service_pb2,
-    trace_service_pb2_grpc,
-)
 
 # ======================
 # TRACE MANAGER
 # ======================
-
 
 class TraceManager:
     """
@@ -24,13 +16,15 @@ class TraceManager:
 
     def __init__(self):
         self._spans: Dict[str, Dict[str, Any]] = {}
-        self._lock = threading.Lock()
+        self._lock = threading.Condition(threading.Lock())
+        self._last_span_time = 0.0
 
     def reset(self):
         """Clears all stored spans."""
 
         with self._lock:
             self._spans.clear()
+            self._last_span_time = 0.0
         print("Trace manager has been reset!")
 
     @staticmethod
@@ -77,6 +71,34 @@ class TraceManager:
                     }
         with self._lock:
             self._spans.update(spans_to_add)
+            self._last_span_time = time.time()
+            self._lock.notify_all()
+
+    # TODO: Change total_timeout to a decent value
+    def wait_for_data(self, wait_window=0.1, total_timeout=100.0):
+        """
+        Blocks until data has arrived and no new spans have been received for 'wait_window' seconds.
+        """
+
+        start_time = time.time()
+        with self._lock:
+            # Wait for ANY data to arrive first
+            while not self._spans and (time.time() - start_time) < total_timeout:
+                remaining = total_timeout - (time.time() - start_time)
+                self._lock.wait(remaining)
+
+            if not self._spans:
+                return False
+
+            # Wait to stop receiving
+            while (time.time() - self._last_span_time) < wait_window:
+                remaining = wait_window - (time.time() - self._last_span_time)
+                if remaining <= 0:
+                    break
+                self._lock.wait(remaining)
+                if (time.time() - start_time) > total_timeout:
+                    break
+        return True
 
     @staticmethod
     def _to_float(value: Any) -> float | None:
@@ -87,7 +109,6 @@ class TraceManager:
         if isinstance(value, (int, float)):
             return float(value)
         try:
-            # Handle cases like "5.25ms"
             return float(str(value).replace("ms", "").strip())
         except (TypeError, ValueError):
             return None
@@ -164,63 +185,3 @@ class TraceManager:
             metrics["delay_time"] = round(metrics["delay_time"], 3)
 
         return {"functionalities": dict(func_metrics), "microservices": dict(ms_metrics)}
-
-
-# ======================
-# SERVER INTERFACES
-# ======================
-
-class TraceServiceReceiver(trace_service_pb2_grpc.TraceServiceServicer):
-    """gRPC Service that receives traces from OpenTelemetry."""
-
-    def __init__(self, trace_manager: TraceManager):
-        self._trace_manager = trace_manager
-
-    def Export(self, request, context):
-        self._trace_manager.add_spans(request.resource_spans)
-        return trace_service_pb2.ExportTraceServiceResponse()
-
-
-# Create the single, shared instance of the TraceManager and the FastAPI app
-trace_manager = TraceManager()
-app = FastAPI(title="Trace Metrics Collector")
-
-
-@app.get("/metrics")
-def get_metrics_endpoint():
-    """Endpoint to return the aggregated metrics."""
-    return trace_manager.get_metrics()
-
-
-@app.post("/reset")
-def reset_collector_endpoint():
-    """Endpoint to reset Trace Manager"""
-    trace_manager.reset()
-    return {"status": "ok", "message": "Collector state reset."}
-
-
-def run():
-    """Configures and runs the gRPC and FastAPI servers."""
-    grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    trace_service_pb2_grpc.add_TraceServiceServicer_to_server(
-        TraceServiceReceiver(trace_manager), grpc_server
-    )
-    grpc_server.add_insecure_port("[::]:4317")
-
-    # Start the gRPC server in a background thread
-    grpc_thread = threading.Thread(target=grpc_server.start, daemon=True)
-    grpc_thread.start()
-    print("gRPC server started on port 4317.")
-
-    # Run FastAPI in the main thread to handle graceful shutdowns
-    print("FastAPI server starting on port 8000.")
-    try:
-        uvicorn.run(app, host="0.0.0.0", port=8000)
-    finally:
-        grpc_server.stop(0)
-        grpc_thread.join()
-        print("Servers shut down.")
-
-
-if __name__ == "__main__":
-    run()
