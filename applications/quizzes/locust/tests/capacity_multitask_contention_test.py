@@ -13,12 +13,13 @@ config = {
         "microservices": [
             {
                 "name": "tournament",
-                "capacity": 6,
+                "capacity": 8,
                 "services": [
                     {"name": "UpdateTournament", "requirement": 3},
                     {"name": "SolveQuiz", "requirement": 3},
                     {"name": "AddParticipant", "requirement": 2},
-                    {"name": "GetTournamentById", "requirement": 1}
+                    {"name": "GetTournamentById", "requirement": 1},
+                    {"name": "CreateTournament", "requirement": 3}
                 ]
             },
             {
@@ -26,16 +27,19 @@ config = {
                 "capacity": 6,
                 "services": [
                     {"name": "UpdateGeneratedQuiz", "requirement": 3},
-                    {"name": "StartTournamentQuiz", "requirement": 3},
-                    {"name": "GetQuizById", "requirement": 1}
+                    {"name": "StartTournamentQuiz", "requirement": 1},
+                    {"name": "GetQuizById", "requirement": 1},
+                    {"name": "GenerateQuiz", "requirement": 3}
                 ]
             },
             {
                 "name": "execution",
-                "capacity": 4,
+                "capacity": 5,
                 "services": [
                     {"name": "EnrollStudent", "requirement": 2},
-                    {"name": "GetStudentByExecutionIdAndUserId", "requirement": 1}
+                    {"name": "GetStudentByExecutionIdAndUserId", "requirement": 1},
+                    {"name": "GetCourseExecutionById", "requirement": 1},
+                    {"name": "CreateCourseExecution", "requirement": 2}
                 ]
             },
             {
@@ -67,6 +71,15 @@ config = {
                 "capacity": 3,
                 "services": [
                     {"name": "StartQuiz", "requirement": 2}
+                ]
+            },
+            {
+                "name": "course",
+                "capacity": 4,
+                "services": [
+                    {"name": "GetCourseByNameRemote", "requirement": 1},
+                    {"name": "CreateCourseRemote", "requirement": 2},
+                    {"name": "UpdateCourseExecutionCount", "requirement": 1}
                 ]
             }
         ]
@@ -158,12 +171,18 @@ class ComplexCapacityContentionTester(HttpUser):
         self.my_data = scenario["data"]
         self.t_id = scenario["tournament_id"]
 
-    @task(2)
-    def task_update_tournament(self):
-        AppUtils.update_tournament(
-            self.t_id, [self.my_data["topic_id"]], client=self.client)
-
     @task(1)
+    def task_create_and_update_tournament(self):
+        data = AppUtils.create_base_data(self.client)
+
+        if data:
+            t = AppUtils.create_tournament(
+                data["execution_id"], [data["topic_id"]], client=self.client)
+            if t:
+                AppUtils.update_tournament(
+                    t["aggregateId"], [self.my_data["topic_id"]], client=self.client)
+
+    @task(2)
     def task_enroll_join_solve(self):
         user_id = AppUtils.create_and_activate_user(client=self.client)
 

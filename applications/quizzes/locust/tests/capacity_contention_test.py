@@ -47,29 +47,38 @@ class CapacityContentionTester(HttpUser):
     @events.test_start.add_listener
     def on_test_start(environment, **kwargs):
         try:
-            environment.test_data = AppUtils.create_base_data()
-            owner_id = AppUtils.create_and_activate_user()
-            if not owner_id:
-                raise RuntimeError(
-                    "Failed to create owner for shared tournament")
+            environment.scenarios = []
+            for _ in range(6):
+                data = AppUtils.create_base_data()
+                if not data:
+                    continue
 
-            tournament_data = AppUtils.enroll_and_create_tournament(
-                environment.test_data["execution_id"],
-                owner_id,
-                environment.test_data["topic_id"])
+                owner_id = AppUtils.create_and_activate_user()
+                if not owner_id:
+                    continue
 
-            if not tournament_data:
-                raise RuntimeError("Failed to create shared tournament")
+                res_data = AppUtils.enroll_and_create_tournament(
+                    data["execution_id"], owner_id, data["topic_id"])
 
-            environment.tournament_id = tournament_data["aggregateId"]
+                if not res_data:
+                    continue
+
+                environment.scenarios.append({
+                    "data": data,
+                    "tournament_id": res_data["aggregateId"]
+                })
+
+            environment.scenario_index = 0
+
+            if not environment.scenarios:
+                raise RuntimeError("No valid scenarios could be prepared")
 
             AppUtils.start()
             AppUtils.inject_configuration(config)
             TestUtils.info("Setup complete!")
         except Exception as e:
             TestUtils.fail(f"Setup Failed: {e}")
-            environment.test_data = None
-            environment.tournament_id = None
+            environment.scenarios = []
 
     @events.test_stop.add_listener
     def on_test_stop(environment, **kwargs):
@@ -87,20 +96,28 @@ class CapacityContentionTester(HttpUser):
         except Exception as e:
             TestUtils.fail(f"Validation Error: {e}")
 
+    def on_start(self):
+        if not self.environment.scenarios:
+            self.stop(True)
+            return
+
+        idx = self.environment.scenario_index % len(self.environment.scenarios)
+        self.environment.scenario_index += 1
+        scenario = self.environment.scenarios[idx]
+        self.my_data = scenario["data"]
+        self.t_id = scenario["tournament_id"]
+
     @task
     def execute_capacity_workflow(self):
-        data = self.environment.test_data
-        t_id = getattr(self.environment, "tournament_id", None)
-
         # CreateUser and ActivateUser (User service)
         user_id = AppUtils.create_and_activate_user(client=self.client)
 
-        if not (data and t_id and user_id):
+        if not user_id:
             return
 
         # AddStudentFunctionalitySagas (Execution service)
-        if AppUtils.enroll_student(user_id, data["execution_id"], client=self.client):
+        if AppUtils.enroll_student(user_id, self.my_data["execution_id"], client=self.client):
             # AddParticipantFunctionalitySagas (Execution + Tournament services)
-            if AppUtils.join_tournament(t_id, data["execution_id"], user_id, client=self.client):
+            if AppUtils.join_tournament(self.t_id, self.my_data["execution_id"], user_id, client=self.client):
                 # FindTournamentFunctionalitySagas (Tournament service)
-                AppUtils.find_tournament(t_id, client=self.client)
+                AppUtils.find_tournament(self.t_id, client=self.client)

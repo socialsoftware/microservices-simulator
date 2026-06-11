@@ -87,6 +87,12 @@ class AppUtils:
             f"Failed to create user: {r.text if r else 'No response'}")
         return None
 
+    def get_user(user_id, client=requests):
+        r = AppUtils._get(f"/users/{user_id}", client=client)
+        if r is not None and r.status_code == 200:
+            return r.json()
+        return None
+
     @staticmethod
     def activate_user(user_id, client=requests):
         r = AppUtils._post(f"/users/{user_id}/activate", client=client)
@@ -179,6 +185,7 @@ class AppUtils:
             user_id = AppUtils.create_and_activate_user(client=client)
             if not user_id:
                 return None
+            AppUtils.enroll_student(user_id, execution_id, client=client)
 
         now = datetime.datetime.now(datetime.timezone.utc)
         payload = {
@@ -286,20 +293,20 @@ class AppUtils:
         return None
 
     @staticmethod
-    def create_base_data():
+    def create_base_data(client=requests):
         """Creates an execution, topic, and questions gracefully."""
-        exec_data = AppUtils.create_execution()
+        exec_data = AppUtils.create_execution(client=client)
         if not exec_data:
             logging.error("create_base_data aborted: create_execution failed.")
             return None
 
         course_id = exec_data.get("courseAggregateId")
-        topic_data = AppUtils.create_topic(course_id)
+        topic_data = AppUtils.create_topic(course_id, client=client)
         if not topic_data:
             logging.error("create_base_data aborted: create_topic failed.")
             return None
 
-        AppUtils.create_questions(course_id, topic_data)
+        AppUtils.create_questions(course_id, topic_data, client=client)
 
         return {
             "execution_id": exec_data.get("aggregateId"),
