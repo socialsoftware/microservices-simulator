@@ -1,14 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 public enum TestStatus {
-    INTERNAL_EXCEPTION,
+    INTERNAL_SYSTEM_EXCEPTION,
+    CRITICAL_STEP_FAILURE,
     EXECUTION_LIMIT_EXCEEDED,
-    SCHEDULE_REJECTED
+    INTERDEPENDENCY_RESOLUTION_FAILED
+
+    // TODO "UNRECOVERABLE_INTERINVARIANT_VIOLATION" OR "INCONSISTENT_STATE"
 
     // TODO possible future status
-    // HEALTHY, for now we are deeming this as the absence of other status
-    // CRASHED, this should be reserved for when the whole system crashed, and needs
-    // rebooting
     // INVARIANT_VIOLATION,
     // SEMANTIC_LOCKS,
     // COMPENSATED_ACTIONS,

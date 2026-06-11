@@ -28,55 +28,55 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordi
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.functionalities.UserFunctionalities;
 
-public class QuizzesTestFactory {
+class QuizzesTestFactory {
 
-	public static final String ANONYMOUS = "ANONYMOUS";
+	static final String ANONYMOUS = "ANONYMOUS";
 
-	public static final LocalDateTime TIME_1 = DateHandler.now().plusMinutes(5);
-	public static final LocalDateTime TIME_2 = DateHandler.now().plusMinutes(25);
-	public static final LocalDateTime TIME_3 = DateHandler.now().plusHours(1).plusMinutes(5);
-	public static final LocalDateTime TIME_4 = DateHandler.now().plusHours(1).plusMinutes(25);
+	static final LocalDateTime TIME_1 = DateHandler.now().plusMinutes(5);
+	static final LocalDateTime TIME_2 = DateHandler.now().plusMinutes(25);
+	static final LocalDateTime TIME_3 = DateHandler.now().plusHours(1).plusMinutes(5);
+	static final LocalDateTime TIME_4 = DateHandler.now().plusHours(1).plusMinutes(25);
 
-	public static final Integer COURSE_EXECUTION_AGGREGATE_ID_1 = 1;
-	public static final String COURSE_EXECUTION_NAME = "BLCM";
-	public static final String COURSE_EXECUTION_TYPE = "TECNICO";
-	public static final String COURSE_EXECUTION_ACRONYM = "TESTBLCM";
-	public static final String COURSE_EXECUTION_ACADEMIC_TERM = "2022/2023";
+	static final Integer COURSE_EXECUTION_AGGREGATE_ID_1 = 1;
+	static final String COURSE_EXECUTION_NAME = "BLCM";
+	static final String COURSE_EXECUTION_TYPE = "TECNICO";
+	static final String COURSE_EXECUTION_ACRONYM = "TESTBLCM";
+	static final String COURSE_EXECUTION_ACADEMIC_TERM = "2022/2023";
 
-	public static final Integer TOPIC_AGGREGATE_ID_1 = 4;
-	public static final Integer TOPIC_AGGREGATE_ID_2 = 5;
-	public static final Integer TOPIC_AGGREGATE_ID_3 = 6;
-	public static final Integer USER_AGGREGATE_ID_1 = 7;
-	public static final Integer USER_AGGREGATE_ID_2 = 8;
-	public static final Integer USER_AGGREGATE_ID_3 = 9;
-	public static final Integer TOURNAMENT_AGGREGATE_ID_1 = 10;
-	public static final Integer QUIZ_AGGREGATE_ID_1 = 13;
+	static final Integer TOPIC_AGGREGATE_ID_1 = 4;
+	static final Integer TOPIC_AGGREGATE_ID_2 = 5;
+	static final Integer TOPIC_AGGREGATE_ID_3 = 6;
+	static final Integer USER_AGGREGATE_ID_1 = 7;
+	static final Integer USER_AGGREGATE_ID_2 = 8;
+	static final Integer USER_AGGREGATE_ID_3 = 9;
+	static final Integer TOURNAMENT_AGGREGATE_ID_1 = 10;
+	static final Integer QUIZ_AGGREGATE_ID_1 = 13;
 
-	public static final String USER_NAME_1 = "USER_NAME_1";
-	public static final String USER_NAME_2 = "USER_NAME_2";
-	public static final String USER_NAME_3 = "USER_NAME_3";
+	static final String USER_NAME_1 = "USER_NAME_1";
+	static final String USER_NAME_2 = "USER_NAME_2";
+	static final String USER_NAME_3 = "USER_NAME_3";
 
-	public static final String USER_USERNAME_1 = "USER_USERNAME_1";
-	public static final String USER_USERNAME_2 = "USER_USERNAME_2";
-	public static final String USER_USERNAME_3 = "USER_USERNAME_3";
+	static final String USER_USERNAME_1 = "USER_USERNAME_1";
+	static final String USER_USERNAME_2 = "USER_USERNAME_2";
+	static final String USER_USERNAME_3 = "USER_USERNAME_3";
 
-	public static final String STUDENT_ROLE = "STUDENT";
-	public static final String ACRONYM_1 = "ACRONYM_1";
+	static final String STUDENT_ROLE = "STUDENT";
+	static final String ACRONYM_1 = "ACRONYM_1";
 
-	public static final String TOPIC_NAME_1 = "TOPIC_NAME_1";
-	public static final String TOPIC_NAME_2 = "TOPIC_NAME_2";
-	public static final String TOPIC_NAME_3 = "TOPIC_NAME_3";
+	static final String TOPIC_NAME_1 = "TOPIC_NAME_1";
+	static final String TOPIC_NAME_2 = "TOPIC_NAME_2";
+	static final String TOPIC_NAME_3 = "TOPIC_NAME_3";
 
-	public static final String TITLE_1 = "Title One";
-	public static final String TITLE_2 = "Title Two";
-	public static final String TITLE_3 = "Title Three";
-	public static final String CONTENT_1 = "Content One";
-	public static final String CONTENT_2 = "Content Two";
-	public static final String CONTENT_3 = "Content Three";
-	public static final String OPTION_1 = "Option One";
-	public static final String OPTION_2 = "Option Two";
-	public static final String OPTION_3 = "Option Three";
-	public static final String OPTION_4 = "Option Four";
+	static final String TITLE_1 = "Title One";
+	static final String TITLE_2 = "Title Two";
+	static final String TITLE_3 = "Title Three";
+	static final String CONTENT_1 = "Content One";
+	static final String CONTENT_2 = "Content Two";
+	static final String CONTENT_3 = "Content Three";
+	static final String OPTION_1 = "Option One";
+	static final String OPTION_2 = "Option Two";
+	static final String OPTION_3 = "Option Three";
+	static final String OPTION_4 = "Option Four";
 
 	private final ExecutionFunctionalities courseExecutionFunctionalities;
 	private final UserFunctionalities userFunctionalities;
@@ -85,7 +85,7 @@ public class QuizzesTestFactory {
 	private final TournamentFunctionalities tournamentFunctionalities;
 	private final SagaUnitOfWorkService sagaUnitOfWorkService;
 
-	public QuizzesTestFactory(
+	QuizzesTestFactory(
 			SagaUnitOfWorkService sagaUnitOfWorkService,
 			ExecutionFunctionalities courseExecutionFunctionalities,
 			UserFunctionalities userFunctionalities,
@@ -101,7 +101,7 @@ public class QuizzesTestFactory {
 		this.tournamentFunctionalities = tournamentFunctionalities;
 	}
 
-	public CourseExecutionDto createCourseExecution(
+	CourseExecutionDto createCourseExecution(
 			String name, String type, String acronym, String term, LocalDateTime endDate) {
 
 		var courseExecutionDto = new CourseExecutionDto();
@@ -116,7 +116,7 @@ public class QuizzesTestFactory {
 		return Objects.requireNonNull(createdCourseExecutionDto);
 	}
 
-	public UserDto createUser(String name, String username, String role) {
+	UserDto createUser(String name, String username, String role) {
 		var userDto = new UserDto();
 		userDto.setName(name);
 		userDto.setUsername(username);
@@ -129,7 +129,7 @@ public class QuizzesTestFactory {
 		return createdUserDto;
 	}
 
-	public TopicDto createTopic(CourseExecutionDto courseExecutionDto, String name) {
+	TopicDto createTopic(CourseExecutionDto courseExecutionDto, String name) {
 		var topicDto = new TopicDto();
 		topicDto.setName(name);
 
@@ -138,7 +138,7 @@ public class QuizzesTestFactory {
 		return Objects.requireNonNull(createdTopicDto);
 	}
 
-	public QuestionDto createQuestion(
+	QuestionDto createQuestion(
 			CourseExecutionDto courseExecutionDto, List<TopicDto> topicDtos,
 			String title, String content, String correctOption, String wrongOption) {
 
@@ -164,7 +164,7 @@ public class QuizzesTestFactory {
 		return Objects.requireNonNull(createdQuestionDto);
 	}
 
-	public TournamentDto createTournament(LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions,
+	TournamentDto createTournament(LocalDateTime startTime, LocalDateTime endTime, Integer numberOfQuestions,
 			Integer userCreatorId, Integer courseExecutionId, List<Integer> topicIds) {
 
 		var tournamentDto = new TournamentDto();
@@ -177,7 +177,7 @@ public class QuizzesTestFactory {
 		return Objects.requireNonNull(createdTournamentDto);
 	}
 
-	public InitialState setupInitialState() {
+	InitialState setupInitialState() {
 		UserDto user = createUser(
 				QuizzesTestFactory.USER_NAME_1,
 				QuizzesTestFactory.USER_NAME_1,
@@ -212,7 +212,7 @@ public class QuizzesTestFactory {
 		return new InitialState(user, courseExecution, topic, question, tournament);
 	}
 
-	public AddParticipantFunctionalitySagas createAddParticipantFunctionality(
+	AddParticipantFunctionalitySagas createAddParticipantFunctionality(
 			SagaUnitOfWorkService sagaUnitOfWorkService,
 			Integer tournamentAggrId,
 			Integer courseExecutionAggrId,
@@ -233,7 +233,7 @@ public class QuizzesTestFactory {
 		return addParticipantSaga;
 	}
 
-	public AddParticipantFunctionalitySagas setupInitialStateAndCreateAddParticipantFunctionality(
+	AddParticipantFunctionalitySagas setupInitialStateAndCreateAddParticipantFunctionality(
 			SagaUnitOfWorkService sagaUnitOfWorkService,
 			CommandGateway gateway,
 			ExecutionFunctionalities executionFuncs) {
@@ -250,7 +250,7 @@ public class QuizzesTestFactory {
 		return addParticipantSaga;
 	}
 
-	public UpdateTournamentFunctionalitySagas createUpdateTournamentFunctionality(
+	UpdateTournamentFunctionalitySagas createUpdateTournamentFunctionality(
 			SagaUnitOfWorkService sagaUnitOfWorkService,
 			TournamentDto tournamentDto,
 			Set<Integer> topicsAggregateIds,
@@ -267,7 +267,7 @@ public class QuizzesTestFactory {
 				gateway);
 	}
 
-	public UpdateTournamentFunctionalitySagas setupInitialStateAndCreateUpdateTournamentFunctionality(
+	UpdateTournamentFunctionalitySagas setupInitialStateAndCreateUpdateTournamentFunctionality(
 			SagaUnitOfWorkService sagaUnitOfWorkService,
 			CommandGateway gateway) {
 
@@ -288,7 +288,7 @@ public class QuizzesTestFactory {
 				gateway);
 	}
 
-	public RemoveCourseExecutionFunctionalitySagas createRemoveCourseExecutionFunctionality(
+	RemoveCourseExecutionFunctionalitySagas createRemoveCourseExecutionFunctionality(
 			SagaUnitOfWorkService sagaUnitOfWorkService,
 			Integer executionAggregateId,
 			CommandGateway gateway) {
@@ -300,7 +300,7 @@ public class QuizzesTestFactory {
 				sagaUnitOfWorkService, executionAggregateId, uow, gateway);
 	}
 
-	public RemoveCourseExecutionFunctionalitySagas setupInitialStateAndCreateRemoveCourseExecutionFunctionality(
+	RemoveCourseExecutionFunctionalitySagas setupInitialStateAndCreateRemoveCourseExecutionFunctionality(
 			SagaUnitOfWorkService sagaUnitOfWorkService,
 			CommandGateway gateway) {
 
@@ -313,7 +313,7 @@ public class QuizzesTestFactory {
 	}
 
 	// TODO requires fixing SagaStateConverter to return SagaState
-	public SagaState sagaStateOf(Integer sagaAggregateId) {
+	SagaState sagaStateOf(Integer sagaAggregateId) {
 		SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork("TEST");
 		Aggregate agg = sagaUnitOfWorkService.aggregateLoadAndRegisterRead(sagaAggregateId, uow);
 		var sagaAgg = (SagaAggregate) Objects.requireNonNull(agg);

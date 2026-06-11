@@ -9,14 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
 
-public class TestBrokenFunctionality extends WorkflowFunctionality {
-    public static final String FIRST_STEP_NAME = "firstStepCorrect";
-    public static final String SECOND_STEP_NAME = "secondStepCorrect";
-    public static final String THIRD_STEP_NAME = "thirdStepBreaks";
-
-    private final SagaUnitOfWorkService unitOfWorkService;
-    private final SagaUnitOfWork unitOfWork;
-    private final RuntimeException expectedException;
+class TestBrokenFunctionality extends WorkflowFunctionality {
+    static final String FIRST_STEP_NAME = "firstStepCorrect";
+    static final String SECOND_STEP_NAME = "secondStepCorrect";
+    static final String THIRD_STEP_NAME = "thirdStepBreaks";
 
     private boolean firstStepExecuted = false;
     private boolean secondStepExecuted = false;
@@ -26,18 +22,19 @@ public class TestBrokenFunctionality extends WorkflowFunctionality {
     private boolean secondStepCompensated = false;
     private boolean thirdStepCompensated = false;
 
-    public TestBrokenFunctionality(
+    TestBrokenFunctionality(
             SagaUnitOfWorkService unitOfWorkService,
             SagaUnitOfWork unitOfWork,
             RuntimeException expectedException) {
 
-        this.unitOfWorkService = unitOfWorkService;
-        this.unitOfWork = unitOfWork;
-        this.expectedException = expectedException;
-        buildWorkflow();
+        buildWorkflow(unitOfWorkService, unitOfWork, expectedException);
     }
 
-    public void buildWorkflow() {
+    void buildWorkflow(
+            SagaUnitOfWorkService unitOfWorkService,
+            SagaUnitOfWork unitOfWork,
+            RuntimeException expectedException) {
+
         this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
 
         SagaStep firstStepCorrect = new SagaStep(FIRST_STEP_NAME, () -> {
@@ -70,27 +67,27 @@ public class TestBrokenFunctionality extends WorkflowFunctionality {
         this.workflow.addStep(thirdStepBreaks);
     }
 
-    public boolean hasFirstStepExecuted() {
+    boolean hasFirstStepExecuted() {
         return firstStepExecuted;
     }
 
-    public boolean hasSecondStepExecuted() {
+    boolean hasSecondStepExecuted() {
         return secondStepExecuted;
     }
 
-    public boolean hasThirdStepFailed() {
+    boolean hasThirdStepFailed() {
         return thirdStepBroke;
     }
 
-    public boolean hasFirstStepCompensated() {
+    boolean hasFirstStepCompensated() {
         return firstStepCompensated;
     }
 
-    public boolean hasSecondStepCompensated() {
+    boolean hasSecondStepCompensated() {
         return secondStepCompensated;
     }
 
-    public boolean hasThirdStepCompensated() {
+    boolean hasThirdStepCompensated() {
         return thirdStepCompensated;
     }
 }

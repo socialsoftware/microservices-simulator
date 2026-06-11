@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.T
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
-public record InitialState(
+record InitialState(
         UserDto userDto,
         CourseExecutionDto courseExecutionDto,
         TopicDto topicDto,

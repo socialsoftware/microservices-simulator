@@ -5,6 +5,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -22,11 +26,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.FunctionalityUtils;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent;
@@ -82,6 +88,102 @@ class OracleQuizzesAppTest {
     // ======= Tests =======
 
     @Test
+    @DisplayName("Schedules that are too long should be forcibly stopped by the oracle to avoid infinite loops")
+    void shouldStopExecutionWhenScheduleExceedsLimit() {
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                TestFunctionality.class.getSimpleName());
+
+        final int maxSteps = 500;
+        final int tooManyStepsCount = 600;
+        assertTrue(maxSteps < tooManyStepsCount); // sanity check for the test itself
+
+        List<FlowStep> tooManySteps = new ArrayList<>(tooManyStepsCount);
+
+        for (int i = 0; i < tooManyStepsCount; i++) {
+            FlowStep newStep = new SagaStep(String.valueOf(i), () -> {
+            });
+
+            tooManySteps.add(newStep);
+        }
+
+        TestFunctionality testFunc = new TestFunctionality(tooManySteps, sagaUnitOfWorkService, uow);
+
+        Supplier<TestCase> testFuncScenario = () -> {
+            return new TestCase.Builder()
+                    .addFunctionality(simpleFunctionalityId(testFunc, 1), testFunc)
+                    .build();
+        };
+
+        TestResult result = oracle.runTest(testFuncScenario);
+
+        assertEquals(1, result.functionalities().size());
+        assertTrue(result.schedule().size() < tooManySteps.size());
+        assertEquals(maxSteps, result.schedule().size());
+        assertEquals(Set.of(TestStatus.EXECUTION_LIMIT_EXCEEDED), result.statuses());
+    }
+
+    @Test
+    @DisplayName("A failure in a Critical Step (CommitStep, AbortStep, CompensationStep, EventHandlerStep) should be treated as a critical failure and stop the test execution")
+    void shouldTreatCriticalStepsFailureAsCritical() {
+        // TODO extend this test to also test for the reamining critical steps
+
+        // TODO should test that when a critical step fails with a non
+        // * SimulatorException the test result registers status as
+        // * INTERNAL_SYSTEM_EXCEPTION and not CRITICAL_STEP_FAILURE
+
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                TestFunctionality.class.getSimpleName());
+
+        SagaUnitOfWork otherUow = sagaUnitOfWorkService.createUnitOfWork(
+                TestFunctionality.class.getSimpleName());
+
+        // Spy uowService so it throws an exception when committing the target uow.
+        SagaUnitOfWorkService badSagaUnitOfWorkServiceSpy = spy(sagaUnitOfWorkService);
+        doThrow(new SimulatorException("Simulated failure"))
+                .when(badSagaUnitOfWorkServiceSpy)
+                .commit(uow);
+
+        // Spy oracle so it returns the bad uowService instead of a normal one.
+        Oracle oracleSpy = spy(oracle);
+        doReturn(badSagaUnitOfWorkServiceSpy)
+                .when(oracleSpy)
+                .getBean(SagaUnitOfWorkService.class);
+
+        FlowStep step = new SagaStep("WorkingStep", () -> {
+        });
+
+        FlowStep otherStep = new SagaStep("OtherWorkingStep", () -> {
+        });
+
+        TestFunctionality testFunc = new TestFunctionality(List.of(step), sagaUnitOfWorkService, uow);
+        TestFunctionality otherFunc = new TestFunctionality(List.of(otherStep), sagaUnitOfWorkService, otherUow);
+
+        FunctionalityId testFuncId = simpleFunctionalityId(testFunc, 1);
+        FunctionalityId otherFuncId = simpleFunctionalityId(otherFunc, 2);
+
+        StepId commitStepId = StepId.forCommitStep(testFuncId);
+        StepId otherFuncFirstStepId = getFunctionalityStepIds(otherFuncId, otherFunc, false).getFirst();
+
+        // scenario where otherFunc starts only after testFunc commit step
+        Supplier<TestCase> testFuncScenario = () -> {
+            return new TestCase.Builder()
+                    .addFunctionality(testFuncId, testFunc)
+                    .addFunctionality(otherFuncId, otherFunc)
+                    .addInterDependency(otherFuncFirstStepId, commitStepId)
+                    .build();
+        };
+
+        TestResult result = oracleSpy.runTest(testFuncScenario);
+
+        assertEquals(2, result.functionalities().size());
+        assertEquals(2, result.schedule().size());
+        assertEquals(Set.of(TestStatus.CRITICAL_STEP_FAILURE), result.statuses());
+
+        // assert that otherFunc did not execute all, the test was forced to stop
+        assertFalse(result.schedule().contains(otherFuncFirstStepId));
+    }
+
+    @Test
     @DisplayName("Single run of one functionality should work")
     void singleRunOfFunctionalityShouldWork() {
         TestResult result = oracle.runTest(setupAddParticipantSagaInitialState);
@@ -94,8 +196,6 @@ class OracleQuizzesAppTest {
         UserDto readUserDto = executedAddParticipantSaga.getUserDto();
         assertEquals(QuizzesTestFactory.USER_NAME_1, readUserDto.getUsername());
         assertEquals(QuizzesTestFactory.USER_NAME_1, readUserDto.getName());
-        // TODO fix this assert
-        // assertEquals(QuizzesTestFactory.STUDENT_ROLE, readUserDto.getRole());
 
         FunctionalityId funcId = getOnlyFunctionalityId(result);
         List<StepId> expectedSchedule = getFunctionalityStepIds(funcId, executedAddParticipantSaga, true);
@@ -166,8 +266,7 @@ class OracleQuizzesAppTest {
         assertEquals(1, result.exceptions().size());
         assertInstanceOf(SimulatorException.class, result.exceptions().get(brokenStep));
 
-        // TODO for now is wrong because its assuming schedule REJECTED
-        // assertTrue(result.statuses().isEmpty());
+        assertTrue(result.statuses().isEmpty());
     }
 
     @Test
@@ -202,10 +301,8 @@ class OracleQuizzesAppTest {
         assertFalse(executedTestFunc.hasFirstStepCompensated());
 
         // INTERNAL_ERROR status is registered
-        // TODO this asserts are broken because the oracle is registering
-        // SCHEDULE_REJECTED
-        // assertEquals(1, result.statuses().size());
-        // assertEquals(Set.of(TestStatus.INTERNAL_EXCEPTION), result.statuses());
+        assertEquals(1, result.statuses().size());
+        assertEquals(Set.of(TestStatus.INTERNAL_SYSTEM_EXCEPTION), result.statuses());
 
         // the exception registered in the test result is the expected one
         FunctionalityId funcId = getOnlyFunctionalityId(result);
@@ -248,8 +345,6 @@ class OracleQuizzesAppTest {
         expectedSchedule.addAll(getFunctionalityCompensationStepIds(funcId, executedTestFunc));
 
         assertEquals(expectedSchedule, result.schedule());
-
-        // TODO do same test but for ConcludeQuizFunctionalitySagas
     }
 
     @ParameterizedTest()
@@ -544,14 +639,16 @@ class OracleQuizzesAppTest {
                     .build();
         };
 
-        oracle.runTest(setup, result -> {
+        TestResult result = oracle.runTest(setup, res -> {
             StepId eventStepId = Objects.requireNonNull(eventStepIdRef.get());
-            assertFalse(result.schedule().contains(eventStepId));
+            assertFalse(res.schedule().contains(eventStepId));
 
             InitialState initialState = Objects.requireNonNull(stateRef.get());
             String originalName = Objects.requireNonNull(originalNameRef.get());
             assertTournamentCreatorName(initialState.tournamentDto().getAggregateId(), originalName);
         });
+
+        assertEquals(Set.of(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED), result.statuses());
     }
 
     @Test
@@ -621,6 +718,7 @@ class OracleQuizzesAppTest {
         assertFalse(testFunc.hasSecondStepCompensated());
         assertFalse(testFunc.hasThirdStepCompensated());
         assertTrue(compensationSteps.stream().noneMatch(result.schedule()::contains));
+        assertEquals(Set.of(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED), result.statuses());
     }
 
     @Test

@@ -24,6 +24,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 final class ScheduleExecutor {
     // TODO internal StepDependencyGraph could be more efficient and cleaner
 
+    // TODO Should implement TestStatus.DEADLOCK verification.
+    // * Happens when the depedency graph (intra + inter deps) has cycles.
+    // * Should the verification be robust to steps/intra-deps that spawn at
+    // * runtime, or just the ones known at initialization time?
+
     private static final int STEP_EXECUTION_LIMIT = 500;
 
     private static final Logger log = LoggerFactory.getLogger(ScheduleExecutor.class);
@@ -92,13 +97,19 @@ final class ScheduleExecutor {
     }
 
     private void evaluateTestCompletionStatus() {
-        int totalSteps = steps.size(); // TODO should this account for the interdeps?
+        if (detectedStatuses.contains(TestStatus.INTERNAL_SYSTEM_EXCEPTION)
+                || detectedStatuses.contains(TestStatus.CRITICAL_STEP_FAILURE)) {
+            return; // when a critical failure is detected other statuses are invalidated
+        }
 
         if (schedule.size() >= STEP_EXECUTION_LIMIT) {
             detectedStatuses.add(TestStatus.EXECUTION_LIMIT_EXCEEDED);
-        } else if (schedule.size() < totalSteps) {
-            // ! TODO review SCHEDULE_REJECTED and DEADLOCK statuses
-            detectedStatuses.add(TestStatus.SCHEDULE_REJECTED);
+            return;
+        }
+
+        if (!interDependencies.getSteps().stream().allMatch(schedule::contains)) {
+            // TODO should it be possible to specify which inter-dep(s) were impossible?
+            detectedStatuses.add(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED);
         }
     }
 
@@ -132,7 +143,7 @@ final class ScheduleExecutor {
     }
 
     private void captureEmittedEventSteps(StepId stepId) {
-        // Run all event handling routines at once to capture events emitted by the step.
+        // Run all event handling routines at once to capture events emitted by step.
         EventUtils.runEventHandlingScheduledTasks(eventHandlings);
         Set<DeferredEventInvocation> eventInvocations = captureSession.drain();
 
@@ -159,47 +170,52 @@ final class ScheduleExecutor {
      *         execution (e.g. business exception on functionality step)
      */
     private boolean handleStepFailure(OracleStep step, Exception e) {
-        boolean isCriticalFailure = false;
-        StepId stepId = step.getId();
-
         if (e instanceof CompletionException ce && ce.getCause() instanceof Exception cause) {
             // unwrap CompletionExceptions if they wrap Exception(excludes Throwables, null)
             e = cause;
         }
 
-        stepExceptionsMap.put(stepId, e);
+        stepExceptionsMap.put(step.getId(), e);
 
         if (!(e instanceof SimulatorException)) {
             log.error(
                     "Step '{}' failed with an unexpected system exception, which indicates a possible broken system state. Stopping test execution",
-                    stepId, e);
-            detectedStatuses.add(TestStatus.INTERNAL_EXCEPTION);
-            isCriticalFailure = true;
+                    step.getId(), e);
+            detectedStatuses.add(TestStatus.INTERNAL_SYSTEM_EXCEPTION);
+            return true;
         }
 
-        if (step instanceof CommitStep || step instanceof AbortStep) {
-            log.error(
-                    "[{}] '{}' failed, resulting in a broken system state. Stopping test execution",
-                    step.getClass().getName(), stepId, e);
-            detectedStatuses.add(TestStatus.INTERNAL_EXCEPTION);
-            isCriticalFailure = true;
+        return switch (step) {
+            case FunctionalityStep funcStep -> logBenignStepFailureAndInjectCompensation(funcStep);
 
-        } else if (step instanceof CompensationStep || step instanceof EventHandlerStep) {
-            log.warn("[{}] '{}' failed. Continuing test normally",
-                    step.getClass().getName(), stepId, e);
+            // critical failures
+            case CompensationStep compensationStep -> logCriticalStepFailureAndRegisterStatus(step, e);
+            case CommitStep commitStep -> logCriticalStepFailureAndRegisterStatus(step, e);
+            case AbortStep abortStep -> logCriticalStepFailureAndRegisterStatus(step, e);
+            case EventHandlerStep eventHandlerStep -> logCriticalStepFailureAndRegisterStatus(step, e);
+        };
+    }
 
-        } else if (step instanceof FunctionalityStep funcStep) {
-            log.info(
-                    "[{}] '{}' failed with a domain exception. Injecting compensation path in test",
-                    step.getClass().getName(), stepId);
-            injectCompensation(funcStep, stepId);
+    /**
+     * @return {@code true}, to indicate that it was a critical failure.
+     */
+    private boolean logCriticalStepFailureAndRegisterStatus(OracleStep step, Exception e) {
+        log.error(
+                "Critical step '{}' of type [{}] failed, resulting in a broken system state. Stopping test execution",
+                step.getId(), step.getClass().getName(), e);
+        detectedStatuses.add(TestStatus.CRITICAL_STEP_FAILURE);
+        return true;
+    }
 
-        } else {
-            throw new IllegalStateException("Unknown [%s] implementation type for step %s: [%s]"
-                    .formatted(OracleStep.class.getName(), stepId, step.getClass().getName()));
-        }
-
-        return isCriticalFailure;
+    /**
+     * @return {@code false}, to indicate that it was not a critical failure.
+     */
+    private boolean logBenignStepFailureAndInjectCompensation(FunctionalityStep funcStep) {
+        log.info(
+                "[{}] '{}' failed with a domain exception. Injecting compensation path for functionality '{}' in the test",
+                funcStep.getClass().getName(), funcStep.getId(), funcStep.getFunctionalityId());
+        injectCompensation(funcStep, funcStep.getId());
+        return false;
     }
 
     private void injectCompensation(FunctionalityStep funcStep, StepId stepId) {

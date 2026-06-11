@@ -2,7 +2,9 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 import java.util.Set;
 
-interface OracleStep {
+sealed interface OracleStep
+        permits FunctionalityStep, CompensationStep, CommitStep, AbortStep, EventHandlerStep {
+
     void execute();
 
     StepId getId();
