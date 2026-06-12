@@ -53,3 +53,8 @@ performance-analysis/experiments
 
 ### Python ###
 **/__pycache__/
+# Python build and packaging artifacts
+*.egg-info/
+.eggs/
+build/
+dist/

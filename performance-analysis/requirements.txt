@@ -4,3 +4,7 @@ protobuf
 gymnasium
 numpy
 requests
+psycopg2-binary
+locust
+locust-plugins
+-e .

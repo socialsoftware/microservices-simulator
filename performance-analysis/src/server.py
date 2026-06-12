@@ -8,8 +8,8 @@ from opentelemetry.proto.collector.trace.v1 import (
     trace_service_pb2_grpc,
 )
 
-from trace_collector import TraceManager
-from agent.agent import run_agent
+from src.trace_collection.trace_collector import TraceManager
+from src.agent.agent import run_agent
 
 # Create the single, shared instance of the TraceManager
 trace_manager = TraceManager()

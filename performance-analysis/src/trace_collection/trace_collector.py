@@ -113,7 +113,6 @@ class TraceManager:
         except (TypeError, ValueError):
             return None
 
-    # curl http://127.0.0.1:8000/metrics
     def get_metrics(self) -> Dict[str, Any]:
         """Computes and returns the aggregated metrics."""
 
