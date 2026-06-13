@@ -12,7 +12,7 @@ and provides structure templates for each category.
 |------|----------------|-------------------|
 | **T1 Intra-Invariant** | `<Aggregate>IntraInvariantTest` | Creation happy-path (all P1 pass + fields) · one violation per non-`final` P1 rule (EP) · boundary straddle (BVA on/off-point) for ordered-domain predicates. All via direct construction/mutation + `verifyInvariants()`. |
 | **T2 Service-Command** | `{OperationName}Test` / `{Aggregate}CountsTest` | Service methods invoked via command handlers from other aggregates' sagas, not exposed through `{Aggregate}Functionalities`. Happy path · floor/ceiling behaviour. |
-| **T3 Functionality** | `<FunctionalityName>Test` | Happy path · P3 guard violations · ≥1 semantic-lock-acquisition case per saga lock step |
+| **T3 Functionality** | `<FunctionalityName>Test` | Happy path (full `NOT_IN_SAGA→IN_{OP}→NOT_IN_SAGA` traversal) · P3 guard violations · state-transition (lock-acquisition) case per saga lock step |
 | **T4 Inter-Invariant** | `<Consumer>InterInvariantTest` | Event received → cached state updated; unrelated event → state unchanged |
 
 ---
@@ -278,17 +278,48 @@ def "<op>: success"() {
 
 ---
 
+## The Saga as a State Machine
+
+Every write saga is a finite state machine over its aggregate's `SagaState`:
+
+- **States** — `NOT_IN_SAGA` (the quiescent state; the framework sets it in the `Saga{Aggregate}`
+  constructor) plus one `IN_{OP}` *locked* state per operation that must hold a semantic lock across
+  steps.
+- **Transitions** —
+  - *acquire*: a step calling `setSemanticLock(IN_{OP})` drives `NOT_IN_SAGA → IN_{OP}`;
+  - *complete*: a successful commit drives `IN_{OP} → NOT_IN_SAGA`;
+  - *compensate*: a mid-saga failure releases the lock — also `IN_{OP} → NOT_IN_SAGA`.
+- **Guards** — `setForbiddenStates([...])` on a step blocks a transition when a foreign aggregate is
+  already in a listed state.
+
+Testing a write saga means covering its transitions. The two existing T3 saga tests already do this:
+
+| Test | Transition(s) covered |
+|------|-----------------------|
+| happy-path `success` | full traversal `NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA` (asserts the aggregate ends `NOT_IN_SAGA`) |
+| `<step> acquires IN_{OP} semantic lock` | pins the intermediate `IN_{OP}` state after the *acquire* transition, then resumes to complete the traversal |
+
+**Guard** transitions (`setForbiddenStates`) and **compensation** faults are out of current scope —
+see Appendix (Cross-Functionality and Fault/Behavior tests).
+
+---
+
 ## T3 — Functionality Test
 
-**Purpose:** Cover the happy path, P3 guard violations, and the semantic-lock-acquisition
-case for each saga lock step. P1 intra-invariants are **not** tested here —
-see § T1.
+**Purpose:** Cover the happy path (the full state-machine traversal), P3 guard violations, and the
+state-transition (semantic-lock acquisition) case for each saga lock step. P1 intra-invariants are
+**not** tested here — see § T1.
 
-**Semantic-lock-acquisition rule:**
-- For each saga step that calls `setSemanticLock`, run the workflow through that step via
-  `executeUntilStep`, assert the aggregate is in the expected `IN_{OPERATION}` saga state, then
-  `resumeWorkflow(uow)` and assert `noExceptionThrown()`.
+**State-transition rule (semantic-lock acquisition):** Each saga step that calls `setSemanticLock` is
+an *acquire* transition into `IN_{OP}` (see § The Saga as a State Machine).
+- For each such step, run the workflow through it via `executeUntilStep`, assert the aggregate is in
+  the expected `IN_{OPERATION}` saga state (the post-*acquire* state), then `resumeWorkflow(uow)` and
+  assert `noExceptionThrown()` (completing the traversal back to `NOT_IN_SAGA`).
 - Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix, Cross-Functionality Test**.
+
+**Happy-path = full traversal:** the `success` test drives `NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA`.
+Asserting `sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA` at the end pins the *complete*
+transition's endpoint (see § The Saga as a State Machine).
 
 **Upstream-invariant rule:** When a saga increments a counter cached on an upstream aggregate (e.g., `questionCount` on `Course`), verify that the upstream aggregate's invariants permit the new counter value *before the first test runs*. If not, add the necessary prerequisite state to the `setup:` block. For example, if `Course` enforces `executionCount > 0` when `questionCount > 0`, every `CreateQuestion` test must call `createExecution(courseId, ...)` in `setup:` first. Place these prerequisites in the shared `setup()` block by default; only inline them in a per-method `given:` block when a single test needs a state variant the rest of the file does not share.
 
@@ -334,6 +365,7 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
         def result = <primary>Functionalities.<functionalityName>(/* args */)
         then:
         // assert expected outcome
+        sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA  // complete transition: IN_<OP> → NOT_IN_SAGA
     }
 
     // ─── Invariant / guard violations ─────────────────────────────────────────
@@ -350,11 +382,11 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
     // one P3 guard case per violation
     // Skip P1 tests — they belong in {Aggregate}IntraInvariantTest.
 
-    // ─── Semantic-lock acquisition ─────────────────────────────────────────────
-    // One case per saga step that calls setSemanticLock
+    // ─── State-transition (semantic-lock acquisition) ──────────────────────────
+    // One case per saga step that calls setSemanticLock — the acquire transition
 
     def "<functionalityName>: <lockStep> acquires IN_<OP> semantic lock"() {
-        given:
+        given: 'acquire transition: NOT_IN_SAGA → IN_<OP>; resume completes IN_<OP> → NOT_IN_SAGA'
         def uow = unitOfWorkService.createUnitOfWork("<FunctionalityName>")
         def func = new <FunctionalityName>FunctionalitySagas(
                 unitOfWorkService, /* args */, uow, commandGateway)

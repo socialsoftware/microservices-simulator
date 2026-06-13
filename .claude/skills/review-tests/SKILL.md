@@ -125,10 +125,12 @@ For each write functionality:
 
 1. **Happy-path success** — the operation completes without exception; assert all mutated fields.
 2. **One scenario per P3 guard** in the corresponding service method (read the service to enumerate these).
-3. **Semantic-lock acquisition — `setSemanticLock`**: for each saga step that calls `setSemanticLock`,
-   **without exception**, one test that runs the workflow through that step via `executeUntilStep`,
-   asserts the aggregate is in the expected `IN_{OPERATION}` saga state (`expect:` block), then calls
-   `resumeWorkflow` and asserts `noExceptionThrown()`. Every such step must have a matching test.
+3. **State-transition (semantic-lock acquisition) — `setSemanticLock`**: each such step is an *acquire*
+   transition into `IN_{OP}` (see `docs/concepts/testing.md` § The Saga as a State Machine). For each
+   saga step that calls `setSemanticLock`, **without exception**, one test that runs the workflow through
+   that step via `executeUntilStep`, asserts the aggregate is in the expected `IN_{OPERATION}` saga state
+   (`expect:` block), then calls `resumeWorkflow` and asserts `noExceptionThrown()` (completing the
+   traversal back to `NOT_IN_SAGA`). Every such step must have a matching test.
    `setForbiddenStates` conflict validation is **deferred — see Appendix, Cross-Functionality Test** in `docs/concepts/testing.md`.
 
 **P1 intra-invariants are not tested here** — they belong exclusively in `{Aggregate}IntraInvariantTest`. A P1 violation scenario in a service/functionality test is a **Wrong (misplaced)** finding.
@@ -213,7 +215,7 @@ be deleted or replaced with the correct T1 direct-aggregate case.
 
 - Does the assertion verify the right field/state on the right object?
 - Are returned DTOs verified for all semantically important fields?
-- For lock-acquisition tests: does `expect:` assert the expected `IN_{OP}` saga state, and does `then:` assert `noExceptionThrown()`?
+- For state-transition (lock-acquisition) tests: does `expect:` assert the expected `IN_{OP}` saga state (the post-*acquire* state), and does `then:` assert `noExceptionThrown()`?
 - After a delete operation, does the test verify the aggregate is no longer retrievable?
 - **Invariant/guard violation tests must assert `ex.message == <ERROR_MESSAGE_CONSTANT>`**, not just
   `thrown(<App>Exception)`. The bare-throw form is **Weak** — it passes on any thrown `{App}Exception`,
@@ -226,11 +228,13 @@ be deleted or replaced with the correct T1 direct-aggregate case.
 - **Test class annotations:** every T2/T3/T4 class must be annotated `@DataJpaTest @Transactional
   @Import(LocalBeanConfiguration)`. A missing `@Transactional` silently allows dirty state to bleed
   between tests. Flag as **Wrong**.
-- **Exhaustive saga-step scan (lock-acquisition completeness):** for the saga under test, enumerate every
-  step that calls `setSemanticLock`. For each such step, confirm a matching lock-acquisition test exists
-  by step name. A missing lock-acquisition test is a **Missing** finding, not just an edge case.
-- For lock-acquisition tests: does `executeUntilStep` pause at the correct step, does `expect:` assert
-  the expected `IN_{OP}` saga state, and does `then: noExceptionThrown()` confirm successful completion?
+- **Exhaustive saga-step scan (state-transition completeness):** for the saga under test, enumerate every
+  step that calls `setSemanticLock` (each is an *acquire* transition). For each such step, confirm a
+  matching state-transition (lock-acquisition) test exists by step name. A missing one is a **Missing**
+  finding, not just an edge case.
+- For state-transition (lock-acquisition) tests: does `executeUntilStep` pause at the correct step, does
+  `expect:` assert the expected `IN_{OP}` saga state, and does `then: noExceptionThrown()` confirm the
+  traversal completes back to `NOT_IN_SAGA`?
 
 ### D2. Kill-mutation thought experiment
 
@@ -266,7 +270,7 @@ Focus on:
 - Duplicate/already-existing entities where uniqueness is enforced
 - Operations on already-deleted aggregates
 - Operations applied in wrong order (e.g., answer before quiz starts, enroll after disenroll)
-- Semantic-lock acquisition not yet covered: for each step with `setSemanticLock`, is there a lock-acquisition test?
+- State transition not yet covered: for each step with `setSemanticLock` (each an *acquire* transition), is there a state-transition (lock-acquisition) test?
 
 Produce a list:
 
@@ -284,7 +288,7 @@ Follow the patterns in `docs/concepts/testing.md` exactly:
 - Correct Spock blocks: `given:`, `when:`, `then:`, `and:`
 - Not-found cases: use Path A or Path B per the service lookup mechanism (see Step 3 and the
   "Not-Found Test Pattern" appendix)
-- Lock-acquisition tests: `executeUntilStep` → assert `IN_{OP}` state → `resumeWorkflow` + `noExceptionThrown()` pattern
+- State-transition (lock-acquisition) tests: `executeUntilStep` → assert `IN_{OP}` state → `resumeWorkflow` + `noExceptionThrown()` pattern (the `NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA` traversal)
 - T4 deletion-event tests: use the `and:` extension-block pattern from `testing.md`
 
 **Do NOT add tests for:**
@@ -377,14 +381,19 @@ Replace `- [ ] 3.{N} — {Aggregate}` with `- [x] 3.{N} — {Aggregate}` in plan
 5. **Build must run.** Do not skip Step 9.
 6. **One aggregate per invocation.**
 7. **No emojis. Terse and specific. File paths, method names, line numbers.**
-8. **Every `setSemanticLock` step must have a matching lock-acquisition test.**
-   "Appears safe by inspection" is not an exception. A missing lock-acquisition test is a **Missing**
+8. **Every `setSemanticLock` step must have a matching state-transition (lock-acquisition) test.**
+   Each such step is an *acquire* transition into `IN_{OP}` (see `docs/concepts/testing.md` § The Saga
+   as a State Machine). "Appears safe by inspection" is not an exception. A missing test is a **Missing**
    finding in the Step 4 inventory. Walk the saga file step-by-step in Step 5.D — do not rely on
    counting existing tests to determine completeness.
 
 ---
 
 ## Lock-Acquisition Pattern Reference
+
+Each `setSemanticLock` step is an *acquire* transition `NOT_IN_SAGA → IN_{OP}`; `resumeWorkflow`
+completes the traversal `IN_{OP} → NOT_IN_SAGA` (see `docs/concepts/testing.md` § The Saga as a State
+Machine).
 
 **`setSemanticLock` (step that acquires a lock on the primary aggregate):**
 The lock is acquired *by* this step. A lock-acquisition test must:
