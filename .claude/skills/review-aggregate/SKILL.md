@@ -107,7 +107,7 @@ Read sections relevant to this aggregate type:
 - `docs/concepts/service.md` — method patterns, copy-on-write, delete exception, P3 guard placement
 - `docs/concepts/commands.md` — command structure, ServiceMapping, CommandHandler, `getAggregateTypeName()`
 - `docs/concepts/sagas.md` — SagaWorkflow, SagaStep, lock-acquisition, SagaCommand wrapping
-- `docs/concepts/testing.md` — T1/T2/T3 structures, test locations, not-found assertions
+- `docs/concepts/testing.md` — T1/T2/T3/T4 structures, test locations, not-found assertions
 - `docs/concepts/events.md` — only if this aggregate has subscribed events (session 2.N.d)
 
 ---
@@ -250,22 +250,29 @@ Expected scenarios per type (from `docs/concepts/testing.md`):
 **T1 (`{Aggregate}Test.groovy`):**
 - One "create with valid data" case
 
-Violations are **not** expected in T1 — they belong in T2. Do not flag missing violation cases in T1 as a deficiency.
+Violations are **not** expected in T1 — they belong in T3. Do not flag missing violation cases in T1 as a deficiency.
 
 **P1 Java-`final` fields require no test coverage at any tier.** The Java compiler enforces the constraint; there is no write path to violate it. Do not flag missing tests for final-field rules.
 
-**T2 — write operations:**
+**T2 — Service-Command:** only expected if the aggregate exposes service methods invoked via command handlers from other aggregates' sagas, not through `{Aggregate}Functionalities` (e.g., `{Aggregate}CountsTest.groovy`):
+- Happy path
+- One case per P3 guard violation
+- Floor/ceiling case for count-manipulation methods (e.g., decrement at zero)
+- No semantic-lock-acquisition cases — these methods have no saga steps
+- P1 intra-invariant violations are **not** expected here — they belong in T1
+
+**T3 — write operations:**
 - Happy path ("success")
 - One case per P1 intra-invariant violation (conditions enforced in `verifyInvariants()`)
 - One case per P3 guard violation
 - One semantic-lock-acquisition case per saga step that calls `setSemanticLock` (create ops with no lock step need no lock-acquisition case)
 - Skip P1 tests for Java `final` fields — no write path can violate them (see above)
 
-**T2 — read operations:**
+**T3 — read operations:**
 - Happy path
 - Not-found case: must use `thrown(SimulatorException)`, NOT `thrown({AppClass}Exception)` (not-found is infrastructure, not domain)
 
-**T3 (`{Aggregate}InterInvariantTest.groovy`):** only expected if aggregate has P2 subscribed events (session 2.N.d). For each subscribed event:
+**T4 (`{Aggregate}InterInvariantTest.groovy`):** only expected if aggregate has P2 subscribed events (session 2.N.d). For each subscribed event:
 - "consumer reflects event" (cached field updated)
 - "consumer ignores event for unrelated entity" (cached field unchanged)
 

@@ -194,24 +194,24 @@ text if found.
 ### 6.a — Session-to-test-type mapping
 
 From `docs/workflow.md` and `docs/concepts/testing.md`, extract the authoritative mapping:
-T1 → session a; T2 write → session b; T2 read → session c; T3 → session d.
+T1 → session a; T2 (service-command, if any) → session b; T3 write → session b; T3 read → session c; T4 → session d.
 
 From each `session-*.md`, find the test section and extract which test types it produces.
 
 | Session | Expected test type(s) | Actual in skill | Consistent? |
 |---------|-----------------------|-----------------|-------------|
 | a | T1 | ... | ... |
-| b | T2 (write operations) | ... | ... |
-| c | T2 (read operations) | ... | ... |
-| d | T3 | ... | ... |
+| b | T3 (write operations); T2 (service-command, if any) | ... | ... |
+| c | T3 (read operations) | ... | ... |
+| d | T4 | ... | ... |
 
 ### 6.b — Test assertion rules
 
 Extract these specific rules from `docs/concepts/testing.md`:
 1. Not-found: `thrown(SimulatorException)`, NOT `thrown({AppClass}Exception)`
 2. T1: no direct `verifyInvariants()` call; no call to service methods
-3. T2 semantic-lock acquisition: one test case per saga step that calls `setSemanticLock`
-4. T3: polling called directly (no `@Scheduled`); event handler called manually
+3. T3 semantic-lock acquisition: one test case per saga step that calls `setSemanticLock`
+4. T4: polling called directly (no `@Scheduled`); event handler called manually
 
 Verify each rule is stated consistently in the relevant session skill:
 
@@ -219,8 +219,8 @@ Verify each rule is stated consistently in the relevant session skill:
 |------|---------------------|-----------------|-------------|-------|
 | Not-found exception type | ... | session-c.md | ... | ... |
 | T1 no verifyInvariants | ... | session-a.md | ... | ... |
-| T2 semantic-lock acquisition | ... | session-b.md | ... | ... |
-| T3 direct polling | ... | session-d.md | ... | ... |
+| T3 semantic-lock acquisition | ... | session-b.md | ... | ... |
+| T4 direct polling | ... | session-d.md | ... | ... |
 
 ---
 
@@ -331,7 +331,7 @@ Focus on rules that are doc-only and may not have propagated to skills.
 | `sagas.md` | check `sagaState != NOT_IN_SAGA` before event processing | session-d.md | ... | ... |
 | `commands.md` | `ServiceMapping` enum must list all services | session-b.md | ... | ... |
 | `service.md` | event publishing via `unitOfWork.registerEvent(...)` | session-b.md | ... | ... |
-| `testing.md` | Service-Command Tests (T2 variant) separate from saga tests | session-b.md | ... | ... |
+| `testing.md` | Service-Command Tests (T2) separate from saga tests | session-b.md | ... | ... |
 
 ---
 

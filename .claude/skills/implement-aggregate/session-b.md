@@ -29,11 +29,11 @@ Load these files before writing any code:
    - § R4 Decision Table — `SagaCommand` vs `setForbiddenStates`
    - § Write Workflow Structure
 
-5. **`docs/concepts/testing.md`** — § T2 — Functionality Test (and § Service-Command Tests if this aggregate exposes any). Note:
-   - What a T2 test asserts (state after the operation, events emitted, P3 guard violations, not-found, step-interleaving) — P1 predicate tests are not part of T2
+5. **`docs/concepts/testing.md`** — § T3 — Functionality Test (and § T2 — Service-Command Test if this aggregate exposes any). Note:
+   - What a T3 test asserts (state after the operation, events emitted, P3 guard violations, not-found, step-interleaving) — P1 predicate tests are not part of T3
    - How to test P3 guard violations
    - How to test P4a prerequisite failures (e.g., sending a command that causes the saga fetch to fail)
-   - **Semantic-lock-acquisition rule:** one lock-acquisition case per saga step that calls `setSemanticLock`; use `executeUntilStep`, assert the expected `IN_{OP}` saga state, then `resumeWorkflow` and `noExceptionThrown()`. Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix T4** in `docs/concepts/testing.md`.
+   - **Semantic-lock-acquisition rule:** one lock-acquisition case per saga step that calls `setSemanticLock`; use `executeUntilStep`, assert the expected `IN_{OP}` saga state, then `resumeWorkflow` and `noExceptionThrown()`. Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix — Cross-Functionality Test** in `docs/concepts/testing.md`.
    - § Fake / Wrong / Weak Detection Checklist — apply before committing the test file
 
 6. ***(Conditional)*** If the plan.md aggregate section lists cross-aggregate prerequisites (P4a or P3 DTO-check rules): read the service file and relevant command files of each upstream aggregate involved. You need their command class names, service method signatures, and what they throw on failure.
@@ -116,7 +116,7 @@ Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Fu
   5. Returns the result DTO (or `void` for mutations)
 - Tests `@Autowired` this class and call its methods directly
 
-### One `{Op}Test.groovy` per write functionality (T2)
+### One `{Op}Test.groovy` per write functionality (T3)
 
 Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 
@@ -142,25 +142,25 @@ If the implementation disagrees with the cited section, flag it as an impl devia
 - **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation, assert all fields from the spec table above
 - **P3 guard tests**: test each P3 rule violation (own-table duplicate, DTO field check)
 - **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., creator not enrolled in execution)
-- **Assertion for all violation tests:** `thrown({AppClass}Exception)` plus `ex.message == {RULE_NAME}`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in T5 fault-injection tests. Never accept a bare `thrown({AppClass}Exception)` without the message assertion — it passes on any thrown exception of that type, including unrelated bugs. The `{RULE_NAME}` constant must match the name in `plan.md`'s rule list, not be inferred from the implementation.
-- **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy` (session a). Do not add P1 violation tests or BVA boundary straddles to T2 service tests.
-- **Semantic-lock acquisition (required):** Follow `docs/concepts/testing.md` § T2 — Semantic-lock-acquisition rule. **One lock-acquisition case per saga step that calls `setSemanticLock` — no exceptions:**
+- **Assertion for all violation tests:** `thrown({AppClass}Exception)` plus `ex.message == {RULE_NAME}`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in Fault / Behavior Test (Appendix) fault-injection tests. Never accept a bare `thrown({AppClass}Exception)` without the message assertion — it passes on any thrown exception of that type, including unrelated bugs. The `{RULE_NAME}` constant must match the name in `plan.md`'s rule list, not be inferred from the implementation.
+- **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy` (session a). Do not add P1 violation tests or BVA boundary straddles to T3 service tests.
+- **Semantic-lock acquisition (required):** Follow `docs/concepts/testing.md` § T3 — Semantic-lock-acquisition rule. **One lock-acquisition case per saga step that calls `setSemanticLock` — no exceptions:**
   - **`setSemanticLock` step:** run the workflow through the lock step via `executeUntilStep("<lockStep>", uow)`, assert `sagaStateOf(<id>) == <Aggregate>SagaState.IN_<OP>` in `expect:`, call `resumeWorkflow(uow)` in `when:`, assert `noExceptionThrown()` in `then:`.
-  - Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix T4** in `docs/concepts/testing.md`.
+  - Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix — Cross-Functionality Test** in `docs/concepts/testing.md`.
   - **Coverage is audited mechanically.** List every `setSemanticLock` step (one row per call site) in the session retro's **Semantic-Lock Coverage Audit** table — see `.claude/skills/implement-aggregate/SKILL.md` Step 7.b. Unresolved `Present? = No` rows block the Step 8 commit.
-### Service-command method tests (T2 variant)
+### Service-command method tests (T2)
 
-After writing the coordinator-level T2 tests above, scan `{Aggregate}Service.java` for any
+After writing the coordinator-level T3 tests above, scan `{Aggregate}Service.java` for any
 additional methods that call `registerChanged` but are **not** exposed through
 `{Aggregate}Functionalities`. These are invoked via commands from other aggregates' sagas
 (e.g., `decrementExecutionCount` called when a related aggregate is deleted).
 
 For each such method:
-1. Write T2-style tests (happy path + P3 guard violations; floor/ceiling for count methods) — no semantic-lock case needed (no saga steps). P1 intra-invariant violations are not tested here; they belong in `{Aggregate}IntraInvariantTest.groovy`.
+1. Write T2 tests (happy path + P3 guard violations; floor/ceiling for count methods) — no semantic-lock case needed (no saga steps). P1 intra-invariant violations are not tested here; they belong in `{Aggregate}IntraInvariantTest.groovy`.
 2. If a mirror method is missing (e.g., `incrementExecutionCount` exists in the reference app but
    not here), add it now — it will be needed when the other aggregate's saga is implemented and
    is required for invariant-violation test setup.
-3. Place the test file in `{test}sagas/coordination/{aggregate}/`, naming it
+3. Place the test file in `{test}sagas/{aggregate}/`, naming it
    `{OperationName}Test.groovy` or combining related operations into one file
    (e.g., `{Aggregate}CountsTest.groovy`) when they share setup.
 

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.coordination.course
+package pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.course
 
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration

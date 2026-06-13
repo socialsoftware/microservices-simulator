@@ -1,19 +1,19 @@
 ---
 name: review-tests
-description: Phase 3 — Test Review. Audits T1/T2/T3 test completeness for one aggregate, detects fake/weak tests by reading the implementation, adds missing edge cases and adversarial scenarios, and runs the full test suite. T1 = {Aggregate}IntraInvariantTest (full P1 matrix); T2 = service/functionality tests (no P1).
+description: Phase 3 — Test Review. Audits T1/T2/T3/T4 test completeness for one aggregate, detects fake/weak tests by reading the implementation, adds missing edge cases and adversarial scenarios, and runs the full test suite. T1 = {Aggregate}IntraInvariantTest (full P1 matrix); T2 = service-command tests; T3 = functionality tests (no P1).
 argument-hint: "<AggregateName> (e.g. Course, Execution, Tournament)"
 ---
 
 # Phase 3 — Test Review
 
-Phase 3 test review for one aggregate. Audits T1/T2/T3 completeness and quality against the
+Phase 3 test review for one aggregate. Audits T1/T2/T3/T4 completeness and quality against the
 implementation, adds missing tests, fixes fake/wrong tests, and runs the build.
 
 One aggregate per invocation.
 
 **See also:**
-- `docs/concepts/testing.md` — canonical T1/T2/T3 specification (this skill enforces it)
-- `docs/concepts/testing.md:177-225` — Service-Command Tests (T2 variant, frequently missed)
+- `docs/concepts/testing.md` — canonical T1/T2/T3/T4 specification (this skill enforces it)
+- `docs/concepts/testing.md` § T2 — Service-Command Test (frequently missed)
 - `.claude/skills/implement-aggregate/session-b.md` — companion implementation skill; missing tests
   found here should be fed back to session-b.md so the gap is not re-introduced
 
@@ -57,8 +57,9 @@ Read every file in a single parallel batch. Missing files are noted, not errors.
 
 **Test files (scope of this review):**
 - `{tgt-test}sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy` — T1
-- `{tgt-test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` — T3 (may not exist)
-- All `*.groovy` under `{tgt-test}sagas/coordination/{aggregate}/` — T2 (use `find` to enumerate)
+- Any `{OperationName}Test.groovy` / `{Aggregate}CountsTest.groovy` under `{tgt-test}sagas/{aggregate}/` — T2 (may not exist; use `find` to enumerate)
+- `{tgt-test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` — T4 (may not exist)
+- All `*.groovy` under `{tgt-test}sagas/coordination/{aggregate}/` — T3 (use `find` to enumerate)
 
 **Implementation files (ground truth):**
 - `{tgt-src}microservices/{aggregate}/aggregate/{Aggregate}.java` — invariant logic
@@ -67,7 +68,7 @@ Read every file in a single parallel batch. Missing files are noted, not errors.
 - All `*.java` under `{tgt-src}microservices/{aggregate}/coordination/sagas/` — saga steps, forbidden states, semantic locks (use `find` to enumerate)
 
 **Concept docs:**
-- `docs/concepts/testing.md` — T1/T2/T3 required scenarios (canonical checklist)
+- `docs/concepts/testing.md` — T1/T2/T3/T4 required scenarios (canonical checklist)
 - `docs/concepts/sagas.md` — semantic lock patterns
 
 **Plan section:**
@@ -95,42 +96,6 @@ All cases are **direct-aggregate** (construct and/or mutate the aggregate direct
 
 Source: `plan.md` §3.1 / §3.2 P1 rule list for this aggregate.
 
-### T2 — per **write** functionality (one test file per write operation under `coordination/{aggregate}/`)
-
-File-naming convention: `{Operation}{Aggregate}Test.groovy` (e.g., `CreateCourseTest.groovy`,
-`UpdateQuizTest.groovy`).
-
-For each write functionality:
-
-1. **Happy-path success** — the operation completes without exception; assert all mutated fields.
-2. **One scenario per P3 guard** in the corresponding service method (read the service to enumerate these).
-3. **Semantic-lock acquisition — `setSemanticLock`**: for each saga step that calls `setSemanticLock`,
-   **without exception**, one test that runs the workflow through that step via `executeUntilStep`,
-   asserts the aggregate is in the expected `IN_{OPERATION}` saga state (`expect:` block), then calls
-   `resumeWorkflow` and asserts `noExceptionThrown()`. Every such step must have a matching test.
-   `setForbiddenStates` conflict validation is **deferred — see Appendix T4** in `docs/concepts/testing.md`.
-
-**P1 intra-invariants are not tested here** — they belong exclusively in `{Aggregate}IntraInvariantTest`. A P1 violation scenario in a service/functionality test is a **Wrong (misplaced)** finding.
-
-**Upstream-invariant rule:** Every T2 `setup:` block must establish any upstream prerequisite state
-(e.g., a `createExecution` call if `Course.executionCount` must be > 0) *before* creating the aggregate
-under test. Read-functionality tests are not exempt. See `docs/concepts/testing.md:96-98`.
-
-### T2 — per **read** functionality
-
-1. **Happy-path success** — returns the expected DTO; assert all semantically important fields.
-2. **Not-found case** — the correct exception type depends on which lookup mechanism the service uses.
-   **Read the service method first**:
-   - **Path A** — service calls `aggregateLoadAndRegisterRead` directly with an ID → infrastructure
-     throws `SimulatorException`. Use `thrown(SimulatorException)`.
-   - **Path B** — service calls a custom repository returning `Optional` (e.g.,
-     `findByQuizIdAndUserId`), then throws on empty → service throws `{App}Exception`. Use
-     `thrown({App}Exception)`.
-   Rule of thumb from `docs/concepts/testing.md:262`: if the service calls
-   `aggregateLoadAndRegisterRead` with an ID, expect `SimulatorException`; if it queries a custom
-   repository and throws on empty, expect `{App}Exception`. Flagging a correct Path B test as Fake
-   is itself a **Wrong** review finding.
-
 ### T2 — per **service-command method**
 
 Some aggregates expose service methods invoked via command handlers from *other* aggregates' sagas
@@ -149,9 +114,45 @@ For each such method:
 No semantic-lock case is needed (there are no saga steps).
 P1 invariant violations reachable via these methods belong in `{Aggregate}IntraInvariantTest`, not here.
 Naming: `{OperationName}Test.groovy` or `{Aggregate}CountsTest.groovy` when related operations share
-setup (`docs/concepts/testing.md:191-193`).
+setup, stored at `sagas/{aggregate}/` (see `docs/concepts/testing.md` § T2 — Service-Command Test).
 
-### T3 — `{Aggregate}InterInvariantTest.groovy`
+### T3 — per **write** functionality (one test file per write operation under `coordination/{aggregate}/`)
+
+File-naming convention: `{Operation}{Aggregate}Test.groovy` (e.g., `CreateCourseTest.groovy`,
+`UpdateQuizTest.groovy`).
+
+For each write functionality:
+
+1. **Happy-path success** — the operation completes without exception; assert all mutated fields.
+2. **One scenario per P3 guard** in the corresponding service method (read the service to enumerate these).
+3. **Semantic-lock acquisition — `setSemanticLock`**: for each saga step that calls `setSemanticLock`,
+   **without exception**, one test that runs the workflow through that step via `executeUntilStep`,
+   asserts the aggregate is in the expected `IN_{OPERATION}` saga state (`expect:` block), then calls
+   `resumeWorkflow` and asserts `noExceptionThrown()`. Every such step must have a matching test.
+   `setForbiddenStates` conflict validation is **deferred — see Appendix, Cross-Functionality Test** in `docs/concepts/testing.md`.
+
+**P1 intra-invariants are not tested here** — they belong exclusively in `{Aggregate}IntraInvariantTest`. A P1 violation scenario in a service/functionality test is a **Wrong (misplaced)** finding.
+
+**Upstream-invariant rule:** Every T3 `setup:` block must establish any upstream prerequisite state
+(e.g., a `createExecution` call if `Course.executionCount` must be > 0) *before* creating the aggregate
+under test. Read-functionality tests are not exempt. See `docs/concepts/testing.md` § T3 — Functionality Test.
+
+### T3 — per **read** functionality
+
+1. **Happy-path success** — returns the expected DTO; assert all semantically important fields.
+2. **Not-found case** — the correct exception type depends on which lookup mechanism the service uses.
+   **Read the service method first**:
+   - **Path A** — service calls `aggregateLoadAndRegisterRead` directly with an ID → infrastructure
+     throws `SimulatorException`. Use `thrown(SimulatorException)`.
+   - **Path B** — service calls a custom repository returning `Optional` (e.g.,
+     `findByQuizIdAndUserId`), then throws on empty → service throws `{App}Exception`. Use
+     `thrown({App}Exception)`.
+   Rule of thumb from `docs/concepts/testing.md` § Not-Found Assertions: if the service calls
+   `aggregateLoadAndRegisterRead` with an ID, expect `SimulatorException`; if it queries a custom
+   repository and throws on empty, expect `{App}Exception`. Flagging a correct Path B test as Fake
+   is itself a **Wrong** review finding.
+
+### T4 — `{Aggregate}InterInvariantTest.groovy`
 
 Only required if the aggregate has **subscribed events** (listed in `plan.md`):
 
@@ -191,7 +192,7 @@ three severity levels used in this step's output table. Every Fake or Wrong find
 specific implementation file and line that proves the assertion is incorrect.
 
 
-**Misplacement finding (Wrong):** If a T2 service/functionality test asserts a P1 intra-invariant
+**Misplacement finding (Wrong):** If a T3 functionality test asserts a P1 intra-invariant
 violation (i.e., it calls into a service and expects `verifyInvariants()` to throw for a P1 rule), flag
 it as **Wrong (misplaced)**: "P1 violation asserted in a service test — move to
 `{Aggregate}IntraInvariantTest`." P1 predicate tests belong exclusively in T1; the service test should
@@ -222,7 +223,7 @@ be deleted or replaced with the correct T1 direct-aggregate case.
 
 - Does the test exercise the code path its name suggests? (Confirm by reading the service and saga.)
 - Does the `when:` call chain actually reach the method under test, or does it shortcut via a helper?
-- **Test class annotations:** every T2 class must be annotated `@DataJpaTest @Transactional
+- **Test class annotations:** every T2/T3/T4 class must be annotated `@DataJpaTest @Transactional
   @Import(LocalBeanConfiguration)`. A missing `@Transactional` silently allows dirty state to bleed
   between tests. Flag as **Wrong**.
 - **Exhaustive saga-step scan (lock-acquisition completeness):** for the saga under test, enumerate every
@@ -284,7 +285,7 @@ Follow the patterns in `docs/concepts/testing.md` exactly:
 - Not-found cases: use Path A or Path B per the service lookup mechanism (see Step 3 and the
   "Not-Found Test Pattern" appendix)
 - Lock-acquisition tests: `executeUntilStep` → assert `IN_{OP}` state → `resumeWorkflow` + `noExceptionThrown()` pattern
-- T3 deletion-event tests: use the `and:` extension-block pattern from `testing.md`
+- T4 deletion-event tests: use the `and:` extension-block pattern from `testing.md`
 
 **Do NOT add tests for:**
 - P1 Java-final field violations
@@ -309,8 +310,9 @@ cd applications/{app-name} && mvn clean -Ptest-sagas test \
   -Dtest="*{Aggregate}*Test" 2>&1 | tail -100
 ```
 
-`*{Aggregate}*Test` matches `{Aggregate}IntraInvariantTest` (T1), all `{Operation}{Aggregate}Test`
-files (T2), and `{Aggregate}InterInvariantTest` (T3) — no separate `-Dtest` entries needed.
+`*{Aggregate}*Test` matches `{Aggregate}IntraInvariantTest` (T1), any `{OperationName}Test` /
+`{Aggregate}CountsTest` files (T2), all `{Operation}{Aggregate}Test` files (T3), and
+`{Aggregate}InterInvariantTest` (T4) — no separate `-Dtest` entries needed.
 
 If the wildcard is too broad (picks up unrelated aggregates with similar names), narrow it to explicit
 class names: `-Dtest="{Aggregate}IntraInvariantTest,Create{Aggregate}Test,..."`. The wildcard form
@@ -366,10 +368,10 @@ Replace `- [ ] 3.{N} — {Aggregate}` with `- [x] 3.{N} — {Aggregate}` in plan
    before flagging. Path A (`aggregateLoadAndRegisterRead` by ID) → `thrown(SimulatorException)`.
    Path B (custom repository returning `Optional`, service throws on empty) → `thrown({App}Exception)`.
    Flagging a correct Path B test as Fake is itself a Wrong review finding
-   (`docs/concepts/testing.md:229-262`).
+   (`docs/concepts/testing.md` § Not-Found Assertions).
 3. **P1 final-field rules need no tests.** Skip them in Steps 3 and 7.
 3a. **P1 predicate tests belong only in T1 (`{Aggregate}IntraInvariantTest`).** A P1 violation
-    asserted in a T2 service/functionality test is **Wrong (misplaced)**; flag and move it.
+    asserted in a T3 functionality test is **Wrong (misplaced)**; flag and move it.
 4. **Do not modify non-test files.** This review touches only `*.groovy` test files and the review
    report.
 5. **Build must run.** Do not skip Step 9.
@@ -391,8 +393,8 @@ The lock is acquired *by* this step. A lock-acquisition test must:
 3. `when:` block: `func.resumeWorkflow(uow)`.
 4. `then:` block: `noExceptionThrown()`.
 
-Cross-aggregate `setForbiddenStates` conflict validation is deferred to T4 (see Appendix in
-`docs/concepts/testing.md`).
+Cross-aggregate `setForbiddenStates` conflict validation is deferred (see Appendix —
+Cross-Functionality Test in `docs/concepts/testing.md`).
 
 ---
 
@@ -431,7 +433,7 @@ def ex = thrown({App}Exception)
 ex.message == {App}ErrorMessage.AGGREGATE_NOT_FOUND  // or the specific error constant
 ```
 
-**Rule of thumb** (`docs/concepts/testing.md:262`): if the service calls `aggregateLoadAndRegisterRead`
+**Rule of thumb** (`docs/concepts/testing.md` § Not-Found Assertions): if the service calls `aggregateLoadAndRegisterRead`
 with an ID, expect `SimulatorException`; if the service calls a custom repository method and throws on
 empty Optional, expect `{App}Exception`. Flagging a correct Path B test as Fake is itself a **Wrong**
 review finding.
