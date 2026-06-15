@@ -440,6 +440,8 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
     private ScenarioGeneratorConfig scenarioGeneratorConfig() {
         new ScenarioGeneratorConfig(
                 false,
+                ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
                 true,
                 1,
                 1000,

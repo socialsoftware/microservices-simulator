@@ -10,6 +10,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Aggr
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeAssignment;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
@@ -202,12 +205,24 @@ public final class ApplicationAnalysisScenarioModelAdapter {
             return new StepFootprint(null, accessMode, footprintWarnings);
         }
 
-        AggregateKey aggregateKey = new AggregateKey(null, aggregateName, null, FootprintConfidence.TYPE_ONLY);
-        footprintWarnings.add("type-only footprint for " + aggregateName);
-        diagnostics.add(buildStepDiagnostic(sagaFqn, stepName, "type-only footprint for " + aggregateName));
+        AggregateKey aggregateKey;
+        if (dispatch.aggregateKeyText() == null || dispatch.aggregateKeyText().isBlank()) {
+            aggregateKey = new AggregateKey(null, aggregateName, null, FootprintConfidence.TYPE_ONLY);
+            footprintWarnings.add("type-only footprint for " + aggregateName);
+            diagnostics.add(buildStepDiagnostic(sagaFqn, stepName, "type-only footprint for " + aggregateName));
+        } else {
+            aggregateKey = new AggregateKey(null, aggregateName, dispatch.aggregateKeyText(), toFootprintConfidence(dispatch.aggregateKeyConfidence()));
+        }
 
         warnings.addAll(footprintWarnings);
         return new StepFootprint(aggregateKey, accessMode, footprintWarnings);
+    }
+
+    private FootprintConfidence toFootprintConfidence(StepDispatchFootprint.AggregateKeyConfidence confidence) {
+        if (confidence == StepDispatchFootprint.AggregateKeyConfidence.EXACT) {
+            return FootprintConfidence.EXACT;
+        }
+        return FootprintConfidence.SYMBOLIC;
     }
 
     private AccessMode adaptAccessMode(AccessPolicy accessPolicy,
@@ -386,7 +401,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 provenanceText,
                 ownersForTrace(sourceClassFqn, sourceMethodName, featureOwnersByClass),
                 summaries,
-                Map.of(),
+                extractLogicalKeyBindings(inputRecipe),
                 warnings,
                 inputRecipe);
 
@@ -437,6 +452,62 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         LinkedHashMap<String, List<InputOwner>> result = new LinkedHashMap<>();
         ownersByClass.forEach((sourceClassFqn, owners) -> result.put(sourceClassFqn, List.copyOf(owners)));
         return Collections.unmodifiableMap(result);
+    }
+
+    private Map<String, String> extractLogicalKeyBindings(InputRecipe inputRecipe) {
+        if (inputRecipe == null || inputRecipe.arguments() == null || inputRecipe.arguments().isEmpty()) {
+            return Map.of();
+        }
+        LinkedHashMap<String, String> bindings = new LinkedHashMap<>();
+        inputRecipe.arguments().forEach(argument -> collectLogicalKeyBindings(argument.recipe(), bindings));
+        return bindings.isEmpty() ? Map.of() : Collections.unmodifiableMap(bindings);
+    }
+
+    private void collectLogicalKeyBindings(InputRecipeNode node, LinkedHashMap<String, String> bindings) {
+        if (node == null) {
+            return;
+        }
+        for (InputRecipeAssignment assignment : node.assignments()) {
+            String keyName = normalizeLogicalKeyName(assignment.propertyName());
+            String keyValue = literalValue(assignment.valueRecipe());
+            if (keyName != null && keyValue != null) {
+                bindings.putIfAbsent(keyName, keyValue);
+            }
+            collectLogicalKeyBindings(assignment.valueRecipe(), bindings);
+        }
+        for (InputRecipeArgument argument : node.arguments()) {
+            collectLogicalKeyBindings(argument.recipe(), bindings);
+        }
+        for (InputRecipeArgument argument : node.callArguments()) {
+            collectLogicalKeyBindings(argument.recipe(), bindings);
+        }
+        for (InputRecipeNode element : node.elements()) {
+            collectLogicalKeyBindings(element, bindings);
+        }
+        if (node.receiver() != null) {
+            collectLogicalKeyBindings(node.receiver(), bindings);
+        }
+        if (node.resultRecipe() != null) {
+            collectLogicalKeyBindings(node.resultRecipe(), bindings);
+        }
+    }
+
+    private String normalizeLogicalKeyName(String propertyName) {
+        String normalized = normalize(propertyName);
+        if (normalized == null) {
+            return null;
+        }
+        return switch (normalized) {
+            case "aggregateId", "orderId", "id" -> normalized;
+            default -> null;
+        };
+    }
+
+    private String literalValue(InputRecipeNode node) {
+        if (node == null || !"literal".equals(node.kind()) || node.value() == null) {
+            return null;
+        }
+        return String.valueOf(node.value());
     }
 
     private List<InputOwner> ownersForTrace(String sourceClassFqn,

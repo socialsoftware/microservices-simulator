@@ -238,7 +238,9 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                                         info.aggregateName(),
                                         info.accessPolicy(),
                                         phase,
-                                        inferDispatchMultiplicity(creation));
+                                        inferDispatchMultiplicity(creation),
+                                        inferAggregateKeyText(creation),
+                                        inferAggregateKeyConfidence(creation));
                                 stepBlock.addDispatch(dispatch);
                             },
                             () -> logger.warn("Command not found in registry: {} (step: {})",
@@ -246,6 +248,33 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                     );
                 })
         );
+    }
+
+    private String inferAggregateKeyText(ObjectCreationExpr commandCreation) {
+        if (commandCreation.getArguments().size() < 3) {
+            return null;
+        }
+        Expression aggregateArgument = commandCreation.getArgument(2);
+        // Plain DTO variables stay type-only; this visitor only trusts directly visible key expressions.
+        if (!aggregateArgument.isLiteralExpr() && !aggregateArgument.isMethodCallExpr()) {
+            return null;
+        }
+        String text = aggregateArgument.toString();
+        return text == null || text.isBlank() ? null : text;
+    }
+
+    private StepDispatchFootprint.AggregateKeyConfidence inferAggregateKeyConfidence(ObjectCreationExpr commandCreation) {
+        if (commandCreation.getArguments().size() < 3) {
+            return null;
+        }
+        Expression aggregateArgument = commandCreation.getArgument(2);
+        // Keep the same conservative scope as inferAggregateKeyText.
+        if (!aggregateArgument.isLiteralExpr() && !aggregateArgument.isMethodCallExpr()) {
+            return null;
+        }
+        return aggregateArgument.isLiteralExpr()
+                ? StepDispatchFootprint.AggregateKeyConfidence.EXACT
+                : StepDispatchFootprint.AggregateKeyConfidence.SYMBOLIC;
     }
 
     private DispatchMultiplicity inferDispatchMultiplicity(ObjectCreationExpr creation) {

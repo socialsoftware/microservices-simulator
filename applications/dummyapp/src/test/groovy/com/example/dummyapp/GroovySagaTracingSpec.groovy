@@ -3,6 +3,7 @@ package com.example.dummyapp
 import com.example.dummyapp.item.aggregate.ItemDto
 import com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas
 import com.example.dummyapp.item.coordination.ItemFunctionalitiesFacade
+import com.example.dummyapp.order.coordination.CancelOrderFromItemFunctionalitySagas
 import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
 import com.example.dummyapp.order.coordination.OrderFunctionalitiesFacade
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
@@ -96,6 +97,30 @@ class GroovySagaTracingSpec extends Specification {
 
         when:
         saga.resumeWorkflow(null)
+
+        then:
+        true
+    }
+
+    def 'item-derived order cancellation shares symbolic order key'() {
+        given:
+        def itemDto = new ItemDto(aggregateId: 88, orderId: 23)
+        def saga = new CancelOrderFromItemFunctionalitySagas(null, itemDto, null, null)
+
+        when:
+        saga.executeWorkflow(null)
+
+        then:
+        true
+    }
+
+    def 'item saga input shares order id with cancellation fixture'() {
+        given:
+        def itemDto = new ItemDto(aggregateId: 88, orderId: 23)
+        def saga = new CreateItemFunctionalitySagas(null, itemDto, null, null)
+
+        when:
+        saga.executeWorkflow(null)
 
         then:
         true
