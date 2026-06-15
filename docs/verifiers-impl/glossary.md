@@ -18,8 +18,24 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 | Term | Meaning |
 |---|---|
 | Verifier | The `verifiers/` module that analyzes simulator applications and tests to generate fault-analysis scenario material. |
+| Scenario | A planned saga execution shape: participating saga instance(s), their input variant(s), and the scheduled ordering of saga steps. Fault choices are not part of scenario identity; they are execution-time semantics applied later to a scenario. |
+| Brute-force scenario universe | The bounded exhaustive set of scenario shapes considered for comparison: saga sets up to a configured maximum size, compatible input tuples for those saga sets, and order-preserving schedules/interleavings. Fault-vector combinations are excluded from this count for the current phase. |
+| Type-level shape space | Report-only count over saga classes and aggregate-type footprints before requiring concrete input variants. It is useful for explaining workflow-shape pressure and missing input coverage, but it does not emit executable `ScenarioPlan` records and is not guaranteed to be numerically larger than input-bound scenario counts. |
+| Input-bound brute-force universe | Bounded exhaustive scenario universe over accepted input variants, compatible input tuples, and schedules. This is the brute-force baseline that can emit `ScenarioPlan` records because each saga instance has a concrete input variant. |
+| Same-saga multi-instance scenario | Scenario shape where the same saga class appears more than once with different inputs. This may expose important concurrency cases, but it is deferred from the current fair-comparison universe because the current generator enumerates sets of distinct saga FQNs. |
+| Count-only catalog mode | Scenario-generation/accounting mode where the verifier computes exact compressed counts for a selected generation strategy but does not materialize every selected `ScenarioPlan` line. This is required for Quizzes-scale brute-force runs. |
+| Legacy behavior CSV generator | Existing simulator impairment utility that expands manually supplied functionality/step option files into per-functionality CSV run blocks. It drives runtime fault/delay behavior but does not discover saga sets, inputs, aggregate interactions, or scenario schedules, so it is not the thesis scenario-space baseline. |
+| Interacting scenario universe | The subset of the brute-force scenario universe whose saga instances can affect each other through shared aggregate instances or shared aggregate-type evidence. This is the intended useful-space/oracle approximation for evaluating scenario-generation pruning. |
+| Strict interaction universe | High-confidence interacting subset requiring concrete or clearly shared symbolic interaction evidence and at least one write. Unknown/type-only matches are excluded. |
+| Broad interaction universe | Over-approximated interacting subset that also allows type-only or unknown-key fallback evidence when configured. This may include false positives, but it is useful as an upper estimate of potentially useful scenarios. |
+| Generated interacting catalog | The actual `ScenarioPlan` set emitted by the generator after applying its implemented interaction model, input compatibility rules, schedule strategy, and configured caps. |
+| Scenario-space accounting | A report that quantifies scenario-shape counts across the input-bound brute-force universe, the configured generator-selected subset, and the written catalog. The current v1 scope is static accounting; executor-admissible and executed fault-free counts are future extensions. |
+| Compressed accounting | Exact, factorized scenario-space counting that groups candidates by saga set and computes input-tuple and schedule counts mathematically instead of materializing every `ScenarioPlan`. It preserves count-level information for large applications such as Quizzes while avoiding infeasible per-scenario dumps. |
+| Generation strategy | Configured rule deciding which scenario shapes are emitted as `ScenarioPlan` records, such as the current interaction-pruned generator or a future brute-force baseline generator. |
+| Accounting lens | Report-only classification applied to scenario-space candidates, such as all brute-force candidates, strict interacting candidates, conservative interacting candidates, generated candidates, executor-admissible candidates, and executed candidates. Accounting lenses do not themselves decide which plans are emitted. |
+| Schedule strategy | Configured rule for deriving step orderings for a fixed saga set and input tuple. Current implemented behavior supports serial ordering and bounded order-preserving interleavings; thesis-style segment compression should be treated as not implemented until a real compression algorithm exists. |
 | Scenario catalog | Deterministic machine-readable output describing static scenario plans and rejected inputs for later execution or enrichment. |
-| `ScenarioPlan` | A generated static scenario candidate, including participating saga steps, input variants, footprints, schedules, and identifiers. |
+| `ScenarioPlan` | A generated static scenario candidate, including participating saga instances, input variants, footprints, schedules, and stable identifiers. It may expose a `FaultSpace` describing executable fault slots, but each fault vector is not a separate `ScenarioPlan`. |
 | Scenario plan id | Stable identifier for a generated `ScenarioPlan`, used to connect static catalog entries, reports, and enrichment sidecars. |
 | Input variant | A static representation of one observed way a test constructs or invokes a saga/functionality input path. |
 | `InputVariant` id | Stable identifier for a static input variant; when runtime evidence carries it, dynamic enrichment can join evidence exactly. |
@@ -49,8 +65,9 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 
 | Term | Meaning |
 |---|---|
-| Scenario execution | Planned future stage that materializes catalog inputs and executes saga schedules with fault configurations. The current baseline does not yet provide this runner. |
-| Fault configuration | Future representation of injected faults or step-level failure choices for a scenario execution. |
+| Scenario execution | Runtime stage that materializes catalog inputs and executes a scenario schedule. The current runner is a narrow POC for supported single-saga plans, not arbitrary catalog replay. |
+| Fault configuration | Execution-time choice of injected faults or step-level failure choices applied to a scenario execution. It is not part of static scenario identity. |
+| Fault-free execution | Current executor target where the scenario still carries fault slots, but the effective fault vector is the all-zero/default vector. |
 | Domain-impact scoring | Planned scoring based on domain-visible outcomes such as invariant violations, compensation divergence, inconsistent final state, and business-state anomalies. |
 | Local search | Planned search over fault configurations within a selected scenario, potentially using a genetic algorithm. |
 | Scenario prioritization | Planned budget allocation across scenarios, potentially using contextual bandit methods such as LinUCB-style selection. |

@@ -155,6 +155,12 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
   - `UNKNOWN` accepted with a warning.
 - JSONL catalog writer emits one accepted `ScenarioPlan` per line with schema `microservices-simulator.scenario-catalog.v2`, including input source-mode metadata and embedded `inputRecipe` payloads when available.
 - Rejected TCC/MIXED candidates are written to `scenario-catalog-rejected-inputs.jsonl` with schema `microservices-simulator.scenario-catalog-rejected-input.v2`, wrapping the full input object plus `rejectionReason` and `rejectionWarnings`; the file is written even when empty.
+- Scenario catalog export also writes `scenario-space-accounting.json` with schema `microservices-simulator.scenario-space-accounting.v1`. The accounting artifact records the run config, type-level strict/broad interaction coverage, input-level static executor-readiness counts from `inputRecipe.executorReady` and recipe blockers, compressed input-bound scenario-space counts, grouped saga-set rows, top contributors, and decimal-string large counts.
+- The scenario catalog manifest records `catalogWriteMode` and `scenarioSpaceAccountingPath` so a run package can resolve the accounting artifact.
+- `generationStrategy=INTERACTION_PRUNED` writes the selected thesis-generator subset using strict interaction evidence by default, or broad/type-only interaction evidence when `allowTypeOnlyFallback=true`; unrelated aggregate types remain pruned.
+- `generationStrategy=BRUTE_FORCE` writes all input-bound saga sets and schedules under the configured input, set-size, and schedule bounds when paired with `catalogWriteMode=WRITE_PLANS`.
+- `catalogWriteMode=WRITE_PLANS` materializes selected `ScenarioPlan` rows subject to `maxScenarios`; that cap affects `catalogWritten`/manifest export counts but not `allInputBound` or `selectedByGenerator` accounting totals.
+- `catalogWriteMode=COUNT_ONLY` writes an empty `scenario-catalog.jsonl`, still writes manifest, rejected-input, and accounting artifacts, and keeps selected-space counts in `scenario-space-accounting.json` without materializing plans.
 - Manifest writer records schema, generated timestamp, effective config, counts, warnings, artifact paths, and source-mode/rejection counters.
 - CLI wiring runs export after HTML generation when `verifiers.scenario-catalog.enabled=true`.
 - Catalog, manifest, rejected-input, and HTML artifacts use stable filenames inside the per-run output directory.
@@ -177,6 +183,9 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 - `outputRoot=output`
 - run directory name `<application>-<yyyyMMdd-HHmmss-SSS>` under `outputRoot`
 - `rejectedInputsPath=scenario-catalog-rejected-inputs.jsonl`
+- `accountingPath=scenario-space-accounting.json`
+- `generationStrategy=INTERACTION_PRUNED`
+- `catalogWriteMode=WRITE_PLANS`
 
 ## Current safe defaults for dynamic enrichment
 
@@ -222,7 +231,7 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 - Groovy recipes are replay-oriented, but no runtime materializer exists yet.
 - Scenario catalog records are executor-facing, but not directly executed by the simulator yet.
 - Semantic deduplication of value-equivalent inputs and stronger same-feature sibling disambiguation are not implemented.
-- Segment-compressed scheduling exists as a strategy concept, but the current safe/default path is serial or bounded order-preserving scheduling; verify before relying on compression for evaluation claims.
+- `SEGMENT_COMPRESSED` is not thesis-style segment compression in the current implementation. Treat it as a placeholder/deferred strategy: for small tuples it behaves like bounded order-preserving interleaving, and for larger tuples it falls back to serial scheduling. Public-facing claims and evaluation baselines should use `SERIAL` or `ORDER_PRESERVING_INTERLEAVING` until real segment compression exists.
 - Include/exclude filters from the broader scenario-catalog design are not exposed yet.
 - Source-mode classification is evidence-based, not a full Spring profile/environment solver.
 - Package/name hints are not primary source-mode evidence.
