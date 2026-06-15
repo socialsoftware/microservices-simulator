@@ -43,6 +43,18 @@ public final class ScenarioGenerator {
         mergeCounts(counts, normalizedInputs.counts());
         warnings.addAll(normalizedInputs.warnings());
 
+        if (effectiveConfig.catalogWriteMode() == ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY) {
+            putDefaultCounts(counts);
+            counts.put("scenariosEmitted", 0);
+            return new ScenarioGenerationResult(
+                    ScenarioPlan.SCHEMA_VERSION,
+                    effectiveConfig,
+                    List.of(),
+                    normalizedInputs.rejectedInputVariants(),
+                    Collections.unmodifiableMap(counts),
+                    List.copyOf(warnings));
+        }
+
         ConflictGraphBuilder.Result conflictGraph = ConflictGraphBuilder.build(normalizedSagas, effectiveConfig);
         mergeCounts(counts, conflictGraph.counts());
         warnings.addAll(conflictGraph.warnings());
@@ -66,20 +78,7 @@ public final class ScenarioGenerator {
         }
 
         counts.put("scenariosEmitted", plansById.size());
-        counts.putIfAbsent("scenariosCapped", 0);
-        counts.putIfAbsent("scenarioPlansEmitted", 0);
-        counts.putIfAbsent("scenarioPlansDeduplicated", 0);
-        counts.putIfAbsent("singleScenariosEmitted", 0);
-        counts.putIfAbsent("multiScenariosEmitted", 0);
-        counts.putIfAbsent("connectedSagaSetsSeen", 0);
-        counts.putIfAbsent("connectedSagaSetsEmitted", 0);
-        counts.putIfAbsent("connectedSagaSetsPruned", 0);
-        counts.putIfAbsent("inputTuplesSeen", 0);
-        counts.putIfAbsent("inputTuplesEmitted", 0);
-        counts.putIfAbsent("inputTuplesDeduplicated", 0);
-        counts.putIfAbsent("schedulesSeen", 0);
-        counts.putIfAbsent("schedulesEmitted", 0);
-        counts.putIfAbsent("schedulesCapped", 0);
+        putDefaultCounts(counts);
 
         List<ScenarioPlan> scenarioPlans = new ArrayList<>(plansById.values());
         scenarioPlans.sort(Comparator
@@ -146,18 +145,24 @@ public final class ScenarioGenerator {
                                                Map<String, Integer> counts) {
         int maxScenarios = Math.max(0, config.maxScenarios());
         int emitted = 0;
-        ConnectedSagaSetEnumerator.Result setResult = ConnectedSagaSetEnumerator.enumerate(usableSagaFqns, conflictGraph.adjacency(), config.maxSagaSetSize());
-        mergeCounts(counts, setResult.counts());
-        warnings.addAll(setResult.warnings());
+        List<List<String>> sagaSets;
+        if (config.generationStrategy() == ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE) {
+            sagaSets = allInputBoundSagaSets(usableSagaFqns, config.maxSagaSetSize());
+        } else {
+            ConnectedSagaSetEnumerator.Result setResult = ConnectedSagaSetEnumerator.enumerate(usableSagaFqns, conflictGraph.adjacency(), config.maxSagaSetSize());
+            mergeCounts(counts, setResult.counts());
+            warnings.addAll(setResult.warnings());
+            sagaSets = setResult.connectedSagaSets();
+        }
 
-        for (List<String> connectedSet : setResult.connectedSagaSets()) {
+        for (List<String> sagaSet : sagaSets) {
             if (plansById.size() >= maxScenarios) {
                 counts.merge("multiScenariosEmitted", emitted, Integer::sum);
                 capScenarioPlans(warnings, counts, maxScenarios);
                 return;
             }
 
-            InputTupleJoiner.Result tupleResult = InputTupleJoiner.join(connectedSet, inputsBySaga);
+            InputTupleJoiner.Result tupleResult = InputTupleJoiner.join(sagaSet, inputsBySaga);
             mergeCounts(counts, tupleResult.counts());
             warnings.addAll(tupleResult.warnings());
 
@@ -168,7 +173,7 @@ public final class ScenarioGenerator {
                     return;
                 }
 
-                List<SagaScheduleInput> scheduleInputs = buildScheduleInputs(connectedSet, tuple.inputs(), sagaByFqn);
+                List<SagaScheduleInput> scheduleInputs = buildScheduleInputs(sagaSet, tuple.inputs(), sagaByFqn);
                 ScheduleEnumerator.Result scheduleResult = ScheduleEnumerator.enumerate(
                         scheduleInputs,
                         config.scheduleStrategy(),
@@ -178,7 +183,7 @@ public final class ScenarioGenerator {
                 warnings.addAll(scheduleResult.warnings());
 
                 List<ConflictCandidate> selectedCandidates = conflictGraph.conflictCandidates().stream()
-                        .filter(candidate -> connectedSet.contains(candidate.leftSagaFqn()) && connectedSet.contains(candidate.rightSagaFqn()))
+                        .filter(candidate -> sagaSet.contains(candidate.leftSagaFqn()) && sagaSet.contains(candidate.rightSagaFqn()))
                         .toList();
 
                 for (List<ScheduledStep> schedule : scheduleResult.schedules()) {
@@ -188,7 +193,13 @@ public final class ScenarioGenerator {
                         return;
                     }
 
-                    ScenarioPlan plan = buildMultiSagaPlan(connectedSet, tuple, scheduleInputs, schedule, selectedCandidates);
+                    ScenarioPlan plan = buildMultiSagaPlan(
+                            sagaSet,
+                            tuple,
+                            scheduleInputs,
+                            schedule,
+                            selectedCandidates,
+                            config.generationStrategy() != ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE);
                     if (plan != null) {
                         if (emitPlan(plan, plansById, counts)) {
                             emitted++;
@@ -232,10 +243,11 @@ public final class ScenarioGenerator {
     }
 
     private static ScenarioPlan buildMultiSagaPlan(List<String> connectedSet,
-                                                   InputTuple tuple,
-                                                   List<SagaScheduleInput> scheduleInputs,
-                                                   List<ScheduledStep> schedule,
-                                                   List<ConflictCandidate> selectedCandidates) {
+                                                    InputTuple tuple,
+                                                    List<SagaScheduleInput> scheduleInputs,
+                                                    List<ScheduledStep> schedule,
+                                                    List<ConflictCandidate> selectedCandidates,
+                                                    boolean requireConflictEvidence) {
         Map<String, String> sagaInstanceIdBySagaFqn = new LinkedHashMap<>();
         for (int index = 0; index < connectedSet.size(); index++) {
             sagaInstanceIdBySagaFqn.put(connectedSet.get(index), ScenarioIdGenerator.sagaInstanceId(connectedSet.get(index), tuple.inputs().get(index).deterministicId()));
@@ -271,7 +283,7 @@ public final class ScenarioGenerator {
             warnings.addAll(candidate.warnings());
         }
 
-        if (conflictEvidence.isEmpty()) {
+        if (requireConflictEvidence && conflictEvidence.isEmpty()) {
             return null;
         }
 
@@ -411,6 +423,48 @@ public final class ScenarioGenerator {
         warnings.add("reached maxScenarios=" + maxScenarios + "; remaining scenarios were not emitted");
         counts.putIfAbsent("scenariosCapped", 0);
         counts.put("scenariosCapped", counts.get("scenariosCapped") + 1);
+    }
+
+    private static List<List<String>> allInputBoundSagaSets(List<String> usableSagaFqns, int maxSagaSetSize) {
+        List<List<String>> sagaSets = new ArrayList<>();
+        int maxSize = Math.max(0, Math.min(maxSagaSetSize, usableSagaFqns.size()));
+        for (int size = 2; size <= maxSize; size++) {
+            collectCombinations(usableSagaFqns, size, 0, new ArrayList<>(), sagaSets);
+        }
+        return sagaSets;
+    }
+
+    private static void collectCombinations(List<String> values,
+                                            int targetSize,
+                                            int startIndex,
+                                            List<String> current,
+                                            List<List<String>> combinations) {
+        if (current.size() == targetSize) {
+            combinations.add(List.copyOf(current));
+            return;
+        }
+        for (int index = startIndex; index < values.size(); index++) {
+            current.add(values.get(index));
+            collectCombinations(values, targetSize, index + 1, current, combinations);
+            current.remove(current.size() - 1);
+        }
+    }
+
+    private static void putDefaultCounts(Map<String, Integer> counts) {
+        counts.putIfAbsent("scenariosCapped", 0);
+        counts.putIfAbsent("scenarioPlansEmitted", 0);
+        counts.putIfAbsent("scenarioPlansDeduplicated", 0);
+        counts.putIfAbsent("singleScenariosEmitted", 0);
+        counts.putIfAbsent("multiScenariosEmitted", 0);
+        counts.putIfAbsent("connectedSagaSetsSeen", 0);
+        counts.putIfAbsent("connectedSagaSetsEmitted", 0);
+        counts.putIfAbsent("connectedSagaSetsPruned", 0);
+        counts.putIfAbsent("inputTuplesSeen", 0);
+        counts.putIfAbsent("inputTuplesEmitted", 0);
+        counts.putIfAbsent("inputTuplesDeduplicated", 0);
+        counts.putIfAbsent("schedulesSeen", 0);
+        counts.putIfAbsent("schedulesEmitted", 0);
+        counts.putIfAbsent("schedulesCapped", 0);
     }
 
     private static void mergeCounts(Map<String, Integer> target, Map<String, Integer> source) {

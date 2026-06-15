@@ -157,6 +157,74 @@ class ScenarioGeneratorSpec extends Specification {
         result.scenarioPlans().size() == 2
     }
 
+    def 'brute force write plans emits all input-bound saga sets including unrelated pairs'() {
+        given:
+        def sagaA = saga('com.example.A',
+                step('com.example.A', 'step-1', 0, AccessMode.WRITE, 'order-a'))
+        def sagaB = saga('com.example.B',
+                step('com.example.B', 'step-1', 0, AccessMode.WRITE, 'order-b'))
+        def inputs = [
+                input('input-a', 'com.example.A', 'order-a'),
+                input('input-b', 'com.example.B', 'order-a')
+        ]
+
+        when:
+        def result = ScenarioGenerator.generate([sagaA, sagaB], inputs, config(
+                generationStrategy: ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                includeSingles: false,
+                maxSagaSetSize: 2))
+
+        then:
+        result.scenarioPlans().size() == 1
+        result.scenarioPlans()[0].kind() == ScenarioKind.MULTI_SAGA
+        result.scenarioPlans()[0].sagaInstances()*.sagaFqn().toSet() == ['com.example.A', 'com.example.B'] as Set
+        result.scenarioPlans()[0].conflictEvidence().isEmpty()
+    }
+
+    def 'interaction pruned write plans emits only selected graph-connected plans'() {
+        given:
+        def sagaA = saga('com.example.A',
+                step('com.example.A', 'step-1', 0, AccessMode.WRITE, 'shared'))
+        def sagaB = saga('com.example.B',
+                step('com.example.B', 'step-1', 0, AccessMode.READ, 'shared'))
+        def sagaC = saga('com.example.C',
+                step('com.example.C', 'step-1', 0, AccessMode.WRITE, 'unrelated'))
+        def inputs = [
+                input('input-a', 'com.example.A', 'shared'),
+                input('input-b', 'com.example.B', 'shared'),
+                input('input-c', 'com.example.C', 'unrelated')
+        ]
+
+        when:
+        def result = ScenarioGenerator.generate([sagaA, sagaB, sagaC], inputs, config(
+                generationStrategy: ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                includeSingles: false,
+                maxSagaSetSize: 2))
+
+        then:
+        result.scenarioPlans().size() == 1
+        result.scenarioPlans()[0].sagaInstances()*.sagaFqn().toSet() == ['com.example.A', 'com.example.B'] as Set
+        result.scenarioPlans()[0].conflictEvidence().size() == 1
+    }
+
+    def 'count only mode does not materialize scenario plans but keeps rejected inputs'() {
+        given:
+        def saga = saga('com.example.A', step('com.example.A', 'step-1', 0, AccessMode.WRITE, 'order-1'))
+        def sagasInput = inputWithSourceModeAndSource('com.example.A', SourceMode.SAGAS, 'sagas-source')
+        def tccInput = inputWithSourceModeAndSource('com.example.A', SourceMode.TCC, 'tcc-source')
+
+        when:
+        def result = ScenarioGenerator.generate([saga], [sagasInput, tccInput], config(
+                catalogWriteMode: ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY,
+                maxSagaSetSize: 1))
+
+        then:
+        result.scenarioPlans().isEmpty()
+        result.rejectedInputVariants().size() == 1
+        result.rejectedInputVariants()[0].inputVariant().sourceMode() == SourceMode.TCC
+        result.counts().scenariosEmitted == 0
+    }
+
     def 'write read same exact key creates conflict evidence'() {
         given:
         def sagaA = saga('com.example.A',
@@ -397,6 +465,8 @@ class ScenarioGeneratorSpec extends Specification {
     private static ScenarioGeneratorConfig config(Map<String, ?> overrides = [:]) {
         new ScenarioGeneratorConfig(
                 overrides.get('exportEnabled', false) as boolean,
+                overrides.get('generationStrategy', ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED) as ScenarioGeneratorConfig.GenerationStrategy,
+                overrides.get('catalogWriteMode', ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS) as ScenarioGeneratorConfig.CatalogWriteMode,
                 overrides.get('includeSingles', true) as boolean,
                 overrides.get('maxSagaSetSize', 2) as int,
                 overrides.get('maxScenarios', 100) as int,

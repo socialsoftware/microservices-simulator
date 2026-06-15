@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentOrchestrator;
@@ -21,6 +22,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ScenarioModelAdapterResult;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingCalculator;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogJsonlWriter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioGenerationResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
@@ -43,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @SpringBootApplication
+@ConditionalOnProperty(name = "verifiers.application.enabled", havingValue = "true", matchIfMissing = true)
 public class ScenarioGeneratorApplication implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ScenarioGeneratorApplication.class);
@@ -58,6 +62,9 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
     private final String scenarioCatalogPath;
     private final String scenarioCatalogManifestPath;
     private final String scenarioCatalogRejectedInputsPath;
+    private final String scenarioSpaceAccountingPath;
+    private final String scenarioCatalogGenerationStrategy;
+    private final String scenarioCatalogWriteMode;
     private final boolean scenarioCatalogIncludeSingles;
     private final int scenarioCatalogMaxSagaSetSize;
     private final int scenarioCatalogMaxScenarios;
@@ -83,6 +90,9 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             @Value("${verifiers.scenario-catalog.catalog-path:scenario-catalog.jsonl}") String scenarioCatalogPath,
             @Value("${verifiers.scenario-catalog.manifest-path:scenario-catalog-manifest.json}") String scenarioCatalogManifestPath,
             @Value("${verifiers.scenario-catalog.rejected-inputs-path:scenario-catalog-rejected-inputs.jsonl}") String scenarioCatalogRejectedInputsPath,
+            @Value("${verifiers.scenario-catalog.accounting-path:scenario-space-accounting.json}") String scenarioSpaceAccountingPath,
+            @Value("${verifiers.scenario-catalog.generation-strategy:INTERACTION_PRUNED}") String scenarioCatalogGenerationStrategy,
+            @Value("${verifiers.scenario-catalog.catalog-write-mode:WRITE_PLANS}") String scenarioCatalogWriteMode,
             @Value("${verifiers.scenario-catalog.include-singles:true}") boolean scenarioCatalogIncludeSingles,
             @Value("${verifiers.scenario-catalog.max-saga-set-size:1}") int scenarioCatalogMaxSagaSetSize,
             @Value("${verifiers.scenario-catalog.max-scenarios:100}") int scenarioCatalogMaxScenarios,
@@ -114,6 +124,9 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         this.scenarioCatalogPath = Objects.requireNonNull(scenarioCatalogPath, "scenarioCatalogPath cannot be null");
         this.scenarioCatalogManifestPath = Objects.requireNonNull(scenarioCatalogManifestPath, "scenarioCatalogManifestPath cannot be null");
         this.scenarioCatalogRejectedInputsPath = Objects.requireNonNull(scenarioCatalogRejectedInputsPath, "scenarioCatalogRejectedInputsPath cannot be null");
+        this.scenarioSpaceAccountingPath = Objects.requireNonNull(scenarioSpaceAccountingPath, "scenarioSpaceAccountingPath cannot be null");
+        this.scenarioCatalogGenerationStrategy = Objects.requireNonNull(scenarioCatalogGenerationStrategy, "scenarioCatalogGenerationStrategy cannot be null");
+        this.scenarioCatalogWriteMode = Objects.requireNonNull(scenarioCatalogWriteMode, "scenarioCatalogWriteMode cannot be null");
         this.scenarioCatalogIncludeSingles = scenarioCatalogIncludeSingles;
         this.scenarioCatalogMaxSagaSetSize = scenarioCatalogMaxSagaSetSize;
         this.scenarioCatalogMaxScenarios = scenarioCatalogMaxScenarios;
@@ -299,6 +312,8 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
 
         ScenarioGeneratorConfig scenarioGeneratorConfig = new ScenarioGeneratorConfig(
                 true,
+                parseGenerationStrategy(scenarioCatalogGenerationStrategy),
+                parseCatalogWriteMode(scenarioCatalogWriteMode),
                 scenarioCatalogIncludeSingles,
                 scenarioCatalogMaxSagaSetSize,
                 scenarioCatalogMaxScenarios,
@@ -326,18 +341,31 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         Path catalogOutputPath = resolveScenarioCatalogPath();
         Path manifestOutputPath = resolveScenarioCatalogManifestPath();
         Path rejectedInputsOutputPath = resolveScenarioCatalogRejectedInputsPath();
+        Path accountingOutputPath = resolveScenarioSpaceAccountingPath();
+        int catalogWritten = exportResult.effectiveConfig().catalogWriteMode() == ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY
+                ? 0
+                : exportResult.scenarioPlans().size();
+        ScenarioSpaceAccountingReport accountingReport = new ScenarioSpaceAccountingCalculator().calculate(
+                applicationBaseDir,
+                adapterResult.sagaDefinitions(),
+                adapterResult.inputVariants(),
+                exportResult.effectiveConfig(),
+                catalogWritten);
         var manifest = new ScenarioCatalogJsonlWriter().write(
                 exportResult,
                 catalogOutputPath,
                 manifestOutputPath,
                 rejectedInputsOutputPath,
+                accountingOutputPath,
+                accountingReport,
                 generatedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 
         logger.info(
-                "Scenario catalog export wrote {} scenarios to {}, rejected inputs {}, and manifest {}",
+                "Scenario catalog export wrote {} scenarios to {}, rejected inputs {}, accounting {}, and manifest {}",
                 manifest.counts().getOrDefault("scenariosExported", 0),
                 catalogOutputPath.toAbsolutePath().normalize(),
                 rejectedInputsOutputPath.toAbsolutePath().normalize(),
+                accountingOutputPath.toAbsolutePath().normalize(),
                 manifestOutputPath.toAbsolutePath().normalize());
         return exportResult;
     }
@@ -386,6 +414,10 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
 
     private Path resolveScenarioCatalogRejectedInputsPath() {
         return resolveRunRelativePath(scenarioCatalogRejectedInputsPath, "scenario-catalog-rejected-inputs.jsonl");
+    }
+
+    private Path resolveScenarioSpaceAccountingPath() {
+        return resolveRunRelativePath(scenarioSpaceAccountingPath, "scenario-space-accounting.json");
     }
 
     private Path resolveRunRelativePath(String configuredPath, String defaultFileName) {
@@ -477,6 +509,22 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         }
 
         return ScenarioGeneratorConfig.ScheduleStrategy.valueOf(value.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
+    }
+
+    private static ScenarioGeneratorConfig.GenerationStrategy parseGenerationStrategy(String value) {
+        if (value == null || value.isBlank()) {
+            return ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED;
+        }
+
+        return ScenarioGeneratorConfig.GenerationStrategy.valueOf(value.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
+    }
+
+    private static ScenarioGeneratorConfig.CatalogWriteMode parseCatalogWriteMode(String value) {
+        if (value == null || value.isBlank()) {
+            return ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS;
+        }
+
+        return ScenarioGeneratorConfig.CatalogWriteMode.valueOf(value.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
     }
 
     private static LinkedHashMap<String, Integer> mergeCounts(Map<String, Integer> first, Map<String, Integer> second) {
