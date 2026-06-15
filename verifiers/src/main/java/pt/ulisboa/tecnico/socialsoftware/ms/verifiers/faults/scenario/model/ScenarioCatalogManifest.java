@@ -16,6 +16,8 @@ public record ScenarioCatalogManifest(
         String catalogPath,
         String manifestPath,
         String rejectedInputsPath,
+        ScenarioGeneratorConfig.CatalogWriteMode catalogWriteMode,
+        String scenarioSpaceAccountingPath,
         Map<String, Integer> inputVariantsBySourceMode,
         Map<String, Integer> inputVariantsAcceptedBySourceMode,
         Map<String, Integer> inputVariantsRejectedBySourceModeReason) {
@@ -31,6 +33,8 @@ public record ScenarioCatalogManifest(
         catalogPath = normalize(catalogPath);
         manifestPath = normalize(manifestPath);
         rejectedInputsPath = normalize(rejectedInputsPath);
+        catalogWriteMode = catalogWriteMode == null ? effectiveConfig.catalogWriteMode() : catalogWriteMode;
+        scenarioSpaceAccountingPath = normalize(scenarioSpaceAccountingPath);
         inputVariantsBySourceMode = orderedMap(inputVariantsBySourceMode);
         inputVariantsAcceptedBySourceMode = orderedMap(inputVariantsAcceptedBySourceMode);
         inputVariantsRejectedBySourceModeReason = orderedMap(inputVariantsRejectedBySourceModeReason);
@@ -50,6 +54,8 @@ public record ScenarioCatalogManifest(
                 warnings,
                 catalogPath,
                 manifestPath,
+                null,
+                effectiveConfig == null ? null : effectiveConfig.catalogWriteMode(),
                 null,
                 Map.of(),
                 Map.of(),

@@ -86,8 +86,12 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         manifest.path('schemaVersion').asText() == ScenarioPlan.SCHEMA_VERSION
         manifest.path('generatedAt').asText() == '2026-04-27T00:00:00Z'
         manifest.path('effectiveConfig').path('maxSagaSetSize').asInt() == 4
+        manifest.path('effectiveConfig').path('generationStrategy').asText() == 'INTERACTION_PRUNED'
+        manifest.path('effectiveConfig').path('catalogWriteMode').asText() == 'WRITE_PLANS'
         manifest.path('effectiveConfig').path('maxScenarios').asInt() == 7
         manifest.path('effectiveConfig').path('maxInputVariantsPerSaga').asInt() == 8
+        manifest.path('catalogWriteMode').asText() == 'WRITE_PLANS'
+        manifest.path('scenarioSpaceAccountingPath').asText() == tempRoot.resolve('exports/scenario-space-accounting.json').toString()
         manifest.path('counts').path('scenariosEmitted').asInt() == 2
         manifest.path('counts').path('scenariosCapped').asInt() == 1
         manifest.path('counts').path('scenariosExported').asInt() == 2
@@ -100,6 +104,49 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         ]
         manifest.path('catalogPath').asText() == catalogPath.toString()
         manifest.path('manifestPath').asText() == manifestPath.toString()
+    }
+
+    def 'writes scenario-space accounting artifact with schema config and decimal string counts'() {
+        given:
+        def tempRoot = Files.createTempDirectory('scenario-catalog-writer-accounting')
+        def catalogPath = tempRoot.resolve('exports/scenario-catalog.jsonl')
+        def manifestPath = tempRoot.resolve('exports/scenario-catalog-manifest.json')
+        def rejectedPath = tempRoot.resolve('exports/scenario-catalog-rejected-inputs.jsonl')
+        def accountingPath = tempRoot.resolve('exports/scenario-space-accounting.json')
+        def writer = new ScenarioCatalogJsonlWriter()
+        def result = generationResult([singleScenarioPlan('scenario-1')])
+
+        when:
+        writer.write(result, catalogPath, manifestPath, rejectedPath, accountingPath, null, '2026-04-27T00:00:00Z')
+
+        then:
+        Files.exists(accountingPath)
+        def accountingText = Files.readString(accountingPath)
+        accountingText.startsWith("{${System.lineSeparator()}")
+        accountingText.endsWith(System.lineSeparator())
+        def accounting = mapper.readTree(accountingText)
+        accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v1'
+        accounting.path('runConfig').path('targetApplication').asText() == 'unknown'
+        accounting.path('runConfig').path('generationStrategy').asText() == 'INTERACTION_PRUNED'
+        accounting.path('runConfig').path('catalogWriteMode').asText() == 'WRITE_PLANS'
+        accounting.path('runConfig').path('includeSingles').asBoolean() == false
+        accounting.path('runConfig').path('maxSagaSetSize').asInt() == 4
+        accounting.path('runConfig').path('maxInputVariantsPerSaga').asInt() == 8
+        accounting.path('runConfig').path('maxSchedulesPerInputTuple').asInt() == 9
+        accounting.path('runConfig').path('maxScenarios').asInt() == 7
+        accounting.path('runConfig').path('scheduleStrategy').asText() == 'ORDER_PRESERVING_INTERLEAVING'
+        accounting.path('runConfig').path('effectiveSegmentBehavior').asText() == 'not-applicable'
+        accounting.path('runConfig').path('allowTypeOnlyFallback').asBoolean()
+        accounting.path('runConfig').path('inputPolicy').asText() == 'ALLOW_PARTIAL'
+        accounting.path('runConfig').path('sourceModeHandling').asText().contains('SAGAS accepted')
+        accounting.path('inputBoundScenarioSpace').path('allInputBound').path('total').isTextual()
+        accounting.path('inputBoundScenarioSpace').path('selectedByGenerator').path('total').isTextual()
+        accounting.path('inputBoundScenarioSpace').path('catalogWritten').path('total').isTextual()
+        accounting.path('inputBoundScenarioSpace').path('catalogWritten').path('total').asText() == '1'
+
+        and:
+        def manifest = mapper.readTree(Files.readString(manifestPath))
+        manifest.path('scenarioSpaceAccountingPath').asText() == accountingPath.toString()
     }
 
     def 'writes accepted input recipe payloads without sidecar files'() {
@@ -250,6 +297,8 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
     private static ScenarioGeneratorConfig config() {
         new ScenarioGeneratorConfig(
                 true,
+                ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
                 false,
                 4,
                 7,

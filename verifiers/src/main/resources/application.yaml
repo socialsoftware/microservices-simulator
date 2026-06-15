@@ -13,6 +13,9 @@ verifiers:
     catalog-path: scenario-catalog.jsonl
     manifest-path: scenario-catalog-manifest.json
     rejected-inputs-path: scenario-catalog-rejected-inputs.jsonl
+    accounting-path: scenario-space-accounting.json
+    generation-strategy: INTERACTION_PRUNED
+    catalog-write-mode: WRITE_PLANS
     include-singles: true
     max-saga-set-size: 1
     max-scenarios: 100

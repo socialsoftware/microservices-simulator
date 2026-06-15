@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingWriter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.RejectedInputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioCatalogManifest;
@@ -35,28 +37,48 @@ public final class ScenarioCatalogJsonlWriter {
     }
 
     public ScenarioCatalogManifest write(ScenarioGenerationResult result,
-                                         Path catalogPath,
-                                         Path manifestPath,
-                                         Path rejectedInputsPath,
-                                         String generatedAt) throws IOException {
+                                          Path catalogPath,
+                                          Path manifestPath,
+                                          Path rejectedInputsPath,
+                                          String generatedAt) throws IOException {
+        Path accountingPath = catalogPath == null || catalogPath.getParent() == null
+                ? Path.of("scenario-space-accounting.json")
+                : catalogPath.getParent().resolve("scenario-space-accounting.json");
+        return write(result, catalogPath, manifestPath, rejectedInputsPath, accountingPath, null, generatedAt);
+    }
+
+    public ScenarioCatalogManifest write(ScenarioGenerationResult result,
+                                          Path catalogPath,
+                                          Path manifestPath,
+                                          Path rejectedInputsPath,
+                                          Path accountingPath,
+                                          ScenarioSpaceAccountingReport accountingReport,
+                                          String generatedAt) throws IOException {
         ScenarioGenerationResult safeResult = Objects.requireNonNull(result, "result");
         Path safeCatalogPath = Objects.requireNonNull(catalogPath, "catalogPath");
         Path safeManifestPath = Objects.requireNonNull(manifestPath, "manifestPath");
         Path safeRejectedInputsPath = Objects.requireNonNull(rejectedInputsPath, "rejectedInputsPath");
+        Path safeAccountingPath = Objects.requireNonNull(accountingPath, "accountingPath");
         String safeGeneratedAt = requireGeneratedAt(generatedAt);
 
         createParentDirectories(safeCatalogPath);
         createParentDirectories(safeManifestPath);
         createParentDirectories(safeRejectedInputsPath);
+        createParentDirectories(safeAccountingPath);
 
         int scenariosExported = writeCatalog(safeResult, safeCatalogPath);
         int rejectedInputsExported = writeRejectedInputs(safeResult.rejectedInputVariants(), safeRejectedInputsPath);
+        ScenarioSpaceAccountingReport safeAccountingReport = accountingReport == null
+                ? ScenarioSpaceAccountingReport.placeholder("unknown", safeResult.effectiveConfig(), scenariosExported)
+                : accountingReport;
+        new ScenarioSpaceAccountingWriter().write(safeAccountingReport, safeAccountingPath);
 
         ScenarioCatalogManifest manifest = buildManifest(
                 safeResult,
                 safeCatalogPath,
                 safeManifestPath,
                 safeRejectedInputsPath,
+                safeAccountingPath,
                 safeGeneratedAt,
                 scenariosExported,
                 rejectedInputsExported);
@@ -111,12 +133,13 @@ public final class ScenarioCatalogJsonlWriter {
     }
 
     private static ScenarioCatalogManifest buildManifest(ScenarioGenerationResult result,
-                                                         Path catalogPath,
-                                                         Path manifestPath,
-                                                         Path rejectedInputsPath,
-                                                         String generatedAt,
-                                                         int scenariosExported,
-                                                         int rejectedInputsExported) {
+                                                          Path catalogPath,
+                                                          Path manifestPath,
+                                                          Path rejectedInputsPath,
+                                                          Path accountingPath,
+                                                          String generatedAt,
+                                                          int scenariosExported,
+                                                          int rejectedInputsExported) {
         LinkedHashMap<String, Integer> counts = new LinkedHashMap<>(result.counts());
         counts.put("scenariosExported", scenariosExported);
         counts.put("rejectedInputsExported", rejectedInputsExported);
@@ -129,6 +152,8 @@ public final class ScenarioCatalogJsonlWriter {
                 catalogPath.toString(),
                 manifestPath.toString(),
                 rejectedInputsPath.toString(),
+                result.effectiveConfig().catalogWriteMode(),
+                accountingPath.toString(),
                 inputVariantsBySourceMode(result),
                 inputVariantsAcceptedBySourceMode(result),
                 inputVariantsRejectedBySourceModeReason(result));
