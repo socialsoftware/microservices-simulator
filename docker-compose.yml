@@ -236,6 +236,39 @@ services:
     working_dir: /verifiers
     command: mvn test
 
+  scenario-executor:
+    build:
+      context: .
+      dockerfile: verifiers/Dockerfile.test
+      args:
+        PROFILE: sagas,local
+    image: scenario-executor:latest
+    pull_policy: build
+    container_name: scenario-executor
+    environment:
+      APPLICATION_BASE_DIR: ${APPLICATION_BASE_DIR:-quizzes}
+      SPRING_APPLICATION_CLASS: ${SPRING_APPLICATION_CLASS:-pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator}
+      MAVEN_PROFILE: ${MAVEN_PROFILE:-test-sagas}
+      SPRING_PROFILES: ${SPRING_PROFILES:-test,sagas,local}
+      CATALOG_PATH: ${CATALOG_PATH:?CATALOG_PATH is required}
+      SCENARIO_ID: ${SCENARIO_ID:-}
+      OUTPUT_PATH: ${OUTPUT_PATH:-/reports/scenario-executor/execution-report.json}
+      SERVER_PORT: ${SERVER_PORT:-0}
+    stop_signal: SIGKILL
+    stdin_open: true
+    tty: true
+    working_dir: /verifiers
+    command: /verifiers/scripts/run-scenario-executor.sh
+    volumes:
+      - m2_cache:/root/.m2
+      - ./simulator:/workspace/simulator:ro
+      - ./applications:/applications
+      - ./verifiers:/verifiers
+      - ./verifiers/target:/reports
+    <<: *limits-medium
+    networks:
+      - messaging-network
+
 volumes:
   rabbitmq_data:
   m2_cache:
