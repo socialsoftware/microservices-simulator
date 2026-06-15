@@ -9,7 +9,7 @@ from src.simulator_tools.db_utils import *
 
 class SimEvaluator:
     """
-    Class responsible for bridging the agent and the simulator. 
+    Class responsible for bridging the agent and the simulator.
     Abstracts the type of agent and algorithm implemented from the workloads and data collection.
     """
 
@@ -66,15 +66,20 @@ class SimEvaluator:
             try:
                 # We use subprocess.run to wait for the workload to finish
                 # Suppress stdout and stderr so it doesn't pollute the CLI
+                # Add a 100-second timeout safety net
                 subprocess.run(
                     cmd,
                     check=True,
                     cwd=workloads_dir,
                     stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
+                    stderr=subprocess.DEVNULL,
+                    timeout=100
                 )
                 logging.info(
                     f"Workload {wl.get('file')} completed successfully.")
+            except subprocess.TimeoutExpired as e:
+                logging.error(
+                    f"Workload {wl.get('file')} timed out.")
             except subprocess.CalledProcessError as e:
                 logging.error(
                     f"Workload {wl.get('file')} execution failed: {e}")
@@ -91,11 +96,16 @@ class SimEvaluator:
 
         # Reset metrics and DB so every config starts from the same point
         self.trace_collector.reset()
-        DBManager.reset_database()
+        try:
+            DBManager.reset_database()
+            DBManager.populate_database()
+        except:
+            return
 
         SimInterface.inject_configuration(config)
         self.current_config = config
 
+        # TODO: run warmup?
         self._run_workloads()
 
         self.trace_collector.wait_for_data()

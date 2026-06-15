@@ -199,6 +199,10 @@ services:
         EUREKA_HOST: eureka-server
         SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
         OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+        # Force HikariCP to drop idle connections extremely quickly to prevent deadlocks with the agent
+        SPRING_DATASOURCE_HIKARI_MINIMUMIDLE: 0
+        SPRING_DATASOURCE_HIKARI_IDLETIMEOUT: 500
+        SPRING_DATASOURCE_HIKARI_MAXLIFETIME: 10000
       volumes:
         - ./src/main/resources:/resources
         - ./src/main/logs:/logs
