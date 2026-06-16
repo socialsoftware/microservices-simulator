@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-05-20
+Last updated: 2026-06-16
 
 This page is the present-tense source of truth for verifier implementation status. Use it before relying on roadmap notes, weekly logs, meeting notes, decision records, or archived material.
 
@@ -148,6 +148,9 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 - Connected saga-set enumeration is bounded by configuration.
 - Input tuple joining rejects incompatible exact logical-key bindings.
 - Schedule enumeration preserves intra-saga order and reports caps only when useful branches are truncated.
+- `scheduleStrategy=SEGMENT_COMPRESSED` implements conflict-anchor segment compression. For each selected saga set and compatible input tuple, the verifier identifies conflict anchors from the configured static conflict candidates within that saga set: strict evidence when `allowTypeOnlyFallback=false`, broad/type-only fallback evidence when `allowTypeOnlyFallback=true`. It then enumerates order-preserving interleavings over per-saga anchor segments, expands each segment to the deterministic in-saga run of non-anchor steps before the anchor plus the anchor step, and appends non-anchor tails in canonical saga order after all anchor segments.
+- Segment compression is separate from interaction pruning. `generationStrategy` still decides which saga sets are selected (`INTERACTION_PRUNED` via the configured interaction graph, `BRUTE_FORCE` via all input-bound saga sets); `SEGMENT_COMPRESSED` only changes schedule enumeration/counting inside already-selected saga sets.
+- No-anchor saga sets count and emit one canonical full schedule. All-anchor saga sets naturally match `ORDER_PRESERVING_INTERLEAVING`, subject to the same `maxSchedulesPerInputTuple` cap. Mixed anchor/internal-step saga sets preserve conflict-anchor order cases while collapsing independent non-anchor/internal permutations.
 - Source-mode policy for saga catalogs is applied before scenario planning:
   - `SAGAS` accepted;
   - `TCC` rejected;
@@ -156,6 +159,7 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 - JSONL catalog writer emits one accepted `ScenarioPlan` per line with schema `microservices-simulator.scenario-catalog.v2`, including input source-mode metadata and embedded `inputRecipe` payloads when available.
 - Rejected TCC/MIXED candidates are written to `scenario-catalog-rejected-inputs.jsonl` with schema `microservices-simulator.scenario-catalog-rejected-input.v2`, wrapping the full input object plus `rejectionReason` and `rejectionWarnings`; the file is written even when empty.
 - Scenario catalog export also writes `scenario-space-accounting.json` with schema `microservices-simulator.scenario-space-accounting.v1`. The accounting artifact records the run config, type-level strict/broad interaction coverage, input-level static executor-readiness counts from `inputRecipe.executorReady` and recipe blockers, compressed input-bound scenario-space counts, grouped saga-set rows, top contributors, and decimal-string large counts.
+- Scenario-space accounting uses the same segment-compressed schedule-count semantics as materialized generation for `SEGMENT_COMPRESSED`: multinomial counts over per-saga conflict-anchor counts, one schedule for zero-anchor rows, and the same schedule cap and zero-cap behavior. This supersedes the deferred `SEGMENT_COMPRESSED` caveat from the scenario-space-accounting PRD AC-14.
 - The scenario catalog manifest records `catalogWriteMode` and `scenarioSpaceAccountingPath` so a run package can resolve the accounting artifact.
 - `generationStrategy=INTERACTION_PRUNED` writes the selected thesis-generator subset using strict interaction evidence by default, or broad/type-only interaction evidence when `allowTypeOnlyFallback=true`; unrelated aggregate types remain pruned.
 - `generationStrategy=BRUTE_FORCE` writes all input-bound saga sets and schedules under the configured input, set-size, and schedule bounds when paired with `catalogWriteMode=WRITE_PLANS`.
@@ -228,10 +232,10 @@ The enriched artifacts are sidecars. `scenario-catalog.jsonl` stays unchanged as
 - Dispatch footprints usually remain type-only unless exact key data is available.
 - Missing aggregate names remain non-matchable/unknown rather than being mislabeled as type-only.
 - Type-only fallback is opt-in and should not be described as exact shared-instance evidence.
+- Segment compression preserves conflict-anchor ordering cases under the verifier's static conflict evidence. It does not prove semantic completeness, exact aggregate-instance binding, runtime impact, or executor feasibility. Exact aggregate-instance key extraction remains incomplete, and dynamic enrichment remains additive sidecar evidence rather than a redefinition of static schedules.
 - Groovy recipes are replay-oriented, but no runtime materializer exists yet.
 - Scenario catalog records are executor-facing, but not directly executed by the simulator yet.
 - Semantic deduplication of value-equivalent inputs and stronger same-feature sibling disambiguation are not implemented.
-- `SEGMENT_COMPRESSED` is not thesis-style segment compression in the current implementation. Treat it as a placeholder/deferred strategy: for small tuples it behaves like bounded order-preserving interleaving, and for larger tuples it falls back to serial scheduling. Public-facing claims and evaluation baselines should use `SERIAL` or `ORDER_PRESERVING_INTERLEAVING` until real segment compression exists.
 - Include/exclude filters from the broader scenario-catalog design are not exposed yet.
 - Source-mode classification is evidence-based, not a full Spring profile/environment solver.
 - Package/name hints are not primary source-mode evidence.
@@ -291,6 +295,12 @@ Dummyapp dynamic-enrichment integration validation performed in the local agent 
 - `cd verifiers && mvn test -Dtest=DummyappDynamicEnrichmentIntegrationSpec,DynamicEvidenceJoinerSpec,EnrichedScenarioCatalogWriterSpec -DfailIfNoTests=false` — PASS (`12` tests, `0` failures/errors).
 - `cd verifiers && mvn test -Dtest=ScenarioGeneratorApplicationSpec,ApplicationAnalysisScenarioModelAdapterSpec,DummyappDynamicEnrichmentIntegrationSpec -DfailIfNoTests=false` — PASS (`23` tests, `0` failures/errors).
 - The first failing-first run exposed two integration details that are now encoded in the spec: the runtime evidence should use raw step names like `getOrderStep`, while the joiner only normalizes expanded static schedule labels like `getOrderStep#0` and leaves runtime suffixes untouched; dynamic enrichment counts for `dynamicEventsRead` / `eventsMissingTestContext` live in the join report rather than the enriched-catalog manifest.
+
+Segment-compressed scheduling validation performed in the local agent/container environment:
+
+- `cd verifiers && mvn -Dtest=ScenarioGeneratorSpec,ScenarioSpaceAccountingCalculatorSpec test` — PASS (`55` tests, `0` failures/errors), covering conflict-anchor scheduling, strict/broad lenses, no-anchor/all-anchor/mixed-tail cases, deterministic IDs, accounting parity, caps, zero caps, and non-placeholder run-config text.
+- `cd verifiers && mvn -Dtest=DummyappAccountingFixtureFoundationSpec,ScenarioGeneratorSpec,ScenarioSpaceAccountingCalculatorSpec test` — PASS (`66` tests, `0` failures/errors), covering real dummyapp parser/adapter integration, materialized/accounting parity, conflict evidence, and reduced segment-compressed counts against order-preserving interleaving for a real interacting row.
+- Docker Compose Quizzes count-only comparison with dynamic enrichment disabled and `maxSagaSetSize=3` wrote empty catalogs plus full accounting artifacts under `verifiers/target/segment-compressed-scheduling-007/`. `ORDER_PRESERVING_INTERLEAVING` selected total was `218528454`; `SEGMENT_COMPRESSED` selected total was `1019393`; 573 matching selected size-3 rows had lower `scheduleCountPerTuple` under segment compression.
 
 Real Quizzes dynamic-enrichment validation (Tasks 7-8) was performed in the local agent environment:
 

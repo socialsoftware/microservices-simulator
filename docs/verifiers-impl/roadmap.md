@@ -42,11 +42,12 @@ Implemented:
 - JSONL scenario catalog plus manifest.
 - Conservative confidence labels for aggregate-key evidence.
 - Bounded defaults to avoid large-app combinatorial explosion.
+- Conflict-anchor segment-compressed scheduling and accounting for selected saga sets. This reduces Quizzes count-only selected-space totals while preserving configured conflict-anchor order cases under static evidence.
 
 Remaining gaps:
 
 - Exact aggregate-instance key binding is incomplete.
-- Segment compression should be verified/matured before being claimed as an evaluation-ready optimization.
+- Segment-compressed scheduling remains a static reduction under extracted conflict evidence; it does not prove semantic completeness or exact runtime aggregate-instance binding.
 - Catalog entries are not yet executable by a runtime runner.
 
 ## Stage 1.5 — Dynamic evidence bridge
@@ -197,6 +198,7 @@ Dependencies:
 | Facade call recipe extraction | Implemented | dummyapp and Quizzes report/spec assertions | Keep expanding real syntax coverage |
 | HTML report | Implemented | renderer/application specs | Human view only, not machine contract |
 | Scenario catalog JSONL/manifest | Implemented MVP | scenario package, writer, application specs | Exact keys, filters, executor integration |
+| Segment-compressed scheduling/accounting | Implemented static reduction | scheduler/accounting specs, dummyapp integration, Quizzes count-only comparison | Exact aggregate-instance binding and runtime semantic completeness remain separate |
 | Dynamic evidence + sidecar enrichment | Implemented MVP | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, Task 7/8 Quizzes runs, 2026-05-12 exact-attribution refresh | Runtime attribution refinement; stream/gRPC/distributed/TCC parity; remaining ambiguity/unmatched analysis |
 | Quizzes orchestration smoke baseline | Implemented | Task 7 narrow run + Task 8 full/default run in `current-state.md` | Refresh periodically and track exact/ambiguous/unmatched trends |
 | ScenarioExecutor | Not implemented | none | Design and runtime integration |
