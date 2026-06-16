@@ -75,7 +75,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
                 [singleScenarioPlan('scenario-1'), singleScenarioPlan('scenario-2')],
                 config(),
                 [scenariosEmitted: 2, scenariosCapped: 1],
-                ['reached maxScenarios=7; remaining scenarios were not emitted', 'schedule cap reached']
+                ['reached maxCatalogScenarios=7; remaining scenarios were not emitted', 'schedule cap reached']
         )
 
         when:
@@ -88,7 +88,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         manifest.path('effectiveConfig').path('maxSagaSetSize').asInt() == 4
         manifest.path('effectiveConfig').path('generationStrategy').asText() == 'INTERACTION_PRUNED'
         manifest.path('effectiveConfig').path('catalogWriteMode').asText() == 'WRITE_PLANS'
-        manifest.path('effectiveConfig').path('maxScenarios').asInt() == 7
+        manifest.path('effectiveConfig').path('maxCatalogScenarios').asInt() == 7
         manifest.path('effectiveConfig').path('maxInputVariantsPerSaga').asInt() == 8
         manifest.path('catalogWriteMode').asText() == 'WRITE_PLANS'
         manifest.path('scenarioSpaceAccountingPath').asText() == tempRoot.resolve('exports/scenario-space-accounting.json').toString()
@@ -99,7 +99,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         manifest.path('inputVariantsAcceptedBySourceMode').path(SourceMode.SAGAS.name()).asInt() == 2
         manifest.path('inputVariantsAcceptedBySourceMode').path(SourceMode.TCC.name()).asInt() == 0
         manifest.path('warnings').collect { it.asText() } == [
-                'reached maxScenarios=7; remaining scenarios were not emitted',
+                'reached maxCatalogScenarios=7; remaining scenarios were not emitted',
                 'schedule cap reached'
         ]
         manifest.path('catalogPath').asText() == catalogPath.toString()
@@ -133,7 +133,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         accounting.path('runConfig').path('maxSagaSetSize').asInt() == 4
         accounting.path('runConfig').path('maxInputVariantsPerSaga').asInt() == 8
         accounting.path('runConfig').path('maxSchedulesPerInputTuple').asInt() == 9
-        accounting.path('runConfig').path('maxScenarios').asInt() == 7
+        accounting.path('runConfig').path('maxCatalogScenarios').asInt() == 7
         accounting.path('runConfig').path('scheduleStrategy').asText() == 'ORDER_PRESERVING_INTERLEAVING'
         accounting.path('runConfig').path('effectiveSegmentBehavior').asText() == 'not-applicable'
         accounting.path('runConfig').path('allowTypeOnlyFallback').asBoolean()

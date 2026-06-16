@@ -21,7 +21,7 @@ Wire compressed accounting into catalog generation behavior through explicit gen
 - `COUNT_ONLY` still writes complete `scenario-space-accounting.json` selected counts.
 - Manifest written/export counts reflect the empty catalog in count-only mode.
 - Accounting `selectedByGenerator` remains complete in count-only mode.
-- Global `maxScenarios` write cap affects `catalogWritten`, not `allInputBound` or `selectedByGenerator`.
+- Global `maxCatalogScenarios` write cap affects `catalogWritten`, not `allInputBound` or `selectedByGenerator`.
 - If `SEGMENT_COMPRESSED` is configured, accounting records the current effective placeholder behavior and does not claim thesis-style compression.
 - Documentation describes the generation strategy and catalog write-mode config keys and behavior.
 

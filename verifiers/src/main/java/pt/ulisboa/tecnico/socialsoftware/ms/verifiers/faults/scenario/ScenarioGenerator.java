@@ -71,7 +71,7 @@ public final class ScenarioGenerator {
             emitSingleSagaScenarios(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), plansById, warnings, counts);
         }
 
-        if (plansById.size() < Math.max(0, effectiveConfig.maxScenarios())
+        if (plansById.size() < Math.max(0, effectiveConfig.maxCatalogScenarios())
                 && effectiveConfig.maxSagaSetSize() >= 2
                 && usableSagaFqns.size() >= 2) {
             emitMultiSagaScenarios(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), usableSagaFqns, conflictGraph, plansById, warnings, counts);
@@ -106,11 +106,11 @@ public final class ScenarioGenerator {
                                                 LinkedHashSet<String> warnings,
                                                 Map<String, Integer> counts) {
         int emitted = 0;
-        int maxScenarios = Math.max(0, config.maxScenarios());
+        int maxCatalogScenarios = Math.max(0, config.maxCatalogScenarios());
         for (String sagaFqn : inputsBySaga.keySet().stream().sorted().toList()) {
-            if (plansById.size() >= maxScenarios) {
+            if (plansById.size() >= maxCatalogScenarios) {
                 counts.merge("singleScenariosEmitted", emitted, Integer::sum);
-                capScenarioPlans(warnings, counts, maxScenarios);
+                capScenarioPlans(warnings, counts, maxCatalogScenarios);
                 return;
             }
 
@@ -121,9 +121,9 @@ public final class ScenarioGenerator {
 
             List<InputVariant> sagaInputs = inputsBySaga.getOrDefault(sagaFqn, List.of());
             for (InputVariant input : sagaInputs) {
-                if (plansById.size() >= maxScenarios) {
+                if (plansById.size() >= maxCatalogScenarios) {
                     counts.merge("singleScenariosEmitted", emitted, Integer::sum);
-                    capScenarioPlans(warnings, counts, maxScenarios);
+                    capScenarioPlans(warnings, counts, maxCatalogScenarios);
                     return;
                 }
 
@@ -143,7 +143,7 @@ public final class ScenarioGenerator {
                                                LinkedHashMap<String, ScenarioPlan> plansById,
                                                LinkedHashSet<String> warnings,
                                                Map<String, Integer> counts) {
-        int maxScenarios = Math.max(0, config.maxScenarios());
+        int maxCatalogScenarios = Math.max(0, config.maxCatalogScenarios());
         int emitted = 0;
         List<List<String>> sagaSets;
         if (config.generationStrategy() == ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE) {
@@ -156,9 +156,9 @@ public final class ScenarioGenerator {
         }
 
         for (List<String> sagaSet : sagaSets) {
-            if (plansById.size() >= maxScenarios) {
+            if (plansById.size() >= maxCatalogScenarios) {
                 counts.merge("multiScenariosEmitted", emitted, Integer::sum);
-                capScenarioPlans(warnings, counts, maxScenarios);
+                capScenarioPlans(warnings, counts, maxCatalogScenarios);
                 return;
             }
 
@@ -167,9 +167,9 @@ public final class ScenarioGenerator {
             warnings.addAll(tupleResult.warnings());
 
             for (InputTuple tuple : tupleResult.tuples()) {
-                if (plansById.size() >= maxScenarios) {
+                if (plansById.size() >= maxCatalogScenarios) {
                     counts.merge("multiScenariosEmitted", emitted, Integer::sum);
-                    capScenarioPlans(warnings, counts, maxScenarios);
+                    capScenarioPlans(warnings, counts, maxCatalogScenarios);
                     return;
                 }
 
@@ -187,9 +187,9 @@ public final class ScenarioGenerator {
                 warnings.addAll(scheduleResult.warnings());
 
                 for (List<ScheduledStep> schedule : scheduleResult.schedules()) {
-                    if (plansById.size() >= maxScenarios) {
+                    if (plansById.size() >= maxCatalogScenarios) {
                         counts.merge("multiScenariosEmitted", emitted, Integer::sum);
-                        capScenarioPlans(warnings, counts, maxScenarios);
+                        capScenarioPlans(warnings, counts, maxCatalogScenarios);
                         return;
                     }
 
@@ -419,8 +419,8 @@ public final class ScenarioGenerator {
         return false;
     }
 
-    private static void capScenarioPlans(LinkedHashSet<String> warnings, Map<String, Integer> counts, int maxScenarios) {
-        warnings.add("reached maxScenarios=" + maxScenarios + "; remaining scenarios were not emitted");
+    private static void capScenarioPlans(LinkedHashSet<String> warnings, Map<String, Integer> counts, int maxCatalogScenarios) {
+        warnings.add("reached maxCatalogScenarios=" + maxCatalogScenarios + "; remaining scenarios were not emitted");
         counts.putIfAbsent("scenariosCapped", 0);
         counts.put("scenariosCapped", counts.get("scenariosCapped") + 1);
     }

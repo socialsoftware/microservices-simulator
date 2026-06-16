@@ -278,7 +278,7 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
         report.inputBoundScenarioSpace().allInputBound().total() == '4'
         report.inputBoundScenarioSpace().selectedByGenerator().total() == '4'
         report.inputBoundScenarioSpace().catalogWritten().total() == '1'
-        report.runConfig().maxScenarios() == 1
+        report.runConfig().maxCatalogScenarios() == 1
     }
 
     def 'segment compressed accounting counts conflict-anchor interleavings instead of internal step interleavings'() {
@@ -841,13 +841,13 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
                                                    ScenarioGeneratorConfig.ScheduleStrategy scheduleStrategy,
                                                    int maxGroupedRows,
                                                    boolean allowTypeOnlyFallback,
-                                                   int maxScenarios) {
+                                                    int maxCatalogScenarios) {
         new ScenarioGeneratorConfig(false,
                 generationStrategy,
                 ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
                 includeSingles,
                 maxSagaSetSize,
-                maxScenarios,
+                maxCatalogScenarios,
                 maxInputVariantsPerSaga,
                 maxSchedulesPerInputTuple,
                 allowTypeOnlyFallback,

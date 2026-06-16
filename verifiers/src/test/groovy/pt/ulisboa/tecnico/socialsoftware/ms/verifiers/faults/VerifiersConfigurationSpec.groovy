@@ -23,7 +23,7 @@ class VerifiersConfigurationSpec extends Specification {
         def applicationYaml = Files.readString(Path.of('src/main/resources/application.yaml'))
         applicationYaml.contains('enabled: false')
         applicationYaml.contains('max-saga-set-size: 1')
-        applicationYaml.contains('max-scenarios: 100')
+        applicationYaml.contains('max-catalog-scenarios: 100')
         applicationYaml.contains('output-root: ${VERIFIERS_OUTPUT_ROOT:output}')
     }
 

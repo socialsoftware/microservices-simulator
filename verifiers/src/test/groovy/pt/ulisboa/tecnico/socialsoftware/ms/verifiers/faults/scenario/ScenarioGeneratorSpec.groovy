@@ -365,13 +365,13 @@ class ScenarioGeneratorSpec extends Specification {
         def first = ScenarioGenerator.generate([sagaA, sagaB], inputs, config(
                 includeSingles: false,
                 maxSagaSetSize: 2,
-                maxScenarios: 2,
+                maxCatalogScenarios: 2,
                 maxSchedulesPerInputTuple: 20,
                 scheduleStrategy: ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING))
         def second = ScenarioGenerator.generate([sagaA, sagaB], inputs, config(
                 includeSingles: false,
                 maxSagaSetSize: 2,
-                maxScenarios: 2,
+                maxCatalogScenarios: 2,
                 maxSchedulesPerInputTuple: 20,
                 scheduleStrategy: ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING))
 
@@ -379,7 +379,7 @@ class ScenarioGeneratorSpec extends Specification {
         first.scenarioPlans().size() == 2
         first.scenarioPlans()*.deterministicId() == second.scenarioPlans()*.deterministicId()
         first.counts().get('scenariosCapped') > 0
-        first.warnings().any { it.contains('maxScenarios') }
+        first.warnings().any { it.contains('maxCatalogScenarios') }
     }
 
     def 'scenario ids are stable after input order permutation'() {
@@ -666,7 +666,7 @@ class ScenarioGeneratorSpec extends Specification {
                 overrides.get('catalogWriteMode', ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS) as ScenarioGeneratorConfig.CatalogWriteMode,
                 overrides.get('includeSingles', true) as boolean,
                 overrides.get('maxSagaSetSize', 2) as int,
-                overrides.get('maxScenarios', 100) as int,
+                overrides.get('maxCatalogScenarios', 100) as int,
                 overrides.get('maxInputVariantsPerSaga', 3) as int,
                 overrides.get('maxSchedulesPerInputTuple', 20) as int,
                 overrides.get('allowTypeOnlyFallback', false) as boolean,

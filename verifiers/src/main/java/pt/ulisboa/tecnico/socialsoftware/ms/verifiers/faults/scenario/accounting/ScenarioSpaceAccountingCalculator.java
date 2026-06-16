@@ -241,7 +241,7 @@ public final class ScenarioSpaceAccountingCalculator {
                 config.catalogWriteMode(),
                 config.includeSingles(),
                 config.maxSagaSetSize(),
-                config.maxScenarios(),
+                config.maxCatalogScenarios(),
                 config.maxInputVariantsPerSaga(),
                 config.maxSchedulesPerInputTuple(),
                 allowTypeOnlyFallback,

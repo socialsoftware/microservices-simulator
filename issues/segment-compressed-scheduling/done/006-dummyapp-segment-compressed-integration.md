@@ -17,7 +17,7 @@ Use bounded dummyapp configurations that are small enough to materialize full ca
 
 - Dummyapp analysis uses the real verifier pipeline through parsed dummyapp source/tests and the scenario model adapter.
 - At least one real dummyapp multi-step/interacting fixture is generated with `scheduleStrategy=SEGMENT_COMPRESSED`.
-- A bounded full-write dummyapp configuration produces materialized `ScenarioPlan` counts matching accounting `selectedByGenerator.total` when no global `maxScenarios` cap truncates output.
+- A bounded full-write dummyapp configuration produces materialized `ScenarioPlan` counts matching accounting `selectedByGenerator.total` when no global `maxCatalogScenarios` cap truncates output.
 - Dummyapp assertions prove expanded schedules preserve intra-saga order and include full segment-expanded steps.
 - Dummyapp coverage exercises at least one real compressed case where segment compression reduces schedule count versus step-level order-preserving interleaving, if such a fixture is available in current dummyapp.
 - Exact edge semantics remain primarily covered by focused tests from earlier slices; this slice focuses on real adapter/pipeline integration.
@@ -32,7 +32,7 @@ Use bounded dummyapp configurations that are small enough to materialize full ca
 ## Implementation Notes
 
 - Build on existing `DummyappAccountingFixtureFoundationSpec` or nearby dummyapp scenario-generation coverage if that keeps the slice minimal.
-- Keep config bounds high enough to avoid accidental `maxScenarios` truncation but small enough for fast tests.
+- Keep config bounds high enough to avoid accidental `maxCatalogScenarios` truncation but small enough for fast tests.
 - Avoid duplicating every synthetic edge test from earlier slices in dummyapp; assert the end-to-end pipeline behavior that synthetic tests cannot prove.
 
 ## Completion Evidence

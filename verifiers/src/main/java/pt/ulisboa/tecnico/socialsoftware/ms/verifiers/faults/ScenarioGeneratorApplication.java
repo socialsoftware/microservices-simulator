@@ -67,7 +67,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
     private final String scenarioCatalogWriteMode;
     private final boolean scenarioCatalogIncludeSingles;
     private final int scenarioCatalogMaxSagaSetSize;
-    private final int scenarioCatalogMaxScenarios;
+    private final int scenarioCatalogMaxCatalogScenarios;
     private final int scenarioCatalogMaxInputVariantsPerSaga;
     private final int scenarioCatalogMaxSchedulesPerInputTuple;
     private final boolean scenarioCatalogAllowTypeOnlyFallback;
@@ -95,7 +95,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             @Value("${verifiers.scenario-catalog.catalog-write-mode:WRITE_PLANS}") String scenarioCatalogWriteMode,
             @Value("${verifiers.scenario-catalog.include-singles:true}") boolean scenarioCatalogIncludeSingles,
             @Value("${verifiers.scenario-catalog.max-saga-set-size:1}") int scenarioCatalogMaxSagaSetSize,
-            @Value("${verifiers.scenario-catalog.max-scenarios:100}") int scenarioCatalogMaxScenarios,
+            @Value("${verifiers.scenario-catalog.max-catalog-scenarios:100}") int scenarioCatalogMaxCatalogScenarios,
             @Value("${verifiers.scenario-catalog.max-input-variants-per-saga:3}") int scenarioCatalogMaxInputVariantsPerSaga,
             @Value("${verifiers.scenario-catalog.max-schedules-per-input-tuple:20}") int scenarioCatalogMaxSchedulesPerInputTuple,
             @Value("${verifiers.scenario-catalog.allow-type-only-fallback:false}") boolean scenarioCatalogAllowTypeOnlyFallback,
@@ -129,7 +129,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         this.scenarioCatalogWriteMode = Objects.requireNonNull(scenarioCatalogWriteMode, "scenarioCatalogWriteMode cannot be null");
         this.scenarioCatalogIncludeSingles = scenarioCatalogIncludeSingles;
         this.scenarioCatalogMaxSagaSetSize = scenarioCatalogMaxSagaSetSize;
-        this.scenarioCatalogMaxScenarios = scenarioCatalogMaxScenarios;
+        this.scenarioCatalogMaxCatalogScenarios = scenarioCatalogMaxCatalogScenarios;
         this.scenarioCatalogMaxInputVariantsPerSaga = scenarioCatalogMaxInputVariantsPerSaga;
         this.scenarioCatalogMaxSchedulesPerInputTuple = scenarioCatalogMaxSchedulesPerInputTuple;
         this.scenarioCatalogAllowTypeOnlyFallback = scenarioCatalogAllowTypeOnlyFallback;
@@ -316,7 +316,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 parseCatalogWriteMode(scenarioCatalogWriteMode),
                 scenarioCatalogIncludeSingles,
                 scenarioCatalogMaxSagaSetSize,
-                scenarioCatalogMaxScenarios,
+                scenarioCatalogMaxCatalogScenarios,
                 scenarioCatalogMaxInputVariantsPerSaga,
                 scenarioCatalogMaxSchedulesPerInputTuple,
                 scenarioCatalogAllowTypeOnlyFallback,

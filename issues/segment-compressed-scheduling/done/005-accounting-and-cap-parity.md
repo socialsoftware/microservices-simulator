@@ -19,7 +19,7 @@ This slice also proves schedule caps and zero caps behave consistently for `SEGM
 - Accounting treats zero conflict anchors as one canonical schedule.
 - Accounting applies `maxSchedulesPerInputTuple` to segment-compressed counts consistently with materialized generation.
 - `maxSchedulesPerInputTuple=0` disables schedule emission/counting for `SEGMENT_COMPRESSED` consistently.
-- A small uncapped fixture proves materialized `ScenarioPlan` count equals accounting `selectedByGenerator.total` when no global `maxScenarios` cap truncates output.
+- A small uncapped fixture proves materialized `ScenarioPlan` count equals accounting `selectedByGenerator.total` when no global `maxCatalogScenarios` cap truncates output.
 - A capped fixture proves materialized generation emits only capped schedules and accounting grouped-row counts use the capped value.
 - Existing generation warnings/counters report schedule caps deterministically; no new accounting warning field is required unless implementation deliberately changes the artifact shape.
 - Grouped saga-set rows report reduced `scheduleCountPerTuple` for segment-compressed examples with internal/non-anchor steps.

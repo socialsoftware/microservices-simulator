@@ -162,7 +162,7 @@ The enriched output contract uses `microservices-simulator.scenario-catalog-enri
 On 2026-05-20, a bounded static Quizzes smoke was run after dummyapp recipe coverage and this contract documentation were in place:
 
 ```bash
-mvn -q spring-boot:run -Dspring-boot.run.arguments="--verifiers.applications-root=/home/andre/microservices-simulator/applications --verifiers.application-base-dir=quizzes --verifiers.output-root=/home/andre/microservices-simulator/verifiers/target/structured-input-recipes-quizzes-smoke --verifiers.report-html-path=analysis-report.html --verifiers.scenario-catalog.enabled=true --verifiers.dynamic-enrichment.enabled=false --verifiers.scenario-catalog.max-scenarios=80 --verifiers.scenario-catalog.max-input-variants-per-saga=10 --verifiers.scenario-catalog.max-schedules-per-input-tuple=20"
+mvn -q spring-boot:run -Dspring-boot.run.arguments="--verifiers.applications-root=/home/andre/microservices-simulator/applications --verifiers.application-base-dir=quizzes --verifiers.output-root=/home/andre/microservices-simulator/verifiers/target/structured-input-recipes-quizzes-smoke --verifiers.report-html-path=analysis-report.html --verifiers.scenario-catalog.enabled=true --verifiers.dynamic-enrichment.enabled=false --verifiers.scenario-catalog.max-catalog-scenarios=80 --verifiers.scenario-catalog.max-input-variants-per-saga=10 --verifiers.scenario-catalog.max-schedules-per-input-tuple=20"
 ```
 
 Artifacts were written under `verifiers/target/structured-input-recipes-quizzes-smoke/quizzes-20260520-175058-455/`.

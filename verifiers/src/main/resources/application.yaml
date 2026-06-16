@@ -18,7 +18,7 @@ verifiers:
     catalog-write-mode: WRITE_PLANS
     include-singles: true
     max-saga-set-size: 1
-    max-scenarios: 100
+    max-catalog-scenarios: 100
     max-input-variants-per-saga: 3
     max-schedules-per-input-tuple: 20
     allow-type-only-fallback: false

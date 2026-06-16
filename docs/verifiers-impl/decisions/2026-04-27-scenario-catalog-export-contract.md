@@ -41,7 +41,7 @@ The HTML report remains a separate human-facing analysis artifact.
 - Export disabled by default.
 - `includeSingles=true`.
 - `maxSagaSetSize=1`.
-- `maxScenarios=100`.
+- `maxCatalogScenarios=100`.
 - `maxInputVariantsPerSaga=3`.
 - `maxSchedulesPerInputTuple=20`.
 - `allowTypeOnlyFallback=false`.

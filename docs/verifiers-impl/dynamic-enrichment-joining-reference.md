@@ -1446,7 +1446,7 @@ That excludes:
 TCC/MIXED rejected inputs
 inputs excluded by resolution policy
 inputs capped by maxInputVariantsPerSaga
-scenario plans capped by maxScenarios
+scenario plans capped by maxCatalogScenarios
 ```
 
 Runtime may observe a real test execution, but if the corresponding input is not in the accepted static catalog, exact attribution cannot map it to a plan.

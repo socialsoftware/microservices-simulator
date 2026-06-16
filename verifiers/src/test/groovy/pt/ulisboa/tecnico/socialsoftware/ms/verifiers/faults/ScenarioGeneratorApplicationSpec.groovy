@@ -694,7 +694,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         accounting.path('runConfig').path('maxSagaSetSize').asInt() == 1
         accounting.path('runConfig').path('maxInputVariantsPerSaga').asInt() == 3
         accounting.path('runConfig').path('maxSchedulesPerInputTuple').asInt() == 20
-        accounting.path('runConfig').path('maxScenarios').asInt() == 100
+        accounting.path('runConfig').path('maxCatalogScenarios').asInt() == 100
         accounting.path('runConfig').path('scheduleStrategy').asText() == 'SERIAL'
         accounting.path('runConfig').path('allowTypeOnlyFallback').asBoolean() == false
         accounting.path('runConfig').path('inputPolicy').asText() == 'RESOLVED_OR_REPLAYABLE'
@@ -733,7 +733,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
                 '--verifiers.scenario-catalog.generation-strategy=BRUTE_FORCE',
                 '--verifiers.scenario-catalog.catalog-write-mode=COUNT_ONLY',
                 '--verifiers.scenario-catalog.max-saga-set-size=2',
-                '--verifiers.scenario-catalog.max-scenarios=1'
+                '--verifiers.scenario-catalog.max-catalog-scenarios=1'
         )
 
         then:

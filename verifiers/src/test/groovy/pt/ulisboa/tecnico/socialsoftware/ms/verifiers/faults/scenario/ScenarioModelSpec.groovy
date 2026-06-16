@@ -191,7 +191,7 @@ class ScenarioModelSpec extends Specification {
         !config.exportEnabled()
         config.includeSingles()
         config.maxSagaSetSize() == 1
-        config.maxScenarios() == 100
+        config.maxCatalogScenarios() == 100
         config.maxInputVariantsPerSaga() == 3
         config.maxSchedulesPerInputTuple() == 20
         !config.allowTypeOnlyFallback()
