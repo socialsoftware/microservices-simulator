@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accountin
 import com.fasterxml.jackson.databind.ObjectMapper
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleJoiner
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScheduleEnumerator
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey
@@ -280,10 +281,10 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
         report.runConfig().maxScenarios() == 1
     }
 
-    def 'segment compressed accounting matches small tuple interleaving behavior'() {
+    def 'segment compressed accounting counts conflict-anchor interleavings instead of internal step interleavings'() {
         when:
         def report = calculate(
-                [saga('saga.A', 2), saga('saga.B', 2)],
+                [segmentSaga('saga.A', 1, AccessMode.WRITE), segmentSaga('saga.B', 1, AccessMode.READ)],
                 [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:])],
                 config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
                         false,
@@ -294,24 +295,22 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
                         100000),
                 0)
         def materialized = ScheduleEnumerator.enumerate([
-                new ScheduleEnumerator.SagaScheduleInput('a', 'saga.A', saga('saga.A', 2).steps()),
-                new ScheduleEnumerator.SagaScheduleInput('b', 'saga.B', saga('saga.B', 2).steps())
+                new ScheduleEnumerator.SagaScheduleInput('a', 'saga.A', segmentSaga('saga.A', 1, AccessMode.WRITE).steps()),
+                new ScheduleEnumerator.SagaScheduleInput('b', 'saga.B', segmentSaga('saga.B', 1, AccessMode.READ).steps())
         ], ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED, 20, 1234L)
 
         then:
         report.runConfig().scheduleStrategy() == ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED
-        report.runConfig().effectiveSegmentBehavior().contains('totalSteps<=12')
-        report.runConfig().effectiveSegmentBehavior().contains('SERIAL fallback')
-        report.runConfig().effectiveSegmentBehavior().contains('not thesis-style segment compression')
+        report.runConfig().effectiveSegmentBehavior().contains('conflict-anchor segment compression')
         row(report, 'saga.A|saga.B').scheduleCountPerTuple() == materialized.schedules().size().toString()
-        row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '6'
-        row(report, 'saga.A|saga.B').scenarioShapeCount() == '6'
+        row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '2'
+        row(report, 'saga.A|saga.B').scenarioShapeCount() == '2'
     }
 
-    def 'segment compressed accounting matches large tuple serial fallback behavior'() {
+    def 'segment compressed accounting does not fall back to serial above the old step cutoff'() {
         when:
         def report = calculate(
-                [saga('saga.A', 7), saga('saga.B', 6)],
+                [segmentSaga('saga.A', 6, AccessMode.WRITE), segmentSaga('saga.B', 5, AccessMode.READ)],
                 [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:])],
                 config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
                         false,
@@ -322,15 +321,245 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
                         100000),
                 0)
         def materialized = ScheduleEnumerator.enumerate([
-                new ScheduleEnumerator.SagaScheduleInput('a', 'saga.A', saga('saga.A', 7).steps()),
-                new ScheduleEnumerator.SagaScheduleInput('b', 'saga.B', saga('saga.B', 6).steps())
+                new ScheduleEnumerator.SagaScheduleInput('a', 'saga.A', segmentSaga('saga.A', 6, AccessMode.WRITE).steps()),
+                new ScheduleEnumerator.SagaScheduleInput('b', 'saga.B', segmentSaga('saga.B', 5, AccessMode.READ).steps())
         ], ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED, 1000, 1234L)
 
         then:
-        materialized.warnings().contains('segment-compressed schedule strategy fell back to SERIAL for large tuples')
+        materialized.schedules().size() == 2
+        materialized.warnings().isEmpty()
         row(report, 'saga.A|saga.B').scheduleCountPerTuple() == materialized.schedules().size().toString()
+        row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '2'
+        row(report, 'saga.A|saga.B').scenarioShapeCount() == '2'
+    }
+
+    def 'segment compressed accounting ignores external conflict anchors outside the grouped saga set'() {
+        when:
+        def report = calculate(
+                [segmentSaga('saga.A', 1, AccessMode.WRITE), saga('saga.B', 2), segmentSaga('saga.C', 1, AccessMode.READ)],
+                [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:]), input('saga.C', 'c1', [:])],
+                config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                        false,
+                        2,
+                        10,
+                        20,
+                        ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED,
+                        100000),
+                0)
+
+        then:
         row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '1'
-        row(report, 'saga.A|saga.B').scenarioShapeCount() == '1'
+        row(report, 'saga.A|saga.C').scheduleCountPerTuple() == '2'
+    }
+
+    def 'segment compressed anchors follow strict and broad configured conflict lenses'() {
+        when:
+        def strict = calculate(
+                [segmentSaga('saga.A', 1, AccessMode.WRITE, FootprintConfidence.TYPE_ONLY, null),
+                 segmentSaga('saga.B', 1, AccessMode.READ, FootprintConfidence.TYPE_ONLY, null)],
+                [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:])],
+                config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                        false,
+                        2,
+                        10,
+                        20,
+                        ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED,
+                        100000,
+                        false),
+                0)
+        def broad = calculate(
+                [segmentSaga('saga.A', 1, AccessMode.WRITE, FootprintConfidence.TYPE_ONLY, null),
+                 segmentSaga('saga.B', 1, AccessMode.READ, FootprintConfidence.TYPE_ONLY, null)],
+                [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:])],
+                config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                        false,
+                        2,
+                        10,
+                        20,
+                        ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED,
+                        100000,
+                        true),
+                0)
+
+        then:
+        row(strict, 'saga.A|saga.B').scheduleCountPerTuple() == '1'
+        row(strict, 'saga.A|saga.B').broadInteractionSummary().evidenceKindCounts()['TYPE_ONLY'] == 1
+        row(broad, 'saga.A|saga.B').scheduleCountPerTuple() == '2'
+        row(broad, 'saga.A|saga.B').broadInteractionSummary().evidenceKindCounts()['TYPE_ONLY'] == 1
+    }
+
+    def 'segment compressed does not create anchors for read read footprint pairs'() {
+        when:
+        def report = calculate(
+                [segmentSaga('saga.A', 1, AccessMode.READ), segmentSaga('saga.B', 1, AccessMode.READ)],
+                [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:])],
+                config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                        false,
+                        2,
+                        10,
+                        20,
+                        ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED,
+                        100000),
+                0)
+
+        then:
+        row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '1'
+        row(report, 'saga.A|saga.B').strictInteractionSummary().evidenceKindCounts().isEmpty()
+    }
+
+    def 'schedule strategy does not change interaction pruned saga set selection'() {
+        given:
+        def sagas = [
+                segmentSaga('saga.A', 1, AccessMode.WRITE),
+                segmentSaga('saga.B', 1, AccessMode.READ),
+                footprintSaga('saga.C', 'Product', 'product-1', FootprintConfidence.EXACT)
+        ]
+        def inputs = [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:]), input('saga.C', 'c1', [:])]
+
+        when:
+        def interleaving = calculate(sagas, inputs,
+                config(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                        false,
+                        2,
+                        10,
+                        20,
+                        ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING,
+                        100000),
+                0)
+        def compressed = calculate(sagas, inputs,
+                config(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                        false,
+                        2,
+                        10,
+                        20,
+                        ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED,
+                        100000),
+                0)
+
+        then:
+        selectedRows(compressed) == selectedRows(interleaving)
+        selectedRows(compressed) == ['saga.A|saga.B']
+        row(interleaving, 'saga.A|saga.B').scheduleCountPerTuple() == '6'
+        row(compressed, 'saga.A|saga.B').scheduleCountPerTuple() == '2'
+    }
+
+    def 'segment compressed brute force selection remains input-bound instead of interaction-pruned'() {
+        given:
+        def sagas = [segmentSaga('saga.A', 1, AccessMode.WRITE), saga('saga.B', 2), segmentSaga('saga.C', 1, AccessMode.READ)]
+        def inputs = [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:]), input('saga.C', 'c1', [:])]
+
+        when:
+        def report = calculate(sagas, inputs,
+                config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                        false,
+                        2,
+                        10,
+                        20,
+                        ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED,
+                        100000),
+                0)
+
+        then:
+        selectedRows(report) == ['saga.A|saga.B', 'saga.A|saga.C', 'saga.B|saga.C']
+        row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '1'
+        row(report, 'saga.A|saga.C').scheduleCountPerTuple() == '2'
+        row(report, 'saga.B|saga.C').scheduleCountPerTuple() == '1'
+    }
+
+    def 'segment compressed accounting selected total matches fully materialized generator output'() {
+        given:
+        def sagas = [segmentSaga('saga.A', 1, AccessMode.WRITE), segmentSaga('saga.B', 1, AccessMode.READ)]
+        def inputs = [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:])]
+        def segmentConfig = config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                false,
+                2,
+                10,
+                20,
+                ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED,
+                100000)
+
+        when:
+        def generated = ScenarioGenerator.generate(sagas, inputs, segmentConfig)
+        def report = calculate(sagas, inputs, segmentConfig, generated.scenarioPlans().size())
+
+        then:
+        generated.scenarioPlans().size().toString() == report.inputBoundScenarioSpace().selectedByGenerator().total()
+        generated.scenarioPlans().size() == 2
+        row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '2'
+    }
+
+    def 'segment compressed accounting and materialized generation apply schedule caps consistently'() {
+        given:
+        def sagas = [multiAnchorSaga('saga.A', AccessMode.WRITE), multiAnchorSaga('saga.B', AccessMode.READ)]
+        def inputs = [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:])]
+        def cappedConfig = config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                false,
+                2,
+                10,
+                3,
+                ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED,
+                100000)
+
+        when:
+        def generated = ScenarioGenerator.generate(sagas, inputs, cappedConfig)
+        def report = calculate(sagas, inputs, cappedConfig, generated.scenarioPlans().size())
+
+        then:
+        generated.scenarioPlans().size() == 3
+        generated.counts().schedulesCapped == 1
+        generated.warnings().any { it.contains('maxSchedulesPerInputTuple=3') }
+        row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '3'
+        report.inputBoundScenarioSpace().selectedByGenerator().total() == '3'
+    }
+
+    def 'segment compressed zero schedule cap disables accounting and materialized schedules'() {
+        given:
+        def sagas = [segmentSaga('saga.A', 1, AccessMode.WRITE), segmentSaga('saga.B', 1, AccessMode.READ)]
+        def inputs = [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:])]
+        def zeroCapConfig = config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                false,
+                2,
+                10,
+                0,
+                ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED,
+                100000)
+
+        when:
+        def generated = ScenarioGenerator.generate(sagas, inputs, zeroCapConfig)
+        def report = calculate(sagas, inputs, zeroCapConfig, generated.scenarioPlans().size())
+
+        then:
+        generated.scenarioPlans().isEmpty()
+        generated.counts().schedulesEmitted == 0
+        generated.warnings().contains('schedule cap disabled all schedules')
+        row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '0'
+        report.inputBoundScenarioSpace().selectedByGenerator().total() == '0'
+    }
+
+    def 'segment compressed accounting ordering totals and behavior text are stable and non-placeholder'() {
+        given:
+        def sagas = [segmentSaga('saga.A', 1, AccessMode.WRITE), saga('saga.B', 2), segmentSaga('saga.C', 1, AccessMode.READ)]
+        def inputs = [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:]), input('saga.C', 'c1', [:])]
+        def segmentConfig = config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                false,
+                2,
+                10,
+                20,
+                ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED,
+                100000)
+
+        when:
+        def first = calculate(sagas, inputs, segmentConfig, 0)
+        def second = calculate(sagas.reverse(), inputs.reverse(), segmentConfig, 0)
+
+        then:
+        first.groupedSagaSets()*.sagaSetKey() == second.groupedSagaSets()*.sagaSetKey()
+        first.groupedSagaSets()*.scheduleCountPerTuple() == second.groupedSagaSets()*.scheduleCountPerTuple()
+        first.inputBoundScenarioSpace().selectedByGenerator().total() == second.inputBoundScenarioSpace().selectedByGenerator().total()
+        first.runConfig().effectiveSegmentBehavior().contains('conflict-anchor segment compression')
+        !first.runConfig().effectiveSegmentBehavior().contains('not thesis-style')
+        !first.runConfig().effectiveSegmentBehavior().contains('SERIAL fallback')
+        !first.runConfig().effectiveSegmentBehavior().contains('totalSteps<=12')
     }
 
     def 'executor readiness summarizes accepted input recipes without scenario-level admissibility'() {
@@ -502,12 +731,38 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
         report.groupedSagaSets().find { it.sagaSetKey() == key }
     }
 
+    private static List<String> selectedRows(ScenarioSpaceAccountingReport report) {
+        report.groupedSagaSets().findAll { it.selectedByConfiguredGenerator() }*.sagaSetKey()
+    }
+
     private static SagaDefinition saga(String fqn, int stepCount) {
         new SagaDefinition(fqn, (0..<stepCount).collect { step(fqn, it) }, [])
     }
 
     private static StepDefinition step(String sagaFqn, int index) {
         new StepDefinition("${sagaFqn}.step.${index}".toString(), "step${index}".toString(), "step${index}".toString(), index, [], [], [])
+    }
+
+    private static SagaDefinition segmentSaga(String fqn, int internalSteps, AccessMode anchorMode) {
+        segmentSaga(fqn, internalSteps, anchorMode, FootprintConfidence.EXACT, 'shared')
+    }
+
+    private static SagaDefinition segmentSaga(String fqn, int internalSteps, AccessMode anchorMode, FootprintConfidence confidence, String keyText) {
+        def steps = (0..<internalSteps).collect { index ->
+            new StepDefinition("${fqn}.internal.${index}".toString(), "internal${index}".toString(), "internal${index}".toString(), index, [], [], [])
+        }
+        steps.add(new StepDefinition("${fqn}.conflict".toString(), 'conflict', 'conflict', internalSteps, [],
+                [new StepFootprint(new AggregateKey(null, 'Order', keyText, confidence), anchorMode, [])], []))
+        new SagaDefinition(fqn, steps, [])
+    }
+
+    private static SagaDefinition multiAnchorSaga(String fqn, AccessMode anchorMode) {
+        new SagaDefinition(fqn, [
+                new StepDefinition("${fqn}.conflict.1".toString(), 'conflict1', 'conflict1', 0, [],
+                        [new StepFootprint(new AggregateKey(null, 'Order', 'shared-1', FootprintConfidence.EXACT), anchorMode, [])], []),
+                new StepDefinition("${fqn}.conflict.2".toString(), 'conflict2', 'conflict2', 1, [],
+                        [new StepFootprint(new AggregateKey(null, 'Order', 'shared-2', FootprintConfidence.EXACT), anchorMode, [])], [])
+        ], [])
     }
 
     private static SagaDefinition footprintSaga(String fqn, String aggregateName, String keyText, FootprintConfidence confidence) {

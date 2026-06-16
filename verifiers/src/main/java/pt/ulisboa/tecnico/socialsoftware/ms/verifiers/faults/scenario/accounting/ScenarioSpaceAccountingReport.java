@@ -82,7 +82,7 @@ public record ScenarioSpaceAccountingReport(
 
         private static String effectiveSegmentBehavior(ScenarioGeneratorConfig.ScheduleStrategy scheduleStrategy) {
             if (scheduleStrategy == ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED) {
-                return "current ScheduleEnumerator behavior: order-preserving interleavings for tuples with totalSteps<=12, SERIAL fallback for larger tuples; not thesis-style segment compression";
+                return "conflict-anchor segment compression: order-preserving interleavings over cross-saga conflict anchors, expanded to deterministic in-saga anchor segments";
             }
             return "not-applicable";
         }

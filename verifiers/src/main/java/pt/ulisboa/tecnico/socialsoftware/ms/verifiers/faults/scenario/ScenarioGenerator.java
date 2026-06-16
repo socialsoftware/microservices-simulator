@@ -174,17 +174,17 @@ public final class ScenarioGenerator {
                 }
 
                 List<SagaScheduleInput> scheduleInputs = buildScheduleInputs(sagaSet, tuple.inputs(), sagaByFqn);
+                List<ConflictCandidate> selectedCandidates = conflictGraph.conflictCandidates().stream()
+                        .filter(candidate -> sagaSet.contains(candidate.leftSagaFqn()) && sagaSet.contains(candidate.rightSagaFqn()))
+                        .toList();
                 ScheduleEnumerator.Result scheduleResult = ScheduleEnumerator.enumerate(
                         scheduleInputs,
                         config.scheduleStrategy(),
                         config.maxSchedulesPerInputTuple(),
-                        config.deterministicSeed());
+                        config.deterministicSeed(),
+                        selectedCandidates);
                 mergeCounts(counts, scheduleResult.counts());
                 warnings.addAll(scheduleResult.warnings());
-
-                List<ConflictCandidate> selectedCandidates = conflictGraph.conflictCandidates().stream()
-                        .filter(candidate -> sagaSet.contains(candidate.leftSagaFqn()) && sagaSet.contains(candidate.rightSagaFqn()))
-                        .toList();
 
                 for (List<ScheduledStep> schedule : scheduleResult.schedules()) {
                     if (plansById.size() >= maxScenarios) {

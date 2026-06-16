@@ -13,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Inpu
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioGenerationResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint
@@ -401,6 +402,44 @@ class ScenarioGeneratorSpec extends Specification {
         first.scenarioPlans()*.kind() == second.scenarioPlans()*.kind()
     }
 
+    def 'segment compressed scenario schedules and ids are stable across repeated and permuted generation'() {
+        given:
+        def sagaA = saga('com.example.A',
+                step('com.example.A', 'internal', 0, AccessMode.READ, 'a-only'),
+                step('com.example.A', 'conflict', 1, AccessMode.WRITE, 'shared'))
+        def sagaB = saga('com.example.B',
+                step('com.example.B', 'internal', 0, AccessMode.READ, 'b-only'),
+                step('com.example.B', 'conflict', 1, AccessMode.READ, 'shared'))
+        def inputs = [
+                input('input-a', 'com.example.A', 'shared'),
+                input('input-b', 'com.example.B', 'shared')
+        ]
+        def segmentConfig = config(
+                generationStrategy: ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                includeSingles: false,
+                maxSagaSetSize: 2,
+                maxSchedulesPerInputTuple: 20,
+                scheduleStrategy: ScheduleStrategy.SEGMENT_COMPRESSED)
+
+        when:
+        def first = ScenarioGenerator.generate([sagaA, sagaB], inputs, segmentConfig)
+        def repeated = ScenarioGenerator.generate([sagaA, sagaB], inputs, segmentConfig)
+        def permuted = ScenarioGenerator.generate([sagaB, sagaA], [inputs[1], inputs[0]], segmentConfig)
+        def differentSeed = ScenarioGenerator.generate([sagaA, sagaB], inputs, config(
+                generationStrategy: ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                includeSingles: false,
+                maxSagaSetSize: 2,
+                maxSchedulesPerInputTuple: 20,
+                scheduleStrategy: ScheduleStrategy.SEGMENT_COMPRESSED,
+                deterministicSeed: 9999L))
+
+        then:
+        scenarioIdentitySnapshot(first) == scenarioIdentitySnapshot(repeated)
+        scenarioIdentitySnapshot(first) == scenarioIdentitySnapshot(permuted)
+        scenarioIdentitySnapshot(first) == scenarioIdentitySnapshot(differentSeed)
+        first.scenarioPlans().size() == 2
+    }
+
     def 'expanded schedules preserve intra saga order'() {
         given:
         def sagaA = saga('com.example.A',
@@ -455,11 +494,169 @@ class ScenarioGeneratorSpec extends Specification {
         result.warnings().any { it.toLowerCase().contains('schedule cap') }
     }
 
+    def 'segment compressed schedules interleave conflict anchors instead of internal steps'() {
+        given:
+        def sagaInputs = [
+                new SagaScheduleInput('instance-a', 'com.example.A', [
+                        step('com.example.A', 'internal', 0, AccessMode.READ, 'a-only'),
+                        step('com.example.A', 'conflict', 1, AccessMode.WRITE, 'shared')
+                ]),
+                new SagaScheduleInput('instance-b', 'com.example.B', [
+                        step('com.example.B', 'internal', 0, AccessMode.READ, 'b-only'),
+                        step('com.example.B', 'conflict', 1, AccessMode.READ, 'shared')
+                ])
+        ]
+
+        when:
+        def result = ScheduleEnumerator.enumerate(sagaInputs, ScheduleStrategy.SEGMENT_COMPRESSED, 20, 1234L)
+
+        then:
+        result.schedules()*.collect { it.stepId() } == [
+                ['com.example.A::internal', 'com.example.A::conflict', 'com.example.B::internal', 'com.example.B::conflict'],
+                ['com.example.B::internal', 'com.example.B::conflict', 'com.example.A::internal', 'com.example.A::conflict']
+        ]
+        result.counts().get('schedulesEmitted') == 2
+        result.warnings().isEmpty()
+    }
+
+    def 'segment compressed schedules do not fall back to serial above the old step cutoff'() {
+        given:
+        def sagaInputs = [
+                new SagaScheduleInput('instance-a', 'com.example.A', (0..5).collect {
+                    step('com.example.A', "internal-${it}".toString(), it, AccessMode.READ, "a-${it}".toString())
+                } + [step('com.example.A', 'conflict', 6, AccessMode.WRITE, 'shared')]),
+                new SagaScheduleInput('instance-b', 'com.example.B', (0..4).collect {
+                    step('com.example.B', "internal-${it}".toString(), it, AccessMode.READ, "b-${it}".toString())
+                } + [step('com.example.B', 'conflict', 5, AccessMode.READ, 'shared')])
+        ]
+
+        when:
+        def result = ScheduleEnumerator.enumerate(sagaInputs, ScheduleStrategy.SEGMENT_COMPRESSED, 20, 1234L)
+
+        then:
+        result.schedules().size() == 2
+        !result.warnings().any { it.contains('SERIAL') }
+    }
+
+    def 'segment compressed emits one canonical schedule when no anchors exist'() {
+        given:
+        def sagaInputs = [
+                new SagaScheduleInput('instance-a', 'com.example.A', [
+                        step('com.example.A', 'step-1', 0, AccessMode.READ, 'a-only'),
+                        step('com.example.A', 'step-2', 1, AccessMode.READ, 'a-only-2')
+                ]),
+                new SagaScheduleInput('instance-b', 'com.example.B', [
+                        step('com.example.B', 'step-1', 0, AccessMode.READ, 'b-only'),
+                        step('com.example.B', 'step-2', 1, AccessMode.READ, 'b-only-2')
+                ])
+        ]
+
+        when:
+        def result = ScheduleEnumerator.enumerate(sagaInputs, ScheduleStrategy.SEGMENT_COMPRESSED, 20, 1234L)
+
+        then:
+        result.schedules()*.collect { it.stepId() } == [[
+                'com.example.A::step-1', 'com.example.A::step-2',
+                'com.example.B::step-1', 'com.example.B::step-2'
+        ]]
+        result.counts().get('schedulesEmitted') == 1
+    }
+
+    def 'segment compressed matches order preserving interleaving when every step is an anchor'() {
+        given:
+        def sagaInputs = [
+                new SagaScheduleInput('instance-a', 'com.example.A', [
+                        step('com.example.A', 'step-1', 0, AccessMode.WRITE, 'shared'),
+                        step('com.example.A', 'step-2', 1, AccessMode.READ, 'shared')
+                ]),
+                new SagaScheduleInput('instance-b', 'com.example.B', [
+                        step('com.example.B', 'step-1', 0, AccessMode.WRITE, 'shared')
+                ])
+        ]
+
+        when:
+        def interleaving = ScheduleEnumerator.enumerate(sagaInputs, ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING, 20, 1234L)
+        def compressed = ScheduleEnumerator.enumerate(sagaInputs, ScheduleStrategy.SEGMENT_COMPRESSED, 20, 1234L)
+
+        then:
+        compressed.schedules()*.collect { it.stepId() } == interleaving.schedules()*.collect { it.stepId() }
+        compressed.schedules().size() == 3
+    }
+
+    def 'segment compressed emits internal steps with following anchors and tails after anchor segments'() {
+        given:
+        def sagaInputs = [
+                new SagaScheduleInput('instance-a', 'com.example.A', [
+                        step('com.example.A', 'before-anchor-1', 0, AccessMode.READ, 'a-only-1'),
+                        step('com.example.A', 'anchor-1', 1, AccessMode.WRITE, 'shared-1'),
+                        step('com.example.A', 'before-anchor-2', 2, AccessMode.READ, 'a-only-2'),
+                        step('com.example.A', 'anchor-2', 3, AccessMode.WRITE, 'shared-2'),
+                        step('com.example.A', 'tail', 4, AccessMode.READ, 'a-tail')
+                ]),
+                new SagaScheduleInput('instance-b', 'com.example.B', [
+                        step('com.example.B', 'anchor-1', 0, AccessMode.READ, 'shared-1'),
+                        step('com.example.B', 'anchor-2', 1, AccessMode.READ, 'shared-2')
+                ])
+        ]
+
+        when:
+        def result = ScheduleEnumerator.enumerate(sagaInputs, ScheduleStrategy.SEGMENT_COMPRESSED, 20, 1234L)
+
+        then:
+        result.schedules().first()*.stepId() == [
+                'com.example.A::before-anchor-1', 'com.example.A::anchor-1',
+                'com.example.A::before-anchor-2', 'com.example.A::anchor-2',
+                'com.example.B::anchor-1', 'com.example.B::anchor-2',
+                'com.example.A::tail'
+        ]
+        result.schedules().every { it.last().stepId() == 'com.example.A::tail' }
+        result.schedules().every { schedule ->
+            schedule.findIndexOf { it.stepId() == 'com.example.A::before-anchor-2' } <
+                    schedule.findIndexOf { it.stepId() == 'com.example.A::anchor-2' }
+        }
+    }
+
+    def 'segment compressed appends zero-anchor saga steps to the canonical tail'() {
+        given:
+        def sagaInputs = [
+                new SagaScheduleInput('instance-a', 'com.example.A', [
+                        step('com.example.A', 'before-anchor', 0, AccessMode.READ, 'a-only'),
+                        step('com.example.A', 'anchor', 1, AccessMode.WRITE, 'shared')
+                ]),
+                new SagaScheduleInput('instance-b', 'com.example.B', [
+                        step('com.example.B', 'tail-1', 0, AccessMode.READ, 'b-only-1'),
+                        step('com.example.B', 'tail-2', 1, AccessMode.READ, 'b-only-2')
+                ]),
+                new SagaScheduleInput('instance-c', 'com.example.C', [
+                        step('com.example.C', 'anchor', 0, AccessMode.READ, 'shared')
+                ])
+        ]
+
+        when:
+        def result = ScheduleEnumerator.enumerate(sagaInputs, ScheduleStrategy.SEGMENT_COMPRESSED, 20, 1234L)
+
+        then:
+        result.schedules()*.collect { it.stepId() } == [
+                ['com.example.A::before-anchor', 'com.example.A::anchor', 'com.example.C::anchor', 'com.example.B::tail-1', 'com.example.B::tail-2'],
+                ['com.example.C::anchor', 'com.example.A::before-anchor', 'com.example.A::anchor', 'com.example.B::tail-1', 'com.example.B::tail-2']
+        ]
+    }
+
     private static Map<String, List<String>> getExpectedStepIdsBySaga() {
         [
                 'com.example.A': ['com.example.A::step-1', 'com.example.A::step-2'],
                 'com.example.B': ['com.example.B::step-1', 'com.example.B::step-2']
         ]
+    }
+
+    private static List<Map<String, Object>> scenarioIdentitySnapshot(ScenarioGenerationResult result) {
+        result.scenarioPlans().collect { plan ->
+            [
+                    scenarioId      : plan.deterministicId(),
+                    scheduleStepIds  : plan.expandedSchedule()*.stepId(),
+                    scheduledStepIds : plan.expandedSchedule()*.deterministicId()
+            ]
+        }
     }
 
     private static ScenarioGeneratorConfig config(Map<String, ?> overrides = [:]) {

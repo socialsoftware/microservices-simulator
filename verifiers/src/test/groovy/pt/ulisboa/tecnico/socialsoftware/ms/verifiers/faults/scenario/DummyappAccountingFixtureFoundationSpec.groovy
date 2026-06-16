@@ -180,6 +180,59 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         new BigInteger(strict.compatibleInputTupleCount()) < inputProduct(strict)
     }
 
+    def 'dummyapp segment compressed full write matches accounting and preserves expanded schedules'() {
+        given:
+        def config = fullDummyappConfig(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
+                false,
+                2,
+                false,
+                ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED)
+        def opiConfig = fullDummyappConfig(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY,
+                false,
+                2,
+                false,
+                ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING)
+
+        when:
+        def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
+        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, result.scenarioPlans().size())
+        def opiAccounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), opiConfig, 0)
+        def compressedRow = row(accounting, [ITEM_SAGA, CANCEL_ORDER_SAGA])
+        def opiRow = row(opiAccounting, [ITEM_SAGA, CANCEL_ORDER_SAGA])
+        def interactingPlans = result.scenarioPlans().findAll { plan ->
+            plan.conflictEvidence() && plan.sagaInstances()*.sagaFqn().toSet() == [ITEM_SAGA, CANCEL_ORDER_SAGA] as Set
+        }
+
+        then:
+        result.scenarioPlans().size() > 0
+        result.effectiveConfig().scheduleStrategy() == ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED
+        result.scenarioPlans().size().toString() == accounting.inputBoundScenarioSpace().catalogWritten().total()
+        accounting.inputBoundScenarioSpace().catalogWritten().total() == accounting.inputBoundScenarioSpace().selectedByGenerator().total()
+
+        and:
+        !interactingPlans.isEmpty()
+        interactingPlans.any { plan -> plan.sagaInstances().any { saga(it.sagaFqn()).steps().size() > 1 } }
+        interactingPlans.every { plan ->
+            plan.expandedSchedule().size() == plan.sagaInstances().collect { instance -> saga(instance.sagaFqn()).steps().size() }.sum()
+        }
+        interactingPlans.every { plan ->
+            plan.sagaInstances().every { instance ->
+                def expectedStepIds = saga(instance.sagaFqn()).steps()*.deterministicId()
+                def actualStepIds = plan.expandedSchedule()
+                        .findAll { it.sagaInstanceId() == instance.deterministicId() }
+                        .sort { it.scheduleOrder() }*.stepId()
+                actualStepIds == expectedStepIds
+            }
+        }
+
+        and:
+        compressedRow.compatibleInputTupleCount() != '0'
+        compressedRow.scenarioShapeCount() != '0'
+        new BigInteger(compressedRow.scheduleCountPerTuple()) < new BigInteger(opiRow.scheduleCountPerTuple())
+    }
+
     def 'dummyapp broad count-only accounting covers type-only missing input and three-saga chain'() {
         given:
         def config = accountingConfig(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
@@ -312,6 +365,26 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 maxSagaSetSize,
                 10_000,
                 3,
+                10_000,
+                allowTypeOnlyFallback,
+                ScenarioGeneratorConfig.InputPolicy.RESOLVED_OR_REPLAYABLE,
+                scheduleStrategy,
+                1234L)
+    }
+
+    private static ScenarioGeneratorConfig fullDummyappConfig(ScenarioGeneratorConfig.GenerationStrategy generationStrategy,
+                                                              ScenarioGeneratorConfig.CatalogWriteMode writeMode,
+                                                              boolean includeSingles,
+                                                              int maxSagaSetSize,
+                                                              boolean allowTypeOnlyFallback,
+                                                              ScenarioGeneratorConfig.ScheduleStrategy scheduleStrategy) {
+        new ScenarioGeneratorConfig(false,
+                generationStrategy,
+                writeMode,
+                includeSingles,
+                maxSagaSetSize,
+                10_000,
+                100,
                 10_000,
                 allowTypeOnlyFallback,
                 ScenarioGeneratorConfig.InputPolicy.RESOLVED_OR_REPLAYABLE,

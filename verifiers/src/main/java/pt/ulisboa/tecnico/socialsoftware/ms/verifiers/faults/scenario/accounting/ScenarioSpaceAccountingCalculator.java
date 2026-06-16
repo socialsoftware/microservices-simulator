@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accountin
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConflictGraphBuilder;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConnectedSagaSetEnumerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputVariantNormalizer;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport.GroupedSagaSetRow;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport.ExecutorReadiness;
@@ -27,8 +28,6 @@ import java.util.Set;
 public final class ScenarioSpaceAccountingCalculator {
 
     private static final int TOP_CONTRIBUTOR_LIMIT = 10;
-    private static final int SEGMENT_COMPRESSED_INTERLEAVING_STEP_BOUND = 12;
-
     public ScenarioSpaceAccountingReport calculate(String targetApplication,
                                                    List<SagaDefinition> sagaDefinitions,
                                                    List<InputVariant> inputVariants,
@@ -96,7 +95,7 @@ public final class ScenarioSpaceAccountingCalculator {
         }
 
         BigInteger tupleCount = countCompatibleInputTuples(sagaSet, inputsBySaga);
-        BigInteger scheduleCount = scheduleCountPerTuple(sagaSet, sagaByFqn, config);
+        BigInteger scheduleCount = scheduleCountPerTuple(sagaSet, sagaByFqn, config, graphViews);
         BigInteger shapeCount = tupleCount.multiply(scheduleCount);
         InteractionSummary strictSummary = interactionSummary(sagaSet, graphViews.strict());
         InteractionSummary broadSummary = interactionSummary(sagaSet, graphViews.broad());
@@ -320,18 +319,22 @@ public final class ScenarioSpaceAccountingCalculator {
     }
 
     private BigInteger scheduleCountPerTuple(List<String> sagaSet,
-                                             Map<String, SagaDefinition> sagaByFqn,
-                                             ScenarioGeneratorConfig config) {
-        List<Integer> stepCounts = sagaSet.stream()
+                                              Map<String, SagaDefinition> sagaByFqn,
+                                              ScenarioGeneratorConfig config,
+                                              GraphViews graphViews) {
+        List<SagaDefinition> sagas = sagaSet.stream()
                 .map(sagaByFqn::get)
                 .filter(Objects::nonNull)
-                .map(saga -> saga.steps().size())
                 .toList();
         BigInteger count;
-        if (config.scheduleStrategy() == ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING ||
-                (config.scheduleStrategy() == ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED &&
-                        stepCounts.stream().mapToInt(Integer::intValue).sum() <= SEGMENT_COMPRESSED_INTERLEAVING_STEP_BOUND)) {
-            count = orderPreservingInterleavings(stepCounts);
+        if (config.scheduleStrategy() == ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING) {
+            count = orderPreservingInterleavings(sagas.stream().map(saga -> saga.steps().size()).toList());
+        } else if (config.scheduleStrategy() == ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED) {
+            ConflictGraphBuilder.Result graph = config.allowTypeOnlyFallback() ? graphViews.broad() : graphViews.strict();
+            List<ConflictGraphBuilder.ConflictCandidate> selectedCandidates = graph.conflictCandidates().stream()
+                    .filter(candidate -> sagaSet.contains(candidate.leftSagaFqn()) && sagaSet.contains(candidate.rightSagaFqn()))
+                    .toList();
+            count = segmentCompressedCount(sagas, selectedCandidates);
         } else {
             count = BigInteger.ONE;
         }
@@ -341,6 +344,33 @@ public final class ScenarioSpaceAccountingCalculator {
         }
         BigInteger capValue = BigInteger.valueOf(cap);
         return count.min(capValue);
+    }
+
+    private BigInteger segmentCompressedCount(List<SagaDefinition> sagas, List<ConflictGraphBuilder.ConflictCandidate> conflictCandidates) {
+        List<Integer> anchorCounts = sagas.stream()
+                .map(saga -> conflictAnchorCount(saga, conflictCandidates))
+                .filter(count -> count > 0)
+                .toList();
+        if (anchorCounts.isEmpty()) {
+            return BigInteger.ONE;
+        }
+        return orderPreservingInterleavings(anchorCounts);
+    }
+
+    private int conflictAnchorCount(SagaDefinition saga, List<ConflictGraphBuilder.ConflictCandidate> conflictCandidates) {
+        Set<String> sagaStepIds = saga.steps().stream()
+                .map(step -> ScenarioIdGenerator.stepDefinitionId(saga.sagaFqn(), step))
+                .collect(java.util.stream.Collectors.toSet());
+        Set<String> anchorIds = new java.util.LinkedHashSet<>();
+        for (ConflictGraphBuilder.ConflictCandidate candidate : conflictCandidates) {
+            if (Objects.equals(candidate.leftSagaFqn(), saga.sagaFqn()) && sagaStepIds.contains(candidate.leftStepId())) {
+                anchorIds.add(candidate.leftStepId());
+            }
+            if (Objects.equals(candidate.rightSagaFqn(), saga.sagaFqn()) && sagaStepIds.contains(candidate.rightStepId())) {
+                anchorIds.add(candidate.rightStepId());
+            }
+        }
+        return anchorIds.size();
     }
 
     private BigInteger orderPreservingInterleavings(List<Integer> stepCounts) {
