@@ -112,6 +112,8 @@ services:
       - ./performance-analysis/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     networks:
       - messaging-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # ============================================
   # SIMULATOR SERVICES
