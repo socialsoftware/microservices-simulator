@@ -1,0 +1,28 @@
+environment:
+  microservices_num: 8
+  nodes_num: 3
+  workloads: ["workload.py"]
+  reward_type: "global_average_latency"
+  observation_type: "basic"
+  alpha: 0.5
+  beta: 0.5
+
+ppo_hyperparameters:
+  learning_rate: 0.0003
+  gamma: 0.99
+  ent_coef: 0.01
+  n_steps: 2048
+  batch_size: 64
+  n_epochs: 10
+  clip_range: 0.2
+
+training:
+  steps_per_episode: 50
+  total_timesteps: 10000
+  eval_freq: 50
+  checkpoint_freq: 20
+
+paths:
+  models_dir: "./models/"
+  checkpoints_dir: "./models/checkpoints/"
+  tensorboard_log: "./tensorboard_logs/"

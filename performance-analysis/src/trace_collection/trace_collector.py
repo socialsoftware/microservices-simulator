@@ -74,7 +74,6 @@ class TraceManager:
             self._last_span_time = time.time()
             self._lock.notify_all()
 
-    # TODO: Change total_timeout to a decent value
     def wait_for_data(self, wait_window=0.1, total_timeout=100.0):
         """
         Blocks until data has arrived and no new spans have been received for 'wait_window' seconds.

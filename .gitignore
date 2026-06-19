@@ -50,6 +50,8 @@ jmeter-results/
 **/service-hardware-profiling.txt
 **/logs/
 performance-analysis/experiments
+**/tensorboard_logs/**
+performance-analysis/models
 
 ### Python ###
 **/__pycache__/

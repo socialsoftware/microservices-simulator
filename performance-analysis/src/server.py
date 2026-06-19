@@ -9,7 +9,7 @@ from opentelemetry.proto.collector.trace.v1 import (
 )
 
 from src.trace_collection.trace_collector import TraceManager
-from src.agent.agent import run_agent
+from src.agents.train import start_training
 
 # Create the single, shared instance of the TraceManager
 trace_manager = TraceManager()
@@ -72,9 +72,11 @@ def interactive_cli():
                 print(json.dumps(metrics, indent=2))
             elif cmd == "reset":
                 trace_manager.reset()
-            elif cmd == "train":
-                print("Starting RL Agent...")
-                run_agent(trace_manager)
+            elif cmd.startswith("train"):
+                if cmd == "train ppo":
+                    start_training(trace_manager, "ppo")
+                else:
+                    start_training(trace_manager, "test")
             elif cmd in ["exit", "quit"]:
                 print("Exiting...")
                 break

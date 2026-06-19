@@ -2,6 +2,10 @@ grpcio
 opentelemetry-proto
 protobuf
 gymnasium
+stable-baselines3
+sb3-contrib
+tensorboard
+pyyaml
 numpy
 requests
 psycopg2-binary
