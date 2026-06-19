@@ -17,6 +17,8 @@ class MicroserviceOptimizerEnv(gym.Env):
         self,
         sim_runner: SimRunner,
         workloads: list[WorkloadConfig],
+        users_interval: tuple[int, int],
+        iterations_interval: tuple[int, int],
         reward_strat: RewardStrategy,
         observation_strat: ObservationStrategy,
         num_services: int,
@@ -28,6 +30,8 @@ class MicroserviceOptimizerEnv(gym.Env):
 
         self.sim_runner = sim_runner
         self.workloads = workloads
+        self.users_itvl = users_interval
+        self.iterations_itvl = iterations_interval
         self.reward_strategy = reward_strat
         self.obs_strategy = observation_strat
 
@@ -54,8 +58,8 @@ class MicroserviceOptimizerEnv(gym.Env):
     def _randomize_workload(self) -> WorkloadConfig:
         """Returns a randomized workload configuration."""
 
-        iterations = random.randint(500, 800)
-        users = random.randint(30, 50)
+        iterations = random.randint(*self.iterations_itvl)
+        users = random.randint(*self.users_itvl)
         file = random.choice(self.workloads)
         # TODO: randomize task weights
         return WorkloadConfig(file, users, users, iterations)
@@ -94,7 +98,8 @@ class MicroserviceOptimizerEnv(gym.Env):
         new_config, is_illegal_action, is_stop_action = self._act(
             action, self.sim_runner.current_config)
 
-        obs, reward = self._observe(new_config, is_illegal_action, is_stop_action)
+        obs, reward = self._observe(
+            new_config, is_illegal_action, is_stop_action)
 
         self.current_step += 1
         terminated = is_stop_action

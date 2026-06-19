@@ -41,7 +41,7 @@ def _test_loop(trace_collector):
         print(f"\n--- Step {step + 1}/{num_steps} ---")
         step_start_time = time.time()
         evaluator.evaluate_configuration(
-            config, WorkloadConfig("workload.py", 50, 50, 500))
+            config, WorkloadConfig("tournament_period_wl.py", 50, 50, 500))
         step_end_time = time.time()
         print(
             f"Step {step + 1} completed in {step_end_time - step_start_time:.2f} seconds.")

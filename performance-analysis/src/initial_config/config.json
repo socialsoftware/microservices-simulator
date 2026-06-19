@@ -30,20 +30,20 @@
   "Delays": {
     "intraservice": {
       "exp": [
-        1,
+        -99,
         0.1
       ]
     },
     "intranode": {
       "exp": [
-        3.0,
+        0,
         0.1
       ]
     },
     "internode": {
       "exp": [
-        5.0,
-        0.3
+        3,
+        0.1
       ]
     }
   },

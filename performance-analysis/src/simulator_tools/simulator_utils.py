@@ -112,6 +112,41 @@ class SimInterface:
         return None
 
     @staticmethod
+    def get_user_executions(user_id, client=requests):
+        r = SimInterface._get(f"/users/{user_id}/executions", client=client)
+        if r is not None and r.status_code == 200:
+            return r.json()
+        return None
+
+    @staticmethod
+    def get_course(course_id, client=requests):
+        r = SimInterface._get(f"/courses/{course_id}", client=client)
+        if r is not None and r.status_code == 200:
+            return r.json()
+        return None
+
+    @staticmethod
+    def get_quiz(quiz_id, client=requests):
+        r = SimInterface._get(f"/quizzes/{quiz_id}", client=client)
+        if r is not None and r.status_code == 200:
+            return r.json()
+        return None
+
+    @staticmethod
+    def get_topics_for_course(course_id, client=requests):
+        r = SimInterface._get(f"/courses/{course_id}/topics", client=client)
+        if r is not None and r.status_code == 200:
+            return r.json()
+        return None
+
+    @staticmethod
+    def get_questions_for_course(course_id, client=requests):
+        r = SimInterface._get(f"/courses/{course_id}/questions", client=client)
+        if r is not None and r.status_code == 200:
+            return r.json()
+        return None
+
+    @staticmethod
     def enroll_student(user_id, exec_id, client=requests):
         r = SimInterface._post(f"/executions/{exec_id}/students/add",
                                params={"userAggregateId": user_id}, client=client)
@@ -186,6 +221,14 @@ class SimInterface:
     @staticmethod
     def find_tournament(tournament_id, client=requests):
         r = SimInterface._get(f"/tournaments/{tournament_id}", client=client)
+        if r is not None and r.status_code == 200:
+            return r.json()
+        return None
+
+    @staticmethod
+    def get_tournaments_for_course_execution(execution_id, client=requests):
+        r = SimInterface._get(
+            f"/executions/{execution_id}/tournaments", client=client)
         if r is not None and r.status_code == 200:
             return r.json()
         return None

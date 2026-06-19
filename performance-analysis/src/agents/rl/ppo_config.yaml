@@ -1,11 +1,15 @@
 environment:
   microservices_num: 8
   nodes_num: 3
-  workloads: ["workload.py"]
   reward_type: "global_average_latency"
   observation_type: "basic"
   alpha: 0.5
   beta: 0.5
+
+workloads:
+  workloads: ["base_wl.py", "semester_start_wl.py", "tournament_period_wl.py", "steady_wl"]
+  users: [30, 50] # interval of min, max users per workload
+  iterations: [300, 500]
 
 ppo_hyperparameters:
   learning_rate: 0.0003

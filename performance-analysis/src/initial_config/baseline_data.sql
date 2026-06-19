@@ -2969,77 +2969,77 @@ SELECT pg_catalog.setval('public.question_answer_seq', 1, false);
 -- Name: question_course_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.question_course_seq', 151, true);
+SELECT pg_catalog.setval('public.question_course_seq', (SELECT COALESCE(MAX(id), 1) FROM public.question_course), true);
 
 
 --
 -- Name: question_topic_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.question_topic_seq', 151, true);
+SELECT pg_catalog.setval('public.question_topic_seq', (SELECT COALESCE(MAX(id), 1) FROM public.question_topic), true);
 
 
 --
 -- Name: quiz_course_execution_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.quiz_course_execution_seq', 51, true);
+SELECT pg_catalog.setval('public.quiz_course_execution_seq', (SELECT COALESCE(MAX(id), 1) FROM public.quiz_course_execution), true);
 
 
 --
 -- Name: quiz_question_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.quiz_question_seq', 101, true);
+SELECT pg_catalog.setval('public.quiz_question_seq', (SELECT COALESCE(MAX(id), 1) FROM public.quiz_question), true);
 
 
 --
 -- Name: topic_course_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.topic_course_seq', 51, true);
+SELECT pg_catalog.setval('public.topic_course_seq', (SELECT COALESCE(MAX(id), 1) FROM public.topic_course), true);
 
 
 --
 -- Name: tournament_course_execution_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tournament_course_execution_seq', 51, true);
+SELECT pg_catalog.setval('public.tournament_course_execution_seq', (SELECT COALESCE(MAX(id), 1) FROM public.tournament_course_execution), true);
 
 
 --
 -- Name: tournament_creator_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tournament_creator_seq', 51, true);
+SELECT pg_catalog.setval('public.tournament_creator_seq', (SELECT COALESCE(MAX(id), 1) FROM public.tournament_creator), true);
 
 
 --
 -- Name: tournament_participant_quiz_answer_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tournament_participant_quiz_answer_seq', 1, false);
+SELECT pg_catalog.setval('public.tournament_participant_quiz_answer_seq', (SELECT COALESCE(MAX(id), 1) FROM public.tournament_participant_quiz_answer), true);
 
 
 --
 -- Name: tournament_participant_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tournament_participant_seq', 1, false);
+SELECT pg_catalog.setval('public.tournament_participant_seq', (SELECT COALESCE(MAX(id), 1) FROM public.tournament_participant), true);
 
 
 --
 -- Name: tournament_quiz_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tournament_quiz_seq', 51, true);
+SELECT pg_catalog.setval('public.tournament_quiz_seq', (SELECT COALESCE(MAX(id), 1) FROM public.tournament_quiz), true);
 
 
 --
 -- Name: tournament_topic_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tournament_topic_seq', 51, true);
+SELECT pg_catalog.setval('public.tournament_topic_seq', (SELECT COALESCE(MAX(id), 1) FROM public.tournament_topic), true);
 
 
 --

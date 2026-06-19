@@ -29,6 +29,7 @@ def run_ppo(
 
     config = _load_config()
     environment = config["environment"]
+    workload_cfg = config["workloads"]
     hyperparameters = config["ppo_hyperparameters"]
     train_cfg = config["training"]
     paths = config["paths"]
@@ -41,7 +42,9 @@ def run_ppo(
 
     env = MicroserviceOptimizerEnv(
         sim_runner,
-        environment["workloads"],
+        workload_cfg["workloads"],
+        tuple(workload_cfg["users"]),
+        tuple(workload_cfg["iterations"]),
         reward_strat,
         observation_strat,
         environment["microservices_num"],

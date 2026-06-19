@@ -76,8 +76,8 @@ class SimRunner:
                 cmd,
                 check=False,
                 cwd=workloads_dir,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                #stdout=subprocess.DEVNULL,
+                #stderr=subprocess.DEVNULL,
                 timeout=100
             )
             logging.info(
