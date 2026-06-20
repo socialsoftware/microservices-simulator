@@ -33,12 +33,42 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionRepository;
 
 public final class Oracle {
+    private enum DbBackend {
+        H2, POSTGRES
+    }
+
     private static final String DB_IMAGE = "postgres:15-alpine";
     private static final String DB_NAME = "oracledb";
     private static final String DB_USERNAME = "oracle";
     private static final String DB_PASSWORD = "postgres";
 
-    private final PostgreSQLContainer<?> postgres; // Spins up a throwaway PostgreSQL testcontainer
+    /**
+     * Persistence backend for the app-under-test. Defaults to in-memory
+     * {@link DbBackend#H2}.
+     * <p>
+     * The oracle executes each schedule strictly sequentially on a single thread
+     * ({@code ScheduleExecutor}), with the background event scheduler stopped.
+     * Transactions
+     * therefore never overlap in wall-clock time, so PostgreSQL's
+     * {@code SERIALIZABLE}
+     * conflict-detection is never actually exercised — the consistency guarantees
+     * under test are
+     * enforced at the application layer (semantic locks +
+     * {@code CentralizedVersionService}
+     * version checks), not by the database isolation level. H2 is thus
+     * accuracy-equivalent here
+     * while avoiding per-query Postgres-over-Docker round-trips (~tens of ms each)
+     * and container
+     * startup.
+     * <p>
+     * Set {@code -Doracle.db=postgres} to run against the production dialect for a
+     * fidelity pass.
+     */
+    private static final DbBackend DB_BACKEND = "postgres".equalsIgnoreCase(System.getProperty("oracle.db", "h2"))
+            ? DbBackend.POSTGRES
+            : DbBackend.H2;
+
+    private final @Nullable PostgreSQLContainer<?> postgres; // null unless DB_BACKEND == POSTGRES
     private final Class<?> springAppClass;
     private final List<String> springAppBaseArgs;
 
@@ -46,31 +76,50 @@ public final class Oracle {
     private @Nullable ConfigurableApplicationContext springContext;
 
     public Oracle(Class<?> springAppClass, List<String> springAppBaseArgs) {
-        postgres = new PostgreSQLContainer<>(DB_IMAGE)
-                .withDatabaseName(DB_NAME)
-                .withUsername(DB_USERNAME)
-                .withPassword(DB_PASSWORD);
+        postgres = DB_BACKEND == DbBackend.POSTGRES
+                ? new PostgreSQLContainer<>(DB_IMAGE)
+                        .withDatabaseName(DB_NAME)
+                        .withUsername(DB_USERNAME)
+                        .withPassword(DB_PASSWORD)
+                : null;
 
         this.springAppClass = springAppClass;
         this.springAppBaseArgs = List.copyOf(springAppBaseArgs);
     }
 
     private static String[] generateFinalSpringArgs(
-            PostgreSQLContainer<?> postgres,
+            @Nullable PostgreSQLContainer<?> postgres,
             List<String> springAppBaseArgs) {
 
-        List<String> springPriorityArgs = List.of(
+        List<String> springPriorityArgs = new ArrayList<>(List.of(
                 "--spring.main.allow-bean-definition-overriding=true",
                 "--spring.profiles.active=sagas,local,test",
-                "--spring.datasource.url=" + postgres.getJdbcUrl(),
-                "--spring.datasource.username=" + postgres.getUsername(),
-                "--spring.datasource.password=" + postgres.getPassword(),
-                "--spring.datasource.driver-class-name=" + postgres.getDriverClassName(),
-                "--spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
-                "--spring.jpa.hibernate.ddl-auto=create-drop");
+                "--spring.jpa.hibernate.ddl-auto=create-drop"));
+
+        springPriorityArgs.addAll(datasourceArgs(postgres));
 
         List<String> finalArgsList = mergeArgsWithPriority(springPriorityArgs, springAppBaseArgs);
         return finalArgsList.toArray(new String[0]);
+    }
+
+    private static List<String> datasourceArgs(@Nullable PostgreSQLContainer<?> postgres) {
+        if (postgres != null) {
+            // PostgreSQL testcontainer
+            return List.of(
+                    "--spring.datasource.url=" + postgres.getJdbcUrl(),
+                    "--spring.datasource.username=" + postgres.getUsername(),
+                    "--spring.datasource.password=" + postgres.getPassword(),
+                    "--spring.datasource.driver-class-name=" + postgres.getDriverClassName(),
+                    "--spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect");
+        } else {
+            // In-memory H2
+            return List.of(
+                    "--spring.datasource.url=jdbc:h2:mem:" + DB_NAME + ";DB_CLOSE_DELAY=-1",
+                    "--spring.datasource.username=sa",
+                    "--spring.datasource.password=sa",
+                    "--spring.datasource.driver-class-name=org.h2.Driver",
+                    "--spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect");
+        }
     }
 
     public void init() {
@@ -78,7 +127,9 @@ public final class Oracle {
             throw new IllegalStateException("Spring application is already running.");
         }
 
-        postgres.start();
+        if (postgres != null) {
+            postgres.start();
+        }
 
         SpringApplication app = new SpringApplication(springAppClass);
         springAppArgs = generateFinalSpringArgs(postgres, springAppBaseArgs);
@@ -107,7 +158,9 @@ public final class Oracle {
             springContext = null;
         }
 
-        postgres.stop();
+        if (postgres != null) {
+            postgres.stop();
+        }
     }
 
     public void restart() {
