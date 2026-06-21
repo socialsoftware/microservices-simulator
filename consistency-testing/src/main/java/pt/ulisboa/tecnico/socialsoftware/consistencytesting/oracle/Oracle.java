@@ -37,6 +37,14 @@ public final class Oracle {
         H2, POSTGRES
     }
 
+    /**
+     * Default seed for the ReadySet pick in {@code ScheduleExecutor}. A fixed seed
+     * keeps a given test case reproducible across runs; {@link #setSchedulerSeed}
+     * lets a test driver vary it to explore different concrete schedule
+     * realizations for the same inter-dependencies set.
+     */
+    private static final long DEFAULT_SCHEDULER_SEED = 42L;
+
     private static final String DB_IMAGE = "postgres:15-alpine";
     private static final String DB_NAME = "oracledb";
     private static final String DB_USERNAME = "oracle";
@@ -74,6 +82,7 @@ public final class Oracle {
 
     private @Nullable String[] springAppArgs;
     private @Nullable ConfigurableApplicationContext springContext;
+    private long schedulerSeed = DEFAULT_SCHEDULER_SEED;
 
     public Oracle(Class<?> springAppClass, List<String> springAppBaseArgs) {
         postgres = DB_BACKEND == DbBackend.POSTGRES
@@ -243,10 +252,16 @@ public final class Oracle {
                     tracingUowService,
                     traceSession,
                     captureSession,
-                    eventHandlings);
+                    eventHandlings,
+                    schedulerSeed);
 
             return scheduleExecutor.execute();
         }
+    }
+
+    public Oracle setSchedulerSeed(long schedulerSeed) {
+        this.schedulerSeed = schedulerSeed;
+        return this;
     }
 
     public TestResult runTest(Supplier<TestCase> setupInitialState) {

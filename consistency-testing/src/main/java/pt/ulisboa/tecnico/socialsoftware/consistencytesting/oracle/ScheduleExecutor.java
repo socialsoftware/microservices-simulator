@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 
@@ -42,6 +44,7 @@ final class ScheduleExecutor {
     private final TracingSagaUnitOfWorkService.TraceSession traceSession;
     private final DeferredEventApplicationService.CaptureSession captureSession;
     private final List<EventHandling> eventHandlings;
+    private final Random scheduleRng;
     private final Map<FunctionalityId, WorkflowFunctionality> functionalities;
     private final StepDependencies interDependencies;
     private final StepDependencies intraDependencies = new StepDependencies();
@@ -61,7 +64,8 @@ final class ScheduleExecutor {
             SagaUnitOfWorkService uowService,
             TracingSagaUnitOfWorkService.TraceSession traceSession,
             DeferredEventApplicationService.CaptureSession captureSession,
-            List<EventHandling> eventHandlings) {
+            List<EventHandling> eventHandlings,
+            long schedulerSeed) {
 
         this.functionalities = Map.copyOf(functionalities);
         this.interDependencies = new StepDependencies(interDependencies);
@@ -69,6 +73,7 @@ final class ScheduleExecutor {
         this.captureSession = captureSession;
         this.traceSession = traceSession;
         this.eventHandlings = eventHandlings;
+        this.scheduleRng = new Random(schedulerSeed);
 
         for (Entry<FunctionalityId, WorkflowFunctionality> funcEntry : functionalities.entrySet()) {
             addSteps(OracleStepFactory.buildStepsForFunctionality(
@@ -266,10 +271,20 @@ final class ScheduleExecutor {
     }
 
     private Optional<OracleStep> getNextStep() {
-        // TODO should be changed to pseudo-random pick (or determinisitic for testing)
-        return steps.values().stream()
+        // Uniform random pick over the ReadySet, seeded for reproducibility.
+        // Candidates are ordered by their stable StepId first, so the pick does not
+        // depend on HashMap iteration order
+        // (which is not guaranteed stable across JVMs).
+        List<OracleStep> readySet = steps.values().stream()
                 .filter(step -> stepCanExecute(step.getId()))
-                .findFirst();
+                .sorted(Comparator.comparing(step -> step.getId().toString()))
+                .toList();
+
+        if (readySet.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(readySet.get(scheduleRng.nextInt(readySet.size())));
     }
 
     private boolean stepCanExecute(StepId stepId) {
