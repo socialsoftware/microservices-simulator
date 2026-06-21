@@ -122,6 +122,18 @@ public final class Oracle {
         }
     }
 
+    private static <T> void overrideSpringBean(
+            Class<T> originalBeanClass,
+            Class<? extends T> replacementBeanClass,
+            ConfigurableApplicationContext context) {
+
+        String beanName = Introspector.decapitalize(originalBeanClass.getSimpleName());
+        var registry = (BeanDefinitionRegistry) context.getBeanFactory();
+        var definition = new RootBeanDefinition(replacementBeanClass);
+        definition.setPrimary(true);
+        registry.registerBeanDefinition(beanName, definition);
+    }
+
     public void init() {
         if (springContext != null && springContext.isActive()) {
             throw new IllegalStateException("Spring application is already running.");
@@ -134,14 +146,9 @@ public final class Oracle {
         SpringApplication app = new SpringApplication(springAppClass);
         springAppArgs = generateFinalSpringArgs(postgres, springAppBaseArgs);
 
-        // override EventApplicationService bean with DeferredEventApplicationService
         app.addInitializers(ctx -> {
-            String targetBeanName = Introspector.decapitalize(EventApplicationService.class.getSimpleName());
-            var registry = (BeanDefinitionRegistry) ctx.getBeanFactory();
-            var def = new RootBeanDefinition(DeferredEventApplicationService.class);
-
-            def.setPrimary(true);
-            registry.registerBeanDefinition(targetBeanName, def);
+            overrideSpringBean(EventApplicationService.class, DeferredEventApplicationService.class, ctx);
+            overrideSpringBean(SagaUnitOfWorkService.class, TracingSagaUnitOfWorkService.class, ctx);
         });
 
         springContext = app.run(springAppArgs);
@@ -184,7 +191,7 @@ public final class Oracle {
         versionRepository.deleteAll();
     }
 
-    <T> T getBean(Class<T> beanClass) {
+    public <T> T getBean(Class<T> beanClass) {
         ConfigurableApplicationContext context = springContext;
         if (context == null || !context.isActive()) {
             throw new IllegalStateException(
@@ -193,7 +200,7 @@ public final class Oracle {
         return context.getBean(beanClass);
     }
 
-    <T> Map<String, T> getBeansOfType(Class<T> beansClass) {
+    public <T> Map<String, T> getBeansOfType(Class<T> beansClass) {
         ConfigurableApplicationContext context = springContext;
         if (context == null || !context.isActive()) {
             throw new IllegalStateException(
@@ -206,25 +213,35 @@ public final class Oracle {
             Map<FunctionalityId, WorkflowFunctionality> functionalities,
             StepDependencies interDependencies) {
 
-        EventApplicationService baseEventAppService = getBean(EventApplicationService.class);
-        if (!(baseEventAppService instanceof DeferredEventApplicationService eventAppService)) {
+        EventApplicationService eventAppService = getBean(EventApplicationService.class);
+        if (!(eventAppService instanceof DeferredEventApplicationService defEventAppService)) {
             throw new IllegalStateException(
                     "Bean for [%s] must be an instance of [%s], but got: [%s]"
                             .formatted(EventApplicationService.class.getName(),
                                     DeferredEventApplicationService.class.getName(),
-                                    baseEventAppService.getClass().getName()));
+                                    eventAppService.getClass().getName()));
         }
 
         var uowService = getBean(SagaUnitOfWorkService.class);
+        if (!(uowService instanceof TracingSagaUnitOfWorkService tracingUowService)) {
+            throw new IllegalStateException(
+                    "Bean for [%s] must be an instance of [%s], but got: [%s]"
+                            .formatted(SagaUnitOfWorkService.class.getName(),
+                                    TracingSagaUnitOfWorkService.class.getName(),
+                                    uowService.getClass().getName()));
+        }
+
         Map<String, EventHandling> eventHandlingBeans = getBeansOfType(EventHandling.class);
         List<EventHandling> eventHandlings = new ArrayList<>(eventHandlingBeans.values());
 
-        try (DeferredEventApplicationService.CaptureSession captureSession = eventAppService.beginCapture()) {
+        try (DeferredEventApplicationService.CaptureSession captureSession = defEventAppService.beginCapture();
+                TracingSagaUnitOfWorkService.TraceSession traceSession = tracingUowService.beginTrace()) {
 
             ScheduleExecutor scheduleExecutor = new ScheduleExecutor(
                     functionalities,
                     interDependencies,
-                    uowService,
+                    tracingUowService,
+                    traceSession,
                     captureSession,
                     eventHandlings);
 

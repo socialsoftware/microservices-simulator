@@ -25,6 +25,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testsupport.InitialState;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testsupport.QuizzesTestFactory;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testsupport.ReadsFromAssertions;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.FunctionalityUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
@@ -202,6 +205,19 @@ class OracleQuizzesAppTest {
         assertTrue(result.exceptions().isEmpty());
         assertTrue(result.statuses().isEmpty());
         assertEquals(expectedSchedule, result.schedule());
+
+        StepId initialSetupStep = ScheduleExecutor.INITIAL_STATE_SETUP_STEP_ID;
+        StepId getUserStep = StepId.forFunctionalityStep(funcId, "getUserStep");
+        StepId addParticipantStep = StepId.forFunctionalityStep(funcId, "addParticipantStep");
+
+        assertEquals(
+                Set.of(
+                        new ReadsFromRelation(
+                                getUserStep, initialSetupStep, QuizzesTestFactory.EXECUTION_AGGREGATE_TYPE),
+                        new ReadsFromRelation(
+                                addParticipantStep, initialSetupStep, QuizzesTestFactory.TOURNAMENT_AGGREGATE_TYPE)),
+                result.readsFromRelations());
+        ReadsFromAssertions.assertNoSelfReadsFrom(result);
     }
 
     @Test
@@ -804,6 +820,11 @@ class OracleQuizzesAppTest {
             InitialState initialState = Objects.requireNonNull(stateRef.get());
             String updatedName = Objects.requireNonNull(updatedNameRef.get());
             assertTournamentCreatorName(initialState.tournamentDto().getAggregateId(), updatedName);
+
+            ReadsFromAssertions.assertReadsFrom(
+                    result, eventStepId, ScheduleExecutor.INITIAL_STATE_SETUP_STEP_ID,
+                    QuizzesTestFactory.TOURNAMENT_AGGREGATE_TYPE);
+            ReadsFromAssertions.assertNoSelfReadsFrom(result);
         });
     }
 
@@ -852,6 +873,122 @@ class OracleQuizzesAppTest {
 
         assertTrue(result.schedule().contains(firstCompensationStep));
         assertTrue(result.schedule().indexOf(firstCompensationStep) > result.schedule().indexOf(otherFuncFirstStep));
+    }
+
+    @Test
+    @DisplayName("A functionality that only reads aggregates set up before the schedule reads-from the initial-state setup step")
+    void singleFunctionalityReadsFromOnlyInitialStateSetup() {
+        Supplier<TestCase> setupTestCase = () -> {
+            InitialState initialState = factory.setupInitialState();
+
+            TournamentDto updateDto = new TournamentDto();
+            updateDto.setAggregateId(initialState.tournamentDto().getAggregateId());
+            updateDto.setStartTime(initialState.tournamentDto().getStartTime());
+            updateDto.setEndTime(initialState.tournamentDto().getEndTime());
+            updateDto.setNumberOfQuestions(initialState.tournamentDto().getNumberOfQuestions());
+
+            Set<Integer> topicIds = Set.of(initialState.topicDto().getAggregateId());
+            UpdateTournamentFunctionalitySagas updateSaga = factory.createUpdateTournamentFunctionality(
+                    sagaUnitOfWorkService, updateDto, topicIds, gateway);
+
+            return new TestCase.Builder()
+                    .addFunctionality(simpleFunctionalityId(updateSaga, 1), updateSaga)
+                    .build();
+        };
+
+        TestResult result = oracle.runTest(setupTestCase);
+
+        assertTrue(result.statuses().isEmpty());
+        FunctionalityId funcId = getOnlyFunctionalityId(result);
+        StepId initialSetupStep = ScheduleExecutor.INITIAL_STATE_SETUP_STEP_ID;
+
+        // No scheduled step writes an aggregate that a later step reads, so every
+        // relation must be attributed to the initial-state setup step.
+        ReadsFromAssertions.assertAllRelationsWrittenBy(result, initialSetupStep);
+        ReadsFromAssertions.assertNoSelfReadsFrom(result);
+
+        // Representative relations across the distinct aggregate types this saga reads.
+        ReadsFromAssertions.assertReadsFrom(
+                result, StepId.forFunctionalityStep(funcId, "getOriginalTournamentStep"),
+                initialSetupStep, QuizzesTestFactory.TOURNAMENT_AGGREGATE_TYPE);
+        ReadsFromAssertions.assertReadsFrom(
+                result, StepId.forFunctionalityStep(funcId, "getTopicsStep"),
+                initialSetupStep, QuizzesTestFactory.TOPIC_AGGREGATE_TYPE);
+        ReadsFromAssertions.assertReadsFrom(
+                result, StepId.forFunctionalityStep(funcId, "updateTournamentStep"),
+                initialSetupStep, QuizzesTestFactory.TOURNAMENT_AGGREGATE_TYPE);
+    }
+
+    @Test
+    @DisplayName("Reads-from tracks the most recent cross-functionality writer of an aggregate")
+    void crossFunctionalityReadsFromTracksMostRecentWriter() {
+        AtomicReference<FunctionalityId> updateFuncIdRef = new AtomicReference<>();
+        AtomicReference<FunctionalityId> addParticipantFuncIdRef = new AtomicReference<>();
+
+        Supplier<TestCase> setupTestCase = () -> {
+            InitialState initialState = factory.setupInitialState();
+
+            TournamentDto updateDto = new TournamentDto();
+            updateDto.setAggregateId(initialState.tournamentDto().getAggregateId());
+            updateDto.setStartTime(initialState.tournamentDto().getStartTime());
+            updateDto.setEndTime(initialState.tournamentDto().getEndTime());
+            updateDto.setNumberOfQuestions(initialState.tournamentDto().getNumberOfQuestions());
+
+            Set<Integer> topicIds = Set.of(initialState.topicDto().getAggregateId());
+            UpdateTournamentFunctionalitySagas updateSaga = factory.createUpdateTournamentFunctionality(
+                    sagaUnitOfWorkService, updateDto, topicIds, gateway);
+
+            AddParticipantFunctionalitySagas addParticipantSaga = factory.createAddParticipantFunctionality(
+                    sagaUnitOfWorkService,
+                    initialState.tournamentDto().getAggregateId(),
+                    initialState.courseExecutionDto().getAggregateId(),
+                    initialState.userDto().getAggregateId(),
+                    gateway);
+
+            FunctionalityId updateFuncId = simpleFunctionalityId(updateSaga, 1);
+            FunctionalityId addParticipantFuncId = simpleFunctionalityId(addParticipantSaga, 2);
+            updateFuncIdRef.set(updateFuncId);
+            addParticipantFuncIdRef.set(addParticipantFuncId);
+
+            // Force the read of the Tournament to happen only after the update saga has
+            // committed (which both releases its semantic lock and makes its write the
+            // most recent one on the Tournament).
+            StepId addParticipantStep = StepId.forFunctionalityStep(addParticipantFuncId, "addParticipantStep");
+            StepId updateCommitStep = StepId.forCommitStep(updateFuncId);
+
+            return new TestCase.Builder()
+                    .addFunctionality(updateFuncId, updateSaga)
+                    .addFunctionality(addParticipantFuncId, addParticipantSaga)
+                    .addInterDependency(addParticipantStep, updateCommitStep)
+                    .build();
+        };
+
+        TestResult result = oracle.runTest(setupTestCase);
+
+        assertEquals(2, result.functionalities().size());
+        assertTrue(result.statuses().isEmpty());
+
+        FunctionalityId updateFuncId = Objects.requireNonNull(updateFuncIdRef.get());
+        FunctionalityId addParticipantFuncId = Objects.requireNonNull(addParticipantFuncIdRef.get());
+        StepId initialSetupStep = ScheduleExecutor.INITIAL_STATE_SETUP_STEP_ID;
+
+        StepId updateWriteStep = StepId.forFunctionalityStep(updateFuncId, "updateTournamentStep");
+        StepId addParticipantStep = StepId.forFunctionalityStep(addParticipantFuncId, "addParticipantStep");
+        StepId getUserStep = StepId.forFunctionalityStep(addParticipantFuncId, "getUserStep");
+
+        // The add-participant read sees the Tournament value written by the update
+        // saga,
+        // not the original initial-state value.
+        ReadsFromAssertions.assertReadsFrom(
+                result, addParticipantStep, updateWriteStep, QuizzesTestFactory.TOURNAMENT_AGGREGATE_TYPE);
+        ReadsFromAssertions.assertDoesNotReadFrom(
+                result, addParticipantStep, initialSetupStep, QuizzesTestFactory.TOURNAMENT_AGGREGATE_TYPE);
+
+        // The Execution is never written by the schedule, so its read still reads-from
+        // the initial-state setup, confirming writers are tracked per aggregate.
+        ReadsFromAssertions.assertReadsFrom(
+                result, getUserStep, initialSetupStep, QuizzesTestFactory.EXECUTION_AGGREGATE_TYPE);
+        ReadsFromAssertions.assertNoSelfReadsFrom(result);
     }
 
     // ======= Helper Functions =======

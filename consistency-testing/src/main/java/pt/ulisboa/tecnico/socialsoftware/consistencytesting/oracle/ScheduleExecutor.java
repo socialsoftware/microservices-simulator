@@ -14,7 +14,6 @@ import java.util.concurrent.CompletionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.DeferredEventApplicationService.CaptureSession;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.EventUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
@@ -31,10 +30,17 @@ final class ScheduleExecutor {
 
     private static final int STEP_EXECUTION_LIMIT = 500;
 
+    static final FunctionalityId INITIAL_STATE_SETUP_FUNCTIONALITY_ID = FunctionalityId
+            .forSagaFunctionality("initialStateSetup");
+
+    static final StepId INITIAL_STATE_SETUP_STEP_ID = StepId.forFunctionalityStep(
+            INITIAL_STATE_SETUP_FUNCTIONALITY_ID, "step");
+
     private static final Logger log = LoggerFactory.getLogger(ScheduleExecutor.class);
 
     private final SagaUnitOfWorkService uowService;
-    private final CaptureSession captureSession;
+    private final TracingSagaUnitOfWorkService.TraceSession traceSession;
+    private final DeferredEventApplicationService.CaptureSession captureSession;
     private final List<EventHandling> eventHandlings;
     private final Map<FunctionalityId, WorkflowFunctionality> functionalities;
     private final StepDependencies interDependencies;
@@ -45,10 +51,15 @@ final class ScheduleExecutor {
     private final Map<StepId, Exception> stepExceptionsMap = new HashMap<>();
     private final Set<TestStatus> detectedStatuses = new HashSet<>();
 
+    /** aggregateId -> the step that most recently wrote it */
+    private final Map<Integer, StepId> lastWriterByAggregate = new HashMap<>();
+    private final Set<ReadsFromRelation> readsFromRelations = new HashSet<>();
+
     ScheduleExecutor(
             Map<FunctionalityId, WorkflowFunctionality> functionalities,
             StepDependencies interDependencies,
             SagaUnitOfWorkService uowService,
+            TracingSagaUnitOfWorkService.TraceSession traceSession,
             DeferredEventApplicationService.CaptureSession captureSession,
             List<EventHandling> eventHandlings) {
 
@@ -56,6 +67,7 @@ final class ScheduleExecutor {
         this.interDependencies = new StepDependencies(interDependencies);
         this.uowService = uowService;
         this.captureSession = captureSession;
+        this.traceSession = traceSession;
         this.eventHandlings = eventHandlings;
 
         for (Entry<FunctionalityId, WorkflowFunctionality> funcEntry : functionalities.entrySet()) {
@@ -93,7 +105,8 @@ final class ScheduleExecutor {
                 functionalities,
                 List.copyOf(schedule), // list will reflect the LinkedHashSet order
                 stepExceptionsMap,
-                detectedStatuses);
+                detectedStatuses,
+                readsFromRelations);
     }
 
     private void evaluateTestCompletionStatus() {
@@ -138,7 +151,28 @@ final class ScheduleExecutor {
                 }
             }
 
+            captureReadsFromRelations(stepId);
             captureEmittedEventSteps(stepId);
+        }
+    }
+
+    private void captureReadsFromRelations(StepId stepId) {
+        Set<Integer> writtenByThisStep = new HashSet<>();
+        for (Effect effect : traceSession.drain()) {
+            switch (effect) {
+                case Effect.Write write -> {
+                    lastWriterByAggregate.put(write.aggregateId(), stepId);
+                    writtenByThisStep.add(write.aggregateId());
+                }
+                case Effect.Read read -> {
+                    if (writtenByThisStep.contains(read.aggregateId())) {
+                        continue; // reading what this step just wrote is not a cross-step reads-from
+                    }
+                    StepId writer = lastWriterByAggregate.getOrDefault(
+                            read.aggregateId(), INITIAL_STATE_SETUP_STEP_ID);
+                    readsFromRelations.add(new ReadsFromRelation(stepId, writer, read.aggregateType()));
+                }
+            }
         }
     }
 

@@ -17,7 +17,8 @@ public record TestResult(
 
         // TODO exceptions can become memory heavy, this could be optimized memory-wise
         Map<StepId, Exception> exceptions,
-        Set<TestStatus> statuses) {
+        Set<TestStatus> statuses,
+        Set<ReadsFromRelation> readsFromRelations) {
 
     public TestResult {
         intraDependencies = StepDependencies.copyOf(intraDependencies);
@@ -26,5 +27,6 @@ public record TestResult(
         schedule = Objects.requireNonNull(List.copyOf(schedule));
         exceptions = Objects.requireNonNull(Map.copyOf(exceptions));
         statuses = Objects.requireNonNull(Set.copyOf(statuses));
+        readsFromRelations = Objects.requireNonNull(Set.copyOf(readsFromRelations));
     }
 }

@@ -69,6 +69,7 @@ final class DeferredEventApplicationService extends EventApplicationService {
     }
 
     static final class CaptureSession implements AutoCloseable {
+
         private final DeferredEventApplicationService owner;
         private final Set<DeferredEventInvocation> currentDeferred = ConcurrentHashMap.newKeySet();
         private final Set<DeferredEventInvocation> allDeferred = ConcurrentHashMap.newKeySet();
