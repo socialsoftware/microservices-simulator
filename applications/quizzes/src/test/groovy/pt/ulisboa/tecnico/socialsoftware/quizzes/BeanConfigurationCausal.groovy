@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.resilience4j.retry.RetryRegistry
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -10,10 +11,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorServic
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentHandler
-import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentReportService
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.ReportService
+import pt.ulisboa.tecnico.socialsoftware.ms.impairment.CapacityManager
+import pt.ulisboa.tecnico.socialsoftware.ms.impairment.NetworkManager
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.messaging.CausalCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
@@ -290,9 +293,25 @@ class BeanConfigurationCausal {
         return new TournamentEventHandling()
     }
 
+
+    @Bean(name = "ImpairmentReportService")
+    ReportService impairmentReportService() {
+        return new ReportService(null)
+    }
+
+    @Bean(name = "CapacityReportService")
+    ReportService capacityReportService() {
+        return new ReportService(null)
+    }
+
     @Bean
-    ImpairmentReportService impairmentReportService() {
-        return new ImpairmentReportService()
+    CapacityManager capacityManager() {
+        return new CapacityManager()
+    }
+    
+    @Bean
+    NetworkManager networkManager(@Qualifier("ImpairmentReportService") ReportService impairmentReportService) {
+        return new NetworkManager(impairmentReportService)
     }
 
     @Bean
@@ -301,7 +320,7 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    ImpairmentService ImpairmentService() {
+    ImpairmentService impairmentService() {
         return new ImpairmentService()
     }
 
