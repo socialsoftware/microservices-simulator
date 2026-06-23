@@ -86,6 +86,7 @@ public class GroovyConstructorInputTraceVisitor {
     private SourceModeClassification activeSourceModeClassification = SourceModeClassification.unknown();
     private Map<String, List<ScopedMutation>> activeMutationScopes = Map.of();
     private String activeMutationBlocker;
+    private Set<String> activeNestedFacadeTraceKeys = new LinkedHashSet<>();
 
     public void visit(GroovySourceIndex sourceIndex, ApplicationAnalysisState state) {
         Objects.requireNonNull(sourceIndex, "sourceIndex cannot be null");
@@ -135,6 +136,7 @@ public class GroovyConstructorInputTraceVisitor {
         activeSourceModeClassification = sourceModeClassification == null
                 ? SourceModeClassification.unknown()
                 : sourceModeClassification;
+        activeNestedFacadeTraceKeys = new LinkedHashSet<>();
         InheritanceLayer targetLayer = hierarchy.get(hierarchy.size() - 1);
         Map<String, TraceBuilder> classFieldScopes = new LinkedHashMap<>();
         Map<String, Expression> classFieldExpressionScopes = new LinkedHashMap<>();
@@ -449,6 +451,9 @@ public class GroovyConstructorInputTraceVisitor {
                 return;
             }
 
+            traceLocalHelperFacadeSideEffects(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
+                    methodExpressionScopes, classFieldExpressionScopes, visibleFieldKeysByClassFqn,
+                    methodsByName, methodName);
             traceWorkflowCall(methodCallExpression, methodScopes, label);
         }
     }
@@ -489,17 +494,22 @@ public class GroovyConstructorInputTraceVisitor {
             }
         }
 
-        if (rightExpression instanceof MethodCallExpression methodCallExpression
-                && traceFacadeCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
-                methodScopes, classFieldScopes,
-                methodExpressionScopes, classFieldExpressionScopes,
-                 visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName, label)) {
-            methodExpressionScopes.put(variableName, rightExpression);
-            methodMutationScopes.remove(variableName);
-            if (visibleClassFieldKey != null) {
-                classFieldExpressionScopes.put(visibleClassFieldKey, rightExpression);
+        if (rightExpression instanceof MethodCallExpression methodCallExpression) {
+            if (traceFacadeCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
+                    methodScopes, classFieldScopes,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName, label)) {
+                methodExpressionScopes.put(variableName, rightExpression);
+                methodMutationScopes.remove(variableName);
+                if (visibleClassFieldKey != null) {
+                    classFieldExpressionScopes.put(visibleClassFieldKey, rightExpression);
+                }
+                return;
             }
-            return;
+
+            traceLocalHelperFacadeSideEffects(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
+                    methodExpressionScopes, classFieldExpressionScopes, visibleFieldKeysByClassFqn,
+                    methodsByName, methodName);
         }
 
         ConstructorResolution constructorResolution = resolveSagaConstructor(rightExpression, classNode, metadata, state,
@@ -535,6 +545,33 @@ public class GroovyConstructorInputTraceVisitor {
         if (visibleClassFieldKey != null) {
             classFieldExpressionScopes.put(visibleClassFieldKey, rightExpression);
         }
+    }
+
+    private void traceLocalHelperFacadeSideEffects(MethodCallExpression methodCallExpression,
+                                                   String traceSourceClassFqn,
+                                                   ClassNode classNode,
+                                                   GroovySourceClassMetadata metadata,
+                                                   ApplicationAnalysisState state,
+                                                   Map<String, Expression> methodExpressionScopes,
+                                                   Map<String, Expression> classFieldExpressionScopes,
+                                                   Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                                   Map<String, List<MethodResolutionContext>> methodsByName,
+                                                   String methodName) {
+        if (!isLocalHelperCall(methodCallExpression)) {
+            return;
+        }
+
+        describeExpressionTrace(methodCallExpression, classNode, metadata, state,
+                methodExpressionScopes, classFieldExpressionScopes, methodsByName,
+                visibleFieldKeysByClassFqn,
+                new ArrayDeque<>(),
+                new LinkedHashSet<>(),
+                new LinkedHashSet<>(),
+                0,
+                traceSourceClassFqn,
+                methodName,
+                traceScopeKey(classNode == null ? "(unknown)" : classNode.getName(), methodName),
+                false);
     }
 
     private void traceWorkflowCall(MethodCallExpression methodCallExpression,
@@ -2413,9 +2450,13 @@ public class GroovyConstructorInputTraceVisitor {
                                                  Set<String> emittedNestedFacadeTraceKeys,
                                                  String traceScopeKey,
                                                  SourceModeClassification sourceModeClassification) {
+        String argumentKey = facadeResolution.constructorArguments().stream()
+                .map(argument -> argument.index() + ":" + argument.provenance() + ":" + argument.recipe())
+                .collect(Collectors.joining("|"));
         String nestedTraceKey = traceScopeKey + "::" + methodCallExpression.getText()
-                + "::" + facadeResolution.creationSite().sagaClassFqn();
-        if (!emittedNestedFacadeTraceKeys.add(nestedTraceKey)) {
+                + "::" + facadeResolution.creationSite().sagaClassFqn()
+                + "::" + argumentKey;
+        if (!emittedNestedFacadeTraceKeys.add(nestedTraceKey) || !activeNestedFacadeTraceKeys.add(nestedTraceKey)) {
             return;
         }
 

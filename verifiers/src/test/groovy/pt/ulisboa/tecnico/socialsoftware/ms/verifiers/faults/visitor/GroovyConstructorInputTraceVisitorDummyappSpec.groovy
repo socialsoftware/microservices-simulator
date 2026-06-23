@@ -247,6 +247,21 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         parentTraceText.contains('resolved via helper createItemSaga(...)')
     }
 
+    def 'helper facade result used only as setup emits nested facade trace'() {
+        given:
+        def helperFacadeTraces = state.groovyFullTraceResults.findAll {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovyNestedFacadeTracingSpec' &&
+                    it.sourceMethodName == 'buildItemDtoViaFacade' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+
+        expect:
+        helperFacadeTraces.size() == 1
+        helperFacadeTraces[0].originKind() == GroovyTraceOriginKind.FACADE_CALL
+        helperFacadeTraces[0].sourceExpressionText() == 'itemFunctionalities.createItem(itemDto)'
+        helperFacadeTraces[0].traceText().contains('resolved via facade ItemFunctionalitiesFacade.createItem(...)')
+    }
+
     def 'functionality runtime edge retains call arguments'() {
         given:
         def trace = state.groovyFullTraceResults.find {

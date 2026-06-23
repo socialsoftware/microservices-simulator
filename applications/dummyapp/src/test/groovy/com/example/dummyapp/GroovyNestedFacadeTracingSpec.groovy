@@ -27,6 +27,20 @@ class GroovyNestedFacadeTracingSpec extends Specification {
         true
     }
 
+    def 'helper facade result used only as setup still emits item saga input'() {
+        given:
+        itemFunctionalities.@sagaUnitOfWorkService = Stub(SagaUnitOfWorkService)
+        itemFunctionalities.@commandGateway = Stub(CommandGateway) {
+            send(_) >> new ItemDto(aggregateId: 52, orderId: 30)
+        }
+
+        when:
+        def createdItem = buildItemDtoViaFacade()
+
+        then:
+        createdItem != null
+    }
+
     def 'shadowed helper field/local itemDto remains acyclic'() {
         given:
         itemFunctionalities.@sagaUnitOfWorkService = Stub(SagaUnitOfWorkService)
