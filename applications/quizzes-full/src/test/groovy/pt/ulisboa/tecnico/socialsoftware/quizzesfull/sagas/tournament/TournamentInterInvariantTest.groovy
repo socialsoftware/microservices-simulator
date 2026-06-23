@@ -66,9 +66,7 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
 
     def "tournament updates creatorName on UpdateStudentNameEvent for creator"() {
         when: 'creator name is updated, publishing UpdateStudentNameEvent'
-        def uow = unitOfWorkService.createUnitOfWork("updateName")
-        userService.updateUserName(creatorId, USER_NAME_2, uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.updateUserName(creatorId, USER_NAME_2)
 
         and: 'tournament polls for update student name events'
         tournamentEventHandling.handleUpdateStudentNameEvents()
@@ -83,9 +81,7 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
         def unrelated = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
 
         when: 'unrelated user name is updated'
-        def uow = unitOfWorkService.createUnitOfWork("updateName")
-        userService.updateUserName(unrelated.aggregateId, "New Name", uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.updateUserName(unrelated.aggregateId, "New Name")
 
         and: 'tournament polls for update student name events'
         tournamentEventHandling.handleUpdateStudentNameEvents()
@@ -99,9 +95,7 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
 
     def "tournament anonymizes creator on AnonymizeStudentEvent for creator"() {
         when: 'creator is anonymized, publishing AnonymizeStudentEvent'
-        def uow = unitOfWorkService.createUnitOfWork("anonymize")
-        userService.anonymizeUser(creatorId, uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.anonymizeUser(creatorId)
 
         and: 'tournament polls for anonymize student events'
         tournamentEventHandling.handleAnonymizeStudentEvents()
@@ -117,9 +111,7 @@ class TournamentInterInvariantTest extends InterInvariantTestBase {
         def unrelated = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
 
         when: 'unrelated user is anonymized'
-        def uow = unitOfWorkService.createUnitOfWork("anonymize")
-        userService.anonymizeUser(unrelated.aggregateId, uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.anonymizeUser(unrelated.aggregateId)
 
         and: 'tournament polls for anonymize student events'
         tournamentEventHandling.handleAnonymizeStudentEvents()

@@ -69,9 +69,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
         def quizAnswer = createQuizAnswer(quizId, userId)
 
         when: 'user name is updated, publishing UpdateStudentNameEvent'
-        def uow = unitOfWorkService.createUnitOfWork("updateUserName")
-        userService.updateUserName(userId, USER_NAME_2, uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.updateUserName(userId, USER_NAME_2)
 
         and: 'quizAnswer polls for update student name events'
         quizAnswerEventHandling.handleUpdateStudentNameEvents()
@@ -87,9 +85,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
         def quizAnswer = createQuizAnswer(quizId, userId)
 
         when: 'an unrelated user name is updated'
-        def uow = unitOfWorkService.createUnitOfWork("updateUserName")
-        userService.updateUserName(user2.aggregateId, "New Name", uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.updateUserName(user2.aggregateId, "New Name")
 
         and: 'quizAnswer polls for update student name events'
         quizAnswerEventHandling.handleUpdateStudentNameEvents()
@@ -106,9 +102,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
         def quizAnswer = createQuizAnswer(quizId, userId)
 
         when: 'user is anonymized, publishing AnonymizeStudentEvent'
-        def uow = unitOfWorkService.createUnitOfWork("anonymizeUser")
-        userService.anonymizeUser(userId, uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.anonymizeUser(userId)
 
         and: 'quizAnswer polls for anonymize student events'
         quizAnswerEventHandling.handleAnonymizeStudentEvents()
@@ -125,9 +119,7 @@ class QuizAnswerInterInvariantTest extends InterInvariantTestBase {
         def quizAnswer = createQuizAnswer(quizId, userId)
 
         when: 'an unrelated user is anonymized'
-        def uow = unitOfWorkService.createUnitOfWork("anonymizeUser")
-        userService.anonymizeUser(user2.aggregateId, uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.anonymizeUser(user2.aggregateId)
 
         and: 'quizAnswer polls for anonymize student events'
         quizAnswerEventHandling.handleAnonymizeStudentEvents()

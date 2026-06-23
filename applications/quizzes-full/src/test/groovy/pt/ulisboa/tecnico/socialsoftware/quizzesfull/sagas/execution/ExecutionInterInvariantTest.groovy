@@ -59,9 +59,7 @@ class ExecutionInterInvariantTest extends InterInvariantTestBase {
 
     def "execution updates studentName on UpdateStudentNameEvent"() {
         when: 'user name is updated directly, publishing UpdateStudentNameEvent'
-        def uow = unitOfWorkService.createUnitOfWork("updateUserName")
-        userService.updateUserName(userId, USER_NAME_2, uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.updateUserName(userId, USER_NAME_2)
 
         and: 'execution polls for update student name events'
         executionEventHandling.handleUpdateStudentNameEvents()
@@ -76,9 +74,7 @@ class ExecutionInterInvariantTest extends InterInvariantTestBase {
         def user2 = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
 
         when: 'an unrelated user name is updated'
-        def uow = unitOfWorkService.createUnitOfWork("updateUserName")
-        userService.updateUserName(user2.aggregateId, "New Name", uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.updateUserName(user2.aggregateId, "New Name")
 
         and: 'execution polls for update student name events'
         executionEventHandling.handleUpdateStudentNameEvents()
@@ -92,9 +88,7 @@ class ExecutionInterInvariantTest extends InterInvariantTestBase {
 
     def "execution anonymizes student on AnonymizeStudentEvent"() {
         when: 'user is anonymized directly, publishing AnonymizeStudentEvent'
-        def uow = unitOfWorkService.createUnitOfWork("anonymizeUser")
-        userService.anonymizeUser(userId, uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.anonymizeUser(userId)
 
         and: 'execution polls for anonymize student events'
         executionEventHandling.handleAnonymizeStudentEvents()
@@ -110,9 +104,7 @@ class ExecutionInterInvariantTest extends InterInvariantTestBase {
         def user2 = createUser(USER_NAME_2, "janedoe", STUDENT_ROLE)
 
         when: 'an unrelated user is anonymized'
-        def uow = unitOfWorkService.createUnitOfWork("anonymizeUser")
-        userService.anonymizeUser(user2.aggregateId, uow)
-        unitOfWorkService.commit(uow)
+        userFunctionalities.anonymizeUser(user2.aggregateId)
 
         and: 'execution polls for anonymize student events'
         executionEventHandling.handleAnonymizeStudentEvents()
