@@ -40,8 +40,28 @@ class DynamicEvidenceReaderSpec extends Specification {
         result.events()*.eventId() == ['e1', 'e2']
         result.events()[0].sourcePath() == firstFile
         result.events()[0].lineNumber() == 2
+        result.events()[0].functionalityClassFqn() == null
+        result.events()[0].functionalityClassSimpleName() == null
         result.events()[1].sourcePath() == secondFile
         result.events()[1].lineNumber() == 1
+    }
+
+    def 'reads functionality class identity fields from dynamic evidence'() {
+        given:
+        def root = Files.createTempDirectory('dynamic-evidence-reader-fqn')
+        def dir = root.resolve('dynamic-evidence/test')
+        Files.createDirectories(dir)
+        def evidence = dir.resolve('dynamic-evidence.jsonl')
+        Files.writeString(evidence, '{"eventId":"e1","eventKind":"STEP_STARTED","functionalityName":"RemoveCourseExecutionFunctionalitySagas","functionalityClassFqn":"com.example.tournament.RemoveCourseExecutionFunctionalitySagas","functionalityClassSimpleName":"RemoveCourseExecutionFunctionalitySagas","stepName":"reserve"}\n')
+
+        when:
+        def result = new DynamicEvidenceReader().read(root)
+
+        then:
+        result.warnings().isEmpty()
+        result.events()[0].functionalityName() == 'RemoveCourseExecutionFunctionalitySagas'
+        result.events()[0].functionalityClassFqn() == 'com.example.tournament.RemoveCourseExecutionFunctionalitySagas'
+        result.events()[0].functionalityClassSimpleName() == 'RemoveCourseExecutionFunctionalitySagas'
     }
 
     def 'malformed lines are reported as warnings without aborting reader'() {

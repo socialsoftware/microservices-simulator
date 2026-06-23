@@ -93,6 +93,8 @@ public class DynamicEvidenceReader {
                 text(node, "testUniqueId"),
                 text(node, "inputVariantId"),
                 text(node, "functionalityName"),
+                text(node, "functionalityClassFqn"),
+                text(node, "functionalityClassSimpleName"),
                 text(node, "functionalityInvocationId"),
                 text(node, "stepName"),
                 payload(node.get("payload")),

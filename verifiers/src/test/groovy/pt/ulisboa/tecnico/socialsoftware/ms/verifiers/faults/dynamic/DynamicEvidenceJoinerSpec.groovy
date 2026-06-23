@@ -120,23 +120,71 @@ class DynamicEvidenceJoinerSpec extends Specification {
         result.dynamicEvidence().observedAggregateAccesses()[0].aggregateType() == 'SagaExecution'
     }
 
-    def 'assigns ambiguous when duplicate saga simple names across catalog do not disambiguate'() {
+    def 'functionality class fqn disambiguates duplicate simple saga names'() {
         given:
-        def planA = plan('scenario-a', [input('input-a', 'com.a.OrderSaga')], 'com.a.OrderSaga')
-        def planB = plan('scenario-b', [input('input-b', 'com.b.OrderSaga')], 'com.b.OrderSaga')
+        def executionFqn = 'com.example.execution.RemoveCourseExecutionFunctionalitySagas'
+        def tournamentFqn = 'com.example.tournament.RemoveCourseExecutionFunctionalitySagas'
+        def executionPlan = plan('scenario-execution', [input('input-execution', executionFqn, [new InputOwner('com.example.RemoveSpec', 'removes tournament course execution')])], executionFqn)
+        def tournamentPlan = plan('scenario-tournament', [input('input-tournament', tournamentFqn, [new InputOwner('com.example.RemoveSpec', 'removes tournament course execution')])], tournamentFqn)
 
         when:
-        def result = new DynamicEvidenceJoiner().join([planA, planB], [
-                event('STEP_STARTED', [functionalityName: 'OrderSaga', stepName: 'reserve'])
+        def result = new DynamicEvidenceJoiner().join([executionPlan, tournamentPlan], [
+                event('STEP_STARTED', [
+                        testClassFqn                 : 'com.example.RemoveSpec',
+                        testMethodName               : 'removes tournament course execution',
+                        functionalityName            : 'RemoveCourseExecutionFunctionalitySagas',
+                        functionalityClassFqn        : tournamentFqn,
+                        functionalityClassSimpleName : 'RemoveCourseExecutionFunctionalitySagas',
+                        stepName                     : 'reserve'])
+        ])
+
+        then:
+        result.records()*.scenarioPlanId() == ['scenario-execution', 'scenario-tournament']
+        result.records()*.dynamicEvidence()*.joinStatus() == [DynamicEvidenceJoinStatus.UNMATCHED, DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE]
+        result.records()[1].dynamicEvidence().observedSteps()[0].sagaFqn() == tournamentFqn
+    }
+
+    def 'simple-name-only duplicate saga evidence remains ambiguous'() {
+        given:
+        def executionFqn = 'com.example.execution.RemoveCourseExecutionFunctionalitySagas'
+        def tournamentFqn = 'com.example.tournament.RemoveCourseExecutionFunctionalitySagas'
+        def executionPlan = plan('scenario-execution', [input('input-execution', executionFqn)], executionFqn)
+        def tournamentPlan = plan('scenario-tournament', [input('input-tournament', tournamentFqn)], tournamentFqn)
+
+        when:
+        def result = new DynamicEvidenceJoiner().join([executionPlan, tournamentPlan], [
+                event('STEP_STARTED', [
+                        testClassFqn    : 'com.example.RemoveSpec',
+                        testMethodName  : 'removes tournament course execution',
+                        functionalityName: 'RemoveCourseExecutionFunctionalitySagas',
+                        stepName         : 'reserve'])
         ])
 
         then:
         result.records()*.dynamicEvidence()*.joinStatus() == [DynamicEvidenceJoinStatus.AMBIGUOUS, DynamicEvidenceJoinStatus.AMBIGUOUS]
         result.records().every { record ->
             record.dynamicEvidence().warnings().any { warning ->
-                warning.contains('OrderSaga') && warning.contains('com.a.OrderSaga') && warning.contains('com.b.OrderSaga')
+                warning.contains('RemoveCourseExecutionFunctionalitySagas') && warning.contains(executionFqn) && warning.contains(tournamentFqn)
             }
         }
+    }
+
+    def 'unambiguous legacy simple-name evidence still matches'() {
+        given:
+        def uniqueFqn = 'com.example.UniqueFunctionalitySagas'
+        def uniquePlan = plan('scenario-unique', [input('input-unique', uniqueFqn, [new InputOwner('com.example.UniqueSpec', 'runs unique')])], uniqueFqn)
+
+        when:
+        def result = new DynamicEvidenceJoiner().join([uniquePlan], [
+                event('STEP_STARTED', [
+                        testClassFqn    : 'com.example.UniqueSpec',
+                        testMethodName  : 'runs unique',
+                        functionalityName: 'UniqueFunctionalitySagas',
+                        stepName         : 'reserve'])
+        ])
+
+        then:
+        result.records()[0].dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE
     }
 
     def 'assigns ambiguous when multiple static inputs match the same dynamic evidence'() {
@@ -306,6 +354,8 @@ class DynamicEvidenceJoinerSpec extends Specification {
                 event.testUniqueId as String,
                 event.inputVariantId as String,
                 event.functionalityName as String,
+                event.functionalityClassFqn as String,
+                event.functionalityClassSimpleName as String,
                 event.functionalityInvocationId as String,
                 event.stepName as String,
                 event.payload == null ? [:] : event.payload as Map<String, Object>,

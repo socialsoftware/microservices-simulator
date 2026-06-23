@@ -15,6 +15,8 @@ public record DynamicEvidenceEvent(
         String testUniqueId,
         String inputVariantId,
         String functionalityName,
+        String functionalityClassFqn,
+        String functionalityClassSimpleName,
         String functionalityInvocationId,
         String stepName,
         Map<String, Object> payload,

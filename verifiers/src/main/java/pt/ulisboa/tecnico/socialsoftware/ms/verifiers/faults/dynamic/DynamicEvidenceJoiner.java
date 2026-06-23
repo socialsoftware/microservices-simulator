@@ -114,6 +114,9 @@ public class DynamicEvidenceJoiner {
             if (identityMatchIds.size() > 1) {
                 return record(plan, DynamicEvidenceJoinStatus.AMBIGUOUS, sorted(identityMatchIds), relevantEvents(relevantAnalyses), ambiguityWarnings(relevantAnalyses, candidateInputIds, identityMatchIds));
             }
+            if (hasAmbiguousSagaIdentity) {
+                return record(plan, DynamicEvidenceJoinStatus.AMBIGUOUS, sorted(candidateInputIds), relevantEvents(relevantAnalyses), ambiguityWarnings(relevantAnalyses, candidateInputIds, identityMatchIds));
+            }
             return record(plan, DynamicEvidenceJoinStatus.UNMATCHED, List.of(), relevantEvents(relevantAnalyses), List.of());
         }
 
@@ -226,7 +229,7 @@ public class DynamicEvidenceJoiner {
     }
 
     private EventAnalysis analyzeEvent(DynamicEvidenceEvent event, List<ScenarioPlan> plans, CatalogIndex catalogIndex) {
-        Set<String> candidateSagaFqns = catalogIndex.matchingSagaFqns(event.functionalityName());
+        Set<String> candidateSagaFqns = catalogIndex.matchingSagaFqns(event);
         if (candidateSagaFqns.isEmpty() || isBlank(event.stepName())) {
             return new EventAnalysis(event, candidateSagaFqns, List.of(), List.of(), hasCompleteTestIdentity(event));
         }
@@ -291,7 +294,16 @@ public class DynamicEvidenceJoiner {
     }
 
     private String resolveSagaFqn(ScenarioPlan plan, DynamicEvidenceEvent event) {
-        return planSagaFqns(plan).stream().filter(fqn -> sagaNameMatches(fqn, event.functionalityName())).findFirst().orElse(null);
+        Set<String> planSagas = planSagaFqns(plan);
+        String eventFqn = nonBlank(event.functionalityClassFqn());
+        if (eventFqn != null) {
+            return planSagas.contains(eventFqn) ? eventFqn : null;
+        }
+
+        List<String> matches = planSagas.stream()
+                .filter(fqn -> sagaNameMatches(fqn, event.functionalityName()))
+                .toList();
+        return matches.size() == 1 ? matches.getFirst() : null;
     }
 
     private static String simpleName(String fqn) {
@@ -354,6 +366,10 @@ public class DynamicEvidenceJoiner {
         return value == null || value.isBlank();
     }
 
+    private static String nonBlank(String value) {
+        return isBlank(value) ? null : value.trim();
+    }
+
     private static String nullToEmpty(String value) {
         return value == null ? "" : value;
     }
@@ -373,7 +389,13 @@ public class DynamicEvidenceJoiner {
             return new CatalogIndex(Collections.unmodifiableMap(frozen));
         }
 
-        Set<String> matchingSagaFqns(String observedName) {
+        Set<String> matchingSagaFqns(DynamicEvidenceEvent event) {
+            String eventFqn = nonBlank(event.functionalityClassFqn());
+            if (eventFqn != null) {
+                Set<String> exactMatches = sagaFqnsByObservedName.getOrDefault(eventFqn, Set.of());
+                return exactMatches.contains(eventFqn) ? Set.of(eventFqn) : Set.of();
+            }
+            String observedName = event.functionalityName();
             if (observedName == null || observedName.isBlank()) {
                 return Set.of();
             }
