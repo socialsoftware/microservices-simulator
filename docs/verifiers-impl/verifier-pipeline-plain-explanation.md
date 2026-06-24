@@ -1,217 +1,139 @@
 # Verifier pipeline, plain explanation
 
-Date: 2026-05-12
+Last updated: 2026-06-23
 
-Purpose: explain the verifier work in practical engineering terms for a thesis/advisor discussion.
+Purpose: explain the verifier in meeting/thesis language without implementation archaeology.
 
 ## One-sentence summary
 
-The verifier is being built to turn an application built on the simulator into a set of fault-injection experiments: first by reading the source code and tests, then by checking those static predictions against real runtime evidence.
+The verifier turns simulator application code and tests into candidate saga fault scenarios, then optionally checks those static candidates against runtime evidence from existing test executions.
 
-## What the verifier is trying to do
+## Why this exists
 
-The final thesis goal is not just to run random faults.
-
-The goal is to generate meaningful fault scenarios such as:
+The thesis goal is not to run random faults. The goal is to generate meaningful experiments such as:
 
 ```text
-Run this saga.
-Stop or delay this step.
-Interleave it with another saga that touches the same aggregate.
-Observe whether invariants break, compensation fails, or state diverges.
+Run this saga input.
+Execute these steps in this order.
+Inject a failure/delay at this step.
+Observe whether compensation, invariants, or final state break.
 ```
 
-To do that safely, the verifier needs to understand the application first.
+To do that, the system first needs to understand the application:
 
-It needs to know things like:
-
-```text
-Which saga/functionality exists?
-Which steps does it execute?
-Which commands does each step send?
-Which aggregates can those commands read or write?
-Which test inputs show realistic ways to invoke the saga?
-Which exact aggregate instance is touched at runtime?
-```
-
-This is why the verifier work has several stages. The hard part is not producing a JSON file. The hard part is making sure the JSON file means something real about the application.
+- which sagas/functionality classes exist;
+- which steps they execute;
+- which commands each step sends;
+- which aggregate types those commands read or write;
+- which test inputs represent realistic saga invocations;
+- where runtime evidence confirms the static prediction.
 
 ## Current pipeline
 
-The current pipeline has two main parts:
-
 ```text
-static scenario synthesis
-dynamic evidence enrichment
+source/tests
+  -> static extraction
+  -> scenario catalog
+  -> optional dynamic evidence
+  -> enriched sidecar catalog
+  -> narrow executor POC / future generic execution
 ```
 
-Static synthesis reads source code and tests.
+## Stage 1: static extraction
 
-Dynamic enrichment runs selected tests and records what actually happened.
+The verifier reads Java production code and Groovy/Spock tests.
 
-Together they answer:
+From production code, it extracts:
 
-```text
-What might happen according to the code?
-What did happen in real test executions?
-How confidently can we connect the two?
-```
+- saga/functionality classes;
+- ordered workflow steps;
+- command handlers;
+- domain-service access policies;
+- aggregate read/write footprints;
+- compensation/forward dispatch phases.
 
-## Stage 1: parse application code
-
-The verifier reads the application source tree.
-
-It extracts building blocks such as:
+From tests, it extracts input variants:
 
 ```text
-saga/functionality classes
-workflow steps
-command handlers
-domain services
-aggregate read/write footprints
+A static input variant = one observed source/test way to invoke a saga/functionality.
 ```
 
-Example:
+Example shape:
 
 ```text
-FindQuizFunctionalitySagas
-  step: findQuizStep
-  command: GetQuizByIdCommand
-  likely touches: Quiz
+test class: CreateTournamentFaultTest
+test method: Check Quiz existence
+source call: quizFunctionalities.findQuiz(11)
+static saga: FindQuizFunctionalitySagas
+inputVariantId: input-...
 ```
 
-At this stage, the verifier can often identify aggregate types, but not always exact aggregate ids.
+Setup/helper calls can also be useful because they show how realistic state is created before the tested functionality.
 
-For example, it may know:
+## Stage 2: source-mode filtering
 
-```text
-findQuizStep reads a Quiz
-```
-
-but not yet:
-
-```text
-findQuizStep reads Quiz(11)
-```
-
-That exact-key problem is one of the main reasons the work is non-trivial.
-
-## Stage 2: parse tests for useful inputs
-
-The verifier also reads Groovy/Spock tests.
-
-It looks for calls that invoke application functionalities. These become `InputVariant`s.
-
-An `InputVariant` is:
-
-```text
-a source/test-derived way to invoke a saga/functionality
-```
-
-Example from Quizzes:
-
-```text
-test class:
-  CreateTournamentFaultTest
-
-test method:
-  Check Quiz existence
-
-source expression:
-  quizFunctionalities.findQuiz(11)
-
-static saga:
-  FindQuizFunctionalitySagas
-
-inputVariantId:
-  2c98e7...
-```
-
-This is not only about the main tested line. Setup and helper calls can also be useful inputs because they describe realistic ways to create data or run functionalities.
-
-That is why static input discovery is careful and broad.
-
-## Stage 3: filter by transactional mode
-
-Quizzes can run in saga mode or causal/TCC mode.
-
-A source call like this is not enough by itself:
+Quizzes can run similar facades in saga or TCC/causal modes. A call like this is not enough by itself:
 
 ```groovy
 tournamentFunctionalities.createTournament(...)
 ```
 
-The same facade can create a saga workflow or a TCC workflow depending on Spring configuration.
-
-So the verifier classifies test-derived inputs by source mode:
+So the verifier classifies source inputs as:
 
 ```text
-SAGAS
-TCC
-MIXED
-UNKNOWN
+SAGAS | TCC | MIXED | UNKNOWN
 ```
 
-For a saga catalog:
+Saga catalog policy:
 
 ```text
-SAGAS inputs are accepted.
-TCC and MIXED inputs are rejected from the accepted saga catalog.
-UNKNOWN can be accepted with warnings, depending on policy.
+SAGAS   -> accepted
+TCC     -> rejected diagnostically
+MIXED   -> rejected diagnostically
+UNKNOWN -> accepted with warning
 ```
 
-This matters because otherwise the saga catalog could silently include inputs that came from TCC tests.
+This prevents known TCC/mixed inputs from silently entering the saga catalog.
 
-## Stage 4: generate a static scenario catalog
+## Stage 3: scenario catalog
 
-After parsing source and tests, the verifier writes:
+The static catalog is the deterministic machine-readable plan:
 
 ```text
 scenario-catalog.jsonl
 scenario-catalog-manifest.json
 scenario-catalog-rejected-inputs.jsonl
+scenario-space-accounting.json
 ```
 
-Each scenario record contains:
+Each scenario plan can include:
+
+- participating saga instance(s);
+- selected input variant(s);
+- step schedule;
+- aggregate read/write footprint evidence;
+- fault slots for later execution;
+- warnings/diagnostics.
+
+The catalog is not yet proof that the scenario has been executed. It is the handoff contract for enrichment and future execution.
+
+## Stage 4: dynamic evidence enrichment
+
+Static analysis is good at structure but weak at exact runtime identity.
+
+It may know:
 
 ```text
-scenario id
-saga instance(s)
-input variant(s)
-expanded step schedule
-fault slots
-conflict evidence
-warnings
+findQuizStep reads Quiz
 ```
 
-For now, the main implemented catalog is single-saga scenario generation.
-
-The catalog is the machine-readable static contract.
-
-It says:
+but not always:
 
 ```text
-Here are the candidate scenarios that the verifier thinks are relevant and replayable enough to consider later.
+findQuizStep reads Quiz(11)
 ```
 
-It does not yet execute those scenarios.
-
-## Stage 5: collect dynamic runtime evidence
-
-Static analysis alone cannot always know exact runtime values.
-
-Example:
-
-```groovy
-courseExecutionDto = createCourseExecution(...)
-quizFunctionalities.findQuiz(courseExecutionDto.aggregateId)
-```
-
-The actual aggregate id may only exist after runtime setup executes.
-
-So the simulator now has an opt-in dynamic evidence bridge.
-
-When enabled, runtime writes events like:
+Dynamic enrichment runs selected existing tests with simulator evidence enabled. Runtime emits events such as:
 
 ```text
 STEP_STARTED
@@ -220,148 +142,85 @@ AGGREGATE_ACCESSED
 STEP_FINISHED
 ```
 
-Example:
+The verifier joins that runtime evidence back to static scenario plans.
+
+Important rule:
 
 ```text
-test:
-  CreateTournamentFaultTest / Check Quiz existence
-
-runtime step:
-  findQuizStep
-
-command:
-  GetQuizByIdCommand(rootAggregateId=11)
-
-aggregate access:
-  READ SagaQuiz(11)
+Runtime evidence does not rewrite the static catalog.
+It is attached as sidecar evidence.
 ```
-
-This gives concrete evidence that static analysis usually cannot guarantee by itself.
-
-## Stage 6: join static scenarios with runtime evidence
-
-Dynamic enrichment joins:
-
-```text
-static ScenarioPlan/InputVariant
-runtime dynamic-evidence events
-```
-
-The join compares:
-
-```text
-test class/method
-saga/functionality identity
-step name
-runtime command evidence
-runtime aggregate accesses
-```
-
-The output is sidecar-only:
-
-```text
-scenario-catalog-enriched.jsonl
-scenario-catalog-enriched-manifest.json
-dynamic-evidence-join-report.json
-```
-
-The original static catalog remains unchanged.
-
-This is intentional. Static output stays reproducible, and dynamic output is additional evidence.
 
 ## Join statuses
 
-Each enriched scenario gets a dynamic status:
+The enriched catalog uses conservative statuses:
+
+| Status | Plain meaning |
+|---|---|
+| `MATCHED_EXACT` | Runtime evidence directly names the static input variant. |
+| `MATCHED_HIGH_CONFIDENCE` | Runtime evidence lines up by test/functionality/step, but lacks direct input id. |
+| `MATCHED_PARTIAL` | Some relevant shape matched, but not enough for high confidence. |
+| `AMBIGUOUS` | Runtime evidence could match multiple static candidates; the verifier refuses to guess. |
+| `UNMATCHED` | Runtime evidence exists but cannot be usefully joined to this scenario. |
+| `NOT_COVERED` | No useful runtime evidence was observed for this scenario. |
+
+## Current dynamic-enrichment result
+
+On the comparable Quizzes sagas-local baseline, adding runtime input attribution changed the result from:
 
 ```text
-MATCHED_EXACT
-MATCHED_HIGH_CONFIDENCE
-MATCHED_PARTIAL
-AMBIGUOUS
-UNMATCHED
-NOT_COVERED
+MATCHED_EXACT=0
+MATCHED_HIGH_CONFIDENCE=2
+AMBIGUOUS=44
+UNMATCHED=20
+warningCount=8238
 ```
 
-Meaning:
+to:
 
 ```text
-MATCHED_EXACT
-  Runtime evidence directly names the static inputVariantId.
-
-MATCHED_HIGH_CONFIDENCE
-  Runtime evidence strongly lines up with exactly one static input by test, saga/functionality, and step.
-
-MATCHED_PARTIAL
-  Runtime evidence lines up semantically, but test identity is incomplete.
-
-AMBIGUOUS
-  Runtime evidence is real, but it could match multiple static inputs.
-
-UNMATCHED
-  Runtime evidence exists, but it does not match this scenario.
-
-NOT_COVERED
-  No relevant dynamic evidence was observed for this scenario.
+MATCHED_EXACT=46
+MATCHED_HIGH_CONFIDENCE=0
+AMBIGUOUS=3
+UNMATCHED=17
+warningCount=328
 ```
 
-The system can now produce exact matches when runtime evidence directly carries the static `inputVariantId`. Older evidence without direct ids still flows through the high-confidence, partial, ambiguous, unmatched, or not-covered statuses.
-
-## Concrete example
-
-Static analysis finds:
+Plain interpretation:
 
 ```text
-source:
-  quizFunctionalities.findQuiz(11)
-
-test:
-  CreateTournamentFaultTest / Check Quiz existence
-
-static saga:
-  FindQuizFunctionalitySagas
-
-static step:
-  findQuizStep
-
-inputVariantId:
-  2c98e7...
+Runtime input attribution works for the first exact case.
+It made many joins precise instead of ambiguous.
+The remaining misses are small enough to inspect manually.
 ```
 
-Dynamic analysis observes:
+Do not overstate this. It does not prove stream/gRPC, distributed, TCC, or generic executor behavior.
+
+## Stage 5: scenario execution
+
+A narrow ScenarioExecutor POC exists. It can run supported single-saga catalog candidates and has one successful Quizzes smoke.
+
+Current POC evidence:
 
 ```text
-test:
-  CreateTournamentFaultTest / Check Quiz existence
-
-runtime step:
-  findQuizStep
-
-command:
-  GetQuizByIdCommand(rootAggregateId=11)
-
-aggregate:
-  READ SagaQuiz(11)
+Saga: GetCourseExecutionsFunctionalitySagas
+Step: getCourseExecutionsStep
+Terminal status: SUCCESS
 ```
 
-The join can say:
+But generic scenario execution is not complete. Still missing:
 
-```text
-This runtime execution supports that static input.
-```
+- arbitrary catalog replay;
+- multi-saga execution;
+- generated fault injection;
+- behavior CSV generation;
+- impact scoring;
+- GA/local search;
+- scenario prioritization.
 
-Without direct runtime ids, this is `MATCHED_HIGH_CONFIDENCE`.
+## Why this is hard
 
-With input-variant propagation, the runtime event directly includes:
-
-```text
-inputVariantId = 2c98e7...
-```
-
-Then the status becomes `MATCHED_EXACT` if the id belongs to the scenario plan being enriched.
-
-## Why this is difficult
-
-The difficulty is value binding across layers.
+The hard problem is binding values across layers.
 
 A value may start in a test:
 
@@ -369,163 +228,41 @@ A value may start in a test:
 quizFunctionalities.findQuiz(11)
 ```
 
-or it may come from runtime setup:
+or be created by setup:
 
 ```groovy
 quizDto = createQuiz(...)
 quizFunctionalities.findQuiz(quizDto.aggregateId)
 ```
 
-Then it may flow through:
+Then it can flow through:
 
 ```text
-test helper
-application facade
-saga constructor
-saga field
-workflow step
-command constructor
-command handler
-service method
-repository/load call
-aggregate id
+test helper -> facade -> saga constructor -> saga field -> step -> command -> handler -> service -> aggregate
 ```
 
-Static analysis can follow some of this, but doing it perfectly for all Java/Groovy patterns would be a large interprocedural value-analysis problem.
-
-Dynamic evidence gives a practical shortcut:
+Perfect static tracking across Java and Groovy would be a large interprocedural value-analysis problem. The current design avoids pretending otherwise:
 
 ```text
-Let static analysis identify the interesting candidate.
-Let runtime execution show which concrete ids were actually touched.
-Join the two conservatively.
+Static analysis finds useful candidates.
+Runtime evidence confirms what actually happened.
+The join stays conservative when identity is unclear.
 ```
 
-This is why the work is staged. Each stage removes one kind of uncertainty:
+## Safe thesis framing
 
-```text
-source parsing:
-  What workflows and steps exist?
+Safe claim:
 
-test tracing:
-  What realistic inputs exist?
+> The verifier now produces deterministic saga scenario catalogs and can enrich them with runtime evidence. On the Quizzes sagas-local baseline, runtime input attribution substantially improved exact static/dynamic joining, increasing exact matches from 0 to 46 and reducing ambiguity from 44 to 3.
 
-source-mode filtering:
-  Are these saga inputs or TCC inputs?
+Unsafe claim:
 
-scenario catalog:
-  What scenarios can we generate?
+> The system can already execute arbitrary generated fault scenarios and optimize them with search.
 
-dynamic evidence:
-  What happened at runtime?
-
-joining:
-  Which static scenario does runtime evidence support?
-
-inputVariantId propagation:
-  Runtime evidence can directly name the static input in unambiguous cases.
-```
-
-## Current validation baseline
-
-Narrow Quizzes dynamic-enrichment smoke:
-
-```text
-runStatus = COMPLETE
-testClassesSelected = 2
-testClassesPassed = 2
-dynamicEventsRead = 362
-MATCHED_HIGH_CONFIDENCE = 1
-UNMATCHED = 199
-```
-
-Original full/default sagas-only Quizzes run before runtime `inputVariantId` propagation:
-
-```text
-runStatus = PARTIAL
-testClassesSelected = 42
-testClassesPassed = 40
-testClassesFailed = 2
-dynamicEventsRead = 18868
-MATCHED_EXACT = 0
-MATCHED_HIGH_CONFIDENCE = 2
-AMBIGUOUS = 44
-UNMATCHED = 20
-NOT_COVERED = 0
-```
-
-Refreshed comparable full/default sagas-only Quizzes run after runtime `inputVariantId` propagation:
-
-```text
-runStatus = PARTIAL
-testClassesSelected = 42
-testClassesPassed = 40
-testClassesFailed = 2
-dynamicEventsRead = 18868
-MATCHED_EXACT = 46
-MATCHED_HIGH_CONFIDENCE = 0
-MATCHED_PARTIAL = 0
-AMBIGUOUS = 3
-UNMATCHED = 17
-NOT_COVERED = 0
-warningCount = 328
-```
-
-The main current signal is:
-
-```text
-The dynamic bridge works, runtime ids materially improve exactness, and the remaining misses are now small enough to classify manually.
-```
+That is future work.
 
 ## Next improvement
 
-The next improvement is to classify the remaining `AMBIGUOUS=3` and `UNMATCHED=17` records before adding more attribution rules.
+Classify the remaining `AMBIGUOUS=3` and `UNMATCHED=17` records before adding more attribution rules.
 
-Plan:
-
-1. Decide which misses are real static inputs not exercised by the selected Quizzes tests.
-2. Decide which misses are joiner limitations where useful runtime evidence was assigned to a neighboring static input.
-3. Decide which misses can be resolved by command payloads, aggregate accesses, literal hints, or aggregate keys.
-4. Implement the smallest structured refinement that improves those cases without broad name matching.
-5. Keep exactness conservative: direct `inputVariantId` wins only when it belongs to the scenario plan being enriched.
-
-Success means:
-
-```text
-remaining ambiguous/unmatched records are classified
-new attribution rules have a concrete target
-MATCHED_EXACT does not gain false positives
-AMBIGUOUS or UNMATCHED decreases, or the remaining reasons are documented
-```
-
-## What is not implemented yet
-
-This is not yet the runtime fault executor.
-
-Still future work:
-
-```text
-ScenarioExecutor
-runtime materialization of generated inputs
-generated step/fault execution
-impact scoring
-genetic/local search
-scenario prioritization
-distributed runtime parity
-TCC runtime parity
-stream/gRPC evidence parity
-```
-
-The current work is the foundation needed before those stages:
-
-```text
-first understand scenarios,
-then verify them against real executions,
-then execute generated fault experiments.
-```
-
-## Meeting framing
-
-A concise way to explain the current state:
-
-> Runtime input attribution is now implemented for the first exact case. On the comparable Quizzes sagas-only run, exact matches increased from zero to forty-six, ambiguity dropped from forty-four to three, and warning volume dropped from over eight thousand to three hundred twenty-eight. The next task is to classify the remaining ambiguous and unmatched records before adding more attribution heuristics.
+The next implementation should be the smallest structured refinement justified by those cases, likely using command payloads, aggregate accesses, literal hints, or aggregate keys. Avoid broad name matching that increases false exactness.

@@ -6,7 +6,7 @@ Current sources of truth:
 
 - [`../../current-state.md`](../../current-state.md)
 - [`../../roadmap.md`](../../roadmap.md)
-- [`../../implementation-log/`](../../implementation-log/index.md)
+- [`../../implementation-log/`](../implementation-log/index.md)
 - [`../../decisions/`](../../decisions/index.md)
 
 Archived files are kept for historical detail and provenance. Do not treat them as current instructions without checking the current-state and roadmap documents first.
@@ -18,3 +18,5 @@ Archived files are kept for historical detail and provenance. Do not treat them 
 | `2026-03-28-parser-and-dummyapp.md` | Early parser/dummyapp implementation note. |
 | `scenario-generator-pending-improvements.md` | Former mixed backlog/status note; durable current status has been migrated into `../../current-state.md`, `../../roadmap.md`, weekly logs, and decisions. |
 | `saga-construction-recipe-extraction-spec.md` | Historical handoff spec for Groovy saga construction recipes; current trace state has evolved beyond this minimal spec. |
+
+- [`scenario-catalog-followup-prompt.md`](scenario-catalog-followup-prompt.md)

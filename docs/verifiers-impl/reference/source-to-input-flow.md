@@ -73,7 +73,7 @@ CreateTournamentFunctionalitySagas(
 )
 ```
 
-The verifier currently records saga creation sites, but it does not yet fully classify the source test's runtime mode when the same façade type can execute either SAGAS or TCC depending on Spring profile/configuration.
+The verifier records saga creation sites and later classifies each source test input with evidence-based source-mode metadata. This distinguishes known SAGAS inputs from known TCC/MIXED inputs without pretending to be a full Spring environment solver.
 
 ### 3. Groovy source indexing parses tests
 
@@ -248,8 +248,8 @@ The current catalog therefore should be viewed as carrying replay-oriented input
 
 ## Current Gaps To Defer
 
-- Promote helper-internal functionality calls into standalone input variants.
+- Promote helper-internal functionality calls into standalone input variants where useful.
 - Extend source-mode classification only if more generic Spring evidence is needed; avoid Quizzes-specific shortcuts.
-- Extract logical aggregate key bindings from traced arguments.
-- Convert textual replay provenance into structured executor-ready setup recipes.
+- Extract stronger logical aggregate key bindings from traced arguments.
+- Improve structured recipes until more inputs are executor-ready.
 - Decide whether future TCC-specific catalogs/executors should consume TCC-derived input variants instead of rejecting them from the saga catalog.

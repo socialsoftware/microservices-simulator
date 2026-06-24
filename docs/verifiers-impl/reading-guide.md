@@ -1,53 +1,32 @@
 # Verifier docs reading guide
 
-Use this guide to choose the shortest useful path through the verifier knowledge base.
+Use this only when the landing page is not enough.
 
-If terminology is the blocker, keep [`glossary.md`](glossary.md) open while reading. It defines recurring scenario, input, source-mode, and dynamic-enrichment terms.
+## Fast paths
 
-If you are drafting thesis prose, use [`thesis-claims-evidence-map.md`](thesis-claims-evidence-map.md) to connect claims to support docs, validation evidence, and limitations.
+| Situation | Read |
+|---|---|
+| I have a thesis meeting soon | [`advisor-brief.md`](advisor-brief.md), then [`current-state.md`](current-state.md) |
+| I need current implementation truth | [`current-state.md`](current-state.md) |
+| I need proof for a number or claim | [`evidence.md`](evidence.md) |
+| I am writing thesis text | [`thesis-claims-evidence-map.md`](thesis-claims-evidence-map.md), then [`current-state.md`](current-state.md) |
+| I need the pipeline story | [`verifier-pipeline-plain-explanation.md`](verifier-pipeline-plain-explanation.md) |
+| I need future-work context | [`roadmap.md`](roadmap.md) |
+| I forgot terminology | [`glossary.md`](glossary.md) |
 
-## If you need thesis evidence
+## Reference paths
 
-Start with [`thesis-claims-evidence-map.md`](thesis-claims-evidence-map.md). It maps claim drafts to current-truth docs, deep dives, decisions, validation logs, historical framing, and explicit non-overclaim guidance.
+- Test-to-input extraction: [`reference/source-to-input-flow.md`](reference/source-to-input-flow.md)
+- Structured input recipes: [`reference/input-recipes.md`](reference/input-recipes.md)
+- Dynamic enrichment overview: [`reference/dynamic-enrichment.md`](reference/dynamic-enrichment.md)
+- Dynamic enrichment detailed trace: [`archive/investigations/dynamic-enrichment-joining-reference.md`](archive/investigations/dynamic-enrichment-joining-reference.md)
+- ScenarioExecutor POC: [`reference/scenario-executor-poc.md`](reference/scenario-executor-poc.md)
+- Durable rationale: [`decisions/`](decisions/index.md)
 
-Then follow the map back to [`current-state.md`](current-state.md), [`dynamic-enrichment-joining-explained.md`](dynamic-enrichment-joining-explained.md), [`dynamic-enrichment-joining-reference.md`](dynamic-enrichment-joining-reference.md), [`implementation-log/`](implementation-log/index.md), and [`meeting-notes/`](meeting-notes/index.md) as needed.
+## Historical paths
 
-## If you need the current truth
+- Engineering history: [`archive/implementation-log/`](archive/implementation-log/index.md)
+- Advisor/meeting history: [`archive/meeting-notes/`](archive/meeting-notes/index.md)
+- Old/superseded material: [`archive/`](archive/index.md)
 
-Start with [`current-state.md`](current-state.md). It is the present-tense source for implemented behavior, partial behavior, known limits, validation baseline, and next priorities.
-
-Then read [`roadmap.md`](roadmap.md) to see how the current baseline fits the intended verifier trajectory.
-
-## If you need the narrative overview
-
-Read [`verifier-pipeline-plain-explanation.md`](verifier-pipeline-plain-explanation.md) for the high-level verifier flow from source analysis through scenario generation and enrichment.
-
-Use [`test-analysis-saga-input-flow.md`](test-analysis-saga-input-flow.md) when the question is specifically about how tests become saga input variants.
-
-Use [`dynamic-enrichment-joining-explained.md`](dynamic-enrichment-joining-explained.md) first when the question is how static scenarios are matched with runtime evidence.
-
-Use [`dynamic-enrichment-joining-reference.md`](dynamic-enrichment-joining-reference.md) when you need the full static pipeline, runtime attribution flow, join algorithm, sidecar artifacts, ambiguity causes, and code references.
-
-Use [`glossary.md`](glossary.md) for quick definitions of `ScenarioPlan`, input variant, dynamic input map, and join statuses before reading the dynamic-enrichment material.
-
-## If you need durable rationale
-
-Use [`decisions/`](decisions/index.md) for architectural choices and rejected alternatives. These explain why the verifier took a specific direction, but they are not a replacement for current implementation status.
-
-## If you need recent engineering history
-
-Use [`implementation-log/`](implementation-log/index.md) to answer what changed in a specific week, what was validated, and what remained deferred.
-
-For the latest engineering state, still return to [`current-state.md`](current-state.md) after reading logs.
-
-## If you need advisor or thesis history
-
-Use [`meeting-notes/`](meeting-notes/index.md) for advisor-facing framing, thesis discussion, and historical claims made at specific checkpoints.
-
-Meeting notes are evidence of how the work was framed at a point in time. They are not the canonical source for what is true now.
-
-## If you need provenance or old working material
-
-Use [`archive/`](archive/index.md) for archived material and older working notes.
-
-Use [`scenario-catalog-followup-prompt.md`](scenario-catalog-followup-prompt.md) only as handoff context. It remains reachable for provenance but is intentionally not part of the main reading path.
+Historical notes are not current truth. Always cross-check against [`current-state.md`](current-state.md) before using them in thesis prose or meetings.

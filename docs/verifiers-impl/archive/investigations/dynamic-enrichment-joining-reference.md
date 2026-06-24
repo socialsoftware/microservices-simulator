@@ -1,6 +1,6 @@
 # Dynamic enrichment joining detailed reference
 
-This is the preserved detailed reference for dynamic-enrichment joining. For the shorter first-read path, start with [`dynamic-enrichment-joining-explained.md`](dynamic-enrichment-joining-explained.md). For shared terminology used here, including `InputVariant`, dynamic input map, and join statuses, see [`glossary.md`](glossary.md).
+This is the preserved detailed reference for dynamic-enrichment joining. For the shorter first-read path, start with [`dynamic-enrichment-joining-explained.md`](../../reference/dynamic-enrichment.md). For shared terminology used here, including `InputVariant`, dynamic input map, and join statuses, see [`glossary.md`](../../glossary.md).
 
 Date: 2026-05-17
 

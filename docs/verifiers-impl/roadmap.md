@@ -98,9 +98,13 @@ The runtime side should:
 
 ### Current status
 
-Not implemented.
+POC only.
 
-Current static work prepares for this stage by preserving:
+A narrow verifier-owned ScenarioExecutor POC can load a catalog/enriched catalog, select or receive a supported single-saga scenario, materialize only supported inputs, run the selected saga step schedule, and write an execution report. It has a Quizzes smoke success for one generated single-saga plan.
+
+Generic execution is still not implemented. The POC does not cover arbitrary catalog replay, multi-saga schedules, generated fault injection, behavior CSV generation, impact scoring, GA search, or scenario prioritization.
+
+Current static work prepares for the broader stage by preserving:
 
 - source expression/provenance text;
 - replay-oriented value recipes;
@@ -201,7 +205,7 @@ Dependencies:
 | Segment-compressed scheduling/accounting | Implemented static reduction | scheduler/accounting specs, dummyapp integration, Quizzes count-only comparison | Exact aggregate-instance binding and runtime semantic completeness remain separate |
 | Dynamic evidence + sidecar enrichment | Implemented MVP | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, Task 7/8 Quizzes runs, 2026-05-12 exact-attribution refresh | Runtime attribution refinement; stream/gRPC/distributed/TCC parity; remaining ambiguity/unmatched analysis |
 | Quizzes orchestration smoke baseline | Implemented | Task 7 narrow run + Task 8 full/default run in `current-state.md` | Refresh periodically and track exact/ambiguous/unmatched trends |
-| ScenarioExecutor | Not implemented | none | Design and runtime integration |
+| ScenarioExecutor | POC | `scenario-executor-poc.md`, Quizzes single-saga smoke | General catalog replay, multi-saga execution, fault injection, impact scoring |
 | Behavior CSV generation | Not implemented | none | Decide whether adapter or canonical contract |
 | Impact scoring | Not implemented | none | Requires executable scenarios |
 | GA search | Not implemented | none | Requires impact scoring |

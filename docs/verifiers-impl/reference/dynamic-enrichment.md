@@ -2,7 +2,7 @@
 
 This is the first-read overview for the verifier's dynamic-enrichment bridge. It explains the problem, the implemented approach, the result categories, and the current limits without requiring the full implementation trace.
 
-For implementation-level detail, read the preserved [`dynamic-enrichment-joining-reference.md`](dynamic-enrichment-joining-reference.md). For terminology, keep [`glossary.md`](glossary.md) open.
+For implementation-level detail, read the preserved [`dynamic-enrichment-joining-reference.md`](../archive/investigations/dynamic-enrichment-joining-reference.md). For terminology, keep [`glossary.md`](../glossary.md) open.
 
 ## Problem
 
@@ -38,7 +38,7 @@ When that direct id appears in runtime evidence, the join can move from semantic
 
 ## Result categories
 
-The enriched catalog uses conservative join statuses. The names are defined in the [`glossary`](glossary.md), but the practical reading is:
+The enriched catalog uses conservative join statuses. The names are defined in the [`glossary`](../glossary.md), but the practical reading is:
 
 | Status | Meaning for the reader |
 |---|---|
@@ -53,7 +53,7 @@ For thesis writing, `MATCHED_EXACT` supports the claim that runtime attribution 
 
 ## Current evidence
 
-The current baseline is documented in [`current-state.md`](current-state.md). In the refreshed Quizzes sagas-only run after runtime input attribution, comparable status counts moved from:
+The current baseline is documented in [`current-state.md`](../current-state.md). In the refreshed Quizzes sagas-only run after runtime input attribution, comparable status counts moved from:
 
 ```text
 MATCHED_EXACT=0
@@ -93,7 +93,7 @@ Known limits include:
 
 ## When to use the detailed reference
 
-Use [`dynamic-enrichment-joining-reference.md`](dynamic-enrichment-joining-reference.md) when you need:
+Use [`dynamic-enrichment-joining-reference.md`](../archive/investigations/dynamic-enrichment-joining-reference.md) when you need:
 
 - the static pipeline step-by-step;
 - dynamic test selection and Maven orchestration detail;
@@ -107,7 +107,7 @@ Use [`dynamic-enrichment-joining-reference.md`](dynamic-enrichment-joining-refer
 
 ## Related pages
 
-- [`current-state.md`](current-state.md) for the current implemented baseline and validation counts.
-- [`roadmap.md`](roadmap.md) for how dynamic enrichment fits between static scenario synthesis and future execution/search stages.
-- [`glossary.md`](glossary.md) for terminology and status labels.
-- [`dynamic-enrichment-joining-reference.md`](dynamic-enrichment-joining-reference.md) for the preserved detailed technical material.
+- [`current-state.md`](../current-state.md) for the current implemented baseline and validation counts.
+- [`roadmap.md`](../roadmap.md) for how dynamic enrichment fits between static scenario synthesis and future execution/search stages.
+- [`glossary.md`](../glossary.md) for terminology and status labels.
+- [`dynamic-enrichment-joining-reference.md`](../archive/investigations/dynamic-enrichment-joining-reference.md) for the preserved detailed technical material.

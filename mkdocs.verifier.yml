@@ -25,18 +25,20 @@ theme:
     - search.suggest
 nav:
   - Start: README.md
+  - Advisor Brief: advisor-brief.md
+  - Current State: current-state.md
+  - Evidence: evidence.md
+  - Roadmap: roadmap.md
+  - Pipeline Plain Explanation: verifier-pipeline-plain-explanation.md
+  - Thesis Claims Evidence Map: thesis-claims-evidence-map.md
   - Reading Guide: reading-guide.md
   - Glossary: glossary.md
-  - Thesis Claims Evidence Map: thesis-claims-evidence-map.md
-  - Current State: current-state.md
-  - Roadmap: roadmap.md
   - Site Workflow: site-workflow.md
-  - Deep Dives:
-      - Dynamic Enrichment Overview: dynamic-enrichment-joining-explained.md
-      - Dynamic Enrichment Detailed Reference: dynamic-enrichment-joining-reference.md
-      - Dynamic Analysis Observability Investigation: dynamic-analysis-observability-investigation.md
-      - Verifier Pipeline Plain Explanation: verifier-pipeline-plain-explanation.md
-      - Test Analysis Saga Input Flow: test-analysis-saga-input-flow.md
+  - Reference:
+      - Dynamic Enrichment: reference/dynamic-enrichment.md
+      - Source-to-Input Flow: reference/source-to-input-flow.md
+      - Input Recipes: reference/input-recipes.md
+      - ScenarioExecutor POC: reference/scenario-executor-poc.md
   - Decisions:
       - Overview: decisions/index.md
       - Saga Only Verifier Scope: decisions/2026-04-05-saga-only-verifier-scope.md
@@ -45,28 +47,41 @@ nav:
       - Scenario Catalog Export Contract: decisions/2026-04-27-scenario-catalog-export-contract.md
       - Hybrid Static Dynamic Key Binding: decisions/2026-04-28-hybrid-static-dynamic-key-binding.md
       - Runtime Input Variant Attribution: decisions/2026-05-12-runtime-input-variant-attribution.md
-  - History:
-      - Engineering Log:
-          - Overview: implementation-log/index.md
-          - 2026 W20: implementation-log/2026-W20.md
-          - 2026 W18: implementation-log/2026-W18.md
-          - 2026 W17: implementation-log/2026-W17.md
-          - 2026 W16: implementation-log/2026-W16.md
-          - 2026 W15: implementation-log/2026-W15.md
-          - 2026 W14: implementation-log/2026-W14.md
-      - Advisor Meeting Notes:
-          - Overview: meeting-notes/index.md
-          - 2026 W21 Thesis Meeting: meeting-notes/2026-W21-thesis-meeting.md
-          - 2026 W20 Thesis Meeting: meeting-notes/2026-W20-thesis-meeting.md
-          - 2026 W19 Thesis Meeting: meeting-notes/2026-W19-thesis-meeting.md
-          - 2026 W18 Thesis Meeting: meeting-notes/2026-W18-thesis-meeting.md
-  - Archive and Handoff:
+      - Conflict Anchor Segment Compression: decisions/2026-06-16-conflict-anchor-segment-compression.md
+  - Archive:
       - Overview: archive/index.md
-      - Legacy Notes: archive/legacy-notes/README.md
-      - Parser and Dummyapp: archive/legacy-notes/2026-03-28-parser-and-dummyapp.md
-      - Saga Construction Recipe Extraction Spec: archive/legacy-notes/saga-construction-recipe-extraction-spec.md
-      - Scenario Generator Pending Improvements: archive/legacy-notes/scenario-generator-pending-improvements.md
-      - Scenario Catalog Follow-up Prompt: scenario-catalog-followup-prompt.md
+      - Implementation Log:
+          - Overview: archive/implementation-log/index.md
+          - 2026 W20: archive/implementation-log/2026-W20.md
+          - 2026 W18: archive/implementation-log/2026-W18.md
+          - 2026 W17: archive/implementation-log/2026-W17.md
+          - 2026 W16: archive/implementation-log/2026-W16.md
+          - 2026 W15: archive/implementation-log/2026-W15.md
+          - 2026 W14: archive/implementation-log/2026-W14.md
+      - Meeting Notes:
+          - Overview: archive/meeting-notes/index.md
+          - 2026 W26 Thesis Meeting: archive/meeting-notes/2026-W26-thesis-meeting.md
+          - 2026 W23 Thesis Meeting: archive/meeting-notes/2026-W23-thesis-meeting.md
+          - 2026 W22 Thesis Meeting: archive/meeting-notes/2026-W22-thesis-meeting.md
+          - 2026 W22 Performance/Enrichment Script: archive/meeting-notes/2026-W22-performance-enrichment-joint-architecture-script.md
+          - 2026 W21 Thesis Meeting: archive/meeting-notes/2026-W21-thesis-meeting.md
+          - 2026 W21 Executor Readiness: archive/meeting-notes/2026-W21-executor-readiness-meeting.md
+          - 2026 W20 Thesis Meeting: archive/meeting-notes/2026-W20-thesis-meeting.md
+          - 2026 W19 Thesis Meeting: archive/meeting-notes/2026-W19-thesis-meeting.md
+          - 2026 W18 Thesis Meeting: archive/meeting-notes/2026-W18-thesis-meeting.md
+      - Investigations:
+          - Overview: archive/investigations/index.md
+          - Dynamic Enrichment Detailed Reference: archive/investigations/dynamic-enrichment-joining-reference.md
+          - Dynamic Analysis Observability Investigation: archive/investigations/dynamic-analysis-observability-investigation.md
+      - Run Notes:
+          - Overview: archive/runs/index.md
+          - Missing Saga Input Coverage Audit: archive/runs/quizzes-20260520-missing-saga-input-coverage-audit.md
+      - Legacy Notes:
+          - Overview: archive/legacy-notes/README.md
+          - Parser and Dummyapp: archive/legacy-notes/2026-03-28-parser-and-dummyapp.md
+          - Saga Construction Recipe Extraction Spec: archive/legacy-notes/saga-construction-recipe-extraction-spec.md
+          - Scenario Generator Pending Improvements: archive/legacy-notes/scenario-generator-pending-improvements.md
+          - Scenario Catalog Follow-up Prompt: archive/legacy-notes/scenario-catalog-followup-prompt.md
 plugins:
   - search
 markdown_extensions:

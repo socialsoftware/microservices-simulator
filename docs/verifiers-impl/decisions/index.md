@@ -9,7 +9,7 @@ Use this section when you need to understand why the verifier is shaped a certai
 - For what is true now, read [`current-state.md`](../current-state.md).
 - For planned work and stage status, read [`roadmap.md`](../roadmap.md).
 - For why a durable choice was made, read the relevant decision record here.
-- For what changed in a specific week, read the [`implementation log`](../implementation-log/index.md).
+- For what changed in a specific week, read the [`implementation log`](../archive/implementation-log/index.md).
 
 ## Records
 
