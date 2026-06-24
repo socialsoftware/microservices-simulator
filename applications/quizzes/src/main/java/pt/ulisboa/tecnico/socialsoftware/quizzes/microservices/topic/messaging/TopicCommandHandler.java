@@ -17,12 +17,12 @@ public class TopicCommandHandler extends CommandHandler {
     private TopicService topicService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Topic";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case GetTopicByIdCommand cmd -> handleGetTopicById(cmd);
             case CreateTopicCommand cmd -> handleCreateTopic(cmd);

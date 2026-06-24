@@ -1,22 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.handling.handlers;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.eventProcessing.QuestionEventProcessing;
 
-import java.util.Set;
-
 public abstract class QuestionEventHandler extends EventHandler {
-    private QuestionRepository questionRepository;
     protected QuestionEventProcessing questionEventProcessing;
 
     public QuestionEventHandler(QuestionRepository questionRepository, QuestionEventProcessing questionEventProcessing) {
-        this.questionRepository = questionRepository;
+        super(questionRepository);
         this.questionEventProcessing = questionEventProcessing;
-    }
-
-    public Set<Integer> getAggregateIds() {
-        return questionRepository.findAllAggregateIds();
     }
 
 }

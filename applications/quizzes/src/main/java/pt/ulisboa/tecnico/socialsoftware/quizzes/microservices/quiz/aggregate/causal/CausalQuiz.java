@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.c
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.aggregate.CausalAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.aggregate.CausalAggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.*;
 
 import java.util.Set;

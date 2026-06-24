@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggreg
 
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
@@ -18,7 +18,7 @@ import static pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.Aggregate
 /*
     INTRA-INVARIANTS
         REMOVE_NO_STUDENTS
-    SERVICE-LAYER GUARDS (Layer 3)
+    SERVICE-LAYER GUARDS (Layer 2)
         NO_DUPLICATE_COURSE_EXECUTION (enforced in ExecutionService.createCourseExecution)
     INTER-INVARIANTS
         USER_EXISTS

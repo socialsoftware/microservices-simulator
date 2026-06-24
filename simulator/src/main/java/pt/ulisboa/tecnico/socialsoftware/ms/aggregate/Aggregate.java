@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.ms.aggregate;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventSubscription;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

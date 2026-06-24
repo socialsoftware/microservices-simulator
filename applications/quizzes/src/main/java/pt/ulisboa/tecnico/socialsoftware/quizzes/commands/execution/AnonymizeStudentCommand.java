@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 public class AnonymizeStudentCommand extends Command {
     private Integer executionAggregateId;

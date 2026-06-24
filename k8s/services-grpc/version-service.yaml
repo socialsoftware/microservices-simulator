@@ -50,7 +50,7 @@ spec:
               cpu: "1000m"
           env:
             - name: START_CLASS
-              value: "pt.ulisboa.tecnico.socialsoftware.ms.version.VersionServiceApplication"
+              value: "pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceApplication"
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes,version-service,grpc"
             - name: SPRING_DATASOURCE_URL

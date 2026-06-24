@@ -17,12 +17,12 @@ public class QuestionCommandHandler extends CommandHandler {
     private QuestionService questionService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Question";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateQuestionCommand cmd -> handleCreateQuestion(cmd);
             case UpdateQuestionCommand cmd -> handleUpdateQuestion(cmd);

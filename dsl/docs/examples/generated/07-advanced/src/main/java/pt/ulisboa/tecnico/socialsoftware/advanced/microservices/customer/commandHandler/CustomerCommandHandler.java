@@ -17,12 +17,12 @@ public class CustomerCommandHandler extends CommandHandler {
     private CustomerService customerService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Customer";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateCustomerCommand cmd -> handleCreateCustomer(cmd);
             case GetCustomerByIdCommand cmd -> handleGetCustomerById(cmd);

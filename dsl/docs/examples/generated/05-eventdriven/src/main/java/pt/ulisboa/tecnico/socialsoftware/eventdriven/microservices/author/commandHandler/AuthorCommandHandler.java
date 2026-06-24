@@ -17,12 +17,12 @@ public class AuthorCommandHandler extends CommandHandler {
     private AuthorService authorService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Author";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateAuthorCommand cmd -> handleCreateAuthor(cmd);
             case GetAuthorByIdCommand cmd -> handleGetAuthorById(cmd);

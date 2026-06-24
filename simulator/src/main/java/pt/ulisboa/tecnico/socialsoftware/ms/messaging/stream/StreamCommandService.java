@@ -14,7 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandResponse;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 import java.util.logging.Logger;
 
@@ -35,7 +35,7 @@ public class StreamCommandService {
         this.objectMapper = mapperProvider.newMapper();
     }
 
-    public void handleCommandMessage(Message<?> message) {
+    public void send(Message<?> message) {
         Command command;
         if (!(message.getPayload() instanceof Command)) {
             if (message.getPayload() instanceof byte[]) {
@@ -87,11 +87,14 @@ public class StreamCommandService {
     private void sendResponse(String correlationId, Object result, UnitOfWork unitOfWork, String replyTo, Exception exception) {
         logger.info("Sending response.....");
         CommandResponse response;
+        String status;
         if (exception != null) {
             logger.severe("Error sending response: " + exception.getMessage());
             response = CommandResponse.error(correlationId, exception, unitOfWork);
+            status = "error";
         } else {
             response = CommandResponse.success(correlationId, result, unitOfWork);
+            status = "success";
         }
         String json;
         try {
@@ -99,7 +102,7 @@ public class StreamCommandService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        logger.info("Sent success response for correlationId=" + correlationId +
+        logger.info("Sent " + status + " response for correlationId=" + correlationId +
                 " resultType=" + (result == null ? "null" : result.getClass().getName()));
         streamBridge.send(replyTo, MessageBuilder.withPayload(json).build());
     }

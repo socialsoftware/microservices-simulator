@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: questionSubmission
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${spring.application.name}db
+
+  cloud:
+    function:
+      definition: commandResponseChannel;questionSubmissionServiceCommandChannel;questionSubmissionEventSubscriber;
+    stream:
+      bindings:
+        questionSubmission-command-channel:
+          destination: ${spring.application.name}-command-channel
+        questionSubmissionServiceCommandChannel-in-0:
+          destination: ${spring.application.name}-command-channel
+          group: ${spring.application.name}-service-group
+        commandResponseChannel-in-0:
+          destination: ${spring.application.name}-command-responses
+          group: ${spring.application.name}-response-group
+        questionSubmissionEventSubscriber-in-0:
+          destination: event-channel
+          group: ${spring.application.name}-service-group
+
+server:
+  port: 8200
+grpc:
+  server:
+    port: 9200
+
+routes:
+  - id: ${spring.application.name}-service
+    uri: lb://${spring.application.name}${gateway.service-suffix}
+    predicates:
+      - Path=/submissions/**, /executions/*/submissions/**
+    order: 11

@@ -17,12 +17,12 @@ public class LoanCommandHandler extends CommandHandler {
     private LoanService loanService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Loan";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateLoanCommand cmd -> handleCreateLoan(cmd);
             case GetLoanByIdCommand cmd -> handleGetLoanById(cmd);

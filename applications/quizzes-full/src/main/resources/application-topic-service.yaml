@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: topic
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${spring.application.name}db
+
+  cloud:
+    function:
+      definition: commandResponseChannel;topicServiceCommandChannel;topicEventSubscriber;
+    stream:
+      bindings:
+        topic-command-channel:
+          destination: ${spring.application.name}-command-channel
+        topicServiceCommandChannel-in-0:
+          destination: ${spring.application.name}-command-channel
+          group: ${spring.application.name}-service-group
+        commandResponseChannel-in-0:
+          destination: ${spring.application.name}-command-responses
+          group: ${spring.application.name}-response-group
+        topicEventSubscriber-in-0:
+          destination: event-channel
+          group: ${spring.application.name}-service-group
+
+server:
+  port: 8192
+grpc:
+  server:
+    port: 9192
+
+routes:
+  - id: ${spring.application.name}-service
+    uri: lb://${spring.application.name}${gateway.service-suffix}
+    predicates:
+      - Path=/topics/**
+    order: 3

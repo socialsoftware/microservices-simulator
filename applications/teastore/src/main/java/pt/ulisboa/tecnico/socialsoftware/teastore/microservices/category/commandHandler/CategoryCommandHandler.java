@@ -17,12 +17,12 @@ public class CategoryCommandHandler extends CommandHandler {
     private CategoryService categoryService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Category";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateCategoryCommand cmd -> handleCreateCategory(cmd);
             case GetCategoryByIdCommand cmd -> handleGetCategoryById(cmd);

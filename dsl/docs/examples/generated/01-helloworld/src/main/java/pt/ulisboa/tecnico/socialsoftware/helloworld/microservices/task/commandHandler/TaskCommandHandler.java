@@ -17,12 +17,12 @@ public class TaskCommandHandler extends CommandHandler {
     private TaskService taskService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Task";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateTaskCommand cmd -> handleCreateTask(cmd);
             case GetTaskByIdCommand cmd -> handleGetTaskById(cmd);

@@ -17,12 +17,12 @@ public class ProductCommandHandler extends CommandHandler {
     private ProductService productService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Product";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateProductCommand cmd -> handleCreateProduct(cmd);
             case GetProductByIdCommand cmd -> handleGetProductById(cmd);

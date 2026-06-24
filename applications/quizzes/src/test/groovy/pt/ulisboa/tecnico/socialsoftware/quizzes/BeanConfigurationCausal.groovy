@@ -7,16 +7,18 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CausalCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandService
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventApplicationService
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
-import pt.ulisboa.tecnico.socialsoftware.ms.version.IVersionService
-import pt.ulisboa.tecnico.socialsoftware.ms.version.VersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.messaging.CausalCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.CentralizedVersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceClient
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.factories.CausalQuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.causal.repositories.QuizAnswerCustomRepositoryTCC
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.eventProcessing.QuizAnswerEventProcessing
@@ -77,8 +79,13 @@ class BeanConfigurationCausal {
     }
 
     @Bean
-    IVersionService versionService() {
-        return new VersionService()
+    IVersionService versionService(LocalCommandGateway commandGateway) {
+        return new VersionServiceClient(commandGateway)
+    }
+
+    @Bean
+    CentralizedVersionService centralizedVersionService() {
+        return new CentralizedVersionService()
     }
 
     @Bean
@@ -310,6 +317,11 @@ class BeanConfigurationCausal {
     @Bean
     CausalCommandHandler causalCommandHandler() {
         return new CausalCommandHandler()
+    }
+
+    @Bean
+    VersionCommandHandler versionCommandHandler() {
+        return new VersionCommandHandler()
     }
 
     @Bean

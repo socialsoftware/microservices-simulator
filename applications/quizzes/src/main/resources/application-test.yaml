@@ -31,4 +31,4 @@ eureka:
 
 local:
   messaging:
-    serialize: false
+    serialize: true # This is used to mimic remote communication in the local tests with serialization of the commands

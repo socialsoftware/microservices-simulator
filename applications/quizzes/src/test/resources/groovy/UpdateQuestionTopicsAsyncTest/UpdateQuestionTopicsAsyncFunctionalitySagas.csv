@@ -1,0 +1,12 @@
+run 
+getTopicsAsyncStep,0,0,220
+getQuestionAsyncStep,0,0,220
+updateQuestionTopicsStep,0,0,60
+run 
+getTopicsAsyncStep,0,0,220
+getQuestionAsyncStep,0,0,220
+updateQuestionTopicsStep,0,0,60
+run 
+getTopicsAsyncStep,0,0,220
+getQuestionAsyncStep,0,0,220
+updateQuestionTopicsStep,0,0,60

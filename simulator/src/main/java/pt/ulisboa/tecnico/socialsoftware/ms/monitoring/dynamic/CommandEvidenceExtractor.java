@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;

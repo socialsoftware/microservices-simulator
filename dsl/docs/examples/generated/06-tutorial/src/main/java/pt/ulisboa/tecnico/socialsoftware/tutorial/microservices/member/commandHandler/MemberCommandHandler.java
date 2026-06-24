@@ -17,12 +17,12 @@ public class MemberCommandHandler extends CommandHandler {
     private MemberService memberService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Member";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateMemberCommand cmd -> handleCreateMember(cmd);
             case GetMemberByIdCommand cmd -> handleGetMemberById(cmd);

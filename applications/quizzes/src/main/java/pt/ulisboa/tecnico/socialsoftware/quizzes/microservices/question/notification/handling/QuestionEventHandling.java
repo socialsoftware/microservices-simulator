@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notific
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventApplicationService;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandling;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteTopicEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateTopicEvent;
@@ -25,7 +25,7 @@ public class QuestionEventHandling implements EventHandling {
         TOPICS_EXISTS
      */
     @Scheduled(fixedDelay = 1000)
-    public void handleUpdateTopicEvents() throws Throwable {
+    public void handleUpdateTopicEvents() {
         eventApplicationService.handleSubscribedEvent(UpdateTopicEvent.class,
                 new UpdateTopicEventHandler(questionRepository, questionEventProcessing));
     }
