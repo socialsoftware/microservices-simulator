@@ -75,7 +75,7 @@ Terminal status: SUCCESS
 Report: /tmp/opencode/quizzes-execution-report-get-course-executions.json
 ```
 
-Interpretation: a narrow executor POC exists for supported single-saga candidates. It is not generic multi-saga execution, fault injection, impact scoring, or search.
+Interpretation: a narrow executor POC exists for supported single-saga candidates. It executed this generated plan by resolving runtime-owned infrastructure arguments itself. Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is now reported separately/aligned with ScenarioExecutor semantics. It is not generic multi-saga execution, fault injection, impact scoring, or search.
 
 ## Static source-mode/catalog Quizzes smoke
 

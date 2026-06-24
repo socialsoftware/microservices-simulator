@@ -38,13 +38,15 @@ ORDER_PRESERVING_INTERLEAVING: 218528454
 SEGMENT_COMPRESSED: 1019393
 ```
 
-ScenarioExecutor POC smoke executed one generated Quizzes single-saga plan successfully:
+ScenarioExecutor POC smoke executed one generated Quizzes single-saga plan successfully by resolving runtime-owned infrastructure arguments itself:
 
 ```text
 Saga: GetCourseExecutionsFunctionalitySagas
 Step: getCourseExecutionsStep
 Terminal status: SUCCESS
 ```
+
+Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is now reported separately/aligned with ScenarioExecutor semantics.
 
 Detailed commands and run paths live in [`evidence.md`](evidence.md).
 

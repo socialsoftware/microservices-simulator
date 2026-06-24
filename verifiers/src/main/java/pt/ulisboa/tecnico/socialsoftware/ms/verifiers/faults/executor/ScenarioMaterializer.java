@@ -32,7 +32,7 @@ class ScenarioMaterializer {
                                                      ScenarioRuntimeContext runtimeContext,
                                                      String functionalityName) {
         String type = argument.expectedTypeFqn();
-        if (isRuntimeOwned(type)) {
+        if (ScenarioExecutorMaterializationPolicy.isRuntimeOwned(type)) {
             return MaterializationResult.value(runtimeOwnedValue(type, runtimeContext, functionalityName));
         }
         if (!argument.executorReady()) {
@@ -69,7 +69,7 @@ class ScenarioMaterializer {
     }
 
     private MaterializationResult materializePlaceholder(InputVariant input, Integer argumentIndex, InputRecipeNode node, ScenarioRuntimeContext runtimeContext) {
-        if (isRuntimeOwned(node.expectedTypeFqn())) {
+        if (ScenarioExecutorMaterializationPolicy.isRuntimeOwned(node.expectedTypeFqn())) {
             return MaterializationResult.value(runtimeContext.bean(loadClass(node.expectedTypeFqn())));
         }
         return MaterializationResult.blocker(blocker(input, argumentIndex, "UNRESOLVED_PLACEHOLDER", "Source-provided placeholder has no configured value"));
@@ -182,12 +182,6 @@ class ScenarioMaterializer {
             return runtimeContext.createSagaUnitOfWork(functionalityName);
         }
         return runtimeContext.bean(loadClass(type));
-    }
-
-    private boolean isRuntimeOwned(String type) {
-        return "pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService".equals(type)
-                || "pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway".equals(type)
-                || "pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork".equals(type);
     }
 
     private static Class<?> loadClass(String type) {

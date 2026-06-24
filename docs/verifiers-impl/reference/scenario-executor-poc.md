@@ -56,7 +56,13 @@ Only these runtime-owned arguments may be supplied by the executor:
 - `CommandGateway`, resolved from the target Spring context.
 - `SagaUnitOfWork`, created by the executor for the selected saga instance.
 
-Other unresolved values, source-provided placeholders without values, unsupported call results, and unsupported transforms remain blockers.
+These runtime-owned arguments are part of the executor materialization semantics. Their blocked recipe internals do not make the input unmaterializable because the executor supplies them directly.
+
+Other unresolved values, source-provided placeholders without values, unsupported call results, and unsupported transforms remain blockers. Static `inputRecipe.executorReady=false` does not automatically mean the ScenarioExecutor cannot run the input; it may only mean the raw recipe tree is not fully replayable without executor runtime overrides.
+
+## Accounting Alignment
+
+`scenario-space-accounting.json` distinguishes static recipe readiness from ScenarioExecutor materializability. Static recipe readiness reports whether `inputRecipe.executorReady` is true without executor-specific overrides. Executor materializability reports whether the current ScenarioExecutor can materialize the accepted input using supported recipe semantics plus runtime-owned argument resolution.
 
 ## Report And Trace
 

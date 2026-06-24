@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorMaterializationPolicy
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleJoiner
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScheduleEnumerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
@@ -9,6 +10,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Acce
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition
@@ -562,15 +565,19 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
         !first.runConfig().effectiveSegmentBehavior().contains('totalSteps<=12')
     }
 
-    def 'executor readiness summarizes accepted input recipes without scenario-level admissibility'() {
+    def 'executor readiness summarizes executor materializability without scenario-level admissibility'() {
         given:
-        def readyRecipe = recipe(true, [])
-        def blockedRecipe = recipe(false, ['UNRESOLVED_VALUE', 'MISSING_TARGET_TYPE'])
+        def runtimeOwnedRecipe = recipe(false, ['UNRESOLVED_VARIABLE'], [
+                arg(0, ScenarioExecutorMaterializationPolicy.SAGA_UNIT_OF_WORK, false, ['UNRESOLVED_VARIABLE'], unresolved())
+        ])
+        def blockedRecipe = recipe(false, ['UNRESOLVED_VALUE'], [
+                arg(0, Integer.name, false, ['UNRESOLVED_VALUE'], unresolved())
+        ])
 
         when:
         def report = calculate(
                 [saga('saga.A', 1), saga('saga.B', 1)],
-                [input('saga.A', 'a-ready', [:], readyRecipe),
+                [input('saga.A', 'a-runtime-owned', [:], runtimeOwnedRecipe),
                  input('saga.A', 'a-blocked', [:], blockedRecipe),
                  input('saga.B', 'b-no-recipe', [:])],
                 config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
@@ -585,12 +592,17 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
 
         then:
         report.executorReadiness().acceptedInputVariantCount() == 3
+        report.executorReadiness().executorMaterializableInputVariantCount() == 1
         report.executorReadiness().executorReadyInputVariantCount() == 1
+        report.executorReadiness().staticRecipeReadyInputVariantCount() == 0
         report.executorReadiness().blockedInputVariantCount() == 2
-        report.executorReadiness().blockerReasonCounts() == [MISSING_TARGET_TYPE: 1, UNRESOLVED_VALUE: 1]
+        report.executorReadiness().blockerReasonCounts() == [MISSING_INPUT_RECIPE: 1, UNRESOLVED_VALUE: 1]
+        report.executorReadiness().runtimeOwnedResolutionCounts() == [(ScenarioExecutorMaterializationPolicy.SAGA_UNIT_OF_WORK): 1]
 
         and:
         json.contains('"executorReadiness"')
+        json.contains('"executorMaterializableInputVariantCount":1')
+        json.contains('"staticRecipeReadyInputVariantCount":0')
         !json.contains('scenarioExecutorReadiness')
         !json.contains('scenarioAdmissibility')
     }
@@ -598,8 +610,12 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
     def 'executor readiness uses normalized accepted inputs before known saga filtering'() {
         given:
         def readyRecipe = recipe(true, [])
-        def blockedRecipe = recipe(false, ['UNKNOWN_SAGA_RECIPE_BLOCKER'])
-        def rejectedRecipe = recipe(false, ['REJECTED_SOURCE_MODE_BLOCKER'])
+        def blockedRecipe = recipe(false, ['UNKNOWN_SAGA_RECIPE_BLOCKER'], [
+                arg(0, Integer.name, false, ['UNKNOWN_SAGA_RECIPE_BLOCKER'], unresolved())
+        ])
+        def rejectedRecipe = recipe(false, ['REJECTED_SOURCE_MODE_BLOCKER'], [
+                arg(0, Integer.name, false, ['REJECTED_SOURCE_MODE_BLOCKER'], unresolved())
+        ])
 
         when:
         def report = calculate(
@@ -618,7 +634,9 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
 
         then:
         report.executorReadiness().acceptedInputVariantCount() == 2
+        report.executorReadiness().executorMaterializableInputVariantCount() == 1
         report.executorReadiness().executorReadyInputVariantCount() == 1
+        report.executorReadiness().staticRecipeReadyInputVariantCount() == 1
         report.executorReadiness().blockedInputVariantCount() == 1
         report.executorReadiness().blockerReasonCounts() == [UNKNOWN_SAGA_RECIPE_BLOCKER: 1]
 
@@ -807,7 +825,19 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
     }
 
     private static InputRecipe recipe(boolean executorReady, List<String> blockers) {
-        new InputRecipe(InputRecipe.SCHEMA_VERSION, null, executorReady, blockers, [])
+        recipe(executorReady, blockers, [])
+    }
+
+    private static InputRecipe recipe(boolean executorReady, List<String> blockers, List<InputRecipeArgument> arguments) {
+        new InputRecipe(InputRecipe.SCHEMA_VERSION, null, executorReady, blockers, arguments)
+    }
+
+    private static InputRecipeArgument arg(int index, String type, boolean executorReady, List<String> blockers, InputRecipeNode node) {
+        new InputRecipeArgument(index, type, InputResolutionStatus.UNRESOLVED, executorReady, blockers, 'spec', node)
+    }
+
+    private static InputRecipeNode unresolved() {
+        InputRecipeNode.builder('unresolved').executorReady(false).blockers(['UNRESOLVED_VALUE']).build()
     }
 
     private static ScenarioGeneratorConfig config(ScenarioGeneratorConfig.GenerationStrategy generationStrategy,

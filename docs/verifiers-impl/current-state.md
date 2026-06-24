@@ -14,7 +14,7 @@ Current implemented scope:
 
 - Saga-catalog generation from Java production code and Groovy/Spock tests.
 - Source-mode classification for saga/TCC/mixed/unknown test inputs.
-- Deterministic bounded scenario catalog generation and accounting.
+- Deterministic bounded scenario catalog generation and accounting that separates static recipe readiness from ScenarioExecutor materializability.
 - Optional dynamic enrichment using simulator runtime evidence.
 - Narrow single-saga ScenarioExecutor POC for supported materializable catalog entries.
 
@@ -85,7 +85,7 @@ Current non-goals:
 
 ### ScenarioExecutor POC
 
-A narrow verifier-owned ScenarioExecutor POC exists. It can load a catalog/enriched catalog, select or receive a supported single-saga scenario, materialize only supported inputs, run the selected saga step schedule, and write an execution report.
+A narrow verifier-owned ScenarioExecutor POC exists. It can load a catalog/enriched catalog, select or receive a supported single-saga scenario, materialize only supported inputs, run the selected saga step schedule, and write an execution report. Accounting now reports ScenarioExecutor materializability separately from static `inputRecipe.executorReady` readiness.
 
 This is not yet generic scenario execution. It does not implement generated fault injection, multi-saga execution, behavior CSV generation, impact scoring, GA search, or scenario prioritization.
 
@@ -127,6 +127,8 @@ Saga: GetCourseExecutionsFunctionalitySagas
 Step: getCourseExecutionsStep
 Terminal status: SUCCESS
 ```
+
+That run relied on executor runtime-owned argument resolution. Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is now reported as the executor-aligned metric.
 
 See [`evidence.md`](evidence.md) for commands, run paths, and interpretation.
 

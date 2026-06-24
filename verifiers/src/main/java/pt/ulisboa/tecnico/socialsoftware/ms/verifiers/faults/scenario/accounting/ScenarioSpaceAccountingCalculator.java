@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorReadinessEvaluator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConflictGraphBuilder;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConnectedSagaSetEnumerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputVariantNormalizer;
@@ -174,21 +175,38 @@ public final class ScenarioSpaceAccountingCalculator {
         List<InputVariant> acceptedInputs = inputsBySaga.values().stream()
                 .flatMap(List::stream)
                 .toList();
-        int ready = 0;
+        int materializable = 0;
+        int staticRecipeReady = 0;
         LinkedHashMap<String, Integer> blockerCounts = new LinkedHashMap<>();
+        LinkedHashMap<String, Integer> runtimeOwnedResolutionCounts = new LinkedHashMap<>();
+        ScenarioExecutorReadinessEvaluator evaluator = new ScenarioExecutorReadinessEvaluator();
         for (InputVariant input : acceptedInputs) {
-            if (input.inputRecipe() != null && input.inputRecipe().executorReady()) {
-                ready++;
+            ScenarioExecutorReadinessEvaluator.Readiness readiness = evaluator.evaluate(input);
+            if (readiness.materializable()) {
+                materializable++;
             }
-            if (input.inputRecipe() != null) {
-                input.inputRecipe().blockers().forEach(blocker -> blockerCounts.merge(blocker, 1, Integer::sum));
+            if (readiness.staticRecipeReady()) {
+                staticRecipeReady++;
             }
+            readiness.blockers().forEach(blocker -> blockerCounts.merge(blocker, 1, Integer::sum));
+            readiness.runtimeOwnedResolutions().forEach(type -> runtimeOwnedResolutionCounts.merge(type, 1, Integer::sum));
         }
         LinkedHashMap<String, Integer> sortedBlockerCounts = new LinkedHashMap<>();
         blockerCounts.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> sortedBlockerCounts.put(entry.getKey(), entry.getValue()));
-        return new ExecutorReadiness(acceptedInputs.size(), ready, acceptedInputs.size() - ready, sortedBlockerCounts);
+        LinkedHashMap<String, Integer> sortedRuntimeOwnedResolutionCounts = new LinkedHashMap<>();
+        runtimeOwnedResolutionCounts.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> sortedRuntimeOwnedResolutionCounts.put(entry.getKey(), entry.getValue()));
+        return new ExecutorReadiness(
+                acceptedInputs.size(),
+                materializable,
+                materializable,
+                staticRecipeReady,
+                acceptedInputs.size() - materializable,
+                sortedBlockerCounts,
+                sortedRuntimeOwnedResolutionCounts);
     }
 
     private InteractionCoverage interactionCoverage(List<String> discoveredSagaFqns,

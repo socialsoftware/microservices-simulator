@@ -103,16 +103,20 @@ public record ScenarioSpaceAccountingReport(
 
     public record ExecutorReadiness(
             int acceptedInputVariantCount,
+            int executorMaterializableInputVariantCount,
             int executorReadyInputVariantCount,
+            int staticRecipeReadyInputVariantCount,
             int blockedInputVariantCount,
-            Map<String, Integer> blockerReasonCounts) {
+            Map<String, Integer> blockerReasonCounts,
+            Map<String, Integer> runtimeOwnedResolutionCounts) {
 
         public ExecutorReadiness {
             blockerReasonCounts = stableMap(blockerReasonCounts);
+            runtimeOwnedResolutionCounts = stableMap(runtimeOwnedResolutionCounts);
         }
 
         public static ExecutorReadiness empty() {
-            return new ExecutorReadiness(0, 0, 0, Map.of());
+            return new ExecutorReadiness(0, 0, 0, 0, 0, Map.of(), Map.of());
         }
     }
 
