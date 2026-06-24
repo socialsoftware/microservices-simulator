@@ -37,8 +37,6 @@ class UpdateQuestionTest extends QuizzesFullSpockTest {
 
     def setup() {
         courseDto = createCourse(COURSE_NAME_1, COURSE_TYPE_TECNICO)
-        // execution needed so course's executionCount > 0 (CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT invariant)
-        createExecution(courseDto.aggregateId, "SE-2025", "2025/2026")
         topicDto1 = createTopic(courseDto.aggregateId, TOPIC_NAME_1)
         topicDto2 = createTopic(courseDto.aggregateId, TOPIC_NAME_2)
         questionDto = createQuestion(courseDto.aggregateId, [topicDto1.aggregateId], QUESTION_TITLE_ORIGINAL, QUESTION_CONTENT_ORIGINAL)

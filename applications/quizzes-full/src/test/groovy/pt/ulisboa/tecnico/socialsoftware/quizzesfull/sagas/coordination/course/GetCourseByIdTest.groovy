@@ -30,8 +30,6 @@ class GetCourseByIdTest extends QuizzesFullSpockTest {
         result.aggregateId == created.aggregateId
         result.name == COURSE_NAME_1
         result.type == COURSE_TYPE_TECNICO
-        result.executionCount == 0
-        result.questionCount == 0
     }
 
     def "getCourseById: not found throws exception"() {

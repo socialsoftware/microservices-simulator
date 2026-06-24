@@ -17,7 +17,7 @@ Each entity lists only its own scalar attributes. Cross-entity references appear
 
 | Entity | Attributes | Owns |
 |---|---|---|
-| **Course** | `name: String` (immutable), `type: CourseType (TECNICO \| EXTERNAL)` (immutable), `executionCount: Integer` (cached counter), `questionCount: Integer` (cached counter) | — |
+| **Course** | `name: String` (immutable), `type: CourseType (TECNICO \| EXTERNAL)` (immutable) | — |
 | **User** | `name: String`, `username: String`, `role: Role (STUDENT \| TEACHER \| ADMIN)` (immutable), `active: Boolean` (default: false) | — |
 | **Topic** | `name: String` | — |
 | **Execution** | `acronym: String`, `academicTerm: String`, `endDate: LocalDateTime` | — |
@@ -137,12 +137,13 @@ These rules inspect only fields of a single entity.
 
 ---
 
-#### Rule: CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT
+#### Rule: CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT *(deferred)*
 
-| Field | Value |
-|---|---|
-| Entities | Course, Execution, Question |
-| Predicate | `Course.executionCount == 0 ⟹ Course.questionCount == 0` |
+> **Intentionally deferred.** This cross-aggregate rule — "a Course may not hold questions unless it
+> has at least one execution" — was originally enforced via cached `executionCount` / `questionCount`
+> counters on `Course`. That counter-based approach has been removed; the rule is to be re-implemented
+> later by a different mechanism. No counters, count commands, or `Course.verifyInvariants()` logic
+> currently enforce it.
 
 ---
 
@@ -356,14 +357,14 @@ These rules inspect only fields of a single entity.
 | DeleteTopic | Topic | Question, Tournament | Soft-delete a topic and propagate removal to subscribers |
 | CreateExecution | Execution | Course | Create a course execution linked to a course |
 | UpdateExecution | Execution | — | Update execution acronym or academic term |
-| DeleteExecution | Execution | Course | Delete an execution and decrement course counter |
+| DeleteExecution | Execution | — | Delete an execution |
 | DisenrollStudent | Execution | QuizAnswer | Remove a student from a course execution |
 | EnrollStudentInExecution | Execution | User | Enroll an active user in a course execution |
 | UpdateStudentName | Execution | User | Update a student's cached name across the execution and downstream aggregates |
 | AnonymizeStudent | Execution | User | Anonymize a student (set name/username to ANONYMOUS) |
 | CreateQuestion | Question | Course, Topic | Create a question linked to a course and topics |
 | UpdateQuestion | Question | Topic | Update question content or topics |
-| DeleteQuestion | Question | Course | Delete a question and decrement course question counter |
+| DeleteQuestion | Question | — | Delete a question |
 | CreateUser | User | — | Create a user account |
 | DeleteUser | User | Execution | Soft-delete a user account |
 | CreateQuiz | Quiz | Execution, Question | Create a quiz linked to an execution and questions |

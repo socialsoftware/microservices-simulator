@@ -13,9 +13,8 @@ Test taxonomy produced by this skill (see `docs/concepts/testing.md` for the aut
 | Session | Test type | File |
 |---------|-----------|------|
 | `a` | T1 Intra-Invariant | `{Aggregate}IntraInvariantTest.groovy` — creation happy-path + one violation per non-`final` P1 rule + BVA straddles; all via direct `verifyInvariants()` |
-| `b` | T2 Service-Command | `{OperationName}Test.groovy` / `{Aggregate}CountsTest.groovy` — for service methods invoked via command handlers from other aggregates' sagas, not exposed through Functionalities. Happy path + floor/ceiling. |
-| `b` | T3 Functionality | `{Op}Test.groovy` — happy-path postconditions, P3 guard violations, not-found, step-interleaving. No P1 predicate tests. |
-| `d` | T4 Inter-Invariant | `{Aggregate}InterInvariantTest.groovy` — event received → cached state updated; unrelated event → state unchanged |
+| `b` | T2 Functionality | `{Op}Test.groovy` — happy-path postconditions, P3 guard violations, not-found, step-interleaving. No P1 predicate tests. |
+| `d` | T3 Inter-Invariant | `{Aggregate}InterInvariantTest.groovy` — event received → cached state updated; unrelated event → state unchanged |
 
 ---
 

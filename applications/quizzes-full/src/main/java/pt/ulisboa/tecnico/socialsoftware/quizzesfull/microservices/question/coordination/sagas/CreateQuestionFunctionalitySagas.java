@@ -11,7 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.GetCourseByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.IncrementQuestionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.question.CreateQuestionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.topic.GetTopicByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto;
@@ -84,20 +83,9 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
             this.createdQuestionDto = (QuestionDto) commandGateway.send(createQuestionCommand);
         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
 
-        SagaStep incrementCourseQuestionCountStep = new SagaStep("incrementCourseQuestionCountStep", () -> {
-            IncrementQuestionCountCommand incrementCommand = new IncrementQuestionCountCommand(
-                    unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-            SagaCommand sagaCmd = new SagaCommand(incrementCommand);
-            sagaCmd.setForbiddenStates(new ArrayList<>(Arrays.asList(
-                    CourseSagaState.IN_UPDATE_COURSE,
-                    CourseSagaState.IN_DELETE_COURSE)));
-            commandGateway.send(sagaCmd);
-        }, new ArrayList<>(Arrays.asList(createQuestionStep)));
-
         workflow.addStep(getCourseStep);
         workflow.addStep(getTopicsStep);
         workflow.addStep(createQuestionStep);
-        workflow.addStep(incrementCourseQuestionCountStep);
     }
 
     public QuestionDto getCreatedQuestionDto() { return createdQuestionDto; }

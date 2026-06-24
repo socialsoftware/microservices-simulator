@@ -11,9 +11,8 @@ and provides structure templates for each category.
 | Type | Naming pattern | What it validates |
 |------|----------------|-------------------|
 | **T1 Intra-Invariant** | `<Aggregate>IntraInvariantTest` | Creation happy-path (all P1 pass + fields) · one violation per non-`final` P1 rule (EP) · boundary straddle (BVA on/off-point) for ordered-domain predicates. All via direct construction/mutation + `verifyInvariants()`. |
-| **T2 Service-Command** | `{OperationName}Test` / `{Aggregate}CountsTest` | Service methods invoked via command handlers from other aggregates' sagas, not exposed through `{Aggregate}Functionalities`. Happy path · floor/ceiling behaviour. |
-| **T3 Functionality** | `<FunctionalityName>Test` | Happy path (full `NOT_IN_SAGA→IN_{OP}→NOT_IN_SAGA` traversal) · P3 guard violations · state-transition (lock-acquisition) case per saga lock step |
-| **T4 Inter-Invariant** | `<Consumer>InterInvariantTest` | Event received → cached state updated; unrelated event → state unchanged |
+| **T2 Functionality** | `<FunctionalityName>Test` | Happy path (full `NOT_IN_SAGA→IN_{OP}→NOT_IN_SAGA` traversal) · P3 guard violations · state-transition (lock-acquisition) case per saga lock step |
+| **T3 Inter-Invariant** | `<Consumer>InterInvariantTest` | Event received → cached state updated; unrelated event → state unchanged |
 
 ---
 
@@ -37,16 +36,16 @@ Findings against this checklist map to three severities used by `review-tests`:
 - `then:` assertions check only non-null / non-empty, never actual values.
 - `then:` asserts a condition that is logically trivially true (e.g., `result != null` when the method always returns non-null).
 - `when:` block does not call the method under test (bypasses the service via a setup helper).
-- T4 "ignores unrelated": `<originalValue>` was captured *after* the event was processed rather than before — the assertion is `x == x`. The pre-event value must be captured in `given:` before firing.
+- T3 "ignores unrelated": `<originalValue>` was captured *after* the event was processed rather than before — the assertion is `x == x`. The pre-event value must be captured in `given:` before firing.
 
 ### Wrong
 
 - Test name and message constant were copied verbatim from the implementation without checking against `plan.md`'s rule list. If the implementation uses a different constant than `plan.md` names, the test validated the implementation deviation instead of catching it.
 - Violation test asserts a message constant that matches what the implementation throws but differs from the constant named in `plan.md` for that rule.
 - `then:` mirrors the sequence of `set…` calls in the service body — the test was derived from the implementation, not the spec.
-- T4 deletion-event test puts the post-deletion load attempt in `then:` instead of an `and:` block — the load won't be in the exception-capture scope. Correct pattern: load in `and:`, assert `thrown(SimulatorException)` in `then:` (see § T4 Deletion-Event Tests).
+- T3 deletion-event test puts the post-deletion load attempt in `then:` instead of an `and:` block — the load won't be in the exception-capture scope. Correct pattern: load in `and:`, assert `thrown(SimulatorException)` in `then:` (see § T3 Deletion-Event Tests).
 - Not-found test exception type contradicts the actual lookup mechanism. **Read the service method first.** Rule of thumb: if the service calls `aggregateLoadAndRegisterRead` directly with an ID, expect `SimulatorException` (Path A). If the service first calls a custom repository returning `Optional` and throws on empty, expect `{App}Exception` (Path B). Flagging a correct Path B `thrown({AppClass}Exception)` as Fake is itself a Wrong finding.
-- Test class missing `@Transactional` (T2/T3/T4 classes must be `@DataJpaTest @Transactional @Import(LocalBeanConfiguration)`) — silently allows dirty state to bleed between tests.
+- Test class missing `@Transactional` (T2/T3 classes must be `@DataJpaTest @Transactional @Import(LocalBeanConfiguration)`) — silently allows dirty state to bleed between tests.
 - P1 intra-invariant violation asserted in a service/functionality test (misplaced; belongs in `{Aggregate}IntraInvariantTest`).
 
 ### Weak
@@ -76,7 +75,7 @@ Two complementary test-design techniques decide *which* values to feed a rule. A
 >
 > **P1 ordered-domain boundaries live in the intra-invariant test** (`{Aggregate}IntraInvariantTest`)
 > — direct construction with pinned values, then `verifyInvariants()`. P3 numeric guard boundaries
-> may be added to the corresponding T3 service test.
+> may be added to the corresponding T2 service test.
 >
 > For **categorical** invariants — uniqueness (e.g. `TOURNAMENT_UNIQUE_AS_PARTICIPANT`), boolean/state
 > freezes (`TOURNAMENT_IS_CANCELED`), set membership, presence/absence — there is no ordered edge to
@@ -104,7 +103,7 @@ on-point. See `TournamentIntraInvariantTest` for the canonical pattern (`ANSWER_
 
 ## Spec-First Ordering
 
-Before writing any T3 test for a write functionality, locate the **`plan.md` aggregate section** for the target aggregate. The happy-path postconditions, the events-published list, and the P1/P3 rule list in that section *are* the spec — assertions must trace to them. Do not read the implementation you just wrote to decide what to assert.
+Before writing any T2 test for a write functionality, locate the **`plan.md` aggregate section** for the target aggregate. The happy-path postconditions, the events-published list, and the P1/P3 rule list in that section *are* the spec — assertions must trace to them. Do not read the implementation you just wrote to decide what to assert.
 
 Each `plan.md` aggregate section is shaped roughly like:
 
@@ -118,11 +117,11 @@ Violations (one row per P1/P3 rule this op can trip):
   - {RULE_NAME} → throws {AppClass}Exception, message == {RULE_NAME}
 ```
 
-This is the structure to **cite** when writing the test (see § T3 — Spec-first below for the recommended `// Spec:` comment), not a new artifact to author in the test file. Reading `plan.md` is the spec lookup; the test is the assertion of that spec.
+This is the structure to **cite** when writing the test (see § T2 — Spec-first below for the recommended `// Spec:` comment), not a new artifact to author in the test file. Reading `plan.md` is the spec lookup; the test is the assertion of that spec.
 
 If the implementation disagrees with the spec, the **implementation** is the bug — not the spec. Assertions should never be adjusted to match surprising implementation behavior; the discrepancy should be flagged and fixed in the implementation.
 
-This ordering also applies to T4: before writing the test, look up the expected cached-field value in `plan.md`'s subscribed events table for the consumer aggregate — not from reading the `EventProcessing` class.
+This ordering also applies to T3: before writing the test, look up the expected cached-field value in `plan.md`'s subscribed events table for the consumer aggregate — not from reading the `EventProcessing` class.
 
 ---
 
@@ -136,13 +135,12 @@ src/test/groovy/<pkg>/
 └── sagas/
     ├── coordination/
     │   ├── <aggregate>/              ← one dir per primary aggregate
-    │   │   ├── <FunctionalityName>Test.groovy      (T3)
+    │   │   ├── <FunctionalityName>Test.groovy      (T2)
     │   │   └── ...
     │   └── ...
     └── <aggregate>/                  ← one dir per consumer aggregate
         ├── <Aggregate>IntraInvariantTest.groovy    (T1)
-        ├── {OperationName}Test.groovy / <Aggregate>CountsTest.groovy   (T2)
-        └── <Aggregate>InterInvariantTest.groovy    (T4)
+        └── <Aggregate>InterInvariantTest.groovy    (T3)
 ```
 
 ---
@@ -237,47 +235,6 @@ class <Aggregate>IntraInvariantTest extends <AppName>SpockTest {
 
 ---
 
-## T2 — Service-Command Test
-
-**Purpose:** Cover service methods that are invoked via command handlers from **other**
-aggregates' sagas (e.g., `decrementExecutionCount` called when a CourseExecution is deleted)
-but are NOT exposed through `{Aggregate}Functionalities`. These methods still call
-`registerChanged`, which triggers `verifyInvariants()`.
-
-For each such method, write tests covering:
-- **Happy path** — state changes as expected, no exception
-- **Floor/ceiling behaviour** — e.g., decrement at zero stays at zero
-
-P1 intra-invariant violations are **not** tested here — see § T1 (`{Aggregate}IntraInvariantTest`).
-
-**No semantic-lock case is needed** (there are no saga steps).
-
-**Location:** `sagas/{aggregate}/`  
-**Naming:** `{OperationName}Test.groovy`, or combine related operations into one file
-(e.g., `{Aggregate}CountsTest.groovy`) when they share setup.
-
-**Template:**
-```groovy
-def "setup"() {
-    aggregate = create<Aggregate>(/* valid args */)
-}
-
-def "<op>: success"() {
-    when:
-    def uow = unitOfWorkService.createUnitOfWork("<op>")
-    <aggregate>Service.<op>(aggregate.aggregateId, uow)
-    unitOfWorkService.commit(uow)
-
-    then:
-    def result = <aggregate>Functionalities.get<Aggregate>ById(aggregate.aggregateId)
-    result.<field> == <expectedValue>
-}
-
-// Invariant violations are not tested here — they belong in {Aggregate}IntraInvariantTest.
-```
-
----
-
 ## The Saga as a State Machine
 
 Every write saga is a finite state machine over its aggregate's `SagaState`:
@@ -292,7 +249,7 @@ Every write saga is a finite state machine over its aggregate's `SagaState`:
 - **Guards** — `setForbiddenStates([...])` on a step blocks a transition when a foreign aggregate is
   already in a listed state.
 
-Testing a write saga means covering its transitions. The two existing T3 saga tests already do this:
+Testing a write saga means covering its transitions. The two existing T2 saga tests already do this:
 
 | Test | Transition(s) covered |
 |------|-----------------------|
@@ -304,7 +261,7 @@ see Appendix (Cross-Functionality and Fault/Behavior tests).
 
 ---
 
-## T3 — Functionality Test
+## T2 — Functionality Test
 
 **Purpose:** Cover the happy path (the full state-machine traversal), P3 guard violations, and the
 state-transition (semantic-lock acquisition) case for each saga lock step. P1 intra-invariants are
@@ -320,10 +277,6 @@ an *acquire* transition into `IN_{OP}` (see § The Saga as a State Machine).
 **Happy-path = full traversal:** the `success` test drives `NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA`.
 Asserting `sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA` at the end pins the *complete*
 transition's endpoint (see § The Saga as a State Machine).
-
-**Upstream-invariant rule:** When a saga increments a counter cached on an upstream aggregate (e.g., `questionCount` on `Course`), verify that the upstream aggregate's invariants permit the new counter value *before the first test runs*. If not, add the necessary prerequisite state to the `setup:` block. For example, if `Course` enforces `executionCount > 0` when `questionCount > 0`, every `CreateQuestion` test must call `createExecution(courseId, ...)` in `setup:` first. Place these prerequisites in the shared `setup()` block by default; only inline them in a per-method `given:` block when a single test needs a state variant the rest of the file does not share.
-
-> **Read tests are not exempt.** Even though a read functionality itself does not mutate state, its `setup:` block typically creates the aggregate under test (e.g., `createQuestion`), which may increment a counter on an upstream aggregate. That increment can trigger the upstream's invariants, so any prerequisite state must be established in `setup:` *before* the aggregate creation call, regardless of whether the test exercises a read or write functionality.
 
 **Spec-first:** Before writing the happy-path test, locate the `plan.md` aggregate section for the
 target aggregate. The fields-changed list, events-published list, and expected `SagaState` in that
@@ -441,15 +394,13 @@ def "<functionalityName>: not found by composite key"() {
 
 ---
 
-## T4 — Inter-Invariant Test
+## T3 — Inter-Invariant Test
 
 **Purpose:** Verify that when a publisher emits an event, the consumer aggregate's cached state
 is updated; and that an event for an unrelated entity leaves state unchanged.
 
 **Key constraint:** `@Scheduled` does **not** run in `@DataJpaTest`. Call the polling method
 directly: `<consumer>EventHandling.handle<Xxx>Events()`.
-
-**Upstream-invariant rule applies.** T4 tests typically create the consumer aggregate in `given:`, which may increment a counter on an upstream aggregate and trigger its invariants. Apply the same rule as T3: establish any prerequisite upstream state (e.g., `createExecution()`) *before* the consumer aggregate creation call.
 
 **Asserting cached sub-entity fields.** The template uses `<consumer>Service.get<Consumer>(...)`, which returns a DTO. If the DTO does not expose a cached sub-entity field (e.g., `topicName` stored inside a `QuestionTopic` embedded in the aggregate), load the aggregate directly instead:
 ```groovy
@@ -510,7 +461,7 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
 }
 ```
 
-### Deletion-Event Tests (T4)
+### Deletion-Event Tests (T3)
 
 When a deletion event causes the consumer aggregate itself to be marked `DELETED` (i.e., the processing method calls `remove()` on the aggregate), `aggregateLoadAndRegisterRead` filters out `DELETED` aggregates and throws `SimulatorException`. The standard `then:` assertion pattern — loading the aggregate and asserting a field value — does not work here.
 

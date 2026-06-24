@@ -10,10 +10,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.ServiceMapping;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.DecrementQuestionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.question.DeleteQuestionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.question.GetQuestionByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.sagas.states.QuestionSagaState;
 
@@ -57,19 +55,8 @@ public class DeleteQuestionFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(deleteCmd);
         }, new ArrayList<>(Arrays.asList(getQuestionStep)));
 
-        SagaStep decrementCourseQuestionCountStep = new SagaStep("decrementCourseQuestionCountStep", () -> {
-            DecrementQuestionCountCommand decrementCmd = new DecrementQuestionCountCommand(
-                    unitOfWork, ServiceMapping.COURSE.getServiceName(), this.questionDto.getCourseAggregateId());
-            SagaCommand sagaCmd = new SagaCommand(decrementCmd);
-            sagaCmd.setForbiddenStates(new ArrayList<>(Arrays.asList(
-                    CourseSagaState.IN_UPDATE_COURSE,
-                    CourseSagaState.IN_DELETE_COURSE)));
-            commandGateway.send(sagaCmd);
-        }, new ArrayList<>(Arrays.asList(deleteQuestionStep)));
-
         workflow.addStep(getQuestionStep);
         workflow.addStep(deleteQuestionStep);
-        workflow.addStep(decrementCourseQuestionCountStep);
     }
 
     public QuestionDto getQuestionDto() { return questionDto; }

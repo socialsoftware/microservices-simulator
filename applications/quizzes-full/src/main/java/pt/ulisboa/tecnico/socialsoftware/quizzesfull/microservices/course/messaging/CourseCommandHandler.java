@@ -6,11 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.CreateCourseCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.GetCourseByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.DecrementExecutionCountCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.DecrementQuestionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.DeleteCourseCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.IncrementExecutionCountCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.IncrementQuestionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.UpdateCourseCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.service.CourseService;
 
@@ -42,22 +38,6 @@ public class CourseCommandHandler extends CommandHandler {
             }
             case DeleteCourseCommand cmd -> {
                 courseService.deleteCourse(cmd.getCourseAggregateId(), cmd.getUnitOfWork());
-                yield null;
-            }
-            case IncrementExecutionCountCommand cmd -> {
-                courseService.incrementExecutionCount(cmd.getCourseAggregateId(), cmd.getUnitOfWork());
-                yield null;
-            }
-            case DecrementExecutionCountCommand cmd -> {
-                courseService.decrementExecutionCount(cmd.getCourseAggregateId(), cmd.getUnitOfWork());
-                yield null;
-            }
-            case IncrementQuestionCountCommand cmd -> {
-                courseService.incrementQuestionCount(cmd.getCourseAggregateId(), cmd.getUnitOfWork());
-                yield null;
-            }
-            case DecrementQuestionCountCommand cmd -> {
-                courseService.decrementQuestionCount(cmd.getCourseAggregateId(), cmd.getUnitOfWork());
                 yield null;
             }
             default -> {

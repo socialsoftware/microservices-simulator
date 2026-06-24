@@ -8,8 +8,6 @@ public class CourseDto implements Serializable {
     private String name;
     private String type;
     private Long version;
-    private int executionCount;
-    private int questionCount;
 
     public CourseDto() {}
 
@@ -18,8 +16,6 @@ public class CourseDto implements Serializable {
         setName(course.getName());
         setType(course.getType().toString());
         setVersion(course.getVersion());
-        setExecutionCount(course.getExecutionCount());
-        setQuestionCount(course.getQuestionCount());
     }
 
     public Integer getAggregateId() {
@@ -52,21 +48,5 @@ public class CourseDto implements Serializable {
 
     public void setVersion(Long version) {
         this.version = version;
-    }
-
-    public int getExecutionCount() {
-        return executionCount;
-    }
-
-    public void setExecutionCount(int executionCount) {
-        this.executionCount = executionCount;
-    }
-
-    public int getQuestionCount() {
-        return questionCount;
-    }
-
-    public void setQuestionCount(int questionCount) {
-        this.questionCount = questionCount;
     }
 }

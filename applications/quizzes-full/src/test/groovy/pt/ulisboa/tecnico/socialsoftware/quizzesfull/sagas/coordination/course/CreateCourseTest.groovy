@@ -19,8 +19,7 @@ class CreateCourseTest extends QuizzesFullSpockTest {
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 
     def "createCourse: success"() {
-        // Spec: Course.{name,type} = input; executionCount=0; questionCount=0;
-        //       SagaState after commit == NOT_IN_SAGA.
+        // Spec: Course.{name,type} = input; SagaState after commit == NOT_IN_SAGA.
         // Source: plan.md §2.1 Course / createCourse.
         when:
         CourseDto result = createCourse(COURSE_NAME_1, COURSE_TYPE_TECNICO)
@@ -30,14 +29,11 @@ class CreateCourseTest extends QuizzesFullSpockTest {
         result.name == COURSE_NAME_1
         result.type == COURSE_TYPE_TECNICO
         result.aggregateId != null
-        result.executionCount == 0
-        result.questionCount == 0
         sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "createCourse: success with EXTERNAL type"() {
-        // Spec: Course.{name,type} = input; executionCount=0; questionCount=0;
-        //       SagaState after commit == NOT_IN_SAGA.
+        // Spec: Course.{name,type} = input; SagaState after commit == NOT_IN_SAGA.
         // Source: plan.md §2.1 Course / createCourse.
         when:
         CourseDto result = createCourse(COURSE_NAME_2, COURSE_TYPE_EXTERNAL)

@@ -11,7 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.GetCourseByIdCommand;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.IncrementExecutionCountCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.CreateExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState;
@@ -62,19 +61,8 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
             this.createdExecutionDto = (ExecutionDto) commandGateway.send(createExecutionCommand);
         }, new ArrayList<>(Arrays.asList(getCourseStep)));
 
-        SagaStep incrementCourseExecutionCountStep = new SagaStep("incrementCourseExecutionCountStep", () -> {
-            IncrementExecutionCountCommand incrementCommand = new IncrementExecutionCountCommand(
-                    unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-            SagaCommand sagaCmd = new SagaCommand(incrementCommand);
-            sagaCmd.setForbiddenStates(new ArrayList<>(Arrays.asList(
-                    CourseSagaState.IN_UPDATE_COURSE,
-                    CourseSagaState.IN_DELETE_COURSE)));
-            commandGateway.send(sagaCmd);
-        }, new ArrayList<>(Arrays.asList(createExecutionStep)));
-
         workflow.addStep(getCourseStep);
         workflow.addStep(createExecutionStep);
-        workflow.addStep(incrementCourseExecutionCountStep);
     }
 
     public ExecutionDto getCreatedExecutionDto() { return createdExecutionDto; }
