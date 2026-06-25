@@ -7,7 +7,7 @@ import com.example.dummyapp.order.coordination.CancelOrderFromItemFunctionalityS
 import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
 import com.example.dummyapp.order.coordination.OrderFunctionalitiesFacade
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import spock.lang.Specification
 
 class RuntimeGateway {

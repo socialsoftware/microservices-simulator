@@ -1,6 +1,6 @@
 package com.example.dummyapp.shared.service;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 public interface AmbiguousServiceApi {
     Object doSomething(Integer id, UnitOfWork unitOfWork);

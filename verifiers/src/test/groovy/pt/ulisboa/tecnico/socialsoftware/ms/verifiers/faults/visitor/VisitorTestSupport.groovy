@@ -28,10 +28,13 @@ abstract class VisitorTestSupport extends Specification {
      */
     protected static void configureParser() {
         def srcRoot = resolveProjectPath('applications', 'dummyapp', 'src', 'main', 'java')
-        def solver = new CombinedTypeSolver(
-            new ReflectionTypeSolver(false),
-            new JavaParserTypeSolver(srcRoot.toFile())
-        )
+        def simulatorSrcRoot = resolveProjectPath('simulator', 'src', 'main', 'java')
+        def solver = new CombinedTypeSolver()
+        solver.add(new ReflectionTypeSolver(false))
+        if (Files.isDirectory(simulatorSrcRoot)) {
+            solver.add(new JavaParserTypeSolver(simulatorSrcRoot.toFile()))
+        }
+        solver.add(new JavaParserTypeSolver(srcRoot.toFile()))
         StaticJavaParser.getParserConfiguration()
             .setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21)
             .setSymbolResolver(new JavaSymbolSolver(solver))

@@ -5,7 +5,7 @@ import com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas
 import com.example.dummyapp.item.coordination.ItemFunctionalitiesFacade
 import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import spock.lang.Specification
 
 class GroovyNestedFacadeTracingSpec extends Specification {

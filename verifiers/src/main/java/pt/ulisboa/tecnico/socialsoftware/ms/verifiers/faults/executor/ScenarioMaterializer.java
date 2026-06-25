@@ -178,7 +178,7 @@ class ScenarioMaterializer {
     }
 
     private Object runtimeOwnedValue(String type, ScenarioRuntimeContext runtimeContext, String functionalityName) {
-        if ("pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork".equals(type)) {
+        if ("pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork".equals(type)) {
             return runtimeContext.createSagaUnitOfWork(functionalityName);
         }
         return runtimeContext.bean(loadClass(type));

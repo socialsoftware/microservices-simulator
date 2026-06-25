@@ -70,8 +70,8 @@ class GroovySourceIndexSpec extends Specification {
             package demo
 
             import org.springframework.beans.factory.annotation.Autowired
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
 
             class SourceModeSpec {
                 @Autowired(required = false)
@@ -92,12 +92,12 @@ class GroovySourceIndexSpec extends Specification {
         metadata.fields*.name as Set == ['sagaUnitOfWorkService', 'causalUnitOfWorkService'] as Set
 
         def sagaField = metadata.fields.find { it.name == 'sagaUnitOfWorkService' }
-        sagaField.typeName == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService'
+        sagaField.typeName == 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService'
         sagaField.annotations*.name == ['org.springframework.beans.factory.annotation.Autowired']
         sagaField.annotations[0].attributes['required'] == false
 
         def causalField = metadata.fields.find { it.name == 'causalUnitOfWorkService' }
-        causalField.typeName == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService'
+        causalField.typeName == 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService'
         causalField.annotations*.name == ['org.springframework.beans.factory.annotation.Autowired']
         !causalField.annotations[0].attributes.containsKey('required')
     }

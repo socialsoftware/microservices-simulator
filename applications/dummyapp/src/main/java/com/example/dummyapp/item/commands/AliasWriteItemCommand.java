@@ -1,7 +1,7 @@
 package com.example.dummyapp.item.commands;
 
 import com.example.dummyapp.item.aggregate.Item;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 
 public class AliasWriteItemCommand extends Command {

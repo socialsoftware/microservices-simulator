@@ -2,7 +2,7 @@ package com.example.dummyapp
 
 import com.example.dummyapp.order.coordination.OrderFunctionalitiesFacade
 import org.springframework.test.context.ActiveProfiles
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import spock.lang.Specification
 
 @ActiveProfiles('tcc')

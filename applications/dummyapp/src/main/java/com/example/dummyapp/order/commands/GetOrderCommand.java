@@ -1,6 +1,6 @@
 package com.example.dummyapp.order.commands;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 
 public class GetOrderCommand extends Command {

@@ -16,7 +16,7 @@ class SourceModeClassifierSpec extends Specification {
         writeSource('demo/SagaSpec.groovy', '''
             package demo
             import org.springframework.beans.factory.annotation.Autowired
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
             class SagaSpec {
                 @Autowired private SagaUnitOfWorkService unitOfWorkService
             }
@@ -36,7 +36,7 @@ class SourceModeClassifierSpec extends Specification {
         writeSource('demo/CausalSpec.groovy', '''
             package demo
             import org.springframework.beans.factory.annotation.Autowired
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
             class CausalSpec {
                 @Autowired private CausalUnitOfWorkService unitOfWorkService
             }
@@ -53,7 +53,7 @@ class SourceModeClassifierSpec extends Specification {
             package demo
             import org.springframework.boot.test.context.TestConfiguration
             import org.springframework.context.annotation.Bean
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
             class SagaBeanConfig {
                 @Bean SagaUnitOfWorkService unitOfWorkService() { new SagaUnitOfWorkService() }
             }
@@ -77,7 +77,7 @@ class SourceModeClassifierSpec extends Specification {
             package demo
             import org.springframework.boot.test.context.TestConfiguration
             import org.springframework.context.annotation.Bean
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
             class CausalBeanConfig {
                 @Bean CausalUnitOfWorkService unitOfWorkService() { new CausalUnitOfWorkService() }
             }
@@ -97,7 +97,7 @@ class SourceModeClassifierSpec extends Specification {
             package demo
             import org.springframework.boot.test.context.TestConfiguration
             import org.springframework.context.annotation.Bean
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
             class BroadBeanConfig {
                 @Bean Object unitOfWorkService() { return new SagaUnitOfWorkService() }
             }
@@ -163,8 +163,8 @@ class SourceModeClassifierSpec extends Specification {
         writeSource('demo/MixedTypeSpec.groovy', '''
             package demo
             import org.springframework.beans.factory.annotation.Autowired
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
             class MixedTypeSpec {
                 @Autowired private SagaUnitOfWorkService sagaUnitOfWorkService
                 @Autowired private CausalUnitOfWorkService causalUnitOfWorkService
@@ -182,7 +182,7 @@ class SourceModeClassifierSpec extends Specification {
             import org.springframework.boot.test.context.TestConfiguration
             import org.springframework.context.annotation.Bean
             import org.springframework.test.context.ActiveProfiles
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
             @ActiveProfiles("tcc")
             class MixedStrongSpec {
                 @TestConfiguration static class LocalConfig extends SagaBeanConfig {}
@@ -212,8 +212,8 @@ class SourceModeClassifierSpec extends Specification {
         writeSource('demo/InheritedSpec.groovy', '''
             package demo
             import org.springframework.beans.factory.annotation.Autowired
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
             class BaseSpec {
                 @Autowired(required = false) protected SagaUnitOfWorkService unitOfWorkService
             }
@@ -232,8 +232,8 @@ class SourceModeClassifierSpec extends Specification {
         writeSource('demo/InheritedOrderingSpec.groovy', '''
             package demo
             import org.springframework.beans.factory.annotation.Autowired
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService
             class BaseSpec {
                 @Autowired(required = false) protected SagaUnitOfWorkService optionalSaga
                 @Autowired protected CausalUnitOfWorkService causalUnitOfWorkService

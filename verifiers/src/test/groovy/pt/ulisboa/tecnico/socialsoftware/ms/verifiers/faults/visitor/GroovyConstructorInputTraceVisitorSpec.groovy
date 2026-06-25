@@ -37,7 +37,7 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
             import com.example.dummyapp.DummyAggregate
             import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
             import org.springframework.beans.factory.annotation.Autowired
-            import pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
             import spock.lang.Specification
 
             class RuntimeGateway {
@@ -294,8 +294,8 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
 
         trace != null
         trace.constructorArguments()*.expectedTypeFqn() == [
-                'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
-                'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork',
+                'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService',
+                'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork',
                 'java.lang.Integer',
                 'java.lang.Integer'
         ]

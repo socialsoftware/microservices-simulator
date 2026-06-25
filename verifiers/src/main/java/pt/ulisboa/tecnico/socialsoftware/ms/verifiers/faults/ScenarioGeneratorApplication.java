@@ -164,6 +164,14 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         solver.add(new ReflectionTypeSolver());
         solver.add(new ClassLoaderTypeSolver(Thread.currentThread().getContextClassLoader()));
 
+        Path simulatorSourceRoot = applicationsRootPath.getParent() == null
+                ? null
+                : applicationsRootPath.getParent().resolve(Paths.get("simulator", "src", "main", "java")).normalize();
+        if (simulatorSourceRoot != null && Files.isDirectory(simulatorSourceRoot)) {
+            solver.add(new JavaParserTypeSolver(simulatorSourceRoot));
+            logger.info("Added simulator source root: {}", simulatorSourceRoot);
+        }
+
         // Only add source roots for the configured application subtree.
         try (var stream = Files.find(
                 applicationPath,

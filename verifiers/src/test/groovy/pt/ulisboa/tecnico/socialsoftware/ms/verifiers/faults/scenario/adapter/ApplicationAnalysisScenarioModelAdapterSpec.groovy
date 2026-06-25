@@ -109,7 +109,7 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
                         legacyUnresolvedRuntimeArg(1,
                                 'unitOfWork <- sagaUnitOfWorkService.createUnitOfWork("createOrder")',
                                 'sagaUnitOfWorkService.createUnitOfWork("createOrder")',
-                                'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork')
+                                'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork')
                 ],
                 'createOrder(customerDto)',
                 ['resolved via direct constructor'],

@@ -161,7 +161,7 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         assignmentTrace.constructorArguments()[2].recipe().metadata().runtimeCall().sourceText() == 'sagaUnitOfWorkService.createUnitOfWork("createItem")'
         assignmentTrace.constructorArguments()[2].recipe().metadata().runtimeCall().arguments().size() == 1
         assignmentTrace.constructorArguments()[2].recipe().metadata().runtimeCall().arguments()[0].recipe().kind() == GroovyValueKind.LITERAL
-        assignmentTrace.constructorArguments()[2].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork'
+        assignmentTrace.constructorArguments()[2].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork'
         assignmentTraceText.contains('resolved via facade ItemFunctionalitiesFacade.createItem(...)')
         assignmentTraceText.contains('arg[1]: dto <- new ItemDto(')
         assignmentTraceText.contains('arg[2]: unitOfWork <- sagaUnitOfWorkService.createUnitOfWork(...) [unresolved external/runtime edge]')
@@ -201,8 +201,8 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         trace != null
         trace.constructorArguments()[0].recipe().metadata().category() == GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER
         trace.constructorArguments()[0].recipe().metadata().placeholderId()?.trim()
-        trace.constructorArguments()[0].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService'
-        trace.constructorArguments()[0].recipe().metadata().expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService'
+        trace.constructorArguments()[0].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService'
+        trace.constructorArguments()[0].recipe().metadata().expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService'
         trace.constructorArguments()[2].recipe().kind() == GroovyValueKind.UNRESOLVED_RUNTIME_EDGE
         trace.constructorArguments()[2].recipe().metadata().category() == GroovyValueResolutionCategory.RUNTIME_CALL
         trace.constructorArguments()[2].recipe().metadata().runtimeCall() != null
@@ -211,8 +211,8 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         trace.constructorArguments()[2].recipe().metadata().runtimeCall().sourceText() == 'sagaUnitOfWorkService.createUnitOfWork("createItem")'
         trace.constructorArguments()[2].recipe().metadata().runtimeCall().arguments().size() == 1
         trace.constructorArguments()[2].recipe().metadata().runtimeCall().arguments()[0].recipe().kind() == GroovyValueKind.LITERAL
-        trace.constructorArguments()[2].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork'
-        trace.constructorArguments()[2].recipe().metadata().expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork'
+        trace.constructorArguments()[2].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork'
+        trace.constructorArguments()[2].recipe().metadata().expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork'
         trace.constructorArguments()[3].recipe().metadata().category() == GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER
         trace.constructorArguments()[3].recipe().metadata().placeholderId()?.trim()
         trace.constructorArguments()[3].expectedTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway'

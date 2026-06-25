@@ -136,9 +136,9 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
         saga != null
         saga.constructorSignatures.size() == 1
         saga.constructorSignatures.first().parameterTypeFqns == [
-                'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
+                'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService',
                 'com.example.dummyapp.item.aggregate.ItemDto',
-                'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork',
+                'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork',
                 'pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway'
         ]
     }
@@ -152,19 +152,19 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
         saga.constructorSignatures.size() == 3
         saga.constructorSignatures*.parameterTypeFqns == [
                 [
-                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
-                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork'
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService',
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork'
                 ],
                 [
-                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
-                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork',
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService',
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork',
                         'java.util.Set<java.lang.Integer>',
                         'java.lang.Integer',
                         'java.lang.Integer'
                 ],
                 [
-                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
-                        'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork',
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService',
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork',
                         'java.lang.Integer',
                         'java.lang.Integer'
                 ]

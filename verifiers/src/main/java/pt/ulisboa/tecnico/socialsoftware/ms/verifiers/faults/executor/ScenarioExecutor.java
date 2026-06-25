@@ -105,7 +105,7 @@ public class ScenarioExecutor {
         List<ScenarioExecutionReport.StepOutcome> outcomes = new ArrayList<>();
         for (RuntimeStep step : candidate.steps()) {
             try {
-                Method method = functionality.getClass().getMethod("executeUntilStep", String.class, Class.forName("pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork"));
+                Method method = functionality.getClass().getMethod("executeUntilStep", String.class, Class.forName("pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork"));
                 method.invoke(functionality, step.runtimeName(), unitOfWork);
                 outcomes.add(new ScenarioExecutionReport.StepOutcome(step.scheduled().deterministicId(), step.scheduled().stepId(), step.scheduled().scheduleOrder(), step.runtimeName(), "COMPLETED", null, null));
             } catch (ReflectiveOperationException | RuntimeException e) {

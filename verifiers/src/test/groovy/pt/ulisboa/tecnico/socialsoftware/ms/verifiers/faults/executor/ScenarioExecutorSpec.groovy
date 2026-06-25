@@ -85,9 +85,9 @@ class ScenarioExecutorSpec extends Specification {
         given:
         def runDirectory = Files.createTempDirectory('scenario-executor-runtime-owned')
         def args = [
-                arg(0, 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService', InputRecipeNode.builder('placeholder').expectedTypeFqn('pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService').executorReady(false).build()),
+                arg(0, 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService', InputRecipeNode.builder('placeholder').expectedTypeFqn('pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService').executorReady(false).build()),
                 arg(1, 'pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway', InputRecipeNode.builder('placeholder').expectedTypeFqn('pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway').executorReady(false).build()),
-                arg(2, 'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork', InputRecipeNode.builder('call_result').executorReady(false).build())
+                arg(2, 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork', InputRecipeNode.builder('call_result').executorReady(false).build())
         ]
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [planWithArgs('runtime-owned-plan', FixtureWorkflow.name, args)])
 

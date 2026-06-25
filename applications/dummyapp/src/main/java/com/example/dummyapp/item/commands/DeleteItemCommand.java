@@ -1,6 +1,6 @@
 package com.example.dummyapp.item.commands;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 
 public class DeleteItemCommand extends Command {

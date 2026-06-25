@@ -1,8 +1,8 @@
 package com.example.dummyapp.shared.service;
 
 import org.springframework.stereotype.Service;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
 
 @Service
 public class InterfaceOnlyService implements InterfaceOnlyServiceApi {

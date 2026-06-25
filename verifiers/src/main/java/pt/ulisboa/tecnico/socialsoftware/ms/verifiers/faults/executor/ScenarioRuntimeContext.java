@@ -5,7 +5,7 @@ public interface ScenarioRuntimeContext {
 
     default Object createSagaUnitOfWork(String functionalityName) {
         try {
-            Class<?> type = Class.forName("pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork");
+            Class<?> type = Class.forName("pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork");
             return type.getConstructor(Long.class, String.class).newInstance(0L, functionalityName);
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Failed to create SagaUnitOfWork", e);

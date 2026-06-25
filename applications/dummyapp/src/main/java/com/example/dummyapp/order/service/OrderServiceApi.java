@@ -1,7 +1,7 @@
 package com.example.dummyapp.order.service;
 
 import com.example.dummyapp.order.aggregate.OrderDto;
-import pt.ulisboa.tecnico.socialsoftware.ms.transactional.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 public interface OrderServiceApi {
     OrderDto getOrder(Integer orderAggregateId, UnitOfWork unitOfWork);

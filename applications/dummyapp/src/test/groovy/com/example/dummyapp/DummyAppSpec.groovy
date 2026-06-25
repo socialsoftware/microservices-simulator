@@ -3,7 +3,7 @@ package com.example.dummyapp
 import spock.lang.Specification
 
 // Sample saga state enum for testing
-enum DummySagaState implements pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAggregate.SagaState {
+enum DummySagaState implements pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState {
     STARTED("STARTED"),
     COMPLETED("COMPLETED"),
     FAILED("FAILED");
@@ -62,21 +62,21 @@ class DummyAppSpec extends Specification {
 }
 
 // Dummy saga aggregate implementation for testing
-class DummySagaAggregate extends DummyAggregate implements pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAggregate {
+class DummySagaAggregate extends DummyAggregate implements pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate {
     
-    private pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAggregate.SagaState sagaState
+    private pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState sagaState
 
     DummySagaAggregate(Integer aggregateId) {
         super(aggregateId, "saga-" + aggregateId)
     }
 
     @Override
-    void setSagaState(pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAggregate.SagaState state) {
+    void setSagaState(pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState state) {
         this.sagaState = state
     }
 
     @Override
-    pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.aggregate.SagaAggregate.SagaState getSagaState() {
+    pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState getSagaState() {
         return sagaState
     }
 }

@@ -8,9 +8,9 @@ import java.util.Objects;
 
 public class SourceModeClassifier {
     private static final String SAGA_UOW_FQN =
-            "pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService";
+            "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService";
     private static final String CAUSAL_UOW_FQN =
-            "pt.ulisboa.tecnico.socialsoftware.ms.transactional.causal.unitOfWork.CausalUnitOfWorkService";
+            "pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService";
 
     private final Map<String, GroovySourceClassMetadata> classesByFqn;
     private final Map<String, String> sourceBackedSuperclassByClassFqn;
