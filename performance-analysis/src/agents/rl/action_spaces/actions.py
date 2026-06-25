@@ -6,10 +6,11 @@ from src.simulator_tools.config_utils import ConfigTool
 class Action(IntEnum):
     Stop = 0
     Migrate = 1
-    Reallocate = 2
+    ScaleUp = 2
+    ScaleDown = 3
 
 
-AMOUNT: int = 5  # Amount of capacity to reallocate
+AMOUNT: int = 5  # Amount of capacity to scale
 
 
 def get_action_mapping(num_services: int, num_nodes: int) -> list[tuple]:
@@ -20,22 +21,25 @@ def get_action_mapping(num_services: int, num_nodes: int) -> list[tuple]:
     mapping = []
 
     # NO OP - 1 possibility
-    mapping.append((Action.Stop.value, None, None, None))
+    mapping.append((Action.Stop.value, None, None))
 
-    # Migration: (Action.Migrate, microsservice_id, target_node_id, None)
+    # Migration: (Action.Migrate, microsservice_id, target_node_id)
     # 3 nodes * 8 microservices = 24 possibilities
     for ms_id in range(num_services):
         for target_node_id in range(num_nodes):
-            mapping.append((Action.Migrate.value, ms_id, target_node_id, None))
+            mapping.append((Action.Migrate.value, ms_id, target_node_id))
 
-    # Reallocation: (Action.Reallocate, node_id, ms_to_increment_id, ms_to_decrement_id)
-    # 3 nodes * 8 microservices * 8 microservices = 192 possiblities
-    for node_id in range(num_nodes):
-        for inc_ms_id in range(num_services):
-            for dec_ms_id in range(num_services):
-                if inc_ms_id != dec_ms_id:
-                    mapping.append(
-                        (Action.Reallocate.value, node_id, inc_ms_id, dec_ms_id))
+    # ScaleUp: (Action.ScaleUp, microsservice_id, multiplier)
+    # 8 microservices * 5 orders of scale = 40 possibilities
+    for ms_id in range(num_services):
+        for multiplier in range(1, 6):
+            mapping.append((Action.ScaleUp.value, ms_id, multiplier))
+
+    # ScaleDown: (Action.ScaleDown, microsservice_id, multiplier)
+    # 8 microservices * 5 orders of scale = 40 possibilities
+    for ms_id in range(num_services):
+        for multiplier in range(1, 6):
+            mapping.append((Action.ScaleDown.value, ms_id, multiplier))
 
     return mapping
 
@@ -76,25 +80,31 @@ def get_valid_action_mask(action_mapping: list[tuple], config: dict,
 
             mask[i] = True
 
-        elif action_type == Action.Reallocate:
-            node_id = action_tuple[1]
-            incrementing_microservice_id = action_tuple[2]
-            decrementing_microservice_id = action_tuple[3]
+        elif action_type == Action.ScaleUp:
+            microservice_id = action_tuple[1]
+            multiplier = action_tuple[2]
 
-            inc_microservice_name = microservices_list[incrementing_microservice_id]
-            dec_microservice_name = microservices_list[decrementing_microservice_id]
+            total_amount = amount * multiplier
+            microservice_name = microservices_list[microservice_id]
 
-            inc_node_id = placement_map.get(inc_microservice_name)
-            dec_node_id = placement_map.get(dec_microservice_name)
-            dec_microservice_capacity = microservice_caps.get(
-                dec_microservice_name, 1)
+            current_node_id = placement_map.get(microservice_name)
 
-            microservices_not_in_the_selected_node = inc_node_id != node_id or dec_node_id != node_id
-            decrementing_ms_does_not_have_enough_capacity = dec_microservice_capacity <= amount
+            if current_node_id is not None:
+                free_capacity = node_caps[current_node_id]["limit"] - \
+                    node_caps[current_node_id]["used"]
+                if total_amount <= free_capacity:
+                    mask[i] = True
 
-            if microservices_not_in_the_selected_node or decrementing_ms_does_not_have_enough_capacity:
-                continue
+        elif action_type == Action.ScaleDown:
+            microservice_id = action_tuple[1]
+            multiplier = action_tuple[2]
 
-            mask[i] = True
+            total_amount = amount * multiplier
+            microservice_name = microservices_list[microservice_id]
+
+            microservice_capacity = microservice_caps.get(microservice_name, 1)
+
+            if microservice_capacity > total_amount:
+                mask[i] = True
 
     return mask

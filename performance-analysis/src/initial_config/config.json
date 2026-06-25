@@ -3,6 +3,7 @@
     "nodes": [
       {
         "name": "Node1",
+        "capacity": 60,
         "microservices": [
           "user",
           "execution",
@@ -11,7 +12,7 @@
       },
       {
         "name": "Node2",
-        "capacity": 100,
+        "capacity": 60,
         "microservices": [
           "quiz",
           "tournament"
@@ -19,6 +20,7 @@
       },
       {
         "name": "Node3",
+        "capacity": 60,
         "microservices": [
           "question",
           "topic",

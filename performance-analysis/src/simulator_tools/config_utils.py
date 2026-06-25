@@ -103,7 +103,13 @@ class ConfigTool:
 
             # Guarantee at least 1 capacity per service
             allocations = {ms: 1 for ms in services_in_node}
-            remaining = node_limit - len(services_in_node)
+
+            # Target 70% to 80% utilization to leave headroom for the agent
+            target_utilization = random.uniform(0.7, 0.8)
+            node_target_limit = int(node_limit * target_utilization)
+            remaining = node_target_limit - len(services_in_node)
+
+            remaining = max(0, remaining)
 
             # Randomly distribute all remaining capacity between services
             for _ in range(remaining):
@@ -149,33 +155,50 @@ class ConfigTool:
         return False
 
     @staticmethod
-    def reallocate_capacity(config: dict, node_id: int, inc_ms_name: str, dec_ms_name: str, amount: int) -> bool:
+    def scale_up_capacity(config: dict, ms_name: str, amount: int) -> bool:
         """
-        Attempts to transfer 'amount' capacity from dec_ms to inc_ms.
-        Both must be on the specified node_id.
-        Returns True if successful, False otherwise.
+        Attempts to increase the capacity of a microservice by 'amount'.
+        Returns True if successful, False if the node lacks capacity.
         """
-        
-        nodes = ConfigTool.get_nodes(config)
 
-        if node_id >= len(nodes):
+        nodes = ConfigTool.get_nodes(config)
+        current_node_id = None
+        for i, node in enumerate(nodes):
+            if ms_name in node["microservices"]:
+                current_node_id = i
+                break
+
+        if current_node_id is None:
             return False
 
-        node_services = nodes[node_id]["microservices"]
+        node_capacities = ConfigTool.get_node_capacities(config)
+        free_capacity = node_capacities[current_node_id]["limit"] - \
+            node_capacities[current_node_id]["used"]
 
-        if (inc_ms_name in node_services and
-            dec_ms_name in node_services and
-                inc_ms_name != dec_ms_name):
-
-            ms_caps = config.get("Capacities", {}).get("microservices", [])
-            inc_dict = next(
-                (m for m in ms_caps if m["name"] == inc_ms_name), None)
-            dec_dict = next(
-                (m for m in ms_caps if m["name"] == dec_ms_name), None)
-
-            if dec_dict and dec_dict["capacity"] > amount and inc_dict:
-                inc_dict["capacity"] += amount
-                dec_dict["capacity"] -= amount
+        if amount <= free_capacity:
+            microservices_caps = config.get(
+                "Capacities", {}).get("microservices", [])
+            ms_dict = next(
+                (m for m in microservices_caps if m["name"] == ms_name), None)
+            if ms_dict:
+                ms_dict["capacity"] += amount
                 return True
+
+        return False
+
+    @staticmethod
+    def scale_down_capacity(config: dict, ms_name: str, amount: int) -> bool:
+        """
+        Attempts to decrease the capacity of a microservice by 'amount'.
+        Returns True if successful, False if it would drop to or below 0.
+        """
+
+        microservices = config.get("Capacities", {}).get("microservices", [])
+        ms_dict = next(
+            (m for m in microservices if m["name"] == ms_name), None)
+
+        if ms_dict and ms_dict["capacity"] > amount:
+            ms_dict["capacity"] -= amount
+            return True
 
         return False

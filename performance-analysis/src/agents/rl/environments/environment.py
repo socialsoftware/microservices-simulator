@@ -135,16 +135,24 @@ class MicroserviceOptimizerEnv(gym.Env):
                     config_to_update, microservice_name, target_node_id):
                 is_illegal_action = True
 
-        elif action_type == Action.Reallocate:
-            node_id = action_tuple[1]
-            inc_microservice_id = action_tuple[2]
-            dec_microservice_id = action_tuple[3]
+        elif action_type == Action.ScaleUp:
+            microservice_id = action_tuple[1]
+            multiplier = action_tuple[2]
+            total_amount = AMOUNT * multiplier
+            microservice_name = self.microservices[microservice_id]
 
-            inc_ms_name = self.microservices[inc_microservice_id]
-            dec_ms_name = self.microservices[dec_microservice_id]
+            if not ConfigTool.scale_up_capacity(
+                    config_to_update, microservice_name, total_amount):
+                is_illegal_action = True
 
-            if not ConfigTool.reallocate_capacity(
-                    config_to_update, node_id, inc_ms_name, dec_ms_name, AMOUNT):
+        elif action_type == Action.ScaleDown:
+            microservice_id = action_tuple[1]
+            multiplier = action_tuple[2]
+            total_amount = AMOUNT * multiplier
+            microservice_name = self.microservices[microservice_id]
+
+            if not ConfigTool.scale_down_capacity(
+                    config_to_update, microservice_name, total_amount):
                 is_illegal_action = True
 
         else:
