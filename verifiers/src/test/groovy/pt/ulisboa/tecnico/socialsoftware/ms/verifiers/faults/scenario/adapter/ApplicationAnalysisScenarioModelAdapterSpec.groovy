@@ -29,6 +29,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.CommandHandlerIndexVisitor
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.CommandHandlerVisitor
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.EventHandlingBridgeVisitor
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitor
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.ServiceVisitor
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.VisitorTestSupport
@@ -314,6 +315,26 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         result.counts().get('typeOnlyFootprints') > 0
     }
 
+    def 'dummyapp adapter integration produces input variant for event-origin saga'() {
+        given:
+        def state = buildDummyappAnalysisState()
+
+        when:
+        def result = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
+        def variant = result.inputVariants().find {
+            it.sagaFqn() == 'com.example.dummyapp.item.coordination.RenameItemFromEventFunctionalitySagas'
+        }
+
+        then:
+        variant != null
+        variant.sourceMethodName() == 'event handling call traces downstream item rename saga'
+        variant.resolutionStatus() == InputResolutionStatus.REPLAYABLE
+        variant.inputRecipe() != null
+        !variant.inputRecipe().executorReady()
+        flattenRecipeNodes(variant.inputRecipe())*.kind().contains('event_placeholder')
+        flattenRecipeNodes(variant.inputRecipe()).findAll { it.kind() == 'event_placeholder' }*.blockers().flatten().contains('EVENT_PAYLOAD_PLACEHOLDER')
+    }
+
     def 'dummyapp adapter integration exports representative input recipe shapes'() {
         given:
         def state = buildDummyappAnalysisState()
@@ -355,12 +376,15 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         def commandHandlerVisitor = new CommandHandlerVisitor()
         def workflowVisitor = new WorkflowFunctionalityVisitor()
         def creationSiteVisitor = new WorkflowFunctionalityCreationSiteVisitor()
+        def eventBridgeVisitor = new EventHandlingBridgeVisitor()
         def cus = parseAllDummyappFiles()
         cus.each { cu -> indexVisitor.visit(cu, state) }
         cus.each { cu -> serviceVisitor.visit(cu, state) }
         cus.each { cu -> commandHandlerVisitor.visit(cu, state) }
         cus.each { cu -> workflowVisitor.visit(cu, state) }
         cus.each { cu -> creationSiteVisitor.visit(cu, state) }
+        cus.each { cu -> eventBridgeVisitor.visit(cu, state) }
+        eventBridgeVisitor.finish(state)
 
         def sourceIndex = new GroovySourceIndex()
         sourceIndex.parse(resolveProjectPath('applications', 'dummyapp', 'src', 'test', 'groovy'))

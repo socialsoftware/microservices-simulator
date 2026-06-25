@@ -22,12 +22,15 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         def commandHandlerVisitor = new CommandHandlerVisitor()
         def workflowVisitor = new WorkflowFunctionalityVisitor()
         def creationSiteVisitor = new WorkflowFunctionalityCreationSiteVisitor()
+        def eventBridgeVisitor = new EventHandlingBridgeVisitor()
         def cus = parseAllDummyappFiles()
         cus.each { cu -> indexVisitor.visit(cu, state) }
         cus.each { cu -> serviceVisitor.visit(cu, state) }
         cus.each { cu -> commandHandlerVisitor.visit(cu, state) }
         cus.each { cu -> workflowVisitor.visit(cu, state) }
         cus.each { cu -> creationSiteVisitor.visit(cu, state) }
+        cus.each { cu -> eventBridgeVisitor.visit(cu, state) }
+        eventBridgeVisitor.finish(state)
 
         def sourceIndex = new GroovySourceIndex()
         sourceIndex.parse(resolveProjectPath('applications', 'dummyapp', 'src', 'test', 'groovy'))
@@ -57,8 +60,8 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         fullTraces*.sourceBindingName as Set == ['firstOrderSaga', 'secondOrderSaga'] as Set
         fullTraces.every { trace ->
             trace.constructorArguments()*.expectedTypeFqn() == [
-                    'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWorkService',
-                    'pt.ulisboa.tecnico.socialsoftware.ms.transactional.sagas.unitOfWork.SagaUnitOfWork'
+                    'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService',
+                    'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork'
             ]
         }
     }
@@ -489,6 +492,27 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         trace.constructorArguments()[1].recipe().metadata().runtimeCall().arguments().isEmpty()
         trace.constructorArguments()[1].expectedTypeFqn() == 'com.example.dummyapp.item.aggregate.ItemDto'
         traceText.contains('arg[1]: runtimeDto <- runtimeGateway.loadExternalDto() [unresolved external/runtime edge]')
+    }
+
+    def 'captures event-origin trace from dummyapp event handling fixture'() {
+        given:
+        def trace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'event handling call traces downstream item rename saga' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.RenameItemFromEventFunctionalitySagas'
+        }
+
+        expect:
+        trace != null
+        trace.originKind() == GroovyTraceOriginKind.EVENT_HANDLER_CALL
+        trace.sourceExpressionText() == 'itemEventHandling.handleItemRenamedEvents()'
+        trace.constructorArguments()*.recipe()*.metadata()*.category().contains(GroovyValueResolutionCategory.EVENT_PLACEHOLDER)
+        trace.constructorArguments()*.provenance().any { it.contains('EVENT_SUBSCRIBER_AGGREGATE_ID') }
+        trace.constructorArguments()*.provenance().any { it.contains('EVENT_FIELD:ItemRenamedEvent.updatedName') }
+        trace.constructorArguments()*.provenance().any { it.contains('EVENT_FIELD:ItemRenamedEvent.publisherAggregateId') }
+        trace.constructorArguments()*.provenance().any { it.contains('EVENT_FIELD:ItemRenamedEvent.publisherAggregateVersion') }
+        trace.traceText().contains('resolved via event handler DummyEventHandling.handleItemRenamedEvents()')
+        trace.traceText().contains('facade com.example.dummyapp.item.coordination.ItemFunctionalitiesFacade.renameItemFromEvent(...)')
     }
 
     def 'captures facade assignment and bare call traces from dummyapp fixture'() {

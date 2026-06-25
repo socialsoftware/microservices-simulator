@@ -3,6 +3,7 @@ package com.example.dummyapp
 import com.example.dummyapp.item.aggregate.ItemDto
 import com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas
 import com.example.dummyapp.item.coordination.ItemFunctionalitiesFacade
+import com.example.dummyapp.item.notification.handling.DummyEventHandling
 import com.example.dummyapp.order.coordination.CancelOrderFromItemFunctionalitySagas
 import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
 import com.example.dummyapp.order.coordination.OrderFunctionalitiesFacade
@@ -44,6 +45,7 @@ class GroovySagaTracingSpec extends Specification {
     def orderSagaInField = new CreateOrderFunctionalitySagas(null, null)
     def orderFunctionalities = new OrderFunctionalitiesFacade()
     def itemFunctionalities = new ItemFunctionalitiesFacade()
+    def itemEventHandling = new DummyEventHandling()
     def plainAggregateInField = new DummyAggregate(200, 'plain')
     def runtimeGateway = new RuntimeGateway()
 
@@ -301,6 +303,14 @@ class GroovySagaTracingSpec extends Specification {
 
         when:
         helperSaga.executeWorkflow(null)
+
+        then:
+        true
+    }
+
+    def 'event handling call traces downstream item rename saga'() {
+        when:
+        itemEventHandling.handleItemRenamedEvents()
 
         then:
         true

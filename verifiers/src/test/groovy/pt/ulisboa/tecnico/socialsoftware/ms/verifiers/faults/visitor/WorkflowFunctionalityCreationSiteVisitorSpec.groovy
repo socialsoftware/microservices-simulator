@@ -73,7 +73,7 @@ class WorkflowFunctionalityCreationSiteVisitorSpec extends VisitorTestSupport {
 
     def "does not report saga classes as creation sites"() {
         expect:
-        state.sagaCreationSites.size() == 2
+        state.sagaCreationSites.size() == 3
         state.sagaCreationSites.every { site ->
             !state.sagas.any { saga -> saga.fqn == site.classFqn() }
         }
