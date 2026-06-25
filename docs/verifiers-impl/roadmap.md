@@ -38,7 +38,7 @@ Mostly implemented as a bounded static-analysis and catalog-generation MVP.
 
 Implemented:
 
-- Static extraction of sagas, steps, dependencies, dispatch footprints, command-handler/service access policies, and Groovy construction recipes.
+- Static extraction of sagas, steps, dependencies, dispatch footprints, command-handler/service access policies, Groovy construction recipes, facade calls, and event-origin inputs for the implemented `EventHandling`/`EventProcessing` shape.
 - JSONL scenario catalog plus manifest.
 - Conservative confidence labels for aggregate-key evidence.
 - Bounded defaults to avoid large-app combinatorial explosion.
@@ -47,8 +47,10 @@ Implemented:
 Remaining gaps:
 
 - Exact aggregate-instance key binding is incomplete.
-- Segment-compressed scheduling remains a static reduction under extracted conflict evidence; it does not prove semantic completeness or exact runtime aggregate-instance binding.
-- Catalog entries are not yet executable by a runtime runner.
+- The remaining 32 Quizzes sagas without accepted static inputs are not yet classified.
+- Event payload reconstruction is incomplete; event-origin inputs may be statically accepted while blocked for materialization by payload placeholders.
+- Segment-compressed scheduling remains static evidence; it does not prove semantic completeness or exact runtime aggregate-instance binding.
+- Catalog entries are not yet generally executable by a runtime runner.
 
 ## Stage 1.5 — Dynamic evidence bridge
 
@@ -73,6 +75,8 @@ Implemented as a verifier-orchestrated local/sagas bridge with sidecar enrichmen
 - the simulator loads the verifier-written `dynamic-input-map.json` and emits `inputVariantId` when current test identity + runtime functionality class FQN + runtime step name resolve to exactly one accepted static input variant;
 - before/after measurement is based on join-report status counts: first-pass propagation should increase `MATCHED_EXACT` when runtime evidence carries direct `inputVariantId`, and remaining ambiguity/unmatched records require later runtime refinement;
 - Docker `fault-analysis-scenario-gen` enables this full static+dynamic flow with run-relative report path behavior.
+
+The published dynamic-enrichment numbers are stale for the post-event-semantics static catalog until the dynamic flow is rerun. Dynamic enrichment remains sidecar-only: it may attribute runtime evidence to static variants, but it does not create or redefine static `InputVariant` or `ScenarioPlan` structure.
 
 Remaining gaps:
 
@@ -101,6 +105,8 @@ The runtime side should:
 POC only.
 
 A narrow verifier-owned ScenarioExecutor POC can load a catalog/enriched catalog, select or receive a supported single-saga scenario, materialize only supported inputs, run the selected saga step schedule, and write an execution report. It has a Quizzes smoke success for one generated single-saga plan.
+
+Current accounting distinguishes three different notions: static accepted input coverage, static recipe readiness, and ScenarioExecutor materializability. In the post-event Quizzes count-only run, `acceptedInputVariantCount=584`, `staticRecipeReadyInputVariantCount=0`, and `executorMaterializableInputVariantCount=94` / `executorReadyInputVariantCount=94`; this does not mean all accepted inputs can replay, and event payload placeholders remain blockers.
 
 Generic execution is still not implemented. The POC does not cover arbitrary catalog replay, multi-saga schedules, generated fault injection, behavior CSV generation, impact scoring, GA search, or scenario prioritization.
 
@@ -198,14 +204,14 @@ Dependencies:
 | Domain service classification | Implemented | dispatch-target pipeline and dummyapp specs | Profile-aware ambiguous service resolution |
 | Command-handler mapping | Implemented | command-handler visitor specs | Broader syntax coverage as discovered |
 | Saga step extraction | Implemented | workflow visitor specs | Generic command wrappers in compensation paths |
-| Groovy input tracing | Implemented / evolving | Groovy constructor trace specs | Runtime materialization not implemented |
-| Facade call recipe extraction | Implemented | dummyapp and Quizzes report/spec assertions | Keep expanding real syntax coverage |
+| Groovy input tracing | Implemented / evolving | Groovy constructor trace specs including event-origin traces | Runtime materialization and event payload reconstruction not complete |
+| Facade/event-origin recipe extraction | Implemented / evolving | dummyapp bridge specs and post-event Quizzes count-only accounting | Remaining 32 sagas without accepted inputs unclassified; other event shapes need evidence |
 | HTML report | Implemented | renderer/application specs | Human view only, not machine contract |
 | Scenario catalog JSONL/manifest | Implemented MVP | scenario package, writer, application specs | Exact keys, filters, executor integration |
 | Segment-compressed scheduling/accounting | Implemented static reduction | scheduler/accounting specs, dummyapp integration, Quizzes count-only comparison | Exact aggregate-instance binding and runtime semantic completeness remain separate |
-| Dynamic evidence + sidecar enrichment | Implemented MVP | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, Task 7/8 Quizzes runs, 2026-05-12 exact-attribution refresh | Runtime attribution refinement; stream/gRPC/distributed/TCC parity; remaining ambiguity/unmatched analysis |
+| Dynamic evidence + sidecar enrichment | Implemented MVP, stale numbers until post-event rerun | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, Task 7/8 Quizzes runs, 2026-05-12 exact-attribution refresh | Refresh against the post-event static catalog; runtime attribution refinement; stream/gRPC/distributed/TCC parity |
 | Quizzes orchestration smoke baseline | Implemented | Task 7 narrow run + Task 8 full/default run in `current-state.md` | Refresh periodically and track exact/ambiguous/unmatched trends |
-| ScenarioExecutor | POC | `scenario-executor-poc.md`, Quizzes single-saga smoke | General catalog replay, multi-saga execution, fault injection, impact scoring |
+| ScenarioExecutor | POC / materializability accounting evolving | `scenario-executor-poc.md`, Quizzes single-saga smoke, post-event count-only accounting (`94` materializable, `0` static recipe-ready) | Event payload materialization, general catalog replay, multi-saga execution, fault injection, impact scoring |
 | Behavior CSV generation | Not implemented | none | Decide whether adapter or canonical contract |
 | Impact scoring | Not implemented | none | Requires executable scenarios |
 | GA search | Not implemented | none | Requires impact scoring |
@@ -213,12 +219,12 @@ Dependencies:
 
 ## Near-term milestone proposal
 
-1. Keep static scenario catalog and sidecar-enrichment baselines reproducible on dummyapp and Quizzes (narrow + default runs).
-2. Classify the remaining Quizzes enrichment misses (`AMBIGUOUS=3`, `UNMATCHED=17`) into uncovered static inputs, joiner limitations, and refinable attribution gaps.
-3. Improve aggregate-instance key binding and reduce enrichment ambiguity without over-claiming exactness.
-4. Tighten sidecar metadata completeness (including per-match test-run status population) and warning ergonomics.
-5. Define the ScenarioExecutor input contract and decide JSONL-vs-CSV responsibilities.
-6. Implement a minimal executor for single-saga scenarios.
+1. Finalize and classify the remaining 32 Quizzes sagas without accepted static inputs.
+2. Refresh dynamic enrichment against the post-event-semantics static catalog.
+3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
+4. Improve aggregate-instance key binding where it affects scenario usefulness.
+5. Define the ScenarioExecutor input contract and decide JSONL-vs-CSV responsibilities after materialization semantics are clearer.
+6. Implement a minimal repeatable executor baseline for materializable single-saga scenarios.
 7. Extend executor to bounded multi-saga schedules.
 8. Add first impact metrics.
 9. Add local GA search for a fixed scenario.

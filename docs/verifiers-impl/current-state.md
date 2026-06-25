@@ -1,21 +1,22 @@
 # Verifier current state
 
-Last updated: 2026-06-23
+Last updated: 2026-06-25
 
 This is the present-tense status page for verifier/scenario-generation work. Keep it short. Detailed run evidence lives in [`evidence.md`](evidence.md); meeting framing lives in [`advisor-brief.md`](advisor-brief.md).
 
 ## One-paragraph summary
 
-The verifier currently extracts saga-oriented scenario structure from simulator applications, generates deterministic scenario catalogs, and can optionally enrich those catalogs with runtime evidence from existing test executions. It also has a narrow ScenarioExecutor POC for supported single-saga candidates. Generic scenario execution, generated fault injection, impact scoring, GA search, and scenario prioritization remain future work.
+The verifier currently extracts saga-oriented scenario structure from simulator applications, including the implemented `EventHandling`/`EventProcessing` event-origin shape, generates deterministic scenario catalogs, and can optionally enrich those catalogs with runtime evidence from existing test executions. It also has a narrow ScenarioExecutor POC for supported single-saga candidates. Generic scenario execution, generated fault injection, impact scoring, GA search, and scenario prioritization remain future work.
 
 ## Scope
 
 Current implemented scope:
 
 - Saga-catalog generation from Java production code and Groovy/Spock tests.
+- Static event semantics for the implemented `EventHandling`/`EventProcessing` chain shape, producing event-origin accepted inputs.
 - Source-mode classification for saga/TCC/mixed/unknown test inputs.
-- Deterministic bounded scenario catalog generation and accounting that separates static recipe readiness from ScenarioExecutor materializability.
-- Optional dynamic enrichment using simulator runtime evidence.
+- Deterministic bounded scenario catalog generation and accounting that separates static accepted input coverage, static recipe readiness, and ScenarioExecutor materializability.
+- Optional dynamic enrichment using simulator runtime evidence as sidecar attribution.
 - Narrow single-saga ScenarioExecutor POC for supported materializable catalog entries.
 
 Current main targets:
@@ -39,6 +40,7 @@ Current non-goals:
 - Command-handler dispatch target indexing and service access-policy extraction.
 - Domain-service classification based on dispatch structure rather than package/name suffixes.
 - Conservative handling for ambiguous service implementations and unresolved dependency references.
+- Static event topology for the implemented `EventHandling`/`EventProcessing` shape. The original runtime-evidence target group of five event-driven Quizzes sagas now has accepted static inputs.
 
 ### Groovy test/input extraction
 
@@ -103,13 +105,20 @@ Source-mode classification is evidence-based. It is not a full Spring profile/en
 
 ## Current evidence
 
-Latest Quizzes sagas-local dynamic-enrichment comparison after runtime input attribution:
+Latest Quizzes static event-semantics count-only comparison after simulator/quizzes API migration:
 
 ```text
-MATCHED_EXACT: 0 -> 46
-AMBIGUOUS: 44 -> 3
-UNMATCHED: 20 -> 17
-warningCount: 8238 -> 328
+discovered sagas: 65 -> 68
+sagas with accepted inputs: 26 -> 36
+sagas without accepted inputs: 39 -> 32
+accepted input variants: 517 -> 584
+selected input-bound scenario total: 517 -> 584
+catalog written: 0 -> 0 (COUNT_ONLY, expected)
+staticRecipeReadyInputVariantCount: 0
+executorMaterializableInputVariantCount: 94
+executorReadyInputVariantCount: 94
+blockedInputVariantCount: 490
+EVENT_PAYLOAD_PLACEHOLDER blockers: 132
 ```
 
 Segment-compressed scheduling Quizzes count-only comparison:
@@ -128,18 +137,19 @@ Step: getCourseExecutionsStep
 Terminal status: SUCCESS
 ```
 
-That run relied on executor runtime-owned argument resolution. Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is now reported as the executor-aligned metric.
+That run relied on executor runtime-owned argument resolution. Accounting now separates static recipe readiness (`staticRecipeReadyInputVariantCount=0`) from ScenarioExecutor materializability (`executorMaterializableInputVariantCount=94`). The remaining 490 blocked variants include event-origin inputs blocked by event payload placeholders; accepted static inputs are not automatically executor-ready.
 
 See [`evidence.md`](evidence.md) for commands, run paths, and interpretation.
 
 ## Current limitations
 
+- Static event topology exists for the implemented `EventHandling`/`EventProcessing` shape; other event shapes still need evidence before being claimed.
 - Exact aggregate-instance key extraction is incomplete.
+- The remaining 32 Quizzes sagas without accepted static inputs need classification. Missing accepted input means no accepted static `InputVariant` was discovered; it does not mean no test exists.
 - Dynamic enrichment is local/sagas-focused; stream/gRPC/distributed/TCC parity is not established.
-- Dynamic evidence is additive sidecar evidence and does not redefine static scenario structure.
-- Remaining Quizzes dynamic misses (`AMBIGUOUS=3`, `UNMATCHED=17`) still need manual classification.
+- Dynamic evidence is additive sidecar evidence and does not redefine or create static scenario structure. It needs a fresh run against the post-event-semantics static catalog.
 - Same-feature sibling ambiguity can remain when current evidence cannot distinguish neighboring static inputs.
-- Groovy input recipes are replay-oriented, but generic materialization is incomplete.
+- Groovy input recipes are replay-oriented, but generic materialization/replay is incomplete. Event payload placeholders remain materialization blockers.
 - Segment compression is a static reduction under extracted conflict evidence, not proof of semantic completeness.
 - Type-only fallback is opt-in and must not be described as exact shared-instance evidence.
 - `UNKNOWN` source mode is accepted by default with warning to preserve coverage.
@@ -161,13 +171,11 @@ See [`evidence.md`](evidence.md) for commands, run paths, and interpretation.
 
 ## Current next priorities
 
-1. Classify the remaining Quizzes enrichment misses (`AMBIGUOUS=3`, `UNMATCHED=17`) before adding new attribution rules.
-2. Implement the smallest attribution refinement justified by that classification, likely command/aggregate/literal pruning rather than broad name matching.
-3. Improve exact aggregate-instance key extraction where it affects scenario usefulness.
-4. Tighten sidecar metadata completeness, especially per-match test-run status if still stale.
-5. Convert the ScenarioExecutor POC into a minimal repeatable executor baseline.
-6. Add generated fault injection only after the executor baseline is stable.
-7. Add first domain-impact metrics after executable scenarios exist.
+1. Finalize and classify the remaining 32 Quizzes sagas without accepted static inputs.
+2. Refresh dynamic enrichment against the post-event-semantics static catalog before interpreting join counts.
+3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
+4. Continue the ScenarioExecutor baseline and generated fault injection only after materialization improves.
+5. Add first domain-impact metrics after executable scenarios exist.
 
 ## Meeting discussion points
 

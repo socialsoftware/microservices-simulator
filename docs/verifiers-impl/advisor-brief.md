@@ -1,18 +1,19 @@
 # Advisor brief
 
-Last updated: 2026-06-23
+Last updated: 2026-06-25
 
 Use this page before thesis meetings. It is intentionally short. For implementation detail, follow links from [`current-state.md`](current-state.md).
 
 ## 30-second update
 
-The verifier can generate deterministic saga scenario catalogs from application source and tests, enrich those catalogs with runtime evidence from existing simulator test runs, and run a narrow single-saga executor POC for supported catalog entries.
+The verifier can generate deterministic saga scenario catalogs from application source and tests, including accepted static inputs for the implemented `EventHandling`/`EventProcessing` event-origin shape, enrich those catalogs with runtime evidence from existing simulator test runs, and run a narrow single-saga executor POC for supported catalog entries.
 
-The current thesis gap is no longer “can we discover scenario structure?” It is moving from static catalog + runtime evidence + executor POC to a repeatable scenario execution baseline with fault injection and impact scoring.
+The current thesis gap is no longer the original event-driven static input hole for the target group. The hard boundary is now materialization/replayability plus refreshed dynamic attribution, before a repeatable fault-injection and impact-scoring baseline.
 
 ## What exists now
 
 - Static saga scenario extraction from Java/Groovy source.
+- Static event semantics for the implemented `EventHandling`/`EventProcessing` chain shape.
 - Source-mode filtering so saga catalogs do not silently include known TCC/mixed inputs.
 - Deterministic JSONL scenario catalog, manifest, rejected-input diagnostics, and scenario-space accounting.
 - Optional dynamic enrichment that runs selected tests and joins runtime evidence back to static scenario plans.
@@ -22,13 +23,18 @@ The current thesis gap is no longer “can we discover scenario structure?” It
 
 ## Evidence I can cite
 
-Latest comparable Quizzes sagas-local dynamic-enrichment baseline after runtime input attribution:
+Post-event-semantics Quizzes count-only static accounting:
 
 ```text
-MATCHED_EXACT: 0 -> 46
-AMBIGUOUS: 44 -> 3
-UNMATCHED: 20 -> 17
-warningCount: 8238 -> 328
+discovered sagas: 65 -> 68
+sagas with accepted inputs: 26 -> 36
+sagas without accepted inputs: 39 -> 32
+accepted input variants: 517 -> 584
+selected input-bound scenario total: 517 -> 584
+catalog written: 0 -> 0 (COUNT_ONLY, expected)
+staticRecipeReadyInputVariantCount: 0
+executorMaterializableInputVariantCount: 94
+blockedInputVariantCount: 490
 ```
 
 Segment-compressed scheduling reduced a Quizzes count-only selected-space comparison from:
@@ -46,7 +52,7 @@ Step: getCourseExecutionsStep
 Terminal status: SUCCESS
 ```
 
-Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is now reported separately/aligned with ScenarioExecutor semantics.
+Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is now reported separately/aligned with ScenarioExecutor semantics. Static accepted input coverage, dynamic sidecar attribution, and executor materializability are separate claims.
 
 Detailed commands and run paths live in [`evidence.md`](evidence.md).
 
@@ -58,7 +64,9 @@ Detailed commands and run paths live in [`evidence.md`](evidence.md).
 - Domain-impact scoring is not implemented.
 - GA/local search and bandit prioritization are not implemented.
 - TCC, stream/gRPC, and distributed-runtime parity are not established.
-- Dynamic evidence does not rewrite the static catalog; it is attached next to it.
+- Static accepted input coverage does not mean executor-ready or replayable.
+- Dynamic evidence does not rewrite or create static catalog structure; it is attached next to it.
+- Dynamic enrichment numbers need refresh against the post-event-semantics static catalog.
 
 ## Next meeting: in-person zoom-out
 
@@ -68,21 +76,21 @@ Do not reread every archived note. Use this page, [`current-state.md`](current-s
 
 ## Current limitation to explain plainly
 
-Static analysis can usually identify which aggregate type a step touches, but exact aggregate-instance binding is still incomplete. Dynamic evidence helps by showing what happened during real executions, but unresolved/ambiguous cases remain and should not be guessed.
+Static analysis can now accept the original event-driven target group through the implemented event topology, but 32 Quizzes sagas still lack accepted static inputs and need classification. Missing accepted input means no accepted static `InputVariant` was discovered; it does not mean no test exists.
 
-The current executor-specific hard part is materialization: turning static catalog inputs, recipes, placeholders, Spring/runtime dependencies, and runtime-produced values into live objects that can be executed reliably.
+Dynamic evidence helps by showing what happened during real executions, but it remains a sidecar and needs a fresh run after event semantics. The current executor-specific hard part is materialization: turning static catalog inputs, event payload placeholders, recipes, Spring/runtime dependencies, and runtime-produced values into live objects that can be executed reliably.
 
 ## Next work
 
-1. Classify the remaining Quizzes enrichment misses (`AMBIGUOUS=3`, `UNMATCHED=17`).
-2. Add the smallest attribution refinement justified by that classification, likely command/aggregate/literal pruning rather than broad name matching.
-3. Tighten exact aggregate-instance key extraction where it affects scenario usefulness.
-4. Turn the ScenarioExecutor POC into a minimal repeatable executor baseline.
-5. Add first fault-injection and impact-scoring hooks after the executor baseline is stable.
+1. Finalize and classify the remaining 32 Quizzes sagas without accepted static inputs.
+2. Refresh dynamic enrichment against the post-event-semantics static catalog.
+3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
+4. Tighten exact aggregate-instance key extraction where it affects scenario usefulness.
+5. Continue executor baseline/fault injection only after materialization improves.
 
 ## Question for advisor
 
 Is the next thesis milestone better framed as:
 
-1. improving scenario quality/static-dynamic matching further, or
-2. moving quickly to a minimal executable fault-injection baseline even if some generated scenarios remain conservative/type-level?
+1. improving remaining static coverage and refreshed static-dynamic attribution, or
+2. prioritizing materialization/replay so a minimal executable fault-injection baseline becomes credible?

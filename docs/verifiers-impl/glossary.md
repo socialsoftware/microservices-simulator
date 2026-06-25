@@ -41,6 +41,9 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 | `ScenarioPlan` | A generated static scenario candidate, including participating saga instances, input variants, footprints, schedules, and stable identifiers. It may expose a `FaultSpace` describing executable fault slots, but each fault vector is not a separate `ScenarioPlan`. |
 | Scenario plan id | Stable identifier for a generated `ScenarioPlan`, used to connect static catalog entries, reports, and enrichment sidecars. |
 | Input variant | A static representation of one observed way a test constructs or invokes a saga/functionality input path. |
+| Static accepted input coverage | Whether a discovered saga has at least one accepted static `InputVariant` after source-mode and policy filtering. This is not evidence that the input is executor-ready, replayable, or dynamically exercised. |
+| Event-origin input | Static `InputVariant` produced from an event-driven chain, such as the implemented `EventHandling` method -> `EventProcessing` method -> facade/functionality -> saga shape. |
+| Event payload placeholder | Placeholder in an event-origin recipe where the static extractor knows an event payload value is needed but cannot reconstruct the concrete runtime object/value. It may allow static acceptance while blocking materialization. |
 | `InputVariant` id | Stable identifier for a static input variant; when runtime evidence carries it, dynamic enrichment can join evidence exactly. |
 | Saga construction recipe | Extracted trace of how a Groovy test constructs or obtains saga inputs, including literals, helper calls, facade calls, transforms, placeholders, and unresolved values. |
 | Source mode | Classification of test input source evidence as `SAGAS`, `TCC`, `MIXED`, or `UNKNOWN`. The scenario catalog accepts saga-compatible inputs and rejects unsupported TCC/mixed candidates diagnostically. |
@@ -53,6 +56,7 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 | Term | Meaning |
 |---|---|
 | Dynamic enrichment | Optional verifier workflow that runs selected application tests, collects simulator runtime evidence, and writes sidecar-enriched catalog artifacts without changing the static catalog. |
+| Dynamic enrichment sidecar | Runtime-evidence attribution artifact attached next to the static catalog. It may guide investigation and matching, but it does not create static inputs or redefine static scenario structure. |
 | Runtime evidence | JSONL records emitted by simulator hooks during test execution, such as step events, aggregate observations, and attribution diagnostics. |
 | Dynamic input map | Per-test-class map written by the verifier before dynamic runs so simulator hooks can map runtime test identity, functionality, and step names back to static input variants. |
 | Sidecar artifact | Output that enriches or explains the static catalog without redefining it, such as `scenario-catalog-enriched.jsonl` or `dynamic-evidence-join-report.json`. |
@@ -68,6 +72,9 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 
 | Term | Meaning |
 |---|---|
+| Static recipe readiness | Input-level accounting that asks whether the extracted static recipe itself is complete enough for materialization without executor-owned/runtime-owned argument resolution. In the post-event Quizzes count-only run this is `0`, distinct from accepted input coverage and executor materializability. |
+| ScenarioExecutor materializability | Input-level accounting that asks whether the current ScenarioExecutor can materialize an accepted input using its supported constructors, placeholders, and runtime-owned argument handling. It does not mean all accepted inputs can replay or that fault execution is implemented. |
+| Runtime-owned argument resolution | ScenarioExecutor behavior where infrastructure/runtime dependencies, such as saga unit-of-work or messaging gateway arguments, are supplied by the executor/runtime rather than reconstructed from the static Groovy recipe. |
 | Scenario execution | Runtime stage that materializes catalog inputs and executes a scenario schedule. The current runner is a narrow POC for supported single-saga plans, not arbitrary catalog replay. |
 | Fault configuration | Execution-time choice of injected faults or step-level failure choices applied to a scenario execution. It is not part of static scenario identity. |
 | Fault-free execution | Current executor target where the scenario still carries fault slots, but the effective fault vector is the all-zero/default vector. |
