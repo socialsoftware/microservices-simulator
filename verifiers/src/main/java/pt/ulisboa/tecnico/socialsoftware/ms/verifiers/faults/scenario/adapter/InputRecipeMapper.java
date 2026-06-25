@@ -95,6 +95,11 @@ final class InputRecipeMapper {
         String effectiveExpectedType = firstNonBlank(expectedTypeFqn, metadata.expectedTypeFqn());
 
         if (recipe.kind() == GroovyValueKind.UNRESOLVED_VARIABLE
+                && category == GroovyValueResolutionCategory.EVENT_PLACEHOLDER) {
+            return eventPlaceholderNode(recipe, provenanceText, metadata, effectiveExpectedType);
+        }
+
+        if (recipe.kind() == GroovyValueKind.UNRESOLVED_VARIABLE
                 && (category == GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER
                 || category == GroovyValueResolutionCategory.SOURCE_PLACEHOLDER)) {
             return placeholderNode(recipe, provenanceText, metadata, category, effectiveExpectedType);
@@ -416,6 +421,27 @@ final class InputRecipeMapper {
                         : "source_provided")
                 .expectedTypeFqn(expectedTypeFqn)
                 .internalCategory(category.name())
+                .build();
+    }
+
+    private InputRecipeNode eventPlaceholderNode(GroovyValueRecipe recipe,
+                                                 String provenanceText,
+                                                 GroovyValueMetadata metadata,
+                                                 String expectedTypeFqn) {
+        LinkedHashSet<String> blockers = new LinkedHashSet<>();
+        blockers.add("EVENT_PAYLOAD_PLACEHOLDER");
+        if (metadata.placeholderId() == null || metadata.placeholderId().isBlank()) {
+            blockers.add("MISSING_PLACEHOLDER_ID");
+        }
+        return InputRecipeNode.builder("event_placeholder")
+                .sourceText(recipe.text())
+                .provenanceText(provenanceText)
+                .executorReady(false)
+                .blockers(List.copyOf(blockers))
+                .placeholderId(metadata.placeholderId())
+                .placeholderPurpose("event_payload")
+                .expectedTypeFqn(expectedTypeFqn)
+                .internalCategory(metadata.category().name())
                 .build();
     }
 

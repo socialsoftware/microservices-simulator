@@ -52,6 +52,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueMe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.EventDrivenArgumentSource;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.EventDrivenArgumentSourceKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.EventDrivenFunctionalityInvocation;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowCreationArgumentSource;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowCreationArgumentSourceKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowFunctionalityCreationSite;
@@ -444,6 +447,12 @@ public class GroovyConstructorInputTraceVisitor {
 
         if (expression instanceof MethodCallExpression methodCallExpression) {
             captureSetterMutation(methodCallExpression, methodMutationScopes);
+            if (traceEventHandlerCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
+                    methodExpressionScopes, classFieldExpressionScopes,
+                    visibleFieldKeysByClassFqn, tracedBuilders, methodName, label)) {
+                return;
+            }
+
             if (traceFacadeCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
@@ -688,6 +697,239 @@ public class GroovyConstructorInputTraceVisitor {
             return "this".equals(name) || "super".equals(name) ? null : name;
         }
         return null;
+    }
+
+    private boolean traceEventHandlerCall(MethodCallExpression methodCallExpression,
+                                          String traceSourceClassFqn,
+                                          ClassNode classNode,
+                                          GroovySourceClassMetadata metadata,
+                                          ApplicationAnalysisState state,
+                                          Map<String, Expression> methodExpressionScopes,
+                                          Map<String, Expression> classFieldExpressionScopes,
+                                          Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
+                                          List<TraceBuilder> tracedBuilders,
+                                          String methodName,
+                                          String label) {
+        String calledMethod = methodCallExpression.getMethodAsString();
+        if (calledMethod == null || state.eventDrivenFunctionalityInvocations.isEmpty()) {
+            return false;
+        }
+
+        Set<String> knownEventHandlingTypes = state.eventDrivenFunctionalityInvocations.stream()
+                .map(EventDrivenFunctionalityInvocation::eventHandlingClassFqn)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        Optional<String> receiverTypeFqn = resolveKnownReceiverType(methodCallExpression.getObjectExpression(),
+                classNode,
+                metadata,
+                knownEventHandlingTypes,
+                methodExpressionScopes,
+                classFieldExpressionScopes,
+                traceScopeKey(classNode == null ? "(unknown)" : classNode.getName(), methodName));
+        if (receiverTypeFqn.isEmpty()) {
+            return false;
+        }
+
+        List<EventDrivenFunctionalityInvocation> matchingInvocations = state.eventDrivenFunctionalityInvocations.stream()
+                .filter(invocation -> Objects.equals(invocation.eventHandlingClassFqn(), receiverTypeFqn.get()))
+                .filter(invocation -> Objects.equals(invocation.eventHandlingMethodName(), calledMethod))
+                .sorted(Comparator.comparing(EventDrivenFunctionalityInvocation::sagaClassFqn))
+                .toList();
+        if (matchingInvocations.isEmpty()) {
+            return false;
+        }
+
+        for (EventDrivenFunctionalityInvocation invocation : matchingInvocations) {
+            TraceBuilder builder = new TraceBuilder(traceSourceClassFqn,
+                    contextName(methodName, null), null, invocation.sagaClassFqn());
+            builder.originKind = GroovyTraceOriginKind.EVENT_HANDLER_CALL;
+            builder.sourceExpressionText = methodCallExpression.getText();
+            builder.appendContextLabel(label);
+            builder.appendConstructorLine(methodCallExpression.getText());
+
+            appendEventArgumentLines(builder, invocation, state,
+                    traceScopeKey(classNode == null ? "(unknown)" : classNode.getName(), methodName));
+            invocation.resolutionNotes().forEach(builder::appendDetailLine);
+            registerConstructorTrace(builder, state);
+            tracedBuilders.add(builder);
+        }
+
+        return true;
+    }
+
+    private void appendEventArgumentLines(TraceBuilder builder,
+                                          EventDrivenFunctionalityInvocation invocation,
+                                          ApplicationAnalysisState state,
+                                          String traceScopeKey) {
+        int constructorArity = invocation.argumentSources().stream()
+                .mapToInt(EventDrivenArgumentSource::argumentIndex)
+                .max()
+                .orElse(-1) + 1;
+        List<String> expectedTypeFqns = resolveConstructorParameterTypeFqns(invocation.sagaClassFqn(),
+                constructorArity, state).orElse(null);
+        invocation.argumentSources().stream()
+                .sorted(Comparator.comparingInt(EventDrivenArgumentSource::argumentIndex))
+                .forEach(source -> {
+                    String expectedTypeFqn = expectedTypeFqns == null || source.argumentIndex() >= expectedTypeFqns.size()
+                            ? null
+                            : expectedTypeFqns.get(source.argumentIndex());
+                    ValueTrace trace = buildEventArgumentTrace(source, expectedTypeFqn, traceScopeKey);
+                    builder.appendInputLine(source.argumentIndex(), trace.provenance(), trace.recipe());
+                });
+    }
+
+    private ValueTrace buildEventArgumentTrace(EventDrivenArgumentSource source,
+                                               String expectedTypeFqn,
+                                               String traceScopeKey) {
+        if (source == null) {
+            return buildUnknownUnresolvedVariableTrace("(unknown event argument)", "(unknown)");
+        }
+
+        GroovyValueRecipe recipe;
+        if (source.kind() == EventDrivenArgumentSourceKind.INJECTABLE_FIELD) {
+            recipe = new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE,
+                    source.recipeText(),
+                    List.of(),
+                    new GroovyValueMetadata(GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER,
+                            expectedTypeFqn,
+                            firstNonBlank(source.placeholderId(), placeholderId(traceScopeKey, source.recipeText(), GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER)),
+                            null));
+        } else if (source.kind() == EventDrivenArgumentSourceKind.SOURCE_PLACEHOLDER) {
+            recipe = new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE,
+                    source.recipeText(),
+                    List.of(),
+                    new GroovyValueMetadata(GroovyValueResolutionCategory.SOURCE_PLACEHOLDER,
+                            expectedTypeFqn,
+                            firstNonBlank(source.placeholderId(), placeholderId(traceScopeKey, source.recipeText(), GroovyValueResolutionCategory.SOURCE_PLACEHOLDER)),
+                            null));
+        } else if (source.kind() == EventDrivenArgumentSourceKind.RUNTIME_CALL) {
+            RuntimeCallParseResult parsed = parseRuntimeCallFromText(source.recipeText()).orElse(null);
+            recipe = new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE,
+                    source.recipeText(),
+                    List.of(),
+                    new GroovyValueMetadata(GroovyValueResolutionCategory.RUNTIME_CALL,
+                            expectedTypeFqn,
+                            null,
+                            parsed == null ? null : parsed.runtimeCallRecipe()));
+        } else {
+            recipe = new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE,
+                    source.recipeText(),
+                    List.of(),
+                    new GroovyValueMetadata(GroovyValueResolutionCategory.EVENT_PLACEHOLDER,
+                            expectedTypeFqn,
+                            firstNonBlank(source.placeholderId(), placeholderId(traceScopeKey, source.recipeText(), GroovyValueResolutionCategory.EVENT_PLACEHOLDER)),
+                            null));
+        }
+
+        return new ValueTrace(source.provenance(), recipe);
+    }
+
+    private Optional<String> resolveKnownReceiverType(Expression receiverExpression,
+                                                      ClassNode classNode,
+                                                      GroovySourceClassMetadata metadata,
+                                                      Set<String> knownTypes,
+                                                      Map<String, Expression> methodExpressionScopes,
+                                                      Map<String, Expression> classFieldExpressionScopes,
+                                                      String traceScopeKey) {
+        return resolveKnownReceiverType(receiverExpression,
+                classNode,
+                metadata,
+                knownTypes,
+                methodExpressionScopes,
+                classFieldExpressionScopes,
+                0,
+                new LinkedHashSet<>(),
+                traceScopeKey);
+    }
+
+    private Optional<String> resolveKnownReceiverType(Expression receiverExpression,
+                                                      ClassNode classNode,
+                                                      GroovySourceClassMetadata metadata,
+                                                      Set<String> knownTypes,
+                                                      Map<String, Expression> methodExpressionScopes,
+                                                      Map<String, Expression> classFieldExpressionScopes,
+                                                      int depth,
+                                                      Set<String> visitedVariableNames,
+                                                      String traceScopeKey) {
+        if (receiverExpression == null || depth > MAX_TRACE_DEPTH) {
+            return Optional.empty();
+        }
+
+        if (receiverExpression instanceof VariableExpression variableExpression) {
+            String variableName = variableExpression.getName();
+            String scopedVariableKey = scopedVariableKey(traceScopeKey, variableName);
+            if (scopedVariableKey != null && !visitedVariableNames.add(scopedVariableKey)) {
+                return Optional.empty();
+            }
+
+            Expression resolvedExpression = resolveExpressionFromScopes(variableName,
+                    methodExpressionScopes, classFieldExpressionScopes);
+            if (resolvedExpression != null && !isSelfReference(variableExpression, resolvedExpression)) {
+                Optional<String> resolvedType = resolveKnownReceiverType(resolvedExpression,
+                        classNode,
+                        metadata,
+                        knownTypes,
+                        methodExpressionScopes,
+                        classFieldExpressionScopes,
+                        depth + 1,
+                        visitedVariableNames,
+                        traceScopeKey);
+                if (scopedVariableKey != null) {
+                    visitedVariableNames.remove(scopedVariableKey);
+                }
+                if (resolvedType.isPresent()) {
+                    return resolvedType;
+                }
+            }
+
+            if (variableName != null && methodExpressionScopes.containsKey(variableName)) {
+                if (scopedVariableKey != null) {
+                    visitedVariableNames.remove(scopedVariableKey);
+                }
+                return Optional.empty();
+            }
+
+            Optional<String> explicitFieldType = resolveFieldTypeFqn(classNode, variableName, metadata, knownTypes);
+            if (scopedVariableKey != null) {
+                visitedVariableNames.remove(scopedVariableKey);
+            }
+            return explicitFieldType;
+        }
+
+        if (receiverExpression instanceof PropertyExpression propertyExpression) {
+            Optional<String> scopeName = resolveScopeName(propertyExpression);
+            if (scopeName.isPresent()) {
+                Expression resolvedExpression = resolveExpressionFromScopes(scopeName.get(),
+                        methodExpressionScopes, classFieldExpressionScopes);
+                if (resolvedExpression != null) {
+                    Optional<String> resolvedType = resolveKnownReceiverType(resolvedExpression,
+                            classNode,
+                            metadata,
+                            knownTypes,
+                            methodExpressionScopes,
+                            classFieldExpressionScopes,
+                            depth + 1,
+                            visitedVariableNames,
+                            traceScopeKey);
+                    if (resolvedType.isPresent()) {
+                        return resolvedType;
+                    }
+                }
+
+                if (methodExpressionScopes.containsKey(scopeName.get())) {
+                    return Optional.empty();
+                }
+
+                return resolveFieldTypeFqn(classNode, scopeName.get(), metadata, knownTypes);
+            }
+
+            return Optional.empty();
+        }
+
+        if (receiverExpression instanceof ConstructorCallExpression constructorCallExpression) {
+            return resolveGroovyTypeFqn(constructorCallExpression.getType().getName(), metadata, knownTypes);
+        }
+
+        return Optional.empty();
     }
 
     private boolean traceFacadeCall(MethodCallExpression methodCallExpression,

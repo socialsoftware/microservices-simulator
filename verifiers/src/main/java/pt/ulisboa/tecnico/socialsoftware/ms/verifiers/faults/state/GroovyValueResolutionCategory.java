@@ -5,5 +5,6 @@ public enum GroovyValueResolutionCategory {
     SOURCE_PLACEHOLDER,
     INJECTABLE_PLACEHOLDER,
     RUNTIME_CALL,
+    EVENT_PLACEHOLDER,
     UNKNOWN_UNRESOLVED
 }

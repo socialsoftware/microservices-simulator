@@ -577,7 +577,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
 
         boolean replayableCategory = category == GroovyValueResolutionCategory.SOURCE_PLACEHOLDER
                 || category == GroovyValueResolutionCategory.INJECTABLE_PLACEHOLDER
-                || category == GroovyValueResolutionCategory.RUNTIME_CALL;
+                || category == GroovyValueResolutionCategory.RUNTIME_CALL
+                || category == GroovyValueResolutionCategory.EVENT_PLACEHOLDER;
         boolean unresolvedCategory = category == GroovyValueResolutionCategory.UNKNOWN_UNRESOLVED;
         boolean unresolvedKind = recipe.kind() == GroovyValueKind.UNRESOLVED_VARIABLE
                 || recipe.kind() == GroovyValueKind.UNRESOLVED_RUNTIME_EDGE;

@@ -416,6 +416,7 @@ public class AnalysisHtmlReportRenderer {
         appendCard(html, "Command handlers", state.commandHandlers.size());
         appendCard(html, "Sagas", state.sagas.size());
         appendCard(html, "Creation sites", state.sagaCreationSites.size());
+        appendCard(html, "Event bridges", state.eventDrivenFunctionalityInvocations.size());
         appendCard(html, "Groovy constructor traces", state.groovyConstructorInputTraces.size());
         appendCard(html, "Groovy full traces", state.groovyFullTraceResults.size());
         appendCard(html, "Unresolved markers", unresolvedTotal);
@@ -1514,6 +1515,7 @@ public class AnalysisHtmlReportRenderer {
             case RUNTIME_CALL -> new ReplayCategoryView(safeCategory, "runtime call", "high", "severity-high", 3, occurrences);
             case SOURCE_PLACEHOLDER -> new ReplayCategoryView(safeCategory, "source placeholder", "low", "severity-low", 1, occurrences);
             case INJECTABLE_PLACEHOLDER -> new ReplayCategoryView(safeCategory, "injectable placeholder", "low", "severity-low", 1, occurrences);
+            case EVENT_PLACEHOLDER -> new ReplayCategoryView(safeCategory, "event payload placeholder", "medium", "severity-medium", 2, occurrences);
             case UNKNOWN_UNRESOLVED -> new ReplayCategoryView(safeCategory, "unknown unresolved", "medium", "severity-medium", 2, occurrences);
             case RESOLVED -> new ReplayCategoryView(safeCategory, "resolved", "low", "severity-low", 0, occurrences);
         };
@@ -1603,6 +1605,7 @@ public class AnalysisHtmlReportRenderer {
         return switch (originKind) {
             case DIRECT_CONSTRUCTOR -> "direct";
             case FACADE_CALL -> "facade";
+            case EVENT_HANDLER_CALL -> "event";
         };
     }
 

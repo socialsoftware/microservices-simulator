@@ -264,6 +264,16 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             }
         });
 
+        EventHandlingBridgeVisitor eventHandlingBridgeVisitor = new EventHandlingBridgeVisitor();
+        parser.getJavaFilePathsForApplication(applicationsRootPath, applicationBaseDir).forEach((fqn, path) -> {
+            try {
+                eventHandlingBridgeVisitor.visit(StaticJavaParser.parse(path), applicationAnalysisState);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        eventHandlingBridgeVisitor.finish(applicationAnalysisState);
+
         GroovySourceIndex groovySourceIndex = new GroovySourceIndex();
         Path groovyTestRoot = applicationPath.resolve(Paths.get("src", "test", "groovy")).normalize();
         if (Files.isDirectory(groovyTestRoot)) {

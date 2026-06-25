@@ -19,6 +19,8 @@ public class ApplicationAnalysisState {
     public final List<CommandHandlerBuildingBlock> commandHandlers = new ArrayList<>();
     public final List<SagaFunctionalityBuildingBlock> sagas = new ArrayList<>();
     public final List<WorkflowFunctionalityCreationSite> sagaCreationSites = new ArrayList<>();
+    public final List<EventDrivenFunctionalityInvocation> eventDrivenFunctionalityInvocations = new ArrayList<>();
+    public final List<String> eventDrivenFunctionalityDiagnostics = new ArrayList<>();
     public final List<GroovyConstructorInputTrace> groovyConstructorInputTraces = new ArrayList<>();
     public final List<GroovyFullTraceResult> groovyFullTraceResults = new ArrayList<>();
 
@@ -180,6 +182,35 @@ public class ApplicationAnalysisState {
                         site.argumentSources().forEach(source -> appendLine(report, "  - arg[" + source.argumentIndex() + "]: " +
                                 formatCreationArgumentSource(source)));
                     });
+        }
+
+        appendLine(report, "Event-driven functionality invocations (" + eventDrivenFunctionalityInvocations.size() + ")");
+        if (eventDrivenFunctionalityInvocations.isEmpty()) {
+            appendLine(report, "  (none)");
+        } else {
+            eventDrivenFunctionalityInvocations.stream()
+                    .sorted(Comparator.comparing(EventDrivenFunctionalityInvocation::eventHandlingClassFqn)
+                            .thenComparing(EventDrivenFunctionalityInvocation::eventHandlingMethodName)
+                            .thenComparing(EventDrivenFunctionalityInvocation::sagaClassFqn))
+                    .forEach(invocation -> {
+                        appendLine(report, "- " +
+                                simpleName(invocation.eventHandlingClassFqn()) + "." + invocation.eventHandlingMethodName() + "() -> " +
+                                simpleName(invocation.sagaClassFqn()));
+                        appendLine(report, "  event: " + simpleName(invocation.eventTypeFqn()) +
+                                ", handler: " + simpleName(invocation.eventHandlerClassFqn()) +
+                                ", processing: " + simpleName(invocation.eventProcessingClassFqn()) + "." + invocation.eventProcessingMethodName() + "()" +
+                                ", facade: " + simpleName(invocation.facadeClassFqn()) + "." + invocation.facadeMethodName() + "()");
+                        invocation.argumentSources().forEach(source -> appendLine(report, "  - arg[" + source.argumentIndex() + "]: " +
+                                source.kind() + " " + source.provenance()));
+                        invocation.resolutionNotes().forEach(note -> appendLine(report, "  note: " + note));
+                    });
+        }
+
+        appendLine(report, "Event-driven functionality diagnostics (" + eventDrivenFunctionalityDiagnostics.size() + ")");
+        if (eventDrivenFunctionalityDiagnostics.isEmpty()) {
+            appendLine(report, "  (none)");
+        } else {
+            appendIndentedEntries(report, eventDrivenFunctionalityDiagnostics.stream().sorted().toList(), 1);
         }
 
         appendLine(report, "Groovy constructor-input traces (" + groovyConstructorInputTraces.size() + ")");
