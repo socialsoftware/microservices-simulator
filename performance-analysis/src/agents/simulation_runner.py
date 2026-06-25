@@ -15,8 +15,7 @@ class WorkloadConfig:
     users: int
     spawn_rate: int
     iterations: int
-    runtime_seconds: int = None
-    rw_ratio: int = 1
+    runtime_seconds: int
 
 
 class SimRunner:
@@ -64,10 +63,12 @@ class SimRunner:
             "-r", str(workload.spawn_rate)
         ]
 
-        if workload.iterations is not None:
+        # As explain in the yaml configuration, run-time is the default behavior
+        # Set it to 0 in order to use iterations
+        if workload.runtime_seconds > 0:
+            cmd.extend(["-t", str(workload.runtime_seconds)])
+        else:
             cmd.extend(["--iterations", str(workload.iterations)])
-        elif workload.runtime is not None:
-            cmd.extend(["-t", str(workload.runtime)])
 
         try:
             # We use subprocess.run to wait for the workload to finish
@@ -80,6 +81,7 @@ class SimRunner:
                 stderr=subprocess.DEVNULL,
                 timeout=100
             )
+            logging.info(f"cmd: {cmd}")
             logging.info(
                 f"Workload {workload.file} completed.")
         except subprocess.TimeoutExpired as e:

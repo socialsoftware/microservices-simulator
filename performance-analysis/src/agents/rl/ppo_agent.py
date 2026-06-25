@@ -38,13 +38,14 @@ def run_ppo(
     reward_strat = RewardStrategyFactory.create(
         environment["reward_type"], alpha=environment["alpha"], beta=environment["beta"])
     observation_strat = ObservationStrategyFactory.create(
-        environment["observation_type"], environment["microservices_num"], environment["nodes_num"])
+        environment["observation_type"], environment["microservices_num"], environment["nodes_num"], run_time=workload_cfg["run-time"])
 
     env = MicroserviceOptimizerEnv(
         sim_runner,
         workload_cfg["workloads"],
         tuple(workload_cfg["users"]),
         tuple(workload_cfg["iterations"]),
+        workload_cfg["run-time"],
         reward_strat,
         observation_strat,
         environment["microservices_num"],

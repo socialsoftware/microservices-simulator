@@ -19,6 +19,7 @@ class MicroserviceOptimizerEnv(gym.Env):
         workloads: list[WorkloadConfig],
         users_interval: tuple[int, int],
         iterations_interval: tuple[int, int],
+        run_time: int,
         reward_strat: RewardStrategy,
         observation_strat: ObservationStrategy,
         num_services: int,
@@ -32,6 +33,7 @@ class MicroserviceOptimizerEnv(gym.Env):
         self.workloads = workloads
         self.users_itvl = users_interval
         self.iterations_itvl = iterations_interval
+        self.run_time = run_time
         self.reward_strategy = reward_strat
         self.obs_strategy = observation_strat
 
@@ -64,7 +66,7 @@ class MicroserviceOptimizerEnv(gym.Env):
         logging.info(
             f"Workload: file={file}, users={users}, iterations={iterations}")
         # TODO: randomize task weights
-        return WorkloadConfig(file, users, users, iterations)
+        return WorkloadConfig(file, users, users, iterations, self.run_time)
 
     def reset(self, seed=None, options=None):
         """
@@ -87,7 +89,7 @@ class MicroserviceOptimizerEnv(gym.Env):
         self.last_metrics = metrics
 
         initial_observation = self.obs_strategy.build_observation(
-            new_config, self.wl_config)
+            new_config, metrics)
 
         return initial_observation, {}
 
@@ -162,19 +164,19 @@ class MicroserviceOptimizerEnv(gym.Env):
             reward = self.reward_strategy.invalid_action_reward
             metrics = self.last_metrics
             obs = self.obs_strategy.build_observation(
-                self.sim_runner.current_config, self.wl_config)
+                self.sim_runner.current_config, metrics)
         elif is_stop_action:
             reward = self.reward_strategy.stop_reward
             metrics = self.last_metrics
             obs = self.obs_strategy.build_observation(
-                self.sim_runner.current_config, self.wl_config)
+                self.sim_runner.current_config, metrics)
         else:
             metrics = self.sim_runner.evaluate_configuration(
                 new_config, self.wl_config)
             reward = self.reward_strategy.compute(self.last_metrics, metrics)
             self.last_metrics = metrics
             obs = self.obs_strategy.build_observation(
-                self.sim_runner.current_config, self.wl_config)
+                self.sim_runner.current_config, metrics)
 
         reward -= self.reward_strategy.time_tax
 

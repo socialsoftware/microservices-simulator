@@ -2,14 +2,25 @@ environment:
   microservices_num: 8
   nodes_num: 3
   reward_type: "global_average_latency"
-  observation_type: "basic"
+  observation_type: "complex"
   alpha: 0.5
   beta: 0.5
 
 workloads:
-  workloads: ["base_wl.py", "semester_start_wl.py", "tournament_period_wl.py", "steady_wl"]
-  users: [30, 50] # interval of min, max users per workload
-  iterations: [300, 500]
+  workloads:
+    [
+      "base_wl.py",
+      "semester_start_wl.py",
+      "tournament_period_wl.py",
+      "steady_wl",
+    ]
+  # Interval of min, max users per workload
+  users: [100, 300]
+  # Each workload (step) runs for this exact time regardless of the requests processed
+  run-time: 0 # seconds
+  # Each workload (step) executes this amount of tasks
+  iterations: [500, 1000]
+  # NOTE: If you want to use iterations instead of run-time, simply set 'run-time: 0'
 
 ppo_hyperparameters:
   learning_rate: 0.0003
@@ -22,9 +33,9 @@ ppo_hyperparameters:
 
 training:
   steps_per_episode: 50
-  total_timesteps: 10000
-  eval_freq: 50
-  checkpoint_freq: 20
+  total_timesteps: 100000
+  eval_freq: 2048
+  checkpoint_freq: 2048
 
 paths:
   models_dir: "./models/"
