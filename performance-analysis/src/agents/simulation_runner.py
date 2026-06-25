@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 from src.simulator_tools.simulator_utils import *
-from src.simulator_tools.db_utils import *
+from src.simulator_tools.h2_utils import *
 from dataclasses import dataclass
 
 
@@ -76,8 +76,8 @@ class SimRunner:
                 cmd,
                 check=False,
                 cwd=workloads_dir,
-                #stdout=subprocess.DEVNULL,
-                #stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 timeout=100
             )
             logging.info(
@@ -94,17 +94,7 @@ class SimRunner:
 
         # Reset metrics and DB so every config starts from the same point
         self.trace_collector.reset()
-
-        db_ready = False
-        while not db_ready:
-            try:
-                DBManager.reset_database()
-                DBManager.populate_database()
-                db_ready = True
-            except Exception as e:
-                logging.error(
-                    f"Critical DB setup failure: {e}. Retrying in 3 seconds...")
-                time.sleep(3)
+        H2DBManager.reset_db_state()
 
         SimInterface.inject_configuration(config)
         self.current_config = config

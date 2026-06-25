@@ -1,5 +1,5 @@
 from src.agents.rl.ppo_agent import run_ppo
-from src.simulator_tools.db_utils import DBManager
+from src.simulator_tools.h2_utils import H2DBManager
 from src.agents.simulation_runner import SimRunner, WorkloadConfig
 import time
 
@@ -15,7 +15,7 @@ def start_training(
     Starts the agent training loop.
     """
 
-    DBManager.convert_tables_to_unlogged()  # Unlog all tables to optimize database
+    H2DBManager.setup_db_state()
 
     if agent == "ppo":
         logging.info("Initializing PPO agent")

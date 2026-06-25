@@ -61,6 +61,8 @@ class MicroserviceOptimizerEnv(gym.Env):
         iterations = random.randint(*self.iterations_itvl)
         users = random.randint(*self.users_itvl)
         file = random.choice(self.workloads)
+        logging.info(
+            f"Workload: file={file}, users={users}, iterations={iterations}")
         # TODO: randomize task weights
         return WorkloadConfig(file, users, users, iterations)
 
