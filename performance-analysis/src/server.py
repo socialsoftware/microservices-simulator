@@ -1,7 +1,6 @@
 import threading
 from concurrent import futures
 import json
-
 import grpc
 from opentelemetry.proto.collector.trace.v1 import (
     trace_service_pb2,
@@ -10,6 +9,9 @@ from opentelemetry.proto.collector.trace.v1 import (
 
 from src.trace_collection.trace_collector import TraceManager
 from src.agents.train import start_training
+
+import logging
+logging.basicConfig(level=logging.WARNING)
 
 # Create the single, shared instance of the TraceManager
 trace_manager = TraceManager()
@@ -59,6 +61,7 @@ def interactive_cli():
     print("  read  - Print current metrics")
     print("  reset - Reset trace manager metrics")
     print("  train - Start the agent training loop")
+    print("  debug - Toggle debug logging")
     print("  exit  - Stop the server and exit")
 
     while True:
@@ -77,6 +80,14 @@ def interactive_cli():
                     start_training(trace_manager, "ppo")
                 else:
                     start_training(trace_manager, "test")
+            elif cmd == "debug":
+                logger = logging.getLogger()
+                if logger.level == logging.INFO:
+                    logger.setLevel(logging.WARNING)
+                    print("Logging level set to WARNING")
+                else:
+                    logger.setLevel(logging.INFO)
+                    print("Logging level set to INFO")
             elif cmd in ["exit", "quit"]:
                 print("Exiting...")
                 break

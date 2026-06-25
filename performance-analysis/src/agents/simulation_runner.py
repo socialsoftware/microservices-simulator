@@ -81,7 +81,6 @@ class SimRunner:
                 stderr=subprocess.DEVNULL,
                 timeout=100
             )
-            logging.info(f"cmd: {cmd}")
             logging.info(
                 f"Workload {workload.file} completed.")
         except subprocess.TimeoutExpired as e:

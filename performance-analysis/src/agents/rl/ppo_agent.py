@@ -34,6 +34,10 @@ def run_ppo(
     train_cfg = config["training"]
     paths = config["paths"]
 
+    # ==========================================
+    # Setup Training Environment
+    # ==========================================
+
     sim_runner = SimRunner(trace_manager)
     reward_strat = RewardStrategyFactory.create(
         environment["reward_type"], alpha=environment["alpha"], beta=environment["beta"])
@@ -59,14 +63,37 @@ def run_ppo(
     env = ActionMasker(env, mask_fn)
     env = Monitor(env)
 
+    # ==========================================
+    # Setup Evaluation Environment
+    # ==========================================
+
+    eval_sim_runner = SimRunner(trace_manager)
+
+    eval_env = MicroserviceOptimizerEnv(
+        eval_sim_runner,
+        workload_cfg["workloads"],
+        tuple(workload_cfg["users"]),
+        tuple(workload_cfg["iterations"]),
+        workload_cfg["run-time"],
+        reward_strat,
+        observation_strat,
+        environment["microservices_num"],
+        environment["nodes_num"],
+        train_cfg["steps_per_episode"]
+    )
+
+    eval_env = ActionMasker(eval_env, mask_fn)
+    eval_env = Monitor(eval_env)
+
     os.makedirs(paths["models_dir"], exist_ok=True)
     os.makedirs(paths["checkpoints_dir"], exist_ok=True)
 
     eval_callback = MaskableEvalCallback(
-        env,
+        eval_env,
         best_model_save_path=paths["models_dir"],
         log_path=paths["models_dir"],
         eval_freq=train_cfg["eval_freq"],
+        n_eval_episodes=1,  # (for testing)
         deterministic=True,
         render=False
     )
@@ -76,6 +103,10 @@ def run_ppo(
         save_path=paths["checkpoints_dir"],
         name_prefix='ppo_model'
     )
+
+    # ==========================================
+    # Setup Agent Model
+    # ==========================================
 
     model = MaskablePPO(
         "MultiInputPolicy",
