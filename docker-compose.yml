@@ -201,7 +201,7 @@ services:
     pull_policy: build
     container_name: fault-analysis-scenario-gen
     environment:
-      SPRING_PROFILES_ACTIVE: sagas,local
+      SPRING_PROFILES_ACTIVE: test,sagas,local
       VERIFIERS_APPLICATIONS_ROOT: /applications
       VERIFIERS_APPLICATION_BASE_DIR: quizzes
       VERIFIERS_OUTPUT_ROOT: /reports
