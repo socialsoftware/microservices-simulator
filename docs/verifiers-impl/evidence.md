@@ -134,7 +134,7 @@ Fresh full/default sagas-only Quizzes run against the post-event-semantics stati
 verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
 ```
 
-The run used `SPRING_PROFILES_ACTIVE=test,sagas,local`. This matters because four async `@SpringBootTest` classes rely on the `test` profile datasource configuration. A first run with only `sagas,local` is preserved under `verifiers/target/2026-06-29-dynamic-baseline/`, but should not be used as the baseline because it introduced profile-related `ApplicationContext` failures.
+The run used `SPRING_PROFILES_ACTIVE=test,sagas,local`. This matters because four async `@SpringBootTest` classes rely on the `test` profile datasource configuration. A first run with only `sagas,local` introduced profile-related `ApplicationContext` failures, so use `test,sagas,local` for this baseline.
 
 Static catalog summary:
 
