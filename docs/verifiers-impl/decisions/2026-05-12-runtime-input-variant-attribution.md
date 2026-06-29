@@ -4,11 +4,13 @@ Date: 2026-05-12
 
 ## Status
 
-Accepted; partially implemented.
+Accepted; first-pass implementation active.
 
 The dynamic-enrichment bridge can collect runtime evidence and join it back to static scenario plans. It can produce `MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `AMBIGUOUS`, `UNMATCHED`, and `NOT_COVERED` results.
 
-The first-pass runtime attribution path is implemented: the verifier writes per-test `dynamic-input-map.json` files, the simulator loads those maps, runtime events can carry static `inputVariantId`, and the joiner upgrades matching scenario plans to `MATCHED_EXACT`.
+The first-pass runtime attribution path is implemented: the verifier writes a `dynamic-input-map.json`, the simulator loads that map, runtime events can carry static `inputVariantId`, and the joiner upgrades matching scenario plans to `MATCHED_EXACT`.
+
+2026-06-29 update: the current run shape writes a run-level map for the selected-test-class Maven batch, not one map per Maven process/class. The refreshed post-event Quizzes baseline is `MATCHED_EXACT=291`, `MATCHED_HIGH_CONFIDENCE=109`, `AMBIGUOUS=0`, `UNMATCHED=184`, `warningCount=0`. Older counts in this decision are historical evidence for why the runtime-attribution path was added.
 
 Deferred parts:
 
@@ -95,21 +97,27 @@ Reason:
 
 If the verifier infers the id afterward, that is still a heuristic. It can be `MATCHED_HIGH_CONFIDENCE`, but not exact.
 
-### 2. Use one input map per test class
+### 2. Write an input map for the dynamic test selection
 
-The verifier already runs dynamic enrichment one test class at a time.
-
-Decision:
+Original 2026-05-12 decision:
 
 ```text
 dynamic-evidence/<safe-test-class>/dynamic-input-map.json
 ```
 
-Each map contains only accepted `InputVariant`s from the final generated scenario plans for that test class.
+The original plan used one map per test class because the dynamic runner was shaped as one Maven execution per class.
+
+Current 2026-06-29 implementation shape:
+
+```text
+<run-dir>/dynamic-evidence/dynamic-input-map.json
+```
+
+The current verifier runs a selected-test-class Maven batch and writes a run-level map containing accepted `InputVariant`s from the final generated scenario plans. Entries still carry test ownership metadata, so runtime attribution can filter by test identity even though the map is not physically split per class.
 
 Reason:
 
-Per-class maps are small, debuggable, and aligned with the existing per-class evidence directories.
+The important invariant is not the file granularity. The important invariant is that the simulator receives a verifier-generated map built from accepted final catalog inputs and uses test ownership + functionality class + step name before emitting exact `inputVariantId` evidence.
 
 ### 3. Emit runtime workflow class identity
 
@@ -183,7 +191,7 @@ Command fields remain useful diagnostics, but not exact attribution evidence yet
 
 Implementation status:
 
-Deferred. The first-pass implementation currently attributes from test identity, runtime functionality class FQN, and runtime step name. Command and aggregate runtime ids are the next refinement candidates, after classifying the remaining Quizzes `AMBIGUOUS=3` and `UNMATCHED=17` records.
+Deferred. The first-pass implementation currently attributes from test identity, runtime functionality class FQN, and runtime step name. Command and aggregate runtime ids are the next refinement candidates, after classifying the refreshed Quizzes `UNMATCHED=184` records.
 
 ### 6. Allow later events to resolve the step context
 
@@ -396,7 +404,7 @@ Status: partially implemented. Dummyapp now proves the key before/after status s
 
 Compare the same Quizzes dynamic-enrichment baseline before and after propagation.
 
-Original full-run baseline:
+Historical 2026-05-12 original full-run baseline:
 
 ```text
 MATCHED_EXACT=0
@@ -418,7 +426,7 @@ functionalityClassMismatches = 0
 testIdentityMismatches = 0
 ```
 
-Observed refreshed Quizzes result after first-pass runtime attribution:
+Historical 2026-05-12 refreshed Quizzes result after first-pass runtime attribution:
 
 ```text
 MATCHED_EXACT=46
@@ -428,6 +436,18 @@ AMBIGUOUS=3
 UNMATCHED=17
 NOT_COVERED=0
 warningCount=328
+```
+
+Current 2026-06-29 post-event-semantics refreshed Quizzes result:
+
+```text
+MATCHED_EXACT=291
+MATCHED_HIGH_CONFIDENCE=109
+MATCHED_PARTIAL=0
+AMBIGUOUS=0
+UNMATCHED=184
+NOT_COVERED=0
+warningCount=0
 ```
 
 Status: implemented for the comparable local/sagas Quizzes run. The result mainly improved exactness and reduced ambiguity/warnings; it did not prove that every useful static input is dynamically covered.

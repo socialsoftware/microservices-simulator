@@ -6,15 +6,21 @@ Date: 2026-04-28
 
 Accepted and partially implemented (2026-05-01).
 
-Implemented in this first slice:
+Implemented in the first slice:
 
 - simulator dynamic evidence JSONL + test-context capture;
-- verifier orchestration of per-test-class evidence collection;
+- verifier orchestration of selected-test evidence collection;
 - sidecar enrichment join/report artifacts.
+
+2026-06-29 evolution:
+
+- direct runtime `inputVariantId` propagation is implemented for the local/sagas bridge;
+- the current Quizzes dynamic baseline writes a run-level `dynamic-input-map.json` for the selected-test-class Maven batch;
+- the refreshed post-event baseline produced `MATCHED_EXACT=291`, `MATCHED_HIGH_CONFIDENCE=109`, `AMBIGUOUS=0`, `UNMATCHED=184`.
 
 Still deferred from this decision:
 
-- direct runtime `inputVariantId` propagation;
+- deeper runtime matching using command/aggregate values;
 - stream/gRPC/distributed/TCC parity;
 - executor/runtime materialization stages.
 

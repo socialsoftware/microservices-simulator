@@ -1,6 +1,6 @@
 # Advisor brief
 
-Last updated: 2026-06-25
+Last updated: 2026-06-29
 
 Use this page before thesis meetings. It is intentionally short. For implementation detail, follow links from [`current-state.md`](current-state.md).
 
@@ -8,7 +8,7 @@ Use this page before thesis meetings. It is intentionally short. For implementat
 
 The verifier can generate deterministic saga scenario catalogs from application source and tests, including accepted static inputs for the implemented `EventHandling`/`EventProcessing` event-origin shape, enrich those catalogs with runtime evidence from existing simulator test runs, and run a narrow single-saga executor POC for supported catalog entries.
 
-The current thesis gap is no longer the original event-driven static input hole for the target group. The hard boundary is now materialization/replayability plus refreshed dynamic attribution, before a repeatable fault-injection and impact-scoring baseline.
+The current thesis gap is no longer the original event-driven static input hole for the target group, and the dynamic attribution baseline has now been refreshed. The hard boundary is now materialization/replayability plus a repeatable fault-injection and impact-scoring baseline.
 
 ## What exists now
 
@@ -35,6 +35,19 @@ catalog written: 0 -> 0 (COUNT_ONLY, expected)
 staticRecipeReadyInputVariantCount: 0
 executorMaterializableInputVariantCount: 94
 blockedInputVariantCount: 490
+```
+
+Fresh post-event-semantics Quizzes dynamic baseline:
+
+```text
+run: verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
+scenario records: 584
+test classes selected/passed/failed: 45 / 43 / 2
+dynamicEventsRead: 26820
+MATCHED_EXACT: 291
+MATCHED_HIGH_CONFIDENCE: 109
+AMBIGUOUS: 0
+UNMATCHED: 184
 ```
 
 Segment-compressed scheduling reduced a Quizzes count-only selected-space comparison from:
@@ -66,7 +79,7 @@ Detailed commands and run paths live in [`evidence.md`](evidence.md).
 - TCC, stream/gRPC, and distributed-runtime parity are not established.
 - Static accepted input coverage does not mean executor-ready or replayable.
 - Dynamic evidence does not rewrite or create static catalog structure; it is attached next to it.
-- Dynamic enrichment numbers need refresh against the post-event-semantics static catalog.
+- The refreshed dynamic baseline does not validate every static scenario; `UNMATCHED=184` remains.
 
 ## Next meeting: in-person zoom-out
 
@@ -78,12 +91,12 @@ Do not reread every archived note. Use this page, [`current-state.md`](current-s
 
 Static analysis can now accept the original event-driven target group through the implemented event topology, but 32 Quizzes sagas still lack accepted static inputs and need classification. Missing accepted input means no accepted static `InputVariant` was discovered; it does not mean no test exists.
 
-Dynamic evidence helps by showing what happened during real executions, but it remains a sidecar and needs a fresh run after event semantics. The current executor-specific hard part is materialization: turning static catalog inputs, event payload placeholders, recipes, Spring/runtime dependencies, and runtime-produced values into live objects that can be executed reliably.
+Dynamic evidence helps by showing what happened during real executions, but it remains a sidecar. The current executor-specific hard part is materialization: turning static catalog inputs, event payload placeholders, recipes, Spring/runtime dependencies, and runtime-produced values into live objects that can be executed reliably.
 
 ## Next work
 
 1. Finalize and classify the remaining 32 Quizzes sagas without accepted static inputs.
-2. Refresh dynamic enrichment against the post-event-semantics static catalog.
+2. Classify the refreshed dynamic baseline's `UNMATCHED=184` records and decide whether improving runtime matching is worth it before executor work.
 3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
 4. Tighten exact aggregate-instance key extraction where it affects scenario usefulness.
 5. Continue executor baseline/fault injection only after materialization improves.

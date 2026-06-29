@@ -1,6 +1,6 @@
 # Verifier evidence appendix
 
-Last updated: 2026-06-25
+Last updated: 2026-06-29
 
 This page stores concrete validation results, metrics, and run references so [`current-state.md`](current-state.md) can stay readable. Treat this as an appendix: cite it when you need proof, not as the first-read narrative.
 
@@ -124,27 +124,89 @@ verifiers/target/surefire-reports/pt.ulisboa.tecnico.socialsoftware.ms.verifiers
 Tests run: 11, Failures: 0, Errors: 0
 ```
 
-Interpretation: static event topology improved accepted static input coverage for the implemented `EventHandling`/`EventProcessing` shape, including the original target group of five event-driven sagas. This does not prove dynamic enrichment matches are fixed; the dynamic sidecar flow needs a fresh run against the new static catalog. It also does not make event-origin inputs replayable: event payload placeholders remain materialization blockers, and `executorMaterializableInputVariantCount=94` only means the current ScenarioExecutor can materialize that subset through executor-readiness/runtime-owned handling.
+Interpretation: static event topology improved accepted static input coverage for the implemented `EventHandling`/`EventProcessing` shape, including the original target group of five event-driven sagas. The refreshed dynamic baseline below confirms that the post-event static catalog can still be enriched with runtime evidence. It does not make event-origin inputs replayable: event payload placeholders remain materialization blockers, and `executorMaterializableInputVariantCount=94` only means the current ScenarioExecutor can materialize that subset through executor-readiness/runtime-owned handling.
 
 ## Latest dynamic-enrichment Quizzes baseline
 
-Comparable full/default sagas-only Quizzes run after runtime `inputVariantId` attribution:
+Fresh full/default sagas-only Quizzes run against the post-event-semantics static catalog:
+
+```text
+verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
+```
+
+The run used `SPRING_PROFILES_ACTIVE=test,sagas,local`. This matters because four async `@SpringBootTest` classes rely on the `test` profile datasource configuration. A first run with only `sagas,local` is preserved under `verifiers/target/2026-06-29-dynamic-baseline/`, but should not be used as the baseline because it introduced profile-related `ApplicationContext` failures.
+
+Static catalog summary:
+
+```text
+discovered/adapted sagas: 68
+sagas with accepted inputs: 36
+sagas without accepted inputs: 32
+accepted input variants: 584
+rejected source-mode inputs: 81
+scenario catalog records written: 584
+multi-saga records: 0
+```
+
+Executor-readiness summary:
+
+```text
+acceptedInputVariantCount: 584
+staticRecipeReadyInputVariantCount: 0
+executorMaterializableInputVariantCount: 94
+blockedInputVariantCount: 490
+EVENT_PAYLOAD_PLACEHOLDER blockers: 132
+```
+
+Dynamic run summary:
 
 ```text
 runStatus: PARTIAL
-testClassesSelected: 42
-testClassesPassed: 40
+batchStatus: FAILED
+testClassesSelected: 45
+testClassesPassed: 43
 testClassesFailed: 2
-evidenceFilesRead: 42
-dynamicEventsRead: 18868
-eventsMissingTestContext: 0
-MATCHED_EXACT: 46
-MATCHED_HIGH_CONFIDENCE: 0
+testClassesTimedOut: 0
+testClassesNoReport: 0
+evidenceFilesRead: 1
+dynamicEventsRead: 26820
+eventsMissingTestContext: 260
+scenarioPlansRead: 584
+scenarioPlansEnriched: 584
+```
+
+Dynamic event breakdown:
+
+```text
+STEP_STARTED: 4862
+COMMAND_SENT: 10768
+AGGREGATE_ACCESSED: 6328
+STEP_FINISHED: 4862
+warnings: 0
+writeErrors: 0
+includeCommandFields: true
+```
+
+Join status counts:
+
+```text
+MATCHED_EXACT: 291
+MATCHED_HIGH_CONFIDENCE: 109
 MATCHED_PARTIAL: 0
-AMBIGUOUS: 3
-UNMATCHED: 17
+AMBIGUOUS: 0
+UNMATCHED: 184
 NOT_COVERED: 0
-warningCount: 328
+warningCount: 0
+```
+
+The two failing test classes are the same known Quizzes failures seen in earlier good baselines:
+
+```text
+pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.AnonymizeStudentAndRemoveStudentTest
+  tests=9, failures=3, errors=0
+
+pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest
+  tests=10, failures=4, errors=0
 ```
 
 Before runtime input attribution, the comparable baseline was:
@@ -157,7 +219,17 @@ UNMATCHED: 20
 warningCount: 8238
 ```
 
-Interpretation: direct runtime attribution materially improved exact static/dynamic joining and reduced ambiguity. It only modestly increased non-unmatched coverage, so this is mainly a precision improvement, not proof that all useful static inputs are dynamically exercised.
+The latest comparable post-event run with direct attribution is:
+
+```text
+MATCHED_EXACT: 291
+MATCHED_HIGH_CONFIDENCE: 109
+AMBIGUOUS: 0
+UNMATCHED: 184
+warningCount: 0
+```
+
+Interpretation: direct runtime attribution materially improved exact static/dynamic joining and eliminated ambiguity in this baseline. This is mainly a precision/attribution improvement, not proof that all useful static inputs are dynamically exercised: `UNMATCHED=184` remains substantial, and dynamic evidence remains an additive sidecar rather than a source of new static scenarios.
 
 ## Segment-compressed scheduling evidence
 

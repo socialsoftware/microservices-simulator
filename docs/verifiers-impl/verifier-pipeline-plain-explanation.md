@@ -166,7 +166,23 @@ The enriched catalog uses conservative statuses:
 
 ## Current dynamic-enrichment result
 
-On the comparable Quizzes sagas-local baseline, adding runtime input attribution changed the result from:
+On the refreshed Quizzes sagas-local baseline against the post-event-semantics catalog:
+
+```text
+run: verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
+scenario records: 584
+test classes selected/passed/failed: 45 / 43 / 2
+dynamicEventsRead: 26820
+MATCHED_EXACT=291
+MATCHED_HIGH_CONFIDENCE=109
+MATCHED_PARTIAL=0
+AMBIGUOUS=0
+UNMATCHED=184
+NOT_COVERED=0
+warningCount=0
+```
+
+The older baseline before runtime input attribution was:
 
 ```text
 MATCHED_EXACT=0
@@ -176,22 +192,12 @@ UNMATCHED=20
 warningCount=8238
 ```
 
-to:
-
-```text
-MATCHED_EXACT=46
-MATCHED_HIGH_CONFIDENCE=0
-AMBIGUOUS=3
-UNMATCHED=17
-warningCount=328
-```
-
 Plain interpretation:
 
 ```text
-Runtime input attribution works for the first exact case.
-It made many joins precise instead of ambiguous.
-The remaining misses are small enough to inspect manually.
+Runtime input attribution works at Quizzes scale.
+It eliminated ambiguity in the latest baseline.
+The remaining gap is unmatched static plans, not ambiguous joins.
 ```
 
 Do not overstate this. It does not prove stream/gRPC, distributed, TCC, or generic executor behavior.
@@ -253,7 +259,7 @@ The join stays conservative when identity is unclear.
 
 Safe claim:
 
-> The verifier now produces deterministic saga scenario catalogs and can enrich them with runtime evidence. On the Quizzes sagas-local baseline, runtime input attribution substantially improved exact static/dynamic joining, increasing exact matches from 0 to 46 and reducing ambiguity from 44 to 3.
+> The verifier now produces deterministic saga scenario catalogs and can enrich them with runtime evidence. On the refreshed Quizzes sagas-local baseline, runtime input attribution produced 291 exact matches, 109 high-confidence matches, and zero ambiguous joins over 584 static scenario records.
 
 Unsafe claim:
 
@@ -263,6 +269,6 @@ That is future work.
 
 ## Next improvement
 
-Classify the remaining `AMBIGUOUS=3` and `UNMATCHED=17` records before adding more attribution rules.
+Classify the remaining `UNMATCHED=184` records before adding more attribution rules.
 
 The next implementation should be the smallest structured refinement justified by those cases, likely using command payloads, aggregate accesses, literal hints, or aggregate keys. Avoid broad name matching that increases false exactness.

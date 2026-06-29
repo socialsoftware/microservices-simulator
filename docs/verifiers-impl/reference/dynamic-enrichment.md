@@ -28,7 +28,7 @@ The current workflow has three layers.
 | Runtime evidence | The verifier optionally runs selected application test classes with simulator evidence enabled. The simulator emits JSONL events for test identity, saga/functionality identity, steps, commands, aggregate accesses, and attribution diagnostics. |
 | Join sidecars | The verifier joins runtime events back to static scenario plans and writes sidecar artifacts such as `scenario-catalog-enriched.jsonl`, `scenario-catalog-enriched-manifest.json`, and `dynamic-evidence-join-report.json`. |
 
-The most important current improvement is direct input attribution. Before each dynamic test-class run, the verifier writes a per-class `dynamic-input-map.json`. The simulator loads that map and emits `inputVariantId` when the current test identity, runtime functionality class FQN, and runtime step name resolve to exactly one static input variant.
+The most important current improvement is direct input attribution. Before the dynamic Maven batch, the verifier writes a run-level `dynamic-input-map.json` for the selected test classes. The simulator loads that map and emits `inputVariantId` when the current test identity, runtime functionality class FQN, and runtime step name resolve to exactly one static input variant.
 
 The input map uses explicit ownership metadata rather than treating source provenance as the owner identity. Provenance explains where the analyzer found an input, such as a direct feature method, helper call, `setup()`, field initializer, inherited fixture path, or `setupSpec()`. Ownership explains which feature methods the input is allowed to belong to at runtime. An input can therefore preserve `sourceClassFqn`, `sourceMethodName`, and `sourceBindingName` for explainability while also listing one or more owning feature methods for attribution.
 
@@ -53,7 +53,23 @@ For thesis writing, `MATCHED_EXACT` supports the claim that runtime attribution 
 
 ## Current evidence
 
-The current baseline is documented in [`current-state.md`](../current-state.md). In the refreshed Quizzes sagas-only run after runtime input attribution, comparable status counts moved from:
+The current baseline is documented in [`current-state.md`](../current-state.md). In the refreshed Quizzes sagas-only run against the post-event-semantics catalog:
+
+```text
+run: verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
+scenario records: 584
+test classes selected/passed/failed: 45 / 43 / 2
+dynamicEventsRead: 26820
+MATCHED_EXACT=291
+MATCHED_HIGH_CONFIDENCE=109
+MATCHED_PARTIAL=0
+AMBIGUOUS=0
+UNMATCHED=184
+NOT_COVERED=0
+warningCount=0
+```
+
+The older comparable baseline before runtime input attribution was:
 
 ```text
 MATCHED_EXACT=0
@@ -63,17 +79,7 @@ UNMATCHED=20
 warningCount=8238
 ```
 
-to:
-
-```text
-MATCHED_EXACT=46
-MATCHED_HIGH_CONFIDENCE=0
-AMBIGUOUS=3
-UNMATCHED=17
-warningCount=328
-```
-
-That supports a narrow claim: direct runtime input attribution substantially improved exact static/dynamic joining for the comparable local sagas Quizzes target. It does not prove general distributed, stream/gRPC, TCC, or future executor behavior.
+That supports a narrow claim: direct runtime input attribution substantially improved exact static/dynamic joining for the comparable local sagas Quizzes target and eliminated ambiguity in the latest baseline. It does not prove general distributed, stream/gRPC, TCC, or future executor behavior, and `UNMATCHED=184` remains a significant gap.
 
 ## Current limits
 
@@ -86,7 +92,8 @@ Known limits include:
 - It is additive sidecar evidence; it does not redefine the static scenario catalog.
 - It is not the arbitrary scenario executor and does not run generated fault schedules.
 - Current runtime attribution is conservative and first-pass.
-- Remaining ambiguity can come from multiple same-feature static inputs, weaker runtime names, missing test context, async boundaries, capped/rejected static inputs, and weak aggregate-key evidence.
+- The latest Quizzes baseline has zero ambiguous joins, but ambiguity can still return with multiple same-feature static inputs, weaker runtime names, missing test context, async boundaries, capped/rejected static inputs, and weak aggregate-key evidence.
+- The latest Quizzes baseline still has `UNMATCHED=184`, so runtime-value and aggregate-key based refinement may still matter.
 - Semantic deduplication of value-equivalent inputs, executor materialization, and stronger same-feature sibling disambiguation remain future work.
 - Stream/gRPC/distributed parity and causal/TCC runtime hooks are not established by this baseline.
 - Domain-impact scoring, GA local search, and bandit scenario prioritization remain future stages.

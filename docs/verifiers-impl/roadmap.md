@@ -64,27 +64,40 @@ Implemented as a verifier-orchestrated local/sagas bridge with sidecar enrichmen
 
 - simulator dynamic evidence remains disabled by default (`simulator.dynamic-evidence.enabled=false`, `simulator.dynamic-evidence.test-context.enabled=false`);
 - verifier dynamic enrichment remains disabled by default (`verifiers.dynamic-enrichment.enabled=false`);
-- when enabled, the verifier runs selected test classes one by one with Maven, passing:
+- when enabled, the verifier runs a Maven batch over the selected test classes, passing:
   - `-Dsimulator.dynamic-evidence.enabled=true`
   - `-Dsimulator.dynamic-evidence.test-context.enabled=true`
   - `-Djunit.platform.listeners.autodetection.enabled=true`
-  - run-local dynamic-evidence output directories;
-- each class writes per-class runtime artifacts (`dynamic-evidence.jsonl`, `dynamic-evidence-manifest.json`, `dynamic-input-map.json`, `test-run.json`, `maven-output.log`) under `<run-dir>/dynamic-evidence/<safe-test-class-fqn>/`;
+  - a run-local dynamic-evidence output directory;
+- the batch writes run-level runtime artifacts (`dynamic-evidence.jsonl`, `dynamic-evidence-manifest.json`, `dynamic-input-map.json`, `test-run.json`, `maven-output.log`) under `<run-dir>/dynamic-evidence/`;
 - dynamic evidence is joined back to the static catalog with conservative statuses (`MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `MATCHED_PARTIAL`, `AMBIGUOUS`, `UNMATCHED`, `NOT_COVERED`);
 - enriched outputs are sidecar-only (`scenario-catalog-enriched.jsonl`, `scenario-catalog-enriched-manifest.json`, `dynamic-evidence-join-report.json`), keeping `scenario-catalog.jsonl` unchanged;
 - the simulator loads the verifier-written `dynamic-input-map.json` and emits `inputVariantId` when current test identity + runtime functionality class FQN + runtime step name resolve to exactly one accepted static input variant;
 - before/after measurement is based on join-report status counts: first-pass propagation should increase `MATCHED_EXACT` when runtime evidence carries direct `inputVariantId`, and remaining ambiguity/unmatched records require later runtime refinement;
 - Docker `fault-analysis-scenario-gen` enables this full static+dynamic flow with run-relative report path behavior.
 
-The published dynamic-enrichment numbers are stale for the post-event-semantics static catalog until the dynamic flow is rerun. Dynamic enrichment remains sidecar-only: it may attribute runtime evidence to static variants, but it does not create or redefine static `InputVariant` or `ScenarioPlan` structure.
+The dynamic-enrichment baseline was refreshed against the post-event-semantics static catalog on 2026-06-29:
+
+```text
+run: verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
+scenario records: 584
+test classes selected/passed/failed: 45 / 43 / 2
+dynamicEventsRead: 26820
+MATCHED_EXACT: 291
+MATCHED_HIGH_CONFIDENCE: 109
+AMBIGUOUS: 0
+UNMATCHED: 184
+warningCount: 0
+```
+
+Dynamic enrichment remains sidecar-only: it may attribute runtime evidence to static variants, but it does not create or redefine static `InputVariant` or `ScenarioPlan` structure.
 
 Remaining gaps:
 
-- Direct runtime `inputVariantId` propagation is still first-pass only; it does not yet use runtime command payloads, aggregate accesses, literal argument values, or aggregate keys to reduce the remaining ambiguous/unmatched candidates.
-- Quizzes before/after counts were refreshed on 2026-05-12 against the comparable sagas-only 42-class run: `MATCHED_EXACT` improved `0 -> 46`, `AMBIGUOUS` dropped `44 -> 3`, `UNMATCHED` dropped `20 -> 17`, and enriched-manifest `warningCount` dropped `8238 -> 328`.
+- Direct runtime `inputVariantId` propagation is still first-pass only; it does not yet use runtime command payloads, aggregate accesses, literal argument values, or aggregate keys to reduce the remaining unmatched candidates.
+- The latest Quizzes baseline eliminated ambiguity, but `UNMATCHED=184` remains substantial and needs classification.
+- Dynamic Quizzes baselines must run with `SPRING_PROFILES_ACTIVE=test,sagas,local`; without the `test` profile, async `@SpringBootTest` classes can fail before evidence collection due to missing datasource configuration.
 - No stream/gRPC/distributed or causal/TCC runtime hooks/parity yet.
-- Remaining Quizzes ambiguity is now concentrated in a few same-shape neighboring-input cases rather than broad semantic fallback noise.
-- Matched enriched entries still expose `testRunStatus: null` in the refreshed run, even though join-report test-run statuses exist.
 - Logs and Jaeger traces remain auxiliary diagnostics rather than the primary evidence source.
 
 ## Stage 2 — Scenario execution / generic runner
@@ -209,8 +222,8 @@ Dependencies:
 | HTML report | Implemented | renderer/application specs | Human view only, not machine contract |
 | Scenario catalog JSONL/manifest | Implemented MVP | scenario package, writer, application specs | Exact keys, filters, executor integration |
 | Segment-compressed scheduling/accounting | Implemented static reduction | scheduler/accounting specs, dummyapp integration, Quizzes count-only comparison | Exact aggregate-instance binding and runtime semantic completeness remain separate |
-| Dynamic evidence + sidecar enrichment | Implemented MVP, stale numbers until post-event rerun | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, Task 7/8 Quizzes runs, 2026-05-12 exact-attribution refresh | Refresh against the post-event static catalog; runtime attribution refinement; stream/gRPC/distributed/TCC parity |
-| Quizzes orchestration smoke baseline | Implemented | Task 7 narrow run + Task 8 full/default run in `current-state.md` | Refresh periodically and track exact/ambiguous/unmatched trends |
+| Dynamic evidence + sidecar enrichment | Implemented MVP with refreshed post-event baseline | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, 2026-06-29 Quizzes baseline (`MATCHED_EXACT=291`, `AMBIGUOUS=0`, `UNMATCHED=184`) | Classify unmatched records; runtime attribution refinement; stream/gRPC/distributed/TCC parity |
+| Quizzes orchestration smoke baseline | Implemented | 2026-06-29 full/default dynamic baseline in `current-state.md` / `evidence.md` | Refresh periodically and track exact/ambiguous/unmatched trends |
 | ScenarioExecutor | POC / materializability accounting evolving | `scenario-executor-poc.md`, Quizzes single-saga smoke, post-event count-only accounting (`94` materializable, `0` static recipe-ready) | Event payload materialization, general catalog replay, multi-saga execution, fault injection, impact scoring |
 | Behavior CSV generation | Not implemented | none | Decide whether adapter or canonical contract |
 | Impact scoring | Not implemented | none | Requires executable scenarios |
@@ -220,7 +233,7 @@ Dependencies:
 ## Near-term milestone proposal
 
 1. Finalize and classify the remaining 32 Quizzes sagas without accepted static inputs.
-2. Refresh dynamic enrichment against the post-event-semantics static catalog.
+2. Classify the refreshed dynamic baseline's `UNMATCHED=184` records and decide whether runtime-value/aggregate-key matching is worth improving before executor work.
 3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
 4. Improve aggregate-instance key binding where it affects scenario usefulness.
 5. Define the ScenarioExecutor input contract and decide JSONL-vs-CSV responsibilities after materialization semantics are clearer.
