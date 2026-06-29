@@ -44,6 +44,32 @@ public abstract class WorkflowFunctionality {
         
     }
 
+    public void compensateUntilStep(String stepName, UnitOfWork unitOfWork) {
+        try {
+            workflow.compensateUntilStep(stepName, unitOfWork);
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SimulatorException) {
+                throw (SimulatorException) cause;
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public void resumeCompensation(UnitOfWork unitOfWork) {
+        try {
+            workflow.resumeCompensation(unitOfWork);
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SimulatorException) {
+                throw (SimulatorException) cause;
+            } else {
+                throw e;
+            }
+        }
+    }
+
     public int getWorkflowTotalDelay() {
         return workflow.getWorkflowTotalDelay();
     }

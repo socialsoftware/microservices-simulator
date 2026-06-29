@@ -31,7 +31,7 @@ public class SagaStep extends Step {
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
         getSyncOperation().run();
         if (getCompensation() != null) {
-            ((SagaUnitOfWork)unitOfWork).registerCompensation(getCompensation());
+            ((SagaUnitOfWork)unitOfWork).registerCompensation(getName(), getCompensation());
         }
         return CompletableFuture.completedFuture(null);
     }

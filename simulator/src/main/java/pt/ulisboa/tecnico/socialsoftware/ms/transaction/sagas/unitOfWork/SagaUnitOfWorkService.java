@@ -130,8 +130,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    @Override
-    public void abort(SagaUnitOfWork unitOfWork) {
+    public void sendAbortCommands(SagaUnitOfWork unitOfWork) {
         for (Map.Entry<Integer, SagaState> entry : unitOfWork.getPreviousStates().entrySet()) {
             Integer aggregateId = entry.getKey();
             SagaState previousState = entry.getValue();
@@ -141,6 +140,14 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
             AbortSagaCommand command = new AbortSagaCommand(aggregateId, serviceName, previousState);
             commandGateway.send(command);
+        }
+    }
+
+    @Override
+    public void abort(SagaUnitOfWork unitOfWork) {
+        if (!unitOfWork.isAbortCommandsSent()) {
+            sendAbortCommands(unitOfWork);
+            unitOfWork.setAbortCommandsSent(true);
         }
         compensate(unitOfWork);
     }

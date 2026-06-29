@@ -5,16 +5,35 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 
 public class SagaWorkflow extends Workflow {
     public SagaWorkflow(WorkflowFunctionality functionality, UnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
         super(functionality, unitOfWorkService, unitOfWork);
+    }
+
+    @Override
+    public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
+        if (unitOfWork instanceof SagaUnitOfWork) {
+            ((SagaUnitOfWork) unitOfWork).setAbortCommandsSent(false);
+        }
+        super.executeUntilStep(stepName, unitOfWork);
+    }
+
+    @Override
+    public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
+        if (unitOfWork instanceof SagaUnitOfWork) {
+            ((SagaUnitOfWork) unitOfWork).setAbortCommandsSent(false);
+        }
+        return super.execute(unitOfWork);
     }
 
     @Override
@@ -54,5 +73,33 @@ public class SagaWorkflow extends Workflow {
         }
 
         return new ExecutionPlan(orderedSteps, stepsWithDependencies, this.getFunctionality());
-    } 
+    }
+
+    @Override
+    public void compensateUntilStep(String stepName, UnitOfWork unitOfWork) {
+        if (!this.aborted) {
+            throw new IllegalStateException("Cannot execute compensations because the workflow has not aborted.");
+        }
+        SagaUnitOfWork sagaUnitOfWork = (SagaUnitOfWork) unitOfWork;
+        SagaUnitOfWorkService sagaService = (SagaUnitOfWorkService) unitOfWorkService;
+        if (!sagaUnitOfWork.isAbortCommandsSent()) {
+            sagaService.sendAbortCommands(sagaUnitOfWork);
+            sagaUnitOfWork.setAbortCommandsSent(true);
+        }
+        sagaUnitOfWork.compensateUntilStep(stepName);
+    }
+
+    @Override
+    public void resumeCompensation(UnitOfWork unitOfWork) {
+        if (!this.aborted) {
+            throw new IllegalStateException("Cannot execute compensations because the workflow has not aborted.");
+        }
+        SagaUnitOfWork sagaUnitOfWork = (SagaUnitOfWork) unitOfWork;
+        SagaUnitOfWorkService sagaService = (SagaUnitOfWorkService) unitOfWorkService;
+        if (!sagaUnitOfWork.isAbortCommandsSent()) {
+            sagaService.sendAbortCommands(sagaUnitOfWork);
+            sagaUnitOfWork.setAbortCommandsSent(true);
+        }
+        sagaService.compensate(sagaUnitOfWork);
+    }
 }
