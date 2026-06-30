@@ -15,6 +15,17 @@ def _load_config():
         return yaml.safe_load(f)
 
 
+def _print_obs(obs: dict):
+    print(
+        f"Observation:\n Capacities: {obs['capacities']}\n Placements: {obs['placement']}")
+    if obs["node_free_caps"] is not None:
+        print(f" Nodes Unused Capacity: {obs["node_free_caps"]}")
+    if obs["ms_delay"] is not None:
+        print(f" Delay Time: {obs["ms_delay"]}")
+    if obs["ms_queue"] is not None:
+        print(f" Queue Time: {obs["ms_queue"]}")
+
+
 def run_sanity_check(trace_manager):
     config = _load_config()
     environment = config["environment"]
@@ -32,6 +43,7 @@ def run_sanity_check(trace_manager):
         workload_cfg["workloads"],
         tuple(workload_cfg["users"]),
         tuple(workload_cfg["iterations"]),
+        tuple(workload_cfg["weights_interval"]),
         workload_cfg["run-time"],
         reward_strat,
         observation_strat,
@@ -47,8 +59,12 @@ def run_sanity_check(trace_manager):
 
     print("\n\n=== 2. RUNNING MANUAL STEP TEST ===\n\n")
     obs, _ = env.reset()
-    print(
-        f"INITIAL OBSERVATION:\n Capacities: {obs['capacities']}\n Placements: {obs['placement']}\n")
+
+    wl = env.wl_config
+    print(f"Generated Workload: File={wl.file}, Users={wl.users}, Iterations={wl.iterations}, "
+          f"Run_Time: {wl.runtime_seconds}, Read_W={wl.read_weight:.2f}, Write_W={wl.write_weight:.2f}\n")
+
+    _print_obs(obs)
 
     for step in range(1, 4):
         print(f"\n--- STEP {step} ---")
@@ -60,13 +76,29 @@ def run_sanity_check(trace_manager):
         # Pick a random valid action (ensure we don't pick NO_OP (0) so the episode doesn't end)
         action = random.choice([a for a in valid_actions if a != 0])
         action_tuple = env.action_mapping[action]
-        print(f"Agent chose action: {action_tuple}")
+
+        action_type, ms_idx, target = action_tuple
+        ms_name = env.microservices[ms_idx] if ms_idx is not None else "None"
+
+        if action_type == 0:
+            action_desc = "STOP (No operation)"
+        elif action_type == 1:
+            action_desc = f"MIGRATE microservice '{ms_name}' to node {target}"
+        elif action_type == 2:
+            amount = 5 * target  # base AMOUNT=5 * multiplier
+            action_desc = f"SCALE UP microservice '{ms_name}' by {amount} capacity"
+        elif action_type == 3:
+            amount = 5 * target
+            action_desc = f"SCALE DOWN microservice '{ms_name}' by {amount} capacity"
+        else:
+            action_desc = "UNKNOWN"
+
+        print(f"Agent chose action {action}: {action_tuple} -> {action_desc}")
 
         # Take the step
         obs, reward, terminated, truncated, _ = env.step(action)
-        print(f"REWARD GENERATED: {reward}")
-        print(f"NEW OBSERVATION Capacities: {obs['capacities']}")
-        print(f"NEW OBSERVATION Placements: {obs['placement']}")
+        print(f"Reward: {reward:.4f}")
+        _print_obs(obs)
 
         if terminated or truncated:
             print("Episode ended.")
