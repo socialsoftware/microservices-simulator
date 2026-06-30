@@ -145,7 +145,9 @@ public class DynamicEnrichmentOrchestrator {
                 readResult.events(),
                 readResult.evidenceFilesRead(),
                 readResult.warnings(),
-                readResult.evidenceBytesRead());
+                readResult.evidenceBytesRead(),
+                new java.util.LinkedHashSet<>(selectedTestClassFqns),
+                testRunStatusByClassFqn(testRuns));
         long readJoinWriteDurationMillis = Duration.ofNanos(System.nanoTime() - readJoinWriteStartedNanos).toMillis();
         String dynamicRunFinishedAt = nowIso();
 
@@ -180,6 +182,16 @@ public class DynamicEnrichmentOrchestrator {
             throw new IllegalStateException("Dynamic enrichment test run failed; artifacts were preserved under " + runDirectory);
         }
         return result;
+    }
+
+    private Map<String, String> testRunStatusByClassFqn(List<TestRunRecord> testRuns) {
+        Map<String, String> statuses = new LinkedHashMap<>();
+        for (TestRunRecord testRun : testRuns == null ? List.<TestRunRecord>of() : testRuns) {
+            if (testRun.testClassFqn() != null && testRun.status() != null) {
+                statuses.put(testRun.testClassFqn(), testRun.status());
+            }
+        }
+        return statuses;
     }
 
     private List<String> commandArguments(DynamicEnrichmentConfig config,

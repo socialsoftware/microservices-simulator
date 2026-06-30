@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinStatus;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.EnrichedScenarioRecord;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.UnmatchedReason;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -127,6 +128,19 @@ public class EnrichedScenarioCatalogWriter {
         for (DynamicEvidenceJoinStatus status : DynamicEvidenceJoinStatus.values()) {
             counts.put(status.name(), enumCounts.get(status));
         }
+        counts.put("unmatchedReasonCounts", unmatchedReasonCounts(joinResult));
+        return counts;
+    }
+
+    private Map<String, Integer> unmatchedReasonCounts(DynamicEvidenceJoinResult joinResult) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (UnmatchedReason reason : UnmatchedReason.values()) {
+            counts.put(reason.name(), 0);
+        }
+        joinResult.records().stream()
+                .filter(record -> record.dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.UNMATCHED)
+                .map(record -> record.dynamicEvidence().unmatchedReason())
+                .forEach(reason -> counts.merge((reason == null ? UnmatchedReason.UNCLASSIFIED : reason).name(), 1, Integer::sum));
         return counts;
     }
 

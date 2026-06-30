@@ -14,6 +14,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Inpu
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeAssignment;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRole;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FixtureOrigin;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition;
@@ -38,9 +40,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public final class ApplicationAnalysisScenarioModelAdapter {
+
+    private static final Pattern JAVA_IDENTIFIER = Pattern.compile("[A-Za-z_$][A-Za-z\\d_$]*");
 
     private final InputRecipeMapper inputRecipeMapper = new InputRecipeMapper();
 
@@ -393,13 +398,16 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 sourceClassFqn,
                 sourceMethodName,
                 sourceBindingName,
+                normalize(trace.callContextMethodName()),
+                inputRole(trace, sourceMethodName),
+                fixtureOrigin(trace, sourceMethodName),
                 status,
                 trace.sourceMode(),
                 trace.sourceModeConfidence(),
                 trace.sourceModeEvidence(),
                 stableSourceText,
                 provenanceText,
-                ownersForTrace(sourceClassFqn, sourceMethodName, featureOwnersByClass),
+                ownersForTrace(sourceClassFqn, sourceMethodName, normalize(trace.callContextMethodName()), featureOwnersByClass),
                 summaries,
                 extractLogicalKeyBindings(inputRecipe),
                 warnings,
@@ -423,6 +431,9 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 variant.sourceClassFqn(),
                 variant.sourceMethodName(),
                 variant.sourceBindingName(),
+                variant.callContextMethodName(),
+                variant.inputRole(),
+                variant.fixtureOrigin(),
                 variant.resolutionStatus(),
                 variant.sourceMode(),
                 variant.sourceModeConfidence(),
@@ -443,15 +454,40 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         for (GroovyFullTraceResult trace : traces) {
             String sourceClassFqn = normalize(trace.sourceClassFqn());
             String sourceMethodName = normalize(trace.sourceMethodName());
-            if (sourceClassFqn == null || sourceMethodName == null || isFixtureContext(sourceMethodName)) {
+            String callContextMethodName = normalize(trace.callContextMethodName());
+            String ownerMethodName = callContextMethodName == null ? sourceMethodName : callContextMethodName;
+            if (sourceClassFqn == null || ownerMethodName == null || isFixtureContext(ownerMethodName) || JAVA_IDENTIFIER.matcher(ownerMethodName).matches()) {
                 continue;
             }
             ownersByClass.computeIfAbsent(sourceClassFqn, ignored -> new LinkedHashSet<>())
-                    .add(new InputOwner(sourceClassFqn, sourceMethodName));
+                    .add(new InputOwner(sourceClassFqn, ownerMethodName));
         }
         LinkedHashMap<String, List<InputOwner>> result = new LinkedHashMap<>();
         ownersByClass.forEach((sourceClassFqn, owners) -> result.put(sourceClassFqn, List.copyOf(owners)));
         return Collections.unmodifiableMap(result);
+    }
+
+    private InputRole inputRole(GroovyFullTraceResult trace, String sourceMethodName) {
+        return fixtureOrigin(trace, sourceMethodName) == FixtureOrigin.DIRECT_FEATURE
+                ? InputRole.FEATURE_UNDER_TEST
+                : InputRole.FIXTURE_PREREQUISITE;
+    }
+
+    private FixtureOrigin fixtureOrigin(GroovyFullTraceResult trace, String sourceMethodName) {
+        String callContext = normalize(trace.callContextMethodName());
+        if (sourceMethodName != null && sourceMethodName.startsWith("field:")) {
+            return FixtureOrigin.FIELD;
+        }
+        if ("setupSpec".equals(sourceMethodName) || "setupSpec".equals(callContext)) {
+            return FixtureOrigin.SETUP_SPEC;
+        }
+        if ("setup".equals(sourceMethodName)) {
+            return FixtureOrigin.SETUP;
+        }
+        if ("setup".equals(callContext) && !Objects.equals(sourceMethodName, callContext)) {
+            return FixtureOrigin.SETUP_HELPER;
+        }
+        return FixtureOrigin.DIRECT_FEATURE;
     }
 
     private Map<String, String> extractLogicalKeyBindings(InputRecipe inputRecipe) {
@@ -512,12 +548,16 @@ public final class ApplicationAnalysisScenarioModelAdapter {
 
     private List<InputOwner> ownersForTrace(String sourceClassFqn,
                                             String sourceMethodName,
+                                            String callContextMethodName,
                                             Map<String, List<InputOwner>> featureOwnersByClass) {
-        if (isFixtureContext(sourceMethodName)) {
+        if (isFixtureContext(sourceMethodName) || isFixtureContext(callContextMethodName)) {
             return featureOwnersByClass.getOrDefault(sourceClassFqn, List.of());
         }
         if (sourceClassFqn == null || sourceMethodName == null) {
             return List.of();
+        }
+        if (callContextMethodName != null && !Objects.equals(sourceMethodName, callContextMethodName)) {
+            return List.of(new InputOwner(sourceClassFqn, callContextMethodName));
         }
         return List.of(new InputOwner(sourceClassFqn, sourceMethodName));
     }
@@ -541,6 +581,9 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 left.sourceClassFqn(),
                 left.sourceMethodName(),
                 left.sourceBindingName(),
+                left.callContextMethodName(),
+                left.inputRole(),
+                left.fixtureOrigin(),
                 left.resolutionStatus(),
                 sourceModeSource.sourceMode(),
                 sourceModeSource.sourceModeConfidence(),

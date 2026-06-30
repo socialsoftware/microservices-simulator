@@ -63,6 +63,9 @@ public record DynamicInputMap(
             String sourceClassFqn,
             String sourceMethodName,
             String sourceBindingName,
+            String callContextMethodName,
+            String inputRole,
+            String fixtureOrigin,
             List<InputOwner> owners,
             String resolutionStatus,
             String sourceMode,
@@ -78,11 +81,39 @@ public record DynamicInputMap(
             String provenanceText,
             List<String> warnings) {
 
+        public Entry(String inputVariantId,
+                     String sagaFqn,
+                     String sourceClassFqn,
+                     String sourceMethodName,
+                     String sourceBindingName,
+                     List<InputOwner> owners,
+                     String resolutionStatus,
+                     String sourceMode,
+                     String sourceModeConfidence,
+                     List<String> stepNameHints,
+                     List<String> literalArgumentValueHints,
+                     List<String> constructorArgumentSummaries,
+                     List<String> expectedCommands,
+                     List<String> expectedAggregateTypes,
+                     java.util.Map<String, String> logicalKeyBindings,
+                     List<String> scenarioPlanIds,
+                     String stableSourceText,
+                     String provenanceText,
+                     List<String> warnings) {
+            this(inputVariantId, sagaFqn, sourceClassFqn, sourceMethodName, sourceBindingName,
+                    null, null, null, owners, resolutionStatus, sourceMode, sourceModeConfidence,
+                    stepNameHints, literalArgumentValueHints, constructorArgumentSummaries, expectedCommands,
+                    expectedAggregateTypes, logicalKeyBindings, scenarioPlanIds, stableSourceText, provenanceText, warnings);
+        }
+
         public Entry {
             inputVariantId = normalize(inputVariantId);
             sagaFqn = normalize(sagaFqn);
             sourceClassFqn = normalize(sourceClassFqn);
             sourceMethodName = normalize(sourceMethodName);
+            callContextMethodName = normalize(callContextMethodName);
+            inputRole = normalize(inputRole);
+            fixtureOrigin = normalize(fixtureOrigin);
             owners = owners == null ? List.of() : List.copyOf(owners);
             stepNameHints = stepNameHints == null ? List.of() : List.copyOf(stepNameHints);
         }

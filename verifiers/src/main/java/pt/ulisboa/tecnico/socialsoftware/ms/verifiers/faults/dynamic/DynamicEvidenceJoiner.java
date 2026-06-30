@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.Match
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.ObservedAggregateAccess;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.ObservedCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.ObservedStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.UnmatchedReason;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan;
@@ -44,6 +45,16 @@ public class DynamicEvidenceJoiner {
                                           int evidenceFilesRead,
                                           List<String> readerWarnings,
                                           long evidenceBytesRead) {
+        return join(scenarioPlans, events, evidenceFilesRead, readerWarnings, evidenceBytesRead, Set.of(), Map.of());
+    }
+
+    public DynamicEvidenceJoinResult join(List<ScenarioPlan> scenarioPlans,
+                                          List<DynamicEvidenceEvent> events,
+                                          int evidenceFilesRead,
+                                          List<String> readerWarnings,
+                                          long evidenceBytesRead,
+                                          Set<String> selectedTestClassFqns,
+                                          Map<String, String> testRunStatusByClassFqn) {
         List<ScenarioPlan> plans = scenarioPlans == null ? List.of() : scenarioPlans;
         List<DynamicEvidenceEvent> safeEvents = events == null ? List.of() : events;
         List<String> warnings = new ArrayList<>(readerWarnings == null ? List.of() : readerWarnings);
@@ -52,12 +63,15 @@ public class DynamicEvidenceJoiner {
         int missingContext = (int) safeEvents.stream().filter(event -> isBlank(event.testClassFqn())).count();
 
         List<EnrichedScenarioRecord> records = plans.stream()
-                .map(plan -> enrich(plan, joinIndex))
+                .map(plan -> enrich(plan, joinIndex, selectedTestClassFqns, testRunStatusByClassFqn))
                 .toList();
         return new DynamicEvidenceJoinResult(records, warnings, safeEvents.size(), missingContext, evidenceFilesRead, evidenceBytesRead);
     }
 
-    private EnrichedScenarioRecord enrich(ScenarioPlan plan, JoinIndex joinIndex) {
+    private EnrichedScenarioRecord enrich(ScenarioPlan plan,
+                                          JoinIndex joinIndex,
+                                          Set<String> selectedTestClassFqns,
+                                          Map<String, String> testRunStatusByClassFqn) {
         if (joinIndex.isEmpty()) {
             return record(plan, DynamicEvidenceJoinStatus.NOT_COVERED, List.of(), List.of(), List.of());
         }
@@ -85,7 +99,7 @@ public class DynamicEvidenceJoiner {
                 .sorted(Comparator.comparing(EventAnalysis::event, EVENT_ORDER))
                 .toList();
         if (relevantAnalyses.isEmpty()) {
-            return record(plan, DynamicEvidenceJoinStatus.UNMATCHED, List.of(), List.of(), List.of());
+            return unmatchedRecord(plan, List.of(), List.of(), selectedTestClassFqns, testRunStatusByClassFqn);
         }
 
         Set<String> candidateInputIds = relevantAnalyses.stream()
@@ -109,7 +123,7 @@ public class DynamicEvidenceJoiner {
                 if (planInputIds.contains(matchedId)) {
                     return record(plan, DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE, List.of(matchedId), relevantEvents(relevantAnalyses), List.of());
                 }
-                return record(plan, DynamicEvidenceJoinStatus.UNMATCHED, List.of(), relevantEvents(relevantAnalyses), List.of());
+                return unmatchedRecord(plan, relevantEvents(relevantAnalyses), List.of(), selectedTestClassFqns, testRunStatusByClassFqn);
             }
             if (identityMatchIds.size() > 1) {
                 return record(plan, DynamicEvidenceJoinStatus.AMBIGUOUS, sorted(identityMatchIds), relevantEvents(relevantAnalyses), ambiguityWarnings(relevantAnalyses, candidateInputIds, identityMatchIds));
@@ -117,7 +131,7 @@ public class DynamicEvidenceJoiner {
             if (hasAmbiguousSagaIdentity) {
                 return record(plan, DynamicEvidenceJoinStatus.AMBIGUOUS, sorted(candidateInputIds), relevantEvents(relevantAnalyses), ambiguityWarnings(relevantAnalyses, candidateInputIds, identityMatchIds));
             }
-            return record(plan, DynamicEvidenceJoinStatus.UNMATCHED, List.of(), relevantEvents(relevantAnalyses), List.of());
+            return unmatchedRecord(plan, relevantEvents(relevantAnalyses), List.of(), selectedTestClassFqns, testRunStatusByClassFqn);
         }
 
         if (candidateInputIds.size() == 1) {
@@ -128,12 +142,12 @@ public class DynamicEvidenceJoiner {
             if (planInputIds.contains(matchedId)) {
                 return record(plan, DynamicEvidenceJoinStatus.MATCHED_PARTIAL, List.of(), relevantEvents(relevantAnalyses), List.of());
             }
-            return record(plan, DynamicEvidenceJoinStatus.UNMATCHED, List.of(), relevantEvents(relevantAnalyses), List.of());
+            return unmatchedRecord(plan, relevantEvents(relevantAnalyses), List.of(), selectedTestClassFqns, testRunStatusByClassFqn);
         }
         if (candidateInputIds.size() > 1) {
             return record(plan, DynamicEvidenceJoinStatus.AMBIGUOUS, sorted(candidateInputIds), relevantEvents(relevantAnalyses), ambiguityWarnings(relevantAnalyses, candidateInputIds, identityMatchIds));
         }
-        return record(plan, DynamicEvidenceJoinStatus.UNMATCHED, List.of(), relevantEvents(relevantAnalyses), List.of());
+        return unmatchedRecord(plan, relevantEvents(relevantAnalyses), List.of(), selectedTestClassFqns, testRunStatusByClassFqn);
     }
 
     private List<DynamicEvidenceEvent> relevantEvents(List<EventAnalysis> analyses) {
@@ -178,7 +192,26 @@ public class DynamicEvidenceJoiner {
                                           List<String> warnings) {
         DynamicEvidenceSummary summary = new DynamicEvidenceSummary(
                 status,
+                null,
                 matchedInputIds,
+                matchedTestExecutions(matchedEvents),
+                observedSteps(plan, matchedEvents),
+                observedAggregateAccesses(plan, matchedEvents),
+                observedCommands(plan, matchedEvents),
+                warnings);
+        return new EnrichedScenarioRecord(EnrichedScenarioRecord.SCHEMA_VERSION, plan.deterministicId(), plan, summary);
+    }
+
+    private EnrichedScenarioRecord unmatchedRecord(ScenarioPlan plan,
+                                                   List<DynamicEvidenceEvent> matchedEvents,
+                                                   List<String> warnings,
+                                                   Set<String> selectedTestClassFqns,
+                                                   Map<String, String> testRunStatusByClassFqn) {
+        UnmatchedReason reason = new UnmatchedReasonClassifier().classify(plan, matchedEvents, selectedTestClassFqns, testRunStatusByClassFqn);
+        DynamicEvidenceSummary summary = new DynamicEvidenceSummary(
+                DynamicEvidenceJoinStatus.UNMATCHED,
+                reason,
+                List.of(),
                 matchedTestExecutions(matchedEvents),
                 observedSteps(plan, matchedEvents),
                 observedAggregateAccesses(plan, matchedEvents),

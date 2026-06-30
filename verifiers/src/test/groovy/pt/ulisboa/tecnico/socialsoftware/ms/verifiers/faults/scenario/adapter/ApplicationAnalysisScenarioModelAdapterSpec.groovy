@@ -9,8 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaS
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FixtureOrigin
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRole
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint
@@ -333,6 +335,55 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         !variant.inputRecipe().executorReady()
         flattenRecipeNodes(variant.inputRecipe())*.kind().contains('event_placeholder')
         flattenRecipeNodes(variant.inputRecipe()).findAll { it.kind() == 'event_placeholder' }*.blockers().flatten().contains('EVENT_PAYLOAD_PLACEHOLDER')
+    }
+
+    def 'dummyapp adapter integration classifies setup helper ownership from static extraction'() {
+        given:
+        def state = buildDummyappAnalysisState()
+
+        when:
+        def result = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
+        def setupHelperInput = result.inputVariants().find {
+            it.sourceClassFqn() == 'com.example.dummyapp.GroovySetupHelperOwnershipSpec' &&
+                    it.sourceMethodName() == 'createSetupItem' &&
+                    it.sagaFqn() == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+        def directFeatureInput = result.inputVariants().find {
+            it.sourceClassFqn() == 'com.example.dummyapp.GroovySetupHelperOwnershipSpec' &&
+                    it.sourceMethodName() == 'direct feature item creation remains feature under test' &&
+                    it.sagaFqn() == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+        def featureHelperInput = result.inputVariants().find {
+            it.sourceClassFqn() == 'com.example.dummyapp.GroovySetupHelperOwnershipSpec' &&
+                    it.sourceMethodName() == 'createItemFromFeatureHelper' &&
+                    it.sagaFqn() == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+
+        then:
+        setupHelperInput != null
+        setupHelperInput.callContextMethodName() == 'setup'
+        setupHelperInput.inputRole() == InputRole.FIXTURE_PREREQUISITE
+        setupHelperInput.fixtureOrigin() == FixtureOrigin.SETUP_HELPER
+        setupHelperInput.owners()*.testMethodName() as Set == [
+                'first feature depends on setup helper item',
+                'second feature depends on setup helper item',
+                'direct feature item creation remains feature under test',
+                'feature calls helper that creates item'
+        ] as Set
+
+        and:
+        directFeatureInput != null
+        directFeatureInput.callContextMethodName() == 'direct feature item creation remains feature under test'
+        directFeatureInput.inputRole() == InputRole.FEATURE_UNDER_TEST
+        directFeatureInput.fixtureOrigin() == FixtureOrigin.DIRECT_FEATURE
+        directFeatureInput.owners()*.testMethodName() == ['direct feature item creation remains feature under test']
+
+        and:
+        featureHelperInput != null
+        featureHelperInput.callContextMethodName() == 'feature calls helper that creates item'
+        featureHelperInput.inputRole() == InputRole.FEATURE_UNDER_TEST
+        featureHelperInput.fixtureOrigin() == FixtureOrigin.DIRECT_FEATURE
+        featureHelperInput.owners()*.testMethodName() == ['feature calls helper that creates item']
     }
 
     def 'dummyapp adapter integration exports representative input recipe shapes'() {

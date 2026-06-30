@@ -215,6 +215,9 @@ public class DynamicInputMapWriter {
             String sourceClassFqn,
             String sourceMethodName,
             String sourceBindingName,
+            String callContextMethodName,
+            String inputRole,
+            String fixtureOrigin,
             List<InputOwnerEntry> owners,
             String resolutionStatus,
             String sourceMode,
@@ -264,6 +267,9 @@ public class DynamicInputMapWriter {
                     input.sourceClassFqn(),
                     input.sourceMethodName(),
                     input.sourceBindingName(),
+                    input.callContextMethodName(),
+                    input.inputRole().name(),
+                    input.fixtureOrigin().name(),
                     input.owners().stream()
                             .map(owner -> new InputOwnerEntry(owner.testClassFqn(), owner.testMethodName()))
                             .toList(),

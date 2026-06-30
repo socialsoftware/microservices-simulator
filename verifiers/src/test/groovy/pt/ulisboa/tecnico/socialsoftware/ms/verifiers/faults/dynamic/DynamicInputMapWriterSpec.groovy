@@ -54,6 +54,9 @@ class DynamicInputMapWriterSpec extends Specification {
         entry.path('sourceClassFqn').asText() == TEST_CLASS
         entry.path('sagaFqn').asText() == ORDER_SAGA
         entry.path('sourceMethodName').asText() == 'createsOrder'
+        entry.path('callContextMethodName').asText() == 'setup'
+        entry.path('inputRole').asText() == 'FIXTURE_PREREQUISITE'
+        entry.path('fixtureOrigin').asText() == 'SETUP_HELPER'
         entry.path('owners')*.path('testMethodName')*.asText() == ['createsOrder']
         entry.path('resolutionStatus').asText() == 'RESOLVED'
         entry.path('sourceMode').asText() == 'SAGAS'
@@ -131,14 +134,19 @@ class DynamicInputMapWriterSpec extends Specification {
                 sourceClassFqn,
                 'createsOrder',
                 'orderSaga',
+                'setup',
+                InputRole.FIXTURE_PREREQUISITE,
+                FixtureOrigin.SETUP_HELPER,
                 InputResolutionStatus.RESOLVED,
                 SourceMode.SAGAS,
                 SourceModeConfidence.TYPE_EVIDENCE,
                 ['@ActiveProfiles sagas'],
                 'createOrder(42)',
                 'OrderSpec.createsOrder',
+                [new InputOwner(sourceClassFqn, 'createsOrder')],
                 constructorArgs,
                 [orderId: '42'],
-                [])
+                [],
+                null)
     }
 }

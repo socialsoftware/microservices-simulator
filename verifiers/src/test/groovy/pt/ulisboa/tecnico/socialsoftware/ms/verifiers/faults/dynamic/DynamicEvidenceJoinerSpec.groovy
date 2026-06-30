@@ -3,9 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic
 import com.fasterxml.jackson.databind.ObjectMapper
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceEvent
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinStatus
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.UnmatchedReason
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEvidenceJoiner
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRole
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FixtureOrigin
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind
@@ -275,6 +278,21 @@ class DynamicEvidenceJoinerSpec extends Specification {
         ]).records()[0].dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.UNMATCHED
     }
 
+    def 'classifies unmatched reasons by priority'() {
+        given:
+        def failedPlan = plan('scenario-failed', [input('input-failed')])
+        def notSelectedPlan = plan('scenario-not-selected', [input('input-not-selected')])
+        def helperPlan = plan('scenario-helper', [helperFixtureInput('input-helper')])
+        def plainPlan = plan('scenario-plain', [input('input-plain')])
+        def helperEvent = event('STEP_STARTED', [testClassFqn: 'com.example.OrderSpec', testMethodName: 'active feature', functionalityName: 'OrderSaga', stepName: 'reserve'])
+
+        expect:
+        new DynamicEvidenceJoiner().join([failedPlan], [helperEvent], 1, [], 1L, ['com.example.OrderSpec'] as Set, ['com.example.OrderSpec': 'FAILED']).records()[0].dynamicEvidence().unmatchedReason() == UnmatchedReason.FAILED_TEST_CLASS
+        new DynamicEvidenceJoiner().join([notSelectedPlan], [helperEvent], 1, [], 1L, ['com.example.OtherSpec'] as Set, [:]).records()[0].dynamicEvidence().unmatchedReason() == UnmatchedReason.NOT_SELECTED_TEST_CLASS
+        new DynamicEvidenceJoiner().join([helperPlan], [helperEvent], 1, [], 1L, ['com.example.OrderSpec'] as Set, ['com.example.OrderSpec': 'PASSED']).records()[0].dynamicEvidence().unmatchedReason() == UnmatchedReason.HELPER_OWNER_MISMATCH
+        new DynamicEvidenceJoiner().join([plainPlan], [helperEvent], 1, [], 1L, ['com.example.OrderSpec'] as Set, ['com.example.OrderSpec': 'PASSED']).records()[0].dynamicEvidence().unmatchedReason() == UnmatchedReason.UNCLASSIFIED
+    }
+
     def 'assigns not covered when no dynamic evidence exists'() {
         expect:
         new DynamicEvidenceJoiner().join([plan('scenario-not-covered', [input('input-1')])], []).records()[0].dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.NOT_COVERED
@@ -334,6 +352,14 @@ class DynamicEvidenceJoinerSpec extends Specification {
 
     private static InputVariant input(String id, String sagaFqn = 'com.example.OrderSaga') {
         new InputVariant(id, sagaFqn, 'com.example.OrderSpec', 'creates order', 'orderSaga', InputResolutionStatus.RESOLVED, 'source', 'provenance', [], [:], [])
+    }
+
+    private static InputVariant helperFixtureInput(String id) {
+        new InputVariant(id, 'com.example.OrderSaga', 'com.example.OrderSpec', 'createHelperSaga', 'orderSaga', 'setup',
+                InputRole.FIXTURE_PREREQUISITE, FixtureOrigin.SETUP_HELPER, InputResolutionStatus.RESOLVED,
+                pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode.UNKNOWN,
+                pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence.UNKNOWN,
+                [], 'source', 'provenance', [new InputOwner('com.example.OrderSpec', 'setup')], [], [:], [], null)
     }
 
     private static InputVariant input(String id, String sagaFqn, List<InputOwner> owners) {

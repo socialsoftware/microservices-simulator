@@ -90,6 +90,7 @@ public class GroovyConstructorInputTraceVisitor {
     private Map<String, List<ScopedMutation>> activeMutationScopes = Map.of();
     private String activeMutationBlocker;
     private Set<String> activeNestedFacadeTraceKeys = new LinkedHashSet<>();
+    private Map<String, String> activeHelperCallContextByScope = new LinkedHashMap<>();
 
     public void visit(GroovySourceIndex sourceIndex, ApplicationAnalysisState state) {
         Objects.requireNonNull(sourceIndex, "sourceIndex cannot be null");
@@ -140,6 +141,7 @@ public class GroovyConstructorInputTraceVisitor {
                 ? SourceModeClassification.unknown()
                 : sourceModeClassification;
         activeNestedFacadeTraceKeys = new LinkedHashSet<>();
+        activeHelperCallContextByScope = new LinkedHashMap<>();
         InheritanceLayer targetLayer = hierarchy.get(hierarchy.size() - 1);
         Map<String, TraceBuilder> classFieldScopes = new LinkedHashMap<>();
         Map<String, Expression> classFieldExpressionScopes = new LinkedHashMap<>();
@@ -200,6 +202,7 @@ public class GroovyConstructorInputTraceVisitor {
                 builder.sourceClassFqn,
                 builder.sourceMethodName,
                 builder.sourceBindingName,
+                builder.callContextMethodName,
                 builder.originKind,
                 builder.sourceExpressionText,
                 builder.sagaClassFqn,
@@ -2460,21 +2463,33 @@ public class GroovyConstructorInputTraceVisitor {
                             runtimeArgumentTraces);
                 }
 
+                String helperTraceScopeKey = traceScopeKey(helperMethodContext.layer().classFqn(), helperMethod.getTypeDescriptor());
+                String callContextMethodName = activeHelperCallContextByScope.getOrDefault(traceScopeKey, traceMethodName);
+                String previousCallContext = activeHelperCallContextByScope.put(helperTraceScopeKey, callContextMethodName);
                 helperCallStack.push(helperKey);
-                ValueTrace helperReturnTrace = describeExpressionTrace(helperReturn.returnExpression(),
-                        helperMethodContext.layer().classNode(), helperMethodContext.layer().metadata(), state,
-                        helperReturn.helperExpressionScopes(), classFieldExpressionScopes, methodsByName,
-                        visibleFieldKeysByClassFqn,
-                        helperCallStack,
-                        visitedVariables,
-                        emittedNestedFacadeTraceKeys,
-                        depth + 1,
-                        traceSourceClassFqn,
-                        helperMethod.getName(),
-                        traceScopeKey(helperMethodContext.layer().classFqn(), helperMethod.getTypeDescriptor()),
-                        true,
-                        helperReturn.helperRebindingFallbackScopes());
-                helperCallStack.pop();
+                ValueTrace helperReturnTrace;
+                try {
+                    helperReturnTrace = describeExpressionTrace(helperReturn.returnExpression(),
+                            helperMethodContext.layer().classNode(), helperMethodContext.layer().metadata(), state,
+                            helperReturn.helperExpressionScopes(), classFieldExpressionScopes, methodsByName,
+                            visibleFieldKeysByClassFqn,
+                            helperCallStack,
+                            visitedVariables,
+                            emittedNestedFacadeTraceKeys,
+                            depth + 1,
+                            traceSourceClassFqn,
+                            helperMethod.getName(),
+                            helperTraceScopeKey,
+                            true,
+                            helperReturn.helperRebindingFallbackScopes());
+                } finally {
+                    helperCallStack.pop();
+                    if (previousCallContext == null) {
+                        activeHelperCallContextByScope.remove(helperTraceScopeKey);
+                    } else {
+                        activeHelperCallContextByScope.put(helperTraceScopeKey, previousCallContext);
+                    }
+                }
 
                 return new ValueTrace(calledMethod + "(...) <- " + helperReturnTrace.provenance(),
                         new GroovyValueRecipe(GroovyValueKind.HELPER_CALL_RESULT, calledMethod,
@@ -2708,10 +2723,13 @@ public class GroovyConstructorInputTraceVisitor {
                 traceLines.add("arg[" + argument.index() + "]: " + argument.provenance()));
         traceLines.addAll(facadeResolution.resolutionNotes());
 
+        String callContextMethodName = activeHelperCallContextByScope.getOrDefault(traceScopeKey, traceMethodName);
+
         state.groovyFullTraceResults.add(new GroovyFullTraceResult(
                 traceSourceClassFqn,
                 traceMethodName,
                 null,
+                callContextMethodName,
                 GroovyTraceOriginKind.FACADE_CALL,
                 methodCallExpression.getText(),
                 facadeResolution.creationSite().sagaClassFqn(),
@@ -3521,6 +3539,7 @@ public class GroovyConstructorInputTraceVisitor {
         private final String sourceClassFqn;
         private final String sourceMethodName;
         private final String sourceBindingName;
+        private final String callContextMethodName;
         private final String sagaClassFqn;
         private GroovyTraceOriginKind originKind;
         private String sourceExpressionText;
@@ -3537,6 +3556,7 @@ public class GroovyConstructorInputTraceVisitor {
             this.sourceClassFqn = sourceClassFqn;
             this.sourceMethodName = sourceMethodName;
             this.sourceBindingName = sourceBindingName;
+            this.callContextMethodName = sourceMethodName;
             this.sagaClassFqn = sagaClassFqn;
         }
 

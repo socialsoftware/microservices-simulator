@@ -265,6 +265,39 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         helperFacadeTraces[0].traceText().contains('resolved via facade ItemFunctionalitiesFacade.createItem(...)')
     }
 
+    def 'setup helper facade trace preserves helper source with setup call context'() {
+        given:
+        def helperFacadeTrace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySetupHelperOwnershipSpec' &&
+                    it.sourceMethodName == 'createSetupItem' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+        def directFeatureTrace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySetupHelperOwnershipSpec' &&
+                    it.sourceMethodName == 'direct feature item creation remains feature under test' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+        def featureHelperTrace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySetupHelperOwnershipSpec' &&
+                    it.sourceMethodName == 'createItemFromFeatureHelper' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+
+        expect:
+        helperFacadeTrace != null
+        helperFacadeTrace.originKind() == GroovyTraceOriginKind.FACADE_CALL
+        helperFacadeTrace.sourceExpressionText() == 'itemFunctionalities.createItem(new ItemDto([aggregateId:100, orderId:200]))'
+        helperFacadeTrace.callContextMethodName() == 'setup'
+
+        and:
+        directFeatureTrace != null
+        directFeatureTrace.callContextMethodName() == 'direct feature item creation remains feature under test'
+
+        and:
+        featureHelperTrace != null
+        featureHelperTrace.callContextMethodName() == 'feature calls helper that creates item'
+    }
+
     def 'functionality runtime edge retains call arguments'() {
         given:
         def trace = state.groovyFullTraceResults.find {
