@@ -3,6 +3,14 @@ from src.simulator_tools.simulator_utils import SimInterface, GATEWAY
 from src.initial_config.baseline_data import BASELINE_SCENARIOS
 
 
+@events.init_command_line_parser.add_listener
+def _(parser):
+    parser.add_argument("--read-weight", type=float,
+                        default=1.0, help="Multiplier for read tasks")
+    parser.add_argument("--write-weight", type=float,
+                        default=1.0, help="Multiplier for write tasks")
+
+
 class Workload(HttpUser):
     abstract = True
     host = GATEWAY
@@ -22,6 +30,9 @@ class Workload(HttpUser):
         if not self.environment.scenario_pool:
             self.stop(True)
             return
+
+        self.read_weight = self.environment.parsed_options.read_weight
+        self.write_weight = self.environment.parsed_options.write_weight
 
         # Pop one scenario atomically
         scenario = self.environment.scenario_pool.pop()

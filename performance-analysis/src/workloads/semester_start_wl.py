@@ -1,4 +1,5 @@
 from locust import task, between
+import random
 from workload_class import Workload
 from src.simulator_tools.simulator_utils import SimInterface
 
@@ -16,7 +17,6 @@ other is critical for peformance.
 class StartOfSemesterWorkload(Workload):
     wait_time = between(0.1, 0.5)
 
-    @task(5)
     def onboarding_flow(self):
         new_user = SimInterface.create_user(client=self.client)
         if new_user and "aggregateId" in new_user:
@@ -29,7 +29,15 @@ class StartOfSemesterWorkload(Workload):
 
             SimInterface.enroll_student(uid, self.exec_id, client=self.client)
 
-    @task(10)
     def heavy_reads(self):
         # Simulating students refreshing their course pages
         SimInterface.get_execution(self.exec_id, client=self.client)
+
+    @task
+    def dynamic_router(self):
+        tasks = [self.onboarding_flow, self.heavy_reads]
+        weights = [
+            5 * self.write_weight,
+            10 * self.read_weight
+        ]
+        random.choices(tasks, weights=weights, k=1)[0]()

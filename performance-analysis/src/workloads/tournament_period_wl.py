@@ -1,4 +1,5 @@
 from locust import task, between
+import random
 from workload_class import Workload
 from src.simulator_tools.simulator_utils import SimInterface
 
@@ -21,14 +22,12 @@ class TournamentPeriodWorkload(Workload):
         super().on_start()
         self.active_tourns = []
 
-    @task(10)
     def create_tournament(self):
         tourn = SimInterface.create_tournament(
             self.exec_id, [self.topic_id], self.owner_id, client=self.client)
         if tourn and "id" in tourn:
             self.active_tourns.append((tourn["id"], self.exec_id))
 
-    @task(20)
     def join_tournament(self):
         if self.active_tourns:
             tourn_id = self.active_tourns[-1][0]
@@ -38,9 +37,22 @@ class TournamentPeriodWorkload(Workload):
             SimInterface.enroll_in_tournament(
                 tourn_id, self.user_id, client=self.client)
 
-    @task(70)
     def solve_tournament(self):
         if self.active_tourns:
             tourn_id = self.active_tourns[-1]
             SimInterface.solve_quiz(
                 tourn_id, self.user_id, client=self.client)
+
+    @task
+    def dynamic_router(self):
+        tasks = [
+            self.create_tournament,
+            self.join_tournament,
+            self.solve_tournament
+        ]
+        weights = [
+            10 * self.write_weight,
+            20 * self.write_weight,
+            70 * self.write_weight
+        ]
+        random.choices(tasks, weights=weights, k=1)[0]()

@@ -16,6 +16,8 @@ class WorkloadConfig:
     spawn_rate: int
     iterations: int
     runtime_seconds: int
+    read_weight: float = 1.0
+    write_weight: float = 1.0
 
 
 class SimRunner:
@@ -60,7 +62,9 @@ class SimRunner:
             "--headless",
             "--only-summary",
             "-u", str(workload.users),
-            "-r", str(workload.spawn_rate)
+            "-r", str(workload.spawn_rate),
+            "--read-weight", str(workload.read_weight),
+            "--write-weight", str(workload.write_weight)
         ]
 
         # As explain in the yaml configuration, run-time is the default behavior
@@ -73,6 +77,8 @@ class SimRunner:
         try:
             # We use subprocess.run to wait for the workload to finish
             # Suppress stdout and stderr so it doesn't pollute the CLI
+            logging.info(
+                f"cmd: {cmd}")
             subprocess.run(
                 cmd,
                 check=False,

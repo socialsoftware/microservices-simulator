@@ -12,10 +12,12 @@ workloads:
       "base_wl.py",
       "semester_start_wl.py",
       "tournament_period_wl.py",
-      "steady_wl",
+      "steady_wl.py",
     ]
   # Interval of min, max users per workload
   users: [100, 300]
+  # Interval for dynamic read/write workload multipliers
+  weights_interval: [0.5, 2.0]
   # Each workload (step) runs for this exact time regardless of the requests processed
   run-time: 0 # seconds
   # Each workload (step) executes this amount of tasks

@@ -19,6 +19,7 @@ class MicroserviceOptimizerEnv(gym.Env):
         workloads: list[WorkloadConfig],
         users_interval: tuple[int, int],
         iterations_interval: tuple[int, int],
+        weights_interval: tuple[float, float],
         run_time: int,
         reward_strat: RewardStrategy,
         observation_strat: ObservationStrategy,
@@ -33,6 +34,7 @@ class MicroserviceOptimizerEnv(gym.Env):
         self.workloads = workloads
         self.users_itvl = users_interval
         self.iterations_itvl = iterations_interval
+        self.weights_itvl = weights_interval
         self.run_time = run_time
         self.reward_strategy = reward_strat
         self.obs_strategy = observation_strat
@@ -60,13 +62,17 @@ class MicroserviceOptimizerEnv(gym.Env):
     def _randomize_workload(self) -> WorkloadConfig:
         """Returns a randomized workload configuration."""
 
-        iterations = random.randint(*self.iterations_itvl)
-        users = random.randint(*self.users_itvl)
         file = random.choice(self.workloads)
+        users = random.randint(*self.users_itvl)
+        # Locust does not work well above a ramp-up value of 100, so we cap it there
+        spawn_rate = users if users <= 100 else 100
+        iterations = random.randint(*self.iterations_itvl)
+        read_weight = random.uniform(*self.weights_itvl)
+        write_weight = random.uniform(*self.weights_itvl)
+
         logging.info(
-            f"Workload: file={file}, users={users}, iterations={iterations}")
-        # TODO: randomize task weights
-        return WorkloadConfig(file, users, users, iterations, self.run_time)
+            f"Workload: file={file}, users={users}, iterations={iterations}, read_w={read_weight:.2f}, write_w={write_weight:.2f}")
+        return WorkloadConfig(file, users, spawn_rate, iterations, self.run_time, read_weight, write_weight)
 
     def reset(self, seed=None, options=None):
         """

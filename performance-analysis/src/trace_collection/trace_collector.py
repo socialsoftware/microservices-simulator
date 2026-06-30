@@ -1,6 +1,7 @@
 from collections import defaultdict
 import threading
 import time
+import logging
 from typing import Any, Dict, List
 
 
@@ -25,7 +26,7 @@ class TraceManager:
         with self._lock:
             self._spans.clear()
             self._last_span_time = 0.0
-        print("Trace manager has been reset!")
+        logging.info("Trace manager has been reset!")
 
     @staticmethod
     def _parse_otlp_value(value: Any) -> Any:

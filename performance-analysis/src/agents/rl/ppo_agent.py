@@ -49,6 +49,7 @@ def run_ppo(
         workload_cfg["workloads"],
         tuple(workload_cfg["users"]),
         tuple(workload_cfg["iterations"]),
+        tuple(workload_cfg["weights_ratio"]),
         workload_cfg["run-time"],
         reward_strat,
         observation_strat,
@@ -74,6 +75,7 @@ def run_ppo(
         workload_cfg["workloads"],
         tuple(workload_cfg["users"]),
         tuple(workload_cfg["iterations"]),
+        tuple(workload_cfg["weights_ratio"]),
         workload_cfg["run-time"],
         reward_strat,
         observation_strat,
@@ -93,7 +95,7 @@ def run_ppo(
         best_model_save_path=paths["models_dir"],
         log_path=paths["models_dir"],
         eval_freq=train_cfg["eval_freq"],
-        n_eval_episodes=1,  # (for testing)
+        # n_eval_episodes=1,  # (for testing)
         deterministic=True,
         render=False
     )
