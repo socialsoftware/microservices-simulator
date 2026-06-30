@@ -10,7 +10,9 @@ The dynamic-enrichment bridge can collect runtime evidence and join it back to s
 
 The first-pass runtime attribution path is implemented: the verifier writes a `dynamic-input-map.json`, the simulator loads that map, runtime events can carry static `inputVariantId`, and the joiner upgrades matching scenario plans to `MATCHED_EXACT`.
 
-2026-06-29 update: the current run shape writes a run-level map for the selected-test-class Maven batch, not one map per Maven process/class. The refreshed post-event Quizzes baseline is `MATCHED_EXACT=291`, `MATCHED_HIGH_CONFIDENCE=109`, `AMBIGUOUS=0`, `UNMATCHED=184`, `warningCount=0`. Older counts in this decision are historical evidence for why the runtime-attribution path was added.
+2026-06-29 update: the current run shape writes a run-level map for the selected-test-class Maven batch, not one map per Maven process/class. The refreshed post-event Quizzes baseline before fixture/setup ownership diagnostics was `MATCHED_EXACT=291`, `MATCHED_HIGH_CONFIDENCE=109`, `AMBIGUOUS=0`, `UNMATCHED=184`, `warningCount=0`. Older counts in this decision are historical evidence for why the runtime-attribution path was added.
+
+2026-06-30 update: ownership-aware attribution now separates source provenance, call context, fixture role, and runtime owner. The current Quizzes baseline after fixture/setup and feature-helper ownership fixes is `MATCHED_EXACT=435`, `MATCHED_HIGH_CONFIDENCE=125`, `AMBIGUOUS=0`, `UNMATCHED=24`, with `unmatchedReasonCounts={FAILED_TEST_CLASS=8, NOT_SELECTED_TEST_CLASS=7, HELPER_OWNER_MISMATCH=0, UNCLASSIFIED=9}`.
 
 Deferred parts:
 
@@ -191,7 +193,7 @@ Command fields remain useful diagnostics, but not exact attribution evidence yet
 
 Implementation status:
 
-Deferred. The first-pass implementation currently attributes from test identity, runtime functionality class FQN, and runtime step name. Command and aggregate runtime ids are the next refinement candidates, after classifying the refreshed Quizzes `UNMATCHED=184` records.
+Deferred. The implemented attribution path currently uses test identity, runtime functionality class FQN, runtime step name, direct `inputVariantId`, and ownership metadata. Command and aggregate runtime ids remain refinement candidates, but the refreshed Quizzes baseline now has `UNMATCHED=24`; the `UNCLASSIFIED=9` residuals should be triaged before adding value-based matching.
 
 ### 6. Allow later events to resolve the step context
 
@@ -438,7 +440,7 @@ NOT_COVERED=0
 warningCount=328
 ```
 
-Current 2026-06-29 post-event-semantics refreshed Quizzes result:
+Historical 2026-06-29 post-event-semantics refreshed Quizzes result before fixture/setup ownership diagnostics:
 
 ```text
 MATCHED_EXACT=291
@@ -450,15 +452,27 @@ NOT_COVERED=0
 warningCount=0
 ```
 
+Current 2026-06-30 ownership-aware Quizzes result:
+
+```text
+MATCHED_EXACT=435
+MATCHED_HIGH_CONFIDENCE=125
+MATCHED_PARTIAL=0
+AMBIGUOUS=0
+UNMATCHED=24
+NOT_COVERED=0
+unmatchedReasonCounts={FAILED_TEST_CLASS=8, NOT_SELECTED_TEST_CLASS=7, HELPER_OWNER_MISMATCH=0, UNCLASSIFIED=9}
+```
+
 Status: implemented for the comparable local/sagas Quizzes run. The result mainly improved exactness and reduced ambiguity/warnings; it did not prove that every useful static input is dynamically covered.
 
 ## Summary
 
 The accepted design keeps exact attribution application-agnostic:
 
-- the verifier writes a per-test map from its static scenario catalog;
+- the verifier writes a run-level dynamic input map from its static scenario catalog;
 - the simulator loads that map through opt-in dynamic-evidence config;
 - runtime emits `inputVariantId` only when attribution is unambiguous;
 - reports quantify exactness, ambiguity, and contradictions.
 
-The first-pass implementation proved the core path without adding Quizzes-specific hooks. The next work is to classify the remaining ambiguous/unmatched Quizzes records before adding command/aggregate/literal refinement.
+The implementation proved the core path without adding Quizzes-specific hooks and then removed most helper/setup ownership misses. The next work is to triage the remaining `UNCLASSIFIED=9` residuals before adding command/aggregate/literal refinement.

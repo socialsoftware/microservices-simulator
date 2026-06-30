@@ -45,6 +45,11 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 | Event-origin input | Static `InputVariant` produced from an event-driven chain, such as the implemented `EventHandling` method -> `EventProcessing` method -> facade/functionality -> saga shape. |
 | Event payload placeholder | Placeholder in an event-origin recipe where the static extractor knows an event payload value is needed but cannot reconstruct the concrete runtime object/value. It may allow static acceptance while blocking materialization. |
 | `InputVariant` id | Stable identifier for a static input variant; when runtime evidence carries it, dynamic enrichment can join evidence exactly. |
+| Input provenance | Static source information describing where an input was created (`sourceClassFqn`, `sourceMethodName`, binding name, source/provenance text). Helper provenance is preserved even when runtime ownership belongs to a Spock feature. |
+| Input owner | Test class/method identity eligible to match runtime evidence for an input. Owners constrain attribution; they are not proof by themselves. Helper-created inputs can keep helper provenance while being owned by the setup or feature that called the helper. |
+| Call context | Surrounding method context for an input (`callContextMethodName`), used to distinguish a helper method from the setup/feature context that called it. |
+| Input role | Additive classification of a static input as `FEATURE_UNDER_TEST`, `FIXTURE_PREREQUISITE`, or `UNKNOWN`. |
+| Fixture origin | Additive classification of fixture inputs such as `SETUP`, `SETUP_HELPER`, `FIELD`, `SETUP_SPEC`, inherited fixture variants, or `DIRECT_FEATURE`. |
 | Saga construction recipe | Extracted trace of how a Groovy test constructs or obtains saga inputs, including literals, helper calls, facade calls, transforms, placeholders, and unresolved values. |
 | Source mode | Classification of test input source evidence as `SAGAS`, `TCC`, `MIXED`, or `UNKNOWN`. The scenario catalog accepts saga-compatible inputs and rejects unsupported TCC/mixed candidates diagnostically. |
 | Footprint | Static approximation of what a saga step or command touches, usually aggregate type plus access mode and, when available, key evidence. |
@@ -58,13 +63,14 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 | Dynamic enrichment | Optional verifier workflow that runs selected application tests, collects simulator runtime evidence, and writes sidecar-enriched catalog artifacts without changing the static catalog. |
 | Dynamic enrichment sidecar | Runtime-evidence attribution artifact attached next to the static catalog. It may guide investigation and matching, but it does not create static inputs or redefine static scenario structure. |
 | Runtime evidence | JSONL records emitted by simulator hooks during test execution, such as step events, aggregate observations, and attribution diagnostics. |
-| Dynamic input map | Per-test-class map written by the verifier before dynamic runs so simulator hooks can map runtime test identity, functionality, and step names back to static input variants. |
+| Dynamic input map | Run-level map written by the verifier before dynamic runs so simulator hooks can map runtime test identity, functionality, and step names back to static input variants. |
 | Sidecar artifact | Output that enriches or explains the static catalog without redefining it, such as `scenario-catalog-enriched.jsonl` or `dynamic-evidence-join-report.json`. |
 | Join status | Category describing how runtime evidence matched a static scenario plan. Current statuses include `MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `MATCHED_PARTIAL`, `AMBIGUOUS`, `UNMATCHED`, and `NOT_COVERED`. |
 | `MATCHED_EXACT` | Runtime evidence carried a direct `inputVariantId` belonging to the scenario plan. This is the strongest current join result. |
 | `MATCHED_HIGH_CONFIDENCE` | Runtime evidence matched through test identity and semantic shape, but did not carry a direct input variant id. |
 | `MATCHED_PARTIAL` | Runtime evidence matched some relevant shape but not enough for high-confidence attribution. |
 | `AMBIGUOUS` | Runtime evidence is relevant but maps to multiple possible static input variants or scenario candidates; the verifier does not guess. |
+| Unmatched reason | Diagnostic stored only on `UNMATCHED` dynamic evidence: `FAILED_TEST_CLASS`, `NOT_SELECTED_TEST_CLASS`, `HELPER_OWNER_MISMATCH`, or `UNCLASSIFIED`. |
 | `UNMATCHED` | Runtime evidence exists but cannot be joined usefully to the static scenario candidate. |
 | `NOT_COVERED` | No useful runtime evidence was observed for the static scenario candidate in the selected dynamic run. |
 

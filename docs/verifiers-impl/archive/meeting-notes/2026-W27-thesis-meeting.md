@@ -214,20 +214,33 @@ Implementado:
   - `scenario-catalog-enriched-manifest.json`
   - `dynamic-evidence-join-report.json`
 
-Evidência actual pós-event-semantics, com runtime `inputVariantId`:
+Evidência actual depois da correcção de ownership para fixtures/setup/helpers:
 
 ```text
-Run: verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
+Run: verifiers/target/feature-helper-owner-fix-dynamic-smoke/quizzes-20260630-122219-034/
 Scenario records: 584
 Test classes selected/passed/failed: 45 / 43 / 2
-Dynamic events read: 26820
-MATCHED_EXACT: 291
-MATCHED_HIGH_CONFIDENCE: 109
+Dynamic events read: 26815
+MATCHED_EXACT: 435
+MATCHED_HIGH_CONFIDENCE: 125
 MATCHED_PARTIAL: 0
 AMBIGUOUS: 0
-UNMATCHED: 184
+UNMATCHED: 24
 NOT_COVERED: 0
-warningCount: 0
+unmatchedReasonCounts:
+  FAILED_TEST_CLASS: 8
+  NOT_SELECTED_TEST_CLASS: 7
+  HELPER_OWNER_MISMATCH: 0
+  UNCLASSIFIED: 9
+```
+
+Baseline pós-event-semantics antes desta correcção:
+
+```text
+MATCHED_EXACT: 291
+MATCHED_HIGH_CONFIDENCE: 109
+AMBIGUOUS: 0
+UNMATCHED: 184
 ```
 
 Baseline antigo antes da atribuição runtime por `inputVariantId`:
@@ -242,7 +255,7 @@ warningCount: 8238
 
 Limitação actual:
 
-> A evidência dinâmica reduziu a ambiguidade do join nesta baseline, mas continua a ser sidecar e não cria novos cenários estáticos. `UNMATCHED=184` mostra que muitos planos estáticos não foram observados nos testes seleccionados.
+> A evidência dinâmica reduziu a ambiguidade do join e resolveu a maior parte do problema de ownership de helpers/setup, mas continua a ser sidecar e não cria novos cenários estáticos. `UNMATCHED=24` mostra que ainda há planos estáticos sem correspondência dinâmica segura nos testes seleccionados.
 
 ### 3.6 ScenarioExecutor POC
 
@@ -366,28 +379,45 @@ Risco:
 
 > Type-only evidence é útil como fallback conservador, mas não deve ser descrita como evidência exacta de conflito na mesma instância.
 
-### 5.3 Dynamic enrichment já foi refrescado, mas há `UNMATCHED`
+### 5.3 Dynamic enrichment foi refrescado e o problema principal de helpers/setup baixou muito
 
-O enriquecimento dinâmico foi refrescado contra o catálogo pós-event-semantics. O resultado principal é positivo para a precisão do join:
+O enriquecimento dinâmico foi refrescado contra o catálogo pós-event-semantics e depois novamente após a correcção de ownership para fixtures/setup/helpers. O resultado principal é positivo para a precisão do join:
 
 ```text
+Antes da correcção de ownership:
 MATCHED_EXACT: 291
 MATCHED_HIGH_CONFIDENCE: 109
 AMBIGUOUS: 0
 UNMATCHED: 184
+
+Depois da correcção de ownership:
+MATCHED_EXACT: 435
+MATCHED_HIGH_CONFIDENCE: 125
+AMBIGUOUS: 0
+UNMATCHED: 24
 ```
 
 Interpretação:
 
 - o `inputVariantId` runtime removeu a ambiguidade nesta baseline;
+- `inputRole`, `fixtureOrigin`, `callContextMethodName` e owners multi-feature permitiram casar inputs criados em `setup()`/helpers com a feature Spock activa;
 - o catálogo enriquecido cobre os 584 planos estáticos como sidecar;
-- `UNMATCHED=184` continua a ser uma lacuna importante;
+- `UNMATCHED=24` continua a ser uma caveat, mas já não é o problema dominante anterior;
 - os 2 test classes falhados são falhas Quizzes já conhecidas, não novos erros de instrumentation.
+
+Distribuição actual dos `UNMATCHED=24`:
+
+```text
+FAILED_TEST_CLASS: 8
+NOT_SELECTED_TEST_CLASS: 7
+HELPER_OWNER_MISMATCH: 0
+UNCLASSIFIED: 9
+```
 
 Próximo passo possível:
 
-- classificar os `UNMATCHED=184`;
-- decidir se vale a pena melhorar matching por aggregate keys/runtime values antes do executor;
+- fazer triagem curta dos `UNCLASSIFIED=9`;
+- não avançar automaticamente para runtime-value matching sem confirmar que esses 9 casos precisam mesmo disso;
 - não usar dynamic evidence para criar cenários estáticos novos.
 
 ### 5.4 Execução genérica ainda não existe
@@ -2089,21 +2119,25 @@ UNMATCHED: 20
 warningCount: 8238
 ```
 
-Baseline actual pós-event-semantics:
+Baseline actual após correcção de ownership de fixtures/setup/helpers:
 
 ```text
-MATCHED_EXACT: 291
-MATCHED_HIGH_CONFIDENCE: 109
+MATCHED_EXACT: 435
+MATCHED_HIGH_CONFIDENCE: 125
 MATCHED_PARTIAL: 0
 AMBIGUOUS: 0
-UNMATCHED: 184
+UNMATCHED: 24
 NOT_COVERED: 0
-warningCount: 0
+unmatchedReasonCounts:
+  FAILED_TEST_CLASS: 8
+  NOT_SELECTED_TEST_CLASS: 7
+  HELPER_OWNER_MISMATCH: 0
+  UNCLASSIFIED: 9
 ```
 
 Interpretação:
 
-> A atribuição directa melhorou muito a precisão do join e, nesta baseline, eliminou ambiguidade. O ponto fraco deixou de ser `AMBIGUOUS` e passou a ser `UNMATCHED=184`: planos estáticos que continuam sem evidência runtime nos testes seleccionados.
+> A atribuição directa e a separação entre proveniência, call context e owner melhoraram muito a precisão do join. O ponto fraco deixou de ser a grande massa de `UNMATCHED=184` causada por helpers/setup e passou a ser um residual pequeno de `UNMATCHED=24`, com 9 casos ainda sem classificação fina.
 
 #### Limitações actuais
 
@@ -2111,7 +2145,7 @@ Interpretação:
 - ThreadLocal context em steps assíncronos tem limitações já reconhecidas no código.
 - Stream/gRPC/distributed/TCC parity não está estabelecida.
 - Dynamic enrichment é sidecar: não corrige a estrutura estática.
-- A baseline pós-event-semantics existe, mas `UNMATCHED=184` precisa de classificação.
+- A baseline actual tem `UNMATCHED=24`; os `UNCLASSIFIED=9` precisam de triagem antes de justificar uma fase de runtime-value matching.
 
 #### Resumo desta fase
 

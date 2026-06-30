@@ -55,7 +55,7 @@ From production code, it extracts:
 From tests, it extracts input variants:
 
 ```text
-A static input variant = one observed source/test way to invoke a saga/functionality.
+A static input variant = one observed source/test way to invoke a saga/functionality. It keeps these identities separate: provenance (`sourceClassFqn`, `sourceMethodName`, `sourceBindingName`, `provenanceText`), owner feature(s), call context (`callContextMethodName`), and fixture metadata (`inputRole`, `fixtureOrigin`). Setup/helper-created inputs are fixture prerequisites, not feature-under-test inputs, but can still be owned by the feature methods that run that setup.
 ```
 
 Example shape:
@@ -166,20 +166,20 @@ The enriched catalog uses conservative statuses:
 
 ## Current dynamic-enrichment result
 
-On the refreshed Quizzes sagas-local baseline against the post-event-semantics catalog:
+On the refreshed Quizzes sagas-local baseline after fixture/setup and feature-helper ownership fixes:
 
 ```text
-run: verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
+run: verifiers/target/feature-helper-owner-fix-dynamic-smoke/quizzes-20260630-122219-034/
 scenario records: 584
 test classes selected/passed/failed: 45 / 43 / 2
-dynamicEventsRead: 26820
-MATCHED_EXACT=291
-MATCHED_HIGH_CONFIDENCE=109
+dynamicEventsRead: 26815
+MATCHED_EXACT=435
+MATCHED_HIGH_CONFIDENCE=125
 MATCHED_PARTIAL=0
 AMBIGUOUS=0
-UNMATCHED=184
+UNMATCHED=24
 NOT_COVERED=0
-warningCount=0
+unmatchedReasonCounts={FAILED_TEST_CLASS=8, NOT_SELECTED_TEST_CLASS=7, HELPER_OWNER_MISMATCH=0, UNCLASSIFIED=9}
 ```
 
 The older baseline before runtime input attribution was:
@@ -196,8 +196,8 @@ Plain interpretation:
 
 ```text
 Runtime input attribution works at Quizzes scale.
-It eliminated ambiguity in the latest baseline.
-The remaining gap is unmatched static plans, not ambiguous joins.
+Fixture/setup and feature-helper ownership fixes reduced unmatched records from 184 to 24.
+The latest baseline still has zero ambiguous joins. Unmatched records now carry a diagnostic reason so the gap can be separated into failed test classes, non-selected test classes, helper-owner mismatches, and unclassified residual cases.
 ```
 
 Do not overstate this. It does not prove stream/gRPC, distributed, TCC, or generic executor behavior.
@@ -259,7 +259,7 @@ The join stays conservative when identity is unclear.
 
 Safe claim:
 
-> The verifier now produces deterministic saga scenario catalogs and can enrich them with runtime evidence. On the refreshed Quizzes sagas-local baseline, runtime input attribution produced 291 exact matches, 109 high-confidence matches, and zero ambiguous joins over 584 static scenario records.
+> The verifier now produces deterministic saga scenario catalogs and can enrich them with runtime evidence. On the refreshed Quizzes sagas-local baseline, runtime input attribution and ownership metadata produced 435 exact matches, 125 high-confidence matches, zero ambiguous joins, and 24 unmatched records over 584 static scenario records.
 
 Unsafe claim:
 
@@ -269,6 +269,6 @@ That is future work.
 
 ## Next improvement
 
-Classify the remaining `UNMATCHED=184` records before adding more attribution rules.
+Triage the remaining `UNMATCHED=24` records before adding more attribution rules.
 
-The next implementation should be the smallest structured refinement justified by those cases, likely using command payloads, aggregate accesses, literal hints, or aggregate keys. Avoid broad name matching that increases false exactness.
+The next implementation should be the smallest structured refinement justified by those cases. Current residuals point more to failed/not-selected tests, fault paths, async context boundaries, and negative-input paths than to broad runtime-value matching. Avoid broad name matching that increases false exactness.

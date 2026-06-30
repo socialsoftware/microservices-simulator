@@ -76,26 +76,28 @@ Implemented as a verifier-orchestrated local/sagas bridge with sidecar enrichmen
 - before/after measurement is based on join-report status counts: first-pass propagation should increase `MATCHED_EXACT` when runtime evidence carries direct `inputVariantId`, and remaining ambiguity/unmatched records require later runtime refinement;
 - Docker `fault-analysis-scenario-gen` enables this full static+dynamic flow with run-relative report path behavior.
 
-The dynamic-enrichment baseline was refreshed against the post-event-semantics static catalog on 2026-06-29:
+The dynamic-enrichment baseline was refreshed after fixture/setup and feature-helper ownership fixes on 2026-06-30:
 
 ```text
-run: verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
+run: verifiers/target/feature-helper-owner-fix-dynamic-smoke/quizzes-20260630-122219-034/
 scenario records: 584
 test classes selected/passed/failed: 45 / 43 / 2
-dynamicEventsRead: 26820
-MATCHED_EXACT: 291
-MATCHED_HIGH_CONFIDENCE: 109
+dynamicEventsRead: 26815
+MATCHED_EXACT: 435
+MATCHED_HIGH_CONFIDENCE: 125
 AMBIGUOUS: 0
-UNMATCHED: 184
-warningCount: 0
+UNMATCHED: 24
+unmatchedReasonCounts: FAILED_TEST_CLASS=8, NOT_SELECTED_TEST_CLASS=7, HELPER_OWNER_MISMATCH=0, UNCLASSIFIED=9
 ```
+
+For comparison, the 2026-06-29 post-event baseline before those ownership fixes had `MATCHED_EXACT=291`, `MATCHED_HIGH_CONFIDENCE=109`, `AMBIGUOUS=0`, and `UNMATCHED=184`.
 
 Dynamic enrichment remains sidecar-only: it may attribute runtime evidence to static variants, but it does not create or redefine static `InputVariant` or `ScenarioPlan` structure.
 
 Remaining gaps:
 
-- Direct runtime `inputVariantId` propagation is still first-pass only; it does not yet use runtime command payloads, aggregate accesses, literal argument values, or aggregate keys to reduce the remaining unmatched candidates.
-- The latest Quizzes baseline eliminated ambiguity, but `UNMATCHED=184` remains substantial and needs classification.
+- Direct runtime `inputVariantId` propagation is still conservative; it does not yet use runtime command payloads, aggregate accesses, literal argument values, or aggregate keys to reduce all residual unmatched candidates.
+- The latest Quizzes baseline eliminated ambiguity and reduced unmatched records to `24`; the remaining `UNCLASSIFIED=9` records need triage before a runtime-value matching plan is justified.
 - Dynamic Quizzes baselines must run with `SPRING_PROFILES_ACTIVE=test,sagas,local`; without the `test` profile, async `@SpringBootTest` classes can fail before evidence collection due to missing datasource configuration.
 - No stream/gRPC/distributed or causal/TCC runtime hooks/parity yet.
 - Logs and Jaeger traces remain auxiliary diagnostics rather than the primary evidence source.
@@ -222,7 +224,7 @@ Dependencies:
 | HTML report | Implemented | renderer/application specs | Human view only, not machine contract |
 | Scenario catalog JSONL/manifest | Implemented MVP | scenario package, writer, application specs | Exact keys, filters, executor integration |
 | Segment-compressed scheduling/accounting | Implemented static reduction | scheduler/accounting specs, dummyapp integration, Quizzes count-only comparison | Exact aggregate-instance binding and runtime semantic completeness remain separate |
-| Dynamic evidence + sidecar enrichment | Implemented MVP with refreshed post-event baseline | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, 2026-06-29 Quizzes baseline (`MATCHED_EXACT=291`, `AMBIGUOUS=0`, `UNMATCHED=184`) | Classify unmatched records; runtime attribution refinement; stream/gRPC/distributed/TCC parity |
+| Dynamic evidence + sidecar enrichment | Implemented MVP with refreshed ownership-aware baseline | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, 2026-06-30 Quizzes baseline (`MATCHED_EXACT=435`, `MATCHED_HIGH_CONFIDENCE=125`, `AMBIGUOUS=0`, `UNMATCHED=24`) | Triage residual unmatched records; runtime attribution refinement only where justified; stream/gRPC/distributed/TCC parity |
 | Quizzes orchestration smoke baseline | Implemented | 2026-06-29 full/default dynamic baseline in `current-state.md` / `evidence.md` | Refresh periodically and track exact/ambiguous/unmatched trends |
 | ScenarioExecutor | POC / materializability accounting evolving | `scenario-executor-poc.md`, Quizzes single-saga smoke, post-event count-only accounting (`94` materializable, `0` static recipe-ready) | Event payload materialization, general catalog replay, multi-saga execution, fault injection, impact scoring |
 | Behavior CSV generation | Not implemented | none | Decide whether adapter or canonical contract |
@@ -233,7 +235,7 @@ Dependencies:
 ## Near-term milestone proposal
 
 1. Finalize and classify the remaining 32 Quizzes sagas without accepted static inputs.
-2. Classify the refreshed dynamic baseline's `UNMATCHED=184` records and decide whether runtime-value/aggregate-key matching is worth improving before executor work.
+2. Triage the refreshed dynamic baseline's `UNMATCHED=24` records, especially `UNCLASSIFIED=9`, before deciding whether runtime-value/aggregate-key matching is worth improving before executor work.
 3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
 4. Improve aggregate-instance key binding where it affects scenario usefulness.
 5. Define the ScenarioExecutor input contract and decide JSONL-vs-CSV responsibilities after materialization semantics are clearer.

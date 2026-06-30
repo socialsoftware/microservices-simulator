@@ -1,6 +1,6 @@
 # Verifier evidence appendix
 
-Last updated: 2026-06-29
+Last updated: 2026-06-30
 
 This page stores concrete validation results, metrics, and run references so [`current-state.md`](current-state.md) can stay readable. Treat this as an appendix: cite it when you need proof, not as the first-read narrative.
 
@@ -126,9 +126,9 @@ Tests run: 11, Failures: 0, Errors: 0
 
 Interpretation: static event topology improved accepted static input coverage for the implemented `EventHandling`/`EventProcessing` shape, including the original target group of five event-driven sagas. The refreshed dynamic baseline below confirms that the post-event static catalog can still be enriched with runtime evidence. It does not make event-origin inputs replayable: event payload placeholders remain materialization blockers, and `executorMaterializableInputVariantCount=94` only means the current ScenarioExecutor can materialize that subset through executor-readiness/runtime-owned handling.
 
-## Latest dynamic-enrichment Quizzes baseline
+## Dynamic-enrichment Quizzes baselines
 
-Fresh full/default sagas-only Quizzes run against the post-event-semantics static catalog:
+Full/default sagas-only Quizzes run against the post-event-semantics static catalog before fixture/setup ownership diagnostics:
 
 ```text
 verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
@@ -219,7 +219,7 @@ UNMATCHED: 20
 warningCount: 8238
 ```
 
-The latest comparable post-event run with direct attribution is:
+The comparable post-event run with direct attribution before fixture/setup ownership diagnostics was:
 
 ```text
 MATCHED_EXACT: 291
@@ -229,7 +229,48 @@ UNMATCHED: 184
 warningCount: 0
 ```
 
-Interpretation: direct runtime attribution materially improved exact static/dynamic joining and eliminated ambiguity in this baseline. This is mainly a precision/attribution improvement, not proof that all useful static inputs are dynamically exercised: `UNMATCHED=184` remains substantial, and dynamic evidence remains an additive sidecar rather than a source of new static scenarios.
+The current post fixture/setup and feature-helper ownership run is:
+
+```text
+verifiers/target/feature-helper-owner-fix-dynamic-smoke/quizzes-20260630-122219-034/
+scenarioPlansRead: 584
+scenarioPlansEnriched: 584
+runStatus: PARTIAL
+batchStatus: FAILED
+testClassesSelected: 45
+testClassesPassed: 43
+testClassesFailed: 2
+dynamicEventsRead: 26815
+eventsMissingTestContext: 256
+MATCHED_EXACT: 435
+MATCHED_HIGH_CONFIDENCE: 125
+MATCHED_PARTIAL: 0
+AMBIGUOUS: 0
+UNMATCHED: 24
+NOT_COVERED: 0
+unmatchedReasonCounts:
+  FAILED_TEST_CLASS: 8
+  NOT_SELECTED_TEST_CLASS: 7
+  HELPER_OWNER_MISMATCH: 0
+  UNCLASSIFIED: 9
+```
+
+Current event breakdown:
+
+```text
+STEP_STARTED: 4862
+COMMAND_SENT: 10765
+AGGREGATE_ACCESSED: 6326
+STEP_FINISHED: 4862
+warnings: 0
+writeErrors: 0
+```
+
+Interpretation: direct runtime attribution plus fixture/setup and feature-helper ownership metadata materially improved exact static/dynamic joining, kept ambiguity at zero, and reduced unmatched records from `184` to `24`. This is mainly a precision/attribution improvement, not proof that all useful static inputs are dynamically exercised. Dynamic evidence remains an additive sidecar rather than a source of new static scenarios.
+
+Current implementation note: enriched dynamic records now include `dynamicEvidence.unmatchedReason` for `UNMATCHED` records only, and manifests/join reports include `unmatchedReasonCounts`. Static/exported inputs include `inputRole`, `fixtureOrigin`, and `callContextMethodName` so remaining Quizzes unmatched records can be interpreted by failed/not-selected class, helper-owner mismatch, or unclassified residual categories.
+
+Validation note (2026-06-30): the comparable 2g Quizzes dynamic smoke reached static catalog generation (`584` scenarios) but was killed with exit code `137` before dynamic artifacts. A follow-up 4g smoke preserved partial dynamic artifacts under `verifiers/target/unmatched-fixture-diagnostics-dynamic-smoke-4g/quizzes-20260630-004120-601/`; it timed out 42 of 45 selected classes, so it is not comparable to the baseline. Its join report still validates artifact shape: `dynamicEventsRead=1766`, `MATCHED_EXACT=17`, `MATCHED_HIGH_CONFIDENCE=11`, `AMBIGUOUS=0`, `UNMATCHED=556`, `unmatchedReasonCounts={FAILED_TEST_CLASS=534, NOT_SELECTED_TEST_CLASS=7, HELPER_OWNER_MISMATCH=0, UNCLASSIFIED=15}`.
 
 ## Segment-compressed scheduling evidence
 

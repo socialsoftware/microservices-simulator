@@ -1,6 +1,6 @@
 # Advisor brief
 
-Last updated: 2026-06-29
+Last updated: 2026-06-30
 
 Use this page before thesis meetings. It is intentionally short. For implementation detail, follow links from [`current-state.md`](current-state.md).
 
@@ -37,18 +37,21 @@ executorMaterializableInputVariantCount: 94
 blockedInputVariantCount: 490
 ```
 
-Fresh post-event-semantics Quizzes dynamic baseline:
+Fresh ownership-aware Quizzes dynamic baseline:
 
 ```text
-run: verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
+run: verifiers/target/feature-helper-owner-fix-dynamic-smoke/quizzes-20260630-122219-034/
 scenario records: 584
 test classes selected/passed/failed: 45 / 43 / 2
-dynamicEventsRead: 26820
-MATCHED_EXACT: 291
-MATCHED_HIGH_CONFIDENCE: 109
+dynamicEventsRead: 26815
+MATCHED_EXACT: 435
+MATCHED_HIGH_CONFIDENCE: 125
 AMBIGUOUS: 0
-UNMATCHED: 184
+UNMATCHED: 24
+unmatchedReasonCounts: FAILED_TEST_CLASS=8, NOT_SELECTED_TEST_CLASS=7, HELPER_OWNER_MISMATCH=0, UNCLASSIFIED=9
 ```
+
+For comparison, the 2026-06-29 post-event baseline before fixture/setup ownership diagnostics had `MATCHED_EXACT=291`, `MATCHED_HIGH_CONFIDENCE=109`, `AMBIGUOUS=0`, and `UNMATCHED=184`.
 
 Segment-compressed scheduling reduced a Quizzes count-only selected-space comparison from:
 
@@ -79,7 +82,7 @@ Detailed commands and run paths live in [`evidence.md`](evidence.md).
 - TCC, stream/gRPC, and distributed-runtime parity are not established.
 - Static accepted input coverage does not mean executor-ready or replayable.
 - Dynamic evidence does not rewrite or create static catalog structure; it is attached next to it.
-- The refreshed dynamic baseline does not validate every static scenario; `UNMATCHED=184` remains.
+- The refreshed dynamic baseline does not validate every static scenario; `UNMATCHED=24` remains after the ownership fixes.
 
 ## Next meeting: in-person zoom-out
 
@@ -96,7 +99,7 @@ Dynamic evidence helps by showing what happened during real executions, but it r
 ## Next work
 
 1. Finalize and classify the remaining 32 Quizzes sagas without accepted static inputs.
-2. Classify the refreshed dynamic baseline's `UNMATCHED=184` records and decide whether improving runtime matching is worth it before executor work.
+2. Triage the refreshed dynamic baseline's `UNMATCHED=24` records, especially `UNCLASSIFIED=9`, before deciding whether improving runtime matching is worth it before executor work.
 3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
 4. Tighten exact aggregate-instance key extraction where it affects scenario usefulness.
 5. Continue executor baseline/fault injection only after materialization improves.

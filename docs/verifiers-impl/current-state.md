@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-06-29
+Last updated: 2026-06-30
 
 This is the present-tense status page for verifier/scenario-generation work. Keep it short. Detailed run evidence lives in [`evidence.md`](evidence.md); meeting framing lives in [`advisor-brief.md`](advisor-brief.md).
 
@@ -73,6 +73,8 @@ Current non-goals:
 - Disabled-by-default verifier orchestration that runs selected application test classes with simulator evidence enabled.
 - Run-level `dynamic-input-map.json` written before the selected-test-class Maven batch.
 - Simulator-side runtime attribution emits `inputVariantId` when test owner + functionality class + step name resolve to exactly one static input variant.
+- Static input variants now keep provenance, owner, call-context, role, and fixture-origin separately. `sourceMethodName` remains the source/helper that created the input; `callContextMethodName` records the surrounding fixture/feature context when known; owners constrain which Spock feature identities may match at runtime.
+- Unmatched dynamic joins carry an additive `unmatchedReason` (`FAILED_TEST_CLASS`, `NOT_SELECTED_TEST_CLASS`, `HELPER_OWNER_MISMATCH`, or `UNCLASSIFIED`) and report `unmatchedReasonCounts` in enriched manifests/join reports.
 - Conservative join statuses: `MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `MATCHED_PARTIAL`, `AMBIGUOUS`, `UNMATCHED`, `NOT_COVERED`.
 - Enriched artifacts are sidecars; `scenario-catalog.jsonl` remains the static contract.
 - Plan-local ambiguity containment: direct ids for neighboring inputs are not reused to promote the wrong plan.
@@ -93,7 +95,7 @@ This is not yet generic scenario execution. It does not implement generated faul
 
 ### Dynamic enrichment
 
-Runtime input attribution is now useful at Quizzes scale: the refreshed post-event-semantics baseline produced 291 exact matches and zero ambiguous joins. It still does not use aggregate access evidence, literal runtime values, or aggregate keys deeply enough to reduce all unmatched cases.
+Runtime input attribution is now useful at Quizzes scale: the refreshed post-fixture-ownership baseline produced 435 exact matches, 125 high-confidence matches, zero ambiguous joins, and 24 unmatched records over 584 static scenario records. It still does not use aggregate access evidence, literal runtime values, or aggregate keys deeply enough to reduce all residual unmatched cases.
 
 ### Aggregate-instance binding
 
@@ -121,7 +123,7 @@ blockedInputVariantCount: 490
 EVENT_PAYLOAD_PLACEHOLDER blockers: 132
 ```
 
-Dynamic-enrichment Quizzes baseline against the post-event-semantics static catalog:
+Dynamic-enrichment Quizzes baseline against the post-event-semantics static catalog, before fixture/setup ownership diagnostics:
 
 ```text
 run: verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
@@ -135,6 +137,23 @@ MATCHED_PARTIAL: 0
 AMBIGUOUS: 0
 UNMATCHED: 184
 NOT_COVERED: 0
+```
+
+Current post fixture/setup and feature-helper ownership run:
+
+```text
+run: verifiers/target/feature-helper-owner-fix-dynamic-smoke/quizzes-20260630-122219-034/
+scenario catalog records: 584
+runStatus: PARTIAL
+test classes selected/passed/failed: 45 / 43 / 2
+dynamicEventsRead: 26815
+MATCHED_EXACT: 435
+MATCHED_HIGH_CONFIDENCE: 125
+MATCHED_PARTIAL: 0
+AMBIGUOUS: 0
+UNMATCHED: 24
+NOT_COVERED: 0
+unmatchedReasonCounts: FAILED_TEST_CLASS=8, NOT_SELECTED_TEST_CLASS=7, HELPER_OWNER_MISMATCH=0, UNCLASSIFIED=9
 ```
 
 Segment-compressed scheduling Quizzes count-only comparison:
@@ -163,7 +182,7 @@ See [`evidence.md`](evidence.md) for commands, run paths, and interpretation.
 - Exact aggregate-instance key extraction is incomplete.
 - The remaining 32 Quizzes sagas without accepted static inputs need classification. Missing accepted input means no accepted static `InputVariant` was discovered; it does not mean no test exists.
 - Dynamic enrichment is local/sagas-focused; stream/gRPC/distributed/TCC parity is not established.
-- Dynamic evidence is additive sidecar evidence and does not redefine or create static scenario structure. The refreshed post-event baseline has zero ambiguous joins, but `UNMATCHED=184` remains substantial.
+- Dynamic evidence is additive sidecar evidence and does not redefine or create static scenario structure. The current post fixture/setup ownership baseline has zero ambiguous joins and reduced unmatched records from `184` to `24`, but the residual unmatched records remain caveats rather than validated scenarios.
 - Same-feature sibling ambiguity can still return when current evidence cannot distinguish neighboring static inputs, even though the latest Quizzes baseline did not expose ambiguity.
 - Groovy input recipes are replay-oriented, but generic materialization/replay is incomplete. Event payload placeholders remain materialization blockers.
 - Segment compression is a static reduction under extracted conflict evidence, not proof of semantic completeness.
@@ -188,7 +207,7 @@ See [`evidence.md`](evidence.md) for commands, run paths, and interpretation.
 ## Current next priorities
 
 1. Finalize and classify the remaining 32 Quizzes sagas without accepted static inputs.
-2. Use the refreshed dynamic baseline to classify the remaining `UNMATCHED=184` records and decide whether aggregate-key/runtime-value matching is worth improving before executor work.
+2. Triage the remaining `UNMATCHED=24` dynamic records, especially the `UNCLASSIFIED=9` residuals, before deciding whether aggregate-key/runtime-value matching is worth improving before executor work.
 3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
 4. Continue the ScenarioExecutor baseline and generated fault injection only after materialization improves.
 5. Add first domain-impact metrics after executable scenarios exist.

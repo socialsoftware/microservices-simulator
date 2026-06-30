@@ -16,7 +16,13 @@ Implemented in the first slice:
 
 - direct runtime `inputVariantId` propagation is implemented for the local/sagas bridge;
 - the current Quizzes dynamic baseline writes a run-level `dynamic-input-map.json` for the selected-test-class Maven batch;
-- the refreshed post-event baseline produced `MATCHED_EXACT=291`, `MATCHED_HIGH_CONFIDENCE=109`, `AMBIGUOUS=0`, `UNMATCHED=184`.
+- the refreshed post-event baseline before fixture/setup ownership diagnostics produced `MATCHED_EXACT=291`, `MATCHED_HIGH_CONFIDENCE=109`, `AMBIGUOUS=0`, `UNMATCHED=184`.
+
+2026-06-30 evolution:
+
+- input attribution now separates static provenance, call context, fixture role/origin, and runtime owner;
+- setup/helper and feature-helper ownership fixes reduced the comparable Quizzes baseline to `MATCHED_EXACT=435`, `MATCHED_HIGH_CONFIDENCE=125`, `AMBIGUOUS=0`, `UNMATCHED=24`;
+- the remaining `UNMATCHED` records carry reason counts: `FAILED_TEST_CLASS=8`, `NOT_SELECTED_TEST_CLASS=7`, `HELPER_OWNER_MISMATCH=0`, `UNCLASSIFIED=9`.
 
 Still deferred from this decision:
 
