@@ -5,7 +5,6 @@ from src.simulator_tools.simulator_utils import *
 
 
 class BaseWorkload(Workload):
-    wait_time = between(0.1, 0.5)
 
     def find_user(self):
         SimInterface.get_user(self.owner_id, client=self.client)

@@ -12,7 +12,6 @@ node can provide, the agent is forced to split them across nodes and accept the 
 
 
 class ExamWorkload(Workload):
-    wait_time = between(0.1, 0.5)
 
     # ! TODO: this is currently not working
 

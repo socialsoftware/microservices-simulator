@@ -16,7 +16,6 @@ The agent must learn to group these highly-chatty services on the same physical 
 
 
 class TournamentPeriodWorkload(Workload):
-    wait_time = between(0.1, 0.5)
 
     def on_start(self):
         super().on_start()

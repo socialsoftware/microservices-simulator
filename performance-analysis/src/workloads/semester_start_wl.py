@@ -15,7 +15,6 @@ other is critical for peformance.
 
 
 class StartOfSemesterWorkload(Workload):
-    wait_time = between(0.1, 0.5)
 
     def onboarding_flow(self):
         new_user = SimInterface.create_user(client=self.client)

@@ -18,6 +18,7 @@ class WorkloadConfig:
     runtime_seconds: int
     read_weight: float = 1.0
     write_weight: float = 1.0
+    wait_time: float = 0.5
 
 
 class SimRunner:
@@ -64,7 +65,8 @@ class SimRunner:
             "-u", str(workload.users),
             "-r", str(workload.spawn_rate),
             "--read-weight", str(workload.read_weight),
-            "--write-weight", str(workload.write_weight)
+            "--write-weight", str(workload.write_weight),
+            "--wait-time", str(workload.wait_time)
         ]
 
         # As explain in the yaml configuration, run-time is the default behavior

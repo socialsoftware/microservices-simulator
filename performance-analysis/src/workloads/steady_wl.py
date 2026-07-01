@@ -15,7 +15,6 @@ the board without over-optimizing for any single service at the expense of anoth
 
 
 class SteadyWorkload(Workload):
-    wait_time = between(0.1, 0.5)
 
     # --- READS (80% weight) ---
 

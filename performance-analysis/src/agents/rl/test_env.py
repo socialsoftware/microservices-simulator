@@ -43,7 +43,8 @@ def run_sanity_check(trace_manager):
         workload_cfg["workloads"],
         tuple(workload_cfg["users"]),
         tuple(workload_cfg["iterations"]),
-        tuple(workload_cfg["weights_interval"]),
+        tuple(workload_cfg["weights_ratio"]),
+        tuple(workload_cfg["wait_time"]),
         workload_cfg["run-time"],
         reward_strat,
         observation_strat,
@@ -62,7 +63,7 @@ def run_sanity_check(trace_manager):
 
     wl = env.wl_config
     print(f"Generated Workload: File={wl.file}, Users={wl.users}, Iterations={wl.iterations}, "
-          f"Run_Time: {wl.runtime_seconds}, Read_W={wl.read_weight:.2f}, Write_W={wl.write_weight:.2f}\n")
+          f"Run_Time: {wl.runtime_seconds}, Read_W={wl.read_weight:.2f}, Write_W={wl.write_weight:.2f}, Wait_T={wl.wait_time:.2f}\n")
 
     _print_obs(obs)
 

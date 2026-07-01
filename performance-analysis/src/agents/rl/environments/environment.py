@@ -20,6 +20,7 @@ class MicroserviceOptimizerEnv(gym.Env):
         users_interval: tuple[int, int],
         iterations_interval: tuple[int, int],
         weights_interval: tuple[float, float],
+        wait_time: tuple[float, float],
         run_time: int,
         reward_strat: RewardStrategy,
         observation_strat: ObservationStrategy,
@@ -35,6 +36,7 @@ class MicroserviceOptimizerEnv(gym.Env):
         self.users_itvl = users_interval
         self.iterations_itvl = iterations_interval
         self.weights_itvl = weights_interval
+        self.wait_time_itvl = wait_time
         self.run_time = run_time
         self.reward_strategy = reward_strat
         self.obs_strategy = observation_strat
@@ -69,10 +71,11 @@ class MicroserviceOptimizerEnv(gym.Env):
         iterations = random.randint(*self.iterations_itvl)
         read_weight = random.uniform(*self.weights_itvl)
         write_weight = random.uniform(*self.weights_itvl)
+        wait_time = random.uniform(*self.wait_time_itvl)
 
         logging.info(
-            f"Workload: file={file}, users={users}, iterations={iterations}, read_w={read_weight:.2f}, write_w={write_weight:.2f}")
-        return WorkloadConfig(file, users, spawn_rate, iterations, self.run_time, read_weight, write_weight)
+            f"Workload: file={file}, users={users}, iterations={iterations}, read_w={read_weight:.2f}, write_w={write_weight:.2f}, wait_t={wait_time:.2f}")
+        return WorkloadConfig(file, users, spawn_rate, iterations, self.run_time, read_weight, write_weight, wait_time)
 
     def reset(self, seed=None, options=None):
         """
