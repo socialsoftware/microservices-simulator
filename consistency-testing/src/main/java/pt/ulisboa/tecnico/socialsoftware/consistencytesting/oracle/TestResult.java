@@ -18,7 +18,10 @@ public record TestResult(
         // TODO exceptions can become memory heavy, this could be optimized memory-wise
         Map<StepId, Exception> exceptions,
         Set<TestStatus> statuses,
-        Set<ReadsFromRelation> readsFromRelations) {
+        Set<ReadsFromRelation> readsFromRelations,
+
+        // inter-invariant name -> the violations detected for it
+        Map<String, Set<InterInvariantViolation>> interInvariantViolations) {
 
     public TestResult {
         intraDependencies = StepDependencies.copyOf(intraDependencies);
@@ -28,5 +31,16 @@ public record TestResult(
         exceptions = Objects.requireNonNull(Map.copyOf(exceptions));
         statuses = Objects.requireNonNull(Set.copyOf(statuses));
         readsFromRelations = Objects.requireNonNull(Set.copyOf(readsFromRelations));
+        interInvariantViolations = Objects.requireNonNull(Map.copyOf(interInvariantViolations));
+    }
+
+    /**
+     * Inter-invariant name -> the violations detected for it after the schedule
+     * finished.
+     * <p>
+     * Empty when no inter-invariant was broken.
+     */
+    public Map<String, Set<InterInvariantViolation>> interInvariantViolations() {
+        return interInvariantViolations;
     }
 }

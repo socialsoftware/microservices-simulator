@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.boot.SpringApplication;
@@ -84,6 +85,11 @@ public final class Oracle {
     private @Nullable ConfigurableApplicationContext springContext;
     private long schedulerSeed = DEFAULT_SCHEDULER_SEED;
 
+    private @Nullable Set<EventHandling> eventHandlings;
+    private @Nullable DeferredEventApplicationService defEventAppService;
+    private @Nullable TracingSagaUnitOfWorkService tracingUowService;
+    private @Nullable InterInvariantsProvider interInvariantProvider;
+
     public Oracle(Class<?> springAppClass, List<String> springAppBaseArgs) {
         postgres = DB_BACKEND == DbBackend.POSTGRES
                 ? new PostgreSQLContainer<>(DB_IMAGE)
@@ -102,7 +108,7 @@ public final class Oracle {
 
         List<String> springPriorityArgs = new ArrayList<>(List.of(
                 "--spring.main.allow-bean-definition-overriding=true",
-                "--spring.profiles.active=sagas,local,test",
+                "--spring.profiles.active=sagas,local,test,oracle",
                 "--spring.jpa.hibernate.ddl-auto=create-drop"));
 
         springPriorityArgs.addAll(datasourceArgs(postgres));
@@ -166,6 +172,9 @@ public final class Oracle {
         // DeferredEventApplicationService more determinisitc testing capabilities
         var eventsSchedulerController = springContext.getBean(EnableDisableEventsController.class);
         eventsSchedulerController.stopSchedule();
+
+        // Fail fast at startup if a required bean is missing or of the wrong type.
+        getRequiredBeans();
     }
 
     public void shutdown() {
@@ -218,10 +227,7 @@ public final class Oracle {
         return context.getBeansOfType(beansClass);
     }
 
-    private TestResult executeSchedule(
-            Map<FunctionalityId, WorkflowFunctionality> functionalities,
-            StepDependencies interDependencies) {
-
+    private void getRequiredBeans() {
         EventApplicationService eventAppService = getBean(EventApplicationService.class);
         if (!(eventAppService instanceof DeferredEventApplicationService defEventAppService)) {
             throw new IllegalStateException(
@@ -230,6 +236,7 @@ public final class Oracle {
                                     DeferredEventApplicationService.class.getName(),
                                     eventAppService.getClass().getName()));
         }
+        this.defEventAppService = defEventAppService;
 
         var uowService = getBean(SagaUnitOfWorkService.class);
         if (!(uowService instanceof TracingSagaUnitOfWorkService tracingUowService)) {
@@ -239,15 +246,39 @@ public final class Oracle {
                                     TracingSagaUnitOfWorkService.class.getName(),
                                     uowService.getClass().getName()));
         }
+        this.tracingUowService = tracingUowService;
 
         Map<String, EventHandling> eventHandlingBeans = getBeansOfType(EventHandling.class);
-        List<EventHandling> eventHandlings = new ArrayList<>(eventHandlingBeans.values());
+        eventHandlings = Set.copyOf(eventHandlingBeans.values());
+
+        try {
+            interInvariantProvider = getBean(InterInvariantsProvider.class);
+        } catch (NoSuchBeanDefinitionException e) {
+            throw new IllegalStateException("""
+                    SpringBoot application [%s] is missing bean implementation for [%s].
+                    Please add a component in the application's 'src/test/java/...' matching this blueprint:
+
+                    @Component
+                    @Profile("oracle")
+                    public class TestInterInvariantsProvider implements InterInvariantsProvider { ... }
+                    """.formatted(springAppClass.getName(), InterInvariantsProvider.class.getName()));
+        }
+    }
+
+    private TestResult executeSchedule(
+            Map<FunctionalityId, WorkflowFunctionality> functionalities,
+            StepDependencies interDependencies) {
+
+        // Re-resolve the required beans for THIS run instead of trusting the values
+        // cached at init(). Useful for external "bean overriding", e.g., for tests.
+        getRequiredBeans();
 
         try (DeferredEventApplicationService.CaptureSession captureSession = defEventAppService.beginCapture();
                 TracingSagaUnitOfWorkService.TraceSession traceSession = tracingUowService.beginTrace()) {
 
             ScheduleExecutor scheduleExecutor = new ScheduleExecutor(
                     functionalities,
+                    interInvariantProvider.getInterInvariants(),
                     interDependencies,
                     tracingUowService,
                     traceSession,

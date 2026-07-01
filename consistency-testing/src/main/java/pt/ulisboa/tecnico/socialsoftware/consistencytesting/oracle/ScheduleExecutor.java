@@ -43,15 +43,19 @@ final class ScheduleExecutor {
     private final SagaUnitOfWorkService uowService;
     private final TracingSagaUnitOfWorkService.TraceSession traceSession;
     private final DeferredEventApplicationService.CaptureSession captureSession;
-    private final List<EventHandling> eventHandlings;
+    private final Set<EventHandling> eventHandlings;
     private final Random scheduleRng;
     private final Map<FunctionalityId, WorkflowFunctionality> functionalities;
+    private final Set<InterInvariant> interInvariants;
     private final StepDependencies interDependencies;
     private final StepDependencies intraDependencies = new StepDependencies();
     private final Map<StepId, OracleStep> steps = new HashMap<>();
     private final Set<StepId> schedule = new LinkedHashSet<>(); // keeps execution order and allows O(1) contains checks
     private final Set<StepId> successfulSteps = new HashSet<>();
     private final Map<StepId, Exception> stepExceptionsMap = new HashMap<>();
+
+    /** inter-invariant name -> violations detected for that inter-invariant */
+    private final Map<String, Set<InterInvariantViolation>> interInvariantViolations = new HashMap<>();
     private final Set<TestStatus> detectedStatuses = new HashSet<>();
 
     /** aggregateId -> the step that most recently wrote it */
@@ -60,14 +64,16 @@ final class ScheduleExecutor {
 
     ScheduleExecutor(
             Map<FunctionalityId, WorkflowFunctionality> functionalities,
+            Set<InterInvariant> interInvariants,
             StepDependencies interDependencies,
             SagaUnitOfWorkService uowService,
             TracingSagaUnitOfWorkService.TraceSession traceSession,
             DeferredEventApplicationService.CaptureSession captureSession,
-            List<EventHandling> eventHandlings,
+            Set<EventHandling> eventHandlings,
             long schedulerSeed) {
 
         this.functionalities = Map.copyOf(functionalities);
+        this.interInvariants = Set.copyOf(interInvariants);
         this.interDependencies = new StepDependencies(interDependencies);
         this.uowService = uowService;
         this.captureSession = captureSession;
@@ -103,6 +109,7 @@ final class ScheduleExecutor {
     TestResult execute() {
         executeSteps();
         evaluateTestCompletionStatus();
+        checkInterInvariants();
 
         return new TestResult(
                 intraDependencies,
@@ -111,7 +118,8 @@ final class ScheduleExecutor {
                 List.copyOf(schedule), // list will reflect the LinkedHashSet order
                 stepExceptionsMap,
                 detectedStatuses,
-                readsFromRelations);
+                readsFromRelations,
+                interInvariantViolations);
     }
 
     private void evaluateTestCompletionStatus() {
@@ -128,6 +136,24 @@ final class ScheduleExecutor {
         if (!interDependencies.getSteps().stream().allMatch(schedule::contains)) {
             // TODO should it be possible to specify which inter-dep(s) were impossible?
             detectedStatuses.add(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED);
+        }
+    }
+
+    private void checkInterInvariants() {
+        for (InterInvariant interInvariant : interInvariants) {
+            Set<InterInvariantViolation> violations = interInvariant.predicate().get();
+
+            if (violations.isEmpty()) {
+                continue;
+            }
+
+            log.error("Inter-invariant '{}' violations: {}",
+                    interInvariant.name(),
+                    violations.stream().map(InterInvariantViolation::description).toList());
+
+            detectedStatuses.add(TestStatus.INTER_INVARIANT_VIOLATION);
+
+            interInvariantViolations.put(interInvariant.name(), violations);
         }
     }
 
