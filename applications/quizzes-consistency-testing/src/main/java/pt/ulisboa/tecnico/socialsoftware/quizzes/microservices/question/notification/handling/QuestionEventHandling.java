@@ -1,0 +1,45 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.handling;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandling;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateTopicEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionRepository;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.eventProcessing.QuestionEventProcessing;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.handling.handlers.DeleteTopicEventHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.handling.handlers.UpdateTopicEventHandler;
+
+@Component
+public class QuestionEventHandling implements EventHandling {
+    @Autowired
+    private EventApplicationService eventApplicationService;
+    @Autowired
+    private QuestionEventProcessing questionEventProcessing;
+    @Autowired
+    private QuestionRepository questionRepository;
+
+    /*
+        TOPICS_EXISTS
+     */
+    @Scheduled(fixedDelay = 1000)
+    public void handleUpdateTopicEvents() {
+        eventApplicationService.handleSubscribedEvent(UpdateTopicEvent.class,
+                new UpdateTopicEventHandler(questionRepository, questionEventProcessing));
+    }
+
+    /*
+        TOPICS_EXISTS
+     */
+    @Scheduled(fixedDelay = 1000)
+    public void handleDeleteTopicEvents() {
+        eventApplicationService.handleSubscribedEvent(DeleteTopicEvent.class,
+                new DeleteTopicEventHandler(questionRepository, questionEventProcessing));
+    }
+
+    /*
+        COURSE_EXISTS
+     */
+}

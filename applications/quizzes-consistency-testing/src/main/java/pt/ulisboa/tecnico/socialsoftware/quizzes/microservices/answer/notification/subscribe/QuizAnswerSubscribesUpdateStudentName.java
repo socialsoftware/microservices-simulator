@@ -1,0 +1,30 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswer;
+
+public class QuizAnswerSubscribesUpdateStudentName extends EventSubscription {
+    private Integer studentAggregateId;
+
+    public QuizAnswerSubscribesUpdateStudentName(QuizAnswer quizAnswer) {
+        super(quizAnswer.getAnswerCourseExecution().getCourseExecutionAggregateId(),
+                quizAnswer.getAnswerCourseExecution().getCourseExecutionVersion(),
+                UpdateStudentNameEvent.class.getSimpleName());
+
+        this.studentAggregateId = quizAnswer.getStudent().getStudentAggregateId();
+    }
+
+    public QuizAnswerSubscribesUpdateStudentName() {}
+
+    public boolean subscribesEvent(Event event) {
+        return super.subscribesEvent(event) && checkAnswerInfo((UpdateStudentNameEvent)event);
+    }
+
+    private boolean checkAnswerInfo(UpdateStudentNameEvent updateStudentNameEvent) {
+        return this.studentAggregateId.equals(updateStudentNameEvent.getStudentAggregateId());
+    }
+
+
+}

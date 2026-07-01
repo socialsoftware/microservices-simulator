@@ -1,0 +1,4 @@
+run
+getTournamentStep,0,0,0
+getParticipantStep,0,0,0
+updateParticipantNameStep,1,0,0

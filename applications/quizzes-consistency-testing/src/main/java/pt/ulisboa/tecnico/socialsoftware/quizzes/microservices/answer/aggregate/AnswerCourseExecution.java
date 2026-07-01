@@ -1,0 +1,65 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+
+@Entity
+public class AnswerCourseExecution {
+    @Id
+    @GeneratedValue
+    private Long id;
+    private Integer courseExecutionAggregateId;
+    private Long courseExecutionVersion;
+    @OneToOne
+    private QuizAnswer quizAnswer;
+
+    public AnswerCourseExecution() {
+        this.courseExecutionAggregateId = 0;
+    }
+
+    public AnswerCourseExecution(Integer courseExecutionAggregateId, Long courseExecutionVersion) {
+        this.courseExecutionAggregateId = courseExecutionAggregateId;
+        setCourseExecutionVersion(courseExecutionVersion);
+    }
+
+    public AnswerCourseExecution(AnswerCourseExecution courseExecution) {
+        this.courseExecutionAggregateId = courseExecution.getCourseExecutionAggregateId();
+        setCourseExecutionVersion(courseExecution.getCourseExecutionVersion());
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Integer getCourseExecutionAggregateId() {
+        return courseExecutionAggregateId;
+    }
+
+    public void setCourseExecutionAggregateId(Integer courseExecutionAggregateId) {
+        this.courseExecutionAggregateId = courseExecutionAggregateId;
+    }
+
+    public Long getCourseExecutionVersion() {
+        return courseExecutionVersion;
+    }
+
+    public void setCourseExecutionVersion(Long courseExecutionVersion) {
+        this.courseExecutionVersion = courseExecutionVersion;
+    }
+
+    @JsonIgnore
+    public QuizAnswer getQuizAnswer() {
+        return quizAnswer;
+    }
+
+    public void setQuizAnswer(QuizAnswer quizAnswer) {
+        this.quizAnswer = quizAnswer;
+    }
+}

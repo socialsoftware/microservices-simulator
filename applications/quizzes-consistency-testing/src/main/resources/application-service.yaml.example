@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: __service_name__ # Make sure the app name is only one word, with no hyphens or underscores.
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${spring.application.name}db
+
+  cloud:
+    function:
+      definition: commandResponseChannel;__serviceName__ServiceCommandChannel;__serviceName__EventSubscriber;
+    stream:
+      bindings:
+        __service_name__-command-channel:
+          destination: ${spring.application.name}-command-channel
+        __serviceName__ServiceCommandChannel-in-0:
+          destination: ${spring.application.name}-command-channel
+          group: ${spring.application.name}-service-group
+        commandResponseChannel-in-0:
+          destination: ${spring.application.name}-command-responses
+          group: ${spring.application.name}-response-group
+        __serviceName__EventSubscriber-in-0:
+          destination: event-channel
+          group: ${spring.application.name}-service-group
+
+server:
+  port: __http_port__
+grpc:
+  server:
+    port: __grpc_port__
+
+routes:
+  - id: ${spring.application.name}-service
+    uri: lb://${spring.application.name}${gateway.service-suffix}
+    predicates:
+      - Path=/__service_name__/**
+    order: __route_order__
