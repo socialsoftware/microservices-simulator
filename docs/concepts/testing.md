@@ -1,85 +1,86 @@
 # Testing
 
-This document is the authoritative guide to test coverage in applications built on the
-microservices-simulator. It defines the Test Taxonomy, locates each type in the workflow,
-and provides structure templates for each category.
-
----
+Authoritative guide to test coverage in applications built on the microservices-simulator.
+Four tiers, layered by what they exercise: the aggregate alone (T1), the service contract (T2),
+event publication (T3), and saga orchestration + cross-aggregate consistency (T4).
 
 ## Test Taxonomy
 
-| Type | Naming pattern | What it validates |
-|------|----------------|-------------------|
-| **T1 Intra-Invariant** | `<Aggregate>IntraInvariantTest` | Creation happy-path (all P1 pass + fields) · one violation per non-`final` P1 rule (EP) · boundary straddle (BVA on/off-point) for ordered-domain predicates. All via direct construction/mutation + `verifyInvariants()`. |
-| **T2 Functionality** | `<FunctionalityName>Test` | Happy path (full `NOT_IN_SAGA→IN_{OP}→NOT_IN_SAGA` traversal) · P3 guard violations · state-transition (lock-acquisition) case per saga lock step |
-| **T3 Inter-Invariant** | `<Consumer>InterInvariantTest` | Event received → cached state updated; unrelated event → state unchanged |
+| Tier | Name | Test class | Scope | Profile-agnostic? |
+|------|------|-----------|-------|-------------------|
+| **T1** | Aggregate | `<Aggregate>IntraInvariantTest` | Intra-invariants (P1): creation happy-path, one violation per non-`final` P1 rule (EP), boundary on/off-points (BVA). Direct construction + `verifyInvariants()`. | yes |
+| **T2** | Service | `<Aggregate>ServiceTest` — **one class per aggregate**, all service methods | Service contract: change persisted to DB (read back via a **fresh** UnitOfWork), uniqueness / composite-key guards, not-found paths (Path A `SimulatorException` / Path B `<App>Exception`), P3 numeric-guard boundaries. Invoke the `*Service` bean directly with a `UnitOfWork` — no saga workflow. | yes |
+| **T3** | Event Publication | `<Aggregate>EventPublicationTest` — only for aggregates that publish events | Publisher side: service op runs → event row exists in the event store with correct type + payload fields. Trigger **via service call**, assert against the event store. Abstracts away all consumers. | mostly |
+| **T4** | Functionality | `<FunctionalityName>Test` + `<Consumer>InterInvariantTest` | Orchestration + cross-aggregate consistency: saga state-machine traversal (`NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA`), semantic-lock acquisition per lock step, P3 guard violations raised **through the saga path**, event subscription → cached-state update / unrelated-event-ignored / deletion-event cases. | no (sagas-specific) |
 
----
+All test classes share the same skeleton, elided from the templates below:
+`@DataJpaTest @Transactional @Import(LocalBeanConfiguration)`, extend `<AppName>SpockTest`, and
+declare `@TestConfiguration static class LocalBeanConfiguration extends BeanConfigurationSagas {}`.
 
-## Anti-Pattern: Reverse-Engineering Tests from the Implementation
+## Assertion Ownership
 
-AI assistants will, given only a coverage metric, read the implementation they just wrote and produce assertions that mirror what the code does — not what the domain says it should do. These tests are trivially satisfied by the implementation, break on correct refactors, and provide a false sense of security. The checklist below is the authoritative list of test smells; both the implementation skill (`.claude/skills/implement-aggregate/`) and the review skill (`.claude/skills/review-tests/SKILL.md` Step 5) consume it.
+Each fact is asserted in **exactly one tier** — this is what prevents T2/T4 duplication:
 
----
+- **T4 functionality tests do not assert** field-level persistence, uniqueness, or not-found —
+  those belong to T2. A T4 happy path asserts orchestration outcomes only: the operation
+  completes, the returned DTO is coherent, and `sagaStateOf(id) == NOT_IN_SAGA`.
+- **T4 keeps:** lock-acquisition cases (`executeUntilStep`), P3 guard violations that involve
+  cross-aggregate saga coordination, and all inter-invariant (subscription) tests.
+- **T3 owns event-publication assertions.** T4 subscription tests may *trigger* publication via a
+  functionality but must not re-assert event-store contents.
+- **Known coupling:** `registerChanged` calls `verifyInvariants()`, so T2 fixtures can trip P1
+  rules — T1 and T2 are not perfectly independent layers. Documented, not fixed.
 
 ## Fake / Wrong / Weak Detection Checklist
 
-Findings against this checklist map to three severities used by `review-tests`:
+AI assistants given only a coverage metric will read the implementation they just wrote and mirror
+it in assertions — tests that are trivially satisfied, break on correct refactors, and give false
+security. This checklist is the authoritative smell list, consumed by
+`.claude/skills/implement-aggregate/` and `.claude/skills/review-tests/SKILL.md`.
 
-- **Fake** — the test always passes regardless of implementation correctness.
-- **Wrong** — the test tests the wrong thing (typically the implementation rather than the spec, or a different code path than the name suggests).
-- **Weak** — the scenario is real but the assertions under-specify it; a regression could slip through.
+### Fake — always passes regardless of implementation correctness
 
-### Fake
+- `then:` is only `noExceptionThrown()` with no field assertions — flag unless the scenario is explicitly "must not throw."
+- `then:` checks only non-null / non-empty, or a trivially true condition, never actual values.
+- `when:` does not call the method under test (bypasses it via a setup helper).
+- **T2:** happy path reads back through the **same** UnitOfWork instance used for the write — the assertion never exercises the load path. Read-back must use a second, fresh UnitOfWork.
+- **T4 subscription** "ignores unrelated": `originalValue` captured *after* the event was processed — the assertion is `x == x`. Capture in `given:`, before firing.
 
-- `then:` block is only `noExceptionThrown()` with no field assertions — flag unless the scenario is explicitly "operation must not throw."
-- `then:` assertions check only non-null / non-empty, never actual values.
-- `then:` asserts a condition that is logically trivially true (e.g., `result != null` when the method always returns non-null).
-- `when:` block does not call the method under test (bypasses the service via a setup helper).
-- T3 "ignores unrelated": `<originalValue>` was captured *after* the event was processed rather than before — the assertion is `x == x`. The pre-event value must be captured in `given:` before firing.
+### Wrong — tests the wrong thing (implementation instead of spec, or a different code path)
 
-### Wrong
+- Test name / message constant copied verbatim from the implementation without checking `plan.md`'s rule list — the test validates the implementation deviation instead of catching it.
+- `then:` mirrors the sequence of `set…` calls in the service body — derived from the implementation, not the spec.
+- **T4 subscription** deletion-event test puts the post-deletion load in `then:` instead of an `and:` block — outside the exception-capture scope (see § T4).
+- Not-found exception type contradicts the lookup mechanism — **read the service method first** (see § T2 Not-Found Paths). Flagging a correct Path B `thrown(<App>Exception)` as Fake is itself a Wrong finding.
+- Test class missing `@Transactional` — dirty state bleeds between tests.
+- P1 intra-invariant violation asserted in a T2/T4 test (belongs in `<Aggregate>IntraInvariantTest`).
 
-- Test name and message constant were copied verbatim from the implementation without checking against `plan.md`'s rule list. If the implementation uses a different constant than `plan.md` names, the test validated the implementation deviation instead of catching it.
-- Violation test asserts a message constant that matches what the implementation throws but differs from the constant named in `plan.md` for that rule.
-- `then:` mirrors the sequence of `set…` calls in the service body — the test was derived from the implementation, not the spec.
-- T3 deletion-event test puts the post-deletion load attempt in `then:` instead of an `and:` block — the load won't be in the exception-capture scope. Correct pattern: load in `and:`, assert `thrown(SimulatorException)` in `then:` (see § T3 Deletion-Event Tests).
-- Not-found test exception type contradicts the actual lookup mechanism. **Read the service method first.** Rule of thumb: if the service calls `aggregateLoadAndRegisterRead` directly with an ID, expect `SimulatorException` (Path A). If the service first calls a custom repository returning `Optional` and throws on empty, expect `{App}Exception` (Path B). Flagging a correct Path B `thrown({AppClass}Exception)` as Fake is itself a Wrong finding.
-- Test class missing `@Transactional` (T2/T3 classes must be `@DataJpaTest @Transactional @Import(LocalBeanConfiguration)`) — silently allows dirty state to bleed between tests.
-- P1 intra-invariant violation asserted in a service/functionality test (misplaced; belongs in `{Aggregate}IntraInvariantTest`).
+### Weak — real scenario, under-specified assertions
 
-### Weak
-
-- Happy-path `then:` asserts only fields that were already set in `setup:` — the under-test call did not need to run for the assertions to hold. Verify at least one asserted field is a value the operation itself must produce, not pre-existing fixture data.
-- Removing `unitOfWork.registerChanged(aggregate)` from the service would leave the test passing (kill-mutation thought experiment). Add an assertion on a field the operation changes that is only readable through the persisted aggregate (the `then:` reads back via `get{Aggregate}ById`, not from a local variable).
-- Violation test asserts `thrown({AppClass}Exception)` without `ex.message == <ERROR_MESSAGE_CONSTANT>`. The bare-throw form passes on any thrown exception of that type, including unrelated bugs.
+- Happy-path `then:` asserts only fields already set in `setup:` — at least one asserted field must be a value the operation itself produces.
+- Removing `unitOfWorkService.registerChanged(aggregate)` from the service would leave the test passing (kill-mutation thought experiment) — add an assertion readable only through the persisted aggregate.
+- Violation test asserts `thrown(<App>Exception)` without `ex.message == <RULE_NAME>` — passes on any unrelated bug of that type.
+- **T3:** asserts only that "an event exists" (type/count) without asserting the payload fields — a wrong-payload regression slips through.
 - Returned DTO assertions cover only a subset of the semantically important fields.
-- Numeric, temporal, or collection-size boundary rule asserted with only a far-side representative value — see § Choosing Input Values. Missing the on-point **or** the off-point is a *Weak* finding.
+- Ordered-domain boundary rule asserted with only a far-side value — missing the on-point **or** off-point (see § Choosing Input Values).
 
----
+## Choosing Input Values — EP & BVA
 
-## Choosing Input Values — Equivalence Partitioning & Boundary Value Analysis
-
-Two complementary test-design techniques decide *which* values to feed a rule. A complete suite uses both.
-
-- **Equivalence Partitioning (EP)** — split a rule's input domain into classes the system treats the same way (e.g. "valid count", "count too low"), then test **one representative per class**. This is the baseline most tests already do: one value that satisfies the rule, one that violates it.
-- **Boundary Value Analysis (BVA)** — defects cluster at the **edges** between those classes (off-by-one, `<` written where `<=` was meant). EP's mid-class representatives sail straight past them. For a rule with an ordered domain, also test the two values **straddling** the boundary.
+- **Equivalence Partitioning (EP)** — split a rule's input domain into classes treated the same way; test **one representative per class** (one satisfying value, one violating value).
+- **Boundary Value Analysis (BVA)** — defects cluster at class **edges** (off-by-one, `<` vs `<=`). For ordered domains, also test the two values **straddling** the boundary.
 
 ### Decision rule
 
-> For every P1 invariant or P3 numeric guard whose predicate is a **comparison on an ordered domain**
-> (`<`, `<=`, `>`, `>=`, `==`/`!=` over a **count**, a **timestamp**, or a **collection size**), EP's
-> single representative is **not sufficient**. Add the two **boundary-straddling** cases:
-> - **on-point** — the last value that **satisfies** the rule → assert `notThrown(...)`;
-> - **off-point** — the first value that **violates** it → assert `thrown(...)` **and** `ex.message == <RULE>`.
+> For every P1 invariant or P3 numeric guard whose predicate is a **comparison on an ordered
+> domain** (`<`, `<=`, `>`, `>=`, `==`/`!=` over a count, timestamp, or collection size), EP's
+> single representative is **not sufficient**. Add the boundary-straddling pair:
+> **on-point** — last value that satisfies the rule → `notThrown(...)`;
+> **off-point** — first value that violates it → `thrown(...)` **and** `ex.message == <RULE>`.
 >
-> **P1 ordered-domain boundaries live in the intra-invariant test** (`{Aggregate}IntraInvariantTest`)
-> — direct construction with pinned values, then `verifyInvariants()`. P3 numeric guard boundaries
-> may be added to the corresponding T2 service test.
+> Routing: **P1 boundaries → T1**; **P3 numeric-guard boundaries → T2**.
 >
-> For **categorical** invariants — uniqueness (e.g. `TOURNAMENT_UNIQUE_AS_PARTICIPANT`), boolean/state
-> freezes (`TOURNAMENT_IS_CANCELED`), set membership, presence/absence — there is no ordered edge to
-> probe. EP's one-representative-per-class is correct and complete; do **not** invent boundary cases.
+> For **categorical** invariants — uniqueness, boolean/state freezes, set membership — there is no
+> ordered edge; EP's one-representative-per-class is complete. Do **not** invent boundary cases.
 
 ### Worked patterns
 
@@ -88,42 +89,24 @@ Two complementary test-design techniques decide *which* values to feed a rule. A
 | `count > 0` | `NUMBER_OF_QUESTIONS_POSITIVE` | `1` | `0` |
 | `count <= N` | `MAX_QUESTIONS` (N=30) | `30` | `31` |
 | `a < b` (timestamps) | `START_BEFORE_END_TIME` | `end − 1 tick` | `start == end` |
-| `a >= b` (timestamps) | `ANSWER_BEFORE_START` (`firstAnswerTime >= startTime`) | `firstAnswerTime == startTime` | `startTime − 1 tick` |
+| `a >= b` (timestamps) | `ANSWER_BEFORE_START` | `firstAnswerTime == startTime` | `startTime − 1 tick` |
 | `size >= 1` | `MUST_HAVE_ONE_TOPIC` | `1` | `0` |
 
-### Temporal-boundary mechanics
-
-The smallest tick on a `LocalDateTime` is `.minusNanos(1)` / `.plusNanos(1)`. Pin **both** instants
-explicitly so the on-point is exactly equal. All temporal P1 boundary cases belong in
-`{Aggregate}IntraInvariantTest` as **direct-aggregate** tests (construct, set fields, call
-`verifyInvariants()`) — the saga path stamps `lastModifiedTime = now()` and cannot pin the exact
-on-point. See `TournamentIntraInvariantTest` for the canonical pattern (`ANSWER_BEFORE_START`).
-
----
+**Temporal mechanics:** the smallest `LocalDateTime` tick is `.minusNanos(1)` / `.plusNanos(1)`;
+pin **both** instants explicitly so the on-point is exactly equal. All temporal P1 boundary cases
+are T1 direct-aggregate tests — the saga path stamps `lastModifiedTime = now()` and cannot pin the
+on-point. Canonical pattern: `TournamentIntraInvariantTest` (`ANSWER_BEFORE_START`).
 
 ## Spec-First Ordering
 
-Before writing any T2 test for a write functionality, locate the **`plan.md` aggregate section** for the target aggregate. The happy-path postconditions, the events-published list, and the P1/P3 rule list in that section *are* the spec — assertions must trace to them. Do not read the implementation you just wrote to decide what to assert.
-
-Each `plan.md` aggregate section is shaped roughly like:
-
-```
-Functionality: {Op}{Aggregate}
-Happy-path postconditions:
-  - {Aggregate}.{field} == {expectedValue}
-  - emitted event {Event} with payload {…}
-  - SagaState after commit == NOT_IN_SAGA
-Violations (one row per P1/P3 rule this op can trip):
-  - {RULE_NAME} → throws {AppClass}Exception, message == {RULE_NAME}
-```
-
-This is the structure to **cite** when writing the test (see § T2 — Spec-first below for the recommended `// Spec:` comment), not a new artifact to author in the test file. Reading `plan.md` is the spec lookup; the test is the assertion of that spec.
-
-If the implementation disagrees with the spec, the **implementation** is the bug — not the spec. Assertions should never be adjusted to match surprising implementation behavior; the discrepancy should be flagged and fixed in the implementation.
-
-This ordering also applies to T3: before writing the test, look up the expected cached-field value in `plan.md`'s subscribed events table for the consumer aggregate — not from reading the `EventProcessing` class.
-
----
+Before writing any test, locate the **`plan.md` aggregate section** for the target aggregate. Its
+happy-path postconditions, events-published list, subscribed-events table, and P1/P3 rule list
+*are* the spec — assertions must trace to them, never to the implementation just written (not the
+service body, not the `EventProcessing` class). Write a 1-line `// Spec:` comment at the top of
+each test naming the plan.md section and rule, e.g.
+`// Spec: plan.md §3.5 Question — UpdateQuestionContent; rule QUESTION_CONTENT_REQUIRED`.
+If the implementation disagrees (e.g. throws a different message constant than plan.md names), the
+**implementation** is the bug: flag the mismatch, do not adjust the test.
 
 ## Directory Layout
 
@@ -134,516 +117,295 @@ src/test/groovy/<pkg>/
 ├── <AppName>SpockTest.groovy         ← base class: @Autowired services + factory helpers
 └── sagas/
     ├── coordination/
-    │   ├── <aggregate>/              ← one dir per primary aggregate
-    │   │   ├── <FunctionalityName>Test.groovy      (T2)
-    │   │   └── ...
-    │   └── ...
-    └── <aggregate>/                  ← one dir per consumer aggregate
-        ├── <Aggregate>IntraInvariantTest.groovy    (T1)
-        └── <Aggregate>InterInvariantTest.groovy    (T3)
+    │   └── <aggregate>/              ← one dir per primary aggregate
+    │       └── <FunctionalityName>Test.groovy          (T4)
+    └── <aggregate>/                  ← one dir per aggregate
+        ├── <Aggregate>IntraInvariantTest.groovy        (T1)
+        ├── <Aggregate>ServiceTest.groovy               (T2)
+        ├── <Aggregate>EventPublicationTest.groovy      (T3, publishers only)
+        └── <Aggregate>InterInvariantTest.groovy        (T4, consumers only)
 ```
 
----
+## T1 — Aggregate Test
 
-## T1 — Intra-Invariant Test
+**Purpose:** own the complete P1 matrix (see taxonomy table). All cases are **direct-aggregate**:
+construct, optionally call aggregate mutators, then call `verifyInvariants()` explicitly — the
+saga path cannot pin exact boundary instants. Happy-path fields must trace to the aggregate field
+list in plan.md (a constructor field the spec doesn't list is a planning gap to flag, not a field
+to copy). **P1 Java-`final` fields need no test coverage in any tier** — the compiler enforces
+immutability; testing it tests the language, not the domain.
 
-**Purpose:** Own the complete P1 matrix for an aggregate: (1) creation happy-path proving all
-intra-invariants pass on a fresh instance, (2) one violation per non-`final` P1 rule (EP), and
-(3) boundary-straddling on/off-point pairs (BVA) for every ordered-domain P1 predicate. All cases
-are **direct-aggregate** tests — construct the aggregate, optionally call aggregate mutators
-(e.g. `addParticipant`), then call `verifyInvariants()` explicitly.
-
-Direct construction is *the* way to test P1: the saga path stamps `lastModifiedTime = now()` and
-cannot pin exact boundary instants. This generalises what was formerly a narrow "temporal-boundary
-exception" — it is now the standard approach for all P1 coverage.
-
-**Assertion provenance:** Fields asserted in the happy-path case must trace to the constructor's
-documented intent — the aggregate field list in the `plan.md` aggregate section. Never read the
-constructor body to decide what to assert; if the constructor sets a field the spec doesn't list,
-that is a planning gap to flag, not a field to copy into the test.
-
-**P1 Java-`final` fields need no test coverage anywhere** (T1, T2, T3, or otherwise). The Java compiler
-enforces immutability; there is no write path that can violate the constraint, so testing it would
-be testing the language, not the domain logic.
-
-**Boundary on-points (valid side):** for comparison-predicate invariants (count / timestamp /
-collection-size), pin the on-point exactly (e.g. `end − 1 tick` for a strict-less-than timestamp
-rule) and assert `notThrown(...)`. Pin the off-point one step beyond (e.g. `start == end`) and
-assert `thrown(...)` with the exact error-message constant. See § Choosing Input Values.
-
-**Template:**
 ```groovy
-@DataJpaTest
-@Transactional
-@Import(LocalBeanConfiguration)
 class <Aggregate>IntraInvariantTest extends <AppName>SpockTest {
 
-    @TestConfiguration
-    static class LocalBeanConfiguration extends BeanConfigurationSagas {}
-
     def "create <aggregate>"() {
-        // If the constructor takes a DTO, build it in 'given:' first:
-        // given:
-        // def dto = new <Aggregate>Dto()
-        // dto.set<Field>(...)
-
         when:
         def result = new Saga<Aggregate>(/* id, args or dto */)
-
         then:
-        result.<field> == <expectedValue>
-        // assert all expected fields
+        result.<field> == <expectedValue>   // all fields from plan.md's field list
     }
 
     def "<aggregate>: <RULE_NAME> violation"() {
         given:
         def agg = new Saga<Aggregate>(/* valid args */)
         // set field(s) to the violating value directly
-
         when:
         agg.verifyInvariants()
-
         then:
         def ex = thrown(<App>Exception)
         ex.message == <RULE_NAME>
     }
 
-    def "<aggregate>: <RULE_NAME> on-point (boundary — no throw)"() {
-        given:
-        def agg = new Saga<Aggregate>(/* args with field pinned to exact on-point value */)
-
-        when:
-        agg.verifyInvariants()
-
-        then:
-        notThrown(<App>Exception)
-    }
-
-    def "<aggregate>: <RULE_NAME> off-point (boundary — throws)"() {
-        given:
-        def agg = new Saga<Aggregate>(/* args with field pinned to first violating value */)
-
-        when:
-        agg.verifyInvariants()
-
-        then:
-        def ex = thrown(<App>Exception)
-        ex.message == <RULE_NAME>
-    }
+    // Boundary pair per ordered-domain P1 rule — same shape as the violation case:
+    //   on-point:  pin the last satisfying value → notThrown(<App>Exception)
+    //   off-point: pin the first violating value → thrown + ex.message == <RULE_NAME>
 }
 ```
 
----
+## T2 — Service Test
 
-## The Saga as a State Machine
+**Purpose:** pin the service contract (see taxonomy table), one class per aggregate covering all
+its service methods, invoked directly on the `*Service` bean with a `UnitOfWork` — no saga
+workflow. No explicit commit is needed: in the sagas profile, `registerChanged` versions,
+invariant-checks, and merges the aggregate **inside the service call**; the workflow-level
+`commit(uow)` only resets `SagaState`. **Read-back must still use a fresh UnitOfWork** so the
+assertion goes through the load path — reading via the write UoW is Fake.
 
-Every write saga is a finite state machine over its aggregate's `SagaState`:
-
-- **States** — `NOT_IN_SAGA` (the quiescent state; the framework sets it in the `Saga{Aggregate}`
-  constructor) plus one `IN_{OP}` *locked* state per operation that must hold a semantic lock across
-  steps.
-- **Transitions** —
-  - *acquire*: a step calling `setSemanticLock(IN_{OP})` drives `NOT_IN_SAGA → IN_{OP}`;
-  - *complete*: a successful commit drives `IN_{OP} → NOT_IN_SAGA`;
-  - *compensate*: a mid-saga failure releases the lock — also `IN_{OP} → NOT_IN_SAGA`.
-- **Guards** — `setForbiddenStates([...])` on a step blocks a transition when a foreign aggregate is
-  already in a listed state.
-
-Testing a write saga means covering its transitions. The two existing T2 saga tests already do this:
-
-| Test | Transition(s) covered |
-|------|-----------------------|
-| happy-path `success` | full traversal `NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA` (asserts the aggregate ends `NOT_IN_SAGA`) |
-| `<step> acquires IN_{OP} semantic lock` | pins the intermediate `IN_{OP}` state after the *acquire* transition, then resumes to complete the traversal |
-
-**Guard** transitions (`setForbiddenStates`) and **compensation** faults are out of current scope —
-see Appendix (Cross-Functionality and Fault/Behavior tests).
-
----
-
-## T2 — Functionality Test
-
-**Purpose:** Cover the happy path (the full state-machine traversal), P3 guard violations, and the
-state-transition (semantic-lock acquisition) case for each saga lock step. P1 intra-invariants are
-**not** tested here — see § T1.
-
-**State-transition rule (semantic-lock acquisition):** Each saga step that calls `setSemanticLock` is
-an *acquire* transition into `IN_{OP}` (see § The Saga as a State Machine).
-- For each such step, run the workflow through it via `executeUntilStep`, assert the aggregate is in
-  the expected `IN_{OPERATION}` saga state (the post-*acquire* state), then `resumeWorkflow(uow)` and
-  assert `noExceptionThrown()` (completing the traversal back to `NOT_IN_SAGA`).
-- Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix, Cross-Functionality Test**.
-
-**Happy-path = full traversal:** the `success` test drives `NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA`.
-Asserting `sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA` at the end pins the *complete*
-transition's endpoint (see § The Saga as a State Machine).
-
-**Spec-first:** Before writing the happy-path test, locate the `plan.md` aggregate section for the
-target aggregate. The fields-changed list, events-published list, and expected `SagaState` in that
-section *are* the spec — cite it, do not duplicate it (see Spec-First Ordering above). Write a 1-line
-`// Spec:` comment at the top of each test naming the plan.md section and the rule it asserts, e.g.
-`// Spec: plan.md §3.5 Question / functionalities — UpdateQuestionContent; rule QUESTION_CONTENT_REQUIRED`.
-Write assertions against the cited section — do not start from the service body.
-
-**Kill-mutation check:** For each happy-path test ask: "If I remove `unitOfWork.registerChanged(aggregate)`
-from the service, does this test still pass?" If yes, the test is not exercising the commit. Add an
-assertion that can only pass if the aggregate state was actually persisted and returned through the
-read path.
-
-**Message constant provenance:** In violation tests, `<RULE_NAME>` must be the constant that `plan.md`
-names for this rule, not whatever constant the implementation happens to throw. If the implementation
-uses a different constant, that is an implementation deviation from spec — flag the mismatch rather
-than adjusting the test to match.
-
-**Template:**
 ```groovy
-@DataJpaTest
-@Transactional
-@Import(LocalBeanConfiguration)
+class <Aggregate>ServiceTest extends <AppName>SpockTest {
+
+    def "create<Aggregate>: persisted and readable through a fresh UnitOfWork"() {
+        // Spec: plan.md §<n> <Aggregate> — Create<Aggregate> postconditions
+        when:
+        def dto = <aggregate>Service.create<Aggregate>(/* args */,
+                unitOfWorkService.createUnitOfWork("create<Aggregate>"))
+        then: 'read back through a second, fresh UnitOfWork'
+        def readBack = <aggregate>Service.get<Aggregate>ById(dto.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.<field> == <expectedValue>
+    }
+
+    def "<serviceMethod>: <RULE_NAME> violation"() {
+        // Spec: plan.md §<n> <Aggregate> — rule <RULE_NAME> (P3 guard / uniqueness)
+        given:
+        def existing = create<Aggregate>(/* fixture via base-class helper */)
+        when:
+        <aggregate>Service.<serviceMethod>(/* violating args */,
+                unitOfWorkService.createUnitOfWork("<serviceMethod>"))
+        then:
+        def ex = thrown(<App>Exception)
+        ex.message == <RULE_NAME>
+    }
+
+    // P3 numeric-guard boundaries: on-point (notThrown) / off-point (thrown + message) pairs.
+    // Not-found per read/mutate method: call with NONEXISTENT_AGGREGATE_ID →
+    //   Path A: thrown(SimulatorException); Path B: thrown(<App>Exception) + message (see below).
+}
+```
+
+### Not-Found Paths
+
+Two distinct not-found paths throw different exception types — **read the service method first**:
+
+- **Path A — primary-key lookup.** The service calls `aggregateLoadAndRegisterRead` directly with
+  an ID; the infrastructure throws `SimulatorException`
+  (`pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException`).
+- **Path B — composite-key lookup.** The service first queries a custom repository returning
+  `Optional` (e.g. `quizId + userId`) and throws on empty at the service level: expect
+  `<App>Exception` with `ex.message == <NOT_FOUND_CONSTANT>`.
+
+## T3 — Event Publication Test
+
+**Purpose:** pin the publisher side of every event (see taxonomy table); consumers are out of
+scope (they are T4 subscription tests). Trigger via a direct service call with a `UnitOfWork` —
+`SagaUnitOfWorkService.registerEvent` saves the event immediately via
+`eventService.saveEvent(event)` (and marks it published under the `local` profile). Assert via the
+`EventService` bean (`pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService`): per event
+type, one payload-asserting case (type/count alone is Weak), plus one negative case — an operation
+that must *not* publish leaves the store unchanged.
+
+```groovy
+class <Aggregate>EventPublicationTest extends <AppName>SpockTest {
+
+    @Autowired
+    EventService eventService
+
+    def "<serviceOp> publishes <Xxx>Event with correct payload"() {
+        // Spec: plan.md §<n> <Aggregate> — events published by <ServiceOp>
+        given:
+        def publisher = create<Aggregate>(/* fixture via base-class helper */)
+        when:
+        <aggregate>Service.<serviceOp>(publisher.aggregateId, /* args */,
+                unitOfWorkService.createUnitOfWork("<serviceOp>"))
+        then:
+        def events = eventService.getAllEvents().findAll { it instanceof <Xxx>Event }
+        events.size() == 1
+        def event = events[0] as <Xxx>Event
+        event.publisherAggregateId == publisher.aggregateId
+        event.<payloadField> == <expectedValue>   // every payload field from plan.md
+    }
+
+    // Negative case: capture countBefore = eventService.getAllEvents().size() in given:,
+    // run the non-publishing service op, assert getAllEvents().size() == countBefore.
+}
+```
+
+## T4 — Functionality Test
+
+Every write saga is a finite state machine over its aggregate's `SagaState`: **states** —
+`NOT_IN_SAGA` (quiescent) plus one `IN_{OP}` *locked* state per operation holding a semantic lock
+across steps; **transitions** — *acquire* (`setSemanticLock(IN_{OP})` drives
+`NOT_IN_SAGA → IN_{OP}`), *complete* (successful commit drives `IN_{OP} → NOT_IN_SAGA`),
+*compensate* (mid-saga failure also releases to `NOT_IN_SAGA`); **guards** —
+`setForbiddenStates([...])` blocks a transition when a foreign aggregate is in a listed state.
+Testing a write saga means covering its transitions: the happy-path `success` case covers the full
+traversal; one lock-acquisition case per `setSemanticLock` step pins the intermediate `IN_{OP}`
+state, then resumes to complete. Guard transitions and compensation faults are deferred — see
+Appendix. Everything else is owned elsewhere (see § Assertion Ownership).
+
+```groovy
 class <FunctionalityName>Test extends <AppName>SpockTest {
-
-    @TestConfiguration
-    static class LocalBeanConfiguration extends BeanConfigurationSagas {}
-
-    // ─── Setup helpers ─────────────────────────────────────────────────────────
-
-    def setup() { /* shared fixture creation */ }
-
-    // ─── Happy path ────────────────────────────────────────────────────────────
 
     def "<functionalityName>: success"() {
         given: 'aggregates exist'
         // ...
         when:
         def result = <primary>Functionalities.<functionalityName>(/* args */)
-        then:
-        // assert expected outcome
-        sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA  // complete transition: IN_<OP> → NOT_IN_SAGA
+        then: 'orchestration outcome only — persistence is asserted in T2'
+        result.<keyField> == <coherentValue>
+        sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA
     }
 
-    // ─── Invariant / guard violations ─────────────────────────────────────────
+    // Saga-path P3 guard violations: same shape as the T2 violation case,
+    // but driven through <primary>Functionalities.<functionalityName>(...).
 
-    def "<functionalityName>: <RULE_NAME> violation"() {
-        given: 'aggregate in violating state'
-        // ...
-        when:
-        <primary>Functionalities.<functionalityName>(/* violating args */)
-        then:
-        def ex = thrown(<App>Exception)
-        ex.message == <RULE_NAME>
-    }
-    // one P3 guard case per violation
-    // Skip P1 tests — they belong in {Aggregate}IntraInvariantTest.
-
-    // ─── State-transition (semantic-lock acquisition) ──────────────────────────
     // One case per saga step that calls setSemanticLock — the acquire transition
-
     def "<functionalityName>: <lockStep> acquires IN_<OP> semantic lock"() {
-        given: 'acquire transition: NOT_IN_SAGA → IN_<OP>; resume completes IN_<OP> → NOT_IN_SAGA'
+        given:
         def uow = unitOfWorkService.createUnitOfWork("<FunctionalityName>")
         def func = new <FunctionalityName>FunctionalitySagas(
                 unitOfWorkService, /* args */, uow, commandGateway)
         func.executeUntilStep("<lockStep>", uow)
-
-        expect:
+        expect: 'acquire transition: NOT_IN_SAGA → IN_<OP>'
         sagaStateOf(<aggregateId>) == <Aggregate>SagaState.IN_<OP>
-
         when:
         func.resumeWorkflow(uow)
-
-        then:
+        then: 'traversal completes back to NOT_IN_SAGA'
         noExceptionThrown()
     }
 }
 ```
 
-### Not-Found Assertions
+### Subscription (Inter-Invariant) Tests
 
-There are two distinct not-found paths, and they throw different exception types:
+`<Consumer>InterInvariantTest` covers the consumer side: event received → cached state updated;
+unrelated event → state unchanged; deletion event → consumer deleted. `@Scheduled` does **not**
+run in `@DataJpaTest` — call the polling method directly:
+`<consumer>EventHandling.handle<Xxx>Events()`. These tests trigger publication via a functionality
+but must not re-assert event-store contents (T3 owns that). If the consumer DTO does not expose a
+cached sub-entity field, load the aggregate via `aggregateLoadAndRegisterRead` and assert on
+`agg.<subEntity>.<cachedField>`.
 
-**Path A — primary-key lookup via `aggregateLoadAndRegisterRead`**
-
-The infrastructure method throws `SimulatorException` when no aggregate exists for a given primary ID. Use `thrown(SimulatorException)` for these cases:
-
-```groovy
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
-
-def "<functionalityName>: aggregate not found"() {
-    when:
-    <primary>Functionalities.<functionalityName>(999 /* non-existent id */)
-    then:
-    thrown(SimulatorException)
-}
-```
-
-**Path B — composite-key lookup via custom repository**
-
-When a service method first queries by non-primary-key fields (e.g., `quizId + userId`) using a custom repository that returns `Optional`, an empty result is detected at the **service level** and the service throws `<App>Exception`. Use `thrown(<App>Exception)` for these cases:
+**Deletion events:** when processing calls `remove()` on the consumer, `aggregateLoadAndRegisterRead`
+filters out `DELETED` aggregates and throws `SimulatorException` — the load-and-assert pattern
+cannot work. Move the load attempt into an `and:` block (extending the `when:` phase's
+exception-capture scope, which a `then:`-placed load would sit outside of), then assert
+`thrown(SimulatorException)`.
 
 ```groovy
-def "<functionalityName>: not found by composite key"() {
-    when:
-    <primary>Functionalities.<functionalityName>(999 /* non-existent quizId */, 999 /* non-existent userId */)
-    then:
-    def ex = thrown(<App>Exception)
-    ex.message == <NOT_FOUND_ERROR_MESSAGE>
-}
-```
-
-**Rule of thumb:** if the service calls `aggregateLoadAndRegisterRead` directly with an ID, expect `SimulatorException`. If the service first calls a custom repository returning `Optional` and throws on empty, expect `<App>Exception`.
-
----
-
-## T3 — Inter-Invariant Test
-
-**Purpose:** Verify that when a publisher emits an event, the consumer aggregate's cached state
-is updated; and that an event for an unrelated entity leaves state unchanged.
-
-**Key constraint:** `@Scheduled` does **not** run in `@DataJpaTest`. Call the polling method
-directly: `<consumer>EventHandling.handle<Xxx>Events()`.
-
-**Asserting cached sub-entity fields.** The template uses `<consumer>Service.get<Consumer>(...)`, which returns a DTO. If the DTO does not expose a cached sub-entity field (e.g., `topicName` stored inside a `QuestionTopic` embedded in the aggregate), load the aggregate directly instead:
-```groovy
-def agg = unitOfWorkService.aggregateLoadAndRegisterRead(
-        consumer.aggregateId, unitOfWorkService.createUnitOfWork("check")) as <Consumer>
-agg.<subEntity>.<cachedField> == <expectedValue>
-```
-
-**Template:**
-```groovy
-@DataJpaTest
-@Transactional
-@Import(LocalBeanConfiguration)
 class <Consumer>InterInvariantTest extends <AppName>SpockTest {
-
-    @TestConfiguration
-    static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 
     @Autowired
     <Consumer>EventHandling <consumer>EventHandling
 
-    // ─── <INVARIANT_NAME> ────────────────────────────────────────────────────
-
-    def "<consumer> <action> on <Xxx>Event[ for <role>]"() {
-    // <action> should be a concrete verb: updates, removes, deletes self, anonymizes, invalidates self.
+    def "<consumer> <action> on <Xxx>Event"() {
+        // <action> is a concrete verb: updates, removes, deletes self, anonymizes, invalidates self
         given:
         def publisher = create<Publisher>(/* args */)
         def consumer  = create<Consumer>(/* args linked to publisher */)
-
         when: '<publisher> triggers the event'
         <publisher>Functionalities.<triggeringOp>(/* args */)
-
         and: 'consumer polls for the event'
         <consumer>EventHandling.handle<Xxx>Events()
-
         then: 'consumer cached field is updated'
-        def updated = <consumer>Service.get<Consumer>(consumer.aggregateId, unitOfWorkService.createUnitOfWork("check"))
-        updated.<cachedField> == <newValue>
+        <consumer>Service.get<Consumer>(consumer.aggregateId,
+                unitOfWorkService.createUnitOfWork("check")).<cachedField> == <newValue>
     }
 
-    def "<consumer> ignores <Xxx> event for unrelated entity"() {
+    // "ignores <Xxx> event for unrelated entity" twin: create a second publisher,
+    // capture originalValue in given: BEFORE firing (capturing after is Fake — x == x),
+    // trigger the op on publisher2, poll, assert consumer.<cachedField> == originalValue.
+
+    def "<consumer> is deleted when <Publisher> deletion event is processed"() {
         given:
-        def publisher1 = create<Publisher>(/* args */)
-        def publisher2 = create<Publisher>(/* args — different entity */)
-        def consumer   = create<Consumer>(/* linked to publisher1 */)
-        // Capture the expected value BEFORE the event fires — never after
-        def originalValue = <consumer>Service.get<Consumer>(consumer.aggregateId,
-                unitOfWorkService.createUnitOfWork("check")).<cachedField>
-
-        when:
-        <publisher>Functionalities.<triggeringOp>(publisher2.aggregateId, /* args */)
+        def publisher = create<Publisher>(/* args */)
+        def consumer  = create<Consumer>(/* args linked to publisher */)
+        when: '<publisher> is deleted'
+        <publisher>Functionalities.delete<Publisher>(publisher.aggregateId)
+        and: 'consumer polls for the deletion event'
         <consumer>EventHandling.handle<Xxx>Events()
-
-        then: 'consumer state unchanged'
-        def unchanged = <consumer>Service.get<Consumer>(consumer.aggregateId, unitOfWorkService.createUnitOfWork("check"))
-        unchanged.<cachedField> == originalValue
+        and: 'attempt to load the now-deleted consumer aggregate'
+        unitOfWorkService.aggregateLoadAndRegisterRead(
+                consumer.aggregateId, unitOfWorkService.createUnitOfWork("check"))
+        then: 'DELETED aggregate is not loadable'
+        thrown(SimulatorException)
     }
 }
 ```
 
-### Deletion-Event Tests (T3)
+## Test Profile — Serialization Note
 
-When a deletion event causes the consumer aggregate itself to be marked `DELETED` (i.e., the processing method calls `remove()` on the aggregate), `aggregateLoadAndRegisterRead` filters out `DELETED` aggregates and throws `SimulatorException`. The standard `then:` assertion pattern — loading the aggregate and asserting a field value — does not work here.
-
-**Structure:** move the load attempt into an `and:` block (which extends the `when:` phase in Spock), then assert `thrown(SimulatorException)` in `then:`.
-
-```groovy
-def "<consumer> is deleted when <Publisher> deletion event is processed"() {
-    given:
-    def publisher = create<Publisher>(/* args */)
-    def consumer  = create<Consumer>(/* args linked to publisher */)
-
-    when: '<publisher> is deleted'
-    <publisher>Functionalities.delete<Publisher>(publisher.aggregateId)
-
-    and: 'consumer polls for the deletion event'
-    <consumer>EventHandling.handle<Xxx>Events()
-
-    and: 'attempt to load the now-deleted consumer aggregate'
-    unitOfWorkService.aggregateLoadAndRegisterRead(
-            consumer.aggregateId, unitOfWorkService.createUnitOfWork("check"))
-
-    then: 'DELETED aggregate is not loadable — infrastructure throws SimulatorException'
-    thrown(SimulatorException)
-}
-```
-
-> **Why `and:` not `then:`?** In Spock, `then:` captures the first exception thrown by the immediately preceding `when:` block; subsequent `and:` blocks inside the `when:` phase extend that same exception-capture scope. Moving the load into `and:` keeps it within that scope so `thrown(SimulatorException)` can match it. Placing the load in `then:` would require using `notThrown()` first and then separately calling the load, which breaks the Spock block model.
-
----
-
-## Test Profile — Serialization Behavior
-
-When `local.messaging.serialize: true` is set in the test profile (typically in `application-test-sagas.properties`), commands and their responses are serialized/deserialized through Jackson. This affects how `CommandResponse.result` — which is declared as `Object` — round-trips.
-
-### List returns and type erasure
-
-`CommandResponse.result` is typed as `Object`. When a read saga stores a `List<XxxDto>` in that field, Jackson cannot embed per-element `@class` metadata (the `isCollectionLikeType()` guard prevents it). On deserialization, each element comes back as a `LinkedHashMap` rather than the expected `XxxDto`.
-
-**The fix is in `MessagingObjectMapperProvider.useForType()`:** the method must return `true` when `raw == Object.class`. This tells Jackson to embed `@class` on any value stored in an `Object`-typed field, which in turn enables element-level type information even inside an untyped collection. Without this fix, any read saga that returns a list via `CommandResponse.result` will fail at deserialization with a `ClassCastException` (`LinkedHashMap` cannot be cast to `XxxDto`).
-
-**When this matters:** Only when `local.messaging.serialize: true` is active. Tests that run without this flag are unaffected; production code (which does not serialize locally) is unaffected.
-
----
+With `local.messaging.serialize: true` (test profile), commands round-trip through Jackson.
+`CommandResponse.result` is typed `Object`, so a `List<XxxDto>` stored there deserializes as
+`LinkedHashMap` elements unless `MessagingObjectMapperProvider.useForType()` returns `true` for
+`raw == Object.class`, which embeds `@class` metadata per element. Without that fix, read sagas
+returning lists fail with `ClassCastException`. Irrelevant when the flag is off.
 
 ## Appendix — Deferred Test Types
 
-These test types are documented for future work but are **not** part of the current workflow. They are preserved here for reference only.
-
----
+Documented for future work; **not** part of the current workflow.
 
 ### Cross-Functionality Test
 
-**Purpose:** Validate that two concurrent operations on overlapping aggregates either produce a
-consistent result or correctly reject one operation via semantic locks.
+Two concurrent operations on overlapping aggregates must either produce a consistent result or
+correctly reject one via semantic locks (`setForbiddenStates` guard transitions). One test per
+functionality pair sharing an aggregate with real consistency risk.
 
-**Selection rule:** Create one Cross-Functionality test for each pair (A, B) of functionalities that share at
-least one aggregate **and** where concurrent execution poses a real consistency risk (e.g., one
-modifies a field the other reads from).
-
-**Template:**
 ```groovy
-@DataJpaTest
-@Transactional
-@Import(LocalBeanConfiguration)
-class <Op1>And<Op2>Test extends <AppName>SpockTest {
-
-    @TestConfiguration
-    static class LocalBeanConfiguration extends BeanConfigurationSagas {}
-
-    def "sequential: <op1> then <op2>"() {
-        given: 'shared aggregate setup'
-        // ...
-        when:
-        <primary1>Functionalities.<op1>(/* args */)
-        def result = <primary2>Functionalities.<op2>(/* args */)
-        then:
-        // assert consistent final state
-    }
-
-    def "sequential: <op2> then <op1>"() { /* reverse ordering */ }
-
-    def "concurrent: <op1> step1 → <op2> completes → <op1> resumes"() {
-        given:
-        def uow1 = unitOfWorkService.createUnitOfWork("<Op1>")
-        def func1 = new <Op1>FunctionalitySagas(unitOfWorkService, /* args */, uow1, commandGateway)
-
-        when:
-        // executeUntilStep completes <stepBeforeShared>, halting before the shared/conflict step
-        func1.executeUntilStep("<stepBeforeShared>", uow1)
-
-        and:
-        <primary2>Functionalities.<op2>(/* args */)
-
-        and:
-        func1.resumeWorkflow(uow1)
-
-        then:
-        // either both succeed with consistent state, or one throws a meaningful exception
-        noExceptionThrown()  // or: thrown(<App>Exception)
-    }
+def "concurrent: <op1> step1 → <op2> completes → <op1> resumes"() {
+    given: 'func1 = new <Op1>FunctionalitySagas(unitOfWorkService, /* args */, uow1, commandGateway)'
+    when: 'func1.executeUntilStep("<stepBeforeShared>", uow1); <primary2>Functionalities.<op2>(...); func1.resumeWorkflow(uow1)'
+    then: 'both succeed consistently, or one throws a meaningful exception'
+    noExceptionThrown()  // or: thrown(<App>Exception)
 }
 ```
-
----
 
 ### Fault / Behavior Test
 
-**Purpose:** Verify saga compensation when a step fails mid-workflow. The aggregate must be
-in a consistent state (either fully applied or fully rolled back) after the fault.
+Saga compensation when a step fails mid-workflow: inject a fault via `ImpairmentService`, then
+verify the aggregate is fully applied or fully rolled back.
 
-**How to inject faults:** Use `ImpairmentService` to impair a specific step of a specific workflow.
-After the fault, verify the aggregate is back to its pre-operation state and the saga state is
-`NOT_IN_SAGA` or `PENDING_COMPENSATION` (depending on the step).
-
-**Template:**
 ```groovy
-@DataJpaTest
-@Transactional
-@Import(LocalBeanConfiguration)
-class <Functionality>FaultTest extends <AppName>SpockTest {
-
-    @TestConfiguration
-    static class LocalBeanConfiguration extends BeanConfigurationSagas {}
-
-    @Autowired ImpairmentService impairmentService
-
-    def "<functionality>: step <faultStep> fails → aggregate rolls back"() {
-        given:
-        def aggregate = create<Primary>(/* valid args */)
-
-        and: 'inject fault at target step'
-        impairmentService.addCommandImpairment("<FunctionalityName>", "<faultStep>",
-                ImpairmentType.EXCEPTION_ON_EXECUTE)
-
-        when:
-        <primary>Functionalities.<functionalityName>(/* args */)
-
-        then:
-        thrown(Exception)
-
-        and: 'aggregate unchanged / rolled back'
-        def state = <primary>Service.get<Primary>(aggregate.aggregateId,
-                unitOfWorkService.createUnitOfWork("check"))
-        state.<mutatedField> == <originalValue>
-    }
+def "<functionality>: step <faultStep> fails → aggregate rolls back"() {
+    given: 'impairmentService.addCommandImpairment("<FunctionalityName>", "<faultStep>", ImpairmentType.EXCEPTION_ON_EXECUTE)'
+    when: '<primary>Functionalities.<functionalityName>(/* args */)'
+    then:
+    thrown(Exception)
+    and: 'read back via a fresh UnitOfWork: <mutatedField> == <originalValue>'
 }
 ```
 
----
-
 ### Async Test
 
-**Purpose:** Verify that multiple concurrent invocations of the same operation (fire-and-forget,
-no step coordination) all complete without corrupting aggregate state.
+N concurrent invocations of the same operation must all complete without corrupting state.
 
-**Template:**
 ```groovy
-@DataJpaTest
-@Transactional
-@Import(LocalBeanConfiguration)
-class <Functionality>AsyncTest extends <AppName>SpockTest {
-
-    @TestConfiguration
-    static class LocalBeanConfiguration extends BeanConfigurationSagas {}
-
-    def "<functionality>: N concurrent invocations all succeed"() {
-        given:
-        def shared = create<SharedAggregate>(/* args */)
-        def participants = (1..N).collect { create<OtherAggregate>(/* args */) }
-
-        when: 'fire all concurrently'
-        def threads = participants.collect { p ->
-            Thread.start {
-                <primary>Functionalities.<functionalityName>(shared.aggregateId, p.aggregateId)
-            }
-        }
-        threads*.join()
-
-        then:
-        def result = <primary>Service.get<Primary>(shared.aggregateId,
-                unitOfWorkService.createUnitOfWork("check"))
-        result.<collection>.size() == N
-    }
+def "<functionality>: N concurrent invocations all succeed"() {
+    given: 'one shared aggregate + N participants'
+    when: 'fire all concurrently'
+    participants.collect { p ->
+        Thread.start { <primary>Functionalities.<functionalityName>(shared.aggregateId, p.aggregateId) }
+    }*.join()
+    then: 'read back via a fresh UnitOfWork: <collection>.size() == N'
 }
 ```
