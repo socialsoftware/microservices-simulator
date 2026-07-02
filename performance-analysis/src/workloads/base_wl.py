@@ -15,6 +15,13 @@ class BaseWorkload(Workload):
     def find_tournament(self):
         SimInterface.find_tournament(self.tourn_id, client=self.client)
 
+    def find_topic(self):
+        SimInterface.get_topics_for_course(self.course_id, client=self.client)
+
+    def find_questions(self):
+        SimInterface.get_questions_for_course(
+            self.course_id, client=self.client)
+
     def task_update_tournament(self):
         SimInterface.update_tournament(
             self.tourn_id, [self.topic_id], client=self.client)
@@ -35,13 +42,17 @@ class BaseWorkload(Workload):
             self.find_user,
             self.find_execution,
             self.find_tournament,
+            self.find_topic,
+            self.find_questions,
             self.task_update_tournament,
             self.task_add_student
         ]
         weights = [
-            30 * self.read_weight,
-            25 * self.read_weight,
-            25 * self.read_weight,
+            16 * self.read_weight,
+            16 * self.read_weight,
+            16 * self.read_weight,
+            16 * self.read_weight,
+            16 * self.read_weight,
             10 * self.write_weight,
             10 * self.write_weight
         ]

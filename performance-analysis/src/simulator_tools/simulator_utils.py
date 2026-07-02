@@ -302,6 +302,17 @@ class SimInterface:
         return None
 
     @staticmethod
+    def start_quiz(quiz_id, exec_id, user_id, client=requests):
+        params = {
+            "courseExecutionAggregateId": exec_id,
+            "userAggregateId": user_id
+        }
+        r = SimInterface._post(f"/quizzes/{quiz_id}/start", params=params, client=client)
+        if r is not None and r.status_code in [200, 201]:
+            return True
+        return False
+
+    @staticmethod
     def answer_question(quiz_id, user_id, question_id, sequence=1, time_taken=10, option_key=1, client=requests):
         payload = {
             "sequence": sequence,
@@ -312,8 +323,8 @@ class SimInterface:
         r = SimInterface._post(f"/quizzes/{quiz_id}/answer", params={
             "userAggregateId": user_id}, json=payload, client=client)
         if r is not None and r.status_code in [200, 201]:
-            return r.json()
-        return None
+            return True
+        return False
 
     @staticmethod
     def create_base_data(client=requests):
