@@ -8,84 +8,70 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 @Profile("sagas")
 public class SagaUnitOfWork extends UnitOfWork {
 
     private static final Logger logger = LoggerFactory.getLogger(SagaUnitOfWork.class);
 
-    private final ArrayList<CompensatingAction> compensatingActions;
+    private final Map<String, CompensatingAction> compensatingActions;
     private final Map<Integer, String> aggregatesInSaga; // aggregateId -> aggregateType
-    private final HashMap<Integer, SagaState> previousStates = new HashMap<>();
-    private boolean abortCommandsSent = false;
+    private final Map<String, List<AggregateStateRecord>> previousStates;
+    private final List<String> executedSteps;
+    private final Set<String> abortedSteps;
+    private String currentExecutingStep;
 
     private final TraceManager traceManager;
 
     public SagaUnitOfWork(Long version, String functionalityName) {
         super(version, functionalityName);
-        this.compensatingActions = new ArrayList<>();
+        this.compensatingActions = new LinkedHashMap<>();
         this.aggregatesInSaga = new LinkedHashMap<>();
+        this.previousStates = new LinkedHashMap<>();
+        this.executedSteps = new ArrayList<>();
+        this.abortedSteps = new HashSet<>();
         this.traceManager = TraceManager.getInstance();
     }
 
     public void registerCompensation(String stepName, Runnable compensationAction) {
-        this.compensatingActions.add(new CompensatingAction(stepName, compensationAction));
+        this.compensatingActions.put(stepName, new CompensatingAction(stepName, compensationAction));
+    }
+
+    public void reset() {
+        this.executedSteps.clear();
+        this.abortedSteps.clear();
+        this.previousStates.clear();
+        this.compensatingActions.clear();
+        this.aggregatesInSaga.clear();
+        this.currentExecutingStep = null;
     }
 
     public void registerCompensation(Runnable compensationAction) {
         registerCompensation(null, compensationAction);
     }
 
-    public void compensate() {
-        List<CompensatingAction> toExecute = new ArrayList<>(this.compensatingActions);
-        Collections.reverse(toExecute);
-        this.traceManager.startSpanForCompensation(this.getFunctionalityName());
-        for (CompensatingAction action : toExecute) {
-            if (!action.isExecuted()) {
-                logger.info("COMPENSATE: {}", action.getAction().getClass().getSimpleName());
-                action.getAction().run();
-                action.setExecuted(true);
-            }
+    public void compensateStep(String stepName) {
+        CompensatingAction action = this.compensatingActions.get(stepName);
+        if (action != null && !action.isExecuted()) {
+            this.traceManager.startSpanForCompensation(this.getFunctionalityName());
+            logger.info("COMPENSATE: {} for step {}", action.getAction().getClass().getSimpleName(), stepName);
+            action.getAction().run();
+            action.setExecuted(true);
+            this.traceManager.endSpanForCompensation(this.getFunctionalityName());
         }
-        this.traceManager.endSpanForCompensation(this.getFunctionalityName());
     }
 
-    public void compensateUntilStep(String targetStepName) {
-        List<CompensatingAction> toExecute = new ArrayList<>(this.compensatingActions);
-        Collections.reverse(toExecute);
-        this.traceManager.startSpanForCompensation(this.getFunctionalityName());
-        for (CompensatingAction action : toExecute) {
-            if (!action.isExecuted()) {
-                logger.info("COMPENSATE: {} for step {}", action.getAction().getClass().getSimpleName(), action.getStepName());
-                action.getAction().run();
-                action.setExecuted(true);
-            }
-            if (action.getStepName() != null && action.getStepName().equals(targetStepName)) {
-                break;
-            }
-        }
-        this.traceManager.endSpanForCompensation(this.getFunctionalityName());
+
+    public List<String> getExecutedSteps() {
+        return this.executedSteps;
     }
 
-    public CompletableFuture<Void> compensateAsync(ExecutorService executorService) {
-        // Reverse the compensating actions
-        List<CompensatingAction> toExecute = new ArrayList<>(this.compensatingActions);
-        Collections.reverse(toExecute);
+    public String getCurrentExecutingStep() {
+        return currentExecutingStep;
+    }
 
-        // Execute compensations asynchronously using the provided ExecutorService
-        List<CompletableFuture<Void>> compensationFutures = toExecute.stream()
-                .filter(action -> !action.isExecuted())
-                .map(action -> CompletableFuture.runAsync(() -> {
-                    action.getAction().run();
-                    action.setExecuted(true);
-                }, executorService))
-                .collect(Collectors.toList());
-
-        // Combine all compensation futures into a single CompletableFuture
-        return CompletableFuture.allOf(compensationFutures.toArray(new CompletableFuture[0]));
+    public void setCurrentExecutingStep(String currentExecutingStep) {
+        this.currentExecutingStep = currentExecutingStep;
     }
 
     public Map<Integer, String> getAggregatesInSaga() {
@@ -96,21 +82,26 @@ public class SagaUnitOfWork extends UnitOfWork {
         this.aggregatesInSaga.put(aggregateId, aggregateType);
     }
 
-    public HashMap<Integer, SagaState> getPreviousStates() {
+    public Map<String, List<AggregateStateRecord>> getPreviousStates() {
         return this.previousStates;
     }
 
     public void savePreviousState(Integer aggregateId, SagaState previousState) {
-        this.previousStates.put(aggregateId, previousState);
+        this.previousStates.computeIfAbsent(this.currentExecutingStep, k -> new ArrayList<>())
+                .add(new AggregateStateRecord(aggregateId, previousState));
     }
 
-    public boolean isAbortCommandsSent() {
-        return abortCommandsSent;
+    public boolean isStepAborted(String stepName) {
+        return this.abortedSteps.contains(stepName);
     }
 
-    public void setAbortCommandsSent(boolean abortCommandsSent) {
-        this.abortCommandsSent = abortCommandsSent;
+    public void setStepAborted(String stepName) {
+        if (stepName != null) {
+            this.abortedSteps.add(stepName);
+        }
     }
+
+    public record AggregateStateRecord(Integer aggregateId, SagaState state) {}
 
     public static class CompensatingAction {
         private final String stepName;

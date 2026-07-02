@@ -9,31 +9,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
+import java.util.*;
 
 public class SagaWorkflow extends Workflow {
     public SagaWorkflow(WorkflowFunctionality functionality, UnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
         super(functionality, unitOfWorkService, unitOfWork);
-    }
-
-    @Override
-    public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
-        if (unitOfWork instanceof SagaUnitOfWork) {
-            ((SagaUnitOfWork) unitOfWork).setAbortCommandsSent(false);
-        }
-        super.executeUntilStep(stepName, unitOfWork);
-    }
-
-    @Override
-    public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        if (unitOfWork instanceof SagaUnitOfWork) {
-            ((SagaUnitOfWork) unitOfWork).setAbortCommandsSent(false);
-        }
-        return super.execute(unitOfWork);
     }
 
     @Override
@@ -82,11 +62,7 @@ public class SagaWorkflow extends Workflow {
         }
         SagaUnitOfWork sagaUnitOfWork = (SagaUnitOfWork) unitOfWork;
         SagaUnitOfWorkService sagaService = (SagaUnitOfWorkService) unitOfWorkService;
-        if (!sagaUnitOfWork.isAbortCommandsSent()) {
-            sagaService.sendAbortCommands(sagaUnitOfWork);
-            sagaUnitOfWork.setAbortCommandsSent(true);
-        }
-        sagaUnitOfWork.compensateUntilStep(stepName);
+        sagaService.abortUntilStep(sagaUnitOfWork, stepName);
     }
 
     @Override
@@ -96,10 +72,6 @@ public class SagaWorkflow extends Workflow {
         }
         SagaUnitOfWork sagaUnitOfWork = (SagaUnitOfWork) unitOfWork;
         SagaUnitOfWorkService sagaService = (SagaUnitOfWorkService) unitOfWorkService;
-        if (!sagaUnitOfWork.isAbortCommandsSent()) {
-            sagaService.sendAbortCommands(sagaUnitOfWork);
-            sagaUnitOfWork.setAbortCommandsSent(true);
-        }
-        sagaService.compensate(sagaUnitOfWork);
+        sagaService.abort(sagaUnitOfWork);
     }
 }
