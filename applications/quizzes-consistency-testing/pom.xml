@@ -261,6 +261,12 @@
             <scope>compile</scope>
         </dependency>
 
+        <dependency>
+            <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
+            <artifactId>ConsistencyTesting</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -280,6 +286,26 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
+            </plugin>
+
+            <!-- ! TODO rethink this approach, if left as is
+                should be better signaled on the consistency-testing errors -->
+            <!--
+                Publishes src/test/java as a "tests" classifier jar so other modules
+                (namely consistency-testing) can depend on test-scoped classes such as
+                TestInterInvariantsProvider implementations, which must NOT ship inside
+                the app's main/production artifact.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

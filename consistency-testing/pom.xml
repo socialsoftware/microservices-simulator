@@ -42,12 +42,27 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- TODO Eventually might change to a custom version QuizzesTutorConsistency -->
-        <!-- QuizzesTutor is used in Oracle tests as an example Spring Boot app -->
+        <!-- QuizzesTutorConsistencyTesting is used in Oracle tests as an example Spring Boot app -->
         <dependency>
             <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
-            <artifactId>QuizzesTutor</artifactId>
+            <artifactId>QuizzesTutorConsistencyTesting</artifactId>
             <version>3.2.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TODO rethink this approach -->
+        <!--
+            The app's consistency-testing support test classes live in QuizzesTutorConsistencyTesting's
+            src/test/java, so it is not part of the artifact above. It's published
+            separately as a test-jar (see that module's pom) and pulled in here so
+            it lands on this module's test classpath directly (it's a plain jar,
+            not a Spring Boot fat jar, so no unpacking step is needed).
+        -->
+        <dependency>
+            <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
+            <artifactId>QuizzesTutorConsistencyTesting</artifactId>
+            <version>3.2.0-SNAPSHOT</version>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
 
@@ -106,7 +121,7 @@
                             <includeScopes>test</includeScopes>
 
                             <!-- Extend this list with any imported Spring Boot app -->
-                            <includeArtifactIds>QuizzesTutor</includeArtifactIds>
+                            <includeArtifactIds>QuizzesTutorConsistencyTesting</includeArtifactIds>
 
                             <includes>BOOT-INF/classes/**</includes>
                             <outputDirectory>${spring.apps.unpacked.dir}</outputDirectory>
