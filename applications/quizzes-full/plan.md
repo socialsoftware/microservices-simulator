@@ -144,7 +144,7 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 | Session | Files |
 |---------|-------|
 | 2.2.a | `aggregate/User.java`, `aggregate/UserRole.java`, `aggregate/sagas/SagaUser.java`, `aggregate/sagas/states/UserSagaState.java`, `aggregate/UserFactory.java`, `aggregate/sagas/factories/SagasUserFactory.java`, `aggregate/UserCustomRepository.java`, `aggregate/sagas/repositories/UserCustomRepositorySagas.java`, `aggregate/UserDto.java`, `aggregate/UserRepository.java`, `sagas/user/UserTest.groovy`, `microservices/user/UserServiceApplication.java` |
-| 2.2.b | `service/UserService.java` (write + getUserById methods), `messaging/UserCommandHandler.java`, `commands/user/DeleteUserCommand.java`, `commands/user/UpdateUserNameCommand.java`, `commands/user/AnonymizeUserCommand.java`, `commands/user/GetUserByIdCommand.java` (moved from 2.2.c — delete saga needs it for semantic lock), `commands/user/CreateUserCommand.java`, `events/DeleteUserEvent.java`, `events/UpdateStudentNameEvent.java`, `events/AnonymizeStudentEvent.java`, `coordination/sagas/CreateUserFunctionalitySagas.java`, `coordination/sagas/DeleteUserFunctionalitySagas.java`, `coordination/sagas/UpdateUserNameFunctionalitySagas.java`, `coordination/sagas/AnonymizeUserFunctionalitySagas.java`, `coordination/functionalities/UserFunctionalities.java`, `sagas/coordination/user/CreateUserTest.groovy`, `sagas/coordination/user/DeleteUserTest.groovy`, `sagas/coordination/user/UpdateUserNameTest.groovy` (T3 — success + READ_USER lock-acquisition), `sagas/coordination/user/AnonymizeUserTest.groovy` (T3 — success + READ_USER lock-acquisition), `microservices/user/coordination/webapi/UserController.java` |
+| 2.2.b | `service/UserService.java` (write + getUserById methods), `messaging/UserCommandHandler.java`, `commands/user/DeleteUserCommand.java`, `commands/user/UpdateUserNameCommand.java`, `commands/user/AnonymizeUserCommand.java`, `commands/user/GetUserByIdCommand.java` (moved from 2.2.c — delete saga needs it for semantic lock), `commands/user/CreateUserCommand.java`, `events/DeleteUserEvent.java`, `events/UpdateStudentNameEvent.java`, `events/AnonymizeStudentEvent.java`, `coordination/sagas/CreateUserFunctionalitySagas.java`, `coordination/sagas/DeleteUserFunctionalitySagas.java`, `coordination/sagas/UpdateUserNameFunctionalitySagas.java`, `coordination/sagas/AnonymizeUserFunctionalitySagas.java`, `coordination/functionalities/UserFunctionalities.java`, `sagas/coordination/user/CreateUserTest.groovy`, `sagas/coordination/user/DeleteUserTest.groovy`, `sagas/coordination/user/UpdateUserNameTest.groovy` (T4 — success + READ_USER lock-acquisition), `sagas/coordination/user/AnonymizeUserTest.groovy` (T4 — success + READ_USER lock-acquisition), `microservices/user/coordination/webapi/UserController.java` |
 | 2.2.c | `coordination/sagas/GetUserByIdFunctionalitySagas.java`, `sagas/coordination/user/GetUserByIdTest.groovy` |
 
 **Checklist:**
@@ -374,7 +374,7 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 ## Phase 3 — Test Review
 
 One session per aggregate in the same order as Phase 2. Each session invokes the `review-tests`
-skill to audit T1/T2/T3 completeness, fix fake/weak tests, and run the full test suite.
+skill to audit T1–T4 completeness, fix fake/weak tests, and run the full test suite.
 
 | Session | Aggregate | Skill invocation |
 |---------|-----------|------------------|

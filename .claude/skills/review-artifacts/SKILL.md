@@ -194,33 +194,41 @@ text if found.
 ### 6.a — Session-to-test-type mapping
 
 From `docs/workflow.md` and `docs/concepts/testing.md`, extract the authoritative mapping:
-T1 → session a; T2 write → session b; T2 read → session c; T3 → session d.
+T1 → session a; T2 (write service cases) + T3 (event publication) + T4 (write functionality) →
+session b; T2 (read service cases, appended) + T4 (read functionality) → session c; T4 subscription
+(inter-invariant) → session d.
 
 From each `session-*.md`, find the test section and extract which test types it produces.
 
 | Session | Expected test type(s) | Actual in skill | Consistent? |
 |---------|-----------------------|-----------------|-------------|
 | a | T1 | ... | ... |
-| b | T2 (write operations) | ... | ... |
-| c | T2 (read operations) | ... | ... |
-| d | T3 | ... | ... |
+| b | T2 (write-method cases), T3 (event publication, if publisher), T4 (write functionality) | ... | ... |
+| c | T2 (read-method cases, appended), T4 (read functionality) | ... | ... |
+| d | T4 subscription (inter-invariant) | ... | ... |
 
 ### 6.b — Test assertion rules
 
 Extract these specific rules from `docs/concepts/testing.md`:
-1. Not-found: `thrown(SimulatorException)`, NOT `thrown({AppClass}Exception)`
+1. Not-found: Path A `thrown(SimulatorException)` vs Path B `thrown({AppClass}Exception)`, per the
+   service's lookup mechanism (T2 owns not-found; T4 does not)
 2. T1: no direct `verifyInvariants()` call; no call to service methods
-3. T2 semantic-lock acquisition: one test case per saga step that calls `setSemanticLock`
-4. T3: polling called directly (no `@Scheduled`); event handler called manually
+3. T2 read-back: must use a second, fresh UnitOfWork — same-UoW read-back is Fake
+4. T3 publication: assert every payload field, not just type/count; trigger via direct service call
+5. T4 semantic-lock acquisition: one test case per saga step that calls `setSemanticLock`
+6. T4 subscription: polling called directly (no `@Scheduled`); event handler called manually; must
+   not re-assert event-store contents (T3 owns those)
 
 Verify each rule is stated consistently in the relevant session skill:
 
 | Rule | Source in testing.md | In session-*.md | Consistent? | Notes |
 |------|---------------------|-----------------|-------------|-------|
-| Not-found exception type | ... | session-c.md | ... | ... |
+| Not-found exception type (Path A/B) | ... | session-c.md | ... | ... |
 | T1 no verifyInvariants | ... | session-a.md | ... | ... |
-| T2 semantic-lock acquisition | ... | session-b.md | ... | ... |
-| T3 direct polling | ... | session-d.md | ... | ... |
+| T2 fresh-UoW read-back | ... | session-b.md | ... | ... |
+| T3 payload-field assertion | ... | session-b.md | ... | ... |
+| T4 semantic-lock acquisition | ... | session-b.md | ... | ... |
+| T4 subscription direct polling | ... | session-d.md | ... | ... |
 
 ---
 

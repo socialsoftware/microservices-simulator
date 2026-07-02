@@ -55,8 +55,8 @@ applications/{app-name}/
         ├── {App}SpockTest.groovy
         └── sagas/
             ├── coordination/
-            │   └── {aggregate}/       ← T2 tests
-            └── {aggregate}/           ← T1 + T3 tests
+            │   └── {aggregate}/       ← T4 functionality tests
+            └── {aggregate}/           ← T1 + T2 + T3 + T4 subscription tests
 ```
 
 ### Naming conventions
@@ -79,14 +79,16 @@ applications/{app-name}/
 
 ### Test naming
 
-See [`docs/concepts/testing.md`](concepts/testing.md) for the full taxonomy (T1–T3).
+See [`docs/concepts/testing.md`](concepts/testing.md) for the full taxonomy (T1–T4).
 
 | Type | Pattern | Session |
 |------|---------|---------|
-| T1 Creation | `{Aggregate}Test.groovy` | 2.N.a |
-| T2 Write Functionality | `{Operation}Test.groovy` | 2.N.b |
-| T2 Read Functionality | `{Query}Test.groovy` | 2.N.c |
-| T3 Inter-Invariant | `{Aggregate}InterInvariantTest.groovy` | 2.N.d |
+| T1 Aggregate | `{Aggregate}IntraInvariantTest.groovy` | 2.N.a |
+| T2 Service | `{Aggregate}ServiceTest.groovy` — one class per aggregate | 2.N.b (write methods; read-method cases appended in 2.N.c) |
+| T3 Event Publication | `{Aggregate}EventPublicationTest.groovy` — publishers only | 2.N.b |
+| T4 Write Functionality | `{Operation}Test.groovy` | 2.N.b |
+| T4 Read Functionality | `{Query}Test.groovy` | 2.N.c |
+| T4 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` | 2.N.d |
 
 ---
 
@@ -156,9 +158,9 @@ One section per aggregate in implementation order.
 
 | Session | Files |
 |---------|-------|
-| 2.1.a | `aggregate/{Aggregate}.java`, `aggregate/Xxx.java` (owned entities), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
-| 2.1.b | `service/{Aggregate}Service.java` (write methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/Create{Aggregate}Command.java` (one per write op), `coordination/functionalities/{Aggregate}Functionalities.java`, `coordination/sagas/{Op}FunctionalitySagas.java` (one per write op), `sagas/coordination/{aggregate}/{Op}Test.groovy` (one per write op) |
-| 2.1.c | `service/{Aggregate}Service.java` (read methods appended), `commands/{aggregate}/Get{Aggregate}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
+| 2.1.a | `aggregate/{Aggregate}.java`, `aggregate/Xxx.java` (owned entities), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy` |
+| 2.1.b | `service/{Aggregate}Service.java` (write methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/Create{Aggregate}Command.java` (one per write op), `coordination/functionalities/{Aggregate}Functionalities.java`, `coordination/sagas/{Op}FunctionalitySagas.java` (one per write op), `sagas/{aggregate}/{Aggregate}ServiceTest.groovy`, `sagas/{aggregate}/{Aggregate}EventPublicationTest.groovy` (only if Events published is non-empty), `sagas/coordination/{aggregate}/{Op}Test.groovy` (one per write op) |
+| 2.1.c | `service/{Aggregate}Service.java` (read methods appended), `commands/{aggregate}/Get{Aggregate}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op), read-method cases appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
 | 2.1.d | `notification/subscribe/{Aggregate}Subscribes{Event}.java` (one per subscribed event), `notification/handling/{Aggregate}EventHandling.java`, `notification/handling/handlers/{Aggregate}EventHandler.java`, `coordination/eventProcessing/{Aggregate}EventProcessing.java`, `sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` |
 
 **Checklist:**
@@ -258,7 +260,7 @@ Each session agent follows these steps:
 **Reads:**
 - `plan.md` — aggregate N section (entity list, events subscribed, saga state names)
 - `docs/concepts/aggregate.md` — aggregate base class, verifyInvariants contract
-- `docs/concepts/testing.md` — T1 section only
+- `docs/concepts/testing.md` — § T1 — Aggregate Test only
 - *(if aggregate has snapshot fields)* source files of upstream aggregates (to copy field names)
 
 **Produces:**
@@ -273,7 +275,7 @@ Each session agent follows these steps:
 - `{Aggregate}Repository.java` — standard JPA repository
 - `{Aggregate}CustomRepositorySagas.java` — implements `{Aggregate}CustomRepository`; `getLatestVersion`, `findSagaAggregateById`
 - `{Aggregate}Dto.java`
-- `{Aggregate}Test.groovy` (T1) — stored at `sagas/{aggregate}/{Aggregate}Test.groovy`
+- `{Aggregate}IntraInvariantTest.groovy` (T1) — stored at `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy`
 - Error message constants for this aggregate's intra-invariants added to `{App}ErrorMessage.java`
 
 **Updates `BeanConfigurationSagas.groovy`:**  
@@ -291,7 +293,7 @@ Add `Sagas{Aggregate}Factory` and `{Aggregate}CustomRepositorySagas` beans.
 - `docs/concepts/service.md`
 - `docs/concepts/commands.md`
 - `docs/concepts/sagas.md`
-- `docs/concepts/testing.md` — T2 section
+- `docs/concepts/testing.md` — § T2 — Service Test, § T3 — Event Publication Test, § T4 — Functionality Test, § Assertion Ownership
 - *(for multi-step sagas)* service + command files of upstream aggregates involved in saga steps
 
 **Produces:**
@@ -301,7 +303,11 @@ Add `Sagas{Aggregate}Factory` and `{Aggregate}CustomRepositorySagas` beans.
 - `{Aggregate}Functionalities.java` — coordinator bean; one method per write functionality
 - One `{Op}FunctionalitySagas.java` per write operation — saga steps with `setForbiddenStates`
   for every cross-aggregate prerequisite (P4a rule) on that step
-- One `{Op}Test.groovy` (T2) per write operation — stored at
+- `{Aggregate}ServiceTest.groovy` (T2) — one class per aggregate, write-method cases — stored at
+  `sagas/{aggregate}/{Aggregate}ServiceTest.groovy`
+- `{Aggregate}EventPublicationTest.groovy` (T3) — only if this aggregate publishes events — stored
+  at `sagas/{aggregate}/{Aggregate}EventPublicationTest.groovy`
+- One `{Op}Test.groovy` (T4) per write operation — stored at
   `sagas/coordination/{aggregate}/{Op}Test.groovy`
 - Error message constants for new guards/invariants added to `{App}ErrorMessage.java`
 - Event publishing: if this aggregate publishes events (see plan.md), register them in the
@@ -320,7 +326,7 @@ Add `{Aggregate}Service`, `{Aggregate}CommandHandler`, and `{Aggregate}Functiona
 **Reads:**
 - `plan.md` — aggregate N section (read functionalities list)
 - Aggregate domain files + service file from 2.N.a–b
-- Same concept docs as 2.N.b (`service.md`, `commands.md`, `sagas.md`, `testing.md` T2 section)
+- Same concept docs as 2.N.b (`service.md`, `commands.md`, `sagas.md`; `testing.md` § T2 — Service Test → Not-Found Paths and § T4 — Functionality Test)
 - *(for reads that join foreign aggregates)* relevant upstream service files
 
 **Produces:**
@@ -329,8 +335,10 @@ Add `{Aggregate}Service`, `{Aggregate}CommandHandler`, and `{Aggregate}Functiona
 - Read command cases appended to `{Aggregate}CommandHandler.java`
 - Read methods appended to `{Aggregate}Functionalities.java`
 - One `{Query}FunctionalitySagas.java` per read operation
-- One `{Query}Test.groovy` (T2) per read operation — stored at
-  `sagas/coordination/{aggregate}/{Query}Test.groovy`
+- One `{Query}Test.groovy` (T4) per read operation — stored at
+  `sagas/coordination/{aggregate}/{Query}Test.groovy` (happy read only)
+- Read-method T2 cases (happy read-back + not-found Path A/B) appended to
+  `sagas/{aggregate}/{Aggregate}ServiceTest.groovy`
 
 **Updates `BeanConfigurationSagas.groovy`:**  
 No changes needed — `{Op}FunctionalitySagas` are per-request objects, not Spring beans.
@@ -345,7 +353,7 @@ No changes needed — `{Op}FunctionalitySagas` are per-request objects, not Spri
 - `plan.md` — aggregate N section (events subscribed, P2 rules)
 - Aggregate domain files from 2.N.a
 - `docs/concepts/events.md` — EventSubscription wiring, anchor field contract
-- `docs/concepts/testing.md` — T3 section only
+- `docs/concepts/testing.md` — § T4 — Functionality Test → Subscription (Inter-Invariant) Tests only
 - Source files of each upstream aggregate that publishes a subscribed event (to read event
   payload fields and understand what to cache)
 
@@ -356,7 +364,7 @@ No changes needed — `{Op}FunctionalitySagas` are per-request objects, not Spri
 - `{Aggregate}EventHandler.java` — dispatches to `{Aggregate}EventProcessing`
 - `{Aggregate}EventProcessing.java` — one `process{Event}(...)` method per subscribed event;
   updates the cached snapshot fields; calls `verifyInvariants()` after update
-- `{Aggregate}InterInvariantTest.groovy` (T3) — stored at
+- `{Aggregate}InterInvariantTest.groovy` (T4 subscription) — stored at
   `sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
 - Error message constants for any new invariants added to `{App}ErrorMessage.java`
 
@@ -387,7 +395,7 @@ Invoke the review-tests skill:
 /review-tests {Aggregate}
 ```
 
-The skill reads all T1/T2/T3 test and implementation files for the aggregate, audits completeness,
+The skill reads all test files across the four tiers (T1–T4) and the implementation files for the aggregate, audits completeness,
 adds missing tests, fixes fake/wrong tests, runs the full test suite, and writes the review report.
 
 **Ticks:** `- [ ] 3.{N} — {Aggregate}` in plan.md upon completion.

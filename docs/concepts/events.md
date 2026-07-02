@@ -240,7 +240,7 @@ public void {operation}ByEvent(Integer aggregateId, ...) {
 
 **Where the guard goes.** Put the `sagaState != NOT_IN_SAGA` check inside the `{operation}ByEvent` method **after the load** — not in the shared service method. If the guard lived in a service method that is also called from saga steps on the same aggregate, those saga steps would silently be skipped.
 
-**When to skip the guard.** Only when the event must apply even while the aggregate is mid-saga (rare). For standard cached-field updates and sub-entity removals, always skip when `sagaState != NOT_IN_SAGA`. For whole-consumer invalidation via `copy.remove()`, apply the same guard unless a T3 test explicitly requires processing during an in-flight saga on the same aggregate.
+**When to skip the guard.** Only when the event must apply even while the aggregate is mid-saga (rare). For standard cached-field updates and sub-entity removals, always skip when `sagaState != NOT_IN_SAGA`. For whole-consumer invalidation via `copy.remove()`, apply the same guard unless a T4 subscription test (`<Consumer>InterInvariantTest`) explicitly requires processing during an in-flight saga on the same aggregate.
 
 ---
 

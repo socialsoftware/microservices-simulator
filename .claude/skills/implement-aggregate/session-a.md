@@ -15,7 +15,7 @@ Load these files before writing any code:
    - § getEventSubscriptions() Implementation — relevant only if this aggregate has subscribed events (otherwise skip)
    - References to `prev` (used for temporal invariants) appear under § Key Fields / § Base Class
 
-2. **`docs/concepts/testing.md`** — § T1 — Intra-Invariant Test. Note:
+2. **`docs/concepts/testing.md`** — § T1 — Aggregate Test. Note:
    - What the full T1 matrix covers: creation happy-path, one violation per non-`final` P1 rule, BVA straddles for ordered predicates
    - That all T1 cases go via direct construction/mutation + `verifyInvariants()` — never through the service
    - The test class location and naming convention
@@ -157,7 +157,7 @@ Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}Dto.java`
 
 Path: `{test}sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy`
 
-See `docs/concepts/testing.md` § T1 — Intra-Invariant Test for the full remit and templates.
+See `docs/concepts/testing.md` § T1 — Aggregate Test for the full remit and templates.
 
 - Extends `{AppClass}SpockTest`
 - **Happy-path creation test**: `def "create {Aggregate}"()` — instantiate `Saga{Aggregate}` directly, call `verifyInvariants()`, and assert all fields from the `plan.md` aggregate field list. Assertion provenance: fields must trace to the spec, not to the constructor body you just wrote. If the constructor sets a field the spec doesn't list, flag the planning gap in the session report.

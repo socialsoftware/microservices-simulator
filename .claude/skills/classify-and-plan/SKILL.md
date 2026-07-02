@@ -372,7 +372,7 @@ For each aggregate, generate the full file list using the template from `docs/wo
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{SingleSnapshotEntity}.java` (per single snapshot from §2), `aggregate/{CollectionSnapshotEntity}.java` (per collection × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}Test.groovy` |
+| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{SingleSnapshotEntity}.java` (per single snapshot from §2), `aggregate/{CollectionSnapshotEntity}.java` (per collection × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy` |
 ```
 
 > **Never omit from 2.N.a:** `{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` must always appear in the 2.N.a row — even when the aggregate has no cross-table lookups. Every owned entity class listed in the §1 "Entities contained" column must appear individually, named `{Aggregate}{Entity}.java` (e.g., `QuizExecution.java`, `QuizQuestion.java` — not `Execution.java`, `Question.java`). **Every §2 snapshot entity — whether single or collection — also requires its own `{Entity}.java` entity class file**: e.g., `aggregate/QuestionCourse.java` for a single Course snapshot in Question, `aggregate/QuestionTopic.java` for a Topic × N snapshot in Question. Do not collapse any of these into a single placeholder and then drop them during substitution. Additionally, **every collection snapshot** (`× N` rows in §2) also requires a `{OwnedEntity}Dto.java` — e.g., `ExecutionStudentDto.java` for `Execution | User × N (students)`, `QuestionTopicDto.java` for `Question | Topic × N`. Single snapshots do NOT need a separate Dto.
@@ -383,7 +383,7 @@ For each aggregate, generate the full file list using the template from `docs/wo
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.b | `service/{Aggregate}Service.java` (write methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), `coordination/functionalities/{Aggregate}Functionalities.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op) |
+| 2.N.b | `service/{Aggregate}Service.java` (write methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), `coordination/functionalities/{Aggregate}Functionalities.java`, `sagas/{aggregate}/{Aggregate}ServiceTest.groovy`, `sagas/{aggregate}/{Aggregate}EventPublicationTest.groovy` (only if Events published is non-empty), `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op) |
 ```
 
 > **Event classes:** If Events published is non-empty, append one `events/{Event}.java` per published event to the session-b file list. These are produced in session b alongside the service methods that publish them.
@@ -394,7 +394,7 @@ For each aggregate, generate the full file list using the template from `docs/wo
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.c | `service/{Aggregate}Service.java` (read methods appended), `commands/{aggregate}/Get{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
+| 2.N.c | `service/{Aggregate}Service.java` (read methods appended), `commands/{aggregate}/Get{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op), read-method cases appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
 ```
 
 **Session 2.N.d — Event Wiring** (omit if no subscribed events):

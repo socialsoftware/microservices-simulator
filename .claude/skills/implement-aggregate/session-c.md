@@ -25,7 +25,7 @@ Load these files before writing any code:
 5. **`docs/concepts/sagas.md`** — specifically:
    - § Read Functionality Sagas (and its subsections § List-return read variant, § Two-step read saga variant, as applicable)
 
-6. **`docs/concepts/testing.md`** — § T2 — Functionality Test (the read-functionality assertions, plus § Not-Found Assertions for the Path A / Path B rule of thumb). T1 (intra-invariant) and T3 (inter-invariant) tests are not produced in this session.
+6. **`docs/concepts/testing.md`** — § T2 — Service Test (including § Not-Found Paths for the Path A / Path B rule of thumb), § T4 — Functionality Test, and § Assertion Ownership. T1 (aggregate) and T4 subscription (inter-invariant) tests are not produced in this session.
 
 7. ***(Conditional)*** If any read functionality joins data from an upstream aggregate (e.g., a "get with details" that includes Course name alongside Execution): read that upstream aggregate's service file to understand what it returns.
 
@@ -113,16 +113,25 @@ Path: `{src}microservices/{aggregate}/messaging/{Aggregate}CommandHandler.java`
 
 ---
 
-### One `{Query}Test.groovy` per read functionality (T2)
+### One `{Query}Test.groovy` per read functionality (T4)
 
 Path: `{test}sagas/coordination/{aggregate}/{Query}Test.groovy`
 
 - Extends `{AppClass}SpockTest`
-- **Happy-path test**: create the aggregate using the `{AppClass}SpockTest` helper (or directly), execute the read, assert the returned DTO matches the aggregate's state
-- **Not-found tests** — two paths (see `docs/concepts/testing.md` § Not-Found Assertions):
-  - **Path A (PK load):** read uses `aggregateLoadAndRegisterRead` with a non-existent ID → assert `thrown(SimulatorException)`
-  - **Path B (composite/custom-repo lookup):** aggregate exists but the queried sub-entity or composite key is absent → assert `thrown({AppClass}Exception)`
-  - **Rule of thumb:** if the service calls `aggregateLoadAndRegisterRead` directly with an ID, use Path A. If the service first calls a custom repository returning `Optional` and throws on empty, use Path B.
+- **Happy-path test only**: create the aggregate using the `{AppClass}SpockTest` helper (or directly), execute the read via `{Aggregate}Functionalities`, assert the returned DTO matches the aggregate's state
+- **No not-found cases here** — per `docs/concepts/testing.md` § Assertion Ownership, not-found belongs to T2 (next section)
+
+### Read-method T2 cases appended to `{Aggregate}ServiceTest.groovy`
+
+Path: `{test}sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (created in session `b` — **append**, do not rewrite)
+
+For each read service method added this session:
+
+- **Happy read-back**: call the read service method directly with a fresh `UnitOfWork` on an existing aggregate, assert the returned DTO fields (skip if the method is already exercised as the read-back of a session-`b` write happy path)
+- **Not-found tests** — two paths (see `docs/concepts/testing.md` § T2 — Service Test → Not-Found Paths):
+  - **Path A (PK load):** service calls `aggregateLoadAndRegisterRead` with a non-existent ID → assert `thrown(SimulatorException)`
+  - **Path B (composite/custom-repo lookup):** service queries a custom repository returning `Optional` and throws on empty → assert `thrown({AppClass}Exception)` with `ex.message == <NOT_FOUND_CONSTANT>`
+  - **Rule of thumb:** read the service method first — if it calls `aggregateLoadAndRegisterRead` directly with an ID, use Path A; if it first calls a custom repository returning `Optional`, use Path B.
 
 ---
 

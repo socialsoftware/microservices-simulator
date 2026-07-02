@@ -29,12 +29,13 @@ Load these files before writing any code:
    - § R4 Decision Table — `SagaCommand` vs `setForbiddenStates`
    - § Write Workflow Structure
 
-5. **`docs/concepts/testing.md`** — § T2 — Functionality Test. Note:
-   - What a T2 test asserts (state after the operation, events emitted, P3 guard violations, not-found, step-interleaving) — P1 predicate tests are not part of T2
-   - How to test P3 guard violations
-   - How to test P4a prerequisite failures (e.g., sending a command that causes the saga fetch to fail)
-   - **State-transition rule (semantic-lock acquisition):** each saga step that calls `setSemanticLock` is an *acquire* transition into `IN_{OP}` (see `docs/concepts/testing.md` § The Saga as a State Machine). One case per such step: use `executeUntilStep`, assert the expected `IN_{OP}` saga state, then `resumeWorkflow` and `noExceptionThrown()` (completing the traversal back to `NOT_IN_SAGA`). Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix — Cross-Functionality Test** in `docs/concepts/testing.md`.
-   - § Fake / Wrong / Weak Detection Checklist — apply before committing the test file
+5. **`docs/concepts/testing.md`** — § Assertion Ownership, § T2 — Service Test, § T3 — Event Publication Test, § T4 — Functionality Test. Note:
+   - **Assertion Ownership** — each fact is asserted in exactly one tier. T2 owns persistence, uniqueness, not-found, and P3 numeric boundaries; T3 owns event-publication assertions; T4 asserts orchestration outcomes only.
+   - What a T2 service test asserts (change persisted and read back via a **fresh** UnitOfWork, uniqueness/composite-key guards, P3 numeric-guard boundaries) — direct `*Service` bean calls, no saga workflow, no P1 predicate tests
+   - What a T3 publication test asserts (event row in the store with correct type + every payload field, plus one negative no-publish case) — triggered via direct service call
+   - What a T4 functionality test asserts (orchestration outcomes, saga-path guard violations, P4a prerequisite failures — e.g., sending a command that causes the saga fetch to fail)
+   - **State-transition rule (semantic-lock acquisition):** each saga step that calls `setSemanticLock` is an *acquire* transition into `IN_{OP}` (see `docs/concepts/testing.md` § T4 — Functionality Test). One case per such step: use `executeUntilStep`, assert the expected `IN_{OP}` saga state, then `resumeWorkflow` and `noExceptionThrown()` (completing the traversal back to `NOT_IN_SAGA`). Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix — Cross-Functionality Test** in `docs/concepts/testing.md`.
+   - § Fake / Wrong / Weak Detection Checklist — apply before committing each test file
 
 6. ***(Conditional)*** If the plan.md aggregate section lists cross-aggregate prerequisites (P4a or P3 DTO-check rules): read the service file and relevant command files of each upstream aggregate involved. You need their command class names, service method signatures, and what they throw on failure.
 
@@ -116,7 +117,46 @@ Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Fu
   5. Returns the result DTO (or `void` for mutations)
 - Tests `@Autowired` this class and call its methods directly
 
-### One `{Op}Test.groovy` per write functionality (T2)
+### `{Aggregate}ServiceTest.groovy` (T2 — write-method cases)
+
+Path: `{test}sagas/{aggregate}/{Aggregate}ServiceTest.groovy`
+
+One class per aggregate, covering all its service methods (session `c` appends the read-method
+cases). Follow the template in `docs/concepts/testing.md` § T2 — Service Test. Invoke the
+`*Service` bean directly with a `UnitOfWork` — no saga workflow, no `{Aggregate}Functionalities`.
+
+- Extends `{AppClass}SpockTest`
+- **Per write service method, a happy path**: call the service with a fresh UnitOfWork, then read
+  back **through a second, fresh UnitOfWork** (via the read service method or
+  `aggregateLoadAndRegisterRead`) and assert the persisted fields. Reading back through the same
+  UnitOfWork instance used for the write is **Fake** — it never exercises the load path.
+- **Kill-mutation check (after each happy path):** Ask "if `unitOfWorkService.registerChanged(aggregate)`
+  were removed from the service, would my test still pass?" If yes, the test does not verify
+  persistence — the `then:` must read back through the fresh UnitOfWork, not from a local variable.
+- **Uniqueness / composite-key guard cases**: one per P3 own-table or DTO-check guard in the
+  service method.
+- **P3 numeric-guard boundaries**: on-point (`notThrown`) / off-point (`thrown` + `ex.message ==
+  {RULE_NAME}`) pairs per ordered-domain P3 guard (see testing.md § Choosing Input Values).
+- **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy`
+  (session a, T1).
+- `// Spec:` comment on every test naming the plan.md section and rule (see Spec-First note below).
+
+### `{Aggregate}EventPublicationTest.groovy` (T3 — only if plan.md lists events published)
+
+Path: `{test}sagas/{aggregate}/{Aggregate}EventPublicationTest.groovy`
+
+Follow the template in `docs/concepts/testing.md` § T3 — Event Publication Test. Trigger the
+publishing operation **via a direct service call** with a `UnitOfWork` (not via
+`{Aggregate}Functionalities`), then assert against the event store via the `EventService` bean.
+
+- **Per published event type** (from plan.md's Events published list): one case asserting the
+  event exists with the correct type, `publisherAggregateId`, and **every payload field** —
+  asserting only type/count is **Weak**.
+- **One negative case**: capture the event-store count before, run a service operation that must
+  *not* publish, assert the count is unchanged.
+- Consumers are out of scope here — they are covered by T4 subscription tests in session `d`.
+
+### One `{Op}Test.groovy` per write functionality (T4)
 
 Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 
@@ -136,15 +176,18 @@ def "updateQuestionContent: QUESTION_CONTENT_REQUIRED violation"() {
 
 If the implementation disagrees with the cited section, flag it as an impl deviation — do not adjust the cited rule to match.
 
-**Kill-mutation check (after writing each happy-path test):** Ask "if `unitOfWork.registerChanged(aggregate)` were removed from the service, would my test still pass?" If yes, the test does not verify persistence. Add an assertion on a field the operation changes that is only readable through the persisted aggregate (i.e. the `then:` reads back via `get{Aggregate}ById`, not from a local variable).
+**Strict assertion ownership (testing.md § Assertion Ownership):** T4 functionality tests do **not**
+assert field-level persistence, uniqueness, or not-found — those belong in `{Aggregate}ServiceTest`
+(T2, above). They also do not re-assert event-store contents — `{Aggregate}EventPublicationTest`
+(T3) owns that.
 
 - Extends `{AppClass}SpockTest`
-- **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation, assert all fields from the spec table above
-- **P3 guard tests**: test each P3 rule violation (own-table duplicate, DTO field check)
+- **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation via `{Aggregate}Functionalities`, and assert **orchestration outcomes only**: the operation completes, the returned DTO is coherent, and `sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA`
+- **Saga-path guard tests**: P3 guard violations that involve cross-aggregate saga coordination, driven through `{Aggregate}Functionalities` (single-aggregate guard violations are already covered in T2 via direct service calls — do not duplicate them here)
 - **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., creator not enrolled in execution)
 - **Assertion for all violation tests:** `thrown({AppClass}Exception)` plus `ex.message == {RULE_NAME}`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in Fault / Behavior Test (Appendix) fault-injection tests. Never accept a bare `thrown({AppClass}Exception)` without the message assertion — it passes on any thrown exception of that type, including unrelated bugs. The `{RULE_NAME}` constant must match the name in `plan.md`'s rule list, not be inferred from the implementation.
-- **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy` (session a). Do not add P1 violation tests or BVA boundary straddles to T2 service tests.
-- **State-transition / semantic-lock acquisition (required):** Follow `docs/concepts/testing.md` § T2 — State-transition rule and § The Saga as a State Machine. Each `setSemanticLock` step is an *acquire* transition into `IN_{OP}`. **One case per saga step that calls `setSemanticLock` — no exceptions:**
+- **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy` (session a). Do not add P1 violation tests or BVA boundary straddles to T4 functionality tests.
+- **State-transition / semantic-lock acquisition (required):** Follow `docs/concepts/testing.md` § T4 — Functionality Test. Each `setSemanticLock` step is an *acquire* transition into `IN_{OP}`. **One case per saga step that calls `setSemanticLock` — no exceptions:**
   - **`setSemanticLock` step:** run the workflow through the lock step via `executeUntilStep("<lockStep>", uow)`, assert `sagaStateOf(<id>) == <Aggregate>SagaState.IN_<OP>` in `expect:` (the post-*acquire* state), call `resumeWorkflow(uow)` in `when:`, assert `noExceptionThrown()` in `then:` (the traversal completes back to `NOT_IN_SAGA`).
   - Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix — Cross-Functionality Test** in `docs/concepts/testing.md`.
   - **Coverage is audited mechanically.** List every `setSemanticLock` step (one row per call site) in the session retro's **Semantic-Lock Coverage Audit** table — see `.claude/skills/implement-aggregate/SKILL.md` Step 7.b. Unresolved `Present? = No` rows block the Step 8 commit.

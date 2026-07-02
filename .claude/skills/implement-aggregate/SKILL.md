@@ -8,13 +8,23 @@ argument-hint: "[session] (e.g. 2.3.b — optional, auto-detects if omitted)"
 
 This skill drives one Phase 2 session at a time, advancing the plan.md job queue by one checkbox per invocation. It reads plan.md, identifies the next unchecked session, loads only the instructions relevant to that session type, and produces the files listed in plan.md for that session.
 
-Test taxonomy produced by this skill (see `docs/concepts/testing.md` for the authoritative definitions):
+Test taxonomy produced by this skill (see `docs/concepts/testing.md` for the authoritative 4-tier definitions):
 
 | Session | Test type | File |
 |---------|-----------|------|
-| `a` | T1 Intra-Invariant | `{Aggregate}IntraInvariantTest.groovy` — creation happy-path + one violation per non-`final` P1 rule + BVA straddles; all via direct `verifyInvariants()` |
-| `b` | T2 Functionality | `{Op}Test.groovy` — happy-path postconditions, P3 guard violations, not-found, step-interleaving. No P1 predicate tests. |
-| `d` | T3 Inter-Invariant | `{Aggregate}InterInvariantTest.groovy` — event received → cached state updated; unrelated event → state unchanged |
+| `a` | T1 Aggregate | `{Aggregate}IntraInvariantTest.groovy` — creation happy-path + one violation per non-`final` P1 rule + BVA straddles; all via direct `verifyInvariants()` |
+| `b` | T2 Service (write methods) | `{Aggregate}ServiceTest.groovy` — one class per aggregate; per write service method: persisted-and-readable via a fresh UnitOfWork, uniqueness/composite-key guards, P3 numeric-guard boundaries. Direct `*Service` bean calls — no saga workflow. |
+| `b` | T3 Event Publication | `{Aggregate}EventPublicationTest.groovy` — only if the aggregate publishes events; per event type: payload-field assertions against the event store + one negative no-publish case |
+| `b` | T4 Functionality (writes) | `{Op}Test.groovy` — orchestration outcomes only (operation completes, DTO coherent, `sagaStateOf == NOT_IN_SAGA`), lock-acquisition per `setSemanticLock` step, saga-path guard violations. No persistence/uniqueness/not-found assertions (T2 owns those); no P1 predicate tests. |
+| `c` | T2 Service (read methods) | read-method cases (happy read-back + not-found Path A/B) **appended** to `{Aggregate}ServiceTest.groovy` |
+| `c` | T4 Functionality (reads) | `{Query}Test.groovy` — happy read only |
+| `d` | T4 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` — event received → cached state updated; unrelated event → state unchanged; deletion events |
+
+> **Recorded decision — why T2/T3 live in sessions `b`/`c`, not `a`:** the migration plan's default
+> assigns T1+T2+T3 to session `a`, but session `a` produces only the domain layer; the `*Service`
+> classes that T2/T3 tests invoke do not exist until session `b` (read methods until `c`). Per the
+> plan's allowance, T2/T3 authoring is therefore assigned to session `b`, with read-method T2 cases
+> appended in session `c`.
 
 ---
 

@@ -107,7 +107,7 @@ Read sections relevant to this aggregate type:
 - `docs/concepts/service.md` — method patterns, copy-on-write, delete exception, P3 guard placement
 - `docs/concepts/commands.md` — command structure, ServiceMapping, CommandHandler, `getAggregateTypeName()`
 - `docs/concepts/sagas.md` — SagaWorkflow, SagaStep, lock-acquisition, SagaCommand wrapping
-- `docs/concepts/testing.md` — T1/T2/T3 structures, test locations, not-found assertions
+- `docs/concepts/testing.md` — T1–T4 structures, test locations, not-found assertions
 - `docs/concepts/events.md` — only if this aggregate has subscribed events (session 2.N.d)
 
 ---
@@ -205,8 +205,8 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 - No business logic
 
 ### Test files (structural check only — content reviewed in Step 7)
-- `{Aggregate}Test.groovy`: in `{tgt-test}sagas/{aggregate}/`; `@DataJpaTest`, `@Transactional`, `@Import(LocalBeanConfiguration)`; inner `LocalBeanConfiguration extends BeanConfigurationSagas`
-- Coordination tests: in `{tgt-test}sagas/coordination/{aggregate}/`; same annotations
+- `{Aggregate}IntraInvariantTest.groovy`, `{Aggregate}ServiceTest.groovy`, `{Aggregate}EventPublicationTest.groovy` (publishers only), `{Aggregate}InterInvariantTest.groovy` (subscribers only): in `{tgt-test}sagas/{aggregate}/`; `@DataJpaTest`, `@Transactional`, `@Import(LocalBeanConfiguration)`; inner `LocalBeanConfiguration extends BeanConfigurationSagas`
+- Coordination (T4 functionality) tests: in `{tgt-test}sagas/coordination/{aggregate}/`; same annotations
 
 ---
 
@@ -214,7 +214,7 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 
 Source the expected operations from plan.md (write + read functionalities for this aggregate).
 
-| Operation | In Service | Saga Class Exists | CommandHandler Case | Functionalities Method | T2 Test Exists | Notes |
+| Operation | In Service | Saga Class Exists | CommandHandler Case | Functionalities Method | T4 Test Exists | Notes |
 |-----------|-----------|------------------|--------------------|-----------------------|---------------|-------|
 
 For each expected operation, check all five columns. Flag any operation failing any check as a finding.
@@ -245,31 +245,50 @@ For each test class found in the target:
 | Test Type | Class | Scenarios Present | Missing Scenarios | Notes |
 |-----------|-------|------------------|-------------------|-------|
 
-Expected scenarios per type (from `docs/concepts/testing.md`):
+Expected scenarios per tier (from `docs/concepts/testing.md`):
 
-**T1 (`{Aggregate}Test.groovy`):**
-- One "create with valid data" case
-
-Violations are **not** expected in T1 — they belong in T2. Do not flag missing violation cases in T1 as a deficiency.
+**T1 (`{Aggregate}IntraInvariantTest.groovy`):**
+- One "create with valid data" case, asserting every field
+- One violation case per non-`final` P1 rule enforced in `verifyInvariants()`
+- Boundary-straddle pair (on-point/off-point) for every P1 rule with an ordered-domain predicate
 
 **P1 Java-`final` fields require no test coverage at any tier.** The Java compiler enforces the constraint; there is no write path to violate it. Do not flag missing tests for final-field rules.
 
-**T2 — write operations:**
-- Happy path ("success")
-- One case per P1 intra-invariant violation (conditions enforced in `verifyInvariants()`)
-- One case per P3 guard violation
+**T2 (`{Aggregate}ServiceTest.groovy` — one class per aggregate, all service methods):**
+- Per write service method: happy path, persisted and read back through a **second, fresh**
+  UnitOfWork (same-UoW read-back is Fake)
+- One case per uniqueness / composite-key guard violation (P3)
+- On-point / off-point pairs for P3 numeric-guard boundaries
+- Per read service method: happy read-back, plus a not-found case per lookup path — Path A
+  (`aggregateLoadAndRegisterRead` by ID) → `thrown(SimulatorException)`; Path B (custom repository
+  returning `Optional`) → `thrown({AppClass}Exception)` + message. **Read the service method first**
+  to determine which path applies before flagging either as missing or wrong.
+
+**T3 (`{Aggregate}EventPublicationTest.groovy`):** only expected if the aggregate publishes events
+(plan.md's Events published list). For each published event type:
+- Event exists in the store with correct type, `publisherAggregateId`, and every payload field
+  (type/count alone is Weak)
+- One negative case: an operation that must not publish leaves the store unchanged
+
+**T4 — write functionality tests (`{Operation}{Aggregate}Test.groovy`):**
+- Happy path — orchestration outcome only: operation completes, DTO coherent,
+  `sagaStateOf(<id>) == NOT_IN_SAGA`. Field-level persistence/uniqueness/not-found assertions here
+  are **Wrong (misplaced)** — they belong in T2.
 - One semantic-lock-acquisition case per saga step that calls `setSemanticLock` (create ops with no lock step need no lock-acquisition case)
-- Skip P1 tests for Java `final` fields — no write path can violate them (see above)
+- Saga-path P3/P4a guard violations that involve cross-aggregate coordination
+- No P1 violation cases — those belong in T1
 
-**T2 — read operations:**
-- Happy path
-- Not-found case: must use `thrown(SimulatorException)`, NOT `thrown({AppClass}Exception)` (not-found is infrastructure, not domain)
+**T4 — read functionality tests:**
+- Happy path only. Not-found cases belong in T2, not here.
 
-**T3 (`{Aggregate}InterInvariantTest.groovy`):** only expected if aggregate has P2 subscribed events (session 2.N.d). For each subscribed event:
+**T4 subscription (`{Aggregate}InterInvariantTest.groovy`):** only expected if aggregate has P2 subscribed events (session 2.N.d). For each subscribed event:
 - "consumer reflects event" (cached field updated)
 - "consumer ignores event for unrelated entity" (cached field unchanged)
+- Must not re-assert event-store contents — that belongs to T3
 
-Flag any test using `thrown({AppClass}Exception)` for a not-found assertion — this is incorrect per `docs/concepts/testing.md`.
+Flag any T2 not-found test using the wrong path's exception type per `docs/concepts/testing.md`
+§ T2 — Not-Found Paths (read the service method first — flagging a correct Path B test as wrong is
+itself a review error).
 
 ---
 
@@ -343,7 +362,7 @@ lines, status.)
 
 ## Functionality Coverage
 
-| Operation | In Service | Saga Class | CommandHandler Case | Functionalities Method | T2 Test | Notes |
+| Operation | In Service | Saga Class | CommandHandler Case | Functionalities Method | T4 Test | Notes |
 |-----------|-----------|-----------|--------------------|-----------------------|---------|-------|
 
 ---

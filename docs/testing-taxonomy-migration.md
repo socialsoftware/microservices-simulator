@@ -73,7 +73,7 @@ Guidance:
 
 ## Phase 2 — Propagate to other docs and skills (1 session)
 
-- [ ] **2.1** Update every file that references the old tier numbering/names. Known list (verify with
+- [x] **2.1** Update every file that references the old tier numbering/names. Known list (verify with
   `grep -rln "T1\|T2\|T3" docs/ .claude/skills/ applications/quizzes-full/plan.md`, excluding
   `docs/reviews/` which is historical and must not be edited):
   - `docs/workflow.md` — session structure references to test tiers
@@ -90,7 +90,7 @@ Guidance:
   - `.claude/skills/review-aggregate/SKILL.md`, `.claude/skills/review-artifacts/SKILL.md`,
     `.claude/skills/classify-and-plan/SKILL.md` — tier vocabulary
   - `applications/quizzes-full/plan.md` — tier vocabulary in job-queue/session descriptions
-- [ ] **2.2** Consistency pass: after editing, grep for orphaned references
+- [x] **2.2** Consistency pass: after editing, grep for orphaned references
   (`Inter-Invariant.*T3`, `T2 Functionality`, `Service-Command`) and fix stragglers.
 - Do **not** touch test code in this session. `docs/concepts/testing.md` (Phase 1 output) is the
   authority; where a skill contradicts it, the skill changes.
@@ -160,4 +160,10 @@ unconditionally throws `COURSE_FIELDS_IMMUTABLE` — its T2 test asserts exactly
 
 ## Discovered issues (append during sessions)
 
-- _none yet_
+- Phase 2: `.claude/skills/classify-and-plan/SKILL.md` was missing from the known file list —
+  its Step 7 plan.md file-list templates (2.N.a/b/c) mirror `docs/workflow.md`'s and needed the
+  same T1 rename + T2/T3 additions. Fixed as part of 2.1.
+- Phase 2: the migration plan's default session mapping ("session a writes T1+T2+T3") is
+  infeasible — `*Service` classes don't exist until session `b`/`c`. Used the plan's explicit
+  escape hatch: T2/T3 assigned to session `b` (write cases) with read-method T2 cases appended in
+  session `c`. Recorded in `.claude/skills/implement-aggregate/SKILL.md`.
