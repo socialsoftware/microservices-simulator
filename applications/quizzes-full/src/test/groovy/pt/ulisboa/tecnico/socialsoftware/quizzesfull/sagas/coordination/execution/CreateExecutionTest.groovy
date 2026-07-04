@@ -9,8 +9,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.CreateExecutionFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 
@@ -25,9 +23,6 @@ class CreateExecutionTest extends QuizzesFullSpockTest {
     @Autowired
     CommandGateway commandGateway
 
-    public static final String ACRONYM_2 = "DS01"
-    public static final String ACADEMIC_TERM_2 = "2nd Semester 2024/2025"
-
     def courseDto
 
     def setup() {
@@ -35,45 +30,13 @@ class CreateExecutionTest extends QuizzesFullSpockTest {
     }
 
     def "createExecution: success"() {
-        // Spec: Execution.{acronym,academicTerm,courseId} = input;
-        //       SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.4 Execution / createExecution.
+        // Spec: plan.md §4 Execution — CreateExecution; orchestration outcome only, persistence in ExecutionServiceTest.
         when:
         def result = createExecution(courseDto.aggregateId, ACRONYM_1, ACADEMIC_TERM_1)
 
         then:
         result.aggregateId != null
         result.acronym == ACRONYM_1
-        result.academicTerm == ACADEMIC_TERM_1
-        result.courseId == courseDto.aggregateId
-        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
-    }
-
-    def "createExecution: NO_DUPLICATE_COURSE_EXECUTION violation"() {
-        given:
-        createExecution(courseDto.aggregateId, ACRONYM_1, ACADEMIC_TERM_1)
-
-        when:
-        createExecution(courseDto.aggregateId, ACRONYM_1, ACADEMIC_TERM_1)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.errorMessage == QuizzesFullErrorMessage.NO_DUPLICATE_COURSE_EXECUTION
-    }
-
-    def "createExecution: different acronym same academic term is allowed"() {
-        given:
-        createExecution(courseDto.aggregateId, ACRONYM_1, ACADEMIC_TERM_1)
-
-        // Spec: Execution.{acronym,academicTerm,courseId} = input;
-        //       SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.4 Execution / createExecution.
-        when:
-        def result = createExecution(courseDto.aggregateId, ACRONYM_2, ACADEMIC_TERM_1)
-
-        then:
-        result.aggregateId != null
-        result.acronym == ACRONYM_2
         sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 

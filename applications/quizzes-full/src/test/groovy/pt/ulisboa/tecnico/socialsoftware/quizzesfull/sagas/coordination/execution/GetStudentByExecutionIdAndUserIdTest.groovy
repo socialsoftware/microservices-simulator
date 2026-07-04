@@ -4,11 +4,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto
 
@@ -41,22 +38,5 @@ class GetStudentByExecutionIdAndUserIdTest extends QuizzesFullSpockTest {
         result.userAggregateId == userDto.aggregateId
         result.userName == USER_NAME_1
         result.userUsername == USER_USERNAME_1
-    }
-
-    def "getStudentByExecutionIdAndUserId: execution not found"() {
-        when:
-        executionFunctionalities.getStudentByExecutionIdAndUserId(999999, userDto.aggregateId)
-
-        then:
-        thrown(SimulatorException)
-    }
-
-    def "getStudentByExecutionIdAndUserId: student not enrolled throws"() {
-        when:
-        executionFunctionalities.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.errorMessage == QuizzesFullErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND
     }
 }

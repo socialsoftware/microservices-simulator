@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
@@ -36,14 +37,13 @@ class EnrollStudentInExecutionTest extends QuizzesFullSpockTest {
     }
 
     def "enrollStudentInExecution: success"() {
+        // Spec: plan.md §4 Execution — EnrollStudentInExecution; orchestration outcome only, persistence in ExecutionServiceTest.
         when:
         executionFunctionalities.enrollStudentInExecution(executionDto.aggregateId, userDto.aggregateId)
 
         then:
-        def student = executionFunctionalities.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId)
-        student.userAggregateId == userDto.aggregateId
-        student.userName == USER_NAME_1
-        student.userUsername == USER_USERNAME_1
+        noExceptionThrown()
+        sagaStateOf(executionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "enrollStudentInExecution: deleted user causes data-assembly failure"() {

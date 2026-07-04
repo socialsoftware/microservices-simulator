@@ -6,9 +6,9 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.DisenrollStudentFunctionalitySagas
 
@@ -35,17 +35,13 @@ class DisenrollStudentTest extends QuizzesFullSpockTest {
     }
 
     def "disenrollStudent: success"() {
+        // Spec: plan.md §4 Execution — DisenrollStudent; orchestration outcome only, persistence in ExecutionServiceTest.
         when:
         executionFunctionalities.disenrollStudent(executionDto.aggregateId, userDto.aggregateId)
 
         then:
         noExceptionThrown()
-
-        when: 'student is no longer enrolled'
-        executionFunctionalities.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId)
-
-        then:
-        thrown(QuizzesFullException)
+        sagaStateOf(executionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "disenrollStudent: getExecutionStep acquires IN_DISENROLL_STUDENT semantic lock"() {

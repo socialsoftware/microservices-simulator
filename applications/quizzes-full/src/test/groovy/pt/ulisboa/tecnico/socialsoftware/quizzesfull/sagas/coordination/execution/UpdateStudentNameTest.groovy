@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
@@ -36,19 +37,14 @@ class UpdateStudentNameTest extends QuizzesFullSpockTest {
     }
 
     def "updateStudentName: success"() {
+        // Spec: plan.md §4 Execution — UpdateStudentName; orchestration outcome only, persistence in
+        //       ExecutionServiceTest (cached name) and UserServiceTest (User.name).
         when:
         executionFunctionalities.updateStudentName(executionDto.aggregateId, userDto.aggregateId, NEW_NAME)
 
         then:
         noExceptionThrown()
-
-        and: 'user name is updated in User aggregate'
-        def updatedUser = userFunctionalities.getUserById(userDto.aggregateId)
-        updatedUser.name == NEW_NAME
-
-        and: 'cached student name in execution is updated'
-        def student = executionFunctionalities.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId)
-        student.userName == NEW_NAME
+        sagaStateOf(executionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "updateStudentName: getExecutionStep acquires IN_UPDATE_STUDENT_NAME semantic lock"() {

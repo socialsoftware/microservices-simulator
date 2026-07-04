@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
@@ -34,21 +35,14 @@ class AnonymizeStudentTest extends QuizzesFullSpockTest {
     }
 
     def "anonymizeStudent: success"() {
+        // Spec: plan.md §4 Execution — AnonymizeStudent; orchestration outcome only, persistence in
+        //       ExecutionServiceTest (cached fields) and UserServiceTest (User.name/username).
         when:
         executionFunctionalities.anonymizeStudent(executionDto.aggregateId, userDto.aggregateId)
 
         then:
         noExceptionThrown()
-
-        and: 'user is anonymized in User aggregate'
-        def updatedUser = userFunctionalities.getUserById(userDto.aggregateId)
-        updatedUser.name == "ANONYMOUS"
-        updatedUser.username == "ANONYMOUS"
-
-        and: 'cached student data in execution is anonymized'
-        def student = executionFunctionalities.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId)
-        student.userName == "ANONYMOUS"
-        student.userUsername == "ANONYMOUS"
+        sagaStateOf(executionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "anonymizeStudent: getExecutionStep acquires IN_ANONYMIZE_STUDENT semantic lock"() {

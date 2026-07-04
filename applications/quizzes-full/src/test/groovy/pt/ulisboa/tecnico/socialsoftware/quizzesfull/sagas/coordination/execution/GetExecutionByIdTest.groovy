@@ -4,7 +4,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionDto
@@ -34,13 +33,5 @@ class GetExecutionByIdTest extends QuizzesFullSpockTest {
         result.acronym == "ES001"
         result.academicTerm == "1 Semester"
         result.courseId == executionDto.courseId
-    }
-
-    def "getExecutionById: execution not found"() {
-        when:
-        executionFunctionalities.getExecutionById(999999)
-
-        then:
-        thrown(SimulatorException)
     }
 }

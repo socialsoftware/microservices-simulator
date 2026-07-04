@@ -106,7 +106,7 @@ Topological order (same as plan.md). Per-session scope:
 | - [x] 3.1 | Course | `CourseServiceTest` | — (publishes none) | `CreateCourseTest`, `UpdateCourseTest`, `DeleteCourseTest`, `GetCourseByIdTest` |
 | - [x] 3.2 | User | `UserServiceTest` | `UserEventPublicationTest` — `DeleteUserEvent`, `UpdateStudentNameEvent`, `AnonymizeStudentEvent` | `CreateUserTest`, `DeleteUserTest`, `UpdateUserNameTest`, `UpdateStudentNameTest`, `AnonymizeUserTest`, `AnonymizeStudentTest`, `GetUserByIdTest`, `GetStudentByExecutionIdAndUserIdTest` |
 | - [x] 3.3 | Topic | `TopicServiceTest` | `TopicEventPublicationTest` — `UpdateTopicEvent`, `DeleteTopicEvent` | `CreateTopicTest`, `UpdateTopicTest`, `DeleteTopicTest`, `GetTopicByIdTest`, `GetTopicsByCourseIdTest` |
-| - [ ] 3.4 | Execution | `ExecutionServiceTest` | `ExecutionEventPublicationTest` — `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent` | `CreateExecutionTest`, `UpdateExecutionTest`, `DeleteExecutionTest`, `EnrollStudentInExecutionTest`, `DisenrollStudentTest`, `GetExecutionByIdTest`; keep `ExecutionInterInvariantTest` (relabel comments to T4) |
+| - [x] 3.4 | Execution | `ExecutionServiceTest` | `ExecutionEventPublicationTest` — `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent` | `CreateExecutionTest`, `UpdateExecutionTest`, `DeleteExecutionTest`, `EnrollStudentInExecutionTest`, `DisenrollStudentTest`, `GetExecutionByIdTest`; keep `ExecutionInterInvariantTest` (relabel comments to T4) |
 | - [ ] 3.5 | Question | `QuestionServiceTest` | `QuestionEventPublicationTest` — `UpdateQuestionEvent`, `DeleteQuestionEvent` | `CreateQuestionTest`, `UpdateQuestionTest`, `DeleteQuestionTest`, `GetQuestionByIdTest`, `GetQuestionsByCourseExecutionIdTest`; keep `QuestionInterInvariantTest` |
 | - [ ] 3.6 | Quiz | `QuizServiceTest` | `QuizEventPublicationTest` — `InvalidateQuizEvent` | `CreateQuizTest`, `UpdateQuizTest`, `ConcludeQuizTest`, `SolveQuizTest`, `GetQuizByIdTest`; keep `QuizInterInvariantTest` |
 | - [ ] 3.7 | QuizAnswer | `QuizAnswerServiceTest` | `QuizAnswerEventPublicationTest` — `QuizAnswerQuestionAnswerEvent` | `CreateQuizAnswerTest`, `AnswerQuestionTest`, `GetQuizAnswerByQuizIdAndStudentIdTest`; keep `QuizAnswerInterInvariantTest` |
@@ -184,3 +184,18 @@ unconditionally throws `COURSE_FIELDS_IMMUTABLE` — its T2 test asserts exactly
   in `Topic.verifyInvariants()`, removed the coordination-layer check, deleted
   `UpdateTopicTest`'s `"updateTopic: null name throws exception"` T4 test, and added the P1
   violation case to `TopicIntraInvariantTest`.
+- Session 3.4: this row's T4 trim scope list was incomplete — also trimmed
+  `GetStudentByExecutionIdAndUserIdTest` (per the 3.2 note above: both not-found cases relocated
+  into `ExecutionServiceTest`, happy read left as-is) and `UpdateStudentNameTest`/
+  `AnonymizeStudentTest` (not listed in the row at all, but both asserted persisted-field values —
+  `User.name`/`username` via `UserFunctionalities.getUserById` and Execution's cached student
+  fields via `getStudentByExecutionIdAndUserId` — that duplicate `UserServiceTest` and the new
+  `ExecutionServiceTest`; trimmed to `noExceptionThrown()` + `sagaStateOf == NOT_IN_SAGA`,
+  matching `UpdateUserNameTest`'s pattern from 3.2).
+- Session 3.4: `EnrollStudentInExecutionTest`'s `"deleted user causes data-assembly failure"` test
+  was left untouched — it exercises the saga's `getUserStep` data-assembly failure on a deleted
+  user, not the `INACTIVE_USER` P3 guard itself (unreachable through normal saga operations per
+  its own comment), so it isn't owned by T2 or T3 and stays as legitimate T4 coverage.
+  `ExecutionServiceTest`'s `INACTIVE_USER` violation case instead constructs an inactive `UserDto`
+  directly and calls `ExecutionService.enrollStudentInExecution` — bypassing the saga's
+  data-assembly step is exactly what T2 is for.

@@ -5,7 +5,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
@@ -32,17 +31,12 @@ class DeleteExecutionTest extends QuizzesFullSpockTest {
     }
 
     def "deleteExecution: success"() {
+        // Spec: plan.md §4 Execution — DeleteExecution; orchestration outcome only, persistence in ExecutionServiceTest.
         when:
         executionFunctionalities.deleteExecution(executionDto.aggregateId)
 
         then:
         noExceptionThrown()
-
-        when: 'deleted execution is no longer accessible via normal load'
-        executionFunctionalities.getExecutionById(executionDto.aggregateId)
-
-        then:
-        thrown(SimulatorException)
     }
 
     def "deleteExecution: getExecutionStep acquires IN_DELETE_EXECUTION semantic lock"() {

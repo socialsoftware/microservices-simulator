@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState
@@ -34,13 +35,13 @@ class UpdateExecutionTest extends QuizzesFullSpockTest {
     }
 
     def "updateExecution: success"() {
+        // Spec: plan.md §4 Execution — UpdateExecution; orchestration outcome only, persistence in ExecutionServiceTest.
         when:
         executionFunctionalities.updateExecution(executionDto.aggregateId, ACRONYM_2, ACADEMIC_TERM_2)
 
         then:
-        def result = executionFunctionalities.getExecutionById(executionDto.aggregateId)
-        result.acronym == ACRONYM_2
-        result.academicTerm == ACADEMIC_TERM_2
+        noExceptionThrown()
+        sagaStateOf(executionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "updateExecution: getExecutionStep acquires IN_UPDATE_EXECUTION semantic lock"() {
@@ -58,10 +59,5 @@ class UpdateExecutionTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
-
-        and: 'execution was updated'
-        def result = executionFunctionalities.getExecutionById(executionDto.aggregateId)
-        result.acronym == ACRONYM_2
-        result.academicTerm == ACADEMIC_TERM_2
     }
 }
