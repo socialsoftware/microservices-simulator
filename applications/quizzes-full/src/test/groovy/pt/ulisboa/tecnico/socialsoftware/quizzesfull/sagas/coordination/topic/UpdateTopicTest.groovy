@@ -7,8 +7,6 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
 
 @DataJpaTest
@@ -43,20 +41,6 @@ class UpdateTopicTest extends QuizzesFullSpockTest {
         then:
         noExceptionThrown()
         sagaStateOf(topicDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
-    }
-
-    def "updateTopic: null name throws exception"() {
-        given:
-        TopicDto update = new TopicDto()
-        update.aggregateId = topicDto.aggregateId
-        update.name = null
-
-        when:
-        topicFunctionalities.updateTopic(update)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == QuizzesFullErrorMessage.TOPIC_MISSING_NAME
     }
 
 }

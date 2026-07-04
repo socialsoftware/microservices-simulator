@@ -6,13 +6,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /*
     INTRA-INVARIANTS:
-        (none)
+        TOPIC_MISSING_NAME: name must not be null
     INTER-INVARIANTS:
         COURSE-EXISTS (course doesn't send events; no subscription needed)
  */
@@ -41,7 +43,15 @@ public abstract class Topic extends Aggregate {
     }
 
     @Override
-    public void verifyInvariants() {}
+    public void verifyInvariants() {
+        if (!invariantNameNotNull()) {
+            throw new QuizzesFullException(QuizzesFullErrorMessage.TOPIC_MISSING_NAME);
+        }
+    }
+
+    private boolean invariantNameNotNull() {
+        return this.name != null;
+    }
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {

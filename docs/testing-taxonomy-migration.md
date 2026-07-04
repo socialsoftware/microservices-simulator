@@ -177,13 +177,10 @@ unconditionally throws `COURSE_FIELDS_IMMUTABLE` — its T2 test asserts exactly
   implemented in `ExecutionService`, not `UserService`. Left untouched in 3.2 — session 3.4
   (Execution) should trim its not-found cases into `ExecutionServiceTest` instead; its row's T4
   trim scope list is missing this file.
-- Session 3.3: `TOPIC_MISSING_NAME` (`UpdateTopicTest`'s `"updateTopic: null name throws
-  exception"`) is thrown only in `TopicFunctionalities.updateTopic()` (coordination layer),
-  checked before the saga/`UnitOfWork` even exists — never in `TopicService`. Calling
-  `topicService.updateTopic(...)` directly with a null name does not throw, so this guard is
-  structurally unreachable from a T2 test. It is also not documented anywhere in plan.md's rule
-  classification tables (§3.1/§3.2) — an implementation-only check with no spec backing. Left in
-  T4 unchanged (it's the only tier that can exercise it); unlike other aggregates' P3 guards this
-  one could not be relocated. A future session could consider promoting it into `TopicService`
-  or a `Topic` P1 invariant so it naturally lands in T2/T1, at which point this T4 test should be
-  deleted and replaced.
+- Session 3.3 (fixed in a follow-up session): `TOPIC_MISSING_NAME` was originally checked in
+  `TopicFunctionalities.updateTopic()` (coordination layer) instead of a `Topic` P1 invariant, and
+  was undocumented in plan.md's rule classification tables. Reclassified as P1 per
+  `rule-enforcement-patterns.md` Step 1 (single-entity rule): added to plan.md §3.1, implemented
+  in `Topic.verifyInvariants()`, removed the coordination-layer check, deleted
+  `UpdateTopicTest`'s `"updateTopic: null name throws exception"` T4 test, and added the P1
+  violation case to `TopicIntraInvariantTest`.

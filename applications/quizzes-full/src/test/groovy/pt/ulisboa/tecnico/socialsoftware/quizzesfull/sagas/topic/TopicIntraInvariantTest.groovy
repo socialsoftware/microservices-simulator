@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicCourse
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.sagas.SagaTopic
 
@@ -32,5 +34,23 @@ class TopicIntraInvariantTest extends QuizzesFullSpockTest {
         topic.name == "Topic Name"
         topic.topicCourse.courseAggregateId == 100
         topic.topicCourse.courseVersion == 1L
+    }
+
+    def "topic: TOPIC_MISSING_NAME violation"() {
+        // Spec: plan.md §3.1 Topic — TOPIC_MISSING_NAME
+        given:
+        def courseDto = new CourseDto()
+        courseDto.setAggregateId(100)
+        courseDto.setVersion(1L)
+        def topicCourse = new TopicCourse(courseDto)
+        def topic = new SagaTopic(1, "Topic Name", topicCourse)
+        topic.setName(null)
+
+        when:
+        topic.verifyInvariants()
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.message == QuizzesFullErrorMessage.TOPIC_MISSING_NAME
     }
 }
