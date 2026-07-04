@@ -27,15 +27,13 @@ class CreateTopicTest extends QuizzesFullSpockTest {
     }
 
     def "createTopic: success"() {
-        // Spec: Topic.{name,courseId} = input; SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.3 Topic / createTopic.
+        // Spec: plan.md §3 Topic — CreateTopic; orchestration outcome only, persistence in TopicServiceTest.
         when:
         TopicDto result = createTopic(courseDto.aggregateId, TOPIC_NAME_1)
 
         then:
         result.aggregateId != null
         result.name == TOPIC_NAME_1
-        result.courseId == courseDto.aggregateId
         sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
@@ -43,15 +41,13 @@ class CreateTopicTest extends QuizzesFullSpockTest {
         given:
         createTopic(courseDto.aggregateId, TOPIC_NAME_1)
 
-        // Spec: Topic.{name,courseId} = input; SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.3 Topic / createTopic.
+        // Spec: plan.md §3 Topic — CreateTopic; orchestration outcome only, persistence in TopicServiceTest.
         when:
         TopicDto result = createTopic(courseDto.aggregateId, TOPIC_NAME_2)
 
         then:
         result.aggregateId != null
         result.name == TOPIC_NAME_2
-        result.courseId == courseDto.aggregateId
         sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 

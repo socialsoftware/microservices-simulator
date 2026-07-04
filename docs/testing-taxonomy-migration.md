@@ -105,7 +105,7 @@ Topological order (same as plan.md). Per-session scope:
 |---------|-----------|--------------|--------------------------------|---------------|
 | - [x] 3.1 | Course | `CourseServiceTest` | — (publishes none) | `CreateCourseTest`, `UpdateCourseTest`, `DeleteCourseTest`, `GetCourseByIdTest` |
 | - [x] 3.2 | User | `UserServiceTest` | `UserEventPublicationTest` — `DeleteUserEvent`, `UpdateStudentNameEvent`, `AnonymizeStudentEvent` | `CreateUserTest`, `DeleteUserTest`, `UpdateUserNameTest`, `UpdateStudentNameTest`, `AnonymizeUserTest`, `AnonymizeStudentTest`, `GetUserByIdTest`, `GetStudentByExecutionIdAndUserIdTest` |
-| - [ ] 3.3 | Topic | `TopicServiceTest` | `TopicEventPublicationTest` — `UpdateTopicEvent`, `DeleteTopicEvent` | `CreateTopicTest`, `UpdateTopicTest`, `DeleteTopicTest`, `GetTopicByIdTest`, `GetTopicsByCourseIdTest` |
+| - [x] 3.3 | Topic | `TopicServiceTest` | `TopicEventPublicationTest` — `UpdateTopicEvent`, `DeleteTopicEvent` | `CreateTopicTest`, `UpdateTopicTest`, `DeleteTopicTest`, `GetTopicByIdTest`, `GetTopicsByCourseIdTest` |
 | - [ ] 3.4 | Execution | `ExecutionServiceTest` | `ExecutionEventPublicationTest` — `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent` | `CreateExecutionTest`, `UpdateExecutionTest`, `DeleteExecutionTest`, `EnrollStudentInExecutionTest`, `DisenrollStudentTest`, `GetExecutionByIdTest`; keep `ExecutionInterInvariantTest` (relabel comments to T4) |
 | - [ ] 3.5 | Question | `QuestionServiceTest` | `QuestionEventPublicationTest` — `UpdateQuestionEvent`, `DeleteQuestionEvent` | `CreateQuestionTest`, `UpdateQuestionTest`, `DeleteQuestionTest`, `GetQuestionByIdTest`, `GetQuestionsByCourseExecutionIdTest`; keep `QuestionInterInvariantTest` |
 | - [ ] 3.6 | Quiz | `QuizServiceTest` | `QuizEventPublicationTest` — `InvalidateQuizEvent` | `CreateQuizTest`, `UpdateQuizTest`, `ConcludeQuizTest`, `SolveQuizTest`, `GetQuizByIdTest`; keep `QuizInterInvariantTest` |
@@ -177,3 +177,13 @@ unconditionally throws `COURSE_FIELDS_IMMUTABLE` — its T2 test asserts exactly
   implemented in `ExecutionService`, not `UserService`. Left untouched in 3.2 — session 3.4
   (Execution) should trim its not-found cases into `ExecutionServiceTest` instead; its row's T4
   trim scope list is missing this file.
+- Session 3.3: `TOPIC_MISSING_NAME` (`UpdateTopicTest`'s `"updateTopic: null name throws
+  exception"`) is thrown only in `TopicFunctionalities.updateTopic()` (coordination layer),
+  checked before the saga/`UnitOfWork` even exists — never in `TopicService`. Calling
+  `topicService.updateTopic(...)` directly with a null name does not throw, so this guard is
+  structurally unreachable from a T2 test. It is also not documented anywhere in plan.md's rule
+  classification tables (§3.1/§3.2) — an implementation-only check with no spec backing. Left in
+  T4 unchanged (it's the only tier that can exercise it); unlike other aggregates' P3 guards this
+  one could not be relocated. A future session could consider promoting it into `TopicService`
+  or a `Topic` P1 invariant so it naturally lands in T2/T1, at which point this T4 test should be
+  deleted and replaced.

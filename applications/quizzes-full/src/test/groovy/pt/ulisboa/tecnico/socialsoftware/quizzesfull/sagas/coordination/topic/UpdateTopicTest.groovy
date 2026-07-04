@@ -4,11 +4,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.Topic
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
 
 @DataJpaTest
@@ -30,7 +30,8 @@ class UpdateTopicTest extends QuizzesFullSpockTest {
         topicDto = createTopic(courseDto.aggregateId, TOPIC_NAME_ORIGINAL)
     }
 
-    def "updateTopic: success — name is persisted"() {
+    def "updateTopic: success"() {
+        // Spec: plan.md §3 Topic — UpdateTopic; orchestration outcome only, persistence in TopicServiceTest.
         given:
         TopicDto update = new TopicDto()
         update.aggregateId = topicDto.aggregateId
@@ -40,9 +41,8 @@ class UpdateTopicTest extends QuizzesFullSpockTest {
         topicFunctionalities.updateTopic(update)
 
         then:
-        def uow = unitOfWorkService.createUnitOfWork("verify")
-        Topic fetched = (Topic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto.aggregateId, uow)
-        fetched.name == TOPIC_NAME_UPDATED
+        noExceptionThrown()
+        sagaStateOf(topicDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "updateTopic: null name throws exception"() {
