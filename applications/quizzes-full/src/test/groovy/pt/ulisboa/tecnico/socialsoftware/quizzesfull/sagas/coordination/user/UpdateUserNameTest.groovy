@@ -31,14 +31,12 @@ class UpdateUserNameTest extends QuizzesFullSpockTest {
     }
 
     def "updateUserName: success"() {
-        // Spec: User.name = newName; SagaState after commit == NOT_IN_SAGA.
-        // Source: UserService.updateUserName — only field this functionality mutates is name.
+        // Spec: plan.md §2 User — UpdateUserName; orchestration outcome only, persistence in UserServiceTest.
         when:
         userFunctionalities.updateUserName(userDto.aggregateId, USER_NAME_2)
 
         then:
-        def result = userFunctionalities.getUserById(userDto.aggregateId)
-        result.name == USER_NAME_2
+        noExceptionThrown()
         sagaStateOf(userDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
@@ -57,8 +55,5 @@ class UpdateUserNameTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
-
-        and: 'name was updated'
-        userFunctionalities.getUserById(userDto.aggregateId).name == USER_NAME_2
     }
 }

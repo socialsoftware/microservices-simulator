@@ -4,8 +4,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto
@@ -33,14 +31,5 @@ class GetUserByIdTest extends QuizzesFullSpockTest {
         result.name == USER_NAME_1
         result.username == USER_USERNAME_1
         result.role == STUDENT_ROLE
-    }
-
-    def "getUserById: user not found"() {
-        when:
-        userFunctionalities.getUserById(NONEXISTENT_AGGREGATE_ID)
-
-        then:
-        def ex = thrown(SimulatorException)
-        ex.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
     }
 }

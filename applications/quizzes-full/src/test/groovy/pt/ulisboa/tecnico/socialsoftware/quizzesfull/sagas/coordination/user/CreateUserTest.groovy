@@ -18,18 +18,13 @@ class CreateUserTest extends QuizzesFullSpockTest {
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 
     def "createUser: success"() {
-        // Spec: User.{name,username,role} = input; active=true (service override);
-        //       SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.2 User / createUser.
+        // Spec: plan.md §2 User — CreateUser; orchestration outcome only, persistence in UserServiceTest.
         when:
         def result = userFunctionalities.createUser(new UserDto(null, USER_NAME_1, USER_USERNAME_1, STUDENT_ROLE, false))
 
         then:
         result.aggregateId != null
         result.name == USER_NAME_1
-        result.username == USER_USERNAME_1
-        result.role == STUDENT_ROLE
-        result.active == true
         sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 }

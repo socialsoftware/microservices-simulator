@@ -104,7 +104,7 @@ Topological order (same as plan.md). Per-session scope:
 | Session | Aggregate | New T2 class | New T3 class (events published) | T4 trim scope |
 |---------|-----------|--------------|--------------------------------|---------------|
 | - [x] 3.1 | Course | `CourseServiceTest` | — (publishes none) | `CreateCourseTest`, `UpdateCourseTest`, `DeleteCourseTest`, `GetCourseByIdTest` |
-| - [ ] 3.2 | User | `UserServiceTest` | `UserEventPublicationTest` — `DeleteUserEvent`, `UpdateStudentNameEvent`, `AnonymizeStudentEvent` | `CreateUserTest`, `DeleteUserTest`, `UpdateUserNameTest`, `UpdateStudentNameTest`, `AnonymizeUserTest`, `AnonymizeStudentTest`, `GetUserByIdTest`, `GetStudentByExecutionIdAndUserIdTest` |
+| - [x] 3.2 | User | `UserServiceTest` | `UserEventPublicationTest` — `DeleteUserEvent`, `UpdateStudentNameEvent`, `AnonymizeStudentEvent` | `CreateUserTest`, `DeleteUserTest`, `UpdateUserNameTest`, `UpdateStudentNameTest`, `AnonymizeUserTest`, `AnonymizeStudentTest`, `GetUserByIdTest`, `GetStudentByExecutionIdAndUserIdTest` |
 | - [ ] 3.3 | Topic | `TopicServiceTest` | `TopicEventPublicationTest` — `UpdateTopicEvent`, `DeleteTopicEvent` | `CreateTopicTest`, `UpdateTopicTest`, `DeleteTopicTest`, `GetTopicByIdTest`, `GetTopicsByCourseIdTest` |
 | - [ ] 3.4 | Execution | `ExecutionServiceTest` | `ExecutionEventPublicationTest` — `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent` | `CreateExecutionTest`, `UpdateExecutionTest`, `DeleteExecutionTest`, `EnrollStudentInExecutionTest`, `DisenrollStudentTest`, `GetExecutionByIdTest`; keep `ExecutionInterInvariantTest` (relabel comments to T4) |
 | - [ ] 3.5 | Question | `QuestionServiceTest` | `QuestionEventPublicationTest` — `UpdateQuestionEvent`, `DeleteQuestionEvent` | `CreateQuestionTest`, `UpdateQuestionTest`, `DeleteQuestionTest`, `GetQuestionByIdTest`, `GetQuestionsByCourseExecutionIdTest`; keep `QuestionInterInvariantTest` |
@@ -167,3 +167,13 @@ unconditionally throws `COURSE_FIELDS_IMMUTABLE` — its T2 test asserts exactly
   infeasible — `*Service` classes don't exist until session `b`/`c`. Used the plan's explicit
   escape hatch: T2/T3 assigned to session `b` (write cases) with read-method T2 cases appended in
   session `c`. Recorded in `.claude/skills/implement-aggregate/SKILL.md`.
+- Session 3.2: `UpdateStudentNameTest`/`AnonymizeStudentTest` in this row's T4 trim scope do not
+  exist as separate files — an earlier pre-4-tier commit (`36c6a982`) already merged their cases
+  into `UpdateUserNameTest`/`AnonymizeUserTest`. Trimmed those two classes in place; no action
+  needed for the (non-existent) Student-named files.
+- Session 3.2: this row's T4 trim scope also lists `GetStudentByExecutionIdAndUserIdTest`, but
+  that class lives under `sagas/coordination/execution/` and drives
+  `ExecutionFunctionalities.getStudentByExecutionIdAndUserId`, whose not-found logic is
+  implemented in `ExecutionService`, not `UserService`. Left untouched in 3.2 — session 3.4
+  (Execution) should trim its not-found cases into `ExecutionServiceTest` instead; its row's T4
+  trim scope list is missing this file.

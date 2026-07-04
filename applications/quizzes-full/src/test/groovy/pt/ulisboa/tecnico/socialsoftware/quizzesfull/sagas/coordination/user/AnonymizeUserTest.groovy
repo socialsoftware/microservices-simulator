@@ -30,16 +30,13 @@ class AnonymizeUserTest extends QuizzesFullSpockTest {
         userDto = createUser(USER_NAME_1, USER_USERNAME_1, STUDENT_ROLE)
     }
 
-    def "anonymizeUser: success — name and username set to ANONYMOUS"() {
-        // Spec: User.{name,username} = "ANONYMOUS"; SagaState after commit == NOT_IN_SAGA.
-        // Source: UserService.anonymizeUser.
+    def "anonymizeUser: success"() {
+        // Spec: plan.md §2 User — AnonymizeUser; orchestration outcome only, persistence in UserServiceTest.
         when:
         userFunctionalities.anonymizeUser(userDto.aggregateId)
 
         then:
-        def result = userFunctionalities.getUserById(userDto.aggregateId)
-        result.name == "ANONYMOUS"
-        result.username == "ANONYMOUS"
+        noExceptionThrown()
         sagaStateOf(userDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
@@ -58,10 +55,5 @@ class AnonymizeUserTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
-
-        and: 'name and username were anonymized'
-        def result = userFunctionalities.getUserById(userDto.aggregateId)
-        result.name == "ANONYMOUS"
-        result.username == "ANONYMOUS"
     }
 }
