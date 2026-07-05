@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto
@@ -47,5 +48,8 @@ class UpdateCourseTest extends QuizzesFullSpockTest {
 
         then:
         thrown(QuizzesFullException)
+
+        and: 'compensation released the semantic lock back to NOT_IN_SAGA'
+        sagaStateOf(courseDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 }

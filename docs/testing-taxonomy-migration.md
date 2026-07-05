@@ -37,8 +37,17 @@ checkbox, run the affected tests, and stop. Do not start the next phase/session.
 5. **Known coupling to document, not fix:** `registerChanged` calls `verifyInvariants()`, so T2
    fixtures can trip P1 rules — T1 and T2 are not perfectly independent layers. One sentence in
    testing.md acknowledges this.
-6. **Deferred tiers unchanged:** Cross-Functionality, Fault/Behavior, and Async tests stay in the
-   appendix as future work.
+6. **Deferred tiers unchanged:** Cross-Functionality (including guard/forbidden-state transitions)
+   and Async tests stay in the appendix as future work.
+7. **Compensation tests are in T4 scope (added after 3.1-3.4 merged — see Discovered issues):**
+   one `<FunctionalityName>CompensationTest` per write functionality that registers at least one
+   compensation (a `setSemanticLock` step with a dependent step after it); read-only functionalities
+   and any functionality whose only step has no dependents don't get one. Lives as a sibling file
+   next to `<FunctionalityName>Test.groovy` (own file — the `ImpairmentService` fault-counter
+   mechanism collides at the CSV-block level if folded into the same test class). Full recipe,
+   template, and the `ExecutionPlan` mechanical caveat (lock step must be a root/no-dependency step)
+   are in `docs/concepts/testing.md` § Compensation Test. Guard/forbidden-state transitions stay
+   out of scope (decision 6) — do not fold them into compensation work.
 
 ---
 
@@ -101,16 +110,16 @@ Guidance:
 
 Topological order (same as plan.md). Per-session scope:
 
-| Session | Aggregate | New T2 class | New T3 class (events published) | T4 trim scope |
-|---------|-----------|--------------|--------------------------------|---------------|
-| - [x] 3.1 | Course | `CourseServiceTest` | — (publishes none) | `CreateCourseTest`, `UpdateCourseTest`, `DeleteCourseTest`, `GetCourseByIdTest` |
-| - [x] 3.2 | User | `UserServiceTest` | `UserEventPublicationTest` — `DeleteUserEvent`, `UpdateStudentNameEvent`, `AnonymizeStudentEvent` | `CreateUserTest`, `DeleteUserTest`, `UpdateUserNameTest`, `UpdateStudentNameTest`, `AnonymizeUserTest`, `AnonymizeStudentTest`, `GetUserByIdTest`, `GetStudentByExecutionIdAndUserIdTest` |
-| - [x] 3.3 | Topic | `TopicServiceTest` | `TopicEventPublicationTest` — `UpdateTopicEvent`, `DeleteTopicEvent` | `CreateTopicTest`, `UpdateTopicTest`, `DeleteTopicTest`, `GetTopicByIdTest`, `GetTopicsByCourseIdTest` |
-| - [x] 3.4 | Execution | `ExecutionServiceTest` | `ExecutionEventPublicationTest` — `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent` | `CreateExecutionTest`, `UpdateExecutionTest`, `DeleteExecutionTest`, `EnrollStudentInExecutionTest`, `DisenrollStudentTest`, `GetExecutionByIdTest`; keep `ExecutionInterInvariantTest` (relabel comments to T4) |
-| - [ ] 3.5 | Question | `QuestionServiceTest` | `QuestionEventPublicationTest` — `UpdateQuestionEvent`, `DeleteQuestionEvent` | `CreateQuestionTest`, `UpdateQuestionTest`, `DeleteQuestionTest`, `GetQuestionByIdTest`, `GetQuestionsByCourseExecutionIdTest`; keep `QuestionInterInvariantTest` |
-| - [ ] 3.6 | Quiz | `QuizServiceTest` | `QuizEventPublicationTest` — `InvalidateQuizEvent` | `CreateQuizTest`, `UpdateQuizTest`, `ConcludeQuizTest`, `SolveQuizTest`, `GetQuizByIdTest`; keep `QuizInterInvariantTest` |
-| - [ ] 3.7 | QuizAnswer | `QuizAnswerServiceTest` | `QuizAnswerEventPublicationTest` — `QuizAnswerQuestionAnswerEvent` | `CreateQuizAnswerTest`, `AnswerQuestionTest`, `GetQuizAnswerByQuizIdAndStudentIdTest`; keep `QuizAnswerInterInvariantTest` |
-| - [ ] 3.8 | Tournament | `TournamentServiceTest` | — (publishes none) | `CreateTournamentTest`, `UpdateTournamentTest`, `CancelTournamentTest`, `DeleteTournamentTest`, `AddParticipantTest`, `GetTournamentByIdTest`, `GetOpenTournamentsTest`; keep `TournamentInterInvariantTest` |
+| Session | Aggregate | New T2 class | New T3 class (events published) | T4 trim scope | New compensation tests (T4) |
+|---------|-----------|--------------|--------------------------------|---------------|------------------------------|
+| - [x] 3.1 | Course | `CourseServiceTest` | — (publishes none) | `CreateCourseTest`, `UpdateCourseTest`, `DeleteCourseTest`, `GetCourseByIdTest` | Retrofitted post-merge: `DeleteCourseCompensationTest`; `UpdateCourseTest` got an added assertion instead of a new file (see Discovered issues) |
+| - [x] 3.2 | User | `UserServiceTest` | `UserEventPublicationTest` — `DeleteUserEvent`, `UpdateStudentNameEvent`, `AnonymizeStudentEvent` | `CreateUserTest`, `DeleteUserTest`, `UpdateUserNameTest`, `UpdateStudentNameTest`, `AnonymizeUserTest`, `AnonymizeStudentTest`, `GetUserByIdTest`, `GetStudentByExecutionIdAndUserIdTest` | Retrofitted post-merge: `DeleteUserCompensationTest`, `UpdateUserNameCompensationTest`, `AnonymizeUserCompensationTest` |
+| - [x] 3.3 | Topic | `TopicServiceTest` | `TopicEventPublicationTest` — `UpdateTopicEvent`, `DeleteTopicEvent` | `CreateTopicTest`, `UpdateTopicTest`, `DeleteTopicTest`, `GetTopicByIdTest`, `GetTopicsByCourseIdTest` | Retrofitted post-merge: `CreateTopicCompensationTest`, `UpdateTopicCompensationTest`, `DeleteTopicCompensationTest` |
+| - [x] 3.4 | Execution | `ExecutionServiceTest` | `ExecutionEventPublicationTest` — `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent` | `CreateExecutionTest`, `UpdateExecutionTest`, `DeleteExecutionTest`, `EnrollStudentInExecutionTest`, `DisenrollStudentTest`, `GetExecutionByIdTest`; keep `ExecutionInterInvariantTest` (relabel comments to T4) | Retrofitted post-merge: `UpdateExecutionCompensationTest` (pre-existing template), `CreateExecutionCompensationTest`, `DeleteExecutionCompensationTest`, `DisenrollStudentCompensationTest`, `UpdateStudentNameCompensationTest`, `AnonymizeStudentCompensationTest`. **No** `EnrollStudentInExecutionCompensationTest` — see Discovered issues (`getExecutionStep` is not a root step; the fault mechanism can't genuinely exercise its compensation) |
+| - [ ] 3.5 | Question | `QuestionServiceTest` | `QuestionEventPublicationTest` — `UpdateQuestionEvent`, `DeleteQuestionEvent` | `CreateQuestionTest`, `UpdateQuestionTest`, `DeleteQuestionTest`, `GetQuestionByIdTest`, `GetQuestionsByCourseExecutionIdTest`; keep `QuestionInterInvariantTest` | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7) |
+| - [ ] 3.6 | Quiz | `QuizServiceTest` | `QuizEventPublicationTest` — `InvalidateQuizEvent` | `CreateQuizTest`, `UpdateQuizTest`, `ConcludeQuizTest`, `SolveQuizTest`, `GetQuizByIdTest`; keep `QuizInterInvariantTest` | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7) |
+| - [ ] 3.7 | QuizAnswer | `QuizAnswerServiceTest` | `QuizAnswerEventPublicationTest` — `QuizAnswerQuestionAnswerEvent` | `CreateQuizAnswerTest`, `AnswerQuestionTest`, `GetQuizAnswerByQuizIdAndStudentIdTest`; keep `QuizAnswerInterInvariantTest` | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7) |
+| - [ ] 3.8 | Tournament | `TournamentServiceTest` | — (publishes none) | `CreateTournamentTest`, `UpdateTournamentTest`, `CancelTournamentTest`, `DeleteTournamentTest`, `AddParticipantTest`, `GetTournamentByIdTest`, `GetOpenTournamentsTest`; keep `TournamentInterInvariantTest` | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7); `AddParticipantFunctionalitySagas` has a forbidden-state guard — compensation and guard are separate concerns, don't conflate |
 
 Per-session procedure (identical for every aggregate; substitute `<Aggregate>`):
 
@@ -133,7 +142,11 @@ Per-session procedure (identical for every aggregate; substitute `<Aggregate>`):
    meaningful assertions, keep the happy-path traversal test — every write functionality retains at
    least the full-traversal case. Read-only `Get*Test` classes: their not-found cases move to T2;
    the happy read stays as-is (there is no saga state machine to assert for reads — if nothing
-   remains, delete the class and note it in the commit message).
+   remains, delete the class and note it in the commit message). Alongside the lock-acquisition
+   case, write one `<FunctionalityName>CompensationTest` per eligible write functionality (decision
+   7; recipe in `docs/concepts/testing.md` § Compensation Test) — own file per functionality, own
+   CSV fixture, sanity-checked by temporarily flipping its fault flag to `0` and confirming the
+   *full suite* (not just the exception assertion) actually fails.
 5. **Relabel** the aggregate's `<Consumer>InterInvariantTest` header comments to T4-subscription
    (no behavioral change; the deletion-event `and:` pattern and unrelated-event cases stay).
 6. **Run:** `cd applications/quizzes-full && mvn clean -Ptest-sagas test` (full suite — trims can
@@ -199,3 +212,34 @@ unconditionally throws `COURSE_FIELDS_IMMUTABLE` — its T2 test asserts exactly
   `ExecutionServiceTest`'s `INACTIVE_USER` violation case instead constructs an inactive `UserDto`
   directly and calls `ExecutionService.enrollStudentInExecution` — bypassing the saga's
   data-assembly step is exactly what T2 is for.
+- **Post-3.4 (compensation-test retrofit session):** while reviewing `sagas/coordination/execution/`
+  for an unrelated reason, found that `docs/concepts/testing.md`'s T4 spec only covered two
+  saga-state-machine transitions per write functionality (acquire + complete via the happy path and
+  one lock-acquisition case) and filed the **compensate** transition under the Appendix as a
+  deferred "Fault/Behavior Test," lumped in with genuinely out-of-scope guard/concurrency testing.
+  Decision made this session (recorded as decision 7 above): compensation tests are deterministic
+  and single-saga — no threads, no second functionality involved — unlike guard/forbidden-state
+  tests, which correctly stay deferred. Promoted compensation out of the Appendix into core T4
+  scope and retrofitted the four already-migrated aggregates (Course, User, Topic, Execution) with
+  13 new `<FunctionalityName>CompensationTest` classes + CSV fixtures (full list in the Phase-3
+  table above), verified via `mvn clean -Ptest-sagas test` (230/230 green) plus a fault-flip
+  sanity pass on each new test (flip fault to `0`, confirm it fails, revert — all 12 straightforward
+  ones confirmed fault-dependent; see next entry for the 13th).
+- **Post-3.4:** `EnrollStudentInExecutionFunctionalitySagas` cannot get a genuine compensation test
+  with the current `ImpairmentService`/`ExecutionPlan` mechanism. Its semantic-lock step
+  (`getExecutionStep`) depends on `getUserStep` — it is not a root/no-dependency step, unlike every
+  other lock step in this codebase. `ExecutionPlan.execute()` checks every step's fault flag in a
+  single pass over the plan, in registration order, *before* scheduling any dependent step for real
+  execution; only no-dependency steps run inline as that pass reaches them. Faulting the step after
+  the lock step (`enrollStudentStep`, per the original retrofit plan) means the pass throws as soon
+  as it reaches `enrollStudentStep`, which happens *before* the dependent `getExecutionStep` is ever
+  scheduled — so the lock is never acquired and there is nothing to compensate. Verified empirically:
+  ran the test with logging and confirmed no `START EXECUTION STEP: getExecutionStep` line appears
+  before the fault fires. The test would have been a false positive (state trivially `NOT_IN_SAGA`
+  because nothing ever touched it, not because compensation ran) that the standard "flip fault to 0"
+  sanity check would **not** have caught, because that check only proves the *exception* is
+  fault-dependent, not that the lock-acquisition step genuinely ran first — worth remembering for
+  future sessions using the same recipe. No fix attempted (would require changing
+  `ExecutionPlan.java` in `simulator/`, out of scope for a test/docs-only migration). No
+  `EnrollStudentInExecutionCompensationTest` exists; this is intentional, not an oversight — see
+  `docs/concepts/testing.md` § Compensation Test's "Mechanical caveat" for the general rule.

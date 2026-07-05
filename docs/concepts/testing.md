@@ -260,8 +260,11 @@ across steps; **transitions** — *acquire* (`setSemanticLock(IN_{OP})` drives
 `setForbiddenStates([...])` blocks a transition when a foreign aggregate is in a listed state.
 Testing a write saga means covering its transitions: the happy-path `success` case covers the full
 traversal; one lock-acquisition case per `setSemanticLock` step pins the intermediate `IN_{OP}`
-state, then resumes to complete. Guard transitions and compensation faults are deferred — see
-Appendix. Everything else is owned elsewhere (see § Assertion Ownership).
+state, then resumes to complete; one **compensation** case per functionality that registers a
+compensation exercises the compensate transition (see § Compensation Test below). Guard
+(`setForbiddenStates`) transitions and Async tests remain deferred — see Appendix; those need a
+second saga staged against the first and are out of scope. Everything else is owned elsewhere
+(see § Assertion Ownership).
 
 ```groovy
 class <FunctionalityName>Test extends <AppName>SpockTest {
@@ -295,6 +298,104 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
     }
 }
 ```
+
+### Compensation Test
+
+Every write saga registers a compensation on its lock-acquiring step —
+`getXStep.registerCompensation(() -> { release lock to NOT_IN_SAGA }, unitOfWork)`, wired into the
+`UnitOfWork` by `SagaStep.execute()` — so that if a **later** step in the same saga throws, the
+compensation runs and releases the lock. Required for every write functionality that registers at
+least one compensation (i.e. has a `setSemanticLock` step with a dependent step after it); skip it
+for read-only functionalities and for a functionality whose only step has no dependents (nothing
+to compensate).
+
+The test lets the lock-acquiring step run for real (so the lock is genuinely held and the
+compensation genuinely registered), forces the very next step to throw via `ImpairmentService`,
+then makes a three-part assertion: (1) the expected exception propagates — normally
+`SimulatorException` from the injected fault, unless the step throws for an unconditional,
+non-fault reason first (e.g. `UpdateCourseTest`'s `updateCourseStep` always throws
+`COURSE_FIELDS_IMMUTABLE` — no impairment needed there, just an added
+`sagaStateOf(...) == NOT_IN_SAGA` assertion on the existing lock-acquisition test); (2)
+`sagaStateOf(aggregateId) == GenericSagaState.NOT_IN_SAGA` (compensation actually ran); (3)
+read-back through the functionality's own getter shows the mutation never applied.
+
+```groovy
+class <FunctionalityName>CompensationTest extends <AppName>SpockTest {
+
+    def setup() {
+        loadBehaviorScripts()
+        // ... create fixtures via base-class helpers
+    }
+
+    def cleanup() {
+        impairmentService.cleanUpCounter()
+        impairmentService.cleanDirectory()
+    }
+
+    def "<functionalityName>: fault on <nextStep> compensates the lock acquired by <lockStep>"() {
+        when:
+        <primary>Functionalities.<functionalityName>(/* args */)
+
+        then: 'the injected fault surfaces to the caller'
+        thrown(SimulatorException)
+
+        and: 'compensation released the semantic lock back to NOT_IN_SAGA'
+        sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA
+
+        and: 'the mutation never ran: read-back shows the pre-saga state'
+        def reread = <primary>Functionalities.<getterName>(<aggregateId>)
+        reread.<field> == <originalValue>
+    }
+}
+```
+
+**The `ImpairmentService` mechanism** — read before writing any of these:
+
+- Already autowired in `<AppName>SpockTest` (`impairmentService` field), registered as a bean in
+  `BeanConfigurationSagas`, with a `loadBehaviorScripts()` helper on the base test class. Call
+  `loadBehaviorScripts()` in `setup()`; call `impairmentService.cleanUpCounter()` and
+  `impairmentService.cleanDirectory()` in `cleanup()`.
+- `loadBehaviorScripts()` points the impairment directory at
+  `src/test/resources/groovy/<TestClassSimpleName>/`. Put one CSV per **saga class** you want to
+  fault, named `<SagaClassSimpleName>.csv`, in that directory.
+- CSV format — one `run` block per **invocation** of that saga class since the counter was last
+  reset:
+  ```
+  run
+  <stepName>,<fault 0|1>,<delayBefore>,<delayAfter>
+  <stepName>,<fault 0|1>,<delayBefore>,<delayAfter>
+  ```
+  `fault=1` makes `ExecutionPlan.execute()` throw `SimulatorException("Fault on " + stepName)` for
+  that step (`simulator/.../coordination/ExecutionPlan.java`). Only steps up to and including the
+  faulted one need a row — steps registered after it in the workflow never get checked, since the
+  method throws and unwinds before reaching them.
+
+  **Mechanical caveat:** `ExecutionPlan.execute()` checks every step's fault flag in registration
+  order *before* scheduling dependent (non-root) steps for real execution — only steps with **no
+  dependencies** run inline as the check passes over them. This means a genuine compensation test
+  requires the lock-acquiring step to be a root (no-dependency) step: if the lock step itself
+  depends on an earlier step (e.g. `EnrollStudentInExecutionFunctionalitySagas`'s
+  `getExecutionStep` depends on `getUserStep`), faulting the step *after* the lock step never lets
+  the lock step actually run — the fault fires during the same pass that would otherwise reach it,
+  so nothing is genuinely compensated and the test is a false positive. Verified empirically (see
+  `docs/testing-taxonomy-migration.md`'s Discovered issues): no compensation test exists for that
+  functionality for exactly this reason. Always sanity-check a new compensation test by
+  temporarily flipping its fault flag to `0` and re-running the *full* suite with logging, not just
+  the exception assertion — confirm the lock-acquiring step's `START EXECUTION STEP` log line
+  actually appears before the fault fires.
+
+### CRITICAL gotcha — one saga class, one compensation test file
+
+The CSV block index is selected purely by "how many times has this saga class been instantiated
+since `cleanUpCounter()` was last called" — **not** by which test method is running. `cleanup()`
+resets the counter after every Spock feature method, so every test method in a class independently
+sees its first saga instantiation as invocation #1 → block 1. This means a compensation-fault case
+cannot be added as one more `def "..."()` inside the existing `<FunctionalityName>Test` class — the
+existing success/lock-acquisition tests need block 1 clean, the compensation test needs block 1
+faulty, same block, same file, no way to have both. Put it in its own `<FunctionalityName>CompensationTest.groovy`,
+as a sibling file in the same `sagas/coordination/<aggregate>/` package (not a separate
+`sagas/behaviour/` package) — the resource lookup path only depends on the test class's simple
+name, not its package.
 
 ### Subscription (Inter-Invariant) Tests
 
@@ -363,13 +464,20 @@ returning lists fail with `ClassCastException`. Irrelevant when the flag is off.
 
 ## Appendix — Deferred Test Types
 
-Documented for future work; **not** part of the current workflow.
+Documented for future work; **not** part of the current workflow. Compensation tests graduated out
+of this appendix into core T4 scope — see § Compensation Test above. Guard/forbidden-state
+transitions and Async tests remain deferred: both require staging two independent sagas against
+each other (pause one mid-workflow, run the other, resume the first), which is out of scope even
+though it's deterministic/single-threaded — the reference `quizzes` app labels this pattern
+"concurrency tests."
 
 ### Cross-Functionality Test
 
 Two concurrent operations on overlapping aggregates must either produce a consistent result or
 correctly reject one via semantic locks (`setForbiddenStates` guard transitions). One test per
-functionality pair sharing an aggregate with real consistency risk.
+functionality pair sharing an aggregate with real consistency risk. Includes guard/forbidden-state
+coverage, e.g. `UpdateStudentNameFunctionalitySagas`'s `updateUserNameStep` guards against
+`UserSagaState.READ_USER`.
 
 ```groovy
 def "concurrent: <op1> step1 → <op2> completes → <op1> resumes"() {
@@ -377,21 +485,6 @@ def "concurrent: <op1> step1 → <op2> completes → <op1> resumes"() {
     when: 'func1.executeUntilStep("<stepBeforeShared>", uow1); <primary2>Functionalities.<op2>(...); func1.resumeWorkflow(uow1)'
     then: 'both succeed consistently, or one throws a meaningful exception'
     noExceptionThrown()  // or: thrown(<App>Exception)
-}
-```
-
-### Fault / Behavior Test
-
-Saga compensation when a step fails mid-workflow: inject a fault via `ImpairmentService`, then
-verify the aggregate is fully applied or fully rolled back.
-
-```groovy
-def "<functionality>: step <faultStep> fails → aggregate rolls back"() {
-    given: 'impairmentService.addCommandImpairment("<FunctionalityName>", "<faultStep>", ImpairmentType.EXCEPTION_ON_EXECUTE)'
-    when: '<primary>Functionalities.<functionalityName>(/* args */)'
-    then:
-    thrown(Exception)
-    and: 'read back via a fresh UnitOfWork: <mutatedField> == <originalValue>'
 }
 ```
 
