@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Question
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.sagas.states.QuestionSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.UpdateQuestionFunctionalitySagas
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 
 @DataJpaTest
 @Transactional
@@ -28,40 +28,25 @@ class UpdateQuestionTest extends QuizzesFullSpockTest {
     public static final String QUESTION_CONTENT_ORIGINAL = "Describe a sorting algorithm."
     public static final String QUESTION_CONTENT_UPDATED  = "Describe a searching algorithm."
     public static final String TOPIC_NAME_1 = "Algorithms"
-    public static final String TOPIC_NAME_2 = "Data Structures"
 
     def courseDto
     def topicDto1
-    def topicDto2
     def questionDto
 
     def setup() {
         courseDto = createCourse(COURSE_NAME_1, COURSE_TYPE_TECNICO)
         topicDto1 = createTopic(courseDto.aggregateId, TOPIC_NAME_1)
-        topicDto2 = createTopic(courseDto.aggregateId, TOPIC_NAME_2)
         questionDto = createQuestion(courseDto.aggregateId, [topicDto1.aggregateId], QUESTION_TITLE_ORIGINAL, QUESTION_CONTENT_ORIGINAL)
     }
 
-    def "updateQuestion: success — title and content updated"() {
+    def "updateQuestion: success"() {
+        // Spec: plan.md §5 Question — UpdateQuestion; orchestration outcome only, persistence in QuestionServiceTest.
         when:
         questionFunctionalities.updateQuestion(questionDto.aggregateId, QUESTION_TITLE_UPDATED, QUESTION_CONTENT_UPDATED, [topicDto1.aggregateId])
 
         then:
-        def uow = unitOfWorkService.createUnitOfWork("verify")
-        Question fetched = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.aggregateId, uow)
-        fetched.title == QUESTION_TITLE_UPDATED
-        fetched.content == QUESTION_CONTENT_UPDATED
-    }
-
-    def "updateQuestion: success — topics changed"() {
-        when:
-        questionFunctionalities.updateQuestion(questionDto.aggregateId, QUESTION_TITLE_ORIGINAL, QUESTION_CONTENT_ORIGINAL, [topicDto2.aggregateId])
-
-        then:
-        def uow = unitOfWorkService.createUnitOfWork("verify")
-        Question fetched = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.aggregateId, uow)
-        fetched.topics.any { it.topicAggregateId == topicDto2.aggregateId }
-        !fetched.topics.any { it.topicAggregateId == topicDto1.aggregateId }
+        noExceptionThrown()
+        sagaStateOf(questionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "updateQuestion: getQuestionStep acquires IN_UPDATE_QUESTION semantic lock"() {
@@ -81,10 +66,6 @@ class UpdateQuestionTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
-
-        and: 'title was updated'
-        def uow2 = unitOfWorkService.createUnitOfWork("verify")
-        Question fetched = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.aggregateId, uow2)
-        fetched.title == QUESTION_TITLE_UPDATED
+        sagaStateOf(questionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 }

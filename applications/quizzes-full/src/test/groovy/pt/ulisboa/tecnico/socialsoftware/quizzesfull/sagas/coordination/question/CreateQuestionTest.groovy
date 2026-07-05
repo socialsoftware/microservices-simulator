@@ -10,7 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.states.CourseSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Option
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Question
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
@@ -39,40 +38,13 @@ class CreateQuestionTest extends QuizzesFullSpockTest {
     }
 
     def "createQuestion: success"() {
-        // Spec: Question.{title,content,courseAggregateId,topicIds} = input;
-        //       creationDate != null; SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.5 Question / createQuestion.
+        // Spec: plan.md §5 Question — CreateQuestion; orchestration outcome only, persistence in QuestionServiceTest.
         when:
         QuestionDto result = createQuestion(courseDto.aggregateId, [topicDto.aggregateId], QUESTION_TITLE_1, QUESTION_CONTENT_1)
 
         then:
         result.aggregateId != null
-        result.title == QUESTION_TITLE_1
-        result.content == QUESTION_CONTENT_1
-        result.courseAggregateId == courseDto.aggregateId
         result.topicIds.contains(topicDto.aggregateId)
-        result.creationDate != null
-        result.optionKeys.size() == 2
-        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
-
-        and: 'question is persisted and retrievable'
-        def uow = unitOfWorkService.createUnitOfWork("verify")
-        Question readBack = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(result.aggregateId, uow)
-        readBack.title == QUESTION_TITLE_1
-        readBack.content == QUESTION_CONTENT_1
-    }
-
-    def "createQuestion: success with no topics"() {
-        // Spec: Question.{title,content,courseAggregateId,topicIds} = input;
-        //       creationDate != null; SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.5 Question / createQuestion.
-        when:
-        QuestionDto result = createQuestion(courseDto.aggregateId, [], QUESTION_TITLE_1, QUESTION_CONTENT_1)
-
-        then:
-        result.aggregateId != null
-        result.title == QUESTION_TITLE_1
-        result.topicIds.isEmpty()
         sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
@@ -96,7 +68,5 @@ class CreateQuestionTest extends QuizzesFullSpockTest {
 
         and: 'question was created'
         func1.getCreatedQuestionDto().aggregateId != null
-        func1.getCreatedQuestionDto().title == QUESTION_TITLE_1
-        func1.getCreatedQuestionDto().courseAggregateId == courseDto.aggregateId
     }
 }

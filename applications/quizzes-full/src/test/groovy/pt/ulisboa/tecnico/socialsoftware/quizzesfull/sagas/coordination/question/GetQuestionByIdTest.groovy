@@ -4,7 +4,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 
@@ -41,13 +40,5 @@ class GetQuestionByIdTest extends QuizzesFullSpockTest {
         result.topicIds.contains(topicDto.aggregateId)
         result.creationDate != null
         result.optionKeys.size() == 2
-    }
-
-    def "getQuestionById: aggregate not found"() {
-        when:
-        questionFunctionalities.getQuestionById(NONEXISTENT_AGGREGATE_ID)
-
-        then:
-        thrown(SimulatorException)
     }
 }

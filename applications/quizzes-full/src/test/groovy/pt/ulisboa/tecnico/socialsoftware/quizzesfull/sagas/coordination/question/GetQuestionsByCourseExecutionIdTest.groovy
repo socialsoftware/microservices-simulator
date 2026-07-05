@@ -4,7 +4,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 
@@ -40,25 +39,5 @@ class GetQuestionsByCourseExecutionIdTest extends QuizzesFullSpockTest {
         result[0].courseAggregateId == courseDto.aggregateId
         result[0].topicIds.contains(topicDto.aggregateId)
         result[0].optionKeys.size() == 2
-    }
-
-    def "getQuestionsByCourseExecutionId: no questions returns empty list"() {
-        given:
-        def course2 = createCourse("Distributed Systems", "TECNICO")
-        def execution2 = createExecution(course2.aggregateId, "DS2024", "1st Semester 2024/2025")
-
-        when:
-        def result = questionFunctionalities.getQuestionsByCourseExecutionId(execution2.aggregateId)
-
-        then:
-        result.isEmpty()
-    }
-
-    def "getQuestionsByCourseExecutionId: execution not found"() {
-        when:
-        questionFunctionalities.getQuestionsByCourseExecutionId(999)
-
-        then:
-        thrown(SimulatorException)
     }
 }

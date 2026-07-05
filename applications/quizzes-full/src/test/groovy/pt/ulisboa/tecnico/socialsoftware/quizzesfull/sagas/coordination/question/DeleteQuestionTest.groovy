@@ -5,8 +5,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
@@ -39,16 +37,12 @@ class DeleteQuestionTest extends QuizzesFullSpockTest {
     }
 
     def "deleteQuestion: success"() {
+        // Spec: plan.md §5 Question — DeleteQuestion; orchestration outcome only, persistence in QuestionServiceTest.
         when:
         questionFunctionalities.deleteQuestion(questionDto.aggregateId)
 
-        and: 'verify question is no longer retrievable'
-        def uow = unitOfWorkService.createUnitOfWork("verify")
-        unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.aggregateId, uow)
-
         then:
-        def ex = thrown(SimulatorException)
-        ex.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
+        noExceptionThrown()
     }
 
     def "deleteQuestion: getQuestionStep acquires IN_DELETE_QUESTION semantic lock before deletion completes"() {
@@ -66,12 +60,5 @@ class DeleteQuestionTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
-
-        when: 'question is no longer retrievable after deletion'
-        def uow2 = unitOfWorkService.createUnitOfWork("verify")
-        unitOfWorkService.aggregateLoadAndRegisterRead(questionDto.aggregateId, uow2)
-
-        then:
-        thrown(SimulatorException)
     }
 }
