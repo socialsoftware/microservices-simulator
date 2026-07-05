@@ -5,7 +5,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.states.TopicSagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
@@ -84,7 +85,7 @@ class CreateTournamentTest extends QuizzesSpockTest {
         result.topics*.aggregateId.containsAll([topicDto1.getAggregateId(), topicDto2.getAggregateId()])
         def unitOfWork = unitOfWorkService.createUnitOfWork("TEST");
         def courseExecution = (SagaExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork)
-        courseExecution.sagaState == GenericSagaState.NOT_IN_SAGA;
+        courseExecution.sagaState == CourseExecutionSagaState.NOT_IN_SAGA;
     }
 
     def "create tournament with invalid input"() {
@@ -132,11 +133,11 @@ class CreateTournamentTest extends QuizzesSpockTest {
         then:
         def unitOfWork = unitOfWorkService.createUnitOfWork("TEST");
         def courseExecution = (SagaExecution) unitOfWorkService.aggregateLoadAndRegisterRead(courseExecutionDto.getAggregateId(), unitOfWork)
-        courseExecution.sagaState == GenericSagaState.NOT_IN_SAGA;
+        courseExecution.sagaState == CourseExecutionSagaState.NOT_IN_SAGA;
         def topic2 = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto2.getAggregateId(), unitOfWork)
         def topic1 = (SagaTopic) unitOfWorkService.aggregateLoadAndRegisterRead(topicDto1.getAggregateId(), unitOfWork)
-        topic1.sagaState == GenericSagaState.NOT_IN_SAGA;
-        topic2.sagaState == GenericSagaState.NOT_IN_SAGA;
+        topic1.sagaState == TopicSagaState.NOT_IN_SAGA;
+        topic2.sagaState == TopicSagaState.NOT_IN_SAGA;
     }
 
     @TestConfiguration

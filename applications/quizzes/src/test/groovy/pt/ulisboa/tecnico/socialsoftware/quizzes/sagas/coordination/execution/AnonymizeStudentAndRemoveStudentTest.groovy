@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
@@ -105,7 +105,7 @@ class AnonymizeStudentAndRemoveStudentTest extends QuizzesSpockTest {
         then: 'student is anonymized; lock released'
         def interim = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId)
         interim.students.find { it.aggregateId == userDto.aggregateId }.name == ANONYMOUS
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'remove is retried'
         courseExecutionFunctionalities.removeStudentFromCourseExecution(courseExecutionDto.aggregateId, userDto.aggregateId)
@@ -128,7 +128,7 @@ class AnonymizeStudentAndRemoveStudentTest extends QuizzesSpockTest {
         then: 'student is anonymized; lock released'
         def interim = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId)
         interim.students.find { it.aggregateId == userDto.aggregateId }.name == ANONYMOUS
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'remove is retried'
         courseExecutionFunctionalities.removeStudentFromCourseExecution(courseExecutionDto.aggregateId, userDto.aggregateId)
@@ -151,7 +151,7 @@ class AnonymizeStudentAndRemoveStudentTest extends QuizzesSpockTest {
         then: 'student is anonymized; lock released'
         def interim = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId)
         interim.students.find { it.aggregateId == userDto.aggregateId }.name == ANONYMOUS
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'remove is retried'
         courseExecutionFunctionalities.removeStudentFromCourseExecution(courseExecutionDto.aggregateId, userDto.aggregateId)
@@ -174,7 +174,7 @@ class AnonymizeStudentAndRemoveStudentTest extends QuizzesSpockTest {
         then: 'student is anonymized; lock released'
         def interim = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId)
         interim.students.find { it.aggregateId == userDto.aggregateId }.name == ANONYMOUS
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'remove is retried'
         courseExecutionFunctionalities.removeStudentFromCourseExecution(courseExecutionDto.aggregateId, userDto.aggregateId)
@@ -200,7 +200,7 @@ class AnonymizeStudentAndRemoveStudentTest extends QuizzesSpockTest {
         removeStudentFunctionality.resumeWorkflow(unitOfWork2)
         then: 'student removed; lock released'
         courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId).students.isEmpty()
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'anonymize is retried — student no longer enrolled'
         courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userDto.aggregateId)
@@ -222,7 +222,7 @@ class AnonymizeStudentAndRemoveStudentTest extends QuizzesSpockTest {
         removeStudentFunctionality.resumeWorkflow(unitOfWork2)
         then: 'student removed; lock released'
         courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId).students.isEmpty()
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'anonymize is retried — student no longer enrolled'
         courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userDto.aggregateId)
@@ -244,7 +244,7 @@ class AnonymizeStudentAndRemoveStudentTest extends QuizzesSpockTest {
         removeStudentFunctionality.resumeWorkflow(unitOfWork2)
         then: 'student removed; lock released'
         courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId).students.isEmpty()
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'anonymize is retried — student no longer enrolled'
         courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.aggregateId, userDto.aggregateId)

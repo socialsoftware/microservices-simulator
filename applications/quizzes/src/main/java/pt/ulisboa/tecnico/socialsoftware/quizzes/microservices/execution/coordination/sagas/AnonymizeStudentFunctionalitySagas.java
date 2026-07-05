@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordi
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -50,7 +50,7 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
             Logger.getLogger(AnonymizeStudentFunctionalitySagas.class.getName()).info("Compensating getCourseExecutionStep");
             Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
             SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            sagaCommand.setSemanticLock(CourseExecutionSagaState.NOT_IN_SAGA);
             commandGateway.send(sagaCommand);
         }, unitOfWork);
 

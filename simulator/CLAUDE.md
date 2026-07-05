@@ -19,7 +19,7 @@ mvn install
 | `ms.coordination.workflow` | `WorkflowFunctionality`, `Workflow`, `Step`, `FlowStep`, `AsyncStep` | Workflow DAG engine |
 | `ms.coordination.workflow.command` | `Command`, `CommandGateway`, `CommandHandler`, `CommandResponse` | Command routing |
 | `ms.coordination.unitOfWork` | `UnitOfWork`, `UnitOfWorkService` | Read/write coordination |
-| `ms.sagas.aggregate` | `SagaAggregate`, `SagaState`, `GenericSagaState` | Semantic lock interface |
+| `ms.sagas.aggregate` | `SagaAggregate`, `SagaState` | Semantic lock interface. Each aggregate declares its own `XxxSagaState` enum, including a neutral state (e.g., `NOT_IN_SAGA`) |
 | `ms.sagas.workflow` | `SagaWorkflow`, `SagaStep`, `SagaAsyncStep` | Saga-specific workflow |
 | `ms.sagas.unitOfWork` | `SagaUnitOfWork`, `SagaUnitOfWorkService` | Saga UoW lifecycle |
 | `ms.causal.aggregate` | `CausalAggregate` | TCC merge interface |

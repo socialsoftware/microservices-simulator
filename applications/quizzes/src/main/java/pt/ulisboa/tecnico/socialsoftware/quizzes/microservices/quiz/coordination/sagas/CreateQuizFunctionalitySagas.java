@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordinatio
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -56,7 +55,7 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
         getCourseExecutionStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), courseExecutionId);
             SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            sagaCommand.setSemanticLock(CourseExecutionSagaState.NOT_IN_SAGA);
             commandGateway.send(sagaCommand);
         }, unitOfWork);
 
@@ -76,7 +75,7 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
             quizDto.getQuestionDtos().forEach(questionDto -> {
                 Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionDto.getAggregateId());
                 SagaCommand sagaCommand = new SagaCommand(command);
-                sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+                sagaCommand.setSemanticLock(QuestionSagaState.NOT_IN_SAGA);
                 commandGateway.send(sagaCommand);
             });
         }, unitOfWork);

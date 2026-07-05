@@ -7,7 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.states.QuizSagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
@@ -380,11 +381,11 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
-        sagaStateOf(updatedTournamentDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(updatedTournamentDto.aggregateId) == TournamentSagaState.NOT_IN_SAGA
         and: 'quiz is not changed'
         def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 2
-        sagaStateOf(quizDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(quizDto.aggregateId) == QuizSagaState.NOT_IN_SAGA
 
         when: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()
@@ -428,11 +429,11 @@ class AnonymizeStudentAndUpdateTournamentTest extends QuizzesSpockTest {
         updatedTournamentDto.numberOfQuestions == 2
         updatedTournamentDto.topics*.aggregateId.toSet() == [topicDto1.getAggregateId(),topicDto2.getAggregateId()].toSet()
         and: 'saga sate is undone'
-        sagaStateOf(updatedTournamentDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(updatedTournamentDto.aggregateId) == TournamentSagaState.NOT_IN_SAGA
         and: 'quiz is not changed'
         def quizDto = (QuizDto) quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)
         quizDto.questionDtos.size() == 2
-        sagaStateOf(quizDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(quizDto.aggregateId) == QuizSagaState.NOT_IN_SAGA
 
         when: 'tournament processes event to anonymize the creator'
         tournamentEventHandling.handleAnonymizeStudentEvents()

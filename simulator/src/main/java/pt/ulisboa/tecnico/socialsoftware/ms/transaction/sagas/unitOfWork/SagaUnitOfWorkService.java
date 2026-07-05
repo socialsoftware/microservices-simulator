@@ -14,7 +14,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregateRepository;
@@ -117,7 +116,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     public void commitAggregate(Integer aggregateId) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(aggregateId)
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
-        aggregate.setSagaState(GenericSagaState.NOT_IN_SAGA);
+        aggregate.setSagaState(aggregate.getNeutralSagaState());
         entityManager.merge(aggregate);
     }
 

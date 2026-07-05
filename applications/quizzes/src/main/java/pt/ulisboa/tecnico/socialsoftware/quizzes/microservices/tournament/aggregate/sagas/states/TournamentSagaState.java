@@ -4,6 +4,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 
 public enum TournamentSagaState implements SagaState {
     // TODO change to more generic states
+    NOT_IN_SAGA {
+        @Override
+        public String getStateName() {
+            return "NOT_IN_SAGA";
+        }
+    },
     IN_UPDATE_TOURNAMENT {
         @Override
         public String getStateName() {

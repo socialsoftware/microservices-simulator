@@ -99,7 +99,7 @@ public class SolveQuizAsyncFunctionalitySagas extends WorkflowFunctionality {
 
             StartQuizCommand startTournamentQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), this.quizDto, userDto);
             SagaCommand sagaCommand = new SagaCommand(startTournamentQuizCommand);
-            sagaCommand.setSemanticLock(QuizAnswerSagaState.STARTED_QUIZ);
+            sagaCommand.setSemanticLock(QuizSagaState.STARTED_QUIZ);
             QuizAnswerDto quizAnswerDto = (QuizAnswerDto) commandGateway.send(sagaCommand);
             this.setQuizAnswerDto(quizAnswerDto);
         }, new ArrayList<>(Arrays.asList(getQuestionsByIdAsyncStep, getStudentByExecutionIdAndUserIdAsyncStep)));

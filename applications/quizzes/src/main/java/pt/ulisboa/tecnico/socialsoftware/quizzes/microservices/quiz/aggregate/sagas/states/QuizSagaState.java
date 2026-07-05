@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.s
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum QuizSagaState implements SagaState {
+    NOT_IN_SAGA {
+        @Override
+        public String getStateName() {
+            return "NOT_IN_SAGA";
+        }
+    },
     CREATED_QUIZ {
         @Override
         public String getStateName() {
@@ -13,6 +19,12 @@ public enum QuizSagaState implements SagaState {
         @Override
         public String getStateName() {
             return "STARTED_TOURNAMENT_QUIZ";
+        }
+    },
+    STARTED_QUIZ {
+        @Override
+        public String getStateName() {
+            return "STARTED_QUIZ";
         }
     },
     READ_QUIZ {

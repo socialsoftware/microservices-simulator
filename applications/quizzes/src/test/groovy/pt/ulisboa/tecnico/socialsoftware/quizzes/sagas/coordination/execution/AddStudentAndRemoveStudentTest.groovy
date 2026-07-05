@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
@@ -110,7 +110,7 @@ class AddStudentAndRemoveStudentTest extends QuizzesSpockTest {
         then: 'remove succeeds'
         def interim = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId)
         interim.students.size() == 0
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'add resumes — execution is free after remove committed'
         addStudentFunctionality.resumeWorkflow(unitOfWork1)
@@ -119,7 +119,7 @@ class AddStudentAndRemoveStudentTest extends QuizzesSpockTest {
         def result = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId)
         result.students.size() == 1
         result.students.find { it.aggregateId == userDto2.aggregateId } != null
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
     }
 
     def 'concurrent: add - getUserStep; remove - getOldCourseExecutionStep; add - resume; remove - resume'() {
@@ -144,7 +144,7 @@ class AddStudentAndRemoveStudentTest extends QuizzesSpockTest {
         result.students.size() == 1
         result.students.find { it.aggregateId == userDto.aggregateId }  == null
         result.students.find { it.aggregateId == userDto2.aggregateId } != null
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
     }
 
     // -------------------------------------------------------------------------
@@ -170,7 +170,7 @@ class AddStudentAndRemoveStudentTest extends QuizzesSpockTest {
         result.students.size() == 1
         result.students.find { it.aggregateId == userDto2.aggregateId } != null
         result.students.find { it.aggregateId == userDto.aggregateId }  == null
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
     }
 
     def 'concurrent: remove - getOldCourseExecutionStep; add - getUserStep; remove - resume; add - resume'() {
@@ -186,7 +186,7 @@ class AddStudentAndRemoveStudentTest extends QuizzesSpockTest {
         then: 'first student removed'
         def result = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId)
         result.students.size() == 0
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'add resumes — execution is free'
         addStudentFunctionality.resumeWorkflow(unitOfWork1)
@@ -195,7 +195,7 @@ class AddStudentAndRemoveStudentTest extends QuizzesSpockTest {
         def result2 = courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId)
         result2.students.size() == 1
         result2.students.find { it.aggregateId == userDto2.aggregateId } != null
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
     }
 
     @TestConfiguration

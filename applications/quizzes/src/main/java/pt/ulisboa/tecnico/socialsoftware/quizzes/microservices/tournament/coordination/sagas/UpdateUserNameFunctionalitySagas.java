@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coord
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -15,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.UpdateUserN
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.sagas.states.UserSagaState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,7 +54,7 @@ public class UpdateUserNameFunctionalitySagas extends WorkflowFunctionality {
         getTournamentStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            sagaCommand.setSemanticLock(TournamentSagaState.NOT_IN_SAGA);
             commandGateway.send(sagaCommand);
         }, unitOfWork);
 
@@ -67,7 +67,7 @@ public class UpdateUserNameFunctionalitySagas extends WorkflowFunctionality {
         getParticipantStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
             SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            sagaCommand.setSemanticLock(UserSagaState.NOT_IN_SAGA);
             commandGateway.send(sagaCommand);
         }, unitOfWork);
 

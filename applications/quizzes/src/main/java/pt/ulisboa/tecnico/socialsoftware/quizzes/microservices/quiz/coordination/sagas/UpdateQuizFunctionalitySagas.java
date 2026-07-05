@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordinatio
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.states.QuizSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -48,7 +48,7 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
         getQuizStep.registerCompensation(() -> {
             Command command = new Command(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quiz.getAggregateId());
             SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            sagaCommand.setSemanticLock(QuizSagaState.NOT_IN_SAGA);
             commandGateway.send(sagaCommand);
         }, unitOfWork);
 

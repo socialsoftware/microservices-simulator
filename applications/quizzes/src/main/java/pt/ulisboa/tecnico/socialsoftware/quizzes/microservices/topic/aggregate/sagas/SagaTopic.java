@@ -1,22 +1,28 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas;
 
 import jakarta.persistence.Entity;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.states.TopicSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.Topic;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicCourse;
 @Entity
 public class SagaTopic extends Topic implements SagaAggregate {
-    private SagaState sagaState;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    private TopicSagaState sagaState;
     
     public SagaTopic() {
         super();
-        this.sagaState = GenericSagaState.NOT_IN_SAGA;
+        this.sagaState = TopicSagaState.NOT_IN_SAGA;
     }
 
     public SagaTopic(Integer aggregateId, String name, TopicCourse topicCourse) {
         super(aggregateId, name, topicCourse);
-        this.sagaState = GenericSagaState.NOT_IN_SAGA;
+        this.sagaState = TopicSagaState.NOT_IN_SAGA;
     }
 
     public SagaTopic(SagaTopic other) {
@@ -26,11 +32,16 @@ public class SagaTopic extends Topic implements SagaAggregate {
 
     @Override
     public void setSagaState(SagaState state) {
-        this.sagaState = state;
+        this.sagaState = (TopicSagaState) state;
     }
 
     @Override
-    public SagaState getSagaState() {
+    public TopicSagaState getSagaState() {
         return this.sagaState;
+    }
+
+    @Override
+    public TopicSagaState getNeutralSagaState() {
+        return TopicSagaState.NOT_IN_SAGA;
     }
 }

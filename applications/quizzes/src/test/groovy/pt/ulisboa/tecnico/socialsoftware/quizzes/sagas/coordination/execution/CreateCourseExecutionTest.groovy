@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
@@ -52,7 +52,7 @@ class CreateCourseExecutionTest extends QuizzesSpockTest {
 
         def unitOfWork = unitOfWorkService.createUnitOfWork("TEST")
         def courseExecution = (SagaExecution) unitOfWorkService.aggregateLoadAndRegisterRead(result.getAggregateId(), unitOfWork)
-        courseExecution.sagaState == GenericSagaState.NOT_IN_SAGA
+        courseExecution.sagaState == CourseExecutionSagaState.NOT_IN_SAGA
     }
 
     def "create course execution with invalid input"() {

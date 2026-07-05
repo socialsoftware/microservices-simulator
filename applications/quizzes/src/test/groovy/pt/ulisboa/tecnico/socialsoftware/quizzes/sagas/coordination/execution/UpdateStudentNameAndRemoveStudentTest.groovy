@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
@@ -115,7 +115,7 @@ class UpdateStudentNameAndRemoveStudentTest extends QuizzesSpockTest {
 
         then: 'student is removed'
         courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId).students.isEmpty()
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
     }
 
     def 'concurrent: remove - getOldCourseExecutionStep; update - updateStudentNameStep; remove - resume; update - resume'() {
@@ -130,7 +130,7 @@ class UpdateStudentNameAndRemoveStudentTest extends QuizzesSpockTest {
 
         then: 'student is removed, saga state cleared'
         courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId).students.isEmpty()
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'update resumes — it works on its pre-loaded snapshot and commits a new version'
         updateNameFunctionality.resumeWorkflow(unitOfWork1)
@@ -152,7 +152,7 @@ class UpdateStudentNameAndRemoveStudentTest extends QuizzesSpockTest {
 
         then: 'student is removed'
         courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId).students.isEmpty()
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
 
         when: 'update resumes — it had already snapshotted the student before it was removed'
         updateNameFunctionality.resumeWorkflow(unitOfWork1)
@@ -180,7 +180,7 @@ class UpdateStudentNameAndRemoveStudentTest extends QuizzesSpockTest {
 
         then: 'student is removed and saga state is cleared'
         courseExecutionFunctionalities.getCourseExecutionByAggregateId(courseExecutionDto.aggregateId).students.isEmpty()
-        sagaStateOf(courseExecutionDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
+        sagaStateOf(courseExecutionDto.aggregateId) == CourseExecutionSagaState.NOT_IN_SAGA
     }
 
     @TestConfiguration
