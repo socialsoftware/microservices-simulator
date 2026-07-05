@@ -117,7 +117,7 @@ Topological order (same as plan.md). Per-session scope:
 | - [x] 3.3 | Topic | `TopicServiceTest` | `TopicEventPublicationTest` — `UpdateTopicEvent`, `DeleteTopicEvent` | `CreateTopicTest`, `UpdateTopicTest`, `DeleteTopicTest`, `GetTopicByIdTest`, `GetTopicsByCourseIdTest` | Retrofitted post-merge: `CreateTopicCompensationTest`, `UpdateTopicCompensationTest`, `DeleteTopicCompensationTest` |
 | - [x] 3.4 | Execution | `ExecutionServiceTest` | `ExecutionEventPublicationTest` — `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent` | `CreateExecutionTest`, `UpdateExecutionTest`, `DeleteExecutionTest`, `EnrollStudentInExecutionTest`, `DisenrollStudentTest`, `GetExecutionByIdTest`; keep `ExecutionInterInvariantTest` (relabel comments to T4) | Retrofitted post-merge: `UpdateExecutionCompensationTest` (pre-existing template), `CreateExecutionCompensationTest`, `DeleteExecutionCompensationTest`, `DisenrollStudentCompensationTest`, `UpdateStudentNameCompensationTest`, `AnonymizeStudentCompensationTest`. **No** `EnrollStudentInExecutionCompensationTest` — see Discovered issues (`getExecutionStep` is not a root step; the fault mechanism can't genuinely exercise its compensation) |
 | - [x] 3.5 | Question | `QuestionServiceTest` | `QuestionEventPublicationTest` — `UpdateQuestionEvent`, `DeleteQuestionEvent` | `CreateQuestionTest`, `UpdateQuestionTest`, `DeleteQuestionTest`, `GetQuestionByIdTest`, `GetQuestionsByCourseExecutionIdTest`; keep `QuestionInterInvariantTest` | `CreateQuestionCompensationTest`, `UpdateQuestionCompensationTest`, `DeleteQuestionCompensationTest` — all three lock steps are root steps, so unlike Execution's excluded case, all three functionalities got genuine tests |
-| - [ ] 3.6 | Quiz | `QuizServiceTest` | `QuizEventPublicationTest` — `InvalidateQuizEvent` | `CreateQuizTest`, `UpdateQuizTest`, `ConcludeQuizTest`, `SolveQuizTest`, `GetQuizByIdTest`; keep `QuizInterInvariantTest` | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7) |
+| - [x] 3.6 | Quiz | `QuizServiceTest` | `QuizEventPublicationTest` — `InvalidateQuizEvent` | `CreateQuizTest`, `UpdateQuizTest`, `GetQuizByIdTest` trimmed; `ConcludeQuizTest`/`SolveQuizTest` left untouched — see Discovered Issues; keep `QuizInterInvariantTest` | `CreateQuizCompensationTest`, `UpdateQuizCompensationTest` — both lock steps (`getExecutionStep`, `getQuizStep`) are root steps, so both got genuine compensation tests |
 | - [ ] 3.7 | QuizAnswer | `QuizAnswerServiceTest` | `QuizAnswerEventPublicationTest` — `QuizAnswerQuestionAnswerEvent` | `CreateQuizAnswerTest`, `AnswerQuestionTest`, `GetQuizAnswerByQuizIdAndStudentIdTest`; keep `QuizAnswerInterInvariantTest` | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7) |
 | - [ ] 3.8 | Tournament | `TournamentServiceTest` | — (publishes none) | `CreateTournamentTest`, `UpdateTournamentTest`, `CancelTournamentTest`, `DeleteTournamentTest`, `AddParticipantTest`, `GetTournamentByIdTest`, `GetOpenTournamentsTest`; keep `TournamentInterInvariantTest` | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7); `AddParticipantFunctionalitySagas` has a forbidden-state guard — compensation and guard are separate concerns, don't conflate |
 
@@ -257,3 +257,27 @@ unconditionally throws `COURSE_FIELDS_IMMUTABLE` — its T2 test asserts exactly
   `EnrollStudentInExecutionFunctionalitySagas` — so all three got genuine compensation tests with no
   mechanical obstruction. Verified via the standard fault-flip-to-0 sanity check plus reading the
   logs to confirm each lock step's `START EXECUTION STEP` line appears before the injected fault.
+- Session 3.6: `QuizzesFullSpockTest.groovy` was missing a `quizService` field (unlike every other
+  migrated aggregate's `*Service` field) even though the `quizService` bean already existed in
+  `BeanConfigurationSagas`. Added `@Autowired(required = false) protected QuizService quizService`
+  as a prerequisite for `QuizServiceTest`/`QuizEventPublicationTest`/the new compensation tests.
+- Session 3.6: this row's T4 trim scope also lists `ConcludeQuizTest` and `SolveQuizTest` — same
+  category of cross-aggregate mismatch already noted for 3.2/3.4's `GetStudentByExecutionIdAndUserIdTest`.
+  Both files physically live under `sagas/coordination/quizanswer/` and `sagas/coordination/tournament/`
+  and drive `QuizAnswerService`/`Tournament` logic respectively, not `QuizService`. Left untouched in
+  3.6; their persisted-field assertions (`QuizAnswerDto.completed`, `Tournament.participants[].quizAnswer`
+  link, `QUIZ_ANSWER_NOT_FOUND`) should relocate into `QuizAnswerServiceTest` (session 3.7) and possibly
+  `TournamentServiceTest` (session 3.8) instead. Their rows are missing these files from their own T4
+  trim-scope lists.
+- Session 3.6: `QuizService`'s three event-driven methods (`updateQuestionInQuiz`,
+  `removeQuestionFromQuiz`, `invalidateQuiz` — called only from `QuizEventProcessing` with a quiz id
+  sourced from an existing, `ACTIVE`-only event subscription) got happy-path + persisted-readback
+  coverage in `QuizServiceTest` but no not-found case for any of the three: no legitimate caller
+  can ever supply a nonexistent id to them. Note for future sessions: Execution's structurally
+  identical `removeStudentFromExecutionByEvent` (session 3.4) got no T2 coverage at all (not even
+  a happy path) — that looks like an unremarked gap rather than a considered decision; not fixed
+  here (out of scope for a Quiz-only session), but worth a follow-up audit.
+- Session 3.6: both `CreateQuizFunctionalitySagas` and `UpdateQuizFunctionalitySagas` have their
+  lock-acquiring step (`getExecutionStep`, `getQuizStep`) as a root/no-dependency step, so both got
+  genuine compensation tests with no mechanical obstruction (same shape as Question's three, unlike
+  Execution's excluded `EnrollStudentInExecutionFunctionalitySagas`).

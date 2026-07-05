@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.coordination.quiz
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizDto
@@ -39,13 +38,5 @@ class GetQuizByIdTest extends QuizzesFullSpockTest {
         result.title == "Test Quiz"
         result.executionId == executionDto.aggregateId
         result.questionIds.contains(questionDto.aggregateId)
-    }
-
-    def "getQuizById: not found throws exception"() {
-        when:
-        quizFunctionalities.getQuizById(999999)
-
-        then:
-        thrown(SimulatorException)
     }
 }

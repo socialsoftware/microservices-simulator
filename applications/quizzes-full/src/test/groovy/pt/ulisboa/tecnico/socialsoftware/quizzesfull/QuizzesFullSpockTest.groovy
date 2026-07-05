@@ -26,6 +26,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coor
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.service.QuestionService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.functionalities.QuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.QuizAnswerDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.functionalities.QuizAnswerFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.TournamentDto
@@ -90,6 +91,9 @@ class QuizzesFullSpockTest extends SpockTest {
 
     @Autowired(required = false)
     protected QuizFunctionalities quizFunctionalities
+
+    @Autowired(required = false)
+    protected QuizService quizService
 
     @Autowired(required = false)
     protected QuizAnswerFunctionalities quizAnswerFunctionalities

@@ -6,9 +6,9 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.Quiz
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.states.QuizSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.UpdateQuizFunctionalitySagas
 
@@ -39,7 +39,8 @@ class UpdateQuizTest extends QuizzesFullSpockTest {
         quizDto = createQuiz(executionDto.aggregateId, [questionDto1.aggregateId])
     }
 
-    def "updateQuiz: success — dates and questions updated"() {
+    def "updateQuiz: success"() {
+        // Spec: plan.md §6 Quiz — UpdateQuiz; orchestration outcome only, persistence in QuizServiceTest.
         given:
         def newAvailableDate = LocalDateTime.now().plusDays(2)
         def newConclusionDate = LocalDateTime.now().plusDays(4)
@@ -50,11 +51,8 @@ class UpdateQuizTest extends QuizzesFullSpockTest {
                 newResultsDate, [questionDto2.aggregateId])
 
         then:
-        def uow = unitOfWorkService.createUnitOfWork("verify")
-        Quiz fetched = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.aggregateId, uow)
-        fetched.availableDate == newAvailableDate
-        fetched.questions.any { it.questionAggregateId == questionDto2.aggregateId }
-        !fetched.questions.any { it.questionAggregateId == questionDto1.aggregateId }
+        noExceptionThrown()
+        sagaStateOf(quizDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "updateQuiz: getQuizStep acquires IN_UPDATE_QUIZ semantic lock"() {
@@ -76,11 +74,7 @@ class UpdateQuizTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
-
-        and: 'quiz dates were updated'
-        def uow2 = unitOfWorkService.createUnitOfWork("verify")
-        Quiz fetched = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizDto.aggregateId, uow2)
-        fetched.availableDate == newAvailableDate
+        sagaStateOf(quizDto.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
 }

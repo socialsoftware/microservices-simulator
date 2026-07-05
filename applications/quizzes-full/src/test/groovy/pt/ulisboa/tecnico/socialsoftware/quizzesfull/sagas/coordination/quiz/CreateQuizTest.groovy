@@ -36,43 +36,21 @@ class CreateQuizTest extends QuizzesFullSpockTest {
         questionDto = createQuestion(courseDto.aggregateId, [], "Quiz Question", "Describe sorting.")
     }
 
-    def "createQuiz: success with questions"() {
+    def "createQuiz: success"() {
+        // Spec: plan.md §6 Quiz — CreateQuiz; orchestration outcome only, persistence in QuizServiceTest.
         given:
         def availableDate = LocalDateTime.now().plusDays(1)
         def conclusionDate = LocalDateTime.now().plusDays(2)
         def resultsDate = LocalDateTime.now().plusDays(3)
 
-        // Spec: Quiz.{title,executionId,questionIds} = input; dates as supplied;
-        //       SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.6 Quiz / createQuiz.
         when:
         QuizDto result = quizFunctionalities.createQuiz("Test Quiz", availableDate, conclusionDate,
                 resultsDate, "GENERATED", executionDto.aggregateId, [questionDto.aggregateId])
 
         then:
         result.aggregateId != null
-        result.title == "Test Quiz"
         result.executionId == executionDto.aggregateId
         result.questionIds.contains(questionDto.aggregateId)
-        sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
-    }
-
-    def "createQuiz: success with no questions"() {
-        given:
-        def availableDate = LocalDateTime.now().plusDays(1)
-        def conclusionDate = LocalDateTime.now().plusDays(2)
-        def resultsDate = LocalDateTime.now().plusDays(3)
-
-        // Spec: Quiz.{title,executionId,questionIds} = input; dates as supplied;
-        //       SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.6 Quiz / createQuiz.
-        when:
-        QuizDto result = quizFunctionalities.createQuiz("Empty Quiz", availableDate, conclusionDate,
-                resultsDate, "GENERATED", executionDto.aggregateId, [])
-
-        then:
-        result.aggregateId != null
-        result.questionIds.isEmpty()
         sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
@@ -98,6 +76,5 @@ class CreateQuizTest extends QuizzesFullSpockTest {
 
         and: 'quiz was created'
         func.getCreatedQuizDto().aggregateId != null
-        func.getCreatedQuizDto().executionId == executionDto.aggregateId
     }
 }
