@@ -169,7 +169,7 @@ class ScenarioExecutorSpec extends Specification {
 
     private static EnrichedScenarioRecord enriched(ScenarioPlan plan, DynamicEvidenceJoinStatus status) {
         new EnrichedScenarioRecord(EnrichedScenarioRecord.SCHEMA_VERSION, plan.deterministicId(), plan,
-                new DynamicEvidenceSummary(status, [], [], [], [], [], []))
+                new DynamicEvidenceSummary(status, null, [], [], [], [], [], []))
     }
 
     private static ScenarioPlan plan(String id, String sagaFqn, String stepId) {
