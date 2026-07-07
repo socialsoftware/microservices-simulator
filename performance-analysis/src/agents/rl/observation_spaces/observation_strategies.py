@@ -58,10 +58,6 @@ class BasicObservation(ObservationStrategy):
 class ComplexObservation(ObservationStrategy):
     def __init__(self, num_services: int, num_nodes: int, **kwargs):
         super().__init__(num_services, num_nodes, **kwargs)
-        if not "run_time" in kwargs:
-            raise ValueError("Complex observation must include run-time!")
-
-        self.run_time = kwargs["run_time"]
         # TODO: Think about this
         # self.ms_order = ms_order
 
@@ -72,7 +68,7 @@ class ComplexObservation(ObservationStrategy):
             "capacities": spaces.Box(low=1, high=100, shape=(self.num_services,), dtype=np.float32),
             "node_free_caps": spaces.Box(low=0, high=np.inf, shape=(self.num_nodes,), dtype=np.float32),
 
-            # "ms_rps": spaces.Box(low=0, high=np.inf, shape=(self.num_services,), dtype=np.float32),
+            "ms_load": spaces.Box(low=0.0, high=1.0, shape=(self.num_services,), dtype=np.float32),
             "ms_delay": spaces.Box(low=0, high=np.inf, shape=(self.num_services,), dtype=np.float32),
             "ms_queue": spaces.Box(low=0, high=np.inf, shape=(self.num_services,), dtype=np.float32)
         })
@@ -101,11 +97,13 @@ class ComplexObservation(ObservationStrategy):
             used = node_caps[i]["used"]
             free_caps_array.append(limit - used)
 
-        rps_array = []
+        load_array = []
         delay_array = []
         queue_array = []
 
         ms_metrics = metrics.get("microservices", {})
+        total_invocations = sum(data.get("invocations", 0)
+                                for data in ms_metrics.values())
 
         for microservice in microservices:
             data = ms_metrics.get(microservice, {
@@ -116,10 +114,10 @@ class ComplexObservation(ObservationStrategy):
 
             invocations = data.get("invocations")
 
-            if self.run_time > 0:
-                rps = invocations / self.run_time
+            if total_invocations > 0:
+                load = invocations / total_invocations
             else:
-                rps = 0.0
+                load = 0.0
 
             if invocations > 0:
                 # TODO: Use P50 (median)
@@ -129,7 +127,7 @@ class ComplexObservation(ObservationStrategy):
                 avg_delay = 0.0
                 avg_queue = 0.0
 
-            rps_array.append(rps)
+            load_array.append(load)
             delay_array.append(avg_delay)
             queue_array.append(avg_queue)
 
@@ -137,7 +135,7 @@ class ComplexObservation(ObservationStrategy):
             "placement": np.array(placement_array, dtype=np.int64),
             "capacities": np.array(capacities_array, dtype=np.float32),
             "node_free_caps": np.array(free_caps_array, dtype=np.float32),
-            # "ms_rps": np.array(rps_array, dtype=np.float32),
+            "ms_load": np.array(load_array, dtype=np.float32),
             "ms_delay": np.array(delay_array, dtype=np.float32),
             "ms_queue": np.array(queue_array, dtype=np.float32)
         }
