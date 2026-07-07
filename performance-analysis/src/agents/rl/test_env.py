@@ -24,6 +24,8 @@ def _print_obs(obs: dict):
         print(f" Delay Time: {obs["ms_delay"]}")
     if obs["ms_queue"] is not None:
         print(f" Queue Time: {obs["ms_queue"]}")
+    if obs["ms_load"] is not None:
+        print(f"MS Load: {obs["ms_load"]}")
 
 
 def run_sanity_check(trace_manager):
