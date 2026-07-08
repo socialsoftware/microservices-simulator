@@ -93,3 +93,59 @@ Before source edits, the executor must re-check:
 - Do not swallow ordinary runtime failures as injected vector faults.
 - Ensure provider-injected faults mark the workflow aborted before the executor drives `resumeCompensation(...)`.
 - Be careful around `ExecutionPlan.executeSteps(...)`: a provider fault must happen at the intended forward boundary, not before earlier already-targeted boundaries execute.
+
+## Completion Evidence
+
+Status: `implemented-awaiting-review`
+
+### Implementation Summary
+
+- Added simulator-owned fault-vector provider primitives under `simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/faults` using plain identifier/value records and no verifier model imports.
+- Added scoped active-provider install/clear and current-boundary context APIs with deterministic concurrent-provider rejection.
+- Added `FaultVectorInjectedFaultException`, extending `SimulatorException`, carrying scenario execution, scenario plan, saga instance, scheduled step, slot, functionality, runtime step, and assigned-bit identity.
+- Integrated provider lookup into `ExecutionPlan` at forward-step start. Provider-triggered faults happen before the step body, while prefix steps in `executeUntilStep(...)` continue until the bound target runtime step.
+- Preserved legacy CSV/manual impairment when no provider is active and suppressed CSV faults/delays/loaded behavior while a vector provider is active.
+
+### Files Changed
+
+- `simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/faults/FaultVectorBoundaryContext.java` — current forward-boundary identity values.
+- `simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/faults/FaultVectorFault.java` — provider fault identity payload.
+- `simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/faults/FaultVectorFaultProvider.java` — simulator-owned provider contract.
+- `simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/faults/FaultVectorInjectedFaultException.java` — typed injected-fault signal extending `SimulatorException`.
+- `simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/faults/FaultVectorProviderHolder.java` — active provider and current-boundary scopes.
+- `simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/faults/InMemoryFaultVectorProvider.java` — plain in-memory assignment-backed provider.
+- `simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/ExecutionPlan.java` — provider lookup at forward boundary and CSV suppression while provider is active.
+- `simulator/src/test/java/pt/ulisboa/tecnico/socialsoftware/ms/faults/FaultVectorProviderTest.java` — provider/signal/scope, timing, workflow-abort, and CSV compatibility/override coverage.
+
+### Verification
+
+| Command / Method | Result | Evidence |
+|------------------|--------|----------|
+| `cd simulator && mvn -Dtest=FaultVectorProviderTest test` | PASS | 7 tests run, 0 failures, 0 errors. Covers provider scope cleanup, concurrent install rejection, current-boundary cleanup, typed signal identity, before-body injection, prefix timing, workflow compensation legality, CSV compatibility, and CSV suppression. |
+| `cd simulator && mvn -Dtest=FaultVectorProviderTest,ExecutionPlanDynamicEvidenceTest test` | PASS | 15 tests run, 0 failures, 0 errors. Confirms provider integration plus existing `ExecutionPlan` dynamic evidence behavior. |
+| `rg "verifiers" simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/faults simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/coordination/ExecutionPlan.java || true` | PASS | No output; simulator provider/integration code does not import/reference verifier packages. |
+
+### Acceptance Criteria Evidence
+
+- AC-5: Added simulator-owned provider API (`FaultVectorFaultProvider`, `FaultVectorBoundaryContext`, `FaultVectorFault`, holder/scope, in-memory provider) using plain values and no verifier imports.
+- AC-6: Added `FaultVectorInjectedFaultException` extending `SimulatorException`; tests assert scenario execution id, plan id, saga instance id, scheduled step id, slot index, and runtime step name are carried distinctly from legacy CSV `SimulatorException`.
+- AC-7: `FaultVectorProviderHolder.install(...)` returns an explicit closeable scope, `clear()` removes state, boundary scopes clear/restore thread-local context, and concurrent provider install is rejected deterministically; tests cover cleanup and rejection.
+- AC-8: Legacy CSV/manual impairment remains active without a provider; `legacyCsvFaultStillAppliesWhenNoProviderIsActive` verifies a CSV fault still throws the existing `SimulatorException` path.
+- AC-9: Active provider is authoritative for vector runs; `ExecutionPlan` loads empty behavior and returns zero total delay while a provider is active, and `activeProviderSuppressesCsvFaultsAndDelaysWhenItDoesNotInject` verifies CSV fault/delay behavior is suppressed.
+
+### Browser / Manual Evidence
+
+- Not required.
+
+### TDD Notes
+
+- Full TDD red/green was not practical in this pass because the simulator provider API and integration point had to be introduced together. Focused provider/integration coverage was added with the implementation; early verification exposed compile/assertion issues, which were fixed before the final passing runs recorded above.
+
+### Deviations From Plan
+
+- Used a new simulator package `pt.ulisboa.tecnico.socialsoftware.ms.faults` rather than placing the provider under `coordination` or `impairment`; this keeps the new vector contract independent while still integrating at `ExecutionPlan`.
+- Targeted CSV compatibility is covered by `FaultVectorProviderTest` with temporary CSV behavior instead of running the broader Quizzes impairment suite.
+
+### Blockers / Follow-Ups
+
+- None.

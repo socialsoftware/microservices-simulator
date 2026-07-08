@@ -87,3 +87,54 @@ Before source edits, the executor must re-check:
 - Do not mark expected injected faults as step execution failures.
 - Best-effort compensation after ordinary failures should not hide the original failure; if compensation fails, terminal status becomes `COMPENSATION_FAILED` with both contexts available.
 - Keep exact status names from the spec; do not introduce aliases like the old `STEP_EXECUTION_FAILED` for vector runs.
+
+## Completion Evidence
+
+Status: `implemented-awaiting-review`
+
+### Implementation Summary
+
+- Added executor classification for missing expected injected faults, unexpected injected signals at `0` bits, wrong-identity injected signals, ordinary forward failures, and compensation failures.
+- Added best-effort compensation closure for ordinary forward failures and preserved both forward and compensation exception details when compensation fails.
+- Extended the fixture workflow with targeted knobs for suppressed provider signals, unexpected injected signals, wrong-slot signals, and compensation failures.
+- Added dummyapp-style Spock coverage for all S5 negative statuses plus provider cleanup and CLI non-zero status mapping through the existing helper test.
+
+### Files Changed
+
+- `verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutor.java` — classified injected-fault signals vs ordinary failures, added missing expected-fault handling, best-effort compensation, compensation-failure reporting, and reflection/`CompletionException` unwrapping.
+- `verifiers/src/test/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/FixtureWorkflow.java` — added fixture controls for no-signal, unexpected-signal, wrong-slot-signal, and compensation-failure paths.
+- `verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutorSpec.groovy` — added/updated negative-path tests and provider cleanup assertions.
+- `issues/2026-07-07-scenario-executor-fault-vectors/005-mismatch-unexpected-and-compensation-failures.md` — recorded completion evidence.
+
+### Verification
+
+| Command / Method | Result | Evidence |
+|------------------|--------|----------|
+| `cd verifiers && mvn -Dtest=ScenarioExecutorSpec test` | PASS | Maven build success; `Tests run: 32, Failures: 0, Errors: 0, Skipped: 0`. |
+
+### Acceptance Criteria Evidence
+
+- AC-7: Provider cleanup is asserted after each added negative path (`EXPECTED_FAULT_NOT_INJECTED`, `UNEXPECTED_INJECTED_FAULT`, `FAULT_PROVIDER_MISMATCH`, `UNEXPECTED_EXECUTION_FAILURE`, `COMPENSATION_FAILED`) using `!FaultVectorProviderHolder.active`.
+- AC-13: Reached assigned `1` with suppressed injected signal reports `EXPECTED_FAULT_NOT_INJECTED`; the slot remains `UNREALIZED`; report step statuses are deterministic (`COMPLETED`, `UNREALIZED`).
+- AC-14: Fixture-injected signal at an assigned `0` reports `UNEXPECTED_INJECTED_FAULT`; wrong scheduled-step identity on an assigned `1` reports `FAULT_PROVIDER_MISMATCH`; neither path reports ordinary runtime failure.
+- AC-15: Ordinary fixture body exception at a `0` bit reports `UNEXPECTED_EXECUTION_FAILURE`, records exception details, and calls `resumeCompensation(...)` with `lifecycleOutcome = COMPENSATED` for the exposed fixture path.
+- AC-16: Compensation failure after a realized expected fault reports `COMPENSATION_FAILED`, records forward fault and compensation exception details, and remains covered by CLI helper non-zero status mapping.
+- AC-17: Tests assert ordered step outcomes and fault-slot realization states for the negative paths.
+- AC-20: Existing CLI helper coverage keeps `SUCCESS`, `FAULT_COMPENSATED`, and `DRY_RUN` zero and broken statuses including `COMPENSATION_FAILED` non-zero.
+- AC-21: Dummyapp-style executor coverage now includes missing expected fault, unexpected injected fault, wrong-slot provider mismatch, unexpected forward failure, compensation failure, and provider cleanup.
+
+### Browser / Manual Evidence
+
+- Not required.
+
+### TDD Notes
+
+- Added the focused missing-expected-fault Spock case and related negative-path cases before implementing the executor classification changes. The complete targeted command now passes.
+
+### Deviations From Plan
+
+- No separate CLI/status command was needed because `ScenarioExecutorSpec` already contains the focused `ScenarioExecutorCli.exitCodeFor(...)` helper coverage.
+
+### Blockers / Follow-Ups
+
+- None.

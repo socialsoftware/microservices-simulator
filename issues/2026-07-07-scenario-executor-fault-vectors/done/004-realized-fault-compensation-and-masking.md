@@ -89,3 +89,55 @@ Before source edits, the executor must re-check:
 - Do not paper over `resumeCompensation(...)` rejection; it indicates the injected-fault signal did not integrate with workflow abort semantics.
 - Do not report compensation steps as forward `stepOutcomes` or add them to the fault space.
 - Compensation should be lifecycle outcome, not a forward scheduled step outcome.
+
+## Completion Evidence
+
+Status: `implemented-awaiting-review`
+
+### Implementation Summary
+
+- Added executor handling for expected `FaultVectorInjectedFaultException` at the current assigned slot: reports `INJECTED_FAULT`, marks the slot `REALIZED`, stops the forward loop, calls `resumeCompensation(...)`, and returns `terminalStatus = FAULT_COMPENSATED` with `lifecycleOutcome = COMPENSATED`.
+- Added deterministic masking for later assigned `1` slots after a realized fault with mask reason `masked by earlier realized slot <n> after saga abort`.
+- Extended the executor fixture to inject before the step body records execution and to expose `resumeCompensation(...)` counters for body-not-executed and compensation evidence.
+- Added focused ScenarioExecutor coverage for realized fault timing/compensation/provider cleanup and multiple assigned faults masking later slots.
+
+### Files Changed
+
+- `verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutor.java` — recognizes expected injected-fault signals, drives compensation, reports realized/masked fault slots, and preserves provider cleanup through the existing try-with-resources scope.
+- `verifiers/src/test/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/FixtureWorkflow.java` — simulates simulator provider injection before the target step body and records compensation closure calls.
+- `verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutorSpec.groovy` — adds S4 realized-fault, body-not-executed, compensation, masking, and cleanup assertions.
+- `issues/2026-07-07-scenario-executor-fault-vectors/004-realized-fault-compensation-and-masking.md` — records this completion evidence.
+
+### Verification
+
+| Command / Method | Result | Evidence |
+|------------------|--------|----------|
+| `cd verifiers && mvn -Dtest=ScenarioExecutorSpec test` | PASS | `Tests run: 28, Failures: 0, Errors: 0, Skipped: 0`; build success at 2026-07-08T16:56:02+01:00. |
+| TDD red run: `cd verifiers && mvn -Dtest=ScenarioExecutorSpec test` after adding S4 tests before implementation | FAIL expected | New realized/masking tests failed with `STEP_EXECUTION_FAILED` instead of `FAULT_COMPENSATED`; report showed slot 1 still `UNREALIZED`. |
+
+### Acceptance Criteria Evidence
+
+- AC-6: Reported injected fault outcome includes typed exception class `pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorInjectedFaultException` and message containing the realized slot identity (`slot 1`).
+- AC-7: Tests assert `!FaultVectorProviderHolder.active` after realized-fault and masked-fault executions, covering cleanup on fault/compensation paths.
+- AC-9: The executor remains in `providerMode = IN_MEMORY_FAULT_VECTOR` for realized-fault runs, using the S1/S3 provider path that suppresses CSV behavior during vector scopes.
+- AC-11: Test vector `010` executes only prefix body `first`, does not record the faulted `second` body, stops before `third`, calls `resumeCompensation(...)` once, and reports `FAULT_COMPENSATED` / `COMPENSATED`.
+- AC-12: Test vector `011` reports slot states `NOT_ASSIGNED`, `REALIZED`, `MASKED` with a clear mask reason for the later assigned slot.
+- AC-17: Assertions cover deterministic step outcome order (`first`, `second`) and fault-slot order by slot index.
+- AC-20: Existing CLI exit-code coverage includes `FAULT_COMPENSATED -> 0` and remains passing.
+- AC-21: Dummyapp-style ScenarioExecutor fixture coverage now includes expected fault compensation and masked slots.
+
+### Browser / Manual Evidence
+
+- Not required.
+
+### TDD Notes
+
+- Added realized-fault and masked-slot tests first. The first run failed as expected because injected faults were still treated as `STEP_EXECUTION_FAILED` and assigned slots remained `UNREALIZED`. Implemented the smallest executor/fixture changes, then reran the focused test successfully.
+
+### Deviations From Plan
+
+- No simulator-side source changes were needed in S4; S1 already provided typed injected faults and pre-body provider lookup. The required S4 verification therefore used the focused verifier executor suite only.
+
+### Blockers / Follow-Ups
+
+- None.
