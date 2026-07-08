@@ -4,6 +4,8 @@ import io.opentelemetry.api.trace.Span;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorInjectedFaultException;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceContext;
@@ -43,8 +45,12 @@ public class ExecutionPlan {
         this.functionalityClassSimpleName = functionality.getClass().getSimpleName();
         this.functionalityName = functionalityClassSimpleName;
 
-        behaviour = ImpairmentHandler.getInstance().loadStepsFile(functionalityName);
-        ImpairmentHandler.getInstance().appendToReport(reportSteps(behaviour));
+        if (FaultVectorProviderHolder.isActive()) {
+            behaviour = new LinkedHashMap<>();
+        } else {
+            behaviour = ImpairmentHandler.getInstance().loadStepsFile(functionalityName);
+            ImpairmentHandler.getInstance().appendToReport(reportSteps(behaviour));
+        }
         
         this.traceManager = TraceManager.getInstance();
     }
@@ -58,6 +64,9 @@ public class ExecutionPlan {
     }
 
     public int getTotalDelay() {
+        if (FaultVectorProviderHolder.isActive()) {
+            return 0;
+        }
         int totalDelay = 0;
         int delayBeforeValue = 1;
         int delayAfterValue = 2;
@@ -88,8 +97,6 @@ public class ExecutionPlan {
     }
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        List<Integer> behaviourValues = new ArrayList<>();
-        
         // Initialize futures for steps with no dependencies
         for (FlowStep step: plan) {
             final String stepName = step.getName();
@@ -98,9 +105,10 @@ public class ExecutionPlan {
                 : this.functionalityName;
 
             // Check if the step is in the behaviour map
-            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
-            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
-            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
+            List<Integer> behaviourValues = behaviourValues(stepName);
+            final int faultValue = behaviourValues.get(0);
+            final int delayBeforeValue = behaviourValues.get(1);
+            final int delayAfterValue = behaviourValues.get(2);
             if (faultValue == THROW_EXCEPTION) {
                 logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion());
 
@@ -123,9 +131,10 @@ public class ExecutionPlan {
             final String funcName = (unitOfWork != null)
                 ? unitOfWork.getFunctionalityName()
                 : this.functionalityName;
-            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
-            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
-            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
+            List<Integer> behaviourValues = behaviourValues(stepName);
+            final int faultValue = behaviourValues.get(0);
+            final int delayBeforeValue = behaviourValues.get(1);
+            final int delayAfterValue = behaviourValues.get(2);
 
             if (faultValue == THROW_EXCEPTION) {  
                 logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion()); 
@@ -151,6 +160,8 @@ public class ExecutionPlan {
 
     private CompletableFuture<Void> executeInstrumentedStep(FlowStep step, UnitOfWork unitOfWork, String funcName,
                                                             String stepName, int delayBeforeValue, int delayAfterValue) {
+        injectFaultIfAssigned(stepName);
+
         Long unitOfWorkVersion = unitOfWork != null ? unitOfWork.getVersion() : null;
         DynamicEvidenceContext.Scope scope = DynamicEvidenceContext.enterStep(funcName, functionalityClassFqn,
                 functionalityClassSimpleName, stepName, unitOfWorkVersion);
@@ -236,6 +247,24 @@ public class ExecutionPlan {
         }
     }
 
+    private List<Integer> behaviourValues(String stepName) {
+        if (FaultVectorProviderHolder.isActive()) {
+            return Arrays.asList(DEFAULT_VALUE, DEFAULT_VALUE, DEFAULT_VALUE);
+        }
+        return behaviour.containsKey(stepName)
+                ? behaviour.get(stepName)
+                : Arrays.asList(DEFAULT_VALUE, DEFAULT_VALUE, DEFAULT_VALUE);
+    }
+
+    private void injectFaultIfAssigned(String stepName) {
+        FaultVectorProviderHolder.currentBoundary()
+                .filter(context -> stepName.equals(context.runtimeStepName()))
+                .flatMap(ignored -> FaultVectorProviderHolder.faultForCurrentBoundary())
+                .ifPresent(fault -> {
+                    throw new FaultVectorInjectedFaultException(fault);
+                });
+    }
+
     private String reportSteps(Map<String, List<Integer>> behaviour) {
         List<String> nonCommonSteps = new ArrayList<>();
         List<String> misMatchSteps = new ArrayList<>();
@@ -313,7 +342,7 @@ public class ExecutionPlan {
             final String stepName = step.getName();
 
             // Check if the step is in the behaviour map
-            List<Integer> behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
+            List<Integer> behaviourValues = behaviourValues(stepName);
             if (behaviourValues.get(0) == THROW_EXCEPTION) {
                 logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork != null ? unitOfWork.getVersion() : null);
                 throw new SimulatorException("Fault on " + stepName );
@@ -331,7 +360,7 @@ public class ExecutionPlan {
 
         for (FlowStep step: steps) {
             final String stepName = step.getName();
-            List<Integer> behaviourValues = behaviour.containsKey(stepName) ? behaviour.get(stepName) : Arrays.asList(DEFAULT_VALUE,DEFAULT_VALUE,DEFAULT_VALUE);
+            List<Integer> behaviourValues = behaviourValues(stepName);
             if (behaviourValues.get(0) == THROW_EXCEPTION) {
                 logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork != null ? unitOfWork.getVersion() : null);
                 throw new SimulatorException("Fault on " + stepName );
