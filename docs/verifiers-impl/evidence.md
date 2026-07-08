@@ -1,6 +1,6 @@
 # Verifier evidence appendix
 
-Last updated: 2026-06-30
+Last updated: 2026-07-08
 
 This page stores concrete validation results, metrics, and run references so [`current-state.md`](current-state.md) can stay readable. Treat this as an appendix: cite it when you need proof, not as the first-read narrative.
 
@@ -297,20 +297,41 @@ SEGMENT_COMPRESSED selected total: 1019393
 
 Interpretation: segment compression substantially reduces selected schedule-space counts under the verifier's static conflict-anchor evidence. It does not prove semantic completeness or exact aggregate-instance binding.
 
-## ScenarioExecutor POC smoke
+## ScenarioExecutor fault-vector smoke
 
-Verified on 2026-05-26 with a real verifier-generated Quizzes catalog through the forked runtime path:
+Verified on 2026-07-08 with a real verifier-generated Quizzes catalog through the forked Docker runtime path:
 
-```text
-Catalog: verifiers/target/structured-input-recipes-quizzes-smoke/quizzes-20260520-175058-455/scenario-catalog.jsonl
-Scenario plan id: 2f0c64a371fcd65b5a38f294ccbda93a42df060c3d1e5b7dcedf43568abcf661
-Saga: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsFunctionalitySagas
-Step: getCourseExecutionsStep
-Terminal status: SUCCESS
-Report: /tmp/opencode/quizzes-execution-report-get-course-executions.json
+Commands:
+
+```bash
+CATALOG_PATH=/reports/quizzes-20260708-163552-193/scenario-catalog.jsonl \
+SCENARIO_ID=910f72907e0d901bc5d35e0ecea03ec920b7ffb63929bbba1bfdba4fe531e195 \
+OUTPUT_PATH=/reports/scenario-executor/s6-default-report.json \
+docker compose run --rm scenario-executor
+
+CATALOG_PATH=/reports/quizzes-20260708-163552-193/scenario-catalog.jsonl \
+SCENARIO_ID=910f72907e0d901bc5d35e0ecea03ec920b7ffb63929bbba1bfdba4fe531e195 \
+FAULT_VECTOR=1 \
+OUTPUT_PATH=/reports/scenario-executor/s6-explicit-report.json \
+docker compose run --rm scenario-executor
 ```
 
-Interpretation: a narrow executor POC exists for supported single-saga candidates. It executed this generated plan by resolving runtime-owned infrastructure arguments itself. Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is now reported separately/aligned with ScenarioExecutor semantics. It is not generic multi-saga execution, fault injection, impact scoring, or search.
+Reported results:
+
+```text
+Catalog: verifiers/target/quizzes-20260708-163552-193/scenario-catalog.jsonl
+Scenario plan id: 910f72907e0d901bc5d35e0ecea03ec920b7ffb63929bbba1bfdba4fe531e195
+Saga: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsFunctionalitySagas
+Default vector report: verifiers/target/scenario-executor/s6-default-report.json
+Default vector terminal status: SUCCESS
+Default vector lifecycle: COMMITTED
+Explicit vector report: verifiers/target/scenario-executor/s6-explicit-report.json
+Explicit vector terminal status: FAULT_COMPENSATED
+Explicit vector lifecycle: COMPENSATED
+Explicit vector realized slot: 0 (runtime step `getCourseExecutionsStep`)
+```
+
+Interpretation: a narrow executor path now supports the implemented single-saga fault-vector contract. It executed one generated Quizzes plan by resolving runtime-owned infrastructure arguments and using the in-memory fault-vector provider for the explicit-fault run. Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is still reported separately/aligned with ScenarioExecutor semantics. This is still not generic multi-saga execution, broad runtime parity, impact scoring, or search.
 
 ## Static source-mode/catalog Quizzes smoke
 

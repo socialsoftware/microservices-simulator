@@ -82,7 +82,7 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 | Static recipe readiness | Input-level accounting that asks whether the extracted static recipe itself is complete enough for materialization without executor-owned/runtime-owned argument resolution. In the post-event Quizzes count-only run this is `0`, distinct from accepted input coverage and executor materializability. |
 | ScenarioExecutor materializability | Input-level accounting that asks whether the current ScenarioExecutor can materialize an accepted input using its supported constructors, placeholders, and runtime-owned argument handling. It does not mean all accepted inputs can replay or that fault execution is implemented. |
 | Runtime-owned argument resolution | ScenarioExecutor behavior where infrastructure/runtime dependencies, such as saga unit-of-work or messaging gateway arguments, are supplied by the executor/runtime rather than reconstructed from the static Groovy recipe. |
-| Scenario execution | Runtime capability/stage that materializes catalog inputs and executes a scenario plan schedule. The current runner is a narrow POC for supported single-saga plans, not arbitrary catalog replay. |
+| Scenario execution | Runtime capability/stage that materializes catalog inputs and executes a scenario plan schedule. The current implementation supports a narrow single-saga fault-vector path, not arbitrary catalog replay. |
 | Scenario execution attempt | One concrete runtime attempt to execute one scenario plan with one assigned fault vector in one application/runtime environment. A scenario execution attempt receives its own `scenarioExecutionId` and writes one execution report. |
 | Fault configuration | Execution-time choice of injected faults or step-level failure choices applied to a scenario execution attempt. It is not part of static scenario identity. |
 | Fault space | The ordered set of fault slots available for a scenario plan. |
@@ -92,6 +92,7 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 | Realized fault slot | A fault slot whose assigned `1` bit is reached at runtime and injects the expected simulator fault. |
 | Masked fault slot | A fault slot whose assigned `1` bit is not reached because an earlier realized fault terminates the relevant saga instance. |
 | Fault-free execution | Current executor target where the scenario still carries fault slots, but the effective fault vector is the all-zero/default vector. |
+| ScenarioExecutor supported path | The currently implemented runtime slice: one materializable single-saga saga/local scenario execution attempt per run, with either the plan default vector or one explicit binary fault vector, producing a standalone v2 execution report. |
 | Domain-impact scoring | Planned scoring based on domain-visible outcomes such as invariant violations, compensation divergence, inconsistent final state, and business-state anomalies. |
 | Local search | Planned search over fault configurations within a selected scenario, potentially using a genetic algorithm. |
 | Scenario prioritization | Planned budget allocation across scenarios, potentially using contextual bandit methods such as LinUCB-style selection. |

@@ -95,7 +95,7 @@ Fontes actuais de verdade:
 - [`../../current-state.md`](../../current-state.md)
 - [`../../roadmap.md`](../../roadmap.md)
 - [`../../evidence.md`](../../evidence.md)
-- [`../../reference/scenario-executor-poc.md`](../../reference/scenario-executor-poc.md)
+- [`../../reference/scenario-executor.md`](../../reference/scenario-executor.md)
 
 ## 3. O que foi implementado
 
@@ -2215,7 +2215,7 @@ Execução:
 
 Doc de referência:
 
-- `../../reference/scenario-executor-poc.md`
+- `../../reference/scenario-executor.md`
 
 #### Fluxo conceptual
 

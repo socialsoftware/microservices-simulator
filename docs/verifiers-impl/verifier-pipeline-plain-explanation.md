@@ -1,6 +1,6 @@
 # Verifier pipeline, plain explanation
 
-Last updated: 2026-06-23
+Last updated: 2026-07-08
 
 Purpose: explain the verifier in meeting/thesis language without implementation archaeology.
 
@@ -36,7 +36,7 @@ source/tests
   -> scenario catalog
   -> optional dynamic evidence
   -> enriched sidecar catalog
-  -> narrow executor POC / future generic execution
+  -> narrow supported single-saga fault-vector executor path / future generic execution
 ```
 
 ## Stage 1: static extraction
@@ -204,22 +204,23 @@ Do not overstate this. It does not prove stream/gRPC, distributed, TCC, or gener
 
 ## Stage 5: scenario execution
 
-A narrow ScenarioExecutor POC exists. It can run supported single-saga catalog candidates and has one successful Quizzes smoke.
+A narrow ScenarioExecutor path exists. It can run supported materializable single-saga catalog candidates with either the default vector or one explicit binary fault vector, and Quizzes smoke now covers both `SUCCESS` and `FAULT_COMPENSATED`.
 
-Current POC evidence:
+Current bounded-path evidence:
 
 ```text
 Saga: GetCourseExecutionsFunctionalitySagas
-Step: getCourseExecutionsStep
-Terminal status: SUCCESS
+Default vector: 0 -> SUCCESS / COMMITTED
+Explicit vector: 1 -> FAULT_COMPENSATED / COMPENSATED
 ```
 
 But generic scenario execution is not complete. Still missing:
 
 - arbitrary catalog replay;
 - multi-saga execution;
-- generated fault injection;
-- behavior CSV generation;
+- TCC execution;
+- stream/gRPC/distributed parity;
+- behavior CSV generation as an executor contract;
 - impact scoring;
 - GA/local search;
 - scenario prioritization.

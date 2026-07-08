@@ -117,13 +117,13 @@ The runtime side should:
 
 ### Current status
 
-POC only.
+Implemented for a narrow bounded path only.
 
-A narrow verifier-owned ScenarioExecutor POC can load a catalog/enriched catalog, select or receive a supported single-saga scenario, materialize only supported inputs, run the selected saga step schedule, and write an execution report. It has a Quizzes smoke success for one generated single-saga plan.
+A verifier-owned ScenarioExecutor now supports a materializable single-saga saga/local path: it can load a catalog/enriched catalog, select or receive a supported single-saga scenario, validate a default or explicit binary fault vector, materialize only supported inputs, run the selected saga step schedule, close lifecycle state, and write a standalone v2 execution report. Quizzes smoke now covers both `SUCCESS` and `FAULT_COMPENSATED` for one generated single-saga plan.
 
 Current accounting distinguishes three different notions: static accepted input coverage, static recipe readiness, and ScenarioExecutor materializability. In the post-event Quizzes count-only run, `acceptedInputVariantCount=584`, `staticRecipeReadyInputVariantCount=0`, and `executorMaterializableInputVariantCount=94` / `executorReadyInputVariantCount=94`; this does not mean all accepted inputs can replay, and event payload placeholders remain blockers.
 
-Generic execution is still not implemented. The POC does not cover arbitrary catalog replay, multi-saga schedules, generated fault injection, behavior CSV generation, impact scoring, GA search, or scenario prioritization.
+Generic execution is still not implemented. The current supported path does not cover arbitrary catalog replay, multi-saga schedules, TCC execution, stream/gRPC/distributed parity, compensation-step faults, delay/non-binary impairments, impact scoring, GA search, or scenario prioritization.
 
 Current static work prepares for the broader stage by preserving:
 
@@ -226,7 +226,7 @@ Dependencies:
 | Segment-compressed scheduling/accounting | Implemented static reduction | scheduler/accounting specs, dummyapp integration, Quizzes count-only comparison | Exact aggregate-instance binding and runtime semantic completeness remain separate |
 | Dynamic evidence + sidecar enrichment | Implemented MVP with refreshed ownership-aware baseline | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, 2026-06-30 Quizzes baseline (`MATCHED_EXACT=435`, `MATCHED_HIGH_CONFIDENCE=125`, `AMBIGUOUS=0`, `UNMATCHED=24`) | Triage residual unmatched records; runtime attribution refinement only where justified; stream/gRPC/distributed/TCC parity |
 | Quizzes orchestration smoke baseline | Implemented | 2026-06-29 full/default dynamic baseline in `current-state.md` / `evidence.md` | Refresh periodically and track exact/ambiguous/unmatched trends |
-| ScenarioExecutor | POC / materializability accounting evolving | `scenario-executor-poc.md`, Quizzes single-saga smoke, post-event count-only accounting (`94` materializable, `0` static recipe-ready) | Event payload materialization, general catalog replay, multi-saga execution, fault injection, impact scoring |
+| ScenarioExecutor | Implemented for bounded single-saga fault-vector path / materializability accounting evolving | `scenario-executor.md`, Quizzes single-saga default/explicit-vector smokes, post-event count-only accounting (`94` materializable, `0` static recipe-ready) | Event payload materialization, general catalog replay, multi-saga execution, broader runtime parity, impact scoring |
 | Behavior CSV generation | Not implemented | none | Decide whether adapter or canonical contract |
 | Impact scoring | Not implemented | none | Requires executable scenarios |
 | GA search | Not implemented | none | Requires impact scoring |
@@ -238,9 +238,8 @@ Dependencies:
 2. Triage the refreshed dynamic baseline's `UNMATCHED=24` records, especially `UNCLASSIFIED=9`, before deciding whether runtime-value/aggregate-key matching is worth improving before executor work.
 3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
 4. Improve aggregate-instance key binding where it affects scenario usefulness.
-5. Define the ScenarioExecutor input contract and decide JSONL-vs-CSV responsibilities after materialization semantics are clearer.
-6. Implement a minimal repeatable executor baseline for materializable single-saga scenarios.
-7. Extend executor to bounded multi-saga schedules.
-8. Add first impact metrics.
-9. Add local GA search for a fixed scenario.
-10. Add scenario prioritization after scenario execution and impact scoring exist.
+5. Extend the current ScenarioExecutor beyond the supported single-saga fault-vector path only when materialization semantics are clearer.
+6. Extend executor to bounded multi-saga schedules.
+7. Add first impact metrics.
+8. Add local GA search for a fixed scenario.
+9. Add scenario prioritization after scenario execution and impact scoring exist.

@@ -22,7 +22,7 @@ This directory documents the verifier/scenario-generation work. Keep the main pa
 | Structured input recipes | [`reference/input-recipes.md`](reference/input-recipes.md) |
 | Dynamic enrichment overview | [`reference/dynamic-enrichment.md`](reference/dynamic-enrichment.md) |
 | Dynamic enrichment detailed reference | [`archive/investigations/dynamic-enrichment-joining-reference.md`](archive/investigations/dynamic-enrichment-joining-reference.md) |
-| ScenarioExecutor POC | [`reference/scenario-executor-poc.md`](reference/scenario-executor-poc.md) |
+| ScenarioExecutor | [`reference/scenario-executor.md`](reference/scenario-executor.md) |
 | Durable design decisions | [`decisions/`](decisions/index.md) |
 
 ## Historical material

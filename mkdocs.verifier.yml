@@ -38,7 +38,7 @@ nav:
       - Dynamic Enrichment: reference/dynamic-enrichment.md
       - Source-to-Input Flow: reference/source-to-input-flow.md
       - Input Recipes: reference/input-recipes.md
-      - ScenarioExecutor POC: reference/scenario-executor-poc.md
+      - ScenarioExecutor: reference/scenario-executor.md
   - Decisions:
       - Overview: decisions/index.md
       - Saga Only Verifier Scope: decisions/2026-04-05-saga-only-verifier-scope.md
@@ -60,6 +60,8 @@ nav:
           - 2026 W14: archive/implementation-log/2026-W14.md
       - Meeting Notes:
           - Overview: archive/meeting-notes/index.md
+          - 2026 W27 Thesis Meeting Outcomes: archive/meeting-notes/2026-W27-thesis-meeting-outcomes.md
+          - 2026 W27 Thesis Meeting: archive/meeting-notes/2026-W27-thesis-meeting.md
           - 2026 W26 Thesis Meeting: archive/meeting-notes/2026-W26-thesis-meeting.md
           - 2026 W23 Thesis Meeting: archive/meeting-notes/2026-W23-thesis-meeting.md
           - 2026 W22 Thesis Meeting: archive/meeting-notes/2026-W22-thesis-meeting.md

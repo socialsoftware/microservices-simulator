@@ -32,7 +32,7 @@ Use the active docs, not the archive, as the source of truth:
 - [`../../advisor-brief.md`](../../advisor-brief.md)
 - [`../../roadmap.md`](../../roadmap.md)
 - [`../../evidence.md`](../../evidence.md)
-- [`../../reference/scenario-executor-poc.md`](../../reference/scenario-executor-poc.md)
+- [`../../reference/scenario-executor.md`](../../reference/scenario-executor.md)
 
 Prepare a short in-person walkthrough rather than rereading every historical note. The goal is to explain the system, show what runs, identify weak spots, and ask for direction on the next thesis milestone.
 
