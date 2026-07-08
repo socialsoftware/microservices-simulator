@@ -9,7 +9,7 @@ class ScenarioExecutorOrchestratorSpec extends Specification {
         given:
         def calls = []
         def runner = { List<String> command, Path workingDirectory -> calls << [command, workingDirectory]; 0 } as ScenarioExecutorOrchestrator.ProcessRunner
-        def config = new ScenarioExecutorOrchestrator.Config(Path.of('/tmp/app'), 'com.example.Application', 'test-sagas', 'local,sagas', Path.of('/tmp/run/scenario-catalog.jsonl'), Path.of('/tmp/out/execution-report.json'), 'scenario-1', 'target/classes:verifiers.jar')
+        def config = new ScenarioExecutorOrchestrator.Config(Path.of('/tmp/app'), 'com.example.Application', 'test-sagas', 'local,sagas', Path.of('/tmp/run/scenario-catalog.jsonl'), Path.of('/tmp/out/execution-report.json'), 'scenario-1', '010', 'target/classes:verifiers.jar')
 
         when:
         def status = new ScenarioExecutorOrchestrator(runner).run(config)
@@ -18,7 +18,7 @@ class ScenarioExecutorOrchestratorSpec extends Specification {
         status == 0
         calls[0][0] == ['mvn', '-P', 'test-sagas', 'test-compile']
         calls[0][1] == Path.of('/tmp/app')
-        calls[1][0].containsAll(['java', '-cp', 'target/classes:verifiers.jar', 'pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorCli', '--spring-profiles', 'local,sagas', '--catalog-path', '/tmp/run/scenario-catalog.jsonl', '--output-path', '/tmp/out/execution-report.json', '--scenario-id', 'scenario-1'])
+        calls[1][0].containsAll(['java', '-cp', 'target/classes:verifiers.jar', 'pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorCli', '--spring-profiles', 'local,sagas', '--application-base', '/tmp/app', '--application-id', 'app', '--maven-profile', 'test-sagas', '--catalog-path', '/tmp/run/scenario-catalog.jsonl', '--output-path', '/tmp/out/execution-report.json', '--scenario-id', 'scenario-1', '--fault-vector', '010'])
         calls[1][1] == Path.of('/tmp/app')
     }
 
@@ -35,13 +35,13 @@ class ScenarioExecutorOrchestratorSpec extends Specification {
     def 'orchestrator rejects missing required output path'() {
         when:
         new ScenarioExecutorOrchestrator({ List<String> command, Path workingDirectory -> 0 } as ScenarioExecutorOrchestrator.ProcessRunner)
-                .run(new ScenarioExecutorOrchestrator.Config(Path.of('/tmp/app'), 'App', 'test', 'local', Path.of('/tmp/catalog.jsonl'), null, null, 'cp'))
+                .run(new ScenarioExecutorOrchestrator.Config(Path.of('/tmp/app'), 'App', 'test', 'local', Path.of('/tmp/catalog.jsonl'), null, null, null, 'cp'))
 
         then:
         thrown(IllegalArgumentException)
     }
 
     private static ScenarioExecutorOrchestrator.Config validConfig() {
-        new ScenarioExecutorOrchestrator.Config(Path.of('/tmp/app'), 'App', 'test', 'local', Path.of('/tmp/catalog.jsonl'), Path.of('/tmp/report.json'), null, 'cp')
+        new ScenarioExecutorOrchestrator.Config(Path.of('/tmp/app'), 'App', 'test', 'local', Path.of('/tmp/catalog.jsonl'), Path.of('/tmp/report.json'), null, null, 'cp')
     }
 }

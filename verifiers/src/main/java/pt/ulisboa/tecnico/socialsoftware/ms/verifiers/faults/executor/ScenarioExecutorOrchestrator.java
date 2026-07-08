@@ -24,6 +24,12 @@ public class ScenarioExecutorOrchestrator {
         command.add(config.springApplicationClass());
         command.add("--spring-profiles");
         command.add(config.springProfiles());
+        command.add("--application-base");
+        command.add(config.applicationBaseDirectory().toString());
+        command.add("--application-id");
+        command.add(applicationId(config.applicationBaseDirectory()));
+        command.add("--maven-profile");
+        command.add(config.mavenProfile());
         command.add("--catalog-path");
         command.add(config.catalogPath().toString());
         command.add("--output-path");
@@ -31,6 +37,10 @@ public class ScenarioExecutorOrchestrator {
         if (config.scenarioId() != null && !config.scenarioId().isBlank()) {
             command.add("--scenario-id");
             command.add(config.scenarioId());
+        }
+        if (config.faultVector() != null && !config.faultVector().isBlank()) {
+            command.add("--fault-vector");
+            command.add(config.faultVector());
         }
         return processRunner.run(command, config.applicationBaseDirectory());
     }
@@ -46,6 +56,11 @@ public class ScenarioExecutorOrchestrator {
 
     private boolean blank(String value) { return value == null || value.isBlank(); }
 
+    private String applicationId(Path applicationBaseDirectory) {
+        Path fileName = applicationBaseDirectory.getFileName();
+        return fileName == null ? applicationBaseDirectory.toString() : fileName.toString();
+    }
+
     public interface ProcessRunner {
         int run(List<String> command, Path workingDirectory);
     }
@@ -57,6 +72,7 @@ public class ScenarioExecutorOrchestrator {
                          Path catalogPath,
                          Path outputPath,
                          String scenarioId,
+                         String faultVector,
                          String classpath) {
     }
 }

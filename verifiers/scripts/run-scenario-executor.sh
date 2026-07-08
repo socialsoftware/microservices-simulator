@@ -27,7 +27,9 @@ fi
 mkdir -p "$(dirname "$OUTPUT_PATH")" /tmp/scenario-executor
 
 echo "Installing simulator dependency into Maven cache"
-mvn -q -DskipTests -Dprotobuf.skip -f /workspace/simulator/pom.xml clean install
+rm -rf /tmp/scenario-executor/simulator
+cp -R /workspace/simulator /tmp/scenario-executor/simulator
+mvn -q -DskipTests -Dprotobuf.skip -f /tmp/scenario-executor/simulator/pom.xml clean install
 
 echo "Building verifier executor classes"
 cd /verifiers
@@ -44,6 +46,9 @@ SCENARIO_ARGS=()
 if [[ -n "${SCENARIO_ID:-}" ]]; then
   SCENARIO_ARGS+=(--scenario-id "$SCENARIO_ID")
 fi
+if [[ -n "${FAULT_VECTOR:-}" ]]; then
+  SCENARIO_ARGS+=(--fault-vector "$FAULT_VECTOR")
+fi
 
 echo "Running scenario executor"
 echo "  application: ${APPLICATION_BASE_DIR}"
@@ -54,10 +59,21 @@ if [[ -n "${SCENARIO_ID:-}" ]]; then
 else
   echo "  scenario id: <auto-select>"
 fi
+if [[ -n "${FAULT_VECTOR:-}" ]]; then
+  echo "  fault vector: <explicit>"
+else
+  echo "  fault vector: <catalog default>"
+fi
+
+SPRING_PROFILES_VALUE="$SPRING_PROFILES"
+unset SPRING_PROFILES
 
 java -cp "$CP" pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorCli \
   --spring-application-class "$SPRING_APPLICATION_CLASS" \
-  --spring-profiles "$SPRING_PROFILES" \
+  --spring-profiles "$SPRING_PROFILES_VALUE" \
+  --application-base "$APPLICATION_BASE_DIR" \
+  --application-id "$APPLICATION_BASE_DIR" \
+  --maven-profile "$MAVEN_PROFILE" \
   --catalog-path "$CATALOG_PATH" \
   --output-path "$OUTPUT_PATH" \
   "${SCENARIO_ARGS[@]}" \

@@ -250,8 +250,9 @@ services:
       SPRING_APPLICATION_CLASS: ${SPRING_APPLICATION_CLASS:-pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator}
       MAVEN_PROFILE: ${MAVEN_PROFILE:-test-sagas}
       SPRING_PROFILES: ${SPRING_PROFILES:-test,sagas,local}
-      CATALOG_PATH: ${CATALOG_PATH:?CATALOG_PATH is required}
+      CATALOG_PATH: ${CATALOG_PATH:-}
       SCENARIO_ID: ${SCENARIO_ID:-}
+      FAULT_VECTOR: ${FAULT_VECTOR:-}
       OUTPUT_PATH: ${OUTPUT_PATH:-/reports/scenario-executor/execution-report.json}
       SERVER_PORT: ${SERVER_PORT:-0}
     stop_signal: SIGKILL
