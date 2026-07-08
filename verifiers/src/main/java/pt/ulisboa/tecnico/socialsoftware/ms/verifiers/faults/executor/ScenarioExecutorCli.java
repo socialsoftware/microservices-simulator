@@ -23,11 +23,25 @@ public class ScenarioExecutorCli {
                     Path.of(options.get("catalog-path")),
                     Path.of(options.get("output-path")),
                     options.get("scenario-id"),
-                    Boolean.parseBoolean(options.getOrDefault("dry-run", "false")));
+                    options.get("fault-vector"),
+                    Boolean.parseBoolean(options.getOrDefault("dry-run", "false")),
+                    options.get("application-base"),
+                    options.get("application-id"),
+                    options.get("spring-application-class"),
+                    springProfiles,
+                    options.get("maven-profile"));
             ScenarioExecutionReport report = new ScenarioExecutor().execute(executorOptions, runtimeContext);
             System.out.println("Scenario executor selected " + report.scenarioPlanId() + " status=" + report.terminalStatus());
             report.stepOutcomes().forEach(step -> System.out.println("step " + step.scheduleOrder() + " " + step.runtimeStepName() + " " + step.status()));
+            System.exit(exitCodeFor(report.terminalStatus()));
         }
+    }
+
+    static int exitCodeFor(String terminalStatus) {
+        return switch (terminalStatus == null ? "" : terminalStatus) {
+            case "SUCCESS", "FAULT_COMPENSATED", "DRY_RUN" -> 0;
+            default -> 1;
+        };
     }
 
     private static Map<String, String> parse(String[] args) {

@@ -1,5 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorFault;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorInjectedFaultException;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 import java.util.ArrayList;
@@ -9,6 +12,11 @@ import java.util.List;
 public class FixtureWorkflow {
     public static final List<String> STEPS = new ArrayList<>();
     public static int resumeCalls = 0;
+    public static int compensationCalls = 0;
+    public static boolean suppressFaultSignal = false;
+    public static boolean injectUnexpectedSignal = false;
+    public static boolean injectWrongSlotSignal = false;
+    public static boolean compensationFails = false;
 
     private final Object argument;
 
@@ -25,6 +33,30 @@ public class FixtureWorkflow {
     }
 
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
+        FaultVectorProviderHolder.currentBoundary()
+                .filter(context -> stepName.equals(context.runtimeStepName()))
+                .ifPresent(context -> {
+                    if (injectUnexpectedSignal) {
+                        throw new FaultVectorInjectedFaultException(FaultVectorFault.from(context));
+                    }
+                    if (injectWrongSlotSignal) {
+                        throw new FaultVectorInjectedFaultException(new FaultVectorFault(
+                                context.scenarioExecutionId(),
+                                context.scenarioPlanId(),
+                                context.sagaInstanceId(),
+                                context.scheduledStepId() + "-wrong",
+                                context.slotIndex(),
+                                context.functionalityClassFqn(),
+                                context.functionalityClassSimpleName(),
+                                context.runtimeStepName(),
+                                context.assignedBit()));
+                    }
+                    if (!suppressFaultSignal) {
+                        FaultVectorProviderHolder.faultForCurrentBoundary().ifPresent(fault -> {
+                            throw new FaultVectorInjectedFaultException(fault);
+                        });
+                    }
+                });
         STEPS.add(stepName);
         if ("fail".equals(stepName)) {
             throw new IllegalStateException("fixture failure");
@@ -33,5 +65,12 @@ public class FixtureWorkflow {
 
     public void resumeWorkflow(UnitOfWork unitOfWork) {
         resumeCalls++;
+    }
+
+    public void resumeCompensation(UnitOfWork unitOfWork) {
+        compensationCalls++;
+        if (compensationFails) {
+            throw new IllegalStateException("fixture compensation failure");
+        }
     }
 }
