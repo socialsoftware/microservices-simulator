@@ -5,8 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.tournament.aggregate.sagas.SagaTournament;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 public class SagaTournamentDto extends TournamentDto {
+@Convert(converter = SagaStateConverter.class)
 private SagaState sagaState;
 
 public SagaTournamentDto(Tournament tournament) {

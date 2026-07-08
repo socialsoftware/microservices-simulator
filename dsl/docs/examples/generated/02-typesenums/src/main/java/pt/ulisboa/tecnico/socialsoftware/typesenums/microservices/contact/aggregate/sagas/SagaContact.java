@@ -6,9 +6,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaSt
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.typesenums.microservices.contact.aggregate.Contact;
 import pt.ulisboa.tecnico.socialsoftware.typesenums.shared.dtos.ContactDto;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 @Entity
 public class SagaContact extends Contact implements SagaAggregate {
+    @Convert(converter = SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaContact() {

@@ -5,8 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.businessrules.microservices.product.agg
 import pt.ulisboa.tecnico.socialsoftware.businessrules.shared.dtos.ProductDto;
 import pt.ulisboa.tecnico.socialsoftware.businessrules.microservices.product.aggregate.sagas.SagaProduct;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 public class SagaProductDto extends ProductDto {
+@Convert(converter = SagaStateConverter.class)
 private SagaState sagaState;
 
 public SagaProductDto(Product product) {

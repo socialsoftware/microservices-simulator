@@ -7,6 +7,6 @@ import java.util.Set;
 
 public interface CourseExecutionRepository extends AggregateRepository {
 
-    @Query("select ce1.aggregateId from CourseExecution ce1 where ce1.aggregateId NOT IN (select ce2.aggregateId from CourseExecution ce2 where ce2.state = 'DELETED' AND ce2.sagaState != 'NOT_IN_SAGA')")
+    @Query("select ce1.aggregateId from CourseExecution ce1 where ce1.aggregateId NOT IN (select ce2.aggregateId from CourseExecution ce2 where ce2.state = 'DELETED' AND ce2.sagaState != pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState.NOT_IN_SAGA)")
     Set<Integer> findCourseExecutionIdsOfAllNonDeletedForSaga();
 }

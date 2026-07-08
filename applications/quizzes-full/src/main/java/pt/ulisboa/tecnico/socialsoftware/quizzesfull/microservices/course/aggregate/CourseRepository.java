@@ -14,6 +14,6 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     @Query(value = "select c1.aggregateId from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE'")
     Optional<Integer> findCourseIdByNameForTCC(String courseName);
 
-    @Query(value = "select c1.aggregateId from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE' AND c1.sagaState = 'NOT_IN_SAGA'")
+    @Query(value = "select c1.aggregateId from Course c1 where c1.name = :courseName AND c1.state = 'ACTIVE' AND c1.sagaState = pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState.NOT_IN_SAGA")
     Optional<Integer> findCourseIdByNameForSaga(String courseName);
 }
