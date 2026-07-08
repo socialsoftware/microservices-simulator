@@ -30,6 +30,7 @@ public final class TestCase {
 
         private final Map<FunctionalityId, WorkflowFunctionality> functionalities = new HashMap<>();
         private final StepDependencies interDependencies = new StepDependencies();
+        private final StepDependencyGraph interDependencyGraph = new StepDependencyGraph();
 
         public Builder addFunctionality(
                 FunctionalityId functionalityId, WorkflowFunctionality functionality) {
@@ -66,7 +67,14 @@ public final class TestCase {
                                 .formatted(stepId, dependsOnStepId, stepId.getFunctionalityId()));
             }
 
+            if (interDependencyGraph.wouldCreateCycle(stepId, dependsOnStepId)) {
+                throw new IllegalArgumentException(
+                        "'%s' can't depend on '%s': it would create an inter-dependency cycle, leading to a deadlock"
+                                .formatted(stepId, dependsOnStepId));
+            }
+
             interDependencies.addStepDependencies(stepId, Set.of(dependsOnStepId));
+            interDependencyGraph.addDependency(stepId, dependsOnStepId);
             return this;
         }
 
