@@ -12,10 +12,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.notification.handling.QuizEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.InterInvariantTestBase
 
-// T4 — Subscription (Inter-Invariant): consumer-side event handling for Quiz's subscribed
+// T3 — Subscription (Inter-Invariant): consumer-side event handling for Quiz's subscribed
 // events (QUESTION_EXISTS, COURSE_EXECUTION_EXISTS). Producer-side event-store assertions are
-// owned by QuestionEventPublicationTest (UpdateQuestionEvent, DeleteQuestionEvent) and
-// ExecutionEventPublicationTest (DeleteCourseExecutionEvent).
+// owned by QuestionServiceTest (UpdateQuestionEvent, DeleteQuestionEvent) and
+// ExecutionServiceTest (DeleteCourseExecutionEvent).
 @DataJpaTest
 @Transactional
 @Import(LocalBeanConfiguration)

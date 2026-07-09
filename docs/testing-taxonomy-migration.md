@@ -12,9 +12,9 @@ checkbox, run the affected tests, and stop. Do not start the next phase/session.
 | Tier | Name | Test class | Scope | Profile-agnostic? |
 |------|------|-----------|-------|-------------------|
 | **T1** | Aggregate | `<Aggregate>IntraInvariantTest` | Intra-invariants (P1): creation happy-path, one violation per non-`final` P1 rule (EP), boundary on/off-points (BVA). Direct construction + `verifyInvariants()`. Unchanged from old T1. | yes |
-| **T2** | Service | `<Aggregate>ServiceTest` — **one class per aggregate**, all service methods | Service contract: change persisted to DB (read back via a **fresh** UnitOfWork), uniqueness / composite-key guards, not-found paths (Path A `SimulatorException` / Path B `<App>Exception`), P3 numeric-guard boundaries. Invoke the `*Service` bean directly with a `UnitOfWork` — no saga workflow. | yes |
-| **T3** | Event Publication | `<Aggregate>EventPublicationTest` — only for aggregates that publish events | Publisher side: service op runs → event row exists in the event store with correct type + payload fields. Trigger **via service call** (not via `<X>Functionalities`), assert against the event repository. Abstracts away all consumers. | mostly |
-| **T4** | Functionality | `<FunctionalityName>Test` + `<Consumer>InterInvariantTest` | Orchestration + cross-aggregate consistency: saga state-machine traversal (`NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA`), semantic-lock acquisition per lock step, P3 guard violations raised **through the saga path**, event subscription → cached-state update / unrelated-event-ignored / deletion-event cases (former T3 inter-invariant content). | no (sagas-specific) |
+| **T2** | Service | `<Aggregate>ServiceTest` — **one class per aggregate**, all service methods | Service contract: change persisted to DB (read back via a **fresh** UnitOfWork), uniqueness / composite-key guards, not-found paths (Path A `SimulatorException` / Path B `<App>Exception`), P3 numeric-guard boundaries. Invoke the `*Service` bean directly with a `UnitOfWork` — no saga workflow. **Also owns event-publication assertions**: per published event type, one payload-asserting case + one negative "does not publish" case. | yes |
+| **T3** | Subscription (Inter-Invariant) | `<Consumer>InterInvariantTest` — only for aggregates with subscribed events | Consumer side: event received → cached state updated; unrelated event → state unchanged; deletion event → consumer deleted. Trigger publication via a functionality, poll via the consumer's event-handling bean, assert on consumer state. Must not re-assert event-store contents — T2 owns that. | mostly |
+| **T4** | Functionality | `<FunctionalityName>Test` + `<FunctionalityName>CompensationTest` | Orchestration: saga state-machine traversal (`NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA`), semantic-lock acquisition per lock step, P3 guard violations raised **through the saga path**, compensation on mid-saga failure. | no (sagas-specific) |
 
 ### Locked-in decisions (do not re-litigate in sessions)
 
@@ -23,13 +23,17 @@ checkbox, run the affected tests, and stop. Do not start the next phase/session.
    - T4 functionality tests **stop** asserting field-level persistence, uniqueness, and not-found —
      those move to T2. T4 happy paths assert orchestration outcomes: the operation completes, the
      returned DTO is coherent, and `sagaStateOf(id) == NOT_IN_SAGA`.
-   - T4 keeps: lock-acquisition cases (`executeUntilStep`), P3 guard violations that involve
-     cross-aggregate saga coordination, and all inter-invariant (subscription) tests.
-   - T3 owns event-publication assertions; T4 subscription tests may *trigger* publication via a
-     functionality but must not re-assert event-store contents.
-3. **T3 trigger mechanism:** call the service directly with a `UnitOfWork`, then assert on the event
-   repository. This works because `SagaUnitOfWorkService.registerEvent` saves the event immediately
-   via `eventService.saveEvent(event)` (and marks it published under the `local` profile).
+   - T4 keeps: lock-acquisition cases (`executeUntilStep`) and P3 guard violations that involve
+     cross-aggregate saga coordination.
+   - T2 owns event-publication assertions (merged from old T3): per published event type, one
+     payload-asserting case + one negative no-publish case, asserted via the `EventService` bean.
+   - T3 owns subscription (consumer-side) assertions: event received → cached state updated /
+     unrelated ignored / deletion → consumer deleted. T3 tests may *trigger* publication via a
+     functionality but must not re-assert event-store contents — T2 owns that.
+3. **T2 event-publication trigger mechanism:** call the service directly with a `UnitOfWork`, then
+   assert on the event repository. This works because `SagaUnitOfWorkService.registerEvent` saves
+   the event immediately via `eventService.saveEvent(event)` (and marks it published under the
+   `local` profile).
 4. **Why T2 needs no explicit commit:** in the sagas profile, `SagaUnitOfWorkService.registerChanged`
    versions, invariant-checks, and `entityManager.merge`s the aggregate **inside the service call**;
    the workflow-level `commit(uow)` only resets `SagaState`. Persistence is a per-service property.
@@ -48,6 +52,20 @@ checkbox, run the affected tests, and stop. Do not start the next phase/session.
    template, and the `ExecutionPlan` mechanical caveat (lock step must be a root/no-dependency step)
    are in `docs/concepts/testing.md` § Compensation Test. Guard/forbidden-state transitions stay
    out of scope (decision 6) — do not fold them into compensation work.
+8. **T3 Event Publication merged into T2; Subscription promoted from T4 to T3 (supervisor-requested
+   amendment, 2026-07-09 — see `docs/testing-taxonomy-amendment.md`):** old T3 (`<Aggregate>EventPublicationTest`,
+   publisher side) was a separate tier only because it happened to reuse the vacated T3 slot after
+   the original 3→4-tier migration; there's no independent reason to verify event publication outside
+   the service contract it's part of. Merged into T2: event-publication test methods physically move
+   into `<Aggregate>ServiceTest.groovy` as appended `def` methods (not folded into existing `then:`
+   blocks), `<Aggregate>EventPublicationTest.groovy` is deleted. This vacates T3 again, so
+   `<Consumer>InterInvariantTest` (previously T4-subscription) is relabeled — pure relabel, no file
+   move or rename — from T4 to T3, since it already lives in `sagas/<aggregate>/` alongside T1/T2.
+   T4 becomes purely orchestration (`<FunctionalityName>Test` + `<FunctionalityName>CompensationTest`),
+   losing the inter-invariant content it picked up in decision 2. Retrofit scope: the 6 aggregates
+   already migrated as of this amendment (Course, User, Topic, Execution, Question, Quiz — rows
+   3.1–3.6 below); QuizAnswer/Tournament (rows 3.7/3.8, not yet run) just follow the corrected
+   taxonomy when they run, no separate retrofit needed for them.
 
 ---
 
@@ -110,16 +128,16 @@ Guidance:
 
 Topological order (same as plan.md). Per-session scope:
 
-| Session | Aggregate | New T2 class | New T3 class (events published) | T4 trim scope | New compensation tests (T4) |
+| Session | Aggregate | New T2 class | Event publication (merged into T2) | T4 trim scope | New compensation tests (T4) |
 |---------|-----------|--------------|--------------------------------|---------------|------------------------------|
-| - [x] 3.1 | Course | `CourseServiceTest` | — (publishes none) | `CreateCourseTest`, `UpdateCourseTest`, `DeleteCourseTest`, `GetCourseByIdTest` | Retrofitted post-merge: `DeleteCourseCompensationTest`; `UpdateCourseTest` got an added assertion instead of a new file (see Discovered issues) |
-| - [x] 3.2 | User | `UserServiceTest` | `UserEventPublicationTest` — `DeleteUserEvent`, `UpdateStudentNameEvent`, `AnonymizeStudentEvent` | `CreateUserTest`, `DeleteUserTest`, `UpdateUserNameTest`, `UpdateStudentNameTest`, `AnonymizeUserTest`, `AnonymizeStudentTest`, `GetUserByIdTest`, `GetStudentByExecutionIdAndUserIdTest` | Retrofitted post-merge: `DeleteUserCompensationTest`, `UpdateUserNameCompensationTest`, `AnonymizeUserCompensationTest` |
-| - [x] 3.3 | Topic | `TopicServiceTest` | `TopicEventPublicationTest` — `UpdateTopicEvent`, `DeleteTopicEvent` | `CreateTopicTest`, `UpdateTopicTest`, `DeleteTopicTest`, `GetTopicByIdTest`, `GetTopicsByCourseIdTest` | Retrofitted post-merge: `CreateTopicCompensationTest`, `UpdateTopicCompensationTest`, `DeleteTopicCompensationTest` |
-| - [x] 3.4 | Execution | `ExecutionServiceTest` | `ExecutionEventPublicationTest` — `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent` | `CreateExecutionTest`, `UpdateExecutionTest`, `DeleteExecutionTest`, `EnrollStudentInExecutionTest`, `DisenrollStudentTest`, `GetExecutionByIdTest`; keep `ExecutionInterInvariantTest` (relabel comments to T4) | Retrofitted post-merge: `UpdateExecutionCompensationTest` (pre-existing template), `CreateExecutionCompensationTest`, `DeleteExecutionCompensationTest`, `DisenrollStudentCompensationTest`, `UpdateStudentNameCompensationTest`, `AnonymizeStudentCompensationTest`. **No** `EnrollStudentInExecutionCompensationTest` — see Discovered issues (`getExecutionStep` is not a root step; the fault mechanism can't genuinely exercise its compensation) |
-| - [x] 3.5 | Question | `QuestionServiceTest` | `QuestionEventPublicationTest` — `UpdateQuestionEvent`, `DeleteQuestionEvent` | `CreateQuestionTest`, `UpdateQuestionTest`, `DeleteQuestionTest`, `GetQuestionByIdTest`, `GetQuestionsByCourseExecutionIdTest`; keep `QuestionInterInvariantTest` | `CreateQuestionCompensationTest`, `UpdateQuestionCompensationTest`, `DeleteQuestionCompensationTest` — all three lock steps are root steps, so unlike Execution's excluded case, all three functionalities got genuine tests |
-| - [x] 3.6 | Quiz | `QuizServiceTest` | `QuizEventPublicationTest` — `InvalidateQuizEvent` | `CreateQuizTest`, `UpdateQuizTest`, `GetQuizByIdTest` trimmed; `ConcludeQuizTest`/`SolveQuizTest` left untouched — see Discovered Issues; keep `QuizInterInvariantTest` | `CreateQuizCompensationTest`, `UpdateQuizCompensationTest` — both lock steps (`getExecutionStep`, `getQuizStep`) are root steps, so both got genuine compensation tests |
-| - [ ] 3.7 | QuizAnswer | `QuizAnswerServiceTest` | `QuizAnswerEventPublicationTest` — `QuizAnswerQuestionAnswerEvent` | `CreateQuizAnswerTest`, `AnswerQuestionTest`, `GetQuizAnswerByQuizIdAndStudentIdTest`; keep `QuizAnswerInterInvariantTest` | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7) |
-| - [ ] 3.8 | Tournament | `TournamentServiceTest` | — (publishes none) | `CreateTournamentTest`, `UpdateTournamentTest`, `CancelTournamentTest`, `DeleteTournamentTest`, `AddParticipantTest`, `GetTournamentByIdTest`, `GetOpenTournamentsTest`; keep `TournamentInterInvariantTest` | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7); `AddParticipantFunctionalitySagas` has a forbidden-state guard — compensation and guard are separate concerns, don't conflate |
+| - [x] 3.1 | Course | `CourseServiceTest` | — (publishes none; no `EventPublicationTest` ever existed) | `CreateCourseTest`, `UpdateCourseTest`, `DeleteCourseTest`, `GetCourseByIdTest` | Retrofitted post-merge: `DeleteCourseCompensationTest`; `UpdateCourseTest` got an added assertion instead of a new file (see Discovered issues) |
+| - [x] 3.2 | User | `UserServiceTest` | `DeleteUserEvent`, `UpdateStudentNameEvent`, `AnonymizeStudentEvent` + negative case — `UserEventPublicationTest.groovy` deleted, methods merged into `UserServiceTest.groovy` (amendment retrofit, see decision 8) | `CreateUserTest`, `DeleteUserTest`, `UpdateUserNameTest`, `UpdateStudentNameTest`, `AnonymizeUserTest`, `AnonymizeStudentTest`, `GetUserByIdTest`, `GetStudentByExecutionIdAndUserIdTest` | Retrofitted post-merge: `DeleteUserCompensationTest`, `UpdateUserNameCompensationTest`, `AnonymizeUserCompensationTest` |
+| - [x] 3.3 | Topic | `TopicServiceTest` | `UpdateTopicEvent`, `DeleteTopicEvent` + negative case — `TopicEventPublicationTest.groovy` deleted, methods merged into `TopicServiceTest.groovy` (amendment retrofit, see decision 8) | `CreateTopicTest`, `UpdateTopicTest`, `DeleteTopicTest`, `GetTopicByIdTest`, `GetTopicsByCourseIdTest` | Retrofitted post-merge: `CreateTopicCompensationTest`, `UpdateTopicCompensationTest`, `DeleteTopicCompensationTest` |
+| - [x] 3.4 | Execution | `ExecutionServiceTest` | `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent` + negative case — `ExecutionEventPublicationTest.groovy` deleted, methods merged into `ExecutionServiceTest.groovy` (amendment retrofit, see decision 8) | `CreateExecutionTest`, `UpdateExecutionTest`, `DeleteExecutionTest`, `EnrollStudentInExecutionTest`, `DisenrollStudentTest`, `GetExecutionByIdTest`; keep `ExecutionInterInvariantTest` (relabel comments to T3 — header comment + producer-side cross-reference now names `UserServiceTest`, not `UserEventPublicationTest`) | Retrofitted post-merge: `UpdateExecutionCompensationTest` (pre-existing template), `CreateExecutionCompensationTest`, `DeleteExecutionCompensationTest`, `DisenrollStudentCompensationTest`, `UpdateStudentNameCompensationTest`, `AnonymizeStudentCompensationTest`. **No** `EnrollStudentInExecutionCompensationTest` — see Discovered issues (`getExecutionStep` is not a root step; the fault mechanism can't genuinely exercise its compensation) |
+| - [x] 3.5 | Question | `QuestionServiceTest` | `UpdateQuestionEvent`, `DeleteQuestionEvent` + negative case — `QuestionEventPublicationTest.groovy` deleted, methods merged into `QuestionServiceTest.groovy` (amendment retrofit, see decision 8) | `CreateQuestionTest`, `UpdateQuestionTest`, `DeleteQuestionTest`, `GetQuestionByIdTest`, `GetQuestionsByCourseExecutionIdTest`; keep `QuestionInterInvariantTest` (relabel comments to T3 — producer-side cross-reference now names `TopicServiceTest`) | `CreateQuestionCompensationTest`, `UpdateQuestionCompensationTest`, `DeleteQuestionCompensationTest` — all three lock steps are root steps, so unlike Execution's excluded case, all three functionalities got genuine tests |
+| - [x] 3.6 | Quiz | `QuizServiceTest` | `InvalidateQuizEvent` (x2 methods: `removeQuestionFromQuiz`, `invalidateQuiz`) + negative case — `QuizEventPublicationTest.groovy` deleted, methods merged into `QuizServiceTest.groovy` (amendment retrofit, see decision 8) | `CreateQuizTest`, `UpdateQuizTest`, `GetQuizByIdTest` trimmed; `ConcludeQuizTest`/`SolveQuizTest` left untouched — see Discovered Issues; keep `QuizInterInvariantTest` (relabel comments to T3 — producer-side cross-reference now names `QuestionServiceTest` and `ExecutionServiceTest`) | `CreateQuizCompensationTest`, `UpdateQuizCompensationTest` — both lock steps (`getExecutionStep`, `getQuizStep`) are root steps, so both got genuine compensation tests |
+| - [ ] 3.7 | QuizAnswer | `QuizAnswerServiceTest` | `QuizAnswerQuestionAnswerEvent` + negative case, asserted directly in `QuizAnswerServiceTest.groovy` (no separate `EventPublicationTest` class — see decision 8) | `CreateQuizAnswerTest`, `AnswerQuestionTest`, `GetQuizAnswerByQuizIdAndStudentIdTest`; keep `QuizAnswerInterInvariantTest` (T3 — consumer-side scope, producer-side cross-reference names `QuizAnswerServiceTest`) | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7) |
+| - [ ] 3.8 | Tournament | `TournamentServiceTest` | — (publishes none; no `EventPublicationTest` needed) | `CreateTournamentTest`, `UpdateTournamentTest`, `CancelTournamentTest`, `DeleteTournamentTest`, `AddParticipantTest`, `GetTournamentByIdTest`, `GetOpenTournamentsTest`; keep `TournamentInterInvariantTest` (T3 — consumer-side scope) | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7); `AddParticipantFunctionalitySagas` has a forbidden-state guard — compensation and guard are separate concerns, don't conflate |
 
 Per-session procedure (identical for every aggregate; substitute `<Aggregate>`):
 
@@ -127,16 +145,17 @@ Per-session procedure (identical for every aggregate; substitute `<Aggregate>`):
    `applications/quizzes-full/plan.md` § the aggregate's section (the spec), and the aggregate's
    `*Service` class. Spec-first ordering applies: assertions trace to plan.md, not to the
    implementation.
-2. **Write T2** `<Aggregate>ServiceTest` under
-   `src/test/groovy/.../sagas/<aggregate>/`: per service method, a happy path (call service with a
-   fresh UnitOfWork, read back through a *second* fresh UnitOfWork via the read service method or
-   `aggregateLoadAndRegisterRead`), plus the uniqueness / not-found / P3-numeric-boundary cases
-   **relocated from the existing functionality tests**. Relocate = move, don't copy.
-3. **Write T3** `<Aggregate>EventPublicationTest` (only if the aggregate publishes events): per
-   event type, trigger the publishing operation via the service, then assert the event repository
-   contains the event with correct type and payload fields (per plan.md's events-published list).
-   Add a negative case: an operation that must *not* publish leaves the store unchanged.
-4. **Trim T4** functionality tests per strict ownership: remove assertions/cases now owned by
+2. **Write T2** `<Aggregate>ServiceTest` under `src/test/groovy/.../sagas/<aggregate>/`: per service
+   method, a happy path (call service with a fresh UnitOfWork, read back through a *second* fresh
+   UnitOfWork via the read service method or `aggregateLoadAndRegisterRead`), plus the uniqueness /
+   not-found / P3-numeric-boundary cases **relocated from the existing functionality tests**
+   (relocate = move, don't copy). Also write the event-publication cases here (if the aggregate
+   publishes events): autowire `EventService`; per event type, trigger the publishing operation via
+   the service, then assert the event repository contains the event with correct type and payload
+   fields (per plan.md's events-published list), as its own appended `def` method — not folded into
+   existing `then:` blocks. Add a negative case: an operation that must *not* publish leaves the
+   store unchanged.
+3. **Trim T4** functionality tests per strict ownership: remove assertions/cases now owned by
    T2/T3; keep happy-path traversal (`sagaStateOf == NOT_IN_SAGA`), lock-acquisition cases, and
    saga-path guard violations. If removing a case would leave a functionality test class empty of
    meaningful assertions, keep the happy-path traversal test — every write functionality retains at
@@ -147,12 +166,15 @@ Per-session procedure (identical for every aggregate; substitute `<Aggregate>`):
    7; recipe in `docs/concepts/testing.md` § Compensation Test) — own file per functionality, own
    CSV fixture, sanity-checked by temporarily flipping its fault flag to `0` and confirming the
    *full suite* (not just the exception assertion) actually fails.
-5. **Relabel** the aggregate's `<Consumer>InterInvariantTest` header comments to T4-subscription
-   (no behavioral change; the deletion-event `and:` pattern and unrelated-event cases stay).
-6. **Run:** `cd applications/quizzes-full && mvn clean -Ptest-sagas test` (full suite — trims can
+4. **Relabel** the aggregate's `<Consumer>InterInvariantTest` header comment from
+   `T4 — Subscription (Inter-Invariant)` to `T3 — Subscription (Inter-Invariant)` (no behavioral
+   change; the deletion-event `and:` pattern and unrelated-event cases stay). Update the
+   "Producer-side event-store assertions are owned by `<X>EventPublicationTest`" cross-reference
+   comment to name `<X>ServiceTest` instead (that file no longer exists — T2 owns it now).
+5. **Run:** `cd applications/quizzes-full && mvn clean -Ptest-sagas test` (full suite — trims can
    break other aggregates' fixtures). All green before ticking the box.
-7. Tick this session's checkbox in this file. Commit message style: follow repo convention (see
-   `git log`), e.g. `feat: migrate <Aggregate> tests to 4-tier taxonomy (T2 service + T3 publication, trim T4)`.
+6. Tick this session's checkbox in this file. Commit message style: follow repo convention (see
+   `git log`), e.g. `feat: migrate <Aggregate> tests to 4-tier taxonomy (T2 service + event publication, T3 subscription, trim T4)`.
 
 Session 3.1 (Course) is the **pilot**: it additionally validates the T2 template from Phase 1
 against reality (e.g. exact repository bean to query, event-store access pattern for later
@@ -281,3 +303,21 @@ unconditionally throws `COURSE_FIELDS_IMMUTABLE` — its T2 test asserts exactly
   lock-acquiring step (`getExecutionStep`, `getQuizStep`) as a root/no-dependency step, so both got
   genuine compensation tests with no mechanical obstruction (same shape as Question's three, unlike
   Execution's excluded `EnrollStudentInExecutionFunctionalitySagas`).
+- **2026-07-09 (T3 Event Publication → T2 / Subscription → T3 amendment, retrofit summary):**
+  supervisor-requested amendment (`docs/testing-taxonomy-amendment.md`) merged event-publication
+  assertions into `<Aggregate>ServiceTest` (T2) and relabeled `<Consumer>InterInvariantTest` from T4
+  to a new T3 (Subscription/Inter-Invariant), leaving T4 as pure orchestration
+  (functionality + compensation only). Retrofitted all 6 already-migrated aggregates: Course (no-op —
+  publishes no events, no `InterInvariantTest`); User, Topic (merge only, no `InterInvariantTest` to
+  relabel); Execution, Question, Quiz (merge + relabel). Deleted 5
+  `<Aggregate>EventPublicationTest.groovy` files (User, Topic, Execution, Question, Quiz — Course
+  never had one), moving their 14/15/14/20/18 `def` methods verbatim into the corresponding
+  `ServiceTest.groovy` as appended methods — confirmed net-zero test-method count via per-file
+  before/after `def`-count diff. Full suite green: `mvn clean -Ptest-sagas test` → 249/249 passing,
+  0 failures, 0 errors, across 80 test classes. Consistency-pass greps for orphaned
+  `T3 Event Publication` / `EventPublicationTest` / `T4.*Subscription` / `T4.*Inter-Invariant` /
+  `InterInvariantTest.*T4` references (excluding `docs/reviews/`) turned up no stragglers — all
+  remaining hits were either this file/the amendment doc (expected, historical) or false-positive
+  regex matches on lines that already correctly separate T3-subscription and T4-functionality
+  mentions. No production code touched — diff scope confirmed to
+  `docs/`, `.claude/skills/`, and `applications/quizzes-full/src/test/` only.

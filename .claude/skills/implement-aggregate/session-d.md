@@ -17,11 +17,11 @@ Load these files before writing any code:
    - § Canonical Wiring Snippet → EventProcessing class, § ByEvent sagaState guard — the contract: `verifyInvariants()` after the cached-field change, plus the saga-state skip
    - § Cascade Invalidation Pattern — only if a deletion event causes `copy.remove()` on this aggregate
 
-2. **`docs/concepts/testing.md`** — § T4 — Functionality Test → Subscription (Inter-Invariant) Tests, including the deletion-event `and:`-block pattern, plus § Assertion Ownership. Note:
-   - What a T4 subscription test asserts (event received → cached field updated → invariant re-evaluated)
+2. **`docs/concepts/testing.md`** — § T3 — Subscription (Inter-Invariant) Test, including the deletion-event `and:`-block pattern, plus § Assertion Ownership. Note:
+   - What a T3 subscription test asserts (event received → cached field updated → invariant re-evaluated)
    - How to publish a domain event in a test and verify the consumer processes it
    - How to test deletion events (aggregate marked deleted/invalid after processing)
-   - Subscription tests may *trigger* publication via a functionality but must **not** re-assert event-store contents — `{Aggregate}EventPublicationTest` (T3, session b) owns those assertions
+   - Subscription tests may *trigger* publication via a functionality but must **not** re-assert event-store contents — `{Aggregate}ServiceTest` (T2, session b) owns those assertions
 
 3. **Domain files from session 2.{N}.a** — specifically:
    - `{Aggregate}.java`: field names of the cached snapshot fields that will be updated by events
@@ -150,7 +150,7 @@ public void updateQuestionVersionIn{SubEntity}(Integer aggregateId, Integer ques
 
 The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the question aggregate at the time the event was emitted).
 
-### `{Aggregate}InterInvariantTest.groovy` (T4 subscription)
+### `{Aggregate}InterInvariantTest.groovy` (T3 subscription)
 
 Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
 
@@ -159,7 +159,7 @@ Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
   1. **Reflects event** — create the aggregate, publish the event for the enrolled/owned entity, call the polling method directly, assert the effect. Assert the new cached-field value against what the event payload specifies (from `plan.md`'s subscribed events table) — not by reading what `EventProcessing` does:
      - **Field-update events** (e.g., `UpdateStudentNameEvent`): assert the cached field is updated on the aggregate
      - **Sub-entity removal events** (e.g., `DeleteTopicEvent`): assert the sub-entity is removed from the aggregate's collection
-     - **Whole-consumer deletion events** (e.g., `DeleteQuestionEvent` / `DeleteCourseExecutionEvent` received by `Quiz`): the consumer aggregate is marked `DELETED`. Do **not** load it in `then:` — instead move `aggregateLoadAndRegisterRead` into an `and:` block and assert `thrown(SimulatorException)` in `then:`. See the deletion-event pattern under § T4 — Subscription (Inter-Invariant) Tests in `docs/concepts/testing.md`.
+     - **Whole-consumer deletion events** (e.g., `DeleteQuestionEvent` / `DeleteCourseExecutionEvent` received by `Quiz`): the consumer aggregate is marked `DELETED`. Do **not** load it in `then:` — instead move `aggregateLoadAndRegisterRead` into an `and:` block and assert `thrown(SimulatorException)` in `then:`. See the deletion-event pattern under § T3 — Subscription (Inter-Invariant) Test in `docs/concepts/testing.md`.
   2. **Ignores unrelated** — enroll entity A, publish the same event for an unrelated entity B, call the polling method directly, assert entity A's cached data is unchanged. **Capture `<originalValue>` in the `given:` block before the event is published** — never read it back after event processing, which would produce a tautological assertion
 - **Invariant-violation tests**: if processing the event causes `verifyInvariants()` to throw, assert the exception is raised with the correct error message and that the event is not marked as processed (event-processing outcome). This is an event-processing assertion — not a re-test of the P1 predicate itself (the predicate's violation cases belong in `{Aggregate}IntraInvariantTest.groovy`, T1 Aggregate tier).
 - Both the "reflects" and "ignores unrelated" tests are required for every subscribed event type
@@ -195,7 +195,7 @@ for (TournamentParticipant p : participants) {
 }
 ```
 
-In the corresponding T4 subscription test, the "ignores unrelated" scenario can use a second entity whose anchor ID is never registered with the consumer aggregate — no extra setup is needed.
+In the corresponding T3 subscription test, the "ignores unrelated" scenario can use a second entity whose anchor ID is never registered with the consumer aggregate — no extra setup is needed.
 
 ### Error message constants
 

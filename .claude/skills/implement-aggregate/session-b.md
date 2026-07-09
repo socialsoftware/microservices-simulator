@@ -29,7 +29,7 @@ Load these files before writing any code:
    - § R4 Decision Table — `SagaCommand` vs `setForbiddenStates`
    - § Write Workflow Structure
 
-5. **`docs/concepts/testing.md`** — § Assertion Ownership, § T2 — Service Test, § T3 — Event Publication Test, § T4 — Functionality Test, § Fake / Wrong / Weak Detection Checklist. This session writes tests in all three tiers (T2 write cases, T3, T4 write functionality) — read the full rule set before writing any test file, apply the Fake/Wrong/Weak checklist before committing each one.
+5. **`docs/concepts/testing.md`** — § Assertion Ownership, § T2 — Service Test, § T4 — Functionality Test, § Fake / Wrong / Weak Detection Checklist. This session writes tests in two tiers (T2 write cases + event publication, T4 write functionality) — read the full rule set before writing any test file, apply the Fake/Wrong/Weak checklist before committing each one.
 
 6. ***(Conditional)*** If the plan.md aggregate section lists cross-aggregate prerequisites (P4a or P3 DTO-check rules): read the service file and relevant command files of each upstream aggregate involved. You need their command class names, service method signatures, and what they throw on failure.
 
@@ -135,11 +135,10 @@ cases). Follow the template in `docs/concepts/testing.md` § T2 — Service Test
   (session a, T1).
 - `// Spec:` comment on every test naming the plan.md section and rule (see Spec-First note below).
 
-### `{Aggregate}EventPublicationTest.groovy` (T3 — only if plan.md lists events published)
-
-Path: `{test}sagas/{aggregate}/{Aggregate}EventPublicationTest.groovy`
-
-Follow the template in `docs/concepts/testing.md` § T3 — Event Publication Test. Trigger the
+**Event-publication assertions (only if plan.md lists events published):** appended to the same
+`{Aggregate}ServiceTest.groovy` class as separate `def` methods (not folded into existing `then:`
+blocks — event-store facts and persisted-state facts stay separate assertions). Follow the
+template in `docs/concepts/testing.md` § T2 — Service Test. Autowire `EventService`. Trigger the
 publishing operation **via a direct service call** with a `UnitOfWork` (not via
 `{Aggregate}Functionalities`), then assert against the event store via the `EventService` bean.
 
@@ -148,7 +147,7 @@ publishing operation **via a direct service call** with a `UnitOfWork` (not via
   asserting only type/count is **Weak**.
 - **One negative case**: capture the event-store count before, run a service operation that must
   *not* publish, assert the count is unchanged.
-- Consumers are out of scope here — they are covered by T4 subscription tests in session `d`.
+- Consumers are out of scope here — they are covered by T3 subscription tests in session `d`.
 
 ### One `{Op}Test.groovy` per write functionality (T4)
 
@@ -172,8 +171,8 @@ If the implementation disagrees with the cited section, flag it as an impl devia
 
 **Strict assertion ownership (testing.md § Assertion Ownership):** T4 functionality tests do **not**
 assert field-level persistence, uniqueness, or not-found — those belong in `{Aggregate}ServiceTest`
-(T2, above). They also do not re-assert event-store contents — `{Aggregate}EventPublicationTest`
-(T3) owns that.
+(T2, above). They also do not re-assert event-store contents — `{Aggregate}ServiceTest` (T2) owns
+that.
 
 - Extends `{AppClass}SpockTest`
 - **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation via `{Aggregate}Functionalities`, and assert **orchestration outcomes only**: the operation completes, the returned DTO is coherent, and `sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA`

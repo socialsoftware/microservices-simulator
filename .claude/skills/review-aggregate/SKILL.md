@@ -202,7 +202,7 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 - No business logic
 
 ### Test files (structural check only — content reviewed in Step 7)
-- `{Aggregate}IntraInvariantTest.groovy`, `{Aggregate}ServiceTest.groovy`, `{Aggregate}EventPublicationTest.groovy` (publishers only), `{Aggregate}InterInvariantTest.groovy` (subscribers only): in `{tgt-test}sagas/{aggregate}/`; `@DataJpaTest`, `@Transactional`, `@Import(LocalBeanConfiguration)`; inner `LocalBeanConfiguration extends BeanConfigurationSagas`
+- `{Aggregate}IntraInvariantTest.groovy`, `{Aggregate}ServiceTest.groovy` (incl. event-publication cases), `{Aggregate}InterInvariantTest.groovy` (subscribers only): in `{tgt-test}sagas/{aggregate}/`; `@DataJpaTest`, `@Transactional`, `@Import(LocalBeanConfiguration)`; inner `LocalBeanConfiguration extends BeanConfigurationSagas`
 - Coordination (T4 functionality) tests: in `{tgt-test}sagas/coordination/{aggregate}/`; same annotations
 
 ---
@@ -246,16 +246,16 @@ Expected scenarios per tier — full definitions in `docs/concepts/testing.md`:
 
 - **T1** (`{Aggregate}IntraInvariantTest.groovy`): § T1 — Aggregate Test. P1 Java-`final` fields
   require no test coverage at any tier — do not flag missing tests for final-field rules.
-- **T2** (`{Aggregate}ServiceTest.groovy` — one class per aggregate, all service methods):
-  § T2 — Service Test and § Not-Found Paths. **Read the service method first** to determine
-  Path A vs Path B before flagging either as missing or wrong.
-- **T3** (`{Aggregate}EventPublicationTest.groovy`): § T3 — Event Publication Test. Only
-  expected if the aggregate publishes events (plan.md's Events published list).
+- **T2** (`{Aggregate}ServiceTest.groovy` — one class per aggregate, all service methods + event
+  publication): § T2 — Service Test and § Not-Found Paths. **Read the service method first** to
+  determine Path A vs Path B before flagging either as missing or wrong. Event-publication cases
+  (per published event type, payload assertions + one negative no-publish case) are only expected
+  if the aggregate publishes events (plan.md's Events published list).
+- **T3** (`{Aggregate}InterInvariantTest.groovy`): § T3 — Subscription (Inter-Invariant) Test.
+  Only expected if the aggregate has P2 subscribed events (session 2.N.d).
 - **T4 write functionality** (`{Operation}{Aggregate}Test.groovy`): § T4 — Functionality Test
   and § Assertion Ownership.
 - **T4 read functionality**: happy path only — not-found cases belong in T2, not here.
-- **T4 subscription** (`{Aggregate}InterInvariantTest.groovy`): § T4 — Functionality Test. Only
-  expected if the aggregate has P2 subscribed events (session 2.N.d).
 
 ---
 

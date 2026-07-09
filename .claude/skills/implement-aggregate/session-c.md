@@ -25,7 +25,7 @@ Load these files before writing any code:
 5. **`docs/concepts/sagas.md`** — specifically:
    - § Read Functionality Sagas (and its subsections § List-return read variant, § Two-step read saga variant, as applicable)
 
-6. **`docs/concepts/testing.md`** — § T2 — Service Test (including § Not-Found Paths for the Path A / Path B rule of thumb), § T4 — Functionality Test, and § Assertion Ownership. T1 (aggregate) and T4 subscription (inter-invariant) tests are not produced in this session.
+6. **`docs/concepts/testing.md`** — § T2 — Service Test (including § Not-Found Paths for the Path A / Path B rule of thumb), § T4 — Functionality Test, and § Assertion Ownership. T1 (aggregate) and T3 subscription (inter-invariant) tests are not produced in this session.
 
 7. ***(Conditional)*** If any read functionality joins data from an upstream aggregate (e.g., a "get with details" that includes Course name alongside Execution): read that upstream aggregate's service file to understand what it returns.
 

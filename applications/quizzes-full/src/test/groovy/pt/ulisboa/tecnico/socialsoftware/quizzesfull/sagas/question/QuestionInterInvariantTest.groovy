@@ -11,8 +11,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.noti
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.InterInvariantTestBase
 
-// T4 — Subscription (Inter-Invariant): consumer-side event handling for Question's subscribed
-// events (TOPICS_EXIST). Producer-side event-store assertions are owned by TopicEventPublicationTest.
+// T3 — Subscription (Inter-Invariant): consumer-side event handling for Question's subscribed
+// events (TOPICS_EXIST). Producer-side event-store assertions are owned by TopicServiceTest.
 @DataJpaTest
 @Transactional
 @Import(LocalBeanConfiguration)

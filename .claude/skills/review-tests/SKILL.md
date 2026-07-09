@@ -1,14 +1,15 @@
 ---
 name: review-tests
-description: Phase 3 — Test Review. Audits T1–T4 test completeness for one aggregate, detects fake/weak tests by reading the implementation, adds missing edge cases and adversarial scenarios, and runs the full test suite. T1 = {Aggregate}IntraInvariantTest (full P1 matrix); T2 = {Aggregate}ServiceTest (service contract); T3 = {Aggregate}EventPublicationTest (publishers only); T4 = functionality tests + {Aggregate}InterInvariantTest (subscriptions).
+description: Phase 3 — Test Review. Audits T1–T4 test completeness for one aggregate, detects fake/weak tests by reading the implementation, adds missing edge cases and adversarial scenarios, and runs the full test suite. T1 = {Aggregate}IntraInvariantTest (full P1 matrix); T2 = {Aggregate}ServiceTest (service contract + event publication); T3 = {Aggregate}InterInvariantTest (subscriptions); T4 = functionality + compensation tests.
 argument-hint: "<AggregateName> (e.g. Course, Execution, Tournament)"
 ---
 
 # Phase 3 — Test Review
 
 Phase 3 test review for one aggregate. Audits completeness and quality across the four tiers —
-T1 Aggregate, T2 Service, T3 Event Publication, T4 Functionality — against the implementation,
-adds missing tests, fixes fake/wrong tests, and runs the build.
+T1 Aggregate, T2 Service (incl. event publication), T3 Subscription (Inter-Invariant), T4
+Functionality — against the implementation, adds missing tests, fixes fake/wrong tests, and runs
+the build.
 
 One aggregate per invocation.
 
@@ -57,9 +58,8 @@ Read every file in a single parallel batch. Missing files are noted, not errors.
 
 **Test files (scope of this review):**
 - `{tgt-test}sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy` — T1
-- `{tgt-test}sagas/{aggregate}/{Aggregate}ServiceTest.groovy` — T2 (may not exist yet)
-- `{tgt-test}sagas/{aggregate}/{Aggregate}EventPublicationTest.groovy` — T3 (only for publishers; may not exist)
-- `{tgt-test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` — T4 subscription (may not exist)
+- `{tgt-test}sagas/{aggregate}/{Aggregate}ServiceTest.groovy` — T2, incl. event publication (may not exist yet)
+- `{tgt-test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` — T3 subscription (may not exist)
 - All `*.groovy` under `{tgt-test}sagas/coordination/{aggregate}/` — T4 functionality (use `find` to enumerate)
 
 **Implementation files (ground truth):**
@@ -89,17 +89,23 @@ test scenarios. This is the baseline for Steps 4–7.
 Required scenarios: `docs/concepts/testing.md` § T1 — Aggregate Test.
 Source rule list: `plan.md` §3.1 / §3.2 P1 rules for this aggregate.
 
-### T2 — `{Aggregate}ServiceTest.groovy` (one class per aggregate, all service methods)
+### T2 — `{Aggregate}ServiceTest.groovy` (one class per aggregate, all service methods + event publication)
 
 Required scenarios: `docs/concepts/testing.md` § T2 — Service Test and § Not-Found Paths.
 **Read the service method first** to determine Path A vs Path B before flagging a not-found
 test — flagging a correct Path B test as Fake is itself a **Wrong** review finding.
 
+Per published event type (from plan.md's Events published list): one case asserting the event
+exists with the correct type, `publisherAggregateId`, and every payload field, plus one negative
+no-publish case — see `docs/concepts/testing.md` § T2 — Service Test.
+
 **P1 intra-invariants are not tested here** — they belong exclusively in `{Aggregate}IntraInvariantTest`. A P1 violation scenario in a T2/T4 test is a **Wrong (misplaced)** finding.
 
-### T3 — `{Aggregate}EventPublicationTest.groovy` (only for aggregates that publish events)
+### T3 — `{Aggregate}InterInvariantTest.groovy` (subscription tests)
 
-Required scenarios: `docs/concepts/testing.md` § T3 — Event Publication Test.
+Only required if the aggregate has **subscribed events** (listed in `plan.md`). Required
+scenarios: `docs/concepts/testing.md` § T3 — Subscription (Inter-Invariant) Test (subscription
+tests must not re-assert event-store contents — T2 owns those).
 
 ### T4 — per **write** functionality (one test file per write operation under `coordination/{aggregate}/`)
 
@@ -113,12 +119,6 @@ Appendix, Cross-Functionality Test.
 
 Happy-path success only — returns the expected DTO; assert all semantically important fields.
 Not-found cases belong in T2 (`{Aggregate}ServiceTest`), not here.
-
-### T4 — `{Aggregate}InterInvariantTest.groovy` (subscription tests)
-
-Only required if the aggregate has **subscribed events** (listed in `plan.md`). Required
-scenarios: `docs/concepts/testing.md` § T4 — Functionality Test (subscription tests must not
-re-assert event-store contents — T3 owns those).
 
 ---
 
@@ -156,7 +156,7 @@ a P1 rule), flag it as **Wrong (misplaced)**: "P1 violation asserted outside T1 
 `{Aggregate}IntraInvariantTest`." P1 predicate tests belong exclusively in T1; the offending test should
 be deleted or replaced with the correct T1 direct-aggregate case. Likewise, field-level persistence,
 uniqueness, or not-found assertions inside a T4 functionality test are **Wrong (misplaced)** — they
-belong in T2; and event-store payload assertions inside a T4 subscription test belong in T3.
+belong in T2; and event-store payload assertions inside a T3 subscription test belong in T2.
 
 
 ### B. Parameter quality
@@ -247,7 +247,7 @@ Follow the patterns in `docs/concepts/testing.md` exactly:
 - Not-found cases: use Path A or Path B per the service lookup mechanism (see Step 3 and the
   "Not-Found Test Pattern" appendix)
 - State-transition (lock-acquisition) tests: `executeUntilStep` → assert `IN_{OP}` state → `resumeWorkflow` + `noExceptionThrown()` pattern (the `NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA` traversal)
-- T4 subscription deletion-event tests: use the `and:` extension-block pattern from `testing.md`
+- T3 subscription deletion-event tests: use the `and:` extension-block pattern from `testing.md`
 
 **Do NOT add tests for:**
 - P1 Java-final field violations
@@ -273,8 +273,8 @@ cd applications/{app-name} && mvn clean -Ptest-sagas test \
 ```
 
 `*{Aggregate}*Test` matches `{Aggregate}IntraInvariantTest` (T1), `{Aggregate}ServiceTest` (T2),
-`{Aggregate}EventPublicationTest` (T3), all `{Operation}{Aggregate}Test` files (T4), and
-`{Aggregate}InterInvariantTest` (T4 subscription) — no separate `-Dtest` entries needed.
+`{Aggregate}InterInvariantTest` (T3 subscription), and all `{Operation}{Aggregate}Test` files (T4)
+— no separate `-Dtest` entries needed.
 
 If the wildcard is too broad (picks up unrelated aggregates with similar names), narrow it to explicit
 class names: `-Dtest="{Aggregate}IntraInvariantTest,Create{Aggregate}Test,..."`. The wildcard form

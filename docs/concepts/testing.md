@@ -1,8 +1,9 @@
 # Testing
 
 Authoritative guide to test coverage in applications built on the microservices-simulator.
-Four tiers, layered by what they exercise: the aggregate alone (T1), the service contract (T2),
-event publication (T3), and saga orchestration + cross-aggregate consistency (T4).
+Four tiers, layered by what they exercise: the aggregate alone (T1), the service contract plus
+event publication (T2), consumer-side subscription (inter-invariant) behavior (T3), and saga
+orchestration (T4).
 
 > **Single source of truth.** This file is the only place tier definitions, required
 > scenarios, assertion-ownership rules, and test code-block templates are stated. Skills and
@@ -16,9 +17,9 @@ event publication (T3), and saga orchestration + cross-aggregate consistency (T4
 | Tier | Name | Test class | Scope | Profile-agnostic? |
 |------|------|-----------|-------|-------------------|
 | **T1** | Aggregate | `<Aggregate>IntraInvariantTest` | Intra-invariants (P1): creation happy-path, one violation per non-`final` P1 rule (EP), boundary on/off-points (BVA). Direct construction + `verifyInvariants()`. | yes |
-| **T2** | Service | `<Aggregate>ServiceTest` — **one class per aggregate**, all service methods | Service contract: change persisted to DB (read back via a **fresh** UnitOfWork), uniqueness / composite-key guards, not-found paths (Path A `SimulatorException` / Path B `<App>Exception`), P3 numeric-guard boundaries. Invoke the `*Service` bean directly with a `UnitOfWork` — no saga workflow. | yes |
-| **T3** | Event Publication | `<Aggregate>EventPublicationTest` — only for aggregates that publish events | Publisher side: service op runs → event row exists in the event store with correct type + payload fields. Trigger **via service call**, assert against the event store. Abstracts away all consumers. | mostly |
-| **T4** | Functionality | `<FunctionalityName>Test` + `<Consumer>InterInvariantTest` | Orchestration + cross-aggregate consistency: saga state-machine traversal (`NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA`), semantic-lock acquisition per lock step, P3 guard violations raised **through the saga path**, event subscription → cached-state update / unrelated-event-ignored / deletion-event cases. | no (sagas-specific) |
+| **T2** | Service | `<Aggregate>ServiceTest` — **one class per aggregate**, all service methods | Service contract: change persisted to DB (read back via a **fresh** UnitOfWork), uniqueness / composite-key guards, not-found paths (Path A `SimulatorException` / Path B `<App>Exception`), P3 numeric-guard boundaries. Invoke the `*Service` bean directly with a `UnitOfWork` — no saga workflow. **Also owns event-publication assertions**: per published event type, one payload-asserting case + one negative "does not publish" case. | yes |
+| **T3** | Subscription (Inter-Invariant) | `<Consumer>InterInvariantTest` — only for aggregates with subscribed events | Consumer side: event received → cached state updated; unrelated event → state unchanged; deletion event → consumer deleted. Trigger publication via a functionality, poll via the consumer's event-handling bean, assert on consumer state. Must not re-assert event-store contents — T2 owns that. | mostly |
+| **T4** | Functionality | `<FunctionalityName>Test` + `<FunctionalityName>CompensationTest` | Orchestration: saga state-machine traversal (`NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA`), semantic-lock acquisition per lock step, P3 guard violations raised **through the saga path**, compensation on mid-saga failure. | no (sagas-specific) |
 
 All test classes share the same skeleton, elided from the templates below:
 `@DataJpaTest @Transactional @Import(LocalBeanConfiguration)`, extend `<AppName>SpockTest`, and
@@ -31,10 +32,13 @@ Each fact is asserted in **exactly one tier** — this is what prevents T2/T4 du
 - **T4 functionality tests do not assert** field-level persistence, uniqueness, or not-found —
   those belong to T2. A T4 happy path asserts orchestration outcomes only: the operation
   completes, the returned DTO is coherent, and `sagaStateOf(id) == NOT_IN_SAGA`.
-- **T4 keeps:** lock-acquisition cases (`executeUntilStep`), P3 guard violations that involve
-  cross-aggregate saga coordination, and all inter-invariant (subscription) tests.
-- **T3 owns event-publication assertions.** T4 subscription tests may *trigger* publication via a
-  functionality but must not re-assert event-store contents.
+- **T4 keeps:** lock-acquisition cases (`executeUntilStep`) and P3 guard violations that involve
+  cross-aggregate saga coordination.
+- **T2 owns event-publication assertions** (merged from old T3): per published event type, one
+  payload-asserting case + one negative no-publish case, asserted via the `EventService` bean.
+- **T3 owns subscription (consumer-side) assertions**: event received → cached state updated /
+  unrelated ignored / deletion → consumer deleted. T3 tests may *trigger* publication via a
+  functionality but must not re-assert event-store contents — T2 owns that.
 - **Known coupling:** `registerChanged` calls `verifyInvariants()`, so T2 fixtures can trip P1
   rules — T1 and T2 are not perfectly independent layers. Documented, not fixed.
 
@@ -51,13 +55,13 @@ security. This checklist is the authoritative smell list, consumed by
 - `then:` checks only non-null / non-empty, or a trivially true condition, never actual values.
 - `when:` does not call the method under test (bypasses it via a setup helper).
 - **T2:** happy path reads back through the **same** UnitOfWork instance used for the write — the assertion never exercises the load path. Read-back must use a second, fresh UnitOfWork.
-- **T4 subscription** "ignores unrelated": `originalValue` captured *after* the event was processed — the assertion is `x == x`. Capture in `given:`, before firing.
+- **T3** "ignores unrelated": `originalValue` captured *after* the event was processed — the assertion is `x == x`. Capture in `given:`, before firing.
 
 ### Wrong — tests the wrong thing (implementation instead of spec, or a different code path)
 
 - Test name / message constant copied verbatim from the implementation without checking `plan.md`'s rule list — the test validates the implementation deviation instead of catching it.
 - `then:` mirrors the sequence of `set…` calls in the service body — derived from the implementation, not the spec.
-- **T4 subscription** deletion-event test puts the post-deletion load in `then:` instead of an `and:` block — outside the exception-capture scope (see § T4).
+- **T3** deletion-event test puts the post-deletion load in `then:` instead of an `and:` block — outside the exception-capture scope (see § T3).
 - Not-found exception type contradicts the lookup mechanism — **read the service method first** (see § T2 Not-Found Paths). Flagging a correct Path B `thrown(<App>Exception)` as Fake is itself a Wrong finding.
 - Test class missing `@Transactional` — dirty state bleeds between tests.
 - P1 intra-invariant violation asserted in a T2/T4 test (belongs in `<Aggregate>IntraInvariantTest`).
@@ -67,7 +71,7 @@ security. This checklist is the authoritative smell list, consumed by
 - Happy-path `then:` asserts only fields already set in `setup:` — at least one asserted field must be a value the operation itself produces.
 - Removing `unitOfWorkService.registerChanged(aggregate)` from the service would leave the test passing (kill-mutation thought experiment) — add an assertion readable only through the persisted aggregate.
 - Violation test asserts `thrown(<App>Exception)` without `ex.message == <RULE_NAME>` — passes on any unrelated bug of that type.
-- **T3:** asserts only that "an event exists" (type/count) without asserting the payload fields — a wrong-payload regression slips through.
+- **T2:** asserts only that "an event exists" (type/count) without asserting the payload fields — a wrong-payload regression slips through.
 - Returned DTO assertions cover only a subset of the semantically important fields.
 - Ordered-domain boundary rule asserted with only a far-side value — missing the on-point **or** off-point (see § Choosing Input Values).
 
@@ -129,8 +133,7 @@ src/test/groovy/<pkg>/
     └── <aggregate>/                  ← one dir per aggregate
         ├── <Aggregate>IntraInvariantTest.groovy        (T1)
         ├── <Aggregate>ServiceTest.groovy               (T2)
-        ├── <Aggregate>EventPublicationTest.groovy      (T3, publishers only)
-        └── <Aggregate>InterInvariantTest.groovy        (T4, consumers only)
+        └── <Aggregate>InterInvariantTest.groovy        (T3, consumers only)
 ```
 
 ## T1 — Aggregate Test
@@ -210,29 +213,19 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
 }
 ```
 
-### Not-Found Paths
+### Event Publication
 
-Two distinct not-found paths throw different exception types — **read the service method first**:
-
-- **Path A — primary-key lookup.** The service calls `aggregateLoadAndRegisterRead` directly with
-  an ID; the infrastructure throws `SimulatorException`
-  (`pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException`).
-- **Path B — composite-key lookup.** The service first queries a custom repository returning
-  `Optional` (e.g. `quizId + userId`) and throws on empty at the service level: expect
-  `<App>Exception` with `ex.message == <NOT_FOUND_CONSTANT>`.
-
-## T3 — Event Publication Test
-
-**Purpose:** pin the publisher side of every event (see taxonomy table); consumers are out of
-scope (they are T4 subscription tests). Trigger via a direct service call with a `UnitOfWork` —
-`SagaUnitOfWorkService.registerEvent` saves the event immediately via
-`eventService.saveEvent(event)` (and marks it published under the `local` profile). Assert via the
-`EventService` bean (`pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService`): per event
-type, one payload-asserting case (type/count alone is Weak), plus one negative case — an operation
-that must *not* publish leaves the store unchanged.
+**Purpose:** pin the publisher side of every event (merged from the former T3 tier). Trigger via a
+direct service call with a `UnitOfWork` — `SagaUnitOfWorkService.registerEvent` saves the event
+immediately via `eventService.saveEvent(event)` (and marks it published under the `local` profile).
+Assert via the `EventService` bean (`pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService`):
+per event type, one payload-asserting case (type/count alone is Weak), plus one negative case — an
+operation that must *not* publish leaves the store unchanged. Autowire `EventService` in the same
+`<Aggregate>ServiceTest` class; append these as their own `def` methods (not folded into existing
+`then:` blocks).
 
 ```groovy
-class <Aggregate>EventPublicationTest extends <AppName>SpockTest {
+class <Aggregate>ServiceTest extends <AppName>SpockTest {
 
     @Autowired
     EventService eventService
@@ -254,6 +247,74 @@ class <Aggregate>EventPublicationTest extends <AppName>SpockTest {
 
     // Negative case: capture countBefore = eventService.getAllEvents().size() in given:,
     // run the non-publishing service op, assert getAllEvents().size() == countBefore.
+}
+```
+
+### Not-Found Paths
+
+Two distinct not-found paths throw different exception types — **read the service method first**:
+
+- **Path A — primary-key lookup.** The service calls `aggregateLoadAndRegisterRead` directly with
+  an ID; the infrastructure throws `SimulatorException`
+  (`pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException`).
+- **Path B — composite-key lookup.** The service first queries a custom repository returning
+  `Optional` (e.g. `quizId + userId`) and throws on empty at the service level: expect
+  `<App>Exception` with `ex.message == <NOT_FOUND_CONSTANT>`.
+
+## T3 — Subscription (Inter-Invariant) Test
+
+`<Consumer>InterInvariantTest` covers the consumer side: event received → cached state updated;
+unrelated event → state unchanged; deletion event → consumer deleted. `@Scheduled` does **not**
+run in `@DataJpaTest` — call the polling method directly:
+`<consumer>EventHandling.handle<Xxx>Events()`. These tests trigger publication via a functionality
+but must not re-assert event-store contents (T2 owns that). If the consumer DTO does not expose a
+cached sub-entity field, load the aggregate via `aggregateLoadAndRegisterRead` and assert on
+`agg.<subEntity>.<cachedField>`.
+
+**Deletion events:** when processing calls `remove()` on the consumer, `aggregateLoadAndRegisterRead`
+filters out `DELETED` aggregates and throws `SimulatorException` — the load-and-assert pattern
+cannot work. Move the load attempt into an `and:` block (extending the `when:` phase's
+exception-capture scope, which a `then:`-placed load would sit outside of), then assert
+`thrown(SimulatorException)`.
+
+```groovy
+class <Consumer>InterInvariantTest extends <AppName>SpockTest {
+
+    @Autowired
+    <Consumer>EventHandling <consumer>EventHandling
+
+    def "<consumer> <action> on <Xxx>Event"() {
+        // <action> is a concrete verb: updates, removes, deletes self, anonymizes, invalidates self
+        given:
+        def publisher = create<Publisher>(/* args */)
+        def consumer  = create<Consumer>(/* args linked to publisher */)
+        when: '<publisher> triggers the event'
+        <publisher>Functionalities.<triggeringOp>(/* args */)
+        and: 'consumer polls for the event'
+        <consumer>EventHandling.handle<Xxx>Events()
+        then: 'consumer cached field is updated'
+        <consumer>Service.get<Consumer>(consumer.aggregateId,
+                unitOfWorkService.createUnitOfWork("check")).<cachedField> == <newValue>
+    }
+
+    // "ignores <Xxx> event for unrelated entity" twin: create a second publisher,
+    // capture originalValue in given: BEFORE firing (capturing after is Fake — x == x),
+    // trigger the op on publisher2, poll, assert consumer.<cachedField> == originalValue.
+
+    def "<consumer> is deleted when <Publisher> deletion event is processed"() {
+        given:
+        def publisher = create<Publisher>(/* args */)
+        def consumer  = create<Consumer>(/* args linked to publisher */)
+        when: '<publisher> is deleted'
+        <publisher>Functionalities.delete<Publisher>(publisher.aggregateId)
+        and: 'consumer polls for the deletion event'
+        <consumer>EventHandling.handle<Xxx>Events()
+        and: 'attempt to load the now-deleted consumer aggregate'
+        unitOfWorkService.aggregateLoadAndRegisterRead(
+                consumer.aggregateId, unitOfWorkService.createUnitOfWork("check"))
+        then: 'DELETED aggregate is not loadable'
+        thrown(SimulatorException)
+    }
 }
 ```
 
@@ -403,63 +464,6 @@ faulty, same block, same file, no way to have both. Put it in its own `<Function
 as a sibling file in the same `sagas/coordination/<aggregate>/` package (not a separate
 `sagas/behaviour/` package) — the resource lookup path only depends on the test class's simple
 name, not its package.
-
-### Subscription (Inter-Invariant) Tests
-
-`<Consumer>InterInvariantTest` covers the consumer side: event received → cached state updated;
-unrelated event → state unchanged; deletion event → consumer deleted. `@Scheduled` does **not**
-run in `@DataJpaTest` — call the polling method directly:
-`<consumer>EventHandling.handle<Xxx>Events()`. These tests trigger publication via a functionality
-but must not re-assert event-store contents (T3 owns that). If the consumer DTO does not expose a
-cached sub-entity field, load the aggregate via `aggregateLoadAndRegisterRead` and assert on
-`agg.<subEntity>.<cachedField>`.
-
-**Deletion events:** when processing calls `remove()` on the consumer, `aggregateLoadAndRegisterRead`
-filters out `DELETED` aggregates and throws `SimulatorException` — the load-and-assert pattern
-cannot work. Move the load attempt into an `and:` block (extending the `when:` phase's
-exception-capture scope, which a `then:`-placed load would sit outside of), then assert
-`thrown(SimulatorException)`.
-
-```groovy
-class <Consumer>InterInvariantTest extends <AppName>SpockTest {
-
-    @Autowired
-    <Consumer>EventHandling <consumer>EventHandling
-
-    def "<consumer> <action> on <Xxx>Event"() {
-        // <action> is a concrete verb: updates, removes, deletes self, anonymizes, invalidates self
-        given:
-        def publisher = create<Publisher>(/* args */)
-        def consumer  = create<Consumer>(/* args linked to publisher */)
-        when: '<publisher> triggers the event'
-        <publisher>Functionalities.<triggeringOp>(/* args */)
-        and: 'consumer polls for the event'
-        <consumer>EventHandling.handle<Xxx>Events()
-        then: 'consumer cached field is updated'
-        <consumer>Service.get<Consumer>(consumer.aggregateId,
-                unitOfWorkService.createUnitOfWork("check")).<cachedField> == <newValue>
-    }
-
-    // "ignores <Xxx> event for unrelated entity" twin: create a second publisher,
-    // capture originalValue in given: BEFORE firing (capturing after is Fake — x == x),
-    // trigger the op on publisher2, poll, assert consumer.<cachedField> == originalValue.
-
-    def "<consumer> is deleted when <Publisher> deletion event is processed"() {
-        given:
-        def publisher = create<Publisher>(/* args */)
-        def consumer  = create<Consumer>(/* args linked to publisher */)
-        when: '<publisher> is deleted'
-        <publisher>Functionalities.delete<Publisher>(publisher.aggregateId)
-        and: 'consumer polls for the deletion event'
-        <consumer>EventHandling.handle<Xxx>Events()
-        and: 'attempt to load the now-deleted consumer aggregate'
-        unitOfWorkService.aggregateLoadAndRegisterRead(
-                consumer.aggregateId, unitOfWorkService.createUnitOfWork("check"))
-        then: 'DELETED aggregate is not loadable'
-        thrown(SimulatorException)
-    }
-}
-```
 
 ## Test Profile — Serialization Note
 

@@ -13,18 +13,17 @@ Test taxonomy produced by this skill (see `docs/concepts/testing.md` for the aut
 | Session | Test type | File |
 |---------|-----------|------|
 | `a` | T1 Aggregate | `{Aggregate}IntraInvariantTest.groovy` — creation happy-path + one violation per non-`final` P1 rule + BVA straddles; all via direct `verifyInvariants()` |
-| `b` | T2 Service (write methods) | `{Aggregate}ServiceTest.groovy` — one class per aggregate; per write service method: persisted-and-readable via a fresh UnitOfWork, uniqueness/composite-key guards, P3 numeric-guard boundaries. Direct `*Service` bean calls — no saga workflow. |
-| `b` | T3 Event Publication | `{Aggregate}EventPublicationTest.groovy` — only if the aggregate publishes events; per event type: payload-field assertions against the event store + one negative no-publish case |
+| `b` | T2 Service (write methods + event publication) | `{Aggregate}ServiceTest.groovy` — one class per aggregate; per write service method: persisted-and-readable via a fresh UnitOfWork, uniqueness/composite-key guards, P3 numeric-guard boundaries; per published event type: payload-field assertions against the event store + one negative no-publish case. Direct `*Service` bean calls — no saga workflow. |
 | `b` | T4 Functionality (writes) | `{Op}Test.groovy` — orchestration outcomes only (operation completes, DTO coherent, `sagaStateOf == NOT_IN_SAGA`), lock-acquisition per `setSemanticLock` step, saga-path guard violations. No persistence/uniqueness/not-found assertions (T2 owns those); no P1 predicate tests. |
 | `c` | T2 Service (read methods) | read-method cases (happy read-back + not-found Path A/B) **appended** to `{Aggregate}ServiceTest.groovy` |
 | `c` | T4 Functionality (reads) | `{Query}Test.groovy` — happy read only |
-| `d` | T4 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` — event received → cached state updated; unrelated event → state unchanged; deletion events |
+| `d` | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` — event received → cached state updated; unrelated event → state unchanged; deletion events |
 
-> **Recorded decision — why T2/T3 live in sessions `b`/`c`, not `a`:** the migration plan's default
-> assigns T1+T2+T3 to session `a`, but session `a` produces only the domain layer; the `*Service`
-> classes that T2/T3 tests invoke do not exist until session `b` (read methods until `c`). Per the
-> plan's allowance, T2/T3 authoring is therefore assigned to session `b`, with read-method T2 cases
-> appended in session `c`.
+> **Recorded decision — why T2 lives in sessions `b`/`c`, not `a`:** the migration plan's default
+> assigns T1+T2 to session `a`, but session `a` produces only the domain layer; the `*Service`
+> class that T2 tests invoke does not exist until session `b` (read methods until `c`). Per the
+> plan's allowance, T2 authoring (including event-publication assertions) is therefore assigned to
+> session `b`, with read-method T2 cases appended in session `c`.
 
 ---
 
