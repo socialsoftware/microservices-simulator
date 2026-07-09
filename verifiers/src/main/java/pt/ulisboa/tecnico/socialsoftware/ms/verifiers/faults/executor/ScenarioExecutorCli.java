@@ -32,14 +32,15 @@ public class ScenarioExecutorCli {
                     options.get("maven-profile"));
             ScenarioExecutionReport report = new ScenarioExecutor().execute(executorOptions, runtimeContext);
             System.out.println("Scenario executor selected " + report.scenarioPlanId() + " status=" + report.terminalStatus());
-            report.stepOutcomes().forEach(step -> System.out.println("step " + step.scheduleOrder() + " " + step.runtimeStepName() + " " + step.status()));
+            report.participants().forEach(participant -> participant.stepOutcomes().forEach(step ->
+                    System.out.println("participant " + participant.sagaInstanceId() + " step " + step.scheduleOrder() + " " + step.runtimeStepName() + " " + step.status())));
             System.exit(exitCodeFor(report.terminalStatus()));
         }
     }
 
     static int exitCodeFor(String terminalStatus) {
         return switch (terminalStatus == null ? "" : terminalStatus) {
-            case "SUCCESS", "FAULT_COMPENSATED", "DRY_RUN" -> 0;
+            case "SUCCESS", "COMPENSATED", "PARTIAL_COMPENSATED", "DRY_RUN" -> 0;
             default -> 1;
         };
     }

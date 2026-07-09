@@ -85,3 +85,78 @@ Before source edits, the executor must re-check:
 - This is intentionally breaking for v2 report assertions. Do not add compatibility fields to make old tests pass.
 - Keep single-saga execution behavior stable while moving facts into the participant entry.
 - Avoid broad report abstractions; the v3 report is still a local verifier artifact.
+
+## Completion Evidence
+
+Status: `implemented-awaiting-review`
+
+### Implementation Summary
+
+- Migrated `ScenarioExecutionReport` from the v2 flat single-saga shape to canonical v3 with top-level scenario facts and required `participants` entries.
+- Moved single-saga saga identity, materialization/startup state, lifecycle outcome, step outcomes, skipped steps, and participant blockers under the one participant entry.
+- Replaced the v2 `FAULT_COMPENSATED` terminal alias with `COMPENSATED` for assigned single-saga faults, and migrated fault-slot states to v3 vocabulary (`DRY_RUN`, `NOT_REACHED`, `REALIZED`, `MASKED_BY_SAGA_FAILURE`, `EXPECTED_FAULT_NOT_INJECTED`, `NOT_ASSIGNED`).
+- Updated CLI step printing to read participant-local step outcomes and updated exit-code mapping for v3 zero statuses.
+- Updated focused executor coverage to assert v3 schema, one-participant single-saga reports, removed top-level v2 fields, participant state vocabulary, participant-local step outcomes, and v3 exit-code behavior.
+
+### Files Changed
+
+- `verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutionReport.java` — changed report schema version to v3, removed v2 top-level single-saga fields, and added participant/skipped-step records.
+- `verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutor.java` — builds v3 one-participant reports for selected single-saga attempts, emits `COMPENSATED`, and uses v3 fault-slot realization vocabulary.
+- `verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutorCli.java` — prints participant-local step outcomes and treats `SUCCESS`, `COMPENSATED`, `PARTIAL_COMPENSATED`, and `DRY_RUN` as zero-exit statuses.
+- `verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutorSpec.groovy` — migrated assertions from v2 flat report fields to v3 participants and added JSON-shape checks for absent top-level compatibility fields.
+
+### Verification
+
+| Command / Method | Result | Evidence |
+|------------------|--------|----------|
+| `cd verifiers && mvn -Dtest=ScenarioExecutorSpec test` | PASS | `Tests run: 34, Failures: 0, Errors: 0, Skipped: 0`; compiles executor and CLI against the v3 report API. |
+| `cd verifiers && mvn -Dtest=ScenarioExecutorOrchestratorSpec test` | PASS | `Tests run: 3, Failures: 0, Errors: 0, Skipped: 0`; run because CLI-visible output/exit behavior was touched. |
+| Source/test grep | PASS | `rg` over executor main/test/scripts has no production `FAULT_COMPENSATED`, top-level `report.stepOutcomes()`, or top-level report saga identity access; only tests assert the old alias is non-zero/absent. |
+
+### Acceptance Criteria Evidence
+
+- AC-35: `ScenarioExecutionReport.SCHEMA_VERSION` is now `microservices-simulator.scenario-execution-report.v3`; focused tests assert this schema in generated JSON.
+- AC-36: Selected single-saga reports now contain exactly one participant with `sagaInstanceId`, `sagaFqn`, `inputVariantId`, `materializationState`, `startupState`, `lifecycleOutcome`, participant-local `stepOutcomes`, `skippedSteps`, and participant blockers.
+- AC-37: Scenario-level facts remain top-level: execution id, plan id, scenario kind, terminal status, assigned vector/source, provider mode, runtime metadata, fault slots, skipped-candidate counts, and scenario-level blockers.
+- AC-38: JSON assertions prove top-level `sagaInstanceId`, `sagaFqn`, `inputVariantId`, `lifecycleOutcome`, and flat `stepOutcomes` are absent; assigned-fault terminal status is `COMPENSATED`, and tests assert `FAULT_COMPENSATED` is not emitted.
+- AC-39: Existing single-saga dry-run, success, materialization failure, startup failure, assigned-fault, expected-not-injected, provider mismatch, runtime failure, and compensation-failure paths remain covered through the v3 one-participant model.
+- AC-44: `ScenarioExecutorCli.exitCodeFor` returns zero for `SUCCESS`, `COMPENSATED`, `PARTIAL_COMPENSATED`, and `DRY_RUN`; representative hard-stop statuses and `COMPENSATION_FAILED` return non-zero.
+
+Report JSON excerpt asserted by tests:
+
+```json
+{
+  "schemaVersion": "microservices-simulator.scenario-execution-report.v3",
+  "terminalStatus": "SUCCESS",
+  "participants": [
+    {
+      "sagaInstanceId": "fixture-plan-saga",
+      "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.FixtureWorkflow",
+      "inputVariantId": "fixture-plan-input",
+      "materializationState": "MATERIALIZED",
+      "startupState": "STARTUP_READY",
+      "lifecycleOutcome": "COMMITTED",
+      "stepOutcomes": [
+        { "runtimeStepName": "first", "status": "COMPLETED" },
+        { "runtimeStepName": "second", "status": "COMPLETED" }
+      ]
+    }
+  ]
+}
+```
+
+### Browser / Manual Evidence
+
+- Not required.
+
+### TDD Notes
+
+- TDD was partially practical: the slice started from existing v2 assertions, which failed/needed migration by construction once the v3 record removed flat accessors. The focused executor spec was updated to assert v3 behavior and then driven to pass with the implementation.
+
+### Deviations From Plan
+
+- None.
+
+### Blockers / Follow-Ups
+
+- None.

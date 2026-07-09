@@ -7,36 +7,32 @@ public record ScenarioExecutionReport(
         String schemaVersion,
         String scenarioExecutionId,
         String terminalStatus,
-        String lifecycleOutcome,
         String catalogPath,
         String catalogKind,
         String selectionMode,
         String selectionReason,
         String requestedScenarioPlanId,
         String scenarioPlanId,
-        String sagaInstanceId,
-        String sagaFqn,
-        String inputVariantId,
+        String scenarioKind,
         String assignedVector,
         String vectorSource,
         String providerMode,
         RuntimeMetadata runtimeMetadata,
         List<FaultSlot> faultSlots,
-        List<StepOutcome> stepOutcomes,
         Map<String, Integer> skippedCandidateCounts,
-        List<Blocker> blockers) {
+        List<Blocker> blockers,
+        List<Participant> participants) {
 
-    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-execution-report.v2";
+    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-execution-report.v3";
 
     public ScenarioExecutionReport {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;
         terminalStatus = terminalStatus == null || terminalStatus.isBlank() ? "SUCCESS" : terminalStatus;
-        lifecycleOutcome = lifecycleOutcome == null || lifecycleOutcome.isBlank() ? "NOT_STARTED" : lifecycleOutcome;
         providerMode = providerMode == null || providerMode.isBlank() ? "NONE" : providerMode;
         faultSlots = faultSlots == null ? List.of() : List.copyOf(faultSlots);
-        stepOutcomes = stepOutcomes == null ? List.of() : List.copyOf(stepOutcomes);
         skippedCandidateCounts = skippedCandidateCounts == null ? Map.of() : Map.copyOf(skippedCandidateCounts);
         blockers = blockers == null ? List.of() : List.copyOf(blockers);
+        participants = participants == null ? List.of() : List.copyOf(participants);
     }
 
     public record RuntimeMetadata(
@@ -51,6 +47,26 @@ public record ScenarioExecutionReport(
             String vectorSource,
             String executorMode,
             boolean dryRun) {
+    }
+
+    public record Participant(
+            String sagaInstanceId,
+            String sagaFqn,
+            String inputVariantId,
+            String materializationState,
+            String startupState,
+            String lifecycleOutcome,
+            List<StepOutcome> stepOutcomes,
+            List<SkippedStep> skippedSteps,
+            List<Blocker> blockers) {
+        public Participant {
+            materializationState = materializationState == null || materializationState.isBlank() ? "NOT_ATTEMPTED" : materializationState;
+            startupState = startupState == null || startupState.isBlank() ? "NOT_ATTEMPTED" : startupState;
+            lifecycleOutcome = lifecycleOutcome == null || lifecycleOutcome.isBlank() ? "NOT_STARTED" : lifecycleOutcome;
+            stepOutcomes = stepOutcomes == null ? List.of() : List.copyOf(stepOutcomes);
+            skippedSteps = skippedSteps == null ? List.of() : List.copyOf(skippedSteps);
+            blockers = blockers == null ? List.of() : List.copyOf(blockers);
+        }
     }
 
     public record FaultSlot(
@@ -73,6 +89,14 @@ public record ScenarioExecutionReport(
             String status,
             String exceptionClass,
             String exceptionMessage) {
+    }
+
+    public record SkippedStep(
+            String scheduledStepId,
+            String catalogStepId,
+            int scheduleOrder,
+            String runtimeStepName,
+            String reason) {
     }
 
     public record Blocker(

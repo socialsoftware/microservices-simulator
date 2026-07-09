@@ -34,8 +34,8 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.catalogKind() == 'ENRICHED'
         report.scenarioPlanId() == 'enriched-plan'
-        report.sagaFqn() == 'pt.example.EnrichedSaga'
-        report.stepOutcomes()*.runtimeStepName() == ['stepName', 'stepName']
+        participant(report).sagaFqn() == 'pt.example.EnrichedSaga'
+        participant(report).stepOutcomes()*.runtimeStepName() == ['stepName', 'stepName']
         report.terminalStatus() == 'DRY_RUN'
 
         when:
@@ -62,7 +62,7 @@ class ScenarioExecutorSpec extends Specification {
         then:
         first.catalogKind() == 'STATIC'
         first.scenarioPlanId() == 'valid-plan'
-        first.stepOutcomes()*.runtimeStepName() == ['run', 'run']
+        participant(first).stepOutcomes()*.runtimeStepName() == ['run', 'run']
         first.skippedCandidateCounts() == second.skippedCandidateCounts()
         first.skippedCandidateCounts()['UNSUPPORTED_SCENARIO_SHAPE'] == 1
         first.skippedCandidateCounts()['UNSUPPORTED_STEP_ID'] == 2
@@ -83,8 +83,15 @@ class ScenarioExecutorSpec extends Specification {
         def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, output, 'fixture-plan', null, false, 'quizzes', 'quizzes', 'com.example.Application', 'test,sagas,local', 'test-sagas'), runtime())
 
         then:
+        report.schemaVersion() == 'microservices-simulator.scenario-execution-report.v3'
         report.terminalStatus() == 'SUCCESS'
-        report.lifecycleOutcome() == 'COMMITTED'
+        report.participants().size() == 1
+        participant(report).sagaInstanceId() == 'fixture-plan-saga'
+        participant(report).sagaFqn() == FixtureWorkflow.name
+        participant(report).inputVariantId() == 'fixture-plan-input'
+        participant(report).materializationState() == 'MATERIALIZED'
+        participant(report).startupState() == 'STARTUP_READY'
+        participant(report).lifecycleOutcome() == 'COMMITTED'
         report.providerMode() == 'IN_MEMORY_FAULT_VECTOR'
         report.vectorSource() == 'DEFAULT_VECTOR'
         report.assignedVector() == '00'
@@ -94,16 +101,24 @@ class ScenarioExecutorSpec extends Specification {
         report.runtimeMetadata().springApplicationClass() == 'com.example.Application'
         report.runtimeMetadata().springProfiles() == 'test,sagas,local'
         report.runtimeMetadata().mavenProfile() == 'test-sagas'
-        report.runtimeMetadata().applicationBase() != report.sagaFqn()
-        report.stepOutcomes()*.runtimeStepName() == ['first', 'second']
-        report.stepOutcomes()*.status() == ['COMPLETED', 'COMPLETED']
+        report.runtimeMetadata().applicationBase() != participant(report).sagaFqn()
+        participant(report).stepOutcomes()*.runtimeStepName() == ['first', 'second']
+        participant(report).stepOutcomes()*.status() == ['COMPLETED', 'COMPLETED']
         report.faultSlots()*.realizationState() == ['NOT_ASSIGNED', 'NOT_ASSIGNED']
         FixtureWorkflow.STEPS == ['first', 'second']
         FixtureWorkflow.resumeCalls == 1
         FixtureWorkflow.compensationCalls == 0
         !FaultVectorProviderHolder.active
         Files.exists(output)
-        MAPPER.readTree(output.toFile()).get('lifecycleOutcome').asText() == 'COMMITTED'
+        def json = MAPPER.readTree(output.toFile())
+        json.get('schemaVersion').asText() == 'microservices-simulator.scenario-execution-report.v3'
+        json.get('participants').size() == 1
+        json.get('participants').get(0).get('lifecycleOutcome').asText() == 'COMMITTED'
+        !json.has('sagaInstanceId')
+        !json.has('sagaFqn')
+        !json.has('inputVariantId')
+        !json.has('lifecycleOutcome')
+        !json.has('stepOutcomes')
     }
 
     def 'assigned fault realizes before target body, compensates, masks later assigned slots, and clears provider'() {
@@ -128,20 +143,21 @@ class ScenarioExecutorSpec extends Specification {
         def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, output, 'fault-plan', false), runtime())
 
         then:
-        report.terminalStatus() == 'FAULT_COMPENSATED'
-        report.lifecycleOutcome() == 'COMPENSATED'
+        report.terminalStatus() == 'COMPENSATED'
+        !report.toString().contains('FAULT_COMPENSATED')
+        participant(report).lifecycleOutcome() == 'COMPENSATED'
         report.providerMode() == 'IN_MEMORY_FAULT_VECTOR'
-        report.stepOutcomes()*.runtimeStepName() == ['first', 'second']
-        report.stepOutcomes()*.status() == ['COMPLETED', 'INJECTED_FAULT']
-        report.stepOutcomes()[1].exceptionClass() == 'pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorInjectedFaultException'
-        report.stepOutcomes()[1].exceptionMessage().contains('slot 1')
+        participant(report).stepOutcomes()*.runtimeStepName() == ['first', 'second']
+        participant(report).stepOutcomes()*.status() == ['COMPLETED', 'INJECTED_FAULT']
+        participant(report).stepOutcomes()[1].exceptionClass() == 'pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorInjectedFaultException'
+        participant(report).stepOutcomes()[1].exceptionMessage().contains('slot 1')
         report.faultSlots()*.realizationState() == ['NOT_ASSIGNED', 'REALIZED', 'NOT_ASSIGNED']
         report.faultSlots()[1].scheduledStepId() == 'fault-plan-step-2'
         FixtureWorkflow.STEPS == ['first']
         FixtureWorkflow.resumeCalls == 0
         FixtureWorkflow.compensationCalls == 1
         !FaultVectorProviderHolder.active
-        MAPPER.readTree(output.toFile()).get('terminalStatus').asText() == 'FAULT_COMPENSATED'
+        MAPPER.readTree(output.toFile()).get('terminalStatus').asText() == 'COMPENSATED'
     }
 
     def 'multiple assigned faults report later assigned slots as masked after first realized fault'() {
@@ -164,10 +180,10 @@ class ScenarioExecutorSpec extends Specification {
         def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'masked-plan', false), runtime())
 
         then:
-        report.terminalStatus() == 'FAULT_COMPENSATED'
-        report.faultSlots()*.realizationState() == ['NOT_ASSIGNED', 'REALIZED', 'MASKED']
+        report.terminalStatus() == 'COMPENSATED'
+        report.faultSlots()*.realizationState() == ['NOT_ASSIGNED', 'REALIZED', 'MASKED_BY_SAGA_FAILURE']
         report.faultSlots()[2].maskReason().contains('earlier realized slot 1')
-        report.stepOutcomes()*.runtimeStepName() == ['first', 'second']
+        participant(report).stepOutcomes()*.runtimeStepName() == ['first', 'second']
         FixtureWorkflow.STEPS == ['first']
         FixtureWorkflow.compensationCalls == 1
         !FaultVectorProviderHolder.active
@@ -244,9 +260,9 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
-        report.lifecycleOutcome() == 'COMPENSATED'
-        report.stepOutcomes()*.runtimeStepName() == ['fail']
-        report.stepOutcomes()[0].exceptionClass() == IllegalStateException.name
+        participant(report).lifecycleOutcome() == 'COMPENSATED'
+        participant(report).stepOutcomes()*.runtimeStepName() == ['fail']
+        participant(report).stepOutcomes()[0].exceptionClass() == IllegalStateException.name
         report.blockers()*.reason() == ['UNEXPECTED_EXECUTION_FAILURE']
         report.blockers()[0].message().contains('fixture failure')
         FixtureWorkflow.STEPS == ['fail']
@@ -268,9 +284,9 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         report.terminalStatus() == 'EXPECTED_FAULT_NOT_INJECTED'
-        report.lifecycleOutcome() == 'CLOSURE_SKIPPED'
-        report.faultSlots()*.realizationState() == ['UNREALIZED', 'NOT_ASSIGNED']
-        report.stepOutcomes()*.status() == ['UNREALIZED']
+        participant(report).lifecycleOutcome() == 'CLOSURE_SKIPPED'
+        report.faultSlots()*.realizationState() == ['EXPECTED_FAULT_NOT_INJECTED', 'NOT_ASSIGNED']
+        participant(report).stepOutcomes()*.status() == ['EXPECTED_FAULT_NOT_INJECTED']
         report.blockers()*.reason() == ['EXPECTED_FAULT_NOT_INJECTED']
         FixtureWorkflow.STEPS == ['first']
         !FaultVectorProviderHolder.active
@@ -289,7 +305,7 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         report.terminalStatus() == 'UNEXPECTED_INJECTED_FAULT'
-        report.stepOutcomes()*.status() == ['INJECTED_FAULT']
+        participant(report).stepOutcomes()*.status() == ['INJECTED_FAULT']
         report.faultSlots()*.realizationState() == ['NOT_ASSIGNED', 'NOT_ASSIGNED']
         report.blockers()*.reason() == ['UNEXPECTED_INJECTED_FAULT']
         FixtureWorkflow.STEPS.isEmpty()
@@ -309,7 +325,7 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         report.terminalStatus() == 'FAULT_PROVIDER_MISMATCH'
-        report.stepOutcomes()*.status() == ['INJECTED_FAULT']
+        participant(report).stepOutcomes()*.status() == ['INJECTED_FAULT']
         report.blockers()*.reason() == ['FAULT_PROVIDER_MISMATCH']
         FixtureWorkflow.STEPS.isEmpty()
         !FaultVectorProviderHolder.active
@@ -329,8 +345,8 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         report.terminalStatus() == 'COMPENSATION_FAILED'
-        report.lifecycleOutcome() == 'COMPENSATION_FAILED'
-        report.stepOutcomes()*.status() == ['INJECTED_FAULT']
+        participant(report).lifecycleOutcome() == 'COMPENSATION_FAILED'
+        participant(report).stepOutcomes()*.status() == ['INJECTED_FAULT']
         report.blockers()*.reason() == ['FORWARD_FAILURE', 'COMPENSATION_FAILED']
         report.blockers()[0].message().contains('FaultVectorInjectedFaultException')
         report.blockers()[1].message().contains('fixture compensation failure')
@@ -338,7 +354,7 @@ class ScenarioExecutorSpec extends Specification {
         !FaultVectorProviderHolder.active
     }
 
-    def 'explicit fault vector requires explicit scenario id before execution and writes v2 invalid report'() {
+    def 'explicit fault vector requires explicit scenario id before execution and writes v3 invalid report'() {
         given:
         FixtureWorkflow.STEPS.clear()
         def runDirectory = Files.createTempDirectory('scenario-executor-explicit-vector-no-id')
@@ -352,7 +368,7 @@ class ScenarioExecutorSpec extends Specification {
         report.schemaVersion() == ScenarioExecutionReport.SCHEMA_VERSION
         report.scenarioExecutionId()
         report.terminalStatus() == 'INVALID_FAULT_VECTOR'
-        report.lifecycleOutcome() == 'NOT_STARTED'
+        report.participants().isEmpty()
         report.assignedVector() == '1'
         report.vectorSource() == 'EXPLICIT_VECTOR'
         report.providerMode() == 'NONE'
@@ -380,7 +396,7 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.terminalStatus() == 'INVALID_FAULT_VECTOR'
         report.providerMode() == 'NONE'
-        report.lifecycleOutcome() == 'NOT_STARTED'
+        participant(report).lifecycleOutcome() == 'NOT_STARTED'
         report.assignedVector() == expectedVector
         report.runtimeMetadata().dryRun()
         report.blockers()*.reason().contains(expectedReason)
@@ -408,9 +424,12 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         report.terminalStatus() == 'DRY_RUN'
+        participant(report).materializationState() == 'NOT_ATTEMPTED'
+        participant(report).startupState() == 'NOT_ATTEMPTED'
+        participant(report).lifecycleOutcome() == 'NOT_STARTED'
         report.assignedVector() == ''
         report.faultSlots().isEmpty()
-        report.stepOutcomes().isEmpty()
+        participant(report).stepOutcomes().isEmpty()
     }
 
     def 'dry run expands vector mapping and preserves input artifacts without execution'() {
@@ -437,7 +456,8 @@ class ScenarioExecutorSpec extends Specification {
         explicit.faultSlots()*.scheduledStepId() == ['dry-vector-step-1', 'dry-vector-step-2']
         explicit.faultSlots()*.runtimeStepName() == ['first', 'second']
         explicit.faultSlots()*.assignedBit() == [1, 0]
-        explicit.stepOutcomes()*.status() == ['DRY_RUN', 'DRY_RUN']
+        explicit.faultSlots()*.realizationState() == ['DRY_RUN', 'NOT_ASSIGNED']
+        participant(explicit).stepOutcomes()*.status() == ['DRY_RUN', 'DRY_RUN']
         explicit.runtimeMetadata().scenarioPlanId() == 'dry-vector'
         FixtureWorkflow.STEPS.isEmpty()
         afterExplicit == before
@@ -453,11 +473,18 @@ class ScenarioExecutorSpec extends Specification {
         where:
         status                    || code
         'SUCCESS'                 || 0
-        'FAULT_COMPENSATED'       || 0
+        'COMPENSATED'             || 0
+        'PARTIAL_COMPENSATED'     || 0
+        'FAULT_COMPENSATED'       || 1
         'DRY_RUN'                 || 0
         'INVALID_FAULT_VECTOR'    || 1
         'UNSUPPORTED_SCENARIO'    || 1
         'COMPENSATION_FAILED'     || 1
+    }
+
+    private static ScenarioExecutionReport.Participant participant(ScenarioExecutionReport report) {
+        assert report.participants().size() == 1
+        report.participants()[0]
     }
 
     private static ScenarioRuntimeContext runtime() {

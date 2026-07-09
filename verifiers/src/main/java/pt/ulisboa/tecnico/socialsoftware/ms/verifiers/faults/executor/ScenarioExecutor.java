@@ -86,7 +86,7 @@ public class ScenarioExecutor {
             ScenarioExecutionReport report = runCandidate(records, record, candidate, options, runtimeContext, scenarioExecutionId, "AUTO", "first materializable single-saga candidate");
             Map<String, Integer> counts = new TreeMap<>(report.skippedCandidateCounts());
             counts.putAll(skipped);
-            return new ScenarioExecutionReport(report.schemaVersion(), report.scenarioExecutionId(), report.terminalStatus(), report.lifecycleOutcome(), report.catalogPath(), report.catalogKind(), report.selectionMode(), report.selectionReason(), report.requestedScenarioPlanId(), report.scenarioPlanId(), report.sagaInstanceId(), report.sagaFqn(), report.inputVariantId(), report.assignedVector(), report.vectorSource(), report.providerMode(), report.runtimeMetadata(), report.faultSlots(), report.stepOutcomes(), counts, report.blockers());
+            return new ScenarioExecutionReport(report.schemaVersion(), report.scenarioExecutionId(), report.terminalStatus(), report.catalogPath(), report.catalogKind(), report.selectionMode(), report.selectionReason(), report.requestedScenarioPlanId(), report.scenarioPlanId(), report.scenarioKind(), report.assignedVector(), report.vectorSource(), report.providerMode(), report.runtimeMetadata(), report.faultSlots(), counts, report.blockers(), report.participants());
         }
         return base(records, scenarioExecutionId, "UNSUPPORTED_SCENARIO", "AUTO", "no materializable single-saga candidate", null, null, null, null, "DEFAULT_VECTOR", options, List.of(), List.of());
     }
@@ -142,7 +142,7 @@ public class ScenarioExecutor {
                             if (closure.failed()) {
                                 return report(records, scenarioExecutionId, "COMPENSATION_FAILED", "COMPENSATION_FAILED", selectionMode, selectionReason, options.scenarioId(), record, saga, input, candidate.vector().value(), candidate.vector().source(), "IN_MEMORY_FAULT_VECTOR", options, faultSlots, outcomes, Map.of(), closure.blockers());
                             }
-                            return report(records, scenarioExecutionId, "FAULT_COMPENSATED", closure.lifecycleOutcome(), selectionMode, selectionReason, options.scenarioId(), record, saga, input, candidate.vector().value(), candidate.vector().source(), "IN_MEMORY_FAULT_VECTOR", options, faultSlots, outcomes, Map.of(), List.of());
+                            return report(records, scenarioExecutionId, "COMPENSATED", closure.lifecycleOutcome(), selectionMode, selectionReason, options.scenarioId(), record, saga, input, candidate.vector().value(), candidate.vector().source(), "IN_MEMORY_FAULT_VECTOR", options, faultSlots, outcomes, Map.of(), List.of());
                         }
                         String status = currentSlot.assignedBit() == 0 ? "UNEXPECTED_INJECTED_FAULT" : "FAULT_PROVIDER_MISMATCH";
                         return report(records, scenarioExecutionId, status, "CLOSURE_SKIPPED", selectionMode, selectionReason, options.scenarioId(), record, saga, input, candidate.vector().value(), candidate.vector().source(), "IN_MEMORY_FAULT_VECTOR", options, faultSlots, outcomes, Map.of(),
@@ -158,7 +158,7 @@ public class ScenarioExecutor {
                 }
                 ScenarioExecutionReport.FaultSlot slot = stepSlot(candidate.faultSlots(), step);
                 if (slot.assignedBit() == 1) {
-                    outcomes.add(new ScenarioExecutionReport.StepOutcome(step.scheduled().deterministicId(), step.scheduled().stepId(), step.scheduled().scheduleOrder(), step.runtimeName(), "UNREALIZED", null, null));
+                    outcomes.add(new ScenarioExecutionReport.StepOutcome(step.scheduled().deterministicId(), step.scheduled().stepId(), step.scheduled().scheduleOrder(), step.runtimeName(), "EXPECTED_FAULT_NOT_INJECTED", null, null));
                     faultSlots = markUnrealized(candidate.faultSlots(), slot.slotIndex());
                     return report(records, scenarioExecutionId, "EXPECTED_FAULT_NOT_INJECTED", "CLOSURE_SKIPPED", selectionMode, selectionReason, options.scenarioId(), record, saga, input, candidate.vector().value(), candidate.vector().source(), "IN_MEMORY_FAULT_VECTOR", options, faultSlots, outcomes, Map.of(),
                             List.of(new ScenarioExecutionReport.Blocker(plan.deterministicId(), input.deterministicId(), null, step.scheduled().deterministicId(), "EXPECTED_FAULT_NOT_INJECTED", "assigned fault slot " + slot.slotIndex() + " completed without injected fault signal")));
@@ -211,7 +211,7 @@ public class ScenarioExecutor {
         List<ScenarioExecutionReport.FaultSlot> updated = new ArrayList<>();
         for (ScenarioExecutionReport.FaultSlot slot : slots) {
             if (slot.slotIndex() == unrealizedSlotIndex) {
-                updated.add(new ScenarioExecutionReport.FaultSlot(slot.slotIndex(), slot.scheduledStepId(), slot.catalogStepId(), slot.scheduleOrder(), slot.sagaInstanceId(), slot.runtimeStepName(), slot.assignedBit(), "UNREALIZED", null));
+                updated.add(new ScenarioExecutionReport.FaultSlot(slot.slotIndex(), slot.scheduledStepId(), slot.catalogStepId(), slot.scheduleOrder(), slot.sagaInstanceId(), slot.runtimeStepName(), slot.assignedBit(), "EXPECTED_FAULT_NOT_INJECTED", null));
             } else {
                 updated.add(slot);
             }
@@ -229,7 +229,7 @@ public class ScenarioExecutor {
             if (slot.slotIndex() == realizedSlotIndex) {
                 updated.add(new ScenarioExecutionReport.FaultSlot(slot.slotIndex(), slot.scheduledStepId(), slot.catalogStepId(), slot.scheduleOrder(), slot.sagaInstanceId(), slot.runtimeStepName(), slot.assignedBit(), "REALIZED", null));
             } else if (slot.slotIndex() > realizedSlotIndex && slot.assignedBit() == 1) {
-                updated.add(new ScenarioExecutionReport.FaultSlot(slot.slotIndex(), slot.scheduledStepId(), slot.catalogStepId(), slot.scheduleOrder(), slot.sagaInstanceId(), slot.runtimeStepName(), slot.assignedBit(), "MASKED", "masked by earlier realized slot " + realizedSlotIndex + " after saga abort"));
+                updated.add(new ScenarioExecutionReport.FaultSlot(slot.slotIndex(), slot.scheduledStepId(), slot.catalogStepId(), slot.scheduleOrder(), slot.sagaInstanceId(), slot.runtimeStepName(), slot.assignedBit(), "MASKED_BY_SAGA_FAILURE", "masked by earlier realized slot " + realizedSlotIndex + " after saga abort"));
             } else {
                 updated.add(slot);
             }
@@ -355,7 +355,8 @@ public class ScenarioExecutor {
         for (int index = 0; index < slotSteps.size(); index++) {
             RuntimeStep step = slotSteps.get(index);
             int bit = vector.charAt(index) == '1' ? 1 : 0;
-            slots.add(new ScenarioExecutionReport.FaultSlot(index, step.scheduled().deterministicId(), step.scheduled().stepId(), step.scheduled().scheduleOrder(), step.scheduled().sagaInstanceId(), step.runtimeName(), bit, bit == 1 ? "UNREALIZED" : "NOT_ASSIGNED", null));
+            String realizationState = bit == 0 ? "NOT_ASSIGNED" : options.dryRun() ? "DRY_RUN" : "NOT_REACHED";
+            slots.add(new ScenarioExecutionReport.FaultSlot(index, step.scheduled().deterministicId(), step.scheduled().stepId(), step.scheduled().scheduleOrder(), step.scheduled().sagaInstanceId(), step.runtimeName(), bit, realizationState, null));
         }
         return new AssignedVector(vector, source, slots);
     }
@@ -420,7 +421,12 @@ public class ScenarioExecutor {
     }
 
     private ScenarioExecutionReport base(List<CatalogScenarioRecord> records, String scenarioExecutionId, String status, String mode, String reason, String requested, CatalogScenarioRecord record, String assignedVector, String lifecycleOutcome, String vectorSource, ScenarioExecutorOptions options, List<ScenarioExecutionReport.FaultSlot> slots, List<ScenarioExecutionReport.Blocker> blockers) {
-        return report(records, scenarioExecutionId, status, lifecycleOutcome == null ? "NOT_STARTED" : lifecycleOutcome, mode, reason, requested, record, null, null, assignedVector, vectorSource, "NONE", options, slots, List.of(), Map.of(), blockers);
+        SagaInstance saga = record != null && record.plan().sagaInstances().size() == 1 ? record.plan().sagaInstances().get(0) : null;
+        InputVariant input = saga == null ? null : record.plan().inputs().stream()
+                .filter(candidate -> saga.inputVariantId().equals(candidate.deterministicId()))
+                .findFirst()
+                .orElse(null);
+        return report(records, scenarioExecutionId, status, lifecycleOutcome == null ? "NOT_STARTED" : lifecycleOutcome, mode, reason, requested, record, saga, input, assignedVector, vectorSource, "NONE", options, slots, List.of(), Map.of(), blockers);
     }
 
     private ScenarioExecutionReport report(List<CatalogScenarioRecord> records, String scenarioExecutionId, String status, String lifecycleOutcome, String mode, String reason, String requested, CatalogScenarioRecord record, SagaInstance saga, InputVariant input, String assignedVector, String vectorSource, String providerMode, ScenarioExecutorOptions options, List<ScenarioExecutionReport.FaultSlot> slots, List<ScenarioExecutionReport.StepOutcome> steps, Map<String, Integer> skipped, List<ScenarioExecutionReport.Blocker> blockers) {
@@ -438,9 +444,44 @@ public class ScenarioExecutor {
                 vectorSource,
                 mode,
                 options.dryRun());
-        return new ScenarioExecutionReport(ScenarioExecutionReport.SCHEMA_VERSION, scenarioExecutionId, status, lifecycleOutcome,
+        List<ScenarioExecutionReport.Participant> participants = saga == null ? List.of() : List.of(new ScenarioExecutionReport.Participant(
+                saga.deterministicId(),
+                saga.sagaFqn(),
+                input == null ? null : input.deterministicId(),
+                materializationState(status),
+                startupState(status),
+                lifecycleOutcome,
+                steps,
+                skippedSteps(steps, slots),
+                blockers));
+        return new ScenarioExecutionReport(ScenarioExecutionReport.SCHEMA_VERSION, scenarioExecutionId, status,
                 source == null ? null : source.catalogPath(), source == null ? null : source.catalogKind(), mode, reason, requested,
-                scenarioPlanId, saga == null ? null : saga.deterministicId(), saga == null ? null : saga.sagaFqn(), input == null ? null : input.deterministicId(), assignedVector, vectorSource, providerMode, runtimeMetadata, slots, steps, skipped, blockers);
+                scenarioPlanId, record == null ? null : record.plan().kind().name(), assignedVector, vectorSource, providerMode, runtimeMetadata, slots, skipped, blockers, participants);
+    }
+
+    private String materializationState(String status) {
+        return switch (status) {
+            case "DRY_RUN", "SELECTION_FAILED", "UNSUPPORTED_SCENARIO", "INVALID_FAULT_VECTOR" -> "NOT_ATTEMPTED";
+            case "MATERIALIZATION_FAILED" -> "MATERIALIZATION_FAILED";
+            default -> "MATERIALIZED";
+        };
+    }
+
+    private String startupState(String status) {
+        return switch (status) {
+            case "DRY_RUN", "SELECTION_FAILED", "UNSUPPORTED_SCENARIO", "INVALID_FAULT_VECTOR", "MATERIALIZATION_FAILED" -> "NOT_ATTEMPTED";
+            case "STARTUP_FAILED" -> "STARTUP_FAILED";
+            default -> "STARTUP_READY";
+        };
+    }
+
+    private List<ScenarioExecutionReport.SkippedStep> skippedSteps(List<ScenarioExecutionReport.StepOutcome> steps, List<ScenarioExecutionReport.FaultSlot> slots) {
+        Set<String> executed = new HashSet<>();
+        for (ScenarioExecutionReport.StepOutcome step : steps) executed.add(step.scheduledStepId());
+        return slots.stream()
+                .filter(slot -> !executed.contains(slot.scheduledStepId()) && slot.assignedBit() == 1 && "MASKED_BY_SAGA_FAILURE".equals(slot.realizationState()))
+                .map(slot -> new ScenarioExecutionReport.SkippedStep(slot.scheduledStepId(), slot.catalogStepId(), slot.scheduleOrder(), slot.runtimeStepName(), "SKIPPED_BY_SAGA_FAILURE"))
+                .toList();
     }
 
     private List<ScenarioExecutionReport.Blocker> withScenario(String planId, List<ScenarioExecutionReport.Blocker> blockers) {
