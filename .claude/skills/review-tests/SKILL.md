@@ -86,87 +86,39 @@ test scenarios. This is the baseline for Steps 4–7.
 
 ### T1 — `{Aggregate}IntraInvariantTest.groovy`
 
-All cases are **direct-aggregate** (construct and/or mutate the aggregate directly, then call `verifyInvariants()`). No saga path.
-
-- One "create with valid data, all fields correct" scenario — every P1 rule passes; assert every field on the aggregate.
-- For each non-`final` P1 rule enforced by `verifyInvariants()`: one **violation** case that puts the aggregate into the violating state and asserts `ex.getErrorMessage() == <RULE_CONSTANT>`. Skip `final`-field rules (compiler-enforced; no test needed).
-- For each non-`final` P1 rule whose predicate is a **comparison on an ordered domain** (count, timestamp, collection size — `<`, `<=`, `>`, `>=`): two **boundary-straddling** cases:
-  - **on-point** — the last value that satisfies the rule → `verifyInvariants()` does **not** throw.
-  - **off-point** — the first value that violates the rule → `verifyInvariants()` throws and `ex.getErrorMessage() == <RULE_CONSTANT>`.
-  Categorical rules (uniqueness, state-freeze, set-membership) get a single representative — no boundary pair.
-
-Source: `plan.md` §3.1 / §3.2 P1 rule list for this aggregate.
+Required scenarios: `docs/concepts/testing.md` § T1 — Aggregate Test.
+Source rule list: `plan.md` §3.1 / §3.2 P1 rules for this aggregate.
 
 ### T2 — `{Aggregate}ServiceTest.groovy` (one class per aggregate, all service methods)
 
-Direct `*Service` bean calls with a `UnitOfWork` — no saga workflow. Per
-`docs/concepts/testing.md` § T2 — Service Test:
-
-1. **Per write service method, a happy path** — change persisted and read back **through a second,
-   fresh UnitOfWork** (read-back via the same UoW instance is **Fake**); assert the persisted fields.
-2. **Uniqueness / composite-key guard cases** — one per P3 own-table or DTO-check guard in the
-   service method (read the service to enumerate these).
-3. **P3 numeric-guard boundaries** — on-point (`notThrown`) / off-point (`thrown` +
-   `ex.message == <RULE>`) pairs per ordered-domain P3 guard.
-4. **Per read service method: happy read-back + not-found case** — exception type depends on the
-   lookup mechanism. **Read the service method first**:
-   - **Path A** — service calls `aggregateLoadAndRegisterRead` directly with an ID → infrastructure
-     throws `SimulatorException`. Use `thrown(SimulatorException)`.
-   - **Path B** — service calls a custom repository returning `Optional` (e.g.,
-     `findByQuizIdAndUserId`), then throws on empty → service throws `{App}Exception`. Use
-     `thrown({App}Exception)` + message.
-   Rule of thumb from `docs/concepts/testing.md` § T2 — Not-Found Paths. Flagging a correct Path B
-   test as Fake is itself a **Wrong** review finding.
+Required scenarios: `docs/concepts/testing.md` § T2 — Service Test and § Not-Found Paths.
+**Read the service method first** to determine Path A vs Path B before flagging a not-found
+test — flagging a correct Path B test as Fake is itself a **Wrong** review finding.
 
 **P1 intra-invariants are not tested here** — they belong exclusively in `{Aggregate}IntraInvariantTest`. A P1 violation scenario in a T2/T4 test is a **Wrong (misplaced)** finding.
 
 ### T3 — `{Aggregate}EventPublicationTest.groovy` (only for aggregates that publish events)
 
-Per `docs/concepts/testing.md` § T3 — Event Publication Test; trigger via a direct service call,
-assert via the `EventService` bean:
-
-1. **Per published event type** (plan.md's Events published list): the event exists in the store
-   with the correct type, `publisherAggregateId`, and **every payload field** — asserting only
-   type/count is **Weak**.
-2. **One negative case** — an operation that must not publish leaves the event-store count unchanged.
+Required scenarios: `docs/concepts/testing.md` § T3 — Event Publication Test.
 
 ### T4 — per **write** functionality (one test file per write operation under `coordination/{aggregate}/`)
 
 File-naming convention: `{Operation}{Aggregate}Test.groovy` (e.g., `CreateCourseTest.groovy`,
-`UpdateQuizTest.groovy`). Per `docs/concepts/testing.md` § Assertion Ownership, T4 does **not**
-assert field-level persistence, uniqueness, or not-found (T2 owns those) and does not re-assert
-event-store contents (T3 owns that).
-
-For each write functionality:
-
-1. **Happy-path success** — orchestration outcomes only: the operation completes, the returned DTO
-   is coherent, and `sagaStateOf(<id>) == GenericSagaState.NOT_IN_SAGA`.
-2. **Saga-path guard violations** — P3 guard violations that involve cross-aggregate saga
-   coordination, driven through `{Aggregate}Functionalities` (single-aggregate guard cases live in T2).
-3. **State-transition (semantic-lock acquisition) — `setSemanticLock`**: each such step is an *acquire*
-   transition into `IN_{OP}` (see `docs/concepts/testing.md` § T4 — Functionality Test). For each
-   saga step that calls `setSemanticLock`, **without exception**, one test that runs the workflow through
-   that step via `executeUntilStep`, asserts the aggregate is in the expected `IN_{OPERATION}` saga state
-   (`expect:` block), then calls `resumeWorkflow` and asserts `noExceptionThrown()` (completing the
-   traversal back to `NOT_IN_SAGA`). Every such step must have a matching test.
-   `setForbiddenStates` conflict validation is **deferred — see Appendix, Cross-Functionality Test** in `docs/concepts/testing.md`.
+`UpdateQuizTest.groovy`). Required scenarios, assertion ownership, and the semantic-lock
+acquisition pattern: `docs/concepts/testing.md` § T4 — Functionality Test and § Assertion
+Ownership. `setForbiddenStates` conflict validation is deferred — see `docs/concepts/testing.md`
+Appendix, Cross-Functionality Test.
 
 ### T4 — per **read** functionality
 
-1. **Happy-path success only** — returns the expected DTO; assert all semantically important fields.
-   Not-found cases belong in T2 (`{Aggregate}ServiceTest`), not here.
+Happy-path success only — returns the expected DTO; assert all semantically important fields.
+Not-found cases belong in T2 (`{Aggregate}ServiceTest`), not here.
 
 ### T4 — `{Aggregate}InterInvariantTest.groovy` (subscription tests)
 
-Only required if the aggregate has **subscribed events** (listed in `plan.md`):
-
-- For each subscribed event type:
-  - "consumer reflects event" — fire the event from the producing aggregate, assert the consuming
-    aggregate's state updated correctly.
-  - "unrelated entity's event is ignored" — fire the event from a different entity ID, assert no state
-    change on the consumer.
-- Subscription tests may trigger publication via a functionality but must **not** re-assert
-  event-store contents — T3 owns those assertions.
+Only required if the aggregate has **subscribed events** (listed in `plan.md`). Required
+scenarios: `docs/concepts/testing.md` § T4 — Functionality Test (subscription tests must not
+re-assert event-store contents — T3 owns those).
 
 ---
 
@@ -395,60 +347,8 @@ Replace `- [ ] 3.{N} — {Aggregate}` with `- [x] 3.{N} — {Aggregate}` in plan
 
 ---
 
-## Lock-Acquisition Pattern Reference
+## Pattern References
 
-Each `setSemanticLock` step is an *acquire* transition `NOT_IN_SAGA → IN_{OP}`; `resumeWorkflow`
-completes the traversal `IN_{OP} → NOT_IN_SAGA` (see `docs/concepts/testing.md`
-§ T4 — Functionality Test).
-
-**`setSemanticLock` (step that acquires a lock on the primary aggregate):**
-The lock is acquired *by* this step. A lock-acquisition test must:
-1. `executeUntilStep("<lockStep>", uow)` to run through and pause after the lock-acquisition step.
-2. `expect:` block: assert `sagaStateOf(<id>) == <Aggregate>SagaState.IN_<OP>`.
-3. `when:` block: `func.resumeWorkflow(uow)`.
-4. `then:` block: `noExceptionThrown()`.
-
-Cross-aggregate `setForbiddenStates` conflict validation is deferred (see Appendix —
-Cross-Functionality Test in `docs/concepts/testing.md`).
-
----
-
-## Not-Found Test Pattern
-
-There are two distinct not-found paths. **Read the service method first** to determine which applies.
-
-**Path A — primary-key lookup via `aggregateLoadAndRegisterRead`:**
-The infrastructure throws `SimulatorException`. Use `thrown(SimulatorException)`.
-
-```groovy
-given:
-def id = // create the aggregate and capture its ID
-// delete the aggregate so it no longer exists
-
-when:
-{aggregate}Functionalities.get{Aggregate}ById(id)
-
-then:
-thrown(SimulatorException)
-```
-
-**Path B — composite-key lookup via custom repository:**
-The service calls a custom repository (e.g., `findByQuizIdAndUserId`) returning `Optional`. When empty,
-the service throws `{App}Exception`. Use `thrown({App}Exception)`.
-
-```groovy
-given:
-// do NOT create the entity, or create then delete it
-
-when:
-{aggregate}Functionalities.get{Aggregate}ByKey(nonExistentQuizId, nonExistentUserId)
-
-then:
-def ex = thrown({App}Exception)
-ex.message == {App}ErrorMessage.AGGREGATE_NOT_FOUND  // or the specific error constant
-```
-
-**Rule of thumb** (`docs/concepts/testing.md` § T2 — Not-Found Paths): if the service calls `aggregateLoadAndRegisterRead`
-with an ID, expect `SimulatorException`; if the service calls a custom repository method and throws on
-empty Optional, expect `{App}Exception`. Flagging a correct Path B test as Fake is itself a **Wrong**
-review finding.
+Lock-acquisition test pattern and code template: `docs/concepts/testing.md` § T4 —
+Functionality Test. Not-found test patterns (Path A / Path B) and code templates:
+`docs/concepts/testing.md` § T2 — Service Test, § Not-Found Paths.

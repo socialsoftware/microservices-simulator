@@ -4,6 +4,13 @@ Authoritative guide to test coverage in applications built on the microservices-
 Four tiers, layered by what they exercise: the aggregate alone (T1), the service contract (T2),
 event publication (T3), and saga orchestration + cross-aggregate consistency (T4).
 
+> **Single source of truth.** This file is the only place tier definitions, required
+> scenarios, assertion-ownership rules, and test code-block templates are stated. Skills and
+> other docs must reference sections here by anchor (e.g. `testing.md § T2 — Service Test`)
+> rather than restate the rule text or copy the code blocks. If you find a skill file
+> paraphrasing a rule instead of pointing here, that's drift — fix it by deleting the copy,
+> not by editing both.
+
 ## Test Taxonomy
 
 | Tier | Name | Test class | Scope | Profile-agnostic? |

@@ -29,13 +29,7 @@ Load these files before writing any code:
    - § R4 Decision Table — `SagaCommand` vs `setForbiddenStates`
    - § Write Workflow Structure
 
-5. **`docs/concepts/testing.md`** — § Assertion Ownership, § T2 — Service Test, § T3 — Event Publication Test, § T4 — Functionality Test. Note:
-   - **Assertion Ownership** — each fact is asserted in exactly one tier. T2 owns persistence, uniqueness, not-found, and P3 numeric boundaries; T3 owns event-publication assertions; T4 asserts orchestration outcomes only.
-   - What a T2 service test asserts (change persisted and read back via a **fresh** UnitOfWork, uniqueness/composite-key guards, P3 numeric-guard boundaries) — direct `*Service` bean calls, no saga workflow, no P1 predicate tests
-   - What a T3 publication test asserts (event row in the store with correct type + every payload field, plus one negative no-publish case) — triggered via direct service call
-   - What a T4 functionality test asserts (orchestration outcomes, saga-path guard violations, P4a prerequisite failures — e.g., sending a command that causes the saga fetch to fail)
-   - **State-transition rule (semantic-lock acquisition):** each saga step that calls `setSemanticLock` is an *acquire* transition into `IN_{OP}` (see `docs/concepts/testing.md` § T4 — Functionality Test). One case per such step: use `executeUntilStep`, assert the expected `IN_{OP}` saga state, then `resumeWorkflow` and `noExceptionThrown()` (completing the traversal back to `NOT_IN_SAGA`). Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix — Cross-Functionality Test** in `docs/concepts/testing.md`.
-   - § Fake / Wrong / Weak Detection Checklist — apply before committing each test file
+5. **`docs/concepts/testing.md`** — § Assertion Ownership, § T2 — Service Test, § T3 — Event Publication Test, § T4 — Functionality Test, § Fake / Wrong / Weak Detection Checklist. This session writes tests in all three tiers (T2 write cases, T3, T4 write functionality) — read the full rule set before writing any test file, apply the Fake/Wrong/Weak checklist before committing each one.
 
 6. ***(Conditional)*** If the plan.md aggregate section lists cross-aggregate prerequisites (P4a or P3 DTO-check rules): read the service file and relevant command files of each upstream aggregate involved. You need their command class names, service method signatures, and what they throw on failure.
 

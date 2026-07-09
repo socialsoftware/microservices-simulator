@@ -245,50 +245,20 @@ For each test class found in the target:
 | Test Type | Class | Scenarios Present | Missing Scenarios | Notes |
 |-----------|-------|------------------|-------------------|-------|
 
-Expected scenarios per tier (from `docs/concepts/testing.md`):
+Expected scenarios per tier — full definitions in `docs/concepts/testing.md`:
 
-**T1 (`{Aggregate}IntraInvariantTest.groovy`):**
-- One "create with valid data" case, asserting every field
-- One violation case per non-`final` P1 rule enforced in `verifyInvariants()`
-- Boundary-straddle pair (on-point/off-point) for every P1 rule with an ordered-domain predicate
-
-**P1 Java-`final` fields require no test coverage at any tier.** The Java compiler enforces the constraint; there is no write path to violate it. Do not flag missing tests for final-field rules.
-
-**T2 (`{Aggregate}ServiceTest.groovy` — one class per aggregate, all service methods):**
-- Per write service method: happy path, persisted and read back through a **second, fresh**
-  UnitOfWork (same-UoW read-back is Fake)
-- One case per uniqueness / composite-key guard violation (P3)
-- On-point / off-point pairs for P3 numeric-guard boundaries
-- Per read service method: happy read-back, plus a not-found case per lookup path — Path A
-  (`aggregateLoadAndRegisterRead` by ID) → `thrown(SimulatorException)`; Path B (custom repository
-  returning `Optional`) → `thrown({AppClass}Exception)` + message. **Read the service method first**
-  to determine which path applies before flagging either as missing or wrong.
-
-**T3 (`{Aggregate}EventPublicationTest.groovy`):** only expected if the aggregate publishes events
-(plan.md's Events published list). For each published event type:
-- Event exists in the store with correct type, `publisherAggregateId`, and every payload field
-  (type/count alone is Weak)
-- One negative case: an operation that must not publish leaves the store unchanged
-
-**T4 — write functionality tests (`{Operation}{Aggregate}Test.groovy`):**
-- Happy path — orchestration outcome only: operation completes, DTO coherent,
-  `sagaStateOf(<id>) == NOT_IN_SAGA`. Field-level persistence/uniqueness/not-found assertions here
-  are **Wrong (misplaced)** — they belong in T2.
-- One semantic-lock-acquisition case per saga step that calls `setSemanticLock` (create ops with no lock step need no lock-acquisition case)
-- Saga-path P3/P4a guard violations that involve cross-aggregate coordination
-- No P1 violation cases — those belong in T1
-
-**T4 — read functionality tests:**
-- Happy path only. Not-found cases belong in T2, not here.
-
-**T4 subscription (`{Aggregate}InterInvariantTest.groovy`):** only expected if aggregate has P2 subscribed events (session 2.N.d). For each subscribed event:
-- "consumer reflects event" (cached field updated)
-- "consumer ignores event for unrelated entity" (cached field unchanged)
-- Must not re-assert event-store contents — that belongs to T3
-
-Flag any T2 not-found test using the wrong path's exception type per `docs/concepts/testing.md`
-§ T2 — Not-Found Paths (read the service method first — flagging a correct Path B test as wrong is
-itself a review error).
+- **T1** (`{Aggregate}IntraInvariantTest.groovy`): § T1 — Aggregate Test. P1 Java-`final` fields
+  require no test coverage at any tier — do not flag missing tests for final-field rules.
+- **T2** (`{Aggregate}ServiceTest.groovy` — one class per aggregate, all service methods):
+  § T2 — Service Test and § Not-Found Paths. **Read the service method first** to determine
+  Path A vs Path B before flagging either as missing or wrong.
+- **T3** (`{Aggregate}EventPublicationTest.groovy`): § T3 — Event Publication Test. Only
+  expected if the aggregate publishes events (plan.md's Events published list).
+- **T4 write functionality** (`{Operation}{Aggregate}Test.groovy`): § T4 — Functionality Test
+  and § Assertion Ownership.
+- **T4 read functionality**: happy path only — not-found cases belong in T2, not here.
+- **T4 subscription** (`{Aggregate}InterInvariantTest.groovy`): § T4 — Functionality Test. Only
+  expected if the aggregate has P2 subscribed events (session 2.N.d).
 
 ---
 
