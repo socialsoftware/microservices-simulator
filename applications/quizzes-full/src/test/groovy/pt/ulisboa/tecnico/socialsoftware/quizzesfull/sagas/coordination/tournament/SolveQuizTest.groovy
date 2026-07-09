@@ -6,10 +6,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.Tournament
-
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUIZ_ANSWER_NOT_FOUND
 // P1 intra-invariant violations are NOT tested here — see TournamentIntraInvariantTest.
 
 import java.time.LocalDateTime
@@ -79,16 +76,10 @@ class SolveQuizTest extends QuizzesFullSpockTest {
         participant.quizAnswer.quizAnswerAggregateId == quizAnswer.aggregateId
     }
 
-    def "solveQuiz: QUIZ_ANSWER_NOT_FOUND — no quiz answer for participant"() {
-        given: 'participant is enrolled on a started tournament but has no quiz answer'
-        def readyTournamentId = prepareTournamentReadyForSolveQuiz(participantId)
-
-        when:
-        tournamentFunctionalities.solveQuiz(readyTournamentId, participantId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == QUIZ_ANSWER_NOT_FOUND
-    }
-
+    // "QUIZ_ANSWER_NOT_FOUND — no quiz answer for participant" case removed (session 3.7): it is a
+    // straight duplicate of QuizAnswerServiceTest's "getQuizAnswerByQuizIdAndStudentId: not found"
+    // case — SolveQuizFunctionalitySagas.getQuizAnswerStep resolves through the same
+    // GetQuizAnswerByQuizIdAndStudentIdCommand -> QuizAnswerService.getQuizAnswerByQuizIdAndStudentId
+    // path, so this was cross-aggregate duplicate coverage, not missing coverage (same category as
+    // the 3.5 GetQuestionsByCourseExecutionIdTest note).
 }

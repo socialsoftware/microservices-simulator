@@ -9,13 +9,10 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.states.QuizSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.CreateQuizAnswerFunctionalitySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.sagas.states.UserSagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
-
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.UNIQUE_QUIZ_ANSWER_PER_STUDENT
 
 @DataJpaTest
 @Transactional
@@ -58,10 +55,8 @@ class CreateQuizAnswerTest extends QuizzesFullSpockTest {
     }
 
     def "createQuizAnswer: success"() {
-        // Spec: QuizAnswer.{quizAggregateId,userAggregateId,executionAggregateId,
-        //       userName,userUsername} = input refs; completed=false;
-        //       SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.7 QuizAnswer / createQuizAnswer.
+        // Spec: plan.md §7 QuizAnswer — CreateQuizAnswer. Orchestration outcome only —
+        // persistence/field-level assertions are owned by QuizAnswerServiceTest.
         when:
         def result = createQuizAnswer(quizId, userId)
 
@@ -69,32 +64,7 @@ class CreateQuizAnswerTest extends QuizzesFullSpockTest {
         result.aggregateId != null
         result.quizAggregateId == quizId
         result.userAggregateId == userId
-        result.executionAggregateId == executionId
-        result.userName == USER_NAME_1
-        result.userUsername == USER_USERNAME_1
-        result.completed == false
-        result.creationDate != null
-        result.answerDate != null
-        result.questionAnswerIds.isEmpty()
         sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
-
-        and: 'the quiz answer is persisted and retrievable'
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def dto = quizAnswerService.getQuizAnswerById(result.aggregateId, checkUow)
-        dto.aggregateId == result.aggregateId
-        dto.completed == false
-    }
-
-    def "createQuizAnswer: UNIQUE_QUIZ_ANSWER_PER_STUDENT violation"() {
-        given:
-        createQuizAnswer(quizId, userId)
-
-        when:
-        createQuizAnswer(quizId, userId)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == UNIQUE_QUIZ_ANSWER_PER_STUDENT
     }
 
     def "createQuizAnswer: getQuizStep acquires READ_QUIZ semantic lock"() {

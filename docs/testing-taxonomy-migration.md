@@ -136,7 +136,7 @@ Topological order (same as plan.md). Per-session scope:
 | - [x] 3.4 | Execution | `ExecutionServiceTest` | `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent` + negative case — `ExecutionEventPublicationTest.groovy` deleted, methods merged into `ExecutionServiceTest.groovy` (amendment retrofit, see decision 8) | `CreateExecutionTest`, `UpdateExecutionTest`, `DeleteExecutionTest`, `EnrollStudentInExecutionTest`, `DisenrollStudentTest`, `GetExecutionByIdTest`; keep `ExecutionInterInvariantTest` (relabel comments to T3 — header comment + producer-side cross-reference now names `UserServiceTest`, not `UserEventPublicationTest`) | Retrofitted post-merge: `UpdateExecutionCompensationTest` (pre-existing template), `CreateExecutionCompensationTest`, `DeleteExecutionCompensationTest`, `DisenrollStudentCompensationTest`, `UpdateStudentNameCompensationTest`, `AnonymizeStudentCompensationTest`. **No** `EnrollStudentInExecutionCompensationTest` — see Discovered issues (`getExecutionStep` is not a root step; the fault mechanism can't genuinely exercise its compensation) |
 | - [x] 3.5 | Question | `QuestionServiceTest` | `UpdateQuestionEvent`, `DeleteQuestionEvent` + negative case — `QuestionEventPublicationTest.groovy` deleted, methods merged into `QuestionServiceTest.groovy` (amendment retrofit, see decision 8) | `CreateQuestionTest`, `UpdateQuestionTest`, `DeleteQuestionTest`, `GetQuestionByIdTest`, `GetQuestionsByCourseExecutionIdTest`; keep `QuestionInterInvariantTest` (relabel comments to T3 — producer-side cross-reference now names `TopicServiceTest`) | `CreateQuestionCompensationTest`, `UpdateQuestionCompensationTest`, `DeleteQuestionCompensationTest` — all three lock steps are root steps, so unlike Execution's excluded case, all three functionalities got genuine tests |
 | - [x] 3.6 | Quiz | `QuizServiceTest` | `InvalidateQuizEvent` (x2 methods: `removeQuestionFromQuiz`, `invalidateQuiz`) + negative case — `QuizEventPublicationTest.groovy` deleted, methods merged into `QuizServiceTest.groovy` (amendment retrofit, see decision 8) | `CreateQuizTest`, `UpdateQuizTest`, `GetQuizByIdTest` trimmed; `ConcludeQuizTest`/`SolveQuizTest` left untouched — see Discovered Issues; keep `QuizInterInvariantTest` (relabel comments to T3 — producer-side cross-reference now names `QuestionServiceTest` and `ExecutionServiceTest`) | `CreateQuizCompensationTest`, `UpdateQuizCompensationTest` — both lock steps (`getExecutionStep`, `getQuizStep`) are root steps, so both got genuine compensation tests |
-| - [ ] 3.7 | QuizAnswer | `QuizAnswerServiceTest` | `QuizAnswerQuestionAnswerEvent` + negative case, asserted directly in `QuizAnswerServiceTest.groovy` (no separate `EventPublicationTest` class — see decision 8) | `CreateQuizAnswerTest`, `AnswerQuestionTest`, `GetQuizAnswerByQuizIdAndStudentIdTest`; keep `QuizAnswerInterInvariantTest` (T3 — consumer-side scope, producer-side cross-reference names `QuizAnswerServiceTest`) | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7) |
+| - [x] 3.7 | QuizAnswer | `QuizAnswerServiceTest` | `QuizAnswerQuestionAnswerEvent` + negative case, asserted directly in `QuizAnswerServiceTest.groovy` (no separate `EventPublicationTest` class — see decision 8) | `CreateQuizAnswerTest`, `AnswerQuestionTest`, `GetQuizAnswerByQuizIdAndStudentIdTest`; also `ConcludeQuizTest` (persisted `completed` field relocated) and `sagas/coordination/tournament/SolveQuizTest` (duplicate cross-aggregate `QUIZ_ANSWER_NOT_FOUND` case deleted, not relocated — see Discovered issues); keep `QuizAnswerInterInvariantTest` (relabeled T4→T3 — consumer-side scope; producer-side cross-reference names `UserServiceTest`, `ExecutionServiceTest`, `QuestionServiceTest`, `QuizServiceTest` — see Discovered issues) | `CreateQuizAnswerCompensationTest` (fault on `getUserStep` compensates `getQuizStep`), `AnswerQuestionCompensationTest` (fault on `getQuestionStep` compensates `getQuizAnswerStep`), `ConcludeQuizCompensationTest` (fault on `concludeQuizStep` compensates `getQuizAnswerStep`) — all three write functionalities' lock steps are root steps, so all three got genuine compensation tests |
 | - [ ] 3.8 | Tournament | `TournamentServiceTest` | — (publishes none; no `EventPublicationTest` needed) | `CreateTournamentTest`, `UpdateTournamentTest`, `CancelTournamentTest`, `DeleteTournamentTest`, `AddParticipantTest`, `GetTournamentByIdTest`, `GetOpenTournamentsTest`; keep `TournamentInterInvariantTest` (T3 — consumer-side scope) | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7); `AddParticipantFunctionalitySagas` has a forbidden-state guard — compensation and guard are separate concerns, don't conflate |
 
 Per-session procedure (identical for every aggregate; substitute `<Aggregate>`):
@@ -321,3 +321,51 @@ unconditionally throws `COURSE_FIELDS_IMMUTABLE` — its T2 test asserts exactly
   regex matches on lines that already correctly separate T3-subscription and T4-functionality
   mentions. No production code touched — diff scope confirmed to
   `docs/`, `.claude/skills/`, and `applications/quizzes-full/src/test/` only.
+- Session 3.7: this row's T4 trim scope also lists `ConcludeQuizTest` (lives under
+  `sagas/coordination/quizanswer/`, not flagged in the original row) — its `"concludeQuiz: success"`
+  case asserted `QuizAnswerDto.completed == true` via `quizAnswerService.getQuizAnswerById`, a
+  QuizAnswerService-owned persisted-field fact; relocated into `QuizAnswerServiceTest`'s
+  `"concludeQuiz: completed flag persisted through a fresh UnitOfWork"` case, trimmed the T4 case to
+  orchestration-only (`noExceptionThrown()` + `sagaStateOf == NOT_IN_SAGA`). Also checked
+  `sagas/coordination/tournament/SolveQuizTest` per the 3.6 note: its `"solveQuiz: success"` case
+  asserts `participant.quizAnswer.quizAnswerAggregateId` — a Tournament-owned participant-link fact,
+  left untouched, deferred to session 3.8 as instructed. Its
+  `"QUIZ_ANSWER_NOT_FOUND — no quiz answer for participant"` case, however, was a straight duplicate
+  (same category as the 3.5 `GetQuestionsByCourseExecutionIdTest` note): `SolveQuizFunctionalitySagas`'s
+  `getQuizAnswerStep` resolves through the exact same `GetQuizAnswerByQuizIdAndStudentIdCommand` ->
+  `QuizAnswerService.getQuizAnswerByQuizIdAndStudentId` path already covered by
+  `QuizAnswerServiceTest`'s not-found case (itself relocated from
+  `GetQuizAnswerByQuizIdAndStudentIdTest`) — deleted rather than relocated, with a comment left in
+  `SolveQuizTest` explaining why.
+- Session 3.7: the Phase-3 table's original row-4 cell text ("producer-side cross-reference names
+  `QuizAnswerServiceTest`") does not match the established pattern from Quiz/Question — those name
+  the actual *producers* of the subscribed events, not the consuming aggregate's own ServiceTest.
+  QuizAnswer subscribes to events from four different producers (User, Execution, Question, Quiz),
+  so `QuizAnswerInterInvariantTest`'s new T3 header names all four: `UserServiceTest`
+  (`DeleteUserEvent`, `UpdateStudentNameEvent`, `AnonymizeStudentEvent`), `ExecutionServiceTest`
+  (`DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent`), `QuestionServiceTest`
+  (`UpdateQuestionEvent`), `QuizServiceTest` (`InvalidateQuizEvent`) — consistent with the
+  Quiz/Question precedent, not the table's literal wording. Also note:
+  `QuizAnswerInterInvariantTest.groovy` had no header comment at all before this session (unlike
+  every other migrated aggregate's `<Consumer>InterInvariantTest`), so this was an addition, not a
+  relabel-in-place.
+- Session 3.7: `QuizAnswerService`'s five event-driven methods (`removeQuizAnswer`,
+  `removeQuizAnswerIfUserMatches`, `updateStudentName`, `anonymizeStudent`,
+  `updateQuestionVersionInQuizAnswer` — all called only via `QuizAnswerFunctionalities.*ByEvent`,
+  in turn only invoked from `QuizAnswerEventProcessing` with an id sourced from an existing, active
+  event subscription) got happy-path + persisted-readback coverage in `QuizAnswerServiceTest` but no
+  not-found case for any of the five, mirroring the Quiz 3.6 reasoning: no legitimate caller can ever
+  supply a nonexistent id to them.
+- Session 3.7: all three of QuizAnswer's write functionalities (`CreateQuizAnswer`, `AnswerQuestion`,
+  `ConcludeQuiz`) have a chain of exactly one root (no-dependency) semantic-lock step followed by one
+  dependent step with no lock, structurally identical to `CreateQuizFunctionalitySagas`
+  (`getExecutionStep` root, `getQuestionsStep` dependent) — so all three got genuine compensation
+  tests with no mechanical obstruction, verified via the fault-flip-to-0 sanity check plus reading
+  logs to confirm each root lock step's `START EXECUTION STEP` line appears before the injected
+  fault. Note for future sessions: `CreateQuizAnswer` has a *second* semantic-lock step
+  (`getUserStep`, `READ_USER`) chained after the first (`getQuizStep`, `READ_QUIZ`) — per the
+  mechanical caveat, `getUserStep`'s own compensation is untestable with the current
+  `ImpairmentService`/`ExecutionPlan` mechanism (it is not a root step), so no
+  `CreateQuizAnswerCompensationTest` case exists for it; only `getQuizStep`'s compensation
+  (triggered by faulting `getUserStep`) is genuinely testable, same shape as the excluded
+  `EnrollStudentInExecutionFunctionalitySagas` case from session 3.4's Discovered issues.

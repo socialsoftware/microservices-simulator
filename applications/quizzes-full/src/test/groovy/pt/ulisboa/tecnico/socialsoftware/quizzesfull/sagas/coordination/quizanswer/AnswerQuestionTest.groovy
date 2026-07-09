@@ -6,6 +6,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.sagas.states.QuizAnswerSagaState
@@ -56,15 +57,13 @@ class AnswerQuestionTest extends QuizzesFullSpockTest {
     }
 
     def "answerQuestion: success"() {
+        // Orchestration outcome only — persistence/field-level assertions are owned by QuizAnswerServiceTest.
         when:
         quizAnswerFunctionalities.answerQuestion(quizAnswerId, questionId, 1, 30)
 
-        then: 'the answered question is reflected on the quiz answer state'
-        def uow = unitOfWorkService.createUnitOfWork("check")
-        def dto = quizAnswerService.getQuizAnswerById(quizAnswerId, uow)
-        dto.questionAnswerIds.size() == 1
-        dto.questionAnswerIds.contains(questionId)
-        dto.completed == false
+        then:
+        noExceptionThrown()
+        sagaStateOf(quizAnswerId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "answerQuestion: getQuizAnswerStep acquires IN_ANSWER_QUESTION semantic lock"() {

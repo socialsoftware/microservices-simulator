@@ -6,9 +6,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
-
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.QUIZ_ANSWER_NOT_FOUND
 
 @DataJpaTest
 @Transactional
@@ -58,14 +55,5 @@ class GetQuizAnswerByQuizIdAndStudentIdTest extends QuizzesFullSpockTest {
         result.quizAggregateId == quizId
         result.userAggregateId == userId
         result.completed == false
-    }
-
-    def "getQuizAnswerByQuizIdAndStudentId: not found"() {
-        when:
-        quizAnswerFunctionalities.getQuizAnswerByQuizIdAndStudentId(999, 999)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == QUIZ_ANSWER_NOT_FOUND
     }
 }
