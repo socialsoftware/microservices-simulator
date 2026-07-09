@@ -61,8 +61,34 @@ Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/002-
 Commit:
 
 - Status: `committed`
-- Hash: `pending`
+- Hash: `ce6d7baa`
 - Message: `feat(multi-saga-executor): add explicit multi-saga dry run`
+
+Reason if blocked/skipped:
+
+- None.
+
+#### `003-multi-participant-materialization-and-startup-gates.md`
+
+Status: `done`
+
+Risk: `high`
+Dependencies: `001-v3-participant-report-and-single-saga-migration.md`, `002-explicit-multi-saga-selection-and-dry-run.md`
+Implementer session: `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T13-54-15-616Z_019f4728-5dc0-7437-8d08-0ff7189f7cfe.jsonl`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T14-00-52-037Z_019f472e-6a45-7c58-a356-db60eefdeeed.jsonl` | `issues/2026-07-08-multi-saga-scenario-executor/review/003-multi-participant-materialization-and-startup-gates-review-01.md` | PASS | Reviewer reran `ScenarioExecutorSpec`, `ScenarioExecutorReadinessEvaluatorSpec`, and `git diff --check`. |
+
+Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/003-multi-participant-materialization-and-startup-gates-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `pending`
+- Message: `feat(multi-saga-executor): add participant preparation gates`
 
 Reason if blocked/skipped:
 

@@ -13,6 +13,9 @@ public class FixtureWorkflow {
     public static final List<String> STEPS = new ArrayList<>();
     public static int resumeCalls = 0;
     public static int compensationCalls = 0;
+    public static int constructorCalls = 0;
+    public static final List<Object> constructorUnitOfWorks = new ArrayList<>();
+    public static final List<Object> lifecycleUnitOfWorks = new ArrayList<>();
     public static boolean suppressFaultSignal = false;
     public static boolean injectUnexpectedSignal = false;
     public static boolean injectWrongSlotSignal = false;
@@ -21,11 +24,14 @@ public class FixtureWorkflow {
     private final Object argument;
 
     public FixtureWorkflow(Object argument) {
+        constructorCalls++;
         this.argument = argument;
     }
 
     public FixtureWorkflow(Object first, Object second, Object third) {
+        constructorCalls++;
         this.argument = Arrays.asList(first, second, third);
+        constructorUnitOfWorks.add(third);
     }
 
     public Object argument() {
@@ -33,6 +39,7 @@ public class FixtureWorkflow {
     }
 
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
+        lifecycleUnitOfWorks.add(unitOfWork);
         FaultVectorProviderHolder.currentBoundary()
                 .filter(context -> stepName.equals(context.runtimeStepName()))
                 .ifPresent(context -> {
@@ -64,10 +71,12 @@ public class FixtureWorkflow {
     }
 
     public void resumeWorkflow(UnitOfWork unitOfWork) {
+        lifecycleUnitOfWorks.add(unitOfWork);
         resumeCalls++;
     }
 
     public void resumeCompensation(UnitOfWork unitOfWork) {
+        lifecycleUnitOfWorks.add(unitOfWork);
         compensationCalls++;
         if (compensationFails) {
             throw new IllegalStateException("fixture compensation failure");

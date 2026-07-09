@@ -89,3 +89,58 @@ Before source edits, the executor must re-check:
 - Do not let one materialized participant execute or close if another participant fails materialization/startup.
 - Avoid broad materializer feature work; unsupported recipes should remain blockers.
 - The unit-of-work reuse fix is in scope only because AC-15 requires one unit of work per participant.
+
+## Completion Evidence
+
+Status: `implemented-awaiting-review`
+
+### Implementation Summary
+
+- Added explicit non-dry-run multi-saga preparation gates after structural/vector validation: all participants materialize before startup, and startup hard-stops before any provider installation or scheduled-step/lifecycle execution.
+- Added participant runtime state tracking for materialization/startup state, participant-local blockers, materialized arguments, functionality instance, and participant-owned `SagaUnitOfWork`.
+- Adapted `ScenarioMaterializer` to accept a pre-created participant-owned `SagaUnitOfWork` for runtime-owned `SagaUnitOfWork` arguments while preserving existing runtime-owned `SagaUnitOfWorkService` and `CommandGateway` behavior.
+- Updated single-participant execution to reuse the same pre-created `SagaUnitOfWork` for constructor/runtime-owned arguments and lifecycle calls.
+- Added fixture/test evidence for materialization failure, startup failure, no provider/steps/closure/compensation on gate failures, `NOT_REACHED` assigned slots on hard stops, and unit-of-work reuse.
+
+### Files Changed
+
+- `verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutor.java` — added multi-participant preparation gate sequencing, participant state reports, hard-stop `NOT_REACHED` slot marking, and unit-of-work reuse for single-participant execution.
+- `verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioMaterializer.java` — added optional participant-owned runtime value context for `SagaUnitOfWork` resolution.
+- `verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutorSpec.groovy` — added/updated focused materialization/startup gate and unit-of-work reuse coverage.
+- `verifiers/src/test/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/FixtureWorkflow.java` — added constructor/lifecycle counters and unit-of-work identity capture for executor assertions.
+- `issues/2026-07-08-multi-saga-scenario-executor/003-multi-participant-materialization-and-startup-gates.md` — recorded completion evidence.
+
+### Verification
+
+| Command / Method | Result | Evidence |
+|------------------|--------|----------|
+| `cd verifiers && mvn -Dtest=ScenarioExecutorSpec test` | PASS | 40 tests run, 0 failures, 0 errors; includes multi-saga materialization/startup gate cases. |
+| `cd verifiers && mvn -Dtest=ScenarioExecutorReadinessEvaluatorSpec test` | PASS | 2 tests run, 0 failures, 0 errors; run because materializer runtime-owned handling changed. |
+
+### Acceptance Criteria Evidence
+
+- AC-7: Non-dry-run multi-saga participants now each call `ScenarioMaterializer` under existing semantics; a participant with an unsupported constructor recipe reports `MATERIALIZATION_FAILED`.
+- AC-8: `MATERIALIZATION_FAILED` report keeps both selected-plan participants (`left`, `right`), marks states as `MATERIALIZED` / `MATERIALIZATION_FAILED`, records participant-local blockers, uses provider mode `NONE`, has no step outcomes, and fixture counters show no constructor/lifecycle execution.
+- AC-9: `STARTUP_FAILED` report keeps both selected-plan participants, marks all materialization as `MATERIALIZED`, marks startup as `STARTUP_READY` / `STARTUP_FAILED`, records the startup blocker, and fixture counters show no scheduled steps, closure, or compensation.
+- AC-15: Each participant preparation state owns one `SagaUnitOfWork`; `ScenarioMaterializer` reuses that object for runtime-owned `SagaUnitOfWork` constructor arguments. Single-participant regression verifies constructor and lifecycle calls receive the same object.
+- AC-25: Assigned slots in materialization/startup hard-stop reports are marked `NOT_REACHED` where fault-slot mapping exists.
+- AC-30: Materialization and startup failures remain hard-stop terminal statuses with provider mode `NONE`, not domain scenario outcomes.
+- AC-36: Gate-failure reports include required participant entries with materialization/startup/lifecycle states and participant-local blockers.
+- AC-37: Gate-failure reports keep top-level scenario facts, assigned vector/source, provider mode, fault slots, and top-level blockers.
+- AC-40: Dummy/synthetic `ScenarioExecutorSpec` coverage proves the materialization/startup gate behavior required by this slice.
+
+### Browser / Manual Evidence
+
+- Not required.
+
+### TDD Notes
+
+- Added focused Spock coverage for the first required behavior (`MATERIALIZATION_FAILED` with no provider/steps/startup) and for startup failure/unit-of-work reuse, then implemented the executor/materializer changes. The first full verification run exposed dry-run ordering and fixture reset/count expectation issues; these were corrected before the passing verification runs above.
+
+### Deviations From Plan
+
+- Successful non-dry-run multi-saga preparation that reaches the post-startup boundary still returns `UNSUPPORTED_SCENARIO` for scheduled-step execution, because successful interleaving/final closure is explicitly owned by S4. Gate failure behavior for this slice is implemented.
+
+### Blockers / Follow-Ups
+
+- None for this slice. S4 remains responsible for replacing the post-startup unsupported boundary with default-vector scheduled-step execution and closure.

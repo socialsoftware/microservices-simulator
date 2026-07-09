@@ -18,6 +18,11 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWorkflow.injectUnexpectedSignal = false
         FixtureWorkflow.injectWrongSlotSignal = false
         FixtureWorkflow.compensationFails = false
+        FixtureWorkflow.resumeCalls = 0
+        FixtureWorkflow.compensationCalls = 0
+        FixtureWorkflow.constructorCalls = 0
+        FixtureWorkflow.constructorUnitOfWorks.clear()
+        FixtureWorkflow.lifecycleUnitOfWorks.clear()
     }
 
     def 'dry run prefers enriched catalog, unwraps scenario plans, validates explicit ids, and derives deterministic steps'() {
@@ -548,20 +553,86 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWorkflow.STEPS.isEmpty()
     }
 
-    def 'explicit multi-saga non dry run remains unsupported before materialization'() {
+    def 'multi-saga materialization failure attempts all participant inputs and hard stops before startup provider or steps'() {
         given:
         FixtureWorkflow.STEPS.clear()
-        def runDirectory = Files.createTempDirectory('scenario-executor-multi-non-dry')
-        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [multiPlan('multi-non-dry')])
+        FaultVectorProviderHolder.clear()
+        def runDirectory = Files.createTempDirectory('scenario-executor-multi-materialization-failure')
+        def scenario = multiPlanWith('multi-materialization-failure',
+                [new SagaInstance('left', FixtureWorkflow.name, 'left-input', []), new SagaInstance('right', FixtureWorkflow.name, 'right-input', [])],
+                [inputVariant('left-input', FixtureWorkflow.name, literalArg('left')), inputVariant('right-input', FixtureWorkflow.name, recipeArg(InputRecipeNode.builder('constructor').executorReady(true).build()))],
+                [new ScheduledStep('left-step', 'left', 'fixture::run#0', 0, []), new ScheduledStep('right-step', 'right', 'fixture::other#0', 1, [])],
+                new FaultSpace(2, ['left-step', 'right-step'], '11'))
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
-        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'multi-non-dry', false), runtime())
+        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'multi-materialization-failure', false), runtime())
 
         then:
-        report.terminalStatus() == 'UNSUPPORTED_SCENARIO'
+        report.terminalStatus() == 'MATERIALIZATION_FAILED'
+        report.providerMode() == 'NONE'
         report.participants()*.sagaInstanceId() == ['left', 'right']
-        report.blockers()*.reason() == ['UNSUPPORTED_SCENARIO_SHAPE']
+        report.participants()*.materializationState() == ['MATERIALIZED', 'MATERIALIZATION_FAILED']
+        report.participants()*.startupState() == ['NOT_ATTEMPTED', 'NOT_ATTEMPTED']
+        report.participants()*.lifecycleOutcome().unique() == ['NOT_STARTED']
+        report.participants()[0].blockers().isEmpty()
+        report.participants()[1].blockers()*.reason() == ['MISSING_TARGET_TYPE']
+        report.faultSlots()*.realizationState() == ['NOT_REACHED', 'NOT_REACHED']
+        FixtureWorkflow.constructorCalls == 0
         FixtureWorkflow.STEPS.isEmpty()
+        FixtureWorkflow.resumeCalls == 0
+        FixtureWorkflow.compensationCalls == 0
+        !FaultVectorProviderHolder.active
+    }
+
+    def 'multi-saga startup failure starts no scheduled steps closure or compensation after all materialization succeeds'() {
+        given:
+        FixtureWorkflow.STEPS.clear()
+        FaultVectorProviderHolder.clear()
+        def runDirectory = Files.createTempDirectory('scenario-executor-multi-startup-failure')
+        def scenario = multiPlanWith('multi-startup-failure',
+                [new SagaInstance('left', FixtureWorkflow.name, 'left-input', []), new SagaInstance('right', 'pt.example.MissingSaga', 'right-input', [])],
+                [inputVariant('left-input', FixtureWorkflow.name, literalArg('left')), inputVariant('right-input', 'pt.example.MissingSaga', literalArg('right'))],
+                [new ScheduledStep('left-step', 'left', 'fixture::run#0', 0, []), new ScheduledStep('right-step', 'right', 'fixture::other#0', 1, [])],
+                new FaultSpace(2, ['left-step', 'right-step'], '10'))
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
+
+        when:
+        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'multi-startup-failure', false), runtime())
+
+        then:
+        report.terminalStatus() == 'STARTUP_FAILED'
+        report.providerMode() == 'NONE'
+        report.participants()*.materializationState() == ['MATERIALIZED', 'MATERIALIZED']
+        report.participants()*.startupState() == ['STARTUP_READY', 'STARTUP_FAILED']
+        report.participants()*.lifecycleOutcome().unique() == ['NOT_STARTED']
+        report.participants()[1].blockers()*.reason() == ['STARTUP_FAILED']
+        report.faultSlots()*.realizationState() == ['NOT_REACHED', 'NOT_ASSIGNED']
+        FixtureWorkflow.constructorCalls == 1
+        FixtureWorkflow.STEPS.isEmpty()
+        FixtureWorkflow.resumeCalls == 0
+        FixtureWorkflow.compensationCalls == 0
+        !FaultVectorProviderHolder.active
+    }
+
+    def 'runtime owned SagaUnitOfWork is reused for constructor and lifecycle calls in single participant execution'() {
+        given:
+        def runDirectory = Files.createTempDirectory('scenario-executor-unit-of-work-reuse')
+        def args = [
+                arg(0, 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService', InputRecipeNode.builder('placeholder').expectedTypeFqn('pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService').executorReady(false).build()),
+                arg(1, 'pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway', InputRecipeNode.builder('placeholder').expectedTypeFqn('pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway').executorReady(false).build()),
+                arg(2, 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork', InputRecipeNode.builder('call_result').executorReady(false).build())
+        ]
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [planWithArgs('uow-reuse-plan', FixtureWorkflow.name, args)])
+
+        when:
+        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'uow-reuse-plan', false), runtime())
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        FixtureWorkflow.constructorUnitOfWorks.size() == 1
+        FixtureWorkflow.lifecycleUnitOfWorks.size() == 3
+        FixtureWorkflow.lifecycleUnitOfWorks.every { it.is(FixtureWorkflow.constructorUnitOfWorks[0]) }
     }
 
     def 'CLI exit code helper treats dry-run success and compensated faults as zero only'() {

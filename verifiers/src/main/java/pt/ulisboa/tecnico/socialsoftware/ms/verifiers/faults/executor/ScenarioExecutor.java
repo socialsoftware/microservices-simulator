@@ -109,16 +109,18 @@ public class ScenarioExecutor {
             return candidateReport(records, scenarioExecutionId, "DRY_RUN", "NOT_STARTED", selectionMode, selectionReason, options.scenarioId(), record,
                     candidate.vector().value(), candidate.vector().source(), "NONE", options, candidate, drySteps, Map.of(), List.of());
         }
-        ScenarioMaterializer.MaterializedArguments args = materializer.materialize(input, runtimeContext, saga.sagaFqn());
+        if (plan.kind() == ScenarioKind.MULTI_SAGA) {
+            return runMultiSagaPreparation(records, record, candidate, options, runtimeContext, scenarioExecutionId, selectionMode, selectionReason);
+        }
+        Object unitOfWork = runtimeContext.createSagaUnitOfWork(saga.sagaFqn());
+        ScenarioMaterializer.MaterializedArguments args = materializer.materialize(input, runtimeContext, saga.sagaFqn(), unitOfWork);
         if (!args.success()) {
             return report(records, scenarioExecutionId, "MATERIALIZATION_FAILED", "NOT_STARTED", selectionMode, selectionReason, options.scenarioId(), record, saga, input, candidate.vector().value(), candidate.vector().source(), "NONE", options, candidate.faultSlots(), List.of(), Map.of(), withScenario(plan.deterministicId(), args.blockers()));
         }
         Object functionality;
-        Object unitOfWork;
         try {
             Class<?> sagaClass = Class.forName(saga.sagaFqn());
             functionality = instantiate(sagaClass, args.values());
-            unitOfWork = runtimeContext.createSagaUnitOfWork(saga.sagaFqn());
         } catch (ReflectiveOperationException | RuntimeException e) {
             return report(records, scenarioExecutionId, "STARTUP_FAILED", "NOT_STARTED", selectionMode, selectionReason, options.scenarioId(), record, saga, input, candidate.vector().value(), candidate.vector().source(), "NONE", options, candidate.faultSlots(), List.of(), Map.of(),
                     List.of(new ScenarioExecutionReport.Blocker(plan.deterministicId(), input.deterministicId(), null, null, "STARTUP_FAILED", e.getMessage())));
@@ -176,6 +178,96 @@ public class ScenarioExecutor {
             }
             return report(records, scenarioExecutionId, "SUCCESS", "COMMITTED", selectionMode, selectionReason, options.scenarioId(), record, saga, input, candidate.vector().value(), candidate.vector().source(), "IN_MEMORY_FAULT_VECTOR", options, faultSlots, outcomes, Map.of(), List.of());
         }
+    }
+
+    private ScenarioExecutionReport runMultiSagaPreparation(List<CatalogScenarioRecord> records,
+                                                           CatalogScenarioRecord record,
+                                                           Candidate candidate,
+                                                           ScenarioExecutorOptions options,
+                                                           ScenarioRuntimeContext runtimeContext,
+                                                           String scenarioExecutionId,
+                                                           String selectionMode,
+                                                           String selectionReason) {
+        ScenarioPlan plan = record.plan();
+        List<ParticipantRuntimeState> participants = candidate.participants().stream()
+                .map(participant -> new ParticipantRuntimeState(participant.saga(), participant.input()))
+                .toList();
+        List<ScenarioExecutionReport.Blocker> blockers = new ArrayList<>();
+        for (ParticipantRuntimeState participant : participants) {
+            participant.unitOfWork = runtimeContext.createSagaUnitOfWork(participant.saga.sagaFqn());
+            ScenarioMaterializer.MaterializedArguments args = materializer.materialize(participant.input, runtimeContext, participant.saga.sagaFqn(), participant.unitOfWork);
+            if (args.success()) {
+                participant.materializedArguments = args.values();
+                participant.materializationState = "MATERIALIZED";
+            } else {
+                participant.materializationState = "MATERIALIZATION_FAILED";
+                participant.blockers.addAll(withScenario(plan.deterministicId(), args.blockers()));
+                blockers.addAll(participant.blockers);
+            }
+        }
+        if (!blockers.isEmpty()) {
+            return participantStateReport(records, scenarioExecutionId, "MATERIALIZATION_FAILED", selectionMode, selectionReason, options.scenarioId(), record,
+                    candidate.vector().value(), candidate.vector().source(), "NONE", options, candidate.faultSlots(), participants, blockers);
+        }
+        for (ParticipantRuntimeState participant : participants) {
+            try {
+                Class<?> sagaClass = Class.forName(participant.saga.sagaFqn());
+                participant.functionality = instantiate(sagaClass, participant.materializedArguments);
+                participant.startupState = "STARTUP_READY";
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                Throwable failure = unwrap(e);
+                participant.startupState = "STARTUP_FAILED";
+                participant.blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), participant.input == null ? null : participant.input.deterministicId(), null, null, "STARTUP_FAILED", failureDetails(failure)));
+                blockers.addAll(participant.blockers);
+            }
+        }
+        if (!blockers.isEmpty()) {
+            return participantStateReport(records, scenarioExecutionId, "STARTUP_FAILED", selectionMode, selectionReason, options.scenarioId(), record,
+                    candidate.vector().value(), candidate.vector().source(), "NONE", options, candidate.faultSlots(), participants, blockers);
+        }
+        return participantStateReport(records, scenarioExecutionId, "UNSUPPORTED_SCENARIO", selectionMode, "multi-saga scheduled-step execution is not supported yet", options.scenarioId(), record,
+                candidate.vector().value(), candidate.vector().source(), "NONE", options, candidate.faultSlots(), participants,
+                List.of(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "multi-saga scheduled-step execution is not supported yet")));
+    }
+
+    private ScenarioExecutionReport participantStateReport(List<CatalogScenarioRecord> records, String scenarioExecutionId, String status, String mode, String reason, String requested, CatalogScenarioRecord record, String assignedVector, String vectorSource, String providerMode, ScenarioExecutorOptions options, List<ScenarioExecutionReport.FaultSlot> slots, List<ParticipantRuntimeState> participantStates, List<ScenarioExecutionReport.Blocker> blockers) {
+        CatalogScenarioRecord source = record != null ? record : records.stream().findFirst().orElse(null);
+        String scenarioPlanId = record == null ? null : record.plan().deterministicId();
+        ScenarioExecutionReport.RuntimeMetadata runtimeMetadata = new ScenarioExecutionReport.RuntimeMetadata(
+                options.applicationBase(),
+                options.applicationId(),
+                options.springApplicationClass(),
+                options.springProfiles(),
+                options.mavenProfile(),
+                source == null ? null : source.catalogPath(),
+                source == null ? null : source.catalogKind(),
+                scenarioPlanId,
+                vectorSource,
+                mode,
+                options.dryRun());
+        List<ScenarioExecutionReport.Participant> participants = participantStates.stream()
+                .map(participant -> new ScenarioExecutionReport.Participant(
+                        participant.saga.deterministicId(),
+                        participant.saga.sagaFqn(),
+                        participant.input == null ? null : participant.input.deterministicId(),
+                        participant.materializationState,
+                        participant.startupState,
+                        participant.lifecycleOutcome,
+                        List.of(),
+                        skippedSteps(List.of(), slots.stream().filter(slot -> Objects.equals(slot.sagaInstanceId(), participant.saga.deterministicId())).toList()),
+                        participant.blockers))
+                .toList();
+        return new ScenarioExecutionReport(ScenarioExecutionReport.SCHEMA_VERSION, scenarioExecutionId, status,
+                source == null ? null : source.catalogPath(), source == null ? null : source.catalogKind(), mode, reason, requested,
+                scenarioPlanId, record == null ? null : record.plan().kind().name(), assignedVector, vectorSource, providerMode, runtimeMetadata, markNotReached(slots), Map.of(), blockers, participants);
+    }
+
+    private List<ScenarioExecutionReport.FaultSlot> markNotReached(List<ScenarioExecutionReport.FaultSlot> slots) {
+        return slots.stream()
+                .map(slot -> slot.assignedBit() == 1
+                        ? new ScenarioExecutionReport.FaultSlot(slot.slotIndex(), slot.scheduledStepId(), slot.catalogStepId(), slot.scheduleOrder(), slot.sagaInstanceId(), slot.runtimeStepName(), slot.assignedBit(), "NOT_REACHED", "execution hard-stopped before scheduled runtime execution")
+                        : slot)
+                .toList();
     }
 
     private boolean matchesCurrentSlot(FaultVectorInjectedFaultException injected, ScenarioExecutionReport.FaultSlot slot) {
@@ -288,8 +380,6 @@ public class ScenarioExecutor {
             blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "single-saga plans must have exactly one saga instance"));
         } else if (multiSaga && !allowExplicitMultiSaga) {
             blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "multi-saga plans require explicit scenario id selection"));
-        } else if (multiSaga && !options.dryRun()) {
-            blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "multi-saga non-dry-run execution is not supported yet"));
         } else if (plan.kind() != ScenarioKind.SINGLE_SAGA && plan.kind() != ScenarioKind.MULTI_SAGA) {
             blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "unsupported scenario kind " + plan.kind()));
         }
@@ -554,6 +644,22 @@ public class ScenarioExecutor {
     }
 
     private record Candidate(boolean supported, InputVariant input, List<ParticipantCandidate> participants, List<RuntimeStep> steps, AssignedVector vector, List<ScenarioExecutionReport.FaultSlot> faultSlots, List<ScenarioExecutionReport.Blocker> blockers) {}
+    private static final class ParticipantRuntimeState {
+        private final SagaInstance saga;
+        private final InputVariant input;
+        private String materializationState = "NOT_ATTEMPTED";
+        private String startupState = "NOT_ATTEMPTED";
+        private String lifecycleOutcome = "NOT_STARTED";
+        private List<Object> materializedArguments = List.of();
+        private Object functionality;
+        private Object unitOfWork;
+        private final List<ScenarioExecutionReport.Blocker> blockers = new ArrayList<>();
+
+        private ParticipantRuntimeState(SagaInstance saga, InputVariant input) {
+            this.saga = saga;
+            this.input = input;
+        }
+    }
     private record ParticipantCandidate(SagaInstance saga, InputVariant input) {}
     private record RuntimeStep(ScheduledStep scheduled, String runtimeName) {}
     private record AssignedVector(String value, String source, List<ScenarioExecutionReport.FaultSlot> slots) {}
