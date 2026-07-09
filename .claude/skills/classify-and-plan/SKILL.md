@@ -189,60 +189,32 @@ From the §2 table (columns: Aggregate, Snapshots of, Fields cached, Updated on 
 
 ### Step 4: Classify §3.2 Rules Using Decision-Guide
 
-Apply the flowchart from `docs/concepts/rule-enforcement-patterns.md` to each §3.2 rule.
+Apply the flowchart in `docs/concepts/rule-enforcement-patterns.md` § Decision Guide to each §3.2
+rule, in the order that doc specifies (same-aggregate → P4a/P4b saga-structural guarantees →
+synchronous P3 → eventual P2). That section is authoritative for what each pattern means and when
+it applies — do not re-derive the classification logic here.
 
-The flowchart asks:
-
-1. **"Data all in same aggregate (with cached fields)?"**
-   - If YES: → **P1** (intra-invariant, implement in `verifyInvariants()`)
-   - If NO: → continue to question 2
-
-2. **"Must be synchronous?"** — see the **Implementation algorithm** below for the full ordering (P4a/P4b are checked before P3).
-   - If YES (after P4a/P4b ruled out): → **P3** (service guard)
-     - If check needs data from another aggregate: add a data-assembly saga step to fetch it as a DTO, then validate in the service.
-     - If the precondition is implicit in the fetch query (query fails when unmet): → **P4a** (construction prerequisite — no explicit guard code needed).
-   - If NO: → continue to question 3
-
-3. (From NO branch) **"Eventually consistent acceptable?"**
-   - If YES: → **P2** (inter-invariant, event subscription + polling)
-   - If NO: → Escalate to **P3** (reconsider synchronism)
-
-**Implementation algorithm:**
+**Parser heuristic** (mechanical only — this keyword matching exists to drive unattended parsing;
+it is not part of the doc's decision criteria):
 
 ```
 FOR each rule in §3.2:
   entities = parse(rule.entities)
   predicate = rule.predicate
-  
-  # Question 1: Same aggregate?
+
   IF all entities in predicate refer to same aggregate (check aggregates map):
-    classification = P1  # intra-invariant (may use cached snapshot fields)
+    classification = P1
+  ELSE IF rule_is_implicitly_enforced_by_fetch(rule):
+    classification = "P4a"
+  ELSE IF rule_holds_by_shared_value_in_same_saga(rule):
+    classification = "P4b"
+  ELSE IF predicate contains sync keywords ("immediately", "synchronous", "before", "prevents", "blocks", "forbids"):
+    classification = P3
+  ELSE IF predicate contains eventual-consistency keywords ("eventually", "async", "eventually consistent") OR rule is about caching:
+    classification = P2
   ELSE:
-    # Question 2: Saga-structural guarantees?
-    # Is the precondition implicit in the fetch query?
-    # (i.e., the fetch only succeeds when the precondition is met)
-    IF rule_is_implicitly_enforced_by_fetch(rule):
-      classification = "P4a"
-    # Does the invariant hold because the same value is passed to two aggregates
-    # in the same saga (no fetch needed, holds by construction)?
-    ELSE IF rule_holds_by_shared_value_in_same_saga(rule):
-      classification = "P4b"
-    ELSE:
-      # Question 3: Must be synchronous?
-      # Keywords: "immediately", "synchronous", "before", "prevents", "blocks", "forbids"
-      # P3 covers ALL synchronous service-layer checks — both own-table uniqueness reads
-      # and DTO field validation from saga-assembled data. P4 covers ALL by-construction guarantees — P4a (prerequisite), P4b (construction invariant).
-      IF predicate contains sync keywords:
-        classification = P3  # service guard (*Service.java — own-table read OR DTO field check)
-      ELSE:
-        # Question 4: Eventually consistent?
-        # Keywords: "eventually", "async", "eventually consistent"
-        IF predicate contains eventual-consistency keywords OR rule is about caching:
-          classification = P2
-        ELSE:
-          # Ambiguous: mark for review
-          classification = "P3 (NEEDS_REVIEW)"
-        
+    classification = "P3 (NEEDS_REVIEW)"  # ambiguous: mark for review
+
   rules_classified[rule.name] = {
     pattern: classification,
     entities: entities,
@@ -250,14 +222,10 @@ FOR each rule in §3.2:
   }
 ```
 
-**Implementation notes** (to appear in Rule Classification table):
-
-- **P1:** `intra-invariant in verifyInvariants()`
-- **P3:** `service guard in {PrimaryAggregate}Service` — own-table uniqueness check, or DTO field validation from preceding saga step (both enforced in the service layer, never in saga code)
-- **P2:** `inter-invariant — {Consumer}Aggregate subscribes to {Event}`
-- **P4a:** `implicit in saga data-assembly — {Operation}FunctionalitySagas fetches {OtherAggregate}; query fails if precondition unmet`
-- **P4b:** `implicit in saga construction — same {field} passed to both {AggA} and {AggB} in the same saga; holds by construction, no separate check needed`
-- **P3 (NEEDS_REVIEW):** `P3 — needs review` (mark for manual resolution)
+The Rule Classification table's "Implementation note" column (Step 8) uses the pattern's
+authoritative description from `docs/concepts/rule-enforcement-patterns.md` § Quick Reference,
+substituting this rule's specific aggregate/event/field names. For `P3 (NEEDS_REVIEW)`, write
+`P3 — needs review` and flag for manual resolution.
 
 ---
 

@@ -143,7 +143,7 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 - Has `@Entity` annotation
 - P1 final-field rules: each such field is declared `final` in Java
 - `verifyInvariants()` throws `{AppClass}Exception` for each P1 intra-invariant
-- `getEventSubscriptions()` returns empty set if no subscribed events; builds from snapshot fields if P2 inter-invariants exist
+- `getEventSubscriptions()` matches `docs/concepts/aggregate.md` § getEventSubscriptions() Implementation (ACTIVE guard, empty set when no subscriptions, one helper per inter-invariant)
 - Copy constructor copies all fields including any cached snapshot fields
 
 ### `aggregate/sagas/Saga{Aggregate}.java`
@@ -170,18 +170,15 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 ### `service/{Aggregate}Service.java`
 - `@Service`; dependencies constructor-injected (repository, unitOfWorkService); factory `@Autowired`
 - Every method has `@Transactional(isolation = Isolation.SERIALIZABLE)`
-- Create: generates ID via `aggregateIdGeneratorService`, calls factory, calls `registerChanged`
-- Mutate methods: load via `aggregateLoadAndRegisterRead`, create copy via factory, mutate copy, call `registerChanged` on the copy (NOT the original)
-- Delete: load via `aggregateLoadAndRegisterRead`, create copy via factory, call `remove()` on the copy, call `registerChanged` on the copy (copy-on-write — same rule as other mutates; flag in-place delete as **Incorrect**)
-- P3 rule guards: placed in the service method body (own-table uniqueness check or DTO field validation)
+- Method bodies (create / read / mutate / mutate-with-event-publication / mutate-with-optional-sub-collection) match `docs/concepts/service.md` § Method Patterns
+- Copy-on-write: every mutation — including delete — creates a factory copy and calls `registerChanged` on the copy, never the original loaded via `aggregateLoadAndRegisterRead`; see `docs/concepts/service.md` § Copy-on-Write Rule. **Flag in-place delete as Incorrect.**
+- P3 rule guards: placed in the service method body (own-table uniqueness check or DTO field validation) per `docs/concepts/service.md` § P3 Guard Placement
 - UpdateCourse specifically: if COURSE_NAME_FINAL and COURSE_TYPE_FINAL are P1 final fields, the update method should throw `{AppClass}Exception({AppClass}ErrorMessage.XXX)`
 
 ### `messaging/{Aggregate}CommandHandler.java`
 - `@Component` (not `@Service`)
 - Extends `CommandHandler`
-- `getAggregateTypeName()` returns the PascalCase class name (e.g., `"Course"`)
-- `handleDomainCommand(Command command)` uses a switch expression covering every command class
-- Default branch logs a warning
+- Matches `docs/concepts/commands.md` § Routing Commands (CommandHandler): `getAggregateTypeName()` returns the PascalCase class name (e.g., `"Course"`); `handleDomainCommand(Command command)` uses a switch expression covering every command class with a default branch that logs a warning
 
 ### `coordination/functionalities/{Aggregate}Functionalities.java`
 - `@Service`
@@ -192,11 +189,11 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 - Extends `WorkflowFunctionality`
 - Constructor calls `buildWorkflow(...)`
 - `buildWorkflow()` creates `new SagaWorkflow(this, unitOfWorkService, unitOfWork)`
-- Write sagas acting on an existing aggregate: two-step pattern
-  - Step 1: wraps read command in `SagaCommand` + calls `setSemanticLock(state)` on the aggregate; compensation releases lock
-  - Step 2: sends the mutate command; declares step 1 as dependency
+- Write sagas acting on an existing aggregate follow the two-step lock-acquisition pattern in
+  `docs/concepts/sagas.md` § Lock-Acquisition Step Pattern (Two-Step Write Sagas)
 - Create sagas: single step sending the create command, no lock needed
-- Read sagas: single step sending the read command, result stored in instance field, exposed via getter
+- Read sagas: single step sending the read command, result stored in instance field, exposed via
+  getter (see `docs/concepts/sagas.md` § Read Functionality Sagas)
 
 ### `commands/{Op}Command.java`
 - Extends `Command`
