@@ -194,10 +194,38 @@ Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/007-
 Commit:
 
 - Status: `committed`
-- Hash: `pending`
+- Hash: `80e28018`
 - Message: `docs(multi-saga-executor): record quizzes smoke evidence`
 
 Reason if blocked/skipped:
 
 - None.
+
+### Run Summary
+
+Completed:
+
+- `001-v3-participant-report-and-single-saga-migration.md`
+- `002-explicit-multi-saga-selection-and-dry-run.md`
+- `003-multi-participant-materialization-and-startup-gates.md`
+- `004-default-vector-interleaving-and-survivor-closure.md`
+- `005-assigned-fault-compensate-and-continue.md`
+- `006-runtime-failures-compensation-failures-and-exit-codes.md`
+- `007-quizzes-smoke-and-documentation.md`
+
+Blocked:
+
+- None.
+
+Skipped:
+
+- None.
+
+Remaining eligible:
+
+- None.
+
+Recommended next action:
+
+- Run `sp-qa-feature` on `issues/2026-07-08-multi-saga-scenario-executor` before any PR-style handoff.
 
