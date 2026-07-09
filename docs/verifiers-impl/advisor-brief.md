@@ -1,14 +1,14 @@
 # Advisor brief
 
-Last updated: 2026-07-08
+Last updated: 2026-07-09
 
 Use this page before thesis meetings. It is intentionally short. For implementation detail, follow links from [`current-state.md`](current-state.md).
 
 ## 30-second update
 
-The verifier can generate deterministic saga scenario catalogs from application source and tests, including accepted static inputs for the implemented `EventHandling`/`EventProcessing` event-origin shape, enrich those catalogs with runtime evidence from existing simulator test runs, and run a supported single-saga ScenarioExecutor path for default-vector and explicit fault-vector executions.
+The verifier can generate deterministic saga scenario catalogs from application source and tests, including accepted static inputs for the implemented `EventHandling`/`EventProcessing` event-origin shape, enrich those catalogs with runtime evidence from existing simulator test runs, and run a supported ScenarioExecutor path for materializable saga/local single-saga and explicit multi-saga fault-vector executions.
 
-The current thesis gap is no longer the original event-driven static input hole for the target group, and the dynamic attribution baseline has now been refreshed. The hard boundary is now broader materialization/replayability, multi-saga/runtime-shape coverage, and impact scoring/search beyond the supported single-saga executor path.
+The current thesis gap is no longer the original event-driven static input hole for the target group, and the dynamic attribution baseline has now been refreshed. The hard boundary is now broader materialization/replayability, generic runtime-shape coverage, and impact scoring/search beyond the supported bounded executor path.
 
 ## What exists now
 
@@ -19,7 +19,7 @@ The current thesis gap is no longer the original event-driven static input hole 
 - Optional dynamic enrichment that runs selected tests and joins runtime evidence back to static scenario plans.
 - Runtime input attribution for the first exact case: test owner + functionality class + step name resolves to one static input variant.
 - Conflict-anchor segment-compressed schedule counting/generation for selected saga sets.
-- A supported single-saga ScenarioExecutor path that can execute a default vector or one explicit binary fault vector for supported materializable catalog entries.
+- A supported bounded ScenarioExecutor path that can execute a default vector or one explicit binary fault vector for supported materializable saga/local catalog entries, including explicit multi-saga deterministic interleaving replay.
 
 ## Evidence I can cite
 
@@ -60,13 +60,17 @@ ORDER_PRESERVING_INTERLEAVING: 218528454
 SEGMENT_COMPRESSED: 1019393
 ```
 
-ScenarioExecutor Quizzes fault-vector smoke now covers both supported terminal outcomes for the current single-saga path:
+ScenarioExecutor Quizzes smoke now covers single-saga fault-vector execution and explicit multi-saga deterministic replay:
 
 ```text
-Scenario plan id: 910f72907e0d901bc5d35e0ecea03ec920b7ffb63929bbba1bfdba4fe531e195
+Single-saga plan id: 910f72907e0d901bc5d35e0ecea03ec920b7ffb63929bbba1bfdba4fe531e195
 Saga: GetCourseExecutionsFunctionalitySagas
 Default vector: 0 -> SUCCESS / COMMITTED
-Explicit vector: 1 -> FAULT_COMPENSATED / COMPENSATED
+Explicit vector: 1 -> COMPENSATED / COMPENSATED
+
+Multi-saga plan id: 0945caa9ac2fe06a268e6df6aa992fcf69e253116264684d577bdbbb955c2e25
+Participants: CreateCourseExecutionFunctionalitySagas + GetCourseExecutionsFunctionalitySagas
+Default vector: 00000 -> PARTIAL_COMPENSATED / COMPENSATED + COMMITTED
 ```
 
 Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is now reported separately/aligned with ScenarioExecutor semantics. Static accepted input coverage, dynamic sidecar attribution, and executor materializability are separate claims.
@@ -76,7 +80,7 @@ Detailed commands and run paths live in [`evidence.md`](evidence.md).
 ## What I should not claim
 
 - Generic scenario execution is not complete.
-- Multi-saga runtime execution is not implemented.
+- Multi-saga runtime support is bounded to explicit, materializable, saga/local deterministic sequential replay; auto-selection, non-materializable shapes, true concurrency, and distributed parity are not implemented.
 - TCC runtime execution is not implemented.
 - Stream/gRPC/distributed runtime parity is not implemented.
 - Compensation-step faults, delay/non-binary impairments, batch execution, impact scoring, GA/local search, and bandit prioritization are not implemented.
@@ -94,7 +98,7 @@ Do not reread every archived note. Use this page, [`current-state.md`](current-s
 
 Static analysis can now accept the original event-driven target group through the implemented event topology, but 32 Quizzes sagas still lack accepted static inputs and need classification. Missing accepted input means no accepted static `InputVariant` was discovered; it does not mean no test exists.
 
-Dynamic evidence helps by showing what happened during real executions, but it remains a sidecar. The current executor-specific hard part is still materialization breadth: turning static catalog inputs, event payload placeholders, recipes, Spring/runtime dependencies, and runtime-produced values into live objects that can be executed reliably across more than the current supported single-saga path.
+Dynamic evidence helps by showing what happened during real executions, but it remains a sidecar. The current executor-specific hard part is still materialization breadth: turning static catalog inputs, event payload placeholders, recipes, Spring/runtime dependencies, and runtime-produced values into live objects that can be executed reliably beyond the current supported bounded saga/local path.
 
 ## Next work
 
@@ -102,11 +106,11 @@ Dynamic evidence helps by showing what happened during real executions, but it r
 2. Triage the refreshed dynamic baseline's `UNMATCHED=24` records, especially `UNCLASSIFIED=9`, before deciding whether improving runtime matching is worth it before broader executor work.
 3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
 4. Tighten exact aggregate-instance key extraction where it affects scenario usefulness.
-5. Extend the executor beyond the current supported single-saga fault-vector path only after materialization improves.
+5. Extend the executor beyond the current supported saga/local deterministic replay path only after materialization improves.
 
 ## Question for advisor
 
 Is the next thesis milestone better framed as:
 
 1. improving remaining static coverage and refreshed static-dynamic attribution, or
-2. prioritizing materialization/replay plus first impact metrics/search scaffolding beyond the current supported single-saga executor baseline?
+2. prioritizing materialization/replay plus first impact metrics/search scaffolding beyond the current supported bounded executor baseline?

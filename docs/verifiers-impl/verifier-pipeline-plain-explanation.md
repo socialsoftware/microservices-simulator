@@ -1,6 +1,6 @@
 # Verifier pipeline, plain explanation
 
-Last updated: 2026-07-08
+Last updated: 2026-07-09
 
 Purpose: explain the verifier in meeting/thesis language without implementation archaeology.
 
@@ -36,7 +36,7 @@ source/tests
   -> scenario catalog
   -> optional dynamic evidence
   -> enriched sidecar catalog
-  -> narrow supported single-saga fault-vector executor path / future generic execution
+  -> narrow supported saga/local fault-vector executor path / future generic execution
 ```
 
 ## Stage 1: static extraction
@@ -204,20 +204,23 @@ Do not overstate this. It does not prove stream/gRPC, distributed, TCC, or gener
 
 ## Stage 5: scenario execution
 
-A narrow ScenarioExecutor path exists. It can run supported materializable single-saga catalog candidates with either the default vector or one explicit binary fault vector, and Quizzes smoke now covers both `SUCCESS` and `FAULT_COMPENSATED`.
+A narrow ScenarioExecutor path exists. It can run supported materializable saga/local catalog candidates with either the default vector or one explicit binary fault vector. Single-saga plans may be auto-selected or explicitly selected; multi-saga plans require explicit selection and are replayed as deterministic sequential interleavings.
 
 Current bounded-path evidence:
 
 ```text
-Saga: GetCourseExecutionsFunctionalitySagas
+Single-saga: GetCourseExecutionsFunctionalitySagas
 Default vector: 0 -> SUCCESS / COMMITTED
-Explicit vector: 1 -> FAULT_COMPENSATED / COMPENSATED
+Explicit vector: 1 -> COMPENSATED / COMPENSATED
+
+Multi-saga: CreateCourseExecutionFunctionalitySagas + GetCourseExecutionsFunctionalitySagas
+Default vector: 00000 -> PARTIAL_COMPENSATED / COMPENSATED + COMMITTED
 ```
 
 But generic scenario execution is not complete. Still missing:
 
 - arbitrary catalog replay;
-- multi-saga execution;
+- multi-saga auto-selection, non-materializable shapes, true concurrency, and distributed runtime parity;
 - TCC execution;
 - stream/gRPC/distributed parity;
 - behavior CSV generation as an executor contract;
@@ -264,7 +267,7 @@ Safe claim:
 
 Unsafe claim:
 
-> The system can already execute arbitrary generated fault scenarios and optimize them with search.
+> The system can already execute arbitrary generated fault scenarios, distributed multi-saga behavior, and optimize them with search.
 
 That is future work.
 

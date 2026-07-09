@@ -50,7 +50,7 @@ Remaining gaps:
 - The remaining 32 Quizzes sagas without accepted static inputs are not yet classified.
 - Event payload reconstruction is incomplete; event-origin inputs may be statically accepted while blocked for materialization by payload placeholders.
 - Segment-compressed scheduling remains static evidence; it does not prove semantic completeness or exact runtime aggregate-instance binding.
-- Catalog entries are not yet generally executable by a runtime runner.
+- Catalog entries are not yet generally executable by a runtime runner; the current executor supports only materializable saga/local single-saga plans and explicit materializable multi-saga deterministic interleavings.
 
 ## Stage 1.5 — Dynamic evidence bridge
 
@@ -119,11 +119,11 @@ The runtime side should:
 
 Implemented for a narrow bounded path only.
 
-A verifier-owned ScenarioExecutor now supports a materializable single-saga saga/local path: it can load a catalog/enriched catalog, select or receive a supported single-saga scenario, validate a default or explicit binary fault vector, materialize only supported inputs, run the selected saga step schedule, close lifecycle state, and write a standalone v2 execution report. Quizzes smoke now covers both `SUCCESS` and `FAULT_COMPENSATED` for one generated single-saga plan.
+A verifier-owned ScenarioExecutor now supports a bounded materializable saga/local path: it can load a catalog/enriched catalog, auto-select supported single-saga scenarios, explicitly select supported single-saga or multi-saga scenarios, validate a default or explicit binary fault vector, materialize only supported inputs, replay the selected schedule, close or compensate participant lifecycle state, and write a standalone v3 participant report. Quizzes smoke covers single-saga fault-vector execution and an explicit multi-saga deterministic interleaving replay with `PARTIAL_COMPENSATED`.
 
 Current accounting distinguishes three different notions: static accepted input coverage, static recipe readiness, and ScenarioExecutor materializability. In the post-event Quizzes count-only run, `acceptedInputVariantCount=584`, `staticRecipeReadyInputVariantCount=0`, and `executorMaterializableInputVariantCount=94` / `executorReadyInputVariantCount=94`; this does not mean all accepted inputs can replay, and event payload placeholders remain blockers.
 
-Generic execution is still not implemented. The current supported path does not cover arbitrary catalog replay, multi-saga schedules, TCC execution, stream/gRPC/distributed parity, compensation-step faults, delay/non-binary impairments, impact scoring, GA search, or scenario prioritization.
+Generic execution is still not implemented. The current supported path does not cover arbitrary catalog replay, multi-saga auto-selection, non-materializable multi-saga shapes, TCC execution, stream/gRPC/distributed parity, true parallel execution, compensation-step faults, delay/non-binary impairments, impact scoring, GA search, or scenario prioritization.
 
 Current static work prepares for the broader stage by preserving:
 
@@ -226,7 +226,7 @@ Dependencies:
 | Segment-compressed scheduling/accounting | Implemented static reduction | scheduler/accounting specs, dummyapp integration, Quizzes count-only comparison | Exact aggregate-instance binding and runtime semantic completeness remain separate |
 | Dynamic evidence + sidecar enrichment | Implemented MVP with refreshed ownership-aware baseline | simulator dynamic-evidence package, verifier orchestrator, input-map sidecar, 2026-06-30 Quizzes baseline (`MATCHED_EXACT=435`, `MATCHED_HIGH_CONFIDENCE=125`, `AMBIGUOUS=0`, `UNMATCHED=24`) | Triage residual unmatched records; runtime attribution refinement only where justified; stream/gRPC/distributed/TCC parity |
 | Quizzes orchestration smoke baseline | Implemented | 2026-06-29 full/default dynamic baseline in `current-state.md` / `evidence.md` | Refresh periodically and track exact/ambiguous/unmatched trends |
-| ScenarioExecutor | Implemented for bounded single-saga fault-vector path / materializability accounting evolving | `scenario-executor.md`, Quizzes single-saga default/explicit-vector smokes, post-event count-only accounting (`94` materializable, `0` static recipe-ready) | Event payload materialization, general catalog replay, multi-saga execution, broader runtime parity, impact scoring |
+| ScenarioExecutor | Implemented for bounded saga/local fault-vector path / materializability accounting evolving | `scenario-executor.md`, Quizzes single-saga default/explicit-vector smokes, Quizzes explicit multi-saga deterministic replay smoke, post-event count-only accounting (`94` materializable, `0` static recipe-ready) | Event payload materialization, general catalog replay, multi-saga auto-selection/non-materializable shapes, broader runtime parity, impact scoring |
 | Behavior CSV generation | Not implemented | none | Decide whether adapter or canonical contract |
 | Impact scoring | Not implemented | none | Requires executable scenarios |
 | GA search | Not implemented | none | Requires impact scoring |
@@ -238,8 +238,7 @@ Dependencies:
 2. Triage the refreshed dynamic baseline's `UNMATCHED=24` records, especially `UNCLASSIFIED=9`, before deciding whether runtime-value/aggregate-key matching is worth improving before executor work.
 3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
 4. Improve aggregate-instance key binding where it affects scenario usefulness.
-5. Extend the current ScenarioExecutor beyond the supported single-saga fault-vector path only when materialization semantics are clearer.
-6. Extend executor to bounded multi-saga schedules.
-7. Add first impact metrics.
-8. Add local GA search for a fixed scenario.
-9. Add scenario prioritization after scenario execution and impact scoring exist.
+5. Extend the current ScenarioExecutor beyond the supported saga/local deterministic replay path only when materialization semantics are clearer.
+6. Add first impact metrics.
+7. Add local GA search for a fixed scenario.
+8. Add scenario prioritization after scenario execution and impact scoring exist.

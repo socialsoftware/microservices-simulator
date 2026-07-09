@@ -166,8 +166,36 @@ Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/006-
 Commit:
 
 - Status: `committed`
-- Hash: `pending`
+- Hash: `02005730`
 - Message: `feat(multi-saga-executor): complete failure outcomes`
+
+Reason if blocked/skipped:
+
+- None.
+
+#### `007-quizzes-smoke-and-documentation.md`
+
+Status: `done`
+
+Risk: `medium`
+Dependencies: `001-v3-participant-report-and-single-saga-migration.md`, `002-explicit-multi-saga-selection-and-dry-run.md`, `003-multi-participant-materialization-and-startup-gates.md`, `004-default-vector-interleaving-and-survivor-closure.md`, `005-assigned-fault-compensate-and-continue.md`, `006-runtime-failures-compensation-failures-and-exit-codes.md`
+Implementer session: `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T14-49-23-913Z_019f475a-d8c9-7612-ab75-6a67c4d0020f.jsonl`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T15-00-43-521Z_019f4765-3781-7011-b20e-c3b0a141037a.jsonl` | `issues/2026-07-08-multi-saga-scenario-executor/review/007-quizzes-smoke-and-documentation-review-01.md` | FAIL | Smoke passed; live docs still had stale single-saga/v2/no-multi-saga current-status claims. |
+| 02 | `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T15-13-35-292Z_019f4770-fe3c-700b-b3f9-77e53762b16f.jsonl` | `issues/2026-07-08-multi-saga-scenario-executor/review/007-quizzes-smoke-and-documentation-review-02.md` | FAIL | Docs alignment mostly fixed; `thesis-claims-evidence-map.md` had a malformed claim-map table row. |
+| 03 | `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T15-23-19-242Z_019f4779-e74a-79b0-8300-8463d7bf065d.jsonl` | `issues/2026-07-08-multi-saga-scenario-executor/review/007-quizzes-smoke-and-documentation-review-03.md` | PASS | Reviewer reran Docker smoke, docs build, stale-claim search, table check, and diff check. |
+
+Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/007-quizzes-smoke-and-documentation-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `pending`
+- Message: `docs(multi-saga-executor): record quizzes smoke evidence`
 
 Reason if blocked/skipped:
 

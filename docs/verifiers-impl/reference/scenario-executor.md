@@ -1,24 +1,28 @@
 # ScenarioExecutor
 
-The verifier-owned ScenarioExecutor supports one materializable single-saga saga/local scenario execution attempt per run.
+The verifier-owned ScenarioExecutor supports one materializable saga/local scenario execution attempt per run. Supported attempts include single-saga plans and explicit, materializable multi-saga plans replayed as deterministic sequential interleavings.
 
-A scenario execution attempt evaluates exactly one `{scenarioPlanId, faultVector}` pair and writes a standalone v2 execution report. It does not modify `scenario-catalog.jsonl`, `scenario-catalog-enriched.jsonl`, dynamic evidence artifacts, or join-report sidecars.
+A scenario execution attempt evaluates exactly one `{scenarioPlanId, faultVector}` pair and writes a standalone v3 execution report. It does not modify `scenario-catalog.jsonl`, `scenario-catalog-enriched.jsonl`, dynamic evidence artifacts, or join-report sidecars.
 
 Supported now:
 
 - catalog or enriched-catalog loading;
 - supported single-saga scenario selection/materialization;
+- explicit multi-saga scenario selection by `ScenarioPlan.deterministicId`;
 - default-vector execution using the plan's `faultSpace.defaultVector`;
 - explicit binary fault-vector execution when `--scenario-id` is also provided;
 - dry-run validation/mapping without runtime execution;
-- lifecycle closure to `SUCCESS` or `FAULT_COMPENSATED` for the supported path.
+- deterministic sequential replay of `expandedSchedule` in ascending `scheduleOrder` for materializable saga/local multi-saga plans;
+- one v3 participant entry per saga instance;
+- compensate-and-continue for scheduled-step runtime failures and assigned forward-step faults.
 
 Not supported now:
 
-- generic arbitrary catalog replay;
-- multi-saga execution;
+- generic arbitrary runtime parity for every catalog shape;
+- auto-selection of multi-saga scenarios;
 - TCC execution;
 - stream/gRPC/distributed runtime parity;
+- true parallel/threaded execution;
 - compensation-step faults;
 - delay/non-binary impairments;
 - batch/search/scoring/prioritization;
@@ -60,21 +64,21 @@ Required environment:
 
 Optional environment:
 
-- `SCENARIO_ID` — selected scenario plan id. Optional only for default-vector auto-select runs.
+- `SCENARIO_ID` — selected scenario plan id. Required for multi-saga runs; optional only for default-vector single-saga auto-select runs.
 - `FAULT_VECTOR` — explicit binary vector. Requires `SCENARIO_ID`.
 - `OUTPUT_PATH` — report path inside the container. Defaults to `/reports/scenario-executor/execution-report.json`.
 - `APPLICATION_BASE_DIR`, `SPRING_APPLICATION_CLASS`, `MAVEN_PROFILE`, `SPRING_PROFILES` — target/runtime overrides.
 
-Default-vector Quizzes smoke:
+Default-vector multi-saga Quizzes smoke:
 
 ```bash
-CATALOG_PATH=/reports/quizzes-20260708-163552-193/scenario-catalog.jsonl \
-SCENARIO_ID=910f72907e0d901bc5d35e0ecea03ec920b7ffb63929bbba1bfdba4fe531e195 \
-OUTPUT_PATH=/reports/scenario-executor/default-report.json \
+CATALOG_PATH=/reports/multi-saga-executor-planning-audit/quizzes-20260709-004627-310/scenario-catalog.jsonl \
+SCENARIO_ID=0945caa9ac2fe06a268e6df6aa992fcf69e253116264684d577bdbbb955c2e25 \
+OUTPUT_PATH=/reports/scenario-executor/multi-saga-default-report.json \
 docker compose run --rm scenario-executor
 ```
 
-Explicit-vector Quizzes smoke:
+Explicit-vector single-saga Quizzes smoke:
 
 ```bash
 CATALOG_PATH=/reports/quizzes-20260708-163552-193/scenario-catalog.jsonl \
@@ -92,7 +96,7 @@ When a run directory is used by the executor API, `scenario-catalog-enriched.jso
 
 Enriched records are wrappers: execution uses the embedded static `ScenarioPlan` as the contract, while join status is only a deterministic selection hint.
 
-`--scenario-id` refers to a scenario plan id. If it is omitted, the executor auto-selects the first supported single-saga candidate using enriched join-status priority and original JSONL line order.
+`--scenario-id` refers to a scenario plan id. If it is omitted, the executor auto-selects the first supported single-saga candidate using enriched join-status priority and original JSONL line order. Multi-saga execution always requires an explicit scenario id.
 
 ## Runtime-owned overrides
 
@@ -100,7 +104,7 @@ Only these runtime-owned arguments may be supplied by the executor:
 
 - `SagaUnitOfWorkService`, resolved from the target Spring context.
 - `CommandGateway`, resolved from the target Spring context.
-- `SagaUnitOfWork`, created by the executor for the selected saga instance.
+- `SagaUnitOfWork`, created by the executor for the selected saga instance or participant.
 
 These runtime-owned arguments are part of the executor materialization semantics. Their blocked recipe internals do not make the input unmaterializable because the executor supplies them directly.
 
@@ -108,21 +112,26 @@ Other unresolved values, source-provided placeholders without values, unsupporte
 
 ## Report and terminal status vocabulary
 
-The v2 execution report includes schema version, `scenarioExecutionId`, scenario plan id, assigned vector, vector source, provider mode, catalog path/kind, runtime metadata, deterministic fault-slot mapping, realized/masked slot state, forward step outcomes, lifecycle outcome, terminal status, blockers, and errors. Runtime metadata records stable runner inputs, including application base/id, Spring application class, Spring profiles, Maven profile, catalog path/kind, scenario id, vector source, executor mode, and dry-run mode; saga class identity remains in the top-level `sagaFqn` field.
+The v3 execution report includes schema version, `scenarioExecutionId`, scenario plan id, scenario kind, assigned vector, vector source, provider mode, catalog path/kind, runtime metadata, deterministic fault-slot mapping, participant entries, terminal status, blockers, and errors. Runtime metadata records stable runner inputs, including application base/id, Spring application class, Spring profiles, Maven profile, catalog path/kind, scenario id, vector source, executor mode, and dry-run mode.
+
+The top-level `participants` list is required. It contains exactly one participant per selected saga instance; single-saga runs are represented as the one-participant case. Saga-specific identity and lifecycle facts live under participant entries, not as v2 top-level `sagaFqn`, `sagaInstanceId`, or `inputVariantId` fields.
 
 Reference-level status vocabulary:
 
 - `terminalStatus`:
-  - valid outcomes: `SUCCESS`, `FAULT_COMPENSATED`, `DRY_RUN`;
-  - invalid/broken outcomes: `INVALID_FAULT_VECTOR`, `SELECTION_FAILED`, `UNSUPPORTED_SCENARIO`, `MATERIALIZATION_FAILED`, `STARTUP_FAILED`, `EXPECTED_FAULT_NOT_INJECTED`, `UNEXPECTED_INJECTED_FAULT`, `FAULT_PROVIDER_MISMATCH`, `UNEXPECTED_EXECUTION_FAILURE`, `COMPENSATION_FAILED`.
+  - zero-exit outcomes: `SUCCESS`, `COMPENSATED`, `PARTIAL_COMPENSATED`, `DRY_RUN`;
+  - invalid/broken outcomes: `INVALID_FAULT_VECTOR`, `SELECTION_FAILED`, `UNSUPPORTED_SCENARIO`, `MATERIALIZATION_FAILED`, `STARTUP_FAILED`, `EXPECTED_FAULT_NOT_INJECTED`, `UNEXPECTED_INJECTED_FAULT`, `FAULT_PROVIDER_MISMATCH`, `UNEXPECTED_EXECUTION_FAILURE`, `COMPENSATION_FAILED`, `CONFIGURATION_FAILED`, `REPORT_WRITE_FAILED`.
+- `materializationState`: `NOT_ATTEMPTED`, `MATERIALIZED`, `MATERIALIZATION_FAILED`.
+- `startupState`: `NOT_ATTEMPTED`, `STARTUP_READY`, `STARTUP_FAILED`.
 - `lifecycleOutcome`: `NOT_STARTED`, `COMMITTED`, `COMPENSATED`, `COMPENSATION_FAILED`, `CLOSURE_SKIPPED`.
+- step status: `DRY_RUN`, `COMPLETED`, `INJECTED_FAULT`, `FAILED`, `EXPECTED_FAULT_NOT_INJECTED`, `SKIPPED_BY_SAGA_FAILURE`, `NOT_EXECUTED_HARD_STOP`.
 - `vectorSource`: `DEFAULT_VECTOR`, `EXPLICIT_VECTOR`.
 - `providerMode`: `IN_MEMORY_FAULT_VECTOR`, `NONE`.
-- fault-slot realization state: `NOT_ASSIGNED`, `REALIZED`, `MASKED`, `UNREALIZED`.
+- fault-slot realization state: `NOT_ASSIGNED`, `DRY_RUN`, `REALIZED`, `MASKED_BY_SAGA_FAILURE`, `NOT_REACHED`, `EXPECTED_FAULT_NOT_INJECTED`.
 
 Exit-code contract:
 
-- zero: `SUCCESS`, `FAULT_COMPENSATED`, `DRY_RUN`;
+- zero: `SUCCESS`, `COMPENSATED`, `PARTIAL_COMPENSATED`, `DRY_RUN`;
 - non-zero: every other terminal status.
 
 ## Accounting alignment
@@ -134,22 +143,23 @@ Exit-code contract:
 
 ## Quizzes smoke evidence
 
-Verified on 2026-07-08 with a real verifier-generated Quizzes catalog through the forked Docker runtime path:
+Verified on 2026-07-09 with a real verifier-generated Quizzes multi-saga catalog through the forked Docker runtime path:
 
-- Catalog artifact: `verifiers/target/quizzes-20260708-163552-193/scenario-catalog.jsonl`.
-- Scenario plan id: `910f72907e0d901bc5d35e0ecea03ec920b7ffb63929bbba1bfdba4fe531e195`.
-- Saga FQN: `pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsFunctionalitySagas`.
-- Fault-space length: `1`.
-- Default vector smoke: `assignedVector=0`, `vectorSource=DEFAULT_VECTOR`, `terminalStatus=SUCCESS`, `lifecycleOutcome=COMMITTED`.
-- Explicit vector smoke: `assignedVector=1`, `vectorSource=EXPLICIT_VECTOR`, slot `0` realized at runtime step `getCourseExecutionsStep`, `terminalStatus=FAULT_COMPENSATED`, `lifecycleOutcome=COMPENSATED`.
+- Catalog artifact: `verifiers/target/multi-saga-executor-planning-audit/quizzes-20260709-004627-310/scenario-catalog.jsonl`.
+- Scenario plan id: `0945caa9ac2fe06a268e6df6aa992fcf69e253116264684d577bdbbb955c2e25`.
+- Saga FQNs: `CreateCourseExecutionFunctionalitySagas` and `GetCourseExecutionsFunctionalitySagas`.
+- Fault-space length: `5`.
+- Default vector smoke: `assignedVector=00000`, `vectorSource=DEFAULT_VECTOR`, `terminalStatus=PARTIAL_COMPENSATED`, participant lifecycles `COMPENSATED` and `COMMITTED`.
+- The input catalog checksum was unchanged before and after non-dry-run execution.
 
-See [`../evidence.md`](../evidence.md) for commands, report paths, and interpretation.
+See [`../evidence.md`](../evidence.md) for commands, report paths, participant details, and interpretation.
 
 ## Limitations
 
 The current executor is intentionally narrow even after fault-vector support:
 
-- supported runtime shape is materializable single-saga saga/local only;
+- supported runtime shape is materializable saga/local only, with multi-saga support limited to explicit deterministic sequential interleaving replay;
+- multi-saga plans are not auto-selected;
 - fault slots target forward scheduled steps only;
 - compensation steps are not faultable;
 - persistent-environment reset remains caller/orchestrator responsibility;

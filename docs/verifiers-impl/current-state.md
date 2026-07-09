@@ -1,12 +1,12 @@
 # Verifier current state
 
-Last updated: 2026-07-08
+Last updated: 2026-07-09
 
 This is the present-tense status page for verifier/scenario-generation work. Keep it short. Detailed run evidence lives in [`evidence.md`](evidence.md); meeting framing lives in [`advisor-brief.md`](advisor-brief.md).
 
 ## One-paragraph summary
 
-The verifier currently extracts saga-oriented scenario structure from simulator applications, including the implemented `EventHandling`/`EventProcessing` event-origin shape, generates deterministic scenario catalogs, and can optionally enrich those catalogs with runtime evidence from existing test executions. It also supports a narrow single-saga ScenarioExecutor path for default-vector and explicit binary fault-vector runs on supported materializable scenarios. Generic multi-saga execution, broader runtime parity, impact scoring, GA search, and scenario prioritization remain future work.
+The verifier currently extracts saga-oriented scenario structure from simulator applications, including the implemented `EventHandling`/`EventProcessing` event-origin shape, generates deterministic scenario catalogs, and can optionally enrich those catalogs with runtime evidence from existing test executions. It also supports a narrow ScenarioExecutor path for default-vector and explicit binary fault-vector runs on supported materializable saga/local scenarios, including explicit multi-saga deterministic sequential interleaving replay. Broader runtime parity, impact scoring, GA search, and scenario prioritization remain future work.
 
 ## Scope
 
@@ -17,7 +17,7 @@ Current implemented scope:
 - Source-mode classification for saga/TCC/mixed/unknown test inputs.
 - Deterministic bounded scenario catalog generation and accounting that separates static accepted input coverage, static recipe readiness, and ScenarioExecutor materializability.
 - Optional dynamic enrichment using simulator runtime evidence as sidecar attribution.
-- Narrow single-saga ScenarioExecutor support for supported materializable catalog entries, including default-vector and explicit binary fault-vector runs.
+- Narrow ScenarioExecutor support for supported materializable saga/local catalog entries, including single-saga runs and explicit multi-saga deterministic sequential interleaving replay with default or explicit binary fault vectors.
 
 Current main targets:
 
@@ -89,9 +89,9 @@ Current non-goals:
 
 ### ScenarioExecutor
 
-A narrow verifier-owned ScenarioExecutor path now exists for supported materializable single-saga saga/local scenarios. It can load a catalog/enriched catalog, select or receive a supported single-saga scenario, validate one assigned binary fault vector, materialize only supported inputs, run the selected saga step schedule, close lifecycle state, and write a standalone v2 execution report. Accounting still reports ScenarioExecutor materializability separately from static `inputRecipe.executorReady` readiness.
+A narrow verifier-owned ScenarioExecutor path now exists for supported materializable saga/local scenarios. It can load a catalog/enriched catalog, auto-select supported single-saga scenarios, explicitly select supported single-saga or multi-saga scenarios, validate one assigned binary fault vector, materialize only supported inputs, replay the selected schedule, close or compensate participant lifecycle state, and write a standalone v3 participant report. Multi-saga support is deterministic sequential interleaving replay of `expandedSchedule`, not true concurrency or distributed parity. Accounting still reports ScenarioExecutor materializability separately from static `inputRecipe.executorReady` readiness.
 
-This is still not generic scenario execution. The supported path is intentionally narrow: no multi-saga execution, no TCC execution, no stream/gRPC/distributed runtime parity, no compensation-step faults, no delay/non-binary impairments, and no impact scoring, GA search, or scenario prioritization.
+This is still not generic scenario execution. The supported path is intentionally narrow: no multi-saga auto-selection, no TCC execution, no stream/gRPC/distributed runtime parity, no true parallel execution, no compensation-step faults, no delay/non-binary impairments, and no impact scoring, GA search, or scenario prioritization.
 
 ### Dynamic enrichment
 
@@ -163,14 +163,16 @@ ORDER_PRESERVING_INTERLEAVING selected total: 218528454
 SEGMENT_COMPRESSED selected total: 1019393
 ```
 
-ScenarioExecutor Quizzes fault-vector smoke:
+ScenarioExecutor Quizzes smoke:
 
 ```text
-Catalog: verifiers/target/quizzes-20260708-163552-193/scenario-catalog.jsonl
-Scenario plan id: 910f72907e0d901bc5d35e0ecea03ec920b7ffb63929bbba1bfdba4fe531e195
-Saga: GetCourseExecutionsFunctionalitySagas
-Default vector: 0 -> SUCCESS / COMMITTED
-Explicit vector: 1 -> FAULT_COMPENSATED / COMPENSATED
+Single-saga catalog: verifiers/target/quizzes-20260708-163552-193/scenario-catalog.jsonl
+Single-saga scenario plan id: 910f72907e0d901bc5d35e0ecea03ec920b7ffb63929bbba1bfdba4fe531e195
+Single-saga explicit vector: 1 -> COMPENSATED / participant COMPENSATED
+
+Multi-saga catalog: verifiers/target/multi-saga-executor-planning-audit/quizzes-20260709-004627-310/scenario-catalog.jsonl
+Multi-saga scenario plan id: 0945caa9ac2fe06a268e6df6aa992fcf69e253116264684d577bdbbb955c2e25
+Multi-saga default vector: 00000 -> PARTIAL_COMPENSATED / participants COMPENSATED + COMMITTED
 ```
 
 Those runs relied on executor runtime-owned argument resolution plus the new in-memory fault-vector provider. Accounting still separates static recipe readiness (`staticRecipeReadyInputVariantCount=0`) from ScenarioExecutor materializability (`executorMaterializableInputVariantCount=94`). The remaining 490 blocked variants include event-origin inputs blocked by event payload placeholders; accepted static inputs are not automatically executor-ready.
@@ -194,7 +196,7 @@ See [`evidence.md`](evidence.md) for commands, run paths, and interpretation.
 ## Not implemented
 
 - Generic ScenarioExecutor for arbitrary catalog replay.
-- Multi-saga runtime scenario execution.
+- Multi-saga auto-selection and generic distributed/runtime-parity multi-saga execution.
 - TCC runtime scenario execution.
 - Stream/gRPC/distributed runtime parity for scenario execution.
 - Compensation-step faults, delay injection, and other non-binary impairments.
@@ -212,7 +214,7 @@ See [`evidence.md`](evidence.md) for commands, run paths, and interpretation.
 1. Finalize and classify the remaining 32 Quizzes sagas without accepted static inputs.
 2. Triage the remaining `UNMATCHED=24` dynamic records, especially the `UNCLASSIFIED=9` residuals, before deciding whether aggregate-key/runtime-value matching is worth improving before executor work.
 3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
-4. Extend the ScenarioExecutor beyond the current supported single-saga fault-vector path only after materialization improves.
+4. Extend the ScenarioExecutor beyond the current supported saga/local deterministic replay path only after materialization improves.
 5. Add first domain-impact metrics after broader executable scenarios exist.
 
 ## Meeting discussion points

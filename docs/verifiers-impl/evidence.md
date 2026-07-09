@@ -1,6 +1,6 @@
 # Verifier evidence appendix
 
-Last updated: 2026-07-08
+Last updated: 2026-07-09
 
 This page stores concrete validation results, metrics, and run references so [`current-state.md`](current-state.md) can stay readable. Treat this as an appendix: cite it when you need proof, not as the first-read narrative.
 
@@ -326,12 +326,54 @@ Default vector report: verifiers/target/scenario-executor/s6-default-report.json
 Default vector terminal status: SUCCESS
 Default vector lifecycle: COMMITTED
 Explicit vector report: verifiers/target/scenario-executor/s6-explicit-report.json
-Explicit vector terminal status: FAULT_COMPENSATED
+Explicit vector terminal status: compensated terminal outcome
 Explicit vector lifecycle: COMPENSATED
 Explicit vector realized slot: 0 (runtime step `getCourseExecutionsStep`)
 ```
 
-Interpretation: a narrow executor path now supports the implemented single-saga fault-vector contract. It executed one generated Quizzes plan by resolving runtime-owned infrastructure arguments and using the in-memory fault-vector provider for the explicit-fault run. Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is still reported separately/aligned with ScenarioExecutor semantics. This is still not generic multi-saga execution, broad runtime parity, impact scoring, or search.
+Interpretation: a narrow executor path supports the implemented materializable saga/local fault-vector contract. This smoke executed one generated Quizzes single-saga plan by resolving runtime-owned infrastructure arguments and using the in-memory fault-vector provider for the explicit-fault run. Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is still reported separately/aligned with ScenarioExecutor semantics. The later multi-saga smoke below extends the supported path to explicit deterministic interleaving replay, but the executor is still not generic catalog replay, broad runtime parity, impact scoring, or search.
+
+## ScenarioExecutor multi-saga Quizzes smoke
+
+Verified on 2026-07-09 with the planning-audit Quizzes multi-saga catalog through the forked Docker runtime path.
+
+Command:
+
+```bash
+CATALOG_PATH=/reports/multi-saga-executor-planning-audit/quizzes-20260709-004627-310/scenario-catalog.jsonl \
+SCENARIO_ID=0945caa9ac2fe06a268e6df6aa992fcf69e253116264684d577bdbbb955c2e25 \
+OUTPUT_PATH=/reports/scenario-executor/multi-saga-default-report.json \
+docker compose run --rm scenario-executor
+```
+
+Recorded result:
+
+```text
+Docker exit code: 0
+Catalog: verifiers/target/multi-saga-executor-planning-audit/quizzes-20260709-004627-310/scenario-catalog.jsonl
+Catalog sha256 before: 631538f64789c80a2b5b01291f0dd1a08b48966dfbaea4c5b805d7ecd48cafcd
+Catalog sha256 after:  631538f64789c80a2b5b01291f0dd1a08b48966dfbaea4c5b805d7ecd48cafcd
+Scenario plan id: 0945caa9ac2fe06a268e6df6aa992fcf69e253116264684d577bdbbb955c2e25
+Report: verifiers/target/scenario-executor/multi-saga-default-report.json
+Schema version: microservices-simulator.scenario-execution-report.v3
+Scenario kind: MULTI_SAGA
+Assigned vector: 00000
+Vector source: DEFAULT_VECTOR
+Provider mode: IN_MEMORY_FAULT_VECTOR
+Terminal status: PARTIAL_COMPENSATED
+```
+
+Participants and schedule:
+
+```text
+scheduleOrder=0 participant=GetCourseExecutionsFunctionalitySagas runtimeStep=getCourseExecutionsStep status=COMPLETED lifecycle=COMMITTED
+scheduleOrder=1 participant=CreateCourseExecutionFunctionalitySagas runtimeStep=getCourseStep status=COMPLETED lifecycle=COMPENSATED
+scheduleOrder=2 participant=CreateCourseExecutionFunctionalitySagas runtimeStep=createCourseStep status=FAILED lifecycle=COMPENSATED
+scheduleOrder=3 participant=CreateCourseExecutionFunctionalitySagas runtimeStep=createCourseExecutionStep skipped=SKIPPED_BY_SAGA_FAILURE
+scheduleOrder=4 participant=CreateCourseExecutionFunctionalitySagas runtimeStep=updateCourseExecutionCountStep skipped=SKIPPED_BY_SAGA_FAILURE
+```
+
+Interpretation: the executor selected an explicit multi-saga plan, wrote the v3 participant report, replayed the catalog schedule sequentially, compensated the failing `CreateCourseExecutionFunctionalitySagas` participant, continued and committed `GetCourseExecutionsFunctionalitySagas`, exited zero for `PARTIAL_COMPENSATED`, and did not mutate the input catalog. The failure was a domain/runtime scheduled-step outcome from a null course name in the generated input, not a setup hard stop. This proves the supported deterministic interleaving replay path; it does not claim true concurrency, distributed parity, generic fixture reset, scoring, or search.
 
 ## Static source-mode/catalog Quizzes smoke
 
