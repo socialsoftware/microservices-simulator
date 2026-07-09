@@ -36,19 +36,22 @@ class TraceServiceReceiver(trace_service_pb2_grpc.TraceServiceServicer):
 # ======================
 
 
-def start_grpc_server():
+def start_grpc_server(port=4319, tm=None):
     """Configures and runs the gRPC server in a background thread."""
+
+    if tm is None:
+        tm = trace_manager
 
     # Start gRPC Server
     grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     trace_service_pb2_grpc.add_TraceServiceServicer_to_server(
-        TraceServiceReceiver(trace_manager), grpc_server
+        TraceServiceReceiver(tm), grpc_server
     )
-    grpc_server.add_insecure_port("[::]:4319")
+    grpc_server.add_insecure_port(f"0.0.0.0:{port}")
 
     grpc_thread = threading.Thread(target=grpc_server.start, daemon=True)
     grpc_thread.start()
-    print("gRPC server started on port 4319.")
+    print(f"gRPC server started on port {port}.")
 
     return grpc_server
 
@@ -67,6 +70,13 @@ def interactive_cli():
     while True:
         try:
             cmd = input("rl-server> ").strip().lower()
+        except EOFError:
+            break
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            break
+
+        try:
             if not cmd:
                 continue
 
@@ -93,12 +103,9 @@ def interactive_cli():
                 break
             else:
                 print(f"Unknown command: '{cmd}'")
-        except EOFError:
-            break
-        except KeyboardInterrupt:
-            print("\nExiting...")
-            break
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             print(f"Error executing command: {e}")
 
 

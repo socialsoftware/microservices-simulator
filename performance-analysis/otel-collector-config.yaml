@@ -18,7 +18,7 @@ exporters:
       insecure: true
 
   otlp/agent:
-    endpoint: host.docker.internal:4319
+    endpoint: "host.docker.internal:${env:GRPC_PORT}"
     tls:
       insecure: true
 

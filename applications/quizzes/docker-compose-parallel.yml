@@ -1,0 +1,47 @@
+name: microservices-simulator
+services:
+  h2-mock:
+    image: oscarfonts/h2:latest
+    ports:
+      - ${H2_PORT:-1521}:5432
+    environment:
+      - H2_OPTIONS=-pg -pgPort 5432 -pgAllowOthers -tcpAllowOthers -webAllowOthers -ifNotExists
+    networks:
+      - messaging-network
+  quizzes-rl:
+    cap_add:
+      - ${PERF_CAP:-CHOWN}
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: ${TX_MODE:-sagas},local
+    image: quizzes:latest
+    ports:
+      - ${GATEWAY_PORT:-8080}:8080
+    pull_policy: build
+    depends_on:
+      h2-mock:
+        condition: service_started
+      jaeger:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_INCLUDE: ${VERSION_MODE:-}
+      SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local
+      EUREKA_HOST: eureka-server
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: sa
+      SPRING_DATASOURCE_URL: jdbc:h2:tcp://h2-mock:1521/mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+    volumes:
+      - ./src/main/resources:/resources
+      - ./src/main/logs:/logs
+    networks:
+      - messaging-network

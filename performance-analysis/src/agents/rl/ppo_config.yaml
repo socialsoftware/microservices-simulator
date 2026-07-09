@@ -36,6 +36,7 @@ ppo_hyperparameters:
   clip_range: 0.2
 
 training:
+  num_envs: 1
   steps_per_episode: 50
   total_timesteps: 100000
   eval_freq: 2048

@@ -1,6 +1,6 @@
 import random
 from locust import HttpUser, events
-from src.simulator_tools.simulator_utils import SimInterface, GATEWAY
+from src.simulator_tools.simulator_utils import SimInterface
 from src.initial_config.baseline_data import BASELINE_SCENARIOS
 
 
@@ -16,7 +16,7 @@ def _(parser):
 
 class Workload(HttpUser):
     abstract = True
-    host = GATEWAY
+    host = SimInterface.get_gateway()
 
     @events.test_start.add_listener
     def on_test_start(environment, **kwargs):

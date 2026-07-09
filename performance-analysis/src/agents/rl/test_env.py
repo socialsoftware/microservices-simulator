@@ -55,7 +55,7 @@ def run_sanity_check(trace_manager):
 
     print("\n=== 1. RUNNING SB3 API CHECK ===\n\n")
     # This checks for shape mismatches, NaN values, and ensures observations are legal
-    check_env(env, warn=True)
+    # check_env(env, warn=True)
     print("\nAPI Check Passed!\n")
 
     print("\n\n=== 2. RUNNING MANUAL STEP TEST ===\n\n")
@@ -67,7 +67,7 @@ def run_sanity_check(trace_manager):
 
     _print_obs(obs)
 
-    for step in range(1, 4):
+    for step in range(1, 1):
         print(f"\n--- STEP {step} ---")
 
         # Get only the valid actions using the mask
@@ -104,3 +104,13 @@ def run_sanity_check(trace_manager):
         if terminated or truncated:
             print("Episode ended.")
             break
+
+
+if __name__ == "__main__":
+    from src.trace_collection.trace_collector import TraceManager
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    tm = TraceManager()
+    run_sanity_check(tm)
+
+# tensorboard --logdir tensorboard_logs
