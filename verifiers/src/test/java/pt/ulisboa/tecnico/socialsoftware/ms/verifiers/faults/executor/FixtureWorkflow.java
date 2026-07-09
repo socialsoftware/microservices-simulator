@@ -11,6 +11,8 @@ import java.util.List;
 
 public class FixtureWorkflow {
     public static final List<String> STEPS = new ArrayList<>();
+    public static final List<String> PARTICIPANT_STEPS = new ArrayList<>();
+    public static final List<String> CLOSURES = new ArrayList<>();
     public static int resumeCalls = 0;
     public static int compensationCalls = 0;
     public static int constructorCalls = 0;
@@ -40,6 +42,7 @@ public class FixtureWorkflow {
 
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
         lifecycleUnitOfWorks.add(unitOfWork);
+        String participant = String.valueOf(argument);
         FaultVectorProviderHolder.currentBoundary()
                 .filter(context -> stepName.equals(context.runtimeStepName()))
                 .ifPresent(context -> {
@@ -65,6 +68,7 @@ public class FixtureWorkflow {
                     }
                 });
         STEPS.add(stepName);
+        PARTICIPANT_STEPS.add(participant + ":" + stepName);
         if ("fail".equals(stepName)) {
             throw new IllegalStateException("fixture failure");
         }
@@ -72,6 +76,7 @@ public class FixtureWorkflow {
 
     public void resumeWorkflow(UnitOfWork unitOfWork) {
         lifecycleUnitOfWorks.add(unitOfWork);
+        CLOSURES.add(String.valueOf(argument));
         resumeCalls++;
     }
 

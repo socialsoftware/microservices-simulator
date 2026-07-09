@@ -21,6 +21,8 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWorkflow.resumeCalls = 0
         FixtureWorkflow.compensationCalls = 0
         FixtureWorkflow.constructorCalls = 0
+        FixtureWorkflow.PARTICIPANT_STEPS.clear()
+        FixtureWorkflow.CLOSURES.clear()
         FixtureWorkflow.constructorUnitOfWorks.clear()
         FixtureWorkflow.lifecycleUnitOfWorks.clear()
     }
@@ -611,6 +613,44 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWorkflow.constructorCalls == 1
         FixtureWorkflow.STEPS.isEmpty()
         FixtureWorkflow.resumeCalls == 0
+        FixtureWorkflow.compensationCalls == 0
+        !FaultVectorProviderHolder.active
+    }
+
+    def 'default-vector multi-saga execution follows schedule order dispatches by owner closes survivors and clears provider'() {
+        given:
+        FixtureWorkflow.STEPS.clear()
+        FaultVectorProviderHolder.clear()
+        def runDirectory = Files.createTempDirectory('scenario-executor-multi-success')
+        def scenario = multiPlanWith('multi-success',
+                [new SagaInstance('left', FixtureWorkflow.name, 'left-input', []), new SagaInstance('right', FixtureWorkflow.name, 'right-input', []), new SagaInstance('idle', FixtureWorkflow.name, 'idle-input', [])],
+                [inputVariant('left-input', FixtureWorkflow.name, literalArg('left')), inputVariant('right-input', FixtureWorkflow.name, literalArg('right')), inputVariant('idle-input', FixtureWorkflow.name, literalArg('idle'))],
+                [new ScheduledStep('right-step', 'right', 'fixture::rightRun#0', 2, []), new ScheduledStep('left-step', 'left', 'fixture::leftRun#0', 1, [])],
+                new FaultSpace(2, ['left-step', 'right-step'], '00'))
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
+
+        when:
+        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'multi-success', false), runtime())
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.scenarioKind() == 'MULTI_SAGA'
+        report.assignedVector() == '00'
+        report.vectorSource() == 'DEFAULT_VECTOR'
+        report.providerMode() == 'IN_MEMORY_FAULT_VECTOR'
+        report.participants()*.sagaInstanceId() == ['left', 'right', 'idle']
+        report.participants()*.materializationState().unique() == ['MATERIALIZED']
+        report.participants()*.startupState().unique() == ['STARTUP_READY']
+        report.participants()*.lifecycleOutcome().unique() == ['COMMITTED']
+        report.participants()[0].stepOutcomes()*.runtimeStepName() == ['leftRun']
+        report.participants()[0].stepOutcomes()*.scheduleOrder() == [1]
+        report.participants()[1].stepOutcomes()*.runtimeStepName() == ['rightRun']
+        report.participants()[1].stepOutcomes()*.scheduleOrder() == [2]
+        report.participants()[2].stepOutcomes().isEmpty()
+        report.faultSlots()*.realizationState() == ['NOT_ASSIGNED', 'NOT_ASSIGNED']
+        FixtureWorkflow.PARTICIPANT_STEPS == ['left:leftRun', 'right:rightRun']
+        FixtureWorkflow.CLOSURES == ['left', 'right', 'idle']
+        FixtureWorkflow.resumeCalls == 3
         FixtureWorkflow.compensationCalls == 0
         !FaultVectorProviderHolder.active
     }

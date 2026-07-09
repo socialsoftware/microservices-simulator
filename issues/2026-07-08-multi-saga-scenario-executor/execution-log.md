@@ -87,8 +87,34 @@ Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/003-
 Commit:
 
 - Status: `committed`
-- Hash: `pending`
+- Hash: `5a6acf4f`
 - Message: `feat(multi-saga-executor): add participant preparation gates`
+
+Reason if blocked/skipped:
+
+- None.
+
+#### `004-default-vector-interleaving-and-survivor-closure.md`
+
+Status: `done`
+
+Risk: `high`
+Dependencies: `001-v3-participant-report-and-single-saga-migration.md`, `002-explicit-multi-saga-selection-and-dry-run.md`, `003-multi-participant-materialization-and-startup-gates.md`
+Implementer session: `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T14-07-44-295Z_019f4734-b4a7-7fd4-bf6a-c29a558b1f6e.jsonl`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T14-11-22-794Z_019f4738-0a2a-70cc-b92e-b5ace96fefb3.jsonl` | `issues/2026-07-08-multi-saga-scenario-executor/review/004-default-vector-interleaving-and-survivor-closure-review-01.md` | PASS | Reviewer reran `ScenarioExecutorSpec` and `git diff --check`. |
+
+Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/004-default-vector-interleaving-and-survivor-closure-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `pending`
+- Message: `feat(multi-saga-executor): replay default interleavings`
 
 Reason if blocked/skipped:
 
