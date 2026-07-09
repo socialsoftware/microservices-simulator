@@ -56,13 +56,13 @@ public class ScenarioExecutor {
             return base(records, scenarioExecutionId, "SELECTION_FAILED", "EXPLICIT", "requested scenario plan id not found", options.scenarioId(), null,
                     attemptedVector(null, options), null, vectorSource(options), options, List.of(), List.of(new ScenarioExecutionReport.Blocker(options.scenarioId(), null, null, null, "MISSING_SCENARIO_PLAN_ID", options.scenarioId())));
         }
-        Candidate candidate = validate(record, options);
+        Candidate candidate = validate(record, options, true);
         if (!candidate.supported()) {
             boolean invalidVector = candidate.blockers().stream().anyMatch(this::isVectorBlocker);
             String status = invalidVector ? "INVALID_FAULT_VECTOR" : "UNSUPPORTED_SCENARIO";
             String reason = invalidVector ? "explicit scenario has invalid fault vector" : "explicit scenario is unsupported";
-            return base(records, scenarioExecutionId, status, "EXPLICIT", reason, options.scenarioId(), record,
-                    attemptedVector(record, options), null, vectorSource(options), options, candidate.faultSlots(), candidate.blockers());
+            return candidateReport(records, scenarioExecutionId, status, "NOT_STARTED", "EXPLICIT", reason, options.scenarioId(), record,
+                    attemptedVector(record, options), vectorSource(options), "NONE", options, candidate, List.of(), Map.of(), candidate.blockers());
         }
         return runCandidate(records, record, candidate, options, runtimeContext, scenarioExecutionId, "EXPLICIT", "requested scenario plan id");
     }
@@ -70,7 +70,7 @@ public class ScenarioExecutor {
     private ScenarioExecutionReport autoSelect(List<CatalogScenarioRecord> records, ScenarioExecutorOptions options, ScenarioRuntimeContext runtimeContext, String scenarioExecutionId) {
         Map<String, Integer> skipped = new TreeMap<>();
         for (CatalogScenarioRecord record : ordered(records)) {
-            Candidate candidate = validate(record, options);
+            Candidate candidate = validate(record, options, false);
             if (!candidate.supported()) {
                 candidate.blockers().forEach(blocker -> skipped.merge(blocker.reason(), 1, Integer::sum));
                 continue;
@@ -106,7 +106,8 @@ public class ScenarioExecutor {
                 .map(step -> new ScenarioExecutionReport.StepOutcome(step.scheduled().deterministicId(), step.scheduled().stepId(), step.scheduled().scheduleOrder(), step.runtimeName(), "DRY_RUN", null, null))
                 .toList();
         if (options.dryRun()) {
-            return report(records, scenarioExecutionId, "DRY_RUN", "NOT_STARTED", selectionMode, selectionReason, options.scenarioId(), record, saga, input, candidate.vector().value(), candidate.vector().source(), "NONE", options, candidate.faultSlots(), drySteps, Map.of(), List.of());
+            return candidateReport(records, scenarioExecutionId, "DRY_RUN", "NOT_STARTED", selectionMode, selectionReason, options.scenarioId(), record,
+                    candidate.vector().value(), candidate.vector().source(), "NONE", options, candidate, drySteps, Map.of(), List.of());
         }
         ScenarioMaterializer.MaterializedArguments args = materializer.materialize(input, runtimeContext, saga.sagaFqn());
         if (!args.success()) {
@@ -277,28 +278,59 @@ public class ScenarioExecutor {
         return current;
     }
 
-    private Candidate validate(CatalogScenarioRecord record, ScenarioExecutorOptions options) {
+    private Candidate validate(CatalogScenarioRecord record, ScenarioExecutorOptions options, boolean allowExplicitMultiSaga) {
         ScenarioPlan plan = record.plan();
         List<ScenarioExecutionReport.Blocker> blockers = new ArrayList<>();
-        if (plan.kind() != ScenarioKind.SINGLE_SAGA || plan.sagaInstances().size() != 1) {
-            blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "only exactly-one-instance single-saga plans are supported"));
+        boolean multiSaga = plan.kind() == ScenarioKind.MULTI_SAGA;
+        if (plan.sagaInstances().isEmpty()) {
+            blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "scenario plan must have at least one saga instance"));
+        } else if (plan.kind() == ScenarioKind.SINGLE_SAGA && plan.sagaInstances().size() != 1) {
+            blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "single-saga plans must have exactly one saga instance"));
+        } else if (multiSaga && !allowExplicitMultiSaga) {
+            blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "multi-saga plans require explicit scenario id selection"));
+        } else if (multiSaga && !options.dryRun()) {
+            blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "multi-saga non-dry-run execution is not supported yet"));
+        } else if (plan.kind() != ScenarioKind.SINGLE_SAGA && plan.kind() != ScenarioKind.MULTI_SAGA) {
+            blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, null, "UNSUPPORTED_SCENARIO_SHAPE", "unsupported scenario kind " + plan.kind()));
         }
-        SagaInstance saga = plan.sagaInstances().size() == 1 ? plan.sagaInstances().get(0) : null;
-        InputVariant input = saga == null ? null : plan.inputs().stream().filter(candidate -> saga.inputVariantId().equals(candidate.deterministicId())).findFirst().orElse(null);
-        if (saga != null && input == null) {
-            blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), saga.inputVariantId(), null, null, "MISSING_INPUT_VARIANT", "single saga instance has no matching input variant"));
+
+        List<ParticipantCandidate> participants = new ArrayList<>();
+        Map<String, ParticipantCandidate> participantsBySagaId = new LinkedHashMap<>();
+        for (SagaInstance saga : plan.sagaInstances()) {
+            List<InputVariant> matches = plan.inputs().stream()
+                    .filter(candidate -> Objects.equals(saga.inputVariantId(), candidate.deterministicId()))
+                    .toList();
+            InputVariant input = matches.size() == 1 ? matches.get(0) : null;
+            if (matches.isEmpty()) {
+                blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), saga.inputVariantId(), null, null, "MISSING_INPUT_VARIANT", "saga instance " + saga.deterministicId() + " has no matching input variant"));
+            } else if (matches.size() > 1) {
+                blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), saga.inputVariantId(), null, null, "DUPLICATE_INPUT_VARIANT", "saga instance " + saga.deterministicId() + " has multiple matching input variants"));
+            }
+            ParticipantCandidate participant = new ParticipantCandidate(saga, input);
+            participants.add(participant);
+            participantsBySagaId.put(saga.deterministicId(), participant);
         }
+
         List<RuntimeStep> steps = new ArrayList<>();
+        Set<String> seenScheduledIds = new HashSet<>();
         for (ScheduledStep step : plan.expandedSchedule().stream().sorted(Comparator.comparingInt(ScheduledStep::scheduleOrder)).toList()) {
+            if (!seenScheduledIds.add(step.deterministicId())) {
+                blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, step.deterministicId(), "DUPLICATE_SCHEDULED_STEP_ID", step.deterministicId()));
+            }
+            ParticipantCandidate owner = participantsBySagaId.get(step.sagaInstanceId());
+            if (owner == null) {
+                blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), null, null, step.deterministicId(), "UNKNOWN_SCHEDULED_STEP_OWNER", step.sagaInstanceId()));
+            }
             String runtimeName = runtimeStepName(step.stepId());
             if (runtimeName == null) {
-                blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), input == null ? null : input.deterministicId(), null, step.deterministicId(), "UNSUPPORTED_STEP_ID", step.stepId()));
+                blockers.add(new ScenarioExecutionReport.Blocker(plan.deterministicId(), owner == null || owner.input() == null ? null : owner.input().deterministicId(), null, step.deterministicId(), "UNSUPPORTED_STEP_ID", step.stepId()));
             } else {
                 steps.add(new RuntimeStep(step, runtimeName));
             }
         }
+        InputVariant input = participants.size() == 1 ? participants.get(0).input() : null;
         AssignedVector vector = validateVector(plan, input, steps, options, blockers);
-        return new Candidate(blockers.isEmpty(), input, steps, vector, vector == null ? List.of() : vector.slots(), blockers);
+        return new Candidate(blockers.isEmpty(), input, participants, steps, vector, vector == null ? List.of() : vector.slots(), blockers);
     }
 
     private AssignedVector validateVector(ScenarioPlan plan, InputVariant input, List<RuntimeStep> steps, ScenarioExecutorOptions options, List<ScenarioExecutionReport.Blocker> blockers) {
@@ -430,6 +462,15 @@ public class ScenarioExecutor {
     }
 
     private ScenarioExecutionReport report(List<CatalogScenarioRecord> records, String scenarioExecutionId, String status, String lifecycleOutcome, String mode, String reason, String requested, CatalogScenarioRecord record, SagaInstance saga, InputVariant input, String assignedVector, String vectorSource, String providerMode, ScenarioExecutorOptions options, List<ScenarioExecutionReport.FaultSlot> slots, List<ScenarioExecutionReport.StepOutcome> steps, Map<String, Integer> skipped, List<ScenarioExecutionReport.Blocker> blockers) {
+        List<ParticipantCandidate> participants = saga == null ? List.of() : List.of(new ParticipantCandidate(saga, input));
+        return report(records, scenarioExecutionId, status, lifecycleOutcome, mode, reason, requested, record, assignedVector, vectorSource, providerMode, options, slots, steps, skipped, blockers, participants);
+    }
+
+    private ScenarioExecutionReport candidateReport(List<CatalogScenarioRecord> records, String scenarioExecutionId, String status, String lifecycleOutcome, String mode, String reason, String requested, CatalogScenarioRecord record, String assignedVector, String vectorSource, String providerMode, ScenarioExecutorOptions options, Candidate candidate, List<ScenarioExecutionReport.StepOutcome> steps, Map<String, Integer> skipped, List<ScenarioExecutionReport.Blocker> blockers) {
+        return report(records, scenarioExecutionId, status, lifecycleOutcome, mode, reason, requested, record, assignedVector, vectorSource, providerMode, options, candidate.faultSlots(), steps, skipped, blockers, candidate.participants());
+    }
+
+    private ScenarioExecutionReport report(List<CatalogScenarioRecord> records, String scenarioExecutionId, String status, String lifecycleOutcome, String mode, String reason, String requested, CatalogScenarioRecord record, String assignedVector, String vectorSource, String providerMode, ScenarioExecutorOptions options, List<ScenarioExecutionReport.FaultSlot> slots, List<ScenarioExecutionReport.StepOutcome> steps, Map<String, Integer> skipped, List<ScenarioExecutionReport.Blocker> blockers, List<ParticipantCandidate> participantCandidates) {
         CatalogScenarioRecord source = record != null ? record : records.stream().findFirst().orElse(null);
         String scenarioPlanId = record == null ? null : record.plan().deterministicId();
         ScenarioExecutionReport.RuntimeMetadata runtimeMetadata = new ScenarioExecutionReport.RuntimeMetadata(
@@ -444,19 +485,33 @@ public class ScenarioExecutor {
                 vectorSource,
                 mode,
                 options.dryRun());
-        List<ScenarioExecutionReport.Participant> participants = saga == null ? List.of() : List.of(new ScenarioExecutionReport.Participant(
-                saga.deterministicId(),
-                saga.sagaFqn(),
-                input == null ? null : input.deterministicId(),
-                materializationState(status),
-                startupState(status),
-                lifecycleOutcome,
-                steps,
-                skippedSteps(steps, slots),
-                blockers));
+        List<ScenarioExecutionReport.Participant> participants = participantCandidates.stream()
+                .map(participant -> participantEntry(participant, status, lifecycleOutcome, steps, slots, blockers))
+                .toList();
         return new ScenarioExecutionReport(ScenarioExecutionReport.SCHEMA_VERSION, scenarioExecutionId, status,
                 source == null ? null : source.catalogPath(), source == null ? null : source.catalogKind(), mode, reason, requested,
                 scenarioPlanId, record == null ? null : record.plan().kind().name(), assignedVector, vectorSource, providerMode, runtimeMetadata, slots, skipped, blockers, participants);
+    }
+
+    private ScenarioExecutionReport.Participant participantEntry(ParticipantCandidate participant, String status, String lifecycleOutcome, List<ScenarioExecutionReport.StepOutcome> steps, List<ScenarioExecutionReport.FaultSlot> slots, List<ScenarioExecutionReport.Blocker> blockers) {
+        String sagaInstanceId = participant.saga().deterministicId();
+        List<ScenarioExecutionReport.StepOutcome> participantSteps = steps.stream()
+                .filter(step -> slots.stream().anyMatch(slot -> slot.scheduledStepId().equals(step.scheduledStepId()) && Objects.equals(slot.sagaInstanceId(), sagaInstanceId))
+                        || steps.size() == 1 && slots.isEmpty())
+                .toList();
+        List<ScenarioExecutionReport.FaultSlot> participantSlots = slots.stream()
+                .filter(slot -> Objects.equals(slot.sagaInstanceId(), sagaInstanceId))
+                .toList();
+        return new ScenarioExecutionReport.Participant(
+                sagaInstanceId,
+                participant.saga().sagaFqn(),
+                participant.input() == null ? null : participant.input().deterministicId(),
+                materializationState(status),
+                startupState(status),
+                lifecycleOutcome,
+                participantSteps,
+                skippedSteps(participantSteps, participantSlots),
+                blockers);
     }
 
     private String materializationState(String status) {
@@ -498,7 +553,8 @@ public class ScenarioExecutor {
         }
     }
 
-    private record Candidate(boolean supported, InputVariant input, List<RuntimeStep> steps, AssignedVector vector, List<ScenarioExecutionReport.FaultSlot> faultSlots, List<ScenarioExecutionReport.Blocker> blockers) {}
+    private record Candidate(boolean supported, InputVariant input, List<ParticipantCandidate> participants, List<RuntimeStep> steps, AssignedVector vector, List<ScenarioExecutionReport.FaultSlot> faultSlots, List<ScenarioExecutionReport.Blocker> blockers) {}
+    private record ParticipantCandidate(SagaInstance saga, InputVariant input) {}
     private record RuntimeStep(ScheduledStep scheduled, String runtimeName) {}
     private record AssignedVector(String value, String source, List<ScenarioExecutionReport.FaultSlot> slots) {}
     private record ClosureResult(boolean failed, String lifecycleOutcome, List<ScenarioExecutionReport.Blocker> blockers) {}

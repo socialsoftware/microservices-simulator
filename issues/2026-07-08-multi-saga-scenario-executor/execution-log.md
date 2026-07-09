@@ -35,8 +35,34 @@ Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/001-
 Commit:
 
 - Status: `committed`
-- Hash: `pending`
+- Hash: `1ea922a2`
 - Message: `feat(multi-saga-executor): migrate scenario reports to v3 participants`
+
+Reason if blocked/skipped:
+
+- None.
+
+#### `002-explicit-multi-saga-selection-and-dry-run.md`
+
+Status: `done`
+
+Risk: `high`
+Dependencies: `001-v3-participant-report-and-single-saga-migration.md`
+Implementer session: `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T13-42-59-611Z_019f471e-0d1b-7a7a-9423-976de3822497.jsonl`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T13-48-18-365Z_019f4722-ea3d-70f3-929e-5a6945bce396.jsonl` | `issues/2026-07-08-multi-saga-scenario-executor/review/002-explicit-multi-saga-selection-and-dry-run-review-01.md` | PASS | Reviewer reran `ScenarioExecutorSpec` and `git diff --check`. |
+
+Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/002-explicit-multi-saga-selection-and-dry-run-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `pending`
+- Message: `feat(multi-saga-executor): add explicit multi-saga dry run`
 
 Reason if blocked/skipped:
 

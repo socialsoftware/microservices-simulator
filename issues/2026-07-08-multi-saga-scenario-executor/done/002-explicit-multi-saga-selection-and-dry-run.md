@@ -88,3 +88,59 @@ Before source edits, the executor must re-check:
 - Do not accidentally enable multi-saga auto-selection while broadening validation.
 - Distinguish invalid vector statuses from unsupported-shape statuses as the current executor does.
 - Dry-run must not call materializer, runtime-owned argument resolution, `Class.forName` startup, provider installation, workflow methods, closure, or compensation.
+
+## Completion Evidence
+
+Status: `implemented-awaiting-review`
+
+### Implementation Summary
+
+- Extended `ScenarioExecutor` validation so explicit dry-run selection can accept `ScenarioKind.MULTI_SAGA` plans while auto-selection still skips multi-saga records.
+- Added plan-level participant validation and reporting for selected plans: one participant per known `SagaInstance`, exact input-variant matching, known scheduled-step owners, duplicate scheduled-step id detection, runtime step-name normalization, and existing fault-vector/fault-space validation.
+- Added candidate-based v3 report construction so explicit multi-saga dry-run reports participant-local `DRY_RUN` step outcomes and scenario-level fault slots, while selected validation failures still include known participants.
+- Kept explicit multi-saga non-dry-run unsupported before materialization/runtime execution.
+
+### Files Changed
+
+- `verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutor.java` — multi-saga-aware explicit validation, auto-selection skip behavior, participant-aware report construction for dry-run/validation failures.
+- `verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutorSpec.groovy` — explicit multi-saga dry-run, no-auto-selection, selected-plan failure participant reporting, invalid multi-saga validation, non-dry-run unsupported, and catalog immutability coverage.
+- `issues/2026-07-08-multi-saga-scenario-executor/002-explicit-multi-saga-selection-and-dry-run.md` — completion evidence.
+
+### Verification
+
+| Command / Method | Result | Evidence |
+|------------------|--------|----------|
+| `cd verifiers && mvn -Dtest=ScenarioExecutorSpec test` | PASS | Maven reported `Tests run: 38, Failures: 0, Errors: 0, Skipped: 0` and `BUILD SUCCESS`. |
+
+### Acceptance Criteria Evidence
+
+- AC-1: Static multi-saga dry-run test compares `scenario-catalog.jsonl` before/after; enriched catalog preference test now compares `scenario-catalog-enriched.jsonl` before/after.
+- AC-2: `explicit multi-saga dry run validates participants steps vector slots and preserves catalog` selects `multi-dry-run` by deterministic id and reports `scenarioKind=MULTI_SAGA`.
+- AC-3: `auto selection skips multi-saga candidates...` proves auto-selection skips/counts a multi-saga record and selects the valid single-saga record.
+- AC-4: Existing explicit missing-id coverage still returns `SELECTION_FAILED` before runtime with no selected participant list.
+- AC-5: Explicit multi-saga non-dry-run returns `UNSUPPORTED_SCENARIO` before materialization; selected invalid multi-saga shapes return structured blockers before runtime.
+- AC-6: Missing input and duplicate matching input variants are covered by `MISSING_INPUT_VARIANT` and `DUPLICATE_INPUT_VARIANT` assertions.
+- AC-10: Explicit multi-saga dry-run asserts `providerMode=NONE`, participant materialization/startup `NOT_ATTEMPTED`, lifecycle `NOT_STARTED`, `DRY_RUN` step outcomes, and no fixture runtime steps.
+- AC-11: Multi-saga dry-run asserts final-`::` plus trailing-`#<digits>` normalization to `run` and `other`.
+- AC-12: Invalid step id coverage asserts `UNSUPPORTED_STEP_ID` before runtime.
+- AC-18: Existing dry-run default-vector coverage remains passing; explicit multi-saga dry-run records explicit vector source while auto/default behavior remains isolated.
+- AC-19: Existing malformed-vector table remains passing; new multi-saga invalid test asserts wrong-length explicit vector on a selected multi-saga plan.
+- AC-20: Explicit multi-saga dry-run asserts scenario-level fault slots with assigned `DRY_RUN` and unassigned `NOT_ASSIGNED` states across participants.
+- AC-30: Multi-saga non-dry-run and validation failures stop before materialization/runtime; fixture step log remains empty.
+- AC-40: `ScenarioExecutorSpec` now includes dummy/synthetic coverage for explicit multi-saga dry-run and validation behavior required by this slice.
+
+### Browser / Manual Evidence
+
+- Not required.
+
+### TDD Notes
+
+- Added focused Spock coverage for explicit multi-saga dry-run and validation behavior before implementation. The expected pre-change behavior was rejection as `UNSUPPORTED_SCENARIO_SHAPE`; final verification passes after implementation.
+
+### Deviations From Plan
+
+- None.
+
+### Blockers / Follow-Ups
+
+- None for this slice. Later slices still own non-dry-run multi-saga materialization/startup and runtime execution.

@@ -26,7 +26,9 @@ class ScenarioExecutorSpec extends Specification {
         def staticPlan = plan('static-plan', 'pt.example.StaticSaga', 'com.example.StaticSaga::ignored#0')
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [staticPlan])
         def enrichedPlan = plan('enriched-plan', 'pt.example.EnrichedSaga', 'com.example.EnrichedSaga::stepName#0')
-        writeJsonl(runDirectory.resolve('scenario-catalog-enriched.jsonl'), [enriched(enrichedPlan, DynamicEvidenceJoinStatus.MATCHED_EXACT)])
+        def enrichedCatalog = runDirectory.resolve('scenario-catalog-enriched.jsonl')
+        writeJsonl(enrichedCatalog, [enriched(enrichedPlan, DynamicEvidenceJoinStatus.MATCHED_EXACT)])
+        def enrichedBefore = Files.readString(enrichedCatalog)
 
         when:
         def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'enriched-plan', true), runtime())
@@ -37,6 +39,7 @@ class ScenarioExecutorSpec extends Specification {
         participant(report).sagaFqn() == 'pt.example.EnrichedSaga'
         participant(report).stepOutcomes()*.runtimeStepName() == ['stepName', 'stepName']
         report.terminalStatus() == 'DRY_RUN'
+        Files.readString(enrichedCatalog) == enrichedBefore
 
         when:
         def missing = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'missing-plan', true), runtime())
@@ -466,6 +469,101 @@ class ScenarioExecutorSpec extends Specification {
         defaulted.vectorSource() == 'DEFAULT_VECTOR'
     }
 
+    def 'explicit multi-saga dry run validates participants steps vector slots and preserves catalog'() {
+        given:
+        FixtureWorkflow.STEPS.clear()
+        def runDirectory = Files.createTempDirectory('scenario-executor-multi-dry-run')
+        def scenario = multiPlan('multi-dry-run')
+        def catalog = runDirectory.resolve('scenario-catalog.jsonl')
+        writeJsonl(catalog, [scenario])
+        def before = Files.readString(catalog)
+
+        when:
+        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'multi-dry-run', '10', true), runtime())
+
+        then:
+        report.terminalStatus() == 'DRY_RUN'
+        report.scenarioKind() == 'MULTI_SAGA'
+        report.assignedVector() == '10'
+        report.vectorSource() == 'EXPLICIT_VECTOR'
+        report.providerMode() == 'NONE'
+        report.participants()*.sagaInstanceId() == ['left', 'right']
+        report.participants()*.materializationState().unique() == ['NOT_ATTEMPTED']
+        report.participants()*.startupState().unique() == ['NOT_ATTEMPTED']
+        report.participants()*.lifecycleOutcome().unique() == ['NOT_STARTED']
+        report.participants()[0].stepOutcomes()*.runtimeStepName() == ['run']
+        report.participants()[1].stepOutcomes()*.runtimeStepName() == ['other']
+        report.participants()*.stepOutcomes().flatten()*.status().unique() == ['DRY_RUN']
+        report.faultSlots()*.scheduledStepId() == ['left-step', 'right-step']
+        report.faultSlots()*.sagaInstanceId() == ['left', 'right']
+        report.faultSlots()*.runtimeStepName() == ['run', 'other']
+        report.faultSlots()*.assignedBit() == [1, 0]
+        report.faultSlots()*.realizationState() == ['DRY_RUN', 'NOT_ASSIGNED']
+        FixtureWorkflow.STEPS.isEmpty()
+        Files.readString(catalog) == before
+    }
+
+    def 'auto selection skips multi-saga candidates and explicit selected multi-saga validation failures keep participants'() {
+        given:
+        def runDirectory = Files.createTempDirectory('scenario-executor-multi-selection')
+        def invalidMulti = multiPlanWith('invalid-multi',
+                [new SagaInstance('left', 'LeftSaga', 'left-input', []), new SagaInstance('right', 'RightSaga', 'missing-input', [])],
+                [inputVariant('left-input', 'LeftSaga', literalArg('left'))],
+                [new ScheduledStep('left-step', 'left', 'LeftSaga::run#0', 0, []), new ScheduledStep('unknown-step', 'unknown', 'RightSaga::other#0', 1, [])],
+                new FaultSpace(1, ['missing-fault-step'], '1'))
+        def validSingle = plan('valid-single', FixtureWorkflow.name, 'fixture::first#0')
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [invalidMulti, validSingle])
+
+        when:
+        def auto = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, null, true), runtime())
+        def explicit = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'invalid-multi', true), runtime())
+
+        then:
+        auto.scenarioPlanId() == 'valid-single'
+        auto.skippedCandidateCounts()['UNSUPPORTED_SCENARIO_SHAPE'] == 1
+        explicit.terminalStatus() == 'INVALID_FAULT_VECTOR'
+        explicit.participants()*.sagaInstanceId() == ['left', 'right']
+        explicit.participants()*.inputVariantId() == ['left-input', null]
+        explicit.blockers()*.reason().containsAll(['MISSING_INPUT_VARIANT', 'UNKNOWN_SCHEDULED_STEP_OWNER', 'UNRESOLVED_FAULT_SPACE_SCHEDULED_STEP_ID'])
+        FixtureWorkflow.STEPS.isEmpty()
+    }
+
+    def 'multi-saga dry run rejects duplicate inputs duplicate scheduled ids invalid step ids and wrong length vector'() {
+        given:
+        def runDirectory = Files.createTempDirectory('scenario-executor-multi-invalid-shape')
+        def scenario = multiPlanWith('bad-multi',
+                [new SagaInstance('left', 'LeftSaga', 'dup-input', []), new SagaInstance('right', 'RightSaga', 'right-input', [])],
+                [inputVariant('dup-input', 'LeftSaga', literalArg('a')), inputVariant('dup-input', 'LeftSaga', literalArg('b')), inputVariant('right-input', 'RightSaga', literalArg('right'))],
+                [new ScheduledStep('dup-step', 'left', 'no-delimiter', 0, []), new ScheduledStep('dup-step', 'right', 'RightSaga::other#0', 1, [])],
+                new FaultSpace(2, ['dup-step', 'dup-step'], '00'))
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
+
+        when:
+        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'bad-multi', '1', true), runtime())
+
+        then:
+        report.terminalStatus() == 'INVALID_FAULT_VECTOR'
+        report.participants()*.sagaInstanceId() == ['left', 'right']
+        report.blockers()*.reason().containsAll(['DUPLICATE_INPUT_VARIANT', 'DUPLICATE_SCHEDULED_STEP_ID', 'UNSUPPORTED_STEP_ID', 'INVALID_EXPLICIT_VECTOR', 'DUPLICATE_FAULT_SPACE_SCHEDULED_STEP_ID'])
+        FixtureWorkflow.STEPS.isEmpty()
+    }
+
+    def 'explicit multi-saga non dry run remains unsupported before materialization'() {
+        given:
+        FixtureWorkflow.STEPS.clear()
+        def runDirectory = Files.createTempDirectory('scenario-executor-multi-non-dry')
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [multiPlan('multi-non-dry')])
+
+        when:
+        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'multi-non-dry', false), runtime())
+
+        then:
+        report.terminalStatus() == 'UNSUPPORTED_SCENARIO'
+        report.participants()*.sagaInstanceId() == ['left', 'right']
+        report.blockers()*.reason() == ['UNSUPPORTED_SCENARIO_SHAPE']
+        FixtureWorkflow.STEPS.isEmpty()
+    }
+
     def 'CLI exit code helper treats dry-run success and compensated faults as zero only'() {
         expect:
         ScenarioExecutorCli.exitCodeFor(status) == code
@@ -540,10 +638,15 @@ class ScenarioExecutorSpec extends Specification {
     }
 
     private static ScenarioPlan multiPlan(String id) {
-        new ScenarioPlan(ScenarioPlan.SCHEMA_VERSION, id, ScenarioKind.MULTI_SAGA,
+        multiPlanWith(id,
                 [new SagaInstance('left', 'LeftSaga', 'left-input', []), new SagaInstance('right', 'RightSaga', 'right-input', [])],
                 [inputVariant('left-input', 'LeftSaga', literalArg('left')), inputVariant('right-input', 'RightSaga', literalArg('right'))],
-                [new ScheduledStep('left-step', 'left', 'LeftSaga::run#0', 0, [])], null, [], [])
+                [new ScheduledStep('left-step', 'left', 'LeftSaga::run#0', 0, []), new ScheduledStep('right-step', 'right', 'RightSaga::other#1', 1, [])],
+                null)
+    }
+
+    private static ScenarioPlan multiPlanWith(String id, List<SagaInstance> sagas, List<InputVariant> inputs, List<ScheduledStep> steps, FaultSpace faultSpace) {
+        new ScenarioPlan(ScenarioPlan.SCHEMA_VERSION, id, ScenarioKind.MULTI_SAGA, sagas, inputs, steps, faultSpace, [], [])
     }
 
     private static InputVariant inputVariant(String id, String sagaFqn, InputRecipeArgument argument) {
