@@ -22,6 +22,7 @@ public class FixtureWorkflow {
     public static boolean injectUnexpectedSignal = false;
     public static boolean injectWrongSlotSignal = false;
     public static boolean compensationFails = false;
+    public static final List<String> SUPPRESSED_STEPS = new ArrayList<>();
 
     private final Object argument;
 
@@ -61,7 +62,7 @@ public class FixtureWorkflow {
                                 context.runtimeStepName(),
                                 context.assignedBit()));
                     }
-                    if (!suppressFaultSignal) {
+                    if (!suppressFaultSignal && !SUPPRESSED_STEPS.contains(stepName)) {
                         FaultVectorProviderHolder.faultForCurrentBoundary().ifPresent(fault -> {
                             throw new FaultVectorInjectedFaultException(fault);
                         });

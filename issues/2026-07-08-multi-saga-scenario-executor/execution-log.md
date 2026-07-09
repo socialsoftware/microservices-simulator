@@ -139,8 +139,35 @@ Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/005-
 Commit:
 
 - Status: `committed`
-- Hash: `pending`
+- Hash: `8a08920f`
 - Message: `feat(multi-saga-executor): compensate assigned faults`
+
+Reason if blocked/skipped:
+
+- None.
+
+#### `006-runtime-failures-compensation-failures-and-exit-codes.md`
+
+Status: `done`
+
+Risk: `high`
+Dependencies: `001-v3-participant-report-and-single-saga-migration.md`, `002-explicit-multi-saga-selection-and-dry-run.md`, `003-multi-participant-materialization-and-startup-gates.md`, `004-default-vector-interleaving-and-survivor-closure.md`, `005-assigned-fault-compensate-and-continue.md`
+Implementer session: `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T14-27-14-350Z_019f4746-8f2e-78e1-ba2d-dcdc66e8136c.jsonl`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T14-31-12-302Z_019f474a-30ae-75f7-9df0-4a163f8a99db.jsonl` | `issues/2026-07-08-multi-saga-scenario-executor/review/006-runtime-failures-compensation-failures-and-exit-codes-review-01.md` | FAIL | Concrete in-scope findings: dispatch/reflection hard-stop distinction, expected-not-injected slot preservation, single-saga skipped steps. |
+| 02 | `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T14-43-39-305Z_019f4755-96a9-7f53-8820-e8ffabdc0b35.jsonl` | `issues/2026-07-08-multi-saga-scenario-executor/review/006-runtime-failures-compensation-failures-and-exit-codes-review-02.md` | PASS | Reviewer reran `ScenarioExecutorSpec,ScenarioExecutorOrchestratorSpec` and `git diff --check`. |
+
+Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/006-runtime-failures-compensation-failures-and-exit-codes-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `pending`
+- Message: `feat(multi-saga-executor): complete failure outcomes`
 
 Reason if blocked/skipped:
 
