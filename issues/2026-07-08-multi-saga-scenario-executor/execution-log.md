@@ -113,8 +113,34 @@ Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/004-
 Commit:
 
 - Status: `committed`
-- Hash: `pending`
+- Hash: `d0b49046`
 - Message: `feat(multi-saga-executor): replay default interleavings`
+
+Reason if blocked/skipped:
+
+- None.
+
+#### `005-assigned-fault-compensate-and-continue.md`
+
+Status: `done`
+
+Risk: `high`
+Dependencies: `001-v3-participant-report-and-single-saga-migration.md`, `002-explicit-multi-saga-selection-and-dry-run.md`, `003-multi-participant-materialization-and-startup-gates.md`, `004-default-vector-interleaving-and-survivor-closure.md`
+Implementer session: `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T14-17-00-418Z_019f473d-3102-73f4-b3d0-7d05fea8d352.jsonl`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `/home/andre/.pi/agent/sessions/--home-andre-microservices-simulator--/2026-07-09T14-20-59-711Z_019f4740-d7bf-7f67-8c8b-a25b7b434a01.jsonl` | `issues/2026-07-08-multi-saga-scenario-executor/review/005-assigned-fault-compensate-and-continue-review-01.md` | PASS | Reviewer reran `ScenarioExecutorSpec` and `git diff --check`. |
+
+Final review report: `issues/2026-07-08-multi-saga-scenario-executor/review/005-assigned-fault-compensate-and-continue-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `pending`
+- Message: `feat(multi-saga-executor): compensate assigned faults`
 
 Reason if blocked/skipped:
 

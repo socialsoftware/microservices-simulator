@@ -245,6 +245,9 @@ public class ScenarioExecutor {
         try (FaultVectorProviderHolder.Scope ignored = FaultVectorProviderHolder.install(provider(candidate, scenarioExecutionId, plan, bySagaId))) {
             for (RuntimeStep step : candidate.steps()) {
                 ParticipantRuntimeState participant = bySagaId.get(step.scheduled().sagaInstanceId());
+                if (terminal(participant.lifecycleOutcome)) {
+                    continue;
+                }
                 try {
                     try (FaultVectorProviderHolder.BoundaryScope boundary = FaultVectorProviderHolder.enterBoundary(boundaryContext(candidate, step, scenarioExecutionId, plan, participant.saga, participant.functionality))) {
                         Method method = participant.functionality.getClass().getMethod("executeUntilStep", String.class, Class.forName("pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork"));
@@ -252,6 +255,28 @@ public class ScenarioExecutor {
                     }
                 } catch (ReflectiveOperationException | RuntimeException e) {
                     Throwable failure = unwrap(e);
+                    if (failure instanceof FaultVectorInjectedFaultException injected) {
+                        ScenarioExecutionReport.FaultSlot currentSlot = stepSlot(candidate.faultSlots(), step);
+                        participant.stepOutcomes.add(new ScenarioExecutionReport.StepOutcome(step.scheduled().deterministicId(), step.scheduled().stepId(), step.scheduled().scheduleOrder(), step.runtimeName(), "INJECTED_FAULT", failure.getClass().getName(), failure.getMessage()));
+                        if (matchesCurrentSlot(injected, currentSlot, scenarioExecutionId, plan, participant.saga)) {
+                            faultSlots = realizedAndMaskedSlots(faultSlots, injected.getSlotIndex(), participant.saga.deterministicId());
+                            ClosureResult closure = compensate(participant.functionality, participant.unitOfWork, plan, participant.input, step, failure);
+                            participant.lifecycleOutcome = closure.lifecycleOutcome();
+                            participant.skippedSteps.addAll(skippedForwardSteps(candidate.steps(), participant, step.scheduled().scheduleOrder()));
+                            if (closure.failed()) {
+                                participant.blockers.addAll(closure.blockers());
+                                return participantStateReport(records, scenarioExecutionId, "COMPENSATION_FAILED", selectionMode, selectionReason, options.scenarioId(), record,
+                                        candidate.vector().value(), candidate.vector().source(), "IN_MEMORY_FAULT_VECTOR", options, faultSlots, participants, closure.blockers());
+                            }
+                            continue;
+                        }
+                        String status = currentSlot.assignedBit() == 0 ? "UNEXPECTED_INJECTED_FAULT" : "FAULT_PROVIDER_MISMATCH";
+                        participant.lifecycleOutcome = "CLOSURE_SKIPPED";
+                        ScenarioExecutionReport.Blocker blocker = new ScenarioExecutionReport.Blocker(plan.deterministicId(), participant.input == null ? null : participant.input.deterministicId(), null, step.scheduled().deterministicId(), status, failureDetails(failure));
+                        participant.blockers.add(blocker);
+                        return participantStateReport(records, scenarioExecutionId, status, selectionMode, selectionReason, options.scenarioId(), record,
+                                candidate.vector().value(), candidate.vector().source(), "IN_MEMORY_FAULT_VECTOR", options, faultSlots, participants, List.of(blocker));
+                    }
                     participant.stepOutcomes.add(new ScenarioExecutionReport.StepOutcome(step.scheduled().deterministicId(), step.scheduled().stepId(), step.scheduled().scheduleOrder(), step.runtimeName(), "FAILED", failure.getClass().getName(), failure.getMessage()));
                     participant.lifecycleOutcome = "CLOSURE_SKIPPED";
                     ScenarioExecutionReport.Blocker blocker = new ScenarioExecutionReport.Blocker(plan.deterministicId(), participant.input == null ? null : participant.input.deterministicId(), null, step.scheduled().deterministicId(), "UNEXPECTED_EXECUTION_FAILURE", failureDetails(failure));
@@ -282,7 +307,7 @@ public class ScenarioExecutor {
                             candidate.vector().value(), candidate.vector().source(), "IN_MEMORY_FAULT_VECTOR", options, faultSlots, participants, List.of(blocker));
                 }
             }
-            return participantStateReport(records, scenarioExecutionId, "SUCCESS", selectionMode, selectionReason, options.scenarioId(), record,
+            return participantStateReport(records, scenarioExecutionId, aggregateStatus(participants), selectionMode, selectionReason, options.scenarioId(), record,
                     candidate.vector().value(), candidate.vector().source(), "IN_MEMORY_FAULT_VECTOR", options, faultSlots, participants, List.of());
         }
     }
@@ -292,6 +317,24 @@ public class ScenarioExecutor {
             case "COMMITTED", "COMPENSATED", "COMPENSATION_FAILED", "CLOSURE_SKIPPED" -> true;
             default -> false;
         };
+    }
+
+    private String aggregateStatus(List<ParticipantRuntimeState> participants) {
+        boolean anyCompensationFailed = participants.stream().anyMatch(participant -> "COMPENSATION_FAILED".equals(participant.lifecycleOutcome));
+        if (anyCompensationFailed) return "COMPENSATION_FAILED";
+        boolean anyCompensated = participants.stream().anyMatch(participant -> "COMPENSATED".equals(participant.lifecycleOutcome));
+        boolean anyCommitted = participants.stream().anyMatch(participant -> "COMMITTED".equals(participant.lifecycleOutcome));
+        if (anyCompensated && anyCommitted) return "PARTIAL_COMPENSATED";
+        if (anyCompensated) return "COMPENSATED";
+        return "SUCCESS";
+    }
+
+    private List<ScenarioExecutionReport.SkippedStep> skippedForwardSteps(List<RuntimeStep> steps, ParticipantRuntimeState participant, int failedScheduleOrder) {
+        return steps.stream()
+                .filter(step -> Objects.equals(step.scheduled().sagaInstanceId(), participant.saga.deterministicId()))
+                .filter(step -> step.scheduled().scheduleOrder() > failedScheduleOrder)
+                .map(step -> new ScenarioExecutionReport.SkippedStep(step.scheduled().deterministicId(), step.scheduled().stepId(), step.scheduled().scheduleOrder(), step.runtimeName(), "SKIPPED_BY_SAGA_FAILURE"))
+                .toList();
     }
 
     private ScenarioExecutionReport participantStateReport(List<CatalogScenarioRecord> records, String scenarioExecutionId, String status, String mode, String reason, String requested, CatalogScenarioRecord record, String assignedVector, String vectorSource, String providerMode, ScenarioExecutorOptions options, List<ScenarioExecutionReport.FaultSlot> slots, List<ParticipantRuntimeState> participantStates, List<ScenarioExecutionReport.Blocker> blockers) {
@@ -318,7 +361,7 @@ public class ScenarioExecutor {
                         participant.startupState,
                         participant.lifecycleOutcome,
                         participant.stepOutcomes,
-                        skippedSteps(participant.stepOutcomes, slots.stream().filter(slot -> Objects.equals(slot.sagaInstanceId(), participant.saga.deterministicId())).toList()),
+                        participant.skippedSteps,
                         participant.blockers))
                 .toList();
         return new ScenarioExecutionReport(ScenarioExecutionReport.SCHEMA_VERSION, scenarioExecutionId, status,
@@ -328,7 +371,7 @@ public class ScenarioExecutor {
 
     private List<ScenarioExecutionReport.FaultSlot> markNotReached(List<ScenarioExecutionReport.FaultSlot> slots) {
         return slots.stream()
-                .map(slot -> slot.assignedBit() == 1
+                .map(slot -> slot.assignedBit() == 1 && "NOT_REACHED".equals(slot.realizationState())
                         ? new ScenarioExecutionReport.FaultSlot(slot.slotIndex(), slot.scheduledStepId(), slot.catalogStepId(), slot.scheduleOrder(), slot.sagaInstanceId(), slot.runtimeStepName(), slot.assignedBit(), "NOT_REACHED", "execution hard-stopped before scheduled runtime execution")
                         : slot)
                 .toList();
@@ -340,6 +383,13 @@ public class ScenarioExecutor {
                 && injected.getSlotIndex() == slot.slotIndex()
                 && injected.getAssignedBit() == slot.assignedBit()
                 && slot.assignedBit() == 1;
+    }
+
+    private boolean matchesCurrentSlot(FaultVectorInjectedFaultException injected, ScenarioExecutionReport.FaultSlot slot, String scenarioExecutionId, ScenarioPlan plan, SagaInstance saga) {
+        return matchesCurrentSlot(injected, slot)
+                && injected.getScenarioExecutionId().equals(scenarioExecutionId)
+                && injected.getScenarioPlanId().equals(plan.deterministicId())
+                && injected.getSagaInstanceId().equals(saga.deterministicId());
     }
 
     private ClosureResult compensate(Object functionality, Object unitOfWork, ScenarioPlan plan, InputVariant input, RuntimeStep step, Throwable forwardFailure) {
@@ -381,11 +431,20 @@ public class ScenarioExecutor {
     }
 
     private List<ScenarioExecutionReport.FaultSlot> realizedAndMaskedSlots(List<ScenarioExecutionReport.FaultSlot> slots, int realizedSlotIndex) {
+        String failedSagaInstanceId = slots.stream()
+                .filter(slot -> slot.slotIndex() == realizedSlotIndex)
+                .map(ScenarioExecutionReport.FaultSlot::sagaInstanceId)
+                .findFirst()
+                .orElse(null);
+        return realizedAndMaskedSlots(slots, realizedSlotIndex, failedSagaInstanceId);
+    }
+
+    private List<ScenarioExecutionReport.FaultSlot> realizedAndMaskedSlots(List<ScenarioExecutionReport.FaultSlot> slots, int realizedSlotIndex, String failedSagaInstanceId) {
         List<ScenarioExecutionReport.FaultSlot> updated = new ArrayList<>();
         for (ScenarioExecutionReport.FaultSlot slot : slots) {
             if (slot.slotIndex() == realizedSlotIndex) {
                 updated.add(new ScenarioExecutionReport.FaultSlot(slot.slotIndex(), slot.scheduledStepId(), slot.catalogStepId(), slot.scheduleOrder(), slot.sagaInstanceId(), slot.runtimeStepName(), slot.assignedBit(), "REALIZED", null));
-            } else if (slot.slotIndex() > realizedSlotIndex && slot.assignedBit() == 1) {
+            } else if (slot.slotIndex() > realizedSlotIndex && slot.assignedBit() == 1 && Objects.equals(slot.sagaInstanceId(), failedSagaInstanceId)) {
                 updated.add(new ScenarioExecutionReport.FaultSlot(slot.slotIndex(), slot.scheduledStepId(), slot.catalogStepId(), slot.scheduleOrder(), slot.sagaInstanceId(), slot.runtimeStepName(), slot.assignedBit(), "MASKED_BY_SAGA_FAILURE", "masked by earlier realized slot " + realizedSlotIndex + " after saga abort"));
             } else {
                 updated.add(slot);
@@ -730,6 +789,7 @@ public class ScenarioExecutor {
         private Object unitOfWork;
         private Integer lastExecutedScheduleOrder;
         private final List<ScenarioExecutionReport.StepOutcome> stepOutcomes = new ArrayList<>();
+        private final List<ScenarioExecutionReport.SkippedStep> skippedSteps = new ArrayList<>();
         private final List<ScenarioExecutionReport.Blocker> blockers = new ArrayList<>();
 
         private ParticipantRuntimeState(SagaInstance saga, InputVariant input) {

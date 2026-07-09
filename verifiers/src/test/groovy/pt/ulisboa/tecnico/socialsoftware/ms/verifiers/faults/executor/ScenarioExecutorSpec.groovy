@@ -655,6 +655,76 @@ class ScenarioExecutorSpec extends Specification {
         !FaultVectorProviderHolder.active
     }
 
+    def 'multi-saga assigned fault compensates failed participant skips its later steps and lets survivor commit'() {
+        given:
+        FixtureWorkflow.STEPS.clear()
+        FixtureWorkflow.PARTICIPANT_STEPS.clear()
+        FixtureWorkflow.CLOSURES.clear()
+        FixtureWorkflow.compensationCalls = 0
+        FixtureWorkflow.resumeCalls = 0
+        FaultVectorProviderHolder.clear()
+        def runDirectory = Files.createTempDirectory('scenario-executor-multi-assigned-partial')
+        def scenario = multiPlanWith('multi-assigned-partial',
+                [new SagaInstance('left', FixtureWorkflow.name, 'left-input', []), new SagaInstance('right', FixtureWorkflow.name, 'right-input', [])],
+                [inputVariant('left-input', FixtureWorkflow.name, literalArg('left')), inputVariant('right-input', FixtureWorkflow.name, literalArg('right'))],
+                [new ScheduledStep('left-first', 'left', 'fixture::leftFirst#0', 0, []),
+                 new ScheduledStep('right-first', 'right', 'fixture::rightFirst#0', 1, []),
+                 new ScheduledStep('left-second', 'left', 'fixture::leftSecond#0', 2, []),
+                 new ScheduledStep('right-second', 'right', 'fixture::rightSecond#0', 3, [])],
+                new FaultSpace(4, ['left-first', 'right-first', 'left-second', 'right-second'], '1000'))
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
+
+        when:
+        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'multi-assigned-partial', false), runtime())
+
+        then:
+        report.terminalStatus() == 'PARTIAL_COMPENSATED'
+        report.faultSlots()*.realizationState() == ['REALIZED', 'NOT_ASSIGNED', 'NOT_ASSIGNED', 'NOT_ASSIGNED']
+        report.participants()[0].lifecycleOutcome() == 'COMPENSATED'
+        report.participants()[0].stepOutcomes()*.status() == ['INJECTED_FAULT']
+        report.participants()[0].skippedSteps()*.scheduledStepId() == ['left-second']
+        report.participants()[1].lifecycleOutcome() == 'COMMITTED'
+        report.participants()[1].stepOutcomes()*.runtimeStepName() == ['rightFirst', 'rightSecond']
+        FixtureWorkflow.PARTICIPANT_STEPS == ['right:rightFirst', 'right:rightSecond']
+        FixtureWorkflow.CLOSURES == ['right']
+        FixtureWorkflow.compensationCalls == 1
+        FixtureWorkflow.resumeCalls == 1
+        !FaultVectorProviderHolder.active
+    }
+
+    def 'multi-saga assigned faults in surviving participants remain active and later failed participant slots are masked'() {
+        given:
+        FixtureWorkflow.STEPS.clear()
+        FixtureWorkflow.PARTICIPANT_STEPS.clear()
+        FixtureWorkflow.CLOSURES.clear()
+        FixtureWorkflow.compensationCalls = 0
+        FaultVectorProviderHolder.clear()
+        def runDirectory = Files.createTempDirectory('scenario-executor-multi-assigned-multiple')
+        def scenario = multiPlanWith('multi-assigned-multiple',
+                [new SagaInstance('left', FixtureWorkflow.name, 'left-input', []), new SagaInstance('right', FixtureWorkflow.name, 'right-input', [])],
+                [inputVariant('left-input', FixtureWorkflow.name, literalArg('left')), inputVariant('right-input', FixtureWorkflow.name, literalArg('right'))],
+                [new ScheduledStep('left-first', 'left', 'fixture::leftFirst#0', 0, []),
+                 new ScheduledStep('right-first', 'right', 'fixture::rightFirst#0', 1, []),
+                 new ScheduledStep('left-second', 'left', 'fixture::leftSecond#0', 2, []),
+                 new ScheduledStep('right-second', 'right', 'fixture::rightSecond#0', 3, [])],
+                new FaultSpace(4, ['left-first', 'right-first', 'left-second', 'right-second'], '1011'))
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
+
+        when:
+        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'multi-assigned-multiple', false), runtime())
+
+        then:
+        report.terminalStatus() == 'COMPENSATED'
+        report.faultSlots()*.realizationState() == ['REALIZED', 'NOT_ASSIGNED', 'MASKED_BY_SAGA_FAILURE', 'REALIZED']
+        report.participants()*.lifecycleOutcome() == ['COMPENSATED', 'COMPENSATED']
+        report.participants()[0].skippedSteps()*.scheduledStepId() == ['left-second']
+        report.participants()[1].stepOutcomes()*.status() == ['COMPLETED', 'INJECTED_FAULT']
+        FixtureWorkflow.PARTICIPANT_STEPS == ['right:rightFirst']
+        FixtureWorkflow.CLOSURES.isEmpty()
+        FixtureWorkflow.compensationCalls == 2
+        !FaultVectorProviderHolder.active
+    }
+
     def 'runtime owned SagaUnitOfWork is reused for constructor and lifecycle calls in single participant execution'() {
         given:
         def runDirectory = Files.createTempDirectory('scenario-executor-unit-of-work-reuse')
