@@ -13,6 +13,7 @@ workloads:
       "semester_start_wl.py",
       "tournament_period_wl.py",
       "steady_wl.py",
+      "change_of_year_wl.py",
     ]
   # Interval of min, max users per workload
   users: [100, 300]

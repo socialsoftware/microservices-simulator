@@ -302,12 +302,34 @@ class SimInterface:
         return None
 
     @staticmethod
+    def update_quiz(quiz_id, title=None, available_date=None, conclusion_date=None, results_date=None, questions=None, client=requests):
+        payload = {
+            "aggregateId": quiz_id
+        }
+        if title:
+            payload["title"] = title
+        if available_date:
+            payload["availableDate"] = available_date
+        if conclusion_date:
+            payload["conclusionDate"] = conclusion_date
+        if results_date:
+            payload["resultsDate"] = results_date
+        if questions is not None:
+            payload["questionDtos"] = questions
+
+        r = SimInterface._post("/quizzes/update", json=payload, client=client)
+        if r is not None and r.status_code in [200, 201]:
+            return r.json()
+        return None
+
+    @staticmethod
     def start_quiz(quiz_id, exec_id, user_id, client=requests):
         params = {
             "courseExecutionAggregateId": exec_id,
             "userAggregateId": user_id
         }
-        r = SimInterface._post(f"/quizzes/{quiz_id}/start", params=params, client=client)
+        r = SimInterface._post(
+            f"/quizzes/{quiz_id}/start", params=params, client=client)
         if r is not None and r.status_code in [200, 201]:
             return True
         return False
@@ -325,6 +347,26 @@ class SimInterface:
         if r is not None and r.status_code in [200, 201]:
             return True
         return False
+
+    @staticmethod
+    def deactivate_user(user_id, client=requests):
+        r = SimInterface._post(f"/users/{user_id}/deactivate", client=client)
+        return r is not None and r.status_code in [200, 201]
+
+    @staticmethod
+    def delete_user(user_id, client=requests):
+        r = SimInterface._post(f"/users/{user_id}/delete", client=client)
+        return r is not None and r.status_code in [200, 201]
+
+    @staticmethod
+    def delete_topic(topic_id, client=requests):
+        r = SimInterface._post(f"/topics/{topic_id}/delete", client=client)
+        return r is not None and r.status_code in [200, 201]
+
+    @staticmethod
+    def remove_question(question_id, client=requests):
+        r = SimInterface._post(f"/questions/{question_id}", client=client)
+        return r is not None and r.status_code in [200, 201]
 
     @staticmethod
     def create_base_data(client=requests):
