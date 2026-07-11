@@ -312,4 +312,30 @@ class ExecutionServiceTest extends QuizzesFullSpockTest {
         then:
         eventService.getAllEvents().size() == countBefore
     }
+
+    def "removeStudentFromExecutionByEvent: removes student, not found via fresh UnitOfWork"() {
+        // Spec: plan.md §4 Execution — RemoveStudentFromExecutionByEvent postconditions
+        // Event-driven only (DeleteUserEvent handler) — no not-found path reachable through any
+        // legitimate caller.
+        given:
+        def courseDto = createCourse(COURSE_NAME_1, COURSE_TYPE_TECNICO)
+        def executionDto = executionService.createExecution(ACRONYM_1, ACADEMIC_TERM_1, new ExecutionCourse(courseDto),
+                unitOfWorkService.createUnitOfWork("createExecution"))
+        def userDto = userService.createUser(new UserDto(null, USER_NAME_1, USER_USERNAME_1, STUDENT_ROLE, false),
+                unitOfWorkService.createUnitOfWork("createUser"))
+        executionService.enrollStudentInExecution(executionDto.aggregateId, userDto,
+                unitOfWorkService.createUnitOfWork("enrollStudentInExecution"))
+
+        when:
+        executionService.removeStudentFromExecutionByEvent(executionDto.aggregateId, userDto.aggregateId,
+                unitOfWorkService.createUnitOfWork("removeStudentFromExecutionByEvent"))
+
+        and: 'verify student is no longer enrolled'
+        executionService.getStudentByExecutionIdAndUserId(executionDto.aggregateId, userDto.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+
+        then:
+        def ex = thrown(QuizzesFullException)
+        ex.errorMessage == QuizzesFullErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND
+    }
 }
