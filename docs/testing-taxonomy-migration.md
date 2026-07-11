@@ -137,7 +137,7 @@ Topological order (same as plan.md). Per-session scope:
 | - [x] 3.5 | Question | `QuestionServiceTest` | `UpdateQuestionEvent`, `DeleteQuestionEvent` + negative case — `QuestionEventPublicationTest.groovy` deleted, methods merged into `QuestionServiceTest.groovy` (amendment retrofit, see decision 8) | `CreateQuestionTest`, `UpdateQuestionTest`, `DeleteQuestionTest`, `GetQuestionByIdTest`, `GetQuestionsByCourseExecutionIdTest`; keep `QuestionInterInvariantTest` (relabel comments to T3 — producer-side cross-reference now names `TopicServiceTest`) | `CreateQuestionCompensationTest`, `UpdateQuestionCompensationTest`, `DeleteQuestionCompensationTest` — all three lock steps are root steps, so unlike Execution's excluded case, all three functionalities got genuine tests |
 | - [x] 3.6 | Quiz | `QuizServiceTest` | `InvalidateQuizEvent` (x2 methods: `removeQuestionFromQuiz`, `invalidateQuiz`) + negative case — `QuizEventPublicationTest.groovy` deleted, methods merged into `QuizServiceTest.groovy` (amendment retrofit, see decision 8) | `CreateQuizTest`, `UpdateQuizTest`, `GetQuizByIdTest` trimmed; `ConcludeQuizTest`/`SolveQuizTest` left untouched — see Discovered Issues; keep `QuizInterInvariantTest` (relabel comments to T3 — producer-side cross-reference now names `QuestionServiceTest` and `ExecutionServiceTest`) | `CreateQuizCompensationTest`, `UpdateQuizCompensationTest` — both lock steps (`getExecutionStep`, `getQuizStep`) are root steps, so both got genuine compensation tests |
 | - [x] 3.7 | QuizAnswer | `QuizAnswerServiceTest` | `QuizAnswerQuestionAnswerEvent` + negative case, asserted directly in `QuizAnswerServiceTest.groovy` (no separate `EventPublicationTest` class — see decision 8) | `CreateQuizAnswerTest`, `AnswerQuestionTest`, `GetQuizAnswerByQuizIdAndStudentIdTest`; also `ConcludeQuizTest` (persisted `completed` field relocated) and `sagas/coordination/tournament/SolveQuizTest` (duplicate cross-aggregate `QUIZ_ANSWER_NOT_FOUND` case deleted, not relocated — see Discovered issues); keep `QuizAnswerInterInvariantTest` (relabeled T4→T3 — consumer-side scope; producer-side cross-reference names `UserServiceTest`, `ExecutionServiceTest`, `QuestionServiceTest`, `QuizServiceTest` — see Discovered issues) | `CreateQuizAnswerCompensationTest` (fault on `getUserStep` compensates `getQuizStep`), `AnswerQuestionCompensationTest` (fault on `getQuestionStep` compensates `getQuizAnswerStep`), `ConcludeQuizCompensationTest` (fault on `concludeQuizStep` compensates `getQuizAnswerStep`) — all three write functionalities' lock steps are root steps, so all three got genuine compensation tests |
-| - [ ] 3.8 | Tournament | `TournamentServiceTest` | — (publishes none; no `EventPublicationTest` needed) | `CreateTournamentTest`, `UpdateTournamentTest`, `CancelTournamentTest`, `DeleteTournamentTest`, `AddParticipantTest`, `GetTournamentByIdTest`, `GetOpenTournamentsTest`; keep `TournamentInterInvariantTest` (T3 — consumer-side scope) | One `<FunctionalityName>CompensationTest` per eligible write functionality (see decision 7); `AddParticipantFunctionalitySagas` has a forbidden-state guard — compensation and guard are separate concerns, don't conflate |
+| - [x] 3.8 | Tournament | `TournamentServiceTest` | — (publishes none; no `EventPublicationTest` needed) | `CreateTournamentTest`, `UpdateTournamentTest`, `CancelTournamentTest`, `DeleteTournamentTest`, `AddParticipantTest`, `GetTournamentByIdTest`, `GetOpenTournamentsTest`; keep `TournamentInterInvariantTest` (T3 — consumer-side scope) | `UpdateTournamentCompensationTest`, `CancelTournamentCompensationTest`, `DeleteTournamentCompensationTest` (see Discovered issues for why `CreateTournament`, `AddParticipant`, `SolveQuiz` were excluded) |
 
 Per-session procedure (identical for every aggregate; substitute `<Aggregate>`):
 
@@ -369,3 +369,64 @@ unconditionally throws `COURSE_FIELDS_IMMUTABLE` — its T2 test asserts exactly
   `CreateQuizAnswerCompensationTest` case exists for it; only `getQuizStep`'s compensation
   (triggered by faulting `getUserStep`) is genuinely testable, same shape as the excluded
   `EnrollStudentInExecutionFunctionalitySagas` case from session 3.4's Discovered issues.
+- Session 3.8: `QuizzesFullSpockTest.groovy` was missing a `tournamentService` field (same category
+  of gap as 3.6's `quizService`), even though the `tournamentService` bean already existed in
+  `BeanConfigurationSagas`. Added `@Autowired(required = false) protected TournamentService
+  tournamentService` as a prerequisite for `TournamentServiceTest`/the new compensation tests.
+- Session 3.8: `TournamentInterInvariantTest.groovy` had no header comment at all before this
+  session (same gap as `QuizAnswerInterInvariantTest` before 3.7), so this was an addition, not a
+  relabel-in-place. Producer-side cross-reference names the four upstream producers Tournament
+  subscribes events from — `UserServiceTest`, `TopicServiceTest`, `ExecutionServiceTest`,
+  `QuizServiceTest` — plus `QuizAnswerServiceTest` for `QuizAnswerQuestionAnswerEvent`, following the
+  Quiz/QuizAnswer precedent of naming actual producers, not `TournamentServiceTest` itself.
+- Session 3.8: this row's T4 trim scope was missing `sagas/coordination/tournament/SolveQuizTest`
+  (flagged by 3.6/3.7 as deferred here) — its `"solveQuiz: success"` case asserted
+  `participant.quizAnswer.quizAnswerAggregateId`, a Tournament-owned participant-link fact, relocated
+  into `TournamentServiceTest`'s `"setParticipantQuizAnswer: quiz answer link persisted..."` case;
+  the T4 case was trimmed to orchestration-only (`noExceptionThrown()`).
+- Session 3.8: two service-level guards distinct from P1 invariants were relocated to T2 with direct
+  (non-saga) calls: `TOURNAMENT_TOPIC_COURSE_MISMATCH` (P3 guard inline in
+  `TournamentService.createTournament`, relocated from `CreateTournamentTest`), and
+  `TOURNAMENT_IS_CANCELED`/`TOURNAMENT_AFTER_END` (inline guards in `TournamentService.cancelTournament`
+  and `.setParticipantQuizAnswer` respectively). `CreateTournamentTest`'s `CREATOR_COURSE_EXECUTION`
+  cases stayed in T4 (P4a data-assembly/cross-aggregate saga coordination, same category as the 3.4
+  `INACTIVE_USER` precedent), as did `AddParticipantTest`'s structurally identical
+  `PARTICIPANT_COURSE_EXECUTION` case.
+- Session 3.8: **correction to this row's original compensation-test caveat** — it stated
+  `AddParticipantFunctionalitySagas` has a forbidden-state guard. Reading all five Tournament saga
+  classes directly showed this is wrong: `AddParticipantFunctionalitySagas` has no
+  `setForbiddenStates` call anywhere, and its lock step (`getTournamentStep`) depends on
+  `getStudentStep` ← `getUserStep`, so it is **not a root step** — no genuine compensation test is
+  possible for it at all, independent of any guard question (same mechanical-caveat category as
+  session 3.4's excluded `EnrollStudentInExecutionFunctionalitySagas`). The actual
+  `setForbiddenStates` call in Tournament's sagas is on `UpdateTournamentFunctionalitySagas`'s
+  `updateQuizStep` (forbidding `QuizSagaState.IN_UPDATE_QUIZ`/`READ_QUIZ`), whose lock step
+  (`getTournamentStep`) *is* root — so `UpdateTournamentCompensationTest` is both testable and the
+  file the "don't conflate compensation and guard" caveat actually applies to. No
+  forbidden-state/guard test was added anywhere (stays deferred per decision 6, independent of this
+  correction). `CreateTournamentFunctionalitySagas` and `SolveQuizFunctionalitySagas` register no
+  `setSemanticLock` at all, so they get no compensation test either (nothing to compensate) —
+  final compensation set: `UpdateTournamentCompensationTest` (faults `getTopicsStep`),
+  `CancelTournamentCompensationTest` (faults `cancelTournamentStep`),
+  `DeleteTournamentCompensationTest` (faults `deleteTournamentStep`), all three verified via the
+  fault-flip-to-0 sanity check (all three failed with fault disabled, confirming fault-dependence).
+- Session 3.8: while writing the `setParticipantQuizAnswer` `TOURNAMENT_AFTER_END` violation case,
+  hit a clock mismatch — `TournamentService`'s inline guard compares against
+  `pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler.now()` (fixed UTC), not
+  `LocalDateTime.now()` (JVM default timezone). Pushing a tournament's `endTime` into the past using
+  `LocalDateTime.now()` on this machine did not reliably trigger the guard; switching the test fixture
+  to `DateHandler.now()` fixed it. Worth remembering for any future test that manufactures
+  past/future timestamps to hit a service-level date guard — use `DateHandler.now()`, matching
+  whatever clock the guard under test actually reads.
+
+### 2026-07-11 — Phase 3 closed: all 8 aggregates migrated
+
+Session 3.8 (Tournament) was the last Phase 3 session. All 8 aggregates (Course, User, Topic,
+Execution, Question, Quiz, QuizAnswer, Tournament) now follow the 4-tier taxonomy end to end: T1
+`<Aggregate>IntraInvariantTest`, T2 `<Aggregate>ServiceTest` (service contract + event publication),
+T3 `<Consumer>InterInvariantTest` (subscription, present for every aggregate with subscribed
+events), T4 `<FunctionalityName>Test` + `<FunctionalityName>CompensationTest` (orchestration only).
+Full suite green: `cd applications/quizzes-full && mvn clean -Ptest-sagas test` → 287/287 passing, 0
+failures, 0 errors, across 88 test classes. No production code was touched in any Phase 3 session —
+diff scope stayed confined to `docs/`, `.claude/skills/` (Phase 2), and
+`applications/quizzes-full/src/test/` (Phase 3) throughout.

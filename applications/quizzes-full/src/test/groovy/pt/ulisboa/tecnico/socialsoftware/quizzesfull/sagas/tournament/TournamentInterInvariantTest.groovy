@@ -13,6 +13,13 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.ag
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.notification.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.InterInvariantTestBase
 
+// T3 — Subscription (Inter-Invariant): consumer-side event handling for Tournament's subscribed
+// events (CREATOR_EXISTS/PARTICIPANT_EXISTS, TOPIC_EXISTS, COURSE_EXECUTION_EXISTS, QUIZ_EXISTS,
+// QUIZ_ANSWER_EXISTS). Producer-side event-store assertions are owned by UserServiceTest
+// (DeleteUserEvent, UpdateStudentNameEvent, AnonymizeStudentEvent), TopicServiceTest
+// (UpdateTopicEvent, DeleteTopicEvent), ExecutionServiceTest (DeleteCourseExecutionEvent),
+// QuizServiceTest (InvalidateQuizEvent), and QuizAnswerServiceTest
+// (QuizAnswerQuestionAnswerEvent) — not this file.
 @DataJpaTest
 @Transactional
 @Import(LocalBeanConfiguration)

@@ -5,7 +5,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
@@ -60,17 +59,13 @@ class DeleteTournamentTest extends QuizzesFullSpockTest {
     }
 
     def "deleteTournament: success — no participants"() {
+        // Orchestration outcome only — persistence (not-found-after-delete) is asserted in
+        // TournamentServiceTest.
         when:
         tournamentFunctionalities.deleteTournament(tournamentId)
 
         then:
         noExceptionThrown()
-
-        and: 'deleted tournament is no longer accessible'
-        when:
-        tournamentFunctionalities.getTournamentById(tournamentId)
-        then:
-        thrown(SimulatorException)
     }
 
     def "deleteTournament: success — cancelled tournament with no participants"() {
@@ -82,12 +77,6 @@ class DeleteTournamentTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
-
-        and: 'deleted tournament is no longer accessible'
-        when:
-        tournamentFunctionalities.getTournamentById(tournamentId)
-        then:
-        thrown(SimulatorException)
     }
 
     def "deleteTournament: success — clears participants on delete"() {
@@ -101,12 +90,6 @@ class DeleteTournamentTest extends QuizzesFullSpockTest {
 
         then:
         noExceptionThrown()
-
-        and: 'deleted tournament is no longer accessible'
-        when:
-        tournamentFunctionalities.getTournamentById(tournamentId)
-        then:
-        thrown(SimulatorException)
     }
 
     def "deleteTournament: getTournamentStep acquires IN_DELETE_TOURNAMENT semantic lock"() {

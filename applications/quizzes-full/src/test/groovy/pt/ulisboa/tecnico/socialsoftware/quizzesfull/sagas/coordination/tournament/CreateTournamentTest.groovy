@@ -13,8 +13,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.co
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 
 import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.COURSE_EXECUTION_STUDENT_NOT_FOUND
-import static pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage.TOURNAMENT_TOPIC_COURSE_MISMATCH
 // P1 intra-invariant violations are NOT tested here — see TournamentIntraInvariantTest.
+// TOPIC_COURSE_EXECUTION (P3 service guard) is tested directly against TournamentService in
+// TournamentServiceTest — not through the saga path here.
 
 import java.time.LocalDateTime
 
@@ -59,18 +60,13 @@ class CreateTournamentTest extends QuizzesFullSpockTest {
     }
 
     def "createTournament: success"() {
-        // Spec: Tournament.{executionAggregateId,creatorAggregateId,numberOfQuestions} = input;
-        //       cancelled=false; SagaState after commit == NOT_IN_SAGA.
-        // Source: plan.md §2.8 Tournament / createTournament.
+        // Spec: plan.md §8 Tournament / createTournament. Orchestration outcome only —
+        // persistence is asserted in TournamentServiceTest.
         when:
         def result = createTournament(executionId, userId, [topicId], 1, startTime, endTime)
 
         then:
         result.aggregateId != null
-        result.executionAggregateId == executionId
-        result.creatorAggregateId == userId
-        result.numberOfQuestions == 1
-        result.cancelled == false
         sagaStateOf(result.aggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
@@ -85,19 +81,6 @@ class CreateTournamentTest extends QuizzesFullSpockTest {
         then:
         def ex = thrown(QuizzesFullException)
         ex.message == COURSE_EXECUTION_STUDENT_NOT_FOUND
-    }
-
-    def "createTournament: TOPIC_COURSE_EXECUTION violation — topic from different course"() {
-        given: 'a topic from a different course'
-        def otherCourse = createCourse("Other Course", "TECNICO")
-        def otherTopic = createTopic(otherCourse.aggregateId, "Other Topic")
-
-        when:
-        createTournament(executionId, userId, [otherTopic.aggregateId], 1, startTime, endTime)
-
-        then:
-        def ex = thrown(QuizzesFullException)
-        ex.message == TOURNAMENT_TOPIC_COURSE_MISMATCH
     }
 
     def "createTournament: getStudentStep enforces CREATOR_COURSE_EXECUTION check"() {

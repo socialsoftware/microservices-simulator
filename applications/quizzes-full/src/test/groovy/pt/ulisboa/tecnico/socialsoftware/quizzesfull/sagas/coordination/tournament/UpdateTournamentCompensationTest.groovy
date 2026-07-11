@@ -1,31 +1,23 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull.sagas.coordination.tournament
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.states.TournamentSagaState
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
-
-// P1 intra-invariant violations are NOT tested here — see TournamentIntraInvariantTest.
 
 import java.time.LocalDateTime
 
 @DataJpaTest
 @Transactional
 @Import(LocalBeanConfiguration)
-class UpdateTournamentTest extends QuizzesFullSpockTest {
+class UpdateTournamentCompensationTest extends QuizzesFullSpockTest {
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
-
-    @Autowired
-    CommandGateway commandGateway
 
     Integer courseId
     Integer userId
@@ -36,6 +28,8 @@ class UpdateTournamentTest extends QuizzesFullSpockTest {
     LocalDateTime endTime
 
     def setup() {
+        loadBehaviorScripts()
+
         def course = createCourse("Software Engineering", "TECNICO")
         courseId = course.aggregateId
 
@@ -59,8 +53,14 @@ class UpdateTournamentTest extends QuizzesFullSpockTest {
         tournamentId = tournament.aggregateId
     }
 
-    def "updateTournament: success — orchestration outcome only"() {
-        // Persistence is asserted in TournamentServiceTest.
+    def cleanup() {
+        impairmentService.cleanUpCounter()
+        impairmentService.cleanDirectory()
+    }
+
+    def "updateTournament: fault on getTopicsStep compensates the lock acquired by getTournamentStep"() {
+        // getTournamentStep is a root (no-dependency) step, so it genuinely runs and registers its
+        // compensation before getTopicsStep's injected fault fires.
         given:
         def newStart = LocalDateTime.now().plusDays(3)
         def newEnd = LocalDateTime.now().plusDays(5)
@@ -68,27 +68,15 @@ class UpdateTournamentTest extends QuizzesFullSpockTest {
         when:
         tournamentFunctionalities.updateTournament(tournamentId, newStart, newEnd, [])
 
-        then:
-        noExceptionThrown()
+        then: 'the injected fault surfaces to the caller'
+        thrown(SimulatorException)
+
+        and: 'compensation released the semantic lock back to NOT_IN_SAGA'
         sagaStateOf(tournamentId) == GenericSagaState.NOT_IN_SAGA
-    }
 
-    def "updateTournament: getTournamentStep acquires IN_UPDATE_TOURNAMENT semantic lock"() {
-        given:
-        def newStart = LocalDateTime.now().plusDays(3)
-        def newEnd = LocalDateTime.now().plusDays(5)
-        def uow = unitOfWorkService.createUnitOfWork("updateTournament")
-        def func = new UpdateTournamentFunctionalitySagas(
-                unitOfWorkService, tournamentId, newStart, newEnd, [], uow, commandGateway)
-        func.executeUntilStep("getTournamentStep", uow)
-
-        expect:
-        sagaStateOf(tournamentId) == TournamentSagaState.IN_UPDATE_TOURNAMENT
-
-        when:
-        func.resumeWorkflow(uow)
-
-        then:
-        noExceptionThrown()
+        and: 'the mutation never ran: read-back shows the pre-saga state'
+        def reread = tournamentFunctionalities.getTournamentById(tournamentId)
+        reread.startTime == startTime
+        reread.endTime == endTime
     }
 }

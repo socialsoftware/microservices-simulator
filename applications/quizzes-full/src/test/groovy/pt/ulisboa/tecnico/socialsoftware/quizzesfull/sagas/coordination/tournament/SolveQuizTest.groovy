@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.Tournament
 // P1 intra-invariant violations are NOT tested here — see TournamentIntraInvariantTest.
 
 import java.time.LocalDateTime
@@ -59,21 +58,19 @@ class SolveQuizTest extends QuizzesFullSpockTest {
         return tournament.aggregateId
     }
 
-    def "solveQuiz: success — links participant quiz answer to tournament"() {
+    def "solveQuiz: success — orchestration outcome only"() {
+        // The participant.quizAnswer.quizAnswerAggregateId link fact (relocated session 3.8) is now
+        // asserted in TournamentServiceTest's "setParticipantQuizAnswer" case.
         given: 'participant is enrolled and has a quiz answer on a started tournament'
         def readyTournamentId = prepareTournamentReadyForSolveQuiz(participantId)
         def tournamentDto = tournamentFunctionalities.getTournamentById(readyTournamentId)
-        def quizAnswer = createQuizAnswer(tournamentDto.quizAggregateId, participantId)
+        createQuizAnswer(tournamentDto.quizAggregateId, participantId)
 
         when:
         tournamentFunctionalities.solveQuiz(readyTournamentId, participantId)
 
         then:
-        def checkUow = unitOfWorkService.createUnitOfWork("check")
-        def updated = unitOfWorkService.aggregateLoadAndRegisterRead(readyTournamentId, checkUow) as Tournament
-        def participant = updated.participants.find { it.participantAggregateId == participantId }
-        participant != null
-        participant.quizAnswer.quizAnswerAggregateId == quizAnswer.aggregateId
+        noExceptionThrown()
     }
 
     // "QUIZ_ANSWER_NOT_FOUND — no quiz answer for participant" case removed (session 3.7): it is a

@@ -105,6 +105,9 @@ class QuizzesFullSpockTest extends SpockTest {
     protected TournamentFunctionalities tournamentFunctionalities
 
     @Autowired(required = false)
+    protected pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.service.TournamentService tournamentService
+
+    @Autowired(required = false)
     protected SagasTournamentFactory sagasTournamentFactory
 
     def loadBehaviorScripts() {

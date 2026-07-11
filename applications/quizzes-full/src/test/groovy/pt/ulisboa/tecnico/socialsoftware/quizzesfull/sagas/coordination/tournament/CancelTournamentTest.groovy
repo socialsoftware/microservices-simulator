@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.states.TournamentSagaState
@@ -58,13 +59,14 @@ class CancelTournamentTest extends QuizzesFullSpockTest {
         tournamentId = tournament.aggregateId
     }
 
-    def "cancelTournament: success"() {
+    def "cancelTournament: success — orchestration outcome only"() {
+        // Persistence is asserted in TournamentServiceTest.
         when:
         tournamentFunctionalities.cancelTournament(tournamentId)
 
         then:
-        def dto = tournamentFunctionalities.getTournamentById(tournamentId)
-        dto.cancelled == true
+        noExceptionThrown()
+        sagaStateOf(tournamentId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "cancelTournament: getTournamentStep acquires IN_CANCEL_TOURNAMENT semantic lock"() {

@@ -4,6 +4,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 
@@ -12,7 +14,7 @@ import java.time.LocalDateTime
 @DataJpaTest
 @Transactional
 @Import(LocalBeanConfiguration)
-class GetTournamentByIdTest extends QuizzesFullSpockTest {
+class DeleteTournamentCompensationTest extends QuizzesFullSpockTest {
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
@@ -24,6 +26,8 @@ class GetTournamentByIdTest extends QuizzesFullSpockTest {
     Integer tournamentId
 
     def setup() {
+        loadBehaviorScripts()
+
         def course = createCourse("Software Engineering", "TECNICO")
         courseId = course.aggregateId
 
@@ -45,18 +49,25 @@ class GetTournamentByIdTest extends QuizzesFullSpockTest {
         tournamentId = tournament.aggregateId
     }
 
-    def "getTournamentById: success"() {
-        when:
-        def result = tournamentFunctionalities.getTournamentById(tournamentId)
-
-        then:
-        result.aggregateId == tournamentId
-        result.executionAggregateId == executionId
-        result.creatorAggregateId == userId
-        result.numberOfQuestions == 1
-        result.cancelled == false
+    def cleanup() {
+        impairmentService.cleanUpCounter()
+        impairmentService.cleanDirectory()
     }
 
-    // "aggregate not found" case relocated to TournamentServiceTest (Path A SimulatorException,
-    // session 3.8) — no longer duplicated here.
+    def "deleteTournament: fault on deleteTournamentStep compensates the lock acquired by getTournamentStep"() {
+        // getTournamentStep is a root (no-dependency) step, so it genuinely runs and registers its
+        // compensation before deleteTournamentStep's injected fault fires.
+        when:
+        tournamentFunctionalities.deleteTournament(tournamentId)
+
+        then: 'the injected fault surfaces to the caller'
+        thrown(SimulatorException)
+
+        and: 'compensation released the semantic lock back to NOT_IN_SAGA'
+        sagaStateOf(tournamentId) == GenericSagaState.NOT_IN_SAGA
+
+        and: 'the mutation never ran: tournament is still retrievable'
+        def reread = tournamentFunctionalities.getTournamentById(tournamentId)
+        reread.aggregateId == tournamentId
+    }
 }

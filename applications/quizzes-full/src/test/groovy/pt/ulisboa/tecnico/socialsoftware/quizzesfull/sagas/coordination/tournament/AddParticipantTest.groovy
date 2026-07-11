@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.QuizzesFullSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException
@@ -66,12 +67,13 @@ class AddParticipantTest extends QuizzesFullSpockTest {
     }
 
     def "addParticipant: success"() {
+        // Orchestration outcome only — persistence is asserted in TournamentServiceTest.
         when:
         tournamentFunctionalities.addParticipant(tournamentId, executionId, participantId)
 
         then:
-        def dto = tournamentFunctionalities.getTournamentById(tournamentId)
-        dto.participantIds.contains(participantId)
+        noExceptionThrown()
+        sagaStateOf(tournamentId) == GenericSagaState.NOT_IN_SAGA
     }
 
     def "addParticipant: PARTICIPANT_COURSE_EXECUTION violation — participant not enrolled"() {
