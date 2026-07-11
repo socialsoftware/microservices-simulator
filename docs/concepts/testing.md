@@ -108,6 +108,12 @@ pin **both** instants explicitly so the on-point is exactly equal. All temporal 
 are T1 direct-aggregate tests — the saga path stamps `lastModifiedTime = now()` and cannot pin the
 on-point. Canonical pattern: `TournamentIntraInvariantTest` (`ANSWER_BEFORE_START`).
 
+When a test instead manufactures a past/future timestamp to trigger a **service-level** date guard
+(a T2 concern, not a P1 boundary), pin it against the same clock the guard under test actually
+reads — e.g. `pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler.now()` (fixed UTC), not
+`LocalDateTime.now()` (JVM default timezone). A mismatch between the two can silently fail to
+trigger the guard rather than throwing an obvious error.
+
 ## Spec-First Ordering
 
 Before writing any test, locate the **`plan.md` aggregate section** for the target aggregate. Its
