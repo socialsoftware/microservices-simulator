@@ -430,3 +430,41 @@ Full suite green: `cd applications/quizzes-full && mvn clean -Ptest-sagas test` 
 failures, 0 errors, across 88 test classes. No production code was touched in any Phase 3 session —
 diff scope stayed confined to `docs/`, `.claude/skills/` (Phase 2), and
 `applications/quizzes-full/src/test/` (Phase 3) throughout.
+
+## Follow-ups (open, not yet actioned)
+
+Unlike the Discovered issues log above — which records things found and resolved (or deliberately
+excluded with rationale) during a session — these are gaps that were flagged in-session but never
+picked up by a later session. Migration is complete; these are separate, optional pieces of work.
+
+1. **Missing T2 coverage: `ExecutionService.removeStudentFromExecutionByEvent`.** Flagged in session
+   3.6 as "worth a follow-up audit" and never addressed in 3.7 or 3.8. This event-driven method has
+   no test at all in `ExecutionServiceTest` — not even a happy path — unlike its structurally
+   identical siblings on Quiz (`QuizServiceTest`) and QuizAnswer (`QuizAnswerServiceTest`), which
+   both got happy-path + persisted-readback coverage. Add a happy-path case to `ExecutionServiceTest`.
+
+2. **`ExecutionPlan` root-step limitation blocks full compensation coverage.** `ExecutionPlan.execute()`
+   checks every step's fault flag in a single pass, in registration order, before scheduling any
+   dependent step — so a semantic-lock step that isn't a root/no-dependency step can never have its
+   compensation genuinely exercised by the current `ImpairmentService`/`ExecutionPlan` mechanism (see
+   the Post-3.4 note above for the full mechanics). This excluded compensation tests for:
+   - `EnrollStudentInExecutionFunctionalitySagas` (session 3.4)
+   - `getUserStep` within `CreateQuizAnswerFunctionalitySagas` (session 3.7 — the sibling `getQuizStep`
+     compensation is still covered)
+   - `AddParticipantFunctionalitySagas` (session 3.8)
+
+   Fixing this requires a change to `simulator/ExecutionPlan.java`, which was out of scope for this
+   test/docs-only migration. Decide whether it's worth pursuing as a deliberate `simulator/` change.
+
+3. **Phase-3 table (lines 131-140) is stale relative to what actually happened.** Several rows'
+   T4-trim-scope lists and cross-reference wording were found incomplete or wrong in later sessions
+   (e.g. 3.2's missing `GetStudentByExecutionIdAndUserIdTest`; 3.6/3.7's missing `ConcludeQuizTest`/
+   `SolveQuizTest`; 3.8's incorrect compensation-test caveat about `AddParticipantFunctionalitySagas`).
+   The corrections live in the Discovered issues log, not the table itself. Consider a cleanup pass
+   so the table is trustworthy on its own without cross-checking the log.
+
+4. **`DateHandler.now()` timezone gotcha not yet promoted into `docs/concepts/testing.md`.** Session
+   3.8 hit a false negative manufacturing a past `endTime` with `LocalDateTime.now()` instead of
+   `DateHandler.now()` (fixed UTC) to trigger a service-level date guard. Currently only recorded in
+   this migration log; worth adding as a short general note in the permanent testing doc so future
+   sessions don't rediscover it.
