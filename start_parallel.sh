@@ -1,6 +1,6 @@
 #!/bin/bash
 N=${1:-1}
-for ((i=0; i<=N; i++))
+for ((i=1; i<=N; i++))
 do
     export VERSION_MODE="distributed-version"
     export GATEWAY_PORT=$((8080+i))

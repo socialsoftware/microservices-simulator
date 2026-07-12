@@ -39,7 +39,6 @@ training:
   num_envs: 1
   steps_per_episode: 50
   total_timesteps: 100000
-  eval_freq: 2048
   checkpoint_freq: 2048
 
 paths:

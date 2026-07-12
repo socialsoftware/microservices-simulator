@@ -9,7 +9,6 @@ from src.agents.rl.rewards.reward_strategies import RewardStrategy
 from src.agents.simulation_runner import SimRunner, WorkloadConfig
 from src.agents.rl.action_spaces.actions import Action, get_action_mapping, get_valid_action_mask, AMOUNT
 from src.simulator_tools.config_utils import ConfigTool
-from src.simulator_tools.simulator_utils import SimInterface
 
 
 class MicroserviceOptimizerEnv(gym.Env):
@@ -92,7 +91,6 @@ class MicroserviceOptimizerEnv(gym.Env):
         new_config = ConfigTool.randomize_config(
             self.sim_runner.base_config, self.microservices, self.num_nodes)
 
-        SimInterface.stop()
         metrics = self.sim_runner.evaluate_configuration(
             new_config, self.wl_config)
         self.last_metrics = metrics
@@ -119,7 +117,7 @@ class MicroserviceOptimizerEnv(gym.Env):
         truncated = self.current_step >= self.max_steps
 
         logging.info(
-            f"Step ended with reward: {reward} and obs: {obs}")
+            f"Step [{self.current_step}/{self.max_steps}] ended with reward: {reward:.4f} and obs: {obs}")
         return obs, reward, terminated, truncated, {}
 
     def _act(self, action_idx: int, current_config: dict) -> tuple[dict, bool, bool]:
