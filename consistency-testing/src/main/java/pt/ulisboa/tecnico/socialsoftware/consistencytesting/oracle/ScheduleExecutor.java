@@ -32,12 +32,6 @@ final class ScheduleExecutor {
 
     private static final int STEP_EXECUTION_LIMIT = 500;
 
-    static final FunctionalityId INITIAL_STATE_SETUP_FUNCTIONALITY_ID = FunctionalityId
-            .forSagaFunctionality("initialStateSetup");
-
-    static final StepId INITIAL_STATE_SETUP_STEP_ID = StepId.forFunctionalityStep(
-            INITIAL_STATE_SETUP_FUNCTIONALITY_ID, "step");
-
     private static final Logger log = LoggerFactory.getLogger(ScheduleExecutor.class);
 
     private final SagaUnitOfWorkService uowService;
@@ -199,8 +193,12 @@ final class ScheduleExecutor {
                     if (writtenByThisStep.contains(read.aggregateId())) {
                         continue; // reading what this step just wrote is not a cross-step reads-from
                     }
+
+                    // when there is no previous writer step registered for the aggregate,
+                    // the read is considered to have read from the initial state setup step
                     StepId writer = lastWriterByAggregate.getOrDefault(
-                            read.aggregateId(), INITIAL_STATE_SETUP_STEP_ID);
+                            read.aggregateId(), StepId.forInitialStateSetupStep());
+
                     readsFromRelations.add(new ReadsFromRelation(stepId, writer, read.aggregateType()));
                 }
             }

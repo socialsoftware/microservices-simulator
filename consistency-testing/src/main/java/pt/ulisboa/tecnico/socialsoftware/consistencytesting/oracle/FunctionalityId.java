@@ -8,6 +8,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventHandler;
 public final class FunctionalityId {
     private static final String ID_CONNECTOR = "-";
 
+    /**
+     * Singleton of the synthetic functionality that represents the entire initial
+     * state setup.
+     */
+    private static final FunctionalityId INITIAL_STATE_SETUP_FUNCTIONALITY = new FunctionalityId(
+            "initialStateSetup");
+
     private final String id;
 
     private FunctionalityId(String id) {
@@ -16,6 +23,13 @@ public final class FunctionalityId {
 
     public static FunctionalityId forSagaFunctionality(String functionalityId) {
         return new FunctionalityId(functionalityId);
+    }
+
+    /**
+     * The synthetic functionality that represents the entire initial state setup.
+     */
+    public static FunctionalityId forInitialStateSetupFunctionality() {
+        return INITIAL_STATE_SETUP_FUNCTIONALITY;
     }
 
     public static FunctionalityId forEventHandlerFunctionality(

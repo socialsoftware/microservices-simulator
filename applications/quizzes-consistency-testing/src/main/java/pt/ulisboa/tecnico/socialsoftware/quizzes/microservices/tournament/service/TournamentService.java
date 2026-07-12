@@ -110,6 +110,20 @@ public class TournamentService {
         return tournamentFactory.createTournamentDto(newTournament);
     }
 
+    /**
+     * Counts the tournaments of a course execution the user already participates in.
+     * <p>
+     * Every tournament of the execution is loaded and registered as a read.
+     */
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public int countUserTournamentsInExecution(
+            Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+
+        return (int) getTournamentsByCourseExecutionId(executionAggregateId, unitOfWork).stream()
+                .filter(tournament -> tournament.findParticipant(userAggregateId) != null)
+                .count();
+    }
+
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<TournamentDto> getTournamentsByCourseExecutionId(Integer executionAggregateId, UnitOfWork unitOfWork) {
         return tournamentRepository.findAllRelevantTournamentIds(executionAggregateId).stream()

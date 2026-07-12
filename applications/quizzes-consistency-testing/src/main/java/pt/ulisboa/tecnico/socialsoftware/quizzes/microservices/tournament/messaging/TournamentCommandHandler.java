@@ -28,6 +28,7 @@ public class TournamentCommandHandler extends CommandHandler {
             case AddParticipantCommand cmd -> handleAddParticipant(cmd);
             case CreateTournamentCommand cmd -> handleCreateTournament(cmd);
             case GetTournamentsByCourseExecutionIdCommand cmd -> handleGetTournamentsByCourseExecutionId(cmd);
+            case CountUserTournamentsInExecutionCommand cmd -> handleCountUserTournamentsInExecution(cmd);
             case GetOpenedTournamentsForCourseExecutionCommand cmd -> handleGetOpenedTournamentsForCourseExecution(cmd);
             case GetClosedTournamentsForCourseExecutionCommand cmd -> handleGetClosedTournamentsForCourseExecution(cmd);
             case LeaveTournamentCommand cmd -> handleLeaveTournament(cmd);
@@ -74,6 +75,15 @@ public class TournamentCommandHandler extends CommandHandler {
                 command.getCourseExecutionDto(),
                 command.getTopicDtos(),
                 command.getQuizDto(),
+                command.getUnitOfWork());
+    }
+
+    private Object handleCountUserTournamentsInExecution(CountUserTournamentsInExecutionCommand command) {
+        logger.info("Counting tournaments of course execution " + command.getExecutionAggregateId()
+                + " that user " + command.getUserAggregateId() + " participates in");
+        return tournamentService.countUserTournamentsInExecution(
+                command.getExecutionAggregateId(),
+                command.getUserAggregateId(),
                 command.getUnitOfWork());
     }
 

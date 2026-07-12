@@ -8,6 +8,13 @@ public final class StepId {
     private static final String ID_SEPARATOR = "::";
     private static final String ID_CONNECTOR = "-";
 
+    /**
+     * Singleton of the synthetic step that represents the entire initial state
+     * setup.
+     */
+    private static final StepId INITIAL_STATE_SETUP_STEP = new StepId(
+            FunctionalityId.forInitialStateSetupFunctionality(), "step");
+
     private final FunctionalityId functionalityId;
     private final String id;
 
@@ -24,9 +31,8 @@ public final class StepId {
      * @param functionalityId the identifier of the functionality this step belongs
      *                        to
      * @param zeroBasedIndex  the 0-based index representing the order in which the
-     *                        step
-     *                        was registered (e.g., 0 for the 1st step, 1 for the
-     *                        2nd step)
+     *                        step was registered (e.g., 0 for the 1st step, 1 for
+     *                        the 2nd step)
      * @return the corresponding {@link StepId}
      * @throws IllegalArgumentException if {@code zeroBasedIndex} is negative
      */
@@ -51,6 +57,11 @@ public final class StepId {
 
     public static StepId forEventHandlerStep(FunctionalityId eventHandlerFunctionalityId) {
         return new StepId(eventHandlerFunctionalityId, "handlerStep");
+    }
+
+    /** The synthetic step that represents the entire initial state setup. */
+    public static StepId forInitialStateSetupStep() {
+        return INITIAL_STATE_SETUP_STEP;
     }
 
     public FunctionalityId getFunctionalityId() {

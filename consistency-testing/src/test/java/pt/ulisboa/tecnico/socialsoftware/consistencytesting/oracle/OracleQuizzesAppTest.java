@@ -206,7 +206,7 @@ class OracleQuizzesAppTest {
         assertTrue(result.statuses().isEmpty());
         assertEquals(expectedSchedule, result.schedule());
 
-        StepId initialSetupStep = ScheduleExecutor.INITIAL_STATE_SETUP_STEP_ID;
+        StepId initialSetupStep = StepId.forInitialStateSetupStep();
         StepId getUserStep = StepId.forFunctionalityStep(funcId, "getUserStep");
         StepId addParticipantStep = StepId.forFunctionalityStep(funcId, "addParticipantStep");
 
@@ -822,7 +822,7 @@ class OracleQuizzesAppTest {
             assertTournamentCreatorName(initialState.tournamentDto().getAggregateId(), updatedName);
 
             ReadsFromAssertions.assertReadsFrom(
-                    result, eventStepId, ScheduleExecutor.INITIAL_STATE_SETUP_STEP_ID,
+                    result, eventStepId, StepId.forInitialStateSetupStep(),
                     QuizzesTestFactory.TOURNAMENT_AGGREGATE_TYPE);
             ReadsFromAssertions.assertNoSelfReadsFrom(result);
         });
@@ -900,7 +900,7 @@ class OracleQuizzesAppTest {
 
         assertTrue(result.statuses().isEmpty());
         FunctionalityId funcId = getOnlyFunctionalityId(result);
-        StepId initialSetupStep = ScheduleExecutor.INITIAL_STATE_SETUP_STEP_ID;
+        StepId initialSetupStep = StepId.forInitialStateSetupStep();
 
         // No scheduled step writes an aggregate that a later step reads, so every
         // relation must be attributed to the initial-state setup step.
@@ -970,7 +970,7 @@ class OracleQuizzesAppTest {
 
         FunctionalityId updateFuncId = Objects.requireNonNull(updateFuncIdRef.get());
         FunctionalityId addParticipantFuncId = Objects.requireNonNull(addParticipantFuncIdRef.get());
-        StepId initialSetupStep = ScheduleExecutor.INITIAL_STATE_SETUP_STEP_ID;
+        StepId initialSetupStep = StepId.forInitialStateSetupStep();
 
         StepId updateWriteStep = StepId.forFunctionalityStep(updateFuncId, "updateTournamentStep");
         StepId addParticipantStep = StepId.forFunctionalityStep(addParticipantFuncId, "addParticipantStep");

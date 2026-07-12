@@ -6,7 +6,7 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
  * <p>
  * The writer is the step that last wrote that aggregate before the read; if the
  * aggregate was only ever written while building the initial state, the writer
- * is the {@link ScheduleExecutor#INITIAL_STATE_SETUP_STEP_ID}.
+ * is the {@link StepId#forInitialStateSetupStep()}.
  * <p>
  * The relation is keyed by {@code aggregateType} rather than aggregate id on
  * purpose: ids are reassigned every run, so type is what stays comparable

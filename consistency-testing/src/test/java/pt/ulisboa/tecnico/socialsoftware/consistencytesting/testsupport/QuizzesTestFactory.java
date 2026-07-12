@@ -24,6 +24,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordinatio
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantWithinMaxTournamentsFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.MoveParticipantBetweenTournamentsFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.functionalities.UserFunctionalities;
@@ -238,6 +241,83 @@ public class QuizzesTestFactory {
                 gateway);
 
         return addParticipantSaga;
+    }
+
+    public AddParticipantWithinMaxTournamentsFunctionalitySagas createAddParticipantWithinMaxTournamentsFunctionality(
+            SagaUnitOfWorkService sagaUnitOfWorkService,
+            Integer tournamentAggrId,
+            Integer courseExecutionAggrId,
+            Integer userAggrId,
+            CommandGateway gateway) {
+
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                AddParticipantWithinMaxTournamentsFunctionalitySagas.class.getSimpleName());
+
+        return new AddParticipantWithinMaxTournamentsFunctionalitySagas(
+                sagaUnitOfWorkService,
+                tournamentAggrId,
+                courseExecutionAggrId,
+                userAggrId,
+                uow,
+                gateway);
+    }
+
+    public MoveParticipantBetweenTournamentsFunctionalitySagas createMoveParticipantBetweenTournamentsFunctionality(
+            SagaUnitOfWorkService sagaUnitOfWorkService,
+            Integer sourceTournamentAggrId,
+            Integer targetTournamentAggrId,
+            Integer courseExecutionAggrId,
+            Integer userAggrId,
+            CommandGateway gateway) {
+
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                MoveParticipantBetweenTournamentsFunctionalitySagas.class.getSimpleName());
+
+        return new MoveParticipantBetweenTournamentsFunctionalitySagas(
+                sagaUnitOfWorkService,
+                sourceTournamentAggrId,
+                targetTournamentAggrId,
+                courseExecutionAggrId,
+                userAggrId,
+                uow,
+                gateway);
+    }
+
+    public RemoveTournamentFunctionalitySagas createRemoveTournamentFunctionality(
+            SagaUnitOfWorkService sagaUnitOfWorkService,
+            Integer tournamentAggrId,
+            CommandGateway gateway) {
+
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                RemoveTournamentFunctionalitySagas.class.getSimpleName());
+
+        return new RemoveTournamentFunctionalitySagas(
+                sagaUnitOfWorkService, tournamentAggrId, uow, gateway);
+    }
+
+    /**
+     * Creates a tournament that is ALREADY RUNNING: it started an hour ago and ends
+     * in the future. This makes it so any later {@code addParticipant} is rejected
+     * by it, since the new participant's enrollTime is stamped with the current
+     * time, which is after the start.
+     */
+    public TournamentDto createStartedTournament(
+            Integer userCreatorId, Integer courseExecutionId, List<Integer> topicIds) {
+
+        return createTournament(
+                DateHandler.now().minusHours(1), TIME_3, 1,
+                userCreatorId, courseExecutionId, topicIds);
+    }
+
+    public void addParticipant(Integer tournamentAggrId, Integer courseExecutionAggrId, Integer userAggrId) {
+        tournamentFunctionalities.addParticipant(tournamentAggrId, courseExecutionAggrId, userAggrId);
+    }
+
+    /** Creates a student and enrols them in {@code courseExecutionAggrId}. */
+    public UserDto createStudentInExecution(Integer courseExecutionAggrId, String name, String username) {
+        UserDto student = createUser(name, username, STUDENT_ROLE);
+        courseExecutionFunctionalities.addStudent(courseExecutionAggrId, student.getAggregateId());
+        return student;
     }
 
     public AddParticipantFunctionalitySagas setupInitialStateAndCreateAddParticipantFunctionality(
