@@ -1,0 +1,16 @@
+run
+getCourseExecutionStep,0,0,0
+getCreatorStep,0,0,0
+getTopicsStep,0,0,0
+findQuestionsByTopicIdsStep,0,0,0
+getCourseExecutionById,0,0,0
+generateQuizStep,0,0,0
+createTournamentStep,0,0,0
+run
+getCourseExecutionStep,0,0,0
+getCreatorStep,1,0,0
+getTopicsStep,0,0,0
+findQuestionsByTopicIdsStep,0,0,0
+getCourseExecutionById,0,0,0
+generateQuizStep,0,0,0
+createTournamentStep,0,0,0

@@ -82,82 +82,45 @@ public class ExecutionPlan {
     }
 
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        List<Integer> behaviourValues = new ArrayList<>();
-        
-        // Initialize futures for steps with no dependencies
-        for (FlowStep step: plan) {
-            final String stepName = step.getName();
-            final String funcName = (unitOfWork != null)
-                ? unitOfWork.getFunctionalityName()
-                : this.functionalityName;
+        // Worklist scheduling: repeatedly scan the plan for steps whose dependencies already
+        // have a registered future (canExecute()) and schedule them, instead of relying on a
+        // fixed two-pass (root / non-root) structure that implicitly assumes `plan` is already
+        // topologically sorted. This tolerates arbitrary dependency depth and arbitrary
+        // registration order. The fault-flag check happens inside the .thenAccept lambda, so it
+        // only fires once the step's real dependency chain (or, for root steps, immediately) has
+        // actually completed - never synchronously ahead of that.
+        ArrayList<FlowStep> remaining = new ArrayList<>(plan);
 
-            // Check if the step is in the behaviour map
-            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
-            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
-            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
-            if (faultValue == THROW_EXCEPTION) {
-                logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion());
+        while (!remaining.isEmpty()) {
+            boolean scheduledAny = false;
+            Iterator<FlowStep> it = remaining.iterator();
+            while (it.hasNext()) {
+                FlowStep step = it.next();
+                if (!canExecute(this.stepFutures, step)) {
+                    continue; // dependencies not yet scheduled; try again in a later scan
+                }
 
-                throw new SimulatorException("Fault on " + stepName );
+                final String stepName = step.getName();
+                final String funcName = (unitOfWork != null)
+                    ? unitOfWork.getFunctionalityName()
+                    : this.functionalityName;
+                final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
+                final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
+                final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
 
-            }
-            if (dependencies.get(step).isEmpty()) {
-                this.stepFutures.put(step, CompletableFuture.completedFuture(null)
-                .thenAccept(ignored -> {
-                    try {
-                        TraceManager.getInstance().startStepSpan(funcName, stepName);
-                        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayBeforeValue, true);
-                        Thread.sleep(delayBeforeValue);
-                        TraceManager.getInstance().endDelaySpan(delaySpan);
-                        logger.info("START EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                    } catch (InterruptedException e) {
-                        TraceManager.getInstance().endStepSpan(funcName, stepName);
-                        Thread.currentThread().interrupt();
-                        throw new CompletionException(e);
-                    }
-                    
-                })
-                .thenCompose(ignored -> step.execute(unitOfWork))
-                .thenAccept(ignored -> {
-                    try {
-                        logger.info("END EXECUTION STEP: {} with from functionality {}", stepName, funcName);
-                        Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayAfterValue, true);
-                        Thread.sleep(delayAfterValue);
-                        TraceManager.getInstance().endDelaySpan(delaySpan);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new CompletionException(e);
-                    } finally {
-                        TraceManager.getInstance().endStepSpan(funcName, stepName);
-                    }
-                })
-            ); // Execute and save the steps with no dependencies
-                executedSteps.put(step, true);
-            }
-            
-        }
+                ArrayList<FlowStep> deps = dependencies.get(step);
+                CompletableFuture<Void> readyFuture = deps.isEmpty()
+                    ? CompletableFuture.completedFuture(null)
+                    : CompletableFuture.allOf(
+                        deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new)
+                    );
 
-        // Execute steps based on dependencies
-        for (FlowStep step: plan) {
-            final String stepName = step.getName();
-            final String funcName = (unitOfWork != null)
-                ? unitOfWork.getFunctionalityName()
-                : this.functionalityName;
-            final int faultValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(0) : DEFAULT_VALUE;
-            final int delayBeforeValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(1) : DEFAULT_VALUE;
-            final int delayAfterValue = behaviour.containsKey(stepName) ? behaviour.get(stepName).get(2) : DEFAULT_VALUE;
-
-            if (faultValue == THROW_EXCEPTION) {  
-                logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion()); 
-                throw new SimulatorException("Fault on " + stepName );
-            }
-            if (!this.stepFutures.containsKey(step) ) { // if the step has dependencies         
-                ArrayList<FlowStep> deps = dependencies.get(step); // get all dependencies
-                CompletableFuture<Void> combinedFuture = CompletableFuture.allOf( // create a future that only executes when all the dependencies are completed
-                    deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new) // maps each dependency to its corresponding future in stepFutures
-                );
-                this.stepFutures.put(step,combinedFuture
+                this.stepFutures.put(step, readyFuture
                     .thenAccept(ignored -> {
+                        if (faultValue == THROW_EXCEPTION) {
+                            logger.info("EXCEPTION THROWN: {} with version {}", funcName, unitOfWork.getVersion());
+                            throw new SimulatorException("Fault on " + stepName );
+                        }
                         try {
                             TraceManager.getInstance().startStepSpan(funcName, stepName);
                             Span delaySpan = TraceManager.getInstance().startDelaySpan(funcName, stepName, delayBeforeValue, true);
@@ -186,8 +149,16 @@ public class ExecutionPlan {
                     })
                 );
                 executedSteps.put(step, true);
+                it.remove();
+                scheduledAny = true;
             }
-            
+
+            if (!scheduledAny) {
+                // No progress made in a full pass over the remaining steps: the dependency graph
+                // cannot be fully scheduled (e.g. a cycle, or a dependency on a step outside `plan`).
+                throw new IllegalStateException("Unable to schedule remaining steps in ExecutionPlan: "
+                    + remaining.stream().map(FlowStep::getName).collect(Collectors.joining(", ")));
+            }
         }
 
         // Wait for all steps to complete
