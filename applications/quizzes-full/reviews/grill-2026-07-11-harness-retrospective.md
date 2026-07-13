@@ -26,12 +26,21 @@ Structural equivalence to `quizzes/` is a proxy, not the goal.
 
 ## Open items carried into the next application
 
-1. **Must-fix — skill path robustness.** A stray tracked file,
+1. **Must-fix — skill path robustness. RESOLVED 2026-07-13.** A stray tracked file,
    `applications/quizzes-full/applications/quizzes-full/reviews/test-review-QuizAnswer.md`,
    shows a skill was once invoked with cwd already inside `applications/quizzes-full/` and
    silently wrote to a wrong nested relative path instead of erroring. Audit skills for
    cwd-dependent relative paths and either make them cwd-independent or add a guard, before
    running them across a new app's many sessions.
+
+   Resolution: added a "Step 0 — Anchor to the repository root" guard
+   (`cd "$(git rev-parse --show-toplevel)"`) to all 6 skills (`boot-strap`, `classify-and-plan`,
+   `implement-aggregate`, `review-aggregate`, `review-tests`, `review-artifacts`); hardened the two
+   late Maven `cd applications/{app-name}` lines (in `review-aggregate` and `review-tests`) to use
+   an absolute path so they're immune to cwd drift from earlier steps; relocated the stray
+   `test-review-QuizAnswer.md` into `applications/quizzes-full/reviews/`, completing the
+   test-review set (8/8 aggregates). This file was also moved into `reviews/` as part of the same
+   cleanup.
 
 2. **Must-build — spec authoring skill.** No skill exists for authoring
    `{App}-domain-model.md` / `{App}-aggregate-grouping.md` from scratch. `quizzes-full`'s copies
