@@ -444,19 +444,19 @@ class <FunctionalityName>CompensationTest extends <AppName>SpockTest {
   faulted one need a row — steps registered after it in the workflow never get checked, since the
   method throws and unwinds before reaching them.
 
-  **Mechanical caveat:** `ExecutionPlan.execute()` checks every step's fault flag in registration
-  order *before* scheduling dependent (non-root) steps for real execution — only steps with **no
-  dependencies** run inline as the check passes over them. This means a genuine compensation test
-  requires the lock-acquiring step to be a root (no-dependency) step: if the lock step itself
-  depends on an earlier step (e.g. `EnrollStudentInExecutionFunctionalitySagas`'s
-  `getExecutionStep` depends on `getUserStep`), faulting the step *after* the lock step never lets
-  the lock step actually run — the fault fires during the same pass that would otherwise reach it,
-  so nothing is genuinely compensated and the test is a false positive. Verified empirically (see
-  `docs/testing-taxonomy-migration.md`'s Discovered issues): no compensation test exists for that
-  functionality for exactly this reason. Always sanity-check a new compensation test by
-  temporarily flipping its fault flag to `0` and re-running the *full* suite with logging, not just
-  the exception assertion — confirm the lock-acquiring step's `START EXECUTION STEP` log line
-  actually appears before the fault fires.
+  **Historical note:** `ExecutionPlan.execute()` used to check every step's fault flag in
+  registration order *before* scheduling dependent (non-root) steps for real execution, so only
+  steps with no dependencies ran inline as the check passed over them — a genuine compensation
+  test required the lock-acquiring step to be a root step, or the fault fired before the lock step
+  ever ran, making the test a false positive. This was fixed by wiring the existing `canExecute()`
+  method into a topological worklist in `execute()`, so a step's fault check now only fires once
+  its full real dependency chain has genuinely completed, at arbitrary depth. Lock-acquiring steps
+  no longer need to be root steps for their compensation to be genuinely testable — see
+  `EnrollStudentInExecutionCompensationTest`, `CreateQuizAnswerUserLockCompensationTest`, and
+  `AddParticipantCompensationTest` for examples with 2- and 3-level-deep dependency chains. Always
+  sanity-check a new compensation test by temporarily flipping its fault flag to `0` and re-running
+  the *full* suite with logging, not just the exception assertion — confirm the lock-acquiring
+  step's `START EXECUTION STEP` log line actually appears before the fault fires.
 
 ### CRITICAL gotcha — one saga class, one compensation test file
 
