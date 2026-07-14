@@ -1,4 +1,6 @@
 #!/bin/bash
+cd "$(dirname "$0")"
+
 N=${1:-1}
 for ((i=1; i<=N; i++))
 do
@@ -8,5 +10,5 @@ do
     export GRPC_PORT=$((4319+i))
     export JAEGER_PORT=$((16686+i))
     echo "Starting worker_$i on Gateway Port $GATEWAY_PORT, H2 Port $H2_PORT, gRPC Port $GRPC_PORT, Jaeger Port $JAEGER_PORT"
-    docker compose -p worker_$i -f docker-compose-parallel.yml -f applications/quizzes/docker-compose-parallel.yml up -d quizzes-rl
+    docker compose --project-directory .. -p worker_$i -f docker-compose-parallel-training.yml up -d quizzes-rl
 done
