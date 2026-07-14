@@ -60,3 +60,4 @@ performance-analysis/models
 .eggs/
 build/
 dist/
+*/venv/*

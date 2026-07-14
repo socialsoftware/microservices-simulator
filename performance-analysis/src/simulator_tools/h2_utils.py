@@ -136,6 +136,8 @@ class H2DBManager:
         # Drop any old backups if they exist
         with conn.cursor() as cur:
             cur.execute("SET REFERENTIAL_INTEGRITY FALSE;")
+            # Force MVStore to immediately garbage collect old chunks instead of waiting 45s
+            cur.execute("SET RETENTION_TIME 0;")
             cur.execute("DROP SCHEMA IF EXISTS backup CASCADE;")
             cur.execute(
                 "SELECT table_name FROM information_schema.tables "

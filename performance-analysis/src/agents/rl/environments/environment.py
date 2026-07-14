@@ -54,6 +54,7 @@ class MicroserviceOptimizerEnv(gym.Env):
         self.wl_config = None
         self.last_metrics = None
         self.current_step = 0
+        self.global_step = 0
         self.max_steps = max_steps
 
     def valid_action_mask(self):
@@ -113,11 +114,12 @@ class MicroserviceOptimizerEnv(gym.Env):
             new_config, is_illegal_action, is_stop_action)
 
         self.current_step += 1
+        self.global_step += 1
         terminated = is_stop_action
         truncated = self.current_step >= self.max_steps
 
         logging.info(
-            f"Step [{self.current_step}/{self.max_steps}] ended with reward: {reward:.4f} and obs: {obs}")
+            f"Step [{self.current_step}/{self.max_steps}] (Global: {self.global_step}) ended with reward: {reward:.4f} and obs: {obs}")
         return obs, reward, terminated, truncated, {}
 
     def _act(self, action_idx: int, current_config: dict) -> tuple[dict, bool, bool]:
