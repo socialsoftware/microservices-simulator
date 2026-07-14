@@ -7,40 +7,33 @@ environment:
   beta: 0.5
 
 workloads:
-  workloads:
-    [
-      "base_wl.py",
-      "semester_start_wl.py",
-      "tournament_period_wl.py",
-      "steady_wl.py",
-      "change_of_year_wl.py",
-    ]
+  workloads: ["user_wl.py"]
   # Interval of min, max users per workload
-  users: [100, 300]
+  users: [50, 50]
   # Interval for dynamic read/write workload multipliers
-  weights_ratio: [0.5, 2.0]
+  weights_ratio: [1, 1]
   # Interval for wait time in seconds between requests
-  wait_time: [0.1, 0.5]
+  wait_time: [0.1, 0.1]
   # Each workload (step) runs for this exact time regardless of the requests processed
   run-time: 0 # seconds
   # Each workload (step) executes this amount of tasks
-  iterations: [500, 1000]
+  iterations: [100, 100]
   # NOTE: If you want to use iterations instead of run-time, simply set 'run-time: 0'
 
 ppo_hyperparameters:
   learning_rate: 0.0003
   gamma: 0.99
   ent_coef: 0.01
-  n_steps: 2048
-  batch_size: 64
+  n_steps: 16 # 6 * 16 = 96
+  batch_size: 32 # Batch size 32 means 3 mini-batches.
   n_epochs: 10
   clip_range: 0.2
 
 training:
-  steps_per_episode: 50
-  total_timesteps: 100000
-  eval_freq: 2048
-  checkpoint_freq: 2048
+  num_envs: 6
+  steps_per_episode: 15
+  total_timesteps: 3000
+  checkpoint_freq: 96
 
 paths:
   models_dir: "./models/"

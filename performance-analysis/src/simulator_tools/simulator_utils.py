@@ -3,16 +3,20 @@ import requests
 import datetime
 import uuid
 
-GATEWAY = "http://localhost:8080"
+import os
 
 
 class SimInterface:
     """Class responsible for communicating with the simulator."""
 
     @staticmethod
+    def get_gateway():
+        return os.environ.get("GATEWAY_URL", "http://localhost:8080")
+
+    @staticmethod
     def _get(query, params=None, client=requests):
         try:
-            return client.get(f"{GATEWAY}/{query.lstrip('/')}", params=params)
+            return client.get(f"{SimInterface.get_gateway()}/{query.lstrip('/')}", params=params)
         except Exception as e:
             logging.error(f"GET Request to {query} failed critically: {e}")
             return None
@@ -20,7 +24,7 @@ class SimInterface:
     @staticmethod
     def _post(query, json=None, params=None, client=requests):
         try:
-            return client.post(f"{GATEWAY}/{query.lstrip('/')}", json=json, params=params)
+            return client.post(f"{SimInterface.get_gateway()}/{query.lstrip('/')}", json=json, params=params)
         except Exception as e:
             logging.error(f"POST Request to {query} failed critically: {e}")
             return None

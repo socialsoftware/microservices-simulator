@@ -6,15 +6,6 @@ import re
 
 ALLOCATION_SIZE = 50
 
-DB_CONFIG = {
-    "dbname": "mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1",
-    "user": "sa",
-    "password": "sa",
-    "host": "127.0.0.1",
-    "port": 5432,
-    "sslmode": "disable"
-}
-
 
 class H2DBManager:
     """Class responsible for communicating with the H2 database for faster agent training."""
@@ -26,7 +17,15 @@ class H2DBManager:
     def _get_connection(cls):
         if cls._conn is None or cls._conn.closed:
             try:
-                cls._conn = psycopg2.connect(**DB_CONFIG)
+                db_config = {
+                    "dbname": "mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1",
+                    "user": "sa",
+                    "password": "sa",
+                    "host": os.environ.get("DB_HOST", "127.0.0.1"),
+                    "port": int(os.environ.get("H2_PORT", 1521)),
+                    "sslmode": "disable"
+                }
+                cls._conn = psycopg2.connect(**db_config)
                 cls._conn.autocommit = True
             except Exception as e:
                 logging.error(f"Failed to connect to H2 database: {e}")
@@ -137,6 +136,8 @@ class H2DBManager:
         # Drop any old backups if they exist
         with conn.cursor() as cur:
             cur.execute("SET REFERENTIAL_INTEGRITY FALSE;")
+            # Force MVStore to immediately garbage collect old chunks instead of waiting 45s
+            cur.execute("SET RETENTION_TIME 0;")
             cur.execute("DROP SCHEMA IF EXISTS backup CASCADE;")
             cur.execute(
                 "SELECT table_name FROM information_schema.tables "

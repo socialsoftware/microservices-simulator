@@ -13,8 +13,6 @@ def start_training(
     Starts the agent training loop.
     """
 
-    H2DBManager.setup_db_state()
-
     if agent == "ppo":
         logging.info("Initializing PPO agent")
         run_ppo(trace_collector)

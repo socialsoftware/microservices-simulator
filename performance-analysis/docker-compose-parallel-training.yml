@@ -1,0 +1,159 @@
+name: microservices-simulator
+
+# ==========================================
+# RESOURCE LIMITS (ANCHORS)
+# ==========================================
+# All container allocations are centralized here.
+# Edit these to quickly adjust resources per worker.
+
+x-limits-quizzes: &limits-quizzes
+  deploy:
+    resources:
+      limits:
+        #cpus: '${QUIZZES_CPUS:-2.0}'
+        memory: '${QUIZZES_MEM_LIMIT:-1.2g}'
+      reservations:
+        memory: '${QUIZZES_MEM_RESERVATION:-768m}'
+
+x-limits-h2: &limits-h2
+  deploy:
+    resources:
+      limits:
+        #cpus: '${H2_CPUS:-0.5}'
+        memory: '${H2_MEM_LIMIT:-1.5g}'
+      reservations:
+        memory: '${H2_MEM_RESERVATION:-1g}'
+
+x-limits-eureka: &limits-eureka
+  deploy:
+    resources:
+      limits:
+        #cpus: '${EUREKA_CPUS:-1.0}'
+        memory: '${EUREKA_MEM_LIMIT:-512m}'
+      reservations:
+        memory: '${EUREKA_MEM_RESERVATION:-256m}'
+
+x-limits-otel: &limits-otel
+  deploy:
+    resources:
+      limits:
+        #cpus: '${OTEL_CPUS:-0.5}'
+        memory: '${OTEL_MEM_LIMIT:-128m}'
+      reservations:
+        memory: '${OTEL_MEM_RESERVATION:-64m}'
+
+x-limits-jaeger: &limits-jaeger
+  deploy:
+    resources:
+      limits:
+        #cpus: '${JAEGER_CPUS:-0.5}'
+        memory: '${JAEGER_MEM_LIMIT:-256m}'
+      reservations:
+        memory: '${JAEGER_MEM_RESERVATION:-128m}'
+
+# ==========================================
+# SERVICES
+# ==========================================
+services:
+  eureka-server:
+    <<: *limits-eureka
+    image: steeltoeoss/eureka-server:4.1.1
+    networks:
+      - messaging-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -q
+        - --spider
+        - http://localhost:8761/actuator/health
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Database Layer
+  h2-mock:
+    <<: *limits-h2
+    image: oscarfonts/h2:latest
+    ports:
+      - ${H2_PORT:-1521}:5432
+    environment:
+      - H2_OPTIONS=-pg -pgPort 5432 -pgAllowOthers -tcpAllowOthers -webAllowOthers -ifNotExists
+    networks:
+      - messaging-network
+
+  # Core Application (Simulator)
+  quizzes-rl:
+    <<: *limits-quizzes
+    image: quizzes:latest
+    cap_add:
+      - ${PERF_CAP:-CHOWN}
+    build:
+      context: .
+      dockerfile: applications/quizzes/Dockerfile
+      args:
+        PROFILE: ${TX_MODE:-sagas},local
+    pull_policy: build
+    ports:
+      - ${GATEWAY_PORT:-8080}:8080
+    depends_on:
+      h2-mock:
+        condition: service_started
+      jaeger:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_INCLUDE: ${VERSION_MODE:-}
+      SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local
+      EUREKA_HOST: eureka-server
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: sa
+      SPRING_DATASOURCE_URL: jdbc:h2:tcp://h2-mock:1521/mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+    volumes:
+      - ./src/main/resources:/resources
+      - ./src/main/logs:/logs
+    networks:
+      - messaging-network
+
+  # Tracing & Observability
+  jaeger:
+    <<: *limits-jaeger
+    image: jaegertracing/all-in-one:1.75.0
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - ${JAEGER_PORT:-16686}:16686
+    restart: unless-stopped
+    networks:
+      - messaging-network
+
+  otel-collector:
+    <<: *limits-otel
+    image: otel/opentelemetry-collector-contrib:latest
+    command:
+      - --config=/etc/otel-collector-config.yaml
+    depends_on:
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./performance-analysis/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    networks:
+      - messaging-network
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      - GRPC_PORT=${GRPC_PORT:-4319}
+
+# GLOBAL CONFIGURATION
+networks:
+  messaging-network:
+    driver: bridge
