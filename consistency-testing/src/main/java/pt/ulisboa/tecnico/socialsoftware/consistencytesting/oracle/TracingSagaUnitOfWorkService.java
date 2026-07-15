@@ -82,8 +82,11 @@ public class TracingSagaUnitOfWorkService extends SagaUnitOfWorkService {
 
     @Override
     public void registerChanged(@Nullable Aggregate aggregate, @Nullable SagaUnitOfWork unitOfWork) {
-        traceWrite(aggregate);
         super.registerChanged(aggregate, unitOfWork);
+
+        // trace runs after super.registerChanged to only trace if the write really went
+        // through (i.e., the write was not stopped by a throw on verifyInvariants())
+        traceWrite(aggregate);
     }
 
     static final class TraceSession implements AutoCloseable {
