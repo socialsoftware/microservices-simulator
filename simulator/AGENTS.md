@@ -40,5 +40,4 @@ mvn install
 
 - [Aggregate versioning](../docs/concepts/aggregate.md)
 - [Sagas semantic locks](../docs/concepts/sagas.md)
-- [TCC merge](../docs/concepts/tcc.md)
 - [Events](../docs/concepts/events.md)

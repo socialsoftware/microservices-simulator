@@ -39,7 +39,7 @@ Tests use `@DataJpaTest` with in-memory H2. Register as a static inner `@TestCon
 
 ## Reference Implementations
 
-Use these as templates when implementing new aggregates or functionalities:
+For **manual/human reference** — e.g. a developer reading code to understand a pattern before writing docs or reviewing a skill — these are useful templates:
 
 | Pattern | Use this as template |
 |---------|---------------------|
@@ -47,6 +47,8 @@ Use these as templates when implementing new aggregates or functionalities:
 | Multi-step saga with forbidden states | `microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java` |
 | TCC merge with mutable fields | `microservices/execution/aggregate/causal/CausalExecution.java` |
 | Event polling + EventProcessing chain | `microservices/execution/events/` |
+
+> **The automated implementation harness must NOT read files under `applications/quizzes/` during aggregate implementation.** See `implement-aggregate/SKILL.md` §"Anti-Pattern: Do Not Consult the Reference App" — consulting this app during automated implementation risks reproducing its bugs. The table above is for human reference only.
 ---
 
 ## Build Commands

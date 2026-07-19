@@ -67,7 +67,7 @@ public CourseExecutionDto createCourseExecution(CourseExecutionDto dto, UnitOfWo
         Execution existing = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
         if (existing.getAcronym().equals(dto.getAcronym())
                 && existing.getAcademicTerm().equals(dto.getAcademicTerm())) {
-            throw new QuizzesException(DUPLICATE_COURSE_EXECUTION, dto.getAcronym(), dto.getAcademicTerm());
+            throw new {AppClass}Exception(DUPLICATE_COURSE_EXECUTION, dto.getAcronym(), dto.getAcademicTerm());
         }
     }
 
@@ -91,7 +91,7 @@ public void enrollStudent(Integer executionAggregateId, UserDto userDto, UnitOfW
             executionAggregateId, unitOfWork);
 
     if (!userDto.isActive()) {
-        throw new QuizzesException(INACTIVE_USER, userDto.getAggregateId());
+        throw new {AppClass}Exception(INACTIVE_USER, userDto.getAggregateId());
     }
 
     // copy-on-write: mutations go on the new version, not the loaded one
@@ -213,10 +213,10 @@ Rules:
 
 ```java
 // Correct — test can assert: ex.message == TOURNAMENT_ALREADY_CANCELLED
-throw new QuizzesFullException(TOURNAMENT_ALREADY_CANCELLED);
+throw new {AppClass}Exception(TOURNAMENT_ALREADY_CANCELLED);
 
 // Avoid unless the test expects the formatted string, not the constant
-throw new QuizzesFullException(TOURNAMENT_ALREADY_CANCELLED, tournamentId);
+throw new {AppClass}Exception(TOURNAMENT_ALREADY_CANCELLED, tournamentId);
 ```
 
 **Why:** Test assertions use `ex.message == CONSTANT` (raw format string comparison). When a format argument is passed, `getMessage()` returns the interpolated string (e.g., `"Tournament 42 is already cancelled"`), not the literal constant `"TOURNAMENT_ALREADY_CANCELLED"`, breaking the equality check. Only use format args when the assertion explicitly verifies the interpolated value.
