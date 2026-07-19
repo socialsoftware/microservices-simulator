@@ -11,6 +11,14 @@ from disk. The only write is the dated report file produced at the end.
 
 One invocation reviews all artifacts. No arguments needed.
 
+This skill verifies that each piece of harness knowledge has exactly one owning file and that
+readers of that knowledge (skills, docs, reports) resolve to it correctly. It does not diff
+duplicate copies against each other — the harness has no duplicate copies by design. Each piece
+of knowledge has a single owning file (e.g. `.claude/skills/_shared/conventions.md` for shared
+skill conventions, `session-*.md` for per-session file/bean lists, `classify-and-plan/SKILL.md`
+for the `plan.md` output structure, `docs/concepts/testing.md` for the T1–T4 taxonomy); everywhere
+else references it via a pointer rather than restating it.
+
 ---
 
 ## Step 0: Anchor to the repository root
@@ -55,41 +63,19 @@ Read every retro file. For each retro extract:
 - The "One-Line Summary" or "Key Outcome" line
 
 Hold all High-priority action items that target a file under `docs/` or `.claude/skills/`.
-These are mandatory review targets in Step 10.
+These are mandatory review targets in Step 5.
 
 ---
 
 ## Step 2: Read All Artifacts
 
-Read every file from both lists in Step 1.b in parallel.
+Read every file returned by the two `find` commands in Step 1.b (all `docs/**/*.md` and all
+`.claude/skills/**/*.md`) — this is the complete review set. Do not maintain a separate
+hard-coded list here: because the set is derived directly from Step 1.b, newly added files
+(e.g. `.claude/skills/_shared/conventions.md`, each `.claude/skills/implement-aggregate/session-*.md`,
+or any future skill/doc) are picked up automatically without editing this skill.
 
-**Skill files (explicit list — cross-check against Step 1.b list for new skills):**
-- `.claude/skills/boot-strap/SKILL.md`
-- `.claude/skills/classify-and-plan/SKILL.md`
-- `.claude/skills/implement-aggregate/SKILL.md`
-- `.claude/skills/implement-aggregate/session-a.md`
-- `.claude/skills/implement-aggregate/session-b.md`
-- `.claude/skills/implement-aggregate/session-c.md`
-- `.claude/skills/implement-aggregate/session-d.md`
-- `.claude/skills/review-aggregate/SKILL.md`
-- `.claude/skills/review-aggregate-vs-quizzes/SKILL.md`
-- `.claude/skills/review-artifacts/SKILL.md` (this file)
-
-**Doc files (explicit list — cross-check against Step 1.b list for new docs):**
-- `docs/workflow.md`
-- `docs/architecture.md`
-- `docs/concepts/aggregate.md`
-- `docs/concepts/commands.md`
-- `docs/concepts/events.md`
-- `docs/concepts/rule-enforcement-patterns.md`
-- `docs/concepts/sagas.md`
-- `docs/concepts/service.md`
-- `docs/concepts/testing.md`
-- `docs/templates/domain-model-template.md`
-- `docs/templates/aggregate-grouping-template.md`
-
-If any file in the Step 1.b enumeration is NOT in the explicit lists above, read it too and
-flag it in the report as an untracked artifact.
+Read all files in parallel where possible.
 
 ---
 
@@ -150,207 +136,9 @@ would most naturally be enforced:
 
 ---
 
-## Step 5: Check 3 — Session-to-Workflow Alignment
+## Step 5: Check 3 — Improvement Opportunities
 
-### 5.a — Files-to-produce alignment
-
-`docs/workflow.md` Phase 2 loop describes which files each session produces.
-Each `session-*.md` also has an explicit "Produces" or "Files" section.
-
-For each session (a, b, c, d), extract both lists and compare:
-
-| Session | File pattern | In workflow.md | In session-*.md | Delta |
-|---------|-------------|---------------|-----------------|-------|
-| a | ... | Yes/No | Yes/No | ... |
-| b | ... | ... | ... | ... |
-| c | ... | ... | ... | ... |
-| d | ... | ... | ... | ... |
-
-Note any file listed in one source but missing from the other.
-Note files described with different path patterns or different per-operation counts.
-
-### 5.b — BeanConfigurationSagas beans alignment
-
-`docs/workflow.md` has a "BeanConfigurationSagas Incremental Update Reference" table.
-Each `session-*.md` has an "Update BeanConfigurationSagas.groovy" section.
-
-Extract both per session:
-
-| Session | Bean | In workflow.md | In session-*.md | Verdict |
-|---------|------|---------------|-----------------|---------|
-| a | `Sagas{Aggregate}Factory` | ... | ... | ... |
-| a | `{Aggregate}CustomRepositorySagas` | ... | ... | ... |
-| b | `{Aggregate}Service` | ... | ... | ... |
-| b | `{Aggregate}CommandHandler` | ... | ... | ... |
-| b | `{Aggregate}Functionalities` | ... | ... | ... |
-| b | `{Op}FunctionalitySagas` | ... | ... | ... |
-| c | (any) | ... | ... | ... |
-| d | `{Aggregate}EventHandling` | ... | ... | ... |
-| d | `{Aggregate}EventHandler` | ... | ... | ... |
-| d | `{Aggregate}EventProcessing` | ... | ... | ... |
-
-Pay particular attention to whether `{Op}FunctionalitySagas` classes are listed as Spring beans
-in workflow.md but correctly excluded from beans in the session skills. Quote the conflicting
-text if found.
-
----
-
-## Step 6: Check 4 — Test Taxonomy Alignment
-
-### 6.a — Session-to-test-type mapping
-
-From `docs/workflow.md` and `docs/concepts/testing.md`, extract the authoritative mapping:
-T1 → session a; T2 (write service cases + event publication) + T4 (write functionality) →
-session b; T2 (read service cases, appended) + T4 (read functionality) → session c; T3 subscription
-(inter-invariant) → session d.
-
-From each `session-*.md`, find the test section and extract which test types it produces.
-
-| Session | Expected test type(s) | Actual in skill | Consistent? |
-|---------|-----------------------|-----------------|-------------|
-| a | T1 | ... | ... |
-| b | T2 (write-method cases + event publication, if publisher), T4 (write functionality) | ... | ... |
-| c | T2 (read-method cases, appended), T4 (read functionality) | ... | ... |
-| d | T3 subscription (inter-invariant) | ... | ... |
-
-### 6.b — Test assertion rules
-
-Extract these specific rules from `docs/concepts/testing.md`:
-1. Not-found: Path A `thrown(SimulatorException)` vs Path B `thrown({AppClass}Exception)`, per the
-   service's lookup mechanism (T2 owns not-found; T4 does not)
-2. T1: no direct `verifyInvariants()` call; no call to service methods
-3. T2 read-back: must use a second, fresh UnitOfWork — same-UoW read-back is Fake
-4. T2 publication: assert every payload field, not just type/count; trigger via direct service call
-5. T4 semantic-lock acquisition: one test case per saga step that calls `setSemanticLock`
-6. T3 subscription: polling called directly (no `@Scheduled`); event handler called manually; must
-   not re-assert event-store contents (T2 owns those)
-
-Verify each rule is stated consistently in the relevant session skill:
-
-| Rule | Source in testing.md | In session-*.md | Consistent? | Notes |
-|------|---------------------|-----------------|-------------|-------|
-| Not-found exception type (Path A/B) | ... | session-c.md | ... | ... |
-| T1 no verifyInvariants | ... | session-a.md | ... | ... |
-| T2 fresh-UoW read-back | ... | session-b.md | ... | ... |
-| T2 payload-field assertion | ... | session-b.md | ... | ... |
-| T4 semantic-lock acquisition | ... | session-b.md | ... | ... |
-| T3 subscription direct polling | ... | session-d.md | ... | ... |
-
----
-
-## Step 7: Check 5 — Classify-and-Plan vs. Template Alignment
-
-### 7.a — Domain model template sections
-
-From `classify-and-plan/SKILL.md` Steps 1 and 2, extract:
-- The expected section headings it validates (§3.1, §3.2, §4 etc.)
-- The column names it expects in each table
-- The formatting conventions it parses (pipes, bullet points, etc.)
-
-From `docs/templates/domain-model-template.md`, extract the actual section headings and
-table structures.
-
-| Expected by classify-and-plan | Actual in template | Match? | Notes |
-|------------------------------|-------------------|--------|-------|
-
-### 7.b — Aggregate grouping template sections
-
-From `classify-and-plan/SKILL.md` Steps 1 and 3, extract expected section headings and
-column names (§1, §3, §4, etc.).
-
-From `docs/templates/aggregate-grouping-template.md`, extract the actual structures.
-
-| Expected by classify-and-plan | Actual in template | Match? | Notes |
-|------------------------------|-------------------|--------|-------|
-
-### 7.c — Plan.md output structure alignment
-
-From `classify-and-plan/SKILL.md` Step 8 (the "Construct plan.md" section), extract the
-plan.md structure it generates: section headers, file-table row format per session, checklist
-item format, Phase 3 session list format.
-
-From `docs/workflow.md` "plan.md — The Job Queue" section, extract the expected plan.md
-structure.
-
-| Element | In classify-and-plan output | In workflow.md | Consistent? |
-|---------|-----------------------------|----------------|-------------|
-
----
-
-## Step 8: Check 6 — Doc Completeness (Undocumented Patterns from Retros)
-
-For every "Patterns to Capture" item extracted from retros in Step 1.c, verify the pattern
-was subsequently added to the relevant doc or skill file.
-
-Additionally, check these specific known-gap patterns regardless of retro coverage:
-
-1. **SagaCommand lock-acquisition pattern** — the two-step write-saga pattern where a
-   `SagaCommand` wraps the read command for lock acquisition.
-   Check: `docs/concepts/sagas.md` for a dedicated subsection.
-
-2. **Delete in-place exception to copy-on-write** — delete mutates in-place; no copy needed.
-   Check: `docs/concepts/service.md` for an explicit carve-out.
-
-3. **FunctionalitySagas are not Spring beans** — `{Op}FunctionalitySagas` classes are
-   instantiated inline inside `{Aggregate}Functionalities`; they are not Spring beans.
-   Check: `session-b.md` and `session-c.md` BeanConfigurationSagas instructions.
-
-4. **`{Aggregate}Functionalities.java` in session-b file list** — Functionalities coordinator
-   always produced in session b, not session c.
-   Check: `classify-and-plan/SKILL.md` file-table generation for 2.N.b rows.
-
-5. **`{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` in session-a rows** —
-   interfaces produced in session a alongside their implementations.
-   Check: `classify-and-plan/SKILL.md` file-table generation for 2.N.a rows.
-
-6. **Event class files in session-b rows** — when a write operation publishes an event,
-   the `{Event}.java` class is produced in session b.
-   Check: `classify-and-plan/SKILL.md` session-b file-table logic and `session-b.md`.
-
-7. **EventProcessing design** — `docs/concepts/events.md` canonical wiring shows
-   `EventProcessing` delegating to `{Aggregate}Functionalities.<updateMethod>()`. But
-   `session-d.md` shows `EventProcessing` directly loading the aggregate, mutating cached
-   fields, calling `verifyInvariants()`, and persisting. These are different implementation
-   shapes for the same P2 pattern.
-   Check: compare `events.md` EventProcessing template vs. `session-d.md` EventProcessing
-   template. Quote both. Flag if different.
-
-8. **Constructor does not call `verifyInvariants()`** — only the factory calls it after
-   construction. The constructor itself must not.
-   Check: `session-a.md` aggregate constructor guidance.
-
-9. **`Get{Aggregate}ByIdCommand` may be produced in session b** — when required as the lock-
-   acquisition read step in write sagas, the read command is produced in session b rather than c.
-   Check: `session-b.md` and `session-c.md` for conditional handling of this command.
-
-| Pattern | Retro origin | Expected doc | Expected skill | Current status |
-|---------|--------------|-------------|----------------|----------------|
-
----
-
-## Step 9: Check 7 — Skill Completeness (Doc Rules Not Captured in Skills)
-
-For each concept doc, extract explicit rules, restrictions, or invariants. For each rule,
-identify the session skill responsible for implementing it and verify the rule is mentioned.
-
-Do not re-check items already covered in Check 2 (R1–R8) or Check 4 (test assertion rules).
-Focus on rules that are doc-only and may not have propagated to skills.
-
-| Doc | Rule / invariant | Responsible skill | Mentioned? | Notes |
-|-----|------------------|-------------------|------------|-------|
-| `aggregate.md` | copy constructor via `createFromExisting` | session-a.md | ... | ... |
-| `aggregate.md` | `getEventSubscriptions()` required when P2 rules exist | session-d.md | ... | ... |
-| `events.md` | subscription anchor = publisher aggregate's own id | session-d.md | ... | ... |
-| `events.md` | do not subscribe to own published events | session-d.md | ... | ... |
-| `sagas.md` | check `sagaState != NOT_IN_SAGA` before event processing | session-d.md | ... | ... |
-| `commands.md` | `ServiceMapping` enum must list all services | session-b.md | ... | ... |
-| `service.md` | event publishing via `unitOfWork.registerEvent(...)` | session-b.md | ... | ... |
-
----
-
-## Step 10: Check 8 — Improvement Opportunities
-
-### 10.a — Missing examples in concept docs
+### 5.a — Missing examples in concept docs
 
 For each concept doc, identify algorithm or pattern descriptions that have no code example
 and where a concrete example would reduce the need to consult the quizzes reference app.
@@ -358,7 +146,7 @@ and where a concrete example would reduce the need to consult the quizzes refere
 | Doc | Section | Why an example would help |
 |-----|---------|---------------------------|
 
-### 10.b — Ambiguous guidance in skill files
+### 5.b — Ambiguous guidance in skill files
 
 Scan skill files for instructions containing:
 - "depends on", "may be", "if applicable", "as appropriate", "as needed"
@@ -368,7 +156,7 @@ Scan skill files for instructions containing:
 | File | Step | Ambiguous phrase | What decision criterion is missing |
 |------|------|------------------|------------------------------------|
 
-### 10.c — Open retro action items
+### 5.c — Open retro action items
 
 For each High-priority action item collected in Step 1.c that targets a `docs/` or
 `.claude/skills/` file:
@@ -388,7 +176,7 @@ For each High-priority action item collected in Step 1.c that targets a `docs/` 
 
 ---
 
-## Step 11: Write the Report
+## Step 6: Write the Report
 
 Run `mkdir -p docs/reviews` (no-op if exists).
 
@@ -438,68 +226,7 @@ Write `{report-file}` using the template below. Never omit a section — write
 
 ---
 
-## Check 3 — Session-to-Workflow Alignment
-
-### Files-to-Produce Delta
-
-| Session | File pattern | In workflow.md | In session-*.md | Delta |
-|---------|-------------|---------------|-----------------|-------|
-
-### BeanConfigurationSagas Beans Delta
-
-| Session | Bean | In workflow.md | In session-*.md | Verdict |
-|---------|------|---------------|-----------------|---------|
-
----
-
-## Check 4 — Test Taxonomy Alignment
-
-### Session-to-Test-Type Mapping
-
-| Session | Expected test type | Actual in skill | Consistent? |
-|---------|-------------------|-----------------|-------------|
-
-### Test Assertion Rules
-
-| Rule | Source in testing.md | In session-*.md | Consistent? | Notes |
-|------|---------------------|-----------------|-------------|-------|
-
----
-
-## Check 5 — Classify-and-Plan vs. Template Alignment
-
-### Domain Model Template Sections
-
-| Expected by classify-and-plan | Actual in template | Match? | Notes |
-|------------------------------|-------------------|--------|-------|
-
-### Aggregate Grouping Template Sections
-
-| Expected by classify-and-plan | Actual in template | Match? | Notes |
-|------------------------------|-------------------|--------|-------|
-
-### Plan.md Structure
-
-| Element | In classify-and-plan | In workflow.md | Consistent? |
-|---------|---------------------|----------------|-------------|
-
----
-
-## Check 6 — Doc Completeness (Patterns from Retros)
-
-| Pattern | Retro origin | Expected doc | Expected skill | Status |
-|---------|--------------|-------------|----------------|--------|
-
----
-
-## Check 7 — Skill Completeness (Doc Rules Not Captured)
-
-| Doc | Rule | Responsible skill | Mentioned? | Notes |
-|-----|------|-------------------|------------|-------|
-
----
-
-## Check 8 — Improvement Opportunities
+## Check 3 — Improvement Opportunities
 
 ### Missing Examples
 
@@ -534,7 +261,7 @@ Write `{report-file}` using the template below. Never omit a section — write
 
 ---
 
-## Step 12: Print Summary to Conversation
+## Step 7: Print Summary to Conversation
 
 Output to the conversation (not to the report file):
 
@@ -555,7 +282,7 @@ Output to the conversation (not to the report file):
 4. **Quote the evidence.** For every Critical or Major finding, quote the conflicting text
    verbatim from both sources (with file path and approximate line context).
 5. **Retro action items are mandatory checks.** Every High-priority action item targeting
-   `docs/` or `.claude/skills/` must appear in Check 8 with a Resolved / Open determination.
+   `docs/` or `.claude/skills/` must appear in Check 3 with a Resolved / Open determination.
 6. **Use `git log` for retro resolution.** Run `git log -1 --format="%ai" -- {file-path}` for
    each targeted file; do not estimate modification dates.
 7. **One invocation covers all artifacts.** Do not scope to a single aggregate or session.
