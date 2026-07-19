@@ -186,7 +186,7 @@ saga.executeWorkflow(unitOfWork);
 return saga.get{Aggregates}();
 ```
 
-Reference: `applications/quizzes-full/.../topic/coordination/sagas/GetTopicsByCourseIdFunctionalitySagas.java`
+Reference: `applications/quizzes/.../topic/coordination/sagas/FindTopicsByCourseFunctionalitySagas.java`
 
 ### Two-step read saga variant
 
@@ -250,6 +250,8 @@ return saga.get{Aggregates}();
 ```
 
 Reference: `applications/quizzes-full/.../question/coordination/sagas/GetQuestionsByCourseExecutionIdFunctionalitySagas.java`
+(no equivalent two-step read saga exists in `applications/quizzes` — this pattern was first
+introduced in `quizzes-full`).
 
 ## Step Ordering
 

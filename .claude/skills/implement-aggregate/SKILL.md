@@ -8,16 +8,18 @@ argument-hint: "[session] (e.g. 2.3.b — optional, auto-detects if omitted)"
 
 This skill drives one Phase 2 session at a time, advancing the plan.md job queue by one checkbox per invocation. It reads plan.md, identifies the next unchecked session, loads only the instructions relevant to that session type, and produces the files listed in plan.md for that session.
 
-Test taxonomy produced by this skill (see `docs/concepts/testing.md` for the authoritative 4-tier definitions):
+Required scenarios, assertion ownership, and templates for every tier are defined in
+`docs/concepts/testing.md` — do not restate them here. This table maps each session to the test
+file(s) it produces (session → file, for file-generation purposes only):
 
 | Session | Test type | File |
 |---------|-----------|------|
-| `a` | T1 Aggregate | `{Aggregate}IntraInvariantTest.groovy` — creation happy-path + one violation per non-`final` P1 rule + BVA straddles; all via direct `verifyInvariants()` |
-| `b` | T2 Service (write methods + event publication) | `{Aggregate}ServiceTest.groovy` — one class per aggregate; per write service method: persisted-and-readable via a fresh UnitOfWork, uniqueness/composite-key guards, P3 numeric-guard boundaries; per published event type: payload-field assertions against the event store + one negative no-publish case. Direct `*Service` bean calls — no saga workflow. |
-| `b` | T4 Functionality (writes) | `{Op}Test.groovy` — orchestration outcomes only (operation completes, DTO coherent, `sagaStateOf == NOT_IN_SAGA`), lock-acquisition per `setSemanticLock` step, saga-path guard violations. No persistence/uniqueness/not-found assertions (T2 owns those); no P1 predicate tests. |
-| `c` | T2 Service (read methods) | read-method cases (happy read-back + not-found Path A/B) **appended** to `{Aggregate}ServiceTest.groovy` |
-| `c` | T4 Functionality (reads) | `{Query}Test.groovy` — happy read only |
-| `d` | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` — event received → cached state updated; unrelated event → state unchanged; deletion events |
+| `a` | T1 Aggregate | `{Aggregate}IntraInvariantTest.groovy` |
+| `b` | T2 Service (write methods + event publication) | `{Aggregate}ServiceTest.groovy` |
+| `b` | T4 Functionality (writes) | `{Op}Test.groovy` |
+| `c` | T2 Service (read methods) | appended to `{Aggregate}ServiceTest.groovy` |
+| `c` | T4 Functionality (reads) | `{Query}Test.groovy` |
+| `d` | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` |
 
 > **Recorded decision — why T2 lives in sessions `b`/`c`, not `a`:** the migration plan's default
 > assigns T1+T2 to session `a`, but session `a` produces only the domain layer; the `*Service`
@@ -354,6 +356,6 @@ feat({app-name}): 2.{N}{type} ({Aggregate} {session-type-name})
 
 Where `{session-type-name}` maps: `a`→"Domain Layer", `b`→"Write Functionalities", `c`→"Read Functionalities", `d`→"Event Wiring".
 
-Example: `feat(quizzes-full): 2.2c (User Read Functionalities)`
+Example: `feat({app-name}): 2.2c (User Read Functionalities)`
 
 After the commit, output the commit hash and message as the final line of the session report.

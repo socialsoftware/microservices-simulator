@@ -339,7 +339,8 @@ No per-scenario or per-functionality analysis is needed. Simply add one row per 
 
 ### Step 7: Generate File Lists for Each Session (2.N.a–d)
 
-For each aggregate, generate the full file list using the template from `docs/workflow.md` (lines 163–167):
+For each aggregate, generate the full file list using the templates below (this skill is the
+authoritative source for the file-list shape; `docs/workflow.md` only points here):
 
 **Session 2.N.a — Domain Layer:**
 ```
