@@ -1,14 +1,16 @@
 ---
 name: review-aggregate
-description: Deep review and comparison of one aggregate implementation in quizzes-full against the quizzes reference app. Reads all relevant files, checks structural correctness, functionality completeness, rule enforcement, test coverage, and build results. Writes a structured review to applications/{app-name}/reviews/review-{Aggregate}.md. Invoke with /review-aggregate <AggregateName> (e.g., /review-aggregate Course).
+description: Deep review of one aggregate implementation in {app-name} against its plan.md specification, docs/architecture.md package layout, and the core concept docs. Reads all relevant files, checks structural correctness, functionality completeness, rule enforcement, and test coverage, and runs the build. Writes a structured review to applications/{app-name}/reviews/review-{Aggregate}.md. Invoke with /review-aggregate <AggregateName> (e.g., /review-aggregate Course).
 argument-hint: "<AggregateName> (e.g. Course, CourseExecution, Tournament)"
 ---
 
 # Review Aggregate
 
-Deep, file-by-file comparison of one aggregate implementation in `quizzes-full` against the `quizzes`
-reference app and `plan.md` specification. Produces a structured review report and a prioritised
-action-item list.
+Deep, file-by-file review of one aggregate implementation against its `plan.md` specification,
+`docs/architecture.md` package-layout conventions, and the core concept docs. Produces a
+structured review report and a prioritised action-item list. No reference app is required or
+consulted — this skill checks the target app against its own spec and the docs, so it applies
+equally to any app built on this harness.
 
 One aggregate per invocation. Reads files directly from disk — does not synthesise from conversation
 context.
@@ -40,8 +42,6 @@ Extract `{N}` = the ordinal from the section header.
 ### 1.c — Derive path prefixes
 
 ```
-{ref-src}     = applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/
-{ref-test}    = applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/
 {tgt-src}     = applications/{app-name}/src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/
 {tgt-test}    = applications/{app-name}/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/{pkg}/
 {review-dir}  = applications/{app-name}/reviews/
@@ -50,7 +50,7 @@ Extract `{N}` = the ordinal from the section header.
 
 ---
 
-## Step 2: Read Reference Files
+## Step 2: Read Context Files
 
 Read each file and hold it in context. Absent files are findings, not errors — do not skip them.
 Read as many files in parallel as possible.
@@ -61,7 +61,8 @@ Read the entire `### {N}. {Aggregate}` section from plan.md. Extract and hold:
 - Write and read functionalities list
 - Events published / subscribed
 - Cross-aggregate prerequisites (P4a/P4b rules)
-- Files-to-produce table (sessions 2.N.a through 2.N.d)
+- Files-to-produce table (sessions 2.N.a through 2.N.d) — this is the **authoritative expected-file
+  list** for Step 3
 - Checklist — which sessions are ticked
 - Any P1/P2/P3 rule notes, including contradiction flags
 
@@ -83,15 +84,7 @@ Read every matching retro file. Record for each:
 
 These are known issues — the review must check whether each source-file-targeted item was resolved.
 
-### 2.d — Reference app files for this aggregate
-
-Enumerate all files under `{ref-src}microservices/{aggregate}/` recursively.
-Also: `find applications/quizzes/src/main/java -path "*/commands/{aggregate}/*" -name "*.java"`
-Also: `find {ref-test} -path "*/{aggregate}/*" -name "*.groovy"`
-
-Read each file. Build the reference file list.
-
-### 2.e — Target app files for this aggregate
+### 2.d — Target app files for this aggregate
 
 Enumerate all files under `{tgt-src}microservices/{aggregate}/` recursively.
 Also: `find applications/{app-name}/src/main/java -path "*/commands/{aggregate}/*" -name "*.java"`
@@ -99,9 +92,11 @@ Also: `find {tgt-test} -path "*/{aggregate}*" -name "*.groovy"` (covers `sagas/{
 
 Read each file. Build the target file list.
 
-### 2.f — Concept docs
+### 2.e — Concept docs
 
 Read sections relevant to this aggregate type:
+- `docs/architecture.md` § Package Structure Convention — canonical directory layout, used to sanity-check
+  file placement in Step 3
 - `docs/concepts/aggregate.md` — base class, SagaAggregate, verifyInvariants, factories, repositories
 - `docs/concepts/service.md` — method patterns, copy-on-write, delete exception, P3 guard placement
 - `docs/concepts/commands.md` — command structure, ServiceMapping, CommandHandler, `getAggregateTypeName()`
@@ -113,26 +108,34 @@ Read sections relevant to this aggregate type:
 
 ## Step 3: File Inventory
 
-Compare the reference file list (Step 2.d) against the target file list (Step 2.e).
+The **expected file list** for this aggregate is the Files-to-produce table read in Step 2.a — one
+row per file, tagged with the producing session (2.N.a/b/c/d). This table is authoritative for what
+this aggregate needs; `docs/architecture.md` § Package Structure Convention (Step 2.e) is used only
+to sanity-check *where* a listed file lives (correct layer directory), not to add files the plan.md
+table doesn't list.
 
-For each reference file, determine whether an equivalent target file exists. Match by purpose and naming
-convention, not exact path (`{pkg}` replaces `quizzes`, `{AppClass}` replaces `Quizzes`).
+For each file in the plan.md Files-to-produce table, determine whether it exists in the target file
+list (Step 2.d). Match by the relative path as given in plan.md (e.g. `aggregate/Course.java`).
 
-| File (relative to microservices/{aggregate}/) | In Reference | In Target | Status | Notes |
-|----------------------------------------------|-------------|-----------|--------|-------|
+| File (relative to microservices/{aggregate}/) | Session | In Target | Status | Notes |
+|------------------------------------------------|---------|-----------|--------|-------|
 
-Status values: `OK` / `Missing` / `Extra` / `Intentional` / `Renamed`
+Status values: `OK` / `Missing` / `Wrong location` / `Extra`
 
-**Always Intentional:** `causal/` subtree files — quizzes-full is sagas-only; the TCC variant is not expected.
+Use `Wrong location` when the file exists under a different directory than either plan.md states or
+`docs/architecture.md` § Package Structure Convention implies for its layer — quote both paths.
 
-For target files not in the reference, mark `Extra` with a justification note.
+For target files not listed in plan.md's Files-to-produce table, mark `Extra` with a justification
+note (check `docs/architecture.md`'s canonical layout first — a file the convention implies but
+plan.md omitted is not automatically unjustified).
 
 ---
 
 ## Step 4: Structural Review
 
-For each file present in the target, compare its structure against the reference and concept docs.
-For every finding, provide: the file, the expected pattern (with source), the actual finding (quoted
+For each file present in the target, compare its structure against `docs/architecture.md` and the
+concept docs (Step 2.e), and against the expectations recorded from plan.md (Step 2.a-b). For every
+finding, provide: the file, the expected pattern (with source), the actual finding (quoted
 lines), and a status.
 
 Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
@@ -149,8 +152,9 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 - Extends `{Aggregate}` and implements `SagaAggregate`
 - `sagaState` field typed as `SagaState` (the interface), NOT the concrete enum
 - Default constructor: `sagaState = GenericSagaState.NOT_IN_SAGA`
-- Copy constructor: resets `sagaState = GenericSagaState.NOT_IN_SAGA` (does NOT copy `other.getSagaState()`)
-  - Note: the quizzes reference copies `other.getSagaState()` — quizzes-full resets to NOT_IN_SAGA. Either is valid; note which is used.
+- Copy constructor: either resets `sagaState = GenericSagaState.NOT_IN_SAGA` or copies
+  `other.getSagaState()` — both are valid designs; record which one this target app uses and check
+  it is applied consistently across all `Saga{Aggregate}` classes in the app.
 
 ### `aggregate/sagas/states/{Aggregate}SagaState.java`
 - Implements `SagaAggregate.SagaState`
@@ -172,7 +176,10 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 - Method bodies (create / read / mutate / mutate-with-event-publication / mutate-with-optional-sub-collection) match `docs/concepts/service.md` § Method Patterns
 - Copy-on-write: every mutation — including delete — creates a factory copy and calls `registerChanged` on the copy, never the original loaded via `aggregateLoadAndRegisterRead`; see `docs/concepts/service.md` § Copy-on-Write Rule. **Flag in-place delete as Incorrect.**
 - P3 rule guards: placed in the service method body (own-table uniqueness check or DTO field validation) per `docs/concepts/service.md` § P3 Guard Placement
-- UpdateCourse specifically: if COURSE_NAME_FINAL and COURSE_TYPE_FINAL are P1 final fields, the update method should throw `{AppClass}Exception({AppClass}ErrorMessage.XXX)`
+- Compare service methods against plan.md's write/read functionality list (Step 2.a) by purpose
+  (create / update / delete / read), not by name — plan.md is the source of truth for which methods
+  should exist and what each one does, including any documented exceptions (e.g. an update method
+  that intentionally throws because its target fields are P1 final).
 
 ### `messaging/{Aggregate}CommandHandler.java`
 - `@Component` (not `@Service`)
@@ -271,14 +278,14 @@ For High-priority items targeting a source file, read the relevant file and veri
 
 ## Step 9: Build and Test
 
-Build the test-class name list from all test files found in Step 2.e (comma-separated class names).
+Build the test-class name list from all test files found in Step 2.d (comma-separated class names).
 
 Run from the project root:
 ```bash
 cd "$(git rev-parse --show-toplevel)/applications/{app-name}" && mvn clean -Ptest-sagas test -Dtest="{Aggregate}Test,Create{Aggregate}Test,Update{Aggregate}Test,Delete{Aggregate}Test,Get{Aggregate}ByIdTest" 2>&1 | tail -80
 ```
 
-Adjust the `-Dtest=` list to match the actual test class names found in Step 2.e.
+Adjust the `-Dtest=` list to match the actual test class names found in Step 2.d.
 
 Capture and record:
 - BUILD SUCCESS or BUILD FAILURE
@@ -314,8 +321,8 @@ Write `{review-file}` using the template below. Do not omit any section — writ
 
 ## File Inventory
 
-| File | In Reference | In Target | Status | Notes |
-|------|-------------|-----------|--------|-------|
+| File | Session | In Target | Status | Notes |
+|------|---------|-----------|--------|-------|
 
 ---
 
@@ -401,6 +408,4 @@ Output to the conversation:
 5. **Retro items are mandatory checks.** Every High-priority retro action item targeting a source file must be explicitly resolved or flagged in Step 8.
 6. **Build must run.** Do not skip Step 9.
 7. **One aggregate per invocation.**
-8. **`causal/` files are always Intentional.** quizzes-full is sagas-only. Never raise action items for absent TCC/causal files.
-9. **quizzes reference has a different domain.** The reference `CourseService` has `createCourseRemote`, `getAndOrCreateCourseRemote`, etc. — these reflect a design where Course is created indirectly via CourseExecution. For quizzes-full, Course is first-class. Compare service methods by purpose (create / update / delete / read), not by name.
-10. **No emojis. Terse and specific.** File paths, method names, rule names, line numbers where relevant.
+8. **No emojis. Terse and specific.** File paths, method names, rule names, line numbers where relevant.

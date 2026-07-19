@@ -72,6 +72,7 @@ Read every file from both lists in Step 1.b in parallel.
 - `.claude/skills/implement-aggregate/session-c.md`
 - `.claude/skills/implement-aggregate/session-d.md`
 - `.claude/skills/review-aggregate/SKILL.md`
+- `.claude/skills/review-aggregate-vs-quizzes/SKILL.md`
 - `.claude/skills/review-artifacts/SKILL.md` (this file)
 
 **Doc files (explicit list — cross-check against Step 1.b list for new docs):**
