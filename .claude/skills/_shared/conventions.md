@@ -1,8 +1,8 @@
 # Shared Skill Conventions
 
 Common blocks referenced by multiple skills via a blocking Read pointer (skills cannot `@`-transclude
-each other — see `docs/reviews/agnosticism-review-2026-07-19.md` for why). Read the referenced section
-in full before continuing; do not paraphrase from memory of a previous read.
+each other). Read the referenced section in full before continuing; do not paraphrase from memory of
+a previous read.
 
 ---
 
