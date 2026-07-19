@@ -28,19 +28,8 @@ The `<App Name>` must be:
 
 ### Step 0: Anchor to the repository root
 
-All paths in this skill are relative to the **repository root**. This skill may be invoked from
-any working directory (including inside `applications/{app-name}/`). Before running any `find`,
-`cd`, read, or write, pin the working directory to the repo root:
-
-```bash
-cd "$(git rev-parse --show-toplevel)"
-```
-
-The change persists for the rest of the session. When constructing paths for the Read/Write
-tools, root them at this directory. Never write to `applications/{app-name}/...` without first
-confirming cwd is the repo root — otherwise a nested
-`applications/{app-name}/applications/{app-name}/...` file is silently created (this happened once
-with `test-review-QuizAnswer.md`).
+Before Step 1, read `.claude/skills/_shared/conventions.md` and follow "Anchor to the repository
+root". Do not run any command until you have.
 
 ### Step 1: Parse Arguments and Derive Naming Variables
 
