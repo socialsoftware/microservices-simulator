@@ -22,3 +22,4 @@ Use this section when you need to understand why the verifier is shaped a certai
 - [`2026-06-16-conflict-anchor-segment-compression.md`](2026-06-16-conflict-anchor-segment-compression.md)
 - [`2026-07-08-multi-saga-executor-failure-policy.md`](2026-07-08-multi-saga-executor-failure-policy.md)
 - [`2026-07-08-scenario-execution-report-v3-participants.md`](2026-07-08-scenario-execution-report-v3-participants.md)
+- [`2026-07-19-compensation-aware-fault-scenario-contract.md`](2026-07-19-compensation-aware-fault-scenario-contract.md)

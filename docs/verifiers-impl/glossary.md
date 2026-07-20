@@ -18,7 +18,7 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 | Term | Meaning |
 |---|---|
 | Verifier | The `verifiers/` module that analyzes simulator applications and tests to generate fault-analysis scenario material. |
-| Scenario | A planned saga execution shape: participating saga instance(s), their input variant(s), and the scheduled ordering of saga steps. Fault choices are not part of scenario identity; they are execution-time semantics applied later to a scenario. |
+| Scenario | Broad historical term for a planned saga execution. In the implemented v2 contract it means participants, inputs, and a forward schedule without an assigned vector; for the selected compensation-aware v3 contract, use `WorkloadPlan` or `FaultScenario` explicitly instead of relying on this ambiguous term. |
 | Brute-force scenario universe | The bounded exhaustive set of scenario shapes considered for comparison: saga sets up to a configured maximum size, compatible input tuples for those saga sets, and order-preserving schedules/interleavings. Fault-vector combinations are excluded from this count for the current phase. |
 | Type-level shape space | Report-only count over saga classes and aggregate-type footprints before requiring concrete input variants. It is useful for explaining workflow-shape pressure and missing input coverage, but it does not emit executable `ScenarioPlan` records and is not guaranteed to be numerically larger than input-bound scenario counts. |
 | Input-bound brute-force universe | Bounded exhaustive scenario universe over accepted input variants, compatible input tuples, and schedules. This is the brute-force baseline that can emit `ScenarioPlan` records because each saga instance has a concrete input variant. |
@@ -56,6 +56,22 @@ This glossary defines recurring verifier terms used across the knowledge base. U
 | Footprint | Static approximation of what a saga step or command touches, usually aggregate type plus access mode and, when available, key evidence. |
 | Access policy | Extracted command-handler or domain-service behavior describing aggregate reads/writes and registration patterns. |
 | Static confidence | Confidence label attached to static evidence when exact instance binding is unavailable or conservative. |
+
+## Selected compensation-aware v3 catalog terms
+
+These terms describe the accepted v3 contract in [`decisions/2026-07-19-compensation-aware-fault-scenario-contract.md`](decisions/2026-07-19-compensation-aware-fault-scenario-contract.md). They are design truth for the pending feature, not claims that v3 is already implemented; [`current-state.md`](current-state.md) remains implementation truth.
+
+| Term | Meaning |
+|---|---|
+| Workload plan | Reusable normal-execution structure containing Saga participants, accepted inputs, one deterministic global forward interleaving, conflict evidence, ordered forward fault slots, and ordered compensation checkpoints/evidence. It does not contain an assigned vector or compensation ordering. |
+| Fault scenario | One reproducible experiment that references a WorkloadPlan and adds one assigned fault vector plus one concrete compensation-aware action schedule. Its identity includes the workload-plan id, vector, and ordered action identities. |
+| Compensation checkpoint | Recovery action associated with a completed forward step that may have an explicit compensation, implicit Saga-state rollback, or conservatively unknown recovery effect. Checkpoints for one aborted participant execute in reverse completed-step order. |
+| Compensation evidence class | Primary static reason for retaining a checkpoint, with precedence `EXPLICIT_COMPENSATION` > `IMPLICIT_SAGA_ROLLBACK` > `CONSERVATIVE_UNKNOWN`. A step is omitted only when resolved evidence proves it read-only with no explicit registration, rollback/write potential, or unresolved diagnostic. |
+| Recovery schedule | Ordered insertion of compensation checkpoints into the complete residual WorkloadPlan forward sequence. It preserves reverse compensation order and the global survivor-to-survivor forward order; it does not generate a new normal forward interleaving. |
+| Recovery-schedule cap | Positive configurable maximum number of recovery schedules materialized for one vector, defaulting to `20`. Capped selection preserves deterministic recovery-timing representatives before canonical fill and does not change uncapped accounting. |
+| Automatic participant commit | Lifecycle rule that a participant closes and commits immediately after its final successful forward step. Commit is reported explicitly but is not an independently schedulable action. |
+| Unassigned runtime fallback | Deterministic deviation policy for a zero-bit domain/simulator body or commit failure: run one immediate checkpoint-level recovery episode for that participant, skip its remaining forward actions, and continue still-valid actions for other participants while reporting planned and actual order. |
+| Schedule conformance | Relation between a persisted FaultScenario and measured execution: `EXACT` for a completed planned schedule, `DEVIATED` for completed unassigned-runtime fallback, `INCOMPLETE` for a measured hard-stop prefix, and absent when measured execution never began. |
 
 ## Dynamic enrichment terms
 
