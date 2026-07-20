@@ -55,13 +55,6 @@ public class UpdateTournamentFunctionalitySagas extends WorkflowFunctionality {
             this.tournamentDto = (TournamentDto) commandGateway.send(sagaCmd);
         });
 
-        getTournamentStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentId);
-            SagaCommand release = new SagaCommand(releaseCmd);
-            release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(release);
-        }, unitOfWork);
-
         SagaStep getTopicsStep = new SagaStep("getTopicsStep", () -> {
             for (Integer topicId : topicIds) {
                 GetTopicByIdCommand cmd = new GetTopicByIdCommand(

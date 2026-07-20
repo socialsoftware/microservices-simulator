@@ -42,13 +42,6 @@ public class AnonymizeUserFunctionalitySagas extends WorkflowFunctionality {
             this.userDto = (UserDto) commandGateway.send(sagaCommand);
         });
 
-        getUserStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(releaseCmd);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep anonymizeUserStep = new SagaStep("anonymizeUserStep", () -> {
             AnonymizeUserCommand cmd = new AnonymizeUserCommand(
                     unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);

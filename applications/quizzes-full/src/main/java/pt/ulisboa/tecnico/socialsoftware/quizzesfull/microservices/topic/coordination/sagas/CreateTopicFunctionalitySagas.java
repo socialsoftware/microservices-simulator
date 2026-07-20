@@ -47,13 +47,6 @@ public class CreateTopicFunctionalitySagas extends WorkflowFunctionality {
             this.setCourse(new TopicCourse(courseDto));
         });
 
-        getCourseStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep createTopicStep = new SagaStep("createTopicStep", () -> {
             CreateTopicCommand createTopicCommand = new CreateTopicCommand(
                     unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto, this.getCourse());

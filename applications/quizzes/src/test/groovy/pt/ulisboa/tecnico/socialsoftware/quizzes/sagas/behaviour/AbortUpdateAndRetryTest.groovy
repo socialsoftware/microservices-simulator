@@ -138,7 +138,9 @@ class AbortUpdateAndRetryTest extends QuizzesSpockTest {
         boolean success = false
         while (retries > 0 && !success) {
             try {
-                updateTournamentFunctionality.executeWorkflow(unitOfWork1)
+                def retryUnitOfWork = unitOfWorkService.createUnitOfWork(UpdateTournamentFunctionalitySagas.class.getSimpleName())
+                def retryFunctionality = new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, retryUnitOfWork, commandGateway)
+                retryFunctionality.executeWorkflow(retryUnitOfWork)
                 success = true  // If no exception, mark as successful
             } catch (Exception e) {
                 retries--

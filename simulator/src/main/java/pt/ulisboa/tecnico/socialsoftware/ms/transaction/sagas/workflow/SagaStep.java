@@ -29,10 +29,22 @@ public class SagaStep extends Step {
 
     @Override
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        getSyncOperation().run();
-        if (getCompensation() != null) {
-            ((SagaUnitOfWork)unitOfWork).registerCompensation(getCompensation());
+        SagaUnitOfWork sagaUow = (SagaUnitOfWork) unitOfWork;
+        sagaUow.setCurrentExecutingStep(getName());
+        
+        // Add to executedSteps BEFORE running, so if it crashes mid-execution,
+        // any acquired semantic locks will still be reverted during abort.
+        if (!sagaUow.getExecutedSteps().contains(getName())) {
+            sagaUow.getExecutedSteps().add(getName());
         }
+        
+        getSyncOperation().run();
+        
+        // Only register compensation logic if the step completed successfully
+        if (getCompensation() != null) {
+            sagaUow.registerCompensation(getName(), getCompensation());
+        }
+        
         return CompletableFuture.completedFuture(null);
     }
 }

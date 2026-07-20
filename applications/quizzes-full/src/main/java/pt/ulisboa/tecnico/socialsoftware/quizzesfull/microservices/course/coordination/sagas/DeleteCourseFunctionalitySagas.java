@@ -42,13 +42,6 @@ public class DeleteCourseFunctionalitySagas extends WorkflowFunctionality {
             this.courseDto = (CourseDto) commandGateway.send(sagaCommand);
         });
 
-        getCourseStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(releaseCmd);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep deleteCourseStep = new SagaStep("deleteCourseStep", () -> {
             DeleteCourseCommand cmd = new DeleteCourseCommand(
                     unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);

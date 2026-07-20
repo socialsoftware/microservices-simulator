@@ -43,13 +43,6 @@ public class UpdateExecutionFunctionalitySagas extends WorkflowFunctionality {
             this.executionDto = (ExecutionDto) commandGateway.send(sagaCommand);
         });
 
-        getExecutionStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep updateExecutionStep = new SagaStep("updateExecutionStep", () -> {
             UpdateExecutionCommand updateCmd = new UpdateExecutionCommand(
                     unitOfWork, ServiceMapping.EXECUTION.getServiceName(),

@@ -40,13 +40,6 @@ public class CancelTournamentFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(sagaCmd);
         });
 
-        getTournamentStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentId);
-            SagaCommand release = new SagaCommand(releaseCmd);
-            release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(release);
-        }, unitOfWork);
-
         SagaStep cancelTournamentStep = new SagaStep("cancelTournamentStep", () -> {
             CancelTournamentCommand cmd = new CancelTournamentCommand(
                     unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentId);

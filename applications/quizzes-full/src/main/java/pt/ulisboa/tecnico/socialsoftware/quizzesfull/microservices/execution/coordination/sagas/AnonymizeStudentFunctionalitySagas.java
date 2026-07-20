@@ -41,13 +41,6 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(sagaCommand);
         });
 
-        getExecutionStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep anonymizeStudentInExecutionStep = new SagaStep("anonymizeStudentInExecutionStep", () -> {
             AnonymizeStudentInExecutionCommand anonymizeCmd = new AnonymizeStudentInExecutionCommand(
                     unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId, userId);

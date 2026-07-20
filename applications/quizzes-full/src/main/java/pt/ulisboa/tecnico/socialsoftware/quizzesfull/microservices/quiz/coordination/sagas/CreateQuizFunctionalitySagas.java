@@ -59,13 +59,6 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
             this.executionDto = (ExecutionDto) commandGateway.send(sagaCommand);
         });
 
-        getExecutionStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionId);
-            SagaCommand release = new SagaCommand(releaseCmd);
-            release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(release);
-        }, unitOfWork);
-
         SagaStep getQuestionsStep = new SagaStep("getQuestionsStep", () -> {
             this.quizQuestions = new HashSet<>();
             for (Integer questionId : questionIds) {

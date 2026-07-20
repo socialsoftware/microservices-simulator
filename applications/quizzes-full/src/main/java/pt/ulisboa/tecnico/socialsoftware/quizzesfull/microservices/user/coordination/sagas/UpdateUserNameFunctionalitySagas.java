@@ -42,13 +42,6 @@ public class UpdateUserNameFunctionalitySagas extends WorkflowFunctionality {
             this.userDto = (UserDto) commandGateway.send(sagaCommand);
         });
 
-        getUserStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(releaseCmd);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep updateUserNameStep = new SagaStep("updateUserNameStep", () -> {
             UpdateUserNameCommand cmd = new UpdateUserNameCommand(
                     unitOfWork, ServiceMapping.USER.getServiceName(), userAggregateId, newName);

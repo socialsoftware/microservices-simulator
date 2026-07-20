@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
   <diagram name="Page-1" id="2Gbl4QjqyBch0pa1qFZK">
-    <mxGraphModel dx="2493" dy="842" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+    <mxGraphModel dx="2037" dy="702" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -67,13 +67,13 @@
         <mxCell id="JZMU7yAG3U7CICdJ6rA_-2" parent="1" style="whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=default;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);dashed=1;dashPattern=3 3;container=0;" value=": Centralized Versioning System" vertex="1">
           <mxGeometry height="210" width="290" x="70" y="580" as="geometry" />
         </mxCell>
-        <mxCell id="JZMU7yAG3U7CICdJ6rA_-10" parent="1" style="rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Web Client" vertex="1">
+        <mxCell id="JZMU7yAG3U7CICdJ6rA_-10" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ffffff;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);" value=": Web Client" vertex="1">
           <mxGeometry height="40" width="100" x="170" y="40" as="geometry" />
         </mxCell>
         <mxCell id="JZMU7yAG3U7CICdJ6rA_-13" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#ffffff;strokeColor=#000000;fontColor=light-dark(#333333,#cccccc);" value=": Tracing Server&#xa;(Jaeger)" vertex="1">
           <mxGeometry height="80" width="160" x="500" y="300" as="geometry" />
         </mxCell>
-        <mxCell id="JZMU7yAG3U7CICdJ6rA_-14" edge="1" parent="1" source="JZMU7yAG3U7CICdJ6rA_-10" style="startArrow=none;endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;endFill=1;" target="JZMU7yAG3U7CICdJ6rA_-6" value="HTTPS / REST">
+        <mxCell id="JZMU7yAG3U7CICdJ6rA_-14" edge="1" parent="1" source="JZMU7yAG3U7CICdJ6rA_-10" style="startArrow=none;endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;endFill=1;" target="JZMU7yAG3U7CICdJ6rA_-6" value="HTTP / REST">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="JZMU7yAG3U7CICdJ6rA_-18" edge="1" parent="1" source="JZMU7yAG3U7CICdJ6rA_-6" style="dashPattern=2 3;startArrow=none;endArrow=classic;rounded=0;edgeStyle=orthogonalEdgeStyle;endFill=1;" target="JZMU7yAG3U7CICdJ6rA_-13" value="gRPC / OTLP">

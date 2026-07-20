@@ -7,12 +7,15 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggr
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.Question;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.QuestionTopic;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 import java.util.Set;
 
 @Entity
 public class SagaQuestion extends Question implements SagaAggregate {
 
+    @Convert(converter = SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaQuestion() {

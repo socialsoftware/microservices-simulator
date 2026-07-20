@@ -12,7 +12,7 @@ import java.util.List;
 public interface EventRepository extends JpaRepository<Event, Integer> {
     @Query("SELECT e FROM Event e WHERE TYPE(e) = :eventType AND e.published = true " +
             "AND e.publisherAggregateId = :pubAggId AND e.publisherAggregateVersion > :subVersion " +
-            "ORDER BY e.timestamp ASC")
+            "ORDER BY e.timestamp DESC")
     List<Event> findUnprocessedEvents(
             @Param("eventType") Class<? extends Event> eventType,
             @Param("pubAggId") Integer publisherAggregateId,

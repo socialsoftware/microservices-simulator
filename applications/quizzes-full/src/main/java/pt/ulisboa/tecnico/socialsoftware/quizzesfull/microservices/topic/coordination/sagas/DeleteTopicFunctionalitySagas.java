@@ -42,13 +42,6 @@ public class DeleteTopicFunctionalitySagas extends WorkflowFunctionality {
             this.topic = (TopicDto) commandGateway.send(sagaCommand);
         });
 
-        getTopicStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep deleteTopicStep = new SagaStep("deleteTopicStep", () -> {
             DeleteTopicCommand deleteTopicCommand = new DeleteTopicCommand(
                     unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicAggregateId);

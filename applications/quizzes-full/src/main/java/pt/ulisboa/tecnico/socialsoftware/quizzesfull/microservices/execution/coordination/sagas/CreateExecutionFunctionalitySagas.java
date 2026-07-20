@@ -46,13 +46,6 @@ public class CreateExecutionFunctionalitySagas extends WorkflowFunctionality {
             this.courseDto = (CourseDto) commandGateway.send(sagaCommand);
         });
 
-        getCourseStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep createExecutionStep = new SagaStep("createExecutionStep", () -> {
             ExecutionCourse executionCourse = new ExecutionCourse(this.courseDto);
             CreateExecutionCommand createExecutionCommand = new CreateExecutionCommand(

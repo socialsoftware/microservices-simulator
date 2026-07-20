@@ -40,13 +40,6 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(sagaCmd);
         });
 
-        getQuizAnswerStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizAnswerId);
-            SagaCommand release = new SagaCommand(releaseCmd);
-            release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(release);
-        }, unitOfWork);
-
         SagaStep concludeQuizStep = new SagaStep("concludeQuizStep", () -> {
             ConcludeQuizCommand cmd = new ConcludeQuizCommand(
                     unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizAnswerId);

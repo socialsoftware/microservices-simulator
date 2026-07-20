@@ -42,13 +42,6 @@ public class UpdateStudentNameFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(sagaCommand);
         });
 
-        getExecutionStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep updateStudentNameInExecutionStep = new SagaStep("updateStudentNameInExecutionStep", () -> {
             UpdateStudentNameInExecutionCommand updateCmd = new UpdateStudentNameInExecutionCommand(
                     unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId, userId, name);

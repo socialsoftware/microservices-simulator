@@ -42,13 +42,6 @@ public class DeleteQuestionFunctionalitySagas extends WorkflowFunctionality {
             this.questionDto = (QuestionDto) commandGateway.send(sagaCommand);
         });
 
-        getQuestionStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep deleteQuestionStep = new SagaStep("deleteQuestionStep", () -> {
             DeleteQuestionCommand deleteCmd = new DeleteQuestionCommand(
                     unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);

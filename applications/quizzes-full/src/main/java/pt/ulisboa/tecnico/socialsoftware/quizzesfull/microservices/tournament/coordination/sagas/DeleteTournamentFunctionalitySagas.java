@@ -40,13 +40,6 @@ public class DeleteTournamentFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(sagaCmd);
         });
 
-        getTournamentStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentId);
-            SagaCommand release = new SagaCommand(releaseCmd);
-            release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(release);
-        }, unitOfWork);
-
         SagaStep deleteTournamentStep = new SagaStep("deleteTournamentStep", () -> {
             DeleteTournamentCommand cmd = new DeleteTournamentCommand(
                     unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentId);

@@ -42,13 +42,6 @@ public class UpdateCourseFunctionalitySagas extends WorkflowFunctionality {
             this.courseDto = (CourseDto) commandGateway.send(sagaCommand);
         });
 
-        getCourseStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(releaseCmd);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         // Service throws COURSE_FIELDS_IMMUTABLE — name and type are P1 final fields
         SagaStep updateCourseStep = new SagaStep("updateCourseStep", () -> {
             UpdateCourseCommand cmd = new UpdateCourseCommand(

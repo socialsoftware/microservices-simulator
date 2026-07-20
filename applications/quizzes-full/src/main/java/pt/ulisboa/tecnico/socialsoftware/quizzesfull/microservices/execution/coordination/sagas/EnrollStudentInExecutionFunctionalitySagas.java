@@ -49,13 +49,6 @@ public class EnrollStudentInExecutionFunctionalitySagas extends WorkflowFunction
             commandGateway.send(sagaCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
-        getExecutionStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep enrollStudentStep = new SagaStep("enrollStudentStep", () -> {
             EnrollStudentInExecutionCommand enrollCmd = new EnrollStudentInExecutionCommand(
                     unitOfWork, ServiceMapping.EXECUTION.getServiceName(),

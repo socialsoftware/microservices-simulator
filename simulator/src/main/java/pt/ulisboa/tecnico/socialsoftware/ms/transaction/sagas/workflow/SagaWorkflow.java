@@ -5,12 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 public class SagaWorkflow extends Workflow {
     public SagaWorkflow(WorkflowFunctionality functionality, UnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
@@ -54,5 +53,25 @@ public class SagaWorkflow extends Workflow {
         }
 
         return new ExecutionPlan(orderedSteps, stepsWithDependencies, this.getFunctionality());
-    } 
+    }
+
+    @Override
+    public void compensateUntilStep(String stepName, UnitOfWork unitOfWork) {
+        if (!this.aborted) {
+            throw new IllegalStateException("Cannot execute compensations because the workflow has not aborted.");
+        }
+        SagaUnitOfWork sagaUnitOfWork = (SagaUnitOfWork) unitOfWork;
+        SagaUnitOfWorkService sagaService = (SagaUnitOfWorkService) unitOfWorkService;
+        sagaService.abortUntilStep(sagaUnitOfWork, stepName);
+    }
+
+    @Override
+    public void resumeCompensation(UnitOfWork unitOfWork) {
+        if (!this.aborted) {
+            throw new IllegalStateException("Cannot execute compensations because the workflow has not aborted.");
+        }
+        SagaUnitOfWork sagaUnitOfWork = (SagaUnitOfWork) unitOfWork;
+        SagaUnitOfWorkService sagaService = (SagaUnitOfWorkService) unitOfWorkService;
+        sagaService.abort(sagaUnitOfWork);
+    }
 }

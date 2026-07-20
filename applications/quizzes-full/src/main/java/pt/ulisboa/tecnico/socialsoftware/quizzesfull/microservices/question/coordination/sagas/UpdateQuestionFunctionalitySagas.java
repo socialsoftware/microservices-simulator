@@ -51,13 +51,6 @@ public class UpdateQuestionFunctionalitySagas extends WorkflowFunctionality {
             this.questionDto = (QuestionDto) commandGateway.send(sagaCommand);
         });
 
-        getQuestionStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep getTopicsStep = new SagaStep("getTopicsStep", () -> {
             this.questionTopics = new HashSet<>();
             for (Integer topicId : topicIds) {

@@ -58,13 +58,6 @@ public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(sagaCmd);
         }, new ArrayList<>(Arrays.asList(getStudentStep)));
 
-        getTournamentStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentId);
-            SagaCommand release = new SagaCommand(releaseCmd);
-            release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(release);
-        }, unitOfWork);
-
         SagaStep addParticipantStep = new SagaStep("addParticipantStep", () -> {
             AddParticipantCommand cmd = new AddParticipantCommand(
                     unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),

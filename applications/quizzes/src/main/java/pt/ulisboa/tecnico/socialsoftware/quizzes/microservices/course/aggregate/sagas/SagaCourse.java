@@ -5,8 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericS
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.Course;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 @Entity
 public class SagaCourse extends Course implements SagaAggregate {
+    @Convert(converter = SagaStateConverter.class)
     private SagaState sagaState;
     
     public SagaCourse() {

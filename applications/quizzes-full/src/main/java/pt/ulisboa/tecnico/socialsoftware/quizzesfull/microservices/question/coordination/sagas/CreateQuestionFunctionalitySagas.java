@@ -58,13 +58,6 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
             this.courseDto = (CourseDto) commandGateway.send(sagaCommand);
         });
 
-        getCourseStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep getTopicsStep = new SagaStep("getTopicsStep", () -> {
             this.questionTopics = new HashSet<>();
             for (Integer topicId : topicIds) {

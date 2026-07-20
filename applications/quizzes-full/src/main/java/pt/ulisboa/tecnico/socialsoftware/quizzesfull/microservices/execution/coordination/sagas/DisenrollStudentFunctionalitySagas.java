@@ -40,13 +40,6 @@ public class DisenrollStudentFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(sagaCommand);
         });
 
-        getExecutionStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep disenrollStudentStep = new SagaStep("disenrollStudentStep", () -> {
             DisenrollStudentFromExecutionCommand disenrollCmd = new DisenrollStudentFromExecutionCommand(
                     unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId, userId);

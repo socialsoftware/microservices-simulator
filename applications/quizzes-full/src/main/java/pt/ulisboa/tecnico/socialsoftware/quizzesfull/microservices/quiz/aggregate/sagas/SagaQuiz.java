@@ -7,6 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregat
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizExecution;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizQuestion;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.QuizType;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -14,6 +16,7 @@ import java.util.Set;
 @Entity
 public class SagaQuiz extends Quiz implements SagaAggregate {
 
+    @Convert(converter = SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaQuiz() {

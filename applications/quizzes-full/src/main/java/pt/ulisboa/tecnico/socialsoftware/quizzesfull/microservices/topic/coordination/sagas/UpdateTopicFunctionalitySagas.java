@@ -41,13 +41,6 @@ public class UpdateTopicFunctionalitySagas extends WorkflowFunctionality {
             this.setTopic(topic);
         });
 
-        getTopicStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topic.getAggregateId());
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep updateTopicStep = new SagaStep("updateTopicStep", () -> {
             UpdateTopicCommand updateTopicCommand = new UpdateTopicCommand(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto);
             commandGateway.send(updateTopicCommand);

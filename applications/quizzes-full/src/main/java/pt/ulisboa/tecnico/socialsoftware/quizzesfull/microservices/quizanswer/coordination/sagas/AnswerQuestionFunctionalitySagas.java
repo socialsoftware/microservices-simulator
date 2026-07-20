@@ -46,13 +46,6 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(sagaCmd);
         });
 
-        getQuizAnswerStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.ANSWER.getServiceName(), quizAnswerId);
-            SagaCommand release = new SagaCommand(releaseCmd);
-            release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(release);
-        }, unitOfWork);
-
         SagaStep getQuestionStep = new SagaStep("getQuestionStep", () -> {
             GetQuestionByIdCommand getCmd = new GetQuestionByIdCommand(
                     unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionId);

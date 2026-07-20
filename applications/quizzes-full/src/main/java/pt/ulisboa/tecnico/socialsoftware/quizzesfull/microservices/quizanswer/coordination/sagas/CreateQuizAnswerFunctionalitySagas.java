@@ -48,13 +48,6 @@ public class CreateQuizAnswerFunctionalitySagas extends WorkflowFunctionality {
             this.quizDto = (QuizDto) commandGateway.send(sagaCmd);
         });
 
-        getQuizStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizId);
-            SagaCommand release = new SagaCommand(releaseCmd);
-            release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(release);
-        }, unitOfWork);
-
         SagaStep getUserStep = new SagaStep("getUserStep", () -> {
             GetUserByIdCommand getCmd = new GetUserByIdCommand(
                     unitOfWork, ServiceMapping.USER.getServiceName(), userId);
@@ -62,13 +55,6 @@ public class CreateQuizAnswerFunctionalitySagas extends WorkflowFunctionality {
             sagaCmd.setSemanticLock(UserSagaState.READ_USER);
             this.userDto = (UserDto) commandGateway.send(sagaCmd);
         }, new ArrayList<>(Arrays.asList(getQuizStep)));
-
-        getUserStep.registerCompensation(() -> {
-            Command releaseCmd = new Command(unitOfWork, ServiceMapping.USER.getServiceName(), userId);
-            SagaCommand release = new SagaCommand(releaseCmd);
-            release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(release);
-        }, unitOfWork);
 
         SagaStep createQuizAnswerStep = new SagaStep("createQuizAnswerStep", () -> {
             CreateQuizAnswerCommand cmd = new CreateQuizAnswerCommand(

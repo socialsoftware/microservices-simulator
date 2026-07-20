@@ -5,8 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.aggreg
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.shared.dtos.AuthorDto;
 import pt.ulisboa.tecnico.socialsoftware.eventdriven.microservices.author.aggregate.sagas.SagaAuthor;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 public class SagaAuthorDto extends AuthorDto {
+@Convert(converter = SagaStateConverter.class)
 private SagaState sagaState;
 
 public SagaAuthorDto(Author author) {
