@@ -1,6 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioCatalogReader
@@ -18,7 +21,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         given:
         def directory = Files.createTempDirectory('v3-workload-package')
         def paths = packagePaths(directory)
-        def result = generationResult()
+        def result = eagerGenerationResult()
 
         when:
         def manifest = writePackage(result, paths, '2026-07-20T00:00:00Z')
@@ -30,7 +33,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         Files.exists(paths.accounting)
         !Files.exists(directory.resolve('scenario-catalog.jsonl'))
         Files.readAllLines(paths.workload).size() == result.workloadPlans().size()
-        Files.readAllLines(paths.faultScenario).isEmpty()
+        Files.readAllLines(paths.faultScenario).size() == 2
 
         and:
         manifest.schemaVersion() == ScenarioCatalogManifest.SCHEMA_VERSION
@@ -39,10 +42,15 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         manifest.workloadCatalog().recordCount() == result.workloadPlans().size().toString()
         manifest.faultScenarioCatalog().schemaVersion() == ScenarioCatalogManifest.FAULT_SCENARIO_SCHEMA_VERSION
         manifest.faultScenarioCatalog().path() == paths.faultScenario.toString()
-        manifest.faultScenarioCatalog().recordCount() == '0'
+        manifest.faultScenarioCatalog().recordCount() == '2'
         manifest.scenarioSpaceAccounting().path() == paths.accounting.toString()
-        manifest.materializabilityPolicy() == 'INPUT_READINESS_AND_STRUCTURAL_ADMISSIBILITY'
+        manifest.materializabilityPolicy() == 'INPUT_READINESS_AND_STRUCTURAL_ADMISSIBILITY_RUNTIME_MATERIALIZATION_UNPROVEN'
+        manifest.recoveryScheduleCap() == 20
+        manifest.faultScenarioVectorSource() == 'EAGER_ALL_ZERO_AND_SINGLE_POINT'
         manifest.counts().workloadsExported == result.workloadPlans().size().toString()
+        manifest.counts().materializableWorkloadPlans == '1'
+        manifest.counts().computedEagerVectors == '2'
+        manifest.counts().faultScenariosExported == '2'
 
         and:
         def workloadJson = mapper.readTree(Files.readAllLines(paths.workload).first())
@@ -53,15 +61,25 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v3'
         accounting.path('workloadCatalogSpace').path('workloadPlansWritten').isTextual()
         accounting.path('workloadCatalogSpace').path('perWorkloadVectorSpace').first().path('possibleBinaryVectors').asText() == '2'
-        accounting.path('faultScenarioCatalogSpace').path('faultScenariosWritten').asText() == '0'
+        accounting.path('workloadCatalogSpace').path('perWorkloadVectorSpace').first().path('eagerVectorCount').asText() == '2'
+        accounting.path('faultScenarioCatalogSpace').path('faultScenariosWritten').asText() == '2'
+        accounting.path('faultScenarioCatalogSpace').path('computedEagerVectorCount').asText() == '2'
+        accounting.path('faultScenarioCatalogSpace').path('exactComputedVectorUncappedScheduleSum').asText() == '2'
+        accounting.path('faultScenarioCatalogSpace').path('allVectorRecoveryTotalStatus').asText() == 'NOT_COMPUTED'
+
+        and:
+        def faultScenarios = Files.readAllLines(paths.faultScenario).collect { mapper.readTree(it) }
+        faultScenarios*.path('assignedVector')*.asText() == ['0', '1']
+        faultScenarios.find { it.path('assignedVector').asText() == '0' }
+                .path('actions').every { it.path('kind').asText() == 'FORWARD' }
     }
 
     def 'fixed timestamp and semantic inputs produce byte-stable package output'() {
         given:
         def directory = Files.createTempDirectory('v3-byte-stable')
         def paths = packagePaths(directory)
-        def firstResult = generationResult()
-        def secondResult = generationResult()
+        def firstResult = eagerGenerationResult()
+        def secondResult = eagerGenerationResult()
 
         when:
         writePackage(firstResult, paths, '2026-07-20T00:00:00Z')
@@ -78,7 +96,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         given:
         def directory = Files.createTempDirectory('v3-package-reader')
         def paths = packagePaths(directory)
-        def result = generationResult()
+        def result = eagerGenerationResult()
         writePackage(result, paths, '2026-07-20T00:00:00Z')
         def reader = new ScenarioCatalogPackageReader()
 
@@ -107,12 +125,97 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         danglingFailure.message.contains('references missing WorkloadPlan missing')
     }
 
+    def 'writer rejects an invalid eager package before creating any artifact'() {
+        given:
+        def directory = Files.createTempDirectory('v3-invalid-package')
+        def paths = packagePaths(directory.resolve('not-created'))
+        def valid = eagerGenerationResult()
+        def scenario = valid.faultScenarios().first()
+        def invalidScenario = new FaultScenario(
+                scenario.schemaVersion(),
+                scenario.deterministicId(),
+                'missing-workload',
+                scenario.assignedVector(),
+                scenario.actions())
+        def invalid = new EagerFaultScenarioGenerationResult(
+                valid.workloadGenerationResult(),
+                valid.recoveryScheduleCap(),
+                [invalidScenario],
+                valid.workloadMaterializability(),
+                valid.computedVectors())
+
+        when:
+        writePackage(invalid, paths, '2026-07-20T00:00:00Z')
+
+        then:
+        thrown(IllegalArgumentException)
+        snapshotExisting(paths).isEmpty()
+    }
+
+    def 'writer rejects replacement of a required single-point vector with a valid multi-fault vector before artifact creation'() {
+        given:
+        def directory = Files.createTempDirectory('v3-invalid-eager-vector-set')
+        def paths = packagePaths(directory.resolve('not-created'))
+        def workloads = generationResult(1L, 'integer', true)
+        def valid = EagerFaultScenarioGenerator.generate(workloads, RecoveryScheduleCap.defaultCap())
+        def plan = valid.workloadPlans().first()
+        def multiFault = RecoveryScheduleGenerator.generate(plan, '11', valid.recoveryScheduleCap())
+        def replacement = new ComputedVectorRecovery(
+                plan.deterministicId(),
+                '11',
+                FaultScenarioVectorSource.EAGER_SINGLE_POINT,
+                multiFault.uncappedScheduleCount(),
+                multiFault.writtenScheduleCount())
+        def invalid = new EagerFaultScenarioGenerationResult(
+                valid.workloadGenerationResult(),
+                valid.recoveryScheduleCap(),
+                valid.faultScenarios().findAll { it.assignedVector() != '01' } + multiFault.faultScenarios(),
+                valid.workloadMaterializability(),
+                valid.computedVectors().findAll { it.assignedVector() != '01' } + replacement)
+
+        when:
+        writePackage(invalid, paths, '2026-07-20T00:00:00Z')
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('Eager vector coverage')
+        snapshotExisting(paths).isEmpty()
+    }
+
+    def 'writer requires exact one-over-one accounting for the eager all-zero vector before artifact creation'() {
+        given:
+        def directory = Files.createTempDirectory('v3-invalid-all-zero-count')
+        def paths = packagePaths(directory.resolve('not-created'))
+        def valid = eagerGenerationResult()
+        def allZero = valid.computedVectors().find { it.vectorSource() == FaultScenarioVectorSource.EAGER_ALL_ZERO }
+        def invalidAllZero = new ComputedVectorRecovery(
+                allZero.workloadPlanId(),
+                allZero.assignedVector(),
+                allZero.vectorSource(),
+                BigInteger.TWO,
+                1)
+        def invalid = new EagerFaultScenarioGenerationResult(
+                valid.workloadGenerationResult(),
+                valid.recoveryScheduleCap(),
+                valid.faultScenarios(),
+                valid.workloadMaterializability(),
+                valid.computedVectors().collect { it == allZero ? invalidAllZero : it })
+
+        when:
+        writePackage(invalid, paths, '2026-07-20T00:00:00Z')
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('all-zero vector must have exact uncapped/written counts 1/1')
+        snapshotExisting(paths).isEmpty()
+    }
+
     def 'v3 writer and reader preserve a high precision decimal input recipe exactly'() {
         given:
         def decimal = new BigDecimal('12345678901234567890.12345678901234567890')
         def directory = Files.createTempDirectory('v3-high-precision-decimal')
         def paths = packagePaths(directory)
-        def result = generationResult(decimal, 'decimal')
+        def result = eagerGenerationResult(decimal, 'decimal')
         writePackage(result, paths, '2026-07-20T00:00:00Z')
 
         when:
@@ -131,7 +234,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         given:
         def directory = Files.createTempDirectory('v3-stale-recipe')
         def paths = packagePaths(directory)
-        writePackage(generationResult(), paths, '2026-07-20T00:00:00Z')
+        writePackage(eagerGenerationResult(), paths, '2026-07-20T00:00:00Z')
         def workload = mapper.readTree(Files.readAllLines(paths.workload).first())
         workload.path('acceptedInputs').first()
                 .path('inputRecipe').path('arguments').first().path('recipe')
@@ -150,7 +253,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         given:
         def directory = Files.createTempDirectory('v3-reader-boundary')
         def paths = packagePaths(directory)
-        def result = generationResult()
+        def result = eagerGenerationResult()
         writePackage(result, paths, '2026-07-20T00:00:00Z')
         def workload = mapper.readTree(Files.readAllLines(paths.workload).first())
         workload.path('forwardSchedule').first().put('sagaInstanceId', 'missing-participant')
@@ -194,6 +297,11 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         ]
     }
 
+    private static Map<String, String> snapshotExisting(Map paths) {
+        paths.findAll { key, path -> Files.exists(path) }
+                .collectEntries { key, path -> [(key): Files.readString(path)] }
+    }
+
     private static Map packagePaths(java.nio.file.Path directory) {
         [
                 workload    : directory.resolve('workload-catalog.jsonl'),
@@ -204,7 +312,13 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         ]
     }
 
-    private static def generationResult(Object recipeValue = 1L, String literalKind = 'integer') {
+    private static def eagerGenerationResult(Object recipeValue = 1L, String literalKind = 'integer') {
+        EagerFaultScenarioGenerator.generate(generationResult(recipeValue, literalKind), RecoveryScheduleCap.defaultCap())
+    }
+
+    private static def generationResult(Object recipeValue = 1L,
+                                        String literalKind = 'integer',
+                                        boolean twoSlots = false) {
         def footprint = new StepFootprint(
                 new AggregateKey('example.Order', 'Order', 'order-1', FootprintConfidence.EXACT),
                 AccessMode.WRITE,
@@ -223,7 +337,18 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
                 CompensationEvidenceClass.EXPLICIT_COMPENSATION,
                 [],
                 [])
-        def saga = new SagaDefinition('example.OrderSaga', [step], [])
+        def steps = [step]
+        if (twoSlots) {
+            steps.add(new StepDefinition(
+                    'example.OrderSaga::confirm',
+                    'example.OrderSaga::confirm',
+                    'confirm',
+                    1,
+                    [step.stepKey()],
+                    [],
+                    []))
+        }
+        def saga = new SagaDefinition('example.OrderSaga', steps, [])
         def recipeType = recipeValue.getClass().name
         def recipeNode = InputRecipeNode.builder('literal')
                 .sourceText(recipeValue.toString())

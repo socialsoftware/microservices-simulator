@@ -13,6 +13,9 @@ public record ScenarioCatalogManifest(
         ScenarioGeneratorConfig effectiveConfig,
         String generationSource,
         String materializabilityPolicy,
+        int recoveryScheduleCap,
+        String faultScenarioVectorSource,
+        List<WorkloadMaterializability> workloadMaterializability,
         Map<String, String> counts,
         List<String> warnings,
         ArtifactMetadata workloadCatalog,
@@ -32,6 +35,11 @@ public record ScenarioCatalogManifest(
         effectiveConfig = effectiveConfig == null ? new ScenarioGeneratorConfig() : effectiveConfig;
         generationSource = normalize(generationSource);
         materializabilityPolicy = normalize(materializabilityPolicy);
+        if (recoveryScheduleCap <= 0) {
+            throw new IllegalArgumentException("recovery schedule cap must be a positive integer");
+        }
+        faultScenarioVectorSource = normalize(faultScenarioVectorSource);
+        workloadMaterializability = workloadMaterializability == null ? List.of() : List.copyOf(workloadMaterializability);
         counts = orderedMap(counts);
         warnings = warnings == null ? List.of() : List.copyOf(warnings);
         inputVariantsBySourceMode = orderedMap(inputVariantsBySourceMode);

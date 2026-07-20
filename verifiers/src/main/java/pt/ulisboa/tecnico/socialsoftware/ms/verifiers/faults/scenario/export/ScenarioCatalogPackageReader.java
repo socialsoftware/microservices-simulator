@@ -3,8 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.FaultScenarioValidator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.WorkloadPlanValidator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenario;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioCatalogManifest;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 
@@ -52,7 +54,7 @@ public final class ScenarioCatalogPackageReader {
         Path accountingPath = resolveArtifact(safeManifestPath, manifest.scenarioSpaceAccounting().path());
         Path rejectedInputsPath = resolveArtifact(safeManifestPath, manifest.rejectedInputsDiagnostic().path());
         List<WorkloadPlan> workloads = readWorkloads(workloadPath);
-        List<JsonNode> faultScenarios = readFaultScenarios(faultScenarioPath, workloads);
+        List<FaultScenario> faultScenarios = readFaultScenarios(faultScenarioPath, workloads);
         List<JsonNode> rejectedInputDiagnostics = readRejectedInputDiagnostics(
                 rejectedInputsPath, manifest.rejectedInputsDiagnostic().schemaVersion());
         JsonNode accounting = readJson(accountingPath, "scenario-space accounting");
@@ -99,10 +101,11 @@ public final class ScenarioCatalogPackageReader {
         return List.copyOf(workloads);
     }
 
-    private List<JsonNode> readFaultScenarios(Path path, List<WorkloadPlan> workloads) {
-        Set<String> workloadIds = new HashSet<>();
-        workloads.forEach(workload -> workloadIds.add(workload.deterministicId()));
-        List<JsonNode> records = new ArrayList<>();
+    private List<FaultScenario> readFaultScenarios(Path path, List<WorkloadPlan> workloads) {
+        java.util.Map<String, WorkloadPlan> workloadsById = new java.util.LinkedHashMap<>();
+        workloads.forEach(workload -> workloadsById.put(workload.deterministicId(), workload));
+        List<FaultScenario> records = new ArrayList<>();
+        FaultScenarioValidator validator = new FaultScenarioValidator();
         Set<String> ids = new HashSet<>();
         List<String> lines = readLines(path, "fault-scenario catalog");
         for (int index = 0; index < lines.size(); index++) {
@@ -115,15 +118,21 @@ public final class ScenarioCatalogPackageReader {
             if (!ScenarioCatalogManifest.FAULT_SCENARIO_SCHEMA_VERSION.equals(schema)) {
                 throw unsupportedSchema(schema);
             }
-            String id = text(node, "deterministicId");
-            String workloadPlanId = text(node, "workloadPlanId");
+            FaultScenario scenario = treeToValue(node, FaultScenario.class,
+                    "fault-scenario record " + path + ":" + (index + 1));
+            String id = scenario.deterministicId();
             if (id == null || !ids.add(id)) {
                 throw new IllegalArgumentException("FaultScenario has missing or duplicate deterministicId at " + path + ":" + (index + 1));
             }
-            if (!workloadIds.contains(workloadPlanId)) {
-                throw new IllegalArgumentException("FaultScenario " + id + " references missing WorkloadPlan " + workloadPlanId);
+            WorkloadPlan workload = workloadsById.get(scenario.workloadPlanId());
+            if (workload == null) {
+                throw new IllegalArgumentException("FaultScenario " + id + " references missing WorkloadPlan " + scenario.workloadPlanId());
             }
-            records.add(node);
+            FaultScenarioValidator.ValidationResult validation = validator.validate(scenario, workload);
+            if (!validation.valid()) {
+                throw new IllegalArgumentException("Invalid FaultScenario " + id + ": " + validation.diagnostics());
+            }
+            records.add(scenario);
         }
         return List.copyOf(records);
     }
@@ -242,7 +251,7 @@ public final class ScenarioCatalogPackageReader {
     public record PackageContents(
             ScenarioCatalogManifest manifest,
             List<WorkloadPlan> workloadPlans,
-            List<JsonNode> faultScenarios,
+            List<FaultScenario> faultScenarios,
             List<JsonNode> rejectedInputDiagnostics,
             JsonNode accounting,
             Path workloadCatalogPath,

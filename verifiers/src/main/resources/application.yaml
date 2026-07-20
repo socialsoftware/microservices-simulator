@@ -22,6 +22,7 @@ verifiers:
     max-catalog-scenarios: 100
     max-input-variants-per-saga: 3
     max-schedules-per-input-tuple: 20
+    recovery-schedule-cap: 20
     allow-type-only-fallback: false
     input-policy: RESOLVED_OR_REPLAYABLE
     schedule-strategy: SERIAL

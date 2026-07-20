@@ -177,6 +177,31 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         ]
     }
 
+    def 'recovery schedule cap rejects non-positive or malformed values before output mutation'() {
+        given:
+        def applicationsRoot = tempDir.resolve("applications-recovery-cap-${configuredValue}")
+        def outputRoot = tempDir.resolve("verifier-output-recovery-cap-${configuredValue}")
+        def applicationBaseDir = 'dummyapp'
+        Files.createDirectories(applicationsRoot.resolve(applicationBaseDir))
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}",
+                "--verifiers.scenario-catalog.recovery-schedule-cap=${configuredValue}"
+        )
+
+        then:
+        def error = thrown(Exception)
+        rootCause(error).message.contains('recovery schedule cap must be a positive integer')
+        !Files.exists(outputRoot)
+
+        where:
+        configuredValue << ['0', '-1', 'not-an-integer']
+    }
+
     def 'Groovy tracing runs after Java saga discovery and report includes Groovy traces'() {
         given:
         def applicationsRoot = tempDir.resolve('applications')
@@ -616,7 +641,8 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
                 "--verifiers.scenario-catalog.rejected-inputs-path=${rejectedRelativePath}",
                 "--verifiers.scenario-catalog.accounting-path=${accountingRelativePath}",
                 '--verifiers.scenario-catalog.generation-strategy=BRUTE_FORCE',
-                '--verifiers.scenario-catalog.catalog-write-mode=WRITE_WORKLOADS'
+                '--verifiers.scenario-catalog.catalog-write-mode=WRITE_WORKLOADS',
+                '--verifiers.scenario-catalog.recovery-schedule-cap=3'
         )
 
         then:
@@ -631,7 +657,8 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         def accountingPath = runDirectory.resolve(accountingRelativePath)
         Files.exists(workloadPath)
         Files.exists(faultScenarioPath)
-        Files.readAllLines(faultScenarioPath).isEmpty()
+        def faultScenarioLines = Files.readAllLines(faultScenarioPath)
+        faultScenarioLines.size() == 14
         !Files.exists(runDirectory.resolve('scenario-catalog.jsonl'))
         Files.exists(manifestPath)
         Files.exists(rejectedPath)
@@ -678,7 +705,14 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         manifest.path('workloadCatalog').path('path').asText() == workloadPath.toString()
         manifest.path('workloadCatalog').path('schemaVersion').asText() == 'microservices-simulator.workload-plan.v3'
         manifest.path('faultScenarioCatalog').path('path').asText() == faultScenarioPath.toString()
-        manifest.path('faultScenarioCatalog').path('recordCount').asText() == '0'
+        manifest.path('faultScenarioCatalog').path('recordCount').asText() == faultScenarioLines.size().toString()
+        manifest.path('recoveryScheduleCap').asInt() == 3
+        manifest.path('faultScenarioVectorSource').asText() == 'EAGER_ALL_ZERO_AND_SINGLE_POINT'
+        manifest.path('materializabilityPolicy').asText().contains('RUNTIME_MATERIALIZATION_UNPROVEN')
+        manifest.path('counts').path('materializableWorkloadPlans').asText() == '6'
+        manifest.path('counts').path('nonMaterializableWorkloadPlans').asText() == '2'
+        manifest.path('counts').path('computedEagerVectors').asText() == '14'
+        manifest.path('counts').path('faultScenariosExported').asText() == faultScenarioLines.size().toString()
         manifest.path('rejectedInputsDiagnostic').path('path').asText() == rejectedPath.toString()
         manifest.path('scenarioSpaceAccounting').path('path').asText() == accountingPath.toString()
         manifest.has('catalogArchivePath') == false
@@ -712,6 +746,11 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         accounting.path('runConfig').path('sourceModeHandling').asText().contains('TCC and MIXED rejected')
         accounting.path('inputBoundScenarioSpace').path('allInputBound').path('total').isTextual()
         accounting.path('inputBoundScenarioSpace').path('catalogWritten').path('total').asText() == lines.size().toString()
+        accounting.path('workloadCatalogSpace').path('materializableWorkloadPlans').asText() == '6'
+        accounting.path('workloadCatalogSpace').path('nonMaterializableWorkloadPlans').asText() == '2'
+        accounting.path('faultScenarioCatalogSpace').path('computedEagerVectorCount').asText() == '14'
+        accounting.path('faultScenarioCatalogSpace').path('faultScenariosWritten').asText() == faultScenarioLines.size().toString()
+        accounting.path('faultScenarioCatalogSpace').path('allVectorRecoveryTotalStatus').asText() == 'NOT_COMPUTED'
 
         and:
         findTimestampedSiblingReports(workloadPath).isEmpty()
@@ -779,6 +818,10 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         accounting.path('inputBoundScenarioSpace').path('allInputBound').path('total').asText() != '0'
         accounting.path('inputBoundScenarioSpace').path('selectedByGenerator').path('total').asText() ==
                 accounting.path('inputBoundScenarioSpace').path('allInputBound').path('total').asText()
+        accounting.path('workloadCatalogSpace').path('workloadPlansWritten').asText() == '0'
+        accounting.path('faultScenarioCatalogSpace').path('computedEagerVectorCount').asText() == '0'
+        accounting.path('faultScenarioCatalogSpace').path('faultScenariosWritten').asText() == '0'
+        accounting.path('faultScenarioCatalogSpace').path('allVectorRecoveryTotalStatus').asText() == 'NOT_COMPUTED'
 
         cleanup:
         context?.close()

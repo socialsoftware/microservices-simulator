@@ -24,7 +24,7 @@ public record RecoveryScheduleCap(int value) {
         try {
             return new RecoveryScheduleCap(Integer.parseInt(configuredValue.trim()));
         } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("recovery schedule cap must be a positive integer", exception);
+            throw new IllegalArgumentException("recovery schedule cap must be a positive integer");
         }
     }
 }

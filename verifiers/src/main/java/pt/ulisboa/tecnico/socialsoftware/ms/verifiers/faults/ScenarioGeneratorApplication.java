@@ -18,6 +18,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnri
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentOrchestrator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentTestClassDiscoveryService;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.report.AnalysisHtmlReportRenderer;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapter;
@@ -71,6 +73,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
     private final int scenarioCatalogMaxCatalogScenarios;
     private final int scenarioCatalogMaxInputVariantsPerSaga;
     private final int scenarioCatalogMaxSchedulesPerInputTuple;
+    private final RecoveryScheduleCap scenarioCatalogRecoveryScheduleCap;
     private final boolean scenarioCatalogAllowTypeOnlyFallback;
     private final String scenarioCatalogInputPolicy;
     private final String scenarioCatalogScheduleStrategy;
@@ -100,6 +103,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             @Value("${verifiers.scenario-catalog.max-catalog-scenarios:100}") int scenarioCatalogMaxCatalogScenarios,
             @Value("${verifiers.scenario-catalog.max-input-variants-per-saga:3}") int scenarioCatalogMaxInputVariantsPerSaga,
             @Value("${verifiers.scenario-catalog.max-schedules-per-input-tuple:20}") int scenarioCatalogMaxSchedulesPerInputTuple,
+            @Value("${verifiers.scenario-catalog.recovery-schedule-cap:20}") String scenarioCatalogRecoveryScheduleCap,
             @Value("${verifiers.scenario-catalog.allow-type-only-fallback:false}") boolean scenarioCatalogAllowTypeOnlyFallback,
             @Value("${verifiers.scenario-catalog.input-policy:RESOLVED_OR_REPLAYABLE}") String scenarioCatalogInputPolicy,
             @Value("${verifiers.scenario-catalog.schedule-strategy:SERIAL}") String scenarioCatalogScheduleStrategy,
@@ -135,6 +139,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         this.scenarioCatalogMaxCatalogScenarios = scenarioCatalogMaxCatalogScenarios;
         this.scenarioCatalogMaxInputVariantsPerSaga = scenarioCatalogMaxInputVariantsPerSaga;
         this.scenarioCatalogMaxSchedulesPerInputTuple = scenarioCatalogMaxSchedulesPerInputTuple;
+        this.scenarioCatalogRecoveryScheduleCap = RecoveryScheduleCap.parse(scenarioCatalogRecoveryScheduleCap);
         this.scenarioCatalogAllowTypeOnlyFallback = scenarioCatalogAllowTypeOnlyFallback;
         this.scenarioCatalogInputPolicy = Objects.requireNonNull(scenarioCatalogInputPolicy, "scenarioCatalogInputPolicy cannot be null");
         this.scenarioCatalogScheduleStrategy = Objects.requireNonNull(scenarioCatalogScheduleStrategy, "scenarioCatalogScheduleStrategy cannot be null");
@@ -358,6 +363,9 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 generationResult.rejectedInputVariants(),
                 mergeCounts(adapterResult.counts(), generationResult.counts()),
                 mergeWarnings(adapterResult.diagnostics(), generationResult.warnings()));
+        var eagerGenerationResult = EagerFaultScenarioGenerator.generate(
+                exportResult,
+                scenarioCatalogRecoveryScheduleCap);
 
         Path workloadOutputPath = resolveWorkloadCatalogPath();
         Path faultScenarioOutputPath = resolveFaultScenarioCatalogPath();
@@ -374,7 +382,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 exportResult.effectiveConfig(),
                 workloadsWritten);
         var manifest = new ScenarioCatalogJsonlWriter().write(
-                exportResult,
+                eagerGenerationResult,
                 workloadOutputPath,
                 faultScenarioOutputPath,
                 manifestOutputPath,

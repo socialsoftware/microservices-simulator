@@ -1,26 +1,35 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.FaultScenarioValidator;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.WorkloadPlanValidator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingWriter;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ComputedVectorRecovery;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EagerFaultScenarioGenerationResult;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenario;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioVectorSource;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.RejectedInputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioCatalogManifest;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadMaterializability;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class ScenarioCatalogJsonlWriter {
@@ -31,7 +40,7 @@ public final class ScenarioCatalogJsonlWriter {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    public ScenarioCatalogManifest write(WorkloadGenerationResult result,
+    public ScenarioCatalogManifest write(EagerFaultScenarioGenerationResult result,
                                          Path workloadCatalogPath,
                                          Path manifestPath,
                                          String generatedAt) throws IOException {
@@ -48,7 +57,7 @@ public final class ScenarioCatalogJsonlWriter {
                 generatedAt);
     }
 
-    public ScenarioCatalogManifest write(WorkloadGenerationResult result,
+    public ScenarioCatalogManifest write(EagerFaultScenarioGenerationResult result,
                                          Path workloadCatalogPath,
                                          Path manifestPath,
                                          Path rejectedInputsPath,
@@ -66,7 +75,7 @@ public final class ScenarioCatalogJsonlWriter {
                 generatedAt);
     }
 
-    public ScenarioCatalogManifest write(WorkloadGenerationResult result,
+    public ScenarioCatalogManifest write(EagerFaultScenarioGenerationResult result,
                                          Path workloadCatalogPath,
                                          Path faultScenarioCatalogPath,
                                          Path manifestPath,
@@ -74,13 +83,14 @@ public final class ScenarioCatalogJsonlWriter {
                                          Path accountingPath,
                                          ScenarioSpaceAccountingReport accountingReport,
                                          String generatedAt) throws IOException {
-        WorkloadGenerationResult safeResult = Objects.requireNonNull(result, "result");
+        EagerFaultScenarioGenerationResult safeResult = Objects.requireNonNull(result, "result");
         Path safeWorkloadPath = Objects.requireNonNull(workloadCatalogPath, "workloadCatalogPath");
         Path safeFaultScenarioPath = Objects.requireNonNull(faultScenarioCatalogPath, "faultScenarioCatalogPath");
         Path safeManifestPath = Objects.requireNonNull(manifestPath, "manifestPath");
         Path safeRejectedInputsPath = Objects.requireNonNull(rejectedInputsPath, "rejectedInputsPath");
         Path safeAccountingPath = Objects.requireNonNull(accountingPath, "accountingPath");
         String safeGeneratedAt = requireGeneratedAt(generatedAt);
+        validateGenerationResult(safeResult);
 
         createParentDirectories(safeWorkloadPath);
         createParentDirectories(safeFaultScenarioPath);
@@ -89,13 +99,12 @@ public final class ScenarioCatalogJsonlWriter {
         createParentDirectories(safeAccountingPath);
 
         int workloadsExported = writeWorkloads(safeResult, safeWorkloadPath);
-        int faultScenariosExported = writeEmptyFaultScenarios(safeFaultScenarioPath);
+        int faultScenariosExported = writeFaultScenarios(safeResult, safeFaultScenarioPath);
         int rejectedInputsExported = writeRejectedInputs(safeResult.rejectedInputVariants(), safeRejectedInputsPath);
         ScenarioSpaceAccountingReport baseAccounting = accountingReport == null
                 ? ScenarioSpaceAccountingReport.placeholder("unknown", safeResult.effectiveConfig(), workloadsExported)
                 : accountingReport;
-        ScenarioSpaceAccountingReport packageAccounting = baseAccounting.withCatalogPackage(
-                safeResult.workloadPlans(), Integer.toString(faultScenariosExported));
+        ScenarioSpaceAccountingReport packageAccounting = baseAccounting.withCatalogPackage(safeResult);
         new ScenarioSpaceAccountingWriter().write(packageAccounting, safeAccountingPath);
 
         ScenarioCatalogManifest manifest = buildManifest(
@@ -113,7 +122,7 @@ public final class ScenarioCatalogJsonlWriter {
         return manifest;
     }
 
-    private static int writeWorkloads(WorkloadGenerationResult result, Path workloadPath) throws IOException {
+    private static int writeWorkloads(EagerFaultScenarioGenerationResult result, Path workloadPath) throws IOException {
         List<WorkloadPlan> workloads = result.workloadPlans().stream()
                 .sorted(Comparator.comparing(WorkloadPlan::kind)
                         .thenComparing(WorkloadPlan::deterministicId, Comparator.nullsFirst(String::compareTo)))
@@ -132,15 +141,25 @@ public final class ScenarioCatalogJsonlWriter {
         return workloads.size();
     }
 
-    private static int writeEmptyFaultScenarios(Path faultScenarioPath) throws IOException {
-        Files.writeString(
+    private static int writeFaultScenarios(EagerFaultScenarioGenerationResult result,
+                                           Path faultScenarioPath) throws IOException {
+        List<FaultScenario> scenarios = result.faultScenarios().stream()
+                .sorted(Comparator.comparing(FaultScenario::workloadPlanId, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(FaultScenario::assignedVector, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(FaultScenario::deterministicId, Comparator.nullsFirst(String::compareTo)))
+                .toList();
+        try (BufferedWriter writer = Files.newBufferedWriter(
                 faultScenarioPath,
-                "",
                 StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING,
-                StandardOpenOption.WRITE);
-        return 0;
+                StandardOpenOption.WRITE)) {
+            for (FaultScenario scenario : scenarios) {
+                writer.write(OBJECT_MAPPER.writeValueAsString(Objects.requireNonNull(scenario, "faultScenario")));
+                writer.write('\n');
+            }
+        }
+        return scenarios.size();
     }
 
     private static int writeRejectedInputs(List<RejectedInputVariant> rejectedInputVariants,
@@ -168,7 +187,97 @@ public final class ScenarioCatalogJsonlWriter {
                 rejected.warnings());
     }
 
-    private static ScenarioCatalogManifest buildManifest(WorkloadGenerationResult result,
+    private static void validateGenerationResult(EagerFaultScenarioGenerationResult result) {
+        Map<String, WorkloadPlan> workloadsById = new LinkedHashMap<>();
+        WorkloadPlanValidator workloadValidator = new WorkloadPlanValidator();
+        for (WorkloadPlan workload : result.workloadPlans()) {
+            WorkloadPlanValidator.ValidationResult validation = workloadValidator.validate(workload);
+            if (!validation.valid()) {
+                throw new IllegalArgumentException("Invalid WorkloadPlan before package publication: " + validation.diagnostics());
+            }
+            if (workloadsById.putIfAbsent(workload.deterministicId(), workload) != null) {
+                throw new IllegalArgumentException("Duplicate WorkloadPlan id " + workload.deterministicId());
+            }
+        }
+
+        Map<String, WorkloadMaterializability> materializabilityById = new LinkedHashMap<>();
+        for (WorkloadMaterializability materializability : result.workloadMaterializability()) {
+            if (!workloadsById.containsKey(materializability.workloadPlanId())
+                    || materializabilityById.putIfAbsent(materializability.workloadPlanId(), materializability) != null) {
+                throw new IllegalArgumentException("Invalid workload materializability diagnostic for "
+                        + materializability.workloadPlanId());
+            }
+        }
+        if (!materializabilityById.keySet().equals(workloadsById.keySet())) {
+            throw new IllegalArgumentException("Every WorkloadPlan requires exactly one materializability diagnostic");
+        }
+
+        Map<String, FaultScenarioVectorSource> computedVectorSources = new LinkedHashMap<>();
+        Map<String, Integer> writtenByVector = new LinkedHashMap<>();
+        for (ComputedVectorRecovery vector : result.computedVectors()) {
+            WorkloadMaterializability materializability = materializabilityById.get(vector.workloadPlanId());
+            String key = vector.workloadPlanId() + "\u0000" + vector.assignedVector();
+            if (materializability == null || !materializability.materializable()
+                    || computedVectorSources.putIfAbsent(key, vector.vectorSource()) != null) {
+                throw new IllegalArgumentException("Invalid or duplicate computed vector " + key);
+            }
+            if (vector.vectorSource() == null
+                    || vector.writtenScheduleCount() <= 0
+                    || vector.writtenScheduleCount() > result.recoveryScheduleCap()
+                    || vector.uncappedScheduleCount().compareTo(BigInteger.valueOf(vector.writtenScheduleCount())) < 0) {
+                throw new IllegalArgumentException("Invalid computed recovery counts for " + key);
+            }
+            if (vector.vectorSource() == FaultScenarioVectorSource.EAGER_ALL_ZERO
+                    && (!BigInteger.ONE.equals(vector.uncappedScheduleCount()) || vector.writtenScheduleCount() != 1)) {
+                throw new IllegalArgumentException("Eager all-zero vector must have exact uncapped/written counts 1/1 for " + key);
+            }
+            writtenByVector.put(key, vector.writtenScheduleCount());
+        }
+
+        Map<String, Integer> actualByVector = new LinkedHashMap<>();
+        Set<String> faultScenarioIds = new HashSet<>();
+        FaultScenarioValidator faultScenarioValidator = new FaultScenarioValidator();
+        for (FaultScenario scenario : result.faultScenarios()) {
+            WorkloadPlan workload = workloadsById.get(scenario.workloadPlanId());
+            FaultScenarioValidator.ValidationResult validation = faultScenarioValidator.validate(scenario, workload);
+            if (!validation.valid()) {
+                throw new IllegalArgumentException("Invalid FaultScenario before package publication: " + validation.diagnostics());
+            }
+            if (!faultScenarioIds.add(scenario.deterministicId())) {
+                throw new IllegalArgumentException("Duplicate FaultScenario id " + scenario.deterministicId());
+            }
+            actualByVector.merge(scenario.workloadPlanId() + "\u0000" + scenario.assignedVector(), 1, Integer::sum);
+        }
+        if (!actualByVector.equals(writtenByVector)) {
+            throw new IllegalArgumentException("Computed vector accounting does not match FaultScenario records");
+        }
+
+        Map<String, FaultScenarioVectorSource> expectedVectorSources = new LinkedHashMap<>();
+        for (WorkloadPlan workload : result.workloadPlans()) {
+            WorkloadMaterializability materializability = materializabilityById.get(workload.deterministicId());
+            if (!materializability.materializable()) {
+                continue;
+            }
+            int slotCount = workload.faultSlots().size();
+            String allZero = "0".repeat(slotCount);
+            expectedVectorSources.put(
+                    workload.deterministicId() + "\u0000" + allZero,
+                    FaultScenarioVectorSource.EAGER_ALL_ZERO);
+            for (int slotIndex = 0; slotIndex < slotCount; slotIndex++) {
+                char[] singlePoint = allZero.toCharArray();
+                singlePoint[slotIndex] = '1';
+                expectedVectorSources.put(
+                        workload.deterministicId() + "\u0000" + new String(singlePoint),
+                        FaultScenarioVectorSource.EAGER_SINGLE_POINT);
+            }
+        }
+        if (!computedVectorSources.equals(expectedVectorSources)) {
+            throw new IllegalArgumentException("Eager vector coverage mismatch: expected "
+                    + expectedVectorSources + " but found " + computedVectorSources);
+        }
+    }
+
+    private static ScenarioCatalogManifest buildManifest(EagerFaultScenarioGenerationResult result,
                                                           Path workloadPath,
                                                           Path faultScenarioPath,
                                                           Path manifestPath,
@@ -179,7 +288,21 @@ public final class ScenarioCatalogJsonlWriter {
                                                           int faultScenariosExported,
                                                           int rejectedInputsExported) {
         LinkedHashMap<String, String> counts = decimalCounts(result.counts());
+        long materializableWorkloads = result.workloadMaterializability().stream()
+                .filter(WorkloadMaterializability::materializable)
+                .count();
+        BigInteger uncappedSum = result.computedVectors().stream()
+                .map(ComputedVectorRecovery::uncappedScheduleCount)
+                .reduce(BigInteger.ZERO, BigInteger::add);
+        BigInteger writtenSum = result.computedVectors().stream()
+                .map(vector -> BigInteger.valueOf(vector.writtenScheduleCount()))
+                .reduce(BigInteger.ZERO, BigInteger::add);
         counts.put("workloadsExported", Integer.toString(workloadsExported));
+        counts.put("materializableWorkloadPlans", Long.toString(materializableWorkloads));
+        counts.put("nonMaterializableWorkloadPlans", Long.toString(workloadsExported - materializableWorkloads));
+        counts.put("computedEagerVectors", Integer.toString(result.computedVectors().size()));
+        counts.put("computedVectorUncappedScheduleSum", uncappedSum.toString());
+        counts.put("computedVectorWrittenScheduleSum", writtenSum.toString());
         counts.put("faultScenariosExported", Integer.toString(faultScenariosExported));
         counts.put("rejectedInputsExported", Integer.toString(rejectedInputsExported));
         return new ScenarioCatalogManifest(
@@ -187,7 +310,10 @@ public final class ScenarioCatalogJsonlWriter {
                 generatedAt,
                 result.effectiveConfig(),
                 "STATIC_ANALYSIS",
-                "INPUT_READINESS_AND_STRUCTURAL_ADMISSIBILITY",
+                "INPUT_READINESS_AND_STRUCTURAL_ADMISSIBILITY_RUNTIME_MATERIALIZATION_UNPROVEN",
+                result.recoveryScheduleCap(),
+                "EAGER_ALL_ZERO_AND_SINGLE_POINT",
+                result.workloadMaterializability(),
                 counts,
                 result.warnings(),
                 artifact("WORKLOAD_CATALOG", WorkloadPlan.SCHEMA_VERSION, workloadPath, workloadsExported),
@@ -206,7 +332,7 @@ public final class ScenarioCatalogJsonlWriter {
         return new ScenarioCatalogManifest.ArtifactMetadata(kind, schema, path.toString(), Integer.toString(count));
     }
 
-    private static LinkedHashMap<String, Integer> inputVariantsBySourceMode(WorkloadGenerationResult result) {
+    private static LinkedHashMap<String, Integer> inputVariantsBySourceMode(EagerFaultScenarioGenerationResult result) {
         LinkedHashMap<String, InputVariant> uniqueInputs = acceptedInputsById(result);
         result.rejectedInputVariants().forEach(rejected -> {
             InputVariant input = rejected.inputVariant();
@@ -217,11 +343,11 @@ public final class ScenarioCatalogJsonlWriter {
         return countBySourceMode(uniqueInputs.values().stream().toList());
     }
 
-    private static LinkedHashMap<String, Integer> inputVariantsAcceptedBySourceMode(WorkloadGenerationResult result) {
+    private static LinkedHashMap<String, Integer> inputVariantsAcceptedBySourceMode(EagerFaultScenarioGenerationResult result) {
         return countBySourceMode(acceptedInputsById(result).values().stream().toList());
     }
 
-    private static LinkedHashMap<String, InputVariant> acceptedInputsById(WorkloadGenerationResult result) {
+    private static LinkedHashMap<String, InputVariant> acceptedInputsById(EagerFaultScenarioGenerationResult result) {
         LinkedHashMap<String, InputVariant> uniqueInputs = new LinkedHashMap<>();
         result.workloadPlans().forEach(workload -> workload.acceptedInputs().forEach(input -> {
             if (input.deterministicId() != null) {
@@ -242,7 +368,7 @@ public final class ScenarioCatalogJsonlWriter {
         return counts;
     }
 
-    private static LinkedHashMap<String, Integer> inputVariantsRejectedBySourceModeReason(WorkloadGenerationResult result) {
+    private static LinkedHashMap<String, Integer> inputVariantsRejectedBySourceModeReason(EagerFaultScenarioGenerationResult result) {
         return result.rejectedInputVariants().stream()
                 .filter(rejected -> rejected.rejectionReason() != null)
                 .collect(Collectors.toMap(

@@ -95,3 +95,30 @@ Commit:
 Reason if blocked/skipped:
 
 - n/a
+
+#### `004-materializable-eager-baseline-and-accounting.md`
+
+Status: `done`
+
+Risk: `high` (mapped to available `strong` tier)
+Dependencies: `002-deterministic-v3-workload-package.md`, `003-deterministic-recovery-schedules.md`
+Implementer session: `019f7d9a-a6f7-722d-b82f-181438a38b30`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `019f7db4-38b5-7767-bfd7-af18bce45598` | `review/004-materializable-eager-baseline-and-accounting-review-01.md` | FAIL | Publication validated eager vector cardinality but not exact vector membership. |
+| 02 | `019f7dc1-f029-7cef-99bf-ccfd706ab5ad` | `review/004-materializable-eager-baseline-and-accounting-review-02.md` | PASS | Exact all-zero/one-hot set and accounting checks verified. |
+
+Final review report: `review/004-materializable-eager-baseline-and-accounting-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `checkpoint commit containing this entry; see git history`
+- Message: `feat(verifiers): add eager fault baseline accounting`
+
+Reason if blocked/skipped:
+
+- n/a

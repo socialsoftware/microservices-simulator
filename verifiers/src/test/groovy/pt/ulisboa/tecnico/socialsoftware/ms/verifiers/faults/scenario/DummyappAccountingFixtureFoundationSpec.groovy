@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ScenarioModelAdapterResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingCalculator
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogJsonlWriter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationEvidenceClass
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind
@@ -22,6 +23,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.VisitorTest
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.WorkflowFunctionalityCreationSiteVisitor
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.WorkflowFunctionalityVisitor
 import spock.lang.Shared
+
+import java.nio.file.Files
 
 class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
 
@@ -170,6 +173,58 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         recovery.faultScenarios()[0].actions()
                 .findAll { it.kind() == FaultScenarioActionKind.COMPENSATION }
                 *.sourceCompensationCheckpointId() == plan.compensationCheckpoints().reverse()*.deterministicId()
+    }
+
+    def 'dummyapp eager baseline retains blocked workloads and materializes only ready admissible plans'() {
+        given:
+        def config = accountingConfig(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
+                true,
+                1,
+                false,
+                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL)
+
+        when:
+        def workloads = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
+        def eager = EagerFaultScenarioGenerator.generate(workloads, new RecoveryScheduleCap(20))
+
+        then:
+        eager.workloadPlans().size() == 7
+        eager.workloadMaterializability().count { it.materializable() } == 6
+        eager.workloadMaterializability().count { !it.materializable() } == 1
+        eager.computedVectors().size() == 14
+        eager.faultScenarios().size() == 14
+        eager.workloadPlans()*.deterministicId().toSet() == workloads.workloadPlans()*.deterministicId().toSet()
+        eager.faultScenarios()*.workloadPlanId().toSet() ==
+                eager.workloadMaterializability().findAll { it.materializable() }*.workloadPlanId().toSet()
+    }
+
+    def 'dummyapp fixed configuration and timestamp produce byte-stable workload and fault catalogs'() {
+        given:
+        def config = accountingConfig(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
+                true,
+                1,
+                false,
+                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL)
+        def firstWorkloads = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
+        def secondWorkloads = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
+        def first = EagerFaultScenarioGenerator.generate(firstWorkloads, new RecoveryScheduleCap(20))
+        def second = EagerFaultScenarioGenerator.generate(secondWorkloads, new RecoveryScheduleCap(20))
+        def firstDirectory = Files.createTempDirectory('dummyapp-eager-first')
+        def secondDirectory = Files.createTempDirectory('dummyapp-eager-second')
+
+        when:
+        writePackage(first, firstDirectory, config)
+        writePackage(second, secondDirectory, config)
+
+        then:
+        first.workloadPlans()*.deterministicId() == second.workloadPlans()*.deterministicId()
+        first.faultScenarios()*.deterministicId() == second.faultScenarios()*.deterministicId()
+        Files.readAllBytes(firstDirectory.resolve('workload-catalog.jsonl')) ==
+                Files.readAllBytes(secondDirectory.resolve('workload-catalog.jsonl'))
+        Files.readAllBytes(firstDirectory.resolve('fault-scenario-catalog.jsonl')) ==
+                Files.readAllBytes(secondDirectory.resolve('fault-scenario-catalog.jsonl'))
     }
 
     def 'dummyapp exposes key-bearing input variants for compatible and incompatible tuple tests'() {
@@ -326,6 +381,20 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         accounting.typeLevelCoverage().sagasWithoutAcceptedInputs().contains(COMPENSATION_SAGA)
         accounting.typeLevelCoverage().broad().missingInputInteractionPairCount() > 0
         new BigInteger(accounting.typeLevelCoverage().broad().connectedSetCountsBySize()['3']) > BigInteger.ZERO
+    }
+
+    private void writePackage(def eager, java.nio.file.Path directory, ScenarioGeneratorConfig config) {
+        def accounting = new ScenarioSpaceAccountingCalculator().calculate(
+                'dummyapp', model.sagaDefinitions(), model.inputVariants(), config, eager.workloadPlans().size())
+        new ScenarioCatalogJsonlWriter().write(
+                eager,
+                directory.resolve('workload-catalog.jsonl'),
+                directory.resolve('fault-scenario-catalog.jsonl'),
+                directory.resolve('scenario-catalog-manifest.json'),
+                directory.resolve('workload-catalog-rejected-inputs.jsonl'),
+                directory.resolve('scenario-space-accounting.json'),
+                accounting,
+                '2026-07-20T00:00:00Z')
     }
 
     private static ApplicationAnalysisState buildDummyappAnalysisState() {
