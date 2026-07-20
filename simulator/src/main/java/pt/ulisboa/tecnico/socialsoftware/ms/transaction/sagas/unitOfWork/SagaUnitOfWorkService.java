@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
@@ -165,6 +166,23 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
                 break;
             }
         }
+    }
+
+    public WorkflowStepRecoveryResult recoverStepForExecutor(SagaUnitOfWork unitOfWork, String stepName) {
+        if (stepName == null || !unitOfWork.getExecutedSteps().contains(stepName)) {
+            throw new IllegalArgumentException("Cannot recover unexecuted Saga step " + stepName);
+        }
+        boolean explicitCompensationExecuted = unitOfWork.compensateStepForExecutor(stepName);
+        boolean implicitRollbackExecuted = false;
+        if (!unitOfWork.isStepAborted(stepName)) {
+            List<SagaUnitOfWork.AggregateStateRecord> records = unitOfWork.getPreviousStates().get(stepName);
+            implicitRollbackExecuted = records != null && !records.isEmpty();
+            if (implicitRollbackExecuted) {
+                sendAbortCommandsForStep(unitOfWork, stepName);
+            }
+            unitOfWork.setStepAborted(stepName);
+        }
+        return new WorkflowStepRecoveryResult(stepName, explicitCompensationExecuted, implicitRollbackExecuted);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

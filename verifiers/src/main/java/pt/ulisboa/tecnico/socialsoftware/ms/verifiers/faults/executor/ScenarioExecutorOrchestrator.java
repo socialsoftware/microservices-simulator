@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScenarioExecutorOrchestrator {
+public final class ScenarioExecutorOrchestrator {
     private final ProcessRunner processRunner;
 
     public ScenarioExecutorOrchestrator(ProcessRunner processRunner) {
@@ -13,7 +13,8 @@ public class ScenarioExecutorOrchestrator {
 
     public int run(Config config) {
         validate(config);
-        int prepare = processRunner.run(List.of("mvn", "-P", config.mavenProfile(), "test-compile"), config.applicationBaseDirectory());
+        int prepare = processRunner.run(List.of("mvn", "-P", config.mavenProfile(), "test-compile"),
+                config.applicationBaseDirectory());
         if (prepare != 0) return prepare;
         List<String> command = new ArrayList<>();
         command.add("java");
@@ -30,18 +31,12 @@ public class ScenarioExecutorOrchestrator {
         command.add(applicationId(config.applicationBaseDirectory()));
         command.add("--maven-profile");
         command.add(config.mavenProfile());
-        command.add("--catalog-path");
-        command.add(config.catalogPath().toString());
+        command.add("--package-path");
+        command.add(config.packagePath().toString());
         command.add("--output-path");
         command.add(config.outputPath().toString());
-        if (config.scenarioId() != null && !config.scenarioId().isBlank()) {
-            command.add("--scenario-id");
-            command.add(config.scenarioId());
-        }
-        if (config.faultVector() != null && !config.faultVector().isBlank()) {
-            command.add("--fault-vector");
-            command.add(config.faultVector());
-        }
+        command.add("--fault-scenario-id");
+        command.add(config.faultScenarioId());
         return processRunner.run(command, config.applicationBaseDirectory());
     }
 
@@ -50,11 +45,14 @@ public class ScenarioExecutorOrchestrator {
         if (blank(config.springApplicationClass())) throw new IllegalArgumentException("Spring application class is required");
         if (blank(config.mavenProfile())) throw new IllegalArgumentException("Maven profile is required");
         if (blank(config.springProfiles())) throw new IllegalArgumentException("Spring profiles are required");
-        if (config.catalogPath() == null) throw new IllegalArgumentException("catalog path or run directory is required");
+        if (config.packagePath() == null) throw new IllegalArgumentException("v3 package path is required");
         if (config.outputPath() == null) throw new IllegalArgumentException("output path is required");
+        if (blank(config.faultScenarioId())) throw new IllegalArgumentException("persisted FaultScenario id is required");
     }
 
-    private boolean blank(String value) { return value == null || value.isBlank(); }
+    private boolean blank(String value) {
+        return value == null || value.isBlank();
+    }
 
     private String applicationId(Path applicationBaseDirectory) {
         Path fileName = applicationBaseDirectory.getFileName();
@@ -65,14 +63,14 @@ public class ScenarioExecutorOrchestrator {
         int run(List<String> command, Path workingDirectory);
     }
 
-    public record Config(Path applicationBaseDirectory,
-                         String springApplicationClass,
-                         String mavenProfile,
-                         String springProfiles,
-                         Path catalogPath,
-                         Path outputPath,
-                         String scenarioId,
-                         String faultVector,
-                         String classpath) {
+    public record Config(
+            Path applicationBaseDirectory,
+            String springApplicationClass,
+            String mavenProfile,
+            String springProfiles,
+            Path packagePath,
+            Path outputPath,
+            String faultScenarioId,
+            String classpath) {
     }
 }

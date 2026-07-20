@@ -6,8 +6,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoverySc
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioCatalogReader
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorOptions
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*
 import spock.lang.Specification
 
@@ -249,7 +247,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         staleFingerprint.message.contains('INPUT_RECIPE_FINGERPRINT_MISMATCH')
     }
 
-    def 'readers reject malformed workload ownership and the legacy executor refuses v3 artifacts'() {
+    def 'package reader rejects malformed workload ownership'() {
         given:
         def directory = Files.createTempDirectory('v3-reader-boundary')
         def paths = packagePaths(directory)
@@ -265,14 +263,6 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         then:
         def malformed = thrown(IllegalArgumentException)
         malformed.message.contains('Invalid WorkloadPlan')
-
-        when:
-        new ScenarioCatalogReader().read(new ScenarioExecutorOptions(null, paths.workload, null, null, true))
-
-        then:
-        def legacyBoundary = thrown(IllegalArgumentException)
-        legacyBoundary.message.contains('does not support')
-        legacyBoundary.message.contains('v3 WorkloadPlan/FaultScenario')
     }
 
     private static ScenarioCatalogManifest writePackage(def result, Map paths, String generatedAt) {

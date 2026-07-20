@@ -44,6 +44,22 @@ public abstract class WorkflowFunctionality {
         
     }
 
+    public void executeStepForExecutor(String stepName, UnitOfWork unitOfWork) {
+        workflow.executeStepForExecutor(stepName, unitOfWork);
+    }
+
+    public void abortBeforeStepForExecutor(String stepName, UnitOfWork unitOfWork) {
+        workflow.abortBeforeStepForExecutor(stepName, unitOfWork);
+    }
+
+    public WorkflowFinalizationResult finalizeForExecutor(UnitOfWork unitOfWork) {
+        return workflow.finalizeForExecutor(unitOfWork);
+    }
+
+    public WorkflowStepRecoveryResult recoverStepForExecutor(String stepName, UnitOfWork unitOfWork) {
+        return workflow.recoverStepForExecutor(stepName, unitOfWork);
+    }
+
     public void compensateUntilStep(String stepName, UnitOfWork unitOfWork) {
         try {
             workflow.compensateUntilStep(stepName, unitOfWork);

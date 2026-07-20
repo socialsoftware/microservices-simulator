@@ -51,14 +51,28 @@ public class SagaUnitOfWork extends UnitOfWork {
     }
 
     public void compensateStep(String stepName) {
+        compensateStepForExecutor(stepName);
+    }
+
+    public boolean compensateStepForExecutor(String stepName) {
         CompensatingAction action = this.compensatingActions.get(stepName);
-        if (action != null && !action.isExecuted()) {
-            this.traceManager.startSpanForCompensation(this.getFunctionalityName());
-            logger.info("COMPENSATE: {} for step {}", action.getAction().getClass().getSimpleName(), stepName);
+        if (action == null || action.isExecuted()) {
+            return false;
+        }
+        this.traceManager.startSpanForCompensation(this.getFunctionalityName());
+        logger.info("COMPENSATE: {} for step {}", action.getAction().getClass().getSimpleName(), stepName);
+        try {
             action.getAction().run();
             action.setExecuted(true);
+            return true;
+        } finally {
             this.traceManager.endSpanForCompensation(this.getFunctionalityName());
         }
+    }
+
+    public boolean isCompensationExecuted(String stepName) {
+        CompensatingAction action = this.compensatingActions.get(stepName);
+        return action != null && action.isExecuted();
     }
 
 

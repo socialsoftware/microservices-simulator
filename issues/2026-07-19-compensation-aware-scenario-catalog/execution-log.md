@@ -152,3 +152,31 @@ Commit:
 Reason if blocked/skipped:
 
 - n/a
+
+#### `006-exact-persisted-action-replay.md`
+
+Status: `done`
+
+Risk: `high` (mapped to available `strong` tier)
+Dependencies: `004-materializable-eager-baseline-and-accounting.md`
+Implementer session: `019f7e28-a1b2-7cd6-910b-d37d1f2ff98c`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `019f7e4a-ecdf-798a-9bd8-258de44600d3` | `review/006-exact-persisted-action-replay-review-01.md` | FAIL | Persisted target replay could execute ready siblings; report output could alias package artifacts. A preceding reviewer session `019f7e46-ae07-7400-a867-4ae7b56a1d7c` was rate-limited before reporting. |
+| 02 | `019f7e63-60b2-788e-83f6-c401e6969dd7` | `review/006-exact-persisted-action-replay-review-02.md` | FAIL | Dynamic-enrichment artifacts were not protected from report-output aliasing. |
+| 03 | `019f7e71-a6fa-7267-902d-9f06982892be` | `review/006-exact-persisted-action-replay-review-03.md` | PASS | Exact step control, package/dynamic immutability, and action-aware replay verified. |
+
+Final review report: `review/006-exact-persisted-action-replay-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `checkpoint commit containing this entry; see git history`
+- Message: `feat(verifiers): replay persisted fault actions exactly`
+
+Reason if blocked/skipped:
+
+- n/a

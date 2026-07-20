@@ -388,6 +388,24 @@ public class ExecutionPlan {
                 });
     }
 
+    public CompletableFuture<Void> executeStepForExecutor(FlowStep targetStep, UnitOfWork unitOfWork) {
+        if (!executedSteps.containsKey(targetStep)) {
+            throw new IllegalArgumentException("Step with name " + targetStep.getName() + " is not part of this execution plan.");
+        }
+        if (Boolean.TRUE.equals(executedSteps.get(targetStep)) || stepFutures.containsKey(targetStep)) {
+            throw new IllegalStateException("Cannot execute step " + targetStep.getName() + " because it was already attempted.");
+        }
+        List<String> unmetDependencies = dependencies.get(targetStep).stream()
+                .filter(dependency -> !Boolean.TRUE.equals(executedSteps.get(dependency)))
+                .map(FlowStep::getName)
+                .toList();
+        if (!unmetDependencies.isEmpty()) {
+            throw new IllegalStateException("Cannot execute step " + targetStep.getName()
+                    + " because it has unmet dependencies " + unmetDependencies + ".");
+        }
+        return executeSteps(List.of(targetStep), unitOfWork);
+    }
+
     public CompletableFuture<Void> executeUntilStep(FlowStep targetStep, UnitOfWork unitOfWork) {
         ArrayList<FlowStep> stepsToExecute = new ArrayList<>();
         for (FlowStep step : plan) {
