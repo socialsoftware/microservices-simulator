@@ -122,3 +122,33 @@ Commit:
 Reason if blocked/skipped:
 
 - n/a
+
+#### `005-atomic-on-demand-multi-fault-persistence.md`
+
+Status: `done`
+
+Risk: `high` (mapped to available `strong` tier)
+Dependencies: `004-materializable-eager-baseline-and-accounting.md`
+Implementer session: `019f7dc8-206e-7e15-be40-3a05a049ee7a`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `019f7ddd-626a-72c1-b7b0-1dd755ac612d` | `review/005-atomic-on-demand-multi-fault-persistence-review-01.md` | FAIL | Aggregate validation, dedup accounting, and post-commit cleanup semantics were incomplete. |
+| 02 | `019f7dee-9f69-7dfa-a8c6-69fe911206d1` | `review/005-atomic-on-demand-multi-fault-persistence-review-02.md` | FAIL | Linked-artifact containment and package-identity locking were incomplete. |
+| 03 | `019f7e00-ccb0-715d-a980-c2fabfa28248` | `review/005-atomic-on-demand-multi-fault-persistence-review-03.md` | FAIL | Carried computed-vector exact metadata was not fully revalidated. |
+| 04 | `019f7e0f-ef6f-7381-bf95-23cbd09c4286` | `review/005-atomic-on-demand-multi-fault-persistence-review-04.md` | FAIL | Non-materializable workload scenarios could be republished. |
+| 05 | `019f7e20-35f6-72b9-91d2-d60b384f4678` | `review/005-atomic-on-demand-multi-fault-persistence-review-05.md` | PASS | Atomic mutation and complete package integrity checks verified. |
+
+Final review report: `review/005-atomic-on-demand-multi-fault-persistence-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `checkpoint commit containing this entry; see git history`
+- Message: `feat(verifiers): persist on-demand fault scenarios atomically`
+
+Reason if blocked/skipped:
+
+- n/a

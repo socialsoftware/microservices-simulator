@@ -70,7 +70,7 @@ public final class EagerFaultScenarioGenerator {
                 computedVectors);
     }
 
-    private static WorkloadMaterializability evaluateMaterializability(WorkloadPlan plan) {
+    public static WorkloadMaterializability evaluateMaterializability(WorkloadPlan plan) {
         List<String> diagnostics = new ArrayList<>();
         WorkloadPlanValidator.ValidationResult structural = new WorkloadPlanValidator().validate(plan);
         structural.diagnostics().forEach(diagnostic -> diagnostics.add(

@@ -23,7 +23,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
+import java.util.HexFormat;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -286,7 +289,7 @@ public final class ScenarioCatalogJsonlWriter {
                                                           String generatedAt,
                                                           int workloadsExported,
                                                           int faultScenariosExported,
-                                                          int rejectedInputsExported) {
+                                                          int rejectedInputsExported) throws IOException {
         LinkedHashMap<String, String> counts = decimalCounts(result.counts());
         long materializableWorkloads = result.workloadMaterializability().stream()
                 .filter(WorkloadMaterializability::materializable)
@@ -301,6 +304,8 @@ public final class ScenarioCatalogJsonlWriter {
         counts.put("materializableWorkloadPlans", Long.toString(materializableWorkloads));
         counts.put("nonMaterializableWorkloadPlans", Long.toString(workloadsExported - materializableWorkloads));
         counts.put("computedEagerVectors", Integer.toString(result.computedVectors().size()));
+        counts.put("computedOnDemandVectors", "0");
+        counts.put("computedVectors", Integer.toString(result.computedVectors().size()));
         counts.put("computedVectorUncappedScheduleSum", uncappedSum.toString());
         counts.put("computedVectorWrittenScheduleSum", writtenSum.toString());
         counts.put("faultScenariosExported", Integer.toString(faultScenariosExported));
@@ -328,8 +333,21 @@ public final class ScenarioCatalogJsonlWriter {
     private static ScenarioCatalogManifest.ArtifactMetadata artifact(String kind,
                                                                       String schema,
                                                                       Path path,
-                                                                      int count) {
-        return new ScenarioCatalogManifest.ArtifactMetadata(kind, schema, path.toString(), Integer.toString(count));
+                                                                      int count) throws IOException {
+        return new ScenarioCatalogManifest.ArtifactMetadata(
+                kind,
+                schema,
+                path.toString(),
+                Integer.toString(count),
+                sha256(Files.readAllBytes(path)));
+    }
+
+    static String sha256(byte[] bytes) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
     }
 
     private static LinkedHashMap<String, Integer> inputVariantsBySourceMode(EagerFaultScenarioGenerationResult result) {

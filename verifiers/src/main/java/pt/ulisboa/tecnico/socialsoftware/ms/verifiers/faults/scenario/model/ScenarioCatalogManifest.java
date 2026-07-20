@@ -51,12 +51,14 @@ public record ScenarioCatalogManifest(
             String artifactKind,
             String schemaVersion,
             String path,
-            String recordCount) {
+            String recordCount,
+            String sha256) {
         public ArtifactMetadata {
             artifactKind = normalize(artifactKind);
             schemaVersion = normalize(schemaVersion);
             path = normalize(path);
             recordCount = recordCount == null || recordCount.isBlank() ? "0" : recordCount;
+            sha256 = normalize(sha256);
         }
     }
 

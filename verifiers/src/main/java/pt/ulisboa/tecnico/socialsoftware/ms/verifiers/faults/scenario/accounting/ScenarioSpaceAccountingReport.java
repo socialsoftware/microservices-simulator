@@ -3,14 +3,17 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accountin
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ComputedVectorRecovery;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EagerFaultScenarioGenerationResult;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioVectorSource;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadMaterializability;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 
 import java.math.BigInteger;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public record ScenarioSpaceAccountingReport(
         String schemaVersion,
@@ -71,7 +74,8 @@ public record ScenarioSpaceAccountingReport(
                             BigInteger.TWO.pow(plan.faultSlots().size()).toString(),
                             materializability != null && materializability.materializable(),
                             materializability == null ? List.of("MISSING_MATERIALIZABILITY_DIAGNOSTIC") : materializability.diagnostics(),
-                            Integer.toString(vectors.size()));
+                            Integer.toString(vectors.size()),
+                            "0");
                 })
                 .toList();
         long materializableCount = result.workloadMaterializability().stream()
@@ -107,11 +111,84 @@ public record ScenarioSpaceAccountingReport(
                 new FaultScenarioCatalogSpace(
                         Integer.toString(result.faultScenarios().size()),
                         Integer.toString(result.computedVectors().size()),
+                        "0",
+                        Integer.toString(result.computedVectors().size()),
                         uncappedSum.toString(),
                         writtenSum.toString(),
                         "EXACT_SUM_OVER_COMPUTED_VECTORS_ONLY",
                         vectorRows,
                         "NOT_COMPUTED"));
+    }
+
+    public ScenarioSpaceAccountingReport withOnDemandVector(ComputedVectorRecovery vector,
+                                                             int faultScenariosWritten) {
+        ComputedVectorRecovery requested = Objects.requireNonNull(vector, "vector");
+        if (requested.vectorSource() != FaultScenarioVectorSource.ON_DEMAND_REQUEST) {
+            throw new IllegalArgumentException("on-demand accounting requires ON_DEMAND_REQUEST source");
+        }
+        String key = requested.workloadPlanId() + "\u0000" + requested.assignedVector();
+        boolean duplicate = faultScenarioCatalogSpace.perComputedVectorRecoverySpace().stream()
+                .anyMatch(row -> key.equals(row.workloadPlanId() + "\u0000" + row.assignedVector()));
+        if (duplicate) {
+            throw new IllegalArgumentException("computed vector accounting already exists for " + key);
+        }
+
+        List<ComputedVectorRecoverySpace> vectorRows = new java.util.ArrayList<>(
+                faultScenarioCatalogSpace.perComputedVectorRecoverySpace());
+        vectorRows.add(new ComputedVectorRecoverySpace(
+                requested.workloadPlanId(),
+                requested.assignedVector(),
+                requested.vectorSource().name(),
+                requested.uncappedScheduleCount().toString(),
+                Integer.toString(requested.writtenScheduleCount())));
+        vectorRows.sort(Comparator.comparing(ComputedVectorRecoverySpace::workloadPlanId)
+                .thenComparing(ComputedVectorRecoverySpace::assignedVector));
+
+        boolean workloadFound = workloadCatalogSpace.perWorkloadVectorSpace().stream()
+                .anyMatch(row -> Objects.equals(row.workloadPlanId(), requested.workloadPlanId()));
+        if (!workloadFound) {
+            throw new IllegalArgumentException("accounting is missing WorkloadPlan " + requested.workloadPlanId());
+        }
+        List<WorkloadVectorSpace> workloadRows = workloadCatalogSpace.perWorkloadVectorSpace().stream()
+                .map(row -> Objects.equals(row.workloadPlanId(), requested.workloadPlanId())
+                        ? new WorkloadVectorSpace(
+                        row.workloadPlanId(),
+                        row.faultSlotCount(),
+                        row.possibleBinaryVectors(),
+                        row.executorMaterializable(),
+                        row.materializabilityDiagnostics(),
+                        row.eagerVectorCount(),
+                        parseExact(row.onDemandVectorCount(), "onDemandVectorCount").add(BigInteger.ONE).toString())
+                        : row)
+                .toList();
+
+        FaultScenarioCatalogSpace current = faultScenarioCatalogSpace;
+        FaultScenarioCatalogSpace revisedFaultSpace = new FaultScenarioCatalogSpace(
+                Integer.toString(faultScenariosWritten),
+                current.computedEagerVectorCount(),
+                parseExact(current.computedOnDemandVectorCount(), "computedOnDemandVectorCount").add(BigInteger.ONE).toString(),
+                parseExact(current.computedVectorCount(), "computedVectorCount").add(BigInteger.ONE).toString(),
+                parseExact(current.exactComputedVectorUncappedScheduleSum(), "exactComputedVectorUncappedScheduleSum")
+                        .add(requested.uncappedScheduleCount()).toString(),
+                parseExact(current.exactComputedVectorWrittenScheduleSum(), "exactComputedVectorWrittenScheduleSum")
+                        .add(BigInteger.valueOf(requested.writtenScheduleCount())).toString(),
+                current.exactComputedSumsScope(),
+                vectorRows,
+                current.allVectorRecoveryTotalStatus());
+        return new ScenarioSpaceAccountingReport(
+                schemaVersion,
+                runConfig,
+                typeLevelCoverage,
+                executorReadiness,
+                inputBoundScenarioSpace,
+                groupedSagaSets,
+                topContributors,
+                new WorkloadCatalogSpace(
+                        workloadCatalogSpace.workloadPlansWritten(),
+                        workloadCatalogSpace.materializableWorkloadPlans(),
+                        workloadCatalogSpace.nonMaterializableWorkloadPlans(),
+                        workloadRows),
+                revisedFaultSpace);
     }
 
     public static ScenarioSpaceAccountingReport placeholder(String targetApplication,
@@ -152,7 +229,8 @@ public record ScenarioSpaceAccountingReport(
                                       String possibleBinaryVectors,
                                       boolean executorMaterializable,
                                       List<String> materializabilityDiagnostics,
-                                      String eagerVectorCount) {
+                                      String eagerVectorCount,
+                                      String onDemandVectorCount) {
         public WorkloadVectorSpace {
             faultSlotCount = decimalOrZero(faultSlotCount);
             possibleBinaryVectors = decimalOrZero(possibleBinaryVectors);
@@ -160,11 +238,14 @@ public record ScenarioSpaceAccountingReport(
                     ? List.of()
                     : List.copyOf(materializabilityDiagnostics);
             eagerVectorCount = decimalOrZero(eagerVectorCount);
+            onDemandVectorCount = decimalOrZero(onDemandVectorCount);
         }
     }
 
     public record FaultScenarioCatalogSpace(String faultScenariosWritten,
                                             String computedEagerVectorCount,
+                                            String computedOnDemandVectorCount,
+                                            String computedVectorCount,
                                             String exactComputedVectorUncappedScheduleSum,
                                             String exactComputedVectorWrittenScheduleSum,
                                             String exactComputedSumsScope,
@@ -173,6 +254,8 @@ public record ScenarioSpaceAccountingReport(
         public FaultScenarioCatalogSpace {
             faultScenariosWritten = decimalOrZero(faultScenariosWritten);
             computedEagerVectorCount = decimalOrZero(computedEagerVectorCount);
+            computedOnDemandVectorCount = decimalOrZero(computedOnDemandVectorCount);
+            computedVectorCount = decimalOrZero(computedVectorCount);
             exactComputedVectorUncappedScheduleSum = decimalOrZero(exactComputedVectorUncappedScheduleSum);
             exactComputedVectorWrittenScheduleSum = decimalOrZero(exactComputedVectorWrittenScheduleSum);
             exactComputedSumsScope = exactComputedSumsScope == null || exactComputedSumsScope.isBlank()
@@ -187,7 +270,7 @@ public record ScenarioSpaceAccountingReport(
         }
 
         public static FaultScenarioCatalogSpace empty() {
-            return new FaultScenarioCatalogSpace("0", "0", "0", "0",
+            return new FaultScenarioCatalogSpace("0", "0", "0", "0", "0", "0",
                     "EXACT_SUM_OVER_COMPUTED_VECTORS_ONLY", List.of(), "NOT_COMPUTED");
         }
     }
@@ -376,6 +459,18 @@ public record ScenarioSpaceAccountingReport(
 
     private static String decimalOrZero(String value) {
         return value == null || value.isBlank() ? "0" : value;
+    }
+
+    private static BigInteger parseExact(String value, String label) {
+        try {
+            BigInteger parsed = new BigInteger(value);
+            if (parsed.signum() < 0) {
+                throw new NumberFormatException("negative");
+            }
+            return parsed;
+        } catch (RuntimeException exception) {
+            throw new IllegalArgumentException(label + " must be a non-negative exact decimal", exception);
+        }
     }
 
     private static <K, V> Map<K, V> stableMap(Map<K, V> values) {
