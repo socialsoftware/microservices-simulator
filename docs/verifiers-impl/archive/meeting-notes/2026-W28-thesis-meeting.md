@@ -1,0 +1,5 @@
+- Assumimos que as compensacoes nao falham...
+- Compensacoes sao retryable, e devem ser retired ate funcionar
+- Queremos interleave as compensações nas sagas que continuaram vivas - e.g A e B; A falha; B conclui (mas pode antes da compensação, depois, a meio...)
+- Para impact scoring: detetar invariant breaks..., outras anomalias que o programador "nao tenha planeado".
+- Dirty Read, Lost update, Non-repeatable read
