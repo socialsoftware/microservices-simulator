@@ -179,24 +179,24 @@ The scenario generator applies the saga-catalog source-mode policy before accept
 
 ```text
 SAGAS   => accept
-TCC     => reject into scenario-catalog-rejected-inputs.jsonl
-MIXED   => reject into scenario-catalog-rejected-inputs.jsonl
+TCC     => reject into workload-catalog-rejected-inputs.jsonl
+MIXED   => reject into workload-catalog-rejected-inputs.jsonl
 UNKNOWN => accept with a warning
 ```
 
 Rejected records retain deterministic IDs, source location, source-mode evidence, warnings, and rejection reasons. The rejected-input JSONL file is written whenever catalog export is enabled, even if empty.
 
-### 9. Single-saga scenario generation
+### 9. WorkloadPlan and FaultScenario generation
 
-For each accepted input variant, the generator emits a single-saga `ScenarioPlan`:
+For each accepted input variant, the generator can emit a single-saga WorkloadPlan:
 
 ```text
-SagaDefinition + InputVariant -> SINGLE_SAGA scenario
+SagaDefinition + InputVariant -> SINGLE_SAGA WorkloadPlan
 ```
 
-The plan contains one saga instance, the selected input variant, an expanded step schedule, and a binary fault slot per scheduled step.
+The workload contains one Saga instance, the accepted input, a forward schedule, one fault slot per occurrence, and retained compensation checkpoints. If the workload passes current materializability/admissibility checks, eager generation adds all-zero and single-point FaultScenarios with bounded recovery-aware action schedules.
 
-## Quizzes Single-Saga Smoke Observations
+## Historical v2 Quizzes single-saga smoke observations
 
 With `maxSagaSetSize=1`, high caps, and `inputPolicy=RESOLVED_OR_REPLAYABLE`, the Quizzes smoke produced:
 
@@ -215,7 +215,7 @@ scenariosExported: 537
 
 Allowing partial inputs increased the catalog to 549 scenarios, meaning the strict default excludes only 12 partial variants and does not add new saga classes.
 
-The smoke shows all expected aggregate footprint types, including Course, Execution, Question, Quiz, QuizAnswer, Topic, Tournament, and User. However, only 25 of 65 saga classes currently have accepted input variants. Question saga classes exist but do not currently get standalone input variants from the observed tests; many question operations appear as helper/setup calls used while preparing other scenarios.
+This pre-v3 smoke shows all expected aggregate footprint types, including Course, Execution, Question, Quiz, QuizAnswer, Topic, Tournament, and User. However, only 25 of 65 saga classes currently have accepted input variants. Question saga classes exist but do not currently get standalone input variants from the observed tests; many question operations appear as helper/setup calls used while preparing other scenarios.
 
 ## Design Implications
 
@@ -237,9 +237,9 @@ The generic mechanism avoids hardcoding Quizzes names. It currently infers mode 
 
 ### Replay recipes vs concrete values
 
-The future executor should not expect all input values to be statically materialized. Many important values are runtime products of setup calls, such as aggregate IDs returned after creating users, topics, course executions, questions, or tournaments.
+The current executor cannot expect all input values to be statically materialized. Many important values are runtime products of setup calls, such as aggregate IDs returned after creating users, topics, course executions, questions, or tournaments.
 
-The current catalog therefore should be viewed as carrying replay-oriented input instructions. Future work should make those recipes more structured so the executor can:
+Current WorkloadPlans therefore carry replay-oriented input instructions. Broader materialization work should allow the executor to:
 
 1. run setup functionality calls in order;
 2. retain returned DTOs/aggregate IDs;

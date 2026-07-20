@@ -4,7 +4,7 @@ Date: 2026-04-27
 
 ## Status
 
-Accepted for the implemented v1/v2 catalog history. The single-record `ScenarioPlan` shape is superseded for the selected v3 feature by [`2026-07-19-compensation-aware-fault-scenario-contract.md`](2026-07-19-compensation-aware-fault-scenario-contract.md).
+Accepted for the implemented v1/v2 catalog history only. The single-record `ScenarioPlan` shape and `scenario-catalog.jsonl` artifact are superseded by the implemented v3 WorkloadPlan/FaultScenario package in [`2026-07-19-compensation-aware-fault-scenario-contract.md`](2026-07-19-compensation-aware-fault-scenario-contract.md). Current readers and executors reject this historical shape.
 
 ## Context
 

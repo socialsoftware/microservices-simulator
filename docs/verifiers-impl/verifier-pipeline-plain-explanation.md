@@ -1,6 +1,6 @@
 # Verifier pipeline, plain explanation
 
-Last updated: 2026-07-09
+Last updated: 2026-07-20
 
 Purpose: explain the verifier in meeting/thesis language without implementation archaeology.
 
@@ -33,10 +33,10 @@ To do that, the system first needs to understand the application:
 ```text
 source/tests
   -> static extraction
-  -> scenario catalog
-  -> optional dynamic evidence
-  -> enriched sidecar catalog
-  -> narrow supported saga/local fault-vector executor path / future generic execution
+  -> WorkloadPlan catalog + compensation checkpoints
+  -> eager/on-demand FaultScenarios + exact accounting
+  -> optional workload-linked dynamic evidence sidecars
+  -> narrow persisted-FaultScenario saga/local executor
 ```
 
 ## Stage 1: static extraction
@@ -95,27 +95,21 @@ UNKNOWN -> accepted with warning
 
 This prevents known TCC/mixed inputs from silently entering the saga catalog.
 
-## Stage 3: scenario catalog
+## Stage 3: v3 scenario package
 
-The static catalog is the deterministic machine-readable plan:
+The deterministic machine contract has five semantic artifacts:
 
 ```text
-scenario-catalog.jsonl
-scenario-catalog-manifest.json
-scenario-catalog-rejected-inputs.jsonl
+workload-catalog.jsonl
+fault-scenario-catalog.jsonl
+workload-catalog-rejected-inputs.jsonl
 scenario-space-accounting.json
+scenario-catalog-manifest.json
 ```
 
-Each scenario plan can include:
+A WorkloadPlan carries reusable normal structure: participants, accepted inputs, one forward interleaving, conflict evidence, fault slots, and compensation checkpoints. A FaultScenario references one workload and persists one assigned vector plus one ordered `FORWARD`/`COMPENSATION` action schedule. Materializable all-zero and single-point vectors are eager; valid multi-fault vectors use guarded on-demand persistence.
 
-- participating saga instance(s);
-- selected input variant(s);
-- step schedule;
-- aggregate read/write footprint evidence;
-- fault slots for later execution;
-- warnings/diagnostics.
-
-The catalog is not yet proof that the scenario has been executed. It is the handoff contract for enrichment and future execution.
+The package is not proof that every workload will succeed at runtime. Materializability is a readiness/admissibility gate, and actual execution may still report a meaningful domain deviation.
 
 ## Stage 4: dynamic evidence enrichment
 
@@ -142,18 +136,18 @@ AGGREGATE_ACCESSED
 STEP_FINISHED
 ```
 
-The verifier joins that runtime evidence back to static scenario plans.
+The verifier joins runtime evidence back to WorkloadPlans.
 
 Important rule:
 
 ```text
-Runtime evidence does not rewrite the static catalog.
-It is attached as sidecar evidence.
+Runtime evidence does not rewrite either semantic catalog or any package artifact.
+It is attached in workload-dynamic-evidence sidecars.
 ```
 
 ## Join statuses
 
-The enriched catalog uses conservative statuses:
+The workload evidence sidecar uses conservative statuses:
 
 | Status | Plain meaning |
 |---|---|
@@ -164,9 +158,9 @@ The enriched catalog uses conservative statuses:
 | `UNMATCHED` | Runtime evidence exists but cannot be usefully joined to this scenario. |
 | `NOT_COVERED` | No useful runtime evidence was observed for this scenario. |
 
-## Current dynamic-enrichment result
+## Dynamic-enrichment evidence
 
-On the refreshed Quizzes sagas-local baseline after fixture/setup and feature-helper ownership fixes:
+V3 package/sidecar immutability is regression-covered by dummyapp. The broad Quizzes counts below are a historical v2-era attribution baseline after fixture/setup and feature-helper ownership fixes, not a fresh v3 run:
 
 ```text
 run: verifiers/target/feature-helper-owner-fix-dynamic-smoke/quizzes-20260630-122219-034/
@@ -200,33 +194,27 @@ Fixture/setup and feature-helper ownership fixes reduced unmatched records from 
 The latest baseline still has zero ambiguous joins. Unmatched records now carry a diagnostic reason so the gap can be separated into failed test classes, non-selected test classes, helper-owner mismatches, and unclassified residual cases.
 ```
 
-Do not overstate this. It does not prove stream/gRPC, distributed, TCC, or generic executor behavior.
+Do not overstate this. It is historical attribution evidence and does not prove a broad v3 baseline, stream/gRPC, distributed, TCC, or executor conformance.
 
 ## Stage 5: scenario execution
 
-A narrow ScenarioExecutor path exists. It can run supported materializable saga/local catalog candidates with either the default vector or one explicit binary fault vector. Single-saga plans may be auto-selected or explicitly selected; multi-saga plans require explicit selection and are replayed as deterministic sequential interleavings.
+The narrow ScenarioExecutor loads a complete v3 package and one exact persisted FaultScenario id. The assigned vector and action order come from that record; runtime vector overlays and auto-selection are unsupported. It materializes supported saga/local participants and sequentially replays persisted forward/compensation actions into an action-aware v4 report.
 
-Current bounded-path evidence:
+Current bounded Quizzes evidence:
 
 ```text
-Single-saga: GetCourseExecutionsFunctionalitySagas
-Default vector: 0 -> SUCCESS / COMMITTED
-Explicit vector: 1 -> COMPENSATED / COMPENSATED
-
-Multi-saga: CreateCourseExecutionFunctionalitySagas + GetCourseExecutionsFunctionalitySagas
-Default vector: 00000 -> PARTIAL_COMPENSATED / COMPENSATED + COMMITTED
+WorkloadPlans written/materializable: 2000 / 12
+FaultScenarios written: 84
+selected vector: 00010
+planned shape: compensation, survivor forward, compensation
+measured result: PARTIAL_COMPENSATED / DEVIATED
+participant final states: COMPENSATED + COMMITTED
+package hashes: unchanged
 ```
 
-But generic scenario execution is not complete. Still missing:
+The deviation was a zero-bit null-input domain/simulator failure before the assigned slot, followed by immediate recovery and survivor continuation. This is honest fallback evidence, not an exact-replay claim.
 
-- arbitrary catalog replay;
-- multi-saga auto-selection, non-materializable shapes, true concurrency, and distributed runtime parity;
-- TCC execution;
-- stream/gRPC/distributed parity;
-- behavior CSV generation as an executor contract;
-- impact scoring;
-- GA/local search;
-- scenario prioritization.
+Generic execution is still incomplete. Missing: arbitrary/non-materializable workload replay, true concurrency, distributed/TCC/stream/gRPC parity, reset orchestration, compensation faults, automatic recovery retries, impact scoring, GA/local search, and prioritization.
 
 ## Why this is hard
 

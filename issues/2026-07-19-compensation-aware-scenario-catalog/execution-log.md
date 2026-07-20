@@ -207,3 +207,59 @@ Commit:
 Reason if blocked/skipped:
 
 - n/a
+
+#### `008-end-to-end-evidence-and-live-docs.md`
+
+Status: `done`
+
+Risk: `high` (mapped to available `strong` tier)
+Dependencies: `005-atomic-on-demand-multi-fault-persistence.md`, `007-runtime-fallback-and-hard-stops.md`
+Implementer session: `019f7eb1-118e-7129-989b-7d3cf1b2996a`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `019f7edf-1ed5-7e9a-9452-dc93f393e8dd` | `review/008-end-to-end-evidence-and-live-docs-review-01.md` | FAIL | Docker PACKAGE_PATH and dynamic-join glossary wording were stale. |
+| 02 | `019f7eed-00be-731c-a746-82376041aff4` | `review/008-end-to-end-evidence-and-live-docs-review-02.md` | PASS | Full suites, Docker, Quizzes evidence, checksums, and live docs verified. |
+
+Final review report: `review/008-end-to-end-evidence-and-live-docs-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `checkpoint commit containing this entry; see git history`
+- Message: `docs(verifiers): publish compensation-aware catalog evidence`
+
+Reason if blocked/skipped:
+
+- n/a
+
+### Run Summary
+
+Completed:
+
+- `001-compensation-evidence-preservation.md`
+- `002-deterministic-v3-workload-package.md`
+- `003-deterministic-recovery-schedules.md`
+- `004-materializable-eager-baseline-and-accounting.md`
+- `005-atomic-on-demand-multi-fault-persistence.md`
+- `006-exact-persisted-action-replay.md`
+- `007-runtime-fallback-and-hard-stops.md`
+- `008-end-to-end-evidence-and-live-docs.md`
+
+Blocked:
+
+- None
+
+Skipped:
+
+- None
+
+Remaining eligible:
+
+- None
+
+Recommended next action:
+
+- Run `sp-qa-feature` for package-level acceptance reconciliation.

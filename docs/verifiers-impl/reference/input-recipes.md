@@ -6,11 +6,11 @@ Existing summaries, constructor-argument summaries, provenance text, source-mode
 
 ## Where Recipes Appear
 
-Accepted scenario records use `schemaVersion=microservices-simulator.scenario-catalog.v2`. Each accepted `ScenarioPlan.inputs[]` entry can include:
+Accepted inputs are embedded in `microservices-simulator.workload-plan.v3` records under `WorkloadPlan.acceptedInputs[]`. An entry can include:
 
 ```json
 {
-  "inputVariantId": "input-...",
+  "deterministicId": "input-...",
   "sourceClassFqn": "com.example.dummyapp.GroovySagaTracingSpec",
   "sourceMethodName": "named args, setters, and toSet provenance feed item saga constructor",
   "owners": ["com.example.dummyapp.GroovySagaTracingSpec#named args, setters, and toSet provenance feed item saga constructor"],
@@ -25,12 +25,12 @@ Accepted scenario records use `schemaVersion=microservices-simulator.scenario-ca
 }
 ```
 
-Rejected input records use `schemaVersion=microservices-simulator.scenario-catalog-rejected-input.v2` and are wrapped:
+Rejected input records use `schemaVersion=microservices-simulator.workload-catalog-rejected-input.v3` and are wrapped:
 
 ```json
 {
-  "schemaVersion": "microservices-simulator.scenario-catalog-rejected-input.v2",
-  "input": { "inputVariantId": "input-...", "inputRecipe": { "schemaVersion": "microservices-simulator.input-recipe.v1" } },
+  "schemaVersion": "microservices-simulator.workload-catalog-rejected-input.v3",
+  "input": { "deterministicId": "input-...", "inputRecipe": { "schemaVersion": "microservices-simulator.input-recipe.v1" } },
   "rejectionReason": "SOURCE_MODE_TCC",
   "rejectionWarnings": ["input source mode is TCC and cannot be emitted to the saga catalog"]
 }
@@ -153,13 +153,11 @@ Other public node kinds include:
 
 ## Dynamic Enrichment
 
-Enriched scenario catalog records preserve `scenarioPlan.inputs[].inputRecipe` from the static plan. Recipe fingerprints and readiness fields are serialization data; dynamic joining does not reinterpret them, and this work does not add new matching, attribution, or ambiguity logic.
+Dynamic joining reads `WorkloadPlan.acceptedInputs[].inputRecipe` but does not embed or rewrite recipes in semantic records. The v3 `workload-dynamic-evidence.jsonl` sidecar links by `workloadPlanId` and input ids; it contains no WorkloadPlan, FaultScenario, or forward/action schedule. Recipe fingerprints and readiness remain semantic package data.
 
-The enriched output contract uses `microservices-simulator.scenario-catalog-enriched.v2` and the enriched manifest uses `microservices-simulator.scenario-catalog-enriched-manifest.v2` because enriched records now contain v2 scenario plans.
+## Historical v2 Quizzes smoke
 
-## Quizzes Smoke Validation
-
-On 2026-05-20, a bounded static Quizzes smoke was run after dummyapp recipe coverage and this contract documentation were in place:
+The following 2026-05-20 run predates the v3 package. Keep it only as recipe-shape history; its artifact/schema names are superseded:
 
 ```bash
 mvn -q spring-boot:run -Dspring-boot.run.arguments="--verifiers.applications-root=/home/andre/microservices-simulator/applications --verifiers.application-base-dir=quizzes --verifiers.output-root=/home/andre/microservices-simulator/verifiers/target/structured-input-recipes-quizzes-smoke --verifiers.report-html-path=analysis-report.html --verifiers.scenario-catalog.enabled=true --verifiers.dynamic-enrichment.enabled=false --verifiers.scenario-catalog.max-catalog-scenarios=80 --verifiers.scenario-catalog.max-input-variants-per-saga=10 --verifiers.scenario-catalog.max-schedules-per-input-tuple=20"
@@ -176,13 +174,6 @@ The smoke validated the contract without treating exact scenario counts as accep
 - Representative recipe shapes included `constructor`, `literal`, `call_result`, `property_access`, and `placeholder` nodes.
 - Remaining Quizzes recipe blockers such as `MISSING_TARGET_TYPE`, `PROPERTY_RECEIVER_NOT_READY`, `UNRESOLVED_VARIABLE`, and `UNKNOWN_VALUE` were interpreted as diagnostic output, not executor-ready claims.
 
-## Out Of Scope
+## Current boundary
 
-This work does not implement:
-
-- A scenario executor.
-- A runtime materializer for constructing objects from recipes.
-- Semantic input deduplication for value-equivalent recipes.
-- New dynamic joiner matching or attribution behavior.
-
-Treat `inputRecipe` as the stable static contract that makes those future steps possible, not as proof that execution already exists.
+The narrow ScenarioExecutor can materialize a supported subset of recipes and may supply runtime-owned Saga arguments. Unsupported calls/transforms, unresolved source values, and event payload placeholders remain blockers. `inputRecipe.executorReady` alone is distinct from workload-level materializability, and either readiness label is not proof of domain success. Semantic deduplication of value-equivalent recipes remains out of scope.

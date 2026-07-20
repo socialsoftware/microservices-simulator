@@ -1,225 +1,189 @@
 # Verifier current state
 
-Last updated: 2026-07-09
+Last updated: 2026-07-20
 
-This is the present-tense status page for verifier/scenario-generation work. Keep it short. Detailed run evidence lives in [`evidence.md`](evidence.md); meeting framing lives in [`advisor-brief.md`](advisor-brief.md).
+This is the present-tense status page for verifier/scenario-generation work. Detailed validation lives in [`evidence.md`](evidence.md); terminology lives in [`glossary.md`](glossary.md); executor operation lives in [`reference/scenario-executor.md`](reference/scenario-executor.md).
 
 ## One-paragraph summary
 
-The verifier currently extracts saga-oriented scenario structure from simulator applications, including the implemented `EventHandling`/`EventProcessing` event-origin shape, generates deterministic scenario catalogs, and can optionally enrich those catalogs with runtime evidence from existing test executions. It also supports a narrow ScenarioExecutor path for default-vector and explicit binary fault-vector runs on supported materializable saga/local scenarios, including explicit multi-saga deterministic sequential interleaving replay. Broader runtime parity, impact scoring, GA search, and scenario prioritization remain future work.
+The verifier extracts saga-oriented structure and test-derived inputs, generates a deterministic compensation-aware v3 package, and can optionally attach runtime evidence as workload-linked sidecars. The package separates reusable `WorkloadPlan` records from executable `FaultScenario` records: eager generation writes materializable all-zero and single-point vectors, while a guarded on-demand path persists arbitrary valid multi-fault vectors. A narrow saga/local ScenarioExecutor replays one persisted FaultScenario and writes an action-aware v4 report. Generic/distributed execution, impact scoring, GA search, and prioritization remain future work.
 
-## Scope
+## Current scope
 
-Current implemented scope:
+Implemented:
 
-- Saga-catalog generation from Java production code and Groovy/Spock tests.
-- Static event semantics for the implemented `EventHandling`/`EventProcessing` chain shape, producing event-origin accepted inputs.
-- Source-mode classification for saga/TCC/mixed/unknown test inputs.
-- Deterministic bounded scenario catalog generation and accounting that separates static accepted input coverage, static recipe readiness, and ScenarioExecutor materializability.
-- Optional dynamic enrichment using simulator runtime evidence as sidecar attribution.
-- Narrow ScenarioExecutor support for supported materializable saga/local catalog entries, including single-saga runs and explicit multi-saga deterministic sequential interleaving replay with default or explicit binary fault vectors.
+- Java/Groovy static extraction of Saga participants, ordered steps, dispatch footprints, compensation evidence, and test-derived input recipes.
+- Static event semantics for the implemented `EventHandling`/`EventProcessing` chain shape.
+- Source-mode filtering (`SAGAS`, `TCC`, `MIXED`, `UNKNOWN`) with rejected-input diagnostics.
+- Deterministic bounded WorkloadPlan generation, including single-saga and bounded multi-saga shapes.
+- `SERIAL`, bounded order-preserving, and conflict-anchor `SEGMENT_COMPRESSED` forward scheduling.
+- Compensation checkpoints classified as `EXPLICIT_COMPENSATION`, `IMPLICIT_SAGA_ROLLBACK`, or `CONSERVATIVE_UNKNOWN`.
+- Bounded recovery-schedule generation with reverse per-participant compensation order and survivor-forward interleavings.
+- Eager FaultScenarios for materializable all-zero and single-point vectors.
+- Atomic, idempotent on-demand persistence for valid multi-fault vectors.
+- Exact accounting for computed vectors, including uncapped and written recovery-schedule counts.
+- Optional workload-linked dynamic-evidence sidecars that leave semantic package bytes unchanged.
+- Narrow saga/local ScenarioExecutor replay of one persisted FaultScenario, including zero-bit fallback and hard-stop policy.
+- HTML analysis report and Docker Compose generation/test/executor services.
 
-Current main targets:
+Main targets:
 
-- `applications/dummyapp/` for verifier fixtures and regression coverage.
-- `applications/quizzes/` for realistic smoke runs and thesis-scale evaluation.
+- `applications/dummyapp/` for parser, generation, enrichment, and executor regression fixtures.
+- `applications/quizzes/` for realistic bounded generation and runtime smokes.
 
-Current non-goals:
+Non-goals/current exclusions:
 
-- TCC runtime scenario generation/execution.
-- Distributed, stream, or gRPC runtime parity.
+- TCC scenario execution.
+- Stream/gRPC/distributed runtime parity or true concurrency.
 - Quizzes-specific verifier shortcuts.
-- Rewriting static catalog records from dynamic evidence.
+- Runtime vector overlays or behavior CSV as the executor contract.
+- Dynamic evidence rewriting WorkloadPlans or FaultScenarios.
+- Compensation faults, automatic recovery retry/backoff, impact scoring, GA search, or prioritization.
 
-## Implemented now
+## v3 scenario package
 
-### Static extraction
+A generated run publishes these semantic artifacts:
 
-- Application file-tree parsing for Java production files and Groovy test files.
-- Saga/functionality discovery, ordered workflow steps, dependency edges, dispatch footprints, and compensation/forward dispatch phases.
-- Command-handler dispatch target indexing and service access-policy extraction.
-- Domain-service classification based on dispatch structure rather than package/name suffixes.
-- Conservative handling for ambiguous service implementations and unresolved dependency references.
-- Static event topology for the implemented `EventHandling`/`EventProcessing` shape. The original runtime-evidence target group of five event-driven Quizzes sagas now has accepted static inputs.
+- `workload-catalog.jsonl` — deterministic `microservices-simulator.workload-plan.v3` records;
+- `fault-scenario-catalog.jsonl` — deterministic `microservices-simulator.fault-scenario.v3` records;
+- `workload-catalog-rejected-inputs.jsonl` — source-mode/input rejection diagnostics;
+- `scenario-space-accounting.json` — `microservices-simulator.scenario-space-accounting.v3`;
+- `scenario-catalog-manifest.json` — `microservices-simulator.scenario-catalog-manifest.v3` with linked paths, counts, hashes, policy, materializability rows, and recovery cap.
 
-### Groovy test/input extraction
+The v2 `scenario-catalog.jsonl` / `ScenarioPlan` contract is unsupported by the current package reader and executor. Older docs and evidence may mention it only as explicitly historical v1/v2 material; the migration decision is [`decisions/2026-07-19-compensation-aware-fault-scenario-contract.md`](decisions/2026-07-19-compensation-aware-fault-scenario-contract.md).
 
-- Groovy source indexing and direct saga constructor tracing.
-- Facade/functionality call extraction into saga construction recipes.
-- Helper-chain tracing, local transforms/coercions, DTO construction, collection shapes, placeholders, and unresolved values.
-- Replay-oriented `inputRecipe` payloads embedded on scenario input variants.
-- Ownership metadata separate from provenance, so runtime attribution can decide which feature methods may claim an input.
+### WorkloadPlan
 
-### Source-mode filtering
+A WorkloadPlan is reusable normal-execution structure. It owns participant instances, accepted inputs, one deterministic global forward interleaving, conflict evidence, ordered forward fault slots, compensation checkpoints, and stable identities. It owns neither an assigned vector nor a recovery ordering.
 
-- Source-mode classification as `SAGAS`, `TCC`, `MIXED`, or `UNKNOWN` using generic simulator/Spring evidence.
-- Saga catalog policy:
-  - `SAGAS` accepted;
-  - `TCC` rejected diagnostically;
-  - `MIXED` rejected diagnostically;
-  - `UNKNOWN` accepted with warning.
+### FaultScenario
 
-### Scenario catalog and accounting
+A FaultScenario is one reproducible experiment. It references one WorkloadPlan and persists one binary vector plus one complete ordered action sequence. Actions are `FORWARD` or `COMPENSATION`; action identity is part of FaultScenario identity. A participant commits automatically on its final successful forward step, so commit is reported but not independently schedulable.
 
-- Deterministic `ScenarioPlan` ids and bounded generation.
-- JSONL scenario catalog, manifest, rejected-input diagnostics, and scenario-space accounting.
-- Single-saga scenarios and bounded multi-saga candidates.
-- Conflict evidence based on write/read or write/write interactions; read/read pairs ignored.
-- `SERIAL`, bounded order-preserving interleaving, and conflict-anchor `SEGMENT_COMPRESSED` schedule strategies.
-- `COUNT_ONLY` mode for large-space accounting without materializing every plan.
+Eager generation is intentionally bounded to materializable all-zero and single-point vectors. Non-materializable workloads remain in the workload catalog with diagnostics but receive no eager FaultScenarios. The on-demand request path validates the package/workload/vector/cap, deterministically generates bounded schedules, and atomically revises the FaultScenario catalog, accounting, and manifest. Invalid, duplicate-collision, and failed publication paths preserve prior bytes.
 
-### Dynamic enrichment
+### Recovery accounting
 
-- Disabled-by-default verifier orchestration that runs selected application test classes with simulator evidence enabled.
-- Run-level `dynamic-input-map.json` written before the selected-test-class Maven batch.
-- Simulator-side runtime attribution emits `inputVariantId` when test owner + functionality class + step name resolve to exactly one static input variant.
-- Static input variants now keep provenance, owner, call-context, role, and fixture-origin separately. `sourceMethodName` remains the source/helper that created the input; `callContextMethodName` records the surrounding fixture/feature context when known; owners constrain which Spock feature identities may match at runtime.
-- Unmatched dynamic joins carry an additive `unmatchedReason` (`FAILED_TEST_CLASS`, `NOT_SELECTED_TEST_CLASS`, `HELPER_OWNER_MISMATCH`, or `UNCLASSIFIED`) and report `unmatchedReasonCounts` in enriched manifests/join reports.
-- Conservative join statuses: `MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `MATCHED_PARTIAL`, `AMBIGUOUS`, `UNMATCHED`, `NOT_COVERED`.
-- Enriched artifacts are sidecars; `scenario-catalog.jsonl` remains the static contract.
-- Plan-local ambiguity containment: direct ids for neighboring inputs are not reused to promote the wrong plan.
+`scenario-space-accounting.json` separates:
 
-### Human reports and packaging
+- WorkloadPlan counts and per-workload materializability;
+- possible binary vectors per workload;
+- eager and on-demand computed-vector counts;
+- exact uncapped and cap-written recovery-schedule counts for each computed vector;
+- exact sums over computed vectors only.
 
-- HTML analysis report generation.
-- Per-run output directories with stable artifact names.
-- Docker Compose verifier service for full static + dynamic Quizzes-oriented runs.
+The generator uses `BigInteger` counting and bounded materialization. A synthetic `RecoveryScheduleGeneratorSpec` high-cardinality fixture validates exact uncapped count `118264581564861424` while retaining only `20` schedules, visiting `992` counting states, and materializing fewer than `100` leaves.
 
-## Partial / bounded runtime support
+## Dynamic enrichment
 
-### ScenarioExecutor
+Dynamic enrichment remains optional and disabled by default. When enabled, the verifier runs selected tests with simulator evidence hooks, reads runtime JSONL, and writes:
 
-A narrow verifier-owned ScenarioExecutor path now exists for supported materializable saga/local scenarios. It can load a catalog/enriched catalog, auto-select supported single-saga scenarios, explicitly select supported single-saga or multi-saga scenarios, validate one assigned binary fault vector, materialize only supported inputs, replay the selected schedule, close or compensate participant lifecycle state, and write a standalone v3 participant report. Multi-saga support is deterministic sequential interleaving replay of `expandedSchedule`, not true concurrency or distributed parity. Accounting still reports ScenarioExecutor materializability separately from static `inputRecipe.executorReady` readiness.
+- `workload-dynamic-evidence.jsonl` (`microservices-simulator.workload-dynamic-evidence.v3`);
+- `workload-dynamic-evidence-manifest.json`;
+- `dynamic-evidence-join-report.json`.
 
-This is still not generic scenario execution. The supported path is intentionally narrow: no multi-saga auto-selection, no TCC execution, no stream/gRPC/distributed runtime parity, no true parallel execution, no compensation-step faults, no delay/non-binary impairments, and no impact scoring, GA search, or scenario prioritization.
+Records link through `workloadPlanId` and input ids and use conservative statuses: `MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `MATCHED_PARTIAL`, `AMBIGUOUS`, `UNMATCHED`, and `NOT_COVERED`. They do not embed/rewrite WorkloadPlans or FaultScenarios. Dummyapp integration coverage snapshots all five semantic package artifacts and verifies byte equality after sidecar publication.
 
-### Dynamic enrichment
+The latest broad Quizzes attribution counts (`MATCHED_EXACT=435`, `MATCHED_HIGH_CONFIDENCE=125`, `AMBIGUOUS=0`, `UNMATCHED=24`) came from the 2026-06-30 v2-era baseline. They remain useful historical attribution evidence, but they are not a fresh v3 Quizzes enrichment baseline and their old artifact names must not be used as current package guidance.
 
-Runtime input attribution is now useful at Quizzes scale: the refreshed post-fixture-ownership baseline produced 435 exact matches, 125 high-confidence matches, zero ambiguous joins, and 24 unmatched records over 584 static scenario records. It still does not use aggregate access evidence, literal runtime values, or aggregate keys deeply enough to reduce all residual unmatched cases.
+## ScenarioExecutor
 
-### Aggregate-instance binding
+The current executor requires a v3 package path and an exact persisted FaultScenario id. It derives the assigned vector and action order from that record; it does not accept `--fault-vector`, `FAULT_VECTOR`, auto-selection, or v2 catalogs.
 
-The verifier often knows aggregate type and access mode, but exact aggregate-instance key extraction is still incomplete.
+Supported execution semantics:
 
-### Source-mode classification
+- materialize all supported saga/local participants and runtime-owned infrastructure arguments;
+- replay persisted actions sequentially;
+- inject assigned faults at their exact forward slots;
+- execute scheduled checkpoint compensation in persisted order;
+- commit each participant automatically after its final successful forward action;
+- on a zero-bit domain/simulator body or commit failure, deviate once into immediate runtime-checkpoint recovery, skip that participant's remaining forwards, and continue valid survivor actions;
+- hard-stop at the first executor/infrastructure failure or thrown compensation action;
+- never mutate the five package artifacts.
 
-Source-mode classification is evidence-based. It is not a full Spring profile/environment solver.
+The action-aware report schema is `microservices-simulator.scenario-execution-report.v4`. It includes planned and actual action order, runtime occurrence/source ids, body and commit outcomes, recovery sub-outcomes, fault origin, fault-slot realization/masking, lifecycle events, participant final state, blockers, and `EXACT` / `DEVIATED` / `INCOMPLETE` conformance when measured execution begins.
+
+This remains a narrow deterministic sequential replay path. It is not generic catalog replay, distributed parity, or true parallel execution.
 
 ## Current evidence
 
-Latest Quizzes static event-semantics count-only comparison after simulator/quizzes API migration:
+### Bounded Quizzes v3 package and execution
+
+Verified 2026-07-20:
 
 ```text
-discovered sagas: 65 -> 68
-sagas with accepted inputs: 26 -> 36
-sagas without accepted inputs: 39 -> 32
-accepted input variants: 517 -> 584
-selected input-bound scenario total: 517 -> 584
-catalog written: 0 -> 0 (COUNT_ONLY, expected)
-staticRecipeReadyInputVariantCount: 0
-executorMaterializableInputVariantCount: 94
-executorReadyInputVariantCount: 94
-blockedInputVariantCount: 490
-EVENT_PAYLOAD_PLACEHOLDER blockers: 132
+run: verifiers/target/compensation-aware-v3-evidence/bounded-quizzes-v3/quizzes-20260720-091007-712/
+generationStrategy: BRUTE_FORCE
+catalogWriteMode: WRITE_WORKLOADS
+includeSingles: false
+maxSagaSetSize: 2
+maxCatalogScenarios: 2000
+maxInputVariantsPerSaga: 2
+maxSchedulesPerInputTuple: 4
+scheduleStrategy: SEGMENT_COMPRESSED
+recoveryScheduleCap: 20
+WorkloadPlans written/materializable: 2000 / 12
+FaultScenarios written: 84
+legacy scenario-catalog.jsonl present: false
 ```
 
-Dynamic-enrichment Quizzes baseline against the post-event-semantics static catalog, before fixture/setup ownership diagnostics:
+Selected compensation-interleaving scenario:
 
 ```text
-run: verifiers/target/2026-06-29-dynamic-baseline-test-profile/quizzes-20260629-222801-046/
-scenario catalog records: 584
-runStatus: PARTIAL
-test classes selected/passed/failed: 45 / 43 / 2
-dynamicEventsRead: 26820
-MATCHED_EXACT: 291
-MATCHED_HIGH_CONFIDENCE: 109
-MATCHED_PARTIAL: 0
-AMBIGUOUS: 0
-UNMATCHED: 184
-NOT_COVERED: 0
+WorkloadPlan: 01c49ae4314e106161ccc75f7531c62d01299417e702908100d7fb809ca2face
+FaultScenario: 25c0d61a2a2b40c2aaff7946aca8d2bb1becfc54b8b168442bcff40262052271
+participants: CreateCourseExecutionFunctionalitySagas + GetCourseExecutionsFunctionalitySagas
+assignedVector: 00010
+recovery schedules uncapped/written: 3 / 3
+planned actions: 5 forwards + 2 compensations
+interleaving: compensation, surviving participant forward, compensation
 ```
 
-Current post fixture/setup and feature-helper ownership run:
+Docker execution exited zero with `terminalStatus=PARTIAL_COMPENSATED`, `scheduleConformance=DEVIATED`, and participant final states `COMPENSATED` plus `COMMITTED`. The zero-bit `createCourseStep` failed before the assigned slot because the extracted course name was null; the report honestly records `UNASSIGNED_RUNTIME_FORWARD_FAILURE`, immediate no-work recovery, the assigned slot as masked, and survivor continuation. All five package SHA-256 values were unchanged before/after execution.
 
-```text
-run: verifiers/target/feature-helper-owner-fix-dynamic-smoke/quizzes-20260630-122219-034/
-scenario catalog records: 584
-runStatus: PARTIAL
-test classes selected/passed/failed: 45 / 43 / 2
-dynamicEventsRead: 26815
-MATCHED_EXACT: 435
-MATCHED_HIGH_CONFIDENCE: 125
-MATCHED_PARTIAL: 0
-AMBIGUOUS: 0
-UNMATCHED: 24
-NOT_COVERED: 0
-unmatchedReasonCounts: FAILED_TEST_CLASS=8, NOT_SELECTED_TEST_CLASS=7, HELPER_OWNER_MISMATCH=0, UNCLASSIFIED=9
-```
+Artifacts:
 
-Segment-compressed scheduling Quizzes count-only comparison:
+- summary: `verifiers/target/compensation-aware-v3-evidence/verification-summary.json`;
+- generation log: `verifiers/target/compensation-aware-v3-evidence/bounded-quizzes-v3-container.log`;
+- report: `verifiers/target/compensation-aware-v3-evidence/execution-report-25c0d61a.json`;
+- executor log: `verifiers/target/compensation-aware-v3-evidence/executor-25c0d61a-container.log`;
+- checksums: `verifiers/target/compensation-aware-v3-evidence/package.sha256.before` and `.after`.
 
-```text
-ORDER_PRESERVING_INTERLEAVING selected total: 218528454
-SEGMENT_COMPRESSED selected total: 1019393
-```
+### Regression validation
 
-ScenarioExecutor Quizzes smoke:
+- Complete simulator Maven suite passed.
+- Complete verifier Maven suite passed after updating stale parser discovery and v3 dynamic-enrichment integration expectations.
+- Docker `fault-analysis-scenario-gen-test` passed.
+- Focused high-cardinality recovery accounting passed with exact count and bounded traversal assertions.
 
-```text
-Single-saga catalog: verifiers/target/quizzes-20260708-163552-193/scenario-catalog.jsonl
-Single-saga scenario plan id: 910f72907e0d901bc5d35e0ecea03ec920b7ffb63929bbba1bfdba4fe531e195
-Single-saga explicit vector: 1 -> COMPENSATED / participant COMPENSATED
-
-Multi-saga catalog: verifiers/target/multi-saga-executor-planning-audit/quizzes-20260709-004627-310/scenario-catalog.jsonl
-Multi-saga scenario plan id: 0945caa9ac2fe06a268e6df6aa992fcf69e253116264684d577bdbbb955c2e25
-Multi-saga default vector: 00000 -> PARTIAL_COMPENSATED / participants COMPENSATED + COMMITTED
-```
-
-Those runs relied on executor runtime-owned argument resolution plus the new in-memory fault-vector provider. Accounting still separates static recipe readiness (`staticRecipeReadyInputVariantCount=0`) from ScenarioExecutor materializability (`executorMaterializableInputVariantCount=94`). The remaining 490 blocked variants include event-origin inputs blocked by event payload placeholders; accepted static inputs are not automatically executor-ready.
-
-See [`evidence.md`](evidence.md) for commands, run paths, and interpretation.
+See [`evidence.md`](evidence.md) for commands and totals.
 
 ## Current limitations
 
-- Static event topology exists for the implemented `EventHandling`/`EventProcessing` shape; other event shapes still need evidence before being claimed.
-- Exact aggregate-instance key extraction is incomplete.
-- The remaining 32 Quizzes sagas without accepted static inputs need classification. Missing accepted input means no accepted static `InputVariant` was discovered; it does not mean no test exists.
-- Dynamic enrichment is local/sagas-focused; stream/gRPC/distributed/TCC parity is not established.
-- Dynamic evidence is additive sidecar evidence and does not redefine or create static scenario structure. The current post fixture/setup ownership baseline has zero ambiguous joins and reduced unmatched records from `184` to `24`, but the residual unmatched records remain caveats rather than validated scenarios.
-- Same-feature sibling ambiguity can still return when current evidence cannot distinguish neighboring static inputs, even though the latest Quizzes baseline did not expose ambiguity.
-- Groovy input recipes are replay-oriented, but generic materialization/replay is incomplete. Event payload placeholders remain materialization blockers.
-- Segment compression is a static reduction under extracted conflict evidence, not proof of semantic completeness.
-- Type-only fallback is opt-in and must not be described as exact shared-instance evidence.
-- `UNKNOWN` source mode is accepted by default with warning to preserve coverage.
-- Dynamic enrichment baselines must run Quizzes tests with the `test` profile active (`SPRING_PROFILES_ACTIVE=test,sagas,local`); without it, async `@SpringBootTest` classes can fail before evidence collection because the datasource profile is missing.
+- Exact aggregate-instance key extraction remains incomplete.
+- Thirty-two Quizzes sagas still lack accepted static inputs; this does not imply that no tests exist.
+- Event payload placeholders may permit static acceptance while blocking materialization.
+- The materializability policy is static readiness plus structural admissibility; runtime success remains unproven until execution.
+- Segment compression is a deterministic reduction under extracted conflict evidence, not semantic-completeness proof.
+- Dynamic enrichment is local/sagas-focused; no fresh full Quizzes v3 dynamic baseline has been recorded.
+- A persisted executable FaultScenario can still encounter a meaningful zero-bit domain failure caused by imperfect extracted input values, as the current Quizzes smoke demonstrates.
+- Persistent-environment reset is caller/orchestrator responsibility.
 
 ## Not implemented
 
-- Generic ScenarioExecutor for arbitrary catalog replay.
-- Multi-saga auto-selection and generic distributed/runtime-parity multi-saga execution.
-- TCC runtime scenario execution.
-- Stream/gRPC/distributed runtime parity for scenario execution.
-- Compensation-step faults, delay injection, and other non-binary impairments.
-- Behavior CSV generation from scenario catalog records.
-- Domain-impact scoring.
-- Genetic/local search over fault configurations.
-- Multi-armed/contextual bandit scenario prioritization.
-- TCC verifier/runtime scenario-generation support.
-- Stream/gRPC/distributed dynamic evidence parity.
+- Generic runtime replay for every WorkloadPlan/FaultScenario shape.
+- TCC, stream, gRPC, distributed, or true-concurrent execution parity.
+- Compensation faults, delay injection, or non-binary impairments.
+- Automatic compensation retries.
+- Behavior CSV generation from v3 package records.
+- Domain-impact scoring, genetic/local search, or scenario prioritization.
 - Semantic deduplication of value-equivalent inputs.
 - Profile-aware resolution for ambiguous multiple `@Service` implementations.
 
-## Current next priorities
+## Next priorities
 
-1. Finalize and classify the remaining 32 Quizzes sagas without accepted static inputs.
-2. Triage the remaining `UNMATCHED=24` dynamic records, especially the `UNCLASSIFIED=9` residuals, before deciding whether aggregate-key/runtime-value matching is worth improving before executor work.
-3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
-4. Extend the ScenarioExecutor beyond the current supported saga/local deterministic replay path only after materialization improves.
-5. Add first domain-impact metrics after broader executable scenarios exist.
-
-## Meeting discussion points
-
-- Should the next thesis slice prioritize better static/dynamic matching or faster movement to executable fault scenarios?
-- Is conservative type-only interaction evidence acceptable for early scenario synthesis experiments?
-- Should the executor consume JSONL directly, or should the verifier generate simulator behavior files as an adapter format?
-- Which first impact metric matters most: invariant violations, compensation divergence, inconsistent final state, or unhandled exceptions?
+1. Improve accepted-input quality and event payload materialization where runtime failures expose concrete blockers.
+2. Classify the remaining Quizzes sagas without accepted inputs.
+3. Refresh a representative Quizzes dynamic-enrichment baseline against the workload-linked v3 sidecar contract.
+4. Improve aggregate-instance key binding where it affects WorkloadPlan usefulness.
+5. Add first domain-impact metrics before introducing search/prioritization.

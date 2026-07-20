@@ -11,6 +11,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.Dynam
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceReadResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.WorkloadDynamicEvidenceRecord
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapter
@@ -58,8 +60,10 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         def functionalityInvocationId = "${functionalityName}-${unitOfWorkVersion}"
         def runRoot = tempDir.resolve('dummyapp-dynamic-enrichment')
         def staticCatalogPath = runRoot.resolve('workload-catalog.jsonl')
+        def staticFaultScenarioPath = runRoot.resolve('fault-scenario-catalog.jsonl')
         def staticManifestPath = runRoot.resolve('scenario-catalog-manifest.json')
         def staticRejectedInputsPath = runRoot.resolve('workload-catalog-rejected-inputs.jsonl')
+        def staticAccountingPath = runRoot.resolve('scenario-space-accounting.json')
         def sidecarPath = runRoot.resolve('workload-dynamic-evidence.jsonl')
         def sidecarManifestPath = runRoot.resolve('workload-dynamic-evidence-manifest.json')
         def joinReportPath = runRoot.resolve('dynamic-evidence-join-report.json')
@@ -82,7 +86,15 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         def enrichedWriter = new EnrichedScenarioCatalogWriter()
 
         when:
-        staticWriter.write(fixture.scenarioResult(), staticCatalogPath, staticManifestPath, staticRejectedInputsPath, GENERATED_AT)
+        def eagerResult = EagerFaultScenarioGenerator.generate(fixture.scenarioResult(), new RecoveryScheduleCap(20))
+        staticWriter.write(eagerResult, staticCatalogPath, staticManifestPath, staticRejectedInputsPath, GENERATED_AT)
+        def staticPackageBefore = [
+                staticCatalogPath,
+                staticFaultScenarioPath,
+                staticManifestPath,
+                staticRejectedInputsPath,
+                staticAccountingPath
+        ].collectEntries { path -> [(path): Files.readAllBytes(path)] }
         Files.createDirectories(positiveEvidenceFile.parent)
         writeJsonl(positiveEvidenceFile, positiveEvidenceEvents(fixture, currentThreadName))
         DynamicEvidenceReadResult positiveRead = new DynamicEvidenceReader().read(positiveEvidenceRoot)
@@ -104,10 +116,15 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
 
         then:
         Files.exists(staticCatalogPath)
+        Files.exists(staticFaultScenarioPath)
         Files.exists(staticManifestPath)
         Files.exists(staticRejectedInputsPath)
+        Files.exists(staticAccountingPath)
+        !Files.exists(runRoot.resolve('scenario-catalog.jsonl'))
         Files.readAllLines(staticCatalogPath).size() == fixture.scenarioResult().workloadPlans().size()
+        !Files.readAllLines(staticFaultScenarioPath).isEmpty()
         mapper.readTree(Files.readString(staticManifestPath)).path('counts').path('workloadsExported').asText() == fixture.scenarioResult().workloadPlans().size().toString()
+        staticPackageBefore.every { path, bytes -> Files.readAllBytes(path) == bytes }
 
         and:
         positiveRead.evidenceFilesRead() == 1
