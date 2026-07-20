@@ -147,7 +147,7 @@ class ScenarioExecutorSpec extends Specification {
                 new ScheduledStep('fault-plan-step-3', sagaId, 'fixture::third#0', 2, [])
         ]
         def scenario = planWithStepsAndFaultSpace('fault-plan', steps,
-                new FaultSpace(3, ['fault-plan-step-1', 'fault-plan-step-2', 'fault-plan-step-3'], '010'))
+                new LegacyFaultSpace(3, ['fault-plan-step-1', 'fault-plan-step-2', 'fault-plan-step-3'], '010'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
         def output = runDirectory.resolve('reports/execution-report.json')
 
@@ -185,7 +185,7 @@ class ScenarioExecutorSpec extends Specification {
                 new ScheduledStep('masked-plan-step-3', sagaId, 'fixture::third#0', 2, [])
         ]
         def scenario = planWithStepsAndFaultSpace('masked-plan', steps,
-                new FaultSpace(3, ['masked-plan-step-1', 'masked-plan-step-2', 'masked-plan-step-3'], '011'))
+                new LegacyFaultSpace(3, ['masked-plan-step-1', 'masked-plan-step-2', 'masked-plan-step-3'], '011'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -309,7 +309,7 @@ class ScenarioExecutorSpec extends Specification {
         FaultVectorProviderHolder.clear()
         FixtureWorkflow.suppressFaultSignal = true
         def runDirectory = Files.createTempDirectory('scenario-executor-expected-not-injected')
-        def scenario = planWithFaultSpace('missing-fault', new FaultSpace(2, ['missing-fault-step-1', 'missing-fault-step-2'], '10'))
+        def scenario = planWithFaultSpace('missing-fault', new LegacyFaultSpace(2, ['missing-fault-step-1', 'missing-fault-step-2'], '10'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -331,7 +331,7 @@ class ScenarioExecutorSpec extends Specification {
         FaultVectorProviderHolder.clear()
         FixtureWorkflow.injectUnexpectedSignal = true
         def runDirectory = Files.createTempDirectory('scenario-executor-unexpected-injected-fault')
-        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [planWithFaultSpace('unexpected-injected', new FaultSpace(2, ['unexpected-injected-step-1', 'unexpected-injected-step-2'], '00'))])
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [planWithFaultSpace('unexpected-injected', new LegacyFaultSpace(2, ['unexpected-injected-step-1', 'unexpected-injected-step-2'], '00'))])
 
         when:
         def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'unexpected-injected', false), runtime())
@@ -351,7 +351,7 @@ class ScenarioExecutorSpec extends Specification {
         FaultVectorProviderHolder.clear()
         FixtureWorkflow.injectWrongSlotSignal = true
         def runDirectory = Files.createTempDirectory('scenario-executor-provider-mismatch')
-        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [planWithFaultSpace('provider-mismatch', new FaultSpace(2, ['provider-mismatch-step-1', 'provider-mismatch-step-2'], '10'))])
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [planWithFaultSpace('provider-mismatch', new LegacyFaultSpace(2, ['provider-mismatch-step-1', 'provider-mismatch-step-2'], '10'))])
 
         when:
         def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'provider-mismatch', false), runtime())
@@ -371,7 +371,7 @@ class ScenarioExecutorSpec extends Specification {
         FaultVectorProviderHolder.clear()
         FixtureWorkflow.compensationFails = true
         def runDirectory = Files.createTempDirectory('scenario-executor-compensation-failure')
-        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [planWithFaultSpace('compensation-failed', new FaultSpace(2, ['compensation-failed-step-1', 'compensation-failed-step-2'], '10'))])
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [planWithFaultSpace('compensation-failed', new LegacyFaultSpace(2, ['compensation-failed-step-1', 'compensation-failed-step-2'], '10'))])
 
         when:
         def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'compensation-failed', false), runtime())
@@ -437,20 +437,20 @@ class ScenarioExecutorSpec extends Specification {
 
         where:
         scenarioPlan                                                                  | explicitVector || expectedReason                              | expectedVector
-        planWithFaultSpace('wrong-length', new FaultSpace(2, ['wrong-length-step-1', 'wrong-length-step-2'], '00')) | '1'            || 'INVALID_EXPLICIT_VECTOR'                    | '1'
-        planWithFaultSpace('non-binary', new FaultSpace(2, ['non-binary-step-1', 'non-binary-step-2'], '00'))       | '10x'          || 'INVALID_EXPLICIT_VECTOR'                    | '10x'
-        planWithFaultSpace('bad-default', new FaultSpace(2, ['bad-default-step-1', 'bad-default-step-2'], '0x'))    | null           || 'INVALID_DEFAULT_VECTOR'                     | '0x'
-        planWithFaultSpace('length-mismatch', new FaultSpace(3, ['length-mismatch-step-1', 'length-mismatch-step-2'], '000')) | null || 'FAULT_SPACE_LENGTH_MISMATCH'       | '000'
-        planWithFaultSpace('duplicate-ids', new FaultSpace(2, ['duplicate-ids-step-1', 'duplicate-ids-step-1'], '00')) | null        || 'DUPLICATE_FAULT_SPACE_SCHEDULED_STEP_ID' | '00'
-        planWithFaultSpace('unresolved', new FaultSpace(1, ['missing-step'], '0'))                                      | null           || 'UNRESOLVED_FAULT_SPACE_SCHEDULED_STEP_ID' | '0'
-        planWithStepsAndFaultSpace('non-unique', [new ScheduledStep('dup-step', 'non-unique-saga', 'fixture::first#0', 0, []), new ScheduledStep('dup-step', 'non-unique-saga', 'fixture::second#0', 1, [])], new FaultSpace(1, ['dup-step'], '0')) | null || 'NON_UNIQUE_FAULT_SLOT_MAPPING' | '0'
-        planWithFaultSpace('empty-invalid', new FaultSpace(1, ['empty-invalid-step-1'], '0'))                         | ''             || 'INVALID_EXPLICIT_VECTOR'                    | ''
+        planWithFaultSpace('wrong-length', new LegacyFaultSpace(2, ['wrong-length-step-1', 'wrong-length-step-2'], '00')) | '1'            || 'INVALID_EXPLICIT_VECTOR'                    | '1'
+        planWithFaultSpace('non-binary', new LegacyFaultSpace(2, ['non-binary-step-1', 'non-binary-step-2'], '00'))       | '10x'          || 'INVALID_EXPLICIT_VECTOR'                    | '10x'
+        planWithFaultSpace('bad-default', new LegacyFaultSpace(2, ['bad-default-step-1', 'bad-default-step-2'], '0x'))    | null           || 'INVALID_DEFAULT_VECTOR'                     | '0x'
+        planWithFaultSpace('length-mismatch', new LegacyFaultSpace(3, ['length-mismatch-step-1', 'length-mismatch-step-2'], '000')) | null || 'FAULT_SPACE_LENGTH_MISMATCH'       | '000'
+        planWithFaultSpace('duplicate-ids', new LegacyFaultSpace(2, ['duplicate-ids-step-1', 'duplicate-ids-step-1'], '00')) | null        || 'DUPLICATE_FAULT_SPACE_SCHEDULED_STEP_ID' | '00'
+        planWithFaultSpace('unresolved', new LegacyFaultSpace(1, ['missing-step'], '0'))                                      | null           || 'UNRESOLVED_FAULT_SPACE_SCHEDULED_STEP_ID' | '0'
+        planWithStepsAndFaultSpace('non-unique', [new ScheduledStep('dup-step', 'non-unique-saga', 'fixture::first#0', 0, []), new ScheduledStep('dup-step', 'non-unique-saga', 'fixture::second#0', 1, [])], new LegacyFaultSpace(1, ['dup-step'], '0')) | null || 'NON_UNIQUE_FAULT_SLOT_MAPPING' | '0'
+        planWithFaultSpace('empty-invalid', new LegacyFaultSpace(1, ['empty-invalid-step-1'], '0'))                         | ''             || 'INVALID_EXPLICIT_VECTOR'                    | ''
     }
 
     def 'zero length fault space accepts empty vector'() {
         given:
         def runDirectory = Files.createTempDirectory('scenario-executor-zero-vector')
-        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [planWithStepsAndFaultSpace('zero-plan', [], new FaultSpace(0, [], ''))])
+        writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [planWithStepsAndFaultSpace('zero-plan', [], new LegacyFaultSpace(0, [], ''))])
 
         when:
         def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(runDirectory, null, null, 'zero-plan', '', true), runtime())
@@ -469,7 +469,7 @@ class ScenarioExecutorSpec extends Specification {
         given:
         FixtureWorkflow.STEPS.clear()
         def runDirectory = Files.createTempDirectory('scenario-executor-vector-dry-run')
-        def scenario = planWithFaultSpace('dry-vector', new FaultSpace(2, ['dry-vector-step-1', 'dry-vector-step-2'], '01'))
+        def scenario = planWithFaultSpace('dry-vector', new LegacyFaultSpace(2, ['dry-vector-step-1', 'dry-vector-step-2'], '01'))
         def catalog = runDirectory.resolve('scenario-catalog.jsonl')
         writeJsonl(catalog, [scenario])
         def before = Files.readString(catalog)
@@ -540,7 +540,7 @@ class ScenarioExecutorSpec extends Specification {
                 [new SagaInstance('left', 'LeftSaga', 'left-input', []), new SagaInstance('right', 'RightSaga', 'missing-input', [])],
                 [inputVariant('left-input', 'LeftSaga', literalArg('left'))],
                 [new ScheduledStep('left-step', 'left', 'LeftSaga::run#0', 0, []), new ScheduledStep('unknown-step', 'unknown', 'RightSaga::other#0', 1, [])],
-                new FaultSpace(1, ['missing-fault-step'], '1'))
+                new LegacyFaultSpace(1, ['missing-fault-step'], '1'))
         def validSingle = plan('valid-single', FixtureWorkflow.name, 'fixture::first#0')
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [invalidMulti, validSingle])
 
@@ -565,7 +565,7 @@ class ScenarioExecutorSpec extends Specification {
                 [new SagaInstance('left', 'LeftSaga', 'dup-input', []), new SagaInstance('right', 'RightSaga', 'right-input', [])],
                 [inputVariant('dup-input', 'LeftSaga', literalArg('a')), inputVariant('dup-input', 'LeftSaga', literalArg('b')), inputVariant('right-input', 'RightSaga', literalArg('right'))],
                 [new ScheduledStep('dup-step', 'left', 'no-delimiter', 0, []), new ScheduledStep('dup-step', 'right', 'RightSaga::other#0', 1, [])],
-                new FaultSpace(2, ['dup-step', 'dup-step'], '00'))
+                new LegacyFaultSpace(2, ['dup-step', 'dup-step'], '00'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -587,7 +587,7 @@ class ScenarioExecutorSpec extends Specification {
                 [new SagaInstance('left', FixtureWorkflow.name, 'left-input', []), new SagaInstance('right', FixtureWorkflow.name, 'right-input', [])],
                 [inputVariant('left-input', FixtureWorkflow.name, literalArg('left')), inputVariant('right-input', FixtureWorkflow.name, recipeArg(InputRecipeNode.builder('constructor').executorReady(true).build()))],
                 [new ScheduledStep('left-step', 'left', 'fixture::run#0', 0, []), new ScheduledStep('right-step', 'right', 'fixture::other#0', 1, [])],
-                new FaultSpace(2, ['left-step', 'right-step'], '11'))
+                new LegacyFaultSpace(2, ['left-step', 'right-step'], '11'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -619,7 +619,7 @@ class ScenarioExecutorSpec extends Specification {
                 [new SagaInstance('left', FixtureWorkflow.name, 'left-input', []), new SagaInstance('right', 'pt.example.MissingSaga', 'right-input', [])],
                 [inputVariant('left-input', FixtureWorkflow.name, literalArg('left')), inputVariant('right-input', 'pt.example.MissingSaga', literalArg('right'))],
                 [new ScheduledStep('left-step', 'left', 'fixture::run#0', 0, []), new ScheduledStep('right-step', 'right', 'fixture::other#0', 1, [])],
-                new FaultSpace(2, ['left-step', 'right-step'], '10'))
+                new LegacyFaultSpace(2, ['left-step', 'right-step'], '10'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -649,7 +649,7 @@ class ScenarioExecutorSpec extends Specification {
                 [new SagaInstance('left', FixtureWorkflow.name, 'left-input', []), new SagaInstance('right', FixtureWorkflow.name, 'right-input', []), new SagaInstance('idle', FixtureWorkflow.name, 'idle-input', [])],
                 [inputVariant('left-input', FixtureWorkflow.name, literalArg('left')), inputVariant('right-input', FixtureWorkflow.name, literalArg('right')), inputVariant('idle-input', FixtureWorkflow.name, literalArg('idle'))],
                 [new ScheduledStep('right-step', 'right', 'fixture::rightRun#0', 2, []), new ScheduledStep('left-step', 'left', 'fixture::leftRun#0', 1, [])],
-                new FaultSpace(2, ['left-step', 'right-step'], '00'))
+                new LegacyFaultSpace(2, ['left-step', 'right-step'], '00'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -694,7 +694,7 @@ class ScenarioExecutorSpec extends Specification {
                  new ScheduledStep('right-first', 'right', 'fixture::rightFirst#0', 1, []),
                  new ScheduledStep('left-second', 'left', 'fixture::leftSecond#0', 2, []),
                  new ScheduledStep('right-second', 'right', 'fixture::rightSecond#0', 3, [])],
-                new FaultSpace(4, ['left-first', 'right-first', 'left-second', 'right-second'], '1000'))
+                new LegacyFaultSpace(4, ['left-first', 'right-first', 'left-second', 'right-second'], '1000'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -730,7 +730,7 @@ class ScenarioExecutorSpec extends Specification {
                  new ScheduledStep('right-first', 'right', 'fixture::rightFirst#0', 1, []),
                  new ScheduledStep('left-second', 'left', 'fixture::leftSecond#0', 2, []),
                  new ScheduledStep('right-second', 'right', 'fixture::rightSecond#0', 3, [])],
-                new FaultSpace(4, ['left-first', 'right-first', 'left-second', 'right-second'], '1011'))
+                new LegacyFaultSpace(4, ['left-first', 'right-first', 'left-second', 'right-second'], '1011'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -764,7 +764,7 @@ class ScenarioExecutorSpec extends Specification {
                  new ScheduledStep('right-first', 'right', 'fixture::rightFirst#0', 1, []),
                  new ScheduledStep('left-later', 'left', 'fixture::leftLater#0', 2, []),
                  new ScheduledStep('right-second', 'right', 'fixture::rightSecond#0', 3, [])],
-                new FaultSpace(4, ['left-fail', 'right-first', 'left-later', 'right-second'], '0010'))
+                new LegacyFaultSpace(4, ['left-fail', 'right-first', 'left-later', 'right-second'], '0010'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -799,7 +799,7 @@ class ScenarioExecutorSpec extends Specification {
                 [inputVariant('left-input', FixtureWorkflow.name, literalArg('left')), inputVariant('right-input', FixtureWorkflow.name, literalArg('right'))],
                 [new ScheduledStep('left-fail', 'left', 'fixture::fail#0', 0, []),
                  new ScheduledStep('right-fail', 'right', 'fixture::fail#0', 1, [])],
-                new FaultSpace(2, ['left-fail', 'right-fail'], '00'))
+                new LegacyFaultSpace(2, ['left-fail', 'right-fail'], '00'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -832,7 +832,7 @@ class ScenarioExecutorSpec extends Specification {
                  new ScheduledStep('right-first', 'right', 'fixture::rightFirst#0', 1, []),
                  new ScheduledStep('left-later', 'left', 'fixture::leftLater#0', 2, []),
                  new ScheduledStep('right-second', 'right', 'fixture::rightSecond#0', 3, [])],
-                new FaultSpace(4, ['left-fail', 'right-first', 'left-later', 'right-second'], '0010'))
+                new LegacyFaultSpace(4, ['left-fail', 'right-first', 'left-later', 'right-second'], '0010'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -864,7 +864,7 @@ class ScenarioExecutorSpec extends Specification {
                 [inputVariant('left-input', MissingExecuteWorkflow.name, literalArg('left')), inputVariant('right-input', FixtureWorkflow.name, literalArg('right'))],
                 [new ScheduledStep('left-first', 'left', 'fixture::leftFirst#0', 0, []),
                  new ScheduledStep('right-first', 'right', 'fixture::rightFirst#0', 1, [])],
-                new FaultSpace(2, ['left-first', 'right-first'], '00'))
+                new LegacyFaultSpace(2, ['left-first', 'right-first'], '00'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -896,7 +896,7 @@ class ScenarioExecutorSpec extends Specification {
                 [new ScheduledStep('left-first', 'left', 'fixture::leftFirst#0', 0, []),
                  new ScheduledStep('right-first', 'right', 'fixture::rightFirst#0', 1, []),
                  new ScheduledStep('left-second', 'left', 'fixture::leftSecond#0', 2, [])],
-                new FaultSpace(3, ['left-first', 'right-first', 'left-second'], '101'))
+                new LegacyFaultSpace(3, ['left-first', 'right-first', 'left-second'], '101'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -929,7 +929,7 @@ class ScenarioExecutorSpec extends Specification {
                  new ScheduledStep('right-first', 'right', 'fixture::rightFirst#0', 1, []),
                  new ScheduledStep('left-second', 'left', 'fixture::leftSecond#0', 2, []),
                  new ScheduledStep('right-second', 'right', 'fixture::rightSecond#0', 3, [])],
-                new FaultSpace(4, ['left-first', 'right-first', 'left-second', 'right-second'], '1111'))
+                new LegacyFaultSpace(4, ['left-first', 'right-first', 'left-second', 'right-second'], '1111'))
         writeJsonl(runDirectory.resolve('scenario-catalog.jsonl'), [scenario])
 
         when:
@@ -1002,32 +1002,36 @@ class ScenarioExecutorSpec extends Specification {
         Files.write(path, records.collect { MAPPER.writeValueAsString(it) })
     }
 
-    private static EnrichedScenarioRecord enriched(ScenarioPlan plan, DynamicEvidenceJoinStatus status) {
-        new EnrichedScenarioRecord(EnrichedScenarioRecord.SCHEMA_VERSION, plan.deterministicId(), plan,
-                new DynamicEvidenceSummary(status, null, [], [], [], [], [], []))
+    private static Map<String, Object> enriched(LegacyScenarioPlan plan, DynamicEvidenceJoinStatus status) {
+        [
+                schemaVersion : 'microservices-simulator.scenario-catalog-enriched.v2',
+                scenarioPlanId: plan.deterministicId(),
+                scenarioPlan  : plan,
+                dynamicEvidence: new DynamicEvidenceSummary(status, null, [], [], [], [], [], [])
+        ]
     }
 
-    private static ScenarioPlan plan(String id, String sagaFqn, String stepId) {
+    private static LegacyScenarioPlan plan(String id, String sagaFqn, String stepId) {
         plan(id, sagaFqn, stepId, stepId, literalArg('value'))
     }
 
-    private static ScenarioPlan plan(String id, String sagaFqn, String firstStep, String secondStep, InputRecipeArgument argument) {
+    private static LegacyScenarioPlan plan(String id, String sagaFqn, String firstStep, String secondStep, InputRecipeArgument argument) {
         planWithArgs(id, sagaFqn, [argument], firstStep, secondStep)
     }
 
-    private static ScenarioPlan planWithArgs(String id, String sagaFqn, List<InputRecipeArgument> arguments) {
+    private static LegacyScenarioPlan planWithArgs(String id, String sagaFqn, List<InputRecipeArgument> arguments) {
         planWithArgs(id, sagaFqn, arguments, 'fixture::first#0', 'fixture::first#0')
     }
 
-    private static ScenarioPlan planWithArgs(String id, String sagaFqn, List<InputRecipeArgument> arguments, String firstStep, String secondStep) {
+    private static LegacyScenarioPlan planWithArgs(String id, String sagaFqn, List<InputRecipeArgument> arguments, String firstStep, String secondStep) {
         def input = inputVariant("${id}-input".toString(), sagaFqn, arguments)
         def saga = new SagaInstance("${id}-saga".toString(), sagaFqn, input.deterministicId(), [])
-        new ScenarioPlan(ScenarioPlan.SCHEMA_VERSION, id, ScenarioKind.SINGLE_SAGA, [saga], [input],
+        new LegacyScenarioPlan(LegacyScenarioPlan.SCHEMA_VERSION, id, ScenarioKind.SINGLE_SAGA, [saga], [input],
                 [new ScheduledStep("${id}-step-2".toString(), saga.deterministicId(), firstStep, 1, []),
                  new ScheduledStep("${id}-step-1".toString(), saga.deterministicId(), secondStep, 0, [])], null, [], [])
     }
 
-    private static ScenarioPlan planWithFaultSpace(String id, FaultSpace faultSpace) {
+    private static LegacyScenarioPlan planWithFaultSpace(String id, LegacyFaultSpace faultSpace) {
         def sagaId = "${id}-saga".toString()
         planWithStepsAndFaultSpace(id,
                 [new ScheduledStep("${id}-step-1".toString(), sagaId, 'fixture::first#0', 0, []),
@@ -1035,14 +1039,14 @@ class ScenarioExecutorSpec extends Specification {
                 faultSpace)
     }
 
-    private static ScenarioPlan planWithStepsAndFaultSpace(String id, List<ScheduledStep> steps, FaultSpace faultSpace) {
+    private static LegacyScenarioPlan planWithStepsAndFaultSpace(String id, List<ScheduledStep> steps, LegacyFaultSpace faultSpace) {
         def input = inputVariant("${id}-input".toString(), FixtureWorkflow.name, literalArg('value'))
         def saga = new SagaInstance("${id}-saga".toString(), FixtureWorkflow.name, input.deterministicId(), [])
         def normalizedSteps = steps.collect { new ScheduledStep(it.deterministicId(), saga.deterministicId(), it.stepId(), it.scheduleOrder(), it.warnings()) }
-        new ScenarioPlan(ScenarioPlan.SCHEMA_VERSION, id, ScenarioKind.SINGLE_SAGA, [saga], [input], normalizedSteps, faultSpace, [], [])
+        new LegacyScenarioPlan(LegacyScenarioPlan.SCHEMA_VERSION, id, ScenarioKind.SINGLE_SAGA, [saga], [input], normalizedSteps, faultSpace, [], [])
     }
 
-    private static ScenarioPlan multiPlan(String id) {
+    private static LegacyScenarioPlan multiPlan(String id) {
         multiPlanWith(id,
                 [new SagaInstance('left', 'LeftSaga', 'left-input', []), new SagaInstance('right', 'RightSaga', 'right-input', [])],
                 [inputVariant('left-input', 'LeftSaga', literalArg('left')), inputVariant('right-input', 'RightSaga', literalArg('right'))],
@@ -1050,8 +1054,8 @@ class ScenarioExecutorSpec extends Specification {
                 null)
     }
 
-    private static ScenarioPlan multiPlanWith(String id, List<SagaInstance> sagas, List<InputVariant> inputs, List<ScheduledStep> steps, FaultSpace faultSpace) {
-        new ScenarioPlan(ScenarioPlan.SCHEMA_VERSION, id, ScenarioKind.MULTI_SAGA, sagas, inputs, steps, faultSpace, [], [])
+    private static LegacyScenarioPlan multiPlanWith(String id, List<SagaInstance> sagas, List<InputVariant> inputs, List<ScheduledStep> steps, LegacyFaultSpace faultSpace) {
+        new LegacyScenarioPlan(LegacyScenarioPlan.SCHEMA_VERSION, id, ScenarioKind.MULTI_SAGA, sagas, inputs, steps, faultSpace, [], [])
     }
 
     private static InputVariant inputVariant(String id, String sagaFqn, InputRecipeArgument argument) {

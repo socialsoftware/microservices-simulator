@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinStatus;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.EnrichedScenarioRecord;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.WorkloadDynamicEvidenceRecord;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.UnmatchedReason;
 
 import java.io.BufferedWriter;
@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 public class EnrichedScenarioCatalogWriter {
-    public static final String MANIFEST_SCHEMA = "microservices-simulator.scenario-catalog-enriched-manifest.v2";
-    public static final String JOIN_REPORT_SCHEMA = "microservices-simulator.dynamic-evidence-join-report.v1";
+    public static final String MANIFEST_SCHEMA = "microservices-simulator.workload-dynamic-evidence-manifest.v3";
+    public static final String JOIN_REPORT_SCHEMA = "microservices-simulator.dynamic-evidence-join-report.v3";
 
     private final ObjectMapper objectMapper;
 
@@ -32,34 +32,34 @@ public class EnrichedScenarioCatalogWriter {
     }
 
     public void write(DynamicEvidenceJoinResult joinResult,
-                       Path enrichedCatalogPath,
+                       Path sidecarPath,
                        Path manifestPath,
                        Path joinReportPath,
-                       String sourceCatalogPath,
+                       String sourceWorkloadCatalogPath,
                        String dynamicEvidenceRoot,
                        Map<String, ?> effectiveConfig,
                        List<?> testRuns,
                        String generatedAt) throws IOException {
-        write(joinResult, enrichedCatalogPath, manifestPath, joinReportPath, sourceCatalogPath, dynamicEvidenceRoot,
+        write(joinResult, sidecarPath, manifestPath, joinReportPath, sourceWorkloadCatalogPath, dynamicEvidenceRoot,
                 effectiveConfig, testRuns, generatedAt, Map.of());
     }
 
     public void write(DynamicEvidenceJoinResult joinResult,
-                       Path enrichedCatalogPath,
+                       Path sidecarPath,
                        Path manifestPath,
                        Path joinReportPath,
-                       String sourceCatalogPath,
+                       String sourceWorkloadCatalogPath,
                        String dynamicEvidenceRoot,
                        Map<String, ?> effectiveConfig,
                        List<?> testRuns,
                        String generatedAt,
                        Map<String, Object> reportMetadata) throws IOException {
-        createParent(enrichedCatalogPath);
+        createParent(sidecarPath);
         createParent(manifestPath);
         createParent(joinReportPath);
 
-        try (BufferedWriter writer = Files.newBufferedWriter(enrichedCatalogPath)) {
-            for (EnrichedScenarioRecord record : joinResult.records()) {
+        try (BufferedWriter writer = Files.newBufferedWriter(sidecarPath)) {
+            for (WorkloadDynamicEvidenceRecord record : joinResult.records()) {
                 writer.write(objectMapper.writeValueAsString(record));
                 writer.newLine();
             }
@@ -68,8 +68,8 @@ public class EnrichedScenarioCatalogWriter {
         Map<String, Object> manifest = new LinkedHashMap<>();
         manifest.put("schema", MANIFEST_SCHEMA);
         manifest.put("generatedAt", generatedAt);
-        manifest.put("sourceCatalogPath", sourceCatalogPath);
-        manifest.put("outputCatalogPath", enrichedCatalogPath.toString());
+        manifest.put("sourceWorkloadCatalogPath", sourceWorkloadCatalogPath);
+        manifest.put("sidecarPath", sidecarPath.toString());
         manifest.put("dynamicEvidenceRoot", dynamicEvidenceRoot);
         manifest.put("effectiveDynamicEnrichmentConfig", effectiveConfig == null ? Map.of() : effectiveConfig);
         manifest.put("counts", manifestCounts(joinResult, testRuns));
@@ -82,9 +82,9 @@ public class EnrichedScenarioCatalogWriter {
             report.putAll(reportMetadata);
         }
         report.put("runStatus", runStatus(testRuns));
-        report.put("staticCatalogPath", sourceCatalogPath);
+        report.put("workloadCatalogPath", sourceWorkloadCatalogPath);
         report.put("dynamicEvidenceRoot", dynamicEvidenceRoot);
-        report.put("enrichedCatalogPath", enrichedCatalogPath.toString());
+        report.put("sidecarPath", sidecarPath.toString());
         report.put("testRuns", testRuns == null ? List.of() : testRuns);
         report.put("counts", reportCounts(joinResult, testRuns));
         report.put("warnings", joinResult.warnings());
@@ -113,8 +113,8 @@ public class EnrichedScenarioCatalogWriter {
         counts.put("evidenceBytesRead", joinResult.evidenceBytesRead());
         counts.put("dynamicEventsRead", joinResult.dynamicEventsRead());
         counts.put("eventsMissingTestContext", joinResult.eventsMissingTestContext());
-        counts.put("scenarioPlansRead", joinResult.records().size());
-        counts.put("scenarioPlansEnriched", joinResult.records().size());
+        counts.put("workloadPlansRead", joinResult.records().size());
+        counts.put("workloadPlansEnriched", joinResult.records().size());
         return counts;
     }
 

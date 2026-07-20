@@ -1,7 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,9 +16,11 @@ public record ScenarioSpaceAccountingReport(
         ExecutorReadiness executorReadiness,
         InputBoundScenarioSpace inputBoundScenarioSpace,
         List<GroupedSagaSetRow> groupedSagaSets,
-        List<TopContributor> topContributors) {
+        List<TopContributor> topContributors,
+        WorkloadCatalogSpace workloadCatalogSpace,
+        FaultScenarioCatalogSpace faultScenarioCatalogSpace) {
 
-    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-space-accounting.v1";
+    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-space-accounting.v3";
 
     public ScenarioSpaceAccountingReport {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;
@@ -26,6 +30,40 @@ public record ScenarioSpaceAccountingReport(
         inputBoundScenarioSpace = inputBoundScenarioSpace == null ? InputBoundScenarioSpace.empty() : inputBoundScenarioSpace;
         groupedSagaSets = groupedSagaSets == null ? List.of() : List.copyOf(groupedSagaSets);
         topContributors = topContributors == null ? List.of() : List.copyOf(topContributors);
+        workloadCatalogSpace = workloadCatalogSpace == null ? WorkloadCatalogSpace.empty() : workloadCatalogSpace;
+        faultScenarioCatalogSpace = faultScenarioCatalogSpace == null ? FaultScenarioCatalogSpace.empty() : faultScenarioCatalogSpace;
+    }
+
+    public ScenarioSpaceAccountingReport(String schemaVersion,
+                                         AccountingRunConfig runConfig,
+                                         TypeLevelCoverage typeLevelCoverage,
+                                         ExecutorReadiness executorReadiness,
+                                         InputBoundScenarioSpace inputBoundScenarioSpace,
+                                         List<GroupedSagaSetRow> groupedSagaSets,
+                                         List<TopContributor> topContributors) {
+        this(schemaVersion, runConfig, typeLevelCoverage, executorReadiness, inputBoundScenarioSpace,
+                groupedSagaSets, topContributors, WorkloadCatalogSpace.empty(), FaultScenarioCatalogSpace.empty());
+    }
+
+    public ScenarioSpaceAccountingReport withCatalogPackage(List<WorkloadPlan> workloadPlans,
+                                                             String faultScenariosWritten) {
+        List<WorkloadPlan> safePlans = workloadPlans == null ? List.of() : workloadPlans;
+        List<WorkloadVectorSpace> rows = safePlans.stream()
+                .map(plan -> new WorkloadVectorSpace(
+                        plan.deterministicId(),
+                        Integer.toString(plan.faultSlots().size()),
+                        BigInteger.TWO.pow(plan.faultSlots().size()).toString()))
+                .toList();
+        return new ScenarioSpaceAccountingReport(
+                schemaVersion,
+                runConfig,
+                typeLevelCoverage,
+                executorReadiness,
+                inputBoundScenarioSpace,
+                groupedSagaSets,
+                topContributors,
+                new WorkloadCatalogSpace(Integer.toString(safePlans.size()), rows),
+                new FaultScenarioCatalogSpace(faultScenariosWritten, "not-computed-in-this-package-slice"));
     }
 
     public static ScenarioSpaceAccountingReport placeholder(String targetApplication,
@@ -43,6 +81,45 @@ public record ScenarioSpaceAccountingReport(
                         new ScenarioSpaceTotals(written, Map.of())),
                 List.of(),
                 List.of());
+    }
+
+    public record WorkloadCatalogSpace(String workloadPlansWritten,
+                                       List<WorkloadVectorSpace> perWorkloadVectorSpace) {
+        public WorkloadCatalogSpace {
+            workloadPlansWritten = workloadPlansWritten == null || workloadPlansWritten.isBlank()
+                    ? "0"
+                    : workloadPlansWritten;
+            perWorkloadVectorSpace = perWorkloadVectorSpace == null ? List.of() : List.copyOf(perWorkloadVectorSpace);
+        }
+
+        public static WorkloadCatalogSpace empty() {
+            return new WorkloadCatalogSpace("0", List.of());
+        }
+    }
+
+    public record WorkloadVectorSpace(String workloadPlanId,
+                                      String faultSlotCount,
+                                      String possibleBinaryVectors) {
+        public WorkloadVectorSpace {
+            faultSlotCount = faultSlotCount == null || faultSlotCount.isBlank() ? "0" : faultSlotCount;
+            possibleBinaryVectors = possibleBinaryVectors == null || possibleBinaryVectors.isBlank() ? "0" : possibleBinaryVectors;
+        }
+    }
+
+    public record FaultScenarioCatalogSpace(String faultScenariosWritten,
+                                            String allVectorRecoveryTotalStatus) {
+        public FaultScenarioCatalogSpace {
+            faultScenariosWritten = faultScenariosWritten == null || faultScenariosWritten.isBlank()
+                    ? "0"
+                    : faultScenariosWritten;
+            allVectorRecoveryTotalStatus = allVectorRecoveryTotalStatus == null || allVectorRecoveryTotalStatus.isBlank()
+                    ? "not-computed"
+                    : allVectorRecoveryTotalStatus;
+        }
+
+        public static FaultScenarioCatalogSpace empty() {
+            return new FaultScenarioCatalogSpace("0", "not-computed");
+        }
     }
 
     public record AccountingRunConfig(

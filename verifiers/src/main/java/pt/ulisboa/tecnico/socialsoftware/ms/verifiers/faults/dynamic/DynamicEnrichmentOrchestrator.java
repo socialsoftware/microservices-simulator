@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.export.EnrichedScenarioCatalogWriter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceReadResult;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -65,19 +65,19 @@ public class DynamicEnrichmentOrchestrator {
                       String applicationName,
                       Path runDirectory,
                       List<String> testClassFqns,
-                      List<ScenarioPlan> scenarioPlans,
-                      Path staticCatalogPath,
+                      List<WorkloadPlan> workloadPlans,
+                      Path workloadCatalogPath,
                       String generatedAt) throws IOException {
         Objects.requireNonNull(config, "config cannot be null");
         Objects.requireNonNull(applicationPath, "applicationPath cannot be null");
         Objects.requireNonNull(runDirectory, "runDirectory cannot be null");
-        Objects.requireNonNull(staticCatalogPath, "staticCatalogPath cannot be null");
+        Objects.requireNonNull(workloadCatalogPath, "workloadCatalogPath cannot be null");
 
         Path evidenceRoot = resolveRunRelativePath(runDirectory, config.dynamicEvidenceSubdir(), "dynamic-evidence");
         Files.createDirectories(evidenceRoot);
         List<String> selectedTestClassFqns = selectedTestClassFqns(testClassFqns);
-        List<ScenarioPlan> safeScenarioPlans = scenarioPlans == null ? List.of() : scenarioPlans;
-        inputMapWriter.write(evidenceRoot.resolve(DynamicInputMapWriter.FILE_NAME), selectedTestClassFqns, safeScenarioPlans, generatedAt);
+        List<WorkloadPlan> safeWorkloadPlans = workloadPlans == null ? List.of() : workloadPlans;
+        inputMapWriter.write(evidenceRoot.resolve(DynamicInputMapWriter.FILE_NAME), selectedTestClassFqns, safeWorkloadPlans, generatedAt);
 
         List<String> arguments = commandArguments(config, selectedTestClassFqns, evidenceRoot, applicationName);
         ProcessRunner.ProcessCommand command = new ProcessRunner.ProcessCommand(
@@ -129,10 +129,10 @@ public class DynamicEnrichmentOrchestrator {
                         record.errors(),
                         record.skipped(),
                         record.warning(),
-                        staticCatalogPath.toString()))
+                        workloadCatalogPath.toString()))
                 .toList();
         writeBatchTestRunArtifacts(evidenceRoot, selectedTestClassFqns, arguments, command.workingDirectory().toString(),
-                startedAt, finishedAt, durationMillis, processResult, batchStatus, staticCatalogPath, outputLog,
+                startedAt, finishedAt, durationMillis, processResult, batchStatus, workloadCatalogPath, outputLog,
                 reportedRuns.statusCounts(), reportedRuns.warnings(), testRuns);
         boolean hasFailure = processResult.timedOut()
                 || processResult.exitCode() != 0
@@ -141,7 +141,7 @@ public class DynamicEnrichmentOrchestrator {
         long readJoinWriteStartedNanos = System.nanoTime();
         DynamicEvidenceReadResult readResult = evidenceReader.read(evidenceRoot);
         DynamicEvidenceJoinResult joinResult = joiner.join(
-                safeScenarioPlans,
+                safeWorkloadPlans,
                 readResult.events(),
                 readResult.evidenceFilesRead(),
                 readResult.warnings(),
@@ -151,15 +151,15 @@ public class DynamicEnrichmentOrchestrator {
         long readJoinWriteDurationMillis = Duration.ofNanos(System.nanoTime() - readJoinWriteStartedNanos).toMillis();
         String dynamicRunFinishedAt = nowIso();
 
-        Path enrichedCatalogPath = resolveRunRelativePath(runDirectory, config.enrichedCatalogPath(), "scenario-catalog-enriched.jsonl");
-        Path enrichedManifestPath = resolveRunRelativePath(runDirectory, config.enrichedManifestPath(), "scenario-catalog-enriched-manifest.json");
+        Path sidecarPath = resolveRunRelativePath(runDirectory, config.sidecarPath(), "workload-dynamic-evidence.jsonl");
+        Path sidecarManifestPath = resolveRunRelativePath(runDirectory, config.sidecarManifestPath(), "workload-dynamic-evidence-manifest.json");
         Path joinReportPath = resolveRunRelativePath(runDirectory, config.joinReportPath(), "dynamic-evidence-join-report.json");
         writer.write(
                 joinResult,
-                enrichedCatalogPath,
-                enrichedManifestPath,
+                sidecarPath,
+                sidecarManifestPath,
                 joinReportPath,
-                staticCatalogPath.toString(),
+                workloadCatalogPath.toString(),
                 evidenceRoot.toString(),
                 effectiveConfig(config),
                 testRuns.stream().map(TestRunRecord::toMap).toList(),
@@ -172,12 +172,12 @@ public class DynamicEnrichmentOrchestrator {
                         batchStatus,
                         selectedTestClassFqns,
                         arguments,
-                        staticCatalogPath,
+                        workloadCatalogPath,
                         evidenceRoot,
-                        enrichedCatalogPath,
+                        sidecarPath,
                         outputLog));
 
-        Result result = new Result(testRuns, joinResult, evidenceRoot, enrichedCatalogPath, enrichedManifestPath, joinReportPath);
+        Result result = new Result(testRuns, joinResult, evidenceRoot, sidecarPath, sidecarManifestPath, joinReportPath);
         if (hasFailure && !config.allowPartialTestRun()) {
             throw new IllegalStateException("Dynamic enrichment test run failed; artifacts were preserved under " + runDirectory);
         }
@@ -220,9 +220,9 @@ public class DynamicEnrichmentOrchestrator {
                                                String batchStatus,
                                                List<String> selectedTestClassFqns,
                                                List<String> commandArguments,
-                                               Path staticCatalogPath,
+                                               Path workloadCatalogPath,
                                                Path evidenceRoot,
-                                               Path enrichedCatalogPath,
+                                               Path sidecarPath,
                                                Path outputLog) {
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("dynamicRunStartedAt", dynamicRunStartedAt);
@@ -232,9 +232,9 @@ public class DynamicEnrichmentOrchestrator {
         metadata.put("batchStatus", batchStatus);
         metadata.put("selectedTestClassFqns", selectedTestClassFqns);
         metadata.put("commandArguments", commandArguments);
-        metadata.put("staticCatalogPath", staticCatalogPath.toString());
+        metadata.put("workloadCatalogPath", workloadCatalogPath.toString());
         metadata.put("dynamicEvidenceRoot", evidenceRoot.toString());
-        metadata.put("enrichedCatalogPath", enrichedCatalogPath.toString());
+        metadata.put("sidecarPath", sidecarPath.toString());
         metadata.put("mavenOutputLogPath", outputLog.toString());
         return metadata;
     }
@@ -248,7 +248,7 @@ public class DynamicEnrichmentOrchestrator {
                                             long durationMillis,
                                             ProcessRunner.ProcessResult processResult,
                                             String batchStatus,
-                                            Path staticCatalogPath,
+                                            Path workloadCatalogPath,
                                             Path outputLog,
                                             Map<String, Integer> statusCounts,
                                             List<String> warnings,
@@ -263,7 +263,7 @@ public class DynamicEnrichmentOrchestrator {
         batch.put("exitCode", processResult.exitCode());
         batch.put("status", batchStatus);
         batch.put("timedOut", processResult.timedOut());
-        batch.put("staticCatalogPath", staticCatalogPath.toString());
+        batch.put("workloadCatalogPath", workloadCatalogPath.toString());
         batch.put("evidenceRoot", evidenceRoot.toString());
         batch.put("outputLogPath", outputLog.toString());
         batch.put("statusCounts", statusCounts);
@@ -304,8 +304,8 @@ public class DynamicEnrichmentOrchestrator {
         map.put("enabled", config.enabled());
         map.put("allowPartialTestRun", config.allowPartialTestRun());
         map.put("dynamicEvidenceSubdir", config.dynamicEvidenceSubdir());
-        map.put("enrichedCatalogPath", config.enrichedCatalogPath());
-        map.put("enrichedManifestPath", config.enrichedManifestPath());
+        map.put("sidecarPath", config.sidecarPath());
+        map.put("sidecarManifestPath", config.sidecarManifestPath());
         map.put("joinReportPath", config.joinReportPath());
         map.put("testSourceRoot", config.testSourceRoot());
         map.put("includeTestDirs", config.includeTestDirs());
@@ -350,8 +350,8 @@ public class DynamicEnrichmentOrchestrator {
     public record Result(List<TestRunRecord> testRuns,
                          DynamicEvidenceJoinResult joinResult,
                          Path evidenceRoot,
-                         Path enrichedCatalogPath,
-                         Path enrichedManifestPath,
+                         Path sidecarPath,
+                         Path sidecarManifestPath,
                          Path joinReportPath) {
         public Result {
             testRuns = testRuns == null ? List.of() : List.copyOf(testRuns);
@@ -375,7 +375,7 @@ public class DynamicEnrichmentOrchestrator {
                                  int errors,
                                  int skipped,
                                  String warning,
-                                 String staticCatalogPath) {
+                                 String workloadCatalogPath) {
         public Map<String, Object> toMap() {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("testClassFqn", testClassFqn);
@@ -394,7 +394,7 @@ public class DynamicEnrichmentOrchestrator {
             map.put("failures", failures);
             map.put("errors", errors);
             map.put("skipped", skipped);
-            map.put("staticCatalogPath", staticCatalogPath);
+            map.put("workloadCatalogPath", workloadCatalogPath);
             if (warning != null) {
                 map.put("warning", warning);
             }

@@ -1,431 +1,254 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictEvidence
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.RejectedInputVariant
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioGenerationResult
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeRejectionReason
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioCatalogReader
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorOptions
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*
 import spock.lang.Specification
 
 import java.nio.file.Files
-import java.nio.file.Path
 
 class ScenarioCatalogJsonlWriterSpec extends Specification {
 
     private final ObjectMapper mapper = new ObjectMapper()
 
-    def 'writes one valid json object per scenario line'() {
+    def 'writes the linked v3 package without a v2 catalog artifact'() {
         given:
-        def tempRoot = Files.createTempDirectory('scenario-catalog-writer-lines')
-        def catalogPath = tempRoot.resolve('nested/catalog/scenario-catalog.jsonl')
-        def manifestPath = tempRoot.resolve('nested/manifest/scenario-catalog-manifest.json')
-        def writer = new ScenarioCatalogJsonlWriter()
-        def result = generationResult([
-                singleScenarioPlan('scenario-1'),
-                multiScenarioPlan('scenario-2')
-        ])
+        def directory = Files.createTempDirectory('v3-workload-package')
+        def paths = packagePaths(directory)
+        def result = generationResult()
 
         when:
-        writer.write(result, catalogPath, manifestPath, '2026-04-27T00:00:00Z')
+        def manifest = writePackage(result, paths, '2026-07-20T00:00:00Z')
 
         then:
-        Files.exists(catalogPath)
-        Files.exists(manifestPath)
-        def lines = Files.readAllLines(catalogPath)
-        lines.size() == 2
+        Files.exists(paths.workload)
+        Files.exists(paths.faultScenario)
+        Files.exists(paths.manifest)
+        Files.exists(paths.accounting)
+        !Files.exists(directory.resolve('scenario-catalog.jsonl'))
+        Files.readAllLines(paths.workload).size() == result.workloadPlans().size()
+        Files.readAllLines(paths.faultScenario).isEmpty()
 
         and:
-        def first = mapper.readTree(lines[0])
-        def second = mapper.readTree(lines[1])
-        first.path('schemaVersion').asText() == ScenarioPlan.SCHEMA_VERSION
-        first.path('deterministicId').asText() == 'scenario-1'
-        second.path('schemaVersion').asText() == ScenarioPlan.SCHEMA_VERSION
-        second.path('deterministicId').asText() == 'scenario-2'
-        first.path('kind').asText() == ScenarioKind.SINGLE_SAGA.name()
-        second.path('kind').asText() == ScenarioKind.MULTI_SAGA.name()
-        first.path('inputs').get(0).path('sourceMode').asText() == SourceMode.SAGAS.name()
-        first.path('inputs').get(0).path('sourceModeConfidence').asText() == SourceModeConfidence.TYPE_EVIDENCE.name()
-        first.path('inputs').get(0).path('sourceModeEvidence').collect { it.asText() } == ['evidence-scenario-1-input']
+        manifest.schemaVersion() == ScenarioCatalogManifest.SCHEMA_VERSION
+        manifest.workloadCatalog().schemaVersion() == WorkloadPlan.SCHEMA_VERSION
+        manifest.workloadCatalog().path() == paths.workload.toString()
+        manifest.workloadCatalog().recordCount() == result.workloadPlans().size().toString()
+        manifest.faultScenarioCatalog().schemaVersion() == ScenarioCatalogManifest.FAULT_SCENARIO_SCHEMA_VERSION
+        manifest.faultScenarioCatalog().path() == paths.faultScenario.toString()
+        manifest.faultScenarioCatalog().recordCount() == '0'
+        manifest.scenarioSpaceAccounting().path() == paths.accounting.toString()
+        manifest.materializabilityPolicy() == 'INPUT_READINESS_AND_STRUCTURAL_ADMISSIBILITY'
+        manifest.counts().workloadsExported == result.workloadPlans().size().toString()
+
+        and:
+        def workloadJson = mapper.readTree(Files.readAllLines(paths.workload).first())
+        workloadJson.path('schemaVersion').asText() == WorkloadPlan.SCHEMA_VERSION
+        workloadJson.path('faultSlots').size() == workloadJson.path('forwardSchedule').size()
+        workloadJson.path('compensationCheckpoints').first().path('evidenceClass').asText() == 'EXPLICIT_COMPENSATION'
+        def accounting = mapper.readTree(Files.readString(paths.accounting))
+        accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v3'
+        accounting.path('workloadCatalogSpace').path('workloadPlansWritten').isTextual()
+        accounting.path('workloadCatalogSpace').path('perWorkloadVectorSpace').first().path('possibleBinaryVectors').asText() == '2'
+        accounting.path('faultScenarioCatalogSpace').path('faultScenariosWritten').asText() == '0'
     }
 
-    def 'writes manifest with counters and config'() {
+    def 'fixed timestamp and semantic inputs produce byte-stable package output'() {
         given:
-        def tempRoot = Files.createTempDirectory('scenario-catalog-writer-manifest')
-        def catalogPath = tempRoot.resolve('exports/catalog.jsonl')
-        def manifestPath = tempRoot.resolve('exports/manifest.json')
-        def writer = new ScenarioCatalogJsonlWriter()
-        def result = generationResult(
-                [singleScenarioPlan('scenario-1'), singleScenarioPlan('scenario-2')],
-                config(),
-                [scenariosEmitted: 2, scenariosCapped: 1],
-                ['reached maxCatalogScenarios=7; remaining scenarios were not emitted', 'schedule cap reached']
-        )
+        def directory = Files.createTempDirectory('v3-byte-stable')
+        def paths = packagePaths(directory)
+        def firstResult = generationResult()
+        def secondResult = generationResult()
 
         when:
-        writer.write(result, catalogPath, manifestPath, '2026-04-27T00:00:00Z')
+        writePackage(firstResult, paths, '2026-07-20T00:00:00Z')
+        def firstBytes = snapshot(paths)
+        writePackage(secondResult, paths, '2026-07-20T00:00:00Z')
+        def secondBytes = snapshot(paths)
 
         then:
-        def manifest = mapper.readTree(Files.readString(manifestPath))
-        manifest.path('schemaVersion').asText() == ScenarioPlan.SCHEMA_VERSION
-        manifest.path('generatedAt').asText() == '2026-04-27T00:00:00Z'
-        manifest.path('effectiveConfig').path('maxSagaSetSize').asInt() == 4
-        manifest.path('effectiveConfig').path('generationStrategy').asText() == 'INTERACTION_PRUNED'
-        manifest.path('effectiveConfig').path('catalogWriteMode').asText() == 'WRITE_PLANS'
-        manifest.path('effectiveConfig').path('maxCatalogScenarios').asInt() == 7
-        manifest.path('effectiveConfig').path('maxInputVariantsPerSaga').asInt() == 8
-        manifest.path('catalogWriteMode').asText() == 'WRITE_PLANS'
-        manifest.path('scenarioSpaceAccountingPath').asText() == tempRoot.resolve('exports/scenario-space-accounting.json').toString()
-        manifest.path('counts').path('scenariosEmitted').asInt() == 2
-        manifest.path('counts').path('scenariosCapped').asInt() == 1
-        manifest.path('counts').path('scenariosExported').asInt() == 2
-        manifest.path('counts').path('rejectedInputsExported').asInt() == 0
-        manifest.path('inputVariantsAcceptedBySourceMode').path(SourceMode.SAGAS.name()).asInt() == 2
-        manifest.path('inputVariantsAcceptedBySourceMode').path(SourceMode.TCC.name()).asInt() == 0
-        manifest.path('warnings').collect { it.asText() } == [
-                'reached maxCatalogScenarios=7; remaining scenarios were not emitted',
-                'schedule cap reached'
+        firstResult.workloadPlans()*.deterministicId() == secondResult.workloadPlans()*.deterministicId()
+        firstBytes == secondBytes
+    }
+
+    def 'v3 reader resolves linked artifacts and rejects v2 and dangling records clearly'() {
+        given:
+        def directory = Files.createTempDirectory('v3-package-reader')
+        def paths = packagePaths(directory)
+        def result = generationResult()
+        writePackage(result, paths, '2026-07-20T00:00:00Z')
+        def reader = new ScenarioCatalogPackageReader()
+
+        expect:
+        reader.read(paths.manifest).workloadPlans()*.deterministicId() == result.workloadPlans()*.deterministicId()
+
+        when: 'a v2 record is supplied where a v3 package manifest is required'
+        def v2 = directory.resolve('scenario-catalog.jsonl')
+        Files.writeString(v2, '{"schemaVersion":"microservices-simulator.scenario-catalog.v2"}\n')
+        reader.read(v2)
+
+        then:
+        def v2Failure = thrown(IllegalArgumentException)
+        v2Failure.message.contains('v2 catalogs are not supported')
+
+        when: 'a linked FaultScenario references an absent WorkloadPlan'
+        Files.writeString(paths.faultScenario,
+                '{"schemaVersion":"microservices-simulator.fault-scenario.v3","deterministicId":"fault-1","workloadPlanId":"missing"}\n')
+        def manifestJson = mapper.readTree(Files.readString(paths.manifest))
+        manifestJson.withObject('/faultScenarioCatalog').put('recordCount', '1')
+        mapper.writerWithDefaultPrettyPrinter().writeValue(paths.manifest.toFile(), manifestJson)
+        reader.read(paths.manifest)
+
+        then:
+        def danglingFailure = thrown(IllegalArgumentException)
+        danglingFailure.message.contains('references missing WorkloadPlan missing')
+    }
+
+    def 'v3 writer and reader preserve a high precision decimal input recipe exactly'() {
+        given:
+        def decimal = new BigDecimal('12345678901234567890.12345678901234567890')
+        def directory = Files.createTempDirectory('v3-high-precision-decimal')
+        def paths = packagePaths(directory)
+        def result = generationResult(decimal, 'decimal')
+        writePackage(result, paths, '2026-07-20T00:00:00Z')
+
+        when:
+        def loaded = new ScenarioCatalogPackageReader().read(paths.manifest)
+        def writtenRecipe = result.workloadPlans().first().acceptedInputs().first().inputRecipe()
+        def loadedRecipe = loaded.workloadPlans().first().acceptedInputs().first().inputRecipe()
+
+        then:
+        loaded.workloadPlans()*.deterministicId() == result.workloadPlans()*.deterministicId()
+        loadedRecipe.recipeFingerprint() == writtenRecipe.recipeFingerprint()
+        loadedRecipe.arguments().first().recipe().value() instanceof BigDecimal
+        loadedRecipe.arguments().first().recipe().value() == decimal
+    }
+
+    def 'v3 reader rejects an input recipe with a stale serialized fingerprint'() {
+        given:
+        def directory = Files.createTempDirectory('v3-stale-recipe')
+        def paths = packagePaths(directory)
+        writePackage(generationResult(), paths, '2026-07-20T00:00:00Z')
+        def workload = mapper.readTree(Files.readAllLines(paths.workload).first())
+        workload.path('acceptedInputs').first()
+                .path('inputRecipe').path('arguments').first().path('recipe')
+                .put('value', 2)
+        Files.writeString(paths.workload, mapper.writeValueAsString(workload) + '\n')
+
+        when:
+        new ScenarioCatalogPackageReader().read(paths.manifest)
+
+        then:
+        def staleFingerprint = thrown(IllegalArgumentException)
+        staleFingerprint.message.contains('INPUT_RECIPE_FINGERPRINT_MISMATCH')
+    }
+
+    def 'readers reject malformed workload ownership and the legacy executor refuses v3 artifacts'() {
+        given:
+        def directory = Files.createTempDirectory('v3-reader-boundary')
+        def paths = packagePaths(directory)
+        def result = generationResult()
+        writePackage(result, paths, '2026-07-20T00:00:00Z')
+        def workload = mapper.readTree(Files.readAllLines(paths.workload).first())
+        workload.path('forwardSchedule').first().put('sagaInstanceId', 'missing-participant')
+        Files.writeString(paths.workload, mapper.writeValueAsString(workload) + '\n')
+
+        when:
+        new ScenarioCatalogPackageReader().read(paths.manifest)
+
+        then:
+        def malformed = thrown(IllegalArgumentException)
+        malformed.message.contains('Invalid WorkloadPlan')
+
+        when:
+        new ScenarioCatalogReader().read(new ScenarioExecutorOptions(null, paths.workload, null, null, true))
+
+        then:
+        def legacyBoundary = thrown(IllegalArgumentException)
+        legacyBoundary.message.contains('does not support')
+        legacyBoundary.message.contains('v3 WorkloadPlan/FaultScenario')
+    }
+
+    private static ScenarioCatalogManifest writePackage(def result, Map paths, String generatedAt) {
+        new ScenarioCatalogJsonlWriter().write(
+                result,
+                paths.workload,
+                paths.faultScenario,
+                paths.manifest,
+                paths.rejected,
+                paths.accounting,
+                null,
+                generatedAt)
+    }
+
+    private static Map<String, String> snapshot(Map paths) {
+        [
+                workload    : Files.readString(paths.workload),
+                faultScenario: Files.readString(paths.faultScenario),
+                manifest    : Files.readString(paths.manifest),
+                accounting  : Files.readString(paths.accounting),
+                rejected    : Files.readString(paths.rejected)
         ]
-        manifest.path('catalogPath').asText() == catalogPath.toString()
-        manifest.path('manifestPath').asText() == manifestPath.toString()
     }
 
-    def 'writes scenario-space accounting artifact with schema config and decimal string counts'() {
-        given:
-        def tempRoot = Files.createTempDirectory('scenario-catalog-writer-accounting')
-        def catalogPath = tempRoot.resolve('exports/scenario-catalog.jsonl')
-        def manifestPath = tempRoot.resolve('exports/scenario-catalog-manifest.json')
-        def rejectedPath = tempRoot.resolve('exports/scenario-catalog-rejected-inputs.jsonl')
-        def accountingPath = tempRoot.resolve('exports/scenario-space-accounting.json')
-        def writer = new ScenarioCatalogJsonlWriter()
-        def result = generationResult([singleScenarioPlan('scenario-1')])
-
-        when:
-        writer.write(result, catalogPath, manifestPath, rejectedPath, accountingPath, null, '2026-04-27T00:00:00Z')
-
-        then:
-        Files.exists(accountingPath)
-        def accountingText = Files.readString(accountingPath)
-        accountingText.startsWith("{${System.lineSeparator()}")
-        accountingText.endsWith(System.lineSeparator())
-        def accounting = mapper.readTree(accountingText)
-        accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v1'
-        accounting.path('runConfig').path('targetApplication').asText() == 'unknown'
-        accounting.path('runConfig').path('generationStrategy').asText() == 'INTERACTION_PRUNED'
-        accounting.path('runConfig').path('catalogWriteMode').asText() == 'WRITE_PLANS'
-        accounting.path('runConfig').path('includeSingles').asBoolean() == false
-        accounting.path('runConfig').path('maxSagaSetSize').asInt() == 4
-        accounting.path('runConfig').path('maxInputVariantsPerSaga').asInt() == 8
-        accounting.path('runConfig').path('maxSchedulesPerInputTuple').asInt() == 9
-        accounting.path('runConfig').path('maxCatalogScenarios').asInt() == 7
-        accounting.path('runConfig').path('scheduleStrategy').asText() == 'ORDER_PRESERVING_INTERLEAVING'
-        accounting.path('runConfig').path('effectiveSegmentBehavior').asText() == 'not-applicable'
-        accounting.path('runConfig').path('allowTypeOnlyFallback').asBoolean()
-        accounting.path('runConfig').path('inputPolicy').asText() == 'ALLOW_PARTIAL'
-        accounting.path('runConfig').path('sourceModeHandling').asText().contains('SAGAS accepted')
-        accounting.path('inputBoundScenarioSpace').path('allInputBound').path('total').isTextual()
-        accounting.path('inputBoundScenarioSpace').path('selectedByGenerator').path('total').isTextual()
-        accounting.path('inputBoundScenarioSpace').path('catalogWritten').path('total').isTextual()
-        accounting.path('inputBoundScenarioSpace').path('catalogWritten').path('total').asText() == '1'
-
-        and:
-        def manifest = mapper.readTree(Files.readString(manifestPath))
-        manifest.path('scenarioSpaceAccountingPath').asText() == accountingPath.toString()
+    private static Map packagePaths(java.nio.file.Path directory) {
+        [
+                workload    : directory.resolve('workload-catalog.jsonl'),
+                faultScenario: directory.resolve('fault-scenario-catalog.jsonl'),
+                manifest    : directory.resolve('scenario-catalog-manifest.json'),
+                accounting  : directory.resolve('scenario-space-accounting.json'),
+                rejected    : directory.resolve('workload-catalog-rejected-inputs.jsonl')
+        ]
     }
 
-    def 'writes accepted input recipe payloads without sidecar files'() {
-        given:
-        def tempRoot = Files.createTempDirectory('scenario-catalog-writer-recipes')
-        def catalogPath = tempRoot.resolve('exports/scenario-catalog.jsonl')
-        def manifestPath = tempRoot.resolve('exports/scenario-catalog-manifest.json')
-        def writer = new ScenarioCatalogJsonlWriter()
-        def recipeInput = inputVariantWithRecipe('recipe-input', 'com.example.OrderSaga', SourceMode.SAGAS)
-        def result = generationResult([singleScenarioPlan('scenario-with-recipe', recipeInput)])
-
-        when:
-        writer.write(result, catalogPath, manifestPath, '2026-04-27T00:00:00Z')
-
-        then:
-        def catalogJson = mapper.readTree(Files.readAllLines(catalogPath)[0])
-        catalogJson.path('schemaVersion').asText() == ScenarioPlan.SCHEMA_VERSION
-        def inputJson = catalogJson.path('inputs')[0]
-        inputJson.path('constructorArgumentSummaries').collect { it.asText() } == ['arg[0]: customerId <- 17']
-        inputJson.path('provenanceText').asText() == 'provenance-recipe-input'
-        inputJson.path('sourceMode').asText() == SourceMode.SAGAS.name()
-        inputJson.path('inputRecipe').path('schemaVersion').asText() == InputRecipe.SCHEMA_VERSION
-        inputJson.path('inputRecipe').path('recipeFingerprint').asText() == recipeInput.inputRecipe().recipeFingerprint()
-        inputJson.path('inputRecipe').path('executorReady').asBoolean()
-        inputJson.path('inputRecipe').path('arguments')[0].path('index').asInt() == 0
-        inputJson.path('inputRecipe').path('arguments')[0].path('recipe').path('kind').asText() == 'literal'
-        inputJson.path('inputRecipe').path('arguments')[0].path('recipe').path('literalKind').asText() == 'integer'
-        inputJson.path('inputRecipe').path('arguments')[0].path('recipe').path('value').asInt() == 17
-        !Files.exists(tempRoot.resolve('exports/input-recipes.jsonl'))
-    }
-
-    def 'empty catalog still writes manifest'() {
-        given:
-        def tempRoot = Files.createTempDirectory('scenario-catalog-writer-empty')
-        def catalogPath = tempRoot.resolve('empty/catalog.jsonl')
-        def manifestPath = tempRoot.resolve('empty/manifest.json')
-        def writer = new ScenarioCatalogJsonlWriter()
-        def result = generationResult([])
-
-        when:
-        writer.write(result, catalogPath, manifestPath, '2026-04-27T00:00:00Z')
-
-        then:
-        Files.exists(catalogPath)
-        Files.exists(manifestPath)
-        Files.exists(tempRoot.resolve('empty/scenario-catalog-rejected-inputs.jsonl'))
-        Files.readAllLines(catalogPath).isEmpty()
-        Files.readAllLines(tempRoot.resolve('empty/scenario-catalog-rejected-inputs.jsonl')).isEmpty()
-        mapper.readTree(Files.readString(manifestPath)).path('counts').path('scenariosExported').asInt() == 0
-    }
-
-    def 'writes rejected inputs with manifest paths and counters without archive siblings'() {
-        given:
-        def tempRoot = Files.createTempDirectory('scenario-catalog-writer-rejected')
-        def catalogPath = tempRoot.resolve('exports/scenario-catalog.jsonl')
-        def manifestPath = tempRoot.resolve('exports/scenario-catalog-manifest.json')
-        def rejectedPath = tempRoot.resolve('exports/scenario-catalog-rejected-inputs.jsonl')
-        def catalogArchivePath = tempRoot.resolve('exports/scenario-catalog-20260427-000000-000.jsonl')
-        def manifestArchivePath = tempRoot.resolve('exports/scenario-catalog-manifest-20260427-000000-000.json')
-        def rejectedArchivePath = tempRoot.resolve('exports/scenario-catalog-rejected-inputs-20260427-000000-000.jsonl')
-        def writer = new ScenarioCatalogJsonlWriter()
-        def rejectedInput = inputVariantWithRecipe('rejected-input', 'com.example.OrderSaga', SourceMode.TCC)
-        def result = new ScenarioGenerationResult(
-                ScenarioPlan.SCHEMA_VERSION,
-                config(),
-                [singleScenarioPlan('scenario-1')],
-                [new RejectedInputVariant(rejectedInput, SourceModeRejectionReason.SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG, ['rejected because tcc'])],
-                [inputVariantsRejectedBySourceMode: 1],
-                []
-        )
-
-        when:
-        writer.write(result,
-                catalogPath,
-                manifestPath,
-                rejectedPath,
-                '2026-04-27T00:00:00Z')
-
-        then:
-        !Files.exists(catalogArchivePath)
-        !Files.exists(rejectedArchivePath)
-        !Files.exists(manifestArchivePath)
-
-        and:
-        def rejectedLines = Files.readAllLines(rejectedPath)
-        rejectedLines.size() == 1
-        def rejectedJson = mapper.readTree(rejectedLines[0])
-        rejectedJson.path('schemaVersion').asText() == RejectedInputVariant.SCHEMA_VERSION
-        rejectedJson.path('input').path('deterministicId').asText() == 'rejected-input'
-        rejectedJson.path('input').path('sourceMode').asText() == SourceMode.TCC.name()
-        rejectedJson.path('input').path('sourceModeConfidence').asText() == SourceModeConfidence.TYPE_EVIDENCE.name()
-        rejectedJson.path('input').path('sourceModeEvidence').collect { it.asText() } == ['evidence-rejected-input']
-        rejectedJson.path('input').path('owners').size() == 1
-        rejectedJson.path('input').path('constructorArgumentSummaries').collect { it.asText() } == ['arg[0]: customerId <- 17']
-        rejectedJson.path('input').path('provenanceText').asText() == 'provenance-rejected-input'
-        rejectedJson.path('input').path('warnings').collect { it.asText() } == ['input-warning']
-        rejectedJson.path('input').path('inputRecipe').path('schemaVersion').asText() == InputRecipe.SCHEMA_VERSION
-        rejectedJson.path('rejectionReason').asText() == SourceModeRejectionReason.SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG.name()
-        rejectedJson.path('rejectionWarnings').collect { it.asText() } == ['rejected because tcc']
-        rejectedJson.has('deterministicId') == false
-
-        and:
-        def acceptedJson = mapper.readTree(Files.readAllLines(catalogPath)[0])
-        acceptedJson.path('inputs').collect { it.path('deterministicId').asText() } == ['scenario-1-input']
-        !acceptedJson.path('inputs').collect { it.path('deterministicId').asText() }.contains('rejected-input')
-
-        and:
-        def manifest = mapper.readTree(Files.readString(manifestPath))
-        manifest.path('catalogPath').asText() == catalogPath.toString()
-        manifest.path('manifestPath').asText() == manifestPath.toString()
-        manifest.path('rejectedInputsPath').asText() == rejectedPath.toString()
-        manifest.has('catalogArchivePath') == false
-        manifest.has('manifestArchivePath') == false
-        manifest.has('rejectedInputsArchivePath') == false
-        manifest.path('counts').path('rejectedInputsExported').asInt() == 1
-        manifest.path('inputVariantsBySourceMode').path(SourceMode.SAGAS.name()).asInt() == 1
-        manifest.path('inputVariantsBySourceMode').path(SourceMode.TCC.name()).asInt() == 1
-        manifest.path('inputVariantsAcceptedBySourceMode').path(SourceMode.SAGAS.name()).asInt() == 1
-        manifest.path('inputVariantsAcceptedBySourceMode').path(SourceMode.TCC.name()).asInt() == 0
-        manifest.path('inputVariantsRejectedBySourceModeReason').path(SourceModeRejectionReason.SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG.name()).asInt() == 1
-    }
-
-    def 'writer creates parent directories'() {
-        given:
-        def tempRoot = Files.createTempDirectory('scenario-catalog-writer-dirs')
-        def catalogPath = tempRoot.resolve('deep/output/catalog/scenario-catalog.jsonl')
-        def manifestPath = tempRoot.resolve('deep/output/manifest/scenario-catalog-manifest.json')
-        def writer = new ScenarioCatalogJsonlWriter()
-        def result = generationResult([singleScenarioPlan('scenario-1')])
-
-        when:
-        writer.write(result, catalogPath, manifestPath, '2026-04-27T00:00:00Z')
-
-        then:
-        Files.isDirectory(catalogPath.parent)
-        Files.isDirectory(manifestPath.parent)
-        Files.exists(catalogPath)
-        Files.exists(manifestPath)
-    }
-
-    private static ScenarioGenerationResult generationResult(List<ScenarioPlan> plans,
-                                                             ScenarioGeneratorConfig config = config(),
-                                                             Map<String, Integer> counts = [:],
-                                                             List<String> warnings = []) {
-        new ScenarioGenerationResult(ScenarioPlan.SCHEMA_VERSION, config, plans, counts, warnings)
-    }
-
-    private static ScenarioGeneratorConfig config() {
-        new ScenarioGeneratorConfig(
-                true,
-                ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
-                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
-                false,
-                4,
-                7,
-                8,
-                9,
-                true,
-                ScenarioGeneratorConfig.InputPolicy.ALLOW_PARTIAL,
-                ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING,
-                99L
-        )
-    }
-
-    private static ScenarioPlan singleScenarioPlan(String scenarioId) {
-        singleScenarioPlan(scenarioId, inputVariant("${scenarioId}-input".toString(), 'com.example.OrderSaga'))
-    }
-
-    private static ScenarioPlan singleScenarioPlan(String scenarioId, InputVariant input) {
-        def sagaFqn = 'com.example.OrderSaga'
-        def sagaInstanceId = "${scenarioId}-instance"
-        def inputVariantId = input.deterministicId()
-        def scheduledStepId = "${scenarioId}-scheduled-step"
-
-        new ScenarioPlan(
-                ScenarioPlan.SCHEMA_VERSION,
-                scenarioId,
-                ScenarioKind.SINGLE_SAGA,
-                [new SagaInstance(sagaInstanceId, sagaFqn, inputVariantId, ['instance-warning'])],
-                [input],
-                [new ScheduledStep(scheduledStepId, sagaInstanceId, "${sagaFqn}::step-1", 0, ['scheduled-warning'])],
-                null,
+    private static def generationResult(Object recipeValue = 1L, String literalKind = 'integer') {
+        def footprint = new StepFootprint(
+                new AggregateKey('example.Order', 'Order', 'order-1', FootprintConfidence.EXACT),
+                AccessMode.WRITE,
+                [])
+        def step = new StepDefinition(
+                'example.OrderSaga::create',
+                'example.OrderSaga::create',
+                'create',
+                0,
                 [],
-                ['plan-warning']
-        )
-    }
-
-    private static ScenarioPlan multiScenarioPlan(String scenarioId) {
-        def leftSagaFqn = 'com.example.OrderSaga'
-        def rightSagaFqn = 'com.example.PaymentSaga'
-        def leftInstanceId = "${scenarioId}-left-instance"
-        def rightInstanceId = "${scenarioId}-right-instance"
-        def leftInputId = "${scenarioId}-left-input"
-        def rightInputId = "${scenarioId}-right-input"
-        def leftScheduledStep = new ScheduledStep("${scenarioId}-left-scheduled", leftInstanceId, "${leftSagaFqn}::step-1", 0, [])
-        def rightScheduledStep = new ScheduledStep("${scenarioId}-right-scheduled", rightInstanceId, "${rightSagaFqn}::step-1", 1, [])
-
-        new ScenarioPlan(
-                ScenarioPlan.SCHEMA_VERSION,
-                scenarioId,
-                ScenarioKind.MULTI_SAGA,
-                [
-                        new SagaInstance(leftInstanceId, leftSagaFqn, leftInputId, []),
-                        new SagaInstance(rightInstanceId, rightSagaFqn, rightInputId, [])
-                ],
-                [inputVariant(leftInputId, leftSagaFqn), inputVariant(rightInputId, rightSagaFqn)],
-                [leftScheduledStep, rightScheduledStep],
-                null,
-                [new ConflictEvidence(
-                        "${scenarioId}-conflict",
-                        leftScheduledStep.deterministicId(),
-                        rightScheduledStep.deterministicId(),
-                        new AggregateKey('com.example.Order', 'Order', 'order-1', FootprintConfidence.EXACT),
-                        new AggregateKey('com.example.Order', 'Order', 'order-1', FootprintConfidence.EXACT),
-                        AccessMode.WRITE,
-                        AccessMode.READ,
-                        ConflictKind.WRITE_READ,
-                        ['conflict-warning'])],
-                ['plan-warning']
-        )
-    }
-
-    private static InputVariant inputVariant(String deterministicId, String sagaFqn) {
-        inputVariant(deterministicId, sagaFqn, SourceMode.SAGAS)
-    }
-
-    private static InputVariant inputVariant(String deterministicId, String sagaFqn, SourceMode sourceMode) {
-        new InputVariant(
-                deterministicId,
-                sagaFqn,
-                'com.example.TestInput',
-                'build',
-                'sagaField',
-                InputResolutionStatus.RESOLVED,
-                sourceMode,
-                SourceModeConfidence.TYPE_EVIDENCE,
-                ["evidence-${deterministicId}".toString()],
-                "source-${deterministicId}",
-                "provenance-${deterministicId}",
-                ['arg'],
-                [orderId: 'order-1'],
-                ['input-warning']
-        )
-    }
-
-    private static InputVariant inputVariantWithRecipe(String deterministicId, String sagaFqn, SourceMode sourceMode) {
-        def literalNode = InputRecipeNode.builder('literal')
-                .sourceText('17')
-                .provenanceText('customerId <- 17')
+                [footprint],
+                [],
+                true,
+                true,
+                true,
+                CompensationEvidenceClass.EXPLICIT_COMPENSATION,
+                [],
+                [])
+        def saga = new SagaDefinition('example.OrderSaga', [step], [])
+        def recipeType = recipeValue.getClass().name
+        def recipeNode = InputRecipeNode.builder('literal')
+                .sourceText(recipeValue.toString())
+                .provenanceText('constructor argument 0')
                 .executorReady(true)
-                .literalKind('integer')
-                .value(17L)
-                .expectedTypeFqn('java.lang.Integer')
+                .literalKind(literalKind)
+                .value(recipeValue)
+                .targetTypeFqn(recipeType)
                 .build()
-        def recipeArgument = new InputRecipeArgument(0,
-                'java.lang.Integer',
-                InputResolutionStatus.RESOLVED,
-                true,
-                [],
-                'customerId <- 17',
-                literalNode)
+        def recipeArgument = new InputRecipeArgument(0, recipeType, InputResolutionStatus.RESOLVED,
+                true, [], 'argument 0', recipeNode)
         def recipe = new InputRecipe(InputRecipe.SCHEMA_VERSION, null, true, [], [recipeArgument])
-        new InputVariant(
-                deterministicId,
-                sagaFqn,
-                'com.example.TestInput',
-                'build',
-                'sagaField',
+        def input = new InputVariant(
+                'input-1',
+                'example.OrderSaga',
+                'example.OrderSagaSpec',
+                'creates an order',
+                'saga',
                 InputResolutionStatus.RESOLVED,
-                sourceMode,
-                SourceModeConfidence.TYPE_EVIDENCE,
-                ["evidence-${deterministicId}".toString()],
-                "source-${deterministicId}",
-                "provenance-${deterministicId}",
-                [new InputOwner('com.example.TestInput', 'build')],
-                ['arg[0]: customerId <- 17'],
+                'source',
+                'provenance',
+                [],
                 [orderId: 'order-1'],
-                ['input-warning'],
-                recipe
-        )
+                [],
+                recipe)
+        ScenarioGenerator.generate([saga], [input], new ScenarioGeneratorConfig())
     }
 }

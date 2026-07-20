@@ -41,3 +41,31 @@ Commit:
 Reason if blocked/skipped:
 
 - n/a
+
+#### `002-deterministic-v3-workload-package.md`
+
+Status: `done`
+
+Risk: `high` (mapped to available `strong` tier)
+Dependencies: `001-compensation-evidence-preservation.md`
+Implementer session: `019f7d37-e4bd-780e-bdf7-ae2efe3c09ce`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `019f7d57-8542-747b-b5af-56bc5c52fa87` | `review/002-deterministic-v3-workload-package-review-01.md` | FAIL | Workload identity trusted stale input-recipe fingerprints. |
+| 02 | `019f7d6c-f6a0-7ed9-8e37-0ec76a4b8140` | `review/002-deterministic-v3-workload-package-review-02.md` | FAIL | Reader lost high-precision decimal recipe values. |
+| 03 | `019f7d7b-464a-7b4e-a45e-c4ea29292b0c` | `review/002-deterministic-v3-workload-package-review-03.md` | PASS | Identity closure and exact numeric writer/reader round trip verified. |
+
+Final review report: `review/002-deterministic-v3-workload-package-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `checkpoint commit containing this entry; see git history`
+- Message: `feat(verifiers): add deterministic v3 workload package`
+
+Reason if blocked/skipped:
+
+- n/a

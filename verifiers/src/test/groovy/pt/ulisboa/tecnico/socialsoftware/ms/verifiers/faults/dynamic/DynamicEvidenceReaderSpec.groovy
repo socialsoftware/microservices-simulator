@@ -7,7 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Inpu
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadExecutionShape
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep
 import spock.lang.Specification
 import spock.lang.Timeout
@@ -140,15 +141,17 @@ class DynamicEvidenceReaderSpec extends Specification {
         elapsedMillis < 10_000L
     }
 
-    private ScenarioPlan plan(String id, List<InputVariant> inputs, String sagaFqn = 'com.example.OrderSaga') {
-        new ScenarioPlan(
-                ScenarioPlan.SCHEMA_VERSION,
+    private WorkloadPlan plan(String id, List<InputVariant> inputs, String sagaFqn = 'com.example.OrderSaga') {
+        new WorkloadPlan(
+                WorkloadPlan.SCHEMA_VERSION,
                 id,
                 ScenarioKind.SINGLE_SAGA,
+                WorkloadExecutionShape.SAGA_LOCAL,
                 [new SagaInstance("${id}-instance".toString(), sagaFqn, inputs[0].deterministicId(), [])],
                 inputs,
                 [new ScheduledStep("${id}-step".toString(), "${id}-instance".toString(), "${sagaFqn}::reserve".toString(), 0, [])],
-                null,
+                [],
+                [],
                 [],
                 []
         )

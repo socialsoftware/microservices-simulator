@@ -34,7 +34,7 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
 
         when:
-        def result = orchestrator.run(config(), appDir, 'quizzes', runDir, [TEST_CLASS], [scenarioPlan()], runDir.resolve('scenario-catalog.jsonl'), GENERATED_AT)
+        def result = orchestrator.run(config(), appDir, 'quizzes', runDir, [TEST_CLASS], [workloadPlan()], runDir.resolve('workload-catalog.jsonl'), GENERATED_AT)
 
         then:
         result.testRuns().size() == 1
@@ -68,7 +68,7 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
 
         when:
-        orchestrator.run(config(true, '../escape-dynamic-evidence'), appDir, 'quizzes', runDir, [TEST_CLASS], [scenarioPlan()], runDir.resolve('scenario-catalog.jsonl'), GENERATED_AT)
+        orchestrator.run(config(true, '../escape-dynamic-evidence'), appDir, 'quizzes', runDir, [TEST_CLASS], [workloadPlan()], runDir.resolve('workload-catalog.jsonl'), GENERATED_AT)
 
         then:
         def ex = thrown(IllegalArgumentException)
@@ -88,7 +88,7 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
 
         when:
-        orchestrator.run(config(true), appDir, 'quizzes', runDir, [TEST_CLASS, SECOND_TEST_CLASS], [scenarioPlan()], runDir.resolve('scenario-catalog.jsonl'), GENERATED_AT)
+        orchestrator.run(config(true), appDir, 'quizzes', runDir, [TEST_CLASS, SECOND_TEST_CLASS], [workloadPlan()], runDir.resolve('workload-catalog.jsonl'), GENERATED_AT)
 
         then:
         runner.commands.size() == 1
@@ -112,7 +112,7 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
 
         when:
-        orchestrator.run(config(false), appDir, 'quizzes', runDir, [TEST_CLASS], [scenarioPlan()], runDir.resolve('scenario-catalog.jsonl'), GENERATED_AT)
+        orchestrator.run(config(false), appDir, 'quizzes', runDir, [TEST_CLASS], [workloadPlan()], runDir.resolve('workload-catalog.jsonl'), GENERATED_AT)
 
         then:
         def ex = thrown(IllegalStateException)
@@ -138,15 +138,15 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
 
         when:
-        orchestrator.run(config(), appDir, 'quizzes', runDir, [TEST_CLASS], [scenarioPlan()], runDir.resolve('scenario-catalog.jsonl'), GENERATED_AT)
+        orchestrator.run(config(), appDir, 'quizzes', runDir, [TEST_CLASS], [workloadPlan()], runDir.resolve('workload-catalog.jsonl'), GENERATED_AT)
 
         then:
-        Files.exists(runDir.resolve('scenario-catalog-enriched.jsonl'))
-        Files.exists(runDir.resolve('scenario-catalog-enriched-manifest.json'))
+        Files.exists(runDir.resolve('workload-dynamic-evidence.jsonl'))
+        Files.exists(runDir.resolve('workload-dynamic-evidence-manifest.json'))
         Files.exists(runDir.resolve('dynamic-evidence-join-report.json'))
         Files.exists(runDir.resolve('dynamic-evidence').resolve('dynamic-evidence.jsonl'))
         mapper.readTree(Files.readString(runDir.resolve('dynamic-evidence-join-report.json'))).path('counts').path('dynamicEventsRead').asInt() == 1
-        mapper.readTree(Files.readAllLines(runDir.resolve('scenario-catalog-enriched.jsonl'))[0]).path('dynamicEvidence').path('joinStatus').asText() == 'MATCHED_HIGH_CONFIDENCE'
+        mapper.readTree(Files.readAllLines(runDir.resolve('workload-dynamic-evidence.jsonl'))[0]).path('dynamicEvidence').path('joinStatus').asText() == 'MATCHED_HIGH_CONFIDENCE'
 
         and:
         def report = mapper.readTree(Files.readString(runDir.resolve('dynamic-evidence-join-report.json')))
@@ -155,9 +155,9 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
         report.path('mavenDurationMillis').asLong() >= 0L
         report.path('readJoinWriteDurationMillis').asLong() >= 0L
         report.path('batchStatus').asText() == 'PASSED'
-        report.path('staticCatalogPath').asText() == runDir.resolve('scenario-catalog.jsonl').toString()
+        report.path('workloadCatalogPath').asText() == runDir.resolve('workload-catalog.jsonl').toString()
         report.path('dynamicEvidenceRoot').asText() == runDir.resolve('dynamic-evidence').toString()
-        report.path('enrichedCatalogPath').asText() == runDir.resolve('scenario-catalog-enriched.jsonl').toString()
+        report.path('sidecarPath').asText() == runDir.resolve('workload-dynamic-evidence.jsonl').toString()
         report.path('selectedTestClassFqns')*.asText() == [TEST_CLASS]
         report.path('commandArguments')*.asText().contains("-Dtest=${TEST_CLASS}".toString())
         report.path('testRuns')[0].path('status').asText() == 'PASSED'
@@ -170,18 +170,19 @@ class DynamicEnrichmentOrchestratorSpec extends spock.lang.Specification {
 
     private DynamicEnrichmentConfig config(boolean partial = true,
                                             String dynamicEvidenceSubdir = 'dynamic-evidence',
-                                            String enrichedCatalogPath = 'scenario-catalog-enriched.jsonl',
-                                            String enrichedManifestPath = 'scenario-catalog-enriched-manifest.json',
+                                            String sidecarPath = 'workload-dynamic-evidence.jsonl',
+                                            String sidecarManifestPath = 'workload-dynamic-evidence-manifest.json',
                                             String joinReportPath = 'dynamic-evidence-join-report.json') {
-        new DynamicEnrichmentConfig(true, partial, dynamicEvidenceSubdir, enrichedCatalogPath, enrichedManifestPath, joinReportPath, 'src/test/groovy', [], [], [], 300, new DynamicEnrichmentConfig.DynamicEnrichmentMavenConfig('mvn', 'test-sagas'))
+        new DynamicEnrichmentConfig(true, partial, dynamicEvidenceSubdir, sidecarPath, sidecarManifestPath, joinReportPath, 'src/test/groovy', [], [], [], 300, new DynamicEnrichmentConfig.DynamicEnrichmentMavenConfig('mvn', 'test-sagas'))
     }
 
-    private ScenarioPlan scenarioPlan() {
+    private WorkloadPlan workloadPlan() {
         def sagaFqn = 'com.example.quiz.CreateTournamentFunctionalitySagas'
         def input = new InputVariant('input-1', sagaFqn, TEST_CLASS, 'createsTournament', 'binding', InputResolutionStatus.RESOLVED, 'source', 'prov', ['arg[0]: 11'], [:], [])
         def saga = new SagaInstance('saga-1', sagaFqn, 'input-1', [])
         def step = new ScheduledStep('step-1', 'saga-1', sagaFqn + '::getCourseExecutionStep', 0, [])
-        new ScenarioPlan(ScenarioPlan.SCHEMA_VERSION, 'scenario-1', ScenarioKind.SINGLE_SAGA, [saga], [input], [step], null, [], [])
+        new WorkloadPlan(WorkloadPlan.SCHEMA_VERSION, 'scenario-1', ScenarioKind.SINGLE_SAGA,
+                WorkloadExecutionShape.SAGA_LOCAL, [saga], [input], [step], [], [], [], [])
     }
 
     private String dynamicEvidenceLine() {

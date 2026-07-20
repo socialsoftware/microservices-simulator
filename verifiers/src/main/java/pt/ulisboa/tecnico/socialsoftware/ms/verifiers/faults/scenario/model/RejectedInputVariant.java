@@ -9,7 +9,7 @@ public record RejectedInputVariant(
         SourceModeRejectionReason rejectionReason,
         List<String> warnings
 ) {
-    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-catalog-rejected-input.v2";
+    public static final String SCHEMA_VERSION = "microservices-simulator.workload-catalog-rejected-input.v3";
 
     public RejectedInputVariant {
         warnings = warnings == null ? List.of() : List.copyOf(warnings);

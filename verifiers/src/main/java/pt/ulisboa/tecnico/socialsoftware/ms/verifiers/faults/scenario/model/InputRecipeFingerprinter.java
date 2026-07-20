@@ -125,9 +125,9 @@ final class InputRecipeFingerprinter {
             updateString(digest, null);
             return;
         }
-        if (value instanceof BigDecimal decimal) {
-            updateString(digest, "bigdecimal");
-            updateString(digest, decimal.stripTrailingZeros().toPlainString());
+        if (value instanceof Number number) {
+            updateString(digest, "number");
+            updateString(digest, new BigDecimal(number.toString()).stripTrailingZeros().toPlainString());
             return;
         }
         updateString(digest, value.getClass().getName());

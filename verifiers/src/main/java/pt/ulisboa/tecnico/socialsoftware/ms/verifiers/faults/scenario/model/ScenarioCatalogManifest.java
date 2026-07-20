@@ -11,58 +11,48 @@ public record ScenarioCatalogManifest(
         String schemaVersion,
         String generatedAt,
         ScenarioGeneratorConfig effectiveConfig,
-        Map<String, Integer> counts,
+        String generationSource,
+        String materializabilityPolicy,
+        Map<String, String> counts,
         List<String> warnings,
-        String catalogPath,
-        String manifestPath,
-        String rejectedInputsPath,
-        ScenarioGeneratorConfig.CatalogWriteMode catalogWriteMode,
-        String scenarioSpaceAccountingPath,
-        Map<String, Integer> inputVariantsBySourceMode,
-        Map<String, Integer> inputVariantsAcceptedBySourceMode,
-        Map<String, Integer> inputVariantsRejectedBySourceModeReason) {
+        ArtifactMetadata workloadCatalog,
+        ArtifactMetadata faultScenarioCatalog,
+        ArtifactMetadata scenarioSpaceAccounting,
+        ArtifactMetadata rejectedInputsDiagnostic,
+        Map<String, String> inputVariantsBySourceMode,
+        Map<String, String> inputVariantsAcceptedBySourceMode,
+        Map<String, String> inputVariantsRejectedBySourceModeReason) {
+
+    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-catalog-manifest.v3";
+    public static final String FAULT_SCENARIO_SCHEMA_VERSION = "microservices-simulator.fault-scenario.v3";
 
     public ScenarioCatalogManifest {
-        schemaVersion = schemaVersion == null || schemaVersion.isBlank()
-                ? ScenarioPlan.SCHEMA_VERSION
-                : schemaVersion;
+        schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;
         generatedAt = normalize(generatedAt);
         effectiveConfig = effectiveConfig == null ? new ScenarioGeneratorConfig() : effectiveConfig;
+        generationSource = normalize(generationSource);
+        materializabilityPolicy = normalize(materializabilityPolicy);
         counts = orderedMap(counts);
         warnings = warnings == null ? List.of() : List.copyOf(warnings);
-        catalogPath = normalize(catalogPath);
-        manifestPath = normalize(manifestPath);
-        rejectedInputsPath = normalize(rejectedInputsPath);
-        catalogWriteMode = catalogWriteMode == null ? effectiveConfig.catalogWriteMode() : catalogWriteMode;
-        scenarioSpaceAccountingPath = normalize(scenarioSpaceAccountingPath);
         inputVariantsBySourceMode = orderedMap(inputVariantsBySourceMode);
         inputVariantsAcceptedBySourceMode = orderedMap(inputVariantsAcceptedBySourceMode);
         inputVariantsRejectedBySourceModeReason = orderedMap(inputVariantsRejectedBySourceModeReason);
     }
 
-    public ScenarioCatalogManifest(String schemaVersion,
-                                   String generatedAt,
-                                   ScenarioGeneratorConfig effectiveConfig,
-                                   Map<String, Integer> counts,
-                                   List<String> warnings,
-                                   String catalogPath,
-                                   String manifestPath) {
-        this(schemaVersion,
-                generatedAt,
-                effectiveConfig,
-                counts,
-                warnings,
-                catalogPath,
-                manifestPath,
-                null,
-                effectiveConfig == null ? null : effectiveConfig.catalogWriteMode(),
-                null,
-                Map.of(),
-                Map.of(),
-                Map.of());
+    public record ArtifactMetadata(
+            String artifactKind,
+            String schemaVersion,
+            String path,
+            String recordCount) {
+        public ArtifactMetadata {
+            artifactKind = normalize(artifactKind);
+            schemaVersion = normalize(schemaVersion);
+            path = normalize(path);
+            recordCount = recordCount == null || recordCount.isBlank() ? "0" : recordCount;
+        }
     }
 
-    private static Map<String, Integer> orderedMap(Map<String, Integer> values) {
+    private static Map<String, String> orderedMap(Map<String, String> values) {
         return values == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(values));
     }
 

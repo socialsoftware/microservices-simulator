@@ -4,14 +4,17 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConflictGr
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleJoiner.InputTuple;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScheduleEnumerator.SagaScheduleInput;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationCheckpoint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictEvidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ForwardFaultSlot;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioGenerationResult;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadExecutionShape;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint;
@@ -31,7 +34,7 @@ public final class ScenarioGenerator {
     private ScenarioGenerator() {
     }
 
-    public static ScenarioGenerationResult generate(List<SagaDefinition> sagaDefinitions,
+    public static WorkloadGenerationResult generate(List<SagaDefinition> sagaDefinitions,
                                                     List<InputVariant> inputVariants,
                                                     ScenarioGeneratorConfig config) {
         ScenarioGeneratorConfig effectiveConfig = config == null ? new ScenarioGeneratorConfig() : config;
@@ -45,9 +48,9 @@ public final class ScenarioGenerator {
 
         if (effectiveConfig.catalogWriteMode() == ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY) {
             putDefaultCounts(counts);
-            counts.put("scenariosEmitted", 0);
-            return new ScenarioGenerationResult(
-                    ScenarioPlan.SCHEMA_VERSION,
+            counts.put("workloadsEmitted", 0);
+            return new WorkloadGenerationResult(
+                    WorkloadPlan.SCHEMA_VERSION,
                     effectiveConfig,
                     List.of(),
                     normalizedInputs.rejectedInputVariants(),
@@ -65,52 +68,52 @@ public final class ScenarioGenerator {
                 .sorted()
                 .toList();
 
-        LinkedHashMap<String, ScenarioPlan> plansById = new LinkedHashMap<>();
+        LinkedHashMap<String, WorkloadPlan> workloadsById = new LinkedHashMap<>();
 
         if (effectiveConfig.includeSingles()) {
-            emitSingleSagaScenarios(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), plansById, warnings, counts);
+            emitSingleSagaWorkloads(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), workloadsById, warnings, counts);
         }
 
-        if (plansById.size() < Math.max(0, effectiveConfig.maxCatalogScenarios())
+        if (workloadsById.size() < Math.max(0, effectiveConfig.maxCatalogScenarios())
                 && effectiveConfig.maxSagaSetSize() >= 2
                 && usableSagaFqns.size() >= 2) {
-            emitMultiSagaScenarios(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), usableSagaFqns, conflictGraph, plansById, warnings, counts);
+            emitMultiSagaWorkloads(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), usableSagaFqns, conflictGraph, workloadsById, warnings, counts);
         }
 
-        counts.put("scenariosEmitted", plansById.size());
+        counts.put("workloadsEmitted", workloadsById.size());
         putDefaultCounts(counts);
 
-        List<ScenarioPlan> scenarioPlans = new ArrayList<>(plansById.values());
-        scenarioPlans.sort(Comparator
-                .comparing(ScenarioPlan::kind, Comparator.nullsFirst(Comparator.naturalOrder()))
-                .thenComparing(ScenarioPlan::deterministicId, Comparator.nullsFirst(String::compareTo)));
+        List<WorkloadPlan> workloadPlans = new ArrayList<>(workloadsById.values());
+        workloadPlans.sort(Comparator
+                .comparing(WorkloadPlan::kind, Comparator.nullsFirst(Comparator.naturalOrder()))
+                .thenComparing(WorkloadPlan::deterministicId, Comparator.nullsFirst(String::compareTo)));
 
         LinkedHashSet<String> resultWarnings = new LinkedHashSet<>(warnings);
-        for (ScenarioPlan plan : scenarioPlans) {
-            resultWarnings.addAll(plan.warnings());
+        for (WorkloadPlan workload : workloadPlans) {
+            resultWarnings.addAll(workload.warnings());
         }
 
-        return new ScenarioGenerationResult(
-                ScenarioPlan.SCHEMA_VERSION,
+        return new WorkloadGenerationResult(
+                WorkloadPlan.SCHEMA_VERSION,
                 effectiveConfig,
-                List.copyOf(scenarioPlans),
+                List.copyOf(workloadPlans),
                 normalizedInputs.rejectedInputVariants(),
                 Collections.unmodifiableMap(counts),
                 List.copyOf(resultWarnings));
     }
 
-    private static void emitSingleSagaScenarios(ScenarioGeneratorConfig config,
+    private static void emitSingleSagaWorkloads(ScenarioGeneratorConfig config,
                                                 Map<String, SagaDefinition> sagaByFqn,
                                                 Map<String, List<InputVariant>> inputsBySaga,
-                                                LinkedHashMap<String, ScenarioPlan> plansById,
+                                                LinkedHashMap<String, WorkloadPlan> workloadsById,
                                                 LinkedHashSet<String> warnings,
                                                 Map<String, Integer> counts) {
         int emitted = 0;
         int maxCatalogScenarios = Math.max(0, config.maxCatalogScenarios());
         for (String sagaFqn : inputsBySaga.keySet().stream().sorted().toList()) {
-            if (plansById.size() >= maxCatalogScenarios) {
-                counts.merge("singleScenariosEmitted", emitted, Integer::sum);
-                capScenarioPlans(warnings, counts, maxCatalogScenarios);
+            if (workloadsById.size() >= maxCatalogScenarios) {
+                counts.merge("singleWorkloadsEmitted", emitted, Integer::sum);
+                capWorkloadPlans(warnings, counts, maxCatalogScenarios);
                 return;
             }
 
@@ -121,26 +124,26 @@ public final class ScenarioGenerator {
 
             List<InputVariant> sagaInputs = inputsBySaga.getOrDefault(sagaFqn, List.of());
             for (InputVariant input : sagaInputs) {
-                if (plansById.size() >= maxCatalogScenarios) {
-                    counts.merge("singleScenariosEmitted", emitted, Integer::sum);
-                    capScenarioPlans(warnings, counts, maxCatalogScenarios);
+                if (workloadsById.size() >= maxCatalogScenarios) {
+                    counts.merge("singleWorkloadsEmitted", emitted, Integer::sum);
+                    capWorkloadPlans(warnings, counts, maxCatalogScenarios);
                     return;
                 }
 
-                ScenarioPlan plan = buildSingleSagaPlan(config, saga, input);
-                emitted += emitPlan(plan, plansById, counts) ? 1 : 0;
+                WorkloadPlan workload = buildSingleSagaWorkload(config, saga, input);
+                emitted += emitWorkload(workload, workloadsById, counts) ? 1 : 0;
             }
         }
 
-        counts.merge("singleScenariosEmitted", emitted, Integer::sum);
+        counts.merge("singleWorkloadsEmitted", emitted, Integer::sum);
     }
 
-    private static void emitMultiSagaScenarios(ScenarioGeneratorConfig config,
+    private static void emitMultiSagaWorkloads(ScenarioGeneratorConfig config,
                                                Map<String, SagaDefinition> sagaByFqn,
                                                Map<String, List<InputVariant>> inputsBySaga,
                                                List<String> usableSagaFqns,
                                                ConflictGraphBuilder.Result conflictGraph,
-                                               LinkedHashMap<String, ScenarioPlan> plansById,
+                                               LinkedHashMap<String, WorkloadPlan> workloadsById,
                                                LinkedHashSet<String> warnings,
                                                Map<String, Integer> counts) {
         int maxCatalogScenarios = Math.max(0, config.maxCatalogScenarios());
@@ -156,9 +159,9 @@ public final class ScenarioGenerator {
         }
 
         for (List<String> sagaSet : sagaSets) {
-            if (plansById.size() >= maxCatalogScenarios) {
-                counts.merge("multiScenariosEmitted", emitted, Integer::sum);
-                capScenarioPlans(warnings, counts, maxCatalogScenarios);
+            if (workloadsById.size() >= maxCatalogScenarios) {
+                counts.merge("multiWorkloadsEmitted", emitted, Integer::sum);
+                capWorkloadPlans(warnings, counts, maxCatalogScenarios);
                 return;
             }
 
@@ -167,9 +170,9 @@ public final class ScenarioGenerator {
             warnings.addAll(tupleResult.warnings());
 
             for (InputTuple tuple : tupleResult.tuples()) {
-                if (plansById.size() >= maxCatalogScenarios) {
-                    counts.merge("multiScenariosEmitted", emitted, Integer::sum);
-                    capScenarioPlans(warnings, counts, maxCatalogScenarios);
+                if (workloadsById.size() >= maxCatalogScenarios) {
+                    counts.merge("multiWorkloadsEmitted", emitted, Integer::sum);
+                    capWorkloadPlans(warnings, counts, maxCatalogScenarios);
                     return;
                 }
 
@@ -187,21 +190,21 @@ public final class ScenarioGenerator {
                 warnings.addAll(scheduleResult.warnings());
 
                 for (List<ScheduledStep> schedule : scheduleResult.schedules()) {
-                    if (plansById.size() >= maxCatalogScenarios) {
-                        counts.merge("multiScenariosEmitted", emitted, Integer::sum);
-                        capScenarioPlans(warnings, counts, maxCatalogScenarios);
+                    if (workloadsById.size() >= maxCatalogScenarios) {
+                        counts.merge("multiWorkloadsEmitted", emitted, Integer::sum);
+                        capWorkloadPlans(warnings, counts, maxCatalogScenarios);
                         return;
                     }
 
-                    ScenarioPlan plan = buildMultiSagaPlan(
+                    WorkloadPlan workload = buildMultiSagaWorkload(
                             sagaSet,
                             tuple,
                             scheduleInputs,
                             schedule,
                             selectedCandidates,
                             config.generationStrategy() != ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE);
-                    if (plan != null) {
-                        if (emitPlan(plan, plansById, counts)) {
+                    if (workload != null) {
+                        if (emitWorkload(workload, workloadsById, counts)) {
                             emitted++;
                         }
                     }
@@ -209,40 +212,30 @@ public final class ScenarioGenerator {
             }
         }
 
-        counts.merge("multiScenariosEmitted", emitted, Integer::sum);
+        counts.merge("multiWorkloadsEmitted", emitted, Integer::sum);
     }
 
-    private static ScenarioPlan buildSingleSagaPlan(ScenarioGeneratorConfig config, SagaDefinition saga, InputVariant input) {
+    private static WorkloadPlan buildSingleSagaWorkload(ScenarioGeneratorConfig config, SagaDefinition saga, InputVariant input) {
         String sagaInstanceId = ScenarioIdGenerator.sagaInstanceId(saga.sagaFqn(), input.deterministicId());
         SagaInstance sagaInstance = new SagaInstance(sagaInstanceId, saga.sagaFqn(), input.deterministicId(), mergeWarnings(saga.warnings(), input.warnings()));
+        SagaScheduleInput scheduleInput = new SagaScheduleInput(sagaInstance.deterministicId(), saga.sagaFqn(), sortedSteps(saga));
         ScheduleEnumerator.Result scheduleResult = ScheduleEnumerator.enumerate(
-                List.of(new SagaScheduleInput(sagaInstance.deterministicId(), saga.sagaFqn(), sortedSteps(saga))),
+                List.of(scheduleInput),
                 ScenarioGeneratorConfig.ScheduleStrategy.SERIAL,
                 1,
                 config.deterministicSeed());
-        List<ScheduledStep> expandedSchedule = scheduleResult.schedules().isEmpty() ? List.of() : scheduleResult.schedules().get(0);
-        List<ConflictEvidence> conflictEvidence = List.of();
-        List<String> planWarnings = mergeWarnings(saga.warnings(), input.warnings(), scheduleResult.warnings());
-        String deterministicId = ScenarioIdGenerator.scenarioPlanId(
+        List<ScheduledStep> forwardSchedule = scheduleResult.schedules().isEmpty() ? List.of() : scheduleResult.schedules().get(0);
+        return buildWorkload(
                 ScenarioKind.SINGLE_SAGA,
                 List.of(sagaInstance),
                 List.of(input),
-                expandedSchedule,
-                conflictEvidence);
-
-        return new ScenarioPlan(
-                ScenarioPlan.SCHEMA_VERSION,
-                deterministicId,
-                ScenarioKind.SINGLE_SAGA,
-                List.of(sagaInstance),
-                List.of(input),
-                expandedSchedule,
-                null,
-                conflictEvidence,
-                planWarnings);
+                forwardSchedule,
+                List.of(),
+                List.of(scheduleInput),
+                mergeWarnings(saga.warnings(), input.warnings(), scheduleResult.warnings()));
     }
 
-    private static ScenarioPlan buildMultiSagaPlan(List<String> connectedSet,
+    private static WorkloadPlan buildMultiSagaWorkload(List<String> connectedSet,
                                                     InputTuple tuple,
                                                     List<SagaScheduleInput> scheduleInputs,
                                                     List<ScheduledStep> schedule,
@@ -298,29 +291,92 @@ public final class ScenarioGenerator {
                     mergeWarnings(input.warnings())));
         }
 
-        List<String> planWarnings = new ArrayList<>(mergeWarnings(
+        List<String> workloadWarnings = new ArrayList<>(mergeWarnings(
                 tuple.warnings(),
                 schedule.stream().flatMap(step -> step.warnings().stream()).toList(),
                 conflictEvidence.stream().flatMap(evidence -> evidence.warnings().stream()).toList()));
-        planWarnings.addAll(warnings);
+        workloadWarnings.addAll(warnings);
 
-        String deterministicId = ScenarioIdGenerator.scenarioPlanId(
+        return buildWorkload(
                 ScenarioKind.MULTI_SAGA,
                 sagaInstances,
                 tuple.inputs(),
                 schedule,
-                conflictEvidence);
-
-        return new ScenarioPlan(
-                ScenarioPlan.SCHEMA_VERSION,
-                deterministicId,
-                ScenarioKind.MULTI_SAGA,
-                sagaInstances,
-                tuple.inputs(),
-                schedule,
-                null,
                 conflictEvidence,
-                planWarnings);
+                scheduleInputs,
+                workloadWarnings);
+    }
+
+    private static WorkloadPlan buildWorkload(ScenarioKind kind,
+                                              List<SagaInstance> participants,
+                                              List<InputVariant> acceptedInputs,
+                                              List<ScheduledStep> forwardSchedule,
+                                              List<ConflictEvidence> conflictEvidence,
+                                              List<SagaScheduleInput> scheduleInputs,
+                                              List<String> warnings) {
+        Map<String, StepDefinition> definitionsByOccurrenceAnchor = new LinkedHashMap<>();
+        for (SagaScheduleInput input : scheduleInputs) {
+            for (StepDefinition definition : input.steps()) {
+                definitionsByOccurrenceAnchor.put(input.sagaInstanceId() + "|" + definition.deterministicId(), definition);
+            }
+        }
+
+        List<ForwardFaultSlot> faultSlots = new ArrayList<>();
+        List<CompensationCheckpoint> checkpoints = new ArrayList<>();
+        for (int index = 0; index < forwardSchedule.size(); index++) {
+            ScheduledStep scheduledStep = forwardSchedule.get(index);
+            faultSlots.add(new ForwardFaultSlot(
+                    ScenarioIdGenerator.forwardFaultSlotId(index, scheduledStep),
+                    index,
+                    scheduledStep.deterministicId(),
+                    scheduledStep.sagaInstanceId(),
+                    scheduledStep.stepId(),
+                    scheduledStep.runtimeStepName(),
+                    scheduledStep.deterministicId()));
+
+            StepDefinition definition = definitionsByOccurrenceAnchor.get(
+                    scheduledStep.sagaInstanceId() + "|" + scheduledStep.stepId());
+            if (definition != null && definition.compensationEvidence() != null) {
+                int checkpointIndex = checkpoints.size();
+                checkpoints.add(new CompensationCheckpoint(
+                        ScenarioIdGenerator.compensationCheckpointId(checkpointIndex, scheduledStep, definition),
+                        checkpointIndex,
+                        scheduledStep.sagaInstanceId(),
+                        scheduledStep.deterministicId(),
+                        scheduledStep.stepId(),
+                        scheduledStep.runtimeStepName(),
+                        scheduledStep.deterministicId(),
+                        definition.compensationEvidence(),
+                        definition.footprints(),
+                        definition.compensationFootprints(),
+                        mergeWarnings(definition.analysisDiagnostics(), definition.warnings())));
+            }
+        }
+
+        WorkloadPlan withoutId = new WorkloadPlan(
+                WorkloadPlan.SCHEMA_VERSION,
+                null,
+                kind,
+                WorkloadExecutionShape.SAGA_LOCAL,
+                participants,
+                acceptedInputs,
+                forwardSchedule,
+                conflictEvidence,
+                faultSlots,
+                checkpoints,
+                warnings);
+        return new WorkloadPlan(
+                withoutId.schemaVersion(),
+                ScenarioIdGenerator.workloadPlanId(withoutId),
+                withoutId.kind(),
+                withoutId.executionShape(),
+                withoutId.participants(),
+                withoutId.acceptedInputs(),
+                withoutId.forwardSchedule(),
+                withoutId.conflictEvidence(),
+                withoutId.faultSlots(),
+                withoutId.compensationCheckpoints(),
+                withoutId.warnings());
     }
 
     private static List<SagaScheduleInput> buildScheduleInputs(List<String> connectedSet,
@@ -415,20 +471,20 @@ public final class ScenarioGenerator {
         return List.copyOf(deduped.values());
     }
 
-    private static boolean emitPlan(ScenarioPlan plan, LinkedHashMap<String, ScenarioPlan> plansById, Map<String, Integer> counts) {
-        ScenarioPlan existing = plansById.putIfAbsent(plan.deterministicId(), plan);
+    private static boolean emitWorkload(WorkloadPlan workload, LinkedHashMap<String, WorkloadPlan> workloadsById, Map<String, Integer> counts) {
+        WorkloadPlan existing = workloadsById.putIfAbsent(workload.deterministicId(), workload);
         if (existing == null) {
-            counts.merge("scenarioPlansEmitted", 1, Integer::sum);
+            counts.merge("workloadPlansEmitted", 1, Integer::sum);
             return true;
         }
-        counts.merge("scenarioPlansDeduplicated", 1, Integer::sum);
+        counts.merge("workloadPlansDeduplicated", 1, Integer::sum);
         return false;
     }
 
-    private static void capScenarioPlans(LinkedHashSet<String> warnings, Map<String, Integer> counts, int maxCatalogScenarios) {
-        warnings.add("reached maxCatalogScenarios=" + maxCatalogScenarios + "; remaining scenarios were not emitted");
-        counts.putIfAbsent("scenariosCapped", 0);
-        counts.put("scenariosCapped", counts.get("scenariosCapped") + 1);
+    private static void capWorkloadPlans(LinkedHashSet<String> warnings, Map<String, Integer> counts, int maxCatalogScenarios) {
+        warnings.add("reached maxCatalogScenarios=" + maxCatalogScenarios + "; remaining workloads were not emitted");
+        counts.putIfAbsent("workloadsCapped", 0);
+        counts.put("workloadsCapped", counts.get("workloadsCapped") + 1);
     }
 
     private static List<List<String>> allInputBoundSagaSets(List<String> usableSagaFqns, int maxSagaSetSize) {
@@ -457,11 +513,11 @@ public final class ScenarioGenerator {
     }
 
     private static void putDefaultCounts(Map<String, Integer> counts) {
-        counts.putIfAbsent("scenariosCapped", 0);
-        counts.putIfAbsent("scenarioPlansEmitted", 0);
-        counts.putIfAbsent("scenarioPlansDeduplicated", 0);
-        counts.putIfAbsent("singleScenariosEmitted", 0);
-        counts.putIfAbsent("multiScenariosEmitted", 0);
+        counts.putIfAbsent("workloadsCapped", 0);
+        counts.putIfAbsent("workloadPlansEmitted", 0);
+        counts.putIfAbsent("workloadPlansDeduplicated", 0);
+        counts.putIfAbsent("singleWorkloadsEmitted", 0);
+        counts.putIfAbsent("multiWorkloadsEmitted", 0);
         counts.putIfAbsent("connectedSagaSetsSeen", 0);
         counts.putIfAbsent("connectedSagaSetsEmitted", 0);
         counts.putIfAbsent("connectedSagaSetsPruned", 0);

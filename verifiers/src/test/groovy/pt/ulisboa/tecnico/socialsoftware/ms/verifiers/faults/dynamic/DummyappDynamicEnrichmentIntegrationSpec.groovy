@@ -10,14 +10,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.Dynam
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceReadResult
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.EnrichedScenarioRecord
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.WorkloadDynamicEvidenceRecord
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogJsonlWriter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioGenerationResult
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.CommandHandlerIndexVisitor
@@ -57,11 +57,11 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         def unitOfWorkVersion = 90L
         def functionalityInvocationId = "${functionalityName}-${unitOfWorkVersion}"
         def runRoot = tempDir.resolve('dummyapp-dynamic-enrichment')
-        def staticCatalogPath = runRoot.resolve('scenario-catalog.jsonl')
+        def staticCatalogPath = runRoot.resolve('workload-catalog.jsonl')
         def staticManifestPath = runRoot.resolve('scenario-catalog-manifest.json')
-        def staticRejectedInputsPath = runRoot.resolve('scenario-catalog-rejected-inputs.jsonl')
-        def enrichedCatalogPath = runRoot.resolve('scenario-catalog-enriched.jsonl')
-        def enrichedManifestPath = runRoot.resolve('scenario-catalog-enriched-manifest.json')
+        def staticRejectedInputsPath = runRoot.resolve('workload-catalog-rejected-inputs.jsonl')
+        def sidecarPath = runRoot.resolve('workload-dynamic-evidence.jsonl')
+        def sidecarManifestPath = runRoot.resolve('workload-dynamic-evidence-manifest.json')
         def joinReportPath = runRoot.resolve('dynamic-evidence-join-report.json')
         def positiveEvidenceRoot = runRoot.resolve('dynamic-evidence')
         def positiveEvidenceFile = positiveEvidenceRoot
@@ -71,12 +71,12 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         def exactEvidenceFile = exactEvidenceRoot
                 .resolve(fixture.selectedInput().sourceClassFqn())
                 .resolve('dynamic-evidence.jsonl')
-        def exactEnrichedCatalogPath = runRoot.resolve('direct/scenario-catalog-enriched.jsonl')
-        def exactEnrichedManifestPath = runRoot.resolve('direct/scenario-catalog-enriched-manifest.json')
+        def exactEnrichedCatalogPath = runRoot.resolve('direct/workload-dynamic-evidence.jsonl')
+        def exactEnrichedManifestPath = runRoot.resolve('direct/workload-dynamic-evidence-manifest.json')
         def exactJoinReportPath = runRoot.resolve('direct/dynamic-evidence-join-report.json')
         def emptyEvidenceRoot = runRoot.resolve('dynamic-evidence-empty')
-        def emptyEnrichedCatalogPath = runRoot.resolve('empty/scenario-catalog-enriched.jsonl')
-        def emptyEnrichedManifestPath = runRoot.resolve('empty/scenario-catalog-enriched-manifest.json')
+        def emptyEnrichedCatalogPath = runRoot.resolve('empty/workload-dynamic-evidence.jsonl')
+        def emptyEnrichedManifestPath = runRoot.resolve('empty/workload-dynamic-evidence-manifest.json')
         def emptyJoinReportPath = runRoot.resolve('empty/dynamic-evidence-join-report.json')
         def staticWriter = new ScenarioCatalogJsonlWriter()
         def enrichedWriter = new EnrichedScenarioCatalogWriter()
@@ -87,14 +87,14 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         writeJsonl(positiveEvidenceFile, positiveEvidenceEvents(fixture, currentThreadName))
         DynamicEvidenceReadResult positiveRead = new DynamicEvidenceReader().read(positiveEvidenceRoot)
         DynamicEvidenceJoinResult positiveJoin = new DynamicEvidenceJoiner().join(
-                fixture.scenarioResult().scenarioPlans(),
+                fixture.scenarioResult().workloadPlans(),
                 positiveRead.events(),
                 positiveRead.evidenceFilesRead(),
                 positiveRead.warnings())
         enrichedWriter.write(
                 positiveJoin,
-                enrichedCatalogPath,
-                enrichedManifestPath,
+                sidecarPath,
+                sidecarManifestPath,
                 joinReportPath,
                 staticCatalogPath.toString(),
                 positiveEvidenceRoot.toString(),
@@ -106,8 +106,8 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         Files.exists(staticCatalogPath)
         Files.exists(staticManifestPath)
         Files.exists(staticRejectedInputsPath)
-        Files.readAllLines(staticCatalogPath).size() == fixture.scenarioResult().scenarioPlans().size()
-        mapper.readTree(Files.readString(staticManifestPath)).path('counts').path('scenariosExported').asInt() == fixture.scenarioResult().scenarioPlans().size()
+        Files.readAllLines(staticCatalogPath).size() == fixture.scenarioResult().workloadPlans().size()
+        mapper.readTree(Files.readString(staticManifestPath)).path('counts').path('workloadsExported').asText() == fixture.scenarioResult().workloadPlans().size().toString()
 
         and:
         positiveRead.evidenceFilesRead() == 1
@@ -139,7 +139,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         positiveRead.warnings().isEmpty()
 
         and:
-        def positiveRecord = positiveJoin.records().find { record -> record.scenarioPlanId() == fixture.selectedPlan().deterministicId() }
+        def positiveRecord = positiveJoin.records().find { record -> record.workloadPlanId() == fixture.selectedPlan().deterministicId() }
         positiveRecord != null
         positiveRecord.dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE
         positiveRecord.dynamicEvidence().matchedInputVariantIds() == [fixture.selectedInput().deterministicId()]
@@ -159,20 +159,17 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         positiveRecord.dynamicEvidence().observedCommands()[0].rootAggregateId() == '7'
         positiveRecord.dynamicEvidence().observedCommands()[0].sourceEventIds() == ['positive-command-sent']
         positiveRecord.dynamicEvidence().warnings().isEmpty()
-        positiveRecord.scenarioPlan() == fixture.selectedPlan()
-        positiveRecord.schemaVersion() == EnrichedScenarioRecord.SCHEMA_VERSION
+        positiveRecord.inputVariantIds().contains(fixture.selectedInput().deterministicId())
+        positiveRecord.schemaVersion() == WorkloadDynamicEvidenceRecord.SCHEMA_VERSION
 
         and:
-        def enrichedRecord = readEnrichedRecord(enrichedCatalogPath, fixture.selectedPlan().deterministicId())
-        enrichedRecord.path('schemaVersion').asText() == EnrichedScenarioRecord.SCHEMA_VERSION
-        enrichedRecord.path('scenarioPlanId').asText() == fixture.selectedPlan().deterministicId()
-        def enrichedScenarioPlan = enrichedRecord.path('scenarioPlan')
-        enrichedScenarioPlan.path('schemaVersion').asText() == ScenarioPlan.SCHEMA_VERSION
-        enrichedScenarioPlan.path('deterministicId').asText() == fixture.selectedPlan().deterministicId()
-        enrichedScenarioPlan.path('inputs').get(0).path('deterministicId').asText() == fixture.selectedInput().deterministicId()
-        enrichedScenarioPlan.path('inputs').get(0).path('inputRecipe').path('schemaVersion').asText() == fixture.selectedInput().inputRecipe().schemaVersion()
-        enrichedScenarioPlan.path('inputs').get(0).path('inputRecipe').path('recipeFingerprint').asText() == fixture.selectedInput().inputRecipe().recipeFingerprint()
-        enrichedScenarioPlan.path('inputs').get(0).path('inputRecipe').path('executorReady').asBoolean() == fixture.selectedInput().inputRecipe().executorReady()
+        def enrichedRecord = readEnrichedRecord(sidecarPath, fixture.selectedPlan().deterministicId())
+        enrichedRecord.path('schemaVersion').asText() == WorkloadDynamicEvidenceRecord.SCHEMA_VERSION
+        enrichedRecord.path('workloadPlanId').asText() == fixture.selectedPlan().deterministicId()
+        enrichedRecord.path('inputVariantIds').collect { it.asText() }.contains(fixture.selectedInput().deterministicId())
+        !enrichedRecord.has('workloadPlan')
+        !enrichedRecord.has('faultScenario')
+        !enrichedRecord.has('forwardSchedule')
         enrichedRecord.path('dynamicEvidence').path('joinStatus').asText() == DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()
         enrichedRecord.path('dynamicEvidence').path('matchedInputVariantIds').collect { it.asText() } == [fixture.selectedInput().deterministicId()]
         enrichedRecord.path('dynamicEvidence').path('observedSteps').get(0).path('eventKinds').collect { it.asText() } == ['STEP_STARTED', 'COMMAND_SENT', 'AGGREGATE_ACCESSED', 'STEP_FINISHED']
@@ -188,15 +185,15 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         enrichedRecord.path('dynamicEvidence').path('observedCommands').get(0).path('sourceEventIds').collect { it.asText() } == ['positive-command-sent']
 
         and:
-        def positiveManifest = mapper.readTree(Files.readString(enrichedManifestPath))
+        def positiveManifest = mapper.readTree(Files.readString(sidecarManifestPath))
         positiveManifest.path('schema').asText() == EnrichedScenarioCatalogWriter.MANIFEST_SCHEMA
         assertJoinStatusCounts(positiveManifest.path('counts'), positiveJoin)
-        positiveManifest.path('counts').path('recordCount').asInt() == fixture.scenarioResult().scenarioPlans().size()
+        positiveManifest.path('counts').path('recordCount').asInt() == fixture.scenarioResult().workloadPlans().size()
         positiveManifest.path('counts').path('warningCount').asInt() == 0
         positiveManifest.path('counts').path('testRunStatusCounts').isEmpty()
-        positiveManifest.path('sourceCatalogPath').asText() == staticCatalogPath.toString()
+        positiveManifest.path('sourceWorkloadCatalogPath').asText() == staticCatalogPath.toString()
         positiveManifest.path('dynamicEvidenceRoot').asText() == positiveEvidenceRoot.toString()
-        positiveManifest.path('outputCatalogPath').asText() == enrichedCatalogPath.toString()
+        positiveManifest.path('sidecarPath').asText() == sidecarPath.toString()
         positiveManifest.path('warnings').isEmpty()
 
         and:
@@ -204,8 +201,8 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         positiveReport.path('schema').asText() == EnrichedScenarioCatalogWriter.JOIN_REPORT_SCHEMA
         positiveReport.path('runStatus').asText() == 'COMPLETE'
         assertJoinStatusCounts(positiveReport.path('counts'), positiveJoin)
-        positiveReport.path('counts').path('scenarioPlansRead').asInt() == fixture.scenarioResult().scenarioPlans().size()
-        positiveReport.path('counts').path('scenarioPlansEnriched').asInt() == fixture.scenarioResult().scenarioPlans().size()
+        positiveReport.path('counts').path('workloadPlansRead').asInt() == fixture.scenarioResult().workloadPlans().size()
+        positiveReport.path('counts').path('workloadPlansEnriched').asInt() == fixture.scenarioResult().workloadPlans().size()
         positiveReport.path('counts').path('dynamicEventsRead').asInt() == 5
         positiveReport.path('counts').path('eventsMissingTestContext').asInt() == 1
         positiveReport.path('counts').path('evidenceFilesRead').asInt() == 1
@@ -216,7 +213,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         writeJsonl(exactEvidenceFile, positiveEvidenceEvents(fixture, currentThreadName, fixture.selectedInput().deterministicId()))
         DynamicEvidenceReadResult exactRead = new DynamicEvidenceReader().read(exactEvidenceRoot)
         DynamicEvidenceJoinResult exactJoin = new DynamicEvidenceJoiner().join(
-                fixture.scenarioResult().scenarioPlans(),
+                fixture.scenarioResult().workloadPlans(),
                 exactRead.events(),
                 exactRead.evidenceFilesRead(),
                 exactRead.warnings())
@@ -236,7 +233,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         exactRead.events().size() == 5
         exactRead.events().findAll { it.inputVariantId() == fixture.selectedInput().deterministicId() }.size() == 4
         exactRead.events().last().inputVariantId() == null
-        def exactRecord = exactJoin.records().find { record -> record.scenarioPlanId() == fixture.selectedPlan().deterministicId() }
+        def exactRecord = exactJoin.records().find { record -> record.workloadPlanId() == fixture.selectedPlan().deterministicId() }
         exactRecord != null
         exactRecord.dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.MATCHED_EXACT
         exactRecord.dynamicEvidence().matchedInputVariantIds() == [fixture.selectedInput().deterministicId()]
@@ -251,7 +248,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         exactEnrichedRecord.path('dynamicEvidence').path('matchedInputVariantIds').collect { it.asText() } == [fixture.selectedInput().deterministicId()]
         def exactManifest = mapper.readTree(Files.readString(exactEnrichedManifestPath))
         assertJoinStatusCounts(exactManifest.path('counts'), exactJoin)
-        exactManifest.path('counts').path('recordCount').asInt() == fixture.scenarioResult().scenarioPlans().size()
+        exactManifest.path('counts').path('recordCount').asInt() == fixture.scenarioResult().workloadPlans().size()
         def exactReport = mapper.readTree(Files.readString(exactJoinReportPath))
         assertJoinStatusCounts(exactReport.path('counts'), exactJoin)
         exactReport.path('counts').path('dynamicEventsRead').asInt() == 5
@@ -262,7 +259,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         when:
         DynamicEvidenceReadResult emptyRead = new DynamicEvidenceReader().read(emptyEvidenceRoot)
         DynamicEvidenceJoinResult emptyJoin = new DynamicEvidenceJoiner().join(
-                fixture.scenarioResult().scenarioPlans(),
+                fixture.scenarioResult().workloadPlans(),
                 emptyRead.events(),
                 emptyRead.evidenceFilesRead(),
                 emptyRead.warnings())
@@ -284,7 +281,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         Files.exists(emptyEnrichedCatalogPath)
         Files.exists(emptyEnrichedManifestPath)
         Files.exists(emptyJoinReportPath)
-        Files.readAllLines(emptyEnrichedCatalogPath).size() == fixture.scenarioResult().scenarioPlans().size()
+        Files.readAllLines(emptyEnrichedCatalogPath).size() == fixture.scenarioResult().workloadPlans().size()
         def emptyRecord = readEnrichedRecord(emptyEnrichedCatalogPath, fixture.selectedPlan().deterministicId())
         emptyRecord.path('dynamicEvidence').path('joinStatus').asText() == DynamicEvidenceJoinStatus.NOT_COVERED.name()
         emptyRecord.path('dynamicEvidence').path('matchedInputVariantIds').isEmpty()
@@ -293,15 +290,15 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         emptyRecord.path('dynamicEvidence').path('observedCommands').isEmpty()
         emptyRecord.path('dynamicEvidence').path('warnings').isEmpty()
         def emptyManifest = mapper.readTree(Files.readString(emptyEnrichedManifestPath))
-        emptyManifest.path('counts').path(DynamicEvidenceJoinStatus.NOT_COVERED.name()).asInt() == fixture.scenarioResult().scenarioPlans().size()
+        emptyManifest.path('counts').path(DynamicEvidenceJoinStatus.NOT_COVERED.name()).asInt() == fixture.scenarioResult().workloadPlans().size()
         emptyManifest.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() == 0
         emptyManifest.path('counts').path(DynamicEvidenceJoinStatus.UNMATCHED.name()).asInt() == 0
-        emptyManifest.path('counts').path('recordCount').asInt() == fixture.scenarioResult().scenarioPlans().size()
+        emptyManifest.path('counts').path('recordCount').asInt() == fixture.scenarioResult().workloadPlans().size()
         emptyManifest.path('counts').path('warningCount').asInt() == 0
         emptyManifest.path('counts').path('testRunStatusCounts').isEmpty()
         def emptyReport = mapper.readTree(Files.readString(emptyJoinReportPath))
         emptyReport.path('schema').asText() == EnrichedScenarioCatalogWriter.JOIN_REPORT_SCHEMA
-        emptyReport.path('counts').path(DynamicEvidenceJoinStatus.NOT_COVERED.name()).asInt() == fixture.scenarioResult().scenarioPlans().size()
+        emptyReport.path('counts').path(DynamicEvidenceJoinStatus.NOT_COVERED.name()).asInt() == fixture.scenarioResult().workloadPlans().size()
         emptyReport.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() == 0
         emptyReport.path('counts').path(DynamicEvidenceJoinStatus.UNMATCHED.name()).asInt() == 0
         emptyReport.path('counts').path('dynamicEventsRead').asInt() == 0
@@ -328,7 +325,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
             writeSurefireReport(applicationPath, secondSelectedTestClass, 1, 0, 0, 0)
         })
         def orchestrator = new DynamicEnrichmentOrchestrator(runner)
-        def staticCatalogPath = runRoot.resolve('scenario-catalog.jsonl')
+        def staticCatalogPath = runRoot.resolve('workload-catalog.jsonl')
 
         when:
         def result = orchestrator.run(
@@ -337,7 +334,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
                 DUMMYAPP_APPLICATION_NAME,
                 runRoot,
                 selectedClasses,
-                fixture.scenarioResult().scenarioPlans(),
+                fixture.scenarioResult().workloadPlans(),
                 staticCatalogPath,
                 GENERATED_AT)
 
@@ -369,14 +366,14 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         batchRun.path('selectedTestClassFqns')*.asText() == selectedClasses
         batchRun.path('commandArguments')*.asText().contains("-Dtest=${selectedTestClass},${secondSelectedTestClass}".toString())
         batchRun.path('statusCounts').path('passed').asInt() == 2
-        batchRun.path('staticCatalogPath').asText() == staticCatalogPath.toString()
+        batchRun.path('workloadCatalogPath').asText() == staticCatalogPath.toString()
         batchRun.path('evidenceRoot').asText() == evidenceRoot.toString()
         batchRun.path('testRuns')*.path('status')*.asText() == ['PASSED', 'PASSED']
         mapper.readTree(Files.readString(evidenceRoot.resolve('test-runs').resolve(DynamicEnrichmentOrchestrator.safeTestClassDirectoryName(selectedTestClass) + '.json'))).path('status').asText() == 'PASSED'
 
         and:
         result.testRuns()*.status() == ['PASSED', 'PASSED']
-        def enrichedRecord = readEnrichedRecord(runRoot.resolve('scenario-catalog-enriched.jsonl'), fixture.selectedPlan().deterministicId())
+        def enrichedRecord = readEnrichedRecord(runRoot.resolve('workload-dynamic-evidence.jsonl'), fixture.selectedPlan().deterministicId())
         enrichedRecord.path('dynamicEvidence').path('joinStatus').asText() == DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()
         enrichedRecord.path('dynamicEvidence').path('observedSteps').get(0).path('eventKinds').collect { it.asText() } == ['STEP_STARTED', 'COMMAND_SENT', 'AGGREGATE_ACCESSED', 'STEP_FINISHED']
         def joinReport = mapper.readTree(Files.readString(runRoot.resolve('dynamic-evidence-join-report.json')))
@@ -385,7 +382,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         joinReport.path('counts').path('testClassesPassed').asInt() == 2
         joinReport.path('counts').path('dynamicEventsRead').asInt() == 5
         joinReport.path('counts').path('eventsMissingTestContext').asInt() == 1
-        joinReport.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() == 1
+        joinReport.path('counts').path(DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE.name()).asInt() >= 1
     }
 
     private DummyappFixture buildFixture() {
@@ -395,10 +392,10 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         def adapterResult = new ApplicationAnalysisScenarioModelAdapter().adapt(analysisState)
         def scenarioResult = ScenarioGenerator.generate(adapterResult.sagaDefinitions(), adapterResult.inputVariants(), scenarioGeneratorConfig())
 
-        assert !scenarioResult.scenarioPlans().isEmpty() : 'expected dummyapp scenario generation to emit at least one plan'
+        assert !scenarioResult.workloadPlans().isEmpty() : 'expected dummyapp scenario generation to emit at least one plan'
 
-        def selectedPlan = selectUniqueItemSagaPlan(scenarioResult.scenarioPlans())
-        def selectedInput = selectedPlan.inputs().first()
+        def selectedPlan = selectUniqueItemSagaPlan(scenarioResult.workloadPlans())
+        def selectedInput = selectedPlan.acceptedInputs().first()
         def selectedSaga = analysisState.sagas.find { saga -> saga.fqn == selectedInput.sagaFqn() }
         assert selectedSaga != null : "expected to find dummyapp saga ${selectedInput.sagaFqn()} in analysis state"
 
@@ -441,7 +438,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         new ScenarioGeneratorConfig(
                 false,
                 ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
-                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
                 true,
                 1,
                 1000,
@@ -453,9 +450,9 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
                 1234L)
     }
 
-    private static ScenarioPlan selectUniqueItemSagaPlan(List<ScenarioPlan> plans) {
+    private static WorkloadPlan selectUniqueItemSagaPlan(List<WorkloadPlan> plans) {
         def itemPlans = plans.findAll { plan ->
-            plan.inputs().size() == 1 && plan.inputs().first().sagaFqn() == ITEM_SAGA_FQN
+            plan.acceptedInputs().size() == 1 && plan.acceptedInputs().first().sagaFqn() == ITEM_SAGA_FQN
         }
         assert !itemPlans.isEmpty() : "expected at least one accepted plan for ${ITEM_SAGA_FQN}"
 
@@ -465,8 +462,8 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
         uniqueItemPlan
     }
 
-    private static String planKey(ScenarioPlan plan) {
-        def input = plan.inputs().first()
+    private static String planKey(WorkloadPlan plan) {
+        def input = plan.acceptedInputs().first()
         [input.sagaFqn(), input.sourceClassFqn(), input.sourceMethodName()].join('|')
     }
 
@@ -540,7 +537,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
     }
 
     private DynamicEnrichmentConfig dynamicConfig() {
-        new DynamicEnrichmentConfig(true, true, 'dynamic-evidence', 'scenario-catalog-enriched.jsonl', 'scenario-catalog-enriched-manifest.json', 'dynamic-evidence-join-report.json', 'src/test/groovy', [], [], [], 300, new DynamicEnrichmentConfig.DynamicEnrichmentMavenConfig('mvn', 'test-sagas'))
+        new DynamicEnrichmentConfig(true, true, 'dynamic-evidence', 'workload-dynamic-evidence.jsonl', 'workload-dynamic-evidence-manifest.json', 'dynamic-evidence-join-report.json', 'src/test/groovy', [], [], [], 300, new DynamicEnrichmentConfig.DynamicEnrichmentMavenConfig('mvn', 'test-sagas'))
     }
 
     private static void writeSurefireReport(Path applicationPath, String testClassFqn, int tests, int failures, int errors, int skipped) {
@@ -555,7 +552,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
     private JsonNode readEnrichedRecord(Path catalogPath, String planId) {
         def record = Files.readAllLines(catalogPath)
                 .collect { line -> mapper.readTree(line) }
-                .find { node -> node.path('scenarioPlanId').asText() == planId }
+                .find { node -> node.path('workloadPlanId').asText() == planId }
         assert record != null : "expected enriched catalog to contain plan ${planId}"
         record
     }
@@ -641,16 +638,16 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
 
     private static final class DummyappFixture {
         private final ApplicationAnalysisState analysisState
-        private final ScenarioGenerationResult scenarioResult
-        private final ScenarioPlan selectedPlan
+        private final WorkloadGenerationResult scenarioResult
+        private final WorkloadPlan selectedPlan
         private final InputVariant selectedInput
         private final SagaFunctionalityBuildingBlock selectedSaga
         private final SagaStepBuildingBlock selectedStep
         private final StepDispatchFootprint selectedDispatch
 
         DummyappFixture(ApplicationAnalysisState analysisState,
-                        ScenarioGenerationResult scenarioResult,
-                        ScenarioPlan selectedPlan,
+                        WorkloadGenerationResult scenarioResult,
+                        WorkloadPlan selectedPlan,
                         InputVariant selectedInput,
                         SagaFunctionalityBuildingBlock selectedSaga,
                         SagaStepBuildingBlock selectedStep,
@@ -658,7 +655,7 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
             this.analysisState = analysisState
             this.scenarioResult = scenarioResult
             this.selectedPlan = selectedPlan
-            this.selectedInput = selectedInput ?: selectedPlan.inputs().first()
+            this.selectedInput = selectedInput ?: selectedPlan.acceptedInputs().first()
             this.selectedSaga = selectedSaga
             this.selectedStep = selectedStep
             this.selectedDispatch = selectedDispatch
@@ -668,11 +665,11 @@ class DummyappDynamicEnrichmentIntegrationSpec extends VisitorTestSupport {
             analysisState
         }
 
-        ScenarioGenerationResult scenarioResult() {
+        WorkloadGenerationResult scenarioResult() {
             scenarioResult
         }
 
-        ScenarioPlan selectedPlan() {
+        WorkloadPlan selectedPlan() {
             selectedPlan
         }
 

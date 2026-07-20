@@ -6,8 +6,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.RejectedInputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioCatalogManifest;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioGenerationResult;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode;
 
 import java.io.BufferedWriter;
@@ -19,94 +19,132 @@ import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public final class ScenarioCatalogJsonlWriter {
 
+    public static final String DEFAULT_FAULT_SCENARIO_FILE = "fault-scenario-catalog.jsonl";
+    public static final String DEFAULT_REJECTED_INPUT_FILE = "workload-catalog-rejected-inputs.jsonl";
+    public static final String DEFAULT_ACCOUNTING_FILE = "scenario-space-accounting.json";
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    public ScenarioCatalogManifest write(ScenarioGenerationResult result,
-                                         Path catalogPath,
+    public ScenarioCatalogManifest write(WorkloadGenerationResult result,
+                                         Path workloadCatalogPath,
                                          Path manifestPath,
                                          String generatedAt) throws IOException {
-        Path rejectedPath = catalogPath == null || catalogPath.getParent() == null
-                ? Path.of("scenario-catalog-rejected-inputs.jsonl")
-                : catalogPath.getParent().resolve("scenario-catalog-rejected-inputs.jsonl");
-        return write(result, catalogPath, manifestPath, rejectedPath, generatedAt);
+        Path parent = workloadCatalogPath == null ? null : workloadCatalogPath.getParent();
+        Path base = parent == null ? Path.of(".") : parent;
+        return write(
+                result,
+                workloadCatalogPath,
+                base.resolve(DEFAULT_FAULT_SCENARIO_FILE),
+                manifestPath,
+                base.resolve(DEFAULT_REJECTED_INPUT_FILE),
+                base.resolve(DEFAULT_ACCOUNTING_FILE),
+                null,
+                generatedAt);
     }
 
-    public ScenarioCatalogManifest write(ScenarioGenerationResult result,
-                                          Path catalogPath,
-                                          Path manifestPath,
-                                          Path rejectedInputsPath,
-                                          String generatedAt) throws IOException {
-        Path accountingPath = catalogPath == null || catalogPath.getParent() == null
-                ? Path.of("scenario-space-accounting.json")
-                : catalogPath.getParent().resolve("scenario-space-accounting.json");
-        return write(result, catalogPath, manifestPath, rejectedInputsPath, accountingPath, null, generatedAt);
+    public ScenarioCatalogManifest write(WorkloadGenerationResult result,
+                                         Path workloadCatalogPath,
+                                         Path manifestPath,
+                                         Path rejectedInputsPath,
+                                         String generatedAt) throws IOException {
+        Path parent = workloadCatalogPath == null ? null : workloadCatalogPath.getParent();
+        Path base = parent == null ? Path.of(".") : parent;
+        return write(
+                result,
+                workloadCatalogPath,
+                base.resolve(DEFAULT_FAULT_SCENARIO_FILE),
+                manifestPath,
+                rejectedInputsPath,
+                base.resolve(DEFAULT_ACCOUNTING_FILE),
+                null,
+                generatedAt);
     }
 
-    public ScenarioCatalogManifest write(ScenarioGenerationResult result,
-                                          Path catalogPath,
-                                          Path manifestPath,
-                                          Path rejectedInputsPath,
-                                          Path accountingPath,
-                                          ScenarioSpaceAccountingReport accountingReport,
-                                          String generatedAt) throws IOException {
-        ScenarioGenerationResult safeResult = Objects.requireNonNull(result, "result");
-        Path safeCatalogPath = Objects.requireNonNull(catalogPath, "catalogPath");
+    public ScenarioCatalogManifest write(WorkloadGenerationResult result,
+                                         Path workloadCatalogPath,
+                                         Path faultScenarioCatalogPath,
+                                         Path manifestPath,
+                                         Path rejectedInputsPath,
+                                         Path accountingPath,
+                                         ScenarioSpaceAccountingReport accountingReport,
+                                         String generatedAt) throws IOException {
+        WorkloadGenerationResult safeResult = Objects.requireNonNull(result, "result");
+        Path safeWorkloadPath = Objects.requireNonNull(workloadCatalogPath, "workloadCatalogPath");
+        Path safeFaultScenarioPath = Objects.requireNonNull(faultScenarioCatalogPath, "faultScenarioCatalogPath");
         Path safeManifestPath = Objects.requireNonNull(manifestPath, "manifestPath");
         Path safeRejectedInputsPath = Objects.requireNonNull(rejectedInputsPath, "rejectedInputsPath");
         Path safeAccountingPath = Objects.requireNonNull(accountingPath, "accountingPath");
         String safeGeneratedAt = requireGeneratedAt(generatedAt);
 
-        createParentDirectories(safeCatalogPath);
+        createParentDirectories(safeWorkloadPath);
+        createParentDirectories(safeFaultScenarioPath);
         createParentDirectories(safeManifestPath);
         createParentDirectories(safeRejectedInputsPath);
         createParentDirectories(safeAccountingPath);
 
-        int scenariosExported = writeCatalog(safeResult, safeCatalogPath);
+        int workloadsExported = writeWorkloads(safeResult, safeWorkloadPath);
+        int faultScenariosExported = writeEmptyFaultScenarios(safeFaultScenarioPath);
         int rejectedInputsExported = writeRejectedInputs(safeResult.rejectedInputVariants(), safeRejectedInputsPath);
-        ScenarioSpaceAccountingReport safeAccountingReport = accountingReport == null
-                ? ScenarioSpaceAccountingReport.placeholder("unknown", safeResult.effectiveConfig(), scenariosExported)
+        ScenarioSpaceAccountingReport baseAccounting = accountingReport == null
+                ? ScenarioSpaceAccountingReport.placeholder("unknown", safeResult.effectiveConfig(), workloadsExported)
                 : accountingReport;
-        new ScenarioSpaceAccountingWriter().write(safeAccountingReport, safeAccountingPath);
+        ScenarioSpaceAccountingReport packageAccounting = baseAccounting.withCatalogPackage(
+                safeResult.workloadPlans(), Integer.toString(faultScenariosExported));
+        new ScenarioSpaceAccountingWriter().write(packageAccounting, safeAccountingPath);
 
         ScenarioCatalogManifest manifest = buildManifest(
                 safeResult,
-                safeCatalogPath,
+                safeWorkloadPath,
+                safeFaultScenarioPath,
                 safeManifestPath,
                 safeRejectedInputsPath,
                 safeAccountingPath,
                 safeGeneratedAt,
-                scenariosExported,
+                workloadsExported,
+                faultScenariosExported,
                 rejectedInputsExported);
         writeManifest(manifest, safeManifestPath);
         return manifest;
     }
 
-    private static int writeCatalog(ScenarioGenerationResult result, Path catalogPath) throws IOException {
-        int scenariosExported = 0;
+    private static int writeWorkloads(WorkloadGenerationResult result, Path workloadPath) throws IOException {
+        List<WorkloadPlan> workloads = result.workloadPlans().stream()
+                .sorted(Comparator.comparing(WorkloadPlan::kind)
+                        .thenComparing(WorkloadPlan::deterministicId, Comparator.nullsFirst(String::compareTo)))
+                .toList();
         try (BufferedWriter writer = Files.newBufferedWriter(
-                catalogPath,
+                workloadPath,
                 StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING,
                 StandardOpenOption.WRITE)) {
-            for (ScenarioPlan plan : result.scenarioPlans()) {
-                Objects.requireNonNull(plan, "scenarioPlan");
-                writer.write(OBJECT_MAPPER.writeValueAsString(plan));
+            for (WorkloadPlan workload : workloads) {
+                writer.write(OBJECT_MAPPER.writeValueAsString(Objects.requireNonNull(workload, "workloadPlan")));
                 writer.write('\n');
-                scenariosExported++;
             }
         }
-        return scenariosExported;
+        return workloads.size();
+    }
+
+    private static int writeEmptyFaultScenarios(Path faultScenarioPath) throws IOException {
+        Files.writeString(
+                faultScenarioPath,
+                "",
+                StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING,
+                StandardOpenOption.WRITE);
+        return 0;
     }
 
     private static int writeRejectedInputs(List<RejectedInputVariant> rejectedInputVariants,
                                            Path rejectedInputsPath) throws IOException {
-        int rejectedInputsExported = 0;
         List<RejectedInputVariant> safeRejectedInputs = rejectedInputVariants == null ? List.of() : rejectedInputVariants;
         try (BufferedWriter writer = Files.newBufferedWriter(
                 rejectedInputsPath,
@@ -115,13 +153,11 @@ public final class ScenarioCatalogJsonlWriter {
                 StandardOpenOption.TRUNCATE_EXISTING,
                 StandardOpenOption.WRITE)) {
             for (RejectedInputVariant rejected : safeRejectedInputs) {
-                Objects.requireNonNull(rejected, "rejectedInputVariant");
-                writer.write(OBJECT_MAPPER.writeValueAsString(toRejectedInputLine(rejected)));
+                writer.write(OBJECT_MAPPER.writeValueAsString(toRejectedInputLine(Objects.requireNonNull(rejected))));
                 writer.write('\n');
-                rejectedInputsExported++;
             }
         }
-        return rejectedInputsExported;
+        return safeRejectedInputs.size();
     }
 
     private static RejectedInputLine toRejectedInputLine(RejectedInputVariant rejected) {
@@ -132,34 +168,45 @@ public final class ScenarioCatalogJsonlWriter {
                 rejected.warnings());
     }
 
-    private static ScenarioCatalogManifest buildManifest(ScenarioGenerationResult result,
-                                                          Path catalogPath,
+    private static ScenarioCatalogManifest buildManifest(WorkloadGenerationResult result,
+                                                          Path workloadPath,
+                                                          Path faultScenarioPath,
                                                           Path manifestPath,
                                                           Path rejectedInputsPath,
                                                           Path accountingPath,
                                                           String generatedAt,
-                                                          int scenariosExported,
+                                                          int workloadsExported,
+                                                          int faultScenariosExported,
                                                           int rejectedInputsExported) {
-        LinkedHashMap<String, Integer> counts = new LinkedHashMap<>(result.counts());
-        counts.put("scenariosExported", scenariosExported);
-        counts.put("rejectedInputsExported", rejectedInputsExported);
+        LinkedHashMap<String, String> counts = decimalCounts(result.counts());
+        counts.put("workloadsExported", Integer.toString(workloadsExported));
+        counts.put("faultScenariosExported", Integer.toString(faultScenariosExported));
+        counts.put("rejectedInputsExported", Integer.toString(rejectedInputsExported));
         return new ScenarioCatalogManifest(
-                ScenarioPlan.SCHEMA_VERSION,
+                ScenarioCatalogManifest.SCHEMA_VERSION,
                 generatedAt,
                 result.effectiveConfig(),
+                "STATIC_ANALYSIS",
+                "INPUT_READINESS_AND_STRUCTURAL_ADMISSIBILITY",
                 counts,
                 result.warnings(),
-                catalogPath.toString(),
-                manifestPath.toString(),
-                rejectedInputsPath.toString(),
-                result.effectiveConfig().catalogWriteMode(),
-                accountingPath.toString(),
-                inputVariantsBySourceMode(result),
-                inputVariantsAcceptedBySourceMode(result),
-                inputVariantsRejectedBySourceModeReason(result));
+                artifact("WORKLOAD_CATALOG", WorkloadPlan.SCHEMA_VERSION, workloadPath, workloadsExported),
+                artifact("FAULT_SCENARIO_CATALOG", ScenarioCatalogManifest.FAULT_SCENARIO_SCHEMA_VERSION, faultScenarioPath, faultScenariosExported),
+                artifact("SCENARIO_SPACE_ACCOUNTING", ScenarioSpaceAccountingReport.SCHEMA_VERSION, accountingPath, 1),
+                artifact("REJECTED_INPUT_DIAGNOSTIC", RejectedInputVariant.SCHEMA_VERSION, rejectedInputsPath, rejectedInputsExported),
+                decimalCounts(inputVariantsBySourceMode(result)),
+                decimalCounts(inputVariantsAcceptedBySourceMode(result)),
+                decimalCounts(inputVariantsRejectedBySourceModeReason(result)));
     }
 
-    private static LinkedHashMap<String, Integer> inputVariantsBySourceMode(ScenarioGenerationResult result) {
+    private static ScenarioCatalogManifest.ArtifactMetadata artifact(String kind,
+                                                                      String schema,
+                                                                      Path path,
+                                                                      int count) {
+        return new ScenarioCatalogManifest.ArtifactMetadata(kind, schema, path.toString(), Integer.toString(count));
+    }
+
+    private static LinkedHashMap<String, Integer> inputVariantsBySourceMode(WorkloadGenerationResult result) {
         LinkedHashMap<String, InputVariant> uniqueInputs = acceptedInputsById(result);
         result.rejectedInputVariants().forEach(rejected -> {
             InputVariant input = rejected.inputVariant();
@@ -170,13 +217,13 @@ public final class ScenarioCatalogJsonlWriter {
         return countBySourceMode(uniqueInputs.values().stream().toList());
     }
 
-    private static LinkedHashMap<String, Integer> inputVariantsAcceptedBySourceMode(ScenarioGenerationResult result) {
+    private static LinkedHashMap<String, Integer> inputVariantsAcceptedBySourceMode(WorkloadGenerationResult result) {
         return countBySourceMode(acceptedInputsById(result).values().stream().toList());
     }
 
-    private static LinkedHashMap<String, InputVariant> acceptedInputsById(ScenarioGenerationResult result) {
+    private static LinkedHashMap<String, InputVariant> acceptedInputsById(WorkloadGenerationResult result) {
         LinkedHashMap<String, InputVariant> uniqueInputs = new LinkedHashMap<>();
-        result.scenarioPlans().forEach(plan -> plan.inputs().forEach(input -> {
+        result.workloadPlans().forEach(workload -> workload.acceptedInputs().forEach(input -> {
             if (input.deterministicId() != null) {
                 uniqueInputs.putIfAbsent(input.deterministicId(), input);
             }
@@ -195,7 +242,7 @@ public final class ScenarioCatalogJsonlWriter {
         return counts;
     }
 
-    private static LinkedHashMap<String, Integer> inputVariantsRejectedBySourceModeReason(ScenarioGenerationResult result) {
+    private static LinkedHashMap<String, Integer> inputVariantsRejectedBySourceModeReason(WorkloadGenerationResult result) {
         return result.rejectedInputVariants().stream()
                 .filter(rejected -> rejected.rejectionReason() != null)
                 .collect(Collectors.toMap(
@@ -205,6 +252,14 @@ public final class ScenarioCatalogJsonlWriter {
                         LinkedHashMap::new));
     }
 
+    private static LinkedHashMap<String, String> decimalCounts(Map<String, Integer> values) {
+        LinkedHashMap<String, String> decimal = new LinkedHashMap<>();
+        if (values != null) {
+            values.forEach((key, value) -> decimal.put(key, Integer.toString(value == null ? 0 : value)));
+        }
+        return decimal;
+    }
+
     private static void writeManifest(ScenarioCatalogManifest manifest, Path manifestPath) throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(
                 manifestPath,
@@ -212,14 +267,12 @@ public final class ScenarioCatalogJsonlWriter {
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING,
                 StandardOpenOption.WRITE)) {
-            OBJECT_MAPPER.writeValue(writer, manifest);
+            writer.write(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(manifest));
+            writer.write('\n');
         }
     }
 
     private static void createParentDirectories(Path path) throws IOException {
-        if (path == null) {
-            return;
-        }
         Path parent = path.getParent();
         if (parent != null) {
             Files.createDirectories(parent);

@@ -483,11 +483,11 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
 
         when:
         def generated = ScenarioGenerator.generate(sagas, inputs, segmentConfig)
-        def report = calculate(sagas, inputs, segmentConfig, generated.scenarioPlans().size())
+        def report = calculate(sagas, inputs, segmentConfig, generated.workloadPlans().size())
 
         then:
-        generated.scenarioPlans().size().toString() == report.inputBoundScenarioSpace().selectedByGenerator().total()
-        generated.scenarioPlans().size() == 2
+        generated.workloadPlans().size().toString() == report.inputBoundScenarioSpace().selectedByGenerator().total()
+        generated.workloadPlans().size() == 2
         row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '2'
     }
 
@@ -505,10 +505,10 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
 
         when:
         def generated = ScenarioGenerator.generate(sagas, inputs, cappedConfig)
-        def report = calculate(sagas, inputs, cappedConfig, generated.scenarioPlans().size())
+        def report = calculate(sagas, inputs, cappedConfig, generated.workloadPlans().size())
 
         then:
-        generated.scenarioPlans().size() == 3
+        generated.workloadPlans().size() == 3
         generated.counts().schedulesCapped == 1
         generated.warnings().any { it.contains('maxSchedulesPerInputTuple=3') }
         row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '3'
@@ -529,10 +529,10 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
 
         when:
         def generated = ScenarioGenerator.generate(sagas, inputs, zeroCapConfig)
-        def report = calculate(sagas, inputs, zeroCapConfig, generated.scenarioPlans().size())
+        def report = calculate(sagas, inputs, zeroCapConfig, generated.workloadPlans().size())
 
         then:
-        generated.scenarioPlans().isEmpty()
+        generated.workloadPlans().isEmpty()
         generated.counts().schedulesEmitted == 0
         generated.warnings().contains('schedule cap disabled all schedules')
         row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '0'
@@ -874,7 +874,7 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
                                                     int maxCatalogScenarios) {
         new ScenarioGeneratorConfig(false,
                 generationStrategy,
-                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
                 includeSingles,
                 maxSagaSetSize,
                 maxCatalogScenarios,

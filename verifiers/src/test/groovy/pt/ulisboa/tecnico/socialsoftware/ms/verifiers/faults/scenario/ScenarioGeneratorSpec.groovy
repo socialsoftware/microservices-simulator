@@ -13,7 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Inpu
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioGenerationResult
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint
@@ -41,8 +41,8 @@ class ScenarioGeneratorSpec extends Specification {
         def second = ScenarioGenerator.generate([sagaB, sagaA], [inputs[1], inputs[0]], config(maxSagaSetSize: 2))
 
         then:
-        first.scenarioPlans()*.kind() == [ScenarioKind.SINGLE_SAGA, ScenarioKind.SINGLE_SAGA, ScenarioKind.MULTI_SAGA]
-        first.scenarioPlans()*.deterministicId() == second.scenarioPlans()*.deterministicId()
+        first.workloadPlans()*.kind() == [ScenarioKind.SINGLE_SAGA, ScenarioKind.SINGLE_SAGA, ScenarioKind.MULTI_SAGA]
+        first.workloadPlans()*.deterministicId() == second.workloadPlans()*.deterministicId()
     }
 
     def 'source mode does not participate in input variant deterministic identity'() {
@@ -55,7 +55,7 @@ class ScenarioGeneratorSpec extends Specification {
         def result = ScenarioGenerator.generate([saga], [sagaInput, unknownInput], config(maxSagaSetSize: 1))
 
         then:
-        result.scenarioPlans().size() == 1
+        result.workloadPlans().size() == 1
         result.counts().inputVariantsDeduplicated == 1
     }
 
@@ -74,7 +74,7 @@ class ScenarioGeneratorSpec extends Specification {
         when:
         def result = ScenarioGenerator.generate([saga], [sameRecipeOwnerOne, sameRecipeOwnerTwo, differentRecipe, differentLogicalKey],
                 config(maxInputVariantsPerSaga: 10))
-        def accepted = result.scenarioPlans()*.inputs().flatten()
+        def accepted = result.workloadPlans()*.acceptedInputs().flatten()
         def mergedSameRecipe = accepted.find { it.inputRecipe().recipeFingerprint() == recipeOne.recipeFingerprint() && it.logicalKeyBindings().orderId == 'order-1' }
 
         then:
@@ -96,8 +96,8 @@ class ScenarioGeneratorSpec extends Specification {
         def result = ScenarioGenerator.generate([saga], [sagasInput, tccInput, mixedInput, unknownInput], config(maxSagaSetSize: 1))
 
         then:
-        result.scenarioPlans().size() == 2
-        result.scenarioPlans()*.inputs().flatten()*.stableSourceText().toSet() == ['sagas-source', 'unknown-source'] as Set
+        result.workloadPlans().size() == 2
+        result.workloadPlans()*.acceptedInputs().flatten()*.stableSourceText().toSet() == ['sagas-source', 'unknown-source'] as Set
         result.rejectedInputVariants()*.inputVariant()*.sourceMode() == [SourceMode.TCC, SourceMode.MIXED]
         result.rejectedInputVariants()*.rejectionReason() == [
                 SourceModeRejectionReason.SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG,
@@ -117,8 +117,8 @@ class ScenarioGeneratorSpec extends Specification {
         def result = ScenarioGenerator.generate([saga], [unknownInput, sagasInput], config(maxSagaSetSize: 1))
 
         then:
-        result.scenarioPlans().size() == 1
-        def accepted = result.scenarioPlans()[0].inputs()[0]
+        result.workloadPlans().size() == 1
+        def accepted = result.workloadPlans()[0].acceptedInputs()[0]
         accepted.sourceMode() == SourceMode.SAGAS
         !accepted.warnings().any { it.contains('Source mode could not be proven') }
         !result.warnings().any { it.contains('Source mode could not be proven') }
@@ -134,7 +134,7 @@ class ScenarioGeneratorSpec extends Specification {
         def result = ScenarioGenerator.generate([saga], [sagasInput, tccInput], config(maxSagaSetSize: 1))
 
         then:
-        result.scenarioPlans().size() == 1
+        result.workloadPlans().size() == 1
         result.rejectedInputVariants().size() == 1
         result.rejectedInputVariants()[0].rejectionReason() == SourceModeRejectionReason.SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG
         result.counts().inputVariantsDeduplicated == 0
@@ -154,8 +154,8 @@ class ScenarioGeneratorSpec extends Specification {
         ], config(maxSagaSetSize: 2))
 
         then:
-        result.scenarioPlans()*.kind().every { it == ScenarioKind.SINGLE_SAGA }
-        result.scenarioPlans().size() == 2
+        result.workloadPlans()*.kind().every { it == ScenarioKind.SINGLE_SAGA }
+        result.workloadPlans().size() == 2
     }
 
     def 'brute force write plans emits all input-bound saga sets including unrelated pairs'() {
@@ -176,10 +176,10 @@ class ScenarioGeneratorSpec extends Specification {
                 maxSagaSetSize: 2))
 
         then:
-        result.scenarioPlans().size() == 1
-        result.scenarioPlans()[0].kind() == ScenarioKind.MULTI_SAGA
-        result.scenarioPlans()[0].sagaInstances()*.sagaFqn().toSet() == ['com.example.A', 'com.example.B'] as Set
-        result.scenarioPlans()[0].conflictEvidence().isEmpty()
+        result.workloadPlans().size() == 1
+        result.workloadPlans()[0].kind() == ScenarioKind.MULTI_SAGA
+        result.workloadPlans()[0].participants()*.sagaFqn().toSet() == ['com.example.A', 'com.example.B'] as Set
+        result.workloadPlans()[0].conflictEvidence().isEmpty()
     }
 
     def 'interaction pruned write plans emits only selected graph-connected plans'() {
@@ -203,9 +203,9 @@ class ScenarioGeneratorSpec extends Specification {
                 maxSagaSetSize: 2))
 
         then:
-        result.scenarioPlans().size() == 1
-        result.scenarioPlans()[0].sagaInstances()*.sagaFqn().toSet() == ['com.example.A', 'com.example.B'] as Set
-        result.scenarioPlans()[0].conflictEvidence().size() == 1
+        result.workloadPlans().size() == 1
+        result.workloadPlans()[0].participants()*.sagaFqn().toSet() == ['com.example.A', 'com.example.B'] as Set
+        result.workloadPlans()[0].conflictEvidence().size() == 1
     }
 
     def 'count only mode does not materialize scenario plans but keeps rejected inputs'() {
@@ -220,10 +220,10 @@ class ScenarioGeneratorSpec extends Specification {
                 maxSagaSetSize: 1))
 
         then:
-        result.scenarioPlans().isEmpty()
+        result.workloadPlans().isEmpty()
         result.rejectedInputVariants().size() == 1
         result.rejectedInputVariants()[0].inputVariant().sourceMode() == SourceMode.TCC
-        result.counts().scenariosEmitted == 0
+        result.counts().workloadsEmitted == 0
     }
 
     def 'write read same exact key creates conflict evidence'() {
@@ -240,7 +240,7 @@ class ScenarioGeneratorSpec extends Specification {
         ], config(maxSagaSetSize: 2))
 
         then:
-        def multi = result.scenarioPlans().find { it.kind() == ScenarioKind.MULTI_SAGA }
+        def multi = result.workloadPlans().find { it.kind() == ScenarioKind.MULTI_SAGA }
         multi != null
         multi.conflictEvidence().size() == 1
         multi.conflictEvidence()*.kind().every { it in [ConflictKind.WRITE_READ, ConflictKind.READ_WRITE] }
@@ -260,8 +260,8 @@ class ScenarioGeneratorSpec extends Specification {
         ], config(maxSagaSetSize: 2))
 
         then:
-        result.scenarioPlans()*.kind().count { it == ScenarioKind.MULTI_SAGA } == 0
-        result.scenarioPlans().size() == 2
+        result.workloadPlans()*.kind().count { it == ScenarioKind.MULTI_SAGA } == 0
+        result.workloadPlans().size() == 2
     }
 
     def 'mixed known keys with different exact values do not join'() {
@@ -278,8 +278,8 @@ class ScenarioGeneratorSpec extends Specification {
         ], config(maxSagaSetSize: 2))
 
         then:
-        result.scenarioPlans()*.kind().every { it == ScenarioKind.SINGLE_SAGA }
-        result.scenarioPlans().size() == 2
+        result.workloadPlans()*.kind().every { it == ScenarioKind.SINGLE_SAGA }
+        result.workloadPlans().size() == 2
     }
 
     def 'type only fallback is opt in'() {
@@ -298,9 +298,9 @@ class ScenarioGeneratorSpec extends Specification {
         def enabled = ScenarioGenerator.generate([sagaA, sagaB], inputs, config(maxSagaSetSize: 2, allowTypeOnlyFallback: true))
 
         then:
-        disabled.scenarioPlans()*.kind().every { it == ScenarioKind.SINGLE_SAGA }
-        enabled.scenarioPlans().any { it.kind() == ScenarioKind.MULTI_SAGA }
-        enabled.scenarioPlans().find { it.kind() == ScenarioKind.MULTI_SAGA }.conflictEvidence()*.kind().every { it == ConflictKind.TYPE_ONLY }
+        disabled.workloadPlans()*.kind().every { it == ScenarioKind.SINGLE_SAGA }
+        enabled.workloadPlans().any { it.kind() == ScenarioKind.MULTI_SAGA }
+        enabled.workloadPlans().find { it.kind() == ScenarioKind.MULTI_SAGA }.conflictEvidence()*.kind().every { it == ConflictKind.TYPE_ONLY }
         enabled.warnings().any { it.toLowerCase().contains('type-only') }
     }
 
@@ -321,8 +321,8 @@ class ScenarioGeneratorSpec extends Specification {
         ], config(maxSagaSetSize: 3))
 
         then:
-        !result.scenarioPlans().any { it.sagaInstances().size() == 3 }
-        result.scenarioPlans().any { it.sagaInstances().size() == 2 }
+        !result.workloadPlans().any { it.participants().size() == 3 }
+        result.workloadPlans().any { it.participants().size() == 2 }
     }
 
     def 'connected chain is allowed when max saga set size permits'() {
@@ -343,7 +343,7 @@ class ScenarioGeneratorSpec extends Specification {
         ], config(includeSingles: false, maxSagaSetSize: 3))
 
         then:
-        result.scenarioPlans().any { it.kind() == ScenarioKind.MULTI_SAGA && it.sagaInstances().size() == 3 }
+        result.workloadPlans().any { it.kind() == ScenarioKind.MULTI_SAGA && it.participants().size() == 3 }
     }
 
     def 'caps are deterministic and reported'() {
@@ -376,9 +376,9 @@ class ScenarioGeneratorSpec extends Specification {
                 scheduleStrategy: ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING))
 
         then:
-        first.scenarioPlans().size() == 2
-        first.scenarioPlans()*.deterministicId() == second.scenarioPlans()*.deterministicId()
-        first.counts().get('scenariosCapped') > 0
+        first.workloadPlans().size() == 2
+        first.workloadPlans()*.deterministicId() == second.workloadPlans()*.deterministicId()
+        first.counts().get('workloadsCapped') > 0
         first.warnings().any { it.contains('maxCatalogScenarios') }
     }
 
@@ -398,8 +398,8 @@ class ScenarioGeneratorSpec extends Specification {
         def second = ScenarioGenerator.generate([sagaB, sagaA], [inputs[1], inputs[0]], config(maxSagaSetSize: 2))
 
         then:
-        first.scenarioPlans()*.deterministicId() == second.scenarioPlans()*.deterministicId()
-        first.scenarioPlans()*.kind() == second.scenarioPlans()*.kind()
+        first.workloadPlans()*.deterministicId() == second.workloadPlans()*.deterministicId()
+        first.workloadPlans()*.kind() == second.workloadPlans()*.kind()
     }
 
     def 'segment compressed scenario schedules and ids are stable across repeated and permuted generation'() {
@@ -437,7 +437,7 @@ class ScenarioGeneratorSpec extends Specification {
         scenarioIdentitySnapshot(first) == scenarioIdentitySnapshot(repeated)
         scenarioIdentitySnapshot(first) == scenarioIdentitySnapshot(permuted)
         scenarioIdentitySnapshot(first) == scenarioIdentitySnapshot(differentSeed)
-        first.scenarioPlans().size() == 2
+        first.workloadPlans().size() == 2
     }
 
     def 'expanded schedules preserve intra saga order'() {
@@ -460,11 +460,11 @@ class ScenarioGeneratorSpec extends Specification {
                 scheduleStrategy: ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING))
 
         then:
-        result.scenarioPlans().size() > 1
-        result.scenarioPlans().every { plan ->
-            def stepsByInstance = plan.expandedSchedule().groupBy { it.sagaInstanceId() }
+        result.workloadPlans().size() > 1
+        result.workloadPlans().every { plan ->
+            def stepsByInstance = plan.forwardSchedule().groupBy { it.sagaInstanceId() }
             stepsByInstance.every { sagaInstanceId, steps ->
-                def sagaFqn = plan.sagaInstances().find { it.deterministicId() == sagaInstanceId }.sagaFqn()
+                def sagaFqn = plan.participants().find { it.deterministicId() == sagaInstanceId }.sagaFqn()
                 def expectedStepIds = expectedStepIdsBySaga[sagaFqn]
                 def actualStepIds = steps.sort { it.scheduleOrder() }*.stepId()
                 actualStepIds == expectedStepIds
@@ -649,12 +649,12 @@ class ScenarioGeneratorSpec extends Specification {
         ]
     }
 
-    private static List<Map<String, Object>> scenarioIdentitySnapshot(ScenarioGenerationResult result) {
-        result.scenarioPlans().collect { plan ->
+    private static List<Map<String, Object>> scenarioIdentitySnapshot(WorkloadGenerationResult result) {
+        result.workloadPlans().collect { plan ->
             [
                     scenarioId      : plan.deterministicId(),
-                    scheduleStepIds  : plan.expandedSchedule()*.stepId(),
-                    scheduledStepIds : plan.expandedSchedule()*.deterministicId()
+                    scheduleStepIds  : plan.forwardSchedule()*.stepId(),
+                    scheduledStepIds : plan.forwardSchedule()*.deterministicId()
             ]
         }
     }
@@ -663,7 +663,7 @@ class ScenarioGeneratorSpec extends Specification {
         new ScenarioGeneratorConfig(
                 overrides.get('exportEnabled', false) as boolean,
                 overrides.get('generationStrategy', ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED) as ScenarioGeneratorConfig.GenerationStrategy,
-                overrides.get('catalogWriteMode', ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS) as ScenarioGeneratorConfig.CatalogWriteMode,
+                overrides.get('catalogWriteMode', ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS) as ScenarioGeneratorConfig.CatalogWriteMode,
                 overrides.get('includeSingles', true) as boolean,
                 overrides.get('maxSagaSetSize', 2) as int,
                 overrides.get('maxCatalogScenarios', 100) as int,

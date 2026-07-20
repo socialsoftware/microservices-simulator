@@ -2,17 +2,19 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationCheckpoint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictEvidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ForwardFaultSlot;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -134,52 +136,110 @@ public final class ScenarioIdGenerator {
         });
     }
 
-    public static String scenarioPlanId(ScenarioKind kind,
-                                        List<SagaInstance> sagaInstances,
-                                        List<InputVariant> inputs,
-                                        List<ScheduledStep> expandedSchedule,
-                                        List<ConflictEvidence> conflictEvidence) {
+    public static String workloadPlanId(WorkloadPlan workloadPlan) {
+        WorkloadPlan plan = Objects.requireNonNull(workloadPlan, "workloadPlan");
+        return workloadPlanId(
+                plan.kind(),
+                plan.executionShape() == null ? null : plan.executionShape().name(),
+                plan.participants(),
+                plan.acceptedInputs(),
+                plan.forwardSchedule(),
+                plan.conflictEvidence(),
+                plan.faultSlots(),
+                plan.compensationCheckpoints());
+    }
+
+    public static String workloadPlanId(pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind kind,
+                                        String executionShape,
+                                        List<SagaInstance> participants,
+                                        List<InputVariant> acceptedInputs,
+                                        List<ScheduledStep> forwardSchedule,
+                                        List<ConflictEvidence> conflictEvidence,
+                                        List<ForwardFaultSlot> faultSlots,
+                                        List<CompensationCheckpoint> compensationCheckpoints) {
         return hash(digest -> {
-            updateString(digest, "scenario-plan");
-            updateString(digest, ScenarioPlan.SCHEMA_VERSION);
+            updateString(digest, "workload-plan");
+            updateString(digest, WorkloadPlan.SCHEMA_VERSION);
             updateString(digest, kind == null ? null : kind.name());
-            updateSagaInstances(digest, sagaInstances);
-            updateInputVariants(digest, inputs);
-            updateScheduledSteps(digest, expandedSchedule);
+            updateString(digest, executionShape);
+            updateSagaInstances(digest, participants);
+            updateInputVariants(digest, acceptedInputs);
+            updateScheduledSteps(digest, forwardSchedule);
             updateConflictEvidence(digest, conflictEvidence);
+            updateFaultSlots(digest, faultSlots);
+            updateCompensationCheckpoints(digest, compensationCheckpoints);
+        });
+    }
+
+    public static String forwardFaultSlotId(int slotIndex, ScheduledStep step) {
+        return hash(digest -> {
+            updateString(digest, "forward-fault-slot");
+            updateInt(digest, slotIndex);
+            updateScheduledStep(digest, step);
+        });
+    }
+
+    public static String compensationCheckpointId(int checkpointIndex,
+                                                  ScheduledStep step,
+                                                  StepDefinition definition) {
+        return hash(digest -> {
+            updateString(digest, "compensation-checkpoint");
+            updateInt(digest, checkpointIndex);
+            updateScheduledStep(digest, step);
+            updateString(digest, definition == null || definition.compensationEvidence() == null
+                    ? null
+                    : definition.compensationEvidence().name());
+            updateFootprints(digest, definition == null ? List.of() : definition.footprints());
+            updateFootprints(digest, definition == null ? List.of() : definition.compensationFootprints());
         });
     }
 
     private static void updateSagaInstances(MessageDigest digest, List<SagaInstance> sagaInstances) {
-        List<SagaInstance> sorted = sagaInstances == null ? List.of() : sagaInstances.stream()
-                .sorted(Comparator
-                        .comparing(SagaInstance::sagaFqn, STRING_ORDER)
-                        .thenComparing(SagaInstance::inputVariantId, STRING_ORDER)
-                        .thenComparing(SagaInstance::deterministicId, STRING_ORDER))
-                .toList();
-
-        updateInt(digest, sorted.size());
-        for (SagaInstance sagaInstance : sorted) {
-            updateString(digest, sagaInstance.sagaFqn());
-            updateString(digest, sagaInstance.inputVariantId());
-            updateString(digest, sagaInstance.deterministicId());
+        List<SagaInstance> ordered = sagaInstances == null ? List.of() : sagaInstances;
+        updateInt(digest, ordered.size());
+        for (SagaInstance sagaInstance : ordered) {
+            updateString(digest, sagaInstance == null ? null : sagaInstance.deterministicId());
+            updateString(digest, sagaInstance == null ? null : sagaInstance.sagaFqn());
+            updateString(digest, sagaInstance == null ? null : sagaInstance.inputVariantId());
         }
     }
 
     private static void updateInputVariants(MessageDigest digest, List<InputVariant> inputs) {
-        List<InputVariant> sorted = inputs == null ? List.of() : inputs.stream()
-                .sorted(Comparator
-                        .comparing(InputVariant::sagaFqn, STRING_ORDER)
-                        .thenComparing(InputVariant::deterministicId, STRING_ORDER)
-                        .thenComparing(InputVariant::sourceClassFqn, STRING_ORDER)
-                        .thenComparing(InputVariant::sourceMethodName, STRING_ORDER)
-                        .thenComparing(InputVariant::sourceBindingName, STRING_ORDER))
-                .toList();
+        List<InputVariant> ordered = inputs == null ? List.of() : inputs;
+        updateInt(digest, ordered.size());
+        for (InputVariant input : ordered) {
+            updateString(digest, input == null ? null : input.deterministicId());
+            updateString(digest, input == null ? null : input.sagaFqn());
+            updateString(digest, input == null ? null : input.sourceClassFqn());
+            updateString(digest, input == null ? null : input.sourceMethodName());
+            updateString(digest, input == null ? null : input.sourceBindingName());
+            updateString(digest, input == null ? null : input.callContextMethodName());
+            updateString(digest, input == null || input.inputRole() == null ? null : input.inputRole().name());
+            updateString(digest, input == null || input.fixtureOrigin() == null ? null : input.fixtureOrigin().name());
+            updateString(digest, input == null || input.resolutionStatus() == null ? null : input.resolutionStatus().name());
+            updateString(digest, input == null || input.sourceMode() == null ? null : input.sourceMode().name());
+            updateString(digest, input == null || input.sourceModeConfidence() == null ? null : input.sourceModeConfidence().name());
+            updateStrings(digest, input == null ? List.of() : input.sourceModeEvidence());
+            updateString(digest, input == null ? null : input.stableSourceText());
+            updateString(digest, input == null ? null : input.provenanceText());
+            updateInputOwners(digest, input == null ? List.of() : input.owners());
+            updateStrings(digest, input == null ? List.of() : input.constructorArgumentSummaries());
+            updateMap(digest, input == null ? Map.of() : input.logicalKeyBindings());
+            updateString(digest, input == null || input.inputRecipe() == null ? null : input.inputRecipe().schemaVersion());
+            updateString(digest, input == null || input.inputRecipe() == null ? null : input.inputRecipe().semanticFingerprint());
+            updateString(digest, input == null || input.inputRecipe() == null ? null : Boolean.toString(input.inputRecipe().executorReady()));
+        }
+    }
 
+    private static void updateInputOwners(MessageDigest digest, List<InputOwner> owners) {
+        List<InputOwner> sorted = owners == null ? List.of() : owners.stream()
+                .sorted(Comparator.comparing(InputOwner::testClassFqn, STRING_ORDER)
+                        .thenComparing(InputOwner::testMethodName, STRING_ORDER))
+                .toList();
         updateInt(digest, sorted.size());
-        for (InputVariant input : sorted) {
-            updateString(digest, input.sagaFqn());
-            updateString(digest, input.deterministicId());
+        for (InputOwner owner : sorted) {
+            updateString(digest, owner.testClassFqn());
+            updateString(digest, owner.testMethodName());
         }
     }
 
@@ -187,8 +247,16 @@ public final class ScenarioIdGenerator {
         List<ScheduledStep> ordered = steps == null ? List.of() : steps;
         updateInt(digest, ordered.size());
         for (ScheduledStep step : ordered) {
-            updateString(digest, step == null ? null : step.deterministicId());
+            updateScheduledStep(digest, step);
         }
+    }
+
+    private static void updateScheduledStep(MessageDigest digest, ScheduledStep step) {
+        updateString(digest, step == null ? null : step.deterministicId());
+        updateString(digest, step == null ? null : step.sagaInstanceId());
+        updateString(digest, step == null ? null : step.stepId());
+        updateInt(digest, step == null ? -1 : step.scheduleOrder());
+        updateString(digest, step == null ? null : step.runtimeStepName());
     }
 
     private static void updateConflictEvidence(MessageDigest digest, List<ConflictEvidence> conflictEvidence) {
@@ -209,6 +277,40 @@ public final class ScenarioIdGenerator {
             updateString(digest, evidence.leftAccessMode() == null ? null : evidence.leftAccessMode().name());
             updateString(digest, evidence.rightAccessMode() == null ? null : evidence.rightAccessMode().name());
             updateString(digest, evidence.kind() == null ? null : evidence.kind().name());
+        }
+    }
+
+    private static void updateFaultSlots(MessageDigest digest, List<ForwardFaultSlot> faultSlots) {
+        List<ForwardFaultSlot> ordered = faultSlots == null ? List.of() : faultSlots;
+        updateInt(digest, ordered.size());
+        for (ForwardFaultSlot slot : ordered) {
+            updateString(digest, slot == null ? null : slot.deterministicId());
+            updateInt(digest, slot == null ? -1 : slot.slotIndex());
+            updateString(digest, slot == null ? null : slot.scheduledStepId());
+            updateString(digest, slot == null ? null : slot.sagaInstanceId());
+            updateString(digest, slot == null ? null : slot.stepId());
+            updateString(digest, slot == null ? null : slot.runtimeStepName());
+            updateString(digest, slot == null ? null : slot.occurrenceId());
+        }
+    }
+
+    private static void updateCompensationCheckpoints(MessageDigest digest,
+                                                       List<CompensationCheckpoint> checkpoints) {
+        List<CompensationCheckpoint> ordered = checkpoints == null ? List.of() : checkpoints;
+        updateInt(digest, ordered.size());
+        for (CompensationCheckpoint checkpoint : ordered) {
+            updateString(digest, checkpoint == null ? null : checkpoint.deterministicId());
+            updateInt(digest, checkpoint == null ? -1 : checkpoint.checkpointIndex());
+            updateString(digest, checkpoint == null ? null : checkpoint.sagaInstanceId());
+            updateString(digest, checkpoint == null ? null : checkpoint.sourceScheduledStepId());
+            updateString(digest, checkpoint == null ? null : checkpoint.stepId());
+            updateString(digest, checkpoint == null ? null : checkpoint.runtimeStepName());
+            updateString(digest, checkpoint == null ? null : checkpoint.occurrenceId());
+            updateString(digest, checkpoint == null || checkpoint.evidenceClass() == null
+                    ? null
+                    : checkpoint.evidenceClass().name());
+            updateFootprints(digest, checkpoint == null ? List.of() : checkpoint.forwardFootprints());
+            updateFootprints(digest, checkpoint == null ? List.of() : checkpoint.compensationFootprints());
         }
     }
 

@@ -88,6 +88,8 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         and:
         def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
         Files.exists(runDirectory.resolve('analysis-report.html'))
+        !Files.exists(runDirectory.resolve('workload-catalog.jsonl'))
+        !Files.exists(runDirectory.resolve('fault-scenario-catalog.jsonl'))
         !Files.exists(runDirectory.resolve('scenario-catalog.jsonl'))
         !Files.exists(runDirectory.resolve('scenario-catalog-manifest.json'))
 
@@ -168,7 +170,8 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         where:
         propertyName << [
                 'verifiers.report-html-path',
-                'verifiers.scenario-catalog.catalog-path',
+                'verifiers.scenario-catalog.workload-catalog-path',
+                'verifiers.scenario-catalog.fault-scenario-catalog-path',
                 'verifiers.scenario-catalog.manifest-path',
                 'verifiers.scenario-catalog.rejected-inputs-path'
         ]
@@ -593,9 +596,10 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         copyDirectory(sourceDummyappRoot, applicationPath.resolve('src'))
 
         and:
-        def catalogRelativePath = 'exports/scenario-catalog.jsonl'
+        def workloadRelativePath = 'exports/workload-catalog.jsonl'
+        def faultScenarioRelativePath = 'exports/fault-scenario-catalog.jsonl'
         def manifestRelativePath = 'exports/scenario-catalog-manifest.json'
-        def rejectedRelativePath = 'exports/scenario-catalog-rejected-inputs.jsonl'
+        def rejectedRelativePath = 'exports/workload-catalog-rejected-inputs.jsonl'
         def accountingRelativePath = 'exports/scenario-space-accounting.json'
         def app = new SpringApplication(ScenarioGeneratorApplication)
 
@@ -606,12 +610,13 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
                 "--verifiers.output-root=${outputRoot}",
                 '--verifiers.scenario-catalog.enabled=true',
                 '--verifiers.scenario-catalog.max-saga-set-size=1',
-                "--verifiers.scenario-catalog.catalog-path=${catalogRelativePath}",
+                "--verifiers.scenario-catalog.workload-catalog-path=${workloadRelativePath}",
+                "--verifiers.scenario-catalog.fault-scenario-catalog-path=${faultScenarioRelativePath}",
                 "--verifiers.scenario-catalog.manifest-path=${manifestRelativePath}",
                 "--verifiers.scenario-catalog.rejected-inputs-path=${rejectedRelativePath}",
                 "--verifiers.scenario-catalog.accounting-path=${accountingRelativePath}",
                 '--verifiers.scenario-catalog.generation-strategy=BRUTE_FORCE',
-                '--verifiers.scenario-catalog.catalog-write-mode=WRITE_PLANS'
+                '--verifiers.scenario-catalog.catalog-write-mode=WRITE_WORKLOADS'
         )
 
         then:
@@ -619,21 +624,25 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
 
         and:
         def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
-        def catalogPath = runDirectory.resolve(catalogRelativePath)
+        def workloadPath = runDirectory.resolve(workloadRelativePath)
+        def faultScenarioPath = runDirectory.resolve(faultScenarioRelativePath)
         def manifestPath = runDirectory.resolve(manifestRelativePath)
         def rejectedPath = runDirectory.resolve(rejectedRelativePath)
         def accountingPath = runDirectory.resolve(accountingRelativePath)
-        Files.exists(catalogPath)
+        Files.exists(workloadPath)
+        Files.exists(faultScenarioPath)
+        Files.readAllLines(faultScenarioPath).isEmpty()
+        !Files.exists(runDirectory.resolve('scenario-catalog.jsonl'))
         Files.exists(manifestPath)
         Files.exists(rejectedPath)
         Files.exists(accountingPath)
 
         and:
-        def lines = Files.readAllLines(catalogPath)
+        def lines = Files.readAllLines(workloadPath)
         lines.size() > 0
         lines.each { line ->
             def scenario = objectMapper.readTree(line)
-            scenario.path('inputs').each { input ->
+            scenario.path('acceptedInputs').each { input ->
                 assert input.path('sourceMode').asText()
                 assert input.path('sourceModeConfidence').asText()
                 assert input.has('sourceModeEvidence')
@@ -653,27 +662,29 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
             it.path('input').path('sourceClassFqn').asText() == 'com.example.dummyapp.GroovyTccSourceModeTracingSpec'
         }
         tccFixtureRejection != null
-        tccFixtureRejection.path('schemaVersion').asText() == 'microservices-simulator.scenario-catalog-rejected-input.v2'
+        tccFixtureRejection.path('schemaVersion').asText() == 'microservices-simulator.workload-catalog-rejected-input.v3'
         tccFixtureRejection.path('input').path('sourceMode').asText() == 'TCC'
         tccFixtureRejection.path('rejectionReason').asText() == 'SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG'
         def rejectedIds = rejectedInputs.collect { it.path('input').path('deterministicId').asText() } as Set
         lines.every { line ->
             def scenario = objectMapper.readTree(line)
-            scenario.path('inputs').every { input -> !rejectedIds.contains(input.path('deterministicId').asText()) }
+            scenario.path('acceptedInputs').every { input -> !rejectedIds.contains(input.path('deterministicId').asText()) }
         }
 
         and:
         def manifest = objectMapper.readTree(Files.readString(manifestPath))
-        manifest.path('counts').path('scenariosExported').asInt() == lines.size()
-        manifest.path('catalogPath').asText() == catalogPath.toString()
-        manifest.path('manifestPath').asText() == manifestPath.toString()
-        manifest.path('rejectedInputsPath').asText() == rejectedPath.toString()
-        manifest.path('catalogWriteMode').asText() == 'WRITE_PLANS'
-        manifest.path('scenarioSpaceAccountingPath').asText() == accountingPath.toString()
+        manifest.path('schemaVersion').asText() == 'microservices-simulator.scenario-catalog-manifest.v3'
+        manifest.path('counts').path('workloadsExported').asText() == lines.size().toString()
+        manifest.path('workloadCatalog').path('path').asText() == workloadPath.toString()
+        manifest.path('workloadCatalog').path('schemaVersion').asText() == 'microservices-simulator.workload-plan.v3'
+        manifest.path('faultScenarioCatalog').path('path').asText() == faultScenarioPath.toString()
+        manifest.path('faultScenarioCatalog').path('recordCount').asText() == '0'
+        manifest.path('rejectedInputsDiagnostic').path('path').asText() == rejectedPath.toString()
+        manifest.path('scenarioSpaceAccounting').path('path').asText() == accountingPath.toString()
         manifest.has('catalogArchivePath') == false
         manifest.has('manifestArchivePath') == false
         manifest.has('rejectedInputsArchivePath') == false
-        manifest.path('counts').path('rejectedInputsExported').asInt() == rejectedLines.size()
+        manifest.path('counts').path('rejectedInputsExported').asText() == rejectedLines.size().toString()
         manifest.path('inputVariantsBySourceMode').has('SAGAS')
         manifest.path('inputVariantsAcceptedBySourceMode').has('SAGAS')
         manifest.path('inputVariantsRejectedBySourceModeReason').path('SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG').asInt() >= 1
@@ -681,15 +692,15 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         manifest.path('inputVariantsAcceptedBySourceMode').path('TCC').asInt() == 0
         manifest.path('effectiveConfig').path('exportEnabled').asBoolean()
         manifest.path('effectiveConfig').path('generationStrategy').asText() == 'BRUTE_FORCE'
-        manifest.path('effectiveConfig').path('catalogWriteMode').asText() == 'WRITE_PLANS'
+        manifest.path('effectiveConfig').path('catalogWriteMode').asText() == 'WRITE_WORKLOADS'
         manifest.path('effectiveConfig').path('maxSagaSetSize').asInt() == 1
 
         and:
         def accounting = objectMapper.readTree(Files.readString(accountingPath))
-        accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v1'
+        accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v3'
         accounting.path('runConfig').path('targetApplication').asText() == applicationBaseDir
         accounting.path('runConfig').path('generationStrategy').asText() == 'BRUTE_FORCE'
-        accounting.path('runConfig').path('catalogWriteMode').asText() == 'WRITE_PLANS'
+        accounting.path('runConfig').path('catalogWriteMode').asText() == 'WRITE_WORKLOADS'
         accounting.path('runConfig').path('includeSingles').asBoolean()
         accounting.path('runConfig').path('maxSagaSetSize').asInt() == 1
         accounting.path('runConfig').path('maxInputVariantsPerSaga').asInt() == 3
@@ -703,7 +714,8 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         accounting.path('inputBoundScenarioSpace').path('catalogWritten').path('total').asText() == lines.size().toString()
 
         and:
-        findTimestampedSiblingReports(catalogPath).isEmpty()
+        findTimestampedSiblingReports(workloadPath).isEmpty()
+        findTimestampedSiblingReports(faultScenarioPath).isEmpty()
         findTimestampedSiblingReports(manifestPath).isEmpty()
         findTimestampedSiblingReports(rejectedPath).isEmpty()
         findTimestampedSiblingReports(accountingPath).isEmpty()
@@ -741,20 +753,23 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
 
         and:
         def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
-        def catalogPath = runDirectory.resolve('scenario-catalog.jsonl')
+        def workloadPath = runDirectory.resolve('workload-catalog.jsonl')
+        def faultScenarioPath = runDirectory.resolve('fault-scenario-catalog.jsonl')
         def manifestPath = runDirectory.resolve('scenario-catalog-manifest.json')
-        def rejectedPath = runDirectory.resolve('scenario-catalog-rejected-inputs.jsonl')
+        def rejectedPath = runDirectory.resolve('workload-catalog-rejected-inputs.jsonl')
         def accountingPath = runDirectory.resolve('scenario-space-accounting.json')
-        Files.exists(catalogPath)
+        Files.exists(workloadPath)
+        Files.exists(faultScenarioPath)
         Files.exists(manifestPath)
         Files.exists(rejectedPath)
         Files.exists(accountingPath)
-        Files.readAllLines(catalogPath).isEmpty()
+        Files.readAllLines(workloadPath).isEmpty()
+        Files.readAllLines(faultScenarioPath).isEmpty()
 
         and:
         def manifest = objectMapper.readTree(Files.readString(manifestPath))
-        manifest.path('catalogWriteMode').asText() == 'COUNT_ONLY'
-        manifest.path('counts').path('scenariosExported').asInt() == 0
+        manifest.path('effectiveConfig').path('catalogWriteMode').asText() == 'COUNT_ONLY'
+        manifest.path('counts').path('workloadsExported').asText() == '0'
 
         and:
         def accounting = objectMapper.readTree(Files.readString(accountingPath))

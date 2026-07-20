@@ -10,12 +10,13 @@ verifiers:
   output-root: ${VERIFIERS_OUTPUT_ROOT:output}
   scenario-catalog:
     enabled: false
-    catalog-path: scenario-catalog.jsonl
+    workload-catalog-path: workload-catalog.jsonl
+    fault-scenario-catalog-path: fault-scenario-catalog.jsonl
     manifest-path: scenario-catalog-manifest.json
-    rejected-inputs-path: scenario-catalog-rejected-inputs.jsonl
+    rejected-inputs-path: workload-catalog-rejected-inputs.jsonl
     accounting-path: scenario-space-accounting.json
     generation-strategy: INTERACTION_PRUNED
-    catalog-write-mode: WRITE_PLANS
+    catalog-write-mode: WRITE_WORKLOADS
     include-singles: true
     max-saga-set-size: 1
     max-catalog-scenarios: 100
@@ -29,8 +30,8 @@ verifiers:
     enabled: false
     allow-partial-test-run: true
     dynamic-evidence-subdir: dynamic-evidence
-    enriched-catalog-path: scenario-catalog-enriched.jsonl
-    enriched-manifest-path: scenario-catalog-enriched-manifest.json
+    sidecar-path: workload-dynamic-evidence.jsonl
+    sidecar-manifest-path: workload-dynamic-evidence-manifest.json
     join-report-path: dynamic-evidence-join-report.json
     test-source-root: src/test/groovy
     include-test-dirs: []

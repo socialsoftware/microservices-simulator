@@ -99,7 +99,7 @@ public class ScenarioExecutor {
                                                 String scenarioExecutionId,
                                                 String selectionMode,
                                                 String selectionReason) {
-        ScenarioPlan plan = record.plan();
+        LegacyScenarioPlan plan = record.plan();
         SagaInstance saga = plan.sagaInstances().get(0);
         InputVariant input = candidate.input();
         List<ScenarioExecutionReport.StepOutcome> drySteps = candidate.steps().stream()
@@ -207,7 +207,7 @@ public class ScenarioExecutor {
                                                            String scenarioExecutionId,
                                                            String selectionMode,
                                                            String selectionReason) {
-        ScenarioPlan plan = record.plan();
+        LegacyScenarioPlan plan = record.plan();
         List<ParticipantRuntimeState> participants = candidate.participants().stream()
                 .map(participant -> new ParticipantRuntimeState(participant.saga(), participant.input()))
                 .toList();
@@ -255,7 +255,7 @@ public class ScenarioExecutor {
                                                         String selectionMode,
                                                         String selectionReason,
                                                         List<ParticipantRuntimeState> participants) {
-        ScenarioPlan plan = record.plan();
+        LegacyScenarioPlan plan = record.plan();
         Map<String, ParticipantRuntimeState> bySagaId = new LinkedHashMap<>();
         for (ParticipantRuntimeState participant : participants) {
             bySagaId.put(participant.saga.deterministicId(), participant);
@@ -424,14 +424,14 @@ public class ScenarioExecutor {
                 && slot.assignedBit() == 1;
     }
 
-    private boolean matchesCurrentSlot(FaultVectorInjectedFaultException injected, ScenarioExecutionReport.FaultSlot slot, String scenarioExecutionId, ScenarioPlan plan, SagaInstance saga) {
+    private boolean matchesCurrentSlot(FaultVectorInjectedFaultException injected, ScenarioExecutionReport.FaultSlot slot, String scenarioExecutionId, LegacyScenarioPlan plan, SagaInstance saga) {
         return matchesCurrentSlot(injected, slot)
                 && injected.getScenarioExecutionId().equals(scenarioExecutionId)
                 && injected.getScenarioPlanId().equals(plan.deterministicId())
                 && injected.getSagaInstanceId().equals(saga.deterministicId());
     }
 
-    private ClosureResult compensate(Object functionality, Object unitOfWork, ScenarioPlan plan, InputVariant input, RuntimeStep step, Throwable forwardFailure) {
+    private ClosureResult compensate(Object functionality, Object unitOfWork, LegacyScenarioPlan plan, InputVariant input, RuntimeStep step, Throwable forwardFailure) {
         try {
             Method method = functionality.getClass().getMethod("resumeCompensation", Class.forName("pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork"));
             method.invoke(functionality, unitOfWork);
@@ -509,7 +509,7 @@ public class ScenarioExecutor {
         return updated;
     }
 
-    private InMemoryFaultVectorProvider provider(Candidate candidate, String scenarioExecutionId, ScenarioPlan plan, SagaInstance saga, Object functionality) {
+    private InMemoryFaultVectorProvider provider(Candidate candidate, String scenarioExecutionId, LegacyScenarioPlan plan, SagaInstance saga, Object functionality) {
         Map<Integer, FaultVectorFault> assignments = new LinkedHashMap<>();
         for (ScenarioExecutionReport.FaultSlot slot : candidate.faultSlots()) {
             if (slot.assignedBit() == 1) {
@@ -519,7 +519,7 @@ public class ScenarioExecutor {
         return new InMemoryFaultVectorProvider(assignments);
     }
 
-    private InMemoryFaultVectorProvider provider(Candidate candidate, String scenarioExecutionId, ScenarioPlan plan, Map<String, ParticipantRuntimeState> participants) {
+    private InMemoryFaultVectorProvider provider(Candidate candidate, String scenarioExecutionId, LegacyScenarioPlan plan, Map<String, ParticipantRuntimeState> participants) {
         Map<Integer, FaultVectorFault> assignments = new LinkedHashMap<>();
         for (ScenarioExecutionReport.FaultSlot slot : candidate.faultSlots()) {
             if (slot.assignedBit() == 1) {
@@ -530,7 +530,7 @@ public class ScenarioExecutor {
         return new InMemoryFaultVectorProvider(assignments);
     }
 
-    private FaultVectorBoundaryContext boundaryContext(Candidate candidate, RuntimeStep step, String scenarioExecutionId, ScenarioPlan plan, SagaInstance saga, Object functionality) {
+    private FaultVectorBoundaryContext boundaryContext(Candidate candidate, RuntimeStep step, String scenarioExecutionId, LegacyScenarioPlan plan, SagaInstance saga, Object functionality) {
         ScenarioExecutionReport.FaultSlot slot = candidate.faultSlots().stream()
                 .filter(candidateSlot -> candidateSlot.scheduledStepId().equals(step.scheduled().deterministicId()))
                 .findFirst()
@@ -538,7 +538,7 @@ public class ScenarioExecutor {
         return boundaryContext(slot, scenarioExecutionId, plan, saga, functionality);
     }
 
-    private FaultVectorBoundaryContext boundaryContext(ScenarioExecutionReport.FaultSlot slot, String scenarioExecutionId, ScenarioPlan plan, SagaInstance saga, Object functionality) {
+    private FaultVectorBoundaryContext boundaryContext(ScenarioExecutionReport.FaultSlot slot, String scenarioExecutionId, LegacyScenarioPlan plan, SagaInstance saga, Object functionality) {
         return new FaultVectorBoundaryContext(
                 scenarioExecutionId,
                 plan.deterministicId(),
@@ -561,7 +561,7 @@ public class ScenarioExecutor {
     }
 
     private Candidate validate(CatalogScenarioRecord record, ScenarioExecutorOptions options, boolean allowExplicitMultiSaga) {
-        ScenarioPlan plan = record.plan();
+        LegacyScenarioPlan plan = record.plan();
         List<ScenarioExecutionReport.Blocker> blockers = new ArrayList<>();
         boolean multiSaga = plan.kind() == ScenarioKind.MULTI_SAGA;
         if (plan.sagaInstances().isEmpty()) {
@@ -613,8 +613,8 @@ public class ScenarioExecutor {
         return new Candidate(blockers.isEmpty(), input, participants, steps, vector, vector == null ? List.of() : vector.slots(), blockers);
     }
 
-    private AssignedVector validateVector(ScenarioPlan plan, InputVariant input, List<RuntimeStep> steps, ScenarioExecutorOptions options, List<ScenarioExecutionReport.Blocker> blockers) {
-        FaultSpace faultSpace = plan.faultSpace();
+    private AssignedVector validateVector(LegacyScenarioPlan plan, InputVariant input, List<RuntimeStep> steps, ScenarioExecutorOptions options, List<ScenarioExecutionReport.Blocker> blockers) {
+        LegacyFaultSpace faultSpace = plan.faultSpace();
         String source = vectorSource(options);
         String vector = hasFaultVector(options) ? options.faultVector() : faultSpace.defaultVector();
         String inputId = input == null ? null : input.deterministicId();

@@ -12,7 +12,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Fixt
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadExecutionShape
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep
 import spock.lang.Specification
 import spock.lang.Timeout
@@ -142,7 +143,7 @@ class DynamicEvidenceJoinerSpec extends Specification {
         ])
 
         then:
-        result.records()*.scenarioPlanId() == ['scenario-execution', 'scenario-tournament']
+        result.records()*.workloadPlanId() == ['scenario-execution', 'scenario-tournament']
         result.records()*.dynamicEvidence()*.joinStatus() == [DynamicEvidenceJoinStatus.UNMATCHED, DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE]
         result.records()[1].dynamicEvidence().observedSteps()[0].sagaFqn() == tournamentFqn
     }
@@ -327,7 +328,7 @@ class DynamicEvidenceJoinerSpec extends Specification {
         result.warnings().isEmpty()
         result.records().count { it.dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.MATCHED_EXACT } == 1
         result.records().count { it.dynamicEvidence().joinStatus() == DynamicEvidenceJoinStatus.UNMATCHED } == 65
-        def exact = result.records().find { it.scenarioPlanId() == 'scenario-1' }
+        def exact = result.records().find { it.workloadPlanId() == 'scenario-1' }
         exact.dynamicEvidence().matchedInputVariantIds() == ['input-1']
         exact.dynamicEvidence().observedSteps()[0].stepName() == 'reserve'
         exact.dynamicEvidence().observedSteps()[0].eventKinds() == ['STEP_STARTED', 'COMMAND_SENT']
@@ -335,16 +336,18 @@ class DynamicEvidenceJoinerSpec extends Specification {
         elapsedMillis < 10_000L
     }
 
-    private ScenarioPlan plan(String id, List<InputVariant> inputs, String sagaFqn = 'com.example.OrderSaga', String stepId = null) {
+    private WorkloadPlan plan(String id, List<InputVariant> inputs, String sagaFqn = 'com.example.OrderSaga', String stepId = null) {
         def scheduledStepId = stepId == null ? "${sagaFqn}::reserve".toString() : stepId
-        new ScenarioPlan(
-                ScenarioPlan.SCHEMA_VERSION,
+        new WorkloadPlan(
+                WorkloadPlan.SCHEMA_VERSION,
                 id,
                 ScenarioKind.SINGLE_SAGA,
+                WorkloadExecutionShape.SAGA_LOCAL,
                 [new SagaInstance("${id}-instance".toString(), sagaFqn, inputs[0].deterministicId(), [])],
                 inputs,
                 [new ScheduledStep("${id}-step".toString(), "${id}-instance".toString(), scheduledStepId, 0, [])],
-                null,
+                [],
+                [],
                 [],
                 []
         )

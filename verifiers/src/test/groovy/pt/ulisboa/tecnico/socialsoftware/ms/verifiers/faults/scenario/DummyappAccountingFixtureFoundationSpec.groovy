@@ -140,7 +140,7 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
     def 'dummyapp brute force full-write singles match exact accounting counts'() {
         given:
         def config = accountingConfig(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
-                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
                 true,
                 1,
                 false,
@@ -148,10 +148,10 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
 
         when:
         def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
-        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, result.scenarioPlans().size())
+        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, result.workloadPlans().size())
 
         then:
-        result.scenarioPlans().size() == 7
+        result.workloadPlans().size() == 7
         accounting.inputBoundScenarioSpace().allInputBound().total() == '7'
         accounting.inputBoundScenarioSpace().selectedByGenerator().total() == '7'
         accounting.inputBoundScenarioSpace().catalogWritten().total() == '7'
@@ -161,7 +161,7 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
     def 'dummyapp interaction-pruned full write matches selected accounting and prunes unrelated rows'() {
         given:
         def config = accountingConfig(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
-                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
                 false,
                 2,
                 false,
@@ -169,15 +169,15 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
 
         when:
         def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
-        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, result.scenarioPlans().size())
+        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, result.workloadPlans().size())
         def unrelated = row(accounting, [ITEM_SAGA, CREATE_ORDER_SAGA])
         def strict = row(accounting, [ITEM_SAGA, CANCEL_ORDER_SAGA])
 
         then:
-        result.scenarioPlans().size() == 0
+        result.workloadPlans().size() == 0
         accounting.inputBoundScenarioSpace().selectedByGenerator().total() == '0'
         accounting.inputBoundScenarioSpace().catalogWritten().total() == '0'
-        result.scenarioPlans().size().toString() == accounting.inputBoundScenarioSpace().catalogWritten().total()
+        result.workloadPlans().size().toString() == accounting.inputBoundScenarioSpace().catalogWritten().total()
         accounting.inputBoundScenarioSpace().catalogWritten().total() == accounting.inputBoundScenarioSpace().selectedByGenerator().total()
         new BigInteger(accounting.inputBoundScenarioSpace().selectedByGenerator().total()) < new BigInteger(accounting.inputBoundScenarioSpace().allInputBound().total())
 
@@ -198,7 +198,7 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
     def 'dummyapp segment compressed full write matches accounting and preserves expanded schedules'() {
         given:
         def config = fullDummyappConfig(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
-                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
                 false,
                 2,
                 false,
@@ -212,30 +212,30 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
 
         when:
         def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
-        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, result.scenarioPlans().size())
+        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, result.workloadPlans().size())
         def opiAccounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), opiConfig, 0)
         def compressedRow = row(accounting, [ITEM_SAGA, CANCEL_ORDER_SAGA])
         def opiRow = row(opiAccounting, [ITEM_SAGA, CANCEL_ORDER_SAGA])
-        def interactingPlans = result.scenarioPlans().findAll { plan ->
-            plan.conflictEvidence() && plan.sagaInstances()*.sagaFqn().toSet() == [ITEM_SAGA, CANCEL_ORDER_SAGA] as Set
+        def interactingPlans = result.workloadPlans().findAll { plan ->
+            plan.conflictEvidence() && plan.participants()*.sagaFqn().toSet() == [ITEM_SAGA, CANCEL_ORDER_SAGA] as Set
         }
 
         then:
-        result.scenarioPlans().size() > 0
+        result.workloadPlans().size() > 0
         result.effectiveConfig().scheduleStrategy() == ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED
-        result.scenarioPlans().size().toString() == accounting.inputBoundScenarioSpace().catalogWritten().total()
+        result.workloadPlans().size().toString() == accounting.inputBoundScenarioSpace().catalogWritten().total()
         accounting.inputBoundScenarioSpace().catalogWritten().total() == accounting.inputBoundScenarioSpace().selectedByGenerator().total()
 
         and:
         !interactingPlans.isEmpty()
-        interactingPlans.any { plan -> plan.sagaInstances().any { saga(it.sagaFqn()).steps().size() > 1 } }
+        interactingPlans.any { plan -> plan.participants().any { saga(it.sagaFqn()).steps().size() > 1 } }
         interactingPlans.every { plan ->
-            plan.expandedSchedule().size() == plan.sagaInstances().collect { instance -> saga(instance.sagaFqn()).steps().size() }.sum()
+            plan.forwardSchedule().size() == plan.participants().collect { instance -> saga(instance.sagaFqn()).steps().size() }.sum()
         }
         interactingPlans.every { plan ->
-            plan.sagaInstances().every { instance ->
+            plan.participants().every { instance ->
                 def expectedStepIds = saga(instance.sagaFqn()).steps()*.deterministicId()
-                def actualStepIds = plan.expandedSchedule()
+                def actualStepIds = plan.forwardSchedule()
                         .findAll { it.sagaInstanceId() == instance.deterministicId() }
                         .sort { it.scheduleOrder() }*.stepId()
                 actualStepIds == expectedStepIds
@@ -262,7 +262,7 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, 0)
 
         then:
-        result.scenarioPlans().isEmpty()
+        result.workloadPlans().isEmpty()
         accounting.inputBoundScenarioSpace().catalogWritten().total() == '0'
         accounting.inputBoundScenarioSpace().selectedByGenerator().total() == '0'
         accounting.inputBoundScenarioSpace().allInputBound().total() == '33'
@@ -340,7 +340,7 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
     private static ScenarioGeneratorConfig strictConfig() {
         new ScenarioGeneratorConfig(false,
                 ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
-                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
                 true,
                 3,
                 100,
@@ -355,7 +355,7 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
     private static ScenarioGeneratorConfig broadConfig() {
         new ScenarioGeneratorConfig(false,
                 ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
-                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
                 true,
                 3,
                 100,
