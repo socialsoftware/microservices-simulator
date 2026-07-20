@@ -69,3 +69,29 @@ Commit:
 Reason if blocked/skipped:
 
 - n/a
+
+#### `003-deterministic-recovery-schedules.md`
+
+Status: `done`
+
+Risk: `high` (mapped to available `strong` tier)
+Dependencies: `002-deterministic-v3-workload-package.md`
+Implementer session: `019f7d84-7891-71b5-9761-4dea66b9df7e`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `019f7d94-8b18-7c38-b100-b42cd3b6f93e` | `review/003-deterministic-recovery-schedules-review-01.md` | PASS | Exact memoized counting, bounded representatives, and deterministic schedules verified. |
+
+Final review report: `review/003-deterministic-recovery-schedules-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `checkpoint commit containing this entry; see git history`
+- Message: `feat(verifiers): generate deterministic recovery schedules`
+
+Reason if blocked/skipped:
+
+- n/a

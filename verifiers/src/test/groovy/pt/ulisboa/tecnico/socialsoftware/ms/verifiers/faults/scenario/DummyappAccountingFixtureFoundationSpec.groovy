@@ -6,9 +6,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationEvidenceClass
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioActionKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.CommandHandlerIndexVisitor
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.CommandHandlerVisitor
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitor
@@ -117,6 +122,54 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         steps.implicitWriteStep.compensationEvidence() == CompensationEvidenceClass.IMPLICIT_SAGA_ROLLBACK
         steps.conservativeUnresolvedStep.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
         steps.readOnlyStep.compensationEvidence() == null
+    }
+
+    def 'dummyapp real parser shapes keep materialized workloads bounded and preserve recovery checkpoints'() {
+        given:
+        def materializedConfig = accountingConfig(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
+                true,
+                1,
+                false,
+                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL)
+
+        when:
+        def materialized = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), materializedConfig)
+
+        then: 'real accepted-input workloads remain small enough for semantic exhaustive checks'
+        materialized.workloadPlans()*.faultSlots()*.size().max() == 2
+        materialized.workloadPlans().every { it.faultSlots().size() <= 2 }
+
+        when: 'the parser-real compensation fixture is paired with one bounded synthetic accepted input'
+        def compensationInput = new InputVariant(null,
+                COMPENSATION_SAGA,
+                'com.example.dummyapp.CompensationRecoverySpec',
+                'fixture',
+                'saga',
+                InputResolutionStatus.RESOLVED,
+                SourceMode.SAGAS,
+                SourceModeConfidence.TYPE_EVIDENCE,
+                ['saga fixture'],
+                'compensation fixture',
+                'dummyapp parser shape',
+                [],
+                [:],
+                [])
+        def compensationResult = ScenarioGenerator.generate(
+                [saga(COMPENSATION_SAGA)],
+                [compensationInput],
+                materializedConfig)
+        def plan = compensationResult.workloadPlans()[0]
+        def recovery = RecoveryScheduleGenerator.generate(plan, '00001', 20)
+
+        then:
+        plan.faultSlots().size() == 5
+        plan.compensationCheckpoints().size() == 4
+        recovery.uncappedScheduleCount() == BigInteger.ONE
+        recovery.faultScenarios().size() == 1
+        recovery.faultScenarios()[0].actions()
+                .findAll { it.kind() == FaultScenarioActionKind.COMPENSATION }
+                *.sourceCompensationCheckpointId() == plan.compensationCheckpoints().reverse()*.deterministicId()
     }
 
     def 'dummyapp exposes key-bearing input variants for compatible and incompatible tuple tests'() {

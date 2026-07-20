@@ -24,7 +24,7 @@ public record ScenarioCatalogManifest(
         Map<String, String> inputVariantsRejectedBySourceModeReason) {
 
     public static final String SCHEMA_VERSION = "microservices-simulator.scenario-catalog-manifest.v3";
-    public static final String FAULT_SCENARIO_SCHEMA_VERSION = "microservices-simulator.fault-scenario.v3";
+    public static final String FAULT_SCENARIO_SCHEMA_VERSION = FaultScenario.SCHEMA_VERSION;
 
     public ScenarioCatalogManifest {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;

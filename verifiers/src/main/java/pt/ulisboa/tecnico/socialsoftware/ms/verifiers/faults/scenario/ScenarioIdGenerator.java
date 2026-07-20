@@ -5,6 +5,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Aggr
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationCheckpoint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictEvidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenario;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioAction;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioActionKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ForwardFaultSlot;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner;
@@ -192,6 +195,64 @@ public final class ScenarioIdGenerator {
             updateFootprints(digest, definition == null ? List.of() : definition.footprints());
             updateFootprints(digest, definition == null ? List.of() : definition.compensationFootprints());
         });
+    }
+
+    public static String faultScenarioActionId(FaultScenarioActionKind kind,
+                                               String sagaInstanceId,
+                                               String sourceFaultSlotId,
+                                               String sourceCompensationCheckpointId,
+                                               String occurrenceId) {
+        return hash(digest -> {
+            updateString(digest, "fault-scenario-action");
+            updateFaultScenarioActionFields(digest, kind, sagaInstanceId, sourceFaultSlotId,
+                    sourceCompensationCheckpointId, occurrenceId);
+        });
+    }
+
+    public static String faultScenarioActionId(FaultScenarioAction action) {
+        FaultScenarioAction value = Objects.requireNonNull(action, "action");
+        return faultScenarioActionId(value.kind(), value.sagaInstanceId(), value.sourceFaultSlotId(),
+                value.sourceCompensationCheckpointId(), value.occurrenceId());
+    }
+
+    public static String faultScenarioId(FaultScenario faultScenario) {
+        FaultScenario scenario = Objects.requireNonNull(faultScenario, "faultScenario");
+        return faultScenarioId(scenario.workloadPlanId(), scenario.assignedVector(), scenario.actions());
+    }
+
+    public static String faultScenarioId(String workloadPlanId,
+                                         String assignedVector,
+                                         List<FaultScenarioAction> actions) {
+        return hash(digest -> {
+            updateString(digest, "fault-scenario");
+            updateString(digest, FaultScenario.SCHEMA_VERSION);
+            updateString(digest, normalize(workloadPlanId));
+            updateString(digest, assignedVector);
+            List<FaultScenarioAction> ordered = actions == null ? List.of() : actions;
+            updateInt(digest, ordered.size());
+            for (FaultScenarioAction action : ordered) {
+                updateFaultScenarioActionFields(
+                        digest,
+                        action == null ? null : action.kind(),
+                        action == null ? null : action.sagaInstanceId(),
+                        action == null ? null : action.sourceFaultSlotId(),
+                        action == null ? null : action.sourceCompensationCheckpointId(),
+                        action == null ? null : action.occurrenceId());
+            }
+        });
+    }
+
+    private static void updateFaultScenarioActionFields(MessageDigest digest,
+                                                        FaultScenarioActionKind kind,
+                                                        String sagaInstanceId,
+                                                        String sourceFaultSlotId,
+                                                        String sourceCompensationCheckpointId,
+                                                        String occurrenceId) {
+        updateString(digest, kind == null ? null : kind.name());
+        updateString(digest, normalize(sagaInstanceId));
+        updateString(digest, normalize(sourceFaultSlotId));
+        updateString(digest, normalize(sourceCompensationCheckpointId));
+        updateString(digest, normalize(occurrenceId));
     }
 
     private static void updateSagaInstances(MessageDigest digest, List<SagaInstance> sagaInstances) {
