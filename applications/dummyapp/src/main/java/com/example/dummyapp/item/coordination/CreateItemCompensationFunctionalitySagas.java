@@ -3,6 +3,7 @@ package com.example.dummyapp.item.coordination;
 import com.example.dummyapp.item.aggregate.ItemDto;
 import com.example.dummyapp.item.commands.CreateItemCommand;
 import com.example.dummyapp.item.commands.DeleteItemCommand;
+import com.example.dummyapp.item.commands.GetItemCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
@@ -36,7 +37,35 @@ public class CreateItemCompensationFunctionalitySagas extends WorkflowFunctional
             commandGateway.send(deleteItemCommand);
         }, unitOfWork);
 
+        SagaStep explicitWithoutRecognizedDispatchStep = new SagaStep("explicitWithoutRecognizedDispatchStep", () -> {
+            GetItemCommand getItemCommand = new GetItemCommand(unitOfWork, "Item", itemDto.getAggregateId());
+            commandGateway.send(getItemCommand);
+        });
+        explicitWithoutRecognizedDispatchStep.registerCompensation(() -> {
+            this.itemDto = this.itemDto;
+        }, unitOfWork);
+
+        SagaStep implicitWriteStep = new SagaStep("implicitWriteStep", () -> {
+            CreateItemCommand createItemCommand = new CreateItemCommand(unitOfWork, "Item", itemDto);
+            commandGateway.send(createItemCommand);
+        });
+
+        SagaStep conservativeUnresolvedStep = new SagaStep("conservativeUnresolvedStep", this::dispatchUnresolvedWrite);
+
+        SagaStep readOnlyStep = new SagaStep("readOnlyStep", () -> {
+            GetItemCommand getItemCommand = new GetItemCommand(unitOfWork, "Item", itemDto.getAggregateId());
+            commandGateway.send(getItemCommand);
+        });
+
         workflow.addStep(createItemStep);
+        workflow.addStep(explicitWithoutRecognizedDispatchStep);
+        workflow.addStep(implicitWriteStep);
+        workflow.addStep(conservativeUnresolvedStep);
+        workflow.addStep(readOnlyStep);
+    }
+
+    private void dispatchUnresolvedWrite() {
+        // Method-reference bodies are intentionally outside the visitor's local analysis boundary.
     }
 
     public ItemDto getItemDto() {

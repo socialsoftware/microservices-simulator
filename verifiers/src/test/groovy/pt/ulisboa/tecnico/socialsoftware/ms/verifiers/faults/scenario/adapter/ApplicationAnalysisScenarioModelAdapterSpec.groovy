@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaS
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationEvidenceClass
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FixtureOrigin
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
@@ -73,6 +74,33 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         and:
         result.counts().get('typeOnlyFootprints') == 1
         result.diagnostics().any { it.contains('type-only footprint') }
+    }
+
+    def 'adapter keeps compensation footprints separate from forward conflict footprints'() {
+        given:
+        def state = new ApplicationAnalysisState()
+        def sagaBlock = saga('com.example.order.coordination.CreateOrderFunctionalitySagas')
+        def stepBlock = step('com.example.order.coordination.CreateOrderFunctionalitySagas', 'createOrderStep', 0,
+                AccessPolicy.READ, 'Order')
+        stepBlock.markCompensationRegistered()
+        stepBlock.addDispatch(new StepDispatchFootprint(
+                'com.example.order.coordination.CreateOrderFunctionalitySagas::createOrderStep',
+                'com.example.DeleteItemCommand',
+                'Item',
+                AccessPolicy.WRITE,
+                DispatchPhase.COMPENSATION,
+                new DispatchMultiplicity(DispatchMultiplicityKind.SINGLE, 1)))
+        sagaBlock.addStep(stepBlock)
+        state.sagas << sagaBlock
+
+        when:
+        def adaptedStep = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
+                .sagaDefinitions().first().steps().first()
+
+        then:
+        adaptedStep.footprints()*.aggregateKey()*.aggregateName() == ['Order']
+        adaptedStep.compensationFootprints()*.aggregateKey()*.aggregateName() == ['Item']
+        adaptedStep.compensationEvidence() == CompensationEvidenceClass.EXPLICIT_COMPENSATION
     }
 
     def 'adapter skips missing aggregate names without type-only fallback'() {
@@ -315,6 +343,31 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         result.sagaDefinitions().any { it.sagaFqn().contains('CreateItemFunctionalitySagas') }
         result.inputVariants().any { it.sagaFqn().contains('CreateItemFunctionalitySagas') }
         result.counts().get('typeOnlyFootprints') > 0
+    }
+
+    def 'dummyapp adapter integration classifies compensation checkpoint evidence conservatively'() {
+        given:
+        def state = buildDummyappAnalysisState()
+
+        when:
+        def result = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
+        def saga = result.sagaDefinitions().find { it.sagaFqn().contains('CreateItemCompensationFunctionalitySagas') }
+        def steps = saga.steps().collectEntries { [(it.name()): it] }
+
+        then:
+        steps.createItemStep.compensationEvidence() == CompensationEvidenceClass.EXPLICIT_COMPENSATION
+        steps.createItemStep.footprints().size() == 1
+        steps.createItemStep.compensationFootprints().size() == 1
+
+        and:
+        steps.explicitWithoutRecognizedDispatchStep.compensationEvidence() == CompensationEvidenceClass.EXPLICIT_COMPENSATION
+        steps.explicitWithoutRecognizedDispatchStep.compensationFootprints().isEmpty()
+
+        and:
+        steps.implicitWriteStep.compensationEvidence() == CompensationEvidenceClass.IMPLICIT_SAGA_ROLLBACK
+        steps.conservativeUnresolvedStep.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
+        steps.conservativeUnresolvedStep.analysisDiagnostics() == steps.conservativeUnresolvedStep.analysisDiagnostics().toSorted()
+        steps.readOnlyStep.compensationEvidence() == null
     }
 
     def 'dummyapp adapter integration produces input variant for event-origin saga'() {

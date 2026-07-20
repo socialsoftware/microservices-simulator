@@ -4,6 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.Ap
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ScenarioModelAdapterResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingCalculator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationEvidenceClass
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
@@ -102,6 +103,20 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         dependencyGraphSaga.steps()*.name().containsAll(['rootStep', 'prepareStep', 'splitStep', 'mergeStep', 'conservativeStep'])
         dependencyGraphSaga.steps().find { it.name() == 'mergeStep' }.predecessorStepKeys().size() == 2
         loopedReadsSaga.steps()*.name().containsAll(['loopedStaticReadStep', 'loopedRuntimeReadStep'])
+    }
+
+    def 'dummyapp exposes the complete compensation evidence fixture matrix'() {
+        given:
+        def steps = saga(COMPENSATION_SAGA).steps().collectEntries { [(it.name()): it] }
+
+        expect:
+        steps.createItemStep.compensationEvidence() == CompensationEvidenceClass.EXPLICIT_COMPENSATION
+        steps.createItemStep.compensationFootprints()
+        steps.explicitWithoutRecognizedDispatchStep.compensationEvidence() == CompensationEvidenceClass.EXPLICIT_COMPENSATION
+        steps.explicitWithoutRecognizedDispatchStep.compensationFootprints().isEmpty()
+        steps.implicitWriteStep.compensationEvidence() == CompensationEvidenceClass.IMPLICIT_SAGA_ROLLBACK
+        steps.conservativeUnresolvedStep.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
+        steps.readOnlyStep.compensationEvidence() == null
     }
 
     def 'dummyapp exposes key-bearing input variants for compatible and incompatible tuple tests'() {

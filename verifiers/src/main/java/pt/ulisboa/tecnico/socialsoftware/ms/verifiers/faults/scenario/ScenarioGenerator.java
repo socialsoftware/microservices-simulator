@@ -362,6 +362,12 @@ public final class ScenarioGenerator {
                 step.orderIndex(),
                 step.predecessorStepKeys(),
                 normalizeFootprints(step.footprints()),
+                normalizeFootprints(step.compensationFootprints()),
+                step.compensationRegistered(),
+                step.forwardAnalysisComplete(),
+                step.compensationAnalysisComplete(),
+                step.compensationEvidence(),
+                mergeWarnings(step.analysisDiagnostics()),
                 mergeWarnings(step.warnings()));
     }
 

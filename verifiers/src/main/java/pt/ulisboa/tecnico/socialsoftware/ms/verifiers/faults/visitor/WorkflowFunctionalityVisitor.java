@@ -220,34 +220,58 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
     /**
      * Extracts dispatch footprints from all new *Command(...) expressions in the lambda/method reference body.
      */
-    private void extractStepFootprints(Expression lambdaArg, SagaStepBuildingBlock stepBlock,
+    private void extractStepFootprints(Expression operation, SagaStepBuildingBlock stepBlock,
                                        ApplicationAnalysisState state, String stepKey, DispatchPhase phase) {
-        lambdaArg.ifLambdaExpr(lambda ->
-                lambda.findAll(ObjectCreationExpr.class).forEach(creation -> {
-                    if (!TypeUtils.isSubtypeOf(creation.getType(), Command.class)) {
-                        return;
-                    }
+        if (!operation.isLambdaExpr()) {
+            String code = operation.isMethodReferenceExpr()
+                    ? "UNSUPPORTED_METHOD_REFERENCE"
+                    : "UNSUPPORTED_OPERATION_SHAPE";
+            String message = "cannot resolve " + phase.name().toLowerCase()
+                    + " dispatches from " + operation.getClass().getSimpleName();
+            stepBlock.markDispatchAnalysisIncomplete(phase, code, message);
+            logger.warn("{} (step: {})", message, stepKey);
+            return;
+        }
 
-                    // Resolve command type to dispatch info
-                    state.getCommandDispatchInfo(creation.getType()).ifPresentOrElse(
-                            info -> {
-                                String commandTypeFqn = creation.getType().resolve().describe();
-                                StepDispatchFootprint dispatch = new StepDispatchFootprint(
-                                        stepKey,
-                                        commandTypeFqn,
-                                        info.aggregateName(),
-                                        info.accessPolicy(),
-                                        phase,
-                                        inferDispatchMultiplicity(creation),
-                                        inferAggregateKeyText(creation),
-                                        inferAggregateKeyConfidence(creation));
-                                stepBlock.addDispatch(dispatch);
-                            },
-                            () -> logger.warn("Command not found in registry: {} (step: {})",
-                                    creation.getType().asString(), stepKey)
-                    );
-                })
-        );
+        operation.asLambdaExpr().findAll(ObjectCreationExpr.class).forEach(creation -> {
+            String commandTypeFqn;
+            try {
+                var resolvedType = creation.getType().resolve();
+                if (!TypeUtils.isResolvedSubtypeOf(resolvedType, Command.class)) {
+                    return;
+                }
+                commandTypeFqn = resolvedType.describe();
+            } catch (Exception exception) {
+                if (creation.getType().asString().endsWith("Command")) {
+                    String message = "command type could not be resolved: " + creation.getType().asString();
+                    stepBlock.markDispatchAnalysisIncomplete(
+                            phase, "UNRESOLVED_COMMAND_TYPE", message);
+                    logger.warn("{} (step: {})", message, stepKey);
+                }
+                return;
+            }
+
+            state.getCommandDispatchInfo(creation.getType()).ifPresentOrElse(
+                    info -> {
+                        StepDispatchFootprint dispatch = new StepDispatchFootprint(
+                                stepKey,
+                                commandTypeFqn,
+                                info.aggregateName(),
+                                info.accessPolicy(),
+                                phase,
+                                inferDispatchMultiplicity(creation),
+                                inferAggregateKeyText(creation),
+                                inferAggregateKeyConfidence(creation));
+                        stepBlock.addDispatch(dispatch);
+                    },
+                    () -> {
+                        String message = "command dispatch not found in registry: " + creation.getType().asString();
+                        stepBlock.markDispatchAnalysisIncomplete(
+                                phase, "UNRESOLVED_COMMAND_DISPATCH", message);
+                        logger.warn("{} (step: {})", message, stepKey);
+                    }
+            );
+        });
     }
 
     private String inferAggregateKeyText(ObjectCreationExpr commandCreation) {
@@ -465,9 +489,13 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                                     .map(NameExpr::getNameAsString)
                                     .filter(stepVariable::equals)
                                     .isPresent())
-                            .reduce((first, second) -> second)
-                            .ifPresent(call -> {
+                            .forEach(call -> {
+                                stepBlock.markCompensationRegistered();
                                 if (call.getArguments().isEmpty()) {
+                                    stepBlock.markDispatchAnalysisIncomplete(
+                                            DispatchPhase.COMPENSATION,
+                                            "MISSING_COMPENSATION_OPERATION",
+                                            "registerCompensation has no operation argument");
                                     return;
                                 }
 

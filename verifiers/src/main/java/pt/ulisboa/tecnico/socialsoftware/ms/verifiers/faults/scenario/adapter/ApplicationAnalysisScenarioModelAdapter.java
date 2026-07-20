@@ -1,11 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.AccessPolicy;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchPhase;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaFunctionalityBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaStepBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationEvidenceClass;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner;
@@ -170,27 +172,72 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         List<String> predecessorStepKeys = stepBlock.getPredecessorStepKeys() == null
                 ? List.of()
                 : List.copyOf(stepBlock.getPredecessorStepKeys());
-        List<StepFootprint> footprints = new ArrayList<>();
+        List<StepFootprint> forwardFootprints = new ArrayList<>();
+        List<StepFootprint> compensationFootprints = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
         int typeOnlyFootprints = 0;
 
         for (StepDispatchFootprint dispatch : stepBlock.getDispatches() == null ? List.<StepDispatchFootprint>of() : stepBlock.getDispatches()) {
             StepFootprint footprint = adaptFootprint(sagaFqn, stepName, dispatch, warnings, diagnostics);
-            footprints.add(footprint);
+            if (dispatch.phase() == DispatchPhase.COMPENSATION) {
+                compensationFootprints.add(footprint);
+            } else {
+                forwardFootprints.add(footprint);
+            }
             if (footprint.aggregateKey() != null && footprint.aggregateKey().confidence() == FootprintConfidence.TYPE_ONLY) {
                 typeOnlyFootprints++;
             }
         }
 
+        List<String> analysisDiagnostics = stepBlock.getAnalysisDiagnostics().stream()
+                .map(diagnostic -> diagnostic.phase() + ":" + diagnostic.code() + ": " + diagnostic.message())
+                .sorted()
+                .toList();
+        analysisDiagnostics.forEach(diagnostic ->
+                diagnostics.add(buildStepDiagnostic(sagaFqn, stepName, diagnostic)));
+
         if (stepName == null) {
             warnings.add("step with missing name was adapted conservatively");
         }
 
+        CompensationEvidenceClass compensationEvidence = classifyCompensationEvidence(
+                stepBlock.isCompensationRegistered(),
+                stepBlock.isDispatchAnalysisComplete(DispatchPhase.FORWARD),
+                forwardFootprints);
+
         return new StepAdaptation(
-                new StepDefinition(deterministicId, stepKey, stepName, orderIndex, predecessorStepKeys, footprints, warnings),
-                footprints.size(),
+                new StepDefinition(
+                        deterministicId,
+                        stepKey,
+                        stepName,
+                        orderIndex,
+                        predecessorStepKeys,
+                        forwardFootprints,
+                        compensationFootprints,
+                        stepBlock.isCompensationRegistered(),
+                        stepBlock.isDispatchAnalysisComplete(DispatchPhase.FORWARD),
+                        stepBlock.isDispatchAnalysisComplete(DispatchPhase.COMPENSATION),
+                        compensationEvidence,
+                        analysisDiagnostics,
+                        warnings),
+                forwardFootprints.size() + compensationFootprints.size(),
                 typeOnlyFootprints,
                 warnings);
+    }
+
+    private CompensationEvidenceClass classifyCompensationEvidence(boolean compensationRegistered,
+                                                                     boolean forwardAnalysisComplete,
+                                                                     List<StepFootprint> forwardFootprints) {
+        if (compensationRegistered) {
+            return CompensationEvidenceClass.EXPLICIT_COMPENSATION;
+        }
+        if (forwardFootprints.stream().anyMatch(footprint -> footprint.accessMode() == AccessMode.WRITE)) {
+            return CompensationEvidenceClass.IMPLICIT_SAGA_ROLLBACK;
+        }
+        boolean confidentlyEffectFree = forwardAnalysisComplete
+                && !forwardFootprints.isEmpty()
+                && forwardFootprints.stream().allMatch(footprint -> footprint.accessMode() == AccessMode.READ);
+        return confidentlyEffectFree ? null : CompensationEvidenceClass.CONSERVATIVE_UNKNOWN;
     }
 
     private StepFootprint adaptFootprint(String sagaFqn,
