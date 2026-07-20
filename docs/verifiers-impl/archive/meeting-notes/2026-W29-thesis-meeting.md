@@ -49,4 +49,3 @@
   - related work.
 - Reformulate the scenario catalog so that fault vectors and compensation interleavings are represented as part of scenario semantics, rather than only as execution-time behaviour.
 - Define the new catalog model before changing the generator or executor.
-
