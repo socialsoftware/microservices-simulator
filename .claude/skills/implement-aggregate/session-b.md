@@ -94,7 +94,8 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Op}FunctionalitySagas.
 
 - Extends `FunctionalitySagas` (or the appropriate saga base class from the simulator core)
 - Steps are defined as `SagaStep` instances in the constructor or `defineSteps()` method
-- **Step ordering, lock-step pattern, R4 foreign-vs-primary distinction, R8 upstream-only rule, and compensation pairing** — follow `docs/concepts/sagas.md` § Step Ordering (and the linked § Lock-Acquisition Step Pattern, § R4 Decision Table). That section is authoritative; do not re-derive the order from the implementation.
+- **Step ordering, lock-step pattern, R4 foreign-vs-primary distinction, and R8 upstream-only rule** — follow `docs/concepts/sagas.md` § Step Ordering (and the linked § Lock-Acquisition Step Pattern, § R4 Decision Table). That section is authoritative; do not re-derive the order from the implementation.
+- **Compensations (`registerCompensation`) are for genuine domain-level undos only** — reversing a real side effect a step produced (e.g. deleting a child aggregate a step created). Never register a compensation to release a semantic lock: lock release on abort is automatic, and a manual release re-locks the aggregate (see `docs/concepts/sagas.md` § Semantic-lock release on abort is automatic).
 - The **conditional validate-dates step** is per-aggregate guidance, not a generic pattern: if `plan.md` for this aggregate lists time-based invariants on both this aggregate and a downstream aggregate created in the same saga, insert the validate-dates step first.
 
 ### `{Aggregate}Functionalities.java`

@@ -192,6 +192,12 @@ belong in T2; and event-store payload assertions inside a T3 subscription test b
 - For state-transition (lock-acquisition) tests: does `executeUntilStep` pause at the correct step, does
   `expect:` assert the expected `IN_{OP}` saga state, and does `then: noExceptionThrown()` confirm the
   traversal completes back to `NOT_IN_SAGA`?
+- **Compensation test asserts released lock:** for every write functionality that holds a lock across a
+  later step, its `<FunctionalityName>CompensationTest` must assert persisted
+  `sagaStateOf(...) == GenericSagaState.NOT_IN_SAGA` **after** the injected fault — not merely
+  `thrown(...)`. That assertion is the regression guard for lock-lifecycle bugs (the
+  `currentExecutingStep` re-lock pitfall in `docs/concepts/sagas.md`). A compensation test that only
+  asserts the exception propagates, with no post-abort `sagaStateOf` check, is **Weak**.
 
 ### D2. Kill-mutation thought experiment
 
@@ -228,6 +234,7 @@ Focus on:
 - Operations on already-deleted aggregates
 - Operations applied in wrong order (e.g., answer before quiz starts, enroll after disenroll)
 - State transition not yet covered: for each step with `setSemanticLock` (each an *acquire* transition), is there a state-transition (lock-acquisition) test?
+- Compensation not yet covered: for each write functionality that holds a lock across a later step, is there a `<FunctionalityName>CompensationTest` that injects a fault on the later step and asserts persisted `sagaStateOf(...) == GenericSagaState.NOT_IN_SAGA` after abort (the lock-lifecycle regression guard)?
 
 Produce a list:
 

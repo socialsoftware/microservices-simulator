@@ -200,6 +200,12 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 - Create sagas: single step sending the create command, no lock needed
 - Read sagas: single step sending the read command, result stored in instance field, exposed via
   getter (see `docs/concepts/sagas.md` § Read Functionality Sagas)
+- **Lint — no manual semantic-lock release.** Flag any `registerCompensation` whose body releases a
+  semantic lock (sends a `SagaCommand` with `setSemanticLock(NOT_IN_SAGA)`, or otherwise resets the
+  lock state). Lock release on abort is automatic; a manual release re-locks the aggregate via the
+  `currentExecutingStep` pitfall (see `docs/concepts/sagas.md` § Semantic-lock release on abort is
+  automatic). `registerCompensation` is allowed **only** for genuine domain-level undos (e.g.
+  deleting a child aggregate a step created).
 
 ### `commands/{Op}Command.java`
 - Extends `Command`

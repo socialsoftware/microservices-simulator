@@ -50,16 +50,6 @@ SagaStep getCourseStep = new SagaStep("getCourseStep", () -> {
     this.courseDto = (CourseDto) commandGateway.send(sagaCommand);
 });
 
-// Compensation for step 1: release the lock
-SagaStep getCourseStep = new SagaStep("getCourseStep",
-    /* execute */ () -> { ... },
-    /* compensate */ () -> {
-        SagaCommand release = new SagaCommand(
-                new GetCourseByIdCommand(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId));
-        release.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-        commandGateway.send(release);
-    });
-
 // Step 2: mutate (plain command, no SagaCommand wrapper)
 SagaStep updateCourseStep = new SagaStep("updateCourseStep", () -> {
     UpdateCourseCommand cmd = new UpdateCourseCommand(
@@ -69,6 +59,19 @@ SagaStep updateCourseStep = new SagaStep("updateCourseStep", () -> {
 ```
 
 Contrast with plain `setForbiddenStates(...)` (shown below): that checks whether an existing lock blocks this operation, but does **not** set a new lock. `SagaCommand` + `setSemanticLock(...)` both checks and transitions atomically.
+
+## Semantic-lock release on abort is automatic
+
+**Application workflows must NOT manually release semantic locks.** The core owns the entire lock lifecycle - acquire, release-on-abort, and release-on-commit - and a manually-registered release compensation both duplicates that work and corrupts the abort ledger.
+
+How the automatic release works:
+
+- When a step runs `setSemanticLock`, the core (`SagaCommandHandler` → `registerSagaState()`) records the aggregate's **pre-lock** `SagaState`, keyed by the currently-executing step, via `savePreviousState(aggId, oldState)`, then applies the lock atomically. For a first-time lock, that recorded pre-lock state **is** `NOT_IN_SAGA`.
+- On abort, `SagaUnitOfWorkService.abortUntilStep` walks the executed steps in reverse and replays each recorded previous state through an `AbortSagaCommand`, restoring every aggregate to its pre-lock state. For the lock step, that restores `NOT_IN_SAGA` - so the automatic path alone releases every lock. The successful-commit path likewise resets `SagaState` back to `NOT_IN_SAGA`.
+
+`registerCompensation` is reserved for **genuine domain-level compensating actions** - undoing a real side effect a step generated, e.g. deleting a child aggregate a step created (cf. `CreateTournamentFunctionalitySagas` removing a generated quiz). It is never used to release a lock.
+
+> **⚠️ The `currentExecutingStep` re-lock pitfall.** A manual "release the lock" compensation on the lock-acquiring step does not just no-op - it actively re-locks the aggregate. When the injected fault throws before the faulting step's own `execute()` runs, `currentExecutingStep` stays pinned to the lock step. The manual release then re-enters `registerSagaState` → `savePreviousState` under that same frozen step key, appending a **spurious `(agg, LOCKED_STATE)`** record. On abort, `sendAbortCommandsForStep` replays both records in list order; the spurious `LOCKED` one is applied **last and wins**, leaving the aggregate locked. Empirically: re-adding one manual release block to `DeleteCourseFunctionalitySagas` makes `DeleteCourseCompensationTest` fail with persisted `IN_DELETE_COURSE` instead of `NOT_IN_SAGA`. The compensation test's `sagaStateOf(...) == NOT_IN_SAGA` assertion is the regression guard for exactly this class of lock-lifecycle bug.
 
 ## Semantic Locks in Practice
 
@@ -91,7 +94,7 @@ SagaStep addParticipantStep = new SagaStep("addParticipantStep", () -> {
 
 | Step target | Pattern | When to use |
 |-------------|---------|-------------|
-| **Primary aggregate** (the aggregate owning this saga) | `SagaCommand` wrapping the read command + `setSemanticLock(state)` + compensation releasing `NOT_IN_SAGA` | Lock acquisition before mutating the saga's own aggregate — see § Lock-Acquisition Step Pattern |
+| **Primary aggregate** (the aggregate owning this saga) | `SagaCommand` wrapping the read command + `setSemanticLock(state)` | Lock acquisition before mutating the saga's own aggregate — see § Lock-Acquisition Step Pattern. The lock is released automatically on abort/commit — do **not** register a manual release compensation (see § Semantic-lock release on abort is automatic) |
 | **Foreign aggregate** (upstream aggregate touched by a cross-aggregate step) | Plain command + `setForbiddenStates([...])` listing states that must block this step | Abort if the foreign aggregate is already mid-saga in a conflicting state; does **not** acquire a new lock |
 
 **Rule of thumb:** if the step must **acquire** a lock on an aggregate before writing to it, use `SagaCommand` + `setSemanticLock`. If the step only needs to **check** that another aggregate is not already locked, use `setForbiddenStates`.
@@ -259,13 +262,13 @@ The typical step order inside a write `FunctionalitySagas` class is:
 
 1. *(Conditional)* **Validate-dates step** — if the saga creates or updates an aggregate with `startTime`/`endTime` fields **and** a later step also creates/updates a downstream aggregate that independently validates dates (e.g., a Quiz), add a dedicated `validateDatesStep` as the very first step to check date constraints on the primary aggregate's DTO. If omitted, the downstream aggregate's date invariant fires first and masks the primary aggregate's date error, making the wrong exception surface to tests.
 2. **Data-assembly steps** — fetch DTOs from upstream aggregates (required for P4a and P3 DTO-check rules listed in plan.md cross-aggregate prerequisites).
-3. **Primary lock step** — wrap the read command in `SagaCommand`, call `setSemanticLock(state)` on the primary aggregate, and register a compensation that releases the lock with `GenericSagaState.NOT_IN_SAGA`. See § Lock-Acquisition Step Pattern. Do **not** use `setForbiddenStates` for primary-aggregate lock acquisition.
+3. **Primary lock step** — wrap the read command in `SagaCommand` and call `setSemanticLock(state)` on the primary aggregate. See § Lock-Acquisition Step Pattern. Do **not** register a compensation to release the lock — the core releases it automatically on abort (see § Semantic-lock release on abort is automatic). Do **not** use `setForbiddenStates` for primary-aggregate lock acquisition.
 4. **Execute step** — send a plain (unwrapped) command to `{Aggregate}CommandHandler`; declare the lock step as a dependency.
 5. *(For multi-aggregate sagas)* **Steps for other aggregates involved** — use `setForbiddenStates` only on steps that touch a **foreign** aggregate to abort if that aggregate is mid-saga (see § R4 Decision Table).
 
 **R8 — upstream-only commands:** a saga may only send commands to aggregates that are upstream (aggregates this one depends on, not aggregates that depend on it). Never dispatch a write command to a downstream aggregate from within an upstream aggregate's saga.
 
-Each `executeStep` that can fail has a matching `compensateStep` that rolls back the change. Each data-assembly step that enforces a **P4a rule** treats an upstream-command failure as the prerequisite violation — no extra guard is needed in the service layer.
+`registerCompensation` is **only** for genuine domain-level undos — reversing a real side effect a step produced (e.g. deleting a child aggregate a step created). It is **never** used to release a semantic lock: lock release on abort is automatic (see § Semantic-lock release on abort is automatic). Each data-assembly step that enforces a **P4a rule** treats an upstream-command failure as the prerequisite violation — no extra guard is needed in the service layer.
 
 ---
 

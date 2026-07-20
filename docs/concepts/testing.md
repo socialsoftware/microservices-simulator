@@ -334,8 +334,8 @@ across steps; **transitions** — *acquire* (`setSemanticLock(IN_{OP})` drives
 `setForbiddenStates([...])` blocks a transition when a foreign aggregate is in a listed state.
 Testing a write saga means covering its transitions: the happy-path `success` case covers the full
 traversal; one lock-acquisition case per `setSemanticLock` step pins the intermediate `IN_{OP}`
-state, then resumes to complete; one **compensation** case per functionality that registers a
-compensation exercises the compensate transition (see § Compensation Test below). Guard
+state, then resumes to complete; one **compensation** case per write functionality whose lock is
+held across a later step exercises the compensate transition (see § Compensation Test below). Guard
 (`setForbiddenStates`) transitions and Async tests remain deferred — see Appendix; those need a
 second saga staged against the first and are out of scope. Everything else is owned elsewhere
 (see § Assertion Ownership).
@@ -375,13 +375,16 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 
 ### Compensation Test
 
-Every write saga registers a compensation on its lock-acquiring step —
-`getXStep.registerCompensation(() -> { release lock to NOT_IN_SAGA }, unitOfWork)`, wired into the
-`UnitOfWork` by `SagaStep.execute()` — so that if a **later** step in the same saga throws, the
-compensation runs and releases the lock. Required for every write functionality that registers at
-least one compensation (i.e. has a `setSemanticLock` step with a dependent step after it); skip it
-for read-only functionalities and for a functionality whose only step has no dependents (nothing
-to compensate).
+When a write saga acquires a semantic lock and a **later** step in the same saga throws, the lock
+returns to `NOT_IN_SAGA` automatically — via the core's replay of each aggregate's recorded
+pre-lock state on abort (`SagaUnitOfWorkService.abortUntilStep` → `AbortSagaCommand`), **not** a
+manually-registered release compensation. Application workflows must not register such a release
+(see `docs/concepts/sagas.md` § Semantic-lock release on abort is automatic). Required for every
+write functionality that holds a semantic lock across a later step (a `setSemanticLock` step with a
+dependent step after it); skip it for read-only functionalities and for a functionality whose only
+step has no dependents (nothing to compensate). The `sagaStateOf(...) == NOT_IN_SAGA` assertion
+below is the regression guard for lock-lifecycle bugs — it is what caught the `currentExecutingStep`
+re-lock pitfall documented in sagas.md.
 
 The test lets the lock-acquiring step run for real (so the lock is genuinely held and the
 compensation genuinely registered), forces the very next step to throw via `ImpairmentService`,
