@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFinalizationResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepExecutionResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -78,6 +79,28 @@ class SagaExecutorControlTest {
 
         assertThat(calls).isEmpty();
         assertThat(unitOfWork.getExecutedSteps()).isEmpty();
+    }
+
+    @Test
+    void controlledStepExecutionSeparatesInvokedBodyFailureFromInvocationShapeFailure() {
+        SagaUnitOfWorkService service = spy(new SagaUnitOfWorkService());
+        SagaUnitOfWork unitOfWork = new SagaUnitOfWork(0L, "CONTROLLED_BODY");
+        IllegalStateException bodyFailure = new IllegalStateException("body failed");
+        WorkflowFunctionality functionality = new WorkflowFunctionality() {{
+            SagaWorkflow sagaWorkflow = new SagaWorkflow(this, service, unitOfWork);
+            sagaWorkflow.addStep(new SagaStep("body", () -> { throw bodyFailure; }));
+            this.workflow = sagaWorkflow;
+        }};
+
+        WorkflowStepExecutionResult result = functionality.executeStepForExecutorControlled("body", unitOfWork);
+
+        assertThat(result.completed()).isFalse();
+        assertThat(result.failure()).isSameAs(bodyFailure);
+        assertThat(unitOfWork.getExecutedSteps()).containsExactly("body");
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> functionality.executeStepForExecutorControlled("missing", unitOfWork))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
     }
 
     @Test

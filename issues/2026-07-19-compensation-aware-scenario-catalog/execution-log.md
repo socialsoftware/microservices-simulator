@@ -180,3 +180,30 @@ Commit:
 Reason if blocked/skipped:
 
 - n/a
+
+#### `007-runtime-fallback-and-hard-stops.md`
+
+Status: `done`
+
+Risk: `high` (mapped to available `strong` tier)
+Dependencies: `006-exact-persisted-action-replay.md`
+Implementer session: `019f7e7e-091c-71fe-b786-1b882bd32ea5`
+
+Review attempts:
+
+| Attempt | Reviewer Session | Report | Verdict | Notes |
+|---------|------------------|--------|---------|-------|
+| 01 | `019f7e9c-4e50-71cb-acba-8f4c69011c8d` | `review/007-runtime-fallback-and-hard-stops-review-01.md` | FAIL | Multiple fallbacks overwrote the first deviation point. |
+| 02 | `019f7ea8-f874-7fbd-af12-a2717d1d0c00` | `review/007-runtime-fallback-and-hard-stops-review-02.md` | PASS | Fallback, hard-stop, retryability, and first-deviation reporting verified. |
+
+Final review report: `review/007-runtime-fallback-and-hard-stops-review.md`
+
+Commit:
+
+- Status: `committed`
+- Hash: `checkpoint commit containing this entry; see git history`
+- Message: `feat(verifiers): handle runtime fallback and hard stops`
+
+Reason if blocked/skipped:
+
+- n/a

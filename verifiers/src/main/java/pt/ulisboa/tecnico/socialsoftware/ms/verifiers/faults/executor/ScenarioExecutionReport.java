@@ -16,6 +16,11 @@ public record ScenarioExecutionReport(
         String assignedVector,
         String providerMode,
         String scheduleConformance,
+        String deviationActionId,
+        Integer deviationPlannedPosition,
+        String deviationPolicy,
+        String hardStopActionId,
+        String hardStopReason,
         RuntimeMetadata runtimeMetadata,
         List<FaultSlot> faultSlots,
         List<PlannedAction> plannedActions,
@@ -89,7 +94,8 @@ public record ScenarioExecutionReport(
             String sourceStepId,
             String runtimeStepName,
             String compensationEvidenceClass,
-            int plannedPosition,
+            String runtimeOccurrenceId,
+            Integer plannedPosition,
             int actualPosition,
             String status,
             String bodyOutcome,
@@ -103,7 +109,14 @@ public record ScenarioExecutionReport(
         }
     }
 
-    public record RecoverySubOutcome(String kind, String status) {
+    public record RecoverySubOutcome(
+            String kind,
+            String status,
+            String exceptionClass,
+            String exceptionMessage) {
+        public RecoverySubOutcome(String kind, String status) {
+            this(kind, status, null, null);
+        }
     }
 
     public record LifecycleEvent(

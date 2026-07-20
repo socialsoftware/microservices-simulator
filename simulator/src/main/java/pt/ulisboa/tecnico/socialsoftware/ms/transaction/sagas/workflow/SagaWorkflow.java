@@ -4,6 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowRecoveryCheckpoint;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -64,6 +65,16 @@ public class SagaWorkflow extends Workflow {
         SagaUnitOfWork sagaUnitOfWork = (SagaUnitOfWork) unitOfWork;
         SagaUnitOfWorkService sagaService = (SagaUnitOfWorkService) unitOfWorkService;
         sagaService.abortUntilStep(sagaUnitOfWork, stepName);
+    }
+
+    @Override
+    public List<WorkflowRecoveryCheckpoint> recoveryCheckpointsForExecutor(UnitOfWork unitOfWork) {
+        if (!this.aborted) {
+            throw new IllegalStateException("Cannot inspect compensations because the workflow has not aborted.");
+        }
+        SagaUnitOfWork sagaUnitOfWork = (SagaUnitOfWork) unitOfWork;
+        SagaUnitOfWorkService sagaService = (SagaUnitOfWorkService) unitOfWorkService;
+        return sagaService.recoveryCheckpointsForExecutor(sagaUnitOfWork);
     }
 
     @Override

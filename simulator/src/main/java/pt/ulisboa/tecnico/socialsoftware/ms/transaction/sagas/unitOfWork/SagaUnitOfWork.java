@@ -75,6 +75,16 @@ public class SagaUnitOfWork extends UnitOfWork {
         return action != null && action.isExecuted();
     }
 
+    public boolean hasPendingCompensation(String stepName) {
+        CompensatingAction action = this.compensatingActions.get(stepName);
+        return action != null && !action.isExecuted();
+    }
+
+    public boolean hasPendingImplicitRollback(String stepName) {
+        List<AggregateStateRecord> records = this.previousStates.get(stepName);
+        return !isStepAborted(stepName) && records != null && !records.isEmpty();
+    }
+
 
     public List<String> getExecutedSteps() {
         return this.executedSteps;

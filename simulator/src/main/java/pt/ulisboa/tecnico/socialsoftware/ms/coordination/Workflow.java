@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -144,6 +145,30 @@ public abstract class Workflow {
         }
     }
 
+    public WorkflowStepExecutionResult executeStepForExecutorControlled(String stepName, UnitOfWork unitOfWork) {
+        logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+        this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName());
+
+        if (this.executionPlan == null) {
+            this.executionPlan = planOrder(this.stepsWithDependencies);
+        }
+        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "behaviour", this.executionPlan.getBehaviour());
+        String hasBehaviour = this.executionPlan.getBehaviour() != "{}" ? "true" : "false";
+        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "hasBehaviour", hasBehaviour);
+
+        FlowStep targetStep = getStepByName(stepName);
+        try {
+            executionPlan.executeStepForExecutor(targetStep, unitOfWork).join();
+            return WorkflowStepExecutionResult.success();
+        } catch (CompletionException e) {
+            this.aborted = true;
+            return WorkflowStepExecutionResult.failed(e.getCause() == null ? e : e.getCause());
+        } catch (SimulatorException e) {
+            this.aborted = true;
+            return WorkflowStepExecutionResult.failed(e);
+        }
+    }
+
     public void abortBeforeStepForExecutor(String stepName, UnitOfWork unitOfWork) {
         if (this.executionPlan == null) {
             this.executionPlan = planOrder(this.stepsWithDependencies);
@@ -168,6 +193,10 @@ public abstract class Workflow {
             }
             return WorkflowFinalizationResult.failed(failure);
         }
+    }
+
+    public List<WorkflowRecoveryCheckpoint> recoveryCheckpointsForExecutor(UnitOfWork unitOfWork) {
+        throw new UnsupportedOperationException("Stepwise recovery is only supported for sagas");
     }
 
     public WorkflowStepRecoveryResult recoverStepForExecutor(String stepName, UnitOfWork unitOfWork) {

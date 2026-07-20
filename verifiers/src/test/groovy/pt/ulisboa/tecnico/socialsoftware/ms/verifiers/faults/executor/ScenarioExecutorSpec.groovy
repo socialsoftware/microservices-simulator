@@ -1,7 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.InMemoryFaultVectorProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
@@ -197,6 +199,7 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.terminalStatus() == 'MATERIALIZATION_FAILED'
         report.scheduleConformance() == null
+        report.hardStopReason() == 'MATERIALIZATION_FAILED'
         report.actualActions().isEmpty()
         report.participants().find { it.sagaInstanceId() == 'ready' }.materializationState() == 'MATERIALIZED'
         report.participants().find { it.sagaInstanceId() == 'blocked' }.materializationState() == 'MATERIALIZATION_FAILED'
@@ -217,6 +220,7 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.terminalStatus() == 'STARTUP_FAILED'
         report.scheduleConformance() == null
+        report.hardStopReason() == 'STARTUP_FAILED'
         report.actualActions().isEmpty()
         report.participants()*.materializationState().unique() == ['MATERIALIZED']
         report.participants().find { it.sagaInstanceId() == 'ready' }.startupState() == 'STARTUP_READY'
@@ -224,12 +228,168 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWorkflow.BODIES.isEmpty()
     }
 
-    def 'controlled commit failure reports body success separately and leaves recovery checkpoints unconsumed'() {
+    def 'zero-bit body failure recovers runtime checkpoints immediately and continues a surviving participant'() {
         given:
-        def workload = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
+        def workload = workload(['left', 'right'], [
+                ['left', 'first'], ['right', 'first'], ['left', 'second'], ['left', 'third'], ['right', 'second']
+        ], null, null, 'left:second')
+        def scenario = scenarios(workload, '00010')[0]
+        def survivorActionPosition = scenario.actions().findIndexOf { action ->
+            action.kind() == FaultScenarioActionKind.FORWARD && action.sagaInstanceId() == 'right' &&
+                    workload.faultSlots().find { it.deterministicId() == action.sourceFaultSlotId() }.runtimeStepName() == 'second'
+        }
+        assert survivorActionPosition > 2
+        def packageFixture = writePackage(workload, [scenario])
+        def before = packageChecksums(packageFixture.directory)
+        def output = packageFixture.directory.resolve('reports/deviated-runtime-fallback.json')
+        def service = new TrackingSagaUnitOfWorkService()
+        FixtureWorkflow.recordImplicitState('left', 'second')
+        FixtureWorkflow.failBodyWithDomainException('left', 'second')
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId()), runtime(service))
+
+        then:
+        report.terminalStatus() == 'PARTIAL_COMPENSATED'
+        report.scheduleConformance() == 'DEVIATED'
+        report.deviationActionId() == scenario.actions()[2].deterministicId()
+        report.deviationPlannedPosition() == 2
+        report.deviationPolicy() == 'IMMEDIATE_CHECKPOINT_RECOVERY_AND_CONTINUE'
+        report.hardStopActionId() == null
+        report.actualActions()*.status() == ['COMPLETED', 'COMPLETED', 'FAILED', 'COMPENSATED', 'COMPENSATED', 'COMPLETED']
+        report.actualActions()[2].faultOrigin() == 'UNASSIGNED_RUNTIME'
+        report.actualActions()[3].sourceCompensationCheckpointId() == null
+        report.actualActions()[3].runtimeOccurrenceId()
+        report.actualActions()[3].runtimeStepName() == 'second'
+        report.actualActions()[3].plannedPosition() == null
+        report.actualActions()[3].recoverySubOutcomes()*.kind() == ['IMPLICIT_SAGA_ROLLBACK']
+        report.actualActions()[4].runtimeStepName() == 'first'
+        report.actualActions()[4].sourceCompensationCheckpointId()
+        report.actualActions()[4].recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION']
+        report.actualActions()[5].actionId() == scenario.actions()[survivorActionPosition].deterministicId()
+        report.actualActions()[5].plannedPosition() == survivorActionPosition
+        report.actualActions()[5].actualPosition() == 5
+        report.participants()*.finalState() == ['COMPENSATED', 'COMMITTED']
+        report.participants().find { it.sagaInstanceId() == 'left' }.skippedForwardActions()*.runtimeStepName() == ['third']
+        report.participants().find { it.sagaInstanceId() == 'left' }.skippedForwardActions()*.state() == ['MASKED']
+        report.faultSlots()*.state() == ['NOT_ASSIGNED', 'NOT_ASSIGNED', 'NOT_ASSIGNED', 'MASKED', 'NOT_ASSIGNED']
+        report.lifecycleEvents()*.type() == ['ABORTED', 'COMPENSATED', 'AUTOMATIC_COMMIT']
+        FixtureWorkflow.BODIES == ['left:first', 'right:first', 'left:second', 'right:second']
+        FixtureWorkflow.COMPENSATIONS == ['left:first']
+        service.implicitRollbacks == ['left:second']
+        packageChecksums(packageFixture.directory) == before
+        def json = MAPPER.readTree(output.toFile())
+        json.path('scheduleConformance').asText() == 'DEVIATED'
+        json.path('deviationPolicy').asText() == 'IMMEDIATE_CHECKPOINT_RECOVERY_AND_CONTINUE'
+        def runtimeOnlyJson = json.path('actualActions').find { action ->
+            action.path('runtimeStepName').asText() == 'second' && action.path('kind').asText() == 'COMPENSATION'
+        }
+        runtimeOnlyJson.path('sourceCompensationCheckpointId').isNull()
+    }
+
+    def 'multiple zero-bit fallbacks preserve the first schedule deviation point'() {
+        given:
+        def workload = workload(['left', 'right'], [['left', 'first'], ['right', 'first']])
         def scenario = scenarios(workload, '00')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def service = new TrackingSagaUnitOfWorkService(failCommitFor: 'solo')
+        def service = new TrackingSagaUnitOfWorkService(failCommitDomainFor: 'right')
+        FixtureWorkflow.failBodyWithDomainException('left', 'first')
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(service))
+
+        then:
+        report.terminalStatus() == 'COMPENSATED'
+        report.scheduleConformance() == 'DEVIATED'
+        report.deviationActionId() == scenario.actions()[0].deterministicId()
+        report.deviationPlannedPosition() == 0
+        report.deviationPolicy() == 'IMMEDIATE_CHECKPOINT_RECOVERY_AND_CONTINUE'
+        report.actualActions()*.status() == ['FAILED', 'COMMIT_FAILED', 'COMPENSATED']
+        report.actualActions().take(2)*.faultOrigin() == ['UNASSIGNED_RUNTIME', 'UNASSIGNED_RUNTIME']
+        report.actualActions().take(2)*.actionId() == scenario.actions()*.deterministicId()
+        report.participants()*.finalState() == ['COMPENSATED', 'COMPENSATED']
+        FixtureWorkflow.BODIES == ['left:first', 'right:first']
+        FixtureWorkflow.COMPENSATIONS == ['right:first']
+        report.lifecycleEvents()*.type() == [
+                'ABORTED', 'NO_COMPENSATION_WORK', 'COMPENSATED',
+                'ABORTED', 'COMPENSATED'
+        ]
+    }
+
+    def 'partially failed body reports explicit recovery only when runtime registration completed'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        FixtureWorkflow.recordImplicitState('solo', 'first')
+        FixtureWorkflow.registerExplicitBeforeBodyFailure('solo', 'first')
+        FixtureWorkflow.failBodyWithDomainException('solo', 'first')
+        def service = new TrackingSagaUnitOfWorkService()
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(service))
+
+        then:
+        report.terminalStatus() == 'COMPENSATED'
+        report.scheduleConformance() == 'DEVIATED'
+        report.actualActions()*.status() == ['FAILED', 'COMPENSATED']
+        report.actualActions()[1].recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION', 'IMPLICIT_SAGA_ROLLBACK']
+        report.actualActions()[1].recoverySubOutcomes()*.status() == ['SUCCEEDED', 'SUCCEEDED']
+        FixtureWorkflow.COMPENSATIONS == ['solo:first']
+        service.implicitRollbacks == ['solo:first']
+    }
+
+    def 'zero-bit failure with no runtime recovery work emits no-work lifecycle and no recovery action'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        FixtureWorkflow.failBodyWithDomainException('solo', 'first')
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'COMPENSATED'
+        report.scheduleConformance() == 'DEVIATED'
+        report.actualActions()*.status() == ['FAILED']
+        report.lifecycleEvents()*.type() == ['ABORTED', 'NO_COMPENSATION_WORK', 'COMPENSATED']
+    }
+
+    def 'zero-bit commit domain failure preserves body outcome, recovers, and continues a survivor'() {
+        given:
+        def workload = workload(['left', 'right'], [
+                ['left', 'first'], ['right', 'first'], ['left', 'second'], ['right', 'second']
+        ])
+        def scenario = scenarios(workload, '0000')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService(failCommitDomainFor: 'left')
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(service))
+
+        then:
+        report.terminalStatus() == 'PARTIAL_COMPENSATED'
+        report.scheduleConformance() == 'DEVIATED'
+        report.actualActions()*.status() == ['COMPLETED', 'COMPLETED', 'COMMIT_FAILED', 'COMPENSATED', 'COMPENSATED', 'COMPLETED']
+        report.actualActions()[2].bodyOutcome() == 'SUCCEEDED'
+        report.actualActions()[2].commitOutcome() == 'FAILED'
+        report.actualActions()[2].faultOrigin() == 'UNASSIGNED_RUNTIME'
+        report.actualActions()[2].exceptionMessage() == 'fixture commit domain failure'
+        report.actualActions()[3..4]*.runtimeStepName() == ['second', 'first']
+        report.actualActions()[5].runtimeStepName() == 'second'
+        report.participants()*.finalState() == ['COMPENSATED', 'COMMITTED']
+        FixtureWorkflow.BODIES == ['left:first', 'right:first', 'left:second', 'right:second']
+        FixtureWorkflow.COMPENSATIONS == ['left:second', 'left:first']
+    }
+
+    def 'non-domain body and commit failures are infrastructure hard stops without fallback'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService(failCommitInfrastructureFor: phase == 'commit' ? 'solo' : null)
+        if (phase == 'body') FixtureWorkflow.failBodyWithInfrastructureException('solo', 'first')
 
         when:
         def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(service))
@@ -237,16 +397,171 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
         report.scheduleConformance() == 'INCOMPLETE'
-        report.actualActions()*.status() == ['COMPLETED', 'COMMIT_FAILED']
-        report.actualActions()[1].bodyOutcome() == 'SUCCEEDED'
-        report.actualActions()[1].commitOutcome() == 'FAILED'
-        report.actualActions()[1].faultOrigin() == 'UNASSIGNED_RUNTIME'
-        report.actualActions()[1].exceptionMessage() == 'fixture commit failure'
-        report.participants()[0].finalState() == 'ABORTED'
-        FixtureWorkflow.BODIES == ['solo:first', 'solo:second']
+        report.actualActions()*.status() == [phase == 'body' ? 'INFRASTRUCTURE_FAILED' : 'COMMIT_INFRASTRUCTURE_FAILED']
+        report.actualActions()[0].faultOrigin() == null
+        report.hardStopActionId() == scenario.actions()[0].deterministicId()
+        report.hardStopReason() == (phase == 'body' ? 'FORWARD_INFRASTRUCTURE_FAILURE' : 'COMMIT_INFRASTRUCTURE_FAILURE')
+        report.lifecycleEvents().isEmpty()
         FixtureWorkflow.COMPENSATIONS.isEmpty()
-        !FixtureWorkflow.UNIT_OF_WORKS.solo.isCompensationExecuted('first')
-        !FixtureWorkflow.UNIT_OF_WORKS.solo.isCompensationExecuted('second')
+
+        where:
+        phase << ['body', 'commit']
+    }
+
+    def 'scheduled compensation failure hard stops once and remains explicitly retryable later'() {
+        given:
+        def workload = workload(['left', 'right'], [
+                ['left', 'first'], ['left', 'second'], ['right', 'first'], ['right', 'second']
+        ])
+        def scenario = scenarios(workload, '0100').find { candidate ->
+            candidate.actions()*.kind() == [
+                    FaultScenarioActionKind.FORWARD, FaultScenarioActionKind.FORWARD,
+                    FaultScenarioActionKind.COMPENSATION, FaultScenarioActionKind.FORWARD,
+                    FaultScenarioActionKind.FORWARD
+            ]
+        }
+        assert scenario != null
+        def packageFixture = writePackage(workload, [scenario])
+        def before = packageChecksums(packageFixture.directory)
+        def output = packageFixture.directory.resolve('reports/scheduled-compensation-failed.json')
+        def service = new TrackingSagaUnitOfWorkService()
+        FixtureWorkflow.failExplicitCompensation('left', 'first')
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId()), runtime(service))
+
+        then:
+        report.terminalStatus() == 'COMPENSATION_FAILED'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.actualActions()*.status() == ['COMPLETED', 'ASSIGNED_FAULT', 'COMPENSATION_FAILED']
+        report.actualActions()[2].recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION']
+        report.actualActions()[2].recoverySubOutcomes()*.status() == ['FAILED']
+        report.hardStopActionId() == scenario.actions()[2].deterministicId()
+        report.hardStopReason() == 'EXPLICIT_COMPENSATION_FAILED'
+        FixtureWorkflow.COMPENSATION_ATTEMPTS['left:first'] == 1
+        report.lifecycleEvents()*.type() == ['ABORTED', 'COMPENSATION_FAILED']
+        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.runtimeStepName() == ['first', 'second']
+        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP', 'NOT_EXECUTED_HARD_STOP']
+        !FixtureWorkflow.BODIES.any { it.startsWith('right:') }
+        !FixtureWorkflow.UNIT_OF_WORKS.left.isCompensationExecuted('first')
+        packageChecksums(packageFixture.directory) == before
+        def json = MAPPER.readTree(output.toFile())
+        json.path('scheduleConformance').asText() == 'INCOMPLETE'
+        json.path('hardStopReason').asText() == 'EXPLICIT_COMPENSATION_FAILED'
+        json.path('actualActions').last().path('recoverySubOutcomes').first().path('status').asText() == 'FAILED'
+
+        when:
+        FixtureWorkflow.allowExplicitCompensation('left', 'first')
+        def retry = service.recoverStepForExecutor(FixtureWorkflow.UNIT_OF_WORKS.left, 'first')
+
+        then:
+        retry.explicitCompensationExecuted()
+        FixtureWorkflow.COMPENSATION_ATTEMPTS['left:first'] == 2
+        FixtureWorkflow.UNIT_OF_WORKS.left.isCompensationExecuted('first')
+    }
+
+    def 'fallback explicit compensation failure hard stops before survivor continuation'() {
+        given:
+        def workload = workload(['left', 'right'], [
+                ['left', 'first'], ['right', 'first'], ['left', 'second'], ['right', 'second']
+        ])
+        def scenario = scenarios(workload, '0000')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        FixtureWorkflow.failBodyWithDomainException('left', 'second')
+        FixtureWorkflow.failExplicitCompensation('left', 'first')
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'COMPENSATION_FAILED'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.deviationActionId() == scenario.actions()[2].deterministicId()
+        report.actualActions()*.status() == ['COMPLETED', 'COMPLETED', 'FAILED', 'COMPENSATION_FAILED']
+        report.actualActions()[3].recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION']
+        report.actualActions()[3].recoverySubOutcomes()*.status() == ['FAILED']
+        report.hardStopActionId() == report.actualActions()[3].actionId()
+        report.hardStopReason() == 'EXPLICIT_COMPENSATION_FAILED'
+        FixtureWorkflow.COMPENSATION_ATTEMPTS['left:first'] == 1
+        report.lifecycleEvents()*.type() == ['ABORTED', 'COMPENSATION_FAILED']
+        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.runtimeStepName() == ['second']
+        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
+        !FixtureWorkflow.BODIES.contains('right:second')
+    }
+
+    def 'fallback implicit rollback failure retains successful explicit prefix and stops'() {
+        given:
+        def workload = workload(['left', 'right'], [
+                ['left', 'first'], ['right', 'first'], ['left', 'second'], ['right', 'second']
+        ])
+        def scenario = scenarios(workload, '0000')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService(failImplicitFor: 'left:first')
+        FixtureWorkflow.recordImplicitState('left', 'first')
+        FixtureWorkflow.failBodyWithDomainException('left', 'second')
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(service))
+
+        then:
+        report.terminalStatus() == 'COMPENSATION_FAILED'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.actualActions()*.status() == ['COMPLETED', 'COMPLETED', 'FAILED', 'COMPENSATION_FAILED']
+        report.actualActions()[3].recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION', 'IMPLICIT_SAGA_ROLLBACK']
+        report.actualActions()[3].recoverySubOutcomes()*.status() == ['SUCCEEDED', 'FAILED']
+        FixtureWorkflow.UNIT_OF_WORKS.left.isCompensationExecuted('first')
+        !FixtureWorkflow.UNIT_OF_WORKS.left.isStepAborted('first')
+        service.implicitAttempts['left:first'] == 1
+        report.lifecycleEvents()*.type() == ['ABORTED', 'COMPENSATION_FAILED']
+        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
+        !FixtureWorkflow.BODIES.contains('right:second')
+    }
+
+    def 'report writing failure remains infrastructure and retains an incomplete measured prefix in memory'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def before = packageChecksums(packageFixture.directory)
+        def nonDirectory = packageFixture.directory.resolve('not-a-directory')
+        Files.writeString(nonDirectory, 'occupied')
+        def output = nonDirectory.resolve('report.json')
+
+        when:
+        new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        def failure = thrown(ScenarioReportWriteException)
+        failure.report().terminalStatus() == 'REPORT_WRITE_FAILED'
+        failure.report().scheduleConformance() == 'INCOMPLETE'
+        failure.report().actualActions()*.status() == ['COMPLETED']
+        failure.report().hardStopActionId() == null
+        failure.report().hardStopReason() == 'REPORT_WRITE_FAILED'
+        failure.report().blockers()*.reason().contains('REPORT_WRITE_FAILED')
+        packageChecksums(packageFixture.directory) == before
+    }
+
+    def 'provider installation failure is an infrastructure stop before measured execution'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def occupiedProvider = FaultVectorProviderHolder.install(new InMemoryFaultVectorProvider([:]))
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
+        } finally {
+            occupiedProvider.close()
+        }
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.scheduleConformance() == null
+        report.actualActions().isEmpty()
+        report.hardStopReason() == 'EXECUTOR_INFRASTRUCTURE_FAILURE'
+        FixtureWorkflow.BODIES.isEmpty()
     }
 
     def 'dry run serializes the full planned contract without measured actions or conformance'() {
@@ -414,6 +729,7 @@ class ScenarioExecutorSpec extends Specification {
         then:
         missing.terminalStatus() == 'SELECTION_FAILED'
         missing.scheduleConformance() == null
+        missing.hardStopReason() == 'MISSING_FAULT_SCENARIO_ID'
         missing.actualActions().isEmpty()
         missing.blockers()*.reason() == ['MISSING_FAULT_SCENARIO_ID']
 
@@ -528,7 +844,8 @@ class ScenarioExecutorSpec extends Specification {
     private static WorkloadPlan workload(List<String> participantIds,
                                          List<List<String>> scheduleShape,
                                          String blockedParticipant = null,
-                                         String startupFailureParticipant = null) {
+                                         String startupFailureParticipant = null,
+                                         String omittedCheckpoint = null) {
         def sagaFqns = participantIds.collectEntries { id ->
             [(id): startupFailureParticipant == id ? MissingExecuteWorkflow.name : FixtureWorkflow.name]
         }
@@ -546,7 +863,9 @@ class ScenarioExecutorSpec extends Specification {
             new ForwardFaultSlot("slot-${step.deterministicId()}".toString(), index, step.deterministicId(),
                     step.sagaInstanceId(), step.stepId(), step.runtimeStepName(), step.deterministicId())
         }
-        def checkpoints = schedule.withIndex().collect { step, index ->
+        def checkpoints = schedule.findAll { step ->
+            "${step.sagaInstanceId()}:${step.runtimeStepName()}".toString() != omittedCheckpoint
+        }.withIndex().collect { step, index ->
             new CompensationCheckpoint("checkpoint-${step.deterministicId()}".toString(), index,
                     step.sagaInstanceId(), step.deterministicId(), step.stepId(), step.runtimeStepName(),
                     step.deterministicId(), CompensationEvidenceClass.EXPLICIT_COMPENSATION, [], [], [])
@@ -661,17 +980,36 @@ class ScenarioExecutorSpec extends Specification {
 
     private static class TrackingSagaUnitOfWorkService extends SagaUnitOfWorkService {
         Map<String, Integer> commitCounts = [:].withDefault { 0 }
-        String failCommitFor
+        Map<String, Integer> implicitAttempts = [:].withDefault { 0 }
+        List<String> implicitRollbacks = []
+        String failCommitDomainFor
+        String failCommitInfrastructureFor
+        String failImplicitFor
 
         TrackingSagaUnitOfWorkService(Map values = [:]) {
-            this.failCommitFor = values.failCommitFor
+            this.failCommitDomainFor = values.failCommitDomainFor
+            this.failCommitInfrastructureFor = values.failCommitInfrastructureFor
+            this.failImplicitFor = values.failImplicitFor
         }
 
         @Override
         void commit(SagaUnitOfWork unitOfWork) {
             commitCounts[unitOfWork.functionalityName] = commitCounts[unitOfWork.functionalityName] + 1
-            if (unitOfWork.functionalityName == failCommitFor) {
-                throw new IllegalStateException('fixture commit failure')
+            if (unitOfWork.functionalityName == failCommitDomainFor) {
+                throw new SimulatorException('fixture commit domain failure')
+            }
+            if (unitOfWork.functionalityName == failCommitInfrastructureFor) {
+                throw new IllegalStateException('fixture commit infrastructure failure')
+            }
+        }
+
+        @Override
+        void sendAbortCommandsForStep(SagaUnitOfWork unitOfWork, String stepName) {
+            def key = "${unitOfWork.functionalityName}:${stepName}".toString()
+            implicitAttempts[key] = implicitAttempts[key] + 1
+            implicitRollbacks.add(key)
+            if (key == failImplicitFor) {
+                throw new IllegalStateException("fixture implicit rollback failure ${key}".toString())
             }
         }
     }

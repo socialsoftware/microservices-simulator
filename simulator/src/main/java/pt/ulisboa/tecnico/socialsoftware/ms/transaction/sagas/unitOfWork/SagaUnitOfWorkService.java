@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowRecoveryCheckpoint;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryException;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
@@ -26,7 +28,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkSer
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -168,18 +172,47 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         }
     }
 
+    public List<WorkflowRecoveryCheckpoint> recoveryCheckpointsForExecutor(SagaUnitOfWork unitOfWork) {
+        List<String> executedSteps = new ArrayList<>(unitOfWork.getExecutedSteps());
+        Collections.reverse(executedSteps);
+        return executedSteps.stream()
+                .distinct()
+                .map(stepName -> new WorkflowRecoveryCheckpoint(
+                        stepName,
+                        unitOfWork.hasPendingCompensation(stepName),
+                        unitOfWork.hasPendingImplicitRollback(stepName)))
+                .filter(checkpoint -> checkpoint.explicitCompensationPending() || checkpoint.implicitRollbackPending())
+                .toList();
+    }
+
     public WorkflowStepRecoveryResult recoverStepForExecutor(SagaUnitOfWork unitOfWork, String stepName) {
         if (stepName == null || !unitOfWork.getExecutedSteps().contains(stepName)) {
             throw new IllegalArgumentException("Cannot recover unexecuted Saga step " + stepName);
         }
-        boolean explicitCompensationExecuted = unitOfWork.compensateStepForExecutor(stepName);
-        boolean implicitRollbackExecuted = false;
-        if (!unitOfWork.isStepAborted(stepName)) {
-            List<SagaUnitOfWork.AggregateStateRecord> records = unitOfWork.getPreviousStates().get(stepName);
-            implicitRollbackExecuted = records != null && !records.isEmpty();
-            if (implicitRollbackExecuted) {
-                sendAbortCommandsForStep(unitOfWork, stepName);
+        boolean explicitCompensationExecuted = false;
+        if (unitOfWork.hasPendingCompensation(stepName)) {
+            try {
+                explicitCompensationExecuted = unitOfWork.compensateStepForExecutor(stepName);
+            } catch (Throwable failure) {
+                throw new WorkflowStepRecoveryException(
+                        new WorkflowStepRecoveryResult(stepName, false, false),
+                        "EXPLICIT_COMPENSATION",
+                        failure);
             }
+        }
+        boolean implicitRollbackExecuted = false;
+        if (unitOfWork.hasPendingImplicitRollback(stepName)) {
+            try {
+                sendAbortCommandsForStep(unitOfWork, stepName);
+                unitOfWork.setStepAborted(stepName);
+                implicitRollbackExecuted = true;
+            } catch (Throwable failure) {
+                throw new WorkflowStepRecoveryException(
+                        new WorkflowStepRecoveryResult(stepName, explicitCompensationExecuted, false),
+                        "IMPLICIT_SAGA_ROLLBACK",
+                        failure);
+            }
+        } else if (!unitOfWork.isStepAborted(stepName)) {
             unitOfWork.setStepAborted(stepName);
         }
         return new WorkflowStepRecoveryResult(stepName, explicitCompensationExecuted, implicitRollbackExecuted);
