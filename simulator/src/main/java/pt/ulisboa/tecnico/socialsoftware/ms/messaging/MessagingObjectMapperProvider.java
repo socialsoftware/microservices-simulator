@@ -49,9 +49,7 @@ public class MessagingObjectMapperProvider {
                 if (t.isArrayType() || t.isCollectionLikeType() || t.isMapLikeType() || t.isContainerType())
                     return false;
                 Class<?> raw = t.getRawClass();
-                if (raw.getSimpleName().endsWith("Dto")) {
-                    return false;
-                }
+                if (raw == Object.class) return true;
                 Package p = raw.getPackage();
                 String pkg = (p == null) ? "" : p.getName();
                 return pkg.startsWith("pt.ulisboa.tecnico");

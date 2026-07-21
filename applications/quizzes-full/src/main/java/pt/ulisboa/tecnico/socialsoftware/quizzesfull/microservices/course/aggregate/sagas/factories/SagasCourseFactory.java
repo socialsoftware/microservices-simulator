@@ -12,12 +12,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggreg
 public class SagasCourseFactory implements CourseFactory {
 
     @Override
-    public Course createCourse(Integer aggregateId, CourseDto courseDto) {
-        return new SagaCourse(aggregateId, courseDto);
+    public SagaCourse createCourse(Integer aggregateId, String name, String type) {
+        return new SagaCourse(aggregateId, name, type);
     }
 
     @Override
-    public Course createCourseFromExisting(Course existing) {
+    public SagaCourse createCourseCopy(Course existing) {
         return new SagaCourse((SagaCourse) existing);
     }
 

@@ -21,11 +21,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
 })
 @EntityScan(basePackages = {
         "pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament",
-        "pt.ulisboa.tecnico.socialsoftware.quizzesfull.events",
-        "pt.ulisboa.tecnico.socialsoftware.ms"
+        "pt.ulisboa.tecnico.socialsoftware.ms",
 })
 @EnableScheduling
 public class TournamentServiceApplication implements InitializingBean {
+
     @Autowired
     private EventService eventService;
 

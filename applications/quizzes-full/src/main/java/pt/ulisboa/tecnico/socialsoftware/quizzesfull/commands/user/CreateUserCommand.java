@@ -5,7 +5,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.UserDto;
 
 public class CreateUserCommand extends Command {
-    private UserDto userDto;
+    private final UserDto userDto;
 
     public CreateUserCommand(UnitOfWork unitOfWork, String serviceName, UserDto userDto) {
         super(unitOfWork, serviceName, null);

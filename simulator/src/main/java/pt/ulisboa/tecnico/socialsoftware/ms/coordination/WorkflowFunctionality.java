@@ -25,7 +25,16 @@ public abstract class WorkflowFunctionality {
     }
 
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
-        workflow.executeUntilStep(stepName, unitOfWork);
+        try {
+            workflow.executeUntilStep(stepName, unitOfWork);
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SimulatorException) {
+                throw (SimulatorException) cause;
+            } else {
+                throw e;
+            }
+        }
     }
 
     public void resumeWorkflow(UnitOfWork unitOfWork) {
