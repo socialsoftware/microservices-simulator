@@ -845,6 +845,34 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWorkflow.BODIES.isEmpty()
     }
 
+    def 'executor package boundary rejects checksum-current repeated participant runtime step names before execution'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def workloadPath = packageFixture.directory.resolve('workload-catalog.jsonl')
+        def workloadJson = MAPPER.readTree(Files.readAllLines(workloadPath).first())
+        def firstStep = workloadJson.path('forwardSchedule').get(0)
+        def repeatedStep = workloadJson.path('forwardSchedule').get(1)
+        repeatedStep.put('stepId', firstStep.path('stepId').asText())
+        repeatedStep.put('runtimeStepName', firstStep.path('runtimeStepName').asText())
+        Files.writeString(workloadPath, MAPPER.writeValueAsString(workloadJson) + '\n')
+        def manifest = MAPPER.readTree(Files.readString(packageFixture.manifest))
+        manifest.path('workloadCatalog').put('sha256', sha256(workloadPath))
+        MAPPER.writerWithDefaultPrettyPrinter().writeValue(packageFixture.manifest.toFile(), manifest)
+
+        when:
+        new ScenarioExecutor().execute(
+                options(packageFixture.manifest, null, scenario.deterministicId()),
+                runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        def error = thrown(IllegalArgumentException)
+        error.message.contains('DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME')
+        FixtureWorkflow.constructorCalls == 0
+        FixtureWorkflow.BODIES.isEmpty()
+    }
+
     def 'pure action validation rejects duplicate, premature, reverse-order, and residual-forward violations before execution'() {
         given:
         def workload = workload(['left', 'right'], [

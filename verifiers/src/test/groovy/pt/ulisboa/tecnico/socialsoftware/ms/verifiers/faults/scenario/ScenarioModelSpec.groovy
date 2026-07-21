@@ -156,6 +156,59 @@ class ScenarioModelSpec extends Specification {
         validation.diagnostics()*.code().contains('INPUT_RECIPE_FINGERPRINT_MISMATCH')
     }
 
+    def 'validator rejects repeated participant runtime step names with deterministic occurrence evidence'() {
+        given:
+        def plan = admissibilityWorkload([
+                [owner: 'participant-1', runtimeName: 'step'],
+                [owner: 'participant-1', runtimeName: 'step']
+        ])
+
+        when:
+        def first = new WorkloadPlanValidator().validate(plan)
+        def second = new WorkloadPlanValidator().validate(plan)
+
+        then:
+        !first.valid()
+        first == second
+        first.diagnostics().findAll { it.code() == 'DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME' }*.message() == [
+                'participant participant-1 repeats runtime step name step: first occurrence scheduled-0, repeated occurrence scheduled-1'
+        ]
+
+        and:
+        def materializability = EagerFaultScenarioGenerator.evaluateMaterializability(plan)
+        !materializability.materializable()
+        materializability.diagnostics().contains(
+                'STRUCTURAL:DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME:participant participant-1 repeats runtime step name step: first occurrence scheduled-0, repeated occurrence scheduled-1')
+
+        and: 'eager generation emits neither scenarios nor computed vectors for the structurally inadmissible workload'
+        def eager = EagerFaultScenarioGenerator.generate(new WorkloadGenerationResult(
+                WorkloadPlan.SCHEMA_VERSION, new ScenarioGeneratorConfig(), [plan], [], [:], []),
+                RecoveryScheduleCap.defaultCap())
+        eager.faultScenarios().isEmpty()
+        eager.computedVectors().isEmpty()
+    }
+
+    def 'runtime step-name uniqueness is participant-local and preserves distinct occurrence identities'() {
+        expect:
+        new WorkloadPlanValidator().validate(admissibilityWorkload([
+                [owner: 'participant-1', runtimeName: 'shared'],
+                [owner: 'participant-2', runtimeName: 'shared']
+        ])).valid()
+        EagerFaultScenarioGenerator.evaluateMaterializability(admissibilityWorkload([
+                [owner: 'participant-1', runtimeName: 'shared'],
+                [owner: 'participant-2', runtimeName: 'shared']
+        ])).materializable()
+
+        and:
+        def distinct = admissibilityWorkload([
+                [owner: 'participant-1', runtimeName: 'first'],
+                [owner: 'participant-1', runtimeName: 'second']
+        ])
+        new WorkloadPlanValidator().validate(distinct).valid()
+        distinct.forwardSchedule()*.deterministicId() == ['scheduled-0', 'scheduled-1']
+        distinct.faultSlots()*.occurrenceId() == ['scheduled-0', 'scheduled-1']
+    }
+
     def 'workload records defensively copy ordered collections and derive exact forward slots'() {
         given:
         def participants = [new SagaInstance('participant-1', 'example.Saga', 'input-1', [])]
@@ -179,6 +232,29 @@ class ScenarioModelSpec extends Specification {
         plan.forwardSchedule()*.deterministicId() == ['scheduled-1']
         plan.faultSlots()*.occurrenceId() == ['scheduled-1']
         plan.compensationCheckpoints().size() == 1
+    }
+
+    private static WorkloadPlan admissibilityWorkload(List<Map<String, String>> definitions) {
+        def ownerIds = definitions*.owner.unique()
+        def participants = ownerIds.collect { owner ->
+            new SagaInstance(owner, "example.${owner}.Saga".toString(), "input-${owner}".toString(), [])
+        }
+        def inputs = ownerIds.collect { owner ->
+            semanticInput(deterministicId: "input-${owner}".toString(), sagaFqn: "example.${owner}.Saga".toString())
+        }
+        def schedule = definitions.withIndex().collect { definition, index ->
+            new ScheduledStep("scheduled-${index}".toString(), definition.owner,
+                    "example.${definition.owner}.Saga::${definition.runtimeName}".toString(), index,
+                    definition.runtimeName, [])
+        }
+        def slots = schedule.withIndex().collect { step, index ->
+            new ForwardFaultSlot("slot-${index}".toString(), index, step.deterministicId(), step.sagaInstanceId(),
+                    step.stepId(), step.runtimeStepName(), step.deterministicId())
+        }
+        def withoutId = new WorkloadPlan(WorkloadPlan.SCHEMA_VERSION, null,
+                participants.size() == 1 ? ScenarioKind.SINGLE_SAGA : ScenarioKind.MULTI_SAGA,
+                WorkloadExecutionShape.SAGA_LOCAL, participants, inputs, schedule, [], slots, [], [])
+        withDeterministicId(withoutId)
     }
 
     private static WorkloadPlan semanticWorkload(Map overrides = [:]) {

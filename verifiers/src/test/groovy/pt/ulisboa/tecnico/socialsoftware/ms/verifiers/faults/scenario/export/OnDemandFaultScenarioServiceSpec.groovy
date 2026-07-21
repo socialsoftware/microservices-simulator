@@ -128,6 +128,29 @@ class OnDemandFaultScenarioServiceSpec extends Specification {
         sameMutableBytes(malformedBefore, malformed)
     }
 
+    def 'on-demand request rejects a checksum-current repeated participant runtime step workload without mutation'() {
+        given:
+        def fixture = writePackage(Files.createTempDirectory('on-demand-repeated-runtime-step'), 2)
+        def workloadJson = mapper.readTree(Files.readAllLines(fixture.workloadPath).first())
+        def firstStep = workloadJson.path('forwardSchedule').get(0)
+        def repeatedStep = workloadJson.path('forwardSchedule').get(2)
+        repeatedStep.put('stepId', firstStep.path('stepId').asText())
+        repeatedStep.put('runtimeStepName', firstStep.path('runtimeStepName').asText())
+        Files.writeString(fixture.workloadPath, mapper.writeValueAsString(workloadJson) + '\n')
+        refreshArtifactHash(fixture.manifest, 'workloadCatalog', fixture.workloadPath)
+        def before = snapshotMutable(fixture)
+
+        when:
+        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, fixture.workload.deterministicId(), '0011', null))
+
+        then:
+        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
+        result.diagnostics()*.code() == ['INVALID_PACKAGE']
+        result.diagnostics().first().message().contains('DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME')
+        sameMutableBytes(before, fixture)
+    }
+
     def 'package validation rejects a carried on-demand vector owned by a non-materializable workload'() {
         given:
         def readyWorkload = workload(true)

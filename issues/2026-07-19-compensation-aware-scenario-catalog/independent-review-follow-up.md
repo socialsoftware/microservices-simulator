@@ -2,7 +2,7 @@
 
 PR: `#15` — `feat(verifiers): add compensation-aware scenario catalog`
 
-Status: remediation in progress; items 1 through 4 are implemented and independently review-complete, and item 5 has not started.
+Status: all five independent-review remediation items are implemented and review-complete; final merge validation remains.
 
 ## Discussion Order
 
@@ -41,7 +41,7 @@ After all agreed fixes:
 | 2 | Failure classification | review-complete (`PASS`, attempt 03) | Completed in `remediation-done/002-explicit-domain-failure-classification.md`; await user direction before item 3. |
 | 3 | Effect-free compensation omission | review-complete (`PASS`, attempt 02) | Completed in `remediation-done/003-conservative-effect-free-proof.md`; await user direction before item 4. |
 | 4 | On-demand mutation safety | review-complete (`PASS`, attempt 02) | Completed in `remediation-done/004-cross-process-on-demand-mutation-safety.md`; await user direction before item 5. |
-| 5 | Repeated step occurrences | pending | Discuss after item 4. |
+| 5 | Repeated step occurrences | review-complete (`PASS`, attempt 01) | Completed in `remediation-done/005-reject-repeated-runtime-step-occurrences.md`; proceed to final merge validation. |
 
 ## Item 1 — Shared-reader Checksum Verification
 

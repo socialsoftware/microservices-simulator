@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoverySc
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*
 import spock.lang.Specification
 
@@ -248,6 +249,48 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         snapshotExisting(paths).isEmpty()
     }
 
+    def 'writer rejects repeated participant runtime step names before package publication'() {
+        given:
+        def paths = packagePaths(Files.createTempDirectory('v3-repeated-runtime-publication').resolve('not-created'))
+        def repeated = repeatedRuntimeStepWorkload(
+                EagerFaultScenarioGenerator.generate(generationResult(1L, 'integer', true), RecoveryScheduleCap.defaultCap())
+                        .workloadPlans().first())
+        def generation = new WorkloadGenerationResult(WorkloadPlan.SCHEMA_VERSION, new ScenarioGeneratorConfig(),
+                [repeated], [], [:], [])
+        def invalid = EagerFaultScenarioGenerator.generate(generation, RecoveryScheduleCap.defaultCap())
+
+        when:
+        writePackage(invalid, paths, '2026-07-20T00:00:00Z')
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME')
+        snapshotExisting(paths).isEmpty()
+    }
+
+    def 'shared reader rejects a checksum-current workload with repeated participant runtime step names'() {
+        given:
+        def paths = packagePaths(Files.createTempDirectory('v3-reader-repeated-runtime'))
+        writePackage(EagerFaultScenarioGenerator.generate(generationResult(1L, 'integer', true),
+                RecoveryScheduleCap.defaultCap()), paths, '2026-07-20T00:00:00Z')
+        def workload = mapper.readTree(Files.readAllLines(paths.workload).first())
+        def firstStep = workload.path('forwardSchedule').get(0)
+        def repeatedStep = workload.path('forwardSchedule').get(1)
+        repeatedStep.put('stepId', firstStep.path('stepId').asText())
+        repeatedStep.put('runtimeStepName', firstStep.path('runtimeStepName').asText())
+        Files.writeString(paths.workload, mapper.writeValueAsString(workload) + '\n')
+        refreshArtifactHash(paths.manifest, 'workloadCatalog', paths.workload)
+
+        when:
+        new ScenarioCatalogPackageReader().read(paths.manifest)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME')
+        failure.message.contains('first occurrence')
+        failure.message.contains('repeated occurrence')
+    }
+
     def 'writer rejects replacement of a required single-point vector with a valid multi-fault vector before artifact creation'() {
         given:
         def directory = Files.createTempDirectory('v3-invalid-eager-vector-set')
@@ -408,6 +451,29 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
                 accounting  : directory.resolve('scenario-space-accounting.json'),
                 rejected    : directory.resolve('workload-catalog-rejected-inputs.jsonl')
         ]
+    }
+
+    private static WorkloadPlan repeatedRuntimeStepWorkload(WorkloadPlan original) {
+        def first = original.forwardSchedule().first()
+        def schedule = original.forwardSchedule().withIndex().collect { step, index ->
+            index == 1
+                    ? new ScheduledStep(step.deterministicId(), step.sagaInstanceId(), first.stepId(),
+                    step.scheduleOrder(), first.runtimeStepName(), step.warnings())
+                    : step
+        }
+        def slots = original.faultSlots().withIndex().collect { slot, index ->
+            index == 1
+                    ? new ForwardFaultSlot(slot.deterministicId(), slot.slotIndex(), slot.scheduledStepId(),
+                    slot.sagaInstanceId(), first.stepId(), first.runtimeStepName(), slot.occurrenceId())
+                    : slot
+        }
+        def withoutId = new WorkloadPlan(original.schemaVersion(), null, original.kind(), original.executionShape(),
+                original.participants(), original.acceptedInputs(), schedule, original.conflictEvidence(), slots,
+                original.compensationCheckpoints(), original.warnings())
+        new WorkloadPlan(withoutId.schemaVersion(), ScenarioIdGenerator.workloadPlanId(withoutId), withoutId.kind(),
+                withoutId.executionShape(), withoutId.participants(), withoutId.acceptedInputs(),
+                withoutId.forwardSchedule(), withoutId.conflictEvidence(), withoutId.faultSlots(),
+                withoutId.compensationCheckpoints(), withoutId.warnings())
     }
 
     private static def eagerGenerationResult(Object recipeValue = 1L, String literalKind = 'integer') {

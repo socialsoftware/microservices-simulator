@@ -19,7 +19,7 @@ Implemented:
 - `SERIAL`, bounded order-preserving, and conflict-anchor `SEGMENT_COMPRESSED` forward scheduling.
 - Compensation checkpoints classified as `EXPLICIT_COMPENSATION`, `IMPLICIT_SAGA_ROLLBACK`, or `CONSERVATIVE_UNKNOWN`.
 - Bounded recovery-schedule generation with reverse per-participant compensation order and survivor-forward interleavings.
-- Eager FaultScenarios for materializable all-zero and single-point vectors.
+- Eager FaultScenarios for materializable all-zero and single-point vectors. Saga/local materializability requires each participant's forward `runtimeStepName` values to be unique; the same name may be used by different participants.
 - Idempotent on-demand persistence with package-local writer serialization across local JVM processes.
 - Exact accounting for computed vectors, including uncapped and written recovery-schedule counts.
 - Optional workload-linked dynamic-evidence sidecars that leave semantic package bytes unchanged.
@@ -54,7 +54,7 @@ The v2 `scenario-catalog.jsonl` / `ScenarioPlan` contract is unsupported by the 
 
 ### WorkloadPlan
 
-A WorkloadPlan is reusable normal-execution structure. It owns participant instances, accepted inputs, one deterministic global forward interleaving, conflict evidence, ordered forward fault slots, compensation checkpoints, and stable identities. It owns neither an assigned vector nor a recovery ordering.
+A WorkloadPlan is reusable normal-execution structure. It owns participant instances, accepted inputs, one deterministic global forward interleaving, conflict evidence, ordered forward fault slots, compensation checkpoints, and stable identities. Scheduled-step occurrence ids remain semantic identities used by slots, checkpoints, actions, and reports. Because the current Saga/local runtime stores execution and recovery state by runtime step name, structural admissibility rejects repeated `(sagaInstanceId, runtimeStepName)` forward occurrences. The same runtime name in separate participants remains valid. A WorkloadPlan owns neither an assigned vector nor a recovery ordering.
 
 ### FaultScenario
 
@@ -168,7 +168,7 @@ See [`evidence.md`](evidence.md) for commands and totals.
 - Exact aggregate-instance key extraction remains incomplete.
 - Thirty-two Quizzes sagas still lack accepted static inputs; this does not imply that no tests exist.
 - Event payload placeholders may permit static acceptance while blocking materialization.
-- The materializability policy is static readiness plus structural admissibility; runtime success remains unproven until execution.
+- The materializability policy is static readiness plus structural admissibility; runtime success remains unproven until execution. Replaying repeated same-participant runtime step names requires future occurrence-aware runtime state and is not currently materializable.
 - Segment compression is a deterministic reduction under extracted conflict evidence, not semantic-completeness proof.
 - Dynamic enrichment is local/sagas-focused; no fresh full Quizzes v3 dynamic baseline has been recorded.
 - No current post-remediation Quizzes smoke demonstrates an explicitly marked zero-bit domain fallback. The saved smoke predates explicit classification and encountered unmarked service unavailability, which current execution would treat as an infrastructure hard stop.

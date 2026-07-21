@@ -107,6 +107,7 @@ public final class WorkloadPlanValidator {
                                                              Map<String, SagaInstance> participantsById,
                                                              List<Diagnostic> diagnostics) {
         Map<String, ScheduledStep> byId = new LinkedHashMap<>();
+        Map<ParticipantRuntimeStepKey, ScheduledStep> firstRuntimeStepOccurrences = new LinkedHashMap<>();
         for (int index = 0; index < schedule.size(); index++) {
             ScheduledStep step = schedule.get(index);
             if (step == null || step.deterministicId() == null) {
@@ -125,9 +126,23 @@ public final class WorkloadPlanValidator {
                         "forward step " + step.deterministicId() + " references " + step.sagaInstanceId()));
             }
             String expectedRuntimeName = ScheduledStep.runtimeStepNameFromStepId(step.stepId());
-            if (expectedRuntimeName == null || !Objects.equals(expectedRuntimeName, step.runtimeStepName())) {
+            boolean validRuntimeMapping = expectedRuntimeName != null
+                    && Objects.equals(expectedRuntimeName, step.runtimeStepName());
+            if (!validRuntimeMapping) {
                 diagnostics.add(new Diagnostic("INVALID_RUNTIME_STEP_MAPPING",
                         "forward step " + step.deterministicId() + " has invalid runtime step name mapping"));
+            }
+            if (participantsById.containsKey(step.sagaInstanceId()) && validRuntimeMapping) {
+                ParticipantRuntimeStepKey key = new ParticipantRuntimeStepKey(
+                        step.sagaInstanceId(), step.runtimeStepName());
+                ScheduledStep firstOccurrence = firstRuntimeStepOccurrences.putIfAbsent(key, step);
+                if (firstOccurrence != null) {
+                    diagnostics.add(new Diagnostic("DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME",
+                            "participant " + step.sagaInstanceId() + " repeats runtime step name "
+                                    + step.runtimeStepName() + ": first occurrence "
+                                    + firstOccurrence.deterministicId() + ", repeated occurrence "
+                                    + step.deterministicId()));
+                }
             }
         }
         return byId;
@@ -214,6 +229,9 @@ public final class WorkloadPlanValidator {
                 previousSourceOrder = source.scheduleOrder();
             }
         }
+    }
+
+    private record ParticipantRuntimeStepKey(String sagaInstanceId, String runtimeStepName) {
     }
 
     public record ValidationResult(boolean valid, List<Diagnostic> diagnostics) {

@@ -27,6 +27,7 @@ Not supported:
 - TCC execution, stream/gRPC/distributed parity, or true parallel execution;
 - compensation fault slots, delays, or non-binary impairments;
 - automatic compensation retries, retry counts, or backoff;
+- repeated same-participant runtime step names until Saga/local execution and recovery state is occurrence-aware;
 - generic reset, impact scoring, batch search, or prioritization.
 
 ## Required v3 package
@@ -39,7 +40,7 @@ The manifest links four semantic artifacts; together the run directory contains 
 - `workload-catalog-rejected-inputs.jsonl` — rejected-input diagnostics;
 - `scenario-catalog-manifest.json` — `microservices-simulator.scenario-catalog-manifest.v3`, linked paths, exact record counts, SHA-256 metadata, generation policy, materializability diagnostics, and recovery cap.
 
-A `WorkloadPlan` owns participants, accepted inputs, the normal forward interleaving, conflict evidence, ordered forward fault slots, and compensation checkpoints. A `FaultScenario` references one WorkloadPlan and owns one assigned binary vector plus one complete ordered action schedule. Its deterministic identity includes the workload id, assigned vector, and ordered action identities.
+A `WorkloadPlan` owns participants, accepted inputs, the normal forward interleaving, conflict evidence, ordered forward fault slots, and compensation checkpoints. Scheduled-step occurrence ids remain semantic identities throughout slots, checkpoints, actions, and reports. The current Saga/local runtime is not occurrence-keyed, so package validation and materializability reject duplicate `(sagaInstanceId, runtimeStepName)` forward occurrences with `DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME`. A runtime name may still appear once in each of multiple participants. Supporting repeats within one participant remains a future occurrence-aware runtime-state change. A `FaultScenario` references one WorkloadPlan and owns one assigned binary vector plus one complete ordered action schedule. Its deterministic identity includes the workload id, assigned vector, and ordered action identities.
 
 The all-zero and single-point vectors are generated eagerly only for workloads that pass the package materializability/admissibility policy. Arbitrary valid multi-fault vectors use the bounded on-demand mutation path described below.
 

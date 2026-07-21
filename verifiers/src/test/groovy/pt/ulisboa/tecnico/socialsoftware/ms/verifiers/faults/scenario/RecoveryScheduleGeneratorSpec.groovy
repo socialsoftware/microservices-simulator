@@ -267,22 +267,22 @@ class RecoveryScheduleGeneratorSpec extends Specification {
         ScenarioIdGenerator.faultScenarioId(scenario('workload-1', '10', [staleIdMutation, secondAction])) != ScenarioIdGenerator.faultScenarioId(baselineScenario)
     }
 
-    def 'repeated step definitions retain distinct occurrence and action identities'() {
+    def 'distinct runtime steps retain distinct occurrence and action identities'() {
         given:
         def workload = workload([
-                step('a', 'repeat', true),
-                step('a', 'repeat', true),
+                step('a', 'first', true),
+                step('a', 'second', true),
                 step('a', 'fault')
         ])
 
         when:
         def result = RecoveryScheduleGenerator.generate(workload, '001', 20)
         def scenario = result.faultScenarios()[0]
-        def repeatedForwards = scenario.actions().findAll { it.kind() == FaultScenarioActionKind.FORWARD }.take(2)
+        def completedForwards = scenario.actions().findAll { it.kind() == FaultScenarioActionKind.FORWARD }.take(2)
 
         then:
-        repeatedForwards*.occurrenceId() == ['forward-0', 'forward-1']
-        repeatedForwards*.deterministicId().toSet().size() == 2
+        completedForwards*.occurrenceId() == ['forward-0', 'forward-1']
+        completedForwards*.deterministicId().toSet().size() == 2
         scenario.actions().findAll { it.kind() == FaultScenarioActionKind.COMPENSATION }*.occurrenceId() == ['forward-1', 'forward-0']
     }
 
@@ -305,6 +305,14 @@ class RecoveryScheduleGeneratorSpec extends Specification {
         then:
         def invalidPlan = thrown(IllegalArgumentException)
         invalidPlan.message.contains('MALFORMED_FAULT_SLOT')
+
+        when: 'the shared WorkloadPlan boundary rejects repeated runtime state keys before action generation'
+        def repeatedPlan = RecoveryScheduleGeneratorSpec.workload([step('a', 'repeat'), step('a', 'repeat')])
+        RecoveryScheduleGenerator.generate(repeatedPlan, '00', 20)
+        then:
+        def repeatedRuntimeName = thrown(IllegalArgumentException)
+        repeatedRuntimeName.message.contains('DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME')
+        repeatedRuntimeName.message.contains('first occurrence forward-0, repeated occurrence forward-1')
 
         when:
         RecoveryScheduleGenerator.generate(workload, '00', 0)
