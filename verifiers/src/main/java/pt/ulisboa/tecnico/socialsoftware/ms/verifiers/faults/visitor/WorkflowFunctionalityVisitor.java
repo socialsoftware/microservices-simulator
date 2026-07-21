@@ -12,6 +12,7 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.UnaryExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.DoStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaConstructorSignature;
@@ -38,9 +40,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.util.TypeUtils;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 
 public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<ApplicationAnalysisState> {
     private static final Logger logger = LoggerFactory.getLogger(WorkflowFunctionalityVisitor.class);
@@ -233,7 +237,10 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
             return;
         }
 
-        operation.asLambdaExpr().findAll(ObjectCreationExpr.class).forEach(creation -> {
+        LambdaExpr lambda = operation.asLambdaExpr();
+        Set<ObjectCreationExpr> recognizedCommandCreations = new LinkedHashSet<>();
+        Set<VariableDeclarator> recognizedCommandVariables = new LinkedHashSet<>();
+        lambda.findAll(ObjectCreationExpr.class).forEach(creation -> {
             String commandTypeFqn;
             try {
                 var resolvedType = creation.getType().resolve();
@@ -263,6 +270,12 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                                 inferAggregateKeyText(creation),
                                 inferAggregateKeyConfidence(creation));
                         stepBlock.addDispatch(dispatch);
+                        recognizedCommandCreations.add(creation);
+                        creation.findAncestor(VariableDeclarator.class)
+                                .filter(variable -> variable.getInitializer()
+                                        .map(initializer -> initializer == creation)
+                                        .orElse(false))
+                                .ifPresent(recognizedCommandVariables::add);
                     },
                     () -> {
                         String message = "command dispatch not found in registry: " + creation.getType().asString();
@@ -272,6 +285,113 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                     }
             );
         });
+
+        if (phase == DispatchPhase.FORWARD) {
+            lambda.findAll(MethodCallExpr.class).stream()
+                    .filter(call -> !isSupportedDirectInputKeyAccess(call, recognizedCommandCreations))
+                    .filter(call -> !isSupportedCommandGatewayDispatch(
+                            call, recognizedCommandCreations, recognizedCommandVariables))
+                    .forEach(call -> {
+                        String message = "cannot prove effects of helper call " + call.getNameAsString();
+                        stepBlock.markDispatchAnalysisIncomplete(
+                                phase, "UNANALYZED_METHOD_CALL", message);
+                        logger.warn("{} (step: {})", message, stepKey);
+                    });
+        }
+    }
+
+    private boolean isSupportedDirectInputKeyAccess(MethodCallExpr call,
+                                                      Set<ObjectCreationExpr> recognizedCommandCreations) {
+        if (!isInsideRecognizedCommand(call, recognizedCommandCreations)
+                || call.getArguments().size() != 0
+                || call.getScope().filter(Expression::isNameExpr).isEmpty()) {
+            return false;
+        }
+
+        try {
+            var resolvedMethod = call.resolve();
+            var scopeType = call.getScope().orElseThrow().calculateResolvedType();
+            if (resolvedMethod.isStatic()
+                    || resolvedMethod.getNumberOfParams() != 0
+                    || !resolvedMethod.getName().matches("get[A-Z].*")
+                    || !scopeType.isReferenceType()) {
+                return false;
+            }
+
+            String declaringType = resolvedMethod.declaringType().getQualifiedName();
+            String scopeTypeName = scopeType.asReferenceType().getQualifiedName();
+            return declaringType.equals(scopeTypeName) && declaringType.endsWith("Dto");
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private boolean isInsideRecognizedCommand(MethodCallExpr call,
+                                               Set<ObjectCreationExpr> recognizedCommandCreations) {
+        Node current = call;
+        while (current.getParentNode().isPresent()) {
+            current = current.getParentNode().orElseThrow();
+            if (current instanceof LambdaExpr) {
+                return false;
+            }
+            if (current instanceof ObjectCreationExpr creation && recognizedCommandCreations.contains(creation)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSupportedCommandGatewayDispatch(MethodCallExpr call,
+                                                        Set<ObjectCreationExpr> recognizedCommandCreations,
+                                                        Set<VariableDeclarator> recognizedCommandVariables) {
+        if (!call.getNameAsString().equals("send") || call.getArguments().size() != 1 || call.getScope().isEmpty()) {
+            return false;
+        }
+
+        Expression commandArgument = call.getArgument(0);
+        boolean recognizedCommand = commandArgument.isObjectCreationExpr()
+                ? recognizedCommandCreations.contains(commandArgument.asObjectCreationExpr())
+                : resolvesToRecognizedCommandVariable(commandArgument, recognizedCommandVariables);
+        if (!recognizedCommand) {
+            return false;
+        }
+
+        try {
+            var resolvedMethod = call.resolve();
+            return resolvedMethod.declaringType().getQualifiedName().equals(CommandGateway.class.getName())
+                    && resolvedMethod.getNumberOfParams() == 1
+                    && resolvedMethod.getParam(0).getType().describe().equals(Command.class.getName())
+                    && TypeUtils.isResolvedSubtypeOf(
+                            call.getScope().orElseThrow().calculateResolvedType(), CommandGateway.class);
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private boolean resolvesToRecognizedCommandVariable(Expression commandArgument,
+                                                          Set<VariableDeclarator> recognizedCommandVariables) {
+        if (!commandArgument.isNameExpr()) {
+            return false;
+        }
+        try {
+            NameExpr commandName = commandArgument.asNameExpr();
+            return commandName.resolve().toAst()
+                    .filter(VariableDeclarationExpr.class::isInstance)
+                    .map(VariableDeclarationExpr.class::cast)
+                    .map(declaration -> declaration.getVariables().stream()
+                            .filter(variable -> variable.getNameAsString().equals(commandName.getNameAsString()))
+                            .anyMatch(resolvedVariable -> recognizedCommandVariables.stream()
+                                    .anyMatch(recognizedVariable -> sameDeclaration(recognizedVariable, resolvedVariable))))
+                    .orElse(false);
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private boolean sameDeclaration(VariableDeclarator left, VariableDeclarator right) {
+        return left.getRange().equals(right.getRange())
+                && left.findCompilationUnit().flatMap(CompilationUnit::getStorage).map(CompilationUnit.Storage::getPath)
+                .equals(right.findCompilationUnit().flatMap(CompilationUnit::getStorage).map(CompilationUnit.Storage::getPath));
     }
 
     private String inferAggregateKeyText(ObjectCreationExpr commandCreation) {

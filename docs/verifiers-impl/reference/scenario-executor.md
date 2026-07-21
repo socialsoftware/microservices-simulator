@@ -15,7 +15,7 @@ Supported now:
 - automatic participant commit after its final successful forward action;
 - assigned faults at forward fault slots;
 - scheduled compensation actions with explicit, implicit Saga rollback, or conservative-unknown evidence;
-- immediate checkpoint recovery and survivor continuation when an unassigned zero-bit domain/simulator failure causes a reported schedule deviation;
+- immediate checkpoint recovery and survivor continuation only when an unassigned zero-bit failure carries the explicit simulator `DomainFailure` marker;
 - first-failure hard stops for executor/infrastructure failures and thrown compensation actions;
 - dry-run package/selection/mapping checks;
 - standalone v4 action-aware execution reports without package mutation.
@@ -90,7 +90,7 @@ The service installs the simulator into a writable temporary directory, builds v
 
 ## On-demand multi-fault persistence
 
-Do not pass an ad hoc vector to the executor. Persist it atomically first:
+Do not pass an ad hoc vector to the executor. Persist it through the guarded on-demand writer first:
 
 ```bash
 java -cp <verifiers-classes-and-dependencies> \
@@ -101,9 +101,11 @@ java -cp <verifiers-classes-and-dependencies> \
   [--recovery-schedule-cap <must-match-package-cap>]
 ```
 
-The request path validates the package, workload, vector length/content, materializability, structural admissibility, and package recovery cap before mutation. On success it generates bounded recovery schedules, merges records in canonical id order, updates exact accounting and manifest metadata, and publishes the FaultScenario catalog, accounting, and manifest as one guarded revision. Repeating the same request returns `DEDUPLICATED`; invalid or inconsistent requests do not mutate package bytes.
+Each real package directory keeps a stable `.on-demand-fault-scenario.lock` file. The CLI acquires its exclusive OS `FileChannel` lock before reading or validating package content and holds it through generation, three-file publication, final package validation, and the returned result. Concurrent CLI/JVM writers for the same local package therefore serialize and each waiter re-reads the preceding published revision; package-directory aliases resolve to the same lock. The lock file is operational metadata and is never listed in the manifest or included in package identity/accounting. Do not delete it between requests. A symlink, directory, or other non-regular object at that path is rejected before semantic artifact mutation.
 
-`OnDemandFaultScenarioResult.status` is `PERSISTED`, `DEDUPLICATED`, `REJECTED`, `INTEGRITY_FAILURE`, or `PERSISTENCE_FAILED`. Only the first two are successful.
+While holding the lock, the request path validates the package, workload, vector length/content, materializability, structural admissibility, and package recovery cap. On success it generates bounded recovery schedules, merges records in canonical id order, updates exact accounting and manifest metadata, publishes the FaultScenario catalog, accounting, and manifest, then validates the resulting package. Repeating the same request returns `DEDUPLICATED`; invalid requests and caught generation/publication failures preserve or restore the prior three mutable semantic artifact bytes. `OnDemandFaultScenarioResult.status` is `PERSISTED`, `DEDUPLICATED`, `REJECTED`, `INTEGRITY_FAILURE`, or `PERSISTENCE_FAILED`; only the first two are successful.
+
+This is writer serialization, not crash-atomic storage. The three semantic files are replaced separately, so abrupt process/JVM termination, kernel or host failure, or power loss during promotion can leave a checksum-inconsistent package before rollback can run. Readers verify manifest checksums and reject a torn package, but there is no journal or automatic recovery: regenerate the package before retrying if integrity validation fails after such a crash. The guarantee relies on the local OS `FileChannel` contract and does not establish reliable locking for network filesystems or distributed coordination across hosts.
 
 ## Runtime semantics
 
@@ -114,7 +116,15 @@ For each persisted action:
 - `COMPENSATION` invokes the checkpoint named by the persisted action;
 - the final successful forward action commits its participant automatically; commit is not independently schedulable.
 
-An assigned fault follows the persisted recovery ordering. If a zero-bit forward body or automatic commit throws a domain/simulator failure, execution deviates deterministically: recover that participant immediately from runtime checkpoint truth, skip its remaining forwards, and continue valid actions owned by other participants. Executor/infrastructure failures and any failed compensation action hard-stop the measured prefix. Compensation can be retried only by a later explicit invocation; the executor has no automatic retry loop.
+An assigned fault follows the persisted recovery ordering.
+
+### Failure classification
+
+For this executor, a **domain failure** is an application or Saga transactional exception that explicitly implements the simulator `DomainFailure` marker. Quizzes business/invariant `QuizzesException` failures and `SimulatorDomainException` carry that marker; `QuizzesConfigurationException` does not. If a zero-bit forward body or automatic commit throws a marked failure, execution recovers that participant immediately from runtime checkpoint truth, skips its remaining forwards, and continues valid survivor actions. Completed fallback reports `DEVIATED` and `failureOrigin = UNASSIGNED_RUNTIME`.
+
+An **infrastructure failure** is an unmarked failure, meaning the executor cannot safely treat it as an application outcome. A plain `SimulatorException` is not enough to establish domain meaning. Ordinary runtime failures, service unavailability after command retries, missing provider/configuration/reflection infrastructure, leaked assigned-fault exceptions, and every unknown or unmarked exception hard-stop conservatively. The executor runs no fallback compensation, does not continue later survivor actions, and reports `INCOMPLETE` once measured execution has started.
+
+Failed compensation actions keep their existing first-failure hard stop. Compensation can be retried only by a later explicit invocation; the executor has no automatic retry loop. This classification and command-exception restoration contract cover the supported Saga/local replay and Quizzes evidence boundary only; they do not establish causal, TCC, stream, gRPC, or generic distributed parity.
 
 Only these runtime-owned constructor arguments may be supplied by the executor:
 
@@ -158,6 +168,6 @@ Sidecar records link by `workloadPlanId` and input ids. They do not embed or rew
 
 The 2026-07-20 bounded Quizzes run wrote 2,000 multi-saga WorkloadPlans, classified 12 as eagerly materializable, and wrote 84 eager FaultScenarios under `SEGMENT_COMPRESSED` scheduling and recovery cap `20`. Selected FaultScenario `25c0d61a...` has vector `00010` and a seven-action schedule in which `CreateCourseExecutionFunctionalitySagas` compensation surrounds a surviving `GetCourseExecutionsFunctionalitySagas` forward action.
 
-The Docker executor completed with `PARTIAL_COMPENSATED / DEVIATED`: a zero-bit `createCourseStep` failed because the extracted DTO carried a null course name, immediate no-work recovery compensated that participant, and the survivor committed. This is an honest input-quality/runtime deviation, not evidence of exact replay. The v4 report, container log, verification summary, and before/after package checksums are under `verifiers/target/compensation-aware-v3-evidence/`.
+The saved Docker executor report is **pre-remediation historical evidence**. It completed with `PARTIAL_COMPENSATED / DEVIATED`, but the recorded failure is a plain `SimulatorException` for service unavailability after command retries. The old classifier incorrectly treated it as a domain deviation, ran immediate recovery, and continued the survivor. With the current classifier, that same unmarked failure must hard-stop without fallback or survivor continuation and report `UNEXPECTED_EXECUTION_FAILURE / INCOMPLETE` after the measured action. The historical report was not rewritten. The v4 report, container log, verification summary, and before/after package checksums remain under `verifiers/target/compensation-aware-v3-evidence/`.
 
 See [`../evidence.md`](../evidence.md) for full commands, counts, paths, hashes, and interpretation. Historical v2 executor smokes remain evidence of the superseded `ScenarioPlan` path only; they are not current invocation guidance.

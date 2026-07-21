@@ -133,12 +133,12 @@ public abstract class CommandGateway {
         }
 
         try {
-            Method factory = exceptionClass.getMethod("fromRemote", String.class, String.class);
+            Method factory = exceptionClass.getDeclaredMethod("fromRemote", String.class, String.class);
             if (!Modifier.isStatic(factory.getModifiers())) {
                 return null;
             }
             Object instance = factory.invoke(null, errorTemplate, errorMessage);
-            if (instance instanceof RuntimeException) {
+            if (instance != null && instance.getClass().equals(exceptionClass)) {
                 return (RuntimeException) instance;
             }
         } catch (ReflectiveOperationException ignored) {

@@ -2,7 +2,10 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorDomainException;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorFault;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorInjectedFaultException;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
@@ -23,6 +26,9 @@ public class FixtureWorkflow extends WorkflowFunctionality {
     public static final Map<String, Integer> COMPENSATION_ATTEMPTS = new LinkedHashMap<>();
     public static final Map<String, SagaUnitOfWork> UNIT_OF_WORKS = new ConcurrentHashMap<>();
     private static final Set<String> BODY_DOMAIN_FAILURES = new HashSet<>();
+    private static final Set<String> BODY_PLAIN_SIMULATOR_FAILURES = new HashSet<>();
+    private static final Set<String> BODY_SERVICE_UNAVAILABLE_FAILURES = new HashSet<>();
+    private static final Set<String> BODY_ASSIGNED_FAULT_LEAKS = new HashSet<>();
     private static final Set<String> BODY_INFRASTRUCTURE_FAILURES = new HashSet<>();
     private static final Set<String> EXPLICIT_REGISTRATION_BEFORE_FAILURES = new HashSet<>();
     private static final Set<String> IMPLICIT_STATE_STEPS = new HashSet<>();
@@ -66,7 +72,18 @@ public class FixtureWorkflow extends WorkflowFunctionality {
             unitOfWork.registerCompensation(stepName, () -> runCompensation(key));
         }
         if (BODY_DOMAIN_FAILURES.contains(key)) {
-            throw new SimulatorException("fixture domain failure " + key);
+            throw new SimulatorDomainException("fixture domain failure " + key);
+        }
+        if (BODY_PLAIN_SIMULATOR_FAILURES.contains(key)) {
+            throw new SimulatorException("fixture unmarked simulator failure " + key);
+        }
+        if (BODY_SERVICE_UNAVAILABLE_FAILURES.contains(key)) {
+            throw new SimulatorException("Service 'fixture' unavailable after retries exhausted for FixtureCommand: connection refused");
+        }
+        if (BODY_ASSIGNED_FAULT_LEAKS.contains(key)) {
+            throw new FaultVectorInjectedFaultException(new FaultVectorFault(
+                    "fixture-execution", "fixture-scenario", participant, key, 0,
+                    FixtureWorkflow.class.getName(), FixtureWorkflow.class.getSimpleName(), stepName, 1));
         }
         if (BODY_INFRASTRUCTURE_FAILURES.contains(key)) {
             throw new IllegalStateException("fixture infrastructure failure " + key);
@@ -83,6 +100,18 @@ public class FixtureWorkflow extends WorkflowFunctionality {
 
     public static void failBodyWithDomainException(String participant, String stepName) {
         BODY_DOMAIN_FAILURES.add(participant + ":" + stepName);
+    }
+
+    public static void failBodyWithPlainSimulatorException(String participant, String stepName) {
+        BODY_PLAIN_SIMULATOR_FAILURES.add(participant + ":" + stepName);
+    }
+
+    public static void failBodyWithServiceUnavailableException(String participant, String stepName) {
+        BODY_SERVICE_UNAVAILABLE_FAILURES.add(participant + ":" + stepName);
+    }
+
+    public static void leakAssignedFaultException(String participant, String stepName) {
+        BODY_ASSIGNED_FAULT_LEAKS.add(participant + ":" + stepName);
     }
 
     public static void failBodyWithInfrastructureException(String participant, String stepName) {
@@ -111,6 +140,9 @@ public class FixtureWorkflow extends WorkflowFunctionality {
         COMPENSATION_ATTEMPTS.clear();
         UNIT_OF_WORKS.clear();
         BODY_DOMAIN_FAILURES.clear();
+        BODY_PLAIN_SIMULATOR_FAILURES.clear();
+        BODY_SERVICE_UNAVAILABLE_FAILURES.clear();
+        BODY_ASSIGNED_FAULT_LEAKS.clear();
         BODY_INFRASTRUCTURE_FAILURES.clear();
         EXPLICIT_REGISTRATION_BEFORE_FAILURES.clear();
         IMPLICIT_STATE_STEPS.clear();

@@ -112,6 +112,57 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
         step.isDispatchAnalysisComplete(DispatchPhase.COMPENSATION)
     }
 
+    def "ordinary helper call makes mixed read forward analysis incomplete without fabricating helper footprints"() {
+        given:
+        def saga = state.sagas.find { it.fqn.contains('CreateItemCompensationFunctionalitySagas') }
+        def step = saga.steps.find { it.name == 'mixedReadHelperStep' }
+        def forwardDispatches = step.dispatches.findAll { it.phase() == DispatchPhase.FORWARD }
+
+        expect:
+        forwardDispatches.size() == 1
+        forwardDispatches.first().accessPolicy() == AccessPolicy.READ
+        !step.isDispatchAnalysisComplete(DispatchPhase.FORWARD)
+        step.analysisDiagnostics.findAll { it.phase() == DispatchPhase.FORWARD }*.code() == ['UNANALYZED_METHOD_CALL']
+        step.analysisDiagnostics.find { it.code() == 'UNANALYZED_METHOD_CALL' }.message() ==
+                'cannot prove effects of helper call updateItemThroughHelper'
+    }
+
+    def "constructor helper and unsupported send shapes remain conservative"() {
+        given:
+        def saga = state.sagas.find { it.fqn.contains('CreateItemCompensationFunctionalitySagas') }
+
+        expect:
+        ['constructorKeyHelperStep', 'overloadedGatewayStep', 'unrelatedSendStep', 'mismatchedCommandBindingStep'].each { stepName ->
+            def step = saga.steps.find { it.name == stepName }
+            def forwardDispatches = step.dispatches.findAll { it.phase() == DispatchPhase.FORWARD }
+            assert forwardDispatches.size() == 1
+            assert forwardDispatches.first().accessPolicy() == AccessPolicy.READ
+            assert !step.isDispatchAnalysisComplete(DispatchPhase.FORWARD)
+            assert step.analysisDiagnostics.findAll { it.phase() == DispatchPhase.FORWARD }*.code() == ['UNANALYZED_METHOD_CALL']
+        }
+
+        and:
+        saga.steps.find { it.name == 'constructorKeyHelperStep' }.analysisDiagnostics.first().message() ==
+                'cannot prove effects of helper call getAndUpdateItemKey'
+        ['overloadedGatewayStep', 'unrelatedSendStep', 'mismatchedCommandBindingStep'].each { stepName ->
+            assert saga.steps.find { it.name == stepName }.analysisDiagnostics.first().message() ==
+                    'cannot prove effects of helper call send'
+        }
+    }
+
+    def "direct read command plumbing and nested key getter remain complete"() {
+        given:
+        def saga = state.sagas.find { it.fqn.contains('CreateItemCompensationFunctionalitySagas') }
+        def directLocalStep = saga.steps.find { it.name == 'readOnlyStep' }
+        def inlineStep = saga.steps.find { it.name == 'inlineReadOnlyStep' }
+
+        expect:
+        [directLocalStep, inlineStep].every { step ->
+            step.isDispatchAnalysisComplete(DispatchPhase.FORWARD) &&
+                    step.analysisDiagnostics.findAll { it.phase() == DispatchPhase.FORWARD }.isEmpty()
+        }
+    }
+
     def "method-reference forward analysis remains structurally unresolved"() {
         given:
         def saga = state.sagas.find { it.fqn.contains('CreateItemCompensationFunctionalitySagas') }

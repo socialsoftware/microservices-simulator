@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.Causal
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.causal.unitOfWork.CausalUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesConfigurationException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.causal.*;
@@ -46,7 +47,7 @@ public class ExecutionFunctionalities {
         } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
             workflowType = TCC;
         } else {
-            throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -72,7 +73,7 @@ public class ExecutionFunctionalities {
 
                 return createCourseExecutionFunctionalityTCC.getCreatedCourseExecution();
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -95,7 +96,7 @@ public class ExecutionFunctionalities {
                 getCourseExecutionByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionByIdFunctionalityTCC.getCourseExecutionDto();
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -116,7 +117,7 @@ public class ExecutionFunctionalities {
                 getCourseExecutionsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionsFunctionalityTCC.getCourseExecutions();
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -139,7 +140,7 @@ public class ExecutionFunctionalities {
                 removeCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -162,7 +163,7 @@ public class ExecutionFunctionalities {
                 addStudentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -184,7 +185,7 @@ public class ExecutionFunctionalities {
                 getCourseExecutionsByUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getCourseExecutionsByUserFunctionalityTCC.getCourseExecutions();
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -207,7 +208,7 @@ public class ExecutionFunctionalities {
                 removeStudentFromCourseExecutionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -230,7 +231,7 @@ public class ExecutionFunctionalities {
                 anonymizeStudentFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -257,7 +258,7 @@ public class ExecutionFunctionalities {
                 updateStudentNameFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -278,7 +279,7 @@ public class ExecutionFunctionalities {
                 functionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

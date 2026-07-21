@@ -2,7 +2,7 @@
 
 Date: 2026-07-08
 
-Status: accepted for the historical immediate-compensation executor. Assigned-fault recovery timing and compensation-failure continuation are superseded by the implemented v3 FaultScenario contract in [`2026-07-19-compensation-aware-fault-scenario-contract.md`](2026-07-19-compensation-aware-fault-scenario-contract.md). Only zero-bit domain/simulator fallback retains immediate checkpoint recovery and survivor continuation.
+Status: accepted for the historical immediate-compensation executor. Assigned-fault recovery timing and compensation-failure continuation are superseded by the implemented v3 FaultScenario contract in [`2026-07-19-compensation-aware-fault-scenario-contract.md`](2026-07-19-compensation-aware-fault-scenario-contract.md). Under that current contract, only a zero-bit failure carrying the explicit `DomainFailure` marker retains immediate checkpoint recovery and survivor continuation; plain `SimulatorException` is not sufficient.
 
 ## Context
 

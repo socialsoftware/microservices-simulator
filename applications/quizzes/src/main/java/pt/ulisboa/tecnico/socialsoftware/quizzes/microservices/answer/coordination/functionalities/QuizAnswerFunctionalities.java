@@ -14,7 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.causal.*;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.*;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesConfigurationException;
 
 import java.util.Arrays;
 
@@ -46,7 +46,7 @@ public class QuizAnswerFunctionalities {
         } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
             workflowType = TCC;
         } else {
-            throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -70,7 +70,7 @@ public class QuizAnswerFunctionalities {
                 answerQuestionFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -93,7 +93,7 @@ public class QuizAnswerFunctionalities {
                 startQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -116,7 +116,7 @@ public class QuizAnswerFunctionalities {
                 concludeQuizFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -139,7 +139,7 @@ public class QuizAnswerFunctionalities {
                 functionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -162,7 +162,7 @@ public class QuizAnswerFunctionalities {
                 functionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -182,7 +182,7 @@ public class QuizAnswerFunctionalities {
                 functionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -205,7 +205,7 @@ public class QuizAnswerFunctionalities {
                 functionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

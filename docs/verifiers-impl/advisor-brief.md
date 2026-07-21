@@ -1,14 +1,14 @@
 # Advisor brief
 
-Last updated: 2026-07-20
+Last updated: 2026-07-21
 
 Use this page before thesis meetings. For implementation detail, follow links from [`current-state.md`](current-state.md).
 
 ## 30-second update
 
-The verifier now generates a deterministic compensation-aware v3 package from application source and tests. Reusable `WorkloadPlan` records carry participants, inputs, normal forward schedules, fault slots, and compensation checkpoints; persisted `FaultScenario` records add one assigned vector and one concrete recovery-aware action schedule. Materializable all-zero and single-point vectors are eager, arbitrary valid multi-fault vectors can be persisted atomically on demand, and exact per-computed-vector recovery counts do not require enumerating the uncapped leaf space.
+The verifier now generates a deterministic compensation-aware v3 package from application source and tests. Reusable `WorkloadPlan` records carry participants, inputs, normal forward schedules, fault slots, and compensation checkpoints; persisted `FaultScenario` records add one assigned vector and one concrete recovery-aware action schedule. Materializable all-zero and single-point vectors are eager, arbitrary valid multi-fault vectors can be persisted on demand with local cross-JVM writer serialization, and exact per-computed-vector recovery counts do not require enumerating the uncapped leaf space.
 
-A narrow saga/local ScenarioExecutor now selects one persisted FaultScenario—with no vector overlay—and writes an action-aware v4 report. The 2026-07-20 bounded Quizzes smoke produced a real compensation interleaving and honestly reported a zero-bit input-quality deviation while preserving all package bytes. The main thesis gaps are now input/materialization quality, broader runtime-shape coverage, repeatable state reset, and impact scoring/search.
+A narrow saga/local ScenarioExecutor now selects one persisted FaultScenario—with no vector overlay—and writes an action-aware v4 report. The saved 2026-07-20 bounded Quizzes execution is pre-remediation historical evidence: it hit unmarked service unavailability, which the old classifier incorrectly treated as a zero-bit deviation. The current classifier would hard-stop `INCOMPLETE` with no fallback or survivor continuation. All package bytes were preserved. The main thesis gaps are now input/materialization quality, broader runtime-shape coverage, repeatable state reset, and impact scoring/search.
 
 ## What exists now
 
@@ -17,7 +17,7 @@ A narrow saga/local ScenarioExecutor now selects one persisted FaultScenario—w
 - Deterministic five-file v3 WorkloadPlan/FaultScenario package.
 - Conflict-anchor `SEGMENT_COMPRESSED` forward schedules.
 - Bounded recovery schedule generation, eager materializable baselines, and exact computed-vector accounting.
-- Guarded, idempotent, atomic on-demand multi-fault persistence.
+- Guarded, idempotent on-demand multi-fault persistence: a stable package-local OS lock serializes local JVM writers from pre-read validation through validated publication.
 - Workload-linked dynamic-evidence sidecars that do not mutate semantic package artifacts.
 - Persisted-action ScenarioExecutor replay with automatic participant commit, assigned-fault recovery ordering, zero-bit immediate-recovery fallback, and compensation/infrastructure hard stops.
 - Docker Compose paths for generation, tests, and one-shot execution.
@@ -61,7 +61,7 @@ zero-bit blocker: UNASSIGNED_RUNTIME_FORWARD_FAILURE
 package hashes before/after: all five unchanged
 ```
 
-The extracted course name was null, so zero-bit `createCourseStep` failed before the assigned fourth slot. The report records immediate no-work recovery, the assigned slot as masked, and survivor continuation. Claim this as evidence of honest fallback/action reporting, not exact replay of the planned compensation sequence.
+This saved report is pre-remediation historical evidence. Its actual zero-bit `createCourseStep` failure was a plain, unmarked `SimulatorException` reporting service unavailability after command retries. The old classifier recorded immediate no-work recovery, masked the assigned slot, and continued the survivor. Under the current explicit-marker contract, the same failure is infrastructure: no fallback runs, no survivor action continues, and the measured attempt hard-stops as `UNEXPECTED_EXECUTION_FAILURE / INCOMPLETE`. Preserve the artifact for chronology; do not cite it as current fallback behavior.
 
 High-cardinality synthetic recovery-schedule accounting:
 
@@ -88,10 +88,12 @@ Detailed commands, paths, report fields, hashes, and limitations live in [`evide
 ## What I should not claim
 
 - Every WorkloadPlan is materializable or runtime-successful.
-- The selected Quizzes smoke replayed its planned action sequence exactly; it deviated on a meaningful zero-bit failure.
+- The saved Quizzes smoke demonstrates current failure classification; it predates the explicit marker rule and misclassified unmarked service unavailability.
 - Recovery accounting covers all vectors across all workloads; exact counts are for computed vectors only.
 - Generic scenario execution, true concurrency, TCC, or stream/gRPC/distributed parity.
 - Automatic FaultScenario selection, runtime vector overlays, compensation faults, or automatic recovery retry/backoff.
+- Crash-atomic on-demand publication or automatic recovery after a hard failure between the three file replacements; regenerate a checksum-invalid package before retrying.
+- Network-filesystem or multi-host distributed-lock guarantees.
 - Generic persistent-environment reset.
 - Impact scoring, GA/local search, or bandit prioritization.
 - A fresh broad Quizzes v3 dynamic-enrichment baseline.
@@ -99,7 +101,7 @@ Detailed commands, paths, report fields, hashes, and limitations live in [`evide
 
 ## Current limitation to explain plainly
 
-Static acceptance and package materializability are necessary gates, not proof that extracted values are semantically valid at runtime. The Quizzes smoke made that boundary concrete: constructor materialization succeeded, but a null course name caused a zero-bit domain/simulator failure. Improving input/value reconstruction and event payload materialization is now more important than increasing headline catalog counts.
+Static acceptance and package materializability are necessary gates, not proof of runtime success. The saved Quizzes smoke remains useful historical evidence of that boundary, but its actual failure was unmarked service unavailability, not an explicitly classified domain failure. Current execution would hard-stop without fallback or survivor continuation. Improving input/value reconstruction and event payload materialization remains more important than increasing headline catalog counts, but no current post-remediation Quizzes domain-fallback smoke has been recorded.
 
 Exact aggregate-instance binding also remains incomplete. Segment compression is deterministic under extracted conflict evidence, not proof that every semantically distinct runtime interleaving is preserved.
 

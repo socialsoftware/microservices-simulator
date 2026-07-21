@@ -122,9 +122,21 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         steps.createItemStep.compensationFootprints()
         steps.explicitWithoutRecognizedDispatchStep.compensationEvidence() == CompensationEvidenceClass.EXPLICIT_COMPENSATION
         steps.explicitWithoutRecognizedDispatchStep.compensationFootprints().isEmpty()
+        !steps.implicitWriteStep.forwardAnalysisComplete()
         steps.implicitWriteStep.compensationEvidence() == CompensationEvidenceClass.IMPLICIT_SAGA_ROLLBACK
         steps.conservativeUnresolvedStep.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
-        steps.readOnlyStep.compensationEvidence() == null
+        steps.mixedReadHelperStep.footprints()*.accessMode() == [AccessMode.READ]
+        !steps.mixedReadHelperStep.forwardAnalysisComplete()
+        steps.mixedReadHelperStep.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
+        ['constructorKeyHelperStep', 'overloadedGatewayStep', 'unrelatedSendStep', 'mismatchedCommandBindingStep'].each { stepName ->
+            assert steps[stepName].footprints()*.accessMode() == [AccessMode.READ]
+            assert !steps[stepName].forwardAnalysisComplete()
+            assert steps[stepName].compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
+        }
+        ['inlineReadOnlyStep', 'readOnlyStep'].each { stepName ->
+            assert steps[stepName].forwardAnalysisComplete()
+            assert steps[stepName].compensationEvidence() == null
+        }
     }
 
     def 'dummyapp real parser shapes keep materialized workloads bounded and preserve recovery checkpoints'() {
@@ -163,11 +175,11 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 [compensationInput],
                 materializedConfig)
         def plan = compensationResult.workloadPlans()[0]
-        def recovery = RecoveryScheduleGenerator.generate(plan, '00001', 20)
+        def recovery = RecoveryScheduleGenerator.generate(plan, '00000000001', 20)
 
         then:
-        plan.faultSlots().size() == 5
-        plan.compensationCheckpoints().size() == 4
+        plan.faultSlots().size() == 11
+        plan.compensationCheckpoints().size() == 9
         recovery.uncappedScheduleCount() == BigInteger.ONE
         recovery.faultScenarios().size() == 1
         recovery.faultScenarios()[0].actions()

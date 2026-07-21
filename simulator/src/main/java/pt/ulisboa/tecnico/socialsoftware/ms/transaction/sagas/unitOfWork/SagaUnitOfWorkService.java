@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorDomainException;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowRecoveryCheckpoint;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryException;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryResult;
@@ -60,7 +60,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     public Aggregate aggregateLoadAndRegisterRead(Integer aggregateId, SagaUnitOfWork unitOfWork) {
         Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
-                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+                .orElseThrow(() -> new SimulatorDomainException(AGGREGATE_NOT_FOUND, aggregateId));
 
         logger.info("Loaded and registered read for aggregate ID: {} - {}", aggregateId, aggregate.getAggregateType());
         recordAggregateAccess("READ", aggregate, unitOfWork, "SagaUnitOfWorkService.aggregateLoadAndRegisterRead");
@@ -69,10 +69,10 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
     public Aggregate aggregateLoad(Integer aggregateId, SagaUnitOfWork unitOfWork) {
         Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
-                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+                .orElseThrow(() -> new SimulatorDomainException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (aggregate.getState() == Aggregate.AggregateState.DELETED) {
-            throw new SimulatorException(AGGREGATE_DELETED, aggregate.getAggregateType(), aggregate.getAggregateId());
+            throw new SimulatorDomainException(AGGREGATE_DELETED, aggregate.getAggregateType(), aggregate.getAggregateId());
         }
 
         return aggregate;
@@ -81,7 +81,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     // used for testing with spock
     public Aggregate aggregateDeletedLoad(Integer aggregateId) {
         return sagaAggregateRepository.findDeletedSagaAggregate(aggregateId)
-                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+                .orElseThrow(() -> new SimulatorDomainException(AGGREGATE_NOT_FOUND, aggregateId));
     }
 
     public Aggregate registerRead(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
@@ -91,7 +91,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void registerSagaState(Integer aggregateId, SagaState state, SagaUnitOfWork unitOfWork) {
         Aggregate aggregate = sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
-                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+                .orElseThrow(() -> new SimulatorDomainException(AGGREGATE_NOT_FOUND, aggregateId));
 
         SagaAggregate sagaAggregate = (SagaAggregate) aggregate;
         unitOfWork.savePreviousState(aggregateId, sagaAggregate.getSagaState());
@@ -104,10 +104,10 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void verifySagaState(Integer aggregateId, List<SagaState> forbiddenStates) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
-                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+                .orElseThrow(() -> new SimulatorDomainException(AGGREGATE_NOT_FOUND, aggregateId));
 
         if (forbiddenStates.contains(aggregate.getSagaState())) {
-            throw new SimulatorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregate.getSagaState().getStateName());
+            throw new SimulatorDomainException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, aggregate.getSagaState().getStateName());
         }
     }
 
@@ -123,7 +123,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void commitAggregate(Integer aggregateId) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findAnySagaAggregate(aggregateId)
-                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+                .orElseThrow(() -> new SimulatorDomainException(AGGREGATE_NOT_FOUND, aggregateId));
         aggregate.setSagaState(GenericSagaState.NOT_IN_SAGA);
         entityManager.merge(aggregate);
     }
@@ -221,7 +221,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void abortAggregate(Integer aggregateId, SagaState previousState) {
         SagaAggregate aggregate = (SagaAggregate) sagaAggregateRepository.findNonDeletedSagaAggregate(aggregateId)
-                .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
+                .orElseThrow(() -> new SimulatorDomainException(AGGREGATE_NOT_FOUND, aggregateId));
         logger.info("abort: aggregate {}", aggregate.getClass().getSimpleName());
         aggregate.setSagaState(previousState);
         entityManager.merge(aggregate);
@@ -231,7 +231,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Override
     public void registerChanged(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
         if (aggregate.getPrev() != null && aggregate.getPrev().getState() == Aggregate.AggregateState.INACTIVE) {
-            throw new SimulatorException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregate.getAggregateId());
+            throw new SimulatorDomainException(CANNOT_MODIFY_INACTIVE_AGGREGATE, aggregate.getAggregateId());
         }
 
         Long commitVersion = versionService.incrementAndGetVersionNumber();

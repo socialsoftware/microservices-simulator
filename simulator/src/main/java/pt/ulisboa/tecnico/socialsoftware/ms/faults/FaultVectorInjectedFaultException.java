@@ -13,6 +13,19 @@ public class FaultVectorInjectedFaultException extends SimulatorException {
     private final String runtimeStepName;
     private final int assignedBit;
 
+    private FaultVectorInjectedFaultException(String errorTemplate, String formattedMessage, boolean alreadyFormatted) {
+        super(errorTemplate, formattedMessage, alreadyFormatted);
+        this.scenarioExecutionId = null;
+        this.scenarioPlanId = null;
+        this.sagaInstanceId = null;
+        this.scheduledStepId = null;
+        this.slotIndex = -1;
+        this.functionalityClassFqn = null;
+        this.functionalityClassSimpleName = null;
+        this.runtimeStepName = null;
+        this.assignedBit = -1;
+    }
+
     public FaultVectorInjectedFaultException(FaultVectorFault fault) {
         super("Injected fault for scenario execution " + fault.scenarioExecutionId()
                 + ", plan " + fault.scenarioPlanId()
@@ -28,6 +41,10 @@ public class FaultVectorInjectedFaultException extends SimulatorException {
         this.functionalityClassSimpleName = fault.functionalityClassSimpleName();
         this.runtimeStepName = fault.runtimeStepName();
         this.assignedBit = fault.assignedBit();
+    }
+
+    public static FaultVectorInjectedFaultException fromRemote(String errorTemplate, String formattedMessage) {
+        return new FaultVectorInjectedFaultException(errorTemplate, formattedMessage, true);
     }
 
     public String getScenarioExecutionId() {

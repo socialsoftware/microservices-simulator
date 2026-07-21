@@ -364,10 +364,37 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         steps.explicitWithoutRecognizedDispatchStep.compensationFootprints().isEmpty()
 
         and:
+        steps.implicitWriteStep.forwardAnalysisComplete() == false
         steps.implicitWriteStep.compensationEvidence() == CompensationEvidenceClass.IMPLICIT_SAGA_ROLLBACK
         steps.conservativeUnresolvedStep.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
         steps.conservativeUnresolvedStep.analysisDiagnostics() == steps.conservativeUnresolvedStep.analysisDiagnostics().toSorted()
-        steps.readOnlyStep.compensationEvidence() == null
+
+        and:
+        steps.mixedReadHelperStep.footprints()*.accessMode() == [AccessMode.READ]
+        steps.mixedReadHelperStep.forwardAnalysisComplete() == false
+        steps.mixedReadHelperStep.analysisDiagnostics() == [
+                'FORWARD:UNANALYZED_METHOD_CALL: cannot prove effects of helper call updateItemThroughHelper'
+        ]
+        steps.mixedReadHelperStep.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
+
+        and:
+        ['constructorKeyHelperStep', 'overloadedGatewayStep', 'unrelatedSendStep', 'mismatchedCommandBindingStep'].each { stepName ->
+            def step = steps[stepName]
+            assert step.footprints()*.accessMode() == [AccessMode.READ]
+            assert !step.forwardAnalysisComplete()
+            assert step.analysisDiagnostics()*.split(':')*.take(2) == [['FORWARD', 'UNANALYZED_METHOD_CALL']]
+            assert step.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
+        }
+        steps.constructorKeyHelperStep.analysisDiagnostics() == [
+                'FORWARD:UNANALYZED_METHOD_CALL: cannot prove effects of helper call getAndUpdateItemKey'
+        ]
+
+        and:
+        ['inlineReadOnlyStep', 'readOnlyStep'].each { stepName ->
+            assert steps[stepName].forwardAnalysisComplete()
+            assert steps[stepName].analysisDiagnostics().isEmpty()
+            assert steps[stepName].compensationEvidence() == null
+        }
     }
 
     def 'dummyapp adapter integration produces input variant for event-origin saga'() {

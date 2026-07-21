@@ -91,6 +91,8 @@ This is a concrete compensation/forward interleaving: one failed participant's r
 
 ### Docker execution and report
 
+**Pre-remediation historical evidence:** this saved execution predates explicit domain-failure classification. Its recorded result is preserved below, but it is not evidence of the current zero-bit fallback policy.
+
 No vector overlay was supplied:
 
 ```bash
@@ -130,7 +132,7 @@ lifecycle 3 GetCourseExecutions   AUTOMATIC_COMMIT     SUCCEEDED
 assigned slot 3 updateCourseExecutionCountStep: MASKED
 ```
 
-The first `getCourseStep` completed. The zero-bit `createCourseStep` then failed because the generated DTO's course name was null, before the assigned slot at `updateCourseExecutionCountStep`. The executor reported the failed forward action, compensated the participant with no pending runtime checkpoint work, masked the unreachable assigned slot, skipped that participant's suffix, and completed/committed `GetCourseExecutionsFunctionalitySagas`. Therefore this run proves selection, materialization, action-aware measurement, zero-bit fallback, survivor continuation, and honest deviation reporting. It does **not** prove exact execution of the planned compensation actions or perfect extracted input values.
+The first `getCourseStep` completed. The zero-bit `createCourseStep` then failed with a plain, unmarked `SimulatorException` reporting service unavailability after command retries, before the assigned slot at `updateCourseExecutionCountStep`. The pre-remediation executor incorrectly treated that infrastructure failure as a domain deviation, ran no-work fallback, and completed/committed `GetCourseExecutionsFunctionalitySagas`. This historical run proves package selection, materialization, action-aware measurement, and package immutability under the old classifier; it does **not** prove current zero-bit domain fallback, survivor continuation, exact planned compensation, or valid extracted input behavior. Under the current explicit-marker contract, the same failure runs no fallback or survivor action and reports `UNEXPECTED_EXECUTION_FAILURE / INCOMPLETE`.
 
 ### Package immutability
 

@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-07-20
+Last updated: 2026-07-21
 
 This is the present-tense status page for verifier/scenario-generation work. Detailed validation lives in [`evidence.md`](evidence.md); terminology lives in [`glossary.md`](glossary.md); executor operation lives in [`reference/scenario-executor.md`](reference/scenario-executor.md).
 
@@ -20,7 +20,7 @@ Implemented:
 - Compensation checkpoints classified as `EXPLICIT_COMPENSATION`, `IMPLICIT_SAGA_ROLLBACK`, or `CONSERVATIVE_UNKNOWN`.
 - Bounded recovery-schedule generation with reverse per-participant compensation order and survivor-forward interleavings.
 - Eager FaultScenarios for materializable all-zero and single-point vectors.
-- Atomic, idempotent on-demand persistence for valid multi-fault vectors.
+- Idempotent on-demand persistence with package-local writer serialization across local JVM processes.
 - Exact accounting for computed vectors, including uncapped and written recovery-schedule counts.
 - Optional workload-linked dynamic-evidence sidecars that leave semantic package bytes unchanged.
 - Narrow saga/local ScenarioExecutor replay of one persisted FaultScenario, including zero-bit fallback and hard-stop policy.
@@ -60,7 +60,9 @@ A WorkloadPlan is reusable normal-execution structure. It owns participant insta
 
 A FaultScenario is one reproducible experiment. It references one WorkloadPlan and persists one binary vector plus one complete ordered action sequence. Actions are `FORWARD` or `COMPENSATION`; action identity is part of FaultScenario identity. A participant commits automatically on its final successful forward step, so commit is reported but not independently schedulable.
 
-Eager generation is intentionally bounded to materializable all-zero and single-point vectors. Non-materializable workloads remain in the workload catalog with diagnostics but receive no eager FaultScenarios. The on-demand request path validates the package/workload/vector/cap, deterministically generates bounded schedules, and atomically revises the FaultScenario catalog, accounting, and manifest. Invalid, duplicate-collision, and failed publication paths preserve prior bytes.
+Eager generation is intentionally bounded to materializable all-zero and single-point vectors. Non-materializable workloads remain in the workload catalog with diagnostics but receive no eager FaultScenarios. The on-demand request path serializes writers for the same real package directory across local JVM processes with the persistent `.on-demand-fault-scenario.lock` OS lock. It acquires that lock before package read/validation and holds it through generation, publication, final validation, and every result path, so a waiting writer re-reads the preceding validated revision. Invalid requests and caught generation/publication failures preserve or restore the prior three mutable semantic artifact bytes; a successful return means the resulting revision passed package validation.
+
+The three semantic files are still promoted separately. A process/JVM crash, kernel or host failure, or power loss during promotion can therefore leave a checksum-inconsistent package, and there is no automatic crash recovery. Readers remain checksum-protected and reject such torn packages; regenerate the package before retrying after an integrity failure. The `FileChannel` guarantee is for cooperating processes on a local filesystem and does not establish network-filesystem or multi-host distributed locking semantics.
 
 ### Recovery accounting
 
@@ -97,13 +99,16 @@ Supported execution semantics:
 - inject assigned faults at their exact forward slots;
 - execute scheduled checkpoint compensation in persisted order;
 - commit each participant automatically after its final successful forward action;
-- on a zero-bit domain/simulator body or commit failure, deviate once into immediate runtime-checkpoint recovery, skip that participant's remaining forwards, and continue valid survivor actions;
+- on a zero-bit body or commit failure explicitly marked with the simulator `DomainFailure` contract, deviate once into immediate runtime-checkpoint recovery, skip that participant's remaining forwards, and continue valid survivor actions;
+- treat plain `SimulatorException`, service unavailability, ordinary runtime failures, leaked assigned-fault exceptions, and all unknown/unmarked failures as infrastructure: run no fallback, stop survivor execution, and report `INCOMPLETE` after measured execution starts;
 - hard-stop at the first executor/infrastructure failure or thrown compensation action;
 - never mutate the five package artifacts.
 
 The action-aware report schema is `microservices-simulator.scenario-execution-report.v4`. It includes planned and actual action order, runtime occurrence/source ids, body and commit outcomes, recovery sub-outcomes, fault origin, fault-slot realization/masking, lifecycle events, participant final state, blockers, and `EXACT` / `DEVIATED` / `INCOMPLETE` conformance when measured execution begins.
 
-This remains a narrow deterministic sequential replay path. It is not generic catalog replay, distributed parity, or true parallel execution.
+`QuizzesException` business/invariant failures and the Saga/local transactional `SimulatorDomainException` carry the explicit marker. `QuizzesConfigurationException`, including every undefined-transactional-model failure, is unmarked. Base-class membership is deliberately insufficient: extending `SimulatorException` does not by itself make a failure a domain outcome. Supported local command-response restoration preserves the exact supported exception class, its template, and its formatted message.
+
+This remains a narrow deterministic sequential Saga/local replay path. The classification migration does not claim causal, TCC, stream, gRPC, generic distributed, or true-parallel parity.
 
 ## Current evidence
 
@@ -139,7 +144,7 @@ planned actions: 5 forwards + 2 compensations
 interleaving: compensation, surviving participant forward, compensation
 ```
 
-Docker execution exited zero with `terminalStatus=PARTIAL_COMPENSATED`, `scheduleConformance=DEVIATED`, and participant final states `COMPENSATED` plus `COMMITTED`. The zero-bit `createCourseStep` failed before the assigned slot because the extracted course name was null; the report honestly records `UNASSIGNED_RUNTIME_FORWARD_FAILURE`, immediate no-work recovery, the assigned slot as masked, and survivor continuation. All five package SHA-256 values were unchanged before/after execution.
+The saved Docker execution report is **pre-remediation historical evidence**, not evidence of the current classifier. It exited zero with `terminalStatus=PARTIAL_COMPENSATED` and `scheduleConformance=DEVIATED`, but its zero-bit `createCourseStep` failure is a plain `SimulatorException` reporting service unavailability after command retries. The old executor incorrectly ran fallback and continued the survivor. Under the current explicit-marker contract, the same unmarked failure is infrastructure: it runs no fallback, stops survivor execution, and reports `UNEXPECTED_EXECUTION_FAILURE / INCOMPLETE` after the measured action. The saved artifact is intentionally unchanged. All five package SHA-256 values were unchanged by that historical execution.
 
 Artifacts:
 
@@ -166,7 +171,7 @@ See [`evidence.md`](evidence.md) for commands and totals.
 - The materializability policy is static readiness plus structural admissibility; runtime success remains unproven until execution.
 - Segment compression is a deterministic reduction under extracted conflict evidence, not semantic-completeness proof.
 - Dynamic enrichment is local/sagas-focused; no fresh full Quizzes v3 dynamic baseline has been recorded.
-- A persisted executable FaultScenario can still encounter a meaningful zero-bit domain failure caused by imperfect extracted input values, as the current Quizzes smoke demonstrates.
+- No current post-remediation Quizzes smoke demonstrates an explicitly marked zero-bit domain fallback. The saved smoke predates explicit classification and encountered unmarked service unavailability, which current execution would treat as an infrastructure hard stop.
 - Persistent-environment reset is caller/orchestrator responsibility.
 
 ## Not implemented

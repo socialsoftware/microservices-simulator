@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorDomainException
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.InMemoryFaultVectorProvider
@@ -383,6 +384,85 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWorkflow.COMPENSATIONS == ['left:second', 'left:first']
     }
 
+    def 'plain and service-unavailable SimulatorException body failures hard-stop without fallback or survivor continuation'() {
+        given:
+        def workload = workload(['left', 'right'], [['left', 'first'], ['right', 'first']])
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        if (failureKind == 'plain') {
+            FixtureWorkflow.failBodyWithPlainSimulatorException('left', 'first')
+        } else {
+            FixtureWorkflow.failBodyWithServiceUnavailableException('left', 'first')
+        }
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.actualActions()*.status() == ['INFRASTRUCTURE_FAILED']
+        report.actualActions()[0].faultOrigin() == null
+        report.actualActions()[0].exceptionClass() == SimulatorException.name
+        report.hardStopActionId() == scenario.actions()[0].deterministicId()
+        report.hardStopReason() == 'FORWARD_INFRASTRUCTURE_FAILURE'
+        report.lifecycleEvents().isEmpty()
+        FixtureWorkflow.COMPENSATIONS.isEmpty()
+        FixtureWorkflow.BODIES == ['left:first']
+        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.runtimeStepName() == ['first']
+        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
+
+        where:
+        failureKind << ['plain', 'service-unavailable']
+    }
+
+    def 'plain SimulatorException during commit hard-stops without fallback or survivor continuation'() {
+        given:
+        def workload = workload(['left', 'right'], [['left', 'first'], ['right', 'first']])
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService(failCommitPlainSimulatorFor: 'left')
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(service))
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.actualActions()*.status() == ['COMMIT_INFRASTRUCTURE_FAILED']
+        report.actualActions()[0].bodyOutcome() == 'SUCCEEDED'
+        report.actualActions()[0].faultOrigin() == null
+        report.hardStopReason() == 'COMMIT_INFRASTRUCTURE_FAILURE'
+        report.lifecycleEvents().isEmpty()
+        FixtureWorkflow.COMPENSATIONS.isEmpty()
+        FixtureWorkflow.BODIES == ['left:first']
+        !FixtureWorkflow.BODIES.contains('right:first')
+        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
+    }
+
+    def 'leaked assigned-fault exception hard-stops and is never relabeled as unassigned runtime'() {
+        given:
+        def workload = workload(['left', 'right'], [['left', 'first'], ['right', 'first']])
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        FixtureWorkflow.leakAssignedFaultException('left', 'first')
+
+        when:
+        def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.actualActions()*.status() == ['INFRASTRUCTURE_FAILED']
+        report.actualActions()[0].faultOrigin() == null
+        report.actualActions()[0].exceptionClass().endsWith('FaultVectorInjectedFaultException')
+        report.hardStopReason() == 'FORWARD_INFRASTRUCTURE_FAILURE'
+        report.deviationActionId() == null
+        FixtureWorkflow.COMPENSATIONS.isEmpty()
+        FixtureWorkflow.BODIES == ['left:first']
+        !FixtureWorkflow.BODIES.contains('right:first')
+    }
+
     def 'non-domain body and commit failures are infrastructure hard stops without fallback'() {
         given:
         def workload = workload(['solo'], [['solo', 'first']])
@@ -744,6 +824,27 @@ class ScenarioExecutorSpec extends Specification {
         error.message.contains('v2 catalogs are not supported')
     }
 
+    def 'executor rejects checksum-mismatched fault-scenario content before selection or execution'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        Files.write(packageFixture.directory.resolve('fault-scenario-catalog.jsonl'), '\n'.bytes,
+                java.nio.file.StandardOpenOption.APPEND)
+
+        when:
+        new ScenarioExecutor().execute(
+                options(packageFixture.manifest, null, scenario.deterministicId()),
+                runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        def error = thrown(IllegalArgumentException)
+        error.message.contains('FAULT_SCENARIO_CATALOG')
+        error.message.contains('checksum mismatch')
+        FixtureWorkflow.constructorCalls == 0
+        FixtureWorkflow.BODIES.isEmpty()
+    }
+
     def 'pure action validation rejects duplicate, premature, reverse-order, and residual-forward violations before execution'() {
         given:
         def workload = workload(['left', 'right'], [
@@ -983,11 +1084,13 @@ class ScenarioExecutorSpec extends Specification {
         Map<String, Integer> implicitAttempts = [:].withDefault { 0 }
         List<String> implicitRollbacks = []
         String failCommitDomainFor
+        String failCommitPlainSimulatorFor
         String failCommitInfrastructureFor
         String failImplicitFor
 
         TrackingSagaUnitOfWorkService(Map values = [:]) {
             this.failCommitDomainFor = values.failCommitDomainFor
+            this.failCommitPlainSimulatorFor = values.failCommitPlainSimulatorFor
             this.failCommitInfrastructureFor = values.failCommitInfrastructureFor
             this.failImplicitFor = values.failImplicitFor
         }
@@ -996,7 +1099,10 @@ class ScenarioExecutorSpec extends Specification {
         void commit(SagaUnitOfWork unitOfWork) {
             commitCounts[unitOfWork.functionalityName] = commitCounts[unitOfWork.functionalityName] + 1
             if (unitOfWork.functionalityName == failCommitDomainFor) {
-                throw new SimulatorException('fixture commit domain failure')
+                throw new SimulatorDomainException('fixture commit domain failure')
+            }
+            if (unitOfWork.functionalityName == failCommitPlainSimulatorFor) {
+                throw new SimulatorException('fixture unmarked commit failure')
             }
             if (unitOfWork.functionalityName == failCommitInfrastructureFor) {
                 throw new IllegalStateException('fixture commit infrastructure failure')

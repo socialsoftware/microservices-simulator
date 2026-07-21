@@ -12,6 +12,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Work
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -49,15 +53,19 @@ public final class ScenarioCatalogPackageReader {
         validateArtifactMetadata(manifest.scenarioSpaceAccounting(), "SCENARIO_SPACE_ACCOUNTING", ScenarioSpaceAccountingReport.SCHEMA_VERSION);
         validateArtifactMetadata(manifest.rejectedInputsDiagnostic(), "REJECTED_INPUT_DIAGNOSTIC", null);
 
-        Path workloadPath = resolveArtifact(safeManifestPath, manifest.workloadCatalog().path());
-        Path faultScenarioPath = resolveArtifact(safeManifestPath, manifest.faultScenarioCatalog().path());
-        Path accountingPath = resolveArtifact(safeManifestPath, manifest.scenarioSpaceAccounting().path());
-        Path rejectedInputsPath = resolveArtifact(safeManifestPath, manifest.rejectedInputsDiagnostic().path());
-        List<WorkloadPlan> workloads = readWorkloads(workloadPath);
-        List<FaultScenario> faultScenarios = readFaultScenarios(faultScenarioPath, workloads);
+        ArtifactSnapshot workloadArtifact = readArtifact(
+                safeManifestPath, manifest.workloadCatalog());
+        ArtifactSnapshot faultScenarioArtifact = readArtifact(
+                safeManifestPath, manifest.faultScenarioCatalog());
+        ArtifactSnapshot accountingArtifact = readArtifact(
+                safeManifestPath, manifest.scenarioSpaceAccounting());
+        ArtifactSnapshot rejectedInputsArtifact = readArtifact(
+                safeManifestPath, manifest.rejectedInputsDiagnostic());
+        List<WorkloadPlan> workloads = readWorkloads(workloadArtifact);
+        List<FaultScenario> faultScenarios = readFaultScenarios(faultScenarioArtifact, workloads);
         List<JsonNode> rejectedInputDiagnostics = readRejectedInputDiagnostics(
-                rejectedInputsPath, manifest.rejectedInputsDiagnostic().schemaVersion());
-        JsonNode accounting = readJson(accountingPath, "scenario-space accounting");
+                rejectedInputsArtifact, manifest.rejectedInputsDiagnostic().schemaVersion());
+        JsonNode accounting = readJson(accountingArtifact.bytes(), accountingArtifact.path(), "scenario-space accounting");
         if (!ScenarioSpaceAccountingReport.SCHEMA_VERSION.equals(text(accounting, "schemaVersion"))) {
             throw new IllegalArgumentException("Linked accounting artifact has unsupported schema '"
                     + text(accounting, "schemaVersion") + "'; expected " + ScenarioSpaceAccountingReport.SCHEMA_VERSION);
@@ -68,12 +76,13 @@ public final class ScenarioCatalogPackageReader {
         validateRecordCount(manifest.scenarioSpaceAccounting(), 1);
         validateRecordCount(manifest.rejectedInputsDiagnostic(), rejectedInputDiagnostics.size());
         return new PackageContents(manifest, workloads, faultScenarios, rejectedInputDiagnostics, accounting,
-                workloadPath, faultScenarioPath, rejectedInputsPath, accountingPath);
+                workloadArtifact.path(), faultScenarioArtifact.path(), rejectedInputsArtifact.path(), accountingArtifact.path());
     }
 
-    private List<WorkloadPlan> readWorkloads(Path path) {
+    private List<WorkloadPlan> readWorkloads(ArtifactSnapshot artifact) {
+        Path path = artifact.path();
         List<WorkloadPlan> workloads = new ArrayList<>();
-        List<String> lines = readLines(path, "workload catalog");
+        List<String> lines = readLines(artifact);
         WorkloadPlanValidator validator = new WorkloadPlanValidator();
         Set<String> ids = new HashSet<>();
         for (int index = 0; index < lines.size(); index++) {
@@ -101,13 +110,14 @@ public final class ScenarioCatalogPackageReader {
         return List.copyOf(workloads);
     }
 
-    private List<FaultScenario> readFaultScenarios(Path path, List<WorkloadPlan> workloads) {
+    private List<FaultScenario> readFaultScenarios(ArtifactSnapshot artifact, List<WorkloadPlan> workloads) {
+        Path path = artifact.path();
         java.util.Map<String, WorkloadPlan> workloadsById = new java.util.LinkedHashMap<>();
         workloads.forEach(workload -> workloadsById.put(workload.deterministicId(), workload));
         List<FaultScenario> records = new ArrayList<>();
         FaultScenarioValidator validator = new FaultScenarioValidator();
         Set<String> ids = new HashSet<>();
-        List<String> lines = readLines(path, "fault-scenario catalog");
+        List<String> lines = readLines(artifact);
         for (int index = 0; index < lines.size(); index++) {
             String line = lines.get(index);
             if (line == null || line.isBlank()) {
@@ -137,9 +147,10 @@ public final class ScenarioCatalogPackageReader {
         return List.copyOf(records);
     }
 
-    private List<JsonNode> readRejectedInputDiagnostics(Path path, String expectedSchema) {
+    private List<JsonNode> readRejectedInputDiagnostics(ArtifactSnapshot artifact, String expectedSchema) {
+        Path path = artifact.path();
         List<JsonNode> records = new ArrayList<>();
-        List<String> lines = readLines(path, "rejected-input diagnostic");
+        List<String> lines = readLines(artifact);
         for (int index = 0; index < lines.size(); index++) {
             String line = lines.get(index);
             if (line == null || line.isBlank()) {
@@ -169,6 +180,10 @@ public final class ScenarioCatalogPackageReader {
         }
         if (artifact.path() == null) {
             throw new IllegalArgumentException("Manifest artifact " + expectedKind + " has no path");
+        }
+        if (artifact.sha256() == null || !artifact.sha256().matches("[0-9a-f]{64}")) {
+            throw new IllegalArgumentException("Manifest artifact " + expectedKind
+                    + " has no valid SHA-256 checksum");
         }
         exactCount(artifact.recordCount(), expectedKind);
     }
@@ -206,9 +221,33 @@ public final class ScenarioCatalogPackageReader {
         return path;
     }
 
+    private ArtifactSnapshot readArtifact(Path manifestPath,
+                                          ScenarioCatalogManifest.ArtifactMetadata metadata) {
+        Path path = resolveArtifact(manifestPath, metadata.path());
+        try {
+            byte[] bytes = Files.readAllBytes(path);
+            String actualChecksum = ScenarioCatalogJsonlWriter.sha256(bytes);
+            if (!metadata.sha256().equals(actualChecksum)) {
+                throw new IllegalArgumentException("Manifest checksum mismatch for "
+                        + metadata.artifactKind());
+            }
+            return new ArtifactSnapshot(metadata, path, bytes);
+        } catch (IOException exception) {
+            throw new IllegalArgumentException("Failed to read package artifact " + path, exception);
+        }
+    }
+
     private JsonNode readJson(Path path, String label) {
         try {
-            return objectMapper.readTree(Files.readString(path));
+            return objectMapper.readTree(Files.readAllBytes(path));
+        } catch (IOException exception) {
+            throw new IllegalArgumentException("Failed to read " + label + " " + path, exception);
+        }
+    }
+
+    private JsonNode readJson(byte[] bytes, Path path, String label) {
+        try {
+            return objectMapper.readTree(bytes);
         } catch (IOException exception) {
             throw new IllegalArgumentException("Failed to read " + label + " " + path, exception);
         }
@@ -222,11 +261,17 @@ public final class ScenarioCatalogPackageReader {
         }
     }
 
-    private List<String> readLines(Path path, String label) {
+    private List<String> readLines(ArtifactSnapshot artifact) {
         try {
-            return Files.readAllLines(path);
-        } catch (IOException exception) {
-            throw new IllegalArgumentException("Failed to read " + label + " " + path, exception);
+            String content = StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(artifact.bytes()))
+                    .toString();
+            return content.lines().toList();
+        } catch (CharacterCodingException exception) {
+            throw new IllegalArgumentException("Malformed UTF-8 in package artifact "
+                    + artifact.metadata().artifactKind() + " " + artifact.path(), exception);
         }
     }
 
@@ -246,6 +291,11 @@ public final class ScenarioCatalogPackageReader {
     private String text(JsonNode node, String field) {
         JsonNode value = node == null ? null : node.get(field);
         return value == null || value.isNull() || !value.isTextual() ? null : value.asText();
+    }
+
+    private record ArtifactSnapshot(ScenarioCatalogManifest.ArtifactMetadata metadata,
+                                    Path path,
+                                    byte[] bytes) {
     }
 
     public record PackageContents(

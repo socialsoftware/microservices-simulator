@@ -19,12 +19,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Work
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -45,6 +48,8 @@ public final class OnDemandFaultScenarioService {
             .comparing(FaultScenario::workloadPlanId, Comparator.nullsFirst(String::compareTo))
             .thenComparing(FaultScenario::assignedVector, Comparator.nullsFirst(String::compareTo))
             .thenComparing(FaultScenario::deterministicId, Comparator.nullsFirst(String::compareTo));
+    static final String PACKAGE_LOCK_FILE_NAME = ".on-demand-fault-scenario.lock";
+
     private static final ConcurrentHashMap<Path, Object> PACKAGE_LOCKS = new ConcurrentHashMap<>();
 
     private final ObjectMapper objectMapper;
@@ -52,21 +57,38 @@ public final class OnDemandFaultScenarioService {
     private final FailureInjector failureInjector;
     private final FileMover fileMover;
     private final TemporaryFileCleaner temporaryFileCleaner;
+    private final PackageLockProvider packageLockProvider;
 
     public OnDemandFaultScenarioService() {
-        this(RecoveryScheduleGenerator::generate, boundary -> { }, new NioFileMover(), Files::deleteIfExists);
+        this(RecoveryScheduleGenerator::generate, boundary -> { }, new NioFileMover(), Files::deleteIfExists,
+                new NioPackageLockProvider());
+    }
+
+    OnDemandFaultScenarioService(PackageLockProvider packageLockProvider) {
+        this(RecoveryScheduleGenerator::generate, boundary -> { }, new NioFileMover(), Files::deleteIfExists,
+                packageLockProvider);
     }
 
     OnDemandFaultScenarioService(RecoveryScheduleSource recoveryScheduleSource,
                                  FailureInjector failureInjector,
                                  FileMover fileMover) {
-        this(recoveryScheduleSource, failureInjector, fileMover, Files::deleteIfExists);
+        this(recoveryScheduleSource, failureInjector, fileMover, Files::deleteIfExists,
+                new NioPackageLockProvider());
     }
 
     OnDemandFaultScenarioService(RecoveryScheduleSource recoveryScheduleSource,
                                  FailureInjector failureInjector,
                                  FileMover fileMover,
                                  TemporaryFileCleaner temporaryFileCleaner) {
+        this(recoveryScheduleSource, failureInjector, fileMover, temporaryFileCleaner,
+                new NioPackageLockProvider());
+    }
+
+    OnDemandFaultScenarioService(RecoveryScheduleSource recoveryScheduleSource,
+                                 FailureInjector failureInjector,
+                                 FileMover fileMover,
+                                 TemporaryFileCleaner temporaryFileCleaner,
+                                 PackageLockProvider packageLockProvider) {
         this.objectMapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
@@ -75,6 +97,7 @@ public final class OnDemandFaultScenarioService {
         this.failureInjector = Objects.requireNonNull(failureInjector);
         this.fileMover = Objects.requireNonNull(fileMover);
         this.temporaryFileCleaner = Objects.requireNonNull(temporaryFileCleaner);
+        this.packageLockProvider = Objects.requireNonNull(packageLockProvider);
     }
 
     public OnDemandFaultScenarioResult request(OnDemandFaultScenarioRequest request) {
@@ -92,7 +115,7 @@ public final class OnDemandFaultScenarioService {
         }
         Object packageLock = PACKAGE_LOCKS.computeIfAbsent(packageIdentity, ignored -> new Object());
         synchronized (packageLock) {
-            return requestLocked(request, manifestPath);
+            return requestWithPackageLock(request, manifestPath, packageIdentity);
         }
     }
 
@@ -106,6 +129,48 @@ public final class OnDemandFaultScenarioService {
             return packageRoot.toRealPath();
         } catch (IOException exception) {
             throw new IllegalArgumentException("Failed to resolve scenario package directory", exception);
+        }
+    }
+
+    private OnDemandFaultScenarioResult requestWithPackageLock(OnDemandFaultScenarioRequest request,
+                                                                 Path manifestPath,
+                                                                 Path packageIdentity) {
+        PackageLockHandle lockHandle;
+        try {
+            lockHandle = packageLockProvider.open(packageIdentity.resolve(PACKAGE_LOCK_FILE_NAME));
+        } catch (IOException | RuntimeException exception) {
+            return packageLockFailure(request, exception);
+        }
+        try {
+            lockHandle.acquire();
+        } catch (IOException | RuntimeException exception) {
+            closeIgnoringFailure(lockHandle);
+            return packageLockFailure(request, exception);
+        }
+
+        try {
+            try {
+                return requestLocked(request, manifestPath);
+            } catch (RuntimeException exception) {
+                return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, null,
+                        "REQUEST_PROCESSING_FAILED", rootMessage(exception));
+            }
+        } finally {
+            closeIgnoringFailure(lockHandle);
+        }
+    }
+
+    private OnDemandFaultScenarioResult packageLockFailure(OnDemandFaultScenarioRequest request,
+                                                            Exception exception) {
+        return failure(OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED, request, null,
+                "PACKAGE_LOCK_FAILED", rootMessage(exception));
+    }
+
+    private void closeIgnoringFailure(PackageLockHandle lockHandle) {
+        try {
+            lockHandle.close();
+        } catch (IOException | RuntimeException ignored) {
+            // The request result reflects package publication, not lock-resource cleanup.
         }
     }
 
@@ -546,20 +611,6 @@ public final class OnDemandFaultScenarioService {
                 throw new IllegalArgumentException("Linked package artifact escapes the package directory: " + normalized);
             }
             rejectSymlinkSegments(normalized);
-            String expectedHash = artifact.metadata().sha256();
-            if (expectedHash == null || !expectedHash.matches("[0-9a-f]{64}")) {
-                throw new IllegalArgumentException("Manifest artifact " + artifact.metadata().artifactKind()
-                        + " has no valid SHA-256 checksum");
-            }
-            try {
-                String actualHash = ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(normalized));
-                if (!expectedHash.equals(actualHash)) {
-                    throw new IllegalArgumentException("Manifest checksum mismatch for "
-                            + artifact.metadata().artifactKind());
-                }
-            } catch (IOException exception) {
-                throw new IllegalArgumentException("Failed to checksum package artifact " + normalized, exception);
-            }
         }
 
         ScenarioSpaceAccountingReport accounting;
@@ -915,6 +966,22 @@ public final class OnDemandFaultScenarioService {
         void deleteIfExists(Path path) throws IOException;
     }
 
+    interface PackageLockProvider {
+        PackageLockHandle open(Path lockPath) throws IOException;
+    }
+
+    interface PackageLockHandle extends AutoCloseable {
+        void acquire() throws IOException;
+
+        @Override
+        void close() throws IOException;
+    }
+
+    @FunctionalInterface
+    interface LockAcquisitionObserver {
+        void beforeAcquire(Path lockPath) throws IOException;
+    }
+
     enum Boundary {
         FAULT_SCENARIO_STAGED,
         ACCOUNTING_STAGED,
@@ -922,6 +989,77 @@ public final class OnDemandFaultScenarioService {
         FAULT_SCENARIO_PROMOTED,
         ACCOUNTING_PROMOTED,
         MANIFEST_PROMOTED
+    }
+
+    static final class NioPackageLockProvider implements PackageLockProvider {
+        private final LockAcquisitionObserver observer;
+
+        NioPackageLockProvider() {
+            this(ignored -> { });
+        }
+
+        NioPackageLockProvider(LockAcquisitionObserver observer) {
+            this.observer = Objects.requireNonNull(observer);
+        }
+
+        @Override
+        public PackageLockHandle open(Path lockPath) throws IOException {
+            if (Files.exists(lockPath, LinkOption.NOFOLLOW_LINKS)
+                    && !Files.isRegularFile(lockPath, LinkOption.NOFOLLOW_LINKS)) {
+                throw new IOException("Package lock path is not a regular file: " + lockPath);
+            }
+            FileChannel channel = FileChannel.open(
+                    lockPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS);
+            return new NioPackageLockHandle(lockPath, channel, observer);
+        }
+    }
+
+    private static final class NioPackageLockHandle implements PackageLockHandle {
+        private final Path lockPath;
+        private final FileChannel channel;
+        private final LockAcquisitionObserver observer;
+        private FileLock lock;
+
+        private NioPackageLockHandle(Path lockPath,
+                                     FileChannel channel,
+                                     LockAcquisitionObserver observer) {
+            this.lockPath = lockPath;
+            this.channel = channel;
+            this.observer = observer;
+        }
+
+        @Override
+        public void acquire() throws IOException {
+            observer.beforeAcquire(lockPath);
+            lock = channel.lock();
+            if (!Files.isRegularFile(lockPath, LinkOption.NOFOLLOW_LINKS)) {
+                throw new IOException("Package lock path is not a regular file: " + lockPath);
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            IOException failure = null;
+            if (lock != null) {
+                try {
+                    lock.close();
+                } catch (IOException exception) {
+                    failure = exception;
+                }
+            }
+            try {
+                channel.close();
+            } catch (IOException exception) {
+                if (failure == null) {
+                    failure = exception;
+                } else {
+                    failure.addSuppressed(exception);
+                }
+            }
+            if (failure != null) {
+                throw failure;
+            }
+        }
     }
 
     static final class NioFileMover implements FileMover {

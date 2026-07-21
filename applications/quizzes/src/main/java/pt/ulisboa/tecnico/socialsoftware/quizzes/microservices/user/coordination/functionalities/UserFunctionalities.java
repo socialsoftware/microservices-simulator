@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesConfigurationException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.causal.*;
@@ -48,7 +49,7 @@ public class UserFunctionalities {
         } else if (Arrays.asList(activeProfiles).contains(TCC.getValue())) {
             workflowType = TCC;
         } else {
-            throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -74,7 +75,7 @@ public class UserFunctionalities {
                 createUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return createUserFunctionalityTCC.getCreatedUserDto();
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -97,7 +98,7 @@ public class UserFunctionalities {
                 findUserByIdFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return findUserByIdFunctionalityTCC.getUserDto();
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -120,7 +121,7 @@ public class UserFunctionalities {
                 activateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -142,7 +143,7 @@ public class UserFunctionalities {
 
                 deactivateUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
-            default: throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+            default: throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -165,7 +166,7 @@ public class UserFunctionalities {
                 deleteUserFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 break;
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -188,7 +189,7 @@ public class UserFunctionalities {
                 getStudentsFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getStudentsFunctionalityTCC.getStudents();
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 
@@ -211,7 +212,7 @@ public class UserFunctionalities {
                 getTeachersFunctionalityTCC.executeWorkflow(causalUnitOfWork);
                 return getTeachersFunctionalityTCC.getTeachers();
             default:
-                throw new QuizzesException(UNDEFINED_TRANSACTIONAL_MODEL);
+                throw new QuizzesConfigurationException(UNDEFINED_TRANSACTIONAL_MODEL);
         }
     }
 

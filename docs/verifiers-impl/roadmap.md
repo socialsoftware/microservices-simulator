@@ -43,7 +43,7 @@ Implemented:
 - Conservative confidence labels for aggregate-key and compensation evidence.
 - Bounded defaults to avoid large-app combinatorial explosion.
 - Conflict-anchor segment-compressed forward scheduling and separate bounded recovery-schedule generation.
-- Materializability/admissibility classification, eager all-zero/single-point FaultScenarios, and atomic on-demand multi-fault persistence.
+- Materializability/admissibility classification, eager all-zero/single-point FaultScenarios, and idempotent on-demand multi-fault persistence serialized across local JVM writers with a stable package-local OS lock.
 - Exact BigInteger recovery accounting for computed vectors without materializing the uncapped schedule space.
 
 Remaining gaps:
@@ -52,6 +52,7 @@ Remaining gaps:
 - The remaining 32 Quizzes sagas without accepted static inputs are not yet classified.
 - Event payload reconstruction is incomplete; event-origin inputs may be statically accepted while blocked for materialization by payload placeholders.
 - Segment-compressed scheduling remains static evidence; it does not prove semantic completeness or exact runtime aggregate-instance binding.
+- On-demand publication replaces the FaultScenario catalog, accounting, and manifest separately. Caught failures roll back, but hard process/JVM, kernel, host, or power failures are not crash-atomic and have no automatic recovery; checksum-invalid packages must be regenerated. The local `FileChannel` lock does not claim network-filesystem or multi-host distributed coordination.
 - The current executor supports only persisted materializable saga/local FaultScenarios and deterministic sequential action replay; package presence does not imply runtime success for every workload.
 
 ## Stage 1.5 — Dynamic evidence bridge
@@ -121,9 +122,9 @@ The runtime side should:
 
 Implemented for a narrow bounded path only.
 
-A verifier-owned ScenarioExecutor now loads a complete v3 package and exactly one persisted FaultScenario id, materializes supported saga/local participants, and sequentially replays the persisted action schedule. Assigned faults follow persisted recovery ordering. Zero-bit domain/simulator failures use immediate checkpoint recovery and survivor continuation as a reported `DEVIATED` fallback; executor/infrastructure and compensation failures hard-stop. The standalone action-aware report schema is v4. Runtime vector overlays and auto-selection are unsupported.
+A verifier-owned ScenarioExecutor now loads a complete v3 package and exactly one persisted FaultScenario id, materializes supported saga/local participants, and sequentially replays the persisted action schedule. Assigned faults follow persisted recovery ordering. Only zero-bit failures carrying the explicit simulator `DomainFailure` marker use immediate checkpoint recovery and survivor continuation as a reported `DEVIATED` fallback. Plain or unmarked `SimulatorException`, service unavailability, unknown/runtime failures, executor/infrastructure failures, and compensation failures hard-stop; infrastructure failures after measured execution starts report `INCOMPLETE`. The standalone action-aware report schema is v4. Runtime vector overlays and auto-selection are unsupported.
 
-Current accounting distinguishes static recipe readiness from workload-level ScenarioExecutor materializability/admissibility. That policy gates eager FaultScenario generation but does not prove domain success: the 2026-07-20 Quizzes smoke selected a materializable compensation-interleaving FaultScenario and then honestly reported a zero-bit null-input failure and fallback.
+Current accounting distinguishes static recipe readiness from workload-level ScenarioExecutor materializability/admissibility. That policy gates eager FaultScenario generation but does not prove domain success. The saved 2026-07-20 Quizzes execution is pre-remediation historical evidence: its actual failure was unmarked service unavailability, which the old classifier incorrectly handled with fallback and survivor continuation. Under the current classifier it would run no fallback, stop the survivor, and hard-stop as `UNEXPECTED_EXECUTION_FAILURE / INCOMPLETE`. The saved artifact remains unchanged, and no post-remediation Quizzes domain-fallback smoke has been recorded.
 
 Generic execution is still not implemented. The supported path does not cover arbitrary/non-materializable package shapes, TCC execution, stream/gRPC/distributed parity, true parallel execution, compensation faults, delay/non-binary impairments, automatic recovery retries, impact scoring, GA search, or prioritization.
 

@@ -8,7 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowRecoveryCheckpo
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepExecutionResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryException;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryResult;
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.DomainFailure;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorBoundaryContext;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorFault;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder;
@@ -553,7 +553,7 @@ public final class ScenarioExecutor {
     }
 
     private boolean isDomainFailure(Throwable failure) {
-        return failure instanceof SimulatorException;
+        return failure instanceof DomainFailure;
     }
 
     private Throwable recoveryFailureCause(Throwable failure) {

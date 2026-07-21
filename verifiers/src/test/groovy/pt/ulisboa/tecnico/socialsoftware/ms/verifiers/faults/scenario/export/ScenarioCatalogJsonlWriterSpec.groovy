@@ -115,12 +115,110 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
                 '{"schemaVersion":"microservices-simulator.fault-scenario.v3","deterministicId":"fault-1","workloadPlanId":"missing"}\n')
         def manifestJson = mapper.readTree(Files.readString(paths.manifest))
         manifestJson.withObject('/faultScenarioCatalog').put('recordCount', '1')
+                .put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(paths.faultScenario)))
         mapper.writerWithDefaultPrettyPrinter().writeValue(paths.manifest.toFile(), manifestJson)
         reader.read(paths.manifest)
 
         then:
         def danglingFailure = thrown(IllegalArgumentException)
         danglingFailure.message.contains('references missing WorkloadPlan missing')
+    }
+
+    def 'shared package reader rejects missing and malformed artifact checksums'() {
+        given:
+        def paths = packagePaths(Files.createTempDirectory('v3-reader-checksum-metadata'))
+        writePackage(eagerGenerationResult(), paths, '2026-07-20T00:00:00Z')
+        def manifest = mapper.readTree(Files.readString(paths.manifest))
+        if (checksum == null) {
+            manifest.path(artifactField).remove('sha256')
+        } else {
+            manifest.path(artifactField).put('sha256', checksum)
+        }
+        Files.writeString(paths.manifest, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
+
+        when:
+        new ScenarioCatalogPackageReader().read(paths.manifest)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains(manifest.path(artifactField).path('artifactKind').asText())
+        failure.message.contains('valid SHA-256 checksum')
+
+        where:
+        artifactField          | checksum
+        'workloadCatalog'       | null
+        'faultScenarioCatalog'  | 'ABC'
+        'scenarioSpaceAccounting' | 'a' * 63
+        'rejectedInputsDiagnostic' | 'A' * 64
+    }
+
+    def 'shared package reader rejects byte changes to every linked artifact without updated checksums'() {
+        given:
+        def paths = packagePaths(Files.createTempDirectory("v3-reader-checksum-${artifactField}"))
+        writePackage(eagerGenerationResult(), paths, '2026-07-20T00:00:00Z')
+        Files.write(paths[artifactKey], '\n'.bytes, java.nio.file.StandardOpenOption.APPEND)
+
+        when:
+        new ScenarioCatalogPackageReader().read(paths.manifest)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains(expectedKind)
+        failure.message.contains('checksum mismatch')
+
+        where:
+        artifactField                    | artifactKey      | expectedKind
+        'workloadCatalog'                 | 'workload'       | 'WORKLOAD_CATALOG'
+        'faultScenarioCatalog'            | 'faultScenario'  | 'FAULT_SCENARIO_CATALOG'
+        'scenarioSpaceAccounting'         | 'accounting'     | 'SCENARIO_SPACE_ACCOUNTING'
+        'rejectedInputsDiagnostic'        | 'rejected'       | 'REJECTED_INPUT_DIAGNOSTIC'
+    }
+
+    def 'shared package reader rejects checksum-matching malformed UTF-8 JSONL'() {
+        given:
+        def paths = packagePaths(Files.createTempDirectory('v3-reader-malformed-utf8'))
+        writePackage(eagerGenerationResult(), paths, '2026-07-20T00:00:00Z')
+        byte[] original = Files.readAllBytes(paths.workload)
+        assert original[-2] == ('}' as char) as byte
+        assert original[-1] == ('\n' as char) as byte
+        def malformed = new ByteArrayOutputStream()
+        malformed.write(original, 0, original.length - 2)
+        malformed.write(',"ignored":"'.getBytes('UTF-8'))
+        malformed.write(0x80)
+        malformed.write('"}\n'.getBytes('UTF-8'))
+        Files.write(paths.workload, malformed.toByteArray())
+        refreshArtifactHash(paths.manifest, 'workloadCatalog', paths.workload)
+
+        when:
+        new ScenarioCatalogPackageReader().read(paths.manifest)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('Malformed UTF-8')
+        failure.message.contains('WORKLOAD_CATALOG')
+        failure.message.contains(paths.workload.toString())
+        !failure.message.contains('checksum mismatch')
+    }
+
+    def 'shared package reader rejects a semantically valid same-count fault catalog replacement'() {
+        given:
+        def paths = packagePaths(Files.createTempDirectory('v3-reader-valid-replacement'))
+        writePackage(eagerGenerationResult(), paths, '2026-07-20T00:00:00Z')
+        def replacementLines = Files.readAllLines(paths.faultScenario).collect { line ->
+            def record = mapper.readTree(line)
+            def schema = record.remove('schemaVersion').asText()
+            record.put('schemaVersion', schema)
+            mapper.writeValueAsString(record)
+        }
+        Files.write(paths.faultScenario, replacementLines)
+
+        when:
+        new ScenarioCatalogPackageReader().read(paths.manifest)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('FAULT_SCENARIO_CATALOG')
+        failure.message.contains('checksum mismatch')
     }
 
     def 'writer rejects an invalid eager package before creating any artifact'() {
@@ -238,6 +336,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
                 .path('inputRecipe').path('arguments').first().path('recipe')
                 .put('value', 2)
         Files.writeString(paths.workload, mapper.writeValueAsString(workload) + '\n')
+        refreshArtifactHash(paths.manifest, 'workloadCatalog', paths.workload)
 
         when:
         new ScenarioCatalogPackageReader().read(paths.manifest)
@@ -256,6 +355,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         def workload = mapper.readTree(Files.readAllLines(paths.workload).first())
         workload.path('forwardSchedule').first().put('sagaInstanceId', 'missing-participant')
         Files.writeString(paths.workload, mapper.writeValueAsString(workload) + '\n')
+        refreshArtifactHash(paths.manifest, 'workloadCatalog', paths.workload)
 
         when:
         new ScenarioCatalogPackageReader().read(paths.manifest)
@@ -263,6 +363,14 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         then:
         def malformed = thrown(IllegalArgumentException)
         malformed.message.contains('Invalid WorkloadPlan')
+    }
+
+    private void refreshArtifactHash(java.nio.file.Path manifestPath,
+                                     String artifactField,
+                                     java.nio.file.Path artifactPath) {
+        def manifest = mapper.readTree(Files.readString(manifestPath))
+        manifest.path(artifactField).put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(artifactPath)))
+        Files.writeString(manifestPath, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
     }
 
     private static ScenarioCatalogManifest writePackage(def result, Map paths, String generatedAt) {
