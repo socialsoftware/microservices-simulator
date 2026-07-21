@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Aggr
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictEvidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioPlan;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep;
 
 import java.io.IOException;
@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DynamicInputMapWriter {
-    public static final String SCHEMA_VERSION = "microservices-simulator.dynamic-input-map.v1";
+    public static final String SCHEMA_VERSION = "microservices-simulator.dynamic-input-map.v3";
     public static final String FILE_NAME = "dynamic-input-map.json";
 
     private static final Pattern SIMPLE_ARGUMENT_LITERAL = Pattern.compile(
@@ -44,7 +44,7 @@ public class DynamicInputMapWriter {
 
     public DynamicInputMap write(Path path,
                                  List<String> selectedTestClassFqns,
-                                 List<ScenarioPlan> scenarioPlans,
+                                 List<WorkloadPlan> workloadPlans,
                                  String generatedAt) throws IOException {
         Objects.requireNonNull(path, "path cannot be null");
         Path parent = path.getParent();
@@ -52,23 +52,23 @@ public class DynamicInputMapWriter {
             Files.createDirectories(parent);
         }
 
-        DynamicInputMap map = build(selectedTestClassFqns, scenarioPlans, generatedAt);
+        DynamicInputMap map = build(selectedTestClassFqns, workloadPlans, generatedAt);
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), map);
         return map;
     }
 
-    DynamicInputMap build(List<String> selectedTestClassFqns, List<ScenarioPlan> scenarioPlans, String generatedAt) {
+    DynamicInputMap build(List<String> selectedTestClassFqns, List<WorkloadPlan> workloadPlans, String generatedAt) {
         Map<String, EntryBuilder> entries = new LinkedHashMap<>();
-        for (ScenarioPlan plan : sortedPlans(scenarioPlans)) {
-            for (InputVariant input : sortedInputs(plan.inputs())) {
+        for (WorkloadPlan workload : sortedWorkloads(workloadPlans)) {
+            for (InputVariant input : sortedInputs(workload.acceptedInputs())) {
                 if (input == null || isBlank(input.deterministicId())) {
                     continue;
                 }
 
                 EntryBuilder builder = entries.computeIfAbsent(input.deterministicId(), ignored -> new EntryBuilder(input));
-                builder.scenarioPlanIds.add(plan.deterministicId());
-                builder.stepNameHints.addAll(stepNameHints(plan, input));
-                builder.expectedAggregateTypes.addAll(expectedAggregateTypes(plan, input));
+                builder.workloadPlanIds.add(workload.deterministicId());
+                builder.stepNameHints.addAll(stepNameHints(workload, input));
+                builder.expectedAggregateTypes.addAll(expectedAggregateTypes(workload, input));
             }
         }
 
@@ -88,10 +88,10 @@ public class DynamicInputMapWriter {
                 .toList();
     }
 
-    private List<ScenarioPlan> sortedPlans(List<ScenarioPlan> scenarioPlans) {
-        return (scenarioPlans == null ? List.<ScenarioPlan>of() : scenarioPlans).stream()
+    private List<WorkloadPlan> sortedWorkloads(List<WorkloadPlan> workloadPlans) {
+        return (workloadPlans == null ? List.<WorkloadPlan>of() : workloadPlans).stream()
                 .filter(Objects::nonNull)
-                .sorted(Comparator.comparing(ScenarioPlan::deterministicId, Comparator.nullsFirst(String::compareTo)))
+                .sorted(Comparator.comparing(WorkloadPlan::deterministicId, Comparator.nullsFirst(String::compareTo)))
                 .toList();
     }
 
@@ -102,10 +102,10 @@ public class DynamicInputMapWriter {
                 .toList();
     }
 
-    private Set<String> stepNameHints(ScenarioPlan plan, InputVariant input) {
-        Set<String> sagaInstanceIds = sagaInstanceIds(plan, input);
+    private Set<String> stepNameHints(WorkloadPlan workload, InputVariant input) {
+        Set<String> sagaInstanceIds = sagaInstanceIds(workload, input);
         LinkedHashSet<String> hints = new LinkedHashSet<>();
-        plan.expandedSchedule().stream()
+        workload.forwardSchedule().stream()
                 .filter(step -> step != null && sagaInstanceIds.contains(step.sagaInstanceId()))
                 .map(ScheduledStep::stepId)
                 .map(DynamicInputMapWriter::normalizedStepName)
@@ -114,15 +114,15 @@ public class DynamicInputMapWriter {
         return hints;
     }
 
-    private Set<String> expectedAggregateTypes(ScenarioPlan plan, InputVariant input) {
-        Set<String> sagaInstanceIds = sagaInstanceIds(plan, input);
-        Set<String> scheduledStepIds = plan.expandedSchedule().stream()
+    private Set<String> expectedAggregateTypes(WorkloadPlan workload, InputVariant input) {
+        Set<String> sagaInstanceIds = sagaInstanceIds(workload, input);
+        Set<String> scheduledStepIds = workload.forwardSchedule().stream()
                 .filter(step -> step != null && sagaInstanceIds.contains(step.sagaInstanceId()))
                 .map(ScheduledStep::deterministicId)
                 .filter(value -> !isBlank(value))
                 .collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll);
         LinkedHashSet<String> aggregateTypes = new LinkedHashSet<>();
-        for (ConflictEvidence evidence : plan.conflictEvidence()) {
+        for (ConflictEvidence evidence : workload.conflictEvidence()) {
             if (evidence == null) {
                 continue;
             }
@@ -136,9 +136,9 @@ public class DynamicInputMapWriter {
         return aggregateTypes;
     }
 
-    private Set<String> sagaInstanceIds(ScenarioPlan plan, InputVariant input) {
+    private Set<String> sagaInstanceIds(WorkloadPlan workload, InputVariant input) {
         LinkedHashSet<String> ids = new LinkedHashSet<>();
-        for (SagaInstance sagaInstance : plan.sagaInstances()) {
+        for (SagaInstance sagaInstance : workload.participants()) {
             if (sagaInstance == null) {
                 continue;
             }
@@ -228,7 +228,7 @@ public class DynamicInputMapWriter {
             List<String> expectedCommands,
             List<String> expectedAggregateTypes,
             Map<String, String> logicalKeyBindings,
-            List<String> scenarioPlanIds,
+            List<String> workloadPlanIds,
             String stableSourceText,
             String provenanceText,
             List<String> warnings) {
@@ -242,7 +242,7 @@ public class DynamicInputMapWriter {
             logicalKeyBindings = logicalKeyBindings == null
                     ? Map.of()
                     : Collections.unmodifiableMap(new LinkedHashMap<>(logicalKeyBindings));
-            scenarioPlanIds = scenarioPlanIds == null ? List.of() : List.copyOf(scenarioPlanIds);
+            workloadPlanIds = workloadPlanIds == null ? List.of() : List.copyOf(workloadPlanIds);
             warnings = warnings == null ? List.of() : List.copyOf(warnings);
         }
     }
@@ -254,7 +254,7 @@ public class DynamicInputMapWriter {
         private final InputVariant input;
         private final LinkedHashSet<String> stepNameHints = new LinkedHashSet<>();
         private final LinkedHashSet<String> expectedAggregateTypes = new LinkedHashSet<>();
-        private final LinkedHashSet<String> scenarioPlanIds = new LinkedHashSet<>();
+        private final LinkedHashSet<String> workloadPlanIds = new LinkedHashSet<>();
 
         private EntryBuilder(InputVariant input) {
             this.input = input;
@@ -282,7 +282,7 @@ public class DynamicInputMapWriter {
                     List.of(),
                     sorted(expectedAggregateTypes),
                     input.logicalKeyBindings(),
-                    sorted(scenarioPlanIds),
+                    sorted(workloadPlanIds),
                     input.stableSourceText(),
                     input.provenanceText(),
                     input.warnings());

@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model;
 import java.util.List;
 
 public record DynamicEvidenceJoinResult(
-        List<EnrichedScenarioRecord> records,
+        List<WorkloadDynamicEvidenceRecord> records,
         List<String> warnings,
         int dynamicEventsRead,
         int eventsMissingTestContext,

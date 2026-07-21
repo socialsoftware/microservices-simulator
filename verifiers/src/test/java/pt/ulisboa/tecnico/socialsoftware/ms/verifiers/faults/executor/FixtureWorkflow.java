@@ -1,91 +1,120 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorFault;
-import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorInjectedFaultException;
-import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class FixtureWorkflow {
-    public static final List<String> STEPS = new ArrayList<>();
-    public static final List<String> PARTICIPANT_STEPS = new ArrayList<>();
-    public static final List<String> CLOSURES = new ArrayList<>();
-    public static int resumeCalls = 0;
-    public static int compensationCalls = 0;
-    public static int constructorCalls = 0;
-    public static final List<Object> constructorUnitOfWorks = new ArrayList<>();
-    public static final List<Object> lifecycleUnitOfWorks = new ArrayList<>();
-    public static boolean suppressFaultSignal = false;
-    public static boolean injectUnexpectedSignal = false;
-    public static boolean injectWrongSlotSignal = false;
-    public static boolean compensationFails = false;
-    public static final List<String> SUPPRESSED_STEPS = new ArrayList<>();
+public class FixtureWorkflow extends WorkflowFunctionality {
+    public static final List<String> BODIES = new ArrayList<>();
+    public static final List<String> COMPENSATIONS = new ArrayList<>();
+    public static final Map<String, Integer> COMPENSATION_ATTEMPTS = new LinkedHashMap<>();
+    public static final Map<String, SagaUnitOfWork> UNIT_OF_WORKS = new ConcurrentHashMap<>();
+    private static final Set<String> BODY_DOMAIN_FAILURES = new HashSet<>();
+    private static final Set<String> BODY_INFRASTRUCTURE_FAILURES = new HashSet<>();
+    private static final Set<String> EXPLICIT_REGISTRATION_BEFORE_FAILURES = new HashSet<>();
+    private static final Set<String> IMPLICIT_STATE_STEPS = new HashSet<>();
+    private static final Set<String> EXPLICIT_COMPENSATION_FAILURES = new HashSet<>();
+    public static int constructorCalls;
 
-    private final Object argument;
+    private final String participant;
 
-    public FixtureWorkflow(Object argument) {
+    public FixtureWorkflow(Object participant,
+                           SagaUnitOfWorkService unitOfWorkService,
+                           SagaUnitOfWork unitOfWork) {
         constructorCalls++;
-        this.argument = argument;
+        this.participant = String.valueOf(participant);
+        UNIT_OF_WORKS.put(this.participant, unitOfWork);
+
+        SagaWorkflow sagaWorkflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+        SagaStep first = step("first", unitOfWork, new ArrayList<>());
+        SagaStep second = step("second", unitOfWork, new ArrayList<>(List.of(first)));
+        SagaStep third = step("third", unitOfWork, new ArrayList<>(List.of(first)));
+        sagaWorkflow.addStep(first);
+        sagaWorkflow.addStep(second);
+        sagaWorkflow.addStep(third);
+        this.workflow = sagaWorkflow;
     }
 
-    public FixtureWorkflow(Object first, Object second, Object third) {
-        constructorCalls++;
-        this.argument = Arrays.asList(first, second, third);
-        constructorUnitOfWorks.add(third);
+    private SagaStep step(String name, SagaUnitOfWork unitOfWork, ArrayList<FlowStep> dependencies) {
+        String key = this.participant + ":" + name;
+        SagaStep step = dependencies.isEmpty()
+                ? new SagaStep(name, () -> runBody(key, name, unitOfWork))
+                : new SagaStep(name, () -> runBody(key, name, unitOfWork), dependencies);
+        step.registerCompensation(() -> runCompensation(key), unitOfWork);
+        return step;
     }
 
-    public Object argument() {
-        return argument;
-    }
-
-    public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
-        lifecycleUnitOfWorks.add(unitOfWork);
-        String participant = String.valueOf(argument);
-        FaultVectorProviderHolder.currentBoundary()
-                .filter(context -> stepName.equals(context.runtimeStepName()))
-                .ifPresent(context -> {
-                    if (injectUnexpectedSignal) {
-                        throw new FaultVectorInjectedFaultException(FaultVectorFault.from(context));
-                    }
-                    if (injectWrongSlotSignal) {
-                        throw new FaultVectorInjectedFaultException(new FaultVectorFault(
-                                context.scenarioExecutionId(),
-                                context.scenarioPlanId(),
-                                context.sagaInstanceId(),
-                                context.scheduledStepId() + "-wrong",
-                                context.slotIndex(),
-                                context.functionalityClassFqn(),
-                                context.functionalityClassSimpleName(),
-                                context.runtimeStepName(),
-                                context.assignedBit()));
-                    }
-                    if (!suppressFaultSignal && !SUPPRESSED_STEPS.contains(stepName)) {
-                        FaultVectorProviderHolder.faultForCurrentBoundary().ifPresent(fault -> {
-                            throw new FaultVectorInjectedFaultException(fault);
-                        });
-                    }
-                });
-        STEPS.add(stepName);
-        PARTICIPANT_STEPS.add(participant + ":" + stepName);
-        if ("fail".equals(stepName)) {
-            throw new IllegalStateException("fixture failure");
+    private void runBody(String key, String stepName, SagaUnitOfWork unitOfWork) {
+        BODIES.add(key);
+        if (IMPLICIT_STATE_STEPS.contains(key)) {
+            unitOfWork.savePreviousState(Math.abs(key.hashCode()), GenericSagaState.NOT_IN_SAGA);
+        }
+        if (EXPLICIT_REGISTRATION_BEFORE_FAILURES.contains(key)) {
+            unitOfWork.registerCompensation(stepName, () -> runCompensation(key));
+        }
+        if (BODY_DOMAIN_FAILURES.contains(key)) {
+            throw new SimulatorException("fixture domain failure " + key);
+        }
+        if (BODY_INFRASTRUCTURE_FAILURES.contains(key)) {
+            throw new IllegalStateException("fixture infrastructure failure " + key);
         }
     }
 
-    public void resumeWorkflow(UnitOfWork unitOfWork) {
-        lifecycleUnitOfWorks.add(unitOfWork);
-        CLOSURES.add(String.valueOf(argument));
-        resumeCalls++;
+    private void runCompensation(String key) {
+        COMPENSATION_ATTEMPTS.merge(key, 1, Integer::sum);
+        COMPENSATIONS.add(key);
+        if (EXPLICIT_COMPENSATION_FAILURES.contains(key)) {
+            throw new IllegalStateException("fixture explicit compensation failure " + key);
+        }
     }
 
-    public void resumeCompensation(UnitOfWork unitOfWork) {
-        lifecycleUnitOfWorks.add(unitOfWork);
-        compensationCalls++;
-        if (compensationFails) {
-            throw new IllegalStateException("fixture compensation failure");
-        }
+    public static void failBodyWithDomainException(String participant, String stepName) {
+        BODY_DOMAIN_FAILURES.add(participant + ":" + stepName);
+    }
+
+    public static void failBodyWithInfrastructureException(String participant, String stepName) {
+        BODY_INFRASTRUCTURE_FAILURES.add(participant + ":" + stepName);
+    }
+
+    public static void registerExplicitBeforeBodyFailure(String participant, String stepName) {
+        EXPLICIT_REGISTRATION_BEFORE_FAILURES.add(participant + ":" + stepName);
+    }
+
+    public static void recordImplicitState(String participant, String stepName) {
+        IMPLICIT_STATE_STEPS.add(participant + ":" + stepName);
+    }
+
+    public static void failExplicitCompensation(String participant, String stepName) {
+        EXPLICIT_COMPENSATION_FAILURES.add(participant + ":" + stepName);
+    }
+
+    public static void allowExplicitCompensation(String participant, String stepName) {
+        EXPLICIT_COMPENSATION_FAILURES.remove(participant + ":" + stepName);
+    }
+
+    public static void reset() {
+        BODIES.clear();
+        COMPENSATIONS.clear();
+        COMPENSATION_ATTEMPTS.clear();
+        UNIT_OF_WORKS.clear();
+        BODY_DOMAIN_FAILURES.clear();
+        BODY_INFRASTRUCTURE_FAILURES.clear();
+        EXPLICIT_REGISTRATION_BEFORE_FAILURES.clear();
+        IMPLICIT_STATE_STEPS.clear();
+        EXPLICIT_COMPENSATION_FAILURES.clear();
+        constructorCalls = 0;
     }
 }

@@ -2,7 +2,7 @@
 
 Date: 2026-07-08
 
-Status: accepted
+Status: accepted for the historical immediate-compensation executor. Assigned-fault recovery timing and compensation-failure continuation are superseded by the implemented v3 FaultScenario contract in [`2026-07-19-compensation-aware-fault-scenario-contract.md`](2026-07-19-compensation-aware-fault-scenario-contract.md). Only zero-bit domain/simulator fallback retains immediate checkpoint recovery and survivor continuation.
 
 ## Context
 
@@ -75,6 +75,6 @@ It is deferred because adding a policy matrix now would enlarge the first multi-
 
 ## Implementation Notes
 
-This is a planning decision, not current implementation status. `docs/verifiers-impl/current-state.md` remains the source of truth until the multi-saga executor feature is implemented and validated.
+The immediate compensate-and-continue policy was implemented and validated in the bounded multi-saga executor. Scheduled-step runtime exceptions use the same immediate observation boundary as assigned faults, while executor/infrastructure failures remain hard stops.
 
-Spec-phase update: scheduled-step runtime exceptions use the same compensate-and-continue observation boundary as assigned faults; executor/infrastructure failures remain hard stops.
+For the selected compensation-aware v3 feature, assigned faults instead follow persisted recovery schedules and thrown compensation actions hard-stop. Zero-bit domain/simulator failures retain immediate compensate-and-continue as the deterministic fallback.

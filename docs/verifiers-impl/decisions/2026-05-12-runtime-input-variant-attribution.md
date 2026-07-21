@@ -4,9 +4,9 @@ Date: 2026-05-12
 
 ## Status
 
-Accepted; first-pass implementation active.
+Accepted; first-pass attribution remains active. Artifact ownership migrated to the implemented v3 workload-linked sidecar contract on 2026-07-20.
 
-The dynamic-enrichment bridge can collect runtime evidence and join it back to static scenario plans. It can produce `MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `AMBIGUOUS`, `UNMATCHED`, and `NOT_COVERED` results.
+The dynamic-enrichment bridge can collect runtime evidence and join it back to static WorkloadPlans. References below to ScenarioPlans and enriched catalog wrappers describe the historical v2 implementation; current output is `workload-dynamic-evidence.jsonl` plus its manifest/join report and does not mutate the five semantic package artifacts. It can produce `MATCHED_EXACT`, `MATCHED_HIGH_CONFIDENCE`, `AMBIGUOUS`, `UNMATCHED`, and `NOT_COVERED` results.
 
 The first-pass runtime attribution path is implemented: the verifier writes a `dynamic-input-map.json`, the simulator loads that map, runtime events can carry static `inputVariantId`, and the joiner upgrades matching scenario plans to `MATCHED_EXACT`.
 
@@ -81,7 +81,7 @@ inputVariantId = 2c98e7...
 - Keep simulator changes small and generic.
 - Keep dynamic evidence opt-in.
 - Do not guess exact matches when the evidence is ambiguous.
-- Preserve the static `scenario-catalog.jsonl` as the reproducible contract; dynamic outputs stay sidecar artifacts.
+- Preserve the complete v3 WorkloadPlan/FaultScenario package as the reproducible contract; dynamic outputs stay workload-linked sidecar artifacts.
 
 ## Decision process
 

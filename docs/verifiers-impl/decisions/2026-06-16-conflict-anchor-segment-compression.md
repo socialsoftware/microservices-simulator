@@ -26,7 +26,7 @@ Interaction pruning remains separate. `INTERACTION_PRUNED` and `BRUTE_FORCE` sti
 
 - Full step-level order-preserving interleaving: preserves every possible step order but makes Quizzes count-only totals dominated by permutations of non-conflicting/internal steps. It remains available as `ORDER_PRESERVING_INTERLEAVING` for comparison.
 - Serial fallback: avoids combinatorial growth but collapses conflict-relevant order cases and was not a credible segment-compressed baseline.
-- Pairwise-orientation-only compression: counting only pair orientations between conflicting steps would be smaller, but it would not naturally preserve per-saga anchor order or expand deterministic full schedules for materialized `ScenarioPlan` rows.
+- Pairwise-orientation-only compression: counting only pair orientations between conflicting steps would be smaller, but it would not naturally preserve per-Saga anchor order or expand deterministic full forward schedules for materialized WorkloadPlan rows.
 - Runtime/dynamic redefinition of schedules: dynamic evidence may enrich static catalogs, but it should not redefine the static scenario structure or schedule strategy.
 
 ## Consequences

@@ -43,7 +43,7 @@ public record ScenarioGeneratorConfig(
     }
 
     public ScenarioGeneratorConfig() {
-        this(false, GenerationStrategy.INTERACTION_PRUNED, CatalogWriteMode.WRITE_PLANS, true, 1, 100, 3, 20, false,
+        this(false, GenerationStrategy.INTERACTION_PRUNED, CatalogWriteMode.WRITE_WORKLOADS, true, 1, 100, 3, 20, false,
                 InputPolicy.RESOLVED_OR_REPLAYABLE,
                 ScheduleStrategy.SERIAL,
                 1234L,
@@ -52,7 +52,7 @@ public record ScenarioGeneratorConfig(
 
     public ScenarioGeneratorConfig {
         generationStrategy = generationStrategy == null ? GenerationStrategy.INTERACTION_PRUNED : generationStrategy;
-        catalogWriteMode = catalogWriteMode == null ? CatalogWriteMode.WRITE_PLANS : catalogWriteMode;
+        catalogWriteMode = catalogWriteMode == null ? CatalogWriteMode.WRITE_WORKLOADS : catalogWriteMode;
         inputPolicy = inputPolicy == null ? InputPolicy.RESOLVED_OR_REPLAYABLE : inputPolicy;
         scheduleStrategy = scheduleStrategy == null ? ScheduleStrategy.SERIAL : scheduleStrategy;
     }
@@ -63,7 +63,7 @@ public record ScenarioGeneratorConfig(
     }
 
     public enum CatalogWriteMode {
-        WRITE_PLANS,
+        WRITE_WORKLOADS,
         COUNT_ONLY
     }
 

@@ -8,13 +8,18 @@ set -euo pipefail
 : "${OUTPUT_PATH:=/reports/scenario-executor/execution-report.json}"
 : "${SERVER_PORT:=0}"
 
-if [[ -z "${CATALOG_PATH:-}" ]]; then
-  echo "CATALOG_PATH is required, e.g. /reports/<run>/scenario-catalog.jsonl" >&2
+if [[ -z "${PACKAGE_PATH:-}" ]]; then
+  echo "PACKAGE_PATH is required, e.g. /reports/<run>/scenario-catalog-manifest.json" >&2
   exit 2
 fi
 
-if [[ ! -f "$CATALOG_PATH" ]]; then
-  echo "CATALOG_PATH does not exist in the container: $CATALOG_PATH" >&2
+if [[ ! -f "$PACKAGE_PATH" ]]; then
+  echo "PACKAGE_PATH does not exist in the container: $PACKAGE_PATH" >&2
+  exit 2
+fi
+
+if [[ -z "${FAULT_SCENARIO_ID:-}" ]]; then
+  echo "FAULT_SCENARIO_ID is required and must identify one persisted FaultScenario" >&2
   exit 2
 fi
 
@@ -42,28 +47,11 @@ mvn -q -P"${MAVEN_PROFILE}" test-compile dependency:build-classpath -Dmdep.outpu
 
 CP="${APP_DIR}/target/classes:${APP_DIR}/target/test-classes:/verifiers/target/classes:$(tr -d '\n' < /tmp/scenario-executor/app-classpath.txt):$(tr -d '\n' < /tmp/scenario-executor/verifiers-classpath.txt)"
 
-SCENARIO_ARGS=()
-if [[ -n "${SCENARIO_ID:-}" ]]; then
-  SCENARIO_ARGS+=(--scenario-id "$SCENARIO_ID")
-fi
-if [[ -n "${FAULT_VECTOR:-}" ]]; then
-  SCENARIO_ARGS+=(--fault-vector "$FAULT_VECTOR")
-fi
-
 echo "Running scenario executor"
 echo "  application: ${APPLICATION_BASE_DIR}"
-echo "  catalog: ${CATALOG_PATH}"
+echo "  package: ${PACKAGE_PATH}"
+echo "  FaultScenario id: ${FAULT_SCENARIO_ID}"
 echo "  output: ${OUTPUT_PATH}"
-if [[ -n "${SCENARIO_ID:-}" ]]; then
-  echo "  scenario id: ${SCENARIO_ID}"
-else
-  echo "  scenario id: <auto-select>"
-fi
-if [[ -n "${FAULT_VECTOR:-}" ]]; then
-  echo "  fault vector: <explicit>"
-else
-  echo "  fault vector: <catalog default>"
-fi
 
 SPRING_PROFILES_VALUE="$SPRING_PROFILES"
 unset SPRING_PROFILES
@@ -74,9 +62,9 @@ java -cp "$CP" pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.Sc
   --application-base "$APPLICATION_BASE_DIR" \
   --application-id "$APPLICATION_BASE_DIR" \
   --maven-profile "$MAVEN_PROFILE" \
-  --catalog-path "$CATALOG_PATH" \
+  --package-path "$PACKAGE_PATH" \
+  --fault-scenario-id "$FAULT_SCENARIO_ID" \
   --output-path "$OUTPUT_PATH" \
-  "${SCENARIO_ARGS[@]}" \
   --verifiers.application.enabled=false \
   --server.port="$SERVER_PORT"
 

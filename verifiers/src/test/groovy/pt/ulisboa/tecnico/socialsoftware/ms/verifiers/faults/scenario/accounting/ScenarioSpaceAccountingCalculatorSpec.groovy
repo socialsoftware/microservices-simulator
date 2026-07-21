@@ -2,12 +2,16 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accountin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorMaterializationPolicy
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleJoiner
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScheduleEnumerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationEvidenceClass
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioActionKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument
@@ -17,6 +21,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Inpu
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence
 import spock.lang.Specification
@@ -483,11 +489,11 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
 
         when:
         def generated = ScenarioGenerator.generate(sagas, inputs, segmentConfig)
-        def report = calculate(sagas, inputs, segmentConfig, generated.scenarioPlans().size())
+        def report = calculate(sagas, inputs, segmentConfig, generated.workloadPlans().size())
 
         then:
-        generated.scenarioPlans().size().toString() == report.inputBoundScenarioSpace().selectedByGenerator().total()
-        generated.scenarioPlans().size() == 2
+        generated.workloadPlans().size().toString() == report.inputBoundScenarioSpace().selectedByGenerator().total()
+        generated.workloadPlans().size() == 2
         row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '2'
     }
 
@@ -505,10 +511,10 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
 
         when:
         def generated = ScenarioGenerator.generate(sagas, inputs, cappedConfig)
-        def report = calculate(sagas, inputs, cappedConfig, generated.scenarioPlans().size())
+        def report = calculate(sagas, inputs, cappedConfig, generated.workloadPlans().size())
 
         then:
-        generated.scenarioPlans().size() == 3
+        generated.workloadPlans().size() == 3
         generated.counts().schedulesCapped == 1
         generated.warnings().any { it.contains('maxSchedulesPerInputTuple=3') }
         row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '3'
@@ -529,10 +535,10 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
 
         when:
         def generated = ScenarioGenerator.generate(sagas, inputs, zeroCapConfig)
-        def report = calculate(sagas, inputs, zeroCapConfig, generated.scenarioPlans().size())
+        def report = calculate(sagas, inputs, zeroCapConfig, generated.workloadPlans().size())
 
         then:
-        generated.scenarioPlans().isEmpty()
+        generated.workloadPlans().isEmpty()
         generated.counts().schedulesEmitted == 0
         generated.warnings().contains('schedule cap disabled all schedules')
         row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '0'
@@ -642,6 +648,141 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
 
         and:
         report.groupedSagaSets()*.sagaSetKey() == ['saga.A']
+    }
+
+    def 'eager baseline emits all-zero and every single-point vector only for input-ready structurally admissible workloads'() {
+        given:
+        def generatorConfig = config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                true,
+                1,
+                10,
+                20,
+                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL,
+                100000)
+        def eligible = ScenarioGenerator.generate(
+                [saga('saga.Ready', 2)],
+                [input('saga.Ready', 'ready', [:], recipe(true, []))],
+                generatorConfig).workloadPlans().first()
+        def blocked = ScenarioGenerator.generate(
+                [saga('saga.Blocked', 1)],
+                [input('saga.Blocked', 'blocked', [:], recipe(false, ['UNRESOLVED_VALUE'], [
+                        arg(0, Integer.name, false, ['UNRESOLVED_VALUE'], unresolved())
+                ]))],
+                generatorConfig).workloadPlans().first()
+        def malformed = new WorkloadPlan(
+                eligible.schemaVersion(),
+                'malformed-workload',
+                eligible.kind(),
+                eligible.executionShape(),
+                eligible.participants(),
+                eligible.acceptedInputs(),
+                eligible.forwardSchedule(),
+                eligible.conflictEvidence(),
+                eligible.faultSlots().dropRight(1),
+                eligible.compensationCheckpoints(),
+                eligible.warnings())
+        def workloads = new WorkloadGenerationResult(
+                WorkloadPlan.SCHEMA_VERSION,
+                generatorConfig,
+                [eligible, blocked, malformed],
+                [],
+                [:],
+                [])
+
+        when:
+        def eager = EagerFaultScenarioGenerator.generate(workloads, new RecoveryScheduleCap(2))
+        def readinessById = eager.workloadMaterializability().collectEntries { [(it.workloadPlanId()): it] }
+
+        then:
+        eager.workloadPlans()*.deterministicId() == [eligible, blocked, malformed]*.deterministicId().sort()
+        readinessById[eligible.deterministicId()].materializable()
+        !readinessById[blocked.deterministicId()].materializable()
+        readinessById[blocked.deterministicId()].diagnostics().any { it.contains('UNRESOLVED_VALUE') }
+        !readinessById[malformed.deterministicId()].materializable()
+        readinessById[malformed.deterministicId()].diagnostics().any { it.contains('FAULT_SPACE_SHAPE_MISMATCH') }
+
+        and:
+        eager.computedVectors()*.assignedVector() == ['00', '10', '01']
+        eager.computedVectors()*.writtenScheduleCount() == [1, 1, 1]
+        eager.faultScenarios().size() == 3
+        eager.faultScenarios().find { it.assignedVector() == '00' }.actions()*.kind().unique() == [FaultScenarioActionKind.FORWARD]
+        eager.faultScenarios().every { it.workloadPlanId() == eligible.deterministicId() }
+        eager.recoveryScheduleCap() == 2
+    }
+
+    def 'eager recovery cap applies independently to each vector'() {
+        given:
+        def checkpointStep = new StepDefinition(
+                'saga.A::a1', 'a1', 'a1', 0, [], [], [],
+                true, true, true, CompensationEvidenceClass.EXPLICIT_COMPENSATION, [], [])
+        def sagaA = new SagaDefinition('saga.A', [checkpointStep,
+                                                   new StepDefinition('saga.A::a2', 'a2', 'a2', 1, ['a1'], [], [])], [])
+        def sagaB = new SagaDefinition('saga.B', [
+                new StepDefinition('saga.B::b1', 'b1', 'b1', 0, [], [], []),
+                new StepDefinition('saga.B::b2', 'b2', 'b2', 1, ['b1'], [], [])], [])
+        def generatorConfig = config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                false,
+                2,
+                10,
+                20,
+                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL,
+                100000)
+        def workloads = ScenarioGenerator.generate(
+                [sagaA, sagaB],
+                [input('saga.A', 'a', [:], recipe(true, [])), input('saga.B', 'b', [:], recipe(true, []))],
+                generatorConfig)
+        def plan = workloads.workloadPlans().find { it.forwardSchedule()*.runtimeStepName() == ['a1', 'a2', 'b1', 'b2'] }
+
+        when:
+        def eager = EagerFaultScenarioGenerator.generate(
+                new WorkloadGenerationResult(WorkloadPlan.SCHEMA_VERSION, generatorConfig, [plan], [], [:], []),
+                new RecoveryScheduleCap(2))
+        def recoveryByVector = eager.computedVectors().collectEntries { [(it.assignedVector()): it] }
+
+        then:
+        recoveryByVector['0000'].uncappedScheduleCount() == BigInteger.ONE
+        recoveryByVector['0000'].writtenScheduleCount() == 1
+        recoveryByVector['0100'].uncappedScheduleCount() == BigInteger.valueOf(3)
+        recoveryByVector['0100'].writtenScheduleCount() == 2
+        eager.computedVectors().every { it.writtenScheduleCount() <= 2 }
+        eager.faultScenarios().count { it.assignedVector() == '0100' } == 2
+    }
+
+    def 'catalog accounting uses exact decimal vector and computed recovery layers without an all-vector recovery claim'() {
+        given:
+        def slotCount = 70
+        def generatorConfig = config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                true,
+                1,
+                10,
+                20,
+                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL,
+                100000)
+        def saga = saga('saga.Large', slotCount)
+        def input = input('saga.Large', 'large', [:], recipe(true, []))
+        def workloads = ScenarioGenerator.generate([saga], [input], generatorConfig)
+        def eager = EagerFaultScenarioGenerator.generate(workloads, new RecoveryScheduleCap(1))
+        def base = calculate([saga], [input], generatorConfig, workloads.workloadPlans().size())
+
+        when:
+        def report = base.withCatalogPackage(eager)
+        def vectorSpace = report.workloadCatalogSpace().perWorkloadVectorSpace().first()
+
+        then:
+        vectorSpace.faultSlotCount() == slotCount.toString()
+        vectorSpace.possibleBinaryVectors() == BigInteger.TWO.pow(slotCount).toString()
+        vectorSpace.eagerVectorCount() == (slotCount + 1).toString()
+        vectorSpace.executorMaterializable()
+        report.workloadCatalogSpace().materializableWorkloadPlans() == '1'
+        report.workloadCatalogSpace().nonMaterializableWorkloadPlans() == '0'
+
+        and:
+        report.faultScenarioCatalogSpace().computedEagerVectorCount() == (slotCount + 1).toString()
+        report.faultScenarioCatalogSpace().exactComputedVectorUncappedScheduleSum() == (slotCount + 1).toString()
+        report.faultScenarioCatalogSpace().exactComputedVectorWrittenScheduleSum() == (slotCount + 1).toString()
+        report.faultScenarioCatalogSpace().perComputedVectorRecoverySpace().size() == slotCount + 1
+        report.faultScenarioCatalogSpace().allVectorRecoveryTotalStatus() == 'NOT_COMPUTED'
+        !new ObjectMapper().writeValueAsString(report).contains('exactAllVectorRecovery')
     }
 
     def 'type level coverage reports strict and broad missing input diagnostics'() {
@@ -758,7 +899,7 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
     }
 
     private static StepDefinition step(String sagaFqn, int index) {
-        new StepDefinition("${sagaFqn}.step.${index}".toString(), "step${index}".toString(), "step${index}".toString(), index, [], [], [])
+        new StepDefinition("${sagaFqn}::step${index}".toString(), "step${index}".toString(), "step${index}".toString(), index, [], [], [])
     }
 
     private static SagaDefinition segmentSaga(String fqn, int internalSteps, AccessMode anchorMode) {
@@ -874,7 +1015,7 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
                                                     int maxCatalogScenarios) {
         new ScenarioGeneratorConfig(false,
                 generationStrategy,
-                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_PLANS,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
                 includeSingles,
                 maxSagaSetSize,
                 maxCatalogScenarios,

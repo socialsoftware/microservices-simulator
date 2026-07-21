@@ -1,8 +1,200 @@
 # Verifier evidence appendix
 
-Last updated: 2026-07-09
+Last updated: 2026-07-20
 
 This page stores concrete validation results, metrics, and run references so [`current-state.md`](current-state.md) can stay readable. Treat this as an appendix: cite it when you need proof, not as the first-read narrative.
+
+## Compensation-aware v3 end-to-end evidence
+
+Verified on 2026-07-20 with bounded real Quizzes generation and the Docker ScenarioExecutor path.
+
+### Package generation
+
+Final generation command:
+
+```bash
+MEDIUM_MEM_LIMIT=3g MEDIUM_MEM_RESERVATION=2g MEDIUM_CPUS=2 \
+docker compose run --rm \
+  -e JAVA_TOOL_OPTIONS=-Xmx2500m \
+  -e VERIFIERS_OUTPUT_ROOT=/reports/compensation-aware-v3-evidence/bounded-quizzes-v3 \
+  -e VERIFIERS_SCENARIO_CATALOG_ENABLED=true \
+  -e VERIFIERS_SCENARIO_CATALOG_GENERATION_STRATEGY=BRUTE_FORCE \
+  -e VERIFIERS_SCENARIO_CATALOG_CATALOG_WRITE_MODE=WRITE_WORKLOADS \
+  -e VERIFIERS_SCENARIO_CATALOG_INCLUDE_SINGLES=false \
+  -e VERIFIERS_SCENARIO_CATALOG_MAX_SAGA_SET_SIZE=2 \
+  -e VERIFIERS_SCENARIO_CATALOG_MAX_CATALOG_SCENARIOS=2000 \
+  -e VERIFIERS_SCENARIO_CATALOG_MAX_INPUT_VARIANTS_PER_SAGA=2 \
+  -e VERIFIERS_SCENARIO_CATALOG_MAX_SCHEDULES_PER_INPUT_TUPLE=4 \
+  -e VERIFIERS_SCENARIO_CATALOG_SCHEDULE_STRATEGY=SEGMENT_COMPRESSED \
+  -e VERIFIERS_SCENARIO_CATALOG_RECOVERY_SCHEDULE_CAP=20 \
+  -e VERIFIERS_DYNAMIC_ENRICHMENT_ENABLED=false \
+  fault-analysis-scenario-gen
+```
+
+Run and log:
+
+```text
+package: verifiers/target/compensation-aware-v3-evidence/bounded-quizzes-v3/quizzes-20260720-091007-712/
+container log: verifiers/target/compensation-aware-v3-evidence/bounded-quizzes-v3-container.log
+manifest schema: microservices-simulator.scenario-catalog-manifest.v3
+WorkloadPlans written: 2000
+materializable WorkloadPlans: 12
+non-materializable WorkloadPlans: 1988
+FaultScenarios written: 84
+computed eager vectors: 60
+exact uncapped/written sum over computed vectors: 84 / 84
+legacy scenario-catalog.jsonl present: false
+```
+
+The generated semantic package contains:
+
+```text
+workload-catalog.jsonl
+workload-catalog-rejected-inputs.jsonl
+fault-scenario-catalog.jsonl
+scenario-space-accounting.json
+scenario-catalog-manifest.json
+```
+
+A first bounded `INTERACTION_PRUNED` multi-saga diagnostic at `verifiers/target/compensation-aware-v3-evidence/quizzes-20260720-090609-170/` wrote 360 WorkloadPlans but no FaultScenarios because no selected workload had every participant materializable. A bounded single-saga diagnostic then identified materializable Quizzes inputs. The final run deliberately used `BRUTE_FORCE` with a 2,000-workload cap to include real materializable multi-saga pairs; it did not loosen input readiness or use application-specific generation shortcuts.
+
+### Selected compensation-interleaving FaultScenario
+
+```text
+WorkloadPlan id: 01c49ae4314e106161ccc75f7531c62d01299417e702908100d7fb809ca2face
+FaultScenario id: 25c0d61a2a2b40c2aaff7946aca8d2bb1becfc54b8b168442bcff40262052271
+assigned vector: 00010
+vector source: EAGER_SINGLE_POINT
+participants:
+  CreateCourseExecutionFunctionalitySagas
+  GetCourseExecutionsFunctionalitySagas
+fault slots: 5
+compensation checkpoints: 3
+uncapped unique recovery schedules: 3
+written recovery schedules: 3
+selected action count: 7
+```
+
+Persisted action order:
+
+```text
+0 FORWARD      CreateCourseExecution.getCourseStep
+1 FORWARD      CreateCourseExecution.createCourseStep
+2 FORWARD      CreateCourseExecution.createCourseExecutionStep
+3 FORWARD      CreateCourseExecution.updateCourseExecutionCountStep (assigned bit 1)
+4 COMPENSATION CreateCourseExecution.createCourseExecutionStep
+5 FORWARD      GetCourseExecutions.getCourseExecutionsStep
+6 COMPENSATION CreateCourseExecution.createCourseStep
+```
+
+This is a concrete compensation/forward interleaving: one failed participant's reverse checkpoints surround a still-live participant's forward action.
+
+### Docker execution and report
+
+No vector overlay was supplied:
+
+```bash
+PACKAGE_PATH=/reports/compensation-aware-v3-evidence/bounded-quizzes-v3/quizzes-20260720-091007-712/scenario-catalog-manifest.json \
+FAULT_SCENARIO_ID=25c0d61a2a2b40c2aaff7946aca8d2bb1becfc54b8b168442bcff40262052271 \
+OUTPUT_PATH=/reports/compensation-aware-v3-evidence/execution-report-25c0d61a.json \
+MEDIUM_MEM_LIMIT=3g MEDIUM_MEM_RESERVATION=2g MEDIUM_CPUS=2 \
+docker compose run --rm scenario-executor
+```
+
+Recorded result:
+
+```text
+Docker exit code: 0
+report: verifiers/target/compensation-aware-v3-evidence/execution-report-25c0d61a.json
+executor log: verifiers/target/compensation-aware-v3-evidence/executor-25c0d61a-container.log
+schema: microservices-simulator.scenario-execution-report.v4
+terminalStatus: PARTIAL_COMPENSATED
+scheduleConformance: DEVIATED
+deviationPolicy: IMMEDIATE_CHECKPOINT_RECOVERY_AND_CONTINUE
+providerMode: IN_MEMORY_FAULT_VECTOR
+participant final states: COMPENSATED, COMMITTED
+actual actions: 3
+blocker: UNASSIGNED_RUNTIME_FORWARD_FAILURE
+```
+
+Measured action and lifecycle order:
+
+```text
+actual 0 FORWARD CreateCourseExecution.getCourseStep             COMPLETED
+actual 1 FORWARD CreateCourseExecution.createCourseStep          FAILED / UNASSIGNED_RUNTIME
+actual 2 FORWARD GetCourseExecutions.getCourseExecutionsStep     COMPLETED
+lifecycle 0 CreateCourseExecution ABORTED             FORWARD_FAILED
+lifecycle 1 CreateCourseExecution NO_COMPENSATION_WORK SUCCEEDED
+lifecycle 2 CreateCourseExecution COMPENSATED          SUCCEEDED
+lifecycle 3 GetCourseExecutions   AUTOMATIC_COMMIT     SUCCEEDED
+assigned slot 3 updateCourseExecutionCountStep: MASKED
+```
+
+The first `getCourseStep` completed. The zero-bit `createCourseStep` then failed because the generated DTO's course name was null, before the assigned slot at `updateCourseExecutionCountStep`. The executor reported the failed forward action, compensated the participant with no pending runtime checkpoint work, masked the unreachable assigned slot, skipped that participant's suffix, and completed/committed `GetCourseExecutionsFunctionalitySagas`. Therefore this run proves selection, materialization, action-aware measurement, zero-bit fallback, survivor continuation, and honest deviation reporting. It does **not** prove exact execution of the planned compensation actions or perfect extracted input values.
+
+### Package immutability
+
+Before and after executor checksums were identical:
+
+```text
+7ea4baa145c2310e30bd39517a01a5a97e54bcede8382f1b2d6088271e28c5af  workload-catalog.jsonl
+c5ed7c161b01b67c18b5536618f29867f82e3095a922913ec361f9eb9f00b42b  workload-catalog-rejected-inputs.jsonl
+fabd702b10ad0ad11cd11488720d562c9b1c60a71e30035cfbcbc0d6562192cc  fault-scenario-catalog.jsonl
+ce17e8b25b1b5249c035d25d0c95df9183778bcc4a27c178dc130ec768ed7f8d  scenario-space-accounting.json
+7423fa52844d745b8309b1fbf504be197ef9f7ccbc8f489edc074765fe4a0012  scenario-catalog-manifest.json
+```
+
+Evidence files:
+
+```text
+verifiers/target/compensation-aware-v3-evidence/package.sha256.before
+verifiers/target/compensation-aware-v3-evidence/package.sha256.after
+verifiers/target/compensation-aware-v3-evidence/verification-summary.json
+```
+
+### Dynamic-enrichment compatibility
+
+`DummyappDynamicEnrichmentIntegrationSpec` now writes a complete eager v3 package before enrichment, snapshots all five semantic artifacts, writes `workload-dynamic-evidence.jsonl` plus manifest/join report, and asserts the semantic bytes are unchanged. It also asserts that the sidecar links by `workloadPlanId` and embeds no WorkloadPlan, FaultScenario, or forward schedule. The focused spec, full verifier Maven suite, and Docker verifier-test suite passed.
+
+### High-cardinality recovery accounting
+
+The synthetic 61-forward-step case in `RecoveryScheduleGeneratorSpec` validates the uncapped/capped boundary without enumerating the uncapped space:
+
+```text
+exact uncapped unique recovery count: 118264581564861424
+written schedules at configured cap: 20
+counting states visited: 992
+materialized leaves: fewer than 100
+```
+
+This is exact BigInteger accounting for the computed vector, not a claim that all vectors across all workloads were counted.
+
+### Verification commands
+
+```bash
+cd simulator && mvn test
+cd verifiers && mvn test
+cd verifiers && mvn -Dtest=ApplicationsFileTreeParserSpec,DummyappDynamicEnrichmentIntegrationSpec,DummyappAccountingFixtureFoundationSpec test
+cd verifiers && mvn -Dtest=RecoveryScheduleGeneratorSpec test
+docker compose run --rm fault-analysis-scenario-gen-test
+```
+
+All passed:
+
+```text
+targeted simulator controls/recovery/ordinary workflow: 17 tests, 0 failures/errors
+complete simulator suite: 96 tests, 0 failures/errors
+focused parser + dummyapp accounting/enrichment: 21 tests, 0 failures/errors
+focused recovery scheduler: 14 tests, 0 failures/errors
+complete verifier suite: 509 tests, 0 failures/errors
+Docker fault-analysis-scenario-gen-test: exit 0
+```
+
+The full verifier suite initially exposed two stale integration expectations introduced by the v3 surface: parser discovery omitted `GroovySetupHelperOwnershipSpec`, and the dummyapp enrichment test still used the old workload-only writer call. Those tests were updated to the current file tree and complete v3 package/immutability contract, then the focused, full, and Docker runs passed.
+
+## Historical v1/v2 evidence migration note
+
+Sections below retain older `ScenarioPlan`, `scenario-catalog.jsonl`, enriched-wrapper, default-vector, and vector-overlay evidence for chronology. They are **not** current package or executor guidance. Current v3 uses the five-file WorkloadPlan/FaultScenario package, workload-linked dynamic sidecars, persisted FaultScenario selection, no vector overlay, and v4 execution reports. See [`reference/scenario-executor.md`](reference/scenario-executor.md) and [`decisions/2026-07-19-compensation-aware-fault-scenario-contract.md`](decisions/2026-07-19-compensation-aware-fault-scenario-contract.md).
 
 ## Static event semantics Quizzes count-only comparison
 
@@ -126,7 +318,7 @@ Tests run: 11, Failures: 0, Errors: 0
 
 Interpretation: static event topology improved accepted static input coverage for the implemented `EventHandling`/`EventProcessing` shape, including the original target group of five event-driven sagas. The refreshed dynamic baseline below confirms that the post-event static catalog can still be enriched with runtime evidence. It does not make event-origin inputs replayable: event payload placeholders remain materialization blockers, and `executorMaterializableInputVariantCount=94` only means the current ScenarioExecutor can materialize that subset through executor-readiness/runtime-owned handling.
 
-## Dynamic-enrichment Quizzes baselines
+## Historical v2 dynamic-enrichment Quizzes baselines
 
 Full/default sagas-only Quizzes run against the post-event-semantics static catalog before fixture/setup ownership diagnostics:
 
@@ -297,7 +489,7 @@ SEGMENT_COMPRESSED selected total: 1019393
 
 Interpretation: segment compression substantially reduces selected schedule-space counts under the verifier's static conflict-anchor evidence. It does not prove semantic completeness or exact aggregate-instance binding.
 
-## ScenarioExecutor fault-vector smoke
+## Historical v2 ScenarioExecutor fault-vector smoke
 
 Verified on 2026-07-08 with a real verifier-generated Quizzes catalog through the forked Docker runtime path:
 
@@ -333,7 +525,7 @@ Explicit vector realized slot: 0 (runtime step `getCourseExecutionsStep`)
 
 Interpretation: a narrow executor path supports the implemented materializable saga/local fault-vector contract. This smoke executed one generated Quizzes single-saga plan by resolving runtime-owned infrastructure arguments and using the in-memory fault-vector provider for the explicit-fault run. Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is still reported separately/aligned with ScenarioExecutor semantics. The later multi-saga smoke below extends the supported path to explicit deterministic interleaving replay, but the executor is still not generic catalog replay, broad runtime parity, impact scoring, or search.
 
-## ScenarioExecutor multi-saga Quizzes smoke
+## Historical v2 ScenarioExecutor multi-saga Quizzes smoke
 
 Verified on 2026-07-09 with the planning-audit Quizzes multi-saga catalog through the forked Docker runtime path.
 

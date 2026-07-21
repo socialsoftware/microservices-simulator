@@ -2,7 +2,7 @@
 
 Date: 2026-07-08
 
-Status: accepted
+Status: accepted for the historical participant-oriented v3 report. Superseded by the implemented action-aware v4 report for WorkloadPlan/FaultScenario execution.
 
 ## Context
 
@@ -48,4 +48,4 @@ Rejected. A multi-saga scenario has no stable primary saga, and failure-based su
 - Existing single-saga report consumers in the repository should migrate to the participant list instead of top-level saga fields.
 - The v3 model avoids null-heavy multi-saga reports and avoids misleading primary-saga semantics.
 - Future impact scoring can iterate participants uniformly across single-saga and multi-saga attempts.
-- Current implementation status remains v2 until the multi-saga executor/report feature is implemented and validated.
+- The participant-oriented v3 report was implemented and validated with the historical multi-saga executor. The compensation-aware package introduced the separate `microservices-simulator.scenario-execution-report.v4` action-aware contract rather than silently changing v3 semantics.

@@ -7,30 +7,30 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public record ScenarioGenerationResult(
+public record WorkloadGenerationResult(
         String schemaVersion,
         ScenarioGeneratorConfig effectiveConfig,
-        List<ScenarioPlan> scenarioPlans,
+        List<WorkloadPlan> workloadPlans,
         List<RejectedInputVariant> rejectedInputVariants,
         Map<String, Integer> counts,
         List<String> warnings) {
 
-    public ScenarioGenerationResult {
+    public WorkloadGenerationResult {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank()
-                ? ScenarioPlan.SCHEMA_VERSION
+                ? WorkloadPlan.SCHEMA_VERSION
                 : schemaVersion;
         effectiveConfig = effectiveConfig == null ? new ScenarioGeneratorConfig() : effectiveConfig;
-        scenarioPlans = scenarioPlans == null ? List.of() : List.copyOf(scenarioPlans);
+        workloadPlans = workloadPlans == null ? List.of() : List.copyOf(workloadPlans);
         rejectedInputVariants = rejectedInputVariants == null ? List.of() : List.copyOf(rejectedInputVariants);
         counts = counts == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(counts));
         warnings = warnings == null ? List.of() : List.copyOf(warnings);
     }
 
-    public ScenarioGenerationResult(String schemaVersion,
+    public WorkloadGenerationResult(String schemaVersion,
                                     ScenarioGeneratorConfig effectiveConfig,
-                                    List<ScenarioPlan> scenarioPlans,
+                                    List<WorkloadPlan> workloadPlans,
                                     Map<String, Integer> counts,
                                     List<String> warnings) {
-        this(schemaVersion, effectiveConfig, scenarioPlans, List.of(), counts, warnings);
+        this(schemaVersion, effectiveConfig, workloadPlans, List.of(), counts, warnings);
     }
 }

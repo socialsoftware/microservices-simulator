@@ -99,6 +99,29 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
         }
     }
 
+    def "compensation registration is retained without a recognized compensation dispatch"() {
+        given:
+        def saga = state.sagas.find { it.fqn.contains('CreateItemCompensationFunctionalitySagas') }
+        def step = saga.steps.find { it.name == 'explicitWithoutRecognizedDispatchStep' }
+
+        expect:
+        step.compensationRegistered
+        step.dispatches.count { it.phase() == DispatchPhase.FORWARD } == 1
+        step.dispatches.count { it.phase() == DispatchPhase.COMPENSATION } == 0
+        step.isDispatchAnalysisComplete(DispatchPhase.FORWARD)
+        step.isDispatchAnalysisComplete(DispatchPhase.COMPENSATION)
+    }
+
+    def "method-reference forward analysis remains structurally unresolved"() {
+        given:
+        def saga = state.sagas.find { it.fqn.contains('CreateItemCompensationFunctionalitySagas') }
+        def step = saga.steps.find { it.name == 'conservativeUnresolvedStep' }
+
+        expect:
+        !step.isDispatchAnalysisComplete(DispatchPhase.FORWARD)
+        step.analysisDiagnostics*.code().contains('UNSUPPORTED_METHOD_REFERENCE')
+    }
+
     def "WorkflowFunctionalityVisitor captures predecessor edges"() {
         given:
         def saga = state.sagas.find { it.fqn.contains('CreateItemDependencyGraphFunctionalitySagas') }

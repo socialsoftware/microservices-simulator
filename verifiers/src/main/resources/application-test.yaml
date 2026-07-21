@@ -4,14 +4,16 @@ verifiers:
   output-root: ${VERIFIERS_OUTPUT_ROOT:output}
   scenario-catalog:
     enabled: false
-    catalog-path: scenario-catalog.jsonl
+    workload-catalog-path: workload-catalog.jsonl
+    fault-scenario-catalog-path: fault-scenario-catalog.jsonl
     manifest-path: scenario-catalog-manifest.json
-    rejected-inputs-path: scenario-catalog-rejected-inputs.jsonl
+    rejected-inputs-path: workload-catalog-rejected-inputs.jsonl
     include-singles: true
     max-saga-set-size: 1
     max-catalog-scenarios: 100
     max-input-variants-per-saga: 3
     max-schedules-per-input-tuple: 20
+    recovery-schedule-cap: 20
     allow-type-only-fallback: false
     input-policy: RESOLVED_OR_REPLAYABLE
     schedule-strategy: SERIAL

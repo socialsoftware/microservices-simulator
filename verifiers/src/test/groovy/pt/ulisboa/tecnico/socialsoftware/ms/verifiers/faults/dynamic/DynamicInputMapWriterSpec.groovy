@@ -65,7 +65,7 @@ class DynamicInputMapWriterSpec extends Specification {
         entry.path('literalArgumentValueHints')*.asText() == ['42', 'rush']
         entry.path('constructorArgumentSummaries')*.asText().contains('arg[1]: dto <- new OrderDto()')
         entry.path('expectedCommands').isEmpty()
-        entry.path('scenarioPlanIds')*.asText() == ['scenario-1', 'scenario-3']
+        entry.path('workloadPlanIds')*.asText() == ['scenario-1', 'scenario-3']
         entry.path('stableSourceText').asText() == 'createOrder(42)'
         entry.path('provenanceText').asText() == 'OrderSpec.createsOrder'
         json.path('inputs').find { it.path('inputVariantId').asText() == 'input-2' }.path('sourceClassFqn').asText() == OTHER_TEST_CLASS
@@ -93,8 +93,9 @@ class DynamicInputMapWriterSpec extends Specification {
 
         when:
         def map = writer.build([TEST_CLASS], [
-                new ScenarioPlan(ScenarioPlan.SCHEMA_VERSION, 'scenario-multi', ScenarioKind.MULTI_SAGA,
-                        [leftInstance, rightInstance], [leftInput, rightInput], [leftStep, rightStep], null, [conflict], [])
+                new WorkloadPlan(WorkloadPlan.SCHEMA_VERSION, 'scenario-multi', ScenarioKind.MULTI_SAGA,
+                        WorkloadExecutionShape.SAGA_LOCAL, [leftInstance, rightInstance], [leftInput, rightInput],
+                        [leftStep, rightStep], [conflict], [], [], [])
         ], GENERATED_AT)
 
         then:
@@ -119,12 +120,13 @@ class DynamicInputMapWriterSpec extends Specification {
         json.path('inputs')[0].path('sourceClassFqn').asText() == OTHER_TEST_CLASS
     }
 
-    private static ScenarioPlan singlePlan(String scenarioId, InputVariant input, String sagaFqn, List<String> stepIds) {
+    private static WorkloadPlan singlePlan(String scenarioId, InputVariant input, String sagaFqn, List<String> stepIds) {
         def saga = new SagaInstance("${scenarioId}-saga".toString(), sagaFqn, input.deterministicId(), [])
         def steps = stepIds.withIndex().collect { String stepId, int index ->
             new ScheduledStep("${scenarioId}-step-${index}".toString(), saga.deterministicId(), stepId, index, [])
         }
-        new ScenarioPlan(ScenarioPlan.SCHEMA_VERSION, scenarioId, ScenarioKind.SINGLE_SAGA, [saga], [input], steps, null, [], [])
+        new WorkloadPlan(WorkloadPlan.SCHEMA_VERSION, scenarioId, ScenarioKind.SINGLE_SAGA,
+                WorkloadExecutionShape.SAGA_LOCAL, [saga], [input], steps, [], [], [], [])
     }
 
     private static InputVariant input(String id, String sourceClassFqn, String sagaFqn, List<String> constructorArgs) {
