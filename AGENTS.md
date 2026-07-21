@@ -37,6 +37,21 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 
 ---
 
+## Optional: rtk (token-optimized CLI proxy)
+
+[rtk](https://github.com/rtk-ai/rtk) filters/summarizes verbose CLI output (git, build tools, etc.) before it reaches the agent's context. It's optional and per-developer — not required to work on this repo.
+
+To enable it for your own Claude Code sessions in this project:
+
+```bash
+rtk --version   # confirm it's installed; see github.com/rtk-ai/rtk for install instructions
+rtk init        # patches your local .claude/settings.local.json with a Bash PreToolUse hook
+```
+
+This only touches your personal, gitignored `settings.local.json` — it does not affect other contributors or get committed.
+
+---
+
 ## Documentation
 
 | Topic | Path |
