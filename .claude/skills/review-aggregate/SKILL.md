@@ -15,6 +15,23 @@ equally to any app built on this harness.
 One aggregate per invocation. Reads files directly from disk — does not synthesise from conversation
 context.
 
+**See also:** `.claude/skills/adversarial-review-aggregate/SKILL.md` runs second in the same phase and
+owns everything this skill deliberately does not check:
+
+- **Semantic correctness.** This skill's checks are presence/shape checks — a `verifyInvariants()`
+  with the right shape but an inverted predicate passes Step 6 here.
+- **R1-R8 architectural conformance** (`docs/architecture.md` § Architectural Restrictions) against
+  code.
+- **The correctness of `plan.md` itself.** This skill treats plan.md as authoritative, so a rule
+  misclassified in Phase 1 is invisible to it.
+- **Manual semantic-lock release in `registerCompensation`.** Owned by that skill's Family C, which
+  traces every saga exit path and proves a leaked lock with a fault-injection test. A shape check here
+  cannot distinguish a manual release from a legitimate domain-level undo, so it is not duplicated
+  (`docs/concepts/sagas.md` § Semantic-lock release on abort is automatic).
+
+Do not expand this skill into those areas — the two are kept separate so the adversarial pass runs in
+a fresh context, unanchored by this review's verdict.
+
 ---
 
 ## Step 0: Anchor to the repository root
@@ -24,27 +41,13 @@ root". Do not run any command until you have.
 
 ## Step 1: Resolve Context
 
-### 1.a — Locate plan.md
+Read `.claude/skills/_shared/conventions.md` § "Resolve app context" and § "Resolve aggregate
+context". Derive `{app-name}`, `{pkg}`, `{AppClass}`, `{Aggregate}`, `{aggregate}`, `{N}`,
+`{tgt-src}`, `{tgt-test}`, `{review-dir}`.
 
-Read `.claude/skills/_shared/conventions.md` § "Resolve app context" and derive `{app-name}`,
-`{pkg}`, `{AppClass}`.
-
-### 1.b — Resolve the aggregate
-
-`{Aggregate}` = PascalCase argument (e.g., `Course`).
-`{aggregate}` = lowercase (e.g., `course`).
-
-Verify that a section `### N. {Aggregate}` exists in plan.md. If not found, halt:
-"Aggregate '{Aggregate}' not found in plan.md. Check the name or run /classify-and-plan."
-
-Extract `{N}` = the ordinal from the section header.
-
-### 1.c — Derive path prefixes
+Additionally derive:
 
 ```
-{tgt-src}     = applications/{app-name}/src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/
-{tgt-test}    = applications/{app-name}/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/{pkg}/
-{review-dir}  = applications/{app-name}/reviews/
 {review-file} = {review-dir}review-{Aggregate}.md
 ```
 
@@ -200,12 +203,9 @@ Status values: `Correct` / `Minor deviation` / `Incorrect` / `Pattern missing`
 - Create sagas: single step sending the create command, no lock needed
 - Read sagas: single step sending the read command, result stored in instance field, exposed via
   getter (see `docs/concepts/sagas.md` § Read Functionality Sagas)
-- **Lint — no manual semantic-lock release.** Flag any `registerCompensation` whose body releases a
-  semantic lock (sends a `SagaCommand` with `setSemanticLock(NOT_IN_SAGA)`, or otherwise resets the
-  lock state). Lock release on abort is automatic; a manual release re-locks the aggregate via the
-  `currentExecutingStep` pitfall (see `docs/concepts/sagas.md` § Semantic-lock release on abort is
-  automatic). `registerCompensation` is allowed **only** for genuine domain-level undos (e.g.
-  deleting a child aggregate a step created).
+- `registerCompensation` bodies: **out of scope here.** Whether a compensation wrongly releases a
+  semantic lock is owned by `/adversarial-review-aggregate` Family C
+  (`.claude/skills/adversarial-review-aggregate/SKILL.md` § Step 5). Do not flag it.
 
 ### `commands/{Op}Command.java`
 - Extends `Command`
@@ -284,19 +284,18 @@ For High-priority items targeting a source file, read the relevant file and veri
 
 ## Step 9: Build and Test
 
-Build the test-class name list from all test files found in Step 2.d (comma-separated class names).
+Build the test-class name list from all test files found in Step 2.d (comma-separated class names),
+e.g. `-Dtest="{Aggregate}IntraInvariantTest,{Aggregate}ServiceTest,Create{Aggregate}Test,..."`.
 
-Run from the project root:
-```bash
-cd "$(git rev-parse --show-toplevel)/applications/{app-name}" && mvn clean -Ptest-sagas test -Dtest="{Aggregate}Test,Create{Aggregate}Test,Update{Aggregate}Test,Delete{Aggregate}Test,Get{Aggregate}ByIdTest" 2>&1 | tail -80
-```
-
-Adjust the `-Dtest=` list to match the actual test class names found in Step 2.d.
+Run it following `.claude/skills/_shared/conventions.md` § "Run the test suite". Do not pipe maven
+through `tail` — the exit code and the `Tests run:` lines do not survive it.
 
 Capture and record:
-- BUILD SUCCESS or BUILD FAILURE
-- Per-class pass/fail
-- Any compilation errors (quote the relevant lines — these are Critical action items)
+- The observed `MAVEN_EXIT` and the surefire totals (tests / failures / errors / skipped)
+- Per-class pass/fail, from the surefire report files
+- Any compilation errors (quote the relevant lines — these are Critical action items). A non-zero
+  `MAVEN_EXIT` with zero surefire failures usually means compilation failed, so no reports were
+  written for the affected classes.
 
 ---
 
@@ -370,12 +369,14 @@ lines, status.)
 ## Build & Test Results
 
 **Command:** `mvn clean -Ptest-sagas test -Dtest=...`
-**Outcome:** BUILD SUCCESS / BUILD FAILURE
+**Maven exit status:** {MAVEN_EXIT}
+**Surefire totals:** tests={count} failures={count} errors={count} skipped={count}
+**Outcome:** GREEN / RED
 
 | Test class | Result | Failures |
 |------------|--------|---------|
 
-(Full error excerpt if BUILD FAILURE)
+(Full error excerpt if RED. GREEN requires exit status `0` **and** zero failures/errors.)
 
 ---
 
@@ -401,7 +402,8 @@ Output to the conversation:
 2. Verdict (Green / Yellow / Red) and one-sentence justification
 3. All Critical action items verbatim from the table
 4. Count of Major and Minor items
-5. Build result: PASS / FAIL, number of test classes run and passed
+5. Build result: the observed `MAVEN_EXIT` and surefire totals, plus number of test classes run and
+   passed
 
 ---
 
@@ -412,6 +414,8 @@ Output to the conversation:
 3. **Never omit sections.** Write "nothing to report" if a section is empty.
 4. **Quote the evidence.** For every Incorrect or Pattern-missing finding, include the relevant snippet from the target file and the expected pattern.
 5. **Retro items are mandatory checks.** Every High-priority retro action item targeting a source file must be explicitly resolved or flagged in Step 8.
-6. **Build must run.** Do not skip Step 9.
+6. **Build must run, and its result must be observed, not scraped.** Do not skip Step 9. Report the
+   outcome from maven's exit status and the surefire report files
+   (`.claude/skills/_shared/conventions.md` § "Run the test suite"), never from piped maven stdout.
 7. **One aggregate per invocation.**
 8. **No emojis. Terse and specific.** File paths, method names, rule names, line numbers where relevant.

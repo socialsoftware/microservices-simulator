@@ -6,7 +6,7 @@ argument-hint: "<path/to/{App}-domain-model.md> <path/to/{App}-aggregate-groupin
 
 # Phase 1: Classify & Plan
 
-This skill automates Phase 1 of the microservices-simulator workflow. It reads domain and aggregation specifications, applies rule classification logic, and produces `plan.md` — a comprehensive, ready-to-execute job queue for Phase 2 and Phase 3 agents.
+This skill automates Phase 1 of the microservices-simulator workflow. It reads domain and aggregation specifications, applies rule classification logic, and produces `plan.md` — a comprehensive, ready-to-execute job queue for Phase 2 through Phase 4 agents.
 
 The output (plan.md) is the single source of truth for all downstream work: it identifies which aggregates to implement in which order, which rules go where, and which test scenarios are needed.
 
@@ -297,7 +297,7 @@ FOR each aggregate A at position i in sorted_aggregates:
 
 ---
 
-### Step 6: Map Functionalities to Aggregates and Identify Phase 3 Scenarios
+### Step 6: Map Functionalities to Aggregates and Identify Review Sessions
 
 For each aggregate in sorted order:
 
@@ -330,10 +330,11 @@ cross_agg_rules = [r for r in rules_classified
 
 Map each rule to the saga data-assembly step that provides the needed data and, for P3 DTO-check rules, to the service method that performs the explicit validation.
 
-#### 6.d: Phase 3 — test review sessions
+#### 6.d: Phase 3 and Phase 4 — review sessions
 
-Phase 3 = one session per aggregate, in the same order as the Implementation Order table.
-No per-scenario or per-functionality analysis is needed. Simply add one row per aggregate.
+Phase 3 (Implementation Review) and Phase 4 (Test Review) are each one session per aggregate, in the
+same order as the Implementation Order table. No per-scenario or per-functionality analysis is needed
+for either. Simply add one row per aggregate to each.
 
 ---
 
@@ -480,28 +481,58 @@ For each aggregate in sorted order:
 
 (Omit Session 2.N.d section if Events subscribed is empty.)
 
-#### Phase 3 — Test Review
+#### Phase 3 — Implementation Review
 ```markdown
-## Phase 3 — Test Review
+## Phase 3 — Implementation Review
 
-One session per aggregate in the same order as the Implementation Order table.
-Each session runs `/review-tests {Aggregate}`.
+One session per aggregate in the same order as the Implementation Order table. Each session runs both
+review skills, in this order: `/review-aggregate` checks structure against this plan; then
+`/adversarial-review-aggregate` attacks semantics, checks R1-R8 against code, and re-derives rule
+classification independently of this plan.
 
-| Session | Aggregate | Skill invocation |
-|---------|-----------|------------------|
-| 3.{N}   | {Aggregate} | `/review-tests {Aggregate}` |
+Neither skill modifies `src/main/**`. Fix confirmed defects between this phase and Phase 4 — Phase 4
+cannot fix implementation.
+
+| Session | Aggregate | Skill invocations (in order) |
+|---------|-----------|------------------------------|
+| 3.{N}   | {Aggregate} | `/review-aggregate {Aggregate}` then `/adversarial-review-aggregate {Aggregate}` |
 ```
 
 Rows: one per aggregate (in Implementation Order)
 - Column 1: session number (3.1, 3.2, ..., one per aggregate)
 - Column 2: aggregate name
-- Column 3: skill invocation command
+- Column 3: both skill invocations, in order
 
 Followed by checklist:
 ```markdown
 **Checklist:**
 - [ ] 3.1 — {Aggregate1}
 - [ ] 3.2 — {Aggregate2}
+...
+```
+
+#### Phase 4 — Test Review
+```markdown
+## Phase 4 — Test Review
+
+One session per aggregate in the same order as the Implementation Order table.
+Each session runs `/review-tests {Aggregate}`.
+
+| Session | Aggregate | Skill invocation |
+|---------|-----------|------------------|
+| 4.{N}   | {Aggregate} | `/review-tests {Aggregate}` |
+```
+
+Rows: one per aggregate (in Implementation Order)
+- Column 1: session number (4.1, 4.2, ..., one per aggregate)
+- Column 2: aggregate name
+- Column 3: skill invocation command
+
+Followed by checklist:
+```markdown
+**Checklist:**
+- [ ] 4.1 — {Aggregate1}
+- [ ] 4.2 — {Aggregate2}
 ...
 ```
 
@@ -523,6 +554,7 @@ After writing plan.md:
    - Ambiguous rules flagged for review: K (marked "P3 (NEEDS_REVIEW)")
    - Total Phase 2 sessions: count (e.g., "2.1.a through 2.3.d")
    - Total Phase 3 sessions: count (= aggregate count, e.g., "3.1 through 3.8")
+   - Total Phase 4 sessions: count (= aggregate count, e.g., "4.1 through 4.8")
 
 3. **Next steps:**
    ```

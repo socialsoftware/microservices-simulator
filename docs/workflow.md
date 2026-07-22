@@ -54,10 +54,16 @@ applications/{app-name}/
         ├── SpockTest.groovy
         ├── {App}SpockTest.groovy
         └── sagas/
+            ├── adversarial/
+            │   └── {aggregate}/       ← Phase 3 @PendingFeature proof tests (transient)
             ├── coordination/
             │   └── {aggregate}/       ← T4 functionality tests
             └── {aggregate}/           ← T1 + T2 (incl. event pub.) + T3 subscription tests
 ```
+
+> `sagas/adversarial/` is transient. Phase 3 writes proof tests there; Phase 4 absorbs each one into
+> its proper tier and deletes the directory once empty. A file lingering there means an
+> implementation defect is still open.
 
 ### Naming conventions
 
@@ -88,6 +94,7 @@ See [`docs/concepts/testing.md`](concepts/testing.md) for the full taxonomy (T1�
 | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` | 2.N.d |
 | T4 Write Functionality | `{Operation}Test.groovy` | 2.N.b |
 | T4 Read Functionality | `{Query}Test.groovy` | 2.N.c |
+| Adversarial proof (transient) | `{Aggregate}AdversarialTest.groovy` | 3.N |
 
 ---
 
@@ -95,10 +102,10 @@ See [`docs/concepts/testing.md`](concepts/testing.md) for the full taxonomy (T1�
 
 `plan.md` lives at `applications/{app-name}/plan.md`. It is produced by Phase 1 and updated
 (checkbox ticked) at the end of every subsequent session. It is the single entry point for every
-agent in Phase 2 and Phase 3: a Rule Classification table, an Aggregate Implementation Order table
+agent in Phases 2 through 4: a Rule Classification table, an Aggregate Implementation Order table
 (topological sort), one Aggregate Details section per aggregate (functionalities, events,
-cross-aggregate prerequisites, the per-session file list, a checklist), and a Phase 3 test-review
-table.
+cross-aggregate prerequisites, the per-session file list, a checklist), a Phase 3
+implementation-review table, and a Phase 4 test-review table.
 
 Illustrative excerpt (one row of the Implementation Order table):
 
@@ -156,8 +163,8 @@ must:
    (split from §4 of domain-model), events published/subscribed (from aggregate-grouping §4),
    cross-aggregate prerequisites (P4a rules and P3 DTO-check rules) with their step names, and the full file list per session.
 4. Set the `d` session checkbox only for aggregates that have a non-empty Events subscribed list.
-5. Populate the Phase 3 section: one session per aggregate in the same order as the
-   Implementation Order table. No per-scenario analysis needed.
+5. Populate the Phase 3 and Phase 4 sections: one session per aggregate each, in the same order as
+   the Implementation Order table. No per-scenario analysis needed for either.
 
 ### Does not modify
 Any source file. Output is plan.md only.
@@ -191,17 +198,74 @@ only:
 
 ---
 
-## Phase 3 — Test Review
+## Phase 3 — Implementation Review
+
+**One session per aggregate in plan.md's Implementation Order.** Two skills, run in this order.
+
+Runs before Phase 4 because `/review-tests` cannot modify non-test files. Implementation defects must
+be found and fixed here, or Phase 4 will strengthen test assertions to match buggy behaviour and that
+work is thrown away when the bug is later fixed.
+
+### Division of labour
+
+| Skill | Question it answers | Ground truth | Writes |
+|-------|--------------------|--------------|--------|
+| `/review-aggregate` | Does it exist and is it shaped right? | `plan.md` files-to-produce table, `docs/architecture.md` package layout, concept docs | `reviews/review-{Aggregate}.md` |
+| `/adversarial-review-aggregate` | Does it do the right thing? | the domain model, R1-R8, and violating inputs | `reviews/adversarial-review-{Aggregate}.md` + proof tests |
+| `/review-tests` (Phase 4) | Are the tests real? | the implementation vs. the test assertions | test files + `reviews/test-review-{Aggregate}.md` |
+
+The boundary is deliberate. `/review-aggregate` is a conformance auditor: it assumes the code is
+right and looks for deviations, so its checks are presence/shape checks and it treats `plan.md` as
+authoritative. `/adversarial-review-aggregate` is the opposite: it assumes the code is wrong, attacks
+semantics, checks R1-R8 against code, and re-derives rule classification independently so it can catch
+a Phase 1 misclassification. Neither should absorb the other's checks — the adversarial pass runs in a
+fresh context specifically so it is not anchored by the structural review's verdict.
+
+### How to run
+
+```
+/review-aggregate {Aggregate}
+/adversarial-review-aggregate {Aggregate}
+```
+
+Fix any Critical findings from the first before running the second — there is no value in attacking
+code that does not compile.
+
+### Produces (per session)
+
+- `applications/{app-name}/reviews/review-{Aggregate}.md` — structural review
+- `applications/{app-name}/reviews/adversarial-review-{Aggregate}.md` — adversarial review
+- `src/test/groovy/.../sagas/adversarial/{aggregate}/{Aggregate}AdversarialTest.groovy` — one
+  `@PendingFeature` proof test per confirmed defect, or no file at all if nothing was confirmed
+
+### The proof-test rule
+
+`/adversarial-review-aggregate` may not report a defect it cannot prove with a test that was written,
+run, and observed to fail. A candidate whose test passes is dropped outright, not softened into a
+caveat. Zero findings is a valid and expected outcome.
+
+Confirmed proof tests are annotated `@PendingFeature`, so the suite stays green while the defect is
+open and goes **red the moment the defect is fixed** — which is the signal for Phase 4 to promote the
+test into its proper T1-T4 tier.
+
+Neither skill in this phase modifies `src/main/**`. Fixes are a human decision between phases.
+
+**Ticks:** `- [ ] 3.{N} — {Aggregate}` in plan.md upon completion of both skills.
+
+---
+
+## Phase 4 — Test Review
 
 **One session per aggregate in plan.md's Implementation Order.**
 
 ### Reads
-- `plan.md` — Phase 3 session row being processed (aggregate name and ordinal)
+- `plan.md` — Phase 4 session row being processed (aggregate name and ordinal)
 - (no other reads required — the review-tests skill reads all necessary files internally)
 
 ### Produces (per session)
 - `applications/{app-name}/reviews/test-review-{Aggregate}.md` — audit report
 - Fixes to existing `*.groovy` test files (fake/wrong/weak tests corrected; missing tests added)
+- Absorption of any Phase 3 proof tests into their proper tier
 
 ### How to run
 
@@ -214,7 +278,11 @@ Invoke the review-tests skill:
 The skill reads all test files across the four tiers (T1–T4) and the implementation files for the aggregate, audits completeness,
 adds missing tests, fixes fake/wrong tests, runs the full test suite, and writes the review report.
 
-**Ticks:** `- [ ] 3.{N} — {Aggregate}` in plan.md upon completion.
+It also absorbs any `@PendingFeature` proof tests left by Phase 3: a proof test that now passes means
+the defect was fixed, so the test is promoted into its correct tier and the annotation removed. A proof
+test still failing means the defect is still open, which blocks the Phase 4 checkbox.
+
+**Ticks:** `- [ ] 4.{N} — {Aggregate}` in plan.md upon completion.
 
 ---
 

@@ -25,6 +25,21 @@ All test classes share the same skeleton, elided from the templates below:
 `@DataJpaTest @Transactional @Import(LocalBeanConfiguration)`, extend `<AppName>SpockTest`, and
 declare `@TestConfiguration static class LocalBeanConfiguration extends BeanConfigurationSagas {}`.
 
+### Adversarial proof tests — a transient tier, outside T1-T4
+
+`/adversarial-review-aggregate` (Phase 3) writes `<Aggregate>AdversarialTest` under
+`sagas/adversarial/<aggregate>/`. These are **not** a fifth tier and are not part of this taxonomy:
+
+- Each method is a proof that one reported defect is real — it asserts the *correct* behaviour and is
+  annotated `@PendingFeature`, so it is expected to fail while the defect is open and turns the suite
+  red the moment the defect is fixed.
+- They are **transient**. Phase 4 (`/review-tests`) absorbs each one into its proper tier as soon as
+  it starts passing — P1 predicate → T1, service contract or event payload → T2, subscription → T3,
+  functionality or compensation → T4 — and deletes the file once it is empty.
+- Do not audit them against the completeness or Fake/Wrong/Weak rules below. Do not add tests to this
+  directory outside Phase 3, and do not treat a long-lived file here as normal: it means an
+  implementation defect is still open.
+
 ## Assertion Ownership
 
 Each fact is asserted in **exactly one tier** — this is what prevents T2/T4 duplication:
@@ -136,6 +151,9 @@ src/test/groovy/<pkg>/
     ├── coordination/
     │   └── <aggregate>/              ← one dir per primary aggregate
     │       └── <FunctionalityName>Test.groovy          (T4)
+    ├── adversarial/
+    │   └── <aggregate>/              ← transient; Phase 3 only, absorbed by Phase 4
+    │       └── <Aggregate>AdversarialTest.groovy       (outside T1-T4)
     └── <aggregate>/                  ← one dir per aggregate
         ├── <Aggregate>IntraInvariantTest.groovy        (T1)
         ├── <Aggregate>ServiceTest.groovy               (T2)

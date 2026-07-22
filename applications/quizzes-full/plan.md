@@ -372,28 +372,67 @@ Topological sort of the dependency DAG (§3 of aggregate-grouping.md). Aggregate
 
 ---
 
-## Phase 3 — Test Review
+## Phase 3 — Implementation Review
+
+One session per aggregate in the same order as Phase 2. Each session runs both review skills, in
+order: `/review-aggregate` checks structure against this plan; `/adversarial-review-aggregate` then
+attacks semantics, checks R1–R8 against code, and re-derives rule classification independently of this
+plan. Neither modifies `src/main/**` — fix confirmed defects before Phase 4.
+
+> **Carry-over:** all eight `reviews/review-{Aggregate}.md` files predate this phase, so the
+> `/review-aggregate` half is already done for every aggregate. Re-run it only if the aggregate's
+> source has changed since. The `/adversarial-review-aggregate` half is new work for all eight.
+
+| Session | Aggregate | Skill invocations (in order) |
+|---------|-----------|------------------------------|
+| 3.1 | Course | `/review-aggregate Course` then `/adversarial-review-aggregate Course` |
+| 3.2 | User | `/review-aggregate User` then `/adversarial-review-aggregate User` |
+| 3.3 | Topic | `/review-aggregate Topic` then `/adversarial-review-aggregate Topic` |
+| 3.4 | Execution | `/review-aggregate Execution` then `/adversarial-review-aggregate Execution` |
+| 3.5 | Question | `/review-aggregate Question` then `/adversarial-review-aggregate Question` |
+| 3.6 | Quiz | `/review-aggregate Quiz` then `/adversarial-review-aggregate Quiz` |
+| 3.7 | QuizAnswer | `/review-aggregate QuizAnswer` then `/adversarial-review-aggregate QuizAnswer` |
+| 3.8 | Tournament | `/review-aggregate Tournament` then `/adversarial-review-aggregate Tournament` |
+
+**Checklist:**
+- [ ] 3.1 — Course
+- [ ] 3.2 — User
+- [ ] 3.3 — Topic
+- [ ] 3.4 — Execution
+- [ ] 3.5 — Question
+- [ ] 3.6 — Quiz
+- [ ] 3.7 — QuizAnswer
+- [ ] 3.8 — Tournament
+
+---
+
+## Phase 4 — Test Review
 
 One session per aggregate in the same order as Phase 2. Each session invokes the `review-tests`
-skill to audit T1–T4 completeness, fix fake/weak tests, and run the full test suite.
+skill to audit T1–T4 completeness, fix fake/weak tests, absorb any Phase 3 proof tests, and run the
+full test suite.
 
 | Session | Aggregate | Skill invocation |
 |---------|-----------|------------------|
-| 3.1 | Course | `/review-tests Course` |
-| 3.2 | User | `/review-tests User` |
-| 3.3 | Topic | `/review-tests Topic` |
-| 3.4 | Execution | `/review-tests Execution` |
-| 3.5 | Question | `/review-tests Question` |
-| 3.6 | Quiz | `/review-tests Quiz` |
-| 3.7 | QuizAnswer | `/review-tests QuizAnswer` |
-| 3.8 | Tournament | `/review-tests Tournament` |
+| 4.1 | Course | `/review-tests Course` |
+| 4.2 | User | `/review-tests User` |
+| 4.3 | Topic | `/review-tests Topic` |
+| 4.4 | Execution | `/review-tests Execution` |
+| 4.5 | Question | `/review-tests Question` |
+| 4.6 | Quiz | `/review-tests Quiz` |
+| 4.7 | QuizAnswer | `/review-tests QuizAnswer` |
+| 4.8 | Tournament | `/review-tests Tournament` |
 
 **Checklist:**
-- [X] 3.1 — Course
-- [x] 3.2 — User
-- [x] 3.3 — Topic
-- [x] 3.4 — Execution
-- [x] 3.5 — Question
-- [x] 3.6 — Quiz
-- [x] 3.7 — QuizAnswer
-- [x] 3.8 — Tournament
+- [x] 4.1 — Course
+- [x] 4.2 — User
+- [x] 4.3 — Topic
+- [x] 4.4 — Execution
+- [x] 4.5 — Question
+- [x] 4.6 — Quiz
+- [x] 4.7 — QuizAnswer
+- [x] 4.8 — Tournament
+
+> These ran as "Phase 3" before the review phases were split; the reports are
+> `reviews/test-review-{Aggregate}.md`. Renumbered only. Once Phase 3 confirms defects, re-run
+> `/review-tests` for the affected aggregates to absorb the proof tests.

@@ -1,15 +1,21 @@
 ---
 name: review-tests
-description: Phase 3 — Test Review. Audits T1–T4 test completeness for one aggregate, detects fake/weak tests by reading the implementation, adds missing edge cases and adversarial scenarios, and runs the full test suite. T1 = {Aggregate}IntraInvariantTest (full P1 matrix); T2 = {Aggregate}ServiceTest (service contract + event publication); T3 = {Aggregate}InterInvariantTest (subscriptions); T4 = functionality + compensation tests.
+description: Phase 4 — Test Review. Audits T1–T4 test completeness for one aggregate, detects fake/weak tests by reading the implementation, adds missing edge cases and adversarial test scenarios, absorbs any adversarial proof tests into the taxonomy, and runs the full test suite. T1 = {Aggregate}IntraInvariantTest (full P1 matrix); T2 = {Aggregate}ServiceTest (service contract + event publication); T3 = {Aggregate}InterInvariantTest (subscriptions); T4 = functionality + compensation tests.
 argument-hint: "<AggregateName> (e.g. Course, Execution, Tournament)"
 ---
 
-# Phase 3 — Test Review
+# Phase 4 — Test Review
 
-Phase 3 test review for one aggregate. Audits completeness and quality across the four tiers —
+Phase 4 test review for one aggregate. Audits completeness and quality across the four tiers —
 T1 Aggregate, T2 Service (incl. event publication), T3 Subscription (Inter-Invariant), T4
 Functionality — against the implementation, adds missing tests, fixes fake/wrong tests, and runs
 the build.
+
+Runs after Phase 3 (Implementation Review), so the implementation defects that `/review-aggregate` and
+`/adversarial-review-aggregate` surface have already been fixed. This skill cannot modify non-test
+files (Hard Rule 4); if you find an implementation bug here, report it and refer it back to
+`/adversarial-review-aggregate` rather than papering over it with a test that asserts the buggy
+behaviour.
 
 One aggregate per invocation.
 
@@ -17,6 +23,8 @@ One aggregate per invocation.
 - `docs/concepts/testing.md` — canonical 4-tier specification (this skill enforces it)
 - `.claude/skills/implement-aggregate/session-b.md` — companion implementation skill; missing tests
   found here should be fed back to session-b.md so the gap is not re-introduced
+- `.claude/skills/adversarial-review-aggregate/SKILL.md` — Phase 3; produces the `@PendingFeature`
+  proof tests this skill absorbs in Step 8.b
 
 ---
 
@@ -27,26 +35,15 @@ root". Do not run any command until you have.
 
 ## Step 1: Resolve Context
 
-### 1.a — Locate plan.md
+Read `.claude/skills/_shared/conventions.md` § "Resolve app context" and § "Resolve aggregate
+context". Derive `{app-name}`, `{pkg}`, `{AppClass}`, `{Aggregate}`, `{aggregate}`, `{N}`,
+`{tgt-src}`, `{tgt-test}`, `{review-dir}`.
 
-Read `.claude/skills/_shared/conventions.md` § "Resolve app context" and derive `{app-name}`,
-`{pkg}`, `{AppClass}`.
-
-### 1.b — Resolve the aggregate
-
-`{Aggregate}` = PascalCase argument (e.g., `Course`).
-`{aggregate}` = lowercase (e.g., `course`).
-
-Verify that a section `### N. {Aggregate}` exists in `plan.md`. If not found, halt:
-"Aggregate '{Aggregate}' not found in plan.md. Check the name."
-
-### 1.c — Derive path prefixes
+Additionally derive:
 
 ```
-{tgt-src}   = applications/{app-name}/src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/
-{tgt-test}  = applications/{app-name}/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/{pkg}/
-{ref-test}  = applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/
-{review-dir} = applications/{app-name}/reviews/
+{proof-test-dir}  = {tgt-test}sagas/adversarial/{aggregate}/
+{proof-test}      = {proof-test-dir}{Aggregate}AdversarialTest.groovy
 ```
 
 ---
@@ -60,6 +57,8 @@ Read every file in a single parallel batch. Missing files are noted, not errors.
 - `{tgt-test}sagas/{aggregate}/{Aggregate}ServiceTest.groovy` — T2, incl. event publication (may not exist yet)
 - `{tgt-test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` — T3 subscription (may not exist)
 - All `*.groovy` under `{tgt-test}sagas/coordination/{aggregate}/` — T4 functionality (use `find` to enumerate)
+- `{proof-test}` — adversarial proof tests from Phase 3, if present (absorbed in Step 8.b, **not**
+  audited as T1-T4)
 
 **Implementation files (ground truth):**
 - `{tgt-src}microservices/{aggregate}/aggregate/{Aggregate}.java` — invariant logic
@@ -140,6 +139,10 @@ For every **Yes** row, complete the "Defect caught if absent" column with one ph
 
 Adopt an adversarial tester mindset. For each test that exists, examine it line by line against the
 implementation files read in Step 2.
+
+> **Exclusion — adversarial proof tests.** Tests under `{proof-test-dir}` are out of scope for this
+> step. They live outside the T1-T4 tiers by design, and every one is `@PendingFeature` (expected to
+> fail). Do not flag them as Fake, Wrong, Weak, or misplaced. They are handled in Step 8.b.
 
 ### A. Fake / Wrong / Weak detection
 
@@ -263,19 +266,46 @@ Follow the patterns in `docs/concepts/testing.md` exactly:
 
 ## Step 8: Fix Fake and Wrong Tests
 
+### 8.a — Fix flagged tests
+
 For tests flagged as **Fake** or **Wrong** in Step 5, fix them in place.
 For **Weak** tests, strengthen the assertions.
 Keep test names unchanged unless they are actively misleading.
+
+### 8.b — Absorb adversarial proof tests
+
+Skip if `{proof-test}` does not exist.
+
+Each test in that file is a `@PendingFeature` proof that a defect reported by
+`/adversarial-review-aggregate` is real. Run the file first, following
+`.claude/skills/_shared/conventions.md` § "Run the test suite" with
+`-Dtest="{Aggregate}AdversarialTest"`.
+
+A `@PendingFeature` test that unexpectedly passes fails the run **without** appearing in the surefire
+failure totals in the usual way — so read `MAVEN_EXIT` as well as the totals before deciding which row
+below applies.
+
+For each test, act on the result:
+
+| Result | Meaning | Action |
+|--------|---------|--------|
+| Fails (as expected by `@PendingFeature`) | The defect is still open | Leave it. Record it in the report as an outstanding implementation defect blocking Green. Do **not** write a T1-T4 test asserting the current buggy behaviour. |
+| Passes unexpectedly (`@PendingFeature` fails the run) | The defect has been fixed | Absorb it: remove `@PendingFeature`, move the test into its correct tier (P1 predicate → T1; service contract or event payload → T2; subscription → T3; functionality or compensation → T4) following `docs/concepts/testing.md`, rename it to the tier's convention, and delete it from `{proof-test}`. |
+
+Once `{proof-test}` has no test methods left, delete the file and the `{proof-test-dir}` directory.
+
+Absorbed tests are the highest-value regression guards in the suite — each one encodes a defect that
+actually shipped. Never delete one instead of absorbing it.
 
 ---
 
 ## Step 9: Run the Full Test Suite
 
-Use a wildcard pattern to run all test classes for this aggregate without manual enumeration:
+Run all test classes for this aggregate following `.claude/skills/_shared/conventions.md` § "Run the
+test suite", narrowed with a wildcard so no manual enumeration is needed:
 
-```bash
-cd "$(git rev-parse --show-toplevel)/applications/{app-name}" && mvn clean -Ptest-sagas test \
-  -Dtest="*{Aggregate}*Test" 2>&1 | tail -100
+```
+-Dtest="*{Aggregate}*Test"
 ```
 
 `*{Aggregate}*Test` matches `{Aggregate}IntraInvariantTest` (T1), `{Aggregate}ServiceTest` (T2),
@@ -287,9 +317,11 @@ class names: `-Dtest="{Aggregate}IntraInvariantTest,Create{Aggregate}Test,..."`.
 avoids stale `-Dtest=` lists when new test files are added mid-review.
 
 Report:
-- BUILD SUCCESS / FAILURE
-- Per-class pass/fail counts
-- Any compilation errors (flag as Critical action items)
+- The observed `MAVEN_EXIT` and surefire totals (tests / failures / errors / skipped). GREEN requires
+  exit status `0` **and** zero failures/errors.
+- Per-class pass/fail counts, from the surefire report files
+- Any compilation errors (flag as Critical action items). A non-zero `MAVEN_EXIT` with zero surefire
+  failures usually means compilation failed, so no reports were written for the affected classes.
 
 ---
 
@@ -314,17 +346,20 @@ Sections:
 - Review file path
 - Verdict + one-sentence justification
 - Number of tests added, number of tests fixed
-- Build result: PASS/FAIL, test classes run and passed
+- Build result: the observed `MAVEN_EXIT` and surefire totals, plus test classes run and passed
 - Any Fake or Critical findings verbatim
 
 ---
 
 ## Step 12: Tick plan.md Checkbox
 
-After writing the review report and printing the summary, tick the Phase 3 checkbox in plan.md.
+After writing the review report and printing the summary, tick the Phase 4 checkbox in plan.md.
 
 The aggregate's ordinal `{N}` is the number from the plan.md section header `### {N}. {Aggregate}`.
-Replace `- [ ] 3.{N} — {Aggregate}` with `- [x] 3.{N} — {Aggregate}` in plan.md.
+Replace `- [ ] 4.{N} — {Aggregate}` with `- [x] 4.{N} — {Aggregate}` in plan.md.
+
+Do not tick if Step 8.b left an outstanding `@PendingFeature` proof test — the implementation defect
+must be fixed first. Say so explicitly in the summary instead.
 
 ---
 
@@ -342,7 +377,9 @@ Replace `- [ ] 3.{N} — {Aggregate}` with `- [x] 3.{N} — {Aggregate}` in plan
     asserted in a T2 service or T4 functionality test is **Wrong (misplaced)**; flag and move it.
 4. **Do not modify non-test files.** This review touches only `*.groovy` test files and the review
    report.
-5. **Build must run.** Do not skip Step 9.
+5. **Build must run, and its result must be observed, not scraped.** Do not skip Step 9. Report the
+   outcome from maven's exit status and the surefire report files
+   (`.claude/skills/_shared/conventions.md` § "Run the test suite"), never from piped maven stdout.
 6. **One aggregate per invocation.**
 7. **No emojis. Terse and specific. File paths, method names, line numbers.**
 8. **Every `setSemanticLock` step must have a matching state-transition (lock-acquisition) test.**

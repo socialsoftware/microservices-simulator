@@ -115,6 +115,7 @@ Then verify consistency of those definitions in each location below:
 | `.claude/skills/implement-aggregate/session-b.md` | P3 | ... | ... | ... |
 | `.claude/skills/implement-aggregate/session-d.md` | P2 | ... | ... | ... |
 | `.claude/skills/review-aggregate/SKILL.md` — Step 6 | P1–P4 | ... | ... | ... |
+| `.claude/skills/adversarial-review-aggregate/SKILL.md` — Steps 3, 8 | P1, and the Family F re-derivation | ... | ... | ... |
 
 ### 4.b — R1–R8 definitions
 
@@ -123,16 +124,23 @@ Extract the authoritative one-liner for each of R1–R8 from `docs/architecture.
 Check whether each restriction is mentioned in the concept doc or session skill where it
 would most naturally be enforced:
 
-| Restriction | Expected location | Mentioned? | Claim consistent? | Notes |
-|-------------|------------------|------------|-------------------|-------|
-| R1 — service loads only own aggregate | `docs/concepts/service.md`, session-b.md | ... | ... | ... |
-| R2 — service injects only own components | `docs/concepts/service.md`, session-b.md | ... | ... | ... |
-| R3 — cross-aggregate flow via DTOs only | `docs/concepts/service.md`, session-b.md | ... | ... | ... |
-| R4 — setForbiddenStates on mutating saga steps | `docs/concepts/sagas.md`, session-b.md | ... | ... | ... |
-| R5 — getEventSubscriptions in consumer only | `docs/concepts/events.md`, session-d.md | ... | ... | ... |
-| R6 — verifyInvariants must not read from DB | `docs/concepts/aggregate.md`, session-a.md | ... | ... | ... |
-| R7 — DTOs are immutable value objects | `docs/concepts/service.md`, session-b.md | ... | ... | ... |
-| R8 — functionalities only send commands upstream | `docs/concepts/commands.md`, session-b.md | ... | ... | ... |
+> **Code-conformance owner.** `.claude/skills/adversarial-review-aggregate/SKILL.md` Step 6 is the
+> single place R1-R8 are checked against *code* (every other reference teaches or documents them).
+> Verify that its Family D table still covers all eight restrictions and that each check matches the
+> authoritative one-liner extracted above. A restriction present in `docs/architecture.md` but absent
+> from that table is a **Critical** finding — it means the restriction is documented but enforced
+> nowhere.
+
+| Restriction | Expected location | In Family D table? | Mentioned? | Claim consistent? | Notes |
+|-------------|------------------|--------------------|------------|-------------------|-------|
+| R1 — service loads only own aggregate | `docs/concepts/service.md`, session-b.md | ... | ... | ... | ... |
+| R2 — service injects only own components | `docs/concepts/service.md`, session-b.md | ... | ... | ... | ... |
+| R3 — cross-aggregate flow via DTOs only | `docs/concepts/service.md`, session-b.md | ... | ... | ... | ... |
+| R4 — setForbiddenStates on mutating saga steps | `docs/concepts/sagas.md`, session-b.md | ... | ... | ... | ... |
+| R5 — getEventSubscriptions in consumer only | `docs/concepts/events.md`, session-d.md | ... | ... | ... | ... |
+| R6 — verifyInvariants must not read from DB | `docs/concepts/aggregate.md`, session-a.md | ... | ... | ... | ... |
+| R7 — DTOs are immutable value objects | `docs/concepts/service.md`, session-b.md | ... | ... | ... | ... |
+| R8 — functionalities only send commands upstream | `docs/concepts/commands.md`, session-b.md | ... | ... | ... | ... |
 
 ---
 
