@@ -103,8 +103,9 @@ def get_valid_action_mask(action_mapping: list[tuple], config: dict,
             microservice_name = microservices_list[microservice_id]
 
             microservice_capacity = microservice_caps.get(microservice_name, 1)
+            max_req = ConfigTool.get_ms_max_requirement(config, microservice_name)
 
-            if microservice_capacity > total_amount:
+            if microservice_capacity - total_amount >= max_req:
                 mask[i] = True
 
     return mask

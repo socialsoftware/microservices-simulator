@@ -69,6 +69,16 @@ class ConfigTool:
         return placement_map
 
     @staticmethod
+    def get_ms_max_requirement(config: dict, microservice_name: str) -> float:
+        """Returns the maximum requirement among all services of a microservice."""
+        microservices = config.get("Capacities", {}).get("microservices", [])
+        ms_dict = next((m for m in microservices if m["name"] == microservice_name), None)
+        if ms_dict:
+            services = ms_dict.get("services", [])
+            return max([s.get("requirement", 1.0) for s in services], default=1.0)
+        return 1.0
+
+    @staticmethod
     def randomize_config(base_config: dict, microservices: list[str], num_nodes: int) -> dict:
         """
         Generates a randomized configuration (placement and capacities).
@@ -101,13 +111,15 @@ class ConfigTool:
                 raise ValueError(
                     f"Node {node.get('name')} limit ({node_limit}) exceeded by base requirement ({len(services_in_node)} services).")
 
-            # Guarantee at least 1 capacity per service
-            allocations = {ms: 1 for ms in services_in_node}
-
             # Target 70% to 80% utilization to leave headroom for the agent
             target_utilization = random.uniform(0.7, 0.8)
             node_target_limit = int(node_limit * target_utilization)
-            remaining = node_target_limit - len(services_in_node)
+
+            # Guarantee at least the max requirement per service
+            allocations = {ms: int(max(1, ConfigTool.get_ms_max_requirement(config, ms))) for ms in services_in_node}
+            
+            used = sum(allocations.values())
+            remaining = node_target_limit - used
 
             remaining = max(0, remaining)
 
@@ -190,15 +202,17 @@ class ConfigTool:
     def scale_down_capacity(config: dict, ms_name: str, amount: int) -> bool:
         """
         Attempts to decrease the capacity of a microservice by 'amount'.
-        Returns True if successful, False if it would drop to or below 0.
+        Returns True if successful, False if it would drop below the max requirement.
         """
 
         microservices = config.get("Capacities", {}).get("microservices", [])
         ms_dict = next(
             (m for m in microservices if m["name"] == ms_name), None)
 
-        if ms_dict and ms_dict["capacity"] > amount:
-            ms_dict["capacity"] -= amount
-            return True
+        if ms_dict:
+            max_req = ConfigTool.get_ms_max_requirement(config, ms_name)
+            if ms_dict["capacity"] - amount >= max_req:
+                ms_dict["capacity"] -= amount
+                return True
 
         return False
