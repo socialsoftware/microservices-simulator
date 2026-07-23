@@ -2,8 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggrega
 
 public interface UserFactory {
     User createUser(Integer aggregateId, UserDto userDto);
-
-    User createUserFromExisting(User existing);
-
+    User createUserCopy(User existing);
     UserDto createUserDto(User user);
 }

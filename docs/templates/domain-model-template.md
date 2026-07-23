@@ -16,10 +16,12 @@
 |---|---|---|
 | **{EntityName}** | `{field}: {Type}` (immutable?), `{field}: {Type}` | {OwnedChild} × N, or — |
 
-> **Owns** — value objects with no independent identity; created and deleted with the entity.
+> **Owns** — value objects with no independent identity; created and deleted with the entity. When an owned value object has more than one field, give it its own row in the table (e.g., `TournamentParticipant` owned by `Tournament`).
 > **immutable** — add this annotation to any field that must not change after creation.
 > **technical** — add this annotation to fields that exist for implementation reasons (e.g. `lastModifiedTime`), not domain reasons.
-> **[snapshot from AggregateX]** — use this annotation for fields that are locally cached copies of data owned by a different aggregate. The AI agent will wire the corresponding event subscription. Example: `courseName: String [snapshot from Course]`.
+> **default:** — annotate attributes with non-null initial values (e.g. `active: Boolean (default: false)`).
+> **Enum types** — list valid values inline (e.g. `type: CourseType (VALUE_A \| VALUE_B)`).
+> **Soft-delete state** — do **not** add a `state` field to any entity row. The simulator's `Aggregate` base class provides `state: AggregateState` (`ACTIVE`, `INACTIVE`, `DELETED`) and sets it via `remove()`. Rules predicate on `Entity.state == DELETED` using this inherited field.
 
 ---
 
@@ -39,7 +41,7 @@
 
 Rules that inspect only fields of a single entity.
 
-> **AI agent implementation:** All §3.1 rules become **Layer 1 intra-invariants** inside `verifyInvariants()`, added by `/scaffold-aggregate`.
+> **AI agent implementation:** All §3.1 rules become **P1 intra-invariants** inside `verifyInvariants()`.
 
 | Rule | Entity | Predicate |
 |---|---|---|
@@ -51,7 +53,7 @@ Rules that inspect only fields of a single entity.
 
 ### 3.2 — Cross-entity rules
 
-> **AI agent implementation:** The AI agent classifies each §3.2 rule into Layer 2, 3, or 4 using `docs/concepts/decision-guide.md` and confirms the classification with the user before writing any code. Domain experts write the rules; the AI decides the layer.
+> **AI agent implementation:** The AI agent classifies each §3.2 rule into a pattern (P1–P4) using `docs/concepts/rule-enforcement-patterns.md` and confirms the classification with the user before writing any code. Domain experts write the rules; the AI decides the pattern.
 
 One block per rule. Use the exact three-field shape below.
 
@@ -67,8 +69,6 @@ One block per rule. Use the exact three-field shape below.
 ---
 
 ## §4 — Functionalities
-
-Operations that the application exposes. Each row maps directly to one `/implement-functionality` invocation in Phase 3 of `/new-application`.
 
 > **One row per operation.** The **Primary Aggregate** is the one that owns the main state change (the one whose service method is the coordination entry point). List every aggregate that the saga reads or writes in **Other Aggregates**.
 > If an operation touches only a single aggregate, omit it here — it becomes a plain service method with no saga coordination.

@@ -7,7 +7,7 @@ public class GetTopicByIdCommand extends Command {
     private Integer topicAggregateId;
 
     public GetTopicByIdCommand(UnitOfWork unitOfWork, String serviceName, Integer topicAggregateId) {
-        super(unitOfWork, serviceName, null);
+        super(unitOfWork, serviceName, topicAggregateId);
         this.topicAggregateId = topicAggregateId;
     }
 

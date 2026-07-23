@@ -2,17 +2,22 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto;
 
 public class CreateCourseCommand extends Command {
-    private CourseDto courseDto;
+    private final String name;
+    private final String type;
 
-    public CreateCourseCommand(UnitOfWork unitOfWork, String serviceName, CourseDto courseDto) {
+    public CreateCourseCommand(UnitOfWork unitOfWork, String serviceName, String name, String type) {
         super(unitOfWork, serviceName, null);
-        this.courseDto = courseDto;
+        this.name = name;
+        this.type = type;
     }
 
-    public CourseDto getCourseDto() {
-        return courseDto;
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
     }
 }

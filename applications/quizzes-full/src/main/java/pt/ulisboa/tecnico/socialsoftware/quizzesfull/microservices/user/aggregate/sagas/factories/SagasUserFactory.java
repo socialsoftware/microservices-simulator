@@ -17,7 +17,7 @@ public class SagasUserFactory implements UserFactory {
     }
 
     @Override
-    public User createUserFromExisting(User existing) {
+    public User createUserCopy(User existing) {
         return new SagaUser((SagaUser) existing);
     }
 

@@ -10,7 +10,7 @@ ARG PROFILE=version-service,stream
 RUN mvn clean package -P$PROFILE,kubernetes -Dmaven.test.skip=true
 
 FROM eclipse-temurin:21-jre
-ARG APP_VERSION=3.1.3-SNAPSHOT
+ARG APP_VERSION=3.2.0-SNAPSHOT
 ENV JAR_FILE=MicroservicesSimulator-${APP_VERSION}-exec.jar
 COPY --from=run target/MicroservicesSimulator-*-exec.jar ./app.jar
 ENV START_CLASS=pt.ulisboa.tecnico.socialsoftware.ms.gateway.GatewayApplication

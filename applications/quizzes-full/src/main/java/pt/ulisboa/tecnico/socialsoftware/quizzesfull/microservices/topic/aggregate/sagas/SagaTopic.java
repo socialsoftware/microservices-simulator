@@ -4,11 +4,14 @@ import jakarta.persistence.Entity;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.Topic;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicCourse;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 @Entity
 public class SagaTopic extends Topic implements SagaAggregate {
 
+    @Convert(converter = SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaTopic() {
@@ -16,14 +19,14 @@ public class SagaTopic extends Topic implements SagaAggregate {
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 
-    public SagaTopic(Integer aggregateId, TopicDto topicDto) {
-        super(aggregateId, topicDto);
+    public SagaTopic(Integer aggregateId, String name, TopicCourse topicCourse) {
+        super(aggregateId, name, topicCourse);
         this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 
     public SagaTopic(SagaTopic other) {
         super(other);
-        this.sagaState = other.getSagaState();
+        this.sagaState = GenericSagaState.NOT_IN_SAGA;
     }
 
     @Override

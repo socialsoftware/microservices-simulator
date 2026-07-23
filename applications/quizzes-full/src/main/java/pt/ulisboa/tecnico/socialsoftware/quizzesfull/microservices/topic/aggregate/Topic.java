@@ -1,57 +1,61 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToOne;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /*
     INTRA-INVARIANTS:
-        (none)
+        TOPIC_MISSING_NAME: name must not be null
     INTER-INVARIANTS:
-        (wired in Phase 4 via /wire-event)
-*/
+        COURSE-EXISTS (course doesn't send events; no subscription needed)
+ */
 @Entity
 public abstract class Topic extends Aggregate {
 
     @Column
     private String name;
 
-    // --- Snapshot fields ---
-    @Column
-    private Integer courseId;
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "topic")
+    private TopicCourse topicCourse;
 
-    public Topic() {
-    }
+    public Topic() {}
 
-    public Topic(Integer aggregateId, TopicDto topicDto) {
+    public Topic(Integer aggregateId, String name, TopicCourse topicCourse) {
         super(aggregateId);
         setAggregateType(getClass().getSimpleName());
-        this.name = topicDto.getName();
-        this.courseId = topicDto.getCourseId();
+        setName(name);
+        setTopicCourse(topicCourse);
     }
 
     public Topic(Topic other) {
         super(other);
-        this.name = other.getName();
-        this.courseId = other.getCourseId();
+        setName(other.getName());
+        setTopicCourse(new TopicCourse(other.getTopicCourse()));
+    }
+
+    @Override
+    public void verifyInvariants() {
+        if (!invariantNameNotNull()) {
+            throw new QuizzesFullException(QuizzesFullErrorMessage.TOPIC_MISSING_NAME);
+        }
+    }
+
+    private boolean invariantNameNotNull() {
+        return this.name != null;
     }
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
         return new HashSet<>();
-    }
-
-    @Override
-    public void remove() {
-        super.remove();
-    }
-
-    @Override
-    public void verifyInvariants() {
     }
 
     public String getName() {
@@ -62,11 +66,12 @@ public abstract class Topic extends Aggregate {
         this.name = name;
     }
 
-    public Integer getCourseId() {
-        return courseId;
+    public TopicCourse getTopicCourse() {
+        return topicCourse;
     }
 
-    public void setCourseId(Integer courseId) {
-        this.courseId = courseId;
+    public void setTopicCourse(TopicCourse topicCourse) {
+        this.topicCourse = topicCourse;
+        this.topicCourse.setTopic(this);
     }
 }

@@ -1,6 +1,6 @@
 # Application Architecture
 
-This document is the system-level companion to the per-concept docs. Read it before implementing a new application to understand how the layers fit together, what constraints govern each one, and which simulator base classes to extend. To start a new application with Claude's help, invoke `/new-application <AppName>`.
+This document is the system-level companion to the per-concept docs. Read it before implementing a new application to understand how the layers fit together, what constraints govern each one, and which simulator base classes to extend.
 
 ---
 
@@ -93,11 +93,22 @@ microservices/{serviceName}/
 **Optional directories:**
 - `coordination/eventProcessing/` and `notification/` are present only in aggregates that **consume events** from other services (e.g., Tournament). Aggregates that only **publish events** (e.g., User) omit both directories.
 
+### `{Xxx}ServiceApplication.java`
+
+Each microservice has a `@SpringBootApplication` entry point gated by `@Profile("{xxx}-service")`. This lets the service run in isolation (activated by its named profile) while remaining inert inside the simulator's monolithic `{AppClass}Simulator` context (which does not activate any per-service profile). The class:
+- Scans only its own `microservices/{xxx}` package plus `pt.ulisboa.tecnico.socialsoftware.ms`
+- Implements `InitializingBean` to call `eventService.clearEventsAtApplicationStartUp()` on startup
+- Is profile-gated and does not conflict with the monolithic simulator entry point
+
+### `{Xxx}Controller.java`
+
+A minimal `@RestController` stub under `coordination/webapi/`. In the simulator, HTTP endpoints are not exercised by the test harness (tests drive operations directly via `{Xxx}Functionalities`). The controller is created as an empty stub to mark the architectural slot and match the reference app structure. Endpoints can be filled in when a web-API layer is needed.
+
 ---
 
 ## Request Lifecycle
 
-Happy-path flow from an HTTP request through UoW commit and into the async event tail. Invariant layer numbers refer to the taxonomy in [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md).
+Happy-path flow from an HTTP request through UoW commit and into the async event tail. Pattern codes refer to the taxonomy in [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns.md).
 
 ```
 HTTP Request
@@ -115,20 +126,20 @@ Functionality (WorkflowFunctionality)
       │
       └──► Step M: commandGateway.send(MutateXxxCommand)       ← depends on N
                 └─ CommandHandler → Service.mutateXxx()
-                        [Layer 2] service-layer guard
-                            input validation + DB checks, inside @Transactional(SERIALIZABLE)
-                            throw if precondition violated
+                        [P3] service-layer guard
+                            own-table reads, uniqueness checks, or DTO field validation;
+                            runs inside @Transactional(SERIALIZABLE), throw if precondition violated
                         aggregate.mutate()
                         unitOfWorkService.registerChanged(aggregate, uow)
 
       UoW commit
-            [Layer 1] verifyInvariants() on each changed aggregate
+            [P1] verifyInvariants() on each changed aggregate
             persist new version row
             publish domain events
 
       Async (~1 s poll interval)
             EventHandling detects new events
-                [Layer 4] EventProcessing → Update Functionality
+                [P2] EventProcessing → Update Functionality
                     consumer aggregate caches publisher state
 ```
 
@@ -182,7 +193,7 @@ See [`concepts/sagas.md`](concepts/sagas.md) for how semantic locks are acquired
 
 Subscriptions encode a one-way dependency: the consumer caches state from the publisher. The upstream (publisher) aggregate must not subscribe to its own events and must not reference downstream aggregate types. Adding subscriptions in the wrong direction creates circular dependencies in the event pipeline.
 
-See [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) Layer 4 for the upstream/downstream model.
+See [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns.md) P2 for the upstream/downstream model.
 
 ---
 
@@ -190,7 +201,7 @@ See [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md)
 
 `verifyInvariants()` is called inside the UoW commit path, after all mutations have been applied. Repository calls at this point risk deadlocks and violate the layering contract. Intra-invariants must check only fields already present on the aggregate instance.
 
-**Instead:** Use a Layer 2 service-layer guard in `*Service.java`, which runs before the UoW commit and can safely read from the DB.
+**Instead:** Use a P3 service-layer guard in `*Service.java`, which runs before the UoW commit and can safely read from the DB.
 
 ---
 
@@ -200,16 +211,24 @@ DTOs are point-in-time snapshots of an aggregate's observable state. A Functiona
 
 ---
 
-## Choosing the Right Invariant Layer
+### R8 — Functionalities may only send commands to upstream aggregates
 
-For a quick decision, use this table. For full rationale and examples for each layer, see [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md).
+A functionality that belongs to aggregate A may only issue commands (read or mutate) to aggregates that are **upstream of A** in the event dependency graph. It must never send commands to aggregates that are downstream of A.
 
-| Rule type | Right layer |
-|-----------|-------------|
-| Always true within one aggregate; derivable from its own fields | Layer 1 — `verifyInvariants()` |
-| Requires a DB read OR pure input validation before mutation | Layer 2 — service-layer guard |
-| Requires reading a **different** aggregate under a semantic lock | Layer 3 — cross-aggregate state guard (saga step) |
-| Cross-aggregate; eventual consistency is acceptable | Layer 4 — inter-invariant via domain events |
+**Why:** Downstream aggregates depend on A's events to cache A's state — the data-flow direction is A → downstream. Sending a command from A's functionality to a downstream aggregate reverses that direction, couples A to downstream internals, and risks circular command chains.
+
+---
+
+## Choosing the Right Enforcement Pattern
+
+For a quick decision, use this table. For the full decision flowchart and pattern recipes, see [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns.md).
+
+| Rule type | Pattern |
+|-----------|---------|
+| Always true within one aggregate; derivable from its own fields | P1 — `verifyInvariants()` |
+| Synchronous service-level check (own-table uniqueness OR saga-assembled DTO field validation) | P3 — service guard |
+| Cross-aggregate; eventual consistency is acceptable | P2 — inter-invariant via domain events |
+| Precondition implicit in saga fetch / same value to two aggregates | P4a/P4b — by construction |
 
 ---
 
@@ -218,8 +237,8 @@ For a quick decision, use this table. For full rationale and examples for each l
 | Topic | Path |
 |-------|------|
 | Aggregate versioning | [`concepts/aggregate.md`](concepts/aggregate.md) |
+| Service layer patterns | [`concepts/service.md`](concepts/service.md) |
+| Commands & CommandHandler | [`concepts/commands.md`](concepts/commands.md) |
 | Sagas semantic locks | [`concepts/sagas.md`](concepts/sagas.md) |
 | Domain events | [`concepts/events.md`](concepts/events.md) |
-| Invariant taxonomy (full) | [`concepts/consistency-enforcement.md`](concepts/consistency-enforcement.md) |
-| Bootstrap a new application | `/new-application` skill |
-| Worked example | [`examples/cannot-delete-last-execution-with-content.md`](examples/cannot-delete-last-execution-with-content.md) |
+| Rule-enforcement patterns (full) | [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns.md) |

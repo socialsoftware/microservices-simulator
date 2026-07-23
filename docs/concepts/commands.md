@@ -1,0 +1,191 @@
+# Commands
+
+Commands are the messages that cross the boundary between the Functionality layer and the Service layer. Every inter-service call inside a workflow step is expressed as a command dispatched through `CommandGateway`.
+
+---
+
+## What a Command Is
+
+A `Command` subclass carries the inputs for one service operation. It holds the unit of work, the target service name, the primary aggregate ID (passed to `super(...)`), and any domain-specific payload fields.
+
+```java
+public class AddParticipantCommand extends Command {
+    private Integer tournamentAggregateId;
+    private UserDto userDto;
+
+    public AddParticipantCommand(UnitOfWork unitOfWork, String serviceName,
+                                  Integer tournamentAggregateId, UserDto userDto) {
+        super(unitOfWork, serviceName, tournamentAggregateId);
+        this.tournamentAggregateId = tournamentAggregateId;
+        this.userDto = userDto;
+    }
+
+    public Integer getTournamentAggregateId() { return tournamentAggregateId; }
+    public UserDto getUserDto() { return userDto; }
+}
+```
+
+`super(unitOfWork, serviceName, aggregateId)`:
+- `unitOfWork` — the active `SagaUnitOfWork` for this workflow execution.
+- `serviceName` — the `CommandHandler.getAggregateTypeName()` value that routes to the right handler (e.g. `"Tournament"`). Use the `ServiceMapping` enum: `ServiceMapping.TOURNAMENT.getServiceName()`.
+- `aggregateId` — the primary aggregate ID; used by the UoW to detect version conflicts.
+
+Commands are plain data carriers — no business logic, no Spring beans.
+
+---
+
+## Naming Conventions
+
+| Purpose | Pattern | Example |
+|---------|---------|---------|
+| Read command | `Get<Xxx>Command` | `GetTournamentByIdCommand` |
+| Mutate command | `<Operation><Xxx>Command` | `AddParticipantCommand`, `RemoveCourseExecutionCommand` |
+| Event-driven update | `Update<Field>Command` | `UpdateUserNameCommand` |
+
+---
+
+## File Location
+
+```
+src/main/java/<pkg>/<appName>/commands/<aggregate>/
+    Get<Xxx>Command.java
+    <Operation><Xxx>Command.java
+```
+
+All commands for the same target aggregate live in one package under the application root (not inside a microservice package) so they can be shared across services.
+
+---
+
+## ServiceMapping Enum
+
+Each application defines a `ServiceMapping` enum that maps aggregate names to their service routing strings. Use these constants when constructing commands — never hardcode string literals.
+
+```java
+public enum ServiceMapping {
+    TOURNAMENT("tournament"),
+    EXECUTION("execution"),
+    // ...
+    ;
+    private final String serviceName;
+    ServiceMapping(String serviceName) { this.serviceName = serviceName; }
+    public String getServiceName() { return serviceName; }
+}
+```
+
+> **Multi-word aggregates — camelCase required:** The framework derives the commit/abort service bean at runtime by calling `resolveServiceName(aggregateClass)`, which strips "Saga" from the simple class name and lowercases the first character. For multi-word aggregates this produces camelCase: `SagaQuizAnswer` → `"quizAnswer"`. The `ServiceMapping` value **must** match this result exactly. A shortened alias (e.g. `"answer"`) causes a silent bean-lookup failure that only manifests when the aggregate is locked via `SagaCommand` at runtime. Example of a correct entry:
+> ```java
+> QUIZ_ANSWER("quizAnswer"),  // SagaQuizAnswer → resolveServiceName → "quizAnswer"
+> ```
+
+Pass `ServiceMapping.TOURNAMENT.getServiceName()` as the `serviceName` argument to a command constructor.
+
+---
+
+## Sending Commands (Functionality Layer)
+
+Inside a saga step, dispatch a command with `commandGateway.send(...)`. The return type is `Object` — cast to the expected DTO for read commands; ignore it for mutating commands.
+
+```java
+// Read step — returns a DTO
+SagaStep getExecutionStep = new SagaStep("getExecutionStep", () -> {
+    GetCourseExecutionByIdCommand cmd = new GetCourseExecutionByIdCommand(
+            unitOfWork,
+            ServiceMapping.EXECUTION.getServiceName(),
+            executionAggregateId);
+    this.executionDto = (CourseExecutionDto) commandGateway.send(cmd);
+});
+
+// Mutate step — depends on getExecutionStep; sets forbiddenStates for Sagas
+SagaStep addParticipantStep = new SagaStep("addParticipantStep", () -> {
+    AddParticipantCommand cmd = new AddParticipantCommand(
+            unitOfWork,
+            ServiceMapping.TOURNAMENT.getServiceName(),
+            tournamentAggregateId,
+            this.executionDto);
+    cmd.setForbiddenStates(List.of(TournamentSagaState.IN_UPDATE_TOURNAMENT));
+    commandGateway.send(cmd);
+}, List.of(getExecutionStep));
+```
+
+---
+
+## Routing Commands (CommandHandler)
+
+Each aggregate has one `CommandHandler` that receives all commands for that aggregate and dispatches them to the service. Use a `switch` over sealed/pattern-matched types.
+
+```java
+@Component
+public class TournamentCommandHandler extends CommandHandler {
+
+    @Autowired
+    private TournamentService tournamentService;
+
+    @Override
+    public String getAggregateTypeName() {
+        return "Tournament";   // must match ServiceMapping value
+    }
+
+    @Override
+    public Object handleDomainCommand(Command command) {
+        return switch (command) {
+            case GetTournamentByIdCommand cmd -> tournamentService.getTournamentById(
+                    cmd.getAggregateId(), cmd.getUnitOfWork());
+            case AddParticipantCommand cmd -> {
+                tournamentService.addParticipant(
+                        cmd.getTournamentAggregateId(), cmd.getUserDto(), cmd.getUnitOfWork());
+                yield null;
+            }
+            // ... one case per command
+            default -> {
+                logger.warning("Unknown command: " + command.getClass().getName());
+                yield null;
+            }
+        };
+    }
+}
+```
+
+`getAggregateTypeName()` returns a PascalCase name (e.g. `"Course"`) used by `CommandHandlerDecorator` for decorator lookup — it is **not** the routing key.
+
+**Actual routing:** `LocalCommandService.send()` resolves the handler via `applicationContext.getBean(command.getServiceName() + "CommandHandler")`. The Spring bean name of the `CommandHandler` **must** equal `ServiceMapping.{AGGREGATE}.getServiceName() + "CommandHandler"` (e.g. `"courseCommandHandler"`). The `@Bean` method in `BeanConfigurationSagas` must use that exact lowercase camelCase name. For multi-word aggregates this is a camelCase name — e.g. the bean method for QuizAnswer must be named `quizAnswerCommandHandler`, not `answerCommandHandler`.
+
+Mutating handlers return `null`; read handlers return the DTO produced by the service method.
+
+---
+
+## Known DTO Gaps and Compensating Command Steps
+
+Some DTOs returned by upstream service commands are structurally incomplete — they carry enough data for display or enrollment checks but omit fields (such as `version`) that a saga needs to construct a dependent aggregate. When this happens, insert an extra command step to fetch the missing data rather than inferring or hardcoding it.
+
+### `ExecutionStudentDto` lacks `version`
+
+`ExecutionStudentDto` (returned as part of `CourseExecutionDto.students`) does not carry a `version` field. Any saga that needs to record a user's `version` when creating or modifying an aggregate that embeds user data (e.g. `Tournament.creator`, `Tournament.participants`) cannot derive the version from the enrollment check step alone.
+
+**Compensating pattern:** insert a dedicated `GetUserByIdCommand` step immediately after the enrollment-check step to retrieve the full `UserDto`, which does carry `version`:
+
+```java
+// Step 1 — verify creator is enrolled (returns CourseExecutionDto)
+SagaStep getExecutionStep = new SagaStep("getExecutionStep", () -> {
+    this.executionDto = (CourseExecutionDto) commandGateway.send(
+            new GetCourseExecutionByIdCommand(unitOfWork,
+                    ServiceMapping.EXECUTION.getServiceName(), executionAggregateId));
+});
+
+// Step 2 — fetch full UserDto so we have the version field
+SagaStep getCreatorUserStep = new SagaStep("getCreatorUserStep", () -> {
+    this.creatorDto = (UserDto) commandGateway.send(
+            new GetUserByIdCommand(unitOfWork,
+                    ServiceMapping.USER.getServiceName(), creatorAggregateId));
+}, List.of(getExecutionStep));
+```
+
+Name the step `getCreatorUserStep` for the tournament creator pattern, or `getUserStep` for the add-participant pattern. The `UserDto` returned by `GetUserByIdCommand` carries `version` and can be passed directly to the downstream command.
+
+---
+
+## Reference Implementations (Quizzes)
+
+- `applications/quizzes/src/main/java/.../quizzes/commands/tournament/AddParticipantCommand.java` — mutate command with a DTO payload
+- `applications/quizzes/src/main/java/.../quizzes/commands/tournament/GetTournamentByIdCommand.java` — read command
+- `applications/quizzes/src/main/java/.../quizzes/microservices/tournament/messaging/TournamentCommandHandler.java` — full handler with pattern switch
+- `applications/quizzes/src/main/java/.../quizzes/ServiceMapping.java` — service name enum

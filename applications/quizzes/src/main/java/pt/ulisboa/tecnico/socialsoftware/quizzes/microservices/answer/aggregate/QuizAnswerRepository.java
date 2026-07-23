@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import org.springframework.stereotype.Repository;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 
 import java.util.Optional;
 import java.util.Set;
@@ -16,11 +18,19 @@ public interface QuizAnswerRepository extends JpaRepository<QuizAnswer, Integer>
     @Query(value = "select a1.aggregateId from QuizAnswer a1 where a1.quiz.quizAggregateId = :quizAggregateId AND a1.student.studentAggregateId = :studentAggregateId ")
     Optional<Integer> findQuizAnswerIdByQuizIdAndUserIdForTCC(Integer quizAggregateId, Integer studentAggregateId);
 
-    @Query(value = "select a1.aggregateId from QuizAnswer a1 where a1.quiz.quizAggregateId = :quizAggregateId AND a1.student.studentAggregateId = :studentAggregateId AND a1.sagaState = 'NOT_IN_SAGA'")
-    Optional<Integer> findQuizAnswerIdByQuizIdAndUserIdForSaga(Integer quizAggregateId, Integer studentAggregateId);
+    @Query(value = "select a1.aggregateId from QuizAnswer a1 where a1.quiz.quizAggregateId = :quizAggregateId AND a1.student.studentAggregateId = :studentAggregateId AND a1.sagaState = :sagaState")
+    Optional<Integer> findQuizAnswerIdByQuizIdAndUserIdForSagaInternal(@Param("quizAggregateId") Integer quizAggregateId, @Param("studentAggregateId") Integer studentAggregateId, @Param("sagaState") SagaAggregate.SagaState sagaState);
 
-    @Query("select count(a) > 0 from QuizAnswer a where a.quiz.quizAggregateId = :quizAggregateId AND a.student.studentAggregateId = :studentAggregateId AND a.sagaState = 'NOT_IN_SAGA'")
-    boolean existsByQuizIdAndStudentIdForSaga(@Param("quizAggregateId") Integer quizAggregateId, @Param("studentAggregateId") Integer studentAggregateId);
+    default Optional<Integer> findQuizAnswerIdByQuizIdAndUserIdForSaga(Integer quizAggregateId, Integer studentAggregateId) {
+        return findQuizAnswerIdByQuizIdAndUserIdForSagaInternal(quizAggregateId, studentAggregateId, GenericSagaState.NOT_IN_SAGA);
+    }
+
+    @Query("select count(a) > 0 from QuizAnswer a where a.quiz.quizAggregateId = :quizAggregateId AND a.student.studentAggregateId = :studentAggregateId AND a.sagaState = :sagaState")
+    boolean existsByQuizIdAndStudentIdForSagaInternal(@Param("quizAggregateId") Integer quizAggregateId, @Param("studentAggregateId") Integer studentAggregateId, @Param("sagaState") SagaAggregate.SagaState sagaState);
+
+    default boolean existsByQuizIdAndStudentIdForSaga(Integer quizAggregateId, Integer studentAggregateId) {
+        return existsByQuizIdAndStudentIdForSagaInternal(quizAggregateId, studentAggregateId, GenericSagaState.NOT_IN_SAGA);
+    }
 
     @Query("select count(a) > 0 from QuizAnswer a where a.quiz.quizAggregateId = :quizAggregateId AND a.student.studentAggregateId = :studentAggregateId")
     boolean existsByQuizIdAndStudentIdForTCC(@Param("quizAggregateId") Integer quizAggregateId, @Param("studentAggregateId") Integer studentAggregateId);

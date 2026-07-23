@@ -1,10 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.coordination;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
 public class ExecutionPlan {
     private ArrayList<FlowStep> plan;
@@ -30,8 +34,25 @@ public class ExecutionPlan {
         this.plan = plan;
     }
 
+    public boolean canExecute(HashMap<FlowStep, CompletableFuture<Void>> stepFutures, FlowStep step) {
+        return stepFutures.keySet().containsAll(step.getDependencies());
+    }
+
     public CompletableFuture<Void> execute(UnitOfWork unitOfWork) {
-        return executeSteps(this.plan, unitOfWork);
+        // Worklist scheduling: repeatedly scan the plan for steps whose dependencies
+        // already
+        // have a registered future (canExecute()) and schedule them, instead of relying
+        // on a
+        // fixed two-pass (root / non-root) structure that implicitly assumes `plan` is
+        // already
+        // topologically sorted. This tolerates arbitrary dependency depth and arbitrary
+        // registration order. The fault-flag check happens inside the .thenAccept
+        // lambda, so it
+        // only fires once the step's real dependency chain (or, for root steps,
+        // immediately) has
+        // actually completed - never synchronously ahead of that.
+        ArrayList<FlowStep> remaining = new ArrayList<>(plan);
+        return executeSteps(remaining, unitOfWork);
     }
 
     public CompletableFuture<Void> executeUntilStep(FlowStep targetStep, UnitOfWork unitOfWork) {
@@ -59,36 +80,42 @@ public class ExecutionPlan {
         return executeSteps(remainingSteps, unitOfWork);
     }
 
-    private CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork) {
-        // Execute steps without dependencies first
-        for (FlowStep step : steps) {
-            if (dependencies.get(step).isEmpty()) {
-                stepFutures.putIfAbsent(step, runStep(step, unitOfWork));
+    public CompletableFuture<Void> executeSteps(List<FlowStep> steps, UnitOfWork unitOfWork) {
+        while (!steps.isEmpty()) {
+            boolean scheduledAny = false;
+            Iterator<FlowStep> it = steps.iterator();
+            while (it.hasNext()) {
+                FlowStep step = it.next();
+                if (!canExecute(this.stepFutures, step)) {
+                    continue; // dependencies not yet scheduled; try again in a later scan
+                }
+
+                ArrayList<FlowStep> deps = dependencies.get(step);
+                CompletableFuture<Void> readyFuture = deps.isEmpty()
+                        ? CompletableFuture.completedFuture(null)
+                        : CompletableFuture.allOf(
+                                deps.stream().map(this.stepFutures::get).toArray(CompletableFuture[]::new));
+
+                this.stepFutures.put(step, readyFuture
+                        .thenCompose(ignored -> runStep(step, unitOfWork)));
+
+                executedSteps.put(step, true);
+                it.remove();
+                scheduledAny = true;
+            }
+
+            if (!scheduledAny) {
+                // No progress made in a full pass over the remaining steps: the dependency
+                // graph
+                // cannot be fully scheduled (e.g. a cycle, or a dependency on a step outside
+                // `plan`).
+                throw new IllegalStateException("Unable to schedule remaining steps in ExecutionPlan: "
+                        + steps.stream().map(FlowStep::getName).collect(Collectors.joining(", ")));
             }
         }
 
-        // Execute steps with dependencies, ensuring all dependencies are executed first
-        for (FlowStep step : steps) {
-            if (!stepFutures.containsKey(step)) {
-                CompletableFuture<Void> depsDone = CompletableFuture.allOf(
-                        dependencies.get(step).stream()
-                                .map(stepFutures::get)
-                                .toArray(CompletableFuture[]::new));
-
-                stepFutures.put(step, depsDone.thenCompose(ignored -> runStep(step, unitOfWork)));
-            }
-        }
-
-        // Wait for all steps to complete and mark them as executed
-        return CompletableFuture.allOf(
-                steps.stream()
-                        .map(stepFutures::get)
-                        .toArray(CompletableFuture[]::new))
-                .thenRun(() -> {
-                    for (FlowStep step : steps) {
-                        executedSteps.put(step, true);
-                    }
-                });
+        // Wait for all steps to complete
+        return CompletableFuture.allOf(this.stepFutures.values().toArray(new CompletableFuture[0]));
     }
 
     private CompletableFuture<Void> runStep(FlowStep step, UnitOfWork unitOfWork) {

@@ -25,6 +25,7 @@ Choose which entities are co-located. This decision determines which cross-entit
 For each aggregate that references an entity in a **different** aggregate, list the fields it must cache locally. Omit aggregates that reference no external entities.
 
 > **Updated on event** — name the domain event (defined in §4 below) that triggers the cache refresh. The AI agent uses this column to wire the correct event subscriptions automatically.
+> If the source aggregate's fields are immutable (Java `final`), write `n/a — {SourceAggregate} fields are immutable`. No event subscription is needed; the snapshot is seeded once at the consuming aggregate's creation time via a direct service call in the creation saga.
 
 | Aggregate | Snapshots of | Fields cached | Updated on event |
 |---|---|---|---|
@@ -36,7 +37,7 @@ For each aggregate that references an entity in a **different** aggregate, list 
 
 List pairs where the downstream entity must subscribe to the upstream entity's events when they are in different aggregates. If two entities are co-located in the grouping above, omit the arrow.
 
-> **AI agent reads this as the topology map.** Each arrow `A ──► B` means B subscribes to one or more events from A. The actual event names and payloads are defined in §4. Do not omit arrows.
+> **AI agent reads this as the topology map.** Each arrow `A ──► B` means B caches A's fields locally. If A's fields can change, B also subscribes to A's events (defined in §4) to keep the snapshot current. If A's fields are immutable, include the arrow but omit an event row in §4 — the snapshot is seeded once at creation. Do not omit arrows.
 
 ```
 {UpstreamAggregate} ──────────────────────────► {DownstreamAggregate}
@@ -49,7 +50,7 @@ List pairs where the downstream entity must subscribe to the upstream entity's e
 
 ## §4 — Events
 
-Name every domain event published by each upstream aggregate. The AI agent uses this table as the canonical input for each `/wire-event` call in Phase 4 of `/new-application`. There must be one row per event — if two consumers subscribe to the same event, they share a single row here.
+Name every domain event published by each upstream aggregate.
 
 > **Trigger** — the service operation (or state change) that causes the event to be published.
 > **Payload** — the fields the event carries (derived from §2 snapshot fields of the consumer(s)).
@@ -58,5 +59,7 @@ Name every domain event published by each upstream aggregate. The AI agent uses 
 | Event | Publisher | Trigger | Payload fields | Consumer(s) |
 |---|---|---|---|---|
 | `{EventName}` | {PublisherAggregate} | {operation that fires it} | `{field1}`, `{field2}` | {ConsumerAggregate1}, {ConsumerAggregate2} |
+
+> **Anchor field:** One payload field must be the publisher aggregate's own ID (the **anchor**). This field is passed to `super(anchorAggregateId)` in the event constructor and must match the `subscribedAggregateId` used in the corresponding `EventSubscription` subclass. Without this, event filtering is broken. See [`docs/concepts/events.md`](../../docs/concepts/events.md) canonical wiring for the exact pattern.
 
 ---

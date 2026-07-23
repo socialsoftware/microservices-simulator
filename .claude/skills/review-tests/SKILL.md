@@ -1,0 +1,397 @@
+---
+name: review-tests
+description: Phase 4 — Test Review. Audits T1–T4 test completeness for one aggregate, detects fake/weak tests by reading the implementation, adds missing edge cases and adversarial test scenarios, absorbs any adversarial proof tests into the taxonomy, and runs the full test suite. T1 = {Aggregate}IntraInvariantTest (full P1 matrix); T2 = {Aggregate}ServiceTest (service contract + event publication); T3 = {Aggregate}InterInvariantTest (subscriptions); T4 = functionality + compensation tests.
+argument-hint: "<AggregateName> (e.g. Course, Execution, Tournament)"
+---
+
+# Phase 4 — Test Review
+
+Phase 4 test review for one aggregate. Audits completeness and quality across the four tiers —
+T1 Aggregate, T2 Service (incl. event publication), T3 Subscription (Inter-Invariant), T4
+Functionality — against the implementation, adds missing tests, fixes fake/wrong tests, and runs
+the build.
+
+Runs after Phase 3 (Implementation Review), so the implementation defects that `/review-aggregate` and
+`/adversarial-review-aggregate` surface have already been fixed. This skill cannot modify non-test
+files (Hard Rule 4); if you find an implementation bug here, report it and refer it back to
+`/adversarial-review-aggregate` rather than papering over it with a test that asserts the buggy
+behaviour.
+
+One aggregate per invocation.
+
+**See also:**
+- `docs/concepts/testing.md` — canonical 4-tier specification (this skill enforces it)
+- `.claude/skills/implement-aggregate/session-b.md` — companion implementation skill; missing tests
+  found here should be fed back to session-b.md so the gap is not re-introduced
+- `.claude/skills/adversarial-review-aggregate/SKILL.md` — Phase 3; produces the `@PendingFeature`
+  proof tests this skill absorbs in Step 8.b
+
+---
+
+## Step 0: Anchor to the repository root
+
+Before Step 1, read `.claude/skills/_shared/conventions.md` and follow "Anchor to the repository
+root". Do not run any command until you have.
+
+## Step 1: Resolve Context
+
+Read `.claude/skills/_shared/conventions.md` § "Resolve app context" and § "Resolve aggregate
+context". Derive `{app-name}`, `{pkg}`, `{AppClass}`, `{Aggregate}`, `{aggregate}`, `{N}`,
+`{tgt-src}`, `{tgt-test}`, `{review-dir}`.
+
+Additionally derive:
+
+```
+{proof-test-dir}  = {tgt-test}sagas/adversarial/{aggregate}/
+{proof-test}      = {proof-test-dir}{Aggregate}AdversarialTest.groovy
+```
+
+---
+
+## Step 2: Read All Relevant Files in Parallel
+
+Read every file in a single parallel batch. Missing files are noted, not errors.
+
+**Test files (scope of this review):**
+- `{tgt-test}sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy` — T1
+- `{tgt-test}sagas/{aggregate}/{Aggregate}ServiceTest.groovy` — T2, incl. event publication (may not exist yet)
+- `{tgt-test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` — T3 subscription (may not exist)
+- All `*.groovy` under `{tgt-test}sagas/coordination/{aggregate}/` — T4 functionality (use `find` to enumerate)
+- `{proof-test}` — adversarial proof tests from Phase 3, if present (absorbed in Step 8.b, **not**
+  audited as T1-T4)
+
+**Implementation files (ground truth):**
+- `{tgt-src}microservices/{aggregate}/aggregate/{Aggregate}.java` — invariant logic
+- `{tgt-src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
+- `{tgt-src}microservices/{aggregate}/service/{Aggregate}Service.java` — service methods, P3 guards
+- All `*.java` under `{tgt-src}microservices/{aggregate}/coordination/sagas/` — saga steps, forbidden states, semantic locks (use `find` to enumerate)
+
+**Concept docs:**
+- `docs/concepts/testing.md` — T1–T4 required scenarios (canonical checklist)
+- `docs/concepts/sagas.md` — semantic lock patterns
+
+**Plan section:**
+- The full `### N. {Aggregate}` section from `plan.md` — write/read functionalities, P1/P2/P3 rules, saga steps, subscribed events
+
+---
+
+## Step 3: Build the Expected-Test Inventory
+
+From `docs/concepts/testing.md` and the `plan.md` aggregate section, derive the complete list of required
+test scenarios. This is the baseline for Steps 4–7.
+
+> **Spec-first principle:** Build this inventory from `plan.md` and the domain model before consulting implementation files. The implementation is ground truth for *how* tests are wired, not for *what* they should assert. When Step 5 finds that an existing test's assertion matches the implementation but not the spec, the implementation is the bug — not the spec.
+
+### T1 — `{Aggregate}IntraInvariantTest.groovy`
+
+Required scenarios: `docs/concepts/testing.md` § T1 — Aggregate Test.
+Source rule list: `plan.md` §3.1 / §3.2 P1 rules for this aggregate.
+
+### T2 — `{Aggregate}ServiceTest.groovy` (one class per aggregate, all service methods + event publication)
+
+Required scenarios: `docs/concepts/testing.md` § T2 — Service Test and § Not-Found Paths.
+**Read the service method first** to determine Path A vs Path B before flagging a not-found
+test — flagging a correct Path B test as Fake is itself a **Wrong** review finding.
+
+Per published event type (from plan.md's Events published list): one case asserting the event
+exists with the correct type, `publisherAggregateId`, and every payload field, plus one negative
+no-publish case — see `docs/concepts/testing.md` § T2 — Service Test.
+
+**P1 intra-invariants are not tested here** — they belong exclusively in `{Aggregate}IntraInvariantTest`. A P1 violation scenario in a T2/T4 test is a **Wrong (misplaced)** finding.
+
+### T3 — `{Aggregate}InterInvariantTest.groovy` (subscription tests)
+
+Only required if the aggregate has **subscribed events** (listed in `plan.md`). Required
+scenarios: `docs/concepts/testing.md` § T3 — Subscription (Inter-Invariant) Test (subscription
+tests must not re-assert event-store contents — T2 owns those).
+
+### T4 — per **write** functionality (one test file per write operation under `coordination/{aggregate}/`)
+
+File-naming convention: `{Operation}{Aggregate}Test.groovy` (e.g., `CreateCourseTest.groovy`,
+`UpdateQuizTest.groovy`). Required scenarios, assertion ownership, and the semantic-lock
+acquisition pattern: `docs/concepts/testing.md` § T4 — Functionality Test and § Assertion
+Ownership. `setForbiddenStates` conflict validation is deferred — see `docs/concepts/testing.md`
+Appendix, Cross-Functionality Test.
+
+### T4 — per **read** functionality
+
+Happy-path success only — returns the expected DTO; assert all semantically important fields.
+Not-found cases belong in T2 (`{Aggregate}ServiceTest`), not here.
+
+---
+
+## Step 4: Completeness Check
+
+For each expected scenario from Step 3, check whether a matching test exists in the test files.
+
+Produce this table:
+
+| Tier | Functionality / Rule | Required Scenario | Test Exists? | Test Name (if exists) | Defect caught if absent |
+|------|----------------------|-------------------|--------------|-----------------------|-------------------------|
+
+Flag every **No** as a **Missing** finding — these drive Step 7.
+
+For every **Yes** row, complete the "Defect caught if absent" column with one phrase (e.g. "stale field persisted after update", "lock not acquired — concurrent writes unblocked"). A row left blank in that column is a signal the test may be ceremonial — revisit in Step 5.
+
+---
+
+## Step 5: Quality Review of Existing Tests
+
+Adopt an adversarial tester mindset. For each test that exists, examine it line by line against the
+implementation files read in Step 2.
+
+> **Exclusion — adversarial proof tests.** Tests under `{proof-test-dir}` are out of scope for this
+> step. They live outside the T1-T4 tiers by design, and every one is `@PendingFeature` (expected to
+> fail). Do not flag them as Fake, Wrong, Weak, or misplaced. They are handled in Step 8.b.
+
+### A. Fake / Wrong / Weak detection
+
+Apply the **Fake / Wrong / Weak Detection Checklist** in `docs/concepts/testing.md` § Fake / Wrong /
+Weak Detection Checklist. That section is the authoritative list of test smells and the source of the
+three severity levels used in this step's output table. Every Fake or Wrong finding must cite the
+specific implementation file and line that proves the assertion is incorrect.
+
+
+**Misplacement finding (Wrong):** If a T2 service test or T4 functionality test asserts a P1
+intra-invariant violation (i.e., it calls into a service and expects `verifyInvariants()` to throw for
+a P1 rule), flag it as **Wrong (misplaced)**: "P1 violation asserted outside T1 — move to
+`{Aggregate}IntraInvariantTest`." P1 predicate tests belong exclusively in T1; the offending test should
+be deleted or replaced with the correct T1 direct-aggregate case. Likewise, field-level persistence,
+uniqueness, or not-found assertions inside a T4 functionality test are **Wrong (misplaced)** — they
+belong in T2; and event-store payload assertions inside a T3 subscription test belong in T2.
+
+
+### B. Parameter quality
+
+- Are test data values semantically realistic, not just non-null stubs?
+- For any **comparison-predicate** rule (count, timestamp, or collection size): are **both** the
+  on-point (last value that satisfies) and the off-point (first value that violates) present? A single
+  far-side representative is **Weak (boundary under-coverage)** — cite `docs/concepts/testing.md`
+  § Choosing Input Values. (Categorical rules — uniqueness, state flags — need no boundary case.)
+- For invariant tests: does the `given:` actually put the system in the violating state, or does it just
+  pass an invalid argument while the aggregate state is benign?
+
+### C. Assertion quality
+
+- Does the assertion verify the right field/state on the right object?
+- Are returned DTOs verified for all semantically important fields?
+- For state-transition (lock-acquisition) tests: does `expect:` assert the expected `IN_{OP}` saga state (the post-*acquire* state), and does `then:` assert `noExceptionThrown()`?
+- After a delete operation, does the test verify the aggregate is no longer retrievable?
+- **Invariant/guard violation tests must assert `ex.message == <ERROR_MESSAGE_CONSTANT>`**, not just
+  `thrown(<App>Exception)`. The bare-throw form is **Weak** — it passes on any thrown `{App}Exception`,
+  including unrelated bugs that happen to throw the same exception type.
+
+### D. Cross-reference with implementation
+
+- Does the test exercise the code path its name suggests? (Confirm by reading the service and saga.)
+- Does the `when:` call chain actually reach the method under test, or does it shortcut via a helper?
+- **Test class annotations:** every test class in every tier must be annotated `@DataJpaTest
+  @Transactional @Import(LocalBeanConfiguration)`. A missing `@Transactional` silently allows dirty
+  state to bleed between tests. Flag as **Wrong**.
+- **Exhaustive saga-step scan (state-transition completeness):** for the saga under test, enumerate every
+  step that calls `setSemanticLock` (each is an *acquire* transition). For each such step, confirm a
+  matching state-transition (lock-acquisition) test exists by step name. A missing one is a **Missing**
+  finding, not just an edge case.
+- For state-transition (lock-acquisition) tests: does `executeUntilStep` pause at the correct step, does
+  `expect:` assert the expected `IN_{OP}` saga state, and does `then: noExceptionThrown()` confirm the
+  traversal completes back to `NOT_IN_SAGA`?
+- **Compensation test asserts released lock:** for every write functionality that holds a lock across a
+  later step, its `<FunctionalityName>CompensationTest` must assert persisted
+  `sagaStateOf(...) == GenericSagaState.NOT_IN_SAGA` **after** the injected fault — not merely
+  `thrown(...)`. That assertion is the regression guard for lock-lifecycle bugs (the
+  `currentExecutingStep` re-lock pitfall in `docs/concepts/sagas.md`). A compensation test that only
+  asserts the exception propagates, with no post-abort `sagaStateOf` check, is **Weak**.
+
+### D2. Kill-mutation thought experiment
+
+Covered by the **Weak** section of the checklist in `docs/concepts/testing.md` § Fake / Wrong / Weak
+Detection Checklist. Apply it to every happy-path test under review.
+
+Cite the specific implementation file and line number for every Fake or Wrong finding.
+
+Produce this table:
+
+| Test file | Test name | Issue type | Finding | Severity |
+|-----------|-----------|------------|---------|----------|
+
+Severity levels: **Fake** (never catches a bug), **Wrong** (tests the wrong thing), **Weak** (real
+scenario but under-asserts), **Style** (cosmetic).
+
+---
+
+## Step 6: Identify Missing Edge Cases
+
+Beyond the required scenarios from Step 3, look for realistic edge cases not currently covered. For each
+gap, state: (a) the scenario, (b) what defect it would catch.
+
+Focus on:
+- **Intra-invariant test boundary coverage:** for every non-`final` P1 rule with an ordered predicate
+  (count, timestamp, collection size), check that `{Aggregate}IntraInvariantTest` has both the on-point
+  (`notThrown`) and the off-point (`thrown` + `ex.getErrorMessage() == <RULE>`) cases. A single
+  far-side representative is **Weak (boundary under-coverage)**; propose the missing straddle explicitly.
+  Categorical P1 rules (uniqueness, state-freeze) need no boundary pair.
+- Boundary values for **P3 numeric guards** — on-point and off-point straddling the threshold (see
+  `docs/concepts/testing.md` § Choosing Input Values).
+- Empty collections where the code iterates
+- Duplicate/already-existing entities where uniqueness is enforced
+- Operations on already-deleted aggregates
+- Operations applied in wrong order (e.g., answer before quiz starts, enroll after disenroll)
+- State transition not yet covered: for each step with `setSemanticLock` (each an *acquire* transition), is there a state-transition (lock-acquisition) test?
+- Compensation not yet covered: for each write functionality that holds a lock across a later step, is there a `<FunctionalityName>CompensationTest` that injects a fault on the later step and asserts persisted `sagaStateOf(...) == GenericSagaState.NOT_IN_SAGA` after abort (the lock-lifecycle regression guard)?
+
+Produce a list:
+
+> Missing edge case: `<scenario>` — would catch: `<defect class>`
+
+---
+
+## Step 7: Write Missing Tests
+
+For every **Missing** scenario from Step 4 and every significant gap from Step 6, write the test and add
+it to the appropriate test file.
+
+Follow the patterns in `docs/concepts/testing.md` exactly:
+
+- Correct Spock blocks: `given:`, `when:`, `then:`, `and:`
+- Not-found cases: use Path A or Path B per the service lookup mechanism (see Step 3 and the
+  "Not-Found Test Pattern" appendix)
+- State-transition (lock-acquisition) tests: `executeUntilStep` → assert `IN_{OP}` state → `resumeWorkflow` + `noExceptionThrown()` pattern (the `NOT_IN_SAGA → IN_{OP} → NOT_IN_SAGA` traversal)
+- T3 subscription deletion-event tests: use the `and:` extension-block pattern from `testing.md`
+
+**Do NOT add tests for:**
+- P1 Java-final field violations
+- Infrastructure details (Spring wiring, bean configuration)
+
+---
+
+## Step 8: Fix Fake and Wrong Tests
+
+### 8.a — Fix flagged tests
+
+For tests flagged as **Fake** or **Wrong** in Step 5, fix them in place.
+For **Weak** tests, strengthen the assertions.
+Keep test names unchanged unless they are actively misleading.
+
+### 8.b — Absorb adversarial proof tests
+
+Skip if `{proof-test}` does not exist.
+
+Each test in that file is a `@PendingFeature` proof that a defect reported by
+`/adversarial-review-aggregate` is real. Run the file first, following
+`.claude/skills/_shared/conventions.md` § "Run the test suite" with
+`-Dtest="{Aggregate}AdversarialTest"`.
+
+A `@PendingFeature` test that unexpectedly passes fails the run **without** appearing in the surefire
+failure totals in the usual way — so read `MAVEN_EXIT` as well as the totals before deciding which row
+below applies.
+
+For each test, act on the result:
+
+| Result | Meaning | Action |
+|--------|---------|--------|
+| Fails (as expected by `@PendingFeature`) | The defect is still open | Leave it. Record it in the report as an outstanding implementation defect blocking Green. Do **not** write a T1-T4 test asserting the current buggy behaviour. |
+| Passes unexpectedly (`@PendingFeature` fails the run) | The defect has been fixed | Absorb it: remove `@PendingFeature`, move the test into its correct tier (P1 predicate → T1; service contract or event payload → T2; subscription → T3; functionality or compensation → T4) following `docs/concepts/testing.md`, rename it to the tier's convention, and delete it from `{proof-test}`. |
+
+Once `{proof-test}` has no test methods left, delete the file and the `{proof-test-dir}` directory.
+
+Absorbed tests are the highest-value regression guards in the suite — each one encodes a defect that
+actually shipped. Never delete one instead of absorbing it.
+
+---
+
+## Step 9: Run the Full Test Suite
+
+Run all test classes for this aggregate following `.claude/skills/_shared/conventions.md` § "Run the
+test suite", narrowed with a wildcard so no manual enumeration is needed:
+
+```
+-Dtest="*{Aggregate}*Test"
+```
+
+`*{Aggregate}*Test` matches `{Aggregate}IntraInvariantTest` (T1), `{Aggregate}ServiceTest` (T2),
+`{Aggregate}InterInvariantTest` (T3 subscription), and all `{Operation}{Aggregate}Test` files (T4)
+— no separate `-Dtest` entries needed.
+
+If the wildcard is too broad (picks up unrelated aggregates with similar names), narrow it to explicit
+class names: `-Dtest="{Aggregate}IntraInvariantTest,Create{Aggregate}Test,..."`. The wildcard form
+avoids stale `-Dtest=` lists when new test files are added mid-review.
+
+Report:
+- The observed `MAVEN_EXIT` and surefire totals (tests / failures / errors / skipped). GREEN requires
+  exit status `0` **and** zero failures/errors.
+- Per-class pass/fail counts, from the surefire report files
+- Any compilation errors (flag as Critical action items). A non-zero `MAVEN_EXIT` with zero surefire
+  failures usually means compilation failed, so no reports were written for the affected classes.
+
+---
+
+## Step 10: Write the Review Report
+
+Write to `applications/{app-name}/reviews/test-review-{Aggregate}.md`.
+
+Sections:
+
+1. **Summary** — verdict (Green / Yellow / Red), key findings, count of tests added and fixed
+2. **Expected-test inventory** — full table from Step 4
+3. **Quality findings** — table from Step 5
+4. **Edge cases added** — list from Step 6
+5. **Tests added** — list of new test names per file
+6. **Tests fixed** — list of fixed test names with what changed
+7. **Build result** — from Step 9
+
+---
+
+## Step 11: Print Summary to Conversation
+
+- Review file path
+- Verdict + one-sentence justification
+- Number of tests added, number of tests fixed
+- Build result: the observed `MAVEN_EXIT` and surefire totals, plus test classes run and passed
+- Any Fake or Critical findings verbatim
+
+---
+
+## Step 12: Tick plan.md Checkbox
+
+After writing the review report and printing the summary, tick the Phase 4 checkbox in plan.md.
+
+The aggregate's ordinal `{N}` is the number from the plan.md section header `### {N}. {Aggregate}`.
+Replace `- [ ] 4.{N} — {Aggregate}` with `- [x] 4.{N} — {Aggregate}` in plan.md.
+
+Do not tick if Step 8.b left an outstanding `@PendingFeature` proof test — the implementation defect
+must be fixed first. Say so explicitly in the summary instead.
+
+---
+
+## Hard Rules
+
+1. **Read implementation before reviewing.** Every Fake or Wrong finding must cite the specific
+   implementation file and line that proves the test is incorrect.
+2. **Not-found exception type is conditional.** Read the service method to determine Path A vs Path B
+   before flagging. Path A (`aggregateLoadAndRegisterRead` by ID) → `thrown(SimulatorException)`.
+   Path B (custom repository returning `Optional`, service throws on empty) → `thrown({App}Exception)`.
+   Flagging a correct Path B test as Fake is itself a Wrong review finding
+   (`docs/concepts/testing.md` § T2 — Not-Found Paths).
+3. **P1 final-field rules need no tests.** Skip them in Steps 3 and 7.
+3a. **P1 predicate tests belong only in T1 (`{Aggregate}IntraInvariantTest`).** A P1 violation
+    asserted in a T2 service or T4 functionality test is **Wrong (misplaced)**; flag and move it.
+4. **Do not modify non-test files.** This review touches only `*.groovy` test files and the review
+   report.
+5. **Build must run, and its result must be observed, not scraped.** Do not skip Step 9. Report the
+   outcome from maven's exit status and the surefire report files
+   (`.claude/skills/_shared/conventions.md` § "Run the test suite"), never from piped maven stdout.
+6. **One aggregate per invocation.**
+7. **No emojis. Terse and specific. File paths, method names, line numbers.**
+8. **Every `setSemanticLock` step must have a matching state-transition (lock-acquisition) test.**
+   Each such step is an *acquire* transition into `IN_{OP}` (see `docs/concepts/testing.md`
+   § T4 — Functionality Test). "Appears safe by inspection" is not an exception. A missing test is a **Missing**
+   finding in the Step 4 inventory. Walk the saga file step-by-step in Step 5.D — do not rely on
+   counting existing tests to determine completeness.
+
+---
+
+## Pattern References
+
+Lock-acquisition test pattern and code template: `docs/concepts/testing.md` § T4 —
+Functionality Test. Not-found test patterns (Path A / Path B) and code templates:
+`docs/concepts/testing.md` § T2 — Service Test, § Not-Found Paths.
