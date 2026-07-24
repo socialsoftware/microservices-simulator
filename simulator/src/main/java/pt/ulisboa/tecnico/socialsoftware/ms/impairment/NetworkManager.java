@@ -47,7 +47,7 @@ public class NetworkManager {
     }
 
     private static class DelayConfig {
-        String type; // "uni" or "exp"
+        String type; // "uni" or "lognormal"
         double param1; // a or mu
         double param2; // b or sigma
 
@@ -176,9 +176,9 @@ public class NetworkManager {
         if (config.has("uni")) {
             JsonNode params = config.get("uni");
             delayConfigs.put(type, new DelayConfig("uni", params.get(0).asDouble(), params.get(1).asDouble()));
-        } else if (config.has("exp")) {
-            JsonNode params = config.get("exp");
-            delayConfigs.put(type, new DelayConfig("exp", params.get(0).asDouble(), params.get(1).asDouble()));
+        } else if (config.has("lognormal")) {
+            JsonNode params = config.get("lognormal");
+            delayConfigs.put(type, new DelayConfig("lognormal", params.get(0).asDouble(), params.get(1).asDouble()));
         }
     }
 

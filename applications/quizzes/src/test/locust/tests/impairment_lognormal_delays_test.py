@@ -14,9 +14,9 @@ config = {
             {"name": "Node2", "microservices": ["tournament", "quiz"]}
         ]},
     "Delays": {
-        "intraservice": {"exp": [1.0, 0.1]},
-        "intranode":    {"exp": [4.0, 0.1]},
-        "internode":    {"exp": [7.0, 0.1]}
+        "intraservice": {"lognormal": [1.0, 0.1]},
+        "intranode":    {"lognormal": [4.0, 0.1]},
+        "internode":    {"lognormal": [7.0, 0.1]}
     }
 }
 
