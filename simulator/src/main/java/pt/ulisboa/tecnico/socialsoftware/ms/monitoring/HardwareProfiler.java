@@ -123,7 +123,7 @@ public class HardwareProfiler {
         }
     }
 
-    @Around("execution(public * pt.ulisboa.tecnico.socialsoftware.quizzes.microservices..service.*.*(..))")
+    @Around("execution(public * pt.ulisboa.tecnico.socialsoftware.*.microservices..service.*.*(..))")
     public Object profileServiceMethod(ProceedingJoinPoint joinPoint) throws Throwable {
         int depth = nestingDepth.get();
         nestingDepth.set(depth + 1);
