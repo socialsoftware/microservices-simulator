@@ -2,6 +2,7 @@ import subprocess
 import os
 import sys
 import re
+
 """
     List of tests to run, add any tests you see fit.
     Format: (testname, users, spawn_rate (users/sec), iterations)
@@ -45,7 +46,7 @@ def run_test(filename, users, spawn_rate, iterations):
         @ iterations - number of max tasks completed across all users
     """
     cmd = [
-        "locust",
+        sys.executable, "-m", "locust",
         "-f", filename,
         "--headless",
         "--only-summary",
@@ -78,6 +79,9 @@ def run_test(filename, users, spawn_rate, iterations):
                 # Strip ANSI escape sequences
                 msg = re.sub(r'\x1b\[[0-9;]*m', '', msg)
                 failure_messages.append(msg)
+            elif "No module named locust" in line:
+                test_failed = True
+                failure_messages.append("ERROR: Locust is not installed in this Python environment.")
 
         process.wait()
 

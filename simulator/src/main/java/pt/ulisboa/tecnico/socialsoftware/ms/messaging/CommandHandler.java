@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.messaging;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 public abstract class CommandHandler {
@@ -12,7 +11,7 @@ public abstract class CommandHandler {
 
     public abstract Object handleDomainCommand(Command command);
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public Object handle(Command command) {
         if (commandHandlerDecorator != null) {
             return commandHandlerDecorator.handle(command, this);

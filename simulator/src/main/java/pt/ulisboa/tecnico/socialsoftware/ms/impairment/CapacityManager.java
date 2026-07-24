@@ -34,7 +34,6 @@ public class CapacityManager {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    // TODO - Change paths
     @Value("${simulator.capacity-management.configuration-file:#{null}}")
     private String CONFIG_FILE;
 
@@ -303,7 +302,7 @@ public class CapacityManager {
 
     // --- Main Method ---
 
-    @Around("execution(public * pt.ulisboa.tecnico.socialsoftware.quizzes.microservices..service.*.*(..)) && args(.., unitOfWork)")
+    @Around("execution(public * pt.ulisboa.tecnico.socialsoftware.*.microservices..service.*.*(..)) && args(.., unitOfWork)")
     public Object applyMicroserviceCapacity(ProceedingJoinPoint joinPoint, UnitOfWork unitOfWork) throws Throwable {
 
         String methodName = joinPoint.getSignature().getName().toLowerCase();

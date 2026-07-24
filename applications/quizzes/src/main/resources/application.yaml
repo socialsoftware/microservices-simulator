@@ -23,9 +23,6 @@ spring:
     open-in-view: false
 
 simulator:
-  hardware-profiling:
-    enabled: false
-    output-file: /logs/service-hardware-profiling.txt
   capacity-management:
     enabled: true
     configuration-file: /resources/quizzes-configuration.json

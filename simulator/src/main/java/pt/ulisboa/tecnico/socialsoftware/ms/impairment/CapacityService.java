@@ -14,6 +14,12 @@ public class CapacityService {
         }
     }
 
+    public void injectCapacities(String json) {
+        if (manager != null) {
+            manager.injectConfiguration(json);
+        }
+    }
+
     public void cleanReportFile() {
         if (manager != null) {
             manager.cleanReportFile();
@@ -22,11 +28,5 @@ public class CapacityService {
 
     public String getReport() {
         return manager != null ? manager.getReport() : "Capacity management is disabled.";
-    }
-
-    public void injectCapacities(String json) {
-        if (manager != null) {
-            manager.injectConfiguration(json);
-        }
     }
 }

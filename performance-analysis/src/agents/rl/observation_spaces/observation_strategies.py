@@ -58,8 +58,6 @@ class BasicObservation(ObservationStrategy):
 class ComplexObservation(ObservationStrategy):
     def __init__(self, num_services: int, num_nodes: int, **kwargs):
         super().__init__(num_services, num_nodes, **kwargs)
-        # TODO: Think about this
-        # self.ms_order = ms_order
 
     def get_space(self):
         # We do not need to include node capacity because they are static
@@ -77,7 +75,6 @@ class ComplexObservation(ObservationStrategy):
         """
         Converts the JSON configuration and OpenTelemetry JSON metrics into raw Numpy arrays.
         """
-        # TODO: Test
         placement_map = ConfigTool.get_ms_placement_map(active_config)
         capacity_map = ConfigTool.get_all_ms_capacities(active_config)
         node_caps = ConfigTool.get_node_capacities(active_config)

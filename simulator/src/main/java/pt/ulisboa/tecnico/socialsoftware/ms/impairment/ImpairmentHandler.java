@@ -34,16 +34,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 
 /* 
-    ! TODO - Main Problems:
-    
-    ! 1. A test is failling because of the way we handle retries. When a retry is specified, the functionality is executed again, 
+    ! TODO: A test is failling because of the way we handle retries. When a retry is specified, the functionality is executed again, 
     ! but the behaviour is not re-injected, which means that the same behaviour is applied to all retries. This honeslty should be the case
     ! but its not the behaviour expected by the test.
-
-    ! 2. No missmatches are checked when loading the behaviour from the CSV file.
-
-    ! 3. This class is responsible for command tracing
- */
+*/
 
 @Aspect
 @Component
@@ -59,9 +53,13 @@ public class ImpairmentHandler {
     private boolean networkDelaysEnabled;
 
     // Legacy code for functionality behaviour management (deprecated)
+    @Deprecated
     private String directory;
+    @Deprecated
     private Map<String, Integer> funcCounter = new HashMap<>();
+    @Deprecated
     private Map<String, Integer> funcRetry = new HashMap<>();
+    @Deprecated
     private Map<WorkflowFunctionality, Map<String, List<Integer>>> behaviourCache = Collections
             .synchronizedMap(new WeakHashMap<>());
 
@@ -161,23 +159,27 @@ public class ImpairmentHandler {
 
     // --- Public Interface ---
 
+    @Deprecated
     public void cleanUpCounter() {
         funcCounter.clear();
         reportService.report("Test finished\n");
     }
 
+    @Deprecated
     public int getRetryValue(String funcName) {
         System.out.println(
                 "\u001B[33mRetry value for " + funcName + ": " + funcRetry.getOrDefault(funcName, 0) + "\u001B[0m");
         return funcRetry.getOrDefault(funcName, 0);
     }
 
+    @Deprecated
     public void setDirectory(String dir) {
         directory = dir;
     }
 
     // --- Behaviour Management ---
 
+    @Deprecated
     private Map<String, List<Integer>> fetchBehaviour(WorkflowFunctionality functionality, FlowStep step) {
         String funcName = functionality.getClass().getSimpleName();
 
@@ -193,6 +195,7 @@ public class ImpairmentHandler {
         return loadedBehaviour;
     }
 
+    @Deprecated
     private Map<String, List<Integer>> loadFunctionalityBehaviour(String funcName) {
         // TODO - check for duplicates and non existing steps
         Map<String, List<Integer>> map = new LinkedHashMap<>();
@@ -226,10 +229,12 @@ public class ImpairmentHandler {
         return map;
     }
 
+    @Deprecated
     private synchronized int getFuncionalityCounter(String functionality) {
         return funcCounter.compute(functionality, (k, v) -> (v == null) ? 1 : v + 1);
     }
 
+    @Deprecated
     private List<String[]> parseCSVForBlock(Path filePath, String funcName, int targetBlock) throws IOException {
         List<String[]> currentBlock = new ArrayList<>();
         int blockNumber = 0;

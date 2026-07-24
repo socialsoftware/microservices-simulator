@@ -117,12 +117,12 @@ public class HardwareCounterService {
 
         // * Flags
         // * 1 -> start counter in disabled mode
-        // * 2 -> pinned slot (No guesses, either returns real value or error)
+        // * 4 -> pinned slot (No guesses, either returns real value or error)
         // * 32 -> exclude_kernel (don't count OS work)
         // * 64 -> exclude_hv (don't count VM overhead)
         // * 128 -> ignore idle time (maybe unnecessary for local reading)
         // attr.flags.set(1 | 32 | 64);
-        attr.flags.set(1 | 2 | 32 | 64 | 128);
+        attr.flags.set(1 | 4 | 32 | 64 | 128);
 
         // * Parameters
         // * 0 -> Monitor the current Thread only

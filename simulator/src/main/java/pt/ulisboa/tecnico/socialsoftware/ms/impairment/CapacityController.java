@@ -19,6 +19,14 @@ public class CapacityController {
         return "OK";
     }
 
+    @PostMapping(value = "/capacity/inject")
+    public String updatePlacement(@RequestBody JsonNode json) {
+        capacityService.injectCapacities(json.toString());
+        return "OK";
+    }
+
+    // Verification methods
+
     @GetMapping("/capacity/report/clean")
     public String clean() {
         System.out.println("Capacity report cleaned");
@@ -26,16 +34,8 @@ public class CapacityController {
         return "OK";
     }
 
-    // *TESTING METHODS*
-
     @GetMapping(value = "/capacity/report/read")
     public String getReport() {
         return capacityService.getReport();
-    }
-
-    @PostMapping(value = "/capacity/inject")
-    public String updatePlacement(@RequestBody JsonNode json) {
-        capacityService.injectCapacities(json.toString());
-        return "OK";
     }
 }

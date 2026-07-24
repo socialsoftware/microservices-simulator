@@ -53,13 +53,6 @@ x-microservice-deps: &microservice-deps
     condition: service_healthy
   jaeger:
     condition: service_started
-  otel-collector:
-    condition: service_started
-    required: false
-
-x-perf-caps: &perf-caps
-  cap_add:
-    - ${PERF_CAP:-CHOWN}
 
 x-test-quizzes: &test-quizzes
   build:
@@ -106,18 +99,6 @@ services:
     networks:
       - messaging-network
 
-  h2-mock:
-    image: oscarfonts/h2:latest
-    container_name: h2-mock
-    ports:
-      - "1521:1521" # H2 Native TCP port
-      - "5432:5432" # Postgres Wire Protocol port
-      - "81:81" # Web Console port
-    environment:
-      - H2_OPTIONS=-pg -pgPort 5432 -pgAllowOthers -tcpAllowOthers -webAllowOthers -ifNotExists
-    networks:
-      - messaging-network
-
   # ============================================
   # MONOLITHIC CONFIGURATIONS
   # ============================================
@@ -152,7 +133,6 @@ services:
       - ./src/main/logs:/logs
     networks:
       - messaging-network
-    <<: *perf-caps
 
   quizzes-remote:
     build:
@@ -177,50 +157,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
       SPRING_RABBITMQ_HOST: rabbitmq
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
-    volumes:
-      - ./src/main/resources:/src/main/resources
-      - ./src/main/logs:/src/main/logs
     networks:
       - messaging-network
-    <<: *perf-caps
-
-  quizzes-rl:
-    build:
-      context: ../../
-      dockerfile: applications/quizzes/Dockerfile
-      args:
-        PROFILE: ${TX_MODE:-sagas},local
-    image: quizzes:latest
-    pull_policy: build
-    container_name: quizzes-rl
-    depends_on:
-      h2-mock:
-        condition: service_started
-      jaeger:
-        condition: service_started
-      eureka-server:
-        condition: service_healthy
-      otel-collector:
-        condition: service_started
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
-    environment:
-      <<: *version-mode
-      SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local
-      EUREKA_HOST: eureka-server
-      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
-      SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: sa
-      SPRING_DATASOURCE_URL: jdbc:h2:tcp://h2-mock:1521/mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
-    volumes:
-      - ./src/main/resources:/resources
-      - ./src/main/logs:/logs
-    networks:
-      - messaging-network
-    <<: *perf-caps
 
   # =====================================================
   # MICROSERVICE DATABASES (Database-per-service pattern)

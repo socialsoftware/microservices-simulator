@@ -101,20 +101,6 @@ services:
       timeout: 5s
       retries: 5
 
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
-    container_name: otel-collector
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    depends_on:
-      jaeger:
-        condition: service_started
-    volumes:
-      - ./performance-analysis/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    networks:
-      - messaging-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
   # ============================================
   # SIMULATOR SERVICES
   # ============================================

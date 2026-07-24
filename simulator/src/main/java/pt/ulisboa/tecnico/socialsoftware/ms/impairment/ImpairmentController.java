@@ -17,7 +17,7 @@ public class ImpairmentController {
     @Autowired
     private ImpairmentService impairmentService;
 
-    // ! TODO - Deprecated -> Remove on admin controller
+    @Deprecated
     @PostMapping("/behaviour/load")
     public String load(@RequestParam String dir) {
         System.out.println("Behaviour load started");
@@ -32,6 +32,14 @@ public class ImpairmentController {
         return "OK";
     }
 
+    @PostMapping(value = "/behaviour/inject")
+    public String injectPlacement(@RequestBody JsonNode json) {
+        impairmentService.injectPlacement(json.toString());
+        return "OK";
+    }
+
+    // Verification Methods
+
     @GetMapping(value = "/behaviour/clean")
     public String clean() {
         System.out.println("Report clean started");
@@ -39,16 +47,8 @@ public class ImpairmentController {
         return "OK";
     }
 
-    // *TESTING METHODS*
-
     @GetMapping(value = "/behaviour/report")
     public String getReport() {
         return impairmentService.getReport();
-    }
-
-    @PostMapping(value = "/behaviour/inject")
-    public String injectPlacement(@RequestBody JsonNode json) {
-        impairmentService.injectPlacement(json.toString());
-        return "OK";
     }
 }

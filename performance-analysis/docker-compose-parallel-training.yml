@@ -92,7 +92,7 @@ services:
       - ${PERF_CAP:-CHOWN}
     build:
       context: .
-      dockerfile: applications/quizzes/Dockerfile
+      dockerfile: performance-analysis/Dockerfile
       args:
         PROFILE: ${TX_MODE:-sagas},local
     pull_policy: build

@@ -46,8 +46,6 @@ class AppUtils:
         """Clean logs and start tracing. We ignore returns here as they are background tasks."""
         AppUtils._get("behaviour/clean")
         AppUtils._get("capacity/report/clean")
-        # TODO: remove this
-        AppUtils._post("behaviour/load?dir=locust")
         AppUtils._get("traces/start")
         AppUtils._get("scheduler/start")
 
@@ -60,7 +58,6 @@ class AppUtils:
 
     @staticmethod
     def inject_configuration(config):
-        # TODO: resolve this
         AppUtils._post("behaviour/inject", json=config)
         AppUtils._post("capacity/inject", json=config)
 

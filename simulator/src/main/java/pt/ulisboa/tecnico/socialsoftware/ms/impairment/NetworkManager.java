@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty(prefix = "simulator.impairment.network-delays", name = "enabled", havingValue = "true")
 public class NetworkManager {
-    // TODO - Change paths
     @Value("${simulator.impairment.network-delays.configuration-file:#{null}}")
     private String CONFIG_FILE;
 

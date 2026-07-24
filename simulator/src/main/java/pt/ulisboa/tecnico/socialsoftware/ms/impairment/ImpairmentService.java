@@ -13,18 +13,18 @@ public class ImpairmentService {
     @Autowired
     private ImpairmentHandler impairmentHandler;
 
-    // ! TODO - Deprecated
+    @Deprecated
     public void LoadDir(String dir, String testNameFile) {
         directory = dir + "/src/test/resources/" + testNameFile + "/";
         impairmentHandler.setDirectory(directory);
     }
 
-    // ! TODO - Deprecated
+    @Deprecated
     public void cleanDirectory() {
         impairmentHandler.setDirectory("");
     }
 
-    // ! TODO - Deprecated
+    @Deprecated
     public void cleanUpCounter() {
         impairmentHandler.cleanUpCounter();
     }
@@ -47,8 +47,6 @@ public class ImpairmentService {
         }
         new ImpairmentGenerator(directory, filePath);
     }
-
-    // *TESTING METHODS*
 
     public String getReport() {
         return impairmentHandler.getReport();
