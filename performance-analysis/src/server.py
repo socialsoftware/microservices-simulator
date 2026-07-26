@@ -9,6 +9,7 @@ from opentelemetry.proto.collector.trace.v1 import (
 
 from src.trace_collection.trace_collector import TraceManager
 from src.agents.train import start_training
+from src.agents.evaluation.eval_agents import start_evaluation
 from src.agents.evaluation.eval_configurations import start_baseline_eval
 
 import logging
@@ -65,6 +66,7 @@ def interactive_cli():
     print("  read     - Print current metrics")
     print("  reset    - Reset trace manager metrics")
     print("  train    - Start the agent training loop (e.g. train {ppo, test})")
+    print("  eval     - Evaluate a trained model (e.g., eval {ppo} [MODEL_PATH])")
     print("  baseline - Evaluate a static configuration baseline (e.g., baseline [WORKLOAD_PATH] [JSON_CONFIG_PATH])")
     print("  debug    - Toggle debug logging")
     print("  exit     - Stop the server and exit")
@@ -92,6 +94,12 @@ def interactive_cli():
                     start_training(trace_manager, "ppo")
                 else:
                     start_training(trace_manager, "test")
+            elif cmd.startswith("eval"):
+                parts = cmd.split(" ", 2)
+                if len(parts) < 2:
+                    print("Usage: eval {ppo} <path_to_model.zip>")
+                else:
+                    start_evaluation(trace_manager, parts[1], parts[2])
             elif cmd.startswith("baseline"):
                 parts = cmd.split(" ", 2)
                 if len(parts) < 3:

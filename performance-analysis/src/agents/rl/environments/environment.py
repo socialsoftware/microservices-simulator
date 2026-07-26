@@ -89,8 +89,11 @@ class MicroserviceOptimizerEnv(gym.Env):
 
         self.wl_config = self._randomize_workload()
 
-        new_config = ConfigTool.randomize_config(
-            self.sim_runner.base_config, self.microservices, self.num_nodes)
+        if options is not None and options.get("deterministic"):
+            new_config = self.sim_runner.base_config
+        else:
+            new_config = ConfigTool.randomize_config(
+                self.sim_runner.base_config, self.microservices, self.num_nodes)
 
         metrics = self.sim_runner.evaluate_configuration(
             new_config, self.wl_config)
