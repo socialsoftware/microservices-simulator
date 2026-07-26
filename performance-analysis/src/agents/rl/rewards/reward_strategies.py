@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import math
 
 
 class RewardStrategy(ABC):
@@ -33,6 +34,8 @@ class RewardStrategyFactory:
             return BalanceDelayQueueReward(**kwargs)
         elif strategy_type == "global_average_latency":
             return GlobalAverageLatencyReward(**kwargs)
+        elif strategy_type == "proportional_fairness":
+            return ProportionalFairnessReward(**kwargs)
         else:
             raise ValueError(f"Unknown reward strategy: {strategy_type}")
 
@@ -116,3 +119,44 @@ class GlobalAverageLatencyReward(RewardStrategy):
         delta_d = old_d_avg - new_d_avg
 
         return (self.alpha * delta_q) + (self.beta * delta_d)
+
+
+class ProportionalFairnessReward(RewardStrategy):
+    """
+    Uses a logarithmic function to evaluate the absolute quality of the architecture. 
+    Penalizes starved services heavily and ignores old metrics to prevent the lagging baseline trap.
+    """
+
+    stop_reward = -0.1
+    invalid_action_reward = -1
+    time_tax = 0.05
+
+    def __init__(self, alpha=1.0, beta=1.0):
+        self.alpha = alpha
+        self.beta = beta
+
+    def compute(self, old_metrics: dict, new_metrics: dict) -> float:
+        # We completely ignore old_metrics for this stateless environment
+
+        if new_metrics is None or not new_metrics.get("microservices"):
+            return -1.0
+
+        new_mss_metrics = new_metrics.get("microservices", {})
+
+        total_penalty = 0.0
+
+        for metrics in new_mss_metrics.values():
+            invocs = metrics.get("invocations", 0)
+
+            avg_q = metrics.get("queue_time", 0.0) / invocs \
+                if invocs > 0 else 0.0
+            avg_d = metrics.get("delay_time", 0.0) / invocs \
+                if invocs > 0 else 0.0
+
+            # Apply logarithmic scaling so the rewards are not erratic
+            log_q = math.log1p(avg_q)
+            log_d = math.log1p(avg_d)
+
+            total_penalty += (self.alpha * log_q) + (self.beta * log_d)
+
+        return -total_penalty

@@ -5,7 +5,7 @@ from stable_baselines3.common.env_checker import check_env
 from src.agents.rl.rewards.reward_strategies import RewardStrategyFactory
 from src.agents.rl.observation_spaces.observation_strategies import ObservationStrategyFactory
 from src.agents.rl.environments.environment import MicroserviceOptimizerEnv
-from src.agents.simulation_runner import SimRunner
+from src.agents.utils.simulation_runner import SimRunner
 
 
 def _load_config():
@@ -28,7 +28,13 @@ def _print_obs(obs: dict):
         print(f"MS Load: {obs["ms_load"]}")
 
 
-def run_sanity_check(trace_manager):
+def run_sanity_check(trace_manager, worker_id: int = 1):
+    os.environ["GATEWAY_URL"] = f"http://localhost:{8080 + worker_id}"
+    os.environ["H2_PORT"] = str(1521 + worker_id)
+
+    from src.server import start_grpc_server
+    grpc_srv = start_grpc_server(port=4319 + worker_id, tm=trace_manager)
+
     config = _load_config()
     environment = config["environment"]
     workload_cfg = config["workloads"]
@@ -69,7 +75,7 @@ def run_sanity_check(trace_manager):
 
     _print_obs(obs)
 
-    for step in range(1, 1):
+    for step in range(1, 4):
         print(f"\n--- STEP {step} ---")
 
         # Get only the valid actions using the mask
@@ -106,6 +112,8 @@ def run_sanity_check(trace_manager):
         if terminated or truncated:
             print("Episode ended.")
             break
+            
+    grpc_srv.stop(0)
 
 
 if __name__ == "__main__":
