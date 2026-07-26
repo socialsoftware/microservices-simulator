@@ -27,6 +27,8 @@ class ObservationStrategyFactory:
             return BasicObservation(num_services, num_nodes, **kwargs)
         elif strategy_type == "complex":
             return ComplexObservation(num_services, num_nodes, **kwargs)
+        elif strategy_type == "normalized_complex":
+            return NormalizedComplexObservation(num_services, num_nodes, **kwargs)
         else:
             raise ValueError(f"Unknown observation strategy: {strategy_type}")
 
@@ -126,6 +128,99 @@ class ComplexObservation(ObservationStrategy):
             load_array.append(load)
             delay_array.append(avg_delay)
             queue_array.append(avg_queue)
+
+        return {
+            "placement": np.array(placement_array, dtype=np.int64),
+            "capacities": np.array(capacities_array, dtype=np.float32),
+            "node_free_caps": np.array(free_caps_array, dtype=np.float32),
+            "ms_load": np.array(load_array, dtype=np.float32),
+            "ms_delay": np.array(delay_array, dtype=np.float32),
+            "ms_queue": np.array(queue_array, dtype=np.float32)
+        }
+
+
+class NormalizedComplexObservation(ObservationStrategy):
+    def __init__(self, num_services: int, num_nodes: int, **kwargs):
+        super().__init__(num_services, num_nodes, **kwargs)
+
+    def get_space(self):
+        return spaces.Dict({
+            "placement": spaces.MultiDiscrete([self.num_nodes] * self.num_services),
+            "capacities": spaces.Box(low=0.0, high=1.0, shape=(self.num_services,), dtype=np.float32),
+            "node_free_caps": spaces.Box(low=0.0, high=1.0, shape=(self.num_nodes,), dtype=np.float32),
+
+            "ms_load": spaces.Box(low=0.0, high=1.0, shape=(self.num_services,), dtype=np.float32),
+            "ms_delay": spaces.Box(low=0.0, high=10.0, shape=(self.num_services,), dtype=np.float32),
+            "ms_queue": spaces.Box(low=0.0, high=10.0, shape=(self.num_services,), dtype=np.float32)
+        })
+
+    def build_observation(self, active_config, metrics):
+        """
+        Applies mathematical transforms to complex observation to stabilize gradients.
+        """
+
+        placement_map = ConfigTool.get_ms_placement_map(active_config)
+        capacity_map = ConfigTool.get_all_ms_capacities(active_config)
+        node_caps = ConfigTool.get_node_capacities(active_config)
+        microservices = ConfigTool.get_microservices_list(active_config)
+
+        placement_array = []
+        capacities_array = []
+
+        # Normalize capacities
+        max_possible_capacity = max([node_info["limit"]
+                                    for node_info in node_caps.values()] + [1])
+        for microservice in microservices:
+            placement_array.append(placement_map.get(microservice, 0))
+            capacities_array.append(capacity_map.get(
+                microservice, 1) / float(max_possible_capacity))
+
+        # Normalize free capacities
+        free_caps_array = []
+        for i in range(self.num_nodes):
+            limit = node_caps[i]["limit"]
+            used = node_caps[i]["used"]
+            # Also divide free capacity per max available node capacity.
+            # This way it works under the same scale as MS capacity which is better for the neural network.
+            free_caps_array.append(
+                (limit - used) / float(max_possible_capacity))
+
+        load_array = []
+        delay_array = []
+        queue_array = []
+
+        ms_metrics = metrics.get("microservices", {})
+        total_invocations = sum(data.get("invocations", 0)
+                                for data in ms_metrics.values())
+
+        for microservice in microservices:
+            data = ms_metrics.get(microservice, {
+                "invocations": 0,
+                "delay_time": 0.0,
+                "queue_time": 0.0
+            })
+
+            invocations = data.get("invocations", 0)
+
+            if total_invocations > 0:
+                load = invocations / total_invocations
+            else:
+                load = 0.0
+
+            if invocations > 0:
+                avg_delay = data.get("delay_time", 0.0) / invocations
+                avg_queue = data.get("queue_time", 0.0) / invocations
+
+                # Apply natural log compression
+                log_delay = np.log1p(avg_delay)
+                log_queue = np.log1p(avg_queue)
+            else:
+                log_delay = 0.0
+                log_queue = 0.0
+
+            load_array.append(load)
+            delay_array.append(log_delay)
+            queue_array.append(log_queue)
 
         return {
             "placement": np.array(placement_array, dtype=np.int64),

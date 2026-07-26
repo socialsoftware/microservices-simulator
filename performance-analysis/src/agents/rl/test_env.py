@@ -63,11 +63,11 @@ def run_sanity_check(trace_manager, worker_id: int = 1):
 
     print("\n=== 1. RUNNING SB3 API CHECK ===\n\n")
     # This checks for shape mismatches, NaN values, and ensures observations are legal
-    # check_env(env, warn=True)
+    check_env(env, warn=True)
     print("\nAPI Check Passed!\n")
 
     print("\n\n=== 2. RUNNING MANUAL STEP TEST ===\n\n")
-    obs, _ = env.reset()
+    obs, _ = env.reset(options={"deterministic": True})
 
     wl = env.wl_config
     print(f"Generated Workload: File={wl.file}, Users={wl.users}, Iterations={wl.iterations}, "
@@ -112,7 +112,7 @@ def run_sanity_check(trace_manager, worker_id: int = 1):
         if terminated or truncated:
             print("Episode ended.")
             break
-            
+
     grpc_srv.stop(0)
 
 
