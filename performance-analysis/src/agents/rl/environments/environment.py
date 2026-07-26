@@ -6,7 +6,7 @@ import random
 import logging
 from src.agents.rl.observation_spaces.observation_strategies import ObservationStrategy
 from src.agents.rl.rewards.reward_strategies import RewardStrategy
-from src.agents.simulation_runner import SimRunner, WorkloadConfig
+from src.agents.utils.simulation_runner import SimRunner, WorkloadConfig
 from src.agents.rl.action_spaces.actions import Action, get_action_mapping, get_valid_action_mask, AMOUNT
 from src.simulator_tools.config_utils import ConfigTool
 

@@ -36,7 +36,7 @@ class SimRunner:
         """Loads and returns base configuration from initial_config/config.json."""
 
         config_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
             "initial_config",
             "config.json"
         )
@@ -55,7 +55,7 @@ class SimRunner:
         """Executes the workload configuration using a Locust subprocess."""
 
         workloads_dir = os.path.join(os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))), "workloads")
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "workloads")
 
         cmd = [
             sys.executable, "-m", "locust",

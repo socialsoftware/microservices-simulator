@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 from gymnasium import spaces
 from src.simulator_tools.config_utils import ConfigTool
-from src.agents.simulation_runner import WorkloadConfig
 
 
 class ObservationStrategy(ABC):

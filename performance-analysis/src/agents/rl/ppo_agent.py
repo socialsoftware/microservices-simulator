@@ -1,22 +1,23 @@
 from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
-from sb3_contrib.common.maskable.callbacks import MaskableEvalCallback
 from stable_baselines3.common.callbacks import CheckpointCallback, BaseCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from src.agents.rl.environments.environment import MicroserviceOptimizerEnv
 from src.agents.rl.rewards.reward_strategies import RewardStrategyFactory
 from src.agents.rl.observation_spaces.observation_strategies import ObservationStrategyFactory
-from src.agents.simulation_runner import SimRunner
+from src.agents.utils.simulation_runner import SimRunner
+from src.agents.utils.tensorboard_metrics import aggregate_metrics
 import os
 import yaml
 import logging
+import numpy as np
 
 
 class CustomTensorboardCallback(BaseCallback):
     """
     Custom callback for plotting additional metrics in TensorBoard.
-    Extracts the physical queue and delay times from the environment's last metrics.
+    Normalizes metrics across parallel environment instances.
     """
 
     def __init__(self, verbose=0):
@@ -24,29 +25,10 @@ class CustomTensorboardCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         all_metrics = self.training_env.get_attr('last_metrics')
+        aggregated = aggregate_metrics(all_metrics)
 
-        global_queue = 0.0
-        global_delay = 0.0
-        global_invs = 0
-
-        for last_metrics in all_metrics:
-            if last_metrics:
-                ms_metrics = last_metrics.get("microservices", {})
-                global_queue += sum(m.get("queue_time", 0.0)
-                                    for m in ms_metrics.values())
-                global_delay += sum(m.get("delay_time", 0.0)
-                                    for m in ms_metrics.values())
-                global_invs += sum(m.get("invocations", 0)
-                                   for m in ms_metrics.values())
-
-        if global_invs > 0:
-            avg_queue = global_queue / global_invs
-            avg_delay = global_delay / global_invs
-
-            # These will appear in TensorBoard under "custom_metrics"
-            self.logger.record("custom_metrics/avg_queue_time_ms", avg_queue)
-            self.logger.record("custom_metrics/avg_delay_time_ms", avg_delay)
-            self.logger.record("custom_metrics/total_invocations", global_invs)
+        for key, val in aggregated.items():
+            self.logger.record(key, val)
 
         return True
 
