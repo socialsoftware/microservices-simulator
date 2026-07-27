@@ -341,10 +341,40 @@ class ScenarioExecutorSpec extends Specification {
         OverloadSearchWorkflow.selected == 'number'
     }
 
-    def 'setup preflight keeps persisted BigInteger incompatible with Integer and reports precise types'() {
+    def 'setup preflight restores persisted integral value to exact #targetLabel constructor type'() {
         given:
-        def workload = workload(['broken'], [['broken', 'first']], null, 'broken', null,
-                IntegerArgumentWorkflow.name, literalRecipe(7))
+        IntegralArgumentCapture.received = null
+        def workload = workload(['typed'], [['typed', 'first']], null, 'typed', null,
+                workflowClass.name, literalRecipe(persistedValue))
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+
+        when:
+        def report = new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null),
+                new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.workloads()[0].status() == 'SETUP_READY'
+        IntegralArgumentCapture.received.class == expectedType
+        IntegralArgumentCapture.received == expectedValue
+        FixtureWorkflow.BODIES.isEmpty()
+
+        where:
+        targetLabel        | workflowClass                    | persistedValue                              || expectedType | expectedValue
+        'Byte'             | ByteArgumentWorkflow             | 127                                         || Byte         | Byte.valueOf((byte) 127)
+        'Short'            | ShortArgumentWorkflow            | 32767                                       || Short        | Short.valueOf((short) 32767)
+        'Integer'          | IntegerArgumentWorkflow          | 2147483647                                  || Integer      | Integer.MAX_VALUE
+        'primitive int'    | PrimitiveIntegerArgumentWorkflow | 7                                           || Integer      | 7
+        'Long'             | LongArgumentWorkflow             | new BigInteger('9223372036854775807')        || Long         | Long.MAX_VALUE
+        'integral decimal' | IntegerArgumentWorkflow          | new BigDecimal('7.0')                       || Integer      | 7
+    }
+
+    def 'setup preflight rejects #rejectionKind typed numeric invocation with a precise diagnostic'() {
+        given:
+        def workload = workload(['rejected'], [['rejected', 'first']], null, 'rejected', null,
+                workflowClass.name, literalRecipe(persistedValue))
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
 
@@ -356,22 +386,44 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.terminalStatus() == 'SETUP_FAILED'
         report.workloads()[0].status() == 'STARTUP_FAILED'
-        !report.workloads()[0].participants()[0].setupReady()
-        report.workloads()[0].participants()[0].materializationState() == 'MATERIALIZED'
-        report.workloads()[0].participants()[0].startupState() == 'STARTUP_FAILED'
         report.workloads()[0].blockers()*.reason() == ['STARTUP_FAILED']
-        report.workloads()[0].blockers()[0].inputVariantId() == 'broken-input'
-        report.workloads()[0].blockers()[0].message().contains('No compatible constructor for ' + IntegerArgumentWorkflow.name)
-        report.workloads()[0].blockers()[0].message().contains('persisted argument types [java.math.BigInteger')
-        report.workloads()[0].blockers()[0].message().contains('java.lang.Integer')
+        report.workloads()[0].blockers()[0].inputVariantId() == 'rejected-input'
+        report.workloads()[0].blockers()[0].message().contains('No compatible constructor for ' + workflowClass.name)
+        report.workloads()[0].blockers()[0].message().contains(expectedDiagnostic)
         FixtureWorkflow.BODIES.isEmpty()
         FixtureWorkflow.COMPENSATIONS.isEmpty()
+
+        where:
+        rejectionKind         | workflowClass                    | persistedValue                       || expectedDiagnostic
+        'overflow'            | IntegerArgumentWorkflow          | new BigInteger('2147483648')          || 'numeric value 2147483648 (java.math.BigInteger) is outside the range of java.lang.Integer'
+        'fractional value'    | IntegerArgumentWorkflow          | new BigDecimal('7.5')                 || 'numeric value 7.5 (java.math.BigDecimal) is fractional and cannot be converted exactly to java.lang.Integer'
+        'null-to-primitive'   | PrimitiveIntegerArgumentWorkflow | null                                  || 'argument 0 is null and cannot target primitive int'
+        'unsupported coercion'| IntegerArgumentWorkflow          | '7'                                   || 'persisted type java.lang.String and cannot target java.lang.Integer: unsupported coercion'
     }
 
-    def 'setup preflight does not relabel a constructor-thrown failure as overload incompatibility'() {
+    def 'setup preflight continues typed overload search after exact conversion rejects a narrower target'() {
+        given:
+        ExactConversionOverloadWorkflow.selected = null
+        def workload = workload(['overload'], [['overload', 'first']], null, 'overload', null,
+                ExactConversionOverloadWorkflow.name, literalRecipe(new BigInteger('2147483648')))
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+
+        when:
+        def report = new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null),
+                new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.workloads()[0].status() == 'SETUP_READY'
+        ExactConversionOverloadWorkflow.selected == 'long'
+    }
+
+    def 'setup preflight does not relabel a #invocationPath constructor-thrown failure as overload incompatibility'() {
         given:
         def workload = workload(['throwing'], [['throwing', 'first']], null, 'throwing', null,
-                ThrowingConstructorWorkflow.name)
+                workflowClass.name, literalRecipe(7))
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
 
@@ -384,6 +436,11 @@ class ScenarioExecutorSpec extends Specification {
         report.terminalStatus() == 'SETUP_FAILED'
         report.workloads()[0].blockers()[0].message().contains('constructor body failed')
         !report.workloads()[0].blockers()[0].message().contains('No compatible constructor')
+
+        where:
+        invocationPath       | workflowClass
+        'reflection-direct'  | ThrowingConstructorWorkflow
+        'exactly-converted'  | ThrowingIntegerConstructorWorkflow
     }
 
     def 'batch setup preflight checks every declared candidate through one supplied runtime context'() {
@@ -1494,10 +1551,63 @@ class ScenarioExecutorSpec extends Specification {
         }
     }
 
+    static class IntegralArgumentCapture {
+        static Object received
+    }
+
+    static class ByteArgumentWorkflow extends WorkflowFunctionality {
+        ByteArgumentWorkflow(Byte participant,
+                             SagaUnitOfWorkService unitOfWorkService,
+                             SagaUnitOfWork unitOfWork) {
+            IntegralArgumentCapture.received = participant
+        }
+    }
+
+    static class ShortArgumentWorkflow extends WorkflowFunctionality {
+        ShortArgumentWorkflow(Short participant,
+                              SagaUnitOfWorkService unitOfWorkService,
+                              SagaUnitOfWork unitOfWork) {
+            IntegralArgumentCapture.received = participant
+        }
+    }
+
     static class IntegerArgumentWorkflow extends WorkflowFunctionality {
         IntegerArgumentWorkflow(Integer participant,
                                 SagaUnitOfWorkService unitOfWorkService,
                                 SagaUnitOfWork unitOfWork) {
+            IntegralArgumentCapture.received = participant
+        }
+    }
+
+    static class PrimitiveIntegerArgumentWorkflow extends WorkflowFunctionality {
+        PrimitiveIntegerArgumentWorkflow(int participant,
+                                         SagaUnitOfWorkService unitOfWorkService,
+                                         SagaUnitOfWork unitOfWork) {
+            IntegralArgumentCapture.received = participant
+        }
+    }
+
+    static class LongArgumentWorkflow extends WorkflowFunctionality {
+        LongArgumentWorkflow(Long participant,
+                             SagaUnitOfWorkService unitOfWorkService,
+                             SagaUnitOfWork unitOfWork) {
+            IntegralArgumentCapture.received = participant
+        }
+    }
+
+    static class ExactConversionOverloadWorkflow extends WorkflowFunctionality {
+        static String selected
+
+        ExactConversionOverloadWorkflow(Integer participant,
+                                        SagaUnitOfWorkService unitOfWorkService,
+                                        SagaUnitOfWork unitOfWork) {
+            selected = 'integer'
+        }
+
+        ExactConversionOverloadWorkflow(Long participant,
+                                        SagaUnitOfWorkService unitOfWorkService,
+                                        SagaUnitOfWork unitOfWork) {
+            selected = 'long'
         }
     }
 
@@ -1506,6 +1616,14 @@ class ScenarioExecutorSpec extends Specification {
                                     SagaUnitOfWorkService unitOfWorkService,
                                     SagaUnitOfWork unitOfWork) {
             throw new IllegalArgumentException('constructor body failed')
+        }
+    }
+
+    static class ThrowingIntegerConstructorWorkflow extends WorkflowFunctionality {
+        ThrowingIntegerConstructorWorkflow(Integer participant,
+                                           SagaUnitOfWorkService unitOfWorkService,
+                                           SagaUnitOfWork unitOfWork) {
+            throw new IllegalArgumentException('constructor body failed after exact conversion')
         }
     }
 

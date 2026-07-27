@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-07-27
+Last updated: 2026-07-28
 
 This is the present-tense status page for verifier/scenario-generation work. Detailed validation lives in [`evidence.md`](evidence.md); terminology lives in [`glossary.md`](glossary.md); executor operation lives in [`reference/scenario-executor.md`](reference/scenario-executor.md).
 
@@ -98,6 +98,7 @@ Supported setup and execution semantics:
 
 - share one setup implementation between preflight and normal execution;
 - in preflight, materialize exact persisted arguments, resolve runtime-owned infrastructure, start exact Saga participants, and stop before every workflow action;
+- at the typed Saga-constructor boundary, preserve ordinary Java reflection invocation first and otherwise convert persisted numeric values only to exact integral parameter types when the value is lossless and in range; reject fractional values, overflow, null-to-primitive, and unsupported coercions with argument-level diagnostics;
 - in normal execution, materialize all supported saga/local participants and runtime-owned infrastructure arguments;
 - replay persisted actions sequentially;
 - inject assigned faults at their exact forward slots;
@@ -120,7 +121,7 @@ This remains a narrow deterministic sequential Saga/local replay path. The setup
 
 ### Quizzes helper-tracing and setup-preflight accuracy
 
-Verified 2026-07-27 against the single-saga Quizzes configuration used by the materializability accuracy smoke:
+The package was generated on 2026-07-27 and the latest one-context preflight was verified on 2026-07-28 against the single-saga Quizzes configuration used by the materializability accuracy smoke:
 
 ```text
 run: verifiers/target/outcome2-helper-tracing/quizzes-20260727-180306-391/
@@ -135,14 +136,15 @@ The helper tracer now preserves ordered caller-derived mutations for `createUser
 One-context Docker setup preflight selected all 82 manifest candidates:
 
 ```text
-report: verifiers/target/outcome2-helper-tracing/setup-preflight-report.json
-SETUP_READY: 80
-STARTUP_FAILED: 2
-measured setup loop after Spring startup: 49,069,530 ns
+report: verifiers/target/integral-numeric-restoration/setup-preflight-report.json
+SETUP_READY: 82
+STARTUP_FAILED: 0
+measured setup loop after Spring startup: 83,231,479 ns
+FaultScenarios linked to setup-ready workloads: 164 / 164
 forward/fault/compensation/commit actions: 0
 ```
 
-The 80 setup-ready workloads comprise 76 `CreateUserFunctionalitySagas` and four `GetCourseExecutionsFunctionalitySagas` workloads. The two failures are `GetCourseExecutionByIdFunctionalitySagas` and `FindQuizFunctionalitySagas`; their persisted integer literals deserialize as `BigInteger` while the public Saga constructors require `Integer`. The preflight report names both runtime argument types and available constructors. It was written outside the package, whose semantic artifacts remained checksum-valid and unchanged by preflight.
+The 82 setup-ready workloads comprise 76 `CreateUserFunctionalitySagas`, four `GetCourseExecutionsFunctionalitySagas`, one `GetCourseExecutionByIdFunctionalitySagas`, and one `FindQuizFunctionalitySagas` workload. The last two now start because the executor converts their persisted `BigInteger` values to the constructor-required `Integer` values at the typed invocation boundary after ordinary reflection finds no compatible constructor. Conversion is exact and range-checked; no package schema, static candidate, deterministic-id, or application-default behavior changed. All 164 generated FaultScenarios reference these setup-ready workloads. The report was written outside the package, and all five preflight-baseline SHA-256 values remained byte-identical.
 
 This refresh deliberately does not execute an all-zero or faulty batch. Setup materializability and actual execution outcomes remain separate. Two targeted `GetCourseExecutionsFunctionalitySagas` runs confirm the normal boundary: all-zero FaultScenario `564dc9b5...` completed `SUCCESS / EXACT`, while single-fault FaultScenario `142eccc9...` realized its assigned fault and completed `COMPENSATED / EXACT`. Their reports are `execution-all-zero.json` and `execution-single-fault.json` beside the preflight report; package hashes remained unchanged.
 
@@ -191,7 +193,7 @@ Artifacts:
 ### Regression validation
 
 - Complete simulator Maven suite passed.
-- Complete verifier Maven suite passed after updating stale parser discovery and v3 dynamic-enrichment integration expectations.
+- Complete verifier Maven suite passed with 587 tests after exact integral constructor restoration; focused executor regression passed with 105 tests.
 - Docker `fault-analysis-scenario-gen-test` passed.
 - Focused high-cardinality recovery accounting passed with exact count and bounded traversal assertions.
 
@@ -202,7 +204,7 @@ See [`evidence.md`](evidence.md) for commands and totals.
 - Exact aggregate-instance key extraction remains incomplete.
 - Thirty-two Quizzes sagas still lack accepted static inputs; this does not imply that no tests exist.
 - Event payload placeholders may permit static acceptance while blocking materialization.
-- Existing manifest `materializable=true` rows are deterministic static setup candidates; the latest Quizzes preflight found 80 setup-ready and two startup failures among 82 such rows.
+- Existing manifest `materializable=true` rows are deterministic static setup candidates; the latest Quizzes preflight found all 82 setup-ready, but other packages and runtime environments still require actual setup evidence.
 - Helper-built course DTOs now retain their real `DateHandler.toISOString(endDate)` mutation, but that local call remains unsupported and blocks those candidates rather than producing empty DTO false positives.
 - `SETUP_READY` proves materialization and Saga startup only; actual domain/fault outcomes remain unknown until execution. Replaying repeated same-participant runtime step names requires future occurrence-aware runtime state and is not currently supported.
 - Segment compression is a deterministic reduction under extracted conflict evidence, not semantic-completeness proof.

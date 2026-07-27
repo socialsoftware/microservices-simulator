@@ -1,6 +1,6 @@
 # Verifier evidence appendix
 
-Last updated: 2026-07-27
+Last updated: 2026-07-28
 
 This page stores concrete validation results, metrics, and run references so [`current-state.md`](current-state.md) can stay readable. Treat this as an appendix: cite it when you need proof, not as the first-read narrative.
 
@@ -44,7 +44,7 @@ Static comparison:
 
 The increased accepted count comes from preserving more concrete helper call sites. The lower static candidate count is a correctness result, not a coverage regression hidden by the implementation: the previous dominant course/user recipes were empty DTO constructors. All refreshed `createUser` helper recipes carry `name`, `username`, and `role`. All refreshed `createCourseExecution` helper recipes carry `name`, `type`, `acronym`, `academicTerm`, and `endDate`; the last assignment retains the source `DateHandler.toISOString(endDate)` call and is conservatively blocked as `UNMATERIALIZABLE_ASSIGNMENT` because that local call is not yet supported. One user helper candidate is conservatively blocked as `LOOP_DEPENDENT_MUTATION`.
 
-The optional preflight was run through the Docker ScenarioExecutor wrapper with one target Spring context:
+The initial optional preflight was run through the Docker ScenarioExecutor wrapper with one target Spring context:
 
 ```bash
 PACKAGE_PATH=/reports/outcome2-helper-tracing/quizzes-20260727-180306-391/scenario-catalog-manifest.json \
@@ -64,9 +64,80 @@ measured setup loop after Spring startup: 49,069,530 ns
 workflow actions executed: 0
 ```
 
-The 80 setup-ready workloads are 76 `CreateUserFunctionalitySagas` and four `GetCourseExecutionsFunctionalitySagas` workloads. `GetCourseExecutionByIdFunctionalitySagas` and `FindQuizFunctionalitySagas` fail startup because persisted integer values materialize as `BigInteger` while their public constructors require `Integer`; the report lists both actual argument types and available constructor signatures. The preflight report is outside the five-file semantic package, and package validation/checksums remained intact.
+The 80 setup-ready workloads are 76 `CreateUserFunctionalitySagas` and four `GetCourseExecutionsFunctionalitySagas` workloads. `GetCourseExecutionByIdFunctionalitySagas` and `FindQuizFunctionalitySagas` failed startup because persisted integer values materialized as `BigInteger` while their public constructors require `Integer`; the report lists both actual argument types and available constructor signatures. This is the pre-fix baseline. The preflight report is outside the five-file semantic package, and package validation/checksums remained intact.
 
-Focused regression command:
+### Exact integral constructor restoration
+
+Verified on 2026-07-28 against the same package. The executor first retains ordinary Java reflection invocation and overload behavior. Only when no constructor is directly invocable does the typed boundary attempt exact numeric conversion to `byte`/`Byte`, `short`/`Short`, `int`/`Integer`, `long`/`Long`, or `BigInteger`. Fractional values, overflow, null-to-primitive, and non-numeric or unsupported targets remain startup failures with argument index, persisted type/value, target type, and rejection reason. Constructor-body failures still propagate as constructor failures rather than overload mismatches.
+
+Focused executor regression:
+
+```bash
+cd verifiers
+mvn -Dtest=ScenarioExecutorSpec,ScenarioExecutorWrapperSpec,ScenarioExecutorReadinessEvaluatorSpec,ScenarioExecutorOrchestratorSpec test
+```
+
+Result: 105 tests, zero failures/errors/skips. Discriminating cases cover exact restoration across wrapper and primitive integral targets, valid upper range boundaries, an exact integral decimal, overflow, a fractional decimal, null-to-primitive, unsupported string coercion, fallback to a wider exact overload, ordinary reflection widening and overload preference, and constructor-body failures before and after conversion.
+
+Full verifier regression:
+
+```bash
+cd verifiers
+mvn test
+```
+
+Result: 587 tests, zero failures/errors/skips.
+
+An initial Docker run at the Compose default 768 MiB limit exhausted the Java heap while reading the package and wrote no report or package artifact. The successful one-context Quizzes preflight used the existing package and the previously validated 3 GiB container / 2.5 GiB JVM heap boundary:
+
+```bash
+MEDIUM_MEM_LIMIT=3g \
+PACKAGE_PATH=/reports/outcome2-helper-tracing/quizzes-20260727-180306-391/scenario-catalog-manifest.json \
+OUTPUT_PATH=/reports/integral-numeric-restoration/setup-preflight-report.json \
+docker compose run --rm -T \
+  -e PREFLIGHT=true \
+  -e FAULT_SCENARIO_ID= \
+  -e JAVA_TOOL_OPTIONS=-Xmx2500m \
+  scenario-executor
+```
+
+Artifacts:
+
+```text
+report: verifiers/target/integral-numeric-restoration/setup-preflight-report.json
+container log: verifiers/target/integral-numeric-restoration/scenario-executor.log
+verification summary: verifiers/target/integral-numeric-restoration/verification-summary.json
+```
+
+Measured result:
+
+```text
+report schema: microservices-simulator.scenario-setup-preflight-report.v1
+terminal status: SUCCESS
+candidates / participants: 82 / 82
+SETUP_READY: 82
+STARTUP_FAILED: 0
+measured setup loop after Spring startup: 83,231,479 ns
+GetCourseExecutionByIdFunctionalitySagas: 1 SETUP_READY
+FindQuizFunctionalitySagas: 1 SETUP_READY
+FaultScenarios linked to SETUP_READY workloads: 164 / 164
+workflow actions executed: 0
+Spring application contexts started: 1
+```
+
+All five package files matched their preflight-baseline SHA-256 values after the run:
+
+```text
+b557240f5b3ca91415a0d3d7d95e4357c8aa23024cf59fb4e2ce0165c969b1bf  workload-catalog.jsonl
+5481e2e515efc6817024e8afafca05a3c001828ec73bab2e19c1115fed544d3a  fault-scenario-catalog.jsonl
+8553999ff3ba9f06043ff6daedf91d57f6c83e76d666b3054ff2e29b0f8498f9  scenario-catalog-manifest.json
+395aebce8bb5b0ec1b790f341045c2b4b6e83191f9a75ad965e70104c5dd231c  scenario-space-accounting.json
+37671daa3fe80f4ae9c681441ed53409df6469912c13f40990707a5690f58a19  workload-catalog-rejected-inputs.jsonl
+```
+
+The package schema, deterministic ids, manifest-declared static candidates, and all package bytes are unchanged. The only changed result is runtime setup truth: the prior two constructor-type false negatives are now setup-ready.
+
+Historical helper-fidelity focused regression command:
 
 ```bash
 cd verifiers

@@ -31,6 +31,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Work
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -990,15 +991,154 @@ public final class ScenarioExecutor {
                 // Reflection rejected this overload's invocation conversions; try the next overload.
             }
         }
+
+        List<String> typedInvocationRejections = new ArrayList<>();
+        for (Constructor<?> constructor : constructors) {
+            if (constructor.getParameterCount() != arguments.size()) {
+                continue;
+            }
+            try {
+                Object[] converted = exactIntegralInvocationArguments(
+                        constructor.getParameterTypes(), arguments);
+                return constructor.newInstance(converted);
+            } catch (TypedInvocationRejection rejection) {
+                typedInvocationRejections.add(constructor.toGenericString() + ": " + rejection.getMessage());
+            } catch (IllegalArgumentException incompatibleArguments) {
+                typedInvocationRejections.add(constructor.toGenericString()
+                        + ": reflection rejected the exactly converted argument list");
+            }
+        }
+
         String argumentTypes = arguments.stream()
                 .map(argument -> argument == null ? "null" : argument.getClass().getName())
                 .collect(java.util.stream.Collectors.joining(", ", "[", "]"));
         String available = constructors.stream()
                 .map(Constructor::toGenericString)
                 .collect(java.util.stream.Collectors.joining("; ", "[", "]"));
+        String rejections = typedInvocationRejections.isEmpty()
+                ? ""
+                : "; typed invocation rejections " + typedInvocationRejections;
         throw new NoSuchMethodException("No compatible constructor for " + type.getName()
                 + " with persisted argument types " + argumentTypes
-                + "; available public constructors " + available);
+                + "; available public constructors " + available + rejections);
+    }
+
+    private Object[] exactIntegralInvocationArguments(Class<?>[] parameterTypes,
+                                                      List<Object> arguments)
+            throws TypedInvocationRejection {
+        Object[] converted = new Object[arguments.size()];
+        for (int index = 0; index < parameterTypes.length; index++) {
+            Class<?> targetType = parameterTypes[index];
+            Object argument = arguments.get(index);
+            if (argument == null) {
+                if (targetType.isPrimitive()) {
+                    throw new TypedInvocationRejection("argument " + index
+                            + " is null and cannot target primitive " + targetType.getTypeName());
+                }
+                converted[index] = null;
+                continue;
+            }
+            if (reflectionAccepts(targetType, argument.getClass())) {
+                converted[index] = argument;
+                continue;
+            }
+            Class<?> integralTarget = integralTarget(targetType);
+            if (!(argument instanceof Number number) || integralTarget == null) {
+                throw new TypedInvocationRejection("argument " + index + " has persisted type "
+                        + argument.getClass().getName() + " and cannot target " + targetType.getTypeName()
+                        + ": unsupported coercion; only exact numeric conversion to byte, short, int, long,"
+                        + " or BigInteger is supported");
+            }
+            converted[index] = exactIntegralValue(index, number, integralTarget);
+        }
+        return converted;
+    }
+
+    private Object exactIntegralValue(int argumentIndex,
+                                      Number value,
+                                      Class<?> targetType)
+            throws TypedInvocationRejection {
+        BigInteger integralValue;
+        try {
+            if (value instanceof BigInteger bigInteger) {
+                integralValue = bigInteger;
+            } else if (value instanceof BigDecimal bigDecimal) {
+                integralValue = bigDecimal.toBigIntegerExact();
+            } else if (value instanceof Byte || value instanceof Short
+                    || value instanceof Integer || value instanceof Long) {
+                integralValue = BigInteger.valueOf(value.longValue());
+            } else if (value instanceof Float floating) {
+                if (!Float.isFinite(floating)) {
+                    throw new TypedInvocationRejection("argument " + argumentIndex + " numeric value " + value
+                            + " (" + value.getClass().getName() + ") is non-finite and cannot target "
+                            + targetType.getName());
+                }
+                integralValue = BigDecimal.valueOf(floating.doubleValue()).toBigIntegerExact();
+            } else if (value instanceof Double floating) {
+                if (!Double.isFinite(floating)) {
+                    throw new TypedInvocationRejection("argument " + argumentIndex + " numeric value " + value
+                            + " (" + value.getClass().getName() + ") is non-finite and cannot target "
+                            + targetType.getName());
+                }
+                integralValue = BigDecimal.valueOf(floating).toBigIntegerExact();
+            } else {
+                throw new TypedInvocationRejection("argument " + argumentIndex + " has unsupported numeric type "
+                        + value.getClass().getName() + " for exact conversion to " + targetType.getName());
+            }
+        } catch (ArithmeticException fractional) {
+            throw new TypedInvocationRejection("argument " + argumentIndex + " numeric value " + value
+                    + " (" + value.getClass().getName() + ") is fractional and cannot be converted exactly to "
+                    + targetType.getName());
+        }
+
+        try {
+            if (targetType == Byte.class) return integralValue.byteValueExact();
+            if (targetType == Short.class) return integralValue.shortValueExact();
+            if (targetType == Integer.class) return integralValue.intValueExact();
+            if (targetType == Long.class) return integralValue.longValueExact();
+            return integralValue;
+        } catch (ArithmeticException overflow) {
+            throw new TypedInvocationRejection("argument " + argumentIndex + " numeric value " + value
+                    + " (" + value.getClass().getName() + ") is outside the range of " + targetType.getName());
+        }
+    }
+
+    private Class<?> integralTarget(Class<?> type) {
+        if (type == byte.class || type == Byte.class) return Byte.class;
+        if (type == short.class || type == Short.class) return Short.class;
+        if (type == int.class || type == Integer.class) return Integer.class;
+        if (type == long.class || type == Long.class) return Long.class;
+        if (type == BigInteger.class) return BigInteger.class;
+        return null;
+    }
+
+    private boolean reflectionAccepts(Class<?> targetType, Class<?> argumentType) {
+        if (!targetType.isPrimitive()) return targetType.isAssignableFrom(argumentType);
+        if (targetType == boolean.class) return argumentType == Boolean.class;
+        if (targetType == byte.class) return argumentType == Byte.class;
+        if (targetType == short.class) return argumentType == Byte.class || argumentType == Short.class;
+        if (targetType == char.class) return argumentType == Character.class;
+        if (targetType == int.class) {
+            return argumentType == Byte.class || argumentType == Short.class
+                    || argumentType == Character.class || argumentType == Integer.class;
+        }
+        if (targetType == long.class) {
+            return argumentType == Byte.class || argumentType == Short.class
+                    || argumentType == Character.class || argumentType == Integer.class
+                    || argumentType == Long.class;
+        }
+        if (targetType == float.class) {
+            return argumentType == Byte.class || argumentType == Short.class
+                    || argumentType == Character.class || argumentType == Integer.class
+                    || argumentType == Long.class || argumentType == Float.class;
+        }
+        if (targetType == double.class) {
+            return argumentType == Byte.class || argumentType == Short.class
+                    || argumentType == Character.class || argumentType == Integer.class
+                    || argumentType == Long.class || argumentType == Float.class
+                    || argumentType == Double.class;
+        }
+        return false;
     }
 
     private boolean nullTargetsPrimitive(Class<?>[] parameterTypes, List<Object> arguments) {
@@ -1215,6 +1355,12 @@ public final class ScenarioExecutor {
 
         private static TraceMetadata hardStop(String reason) {
             return new TraceMetadata(null, null, null, null, null, reason);
+        }
+    }
+
+    private static final class TypedInvocationRejection extends Exception {
+        private TypedInvocationRejection(String message) {
+            super(message);
         }
     }
 
