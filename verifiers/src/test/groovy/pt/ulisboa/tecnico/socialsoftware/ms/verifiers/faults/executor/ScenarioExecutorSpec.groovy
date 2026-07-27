@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorDomainException
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder
@@ -227,6 +228,253 @@ class ScenarioExecutorSpec extends Specification {
         report.participants().find { it.sagaInstanceId() == 'ready' }.startupState() == 'STARTUP_READY'
         report.participants().find { it.sagaInstanceId() == 'broken' }.startupState() == 'STARTUP_FAILED'
         FixtureWorkflow.BODIES.isEmpty()
+    }
+
+    def 'setup preflight and normal execution share exact successful setup while preflight runs zero workflow actions'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def before = packageChecksums(packageFixture.directory)
+        def output = packageFixture.directory.resolve('reports/setup-preflight.json')
+        def preflightService = new TrackingSagaUnitOfWorkService()
+        def preflightContext = new TrackingRuntimeContext(preflightService)
+
+        when:
+        def preflight = new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, output), preflightContext)
+
+        then:
+        preflight.schemaVersion() == 'microservices-simulator.scenario-setup-preflight-report.v1'
+        preflight.terminalStatus() == 'SUCCESS'
+        preflight.candidateSelection() == 'MANIFEST_DECLARED_MATERIALIZABLE'
+        preflight.candidateCount() == 1
+        preflight.participantCount() == 1
+        preflight.workloads()*.workloadPlanId() == [workload.deterministicId()]
+        preflight.workloads()[0].status() == 'SETUP_READY'
+        preflight.workloads()[0].participants()[0].setupReady()
+        preflight.workloads()[0].participants()[0].materializationState() == 'MATERIALIZED'
+        preflight.workloads()[0].participants()[0].startupState() == 'STARTUP_READY'
+        preflight.workloads()[0].blockers().isEmpty()
+        preflightContext.unitOfWorkCreations == 1
+        preflightContext.beanRequests == [SagaUnitOfWorkService]
+        FixtureWorkflow.constructorCalls == 1
+        FixtureWorkflow.BODIES.isEmpty()
+        FixtureWorkflow.COMPENSATIONS.isEmpty()
+        preflightService.commitCounts.isEmpty()
+        packageChecksums(packageFixture.directory) == before
+        Files.isRegularFile(output)
+        MAPPER.readTree(output.toFile()).path('workloads').first().path('status').asText() == 'SETUP_READY'
+
+        when:
+        def preflightParticipant = preflight.workloads()[0].participants()[0]
+        FixtureWorkflow.reset()
+        def executionContext = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService())
+        def execution = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, null, scenario.deterministicId()), executionContext)
+
+        then:
+        execution.terminalStatus() == 'SUCCESS'
+        execution.participants()[0].materializationState() == preflightParticipant.materializationState()
+        execution.participants()[0].startupState() == preflightParticipant.startupState()
+        executionContext.unitOfWorkCreations == preflightContext.unitOfWorkCreations
+        FixtureWorkflow.constructorCalls == 1
+        FixtureWorkflow.BODIES == ['solo:first']
+    }
+
+    def 'setup preflight preserves reflection unboxing and primitive widening'() {
+        given:
+        WideningArgumentWorkflow.received = null
+        def workload = workload(['widening'], [['widening', 'first']], null, 'widening', null,
+                WideningArgumentWorkflow.name, byteConstructorRecipe('7'))
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+
+        when:
+        def report = new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null),
+                new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.workloads()[0].status() == 'SETUP_READY'
+        WideningArgumentWorkflow.received == 7L
+        FixtureWorkflow.BODIES.isEmpty()
+    }
+
+    def 'setup preflight rejects null for primitive overload and continues to reference overload'() {
+        given:
+        NullOverloadWorkflow.selected = null
+        def workload = workload(['nullable'], [['nullable', 'first']], null, 'nullable', null,
+                NullOverloadWorkflow.name, literalRecipe(null))
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+
+        when:
+        def report = new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null),
+                new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.workloads()[0].status() == 'SETUP_READY'
+        NullOverloadWorkflow.selected == 'reference'
+        FixtureWorkflow.BODIES.isEmpty()
+    }
+
+    def 'setup preflight continues overload search after reflection rejects an argument list'() {
+        given:
+        OverloadSearchWorkflow.selected = null
+        def workload = workload(['overload'], [['overload', 'first']], null, 'overload', null,
+                OverloadSearchWorkflow.name, literalRecipe(7))
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+
+        when:
+        def report = new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null),
+                new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.workloads()[0].status() == 'SETUP_READY'
+        OverloadSearchWorkflow.selected == 'number'
+    }
+
+    def 'setup preflight keeps persisted BigInteger incompatible with Integer and reports precise types'() {
+        given:
+        def workload = workload(['broken'], [['broken', 'first']], null, 'broken', null,
+                IntegerArgumentWorkflow.name, literalRecipe(7))
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+
+        when:
+        def report = new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null),
+                new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'SETUP_FAILED'
+        report.workloads()[0].status() == 'STARTUP_FAILED'
+        !report.workloads()[0].participants()[0].setupReady()
+        report.workloads()[0].participants()[0].materializationState() == 'MATERIALIZED'
+        report.workloads()[0].participants()[0].startupState() == 'STARTUP_FAILED'
+        report.workloads()[0].blockers()*.reason() == ['STARTUP_FAILED']
+        report.workloads()[0].blockers()[0].inputVariantId() == 'broken-input'
+        report.workloads()[0].blockers()[0].message().contains('No compatible constructor for ' + IntegerArgumentWorkflow.name)
+        report.workloads()[0].blockers()[0].message().contains('persisted argument types [java.math.BigInteger')
+        report.workloads()[0].blockers()[0].message().contains('java.lang.Integer')
+        FixtureWorkflow.BODIES.isEmpty()
+        FixtureWorkflow.COMPENSATIONS.isEmpty()
+    }
+
+    def 'setup preflight does not relabel a constructor-thrown failure as overload incompatibility'() {
+        given:
+        def workload = workload(['throwing'], [['throwing', 'first']], null, 'throwing', null,
+                ThrowingConstructorWorkflow.name)
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+
+        when:
+        def report = new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null),
+                new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'SETUP_FAILED'
+        report.workloads()[0].blockers()[0].message().contains('constructor body failed')
+        !report.workloads()[0].blockers()[0].message().contains('No compatible constructor')
+    }
+
+    def 'batch setup preflight checks every declared candidate through one supplied runtime context'() {
+        given:
+        def first = workload(['first'], [['first', 'first']])
+        def second = workload(['second'], [['second', 'first']])
+        def excluded = workload(['excluded'], [['excluded', 'first']])
+        def firstScenario = scenarios(first, '0')[0]
+        def secondScenario = scenarios(second, '0')[0]
+        def excludedScenario = scenarios(excluded, '0')[0]
+        def packageFixture = writePackage(
+                [first, second, excluded], [firstScenario, secondScenario, excludedScenario],
+                [first.deterministicId(), second.deterministicId()] as Set<String>)
+        def before = packageChecksums(packageFixture.directory)
+        def suppliedContext = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService())
+
+        when:
+        def report = new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null), suppliedContext)
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.candidateCount() == 2
+        report.participantCount() == 2
+        report.workloads()*.workloadPlanId() == [first.deterministicId(), second.deterministicId()].sort()
+        report.workloads()*.status().unique() == ['SETUP_READY']
+        report.workloads()*.setupDurationNanos().every { it >= 0 }
+        suppliedContext.unitOfWorkCreations == 2
+        suppliedContext.functionalityNames.size() == 2
+        suppliedContext.beanRequests == [SagaUnitOfWorkService, SagaUnitOfWorkService]
+        FixtureWorkflow.constructorCalls == 2
+        FixtureWorkflow.BODIES.isEmpty()
+        packageChecksums(packageFixture.directory) == before
+    }
+
+    def 'setup preflight rejects missing and duplicate manifest materializability rows before setup'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def manifest = MAPPER.readTree(packageFixture.manifest.toFile())
+        def rows = manifest.withArray('workloadMaterializability')
+        if (mutation == 'missing') {
+            rows.remove(0)
+        } else if (mutation == 'duplicate') {
+            rows.add(rows.get(0).deepCopy())
+        } else {
+            def extra = rows.get(0).deepCopy()
+            extra.put('workloadPlanId', 'missing-workload')
+            rows.add(extra)
+        }
+        MAPPER.writerWithDefaultPrettyPrinter().writeValue(packageFixture.manifest.toFile(), manifest)
+        def context = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService())
+
+        when:
+        new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null), context)
+
+        then:
+        def error = thrown(IllegalArgumentException)
+        error.message.contains(expectedMessage)
+        context.unitOfWorkCreations == 0
+        FixtureWorkflow.constructorCalls == 0
+        FixtureWorkflow.BODIES.isEmpty()
+
+        where:
+        mutation    | expectedMessage
+        'missing'   | 'materializability rows do not match WorkloadPlans'
+        'duplicate' | 'Duplicate manifest materializability row'
+        'extra'     | 'materializability rows do not match WorkloadPlans'
+    }
+
+    def 'setup preflight rejects an available inconsistent materializable candidate count'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def manifest = MAPPER.readTree(packageFixture.manifest.toFile())
+        manifest.path('counts').put('materializableWorkloadPlans', '0')
+        MAPPER.writerWithDefaultPrettyPrinter().writeValue(packageFixture.manifest.toFile(), manifest)
+        def context = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService())
+
+        when:
+        new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null), context)
+
+        then:
+        def error = thrown(IllegalArgumentException)
+        error.message.contains('Manifest count mismatch for materializableWorkloadPlans')
+        context.unitOfWorkCreations == 0
+        FixtureWorkflow.constructorCalls == 0
     }
 
     def 'zero-bit body failure recovers runtime checkpoints immediately and continues a surviving participant'() {
@@ -931,6 +1179,67 @@ class ScenarioExecutorSpec extends Specification {
         ]
     }
 
+    def 'CLI accepts optional setup preflight without a FaultScenario and keeps it separate from dry run'() {
+        expect:
+        ScenarioExecutorCli.validateInvocation([
+                'spring-application-class': 'example.Application',
+                'package-path': '/tmp/scenario-catalog-manifest.json',
+                'output-path': '/tmp/setup-preflight.json',
+                'preflight': 'true'
+        ]) == null
+
+        when:
+        ScenarioExecutorCli.validateInvocation([
+                'spring-application-class': 'example.Application',
+                'package-path': '/tmp/scenario-catalog-manifest.json',
+                'output-path': '/tmp/setup-preflight.json',
+                'preflight': 'true',
+                'dry-run': 'true'
+        ])
+
+        then:
+        def error = thrown(IllegalArgumentException)
+        error.message.contains('cannot be combined')
+
+        when:
+        ScenarioExecutorCli.validateInvocation([
+                'spring-application-class': 'example.Application',
+                'package-path': '/tmp/scenario-catalog-manifest.json',
+                'output-path': '/tmp/setup-preflight.json',
+                'preflight': 'true',
+                'fault-scenario-id': 'must-not-be-ignored'
+        ])
+
+        then:
+        def faultSelectionError = thrown(IllegalArgumentException)
+        faultSelectionError.message.contains('do not pass --fault-scenario-id')
+    }
+
+    def 'CLI rejects non-canonical boolean option values before mode selection'() {
+        given:
+        def options = [
+                'spring-application-class': 'example.Application',
+                'package-path': '/tmp/scenario-catalog-manifest.json',
+                'output-path': '/tmp/report.json',
+                'fault-scenario-id': 'persisted-id'
+        ]
+        options[option] = value
+
+        when:
+        ScenarioExecutorCli.validateInvocation(options)
+
+        then:
+        def error = thrown(IllegalArgumentException)
+        error.message.contains("--${option} must be exactly 'true' or 'false'".toString())
+
+        where:
+        option      | value
+        'preflight' | 'TRUE'
+        'preflight' | 'tru'
+        'dry-run'   | 'FALSE'
+        'dry-run'   | 'yes'
+    }
+
     def 'CLI success vocabulary accepts only complete measured outcomes and dry run'() {
         expect:
         ScenarioExecutorCli.exitCodeFor(status) == code
@@ -974,11 +1283,16 @@ class ScenarioExecutorSpec extends Specification {
                                          List<List<String>> scheduleShape,
                                          String blockedParticipant = null,
                                          String startupFailureParticipant = null,
-                                         String omittedCheckpoint = null) {
+                                         String omittedCheckpoint = null,
+                                         String startupFailureSagaFqn = MissingExecuteWorkflow.name,
+                                         InputRecipeNode startupArgumentRecipe = null) {
         def sagaFqns = participantIds.collectEntries { id ->
-            [(id): startupFailureParticipant == id ? MissingExecuteWorkflow.name : FixtureWorkflow.name]
+            [(id): startupFailureParticipant == id ? startupFailureSagaFqn : FixtureWorkflow.name]
         }
-        def inputs = participantIds.collect { id -> input(id, sagaFqns[id], blockedParticipant == id) }
+        def inputs = participantIds.collect { id ->
+            input(id, sagaFqns[id], blockedParticipant == id,
+                    startupFailureParticipant == id ? startupArgumentRecipe : null)
+        }
         def participants = participantIds.collect { id ->
             new SagaInstance(id, sagaFqns[id], "${id}-input".toString(), [])
         }
@@ -1007,10 +1321,13 @@ class ScenarioExecutorSpec extends Specification {
                 withoutId.conflictEvidence(), withoutId.faultSlots(), withoutId.compensationCheckpoints(), withoutId.warnings())
     }
 
-    private static InputVariant input(String participantId, String sagaFqn, boolean blocked) {
+    private static InputVariant input(String participantId,
+                                      String sagaFqn,
+                                      boolean blocked,
+                                      InputRecipeNode argumentRecipe = null) {
         def valueNode = blocked
                 ? InputRecipeNode.builder('unresolved').executorReady(false).build()
-                : InputRecipeNode.builder('literal').executorReady(true).literalKind('value').value(participantId).build()
+                : argumentRecipe ?: literalRecipe(participantId)
         def arguments = [
                 new InputRecipeArgument(0, 'java.lang.Object',
                         blocked ? InputResolutionStatus.UNRESOLVED : InputResolutionStatus.RESOLVED,
@@ -1027,35 +1344,63 @@ class ScenarioExecutorSpec extends Specification {
                 new InputRecipe(InputRecipe.SCHEMA_VERSION, null, !blocked, blocked ? ['fixture blocker'] : [], arguments))
     }
 
+    private static InputRecipeNode literalRecipe(Object value) {
+        InputRecipeNode.builder('literal').executorReady(true).literalKind('value').value(value).build()
+    }
+
+    private static InputRecipeNode byteConstructorRecipe(String value) {
+        def argument = new InputRecipeArgument(
+                0, String.name, InputResolutionStatus.RESOLVED, true, [], 'value', literalRecipe(value))
+        InputRecipeNode.builder('constructor')
+                .executorReady(true)
+                .targetTypeFqn(Byte.name)
+                .arguments([argument])
+                .build()
+    }
+
     private static ScenarioExecutorOptions options(Path manifest, Path output, String scenarioId) {
         new ScenarioExecutorOptions(manifest, output, scenarioId, false,
                 'dummyapp', 'dummyapp', 'example.Application', 'test,sagas,local', 'test-sagas')
     }
 
     private static ScenarioRuntimeContext runtime(SagaUnitOfWorkService service) {
-        new ScenarioRuntimeContext() {
-            @Override
-            Object bean(Class<?> type) {
-                type == SagaUnitOfWorkService ? service : null
-            }
-        }
+        new TrackingRuntimeContext(service)
     }
 
     private static Map writePackage(WorkloadPlan workload, List<FaultScenario> faultScenarios) {
+        writePackage([workload], faultScenarios)
+    }
+
+    private static Map writePackage(List<WorkloadPlan> workloads, List<FaultScenario> faultScenarios) {
+        writePackage(workloads, faultScenarios, workloads*.deterministicId() as Set<String>)
+    }
+
+    private static Map writePackage(List<WorkloadPlan> workloads,
+                                    List<FaultScenario> faultScenarios,
+                                    Set<String> materializableWorkloadIds) {
         Path directory = Files.createTempDirectory('v3-executor-package')
         Path workloadPath = directory.resolve('workload-catalog.jsonl')
         Path faultPath = directory.resolve('fault-scenario-catalog.jsonl')
         Path accountingPath = directory.resolve('scenario-space-accounting.json')
         Path rejectedPath = directory.resolve('workload-catalog-rejected-inputs.jsonl')
         Path manifestPath = directory.resolve('scenario-catalog-manifest.json')
-        Files.write(workloadPath, [MAPPER.writeValueAsString(workload)])
+        Files.write(workloadPath, workloads.collect { MAPPER.writeValueAsString(it) })
         Files.write(faultPath, faultScenarios.collect { MAPPER.writeValueAsString(it) })
         Files.writeString(accountingPath, MAPPER.writeValueAsString([schemaVersion: ScenarioSpaceAccountingReport.SCHEMA_VERSION]))
         Files.writeString(rejectedPath, '')
+        def materializability = workloads.collect {
+            new WorkloadMaterializability(
+                    it.deterministicId(), materializableWorkloadIds.contains(it.deterministicId()),
+                    materializableWorkloadIds.contains(it.deterministicId()) ? [] : ['fixture excluded'])
+        }
         def manifest = new ScenarioCatalogManifest(
                 ScenarioCatalogManifest.SCHEMA_VERSION, '2026-07-20T00:00:00Z', new ScenarioGeneratorConfig(),
-                'TEST', 'TEST', 20, 'TEST', [], [:], [],
-                artifact('WORKLOAD_CATALOG', WorkloadPlan.SCHEMA_VERSION, workloadPath, 1),
+                'TEST', 'TEST', 20, 'TEST', materializability, [
+                        workloadsExported: workloads.size().toString(),
+                        materializableWorkloadPlans: materializableWorkloadIds.size().toString(),
+                        nonMaterializableWorkloadPlans: (workloads.size() - materializableWorkloadIds.size()).toString()
+                ], [],
+                artifact('WORKLOAD_CATALOG', WorkloadPlan.SCHEMA_VERSION, workloadPath, workloads.size()),
                 artifact('FAULT_SCENARIO_CATALOG', FaultScenario.SCHEMA_VERSION, faultPath, faultScenarios.size()),
                 artifact('SCENARIO_SPACE_ACCOUNTING', ScenarioSpaceAccountingReport.SCHEMA_VERSION, accountingPath, 1),
                 artifact('REJECTED_INPUT_DIAGNOSTIC', 'test.rejected.v1', rejectedPath, 0),
@@ -1105,6 +1450,87 @@ class ScenarioExecutorSpec extends Specification {
 
     private static String sha256(Path path) {
         MessageDigest.getInstance('SHA-256').digest(Files.readAllBytes(path)).encodeHex().toString()
+    }
+
+    static class WideningArgumentWorkflow extends WorkflowFunctionality {
+        static Long received
+
+        WideningArgumentWorkflow(long participant,
+                                 SagaUnitOfWorkService unitOfWorkService,
+                                 SagaUnitOfWork unitOfWork) {
+            received = participant
+        }
+    }
+
+    static class NullOverloadWorkflow extends WorkflowFunctionality {
+        static String selected
+
+        NullOverloadWorkflow(int participant,
+                             SagaUnitOfWorkService unitOfWorkService,
+                             SagaUnitOfWork unitOfWork) {
+            selected = 'primitive'
+        }
+
+        NullOverloadWorkflow(Object participant,
+                             SagaUnitOfWorkService unitOfWorkService,
+                             SagaUnitOfWork unitOfWork) {
+            selected = 'reference'
+        }
+    }
+
+    static class OverloadSearchWorkflow extends WorkflowFunctionality {
+        static String selected
+
+        OverloadSearchWorkflow(Integer participant,
+                               SagaUnitOfWorkService unitOfWorkService,
+                               SagaUnitOfWork unitOfWork) {
+            selected = 'integer'
+        }
+
+        OverloadSearchWorkflow(Number participant,
+                               SagaUnitOfWorkService unitOfWorkService,
+                               SagaUnitOfWork unitOfWork) {
+            selected = 'number'
+        }
+    }
+
+    static class IntegerArgumentWorkflow extends WorkflowFunctionality {
+        IntegerArgumentWorkflow(Integer participant,
+                                SagaUnitOfWorkService unitOfWorkService,
+                                SagaUnitOfWork unitOfWork) {
+        }
+    }
+
+    static class ThrowingConstructorWorkflow extends WorkflowFunctionality {
+        ThrowingConstructorWorkflow(Object participant,
+                                    SagaUnitOfWorkService unitOfWorkService,
+                                    SagaUnitOfWork unitOfWork) {
+            throw new IllegalArgumentException('constructor body failed')
+        }
+    }
+
+    private static class TrackingRuntimeContext implements ScenarioRuntimeContext {
+        private final SagaUnitOfWorkService service
+        int unitOfWorkCreations
+        List<Class<?>> beanRequests = []
+        List<String> functionalityNames = []
+
+        TrackingRuntimeContext(SagaUnitOfWorkService service) {
+            this.service = service
+        }
+
+        @Override
+        Object bean(Class<?> type) {
+            beanRequests.add(type)
+            type == SagaUnitOfWorkService ? service : null
+        }
+
+        @Override
+        Object createSagaUnitOfWork(String functionalityName) {
+            unitOfWorkCreations++
+            functionalityNames.add(functionalityName)
+            new SagaUnitOfWork(0L, functionalityName)
+        }
     }
 
     private static class TrackingSagaUnitOfWorkService extends SagaUnitOfWorkService {

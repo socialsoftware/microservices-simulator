@@ -25,14 +25,17 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Forw
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadMaterializability;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -40,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
 
@@ -62,7 +66,8 @@ public final class ScenarioExecutor {
         Objects.requireNonNull(options, "executor options are required");
         Objects.requireNonNull(runtimeContext, "scenario runtime context is required");
         ScenarioCatalogPackageReader.PackageContents packageContents = reader.read(options);
-        rejectPackageOutputAlias(options, packageContents);
+        rejectPackageOutputAlias(options.packagePath(), options.outputPath(), packageContents,
+                "Scenario execution report");
         String attemptId = UUID.randomUUID().toString();
         FaultScenario scenario = packageContents.faultScenarios().stream()
                 .filter(candidate -> Objects.equals(candidate.deterministicId(), options.faultScenarioId()))
@@ -91,32 +96,141 @@ public final class ScenarioExecutor {
         }
     }
 
+    public ScenarioSetupPreflightReport preflight(ScenarioSetupPreflightOptions options,
+                                                   ScenarioRuntimeContext runtimeContext) {
+        Objects.requireNonNull(options, "setup preflight options are required");
+        Objects.requireNonNull(runtimeContext, "scenario runtime context is required");
+        ScenarioCatalogPackageReader.PackageContents packageContents = reader.read(
+                new ScenarioExecutorOptions(options.packagePath(), null, null, false));
+        rejectPackageOutputAlias(options.packagePath(), options.outputPath(), packageContents,
+                "Scenario setup preflight report");
+
+        Set<String> candidateIds = validateMaterializabilityTable(packageContents);
+        List<WorkloadPlan> candidates = packageContents.workloadPlans().stream()
+                .filter(workload -> candidateIds.contains(workload.deterministicId()))
+                .sorted(Comparator.comparing(WorkloadPlan::deterministicId))
+                .toList();
+
+        long batchStarted = System.nanoTime();
+        List<ScenarioSetupPreflightReport.WorkloadResult> results = new ArrayList<>();
+        int participantCount = 0;
+        for (WorkloadPlan workload : candidates) {
+            long workloadStarted = System.nanoTime();
+            SetupResult setup = setup(workload, null, runtimeContext);
+            long workloadDuration = System.nanoTime() - workloadStarted;
+            participantCount += setup.participants().size();
+            List<ScenarioSetupPreflightReport.ParticipantResult> participants = setup.participants().stream()
+                    .map(participant -> preflightParticipant(workload, setup.status(), participant))
+                    .toList();
+            results.add(new ScenarioSetupPreflightReport.WorkloadResult(
+                    workload.deterministicId(), setup.status(), workloadDuration, participants, setup.blockers()));
+        }
+        long batchDuration = System.nanoTime() - batchStarted;
+        String packagePath = manifestPath(options.packagePath()).toString();
+        ScenarioExecutionReport.RuntimeMetadata runtimeMetadata = new ScenarioExecutionReport.RuntimeMetadata(
+                options.applicationBase(), options.applicationId(), options.springApplicationClass(),
+                options.springProfiles(), options.mavenProfile(), packagePath, null,
+                "STATIC_MATERIALIZABILITY_CANDIDATE_PREFLIGHT", false);
+        String terminalStatus = results.stream().allMatch(result -> "SETUP_READY".equals(result.status()))
+                ? "SUCCESS"
+                : "SETUP_FAILED";
+        ScenarioSetupPreflightReport report = new ScenarioSetupPreflightReport(
+                ScenarioSetupPreflightReport.SCHEMA_VERSION, UUID.randomUUID().toString(), terminalStatus,
+                packagePath, ScenarioSetupPreflightReport.CANDIDATE_SELECTION, results.size(), participantCount,
+                batchDuration, runtimeMetadata, results);
+        writePreflightReport(options, report);
+        return report;
+    }
+
+    private Set<String> validateMaterializabilityTable(
+            ScenarioCatalogPackageReader.PackageContents packageContents) {
+        Set<String> workloadIds = packageContents.workloadPlans().stream()
+                .map(WorkloadPlan::deterministicId)
+                .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
+        Map<String, WorkloadMaterializability> declarations = new LinkedHashMap<>();
+        for (WorkloadMaterializability declaration
+                : packageContents.manifest().workloadMaterializability()) {
+            if (declaration.workloadPlanId() == null) {
+                throw new IllegalArgumentException("Manifest materializability row has no WorkloadPlan id");
+            }
+            if (declarations.putIfAbsent(declaration.workloadPlanId(), declaration) != null) {
+                throw new IllegalArgumentException("Duplicate manifest materializability row for WorkloadPlan "
+                        + declaration.workloadPlanId());
+            }
+        }
+        if (!declarations.keySet().equals(workloadIds)) {
+            Set<String> missing = new TreeSet<>(workloadIds);
+            missing.removeAll(declarations.keySet());
+            Set<String> extra = new TreeSet<>(declarations.keySet());
+            extra.removeAll(workloadIds);
+            throw new IllegalArgumentException("Manifest materializability rows do not match WorkloadPlans; missing="
+                    + missing + ", extra=" + extra);
+        }
+        Set<String> candidateIds = declarations.values().stream()
+                .filter(WorkloadMaterializability::materializable)
+                .map(WorkloadMaterializability::workloadPlanId)
+                .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
+        String declaredCandidateCount = packageContents.manifest().counts().get("materializableWorkloadPlans");
+        if (declaredCandidateCount != null
+                && !exactNonNegativeCount(declaredCandidateCount, "materializableWorkloadPlans")
+                .equals(BigInteger.valueOf(candidateIds.size()))) {
+            throw new IllegalArgumentException("Manifest count mismatch for materializableWorkloadPlans");
+        }
+        return candidateIds;
+    }
+
+    private BigInteger exactNonNegativeCount(String value, String label) {
+        try {
+            BigInteger parsed = new BigInteger(value);
+            if (parsed.signum() < 0) throw new NumberFormatException("negative");
+            return parsed;
+        } catch (RuntimeException failure) {
+            throw new IllegalArgumentException("Manifest count " + label
+                    + " must be a non-negative exact decimal", failure);
+        }
+    }
+
     private ScenarioExecutionReport executeSelected(ScenarioExecutorOptions options,
                                                     ScenarioRuntimeContext runtimeContext,
                                                     String attemptId,
                                                     WorkloadPlan workload,
                                                     FaultScenario scenario) {
         ResolvedContract contract = resolveContract(workload, scenario);
-        List<ParticipantState> participants = participantStates(workload);
         if (options.dryRun()) {
             return report(options, attemptId, "DRY_RUN", workload, scenario, "NONE", TraceMetadata.none(),
-                    contract.faultSlots(), contract.plannedActions(), List.of(), List.of(), participants, List.of());
+                    contract.faultSlots(), contract.plannedActions(), List.of(), List.of(), participantStates(workload), List.of());
         }
 
+        SetupResult setup = setup(workload, scenario, runtimeContext);
+        if ("MATERIALIZATION_FAILED".equals(setup.status())) {
+            return report(options, attemptId, setup.status(), workload, scenario, "NONE",
+                    TraceMetadata.hardStop(setup.status()),
+                    contract.faultSlots(), contract.plannedActions(), List.of(), List.of(),
+                    setup.participants(), setup.blockers());
+        }
+        if ("STARTUP_FAILED".equals(setup.status())) {
+            return report(options, attemptId, setup.status(), workload, scenario, "NONE",
+                    TraceMetadata.hardStop(setup.status()),
+                    contract.faultSlots(), contract.plannedActions(), List.of(), List.of(),
+                    setup.participants(), setup.blockers());
+        }
+        return replay(options, attemptId, workload, scenario, contract, setup.participants());
+    }
+
+    private SetupResult setup(WorkloadPlan workload,
+                              FaultScenario scenario,
+                              ScenarioRuntimeContext runtimeContext) {
+        List<ParticipantState> participants = participantStates(workload);
         List<ScenarioExecutionReport.Blocker> blockers = materializeAll(
                 workload, scenario, participants, runtimeContext);
         if (!blockers.isEmpty()) {
-            return report(options, attemptId, "MATERIALIZATION_FAILED", workload, scenario, "NONE",
-                    TraceMetadata.hardStop("MATERIALIZATION_FAILED"),
-                    contract.faultSlots(), contract.plannedActions(), List.of(), List.of(), participants, blockers);
+            return new SetupResult("MATERIALIZATION_FAILED", participants, blockers);
         }
         blockers = startAll(workload, scenario, participants);
         if (!blockers.isEmpty()) {
-            return report(options, attemptId, "STARTUP_FAILED", workload, scenario, "NONE",
-                    TraceMetadata.hardStop("STARTUP_FAILED"),
-                    contract.faultSlots(), contract.plannedActions(), List.of(), List.of(), participants, blockers);
+            return new SetupResult("STARTUP_FAILED", participants, blockers);
         }
-        return replay(options, attemptId, workload, scenario, contract, participants);
+        return new SetupResult("SETUP_READY", participants, List.of());
     }
 
     private List<ScenarioExecutionReport.Blocker> materializeAll(WorkloadPlan workload,
@@ -136,7 +250,7 @@ public final class ScenarioExecutor {
                     participant.materializationState = "MATERIALIZATION_FAILED";
                     List<ScenarioExecutionReport.Blocker> owned = result.blockers().stream()
                             .map(blocker -> new ScenarioExecutionReport.Blocker(
-                                    workload.deterministicId(), scenario.deterministicId(), blocker.inputVariantId(),
+                                    workload.deterministicId(), scenario == null ? null : scenario.deterministicId(), blocker.inputVariantId(),
                                     blocker.argumentIndex(), null, blocker.sourceScheduledStepId(),
                                     blocker.reason(), blocker.message()))
                             .toList();
@@ -862,16 +976,38 @@ public final class ScenarioExecutor {
     }
 
     private Object instantiate(Class<?> type, List<Object> arguments) throws ReflectiveOperationException {
-        for (Constructor<?> constructor : type.getConstructors()) {
-            if (constructor.getParameterCount() == arguments.size()) {
-                try {
-                    return constructor.newInstance(arguments.toArray());
-                } catch (IllegalArgumentException ignored) {
-                    // Try another constructor with the same arity.
-                }
+        List<Constructor<?>> constructors = java.util.Arrays.stream(type.getConstructors())
+                .sorted(Comparator.comparing(Constructor::toGenericString))
+                .toList();
+        for (Constructor<?> constructor : constructors) {
+            if (constructor.getParameterCount() != arguments.size()
+                    || nullTargetsPrimitive(constructor.getParameterTypes(), arguments)) {
+                continue;
+            }
+            try {
+                return constructor.newInstance(arguments.toArray());
+            } catch (IllegalArgumentException incompatibleArguments) {
+                // Reflection rejected this overload's invocation conversions; try the next overload.
             }
         }
-        throw new NoSuchMethodException("No compatible constructor with " + arguments.size() + " arguments for " + type.getName());
+        String argumentTypes = arguments.stream()
+                .map(argument -> argument == null ? "null" : argument.getClass().getName())
+                .collect(java.util.stream.Collectors.joining(", ", "[", "]"));
+        String available = constructors.stream()
+                .map(Constructor::toGenericString)
+                .collect(java.util.stream.Collectors.joining("; ", "[", "]"));
+        throw new NoSuchMethodException("No compatible constructor for " + type.getName()
+                + " with persisted argument types " + argumentTypes
+                + "; available public constructors " + available);
+    }
+
+    private boolean nullTargetsPrimitive(Class<?>[] parameterTypes, List<Object> arguments) {
+        for (int index = 0; index < parameterTypes.length; index++) {
+            if (arguments.get(index) == null && parameterTypes[index].isPrimitive()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ScenarioExecutionReport.Blocker blocker(WorkloadPlan workload,
@@ -921,12 +1057,14 @@ public final class ScenarioExecutor {
         return Files.isDirectory(configured) ? configured.resolve("scenario-catalog-manifest.json") : configured;
     }
 
-    private void rejectPackageOutputAlias(ScenarioExecutorOptions options,
-                                          ScenarioCatalogPackageReader.PackageContents packageContents) {
-        if (options.outputPath() == null) return;
-        Path output = options.outputPath().toAbsolutePath().normalize();
+    private void rejectPackageOutputAlias(Path packagePath,
+                                          Path outputPath,
+                                          ScenarioCatalogPackageReader.PackageContents packageContents,
+                                          String reportKind) {
+        if (outputPath == null) return;
+        Path output = outputPath.toAbsolutePath().normalize();
         List<Path> packageInputs = List.of(
-                manifestPath(options.packagePath()).toAbsolutePath().normalize(),
+                manifestPath(packagePath).toAbsolutePath().normalize(),
                 packageContents.workloadCatalogPath(),
                 packageContents.faultScenarioCatalogPath(),
                 packageContents.accountingPath(),
@@ -934,12 +1072,12 @@ public final class ScenarioExecutor {
         for (Path packageInput : packageInputs) {
             Path normalizedInput = packageInput.toAbsolutePath().normalize();
             if (output.equals(normalizedInput) || sameFile(output, normalizedInput)) {
-                throw new IllegalArgumentException("Scenario execution report output path must not alias scenario package input "
+                throw new IllegalArgumentException(reportKind + " output path must not alias scenario package input "
                         + normalizedInput);
             }
         }
         if (isDynamicEnrichmentArtifact(output)) {
-            throw new IllegalArgumentException("Scenario execution report output path must not overwrite an existing "
+            throw new IllegalArgumentException(reportKind + " output path must not overwrite an existing "
                     + "recognized v3 dynamic-enrichment artifact " + output);
         }
     }
@@ -985,13 +1123,52 @@ public final class ScenarioExecutor {
     private void writeReport(ScenarioExecutorOptions options, ScenarioExecutionReport report) {
         if (options.outputPath() == null) return;
         try {
-            Path output = options.outputPath().toAbsolutePath().normalize();
-            Path parent = output.getParent();
-            if (parent != null) Files.createDirectories(parent);
-            mapper.writerWithDefaultPrettyPrinter().writeValue(output.toFile(), report);
+            write(options.outputPath(), report);
         } catch (IOException failure) {
             throw new IllegalStateException("Failed to write scenario execution report", failure);
         }
+    }
+
+    private void writePreflightReport(ScenarioSetupPreflightOptions options,
+                                      ScenarioSetupPreflightReport report) {
+        if (options.outputPath() == null) return;
+        try {
+            write(options.outputPath(), report);
+        } catch (IOException failure) {
+            throw new IllegalStateException("Failed to write scenario setup preflight report", failure);
+        }
+    }
+
+    private void write(Path configuredOutput, Object report) throws IOException {
+        Path output = configuredOutput.toAbsolutePath().normalize();
+        Path parent = output.getParent();
+        if (parent != null) Files.createDirectories(parent);
+        mapper.writerWithDefaultPrettyPrinter().writeValue(output.toFile(), report);
+    }
+
+    private ScenarioSetupPreflightReport.ParticipantResult preflightParticipant(
+            WorkloadPlan workload,
+            String workloadStatus,
+            ParticipantState participant) {
+        List<ScenarioExecutionReport.Blocker> blockers = participant.blockers;
+        if (blockers.isEmpty() && !"STARTUP_READY".equals(participant.startupState)) {
+            blockers = List.of(new ScenarioExecutionReport.Blocker(
+                    workload.deterministicId(), null,
+                    participant.input == null ? null : participant.input.deterministicId(), null, null, null,
+                    "SETUP_NOT_COMPLETED",
+                    "Saga startup was not attempted because workload setup stopped at " + workloadStatus));
+        }
+        return new ScenarioSetupPreflightReport.ParticipantResult(
+                participant.saga.deterministicId(), participant.saga.sagaFqn(),
+                participant.input == null ? null : participant.input.deterministicId(),
+                "STARTUP_READY".equals(participant.startupState), participant.materializationState,
+                participant.startupState, blockers);
+    }
+
+    private record SetupResult(
+            String status,
+            List<ParticipantState> participants,
+            List<ScenarioExecutionReport.Blocker> blockers) {
     }
 
     private record ResolvedContract(

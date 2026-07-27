@@ -5,8 +5,31 @@ set -euo pipefail
 : "${SPRING_APPLICATION_CLASS:=pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator}"
 : "${MAVEN_PROFILE:=test-sagas}"
 : "${SPRING_PROFILES:=test,sagas,local}"
-: "${OUTPUT_PATH:=/reports/scenario-executor/execution-report.json}"
+: "${PREFLIGHT:=false}"
+: "${DRY_RUN:=false}"
 : "${SERVER_PORT:=0}"
+
+for boolean_name in PREFLIGHT DRY_RUN; do
+  boolean_value="${!boolean_name}"
+  if [[ "$boolean_value" != "true" && "$boolean_value" != "false" ]]; then
+    echo "$boolean_name must be exactly 'true' or 'false'" >&2
+    exit 2
+  fi
+done
+if [[ "$PREFLIGHT" == "true" && "$DRY_RUN" == "true" ]]; then
+  echo "PREFLIGHT=true cannot be combined with DRY_RUN=true" >&2
+  exit 2
+fi
+if [[ "$PREFLIGHT" == "true" && -n "${FAULT_SCENARIO_ID:-}" ]]; then
+  echo "PREFLIGHT=true cannot be combined with FAULT_SCENARIO_ID" >&2
+  exit 2
+fi
+
+if [[ "$PREFLIGHT" == "true" ]]; then
+  : "${OUTPUT_PATH:=/reports/scenario-executor/setup-preflight-report.json}"
+else
+  : "${OUTPUT_PATH:=/reports/scenario-executor/execution-report.json}"
+fi
 
 if [[ -z "${PACKAGE_PATH:-}" ]]; then
   echo "PACKAGE_PATH is required, e.g. /reports/<run>/scenario-catalog-manifest.json" >&2
@@ -18,7 +41,7 @@ if [[ ! -f "$PACKAGE_PATH" ]]; then
   exit 2
 fi
 
-if [[ -z "${FAULT_SCENARIO_ID:-}" ]]; then
+if [[ "$PREFLIGHT" != "true" && -z "${FAULT_SCENARIO_ID:-}" ]]; then
   echo "FAULT_SCENARIO_ID is required and must identify one persisted FaultScenario" >&2
   exit 2
 fi
@@ -38,7 +61,7 @@ mvn -q -DskipTests -Dprotobuf.skip -f /tmp/scenario-executor/simulator/pom.xml c
 
 echo "Building verifier executor classes"
 cd /verifiers
-mvn -q -DskipTests package
+mvn -q -Dmaven.test.skip=true package
 mvn -q dependency:build-classpath -Dmdep.outputFile=/tmp/scenario-executor/verifiers-classpath.txt
 
 echo "Preparing target application: ${APPLICATION_BASE_DIR}"
@@ -50,21 +73,35 @@ CP="${APP_DIR}/target/classes:${APP_DIR}/target/test-classes:/verifiers/target/c
 echo "Running scenario executor"
 echo "  application: ${APPLICATION_BASE_DIR}"
 echo "  package: ${PACKAGE_PATH}"
-echo "  FaultScenario id: ${FAULT_SCENARIO_ID}"
+echo "  mode: $([[ "$PREFLIGHT" == "true" ]] && echo setup-preflight || echo execution)"
+if [[ "$PREFLIGHT" != "true" ]]; then
+  echo "  FaultScenario id: ${FAULT_SCENARIO_ID}"
+fi
 echo "  output: ${OUTPUT_PATH}"
 
 SPRING_PROFILES_VALUE="$SPRING_PROFILES"
 unset SPRING_PROFILES
 
+EXECUTOR_ARGS=(
+  --spring-application-class "$SPRING_APPLICATION_CLASS"
+  --spring-profiles "$SPRING_PROFILES_VALUE"
+  --application-base "$APPLICATION_BASE_DIR"
+  --application-id "$APPLICATION_BASE_DIR"
+  --maven-profile "$MAVEN_PROFILE"
+  --package-path "$PACKAGE_PATH"
+  --output-path "$OUTPUT_PATH"
+)
+if [[ "$PREFLIGHT" == "true" ]]; then
+  EXECUTOR_ARGS+=(--preflight)
+else
+  EXECUTOR_ARGS+=(--fault-scenario-id "$FAULT_SCENARIO_ID")
+  if [[ "$DRY_RUN" == "true" ]]; then
+    EXECUTOR_ARGS+=(--dry-run)
+  fi
+fi
+
 java -cp "$CP" pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorCli \
-  --spring-application-class "$SPRING_APPLICATION_CLASS" \
-  --spring-profiles "$SPRING_PROFILES_VALUE" \
-  --application-base "$APPLICATION_BASE_DIR" \
-  --application-id "$APPLICATION_BASE_DIR" \
-  --maven-profile "$MAVEN_PROFILE" \
-  --package-path "$PACKAGE_PATH" \
-  --fault-scenario-id "$FAULT_SCENARIO_ID" \
-  --output-path "$OUTPUT_PATH" \
+  "${EXECUTOR_ARGS[@]}" \
   --verifiers.application.enabled=false \
   --server.port="$SERVER_PORT"
 
