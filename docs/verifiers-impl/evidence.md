@@ -1,8 +1,93 @@
 # Verifier evidence appendix
 
-Last updated: 2026-07-20
+Last updated: 2026-07-27
 
 This page stores concrete validation results, metrics, and run references so [`current-state.md`](current-state.md) can stay readable. Treat this as an appendix: cite it when you need proof, not as the first-read narrative.
+
+## Setup materializability and helper-fidelity accuracy
+
+Verified on 2026-07-27 against a refreshed single-saga Quizzes package after adding caller-to-helper argument substitution and ordered helper DTO mutation capture.
+
+Artifacts:
+
+```text
+before: verifiers/target/materializability-accuracy-smoke/quizzes-20260727-003718-018/
+after:  verifiers/target/outcome2-helper-tracing/quizzes-20260727-180306-391/
+preflight report: verifiers/target/outcome2-helper-tracing/setup-preflight-report.json
+```
+
+The refreshed manifest records the effective generator configuration:
+
+```text
+generationStrategy: BRUTE_FORCE
+catalogWriteMode: WRITE_WORKLOADS
+includeSingles: true
+maxSagaSetSize: 1
+maxCatalogScenarios: 10000
+maxInputVariantsPerSaga: 1000
+maxSchedulesPerInputTuple: 1
+inputPolicy: RESOLVED_OR_REPLAYABLE
+scheduleStrategy: SEGMENT_COMPRESSED
+deterministicSeed: 1234
+```
+
+Static comparison:
+
+| Metric | Before helper mutation tracing | After helper mutation tracing |
+|---|---:|---:|
+| Accepted inputs / written WorkloadPlans | 587 | 732 |
+| Manifest-declared setup candidates (`materializable=true`) | 94 | 82 |
+| Statically blocked inputs | 493 | 650 |
+| Eager FaultScenarios | 326 | 164 |
+| `createUser` helper candidates with ordered DTO assignments | 0 / 40 | 75 / 75 |
+| `createCourseExecution` helper candidates with ordered DTO assignments | 0 / 46 | 50 / 50 |
+
+The increased accepted count comes from preserving more concrete helper call sites. The lower static candidate count is a correctness result, not a coverage regression hidden by the implementation: the previous dominant course/user recipes were empty DTO constructors. All refreshed `createUser` helper recipes carry `name`, `username`, and `role`. All refreshed `createCourseExecution` helper recipes carry `name`, `type`, `acronym`, `academicTerm`, and `endDate`; the last assignment retains the source `DateHandler.toISOString(endDate)` call and is conservatively blocked as `UNMATERIALIZABLE_ASSIGNMENT` because that local call is not yet supported. One user helper candidate is conservatively blocked as `LOOP_DEPENDENT_MUTATION`.
+
+The optional preflight was run through the Docker ScenarioExecutor wrapper with one target Spring context:
+
+```bash
+PACKAGE_PATH=/reports/outcome2-helper-tracing/quizzes-20260727-180306-391/scenario-catalog-manifest.json \
+OUTPUT_PATH=/reports/outcome2-helper-tracing/setup-preflight-report.json \
+docker compose run --rm -e PREFLIGHT=true scenario-executor
+```
+
+Result:
+
+```text
+report schema: microservices-simulator.scenario-setup-preflight-report.v1
+candidate selection: MANIFEST_DECLARED_MATERIALIZABLE
+candidates / participants: 82 / 82
+SETUP_READY: 80
+STARTUP_FAILED: 2
+measured setup loop after Spring startup: 49,069,530 ns
+workflow actions executed: 0
+```
+
+The 80 setup-ready workloads are 76 `CreateUserFunctionalitySagas` and four `GetCourseExecutionsFunctionalitySagas` workloads. `GetCourseExecutionByIdFunctionalitySagas` and `FindQuizFunctionalitySagas` fail startup because persisted integer values materialize as `BigInteger` while their public constructors require `Integer`; the report lists both actual argument types and available constructor signatures. The preflight report is outside the five-file semantic package, and package validation/checksums remained intact.
+
+Focused regression command:
+
+```bash
+cd verifiers
+mvn -q -Dtest='ScenarioExecutorSpec,ScenarioExecutorWrapperSpec,ScenarioExecutorOrchestratorSpec,ScenarioExecutorReadinessEvaluatorSpec,GroovyConstructorInputTraceVisitorSpec,GroovyConstructorInputTraceVisitorDummyappSpec,InputRecipeMapperSpec,ScenarioGeneratorApplicationSpec,DummyappAccountingFixtureFoundationSpec' test
+```
+
+Post-review result: 177 tests, zero failures/errors/skips (`81 + 5 + 3 + 2 + 17 + 27 + 5 + 22 + 15`). Coverage includes reflection widening/overload behavior, complete manifest materializability tables, strict CLI/wrapper modes, and point-in-time helper mutation snapshots. The dummyapp fixture proves literal caller arguments flow into ordered setter/property mutations, excludes post-facade mutations, isolates separate helper calls, and preserves deterministic input ids and recipe fingerprints. The complete verifier suite then passed with 573 tests, zero failures/errors/skips after reconciling deterministic dummyapp fixture counts.
+
+Two targeted executions—not a batch qualification stage—confirmed that ordinary execution still uses the shared setup path and reports its own outcome:
+
+```text
+all-zero FaultScenario: 564dc9b56a716cd2797a3f3200485791e6ecdb1ed383b422de987a72792d63bd
+report: verifiers/target/outcome2-helper-tracing/execution-all-zero.json
+result: SUCCESS / EXACT; forward action COMPLETED
+
+single-fault FaultScenario: 142eccc9b6d9464439f9607061ff6c7a32109108d34a1ddc076e6bf8519ab71b
+report: verifiers/target/outcome2-helper-tracing/execution-single-fault.json
+result: COMPENSATED / EXACT; assigned fault realized
+```
+
+The five package hashes remained the same after preflight and both executions. This evidence establishes setup accuracy and helper recipe fidelity; it deliberately does not batch-qualify all-zero or faulty scenarios.
 
 ## Compensation-aware v3 end-to-end evidence
 
@@ -38,8 +123,8 @@ package: verifiers/target/compensation-aware-v3-evidence/bounded-quizzes-v3/quiz
 container log: verifiers/target/compensation-aware-v3-evidence/bounded-quizzes-v3-container.log
 manifest schema: microservices-simulator.scenario-catalog-manifest.v3
 WorkloadPlans written: 2000
-materializable WorkloadPlans: 12
-non-materializable WorkloadPlans: 1988
+manifest-declared setup-candidate WorkloadPlans: 12
+statically blocked WorkloadPlans: 1988
 FaultScenarios written: 84
 computed eager vectors: 60
 exact uncapped/written sum over computed vectors: 84 / 84
@@ -56,7 +141,7 @@ scenario-space-accounting.json
 scenario-catalog-manifest.json
 ```
 
-A first bounded `INTERACTION_PRUNED` multi-saga diagnostic at `verifiers/target/compensation-aware-v3-evidence/quizzes-20260720-090609-170/` wrote 360 WorkloadPlans but no FaultScenarios because no selected workload had every participant materializable. A bounded single-saga diagnostic then identified materializable Quizzes inputs. The final run deliberately used `BRUTE_FORCE` with a 2,000-workload cap to include real materializable multi-saga pairs; it did not loosen input readiness or use application-specific generation shortcuts.
+A first bounded `INTERACTION_PRUNED` multi-saga diagnostic at `verifiers/target/compensation-aware-v3-evidence/quizzes-20260720-090609-170/` wrote 360 WorkloadPlans but no FaultScenarios because no selected workload had every participant pass the static setup-candidate gate. A bounded single-saga diagnostic then identified candidate Quizzes inputs. The final run deliberately used `BRUTE_FORCE` with a 2,000-workload cap to include real candidate multi-saga pairs; it did not loosen input readiness or use application-specific generation shortcuts.
 
 ### Selected compensation-interleaving FaultScenario
 
@@ -223,7 +308,7 @@ Both runs used `COUNT_ONLY`; `catalogWritten=0` is expected and is not a failure
 | Selected input-bound scenario total | 517 | 584 |
 | Catalog written | 0 | 0 |
 | Static recipe-ready input variants | unavailable / old metric 0 | 0 |
-| ScenarioExecutor materializable input variants | unavailable | 94 |
+| Manifest-declared ScenarioExecutor setup candidates | unavailable | 94 |
 | ScenarioExecutor ready input variants | 0 / unavailable | 94 |
 | Blocked input variants | 517 | 490 |
 
@@ -318,7 +403,7 @@ verifiers/target/surefire-reports/pt.ulisboa.tecnico.socialsoftware.ms.verifiers
 Tests run: 11, Failures: 0, Errors: 0
 ```
 
-Interpretation: static event topology improved accepted static input coverage for the implemented `EventHandling`/`EventProcessing` shape, including the original target group of five event-driven sagas. The refreshed dynamic baseline below confirms that the post-event static catalog can still be enriched with runtime evidence. It does not make event-origin inputs replayable: event payload placeholders remain materialization blockers, and `executorMaterializableInputVariantCount=94` only means the current ScenarioExecutor can materialize that subset through executor-readiness/runtime-owned handling.
+Interpretation: static event topology improved accepted static input coverage for the implemented `EventHandling`/`EventProcessing` shape, including the original target group of five event-driven sagas. The refreshed dynamic baseline below confirms that the post-event static catalog can still be enriched with runtime evidence. It does not make event-origin inputs replayable: event payload placeholders remain materialization blockers. The historical `executorMaterializableInputVariantCount=94` is the manifest's static setup-candidate count, not proof that all 94 can start; the later 2026-07-27 preflight above found two constructor-type false positives in the corresponding accuracy-smoke candidate family.
 
 ## Historical v2 dynamic-enrichment Quizzes baselines
 
@@ -525,7 +610,7 @@ Explicit vector lifecycle: COMPENSATED
 Explicit vector realized slot: 0 (runtime step `getCourseExecutionsStep`)
 ```
 
-Interpretation: a narrow executor path supports the implemented materializable saga/local fault-vector contract. This smoke executed one generated Quizzes single-saga plan by resolving runtime-owned infrastructure arguments and using the in-memory fault-vector provider for the explicit-fault run. Older accounting that reported zero executor-ready inputs was measuring static recipe readiness only; executor materializability is still reported separately/aligned with ScenarioExecutor semantics. The later multi-saga smoke below extends the supported path to explicit deterministic interleaving replay, but the executor is still not generic catalog replay, broad runtime parity, impact scoring, or search.
+Interpretation: a narrow executor path supports the implemented saga/local fault-vector contract for the selected setup-ready input. This smoke executed one generated Quizzes single-saga plan by resolving runtime-owned infrastructure arguments and using the in-memory fault-vector provider for the explicit-fault run. Older accounting that reported zero executor-ready inputs measured static recipe readiness only; current docs distinguish manifest-declared setup candidates from actual executor setup. The later multi-saga smoke below extends the supported path to explicit deterministic interleaving replay, but the executor is still not generic catalog replay, broad runtime parity, impact scoring, or search.
 
 ## Historical v2 ScenarioExecutor multi-saga Quizzes smoke
 

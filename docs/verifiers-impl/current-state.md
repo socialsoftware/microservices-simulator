@@ -1,28 +1,30 @@
 # Verifier current state
 
-Last updated: 2026-07-21
+Last updated: 2026-07-27
 
 This is the present-tense status page for verifier/scenario-generation work. Detailed validation lives in [`evidence.md`](evidence.md); terminology lives in [`glossary.md`](glossary.md); executor operation lives in [`reference/scenario-executor.md`](reference/scenario-executor.md).
 
 ## One-paragraph summary
 
-The verifier extracts saga-oriented structure and test-derived inputs, generates a deterministic compensation-aware v3 package, and can optionally attach runtime evidence as workload-linked sidecars. The package separates reusable `WorkloadPlan` records from executable `FaultScenario` records: eager generation writes materializable all-zero and single-point vectors, while a guarded on-demand path persists arbitrary valid multi-fault vectors. A narrow saga/local ScenarioExecutor replays one persisted FaultScenario and writes an action-aware v4 report. Generic/distributed execution, impact scoring, GA search, and prioritization remain future work.
+The verifier extracts saga-oriented structure and test-derived inputs, generates a deterministic compensation-aware v3 package, and can optionally attach runtime evidence as workload-linked sidecars. The package separates reusable `WorkloadPlan` records from executable `FaultScenario` records: eager generation writes all-zero and single-point vectors for statically eligible setup candidates, while a guarded on-demand path persists arbitrary valid multi-fault vectors. A narrow saga/local ScenarioExecutor either preflights those candidates through one shared application context or replays one persisted FaultScenario and writes an action-aware v4 report. Generic/distributed execution, impact scoring, GA search, and prioritization remain future work.
 
 ## Current scope
 
 Implemented:
 
 - Java/Groovy static extraction of Saga participants, ordered steps, dispatch footprints, compensation evidence, and test-derived input recipes.
+- Caller-to-helper parameter substitution plus ordered setter/property mutations for helper-built DTO recipes, with conservative rejection of ambiguous control flow.
 - Static event semantics for the implemented `EventHandling`/`EventProcessing` chain shape.
 - Source-mode filtering (`SAGAS`, `TCC`, `MIXED`, `UNKNOWN`) with rejected-input diagnostics.
 - Deterministic bounded WorkloadPlan generation, including single-saga and bounded multi-saga shapes.
 - `SERIAL`, bounded order-preserving, and conflict-anchor `SEGMENT_COMPRESSED` forward scheduling.
 - Compensation checkpoints classified as `EXPLICIT_COMPENSATION`, `IMPLICIT_SAGA_ROLLBACK`, or `CONSERVATIVE_UNKNOWN`.
 - Bounded recovery-schedule generation with reverse per-participant compensation order and survivor-forward interleavings.
-- Eager FaultScenarios for materializable all-zero and single-point vectors. Saga/local materializability requires each participant's forward `runtimeStepName` values to be unique; the same name may be used by different participants.
+- Eager FaultScenarios for manifest-declared setup candidates under all-zero and single-point vectors. The deterministic static gate requires each participant's forward `runtimeStepName` values to be unique; the same name may be used by different participants.
 - Idempotent on-demand persistence with package-local writer serialization across local JVM processes.
 - Exact accounting for computed vectors, including uncapped and written recovery-schedule counts.
 - Optional workload-linked dynamic-evidence sidecars that leave semantic package bytes unchanged.
+- Optional one-context ScenarioExecutor batch setup preflight of manifest-declared candidates, sharing exact argument materialization and Saga startup with normal execution and running no workflow actions.
 - Narrow saga/local ScenarioExecutor replay of one persisted FaultScenario, including zero-bit fallback and hard-stop policy.
 - HTML analysis report and Docker Compose generation/test/executor services.
 
@@ -60,7 +62,7 @@ A WorkloadPlan is reusable normal-execution structure. It owns participant insta
 
 A FaultScenario is one reproducible experiment. It references one WorkloadPlan and persists one binary vector plus one complete ordered action sequence. Actions are `FORWARD` or `COMPENSATION`; action identity is part of FaultScenario identity. A participant commits automatically on its final successful forward step, so commit is reported but not independently schedulable.
 
-Eager generation is intentionally bounded to materializable all-zero and single-point vectors. Non-materializable workloads remain in the workload catalog with diagnostics but receive no eager FaultScenarios. The on-demand request path serializes writers for the same real package directory across local JVM processes with the persistent `.on-demand-fault-scenario.lock` OS lock. It acquires that lock before package read/validation and holds it through generation, publication, final validation, and every result path, so a waiting writer re-reads the preceding validated revision. Invalid requests and caught generation/publication failures preserve or restore the prior three mutable semantic artifact bytes; a successful return means the resulting revision passed package validation.
+Eager generation is intentionally bounded to all-zero and single-point vectors for workloads whose existing manifest `materializable` row passes deterministic static input-readiness and structural checks. These rows are setup candidates, not runtime proof: optional preflight or normal execution must still materialize the exact tuple and start the exact Saga. Statically blocked workloads remain in the workload catalog with diagnostics but receive no eager FaultScenarios. The on-demand request path serializes writers for the same real package directory across local JVM processes with the persistent `.on-demand-fault-scenario.lock` OS lock. It acquires that lock before package read/validation and holds it through generation, publication, final validation, and every result path, so a waiting writer re-reads the preceding validated revision. Invalid requests and caught generation/publication failures preserve or restore the prior three mutable semantic artifact bytes; a successful return means the resulting revision passed package validation.
 
 The three semantic files are still promoted separately. A process/JVM crash, kernel or host failure, or power loss during promotion can therefore leave a checksum-inconsistent package, and there is no automatic crash recovery. Readers remain checksum-protected and reject such torn packages; regenerate the package before retrying after an integrity failure. The `FileChannel` guarantee is for cooperating processes on a local filesystem and does not establish network-filesystem or multi-host distributed locking semantics.
 
@@ -90,11 +92,13 @@ The latest broad Quizzes attribution counts (`MATCHED_EXACT=435`, `MATCHED_HIGH_
 
 ## ScenarioExecutor
 
-The current executor requires a v3 package path and an exact persisted FaultScenario id. It derives the assigned vector and action order from that record; it does not accept `--fault-vector`, `FAULT_VECTOR`, auto-selection, or v2 catalogs.
+For normal execution, the executor requires a v3 package path and an exact persisted FaultScenario id. It derives the assigned vector and action order from that record; it does not accept `--fault-vector`, `FAULT_VECTOR`, auto-selection, or v2 catalogs. Optional `--preflight` instead checks every manifest-declared setup candidate in stable workload-id order through one application context and writes a `microservices-simulator.scenario-setup-preflight-report.v1` report.
 
-Supported execution semantics:
+Supported setup and execution semantics:
 
-- materialize all supported saga/local participants and runtime-owned infrastructure arguments;
+- share one setup implementation between preflight and normal execution;
+- in preflight, materialize exact persisted arguments, resolve runtime-owned infrastructure, start exact Saga participants, and stop before every workflow action;
+- in normal execution, materialize all supported saga/local participants and runtime-owned infrastructure arguments;
 - replay persisted actions sequentially;
 - inject assigned faults at their exact forward slots;
 - execute scheduled checkpoint compensation in persisted order;
@@ -108,9 +112,39 @@ The action-aware report schema is `microservices-simulator.scenario-execution-re
 
 `QuizzesException` business/invariant failures and the Saga/local transactional `SimulatorDomainException` carry the explicit marker. `QuizzesConfigurationException`, including every undefined-transactional-model failure, is unmarked. Base-class membership is deliberately insufficient: extending `SimulatorException` does not by itself make a failure a domain outcome. Supported local command-response restoration preserves the exact supported exception class, its template, and its formatted message.
 
-This remains a narrow deterministic sequential Saga/local replay path. The classification migration does not claim causal, TCC, stream, gRPC, generic distributed, or true-parallel parity.
+`SETUP_READY` proves only that setup succeeded in that runtime. It does not predict whether an all-zero, domain-failing, or faulty execution will complete. Normal execution does not require a separate preflight because it automatically uses the same setup path.
+
+This remains a narrow deterministic sequential Saga/local replay path. The setup/preflight changes do not claim causal, TCC, stream, gRPC, generic distributed, or true-parallel parity.
 
 ## Current evidence
+
+### Quizzes helper-tracing and setup-preflight accuracy
+
+Verified 2026-07-27 against the single-saga Quizzes configuration used by the materializability accuracy smoke:
+
+```text
+run: verifiers/target/outcome2-helper-tracing/quizzes-20260727-180306-391/
+accepted inputs / WorkloadPlans: 732
+manifest-declared setup candidates: 82
+statically blocked inputs: 650
+eager FaultScenarios: 164
+```
+
+The helper tracer now preserves ordered caller-derived mutations for `createUser` and `createCourseExecution`. All 75 observed `createUser` helper candidates carry `name`, `username`, and `role` assignments; the prior dominant recipe family contained an empty `UserDto`. All 50 observed `createCourseExecution` helpers carry five assignments. Those course inputs now conservatively expose the unsupported `DateHandler.toISOString(endDate)` assignment and receive no static candidate status instead of remaining false positives with empty DTOs.
+
+One-context Docker setup preflight selected all 82 manifest candidates:
+
+```text
+report: verifiers/target/outcome2-helper-tracing/setup-preflight-report.json
+SETUP_READY: 80
+STARTUP_FAILED: 2
+measured setup loop after Spring startup: 49,069,530 ns
+forward/fault/compensation/commit actions: 0
+```
+
+The 80 setup-ready workloads comprise 76 `CreateUserFunctionalitySagas` and four `GetCourseExecutionsFunctionalitySagas` workloads. The two failures are `GetCourseExecutionByIdFunctionalitySagas` and `FindQuizFunctionalitySagas`; their persisted integer literals deserialize as `BigInteger` while the public Saga constructors require `Integer`. The preflight report names both runtime argument types and available constructors. It was written outside the package, whose semantic artifacts remained checksum-valid and unchanged by preflight.
+
+This refresh deliberately does not execute an all-zero or faulty batch. Setup materializability and actual execution outcomes remain separate. Two targeted `GetCourseExecutionsFunctionalitySagas` runs confirm the normal boundary: all-zero FaultScenario `564dc9b5...` completed `SUCCESS / EXACT`, while single-fault FaultScenario `142eccc9...` realized its assigned fault and completed `COMPENSATED / EXACT`. Their reports are `execution-all-zero.json` and `execution-single-fault.json` beside the preflight report; package hashes remained unchanged.
 
 ### Bounded Quizzes v3 package and execution
 
@@ -168,7 +202,9 @@ See [`evidence.md`](evidence.md) for commands and totals.
 - Exact aggregate-instance key extraction remains incomplete.
 - Thirty-two Quizzes sagas still lack accepted static inputs; this does not imply that no tests exist.
 - Event payload placeholders may permit static acceptance while blocking materialization.
-- The materializability policy is static readiness plus structural admissibility; runtime success remains unproven until execution. Replaying repeated same-participant runtime step names requires future occurrence-aware runtime state and is not currently materializable.
+- Existing manifest `materializable=true` rows are deterministic static setup candidates; the latest Quizzes preflight found 80 setup-ready and two startup failures among 82 such rows.
+- Helper-built course DTOs now retain their real `DateHandler.toISOString(endDate)` mutation, but that local call remains unsupported and blocks those candidates rather than producing empty DTO false positives.
+- `SETUP_READY` proves materialization and Saga startup only; actual domain/fault outcomes remain unknown until execution. Replaying repeated same-participant runtime step names requires future occurrence-aware runtime state and is not currently supported.
 - Segment compression is a deterministic reduction under extracted conflict evidence, not semantic-completeness proof.
 - Dynamic enrichment is local/sagas-focused; no fresh full Quizzes v3 dynamic baseline has been recorded.
 - No current post-remediation Quizzes smoke demonstrates an explicitly marked zero-bit domain fallback. The saved smoke predates explicit classification and encountered unmarked service unavailability, which current execution would treat as an infrastructure hard stop.
@@ -187,8 +223,9 @@ See [`evidence.md`](evidence.md) for commands and totals.
 
 ## Next priorities
 
-1. Improve accepted-input quality and event payload materialization where runtime failures expose concrete blockers.
-2. Classify the remaining Quizzes sagas without accepted inputs.
-3. Refresh a representative Quizzes dynamic-enrichment baseline against the workload-linked v3 sidecar contract.
-4. Improve aggregate-instance key binding where it affects WorkloadPlan usefulness.
-5. Add first domain-impact metrics before introducing search/prioritization.
+1. Improve accepted-input quality through high-value generic local-call/property patterns, including the currently blocked course end-date transform, without weakening setup truthfulness.
+2. Improve event payload materialization where runtime failures expose concrete blockers.
+3. Classify the remaining Quizzes sagas without accepted inputs.
+4. Refresh a representative Quizzes dynamic-enrichment baseline against the workload-linked v3 sidecar contract.
+5. Improve aggregate-instance key binding where it affects WorkloadPlan usefulness.
+6. Add first domain-impact metrics before introducing search/prioritization.
