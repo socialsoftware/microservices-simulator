@@ -88,6 +88,7 @@ public class GroovyConstructorInputTraceVisitor {
 
     private SourceModeClassification activeSourceModeClassification = SourceModeClassification.unknown();
     private Map<String, List<ScopedMutation>> activeMutationScopes = Map.of();
+    private Map<Expression, Map<String, List<ScopedMutation>>> activeMutationSnapshotsByExpression = Map.of();
     private String activeMutationBlocker;
     private Set<String> activeNestedFacadeTraceKeys = new LinkedHashSet<>();
     private Map<String, String> activeHelperCallContextByScope = new LinkedHashMap<>();
@@ -2238,6 +2239,24 @@ public class GroovyConstructorInputTraceVisitor {
                                 traceScopeKey,
                                 helperScope,
                                 rebindingFallbackScopes);
+                        fallbackTrace = applyScopedMutations(variableName,
+                                fallbackTrace,
+                                classNode,
+                                metadata,
+                                state,
+                                methodExpressionScopes,
+                                classFieldExpressionScopes,
+                                methodsByName,
+                                visibleFieldKeysByClassFqn,
+                                helperCallStack,
+                                visitedVariables,
+                                emittedNestedFacadeTraceKeys,
+                                depth,
+                                traceSourceClassFqn,
+                                traceMethodName,
+                                traceScopeKey,
+                                helperScope,
+                                rebindingFallbackScopes);
                         return new ValueTrace(variableName + " <- " + fallbackTrace.provenance(), fallbackTrace.recipe());
                     }
                 }
@@ -2396,24 +2415,35 @@ public class GroovyConstructorInputTraceVisitor {
                     .toList();
 
             if (helperScope) {
-                Optional<FacadeResolution> nestedFacadeResolution = resolveFacadeResolution(
-                        methodCallExpression,
-                        classNode,
-                        metadata,
-                        state,
-                        methodExpressionScopes,
-                        classFieldExpressionScopes,
-                        visibleFieldKeysByClassFqn,
-                        methodsByName,
-                        traceSourceClassFqn,
-                        traceMethodName,
-                        traceScopeKey,
-                        helperCallStack,
-                        new LinkedHashSet<>(visitedVariables),
-                        emittedNestedFacadeTraceKeys,
-                        rebindingFallbackScopes,
-                        0,
-                        true);
+                Map<String, List<ScopedMutation>> previousMutationScopes = activeMutationScopes;
+                Map<String, List<ScopedMutation>> boundaryMutationScopes =
+                        activeMutationSnapshotsByExpression.get(methodCallExpression);
+                if (boundaryMutationScopes != null) {
+                    activeMutationScopes = boundaryMutationScopes;
+                }
+                Optional<FacadeResolution> nestedFacadeResolution;
+                try {
+                    nestedFacadeResolution = resolveFacadeResolution(
+                            methodCallExpression,
+                            classNode,
+                            metadata,
+                            state,
+                            methodExpressionScopes,
+                            classFieldExpressionScopes,
+                            visibleFieldKeysByClassFqn,
+                            methodsByName,
+                            traceSourceClassFqn,
+                            traceMethodName,
+                            traceScopeKey,
+                            helperCallStack,
+                            new LinkedHashSet<>(visitedVariables),
+                            emittedNestedFacadeTraceKeys,
+                            rebindingFallbackScopes,
+                            0,
+                            true);
+                } finally {
+                    activeMutationScopes = previousMutationScopes;
+                }
                 if (nestedFacadeResolution.isPresent()) {
                     registerNestedHelperFacadeTrace(
                             state,
@@ -2466,6 +2496,11 @@ public class GroovyConstructorInputTraceVisitor {
                 String helperTraceScopeKey = traceScopeKey(helperMethodContext.layer().classFqn(), helperMethod.getTypeDescriptor());
                 String callContextMethodName = activeHelperCallContextByScope.getOrDefault(traceScopeKey, traceMethodName);
                 String previousCallContext = activeHelperCallContextByScope.put(helperTraceScopeKey, callContextMethodName);
+                Map<String, List<ScopedMutation>> previousMutationScopes = activeMutationScopes;
+                Map<Expression, Map<String, List<ScopedMutation>>> previousMutationSnapshots =
+                        activeMutationSnapshotsByExpression;
+                activeMutationScopes = helperReturn.helperMutationScopes();
+                activeMutationSnapshotsByExpression = helperReturn.helperMutationSnapshotsByExpression();
                 helperCallStack.push(helperKey);
                 ValueTrace helperReturnTrace;
                 try {
@@ -2483,6 +2518,8 @@ public class GroovyConstructorInputTraceVisitor {
                             true,
                             helperReturn.helperRebindingFallbackScopes());
                 } finally {
+                    activeMutationScopes = previousMutationScopes;
+                    activeMutationSnapshotsByExpression = previousMutationSnapshots;
                     helperCallStack.pop();
                     if (previousCallContext == null) {
                         activeHelperCallContextByScope.remove(helperTraceScopeKey);
@@ -2778,10 +2815,14 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         Map<String, Expression> helperRebindingFallbackScopes = new LinkedHashMap<>();
+        Map<String, List<ScopedMutation>> helperMutationScopes = new LinkedHashMap<>();
+        Map<Expression, Map<String, List<ScopedMutation>>> helperMutationSnapshotsByExpression = new LinkedHashMap<>();
 
         MethodBodyScanResult bodyScanResult = scanMethodBody(helperBlock,
                 helperExpressionScopes,
-                helperRebindingFallbackScopes);
+                helperRebindingFallbackScopes,
+                helperMutationScopes,
+                helperMutationSnapshotsByExpression);
         if (bodyScanResult.ambiguousControlFlow()) {
             return null;
         }
@@ -2795,7 +2836,11 @@ public class GroovyConstructorInputTraceVisitor {
             return null;
         }
 
-        return new HelperReturnResolution(returnExpressions.get(0), helperExpressionScopes, helperRebindingFallbackScopes);
+        return new HelperReturnResolution(returnExpressions.get(0),
+                helperExpressionScopes,
+                helperRebindingFallbackScopes,
+                copyMutationScopes(helperMutationScopes),
+                copyMutationSnapshots(helperMutationSnapshotsByExpression));
     }
 
     private Expression normalizeHelperParameterBinding(String parameterName,
@@ -2821,7 +2866,9 @@ public class GroovyConstructorInputTraceVisitor {
 
     private MethodBodyScanResult scanMethodBody(BlockStatement blockStatement,
                                                 Map<String, Expression> helperExpressionScopes,
-                                                Map<String, Expression> helperRebindingFallbackScopes) {
+                                                Map<String, Expression> helperRebindingFallbackScopes,
+                                                Map<String, List<ScopedMutation>> helperMutationScopes,
+                                                Map<Expression, Map<String, List<ScopedMutation>>> helperMutationSnapshotsByExpression) {
         List<Expression> returnExpressions = new ArrayList<>();
         Expression lastExpression = null;
         boolean ambiguousControlFlow = false;
@@ -2830,7 +2877,14 @@ public class GroovyConstructorInputTraceVisitor {
             if (statement instanceof BlockStatement nestedBlock) {
                 Map<String, Expression> nestedScopes = new LinkedHashMap<>(helperExpressionScopes);
                 Map<String, Expression> nestedFallbackScopes = new LinkedHashMap<>(helperRebindingFallbackScopes);
-                MethodBodyScanResult nestedResult = scanMethodBody(nestedBlock, nestedScopes, nestedFallbackScopes);
+                Map<String, List<ScopedMutation>> nestedMutationScopes = copyMutationScopes(helperMutationScopes);
+                Map<Expression, Map<String, List<ScopedMutation>>> nestedMutationSnapshots =
+                        copyMutationSnapshots(helperMutationSnapshotsByExpression);
+                MethodBodyScanResult nestedResult = scanMethodBody(nestedBlock,
+                        nestedScopes,
+                        nestedFallbackScopes,
+                        nestedMutationScopes,
+                        nestedMutationSnapshots);
                 returnExpressions.addAll(nestedResult.returnExpressions());
                 if (nestedResult.lastExpression() != null) {
                     lastExpression = nestedResult.lastExpression();
@@ -2841,13 +2895,24 @@ public class GroovyConstructorInputTraceVisitor {
                     helperExpressionScopes.putAll(nestedScopes);
                     helperRebindingFallbackScopes.clear();
                     helperRebindingFallbackScopes.putAll(nestedFallbackScopes);
+                    helperMutationScopes.clear();
+                    helperMutationScopes.putAll(nestedMutationScopes);
+                    helperMutationSnapshotsByExpression.clear();
+                    helperMutationSnapshotsByExpression.putAll(nestedMutationSnapshots);
                 }
                 continue;
             }
 
             if (statement instanceof ExpressionStatement expressionStatement) {
                 Expression expression = expressionStatement.getExpression();
-                captureScopedAssignment(expression, helperExpressionScopes, helperRebindingFallbackScopes);
+                captureHelperMutationSnapshot(expression,
+                        helperMutationScopes,
+                        helperMutationSnapshotsByExpression);
+                captureHelperMutation(expression, helperMutationScopes);
+                captureScopedAssignment(expression,
+                        helperExpressionScopes,
+                        helperRebindingFallbackScopes,
+                        helperMutationScopes);
                 lastExpression = expression;
                 continue;
             }
@@ -2855,22 +2920,40 @@ public class GroovyConstructorInputTraceVisitor {
             if (statement instanceof IfStatement ifStatement) {
                 Map<String, Expression> ifScopes = new LinkedHashMap<>(helperExpressionScopes);
                 Map<String, Expression> ifFallbackScopes = new LinkedHashMap<>(helperRebindingFallbackScopes);
-                MethodBodyScanResult ifResult = scanMethodStatement(ifStatement.getIfBlock(), ifScopes, ifFallbackScopes);
+                Map<String, List<ScopedMutation>> ifMutationScopes = copyMutationScopes(helperMutationScopes);
+                Map<Expression, Map<String, List<ScopedMutation>>> ifMutationSnapshots =
+                        copyMutationSnapshots(helperMutationSnapshotsByExpression);
+                MethodBodyScanResult ifResult = scanMethodStatement(ifStatement.getIfBlock(),
+                        ifScopes,
+                        ifFallbackScopes,
+                        ifMutationScopes,
+                        ifMutationSnapshots);
 
                 Statement elseStatement = ifStatement.getElseBlock();
                 boolean hasElseBranch = hasMeaningfulElse(elseStatement);
                 Map<String, Expression> elseScopes = new LinkedHashMap<>(helperExpressionScopes);
                 Map<String, Expression> elseFallbackScopes = new LinkedHashMap<>(helperRebindingFallbackScopes);
-                MethodBodyScanResult elseResult = scanMethodStatement(elseStatement, elseScopes, elseFallbackScopes);
+                Map<String, List<ScopedMutation>> elseMutationScopes = copyMutationScopes(helperMutationScopes);
+                Map<Expression, Map<String, List<ScopedMutation>>> elseMutationSnapshots =
+                        copyMutationSnapshots(helperMutationSnapshotsByExpression);
+                MethodBodyScanResult elseResult = scanMethodStatement(elseStatement,
+                        elseScopes,
+                        elseFallbackScopes,
+                        elseMutationScopes,
+                        elseMutationSnapshots);
 
                 boolean hasBranchReturns = !ifResult.returnExpressions().isEmpty() || !elseResult.returnExpressions().isEmpty();
                 boolean branchAmbiguous = ifResult.ambiguousControlFlow() || elseResult.ambiguousControlFlow();
-                if (hasBranchReturns || branchAmbiguous) {
+                boolean hasUnsupportedBranchMutationBoundary = hasElseBranch
+                        && (!ifMutationSnapshots.keySet().equals(helperMutationSnapshotsByExpression.keySet())
+                        || !elseMutationSnapshots.keySet().equals(helperMutationSnapshotsByExpression.keySet()));
+                if (hasBranchReturns || branchAmbiguous || hasUnsupportedBranchMutationBoundary) {
                     ambiguousControlFlow = true;
                     continue;
                 }
 
-                if (hasElseBranch && !equivalentScopedExpressions(ifScopes, elseScopes)) {
+                if ((hasElseBranch && !equivalentScopedExpressions(ifScopes, elseScopes))
+                        || !equivalentScopedMutations(ifMutationScopes, elseMutationScopes)) {
                     ambiguousControlFlow = true;
                     continue;
                 }
@@ -2891,6 +2974,11 @@ public class GroovyConstructorInputTraceVisitor {
                         }
                     });
                 }
+
+                helperMutationScopes.clear();
+                helperMutationScopes.putAll(ifMutationScopes);
+                helperMutationSnapshotsByExpression.clear();
+                helperMutationSnapshotsByExpression.putAll(ifMutationSnapshots);
 
                 if (ifResult.lastExpression() != null) {
                     lastExpression = ifResult.lastExpression();
@@ -2917,18 +3005,30 @@ public class GroovyConstructorInputTraceVisitor {
 
     private MethodBodyScanResult scanMethodStatement(Statement statement,
                                                      Map<String, Expression> helperExpressionScopes,
-                                                     Map<String, Expression> helperRebindingFallbackScopes) {
+                                                     Map<String, Expression> helperRebindingFallbackScopes,
+                                                     Map<String, List<ScopedMutation>> helperMutationScopes,
+                                                     Map<Expression, Map<String, List<ScopedMutation>>> helperMutationSnapshotsByExpression) {
         if (statement == null || statement instanceof EmptyStatement) {
             return new MethodBodyScanResult(List.of(), null, false);
         }
 
         if (statement instanceof BlockStatement nestedBlock) {
-            return scanMethodBody(nestedBlock, helperExpressionScopes, helperRebindingFallbackScopes);
+            return scanMethodBody(nestedBlock,
+                    helperExpressionScopes,
+                    helperRebindingFallbackScopes,
+                    helperMutationScopes,
+                    helperMutationSnapshotsByExpression);
         }
 
         if (statement instanceof ExpressionStatement expressionStatement) {
-            captureScopedAssignment(expressionStatement.getExpression(), helperExpressionScopes,
-                    helperRebindingFallbackScopes);
+            captureHelperMutationSnapshot(expressionStatement.getExpression(),
+                    helperMutationScopes,
+                    helperMutationSnapshotsByExpression);
+            captureHelperMutation(expressionStatement.getExpression(), helperMutationScopes);
+            captureScopedAssignment(expressionStatement.getExpression(),
+                    helperExpressionScopes,
+                    helperRebindingFallbackScopes,
+                    helperMutationScopes);
             return new MethodBodyScanResult(List.of(), expressionStatement.getExpression(), false);
         }
 
@@ -2968,18 +3068,53 @@ public class GroovyConstructorInputTraceVisitor {
         return expression == null ? null : expression.getText();
     }
 
+    private void captureHelperMutationSnapshot(
+            Expression expression,
+            Map<String, List<ScopedMutation>> helperMutationScopes,
+            Map<Expression, Map<String, List<ScopedMutation>>> helperMutationSnapshotsByExpression) {
+        if (!(expression instanceof BinaryExpression binaryExpression) || !isAssignment(binaryExpression)) {
+            return;
+        }
+
+        String variableName = resolveAssignedVariableName(binaryExpression.getLeftExpression());
+        Expression assignedExpression = binaryExpression.getRightExpression();
+        if (variableName == null
+                || !(assignedExpression instanceof MethodCallExpression)
+                || !isSelfRebindingExpression(assignedExpression, variableName)) {
+            return;
+        }
+
+        helperMutationSnapshotsByExpression.put(assignedExpression, copyMutationScopes(helperMutationScopes));
+    }
+
+    private void captureHelperMutation(Expression expression,
+                                       Map<String, List<ScopedMutation>> helperMutationScopes) {
+        if (expression instanceof MethodCallExpression methodCallExpression) {
+            captureSetterMutation(methodCallExpression, helperMutationScopes);
+            return;
+        }
+
+        if (expression instanceof BinaryExpression binaryExpression && isAssignment(binaryExpression)) {
+            capturePropertyAssignmentMutation(binaryExpression, helperMutationScopes);
+        }
+    }
+
     private void captureScopedAssignment(Expression expression,
                                          Map<String, Expression> helperExpressionScopes,
-                                         Map<String, Expression> helperRebindingFallbackScopes) {
+                                         Map<String, Expression> helperRebindingFallbackScopes,
+                                         Map<String, List<ScopedMutation>> helperMutationScopes) {
         if (expression instanceof DeclarationExpression declarationExpression) {
             String variableName = resolveDeclaredVariableName(declarationExpression.getLeftExpression());
             if (variableName != null) {
                 Expression previousExpression = helperExpressionScopes.get(variableName);
                 Expression assignedExpression = declarationExpression.getRightExpression();
-                if (previousExpression != null
+                boolean selfRebinding = previousExpression != null
                         && isSelfRebindingExpression(assignedExpression, variableName)
-                        && !Objects.equals(textOf(previousExpression), textOf(assignedExpression))) {
+                        && !Objects.equals(textOf(previousExpression), textOf(assignedExpression));
+                if (selfRebinding) {
                     helperRebindingFallbackScopes.put(variableName, previousExpression);
+                } else {
+                    helperMutationScopes.remove(variableName);
                 }
 
                 helperExpressionScopes.put(variableName, assignedExpression);
@@ -2992,15 +3127,65 @@ public class GroovyConstructorInputTraceVisitor {
             if (variableName != null) {
                 Expression previousExpression = helperExpressionScopes.get(variableName);
                 Expression assignedExpression = binaryExpression.getRightExpression();
-                if (previousExpression != null
+                boolean selfRebinding = previousExpression != null
                         && isSelfRebindingExpression(assignedExpression, variableName)
-                        && !Objects.equals(textOf(previousExpression), textOf(assignedExpression))) {
+                        && !Objects.equals(textOf(previousExpression), textOf(assignedExpression));
+                if (selfRebinding) {
                     helperRebindingFallbackScopes.put(variableName, previousExpression);
+                } else {
+                    helperMutationScopes.remove(variableName);
                 }
 
                 helperExpressionScopes.put(variableName, assignedExpression);
             }
         }
+    }
+
+    private Map<String, List<ScopedMutation>> copyMutationScopes(Map<String, List<ScopedMutation>> mutationScopes) {
+        Map<String, List<ScopedMutation>> copy = new LinkedHashMap<>();
+        if (mutationScopes != null) {
+            mutationScopes.forEach((variableName, mutations) ->
+                    copy.put(variableName, mutations == null ? List.of() : List.copyOf(mutations)));
+        }
+        return copy;
+    }
+
+    private Map<Expression, Map<String, List<ScopedMutation>>> copyMutationSnapshots(
+            Map<Expression, Map<String, List<ScopedMutation>>> mutationSnapshots) {
+        Map<Expression, Map<String, List<ScopedMutation>>> copy = new LinkedHashMap<>();
+        if (mutationSnapshots != null) {
+            mutationSnapshots.forEach((expression, scopes) ->
+                    copy.put(expression, copyMutationScopes(scopes)));
+        }
+        return copy;
+    }
+
+    private boolean equivalentScopedMutations(Map<String, List<ScopedMutation>> left,
+                                              Map<String, List<ScopedMutation>> right) {
+        if (!Objects.equals(left.keySet(), right.keySet())) {
+            return false;
+        }
+
+        for (String variableName : left.keySet()) {
+            List<ScopedMutation> leftMutations = left.getOrDefault(variableName, List.of());
+            List<ScopedMutation> rightMutations = right.getOrDefault(variableName, List.of());
+            if (leftMutations.size() != rightMutations.size()) {
+                return false;
+            }
+            for (int index = 0; index < leftMutations.size(); index++) {
+                ScopedMutation leftMutation = leftMutations.get(index);
+                ScopedMutation rightMutation = rightMutations.get(index);
+                if (!Objects.equals(leftMutation.assignmentKind(), rightMutation.assignmentKind())
+                        || !Objects.equals(leftMutation.propertyName(), rightMutation.propertyName())
+                        || !Objects.equals(leftMutation.sourceName(), rightMutation.sourceName())
+                        || !Objects.equals(leftMutation.sourceText(), rightMutation.sourceText())
+                        || !Objects.equals(textOf(leftMutation.valueExpression()), textOf(rightMutation.valueExpression()))
+                        || !Objects.equals(leftMutation.blocker(), rightMutation.blocker())) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private Expression resolveExpressionFromScopes(String variableName,
@@ -3509,9 +3694,12 @@ public class GroovyConstructorInputTraceVisitor {
                                            InheritanceLayer layer) {
     }
 
-    private record HelperReturnResolution(Expression returnExpression,
-                                          Map<String, Expression> helperExpressionScopes,
-                                          Map<String, Expression> helperRebindingFallbackScopes) {
+    private record HelperReturnResolution(
+            Expression returnExpression,
+            Map<String, Expression> helperExpressionScopes,
+            Map<String, Expression> helperRebindingFallbackScopes,
+            Map<String, List<ScopedMutation>> helperMutationScopes,
+            Map<Expression, Map<String, List<ScopedMutation>>> helperMutationSnapshotsByExpression) {
     }
 
     private record ValueTrace(String provenance, GroovyValueRecipe recipe) {

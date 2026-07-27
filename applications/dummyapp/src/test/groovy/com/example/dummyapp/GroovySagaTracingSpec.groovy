@@ -308,6 +308,23 @@ class GroovySagaTracingSpec extends Specification {
         true
     }
 
+    def 'caller values and helper dto mutations feed item facade recipe'() {
+        when:
+        buildMutatedItemDtoViaFacade(701, 'source-helper-name', 809)
+
+        then:
+        true
+    }
+
+    def 'helper facade recipes snapshot mutations at each call boundary'() {
+        when:
+        buildPointInTimeItemDtoViaFacade(911, 'after-first-facade')
+        buildPointInTimeItemDtoViaFacade(922, 'after-second-facade')
+
+        then:
+        true
+    }
+
     def 'event handling call traces downstream item rename saga'() {
         when:
         itemEventHandling.handleItemRenamedEvents()
@@ -358,6 +375,23 @@ class GroovySagaTracingSpec extends Specification {
     def buildItemDtoViaFacade() {
         def itemDto = buildItemDto()
         itemDto = itemFunctionalities.createItem(itemDto)
+        itemDto
+    }
+
+    def buildMutatedItemDtoViaFacade(aggregateId, name, orderId) {
+        def itemDto = new ItemDto()
+        itemDto.setAggregateId(aggregateId)
+        itemDto.name = name
+        itemDto.setOrderId(orderId)
+        itemDto = itemFunctionalities.createItem(itemDto)
+        itemDto
+    }
+
+    def buildPointInTimeItemDtoViaFacade(orderId, postCallName) {
+        def itemDto = new ItemDto()
+        itemDto.setOrderId(orderId)
+        itemDto = itemFunctionalities.createItem(itemDto)
+        itemDto.name = postCallName
         itemDto
     }
 }

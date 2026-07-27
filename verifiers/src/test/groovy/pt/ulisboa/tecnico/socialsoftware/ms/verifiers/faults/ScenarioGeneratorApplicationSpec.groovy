@@ -658,7 +658,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         Files.exists(workloadPath)
         Files.exists(faultScenarioPath)
         def faultScenarioLines = Files.readAllLines(faultScenarioPath)
-        faultScenarioLines.size() == 14
+        def faultScenarios = faultScenarioLines.collect { objectMapper.readTree(it) }
         !Files.exists(runDirectory.resolve('scenario-catalog.jsonl'))
         Files.exists(manifestPath)
         Files.exists(rejectedPath)
@@ -666,10 +666,10 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
 
         and:
         def lines = Files.readAllLines(workloadPath)
+        def workloads = lines.collect { objectMapper.readTree(it) }
         lines.size() > 0
-        lines.each { line ->
-            def scenario = objectMapper.readTree(line)
-            scenario.path('acceptedInputs').each { input ->
+        workloads.each { workload ->
+            workload.path('acceptedInputs').each { input ->
                 assert input.path('sourceMode').asText()
                 assert input.path('sourceModeConfidence').asText()
                 assert input.has('sourceModeEvidence')
@@ -693,9 +693,8 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         tccFixtureRejection.path('input').path('sourceMode').asText() == 'TCC'
         tccFixtureRejection.path('rejectionReason').asText() == 'SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG'
         def rejectedIds = rejectedInputs.collect { it.path('input').path('deterministicId').asText() } as Set
-        lines.every { line ->
-            def scenario = objectMapper.readTree(line)
-            scenario.path('acceptedInputs').every { input -> !rejectedIds.contains(input.path('deterministicId').asText()) }
+        workloads.every { workload ->
+            workload.path('acceptedInputs').every { input -> !rejectedIds.contains(input.path('deterministicId').asText()) }
         }
 
         and:
@@ -709,9 +708,19 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         manifest.path('recoveryScheduleCap').asInt() == 3
         manifest.path('faultScenarioVectorSource').asText() == 'EAGER_ALL_ZERO_AND_SINGLE_POINT'
         manifest.path('materializabilityPolicy').asText().contains('RUNTIME_MATERIALIZATION_UNPROVEN')
-        manifest.path('counts').path('materializableWorkloadPlans').asText() == '6'
-        manifest.path('counts').path('nonMaterializableWorkloadPlans').asText() == '2'
-        manifest.path('counts').path('computedEagerVectors').asText() == '14'
+        def materializableWorkloadIds = manifest.path('workloadMaterializability')
+                .findAll { it.path('materializable').asBoolean() }
+                .collect { it.path('workloadPlanId').asText() } as Set
+        def expectedEagerVectorCount = workloads
+                .findAll { materializableWorkloadIds.contains(it.path('deterministicId').asText()) }
+                .sum { it.path('faultSlots').size() + 1 }
+        materializableWorkloadIds.size() == 7
+        manifest.path('counts').path('materializableWorkloadPlans').asInt() == materializableWorkloadIds.size()
+        manifest.path('counts').path('nonMaterializableWorkloadPlans').asInt() == workloads.size() - materializableWorkloadIds.size()
+        expectedEagerVectorCount == 17
+        manifest.path('counts').path('computedEagerVectors').asInt() == expectedEagerVectorCount
+        faultScenarios.size() == expectedEagerVectorCount
+        faultScenarios.collect { it.path('workloadPlanId').asText() }.toSet() == materializableWorkloadIds
         manifest.path('counts').path('faultScenariosExported').asText() == faultScenarioLines.size().toString()
         manifest.path('rejectedInputsDiagnostic').path('path').asText() == rejectedPath.toString()
         manifest.path('scenarioSpaceAccounting').path('path').asText() == accountingPath.toString()
@@ -746,9 +755,9 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         accounting.path('runConfig').path('sourceModeHandling').asText().contains('TCC and MIXED rejected')
         accounting.path('inputBoundScenarioSpace').path('allInputBound').path('total').isTextual()
         accounting.path('inputBoundScenarioSpace').path('catalogWritten').path('total').asText() == lines.size().toString()
-        accounting.path('workloadCatalogSpace').path('materializableWorkloadPlans').asText() == '6'
-        accounting.path('workloadCatalogSpace').path('nonMaterializableWorkloadPlans').asText() == '2'
-        accounting.path('faultScenarioCatalogSpace').path('computedEagerVectorCount').asText() == '14'
+        accounting.path('workloadCatalogSpace').path('materializableWorkloadPlans').asInt() == materializableWorkloadIds.size()
+        accounting.path('workloadCatalogSpace').path('nonMaterializableWorkloadPlans').asInt() == workloads.size() - materializableWorkloadIds.size()
+        accounting.path('faultScenarioCatalogSpace').path('computedEagerVectorCount').asInt() == expectedEagerVectorCount
         accounting.path('faultScenarioCatalogSpace').path('faultScenariosWritten').asText() == faultScenarioLines.size().toString()
         accounting.path('faultScenarioCatalogSpace').path('allVectorRecoveryTotalStatus').asText() == 'NOT_COMPUTED'
 

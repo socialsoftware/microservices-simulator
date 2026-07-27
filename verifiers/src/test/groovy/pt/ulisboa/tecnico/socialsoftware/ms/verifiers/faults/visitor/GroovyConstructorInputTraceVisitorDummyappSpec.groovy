@@ -192,6 +192,80 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         !helperTraceText.contains('[unresolved cyclic reference]')
     }
 
+    def 'substitutes caller values into ordered helper dto mutations and preserves the adapted recipe'() {
+        given:
+        def trace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'buildMutatedItemDtoViaFacade' &&
+                    it.sourceExpressionText == 'itemFunctionalities.createItem(itemDto)' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+
+        expect:
+        trace != null
+        trace.originKind() == GroovyTraceOriginKind.FACADE_CALL
+        trace.callContextMethodName() == 'caller values and helper dto mutations feed item facade recipe'
+
+        and:
+        def dtoRecipe = trace.constructorArguments()[1].recipe()
+        dtoRecipe.kind() == GroovyValueKind.CONSTRUCTOR
+        dtoRecipe.text() == 'ItemDto'
+        dtoRecipe.metadata().assignments()*.assignmentKind() == ['setter', 'property', 'setter']
+        dtoRecipe.metadata().assignments()*.propertyName() == ['aggregateId', 'name', 'orderId']
+        dtoRecipe.metadata().assignments()*.sourceName() == ['setAggregateId', null, 'setOrderId']
+        dtoRecipe.metadata().assignments()*.orderIndex() == [0, 1, 2]
+        dtoRecipe.metadata().assignments()*.valueRecipe()*.text() == ['701', 'source-helper-name', '809']
+        dtoRecipe.metadata().assignments()*.blocker() == [null, null, null]
+
+        when:
+        def adapter = new ApplicationAnalysisScenarioModelAdapter()
+        def firstInput = adaptedHelperMutationInput(adapter.adapt(state).inputVariants())
+        def secondInput = adaptedHelperMutationInput(adapter.adapt(state).inputVariants())
+        def adaptedDtoRecipe = firstInput.inputRecipe().arguments()[1].recipe()
+
+        then:
+        firstInput != null
+        secondInput != null
+        firstInput.deterministicId() == secondInput.deterministicId()
+        firstInput.inputRecipe().recipeFingerprint() == secondInput.inputRecipe().recipeFingerprint()
+        adaptedDtoRecipe.assignments()*.assignmentKind() == ['setter', 'property', 'setter']
+        adaptedDtoRecipe.assignments()*.propertyName() == ['aggregateId', 'name', 'orderId']
+        adaptedDtoRecipe.assignments()*.orderIndex() == [0, 1, 2]
+        adaptedDtoRecipe.assignments()*.valueRecipe()*.value() == [701L, 'source-helper-name', 809L]
+    }
+
+    def 'helper facade recipes snapshot point-in-time mutations without leaking across calls'() {
+        given:
+        def traces = state.groovyFullTraceResults.findAll {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'buildPointInTimeItemDtoViaFacade' &&
+                    it.callContextMethodName() == 'helper facade recipes snapshot mutations at each call boundary' &&
+                    it.sourceExpressionText == 'itemFunctionalities.createItem(itemDto)' &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+        def dtoRecipes = traces.collect { it.constructorArguments()[1].recipe() }
+
+        expect:
+        traces.size() == 2
+        dtoRecipes.collect { it.metadata().assignments()*.propertyName() } == [['orderId'], ['orderId']]
+        dtoRecipes.collect { it.metadata().assignments()*.orderIndex() } == [[0], [0]]
+        dtoRecipes.collect { it.metadata().assignments()*.valueRecipe()*.text() } == [['911'], ['922']]
+        dtoRecipes.every { recipe -> !recipe.metadata().assignments()*.propertyName().contains('name') }
+
+        when:
+        def adapter = new ApplicationAnalysisScenarioModelAdapter()
+        def firstInputs = adaptedPointInTimeMutationInputs(adapter.adapt(state).inputVariants())
+        def secondInputs = adaptedPointInTimeMutationInputs(adapter.adapt(state).inputVariants())
+
+        then:
+        firstInputs.size() == 2
+        secondInputs.size() == 2
+        firstInputs*.deterministicId() == secondInputs*.deterministicId()
+        firstInputs*.deterministicId().toSet().size() == 2
+        firstInputs.collect { it.inputRecipe().arguments()[1].recipe().assignments()*.valueRecipe()*.value() } ==
+                [[911L], [922L]]
+    }
+
     def 'injectable placeholders carry identity and expected type'() {
         given:
         def trace = state.groovyFullTraceResults.find {
@@ -768,6 +842,24 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
                     it.sourceMethodName() == sourceMethodName &&
                     it.sourceBindingName() == sourceBindingName
         }*.owners().flatten()*.testMethodName().unique().sort()
+    }
+
+    private static adaptedHelperMutationInput(inputs) {
+        inputs.find {
+            it.sourceClassFqn() == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName() == 'buildMutatedItemDtoViaFacade' &&
+                    it.stableSourceText() == 'itemFunctionalities.createItem(itemDto)' &&
+                    it.sagaFqn() == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+    }
+
+    private static adaptedPointInTimeMutationInputs(inputs) {
+        inputs.findAll {
+            it.sourceClassFqn() == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName() == 'buildPointInTimeItemDtoViaFacade' &&
+                    it.stableSourceText() == 'itemFunctionalities.createItem(itemDto)' &&
+                    it.sagaFqn() == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
     }
 
 }

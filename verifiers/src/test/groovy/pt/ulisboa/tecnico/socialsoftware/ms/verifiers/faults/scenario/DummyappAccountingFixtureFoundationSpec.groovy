@@ -187,7 +187,7 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 *.sourceCompensationCheckpointId() == plan.compensationCheckpoints().reverse()*.deterministicId()
     }
 
-    def 'dummyapp eager baseline retains blocked workloads and materializes only ready admissible plans'() {
+    def 'dummyapp eager baseline tracks the ready capped selection and helper-built input vectors'() {
         given:
         def config = accountingConfig(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
                 ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
@@ -195,17 +195,36 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 1,
                 false,
                 ScenarioGeneratorConfig.ScheduleStrategy.SERIAL)
+        def helperInput = model.inputVariants().find {
+            it.sourceClassFqn() == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName() == 'buildMutatedItemDtoViaFacade' &&
+                    it.callContextMethodName() == 'caller values and helper dto mutations feed item facade recipe'
+        }
+        assert helperInput != null
 
         when:
         def workloads = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
         def eager = EagerFaultScenarioGenerator.generate(workloads, new RecoveryScheduleCap(20))
+        def helperWorkloads = ScenarioGenerator.generate([saga(ITEM_SAGA)], [helperInput], config)
+        def helperEager = EagerFaultScenarioGenerator.generate(helperWorkloads, new RecoveryScheduleCap(20))
+        def helperDtoRecipe = helperInput.inputRecipe().arguments()[1].recipe()
 
-        then:
+        then: 'the approved helper input is independently ready and contributes deterministic all-zero and single-point vectors'
+        helperDtoRecipe.assignments()*.propertyName() == ['aggregateId', 'name', 'orderId']
+        helperDtoRecipe.assignments()*.orderIndex() == [0, 1, 2]
+        helperDtoRecipe.assignments()*.valueRecipe()*.value() == [701L, 'source-helper-name', 809L]
+        helperWorkloads.workloadPlans().size() == 1
+        helperWorkloads.workloadPlans()[0].faultSlots().size() == 2
+        helperEager.workloadMaterializability()*.materializable() == [true]
+        helperEager.computedVectors()*.assignedVector() == ['00', '10', '01']
+        helperEager.faultScenarios()*.assignedVector() == ['00', '10', '01']
+
+        and: 'the fixed cap now selects seven ready workloads and exports one all-zero plus one vector per fault slot'
         eager.workloadPlans().size() == 7
-        eager.workloadMaterializability().count { it.materializable() } == 6
-        eager.workloadMaterializability().count { !it.materializable() } == 1
-        eager.computedVectors().size() == 14
-        eager.faultScenarios().size() == 14
+        eager.workloadMaterializability().every { it.materializable() }
+        eager.computedVectors().size() == eager.workloadPlans().sum { it.faultSlots().size() + 1 }
+        eager.computedVectors().size() == 17
+        eager.faultScenarios().size() == eager.computedVectors().size()
         eager.workloadPlans()*.deterministicId().toSet() == workloads.workloadPlans()*.deterministicId().toSet()
         eager.faultScenarios()*.workloadPlanId().toSet() ==
                 eager.workloadMaterializability().findAll { it.materializable() }*.workloadPlanId().toSet()
