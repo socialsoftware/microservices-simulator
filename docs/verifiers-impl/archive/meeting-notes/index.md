@@ -12,6 +12,7 @@ Use this section to understand how the verifier work was presented, questioned, 
 
 ## Notes
 
+- [`2026-W31-thesis-meeting.md`](2026-W31-thesis-meeting.md)
 - [`2026-W30-thesis-meeting.md`](2026-W30-thesis-meeting.md)
 - [`2026-W29-thesis-meeting.md`](2026-W29-thesis-meeting.md)
 - [`2026-W28-thesis-meeting.md`](2026-W28-thesis-meeting.md)
