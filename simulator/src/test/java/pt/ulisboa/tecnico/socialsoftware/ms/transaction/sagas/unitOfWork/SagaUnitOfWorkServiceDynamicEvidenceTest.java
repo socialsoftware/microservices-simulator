@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorBoundaryContext;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceContext;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceNoopRecorder;
@@ -23,8 +25,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +38,7 @@ class SagaUnitOfWorkServiceDynamicEvidenceTest {
     void tearDown() {
         DynamicEvidenceRecorderHolder.setRecorder(new DynamicEvidenceNoopRecorder());
         DynamicEvidenceContext.clear();
+        FaultVectorProviderHolder.clear();
     }
 
     @Test
@@ -118,6 +123,102 @@ class SagaUnitOfWorkServiceDynamicEvidenceTest {
     }
 
     @Test
+    void registerChangedRecordsEachInvariantRejectionOnceAndRethrowsTheSameFailure() {
+        RecordingRecorder recorder = new RecordingRecorder();
+        DynamicEvidenceRecorderHolder.setRecorder(recorder);
+
+        EntityManager entityManager = mock(EntityManager.class);
+        IVersionService versionService = mock(IVersionService.class);
+        when(versionService.incrementAndGetVersionNumber()).thenReturn(121L, 122L);
+        SagaUnitOfWorkService service = serviceWith(mock(SagaAggregateRepository.class), entityManager, versionService);
+        SimulatorException firstFailure = new SimulatorException("first invariant failure");
+        SimulatorException secondFailure = new SimulatorException("second invariant failure");
+        FailingAggregate first = new FailingAggregate(7, "Order", firstFailure);
+        FailingAggregate second = new FailingAggregate(8, "Item", secondFailure);
+        SagaUnitOfWork unitOfWork = new SagaUnitOfWork(90L, "DummyFunctionalitySagas");
+
+        try (DynamicEvidenceContext.Scope ignored = DynamicEvidenceContext.enterStep(
+                "DummyFunctionalitySagas",
+                "com.example.dummyapp.DummyFunctionalitySagas",
+                "DummyFunctionalitySagas",
+                "changeStep",
+                90L);
+             FaultVectorProviderHolder.BoundaryScope boundary = FaultVectorProviderHolder.enterBoundary(
+                     new FaultVectorBoundaryContext("attempt-1", "workload-1", "saga-1", "scheduled-step-1",
+                             3, "com.example.dummyapp.DummyFunctionalitySagas", "DummyFunctionalitySagas",
+                             "changeStep", 0))) {
+            assertThat(catchThrowable(() -> service.registerChanged(first, unitOfWork))).isSameAs(firstFailure);
+            assertThat(catchThrowable(() -> service.registerChanged(second, unitOfWork))).isSameAs(secondFailure);
+        }
+
+        verify(entityManager, never()).merge(first);
+        verify(entityManager, never()).merge(second);
+        assertThat(unitOfWork.getVersion()).isEqualTo(90L);
+        assertThat(recorder.events).hasSize(2);
+        assertThat(recorder.events).allSatisfy(event -> {
+            assertThat(event.getEventKind()).isEqualTo("INVARIANT_VIOLATION");
+            assertThat(event.getFunctionalityName()).isEqualTo("DummyFunctionalitySagas");
+            assertThat(event.getFunctionalityClassFqn()).isEqualTo("com.example.dummyapp.DummyFunctionalitySagas");
+            assertThat(event.getStepName()).isEqualTo("changeStep");
+            assertThat(event.getUnitOfWorkVersion()).isEqualTo(90L);
+            assertThat(event.getPayload())
+                    .containsEntry("sourceMethod", "SagaUnitOfWorkService.registerChanged")
+                    .containsEntry("verificationMethod", "Aggregate.verifyInvariants")
+                    .containsEntry("exceptionClass", SimulatorException.class.getName())
+                    .containsEntry("executionAttemptId", "attempt-1")
+                    .containsEntry("workloadPlanId", "workload-1")
+                    .containsEntry("sagaInstanceId", "saga-1")
+                    .containsEntry("scheduledStepId", "scheduled-step-1")
+                    .containsEntry("slotIndex", 3)
+                    .containsEntry("runtimeStepName", "changeStep");
+        });
+        assertThat(recorder.events.stream().map(event -> event.getPayload().get("aggregateType")))
+                .containsExactly("Order", "Item");
+        assertThat(recorder.events.stream().map(event -> event.getPayload().get("aggregateId")))
+                .containsExactly("7", "8");
+        assertThat(recorder.events.stream().map(event -> event.getPayload().get("exceptionMessage")))
+                .containsExactly("first invariant failure", "second invariant failure");
+    }
+
+    @Test
+    void invariantRecorderFailureDoesNotReplaceTheDomainFailure() {
+        DynamicEvidenceRecorderHolder.setRecorder(new ThrowingRecorder());
+
+        EntityManager entityManager = mock(EntityManager.class);
+        IVersionService versionService = mock(IVersionService.class);
+        when(versionService.incrementAndGetVersionNumber()).thenReturn(121L);
+        SagaUnitOfWorkService service = serviceWith(mock(SagaAggregateRepository.class), entityManager, versionService);
+        SimulatorException domainFailure = new SimulatorException("invariant failure");
+        FailingAggregate aggregate = new FailingAggregate(7, "Order", domainFailure);
+
+        Throwable propagated = catchThrowable(() -> service.registerChanged(
+                aggregate,
+                new SagaUnitOfWork(90L, "DummyFunctionalitySagas")));
+
+        assertThat(propagated).isSameAs(domainFailure);
+        verify(entityManager, never()).merge(aggregate);
+    }
+
+    @Test
+    void invariantRecorderEnablementFailureDoesNotReplaceTheDomainFailure() {
+        DynamicEvidenceRecorderHolder.setRecorder(new EnablementThrowingRecorder());
+
+        EntityManager entityManager = mock(EntityManager.class);
+        IVersionService versionService = mock(IVersionService.class);
+        when(versionService.incrementAndGetVersionNumber()).thenReturn(121L);
+        SagaUnitOfWorkService service = serviceWith(mock(SagaAggregateRepository.class), entityManager, versionService);
+        SimulatorException domainFailure = new SimulatorException("invariant failure");
+        FailingAggregate aggregate = new FailingAggregate(7, "Order", domainFailure);
+
+        Throwable propagated = catchThrowable(() -> service.registerChanged(
+                aggregate,
+                new SagaUnitOfWork(90L, "DummyFunctionalitySagas")));
+
+        assertThat(propagated).isSameAs(domainFailure);
+        verify(entityManager, never()).merge(aggregate);
+    }
+
+    @Test
     void aggregateAccessRecorderFailuresDoNotBreakReadOrWriteOperations() {
         DynamicEvidenceRecorderHolder.setRecorder(new ThrowingRecorder());
 
@@ -187,6 +288,20 @@ class SagaUnitOfWorkServiceDynamicEvidenceTest {
         }
     }
 
+    private static class FailingAggregate extends TestAggregate {
+        private final RuntimeException failure;
+
+        FailingAggregate(Integer aggregateId, String aggregateType, RuntimeException failure) {
+            super(aggregateId, aggregateType);
+            this.failure = failure;
+        }
+
+        @Override
+        public void verifyInvariants() {
+            throw failure;
+        }
+    }
+
     private static class RecordingRecorder implements DynamicEvidenceRecorder {
         private final List<DynamicEvidenceEvent> events = new CopyOnWriteArrayList<>();
 
@@ -203,6 +318,21 @@ class SagaUnitOfWorkServiceDynamicEvidenceTest {
         @Override
         public void close() {
             // no-op for tests
+        }
+    }
+
+    private static class EnablementThrowingRecorder implements DynamicEvidenceRecorder {
+        @Override
+        public boolean isEnabled() {
+            throw new RuntimeException("enablement failed");
+        }
+
+        @Override
+        public void record(DynamicEvidenceEvent event) {
+        }
+
+        @Override
+        public void close() {
         }
     }
 

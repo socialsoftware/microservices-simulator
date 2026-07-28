@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import java.util.Map;
 public final class DynamicEvidenceRecorderHolder {
     private static final Logger logger = LoggerFactory.getLogger(DynamicEvidenceRecorderHolder.class);
     private static volatile DynamicEvidenceRecorder recorder = new DynamicEvidenceNoopRecorder();
+    private static DynamicEvidenceRecorder scopedRecorder;
 
     private DynamicEvidenceRecorderHolder() {
     }
@@ -20,8 +22,21 @@ public final class DynamicEvidenceRecorderHolder {
         return recorder;
     }
 
-    public static void setRecorder(DynamicEvidenceRecorder recorder) {
+    public static synchronized void setRecorder(DynamicEvidenceRecorder recorder) {
         DynamicEvidenceRecorderHolder.recorder = recorder == null ? new DynamicEvidenceNoopRecorder() : recorder;
+    }
+
+    public static synchronized Scope install(DynamicEvidenceRecorder temporaryRecorder) {
+        if (temporaryRecorder == null) {
+            throw new IllegalArgumentException("Dynamic evidence recorder cannot be null");
+        }
+        if (scopedRecorder != null) {
+            throw new IllegalStateException("A scoped dynamic evidence recorder is already active");
+        }
+        DynamicEvidenceRecorder previous = recorder;
+        recorder = temporaryRecorder;
+        scopedRecorder = temporaryRecorder;
+        return new Scope(temporaryRecorder, previous);
     }
 
     public static void recordStepStarted(DynamicEvidenceContext.StepContext context) {
@@ -71,6 +86,75 @@ public final class DynamicEvidenceRecorderHolder {
         }
         record(new CommandEvidenceExtractor(properties)
                 .buildCommandSentEvent(command, DynamicEvidenceContext.current().orElse(null)));
+    }
+
+    public static void recordInvariantViolation(Aggregate aggregate, UnitOfWork unitOfWork, Throwable failure,
+                                                String sourceMethod) {
+        try {
+            doRecordInvariantViolation(aggregate, unitOfWork, failure, sourceMethod);
+        } catch (RuntimeException recordingFailure) {
+            logger.warn("Failed to construct dynamic evidence INVARIANT_VIOLATION for {} on aggregate {}; "
+                            + "swallowing to preserve domain behavior",
+                    sourceMethod,
+                    aggregate == null ? null : safeAggregateId(aggregate),
+                    recordingFailure);
+        }
+    }
+
+    private static void doRecordInvariantViolation(Aggregate aggregate, UnitOfWork unitOfWork, Throwable failure,
+                                                   String sourceMethod) {
+        DynamicEvidenceRecorder current = recorder;
+        if (!current.isEnabled() || aggregate == null || failure == null) {
+            return;
+        }
+
+        DynamicEvidenceContext.StepContext context = DynamicEvidenceContext.current().orElse(null);
+        String functionalityName = context != null
+                ? context.functionalityName()
+                : unitOfWork != null ? unitOfWork.getFunctionalityName() : null;
+        Long unitOfWorkVersion = context != null
+                ? context.unitOfWorkVersion()
+                : unitOfWork != null ? unitOfWork.getVersion() : null;
+        String invocationId = context != null
+                ? context.functionalityInvocationId()
+                : buildInvocationId(functionalityName, unitOfWorkVersion);
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("aggregateType", aggregate.getAggregateType() != null
+                ? aggregate.getAggregateType()
+                : aggregate.getClass().getSimpleName());
+        payload.put("aggregateId", aggregate.getAggregateId() == null ? null : String.valueOf(aggregate.getAggregateId()));
+        payload.put("sourceMethod", sourceMethod);
+        payload.put("verificationMethod", "Aggregate.verifyInvariants");
+        payload.put("exceptionClass", failure.getClass().getName());
+        payload.put("exceptionMessage", failure.getMessage());
+        FaultVectorProviderHolder.currentBoundary().ifPresent(boundary -> {
+            payload.put("executionAttemptId", boundary.scenarioExecutionId());
+            payload.put("workloadPlanId", boundary.scenarioPlanId());
+            payload.put("sagaInstanceId", boundary.sagaInstanceId());
+            payload.put("scheduledStepId", boundary.scheduledStepId());
+            payload.put("slotIndex", boundary.slotIndex());
+            payload.put("runtimeStepName", boundary.runtimeStepName());
+        });
+
+        record(DynamicEvidenceEvent.of(
+                "INVARIANT_VIOLATION",
+                functionalityName,
+                context == null ? null : context.functionalityClassFqn(),
+                context == null ? null : context.functionalityClassSimpleName(),
+                context == null ? null : context.inputVariantId(),
+                invocationId,
+                context == null ? null : context.stepName(),
+                unitOfWorkVersion,
+                payload));
+    }
+
+    private static Object safeAggregateId(Aggregate aggregate) {
+        try {
+            return aggregate.getAggregateId();
+        } catch (RuntimeException ignored) {
+            return null;
+        }
     }
 
     public static void recordAggregateAccessed(String accessMode, Aggregate aggregate, UnitOfWork unitOfWork,
@@ -149,5 +233,34 @@ public final class DynamicEvidenceRecorderHolder {
             return error.getCause();
         }
         return error;
+    }
+
+    private static synchronized void restore(DynamicEvidenceRecorder installed, DynamicEvidenceRecorder previous) {
+        if (scopedRecorder != installed) {
+            return;
+        }
+        scopedRecorder = null;
+        if (recorder == installed) {
+            recorder = previous;
+        }
+    }
+
+    public static final class Scope implements AutoCloseable {
+        private final DynamicEvidenceRecorder installed;
+        private final DynamicEvidenceRecorder previous;
+        private boolean closed;
+
+        private Scope(DynamicEvidenceRecorder installed, DynamicEvidenceRecorder previous) {
+            this.installed = installed;
+            this.previous = previous;
+        }
+
+        @Override
+        public void close() {
+            if (!closed) {
+                closed = true;
+                restore(installed, previous);
+            }
+        }
     }
 }

@@ -114,6 +114,29 @@ class DynamicEvidenceAutoConfigurationTest {
     }
 
     @Test
+    void temporaryRecorderScopeRestoresPreviousRecorderWithoutOverwritingALaterReplacement() {
+        RecordingRecorder original = new RecordingRecorder();
+        RecordingRecorder temporary = new RecordingRecorder();
+        DynamicEvidenceRecorderHolder.setRecorder(original);
+
+        try (DynamicEvidenceRecorderHolder.Scope ignored = DynamicEvidenceRecorderHolder.install(temporary)) {
+            assertThat(DynamicEvidenceRecorderHolder.getRecorder()).isSameAs(temporary);
+            org.assertj.core.api.Assertions.assertThatThrownBy(
+                            () -> DynamicEvidenceRecorderHolder.install(new RecordingRecorder()))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("already active");
+        }
+        assertThat(DynamicEvidenceRecorderHolder.getRecorder()).isSameAs(original);
+
+        RecordingRecorder replacement = new RecordingRecorder();
+        DynamicEvidenceRecorderHolder.Scope scope = DynamicEvidenceRecorderHolder.install(temporary);
+        DynamicEvidenceRecorderHolder.setRecorder(replacement);
+        scope.close();
+
+        assertThat(DynamicEvidenceRecorderHolder.getRecorder()).isSameAs(replacement);
+    }
+
+    @Test
     void recorderHolderResetsToNoopWhenContextCloses() {
         RecordingRecorder recorder = new RecordingRecorder();
 

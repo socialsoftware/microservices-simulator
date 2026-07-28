@@ -236,7 +236,16 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
 
         Long commitVersion = versionService.incrementAndGetVersionNumber();
 
-        aggregate.verifyInvariants();
+        try {
+            aggregate.verifyInvariants();
+        } catch (RuntimeException failure) {
+            DynamicEvidenceRecorderHolder.recordInvariantViolation(
+                    aggregate,
+                    unitOfWork,
+                    failure,
+                    "SagaUnitOfWorkService.registerChanged");
+            throw failure;
+        }
         aggregate.setVersion(commitVersion);
         aggregate.setCreationTs(DateHandler.now());
         entityManager.merge(aggregate);

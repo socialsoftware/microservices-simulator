@@ -87,6 +87,7 @@ class DynamicEvidenceRecorderTest {
         assertThat(counts.hasNonNull("STEP_STARTED")).isTrue();
         assertThat(counts.hasNonNull("COMMAND_SENT")).isTrue();
         assertThat(counts.hasNonNull("AGGREGATE_ACCESSED")).isTrue();
+        assertThat(counts.hasNonNull("INVARIANT_VIOLATION")).isTrue();
         assertThat(counts.hasNonNull("STEP_FINISHED")).isTrue();
         assertThat(counts.hasNonNull("warnings")).isTrue();
         assertThat(counts.hasNonNull("writeErrors")).isTrue();
@@ -94,6 +95,7 @@ class DynamicEvidenceRecorderTest {
         assertThat(counts.get("STEP_STARTED").asInt()).isEqualTo(1);
         assertThat(counts.get("COMMAND_SENT").asInt()).isZero();
         assertThat(counts.get("AGGREGATE_ACCESSED").asInt()).isZero();
+        assertThat(counts.get("INVARIANT_VIOLATION").asInt()).isZero();
         assertThat(counts.get("STEP_FINISHED").asInt()).isEqualTo(1);
         assertThat(counts.get("warnings").asInt()).isZero();
         assertThat(counts.get("writeErrors").asInt()).isZero();
@@ -355,6 +357,7 @@ class DynamicEvidenceRecorderTest {
         assertThat(counts.hasNonNull("STEP_STARTED")).isTrue();
         assertThat(counts.hasNonNull("COMMAND_SENT")).isTrue();
         assertThat(counts.hasNonNull("AGGREGATE_ACCESSED")).isTrue();
+        assertThat(counts.hasNonNull("INVARIANT_VIOLATION")).isTrue();
         assertThat(counts.hasNonNull("STEP_FINISHED")).isTrue();
         assertThat(counts.hasNonNull("warnings")).isTrue();
         assertThat(counts.hasNonNull("writeErrors")).isTrue();
@@ -362,6 +365,7 @@ class DynamicEvidenceRecorderTest {
         assertThat(counts.get("STEP_STARTED").asInt()).isZero();
         assertThat(counts.get("COMMAND_SENT").asInt()).isZero();
         assertThat(counts.get("AGGREGATE_ACCESSED").asInt()).isZero();
+        assertThat(counts.get("INVARIANT_VIOLATION").asInt()).isZero();
         assertThat(counts.get("STEP_FINISHED").asInt()).isEqualTo(1);
         assertThat(counts.get("warnings").asInt()).isEqualTo(1);
         assertThat(counts.get("writeErrors").asInt()).isEqualTo(1);

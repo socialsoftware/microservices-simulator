@@ -31,6 +31,7 @@ public class DynamicEvidenceJsonlRecorder implements DynamicEvidenceRecorder {
             "STEP_STARTED",
             "COMMAND_SENT",
             "AGGREGATE_ACCESSED",
+            "INVARIANT_VIOLATION",
             "STEP_FINISHED"
     );
 
