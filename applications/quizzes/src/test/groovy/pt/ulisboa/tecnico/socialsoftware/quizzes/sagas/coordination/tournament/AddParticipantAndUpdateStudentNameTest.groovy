@@ -6,6 +6,9 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceEvent
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorder
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
@@ -59,8 +62,13 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
     private TournamentDto tournamentDto
 
     def unitOfWork1, unitOfWork2
+    private RecordingInvariantRecorder invariantRecorder
+    private DynamicEvidenceRecorderHolder.Scope invariantRecorderScope
 
     def setup() {
+        invariantRecorder = new RecordingInvariantRecorder(DynamicEvidenceRecorderHolder.recorder)
+        invariantRecorderScope = DynamicEvidenceRecorderHolder.install(invariantRecorder)
+
         given: 'a course execution'
         courseExecutionDto = createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, COURSE_EXECUTION_ACRONYM, COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
 
@@ -92,7 +100,9 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         unitOfWork2 = unitOfWorkService.createUnitOfWork(functionalityName2)
     }
 
-    def cleanup() {}
+    def cleanup() {
+        invariantRecorderScope?.close()
+    }
 
     // add student other than creator
 
@@ -296,6 +306,14 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         then: 'fails because invariant breaks'
         def error = thrown(SimulatorException)
         error.errorMessage == SimulatorErrorMessage.INVARIANT_BREAK
+        and: 'the application-independent simulator boundary records one ImpactV1 signal'
+        invariantRecorder.invariantViolations.size() == 1
+        invariantRecorder.invariantViolations[0].payload.aggregateType == 'SagaTournament'
+        invariantRecorder.invariantViolations[0].payload.aggregateId == tournamentDto.aggregateId.toString()
+        invariantRecorder.invariantViolations[0].payload.sourceMethod == 'SagaUnitOfWorkService.registerChanged'
+        invariantRecorder.invariantViolations[0].payload.verificationMethod == 'Aggregate.verifyInvariants'
+        invariantRecorder.invariantViolations[0].functionalityName == AddParticipantFunctionalitySagas.simpleName
+        invariantRecorder.invariantViolations[0].stepName == 'addParticipantStep'
 
         when: 'the functionality is retried'
         tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userCreatorDto.getAggregateId())
@@ -331,6 +349,33 @@ class AddParticipantAndUpdateStudentNameTest extends QuizzesSpockTest {
         def tournamentDtoResult2 = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         tournamentDtoResult2.creator.name == UPDATED_NAME
         tournamentDtoResult2.getParticipants().find{it.aggregateId == userCreatorDto.aggregateId}.name == UPDATED_NAME
+    }
+
+    private static class RecordingInvariantRecorder implements DynamicEvidenceRecorder {
+        private final DynamicEvidenceRecorder delegate
+        private final List<DynamicEvidenceEvent> invariantViolations = []
+
+        private RecordingInvariantRecorder(DynamicEvidenceRecorder delegate) {
+            this.delegate = delegate
+        }
+
+        @Override
+        boolean isEnabled() {
+            true
+        }
+
+        @Override
+        void record(DynamicEvidenceEvent event) {
+            if (event.eventKind == 'INVARIANT_VIOLATION') {
+                invariantViolations.add(event)
+            }
+            delegate.record(event)
+        }
+
+        @Override
+        void close() {
+            // The recorder installed by the test/application context owns its lifecycle.
+        }
     }
 
     @TestConfiguration
