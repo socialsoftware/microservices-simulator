@@ -253,6 +253,7 @@ services:
       PACKAGE_PATH: ${PACKAGE_PATH:-}
       FAULT_SCENARIO_ID: ${FAULT_SCENARIO_ID:-}
       OUTPUT_PATH: ${OUTPUT_PATH:-/reports/scenario-executor/execution-report.json}
+      IMPACT_OUTPUT_PATH: ${IMPACT_OUTPUT_PATH:-}
       SERVER_PORT: ${SERVER_PORT:-0}
     stop_signal: SIGKILL
     stdin_open: true

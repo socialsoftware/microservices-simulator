@@ -54,7 +54,10 @@ public final class ScenarioExecutorCli {
                         options.get("application-id"),
                         options.get("spring-application-class"),
                         springProfiles,
-                        options.get("maven-profile"));
+                        options.get("maven-profile"),
+                        options.containsKey("impact-output-path")
+                                ? Path.of(options.get("impact-output-path"))
+                                : null);
                 ScenarioExecutionReport report = executor.execute(executorOptions, runtimeContext);
                 System.out.println("Scenario executor selected " + report.faultScenarioId()
                         + " status=" + report.terminalStatus()
@@ -92,6 +95,7 @@ public final class ScenarioExecutorCli {
         require(options, "output-path");
         validateBooleanOption(options, "preflight");
         validateBooleanOption(options, "dry-run");
+        validatePathOption(options, "impact-output-path");
         boolean preflight = enabled(options, "preflight");
         if (preflight) {
             if (options.containsKey("fault-scenario-id")) {
@@ -101,12 +105,16 @@ public final class ScenarioExecutorCli {
             if (enabled(options, "dry-run")) {
                 throw new IllegalArgumentException("--dry-run is an execution mode and cannot be combined with --preflight");
             }
+            if (options.containsKey("impact-output-path")) {
+                throw new IllegalArgumentException("--impact-output-path is an execution output and cannot be combined with --preflight");
+            }
         } else {
             require(options, "fault-scenario-id");
         }
         Set<String> supportedExecutorOptions = Set.of(
                 "spring-application-class", "spring-profiles", "application-base", "application-id",
-                "maven-profile", "package-path", "fault-scenario-id", "output-path", "dry-run", "preflight");
+                "maven-profile", "package-path", "fault-scenario-id", "output-path", "impact-output-path",
+                "dry-run", "preflight");
         options.keySet().stream()
                 .filter(key -> !supportedExecutorOptions.contains(key) && !key.contains("."))
                 .findFirst()
@@ -114,6 +122,13 @@ public final class ScenarioExecutorCli {
                     throw new IllegalArgumentException("Unsupported executor option --" + key
                             + "; execute one persisted --fault-scenario-id");
                 });
+    }
+
+    private static void validatePathOption(Map<String, String> options, String key) {
+        String value = options.get(key);
+        if (options.containsKey(key) && (value == null || value.isBlank() || "true".equals(value))) {
+            throw new IllegalArgumentException("--" + key + " requires an explicit path value");
+        }
     }
 
     private static void validateBooleanOption(Map<String, String> options, String key) {

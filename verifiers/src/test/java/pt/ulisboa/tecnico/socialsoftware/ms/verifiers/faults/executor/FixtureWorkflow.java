@@ -1,11 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorDomainException;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorFault;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorInjectedFaultException;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
@@ -33,15 +36,19 @@ public class FixtureWorkflow extends WorkflowFunctionality {
     private static final Set<String> EXPLICIT_REGISTRATION_BEFORE_FAILURES = new HashSet<>();
     private static final Set<String> IMPLICIT_STATE_STEPS = new HashSet<>();
     private static final Set<String> EXPLICIT_COMPENSATION_FAILURES = new HashSet<>();
+    private static final Map<String, Integer> INVARIANT_SIGNALS = new LinkedHashMap<>();
+    private static final Set<String> INVARIANT_REJECTIONS = new HashSet<>();
     public static int constructorCalls;
 
     private final String participant;
+    private final SagaUnitOfWorkService unitOfWorkService;
 
     public FixtureWorkflow(Object participant,
                            SagaUnitOfWorkService unitOfWorkService,
                            SagaUnitOfWork unitOfWork) {
         constructorCalls++;
         this.participant = String.valueOf(participant);
+        this.unitOfWorkService = unitOfWorkService;
         UNIT_OF_WORKS.put(this.participant, unitOfWork);
 
         SagaWorkflow sagaWorkflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
@@ -70,6 +77,15 @@ public class FixtureWorkflow extends WorkflowFunctionality {
         }
         if (EXPLICIT_REGISTRATION_BEFORE_FAILURES.contains(key)) {
             unitOfWork.registerCompensation(stepName, () -> runCompensation(key));
+        }
+        if (INVARIANT_REJECTIONS.contains(key)) {
+            unitOfWorkService.registerChanged(new RejectingFixtureAggregate(1, key), unitOfWork);
+        }
+        for (int index = 0; index < INVARIANT_SIGNALS.getOrDefault(key, 0); index++) {
+            FixtureAggregate aggregate = new FixtureAggregate(index + 1);
+            SimulatorDomainException failure = new SimulatorDomainException("fixture invariant failure " + key);
+            DynamicEvidenceRecorderHolder.recordInvariantViolation(
+                    aggregate, unitOfWork, failure, "SagaUnitOfWorkService.registerChanged");
         }
         if (BODY_DOMAIN_FAILURES.contains(key)) {
             throw new SimulatorDomainException("fixture domain failure " + key);
@@ -126,6 +142,14 @@ public class FixtureWorkflow extends WorkflowFunctionality {
         IMPLICIT_STATE_STEPS.add(participant + ":" + stepName);
     }
 
+    public static void rejectInvariantOnWrite(String participant, String stepName) {
+        INVARIANT_REJECTIONS.add(participant + ":" + stepName);
+    }
+
+    public static void recordInvariantSignals(String participant, String stepName, int count) {
+        INVARIANT_SIGNALS.put(participant + ":" + stepName, count);
+    }
+
     public static void failExplicitCompensation(String participant, String stepName) {
         EXPLICIT_COMPENSATION_FAILURES.add(participant + ":" + stepName);
     }
@@ -147,6 +171,44 @@ public class FixtureWorkflow extends WorkflowFunctionality {
         EXPLICIT_REGISTRATION_BEFORE_FAILURES.clear();
         IMPLICIT_STATE_STEPS.clear();
         EXPLICIT_COMPENSATION_FAILURES.clear();
+        INVARIANT_SIGNALS.clear();
+        INVARIANT_REJECTIONS.clear();
         constructorCalls = 0;
+    }
+
+    private static final class RejectingFixtureAggregate extends Aggregate {
+        private final String key;
+
+        private RejectingFixtureAggregate(Integer aggregateId, String key) {
+            super(aggregateId);
+            this.key = key;
+            setAggregateType("DummyAggregate");
+        }
+
+        @Override
+        public void verifyInvariants() {
+            throw new SimulatorDomainException("fixture invariant failure " + key);
+        }
+
+        @Override
+        public Set<EventSubscription> getEventSubscriptions() {
+            return Set.of();
+        }
+    }
+
+    private static final class FixtureAggregate extends Aggregate {
+        private FixtureAggregate(Integer aggregateId) {
+            super(aggregateId);
+            setAggregateType("DummyAggregate");
+        }
+
+        @Override
+        public void verifyInvariants() {
+        }
+
+        @Override
+        public Set<EventSubscription> getEventSubscriptions() {
+            return Set.of();
+        }
     }
 }

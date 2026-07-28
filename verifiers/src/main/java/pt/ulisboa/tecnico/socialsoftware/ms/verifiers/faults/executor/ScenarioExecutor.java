@@ -13,6 +13,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorBoundaryContext;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorFault;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.InMemoryFaultVectorProvider;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.export.EnrichedScenarioCatalogWriter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.WorkloadDynamicEvidenceRecord;
@@ -69,32 +70,57 @@ public final class ScenarioExecutor {
         ScenarioCatalogPackageReader.PackageContents packageContents = reader.read(options);
         rejectPackageOutputAlias(options.packagePath(), options.outputPath(), packageContents,
                 "Scenario execution report");
+        rejectPackageOutputAlias(options.packagePath(), options.impactOutputPath(), packageContents,
+                "Scenario impact report");
+        rejectExecutionOutputAlias(options.outputPath(), options.impactOutputPath());
         String attemptId = UUID.randomUUID().toString();
         FaultScenario scenario = packageContents.faultScenarios().stream()
                 .filter(candidate -> Objects.equals(candidate.deterministicId(), options.faultScenarioId()))
                 .findFirst()
                 .orElse(null);
+        WorkloadPlan workload = scenario == null
+                ? null
+                : packageContents.workloadPlans().stream()
+                .filter(candidate -> Objects.equals(candidate.deterministicId(), scenario.workloadPlanId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Selected FaultScenario references a missing WorkloadPlan"));
+        ImpactV1Collector impactCollector = options.impactOutputPath() == null
+                ? null
+                : new ImpactV1Collector(DynamicEvidenceRecorderHolder.getRecorder(), attemptId,
+                workload == null ? null : workload.deterministicId());
+        DynamicEvidenceRecorderHolder.Scope impactScope = impactCollector == null
+                ? null
+                : DynamicEvidenceRecorderHolder.install(impactCollector);
         ScenarioExecutionReport report;
-        if (scenario == null) {
-            ScenarioExecutionReport.Blocker blocker = new ScenarioExecutionReport.Blocker(
-                    null, options.faultScenarioId(), null, null, null, null,
-                    "MISSING_FAULT_SCENARIO_ID", options.faultScenarioId());
-            report = report(options, attemptId, "SELECTION_FAILED", null, null, "NONE",
-                    TraceMetadata.hardStop("MISSING_FAULT_SCENARIO_ID"),
-                    List.of(), List.of(), List.of(), List.of(), List.of(), List.of(blocker));
-        } else {
-            WorkloadPlan workload = packageContents.workloadPlans().stream()
-                    .filter(candidate -> Objects.equals(candidate.deterministicId(), scenario.workloadPlanId()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Selected FaultScenario references a missing WorkloadPlan"));
-            report = executeSelected(options, runtimeContext, attemptId, workload, scenario);
+        try {
+            if (scenario == null) {
+                ScenarioExecutionReport.Blocker blocker = new ScenarioExecutionReport.Blocker(
+                        null, options.faultScenarioId(), null, null, null, null,
+                        "MISSING_FAULT_SCENARIO_ID", options.faultScenarioId());
+                report = report(options, attemptId, "SELECTION_FAILED", null, null, "NONE",
+                        TraceMetadata.hardStop("MISSING_FAULT_SCENARIO_ID"),
+                        List.of(), List.of(), List.of(), List.of(), List.of(), List.of(blocker));
+            } else {
+                report = executeSelected(options, runtimeContext, attemptId, workload, scenario);
+            }
+        } finally {
+            if (impactScope != null) {
+                impactScope.close();
+            }
         }
         try {
             writeReport(options, report);
-            return report;
         } catch (RuntimeException failure) {
-            throw new ScenarioReportWriteException(reportWriteFailure(report, failure), failure);
+            ScenarioExecutionReport failedReport = reportWriteFailure(report, failure);
+            try {
+                writeImpactReport(options, failedReport, findings(impactCollector));
+            } catch (RuntimeException impactWriteFailure) {
+                failure.addSuppressed(impactWriteFailure);
+            }
+            throw new ScenarioReportWriteException(failedReport, failure);
         }
+        writeImpactReport(options, report, findings(impactCollector));
+        return report;
     }
 
     public ScenarioSetupPreflightReport preflight(ScenarioSetupPreflightOptions options,
@@ -1222,6 +1248,38 @@ public final class ScenarioExecutor {
         }
     }
 
+    private void rejectExecutionOutputAlias(Path executionOutputPath, Path impactOutputPath) {
+        if (executionOutputPath == null || impactOutputPath == null) return;
+        Path executionOutput = outputIdentity(executionOutputPath);
+        Path impactOutput = outputIdentity(impactOutputPath);
+        if (executionOutput.equals(impactOutput)) {
+            throw new IllegalArgumentException("Scenario impact report output path must not alias scenario execution report "
+                    + executionOutput);
+        }
+    }
+
+    private Path outputIdentity(Path configuredOutput) {
+        Path absolute = configuredOutput.toAbsolutePath().normalize();
+        List<Path> missingParts = new ArrayList<>();
+        Path existing = absolute;
+        while (existing != null && !Files.exists(existing)) {
+            missingParts.add(existing.getFileName());
+            existing = existing.getParent();
+        }
+        if (existing == null) {
+            return absolute;
+        }
+        try {
+            Path identity = existing.toRealPath();
+            for (int index = missingParts.size() - 1; index >= 0; index--) {
+                identity = identity.resolve(missingParts.get(index));
+            }
+            return identity.normalize();
+        } catch (IOException failure) {
+            throw new IllegalArgumentException("Cannot safely resolve report output path " + absolute, failure);
+        }
+    }
+
     private boolean isDynamicEnrichmentArtifact(Path output) {
         if (!Files.isRegularFile(output)) return false;
         try {
@@ -1237,7 +1295,7 @@ public final class ScenarioExecutor {
     }
 
     private boolean sameFile(Path output, Path packageInput) {
-        if (!Files.exists(output)) return false;
+        if (!Files.exists(output) || !Files.exists(packageInput)) return false;
         try {
             return Files.isSameFile(output, packageInput);
         } catch (IOException failure) {
@@ -1266,6 +1324,21 @@ public final class ScenarioExecutor {
             write(options.outputPath(), report);
         } catch (IOException failure) {
             throw new IllegalStateException("Failed to write scenario execution report", failure);
+        }
+    }
+
+    private List<ScenarioImpactReport.InvariantViolationFinding> findings(ImpactV1Collector collector) {
+        return collector == null ? List.of() : collector.findings();
+    }
+
+    private void writeImpactReport(ScenarioExecutorOptions options,
+                                   ScenarioExecutionReport executionReport,
+                                   List<ScenarioImpactReport.InvariantViolationFinding> findings) {
+        if (options.impactOutputPath() == null) return;
+        try {
+            write(options.impactOutputPath(), ScenarioImpactReport.evaluate(executionReport, findings));
+        } catch (IOException failure) {
+            throw new IllegalStateException("Failed to write scenario impact report", failure);
         }
     }
 

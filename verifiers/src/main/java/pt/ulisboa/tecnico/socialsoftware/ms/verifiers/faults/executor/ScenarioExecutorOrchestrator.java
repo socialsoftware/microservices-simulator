@@ -37,6 +37,10 @@ public final class ScenarioExecutorOrchestrator {
         command.add(config.outputPath().toString());
         command.add("--fault-scenario-id");
         command.add(config.faultScenarioId());
+        if (config.impactOutputPath() != null) {
+            command.add("--impact-output-path");
+            command.add(config.impactOutputPath().toString());
+        }
         return processRunner.run(command, config.applicationBaseDirectory());
     }
 
@@ -71,6 +75,19 @@ public final class ScenarioExecutorOrchestrator {
             Path packagePath,
             Path outputPath,
             String faultScenarioId,
-            String classpath) {
+            String classpath,
+            Path impactOutputPath) {
+
+        public Config(Path applicationBaseDirectory,
+                      String springApplicationClass,
+                      String mavenProfile,
+                      String springProfiles,
+                      Path packagePath,
+                      Path outputPath,
+                      String faultScenarioId,
+                      String classpath) {
+            this(applicationBaseDirectory, springApplicationClass, mavenProfile, springProfiles, packagePath,
+                    outputPath, faultScenarioId, classpath, null);
+        }
     }
 }

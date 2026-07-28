@@ -1,14 +1,19 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.persistence.EntityManager
+import org.springframework.test.util.ReflectionTestUtils
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorDomainException
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.InMemoryFaultVectorProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceEvent
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceNoopRecorder
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.export.EnrichedScenarioCatalogWriter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.WorkloadDynamicEvidenceRecord
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.FaultScenarioValidator
@@ -24,6 +29,9 @@ import spock.lang.Specification
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
+
+import static org.mockito.Mockito.mock
+import static org.mockito.Mockito.when
 
 class ScenarioExecutorSpec extends Specification {
     private static final ObjectMapper MAPPER = new ObjectMapper()
@@ -89,6 +97,162 @@ class ScenarioExecutorSpec extends Specification {
         json.path('schemaVersion').asText() == 'microservices-simulator.scenario-execution-report.v4'
         json.path('plannedActions').size() == 4
         json.path('actualActions').size() == 4
+    }
+
+    def 'ImpactV1 sidecar counts invariant signals in capture order and isolates sequential attempts'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def before = packageChecksums(packageFixture.directory)
+        def executionOutput = packageFixture.directory.resolve('reports/execution-with-impact.json')
+        def impactOutput = packageFixture.directory.resolve('reports/impact-v1.json')
+        FixtureWorkflow.recordInvariantSignals('solo', 'first', 1)
+        FixtureWorkflow.recordInvariantSignals('solo', 'second', 2)
+
+        when:
+        def report = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, executionOutput, scenario.deterministicId(), impactOutput),
+                runtime(new TrackingSagaUnitOfWorkService()))
+        def impact = MAPPER.readTree(impactOutput.toFile())
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        impact.path('schemaVersion').asText() == 'microservices-simulator.scenario-impact-report.v1'
+        impact.path('impactModel').asText() == 'ImpactV1'
+        impact.path('evaluationStatus').asText() == 'EVALUATED'
+        impact.path('notEvaluatedReason').isNull()
+        impact.path('executionAttemptId').asText() == report.executionAttemptId()
+        impact.path('workloadPlanId').asText() == workload.deterministicId()
+        impact.path('faultScenarioId').asText() == scenario.deterministicId()
+        impact.path('invariantViolationCount').asInt() == 3
+        impact.path('impactScore').asInt() == 3
+        impact.path('findings')*.path('sequence')*.asLong() == [1L, 2L, 3L]
+        impact.path('findings')*.path('aggregateType')*.asText().unique() == ['DummyAggregate']
+        impact.path('findings')*.path('aggregateId')*.asText() == ['1', '1', '2']
+        impact.path('findings')*.path('runtimeStepName')*.asText() == ['first', 'second', 'second']
+        impact.path('findings')*.path('executionAttemptId')*.asText().unique() == [report.executionAttemptId()]
+        impact.path('findings')*.path('workloadPlanId')*.asText().unique() == [workload.deterministicId()]
+        packageChecksums(packageFixture.directory) == before
+
+        when: 'a later attempt executes without configured invariant signals'
+        FixtureWorkflow.reset()
+        def secondImpactOutput = packageFixture.directory.resolve('reports/impact-v1-second.json')
+        def secondReport = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, null, scenario.deterministicId(), secondImpactOutput),
+                runtime(new TrackingSagaUnitOfWorkService()))
+        def secondImpact = MAPPER.readTree(secondImpactOutput.toFile())
+
+        then:
+        secondReport.terminalStatus() == 'SUCCESS'
+        secondImpact.path('executionAttemptId').asText() == secondReport.executionAttemptId()
+        secondImpact.path('invariantViolationCount').asInt() == 0
+        secondImpact.path('impactScore').asInt() == 0
+        secondImpact.path('findings').isEmpty()
+        packageChecksums(packageFixture.directory) == before
+    }
+
+    def 'ImpactV1 collector rejects missing mismatched and delayed prior-attempt signals'() {
+        given:
+        def collector = new ImpactV1Collector(new DynamicEvidenceNoopRecorder(), 'attempt-b', 'workload-b')
+        def event = { String attemptId, String workloadId, String aggregateId ->
+            DynamicEvidenceEvent.of('INVARIANT_VIOLATION', 'DummyFunctionalitySagas', 'invocation', 'step', 1L, [
+                    executionAttemptId: attemptId,
+                    workloadPlanId: workloadId,
+                    aggregateType: 'DummyAggregate',
+                    aggregateId: aggregateId,
+                    sourceMethod: 'SagaUnitOfWorkService.registerChanged',
+                    verificationMethod: 'Aggregate.verifyInvariants'
+            ])
+        }
+
+        when:
+        collector.record(event('attempt-a', 'workload-a', 'prior'))
+        collector.record(event(null, null, 'missing'))
+        collector.record(event('attempt-b', 'workload-other', 'other-workload'))
+        collector.record(event('attempt-b', 'workload-b', 'first'))
+        collector.record(event('attempt-b', 'workload-b', 'second'))
+
+        then:
+        collector.findings()*.sequence() == [1L, 2L]
+        collector.findings()*.aggregateId() == ['first', 'second']
+        collector.findings()*.executionAttemptId().unique() == ['attempt-b']
+        collector.findings()*.workloadPlanId().unique() == ['workload-b']
+    }
+
+    def 'a rejected dummyapp-shaped aggregate write produces evaluated ImpactV1 score one'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def impactOutput = packageFixture.directory.resolve('reports/rejected-write-impact.json')
+        FixtureWorkflow.rejectInvariantOnWrite('solo', 'first')
+
+        when:
+        def report = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, null, scenario.deterministicId(), impactOutput),
+                runtime(new TrackingSagaUnitOfWorkService()))
+        def impact = MAPPER.readTree(impactOutput.toFile())
+
+        then:
+        report.terminalStatus() == 'COMPENSATED'
+        report.scheduleConformance() == 'DEVIATED'
+        report.actualActions()*.status() == ['FAILED']
+        report.actualActions()*.faultOrigin() == ['UNASSIGNED_RUNTIME']
+        impact.path('evaluationStatus').asText() == 'EVALUATED'
+        impact.path('invariantViolationCount').asInt() == 1
+        impact.path('impactScore').asInt() == 1
+        impact.path('findings').size() == 1
+        impact.path('findings')[0].path('aggregateType').asText() == 'DummyAggregate'
+        impact.path('findings')[0].path('sourceMethod').asText() == 'SagaUnitOfWorkService.registerChanged'
+        impact.path('findings')[0].path('verificationMethod').asText() == 'Aggregate.verifyInvariants'
+        impact.path('findings')[0].path('executionAttemptId').asText() == report.executionAttemptId()
+        impact.path('findings')[0].path('workloadPlanId').asText() == workload.deterministicId()
+    }
+
+    def 'assigned fault and successful no-work compensation have zero ImpactV1'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '1')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def impactOutput = packageFixture.directory.resolve('reports/safe-compensation-impact.json')
+
+        when:
+        def report = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, null, scenario.deterministicId(), impactOutput),
+                runtime(new TrackingSagaUnitOfWorkService()))
+        def impact = MAPPER.readTree(impactOutput.toFile())
+
+        then:
+        report.terminalStatus() == 'COMPENSATED'
+        report.faultSlots()*.state() == ['REALIZED']
+        report.lifecycleEvents()*.type() == ['ABORTED', 'NO_COMPENSATION_WORK', 'COMPENSATED']
+        impact.path('evaluationStatus').asText() == 'EVALUATED'
+        impact.path('invariantViolationCount').asInt() == 0
+        impact.path('impactScore').asInt() == 0
+        impact.path('findings').isEmpty()
+    }
+
+    def 'setup failure is not evaluated by ImpactV1'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']], 'solo')
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def impactOutput = packageFixture.directory.resolve('reports/not-evaluated-impact.json')
+
+        when:
+        def report = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, null, scenario.deterministicId(), impactOutput),
+                runtime(new TrackingSagaUnitOfWorkService()))
+        def impact = MAPPER.readTree(impactOutput.toFile())
+
+        then:
+        report.terminalStatus() == 'MATERIALIZATION_FAILED'
+        impact.path('evaluationStatus').asText() == 'NOT_EVALUATED'
+        impact.path('notEvaluatedReason').asText() == 'MATERIALIZATION_FAILED'
+        impact.path('invariantViolationCount').isNull()
+        impact.path('impactScore').isNull()
+        impact.path('findings').isEmpty()
     }
 
     def 'assigned pre-body fault follows persisted interleaving and advances each compensation action once'() {
@@ -911,9 +1075,12 @@ class ScenarioExecutorSpec extends Specification {
         def nonDirectory = packageFixture.directory.resolve('not-a-directory')
         Files.writeString(nonDirectory, 'occupied')
         def output = nonDirectory.resolve('report.json')
+        def impactOutput = packageFixture.directory.resolve('reports/report-write-failed-impact.json')
 
         when:
-        new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
+        new ScenarioExecutor().execute(
+                options(packageFixture.manifest, output, scenario.deterministicId(), impactOutput),
+                runtime(new TrackingSagaUnitOfWorkService()))
 
         then:
         def failure = thrown(ScenarioReportWriteException)
@@ -923,6 +1090,10 @@ class ScenarioExecutorSpec extends Specification {
         failure.report().hardStopActionId() == null
         failure.report().hardStopReason() == 'REPORT_WRITE_FAILED'
         failure.report().blockers()*.reason().contains('REPORT_WRITE_FAILED')
+        def impact = MAPPER.readTree(impactOutput.toFile())
+        impact.path('evaluationStatus').asText() == 'NOT_EVALUATED'
+        impact.path('notEvaluatedReason').asText() == 'REPORT_WRITE_FAILED'
+        impact.path('impactScore').isNull()
         packageChecksums(packageFixture.directory) == before
     }
 
@@ -931,12 +1102,15 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['solo'], [['solo', 'first']])
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
+        def impactOutput = packageFixture.directory.resolve('reports/provider-failure-impact.json')
         def occupiedProvider = FaultVectorProviderHolder.install(new InMemoryFaultVectorProvider([:]))
 
         when:
         def report
         try {
-            report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, null, scenario.deterministicId(), impactOutput),
+                    runtime(new TrackingSagaUnitOfWorkService()))
         } finally {
             occupiedProvider.close()
         }
@@ -946,6 +1120,10 @@ class ScenarioExecutorSpec extends Specification {
         report.scheduleConformance() == null
         report.actualActions().isEmpty()
         report.hardStopReason() == 'EXECUTOR_INFRASTRUCTURE_FAILURE'
+        def impact = MAPPER.readTree(impactOutput.toFile())
+        impact.path('evaluationStatus').asText() == 'NOT_EVALUATED'
+        impact.path('notEvaluatedReason').asText() == 'UNEXPECTED_EXECUTION_FAILURE'
+        impact.path('impactScore').isNull()
         FixtureWorkflow.BODIES.isEmpty()
     }
 
@@ -955,10 +1133,14 @@ class ScenarioExecutorSpec extends Specification {
         def scenario = scenarios(workload, '10')[0]
         def packageFixture = writePackage(workload, [scenario])
         def output = packageFixture.directory.resolve('dry-run.json')
+        def impactOutput = packageFixture.directory.resolve('dry-run-impact.json')
         def before = packageChecksums(packageFixture.directory)
 
         when:
-        def report = new ScenarioExecutor().execute(new ScenarioExecutorOptions(packageFixture.manifest, output, scenario.deterministicId(), true), runtime(new TrackingSagaUnitOfWorkService()))
+        def report = new ScenarioExecutor().execute(
+                new ScenarioExecutorOptions(packageFixture.manifest, output, scenario.deterministicId(), true,
+                        null, null, null, null, null, impactOutput),
+                runtime(new TrackingSagaUnitOfWorkService()))
 
         then:
         report.terminalStatus() == 'DRY_RUN'
@@ -969,6 +1151,10 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWorkflow.constructorCalls == 0
         packageChecksums(packageFixture.directory) == before
         !MAPPER.readTree(output.toFile()).has('scheduleConformance')
+        def impact = MAPPER.readTree(impactOutput.toFile())
+        impact.path('evaluationStatus').asText() == 'NOT_EVALUATED'
+        impact.path('notEvaluatedReason').asText() == 'DRY_RUN'
+        impact.path('impactScore').isNull()
     }
 
     def 'report output cannot alias package artifact #artifactName during dryRun=#dryRun'() {
@@ -999,6 +1185,57 @@ class ScenarioExecutorSpec extends Specification {
                 'scenario-space-accounting.json',
                 'workload-catalog-rejected-inputs.jsonl'
         ]].combinations()
+    }
+
+    def 'impact output cannot alias the execution report or a package input'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def before = packageChecksums(packageFixture.directory)
+        def output = packageFixture.directory.resolve('reports/execution.json')
+
+        when:
+        new ScenarioExecutor().execute(
+                options(packageFixture.manifest, output, scenario.deterministicId(), output),
+                runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        def reportAliasError = thrown(IllegalArgumentException)
+        reportAliasError.message.contains('must not alias scenario execution report')
+        packageChecksums(packageFixture.directory) == before
+        FixtureWorkflow.constructorCalls == 0
+
+        when:
+        new ScenarioExecutor().execute(
+                options(packageFixture.manifest, output, scenario.deterministicId(), packageFixture.manifest),
+                runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        def packageAliasError = thrown(IllegalArgumentException)
+        packageAliasError.message.contains('must not alias scenario package input')
+        packageChecksums(packageFixture.directory) == before
+        FixtureWorkflow.constructorCalls == 0
+
+        when: 'two absent outputs resolve to the same leaf through symlinked parents'
+        def realOutputDirectory = packageFixture.directory.resolve('real-reports')
+        Files.createDirectories(realOutputDirectory)
+        def executionAliasDirectory = packageFixture.directory.resolve('execution-reports-link')
+        def impactAliasDirectory = packageFixture.directory.resolve('impact-reports-link')
+        Files.createSymbolicLink(executionAliasDirectory, realOutputDirectory.fileName)
+        Files.createSymbolicLink(impactAliasDirectory, realOutputDirectory.fileName)
+        def aliasedExecutionOutput = executionAliasDirectory.resolve('shared.json')
+        def aliasedImpactOutput = impactAliasDirectory.resolve('shared.json')
+        new ScenarioExecutor().execute(
+                options(packageFixture.manifest, aliasedExecutionOutput, scenario.deterministicId(), aliasedImpactOutput),
+                runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        def parentAliasError = thrown(IllegalArgumentException)
+        parentAliasError.message.contains('must not alias scenario execution report')
+        !Files.exists(realOutputDirectory.resolve('shared.json'))
+        packageChecksums(packageFixture.directory) == before
+        FixtureWorkflow.constructorCalls == 0
     }
 
     def 'report output cannot alias a package input through normalized or symbolic paths'() {
@@ -1232,7 +1469,7 @@ class ScenarioExecutorSpec extends Specification {
         error.message.contains('Unsupported executor option --fault-vector')
         ScenarioExecutorOptions.recordComponents*.name == [
                 'packagePath', 'outputPath', 'faultScenarioId', 'dryRun', 'applicationBase', 'applicationId',
-                'springApplicationClass', 'springProfiles', 'mavenProfile'
+                'springApplicationClass', 'springProfiles', 'mavenProfile', 'impactOutputPath'
         ]
     }
 
@@ -1270,6 +1507,49 @@ class ScenarioExecutorSpec extends Specification {
         then:
         def faultSelectionError = thrown(IllegalArgumentException)
         faultSelectionError.message.contains('do not pass --fault-scenario-id')
+
+        when:
+        ScenarioExecutorCli.validateInvocation([
+                'spring-application-class': 'example.Application',
+                'package-path': '/tmp/scenario-catalog-manifest.json',
+                'output-path': '/tmp/setup-preflight.json',
+                'impact-output-path': '/tmp/impact.json',
+                'preflight': 'true'
+        ])
+
+        then:
+        def impactOutputError = thrown(IllegalArgumentException)
+        impactOutputError.message.contains('--impact-output-path is an execution output')
+    }
+
+    def 'CLI rejects a missing impact output path value'() {
+        given:
+        def required = [
+                '--spring-application-class', 'example.Application',
+                '--package-path', '/tmp/scenario-catalog-manifest.json',
+                '--output-path', '/tmp/report.json',
+                '--fault-scenario-id', 'persisted-id'
+        ]
+
+        when:
+        ScenarioExecutorCli.validateInvocation(ScenarioExecutorCli.parse((required + ['--impact-output-path']) as String[]))
+
+        then:
+        def bareError = thrown(IllegalArgumentException)
+        bareError.message.contains('--impact-output-path requires an explicit path value')
+
+        when:
+        ScenarioExecutorCli.validateInvocation([
+                'spring-application-class': 'example.Application',
+                'package-path': '/tmp/scenario-catalog-manifest.json',
+                'output-path': '/tmp/report.json',
+                'fault-scenario-id': 'persisted-id',
+                'impact-output-path': ' '
+        ])
+
+        then:
+        def blankError = thrown(IllegalArgumentException)
+        blankError.message.contains('--impact-output-path requires an explicit path value')
     }
 
     def 'CLI rejects non-canonical boolean option values before mode selection'() {
@@ -1416,8 +1696,12 @@ class ScenarioExecutorSpec extends Specification {
     }
 
     private static ScenarioExecutorOptions options(Path manifest, Path output, String scenarioId) {
+        options(manifest, output, scenarioId, null)
+    }
+
+    private static ScenarioExecutorOptions options(Path manifest, Path output, String scenarioId, Path impactOutput) {
         new ScenarioExecutorOptions(manifest, output, scenarioId, false,
-                'dummyapp', 'dummyapp', 'example.Application', 'test,sagas,local', 'test-sagas')
+                'dummyapp', 'dummyapp', 'example.Application', 'test,sagas,local', 'test-sagas', impactOutput)
     }
 
     private static ScenarioRuntimeContext runtime(SagaUnitOfWorkService service) {
@@ -1661,6 +1945,10 @@ class ScenarioExecutorSpec extends Specification {
         String failImplicitFor
 
         TrackingSagaUnitOfWorkService(Map values = [:]) {
+            def versionService = mock(IVersionService)
+            when(versionService.incrementAndGetVersionNumber()).thenReturn(1L, 2L, 3L)
+            ReflectionTestUtils.setField(this, 'versionService', versionService)
+            ReflectionTestUtils.setField(this, 'entityManager', mock(EntityManager))
             this.failCommitDomainFor = values.failCommitDomainFor
             this.failCommitPlainSimulatorFor = values.failCommitPlainSimulatorFor
             this.failCommitInfrastructureFor = values.failCommitInfrastructureFor

@@ -24,6 +24,10 @@ if [[ "$PREFLIGHT" == "true" && -n "${FAULT_SCENARIO_ID:-}" ]]; then
   echo "PREFLIGHT=true cannot be combined with FAULT_SCENARIO_ID" >&2
   exit 2
 fi
+if [[ "$PREFLIGHT" == "true" && -n "${IMPACT_OUTPUT_PATH:-}" ]]; then
+  echo "PREFLIGHT=true cannot be combined with IMPACT_OUTPUT_PATH" >&2
+  exit 2
+fi
 
 if [[ "$PREFLIGHT" == "true" ]]; then
   : "${OUTPUT_PATH:=/reports/scenario-executor/setup-preflight-report.json}"
@@ -53,6 +57,9 @@ if [[ ! -d "$APP_DIR" ]]; then
 fi
 
 mkdir -p "$(dirname "$OUTPUT_PATH")" /tmp/scenario-executor
+if [[ -n "${IMPACT_OUTPUT_PATH:-}" ]]; then
+  mkdir -p "$(dirname "$IMPACT_OUTPUT_PATH")"
+fi
 
 echo "Installing simulator dependency into Maven cache"
 rm -rf /tmp/scenario-executor/simulator
@@ -78,6 +85,9 @@ if [[ "$PREFLIGHT" != "true" ]]; then
   echo "  FaultScenario id: ${FAULT_SCENARIO_ID}"
 fi
 echo "  output: ${OUTPUT_PATH}"
+if [[ -n "${IMPACT_OUTPUT_PATH:-}" ]]; then
+  echo "  impact output: ${IMPACT_OUTPUT_PATH}"
+fi
 
 SPRING_PROFILES_VALUE="$SPRING_PROFILES"
 unset SPRING_PROFILES
@@ -97,6 +107,9 @@ else
   EXECUTOR_ARGS+=(--fault-scenario-id "$FAULT_SCENARIO_ID")
   if [[ "$DRY_RUN" == "true" ]]; then
     EXECUTOR_ARGS+=(--dry-run)
+  fi
+  if [[ -n "${IMPACT_OUTPUT_PATH:-}" ]]; then
+    EXECUTOR_ARGS+=(--impact-output-path "$IMPACT_OUTPUT_PATH")
   fi
 fi
 

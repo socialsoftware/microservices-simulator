@@ -12,7 +12,7 @@ class ScenarioExecutorOrchestratorSpec extends Specification {
         def config = new ScenarioExecutorOrchestrator.Config(
                 Path.of('/tmp/app'), 'com.example.Application', 'test-sagas', 'local,sagas',
                 Path.of('/tmp/run/scenario-catalog-manifest.json'), Path.of('/tmp/out/execution-report.json'),
-                'fault-scenario-1', 'target/classes:verifiers.jar')
+                'fault-scenario-1', 'target/classes:verifiers.jar', Path.of('/tmp/out/impact-v1.json'))
 
         when:
         def status = new ScenarioExecutorOrchestrator(runner).run(config)
@@ -26,7 +26,8 @@ class ScenarioExecutorOrchestratorSpec extends Specification {
                 'pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorCli',
                 '--spring-profiles', 'local,sagas', '--application-base', '/tmp/app', '--application-id', 'app',
                 '--maven-profile', 'test-sagas', '--package-path', '/tmp/run/scenario-catalog-manifest.json',
-                '--output-path', '/tmp/out/execution-report.json', '--fault-scenario-id', 'fault-scenario-1'])
+                '--output-path', '/tmp/out/execution-report.json', '--fault-scenario-id', 'fault-scenario-1',
+                '--impact-output-path', '/tmp/out/impact-v1.json'])
         !calls[1][0].contains('--fault-vector')
         calls[1][1] == Path.of('/tmp/app')
     }
