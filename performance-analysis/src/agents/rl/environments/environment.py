@@ -9,6 +9,7 @@ from src.agents.rl.rewards.reward_strategies import RewardStrategy
 from src.agents.utils.simulation_runner import SimRunner, WorkloadConfig
 from src.agents.rl.action_spaces.actions import Action, get_action_mapping, get_valid_action_mask, AMOUNT
 from src.simulator_tools.config_utils import ConfigTool
+from src.agents.utils.rendering import print_complex_observation, print_action
 
 
 class MicroserviceOptimizerEnv(gym.Env):
@@ -122,7 +123,8 @@ class MicroserviceOptimizerEnv(gym.Env):
         truncated = self.current_step >= self.max_steps
 
         logging.info(
-            f"Step [{self.current_step}/{self.max_steps}] (Global: {self.global_step}) ended with reward: {reward:.4f} and obs: {obs}")
+            f"Step [{self.current_step}/{self.max_steps}] (Global: {self.global_step}) ended with reward: {reward:.4f}")
+        print_complex_observation(obs)
         return obs, reward, terminated, truncated, {}
 
     def _act(self, action_idx: int, current_config: dict) -> tuple[dict, bool, bool]:
@@ -170,8 +172,10 @@ class MicroserviceOptimizerEnv(gym.Env):
         else:
             is_stop_action = True
 
-        logging.info(
-            f"Action selected: {action_tuple}, illegal: {is_illegal_action}, stop_op: {is_stop_action}")
+        print_action(action_idx, action_tuple, self.microservices)
+        if is_illegal_action:
+            logging.info("  -> [REJECTED] Action was ILLEGAL")
+
         return config_to_update, is_illegal_action, is_stop_action
 
     def _observe(self, new_config, is_illegal_action, is_stop_action):

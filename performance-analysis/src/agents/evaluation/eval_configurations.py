@@ -27,12 +27,6 @@ def start_baseline_eval(trace_manager, workload_path: str, config_path: str, wor
     os.environ["GATEWAY_URL"] = f"http://localhost:{8080 + worker_id}"
     os.environ["H2_PORT"] = str(1521 + worker_id)
 
-    from src.server import start_grpc_server
-    from src.trace_collection.trace_collector import TraceManager
-
-    trace_manager = TraceManager()
-    grpc_srv = start_grpc_server(port=4319 + worker_id, tm=trace_manager)
-
     logging.info(
         f"Setting up database state for baseline evaluation...")
     H2DBManager.setup_db_state()
@@ -45,7 +39,6 @@ def start_baseline_eval(trace_manager, workload_path: str, config_path: str, wor
         logging.info(f"Loaded configuration from {config_path}")
     except Exception as e:
         logging.error(f"Failed to load baseline config: {e}")
-        grpc_srv.stop(0)
         return
 
     rl_config = _load_config()
@@ -94,6 +87,5 @@ def start_baseline_eval(trace_manager, workload_path: str, config_path: str, wor
 
     finally:
         writer.close()
-        grpc_srv.stop(0)
 
     logging.info(f"Baseline finished! Logs saved to {tb_log_dir}.")

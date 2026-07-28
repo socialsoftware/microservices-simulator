@@ -15,7 +15,7 @@ from src.agents.evaluation.eval_configurations import start_baseline_eval
 import logging
 logging.basicConfig(level=logging.WARNING)
 
-# Create the single, shared instance of the TraceManager
+DEFAULT_CLI_PORT = 4320
 trace_manager = TraceManager()
 
 # ======================
@@ -61,6 +61,8 @@ def start_grpc_server(port=4319, tm=None):
 def interactive_cli():
     """Interactive CLI to manage the RL Server."""
 
+    global server
+    
     print("\n--- RL Server CLI ---")
     print("Available commands:")
     print("  read     - Print current metrics")
@@ -89,23 +91,36 @@ def interactive_cli():
                 print(json.dumps(metrics, indent=2))
             elif cmd == "reset":
                 trace_manager.reset()
+                print("Trace Manager Cleared!")
             elif cmd.startswith("train"):
-                if cmd == "train ppo":
-                    start_training(trace_manager, "ppo")
-                else:
-                    start_training(trace_manager, "test")
+                server.stop(0)
+                try:
+                    if cmd == "train ppo":
+                        start_training("ppo")
+                    else:
+                        start_training("test")
+                finally:
+                    server = start_grpc_server(DEFAULT_CLI_PORT)
             elif cmd.startswith("eval"):
                 parts = cmd.split(" ", 2)
-                if len(parts) < 2:
+                if len(parts) < 3:
                     print("Usage: eval {ppo} <path_to_model.zip>")
                 else:
-                    start_evaluation(trace_manager, parts[1], parts[2])
+                    trace_manager.reset()
+                    try:
+                        start_evaluation(trace_manager, parts[1], parts[2])
+                    finally:
+                        trace_manager.reset()
             elif cmd.startswith("baseline"):
                 parts = cmd.split(" ", 2)
                 if len(parts) < 3:
                     print("Usage: baseline <workload_path> <config_json_path>")
                 else:
-                    start_baseline_eval(trace_manager, parts[1], parts[2])
+                    trace_manager.reset()
+                    try:
+                        start_baseline_eval(trace_manager, parts[1], parts[2])
+                    finally:
+                        trace_manager.reset()
             elif cmd == "debug":
                 logger = logging.getLogger()
                 if logger.level == logging.INFO:
@@ -125,9 +140,8 @@ def interactive_cli():
             print(f"Error executing command: {e}")
 
 
-# source venv/Scripts/activate
 if __name__ == "__main__":
-    server = start_grpc_server()
+    server = start_grpc_server(DEFAULT_CLI_PORT)
 
     try:
         interactive_cli()

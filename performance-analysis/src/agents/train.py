@@ -4,7 +4,6 @@ import logging
 
 
 def start_training(
-    trace_collector,
     agent: str = "test"
 ):
     """
@@ -13,7 +12,7 @@ def start_training(
 
     if agent == "ppo":
         logging.info("Initializing PPO agent")
-        run_ppo(trace_collector)
+        run_ppo()
     else:
         logging.info("Initializing TEST agent")
-        run_sanity_check(trace_collector)
+        run_sanity_check()

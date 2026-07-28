@@ -1,7 +1,9 @@
 environment:
   microservices_num: 8
   nodes_num: 3
-  reward_type: "global_average_latency"
+  # NOTE: If you are evaluating an already trained model make sure you select the same 
+  # reward and observation strategy used to train it, otherwise errors and weird results might occur.
+  reward_type: "proportional_fairness"
   observation_type: "complex"
   alpha: 0.5
   beta: 0.5
