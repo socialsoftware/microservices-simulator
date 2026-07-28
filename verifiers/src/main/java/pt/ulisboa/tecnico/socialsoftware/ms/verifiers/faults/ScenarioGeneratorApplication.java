@@ -17,7 +17,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentOrchestrator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentTestClassDiscoveryService;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.report.AnalysisHtmlReportRenderer;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator;
@@ -59,7 +58,6 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
 
     private final String applicationBaseDir;
     private final String outputRoot;
-    private final String reportHtmlPath;
     private final boolean scenarioCatalogEnabled;
     private final String workloadCatalogPath;
     private final String faultScenarioCatalogPath;
@@ -89,7 +87,6 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             @Value("${verifiers.applications-root}") String applicationsRoot,
             @Value("${verifiers.application-base-dir}") String applicationBaseDir,
             @Value("${verifiers.output-root:output}") String outputRoot,
-            @Value("${verifiers.report-html-path:}") String reportHtmlPath,
             @Value("${verifiers.scenario-catalog.enabled:false}") boolean scenarioCatalogEnabled,
             @Value("${verifiers.scenario-catalog.workload-catalog-path:workload-catalog.jsonl}") String workloadCatalogPath,
             @Value("${verifiers.scenario-catalog.fault-scenario-catalog-path:fault-scenario-catalog.jsonl}") String faultScenarioCatalogPath,
@@ -125,7 +122,6 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         this.applicationsRoot = Objects.requireNonNull(applicationsRoot, "applicationsRoot cannot be null");
         this.applicationBaseDir = Objects.requireNonNull(applicationBaseDir, "applicationBaseDir cannot be null");
         this.outputRoot = Objects.requireNonNull(outputRoot, "outputRoot cannot be null");
-        this.reportHtmlPath = Objects.requireNonNull(reportHtmlPath, "reportHtmlPath cannot be null");
         this.scenarioCatalogEnabled = scenarioCatalogEnabled;
         this.workloadCatalogPath = Objects.requireNonNull(workloadCatalogPath, "workloadCatalogPath cannot be null");
         this.faultScenarioCatalogPath = Objects.requireNonNull(faultScenarioCatalogPath, "faultScenarioCatalogPath cannot be null");
@@ -297,31 +293,9 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         GroovyConstructorInputTraceVisitor groovyTraceVisitor = new GroovyConstructorInputTraceVisitor();
         groovyTraceVisitor.visit(groovySourceIndex, applicationAnalysisState);
 
-        String textReport = applicationAnalysisState.formatHumanReadableReport();
-        logger.info("Analysis report:\n{}", textReport);
-
         OffsetDateTime generatedAt = OffsetDateTime.now(ZoneOffset.UTC);
-        AnalysisHtmlReportRenderer htmlReportRenderer = new AnalysisHtmlReportRenderer();
-        String htmlReport = htmlReportRenderer.render(
-                applicationAnalysisState,
-                new AnalysisHtmlReportRenderer.ReportMetadata(
-                        applicationsRoot,
-                        applicationBaseDir,
-                        generatedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-                ),
-                textReport
-        );
-
         runOutputDirectory = createRunOutputDirectory(generatedAt);
         logger.info("Verifier run output directory: {}", runOutputDirectory.toAbsolutePath().normalize());
-
-        Path htmlOutputPath = resolveHtmlReportPath();
-        Path parent = htmlOutputPath.getParent();
-        if (parent != null) {
-            Files.createDirectories(parent);
-        }
-        Files.writeString(htmlOutputPath, htmlReport);
-        logger.info("Analysis HTML report written to {}", htmlOutputPath.toAbsolutePath().normalize());
 
         WorkloadGenerationResult workloadGenerationResult = runScenarioCatalogExport(applicationAnalysisState, generatedAt);
         runDynamicEnrichmentIfEnabled(workloadGenerationResult, generatedAt);
@@ -431,10 +405,6 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         resolveRunRelativePath(dynamicEnrichmentConfig.sidecarPath(), "workload-dynamic-evidence.jsonl");
         resolveRunRelativePath(dynamicEnrichmentConfig.sidecarManifestPath(), "workload-dynamic-evidence-manifest.json");
         resolveRunRelativePath(dynamicEnrichmentConfig.joinReportPath(), "dynamic-evidence-join-report.json");
-    }
-
-    private Path resolveHtmlReportPath() {
-        return resolveRunRelativePath(reportHtmlPath, "analysis-report.html");
     }
 
     private Path resolveWorkloadCatalogPath() {

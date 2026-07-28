@@ -31,15 +31,16 @@ Interaction pruning remains separate. `INTERACTION_PRUNED` and `BRUTE_FORCE` sti
 
 ## Consequences
 
-- `SEGMENT_COMPRESSED` is now claimable as an implemented static schedule-space reduction strategy, with the narrower claim that it preserves conflict-anchor order cases under the verifier's static conflict model while collapsing non-anchor/internal permutations.
-- Quizzes count-only comparison evidence shows selected totals reduced from `218528454` under `ORDER_PRESERVING_INTERLEAVING` to `1019393` under `SEGMENT_COMPRESSED` for comparable `INTERACTION_PRUNED`, dynamic-enrichment-disabled, size-3 runs.
-- Dummyapp integration proves the behavior through the real parser/adapter pipeline before relying on Quizzes-scale accounting.
-- The strategy does not prove semantic completeness, exact aggregate-instance binding, runtime impact, executor feasibility, fault injection behavior, impact scoring, GA search, or bandit prioritization.
+- `SEGMENT_COMPRESSED` is an implemented static schedule-space reduction strategy with the narrow claim that it preserves conflict-anchor order cases under the verifier's static conflict model while collapsing non-anchor/internal permutations.
+- Generated schedules and scenario-space accounting must use the same anchor-segment semantics and configured caps.
+- Dummyapp remains the correctness oracle before Quizzes-scale evaluation.
+- The strategy does not prove semantic completeness, exact aggregate-instance binding, runtime impact, executor feasibility, fault injection behavior, impact scoring, search, or prioritization.
 - Exact aggregate-instance key extraction remains incomplete. Type-only fallback remains opt-in and must not be described as exact shared-instance evidence.
 
-## Evidence
+## Revisit when
 
-- `ScenarioGeneratorSpec` covers anchor interleaving, no-anchor canonical schedules, all-anchor parity, mixed anchor/internal expansion, deterministic tails, zero-anchor saga tails, and deterministic IDs.
-- `ScenarioSpaceAccountingCalculatorSpec` covers strict/broad lenses, read/read non-conflicts, accounting/materialized parity, caps, zero caps, stable grouped rows, and non-placeholder behavior text.
-- `DummyappAccountingFixtureFoundationSpec` covers real dummyapp parser/adapter integration, materialized/accounting parity, conflict evidence, full expanded schedules, and reduced compressed counts against order-preserving interleaving.
-- Quizzes Docker count-only artifacts under `verifiers/target/segment-compressed-scheduling-007/` compare `ORDER_PRESERVING_INTERLEAVING` and `SEGMENT_COMPRESSED` with dynamic enrichment disabled, `COUNT_ONLY`, `INTERACTION_PRUNED`, and `maxSagaSetSize=3`.
+- stronger aggregate-instance binding materially changes the conflict-anchor set;
+- runtime evidence needs to influence schedule identity rather than remain a sidecar;
+- evaluation shows that relevant harmful orderings are lost by the static anchor model.
+
+Current behavior and limits are documented in [`../current-state.md#segment-compressed-scheduling`](../current-state.md#segment-compressed-scheduling).

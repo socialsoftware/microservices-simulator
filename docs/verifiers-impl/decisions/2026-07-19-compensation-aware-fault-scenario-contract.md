@@ -1,17 +1,55 @@
-# Compensation-aware fault scenario contract
+# Compensation-aware v3 fault-scenario contract
 
 Date: 2026-07-19
 
-Status: accepted and implemented for the v3 package/executor contract
+Status: active and implemented
 
-The verifier will replace the v2 `ScenarioPlan` contract with a clean two-level v3 catalog: a reusable `WorkloadPlan` captures participants, inputs, the normal forward interleaving, conflict evidence, and fault slots, while each persisted `FaultScenario` adds one assigned vector and one concrete compensation-aware action schedule. This keeps vectors and recovery ordering in reproducible scenario identity without eagerly duplicating the full workload universe; eager generation is limited to materializable all-zero and single-point cases, while arbitrary multi-fault vectors remain available through bounded on-demand persistence.
+## Context
 
-Assigned faults follow their persisted recovery schedule. Compensation checkpoints use explicit, implicit Saga-rollback, or conservative-unknown evidence; their reverse order may interleave with still-live participants' forward actions. A participant commits automatically with its final successful forward step rather than through a separately schedulable commit action.
+A single record that combines reusable workload structure, one fault vector, and one recovery ordering duplicates the same participants, inputs, forward schedule, and conflict evidence across many experiments. It also makes recovery timing an implicit runtime choice rather than part of reproducible scenario identity.
 
-For the supported Saga/local executor, a domain failure is an exception that explicitly implements the simulator `DomainFailure` marker. Marked application failures such as `QuizzesException` and marked Saga transactional failures are meaningful outcomes: a zero-bit body or commit failure uses immediate compensate-and-continue and reports `DEVIATED` when recovery completes. Extending `SimulatorException` alone is not enough. Plain or unknown `SimulatorException`, ordinary runtime failures, command retry exhaustion/service unavailability, and leaked assigned-fault exceptions are infrastructure failures by default. They invoke no fallback, stop survivor execution, and report `INCOMPLETE` after measured execution begins. Thrown compensation actions keep their existing first-failure hard stop. This classification is not a claim of TCC, stream, gRPC, causal, or general distributed parity.
+Multi-Saga replay needs a clear policy for persisted assigned faults, unexpected domain failures, infrastructure failures, and compensation failures. Treating every `SimulatorException` as a domain result allowed service/configuration failures to trigger recovery and survivor continuation incorrectly.
 
-Compensation remains retryable by later explicit invocation, but this feature adds no automatic retry loop, compensation faults, retry count, or backoff.
+## Decision
 
-This decision supersedes the v2 single-record catalog shape in [`2026-04-27-scenario-catalog-export-contract.md`](2026-04-27-scenario-catalog-export-contract.md) and supersedes the assigned-fault immediate-compensation and compensation-failure-continuation parts of [`2026-07-08-multi-saga-executor-failure-policy.md`](2026-07-08-multi-saga-executor-failure-policy.md) for v3 FaultScenario execution. It retains deterministic sequential replay, immediate compensate-and-continue for unassigned domain failures, and hard stops for executor/infrastructure failures.
+Use a two-level v3 package:
 
-Implementation note (updated 2026-07-21): current generation publishes the five-file WorkloadPlan/FaultScenario v3 package, eager materializable all-zero/single-point vectors, exact bounded recovery accounting, and on-demand multi-fault revisions. On-demand writers for one real package directory are serialized across local JVM processes by a stable package-local `FileChannel` lock acquired before package read/validation and held through publication and final validation. Invalid requests and caught failures preserve or restore prior semantic bytes, and successful return means the resulting package was validated. The separate three-file promotion is not crash-atomic: a hard process/JVM, kernel, host, or power failure can leave a checksum-inconsistent package, with no automatic recovery. Regenerate before retrying after integrity validation fails. This local OS-lock contract does not claim network-filesystem or multi-host distributed-lock correctness. Current execution selects one persisted FaultScenario with no vector overlay and writes an action-aware v4 report. The bounded Quizzes evidence is recorded in [`../evidence.md`](../evidence.md).
+- `WorkloadPlan` owns reusable participants, accepted inputs, one normal forward interleaving, conflict evidence, forward fault slots, and compensation checkpoints.
+- `FaultScenario` references one WorkloadPlan and owns one assigned vector plus one complete ordered `FORWARD`/`COMPENSATION` action schedule.
+
+FaultScenario identity includes the workload id, vector, and ordered action identities. Eager generation is limited to all-zero and single-point vectors for static setup candidates. Arbitrary valid multi-fault vectors are persisted through the bounded guarded on-demand path before execution.
+
+Assigned faults follow their persisted recovery schedule. Compensation checkpoints use explicit compensation, implicit Saga rollback, or conservative-unknown evidence; reverse checkpoints may interleave with still-live participants' forward actions. A participant commits automatically after its final successful forward action rather than through a separately schedulable commit action.
+
+For the supported Saga/local executor:
+
+- only an application/Saga failure explicitly implementing `DomainFailure` is a meaningful domain failure;
+- a zero-bit marked body or commit failure may use immediate checkpoint recovery and survivor continuation, reported as `DEVIATED` when completed;
+- extending `SimulatorException` alone is insufficient;
+- plain/unknown `SimulatorException`, service unavailability, command retry exhaustion, ordinary runtime failures, leaked assigned-fault exceptions, and missing infrastructure hard-stop without fallback or survivor continuation and report `INCOMPLETE` after measured execution begins;
+- a thrown compensation action hard-stops;
+- no automatic compensation retry, retry count, or backoff is added.
+
+## Why this contract
+
+- Workload structure is not duplicated for every vector/recovery ordering.
+- Every executable experiment has a deterministic persisted identity.
+- Recovery timing is explicit rather than invented by the executor.
+- The executor cannot silently reinterpret infrastructure failure as domain behavior.
+- Single- and multi-participant attempts share one action-aware report model.
+
+## Consequences
+
+- V3 is a clean replacement for the historical v1/v2 `ScenarioPlan` catalog and participant-only execution-report designs; those remain available through Git history, not the active documentation tree.
+- Runtime vector overlays and automatic FaultScenario selection are unsupported.
+- On-demand local writers serialize package revisions through a package-local OS lock, but three-file promotion is not crash-atomic and does not establish network-filesystem or multi-host coordination.
+- Current replay is deterministic sequential Saga/local execution, not TCC, stream, gRPC, causal, distributed, or true-parallel parity.
+
+## Revisit when
+
+- compensation itself needs fault slots or retry scheduling;
+- a broader runtime can preserve the same action identity under distributed/parallel execution;
+- package publication requires crash-atomic multi-file revisions;
+- an external consumer requires a versioned migration beyond v3.
+
+Current package, execution, and limitation evidence is in [`../current-state.md`](../current-state.md).

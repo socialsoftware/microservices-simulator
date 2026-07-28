@@ -1,43 +1,54 @@
-# Verifier docs
+# Verifier documentation
 
-This directory documents the verifier/scenario-generation work. Keep the main path short; use reference and archive material only when needed.
+This directory documents the current verifier and fault-analysis scenario pipeline.
 
-## Start here
+## Reading order
 
-| Need | Read |
+1. [`current-state.md`](current-state.md) — canonical handbook: purpose, concepts, inputs, five-file v3 package, metrics, operations, latest evidence, commands, limits, and safe claims.
+2. [`roadmap.md`](roadmap.md) — detailed future outcomes and their completion boundaries.
+3. [`decisions/`](decisions/index.md) — only when you need the rationale behind a non-obvious active design choice.
+
+Do not start from old issue packages or Git history when answering a current-behavior question. They preserve chronology, not current truth.
+
+## Find an answer
+
+| Question | Read |
 |---|---|
-| Current implementation status | [`current-state.md`](current-state.md) |
-| Thesis/advisor meeting prep | [`advisor-brief.md`](advisor-brief.md) |
-| Concrete validation evidence and run metrics | [`evidence.md`](evidence.md) |
-| Planned stages and remaining work | [`roadmap.md`](roadmap.md) |
-| Thesis-safe claims | [`thesis-claims-evidence-map.md`](thesis-claims-evidence-map.md) |
-| Plain pipeline explanation | [`verifier-pipeline-plain-explanation.md`](verifier-pipeline-plain-explanation.md) |
-| Terminology | [`glossary.md`](glossary.md) |
+| What does the verifier determine? | [`Current state — short version`](current-state.md#the-short-version) |
+| What do accepted, setup candidate, setup-ready, WorkloadPlan, and FaultScenario mean? | [`Current state — essential terms`](current-state.md#the-essential-terms) |
+| What are the five v3 files? | [`Current state — v3 package`](current-state.md#the-v3-package) |
+| What do scenario-space, strict/broad, and recovery metrics mean? | [`Current state — accounting`](current-state.md#how-to-read-scenario-space-accounting) |
+| How does source/test input extraction work? | [`Current state — inputs and static extraction`](current-state.md#inputs-and-static-extraction) |
+| What does dynamic enrichment add? | [`Current state — dynamic evidence`](current-state.md#optional-dynamic-evidence) |
+| How do preflight, execution, and impact differ? | [`Current state — ScenarioExecutor`](current-state.md#scenarioexecutor) and [`ImpactV1`](current-state.md#impactv1) |
+| Where did the latest `82/82` result come from? | [`Current state — 82/82 evidence`](current-state.md#quizzes-setup-preflight-8282) |
+| What comes next? | [`Roadmap`](roadmap.md) |
+| Why was a durable design choice made? | [`Decisions`](decisions/index.md) |
 
-## Reference material
+## Evidence policy
 
-| Topic | Read |
-|---|---|
-| Test-to-input extraction | [`reference/source-to-input-flow.md`](reference/source-to-input-flow.md) |
-| Structured input recipes | [`reference/input-recipes.md`](reference/input-recipes.md) |
-| Dynamic enrichment overview | [`reference/dynamic-enrichment.md`](reference/dynamic-enrichment.md) |
-| Dynamic enrichment detailed reference | [`archive/investigations/dynamic-enrichment-joining-reference.md`](archive/investigations/dynamic-enrichment-joining-reference.md) |
-| ScenarioExecutor | [`reference/scenario-executor.md`](reference/scenario-executor.md) |
-| Durable design decisions | [`decisions/`](decisions/index.md) |
+`current-state.md` keeps the latest representative evidence for each current capability. Each evidence section should include:
 
-## Historical material
+- the question being tested;
+- the exact command and relevant configuration;
+- the output artifact path;
+- the discriminating result;
+- what that result proves and does not prove.
 
-| Material | Location |
-|---|---|
-| Engineering logs | [`archive/implementation-log/`](archive/implementation-log/index.md) |
-| Advisor/meeting history | [`archive/meeting-notes/`](archive/meeting-notes/index.md) |
-| Archived notes | [`archive/`](archive/index.md) |
+Replace superseded baselines instead of appending historical chronology. Git history is the engineering archive.
 
-Historical notes are useful for provenance, but they are not current truth. Check [`current-state.md`](current-state.md) before making thesis claims.
+## Documentation policy
 
-## Site workflow
+- `current-state.md` is the sole owner of present behavior, essential terminology, evidence, and limitations.
+- `roadmap.md` owns future direction and does not restate current evidence.
+- Decision records own only durable rationale that is likely to matter again.
+- Define terms at first use; do not create a parallel glossary.
+- Delete stale implementation logs, investigations, prompts, and meeting material rather than placing them in an in-repository archive.
+- Keep implementation details in source and tests unless they are required to operate the system or interpret a thesis claim.
 
-Preview the docs site from the repository root:
+## Preview
+
+From the repository root:
 
 ```bash
 ./scripts/verifier-docs serve
@@ -48,14 +59,3 @@ Build the static site:
 ```bash
 ./scripts/verifier-docs build
 ```
-
-See [`site-workflow.md`](site-workflow.md) for details.
-
-## Update policy
-
-For meaningful verifier changes:
-
-1. Update [`current-state.md`](current-state.md) if implemented status, limitations, evidence, or next priorities changed.
-2. Update [`advisor-brief.md`](advisor-brief.md) before thesis meetings.
-3. Update [`evidence.md`](evidence.md) when citing new runs or measurements.
-4. Add a decision note only for durable architectural choices or rejected alternatives.

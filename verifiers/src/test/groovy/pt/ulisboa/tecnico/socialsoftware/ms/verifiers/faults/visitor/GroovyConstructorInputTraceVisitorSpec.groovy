@@ -1050,34 +1050,10 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
         }
     }
 
-    def 'surfaces label context in trace text and report output'() {
+    def 'surfaces label context in trace text'() {
         expect:
         traceTextFor('labels are context only').contains('given:')
         traceTextFor('labels are context only').contains('when:')
-
-        when:
-        def report = state.formatHumanReadableReport()
-
-        then:
-        report.contains('given:')
-        report.contains('when:')
-    }
-
-    def 'renders the groovy trace report surface'() {
-        when:
-        def report = state.formatHumanReadableReport()
-
-        then:
-        report.contains('Groovy constructor-input traces (8)')
-        report.contains('Groovy full traces (8)')
-        report.contains('GroovyTraceSpec.field:sagaInField() [binding=sagaInField] -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.setup() [binding=setupAlias] -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.setupSpec() [binding=setupSpecAlias] -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.labels are context only() [binding=labeledSaga] -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.helper-method chain resolves local returns() [binding=helperSaga] -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.nested constructor arguments are traced() [binding=nestedSaga] -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.accessor chain arguments are traced() [binding=accessorSaga] -> CreateOrderFunctionalitySagas')
-        report.contains('GroovyTraceSpec.runtime-derived unresolved edge remains conservative() [binding=runtimeSaga] -> CreateOrderFunctionalitySagas')
     }
 
     private String traceTextFor(String sourceMethodName) {

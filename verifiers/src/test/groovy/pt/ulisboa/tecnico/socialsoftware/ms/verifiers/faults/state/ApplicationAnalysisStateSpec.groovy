@@ -10,21 +10,8 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.AccessPolicy
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.CommandDispatchInfo
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.CommandHandlerBuildingBlock
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchMultiplicity
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchMultiplicityKind
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchPhase
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.ServiceBuildingBlock
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaFunctionalityBuildingBlock
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaStepBuildingBlock
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowCreationArgumentSource
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowCreationArgumentSourceKind
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.WorkflowFunctionalityCreationSite
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyWorkflowCall
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -97,93 +84,6 @@ class ApplicationAnalysisStateSpec extends Specification {
         state.findSagaByFqn('com.example.app.order.coordination.CreateOrderFunctionalitySagas').get() == saga
         state.hasSagaFqn('com.example.app.order.coordination.CreateOrderFunctionalitySagas')
         !state.hasSagaFqn('com.example.app.order.coordination.MissingSaga')
-    }
-
-    def "formatHumanReadableReport renders the collected analysis state"() {
-        given:
-        def state = new ApplicationAnalysisState()
-        state.dispatchTargetFqns.add('com.example.app.order.service.OrderService')
-
-        def service = new ServiceBuildingBlock(null, 'com.example.app.order.service', 'com.example.app.order.service.OrderService')
-        service.addMethod('getOrder(com.example.app.order.commands.GetOrderCommand)', AccessPolicy.READ)
-        service.addMethod('placeOrder(com.example.app.order.commands.PlaceOrderCommand)', AccessPolicy.WRITE)
-        state.services.add(service)
-
-        def handler = new CommandHandlerBuildingBlock(null, 'com.example.app.order.commandHandler', 'com.example.app.order.commandHandler.OrderCommandHandler', 'Order')
-        handler.addCommandDispatch(
-                'com.example.app.order.commands.GetOrderCommand',
-                new CommandDispatchInfo(service, 'getOrder(com.example.app.order.commands.GetOrderCommand)', 'Order')
-        )
-        state.commandHandlers.add(handler)
-
-        def saga = new SagaFunctionalityBuildingBlock(null, 'com.example.app.order.coordination', 'com.example.app.order.coordination.CreateOrderFunctionalitySagas')
-        def step = new SagaStepBuildingBlock(null, 'com.example.app.order.coordination', 'CreateOrderFunctionalitySagas::placeOrderStep', 'placeOrderStep')
-        step.addDispatch(new StepDispatchFootprint(
-                'CreateOrderFunctionalitySagas::placeOrderStep',
-                'com.example.app.order.commands.PlaceOrderCommand',
-                'Order',
-                AccessPolicy.WRITE,
-                DispatchPhase.FORWARD,
-                new DispatchMultiplicity(DispatchMultiplicityKind.SINGLE, 1)
-        ))
-        saga.addStep(step)
-        state.sagas.add(saga)
-        state.sagaCreationSites.add(new WorkflowFunctionalityCreationSite(
-                'com.example.app.order.coordination.OrderFunctionalitiesFacade',
-                'createOrder',
-                'com.example.app.order.coordination.CreateOrderFunctionalitySagas',
-                [
-                        new WorkflowCreationArgumentSource(0, WorkflowCreationArgumentSourceKind.FIELD_REFERENCE, null,
-                                'sagaUnitOfWorkService', null),
-                        new WorkflowCreationArgumentSource(1, WorkflowCreationArgumentSourceKind.LOCAL_VARIABLE, null,
-                                'unitOfWork', 'sagaUnitOfWorkService.createUnitOfWork("createOrder")'),
-                        new WorkflowCreationArgumentSource(2, WorkflowCreationArgumentSourceKind.METHOD_PARAMETER, 0,
-                                'customerId', null),
-                        new WorkflowCreationArgumentSource(3, WorkflowCreationArgumentSourceKind.INLINE_EXPRESSION, null,
-                                null, 'customerId + 1')
-                ]
-        ))
-
-        state.groovyConstructorInputTraces.add(new GroovyConstructorInputTrace(
-                'com.example.app.order.CreateOrderSpec',
-                'setup',
-                'setupSaga',
-                'com.example.app.order.coordination.CreateOrderFunctionalitySagas'
-        ))
-        state.groovyFullTraceResults.add(new GroovyFullTraceResult(
-                'com.example.app.order.CreateOrderSpec',
-                'setup',
-                'setupSaga',
-                GroovyTraceOriginKind.DIRECT_CONSTRUCTOR,
-                'new CreateOrderFunctionalitySagas(null, null)',
-                'com.example.app.order.coordination.CreateOrderFunctionalitySagas',
-                [new GroovyTraceArgument(0, 'null', new GroovyValueRecipe(GroovyValueKind.LITERAL, 'null', []))],
-                [new GroovyWorkflowCall('setupSaga.executeWorkflow(...)', 'when')],
-                [],
-                'setup -> new CreateOrderFunctionalitySagas(...)'
-        ))
-
-        when:
-        def report = state.formatHumanReadableReport()
-
-        then:
-        report.contains('Analysis Summary')
-        report.contains('Dispatch targets (1)')
-        report.contains('com.example.app.order.service.OrderService')
-        report.contains('Services (1)')
-        report.contains('placeOrder(com.example.app.order.commands.PlaceOrderCommand) [WRITE]')
-        report.contains('Command handlers (1)')
-        report.contains('GetOrderCommand -> OrderCommandHandler')
-        report.contains('Sagas (1)')
-        report.contains('placeOrderStep')
-        report.contains('PlaceOrderCommand -> Order [WRITE, FORWARD, SINGLE x1]')
-        report.contains('Saga creation sites (1)')
-        report.contains('OrderFunctionalitiesFacade.createOrder() -> CreateOrderFunctionalitySagas')
-        report.contains('arg[2]: parameter #0 customerId')
-        report.contains('Groovy constructor-input traces (1)')
-        report.contains('CreateOrderSpec.setup() [binding=setupSaga] -> CreateOrderFunctionalitySagas')
-        report.contains('Groovy full traces (1)')
-        report.contains('setup -> new CreateOrderFunctionalitySagas(...)')
     }
 
     private static void configureParser(Path sourceRoot) {
