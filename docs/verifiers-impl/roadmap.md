@@ -126,7 +126,7 @@ A verifier-owned ScenarioExecutor now loads a complete v3 package and exactly on
 
 Current accounting distinguishes static recipe readiness from workload-level ScenarioExecutor materializability/admissibility. That policy gates eager FaultScenario generation but does not prove domain success. The saved 2026-07-20 Quizzes execution is pre-remediation historical evidence: its actual failure was unmarked service unavailability, which the old classifier incorrectly handled with fallback and survivor continuation. Under the current classifier it would run no fallback, stop the survivor, and hard-stop as `UNEXPECTED_EXECUTION_FAILURE / INCOMPLETE`. The saved artifact remains unchanged, and no post-remediation Quizzes domain-fallback smoke has been recorded.
 
-Generic execution is still not implemented. The supported path does not cover arbitrary/non-materializable package shapes, TCC execution, stream/gRPC/distributed parity, true parallel execution, compensation faults, delay/non-binary impairments, automatic recovery retries, impact scoring, GA search, or prioritization.
+Generic execution is still not implemented. The supported path does not cover arbitrary/non-materializable package shapes, TCC execution, stream/gRPC/distributed parity, true parallel execution, compensation faults, delay/non-binary impairments, automatic recovery retries, impact models beyond the first invariant-count baseline, GA search, or prioritization.
 
 Current static work prepares for the broader stage by preserving:
 
@@ -160,9 +160,20 @@ Potential signals:
 
 ### Current status
 
-Not implemented.
+Implemented as a first narrow baseline.
 
-This stage depends on executable generated scenarios and a repeatable way to collect execution results.
+The simulator emits a structured `INVARIANT_VIOLATION` only at the existing Saga write boundary where `Aggregate.verifyInvariants()` rejects a change. The original exception is rethrown unchanged. Normal ScenarioExecutor execution can install an attempt-scoped collector and write an optional `microservices-simulator.scenario-impact-report.v1` sidecar linked to the v4 execution attempt, WorkloadPlan, and FaultScenario.
+
+`ImpactV1 = invariantViolationCount`. Only completed `SUCCESS`, `COMPENSATED`, and `PARTIAL_COMPENSATED` executions are evaluated. Setup, infrastructure, compensation, dry-run, and report-write failures receive `NOT_EVALUATED` with a null count/score. Assigned faults, aborts, and successful compensation do not score independently.
+
+Dummyapp-labelled regression covers exact zero/one/multiple counts, finding order, attempt isolation, exception preservation, safe-compensation zero, invalid-run null, aliases, and package immutability. A real Quizzes stale-read/event interleaving produces exactly one generic invariant signal, while a persisted assigned-fault Quizzes execution is `COMPENSATED / EXACT` with ImpactV1 `0`.
+
+Remaining gaps:
+
+- the positive Quizzes interaction is not yet materializable as a persisted executable FaultScenario;
+- silent compensation/postcondition failures and final-state divergence are invisible;
+- compensation throws are not scored because transient/retryable failure is not automatically domain impact;
+- no weights, severities, latency/log/trace anomaly model, or GA fitness integration exists.
 
 ## Stage 4 — Local GA fault search
 
@@ -229,9 +240,9 @@ Dependencies:
 | Segment-compressed scheduling/accounting | Implemented static reduction | scheduler/accounting specs, dummyapp integration, Quizzes count-only comparison | Exact aggregate-instance binding and runtime semantic completeness remain separate |
 | Dynamic evidence + sidecar enrichment | Implemented v3 workload-linked sidecar; broad Quizzes counts historical | simulator hooks, verifier orchestrator, dummyapp package-immutability integration, historical 2026-06-30 Quizzes baseline | Fresh broad Quizzes v3 baseline; residual unmatched triage; stream/gRPC/distributed/TCC parity |
 | Quizzes orchestration smoke baseline | Implemented | 2026-06-29 full/default dynamic baseline in `current-state.md` / `evidence.md` | Refresh periodically and track exact/ambiguous/unmatched trends |
-| ScenarioExecutor | Implemented for one persisted materializable saga/local FaultScenario | `scenario-executor.md`, v4 executor specs, 2026-07-20 Quizzes compensation-interleaving smoke and package hashes | Better input materialization, broader workload shapes/runtime parity, reset orchestration, impact scoring |
+| ScenarioExecutor | Implemented for one persisted materializable saga/local FaultScenario | `scenario-executor.md`, v4 executor specs, 2026-07-20 Quizzes compensation-interleaving smoke and package hashes | Better input materialization, broader workload shapes/runtime parity, reset orchestration |
 | Behavior CSV generation | Not implemented | none | Decide whether adapter or canonical contract |
-| Impact scoring | Not implemented | none | Requires executable scenarios |
+| Impact scoring | Implemented: invariant-count ImpactV1 baseline | simulator invariant hook, executor impact specs, 2026-07-28 Quizzes positive/zero controls | Persist/replay a positive generated interaction; later add state/postcondition signals with evidence |
 | GA search | Not implemented | none | Requires impact scoring |
 | Bandit prioritization | Not implemented | none | Requires scenario-level rewards |
 
@@ -242,6 +253,6 @@ Dependencies:
 3. Improve event payload reconstruction and materialization/replay for event-origin inputs.
 4. Refresh a representative Quizzes dynamic-enrichment baseline against the v3 workload sidecar.
 5. Improve aggregate-instance key binding where it affects WorkloadPlan usefulness.
-6. Add first impact metrics before broadening runtime/search scope.
-7. Add local GA search over on-demand persisted vectors for a fixed WorkloadPlan.
-8. Add scenario prioritization after execution and impact scoring exist.
+6. Make representative harmful multi-Saga/event interactions persistable and executable so ImpactV1 can provide non-flat generated-scenario fitness.
+7. Add broader impact signals only with explicit positive/negative controls, then integrate local GA search over on-demand persisted vectors for a fixed WorkloadPlan.
+8. Add scenario prioritization after execution and impact scoring are useful at scenario scale.

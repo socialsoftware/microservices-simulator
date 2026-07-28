@@ -4,6 +4,91 @@ Last updated: 2026-07-28
 
 This page stores concrete validation results, metrics, and run references so [`current-state.md`](current-state.md) can stay readable. Treat this as an appendix: cite it when you need proof, not as the first-read narrative.
 
+## Generic invariant-impact baseline
+
+Verified on 2026-07-28. Production detection is application-independent: `SagaUnitOfWorkService.registerChanged` records one `INVARIANT_VIOLATION` when its existing `Aggregate.verifyInvariants()` call throws, then rethrows the identical exception. The optional executor sidecar evaluates `ImpactV1 = invariantViolationCount`; faults, aborts, and compensation outcomes are not separate score inputs.
+
+Focused simulator verification:
+
+```bash
+cd simulator
+mvn -Dtest=SagaUnitOfWorkServiceDynamicEvidenceTest,DynamicEvidenceRecorderTest,DynamicEvidenceAutoConfigurationTest test
+```
+
+Result: 30 tests, zero failures/errors/skips. Coverage includes zero/one/multiple exact signals, aggregate and Saga/step/fault-boundary context, identical exception propagation when recorder enablement or dispatch fails, no merge after rejection, scoped-recorder restoration, and the manifest's default invariant-event count.
+
+Focused verifier verification:
+
+```bash
+cd simulator && mvn -DskipTests -Dprotobuf.skip install
+cd ../verifiers
+mvn -Dtest=ScenarioExecutorSpec,ScenarioExecutorOrchestratorSpec,ScenarioExecutorWrapperSpec test
+```
+
+Result: 111 tests, zero failures/errors/skips. A dummyapp-labelled executor fixture drives a rejecting aggregate through the real `SagaUnitOfWorkService.registerChanged → Aggregate.verifyInvariants()` boundary and writes an evaluated sidecar with exactly one finding and score `1`. Separate controls prove ordered multiple counts, rejection of missing/mismatched/delayed-attempt signals, a fresh empty collector for a sequential attempt, evaluated zero for a realized assigned fault followed by successful no-work compensation, `NOT_EVALUATED` with null score for setup, infrastructure, dry-run, and report-write failure, CLI/wrapper/orchestrator propagation, absent-leaf symlink-parent alias protection, and byte-identical package artifacts. `ScenarioExecutionReport.v4` remains unchanged.
+
+Complete affected-module regression also passed: simulator 106 tests and verifier 595 tests, with zero failures/errors/skips.
+
+Real Quizzes positive control:
+
+```bash
+cd applications/quizzes
+mvn -Ptest-sagas -Dtest=AddParticipantAndUpdateStudentNameTest test
+```
+
+Result: 9 tests, zero failures/errors/skips. The existing feature `concurrent - add creator: add-s1; update; event; add-s2` reads stale creator state, applies the update/event, resumes AddParticipant, and reaches the application's declared invariant rejection. Its scoped evidence assertion observes exactly one event with:
+
+```text
+eventKind: INVARIANT_VIOLATION
+aggregateType: SagaTournament
+sourceMethod: SagaUnitOfWorkService.registerChanged
+verificationMethod: Aggregate.verifyInvariants
+functionality: AddParticipantFunctionalitySagas
+step: addParticipantStep
+```
+
+This is real Quizzes interaction evidence for the generic detector, not a generated ScenarioExecutor positive: the current persisted action model cannot schedule the prerequisite-heavy Saga/event interaction.
+
+Real Quizzes zero-impact Docker control:
+
+```bash
+MEDIUM_MEM_LIMIT=3g MEDIUM_MEM_RESERVATION=1g \
+PACKAGE_PATH=/reports/outcome2-helper-tracing/quizzes-20260727-180306-391/scenario-catalog-manifest.json \
+FAULT_SCENARIO_ID=142eccc9b6d9464439f9607061ff6c7a32109108d34a1ddc076e6bf8519ab71b \
+OUTPUT_PATH=/reports/generic-invariant-impact-baseline/execution-single-fault.json \
+IMPACT_OUTPUT_PATH=/reports/generic-invariant-impact-baseline/impact-single-fault.json \
+docker compose run --rm -e JAVA_TOOL_OPTIONS=-Xmx2g scenario-executor
+```
+
+An initial run at the Compose default 768 MiB limit exhausted the heap while loading the 27 MiB workload catalog and wrote no report or package artifact. The bounded rerun succeeded:
+
+```text
+executionAttemptId: 2556421e-7479-4b43-a54c-897b0f544956
+execution terminal/conformance: COMPENSATED / EXACT
+assigned fault slot: REALIZED
+impact schema/model: microservices-simulator.scenario-impact-report.v1 / ImpactV1
+impact evaluation: EVALUATED
+invariantViolationCount / impactScore: 0 / 0
+findings: []
+```
+
+Artifacts:
+
+```text
+verifiers/target/generic-invariant-impact-baseline/execution-single-fault.json
+verifiers/target/generic-invariant-impact-baseline/impact-single-fault.json
+```
+
+All five package hashes were unchanged before and after execution:
+
+```text
+b557240f5b3ca91415a0d3d7d95e4357c8aa23024cf59fb4e2ce0165c969b1bf  workload-catalog.jsonl
+5481e2e515efc6817024e8afafca05a3c001828ec73bab2e19c1115fed544d3a  fault-scenario-catalog.jsonl
+395aebce8bb5b0ec1b790f341045c2b4b6e83191f9a75ad965e70104c5dd231c  scenario-space-accounting.json
+37671daa3fe80f4ae9c681441ed53409df6469912c13f40990707a5690f58a19  workload-catalog-rejected-inputs.jsonl
+8553999ff3ba9f06043ff6daedf91d57f6c83e76d666b3054ff2e29b0f8498f9  scenario-catalog-manifest.json
+```
+
 ## Setup materializability and helper-fidelity accuracy
 
 Verified on 2026-07-27 against a refreshed single-saga Quizzes package after adding caller-to-helper argument substitution and ordered helper DTO mutation capture.

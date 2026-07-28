@@ -20,7 +20,8 @@ Supported now:
 - immediate checkpoint recovery and survivor continuation only when an unassigned zero-bit failure carries the explicit simulator `DomainFailure` marker;
 - first-failure hard stops for executor/infrastructure failures and thrown compensation actions;
 - dry-run package/selection/mapping checks;
-- standalone v4 action-aware execution reports without package mutation.
+- standalone v4 action-aware execution reports without package mutation;
+- optional standalone ImpactV1 sidecar counting generic Saga aggregate-invariant rejections for one attempt.
 
 Not supported:
 
@@ -30,7 +31,7 @@ Not supported:
 - compensation fault slots, delays, or non-binary impairments;
 - automatic compensation retries, retry counts, or backoff;
 - repeated same-participant runtime step names until Saga/local execution and recovery state is occurrence-aware;
-- generic reset, all-zero qualification, replayability registries, impact scoring, batch search, or prioritization.
+- generic reset, all-zero qualification, replayability registries, impact models beyond invariant-count ImpactV1, batch search, or prioritization.
 
 ## Required v3 package
 
@@ -61,10 +62,11 @@ java -cp <target-app-classpath>:<verifiers-classes-or-jar> \
   --package-path <run-dir>/scenario-catalog-manifest.json \
   --fault-scenario-id <persisted-fault-scenario-id> \
   --output-path <report-dir>/scenario-execution-report.json \
+  [--impact-output-path <report-dir>/scenario-impact-report.json] \
   [--dry-run]
 ```
 
-`--package-path`, `--fault-scenario-id`, and `--output-path` are required. There is no `--fault-vector` option: persist the required vector as a FaultScenario before execution. The direct Java CLI accepts either the manifest path or its containing package directory.
+`--package-path`, `--fault-scenario-id`, and `--output-path` are required. `--impact-output-path` is optional and writes a sidecar without changing the v4 report or package. There is no `--fault-vector` option: persist the required vector as a FaultScenario before execution. The direct Java CLI accepts either the manifest path or its containing package directory.
 
 ### Optional setup preflight
 
@@ -84,7 +86,7 @@ Before Spring setup begins for any candidate, the executor requires exactly one 
 
 Saga constructor invocation preserves ordinary Java reflection behavior first, including unboxing, primitive widening, directly compatible overload preference, continued overload search after an incompatible argument list, and constructor-body failure propagation. Only when no public constructor is directly invocable does the executor retry the same deterministic constructor search with typed numeric restoration. The retry converts numeric values only to `byte`/`Byte`, `short`/`Short`, `int`/`Integer`, `long`/`Long`, or `BigInteger`, and only when the value is mathematically integral and inside the target range. It rejects overflow, fractional or non-finite values, null targeting a primitive, string parsing, boolean/character conversion, floating-point targets, custom numeric types, and every other unsupported coercion. Rejection diagnostics identify the argument index, persisted type/value where applicable, target type, and reason. This invocation-only conversion does not alter package schemas, static candidates, deterministic ids, or package bytes.
 
-`SETUP_READY` means every participant's exact persisted tuple materialized and every exact Saga started; this is the executor materializability result for that attempt. `MATERIALIZATION_FAILED` and `STARTUP_FAILED` identify the failed setup stage and expose a false positive from the static candidate gate with participant/input blockers. This result does not predict whether an all-zero, domain-failing, or faulty run will complete. Normal execution needs no separate preflight because it automatically uses the same setup operation before replay. `--preflight` cannot be combined with `--fault-scenario-id` or `--dry-run`; dry-run keeps its existing package/selection/mapping-only meaning. Explicit CLI values for `--preflight` and `--dry-run`, and wrapper values for `PREFLIGHT` and `DRY_RUN`, must be exact lowercase `true` or `false`; other values are rejected before application startup/build work.
+`SETUP_READY` means every participant's exact persisted tuple materialized and every exact Saga started; this is the executor materializability result for that attempt. `MATERIALIZATION_FAILED` and `STARTUP_FAILED` identify the failed setup stage and expose a false positive from the static candidate gate with participant/input blockers. This result does not predict whether an all-zero, domain-failing, or faulty run will complete. Normal execution needs no separate preflight because it automatically uses the same setup operation before replay. `--preflight` cannot be combined with `--fault-scenario-id`, `--dry-run`, or `--impact-output-path`; impact is defined for one execution attempt, not a setup-preflight batch. Dry-run keeps its existing package/selection/mapping-only meaning. Explicit CLI values for `--preflight` and `--dry-run`, and wrapper values for `PREFLIGHT` and `DRY_RUN`, must be exact lowercase `true` or `false`; other values are rejected before application startup/build work.
 
 ## Docker Compose runner
 
@@ -100,6 +102,7 @@ Optional environment:
 - `PREFLIGHT=true` — run the one-context setup preflight instead of one FaultScenario;
 - `DRY_RUN=true` — preserve the existing one-FaultScenario package/selection/mapping-only dry run; it cannot be combined with preflight;
 - `OUTPUT_PATH` — report path; the Compose service defaults to `/reports/scenario-executor/execution-report.json`, so set an explicit setup-preflight path for this mode;
+- `IMPACT_OUTPUT_PATH` — optional ImpactV1 sidecar path for normal execution; it cannot be supplied with `PREFLIGHT=true`;
 - `APPLICATION_BASE_DIR`, `SPRING_APPLICATION_CLASS`, `MAVEN_PROFILE`, `SPRING_PROFILES`, `SERVER_PORT` — target/runtime overrides.
 
 Validated Quizzes compensation-interleaving example:
@@ -185,7 +188,20 @@ Conformance values:
 
 Zero-exit terminal statuses are `SUCCESS`, `COMPENSATED`, `PARTIAL_COMPENSATED`, and `DRY_RUN`. Selection, materialization, startup, provider, infrastructure, compensation, configuration, and report-write failures are non-zero outcomes. Package/CLI preflight errors may terminate before a persisted report can be written.
 
-Execution reports must not alias any package artifact. Normal and deviated execution leave all five semantic package files byte-identical.
+Execution reports and impact sidecars must not alias package artifacts or each other. Normal and deviated execution leave all five semantic package files byte-identical.
+
+## ImpactV1 sidecar
+
+When `--impact-output-path` / `IMPACT_OUTPUT_PATH` is supplied, the executor installs one process-scoped dynamic-evidence wrapper for the duration of setup and replay; concurrent/nested scoped wrappers are rejected. The wrapper delegates every event to the recorder that was already installed and restores the original recorder without closing it. Its collector retains only `INVARIANT_VIOLATION` events whose fault-boundary `executionAttemptId` and `workloadPlanId` match the selected attempt, so missing, delayed prior-attempt, and unrelated background signals do not score. The simulator emits that event only when the existing `Aggregate.verifyInvariants()` invocation in `SagaUnitOfWorkService.registerChanged` throws; it records aggregate, exception, Saga/step/test, and available fault-boundary context before rethrowing the identical exception. Runtime failures in recorder enablement, event construction, or event dispatch are swallowed so instrumentation cannot replace that domain exception.
+
+`microservices-simulator.scenario-impact-report.v1` contains:
+
+- `impactModel = ImpactV1`;
+- `evaluationStatus` and `notEvaluatedReason`;
+- execution-attempt, WorkloadPlan, and FaultScenario ids;
+- `invariantViolationCount`, `impactScore`, and ordered structured findings.
+
+For `SUCCESS`, `COMPENSATED`, and `PARTIAL_COMPENSATED`, both numeric fields equal the finding count. All other terminal outcomes are `NOT_EVALUATED` and keep both numeric fields null, even if diagnostic findings were captured before the invalid outcome. A realized fault, Saga abort, compensation action, or successful rollback contributes zero unless the application's invariant contract actually rejected a write. ImpactV1 does not detect silent compensation errors, postcondition failures, or final-state divergence, and it does not score compensation exceptions.
 
 ## Dynamic evidence boundary
 

@@ -6,7 +6,7 @@ This is the present-tense status page for verifier/scenario-generation work. Det
 
 ## One-paragraph summary
 
-The verifier extracts saga-oriented structure and test-derived inputs, generates a deterministic compensation-aware v3 package, and can optionally attach runtime evidence as workload-linked sidecars. The package separates reusable `WorkloadPlan` records from executable `FaultScenario` records: eager generation writes all-zero and single-point vectors for statically eligible setup candidates, while a guarded on-demand path persists arbitrary valid multi-fault vectors. A narrow saga/local ScenarioExecutor either preflights those candidates through one shared application context or replays one persisted FaultScenario and writes an action-aware v4 report. Generic/distributed execution, impact scoring, GA search, and prioritization remain future work.
+The verifier extracts saga-oriented structure and test-derived inputs, generates a deterministic compensation-aware v3 package, and can optionally attach runtime evidence as workload-linked sidecars. The package separates reusable `WorkloadPlan` records from executable `FaultScenario` records: eager generation writes all-zero and single-point vectors for statically eligible setup candidates, while a guarded on-demand path persists arbitrary valid multi-fault vectors. A narrow saga/local ScenarioExecutor either preflights those candidates through one shared application context or replays one persisted FaultScenario and writes an action-aware v4 report. Its optional first impact sidecar implements `ImpactV1 = invariantViolationCount` from generic Saga aggregate-invariant signals. Generic/distributed execution, broader impact models, GA search, and prioritization remain future work.
 
 ## Current scope
 
@@ -26,6 +26,8 @@ Implemented:
 - Optional workload-linked dynamic-evidence sidecars that leave semantic package bytes unchanged.
 - Optional one-context ScenarioExecutor batch setup preflight of manifest-declared candidates, sharing exact argument materialization and Saga startup with normal execution and running no workflow actions.
 - Narrow saga/local ScenarioExecutor replay of one persisted FaultScenario, including zero-bit fallback and hard-stop policy.
+- Generic structured `INVARIANT_VIOLATION` recording at the existing Saga aggregate-write invariant boundary, preserving the original exception.
+- Optional attempt-scoped `microservices-simulator.scenario-impact-report.v1` sidecar implementing `ImpactV1 = invariantViolationCount`, with invalid execution outcomes reported as not evaluated and null score.
 - HTML analysis report and Docker Compose generation/test/executor services.
 
 Main targets:
@@ -40,7 +42,7 @@ Non-goals/current exclusions:
 - Quizzes-specific verifier shortcuts.
 - Runtime vector overlays or behavior CSV as the executor contract.
 - Dynamic evidence rewriting WorkloadPlans or FaultScenarios.
-- Compensation faults, automatic recovery retry/backoff, impact scoring, GA search, or prioritization.
+- Compensation faults, automatic recovery retry/backoff, broader impact/state-divergence scoring, GA search, or prioritization.
 
 ## v3 scenario package
 
@@ -111,6 +113,8 @@ Supported setup and execution semantics:
 
 The action-aware report schema is `microservices-simulator.scenario-execution-report.v4`. It includes planned and actual action order, runtime occurrence/source ids, body and commit outcomes, recovery sub-outcomes, fault origin, fault-slot realization/masking, lifecycle events, participant final state, blockers, and `EXACT` / `DEVIATED` / `INCOMPLETE` conformance when measured execution begins.
 
+Normal execution may additionally request a standalone `microservices-simulator.scenario-impact-report.v1` sidecar. A process-scoped recorder wrapper is installed only for the attempt, delegates all events to the pre-existing recorder, and restores that recorder afterward. Its collector admits only structured `INVARIANT_VIOLATION` events whose fault-boundary execution-attempt and WorkloadPlan ids match the selected run, rejecting missing, stale, or unrelated signals. `ImpactV1` counts those admitted findings exactly once. `SUCCESS`, `COMPENSATED`, and `PARTIAL_COMPENSATED` are evaluated; selection/setup/infrastructure/compensation/dry-run/report-write failures are not evaluated and carry null count/score. Assigned faults, aborts, and successful compensation do not score by themselves. The v4 report and five-file v3 package remain unchanged.
+
 `QuizzesException` business/invariant failures and the Saga/local transactional `SimulatorDomainException` carry the explicit marker. `QuizzesConfigurationException`, including every undefined-transactional-model failure, is unmarked. Base-class membership is deliberately insufficient: extending `SimulatorException` does not by itself make a failure a domain outcome. Supported local command-response restoration preserves the exact supported exception class, its template, and its formatted message.
 
 `SETUP_READY` proves only that setup succeeded in that runtime. It does not predict whether an all-zero, domain-failing, or faulty execution will complete. Normal execution does not require a separate preflight because it automatically uses the same setup path.
@@ -147,6 +151,24 @@ forward/fault/compensation/commit actions: 0
 The 82 setup-ready workloads comprise 76 `CreateUserFunctionalitySagas`, four `GetCourseExecutionsFunctionalitySagas`, one `GetCourseExecutionByIdFunctionalitySagas`, and one `FindQuizFunctionalitySagas` workload. The last two now start because the executor converts their persisted `BigInteger` values to the constructor-required `Integer` values at the typed invocation boundary after ordinary reflection finds no compatible constructor. Conversion is exact and range-checked; no package schema, static candidate, deterministic-id, or application-default behavior changed. All 164 generated FaultScenarios reference these setup-ready workloads. The report was written outside the package, and all five preflight-baseline SHA-256 values remained byte-identical.
 
 This refresh deliberately does not execute an all-zero or faulty batch. Setup materializability and actual execution outcomes remain separate. Two targeted `GetCourseExecutionsFunctionalitySagas` runs confirm the normal boundary: all-zero FaultScenario `564dc9b5...` completed `SUCCESS / EXACT`, while single-fault FaultScenario `142eccc9...` realized its assigned fault and completed `COMPENSATED / EXACT`. Their reports are `execution-all-zero.json` and `execution-single-fault.json` beside the preflight report; package hashes remained unchanged.
+
+### Generic invariant-impact baseline
+
+Verified 2026-07-28:
+
+- simulator regression records zero, one, and multiple exact invariant rejections, keeps context/aggregate/exception fields, restores scoped recorders, and rethrows the identical domain exception even when recorder enablement or event dispatch fails;
+- verifier dummyapp-labelled executor fixtures drive one write through the real `registerChanged → verifyInvariants()` boundary and prove evaluated score `1`; separate controls prove ordered multiple counts, correlation admission, sequential-attempt isolation, score zero for a realized assigned fault with successful no-work compensation, null score for invalid outcomes, output alias protection, and unchanged package hashes;
+- the real Quizzes stale-read feature `concurrent - add creator: add-s1; update; event; add-s2` records exactly one `SagaTournament` invariant rejection at `AddParticipantFunctionalitySagas.addParticipantStep`;
+- a Docker replay of persisted Quizzes FaultScenario `142eccc9...` remains `COMPENSATED / EXACT`, realizes its assigned fault, and writes evaluated ImpactV1 score `0` with no findings.
+
+Artifacts:
+
+```text
+execution: verifiers/target/generic-invariant-impact-baseline/execution-single-fault.json
+impact:    verifiers/target/generic-invariant-impact-baseline/impact-single-fault.json
+```
+
+All five source-package SHA-256 values remained unchanged. The positive Quizzes interaction is existing realistic test evidence for the generic detector; current generated inputs/actions still cannot persist and replay its prerequisite-heavy Saga/event schedule through ScenarioExecutor.
 
 ### Bounded Quizzes v3 package and execution
 
@@ -192,8 +214,8 @@ Artifacts:
 
 ### Regression validation
 
-- Complete simulator Maven suite passed.
-- Complete verifier Maven suite passed with 587 tests after exact integral constructor restoration; focused executor regression passed with 105 tests.
+- Complete simulator Maven suite passed with 106 tests after the generic invariant hook and review hardening.
+- Complete verifier Maven suite passed with 595 tests after ImpactV1 integration; focused executor regression passed with 111 tests.
 - Docker `fault-analysis-scenario-gen-test` passed.
 - Focused high-cardinality recovery accounting passed with exact count and bounded traversal assertions.
 
@@ -211,6 +233,7 @@ See [`evidence.md`](evidence.md) for commands and totals.
 - Dynamic enrichment is local/sagas-focused; no fresh full Quizzes v3 dynamic baseline has been recorded.
 - No current post-remediation Quizzes smoke demonstrates an explicitly marked zero-bit domain fallback. The saved smoke predates explicit classification and encountered unmarked service unavailability, which current execution would treat as an infrastructure hard stop.
 - Persistent-environment reset is caller/orchestrator responsibility.
+- ImpactV1 observes only thrown Saga aggregate invariant rejections. It does not detect silent compensation/postcondition errors or final-state divergence, and the positive Quizzes stale-read interaction is not yet a persisted executable FaultScenario.
 
 ## Not implemented
 
@@ -219,7 +242,7 @@ See [`evidence.md`](evidence.md) for commands and totals.
 - Compensation faults, delay injection, or non-binary impairments.
 - Automatic compensation retries.
 - Behavior CSV generation from v3 package records.
-- Domain-impact scoring, genetic/local search, or scenario prioritization.
+- Compensation/state-divergence/postcondition impact models beyond ImpactV1, genetic/local search, or scenario prioritization.
 - Semantic deduplication of value-equivalent inputs.
 - Profile-aware resolution for ambiguous multiple `@Service` implementations.
 
@@ -230,4 +253,5 @@ See [`evidence.md`](evidence.md) for commands and totals.
 3. Classify the remaining Quizzes sagas without accepted inputs.
 4. Refresh a representative Quizzes dynamic-enrichment baseline against the workload-linked v3 sidecar contract.
 5. Improve aggregate-instance key binding where it affects WorkloadPlan usefulness.
-6. Add first domain-impact metrics before introducing search/prioritization.
+6. Make representative harmful multi-Saga/event interactions persistable and executable before using ImpactV1 as GA fitness.
+7. Add broader impact signals only with discriminating positive/negative evidence before introducing search/prioritization.
