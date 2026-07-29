@@ -41,6 +41,11 @@ buries the semantic findings this skill exists to produce:
 If the structural review has not been run for this aggregate (no `{review-dir}review-{Aggregate}.md`
 exists), say so in the summary and continue anyway — but do not start reporting structural findings.
 
+A semantic defect whose offending code lives in **another aggregate's files** — the R4 write-only lock
+of Step 6 § Lock consumer reachability is the canonical case — is not a scope breach. It goes in the
+report's § Cross-Aggregate Observations, which is the sanctioned outlet, and carries no proof-test
+requirement. It must never appear in Action Items.
+
 ---
 
 ## Step 0: Anchor to the repository root
@@ -88,9 +93,12 @@ Read in a single parallel batch. Absent files are noted, not errors.
 
 ### 2.c — Consumers of this aggregate's events (for Family E)
 
-If this aggregate publishes events:
-`grep -rln "{Aggregate}" {tgt-src}*/notification/subscribe/` and read every hit, plus the
-corresponding `*EventHandling.java`. The payload contract is only checkable against its consumers.
+Read `{app-name}-aggregate-grouping.md` § 4 and collect the event names whose **Publisher** is
+`{Aggregate}`. If that set is empty, this aggregate publishes nothing and Family E is N/A — stop here.
+Otherwise grep `{tgt-src}` for each event class name (not the aggregate name — an aggregate name that is
+a prefix of another's, e.g. `Course` inside `CourseExecution`, produces false hits in both directions)
+and read every subscription file plus the corresponding `*EventHandling.java`. The payload contract is
+only checkable against its consumers.
 
 ### 2.d — Docs (the standard being enforced)
 
@@ -135,6 +143,12 @@ enforced by the compiler and need no attack):
 |------|-----------|-------------------------------|-----------------|----------|----------|-----------|---------|
 
 Verdict: `Sound` / `Candidate defect`. Every `Candidate defect` goes to Step 9.
+
+If every P1 rule on this aggregate is a Java-`final` field rule, state that Family A is vacuous by
+construction and record the residual check instead: for each such field, confirm it is declared `final`,
+that no setter exists, and that the copy constructor assigns the value across (`this.x = other.getX()`)
+rather than reconstructing or defaulting it. That is the whole attack surface; say so rather than leaving
+the table empty without explanation.
 
 ---
 
@@ -198,7 +212,7 @@ Check each against this aggregate's files. Quote the offending line or write "no
 | R1 | `aggregateLoadAndRegisterRead(...)` in `{Aggregate}Service` is called only with IDs of `{Aggregate}` itself. Any call taking an ID sourced from another aggregate's DTO is a violation. |
 | R2 | `{Aggregate}Service` injects only `{Aggregate}Repository`, `{Aggregate}CustomRepository`, `{Aggregate}Factory`, `UnitOfWorkService`, `AggregateIdGeneratorService`. Any foreign service, repository, or factory is a violation. |
 | R3 | No foreign concrete aggregate type (`Saga{Other}`, `{Other}`) appears in any `{Aggregate}Service` signature, field, or local variable. Foreign `{Other}Dto` is allowed. |
-| R4 | Every saga step that mutates an aggregate declares `setForbiddenStates(...)`. Cross-check which steps need `SagaCommand` wrapping versus `setForbiddenStates` using `docs/concepts/sagas.md` § R4 Decision Table. |
+| R4 | Classify each step that mutates an aggregate as primary or foreign per `docs/concepts/sagas.md` § R4 Decision Table. Primary (the aggregate owning this saga) → the preceding lock step must use `SagaCommand` + `setSemanticLock`, and the mutating step sends a plain unwrapped command. Foreign (upstream aggregate touched by a cross-aggregate step) → the step itself must declare `setForbiddenStates([...])`. A primary mutation step with no `setForbiddenStates` is not a violation. |
 | R5 | `{Aggregate}.getEventSubscriptions()` subscribes only to events published by aggregates **strictly upstream** of `{Aggregate}` (see § Deciding "upstream" below). A subscription to a downstream aggregate's event is a violation, and so is a subscription to `{Aggregate}`'s **own** events — `docs/architecture.md` R5 forbids the publisher subscribing to itself. |
 | R6 | `verifyInvariants()` contains no repository call, no `Optional` lookup, no injected-service call. It may read only fields already on the instance. |
 | R7 | No saga step or functionality mutates a DTO received from a `Get*Command`. Look for setter calls on a DTO local. |
@@ -208,6 +222,17 @@ Check each against this aggregate's files. Quote the offending line or write "no
 |-------------|--------|------------------------------------|
 
 Status: `Conforms` / `Candidate violation` / `N/A`.
+
+### Lock consumer reachability (R4, cross-aggregate)
+
+For each value in `{Aggregate}SagaState`, search the **whole application** for a `setForbiddenStates`
+that references it:
+`rg "setForbiddenStates" -A 3 {tgt-src} | rg "{Aggregate}SagaState"`.
+A state no step anywhere forbids is a **write-only lock**: acquired, persisted, released, never
+consulted, and enforcing nothing. Name the aggregates whose foreign-aggregate step should consult it
+(the downstream consumers in the grouping §3 DAG that read `{Aggregate}`), and state the concrete
+interleaving the missing guard permits. This is a finding against *those* aggregates, not this one —
+record it under § Cross-Aggregate Observations, not in Action Items.
 
 ### Deciding "upstream" (R5 and R8)
 
@@ -226,6 +251,10 @@ real R5/R8 violations between unrelated aggregates.
 
 State the path you found (`U → X → {Aggregate}`) as the evidence for a `Conforms` verdict, and the
 absence of any path as the evidence for a `Candidate violation`.
+
+If `{Aggregate}` has no ancestor in the DAG (it is a source — only outbound edges), an empty
+`getEventSubscriptions()` is `Conforms`, not `N/A`: the empty set is the only conforming value, and any
+non-empty set is a violation. Cite the absence of inbound edges as the evidence.
 
 R5 and R8 violations are candidate defects but are often not provable by a unit test (they are
 structural coupling defects). Where no failing test is possible, record them under **Spec
@@ -282,17 +311,22 @@ For every `Candidate defect` from Families A-E, write a test that fails against 
 
 Create `{proof-test}` if it does not exist. Structure it like any T1/T2 test
 (`docs/concepts/testing.md`): `@DataJpaTest @Transactional @Import(LocalBeanConfiguration)`, inner
-`LocalBeanConfiguration extends BeanConfigurationSagas`.
+`@TestConfiguration static class LocalBeanConfiguration extends BeanConfigurationSagas` — the inner
+class must carry `@TestConfiguration` or the context will not wire (`docs/concepts/testing.md`).
 
 ```groovy
 package pt.ulisboa.tecnico.socialsoftware.{pkg}.sagas.adversarial.{aggregate}
 
+import org.springframework.boot.test.context.TestConfiguration
 import spock.lang.PendingFeature   // spock-core 2.4-M6; verified present. Unused until Step 10.c.
 
 @DataJpaTest
 @Transactional
 @Import({Aggregate}AdversarialTest.LocalBeanConfiguration)
 class {Aggregate}AdversarialTest extends {AppClass}SpockTest {
+
+    @TestConfiguration
+    static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 
     // Finding A1 — <one-line defect statement>
     // Expected per <source doc/rule>: <what should happen>
@@ -301,8 +335,6 @@ class {Aggregate}AdversarialTest extends {AppClass}SpockTest {
     def "A1: <scenario>"() {
         ...
     }
-
-    static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 }
 ```
 
@@ -320,6 +352,13 @@ Rules for proof tests:
 
 ## Step 10: Run, Prune, Quarantine
 
+### 10.0 — Zero-candidate path
+
+If Families A-E produced no candidate defect: write no test file, create no `{proof-test-dir}`, skip
+10.a and 10.b entirely, and run the full suite once per `.claude/skills/_shared/conventions.md`
+§ "Run the test suite" (no `-Dtest=` narrowing) to satisfy Hard Rule 7. Record `MAVEN_EXIT` and the
+surefire totals for Step 12, then continue to Step 11.
+
 ### 10.a — Run and observe
 
 Follow `.claude/skills/_shared/conventions.md` § "Run the test suite", narrowing with
@@ -331,10 +370,10 @@ block's script prints.
 
 ### 10.b — Prune
 
-**A test that passes disproves its finding.** Delete the test method and drop the finding entirely. Do
-not downgrade it to "possible issue", do not carry it into the report as a caveat, do not mention it.
-The whole point of the proof requirement is that unprovable suspicions cost nothing to emit and are
-therefore worthless.
+**A test that passes disproves its finding.** Delete the test method and drop the finding as a finding.
+Do not downgrade it to "possible issue", do not carry it into the report as a caveat. Record it in
+§ Dismissed Candidates with stage `test-passed` and nowhere else. The whole point of the proof
+requirement is that unprovable suspicions cost nothing to emit and are therefore worthless.
 
 A test that fails to *compile* proves nothing either. Fix the test; if it cannot be made to compile
 because the scenario it describes is not expressible, the finding is dropped.
@@ -357,8 +396,9 @@ before writing the report.
 Record the observed `MAVEN_EXIT` and the totals — Step 12's Build Result section reports these
 numbers, not a `BUILD SUCCESS` string scraped from stdout.
 
-If there are zero surviving findings, delete `{proof-test}` and the `{proof-test-dir}` directory
-entirely. Do not leave an empty test class behind.
+If a `{proof-test}` was written but pruning in 10.b emptied it of surviving findings, delete
+`{proof-test}` and the `{proof-test-dir}` directory entirely. Do not leave an empty test class behind.
+(The case where no test file was ever created is Step 10.0, not this one.)
 
 ---
 
@@ -370,9 +410,17 @@ For each surviving finding, tag it:
 - **New** — not mentioned in the structural review
 - **Overlaps** — the structural review raised the same underlying issue (cite its action-item row)
 - **Contradicts** — the structural review marked this specific thing `Correct`
+- **Stale** — the structural review's claim about this code no longer matches source (it describes a
+  prior revision)
+
+Before tagging, spot-check two or three of the structural review's quoted snippets against current
+source. If its quotes do not match, say so in the summary and treat its verdicts as void rather than as
+agreement. A stale review is worth reporting on its own — it means the review corpus has drifted from
+the code, and this is the cheapest place in the workflow to detect that.
 
 `Contradicts` findings are the most valuable output of this skill: they are exactly the cases where a
-shape check passed something semantically wrong. Call them out in the summary.
+shape check passed something semantically wrong. Call them out in the summary. `Stale` is a different
+thing and must not dilute them.
 
 ---
 
@@ -387,9 +435,10 @@ Write `{report}`. Create `{review-dir}` if needed. Never omit a section — writ
 **Aggregate:** {Aggregate} (aggregate #{N} in plan.md)
 **Date:** {today}
 **Verdict:** Green | Yellow | Red
-**Proof tests:** {count} written, {count} confirmed failing, {count} pruned
+**Proof tests:** {count} written, {count} confirmed failing, {count} dismissed
 
-> **Green** = no confirmed defects. Spec disagreements may still be listed.
+> **Green** = no confirmed defects. Spec disagreements and cross-aggregate observations may still be
+> listed.
 > **Yellow** = confirmed defects, none of which can corrupt persisted state or bypass an invariant.
 > **Red** = at least one confirmed defect that bypasses an invariant, leaks a lock, corrupts state,
 > or starves a consumer.
@@ -418,6 +467,15 @@ named.)
 
 ---
 
+## Cross-Aggregate Observations (unproven by design)
+
+(Defects whose offending code lives in another aggregate's files, found while attacking this one.
+Exempt from the proof-test requirement on the same footing as R5/R8 and Family F — a single
+aggregate's scope cannot express the test. Name the owning aggregate and the check that should catch it
+there. Never in Action Items.)
+
+---
+
 ## Proof Tests
 
 | ID | Test name | Defect | Failure output (verbatim) | Overlap tag |
@@ -425,12 +483,15 @@ named.)
 
 ---
 
-## Pruned Candidates
+## Dismissed Candidates
 
-| ID | Hypothesis | Why it was dropped |
-|----|-----------|--------------------|
+| ID | Hypothesis | Stage | Why it was dropped |
+|----|-----------|-------|--------------------|
 
-(Candidates whose proof test passed. Listing them is not a caveat list — it is evidence the protocol
+`Stage` is `traced` (died during Families A-E, no test written) or `test-passed` (test written, ran,
+passed — the Step 10.b case).
+
+(Candidates dismissed at either stage. Listing them is not a caveat list — it is evidence the protocol
 ran. These are NOT findings and must not appear in Action Items.)
 
 ---
@@ -466,7 +527,7 @@ ran. These are NOT findings and must not appear in Action Items.)
 2. Verdict and one-sentence justification
 3. Every confirmed defect, one line each, with its proof-test ID
 4. Any `Contradicts` findings called out explicitly
-5. Count of pruned candidates
+5. Count of dismissed candidates
 6. Build result — the observed `MAVEN_EXIT` and surefire totals (must be green)
 
 ---
@@ -489,8 +550,10 @@ Never tick on the strength of this skill alone.
 ## Hard Rules
 
 1. **No finding without a failing proof test.** Families A-E only. A candidate whose test passes, or
-   cannot be expressed as a test, is dropped — not softened, not caveated, not mentioned in Action
-   Items. Families D-R5/R8 and F are the only exceptions and must be labelled unproven.
+   cannot be expressed as a test, is dropped **as a finding**: record it in § Dismissed Candidates with
+   its stage (`traced` or `test-passed`) and its reason, never in Action Items. Do not soften a
+   dismissal into a caveat or a "possible issue". Families D-R5/R8, F, and § Cross-Aggregate
+   Observations are the only exceptions and must be labelled unproven.
 2. **Zero findings is a valid and expected outcome.** Do not manufacture findings to fill a table. A
    report that says "nothing confirmed, here is what was attacked" is a successful run. Padding the
    report with speculation is a worse failure than missing a defect, because it destroys the signal
