@@ -1,6 +1,6 @@
 ---
 name: boot-strap
-description: Bootstrap a new microservices-simulator application (Phase 0). Creates pom.xml, exception classes, BeanConfigurationSagas.groovy, and Spock test base classes from the checked-in scaffold templates. Invoke with /boot-strap <App Name> (e.g., /boot-strap quizzes-full).
+description: Bootstrap a new microservices-simulator application (Phase 0). Creates pom.xml, the {AppClass}Simulator entry point, exception classes, BeanConfigurationSagas.groovy, and Spock test base classes from the checked-in scaffold templates. Invoke with /boot-strap <App Name> (e.g., /boot-strap quizzes-full).
 argument-hint: "<App Name>"
 ---
 
@@ -44,16 +44,17 @@ The argument must be kebab-case (lowercase with hyphens).
 
 ### Step 2: Read Template Files
 
-Read all eight templates from `.claude/skills/boot-strap/templates/`:
+Read all nine templates from `.claude/skills/boot-strap/templates/`:
 
 1. `pom.xml.template`
 2. `application.yaml.template`
 3. `application-test.yaml.template`
-4. `AppException.java.template`
-5. `AppErrorMessage.java.template`
-6. `SpockTest.groovy.template`
-7. `BeanConfigurationSagas.groovy.template`
-8. `AppSpockTest.groovy.template`
+4. `AppSimulator.java.template`
+5. `AppException.java.template`
+6. `AppErrorMessage.java.template`
+7. `SpockTest.groovy.template`
+8. `BeanConfigurationSagas.groovy.template`
+9. `AppSpockTest.groovy.template`
 
 `templates/README.md` documents the token vocabulary and how the templates are maintained.
 
@@ -67,6 +68,7 @@ applications/{app-name}/
 └── src/
     ├── main/
     │   ├── java/pt/ulisboa/tecnico/socialsoftware/{pkg}/
+    │   │   ├── {AppClass}Simulator.java
     │   │   └── microservices/exception/
     │   │       ├── {AppClass}Exception.java
     │   │       └── {AppClass}ErrorMessage.java
@@ -92,6 +94,7 @@ Phase 2` marker comments (Phase 2 relies on them as insertion points).
 | `pom.xml.template` | `pom.xml` |
 | `application.yaml.template` | `src/main/resources/application.yaml` |
 | `application-test.yaml.template` | `src/main/resources/application-test.yaml` |
+| `AppSimulator.java.template` | `src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/{AppClass}Simulator.java` |
 | `AppException.java.template` | `src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/microservices/exception/{AppClass}Exception.java` |
 | `AppErrorMessage.java.template` | `src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/microservices/exception/{AppClass}ErrorMessage.java` |
 | `SpockTest.groovy.template` | `src/test/groovy/pt/ulisboa/tecnico/socialsoftware/SpockTest.groovy` |
@@ -101,7 +104,29 @@ Phase 2` marker comments (Phase 2 relies on them as insertion points).
 Note that `SpockTest.groovy` lands in the **parent** package folder (`.../socialsoftware/`), not
 under `{pkg}/` — its package declaration is `pt.ulisboa.tecnico.socialsoftware`.
 
-### Step 5: Verify and Confirm
+### Step 5: Give the New App the Machine-Local Maven Settings
+
+Maven is invoked per-app, so each app carries its own untracked `.mvn/maven.config` pointing at the
+developer's settings file. Without it the very first `mvn` run fails resolving plugins from whatever
+mirror `~/.m2/settings.xml` names — an error that looks like a scaffold bug but is not. This file is
+machine config, so it is copied from a sibling app rather than templated:
+
+```bash
+src=$(ls -d applications/*/.mvn 2>/dev/null | grep -v "applications/{app-name}/" | head -1)
+if [ -n "$src" ]; then
+  mkdir -p applications/{app-name}/.mvn
+  cp "$src/maven.config" applications/{app-name}/.mvn/
+  echo "/applications/{app-name}/.mvn/maven.config" >> .git/info/exclude
+fi
+```
+
+`.git/info/exclude` lists these paths one app at a time, so the new app's entry must be appended —
+otherwise the file shows up as untracked and can be committed by accident.
+
+If no sibling app has one, skip this step; the developer's default `~/.m2/settings.xml` may already
+resolve. Never commit `.mvn/maven.config`.
+
+### Step 6: Verify and Confirm
 
 1. Assert no token survived substitution:
 
@@ -111,16 +136,30 @@ under `{pkg}/` — its package declaration is `pt.ulisboa.tecnico.socialsoftware
 
    This must return no matches. If it does, fix the file before continuing.
 
-2. Report that bootstrap completed successfully and list the full paths of all 8 created files.
-3. Confirm the structure and mention that Phase 1 (plan generation) is the next step.
+2. Compile the scaffold. Read `.claude/skills/_shared/conventions.md` § "Run the test suite" and
+   follow it — no pipes, verdict from maven's exit status:
+
+   ```bash
+   cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
+   mvn clean -Ptest-sagas test
+   echo "MAVEN_EXIT=$?"
+   ```
+
+   Expect `MAVEN_EXIT=0` and no tests run — Phase 0 ships no tests, and the surefire include is
+   `**/{pkg}/sagas/**`, which nothing matches yet. A non-zero exit here means a template has drifted
+   from the `simulator` library: fix the **template**, then regenerate. Do not patch the generated
+   app.
+
+3. Report that bootstrap completed successfully and list the full paths of all 9 created files.
+4. Confirm the structure and mention that Phase 1 (plan generation) is the next step.
 
 ---
 
 ## Notes
 
 - The skill does not create a `plan.md` — that is Phase 1's responsibility.
-- The skill does not create any `{AppClass}Simulator.java` entry point (that is outside the bootstrap scope), even though `pom.xml` names it as `<start-class>`. Nothing in the test profile resolves that class.
-- All 8 files are ready for Phase 1 planning immediately after bootstrap completes.
+- `{AppClass}Simulator.java` is **required**, not optional, even though nothing in Phase 0 runs it. Phase 2 test classes are annotated `@DataJpaTest`, which locates its context by searching for a `@SpringBootConfiguration` in the test's package and then upwards; `{AppClass}Simulator` in `pt.ulisboa.tecnico.socialsoftware.{pkg}` is the only class that search can find. It also supplies the `@EnableJpaRepositories` / `@EntityScan` over both `...{pkg}` and `...ms` that the simulator's entities and repositories need. Omit it and the first Phase 2 test fails with `Unable to find a @SpringBootConfiguration by searching packages upwards from the test`. The per-aggregate `{Aggregate}ServiceApplication` created in session 2.N.a does not substitute for it: it sits under `...{pkg}.microservices.{aggregate}`, which is not an ancestor of any test package, and is `@Profile`-gated.
+- All 9 files are ready for Phase 1 planning immediately after bootstrap completes.
 - `@PropertySource("classpath:application-test.properties")` in `BeanConfigurationSagas` resolves against `simulator/src/main/resources/application-test.properties` in the library jar, not against the new app. Leave it unchanged.
-- If the first `mvn` run in the new app fails resolving plugins from an unreachable mirror, the developer's `~/.m2/settings.xml` needs overriding per-app. The existing apps do this with an untracked `applications/{app-name}/.mvn/maven.config` (a `-s <path-to-settings>` line). It is deliberately not templated — it is per-developer machine config, excluded via `.git/info/exclude`.
+- `applications/{app-name}/.mvn/maven.config` (Step 5) is a `-s <path-to-settings>` line and is deliberately not templated — it names an absolute path on the developer's machine.
 - If a template turns out to be wrong or stale, fix the **template**, not the generated app — see `templates/README.md`.
