@@ -150,8 +150,8 @@ plan.md does not exist yet. Phase 1 creates it.
 - `docs/concepts/rule-enforcement-patterns.md` — the pattern taxonomy and classification flowchart
 
 ### Produces
-`applications/{app-name}/plan.md` and an empty `applications/{app-name}/friction-log.md` (header
-and schema per `.claude/skills/_shared/conventions.md` § "Friction log"), using the structure
+`applications/{app-name}/plan.md` and an empty `applications/{app-name}/harness-log.md` (header
+and schema per `.claude/skills/_shared/conventions.md` § "Harness log"), using the structure
 defined in
 `.claude/skills/classify-and-plan/SKILL.md` (see **plan.md — The Job Queue** above). The agent
 must:
@@ -167,7 +167,7 @@ must:
    the Implementation Order table. No per-scenario analysis needed for either.
 
 ### Does not modify
-Any source file. Output is plan.md and friction-log.md only.
+Any source file. Output is plan.md and harness-log.md only.
 
 ---
 
@@ -196,6 +196,19 @@ only:
 | 2.N.c | Write Functionalities | [`session-c.md`](../.claude/skills/implement-aggregate/session-c.md) | none — the three beans are registered in 2.N.b; `{Op}FunctionalitySagas` are per-request objects, not Spring beans |
 | 2.N.d | Event Wiring *(only if aggregate has subscribed events)* | [`session-d.md`](../.claude/skills/implement-aggregate/session-d.md) | `{Aggregate}EventHandling`, `{Aggregate}EventHandler`, `{Aggregate}EventProcessing` |
 
+### Aggregate-boundary checkpoint
+
+After the last session of aggregate `{N}` is committed and before the first session of aggregate
+`{N+1}` begins, run `/review-artifacts` in a fresh session.
+
+The harness is self-healing (`AGENTS.md` § "Harness evolution"), so sessions repair `docs/` and
+`.claude/skills/` mid-run under the Type 1 gate. The artifacts therefore change while they are being
+read, and a fix made in `2.{N}.c` can contradict a doc that `2.{N+1}.a` is about to follow. The
+boundary is the last moment that contradiction is cheap to find. It also runs the neutral-domain
+check that keeps this run's domain nouns out of the harness.
+
+It reports; it does not repair. Act on its Critical and Major findings before starting `{N+1}`.
+
 ---
 
 ## Phase 3 — Implementation Review
@@ -210,13 +223,17 @@ work is thrown away when the bug is later fixed.
 
 | Skill | Question it answers | Ground truth | Writes |
 |-------|--------------------|--------------|--------|
-| `/review-aggregate` | Does it exist and is it shaped right? | `plan.md` files-to-produce table, `docs/architecture.md` package layout, concept docs | `reviews/review-{Aggregate}.md` |
+| `/review-aggregate` | Does it exist and is it shaped right? | the session sub-files' `## Produce` headings and `docs/architecture.md` package layout, from which it re-derives the expected file set; `plan.md` is a cross-check only | `reviews/review-{Aggregate}.md` |
 | `/adversarial-review-aggregate` | Does it do the right thing? | the domain model, R1-R8, and violating inputs | `reviews/adversarial-review-{Aggregate}.md` + proof tests |
 | `/review-tests` (Phase 4) | Are the tests real? | the implementation vs. the test assertions | test files + `reviews/test-review-{Aggregate}.md` |
 
 The boundary is deliberate. `/review-aggregate` is a conformance auditor: it assumes the code is
-right and looks for deviations, so its checks are presence/shape checks and it treats `plan.md` as
-authoritative. `/adversarial-review-aggregate` is the opposite: it assumes the code is wrong, attacks
+right and looks for deviations, so its checks are presence/shape checks. It does **not** treat
+`plan.md` as authoritative — implementing sessions amend the plan, so an inventory taken from it
+could only report that the implementation matches a transcript of itself. It re-derives the expected
+file set and reviews the amendments themselves. It does take plan.md's Rule Classification as given;
+re-deriving that is the adversarial pass's Family F.
+`/adversarial-review-aggregate` is the opposite: it assumes the code is wrong, attacks
 semantics, checks R1-R8 against code, and re-derives rule classification independently so it can catch
 a Phase 1 misclassification. Neither should absorb the other's checks — the adversarial pass runs in a
 fresh context specifically so it is not anchored by the structural review's verdict.
@@ -297,7 +314,7 @@ ticked, `/implement-aggregate` synthesises the retro from conversation context a
 
 Example: `applications/{app-name}/retros/retro-2.3.b-Tournament.md`
 
-A single commit covering the implementation files, the retro file and any `friction-log.md` rows is then issued
+A single commit covering the implementation files, the retro file and any `harness-log.md` rows is then issued
 automatically (Step 8), with message: `feat({app-name}): 2.{N}{type} ({Aggregate} {session-type-name})`.
 
 ### What it produces
@@ -309,5 +326,5 @@ automatically (Step 8), with message: `feat({app-name}): 2.{N}{type} ({Aggregate
 | Skill Instructions Feedback | What worked / what was unclear in the skill sub-file |
 | Documentation Gaps | Specific missing or ambiguous content in `docs/concepts/` |
 | Patterns to Capture | Undocumented patterns discovered during implementation |
-| Friction Recorded | The `friction-log.md` row numbers appended this session |
+| Harness Changes | The `harness-log.md` row numbers appended this session, and the `harness:` commit sha of every Type 1 fix |
 | One-Line Summary | The single most important finding |

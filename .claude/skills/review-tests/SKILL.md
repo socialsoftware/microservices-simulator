@@ -346,23 +346,37 @@ Sections:
 
 ---
 
-## Step 11: Append Harness Friction
+## Step 11: Append Harness-Log Rows
 
 The report's findings above are about the **generated application's tests** — fake, wrong, missing or
 misplaced cases. They stay in the report exactly as written.
 
-A finding of a different kind — a `docs/` file (typically `docs/concepts/testing.md`) or a
+A finding of a different kind - a `docs/` file (typically `docs/concepts/testing.md`) or a
 `.claude/skills/` instruction that failed to specify a scenario, or specified it ambiguously enough
-that the implementing session got it wrong — is harness friction. Read
-`.claude/skills/_shared/conventions.md` § "Friction log" and append one row per distinct point to
-`applications/{app-name}/friction-log.md`, with `Session` = `4.{N}`.
+that the implementing session got it wrong - is harness friction. Classify each one under the
+Type 1 / Type 2 / `2-fw` gates in `AGENTS.md` § "Harness evolution", then read
+`.claude/skills/_shared/conventions.md` § "Harness log" and append one row per distinct point to
+`applications/{app-name}/harness-log.md`, with `Session` = `4.{N}`.
 
 A systematically missing test tier across several aggregates is the strongest friction signal this
-skill can produce: the gap is in the harness, not in one session's judgement.
+skill can produce: the gap is in the harness, not in one session's judgement. It is usually Type 1 -
+the taxonomy either names the tier or it does not, and a tier that no session produced is a
+demonstrable silence you can point at.
 
-Append only — read the last row for the next `#`, never rewrite or delete rows. If there was no
-harness friction, append nothing. Do not edit the harness file itself; the freeze applies
-(`AGENTS.md` § "Harness freeze").
+How the gates resolve here:
+
+- **Type 1** - a demonstrable contradiction: a template in `docs/concepts/testing.md` that does not
+  compile as written, a tier defined in one file and named differently in another. Fix it on the
+  spot in its own `harness:` commit, log `Outcome` = `fixed`, put the sha in `Ref`.
+- **Type 2** - the taxonomy is silent about a scenario this aggregate needed. Do **not** halt: this
+  is the last phase and the tests you wrote stand on their own. Log `Outcome` = `deferred` and state
+  the open question in the Step 12 summary.
+- **`2-fw`** - anything in `simulator/`. Log as `deferred`; never edit it.
+
+Append only - read the last row for the next `#`, never rewrite or delete rows. If there was no
+harness friction, append nothing. Any fix you make must obey
+`.claude/skills/_shared/conventions.md` § "Neutral domain" - it may not name an entity of the
+application under review.
 
 ---
 
@@ -373,7 +387,8 @@ harness friction, append nothing. Do not edit the harness file itself; the freez
 - Number of tests added, number of tests fixed
 - Build result: the observed `MAVEN_EXIT` and surefire totals, plus test classes run and passed
 - Any Fake or Critical findings verbatim
-- Friction rows appended in Step 11 (row numbers, or "none")
+- Harness-log rows appended in Step 11 (row numbers with their Type and Outcome, or "none"), and the
+  sha of any `harness:` commit made
 
 ---
 
@@ -401,9 +416,10 @@ must be fixed first. Say so explicitly in the summary instead.
 3. **P1 final-field rules need no tests.** Skip them in Steps 3 and 7.
 3a. **P1 predicate tests belong only in T1 (`{Aggregate}IntraInvariantTest`).** A P1 violation
     asserted in a T2 service or T4 functionality test is **Wrong (misplaced)**; flag and move it.
-4. **Do not modify non-test files.** This review touches only `*.groovy` test files, the review
-   report, and appended `friction-log.md` rows. Never a `docs/` or `.claude/skills/` file — a harness
-   gap is recorded, not fixed (`AGENTS.md` § "Harness freeze").
+4. **Do not modify the generated application outside its tests.** This review touches only `*.groovy`
+   test files, the review report, appended `harness-log.md` rows, and any Type 1 harness fix made
+   under Step 11 - which lands in its own `harness:` commit, separate from the test changes
+   (`AGENTS.md` § "Harness evolution"). Never `src/main/**` and never `simulator/`.
 5. **Build must run, and its result must be observed, not scraped.** Do not skip Step 9. Report the
    outcome from maven's exit status and the surefire report files
    (`.claude/skills/_shared/conventions.md` § "Run the test suite"), never from piped maven stdout.

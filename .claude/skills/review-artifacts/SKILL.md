@@ -1,6 +1,6 @@
 ---
 name: review-artifacts
-description: Static pre-flight consistency check over docs/ and .claude/skills/ - path validity, P1-P4 and R1-R8 alignment, ambiguous guidance. Run between generation runs, never during one. No arguments. Writes a structured report to docs/reviews/review-{YYYY-MM-DD}.md.
+description: Static consistency check over docs/ and .claude/skills/ - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to docs/reviews/review-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
@@ -10,14 +10,22 @@ Static pre-flight check over the harness itself: `docs/**` and `.claude/skills/*
 those two trees, checks them for internal consistency, and writes one dated report. Every check
 reads files directly from disk. The only write is the report file produced at the end.
 
-**When to run it:** **between** generation runs — after a round of harness edits, before the next
-run is started. Never during a run: while a run is in progress the harness is frozen
-(`AGENTS.md` § "Harness freeze") and there is nothing this skill could legitimately act on.
+**When to run it:** at every **aggregate boundary** — after the last session of aggregate `{N}` is
+committed and before the first session of aggregate `{N+1}` begins — and once more before a run
+starts, after a round of harness edits.
+
+Running it during a run is the point, not a violation. The harness is self-healing
+(`AGENTS.md` § "Harness evolution"): sessions repair `docs/` and `.claude/skills/` mid-run under the
+Type 1 gate, so the artifacts change *while* they are being read. A Type 1 fix made in `2.4.c` can
+contradict a doc that `2.5.a` is about to read, and the aggregate boundary is the last moment that
+contradiction is cheap. A self-healing harness needs more static consistency checking during a run,
+not less.
 
 **What it is not:** it does not evaluate how the harness performed on a real run. That is
-`/harness-retrospective`, which reads a completed run's `friction-log.md`, retros and reviews.
+`/harness-retrospective`, which reads a completed run's `harness-log.md`, retros and reviews.
 This skill's ground truth is the harness files themselves; that skill's ground truth is empirical
-evidence from a run. Do not read `applications/**` here.
+evidence from a run. The only thing this skill reads under `applications/` is the aggregate name
+list in `plan.md`, needed by Check 4 (Step 6), and it reads nothing else there.
 
 One invocation reviews all artifacts. No arguments needed.
 
@@ -113,7 +121,7 @@ Then verify consistency of those definitions in each location below:
 | `docs/architecture.md` — Request Lifecycle | P1/P2/P3 | ... | ... | ... |
 | `.claude/skills/classify-and-plan/SKILL.md` — Step 4 | P1–P4a/b | ... | ... | ... |
 | `.claude/skills/implement-aggregate/session-a.md` | P1 | ... | ... | ... |
-| `.claude/skills/implement-aggregate/session-b.md` | P3 | ... | ... | ... |
+| `.claude/skills/implement-aggregate/session-c.md` | P3 | ... | ... | ... |
 | `.claude/skills/implement-aggregate/session-d.md` | P2 | ... | ... | ... |
 | `.claude/skills/review-aggregate/SKILL.md` — Step 6 | P1–P4 | ... | ... | ... |
 | `.claude/skills/adversarial-review-aggregate/SKILL.md` — Steps 3, 8 | P1, and the Family F re-derivation | ... | ... | ... |
@@ -134,14 +142,14 @@ would most naturally be enforced:
 
 | Restriction | Expected location | In Family D table? | Mentioned? | Claim consistent? | Notes |
 |-------------|------------------|--------------------|------------|-------------------|-------|
-| R1 — service loads only own aggregate | `docs/concepts/service.md`, session-b.md | ... | ... | ... | ... |
-| R2 — service injects only own components | `docs/concepts/service.md`, session-b.md | ... | ... | ... | ... |
-| R3 — cross-aggregate flow via DTOs only | `docs/concepts/service.md`, session-b.md | ... | ... | ... | ... |
-| R4 — setForbiddenStates on mutating saga steps | `docs/concepts/sagas.md`, session-b.md | ... | ... | ... | ... |
+| R1 — service loads only own aggregate | `docs/concepts/service.md`, session-b.md, session-c.md | ... | ... | ... | ... |
+| R2 — service injects only own components | `docs/concepts/service.md`, session-b.md, session-c.md | ... | ... | ... | ... |
+| R3 — cross-aggregate flow via DTOs only | `docs/concepts/service.md`, session-b.md, session-c.md | ... | ... | ... | ... |
+| R4 — setForbiddenStates on mutating saga steps | `docs/concepts/sagas.md`, session-c.md | ... | ... | ... | ... |
 | R5 — getEventSubscriptions in consumer only | `docs/concepts/events.md`, session-d.md | ... | ... | ... | ... |
 | R6 — verifyInvariants must not read from DB | `docs/concepts/aggregate.md`, session-a.md | ... | ... | ... | ... |
-| R7 — DTOs are immutable value objects | `docs/concepts/service.md`, session-b.md | ... | ... | ... | ... |
-| R8 — functionalities only send commands upstream | `docs/concepts/commands.md`, session-b.md | ... | ... | ... | ... |
+| R7 — DTOs are immutable value objects | `docs/concepts/service.md`, session-b.md, session-c.md | ... | ... | ... | ... |
+| R8 — functionalities only send commands upstream | `docs/concepts/commands.md`, session-b.md, session-c.md | ... | ... | ... | ... |
 
 ---
 
@@ -167,7 +175,66 @@ Scan skill files for instructions containing:
 
 ---
 
-## Step 6: Write the Report
+## Step 6: Check 4 — Neutral Domain
+
+`.claude/skills/_shared/conventions.md` § "Neutral domain" forbids a harness fix from naming any
+entity, aggregate or operation of the application currently being generated. The rule exists because
+fixes are authored while looking at one specific aggregate, and the vivid example that comes to mind
+is a leaked answer for the next application the harness is pointed at. Self-healing makes that risk
+continuous, so this check is what turns the rule from a disclaimer into a control.
+
+Skip this check only when no run is in progress (no `plan.md` anywhere under `applications/`); say so
+in the report rather than omitting the section.
+
+### 6.a — Collect the forbidden nouns
+
+Derive `{app-name}` per `.claude/skills/_shared/conventions.md` § "Resolve app context". The names
+come from that run's own `plan.md`: one per `### {N}. {Aggregate}` section header. Write them to a
+scratch file, one per line.
+
+```bash
+cd "$(git rev-parse --show-toplevel)"
+rg -o '^### [0-9]+\. \S+' applications/{app-name}/plan.md | sed 's/^### [0-9]*\. //' | sort -u > /tmp/harness-nouns.txt
+```
+
+### 6.b — Diff the harness against the run's base commit
+
+The base commit is where the run branch left master:
+
+```bash
+BASE=$(git merge-base HEAD master)
+git diff "$BASE" -- docs .claude/skills | rg '^\+' | rg -v '^\+\+\+' > /tmp/harness-added.txt
+```
+
+If `HEAD` **is** master, `BASE` resolves to `HEAD` itself, so the diff covers only uncommitted
+working-tree edits — harness work being done outside a run. That is still worth checking, but say in
+the report that the scope was the working tree rather than a run's commits. A clean tree gives an
+empty diff and nothing to check; say that instead.
+
+### 6.c — Match
+
+```bash
+rg -n -w -f /tmp/harness-nouns.txt /tmp/harness-added.txt
+```
+
+`-w` matches whole words only, so a hit is a real occurrence of the noun and not a substring of an
+unrelated identifier.
+
+Every hit is a **Major** finding. Report the added line verbatim and the file it came from
+(re-run `git diff "$BASE" -- docs .claude/skills` and locate the hunk, since the filtered file has
+lost its `+++` headers). Read each hit before reporting it: a noun that is also an ordinary English
+word can appear legitimately, and a plural or possessive form will not match `-w` at all, so scan the
+added lines for those by eye.
+
+| File | Added line | Noun | Verdict |
+|------|-----------|------|---------|
+
+Verdicts: `Violation` (a domain noun leaked into the harness - Major, with the neutral rewrite to
+apply) / `False positive` (ordinary English usage, with the reason).
+
+---
+
+## Step 7: Write the Report
 
 Run `mkdir -p docs/reviews` (no-op if exists).
 
@@ -230,6 +297,17 @@ Write `{report-file}` using the template below. Never omit a section — write
 
 ---
 
+## Check 4 — Neutral Domain
+
+**Run in progress:** {app-name} | none (check skipped)
+**Base commit:** {BASE}
+**Added lines scanned:** {count}
+
+| File | Added line | Noun | Verdict |
+|------|-----------|------|---------|
+
+---
+
 ## Action Items
 
 | Priority | Category | File | Finding | Suggested Fix |
@@ -246,7 +324,7 @@ Write `{report-file}` using the template below. Never omit a section — write
 
 ---
 
-## Step 7: Print Summary to Conversation
+## Step 8: Print Summary to Conversation
 
 Output to the conversation (not to the report file):
 
@@ -254,6 +332,8 @@ Output to the conversation (not to the report file):
 2. Verdict with one-sentence justification
 3. All Critical action items (verbatim from the report Action Items table)
 4. Count of Major items and count of Minor items
+5. Neutral-domain verdict: number of `Violation` rows from Check 4, or "clean", or "skipped (no run
+   in progress)"
 
 ---
 
@@ -265,11 +345,14 @@ Output to the conversation (not to the report file):
 3. **Never omit sections.** Write "nothing to report" in any section with no findings.
 4. **Quote the evidence.** For every Critical or Major finding, quote the conflicting text
    verbatim from both sources (with file path and approximate line context).
-5. **Static scope only.** The review set is `docs/**` and `.claude/skills/**`. Do not read
-   `applications/**` — no retros, no reviews, no friction logs, no generated source. Empirical
-   evaluation of a completed run belongs to `/harness-retrospective`.
-6. **Do not run during a generation run.** If any `applications/*/plan.md` has an unchecked
-   `- [ ]` box, the harness is frozen (`AGENTS.md` § "Harness freeze") — say so and stop rather
-   than producing a report nobody may act on.
-7. **One invocation covers all artifacts.** Do not scope to a single aggregate or session.
-8. **No emojis. Terse and specific.** File paths, section names, quoted snippets — no fluff.
+5. **Static scope only.** The review set is `docs/**` and `.claude/skills/**`. The single permitted
+   read under `applications/**` is the `### {N}. {Aggregate}` header list in `plan.md`, for Check 4
+   (Step 6). No retros, no reviews, no harness log, no generated source. Empirical evaluation of a
+   completed run belongs to `/harness-retrospective`.
+6. **Running during a generation run is expected.** Unchecked `- [ ]` boxes in a `plan.md` are not a
+   precondition failure - this skill is the aggregate-boundary checkpoint of a self-healing harness
+   (`AGENTS.md` § "Harness evolution"). Never halt on them.
+7. **Report, do not repair.** The findings are for a human or a later session to act on. This skill
+   writes exactly one file. A Critical finding does not license fixing the artifact here.
+8. **One invocation covers all artifacts.** Do not scope to a single aggregate or session.
+9. **No emojis. Terse and specific.** File paths, section names, quoted snippets — no fluff.

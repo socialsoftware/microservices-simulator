@@ -285,8 +285,9 @@ some? A mutation path that skips publication starves every consumer.
 
 ## Step 8: Family F — Spec Doubt (report-only)
 
-`/review-aggregate` treats `plan.md` as authoritative, so a rule misclassified during Phase 1 is
-invisible to it permanently. This is the only check that can catch that.
+`/review-aggregate` re-derives the expected *file set* from the concept docs and session sub-files,
+but it takes `plan.md`'s Rule Classification tables as given, so a rule misclassified during Phase 1
+is invisible to it permanently. This is the only check that can catch that.
 
 For each rule in the domain model touching this aggregate, re-derive the classification **from
 `docs/concepts/rule-enforcement-patterns.md` § Decision Guide and the domain model text alone**.
@@ -521,22 +522,40 @@ ran. These are NOT findings and must not appear in Action Items.)
 
 ---
 
-## Step 13: Append Harness Friction
+## Step 13: Append Harness-Log Rows
 
 The `## Action Items` table above is for defects in the **generated application**. It stays exactly
 as written.
 
-A finding of a different kind — a `docs/` file or a `.claude/skills/` instruction that guided the
-implementation into the defect, or that this review found ambiguous or wrong — is harness friction.
-Read `.claude/skills/_shared/conventions.md` § "Friction log" and append one row per distinct point
-to `applications/{app-name}/friction-log.md`, with `Session` = `3.{N}`.
+A finding of a different kind - a `docs/` file or a `.claude/skills/` instruction that guided the
+implementation into the defect, or that this review found ambiguous or wrong - is harness friction.
+Classify each one under the Type 1 / Type 2 / `2-fw` gates in `AGENTS.md` § "Harness evolution",
+then read `.claude/skills/_shared/conventions.md` § "Harness log" and append one row per distinct
+point to `applications/{app-name}/harness-log.md`, with `Session` = `3.{N}`.
 
 A confirmed defect frequently has both halves: the wrong code is an Action Item, and the doc that
-licensed it is a friction row. Record both.
+licensed it is a harness-log row. Record both.
 
-Append only — read the last row for the next `#`, never rewrite or delete rows. If there was no
-harness friction, append nothing. Do not edit the harness file itself; the freeze applies
-(`AGENTS.md` § "Harness freeze").
+How the gates resolve here:
+
+- **Type 1** - a demonstrable contradiction: a doc naming a type or method that does not exist, or
+  two harness files prescribing different things. Fix it on the spot in its own `harness:` commit,
+  log `Outcome` = `fixed`, put the sha in `Ref`. A proof test that fails because the harness taught
+  the wrong shape is exactly this evidence.
+- **Type 2** - the harness is silent or ambiguous. Do **not** halt: this skill writes no application
+  code, so nothing is blocked on the answer. Log `Outcome` = `deferred` and state the open question
+  in the report's verdict paragraph.
+- **`2-fw`** - anything in `simulator/`. Log as `deferred` and never edit it. Hard rule 3 already
+  forbids the edit; this is the record of why it was wanted.
+
+A Family F **Spec disagreement** is not harness friction by default - it is a disagreement with the
+domain model or with Phase 1's reading of it. It becomes a harness-log row only when the
+misclassification traces to `docs/concepts/rule-enforcement-patterns.md` being unclear about the
+case. Say which.
+
+Append only - read the last row for the next `#`, never rewrite or delete rows. If there was no
+harness friction, append nothing. Any fix you make must obey `.claude/skills/_shared/conventions.md`
+§ "Neutral domain" - it may not name an entity of the application under review.
 
 ---
 
@@ -548,7 +567,8 @@ harness friction, append nothing. Do not edit the harness file itself; the freez
 4. Any `Contradicts` findings called out explicitly
 5. Count of dismissed candidates
 6. Build result — the observed `MAVEN_EXIT` and surefire totals (must be green)
-7. Friction rows appended in Step 13 (row numbers, or "none")
+7. Harness-log rows appended in Step 13 (row numbers with their Type and Outcome, or "none"), and
+   the sha of any `harness:` commit made
 
 ---
 
@@ -578,8 +598,11 @@ Never tick on the strength of this skill alone.
    report that says "nothing confirmed, here is what was attacked" is a successful run. Padding the
    report with speculation is a worse failure than missing a defect, because it destroys the signal
    that makes this skill worth running.
-3. **Never modify `src/main/**`.** Writes are limited to `{proof-test}`, `{report}` and appended `friction-log.md` rows (plus the
-   plan.md checkbox). Reporting a defect and fixing it in the same pass removes the human checkpoint.
+3. **Never modify `src/main/**` or `simulator/`.** Writes are limited to `{proof-test}`, `{report}`,
+   appended `harness-log.md` rows, any Type 1 harness fix made under Step 13, and the plan.md
+   checkbox. Reporting an application defect and fixing it in the same pass removes the human
+   checkpoint; a Type 1 harness contradiction is the one thing you do fix in place, in its own
+   `harness:` commit.
 4. **Structure is out of scope.** See § Out of Scope. Do not report missing files, annotations, or
    naming.
 5. **Do not read the structural review before Step 11.** Anchoring control.

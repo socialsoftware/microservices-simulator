@@ -22,8 +22,10 @@ owns everything this skill deliberately does not check:
   with the right shape but an inverted predicate passes Step 6 here.
 - **R1-R8 architectural conformance** (`docs/architecture.md` § Architectural Restrictions) against
   code.
-- **The correctness of `plan.md` itself.** This skill treats plan.md as authoritative, so a rule
-  misclassified in Phase 1 is invisible to it.
+- **The correctness of `plan.md`'s Rule Classification.** This skill re-derives the expected *file
+  set* (Step 3) and reviews plan.md's amendments (Step 3b), but it takes the Rule Classification
+  tables as given, so a rule misclassified in Phase 1 is invisible to it. Independent re-derivation
+  of a classification is that skill's Family F.
 - **Manual semantic-lock release in `registerCompensation`.** Owned by that skill's Family C, which
   traces every saga exit path and proves a leaked lock with a fault-injection test. A shape check here
   cannot distinguish a manual release from a legitimate domain-level undo, so it is not duplicated
@@ -64,8 +66,12 @@ Read the entire `### {N}. {Aggregate}` section from plan.md. Extract and hold:
 - Write and read functionalities list
 - Events published / subscribed
 - Cross-aggregate prerequisites (P4a/P4b rules)
-- Files-to-produce table (sessions 2.N.a through 2.N.d) — this is the **authoritative expected-file
-  list** for Step 3
+- Files-to-produce table (sessions 2.N.a through 2.N.d). This is a **cross-check** for Step 3, not
+  ground truth: plan.md is a blueprint, not a manifest, and implementing sessions are required to
+  amend it (`.claude/skills/implement-aggregate/SKILL.md` § "Step 5b: Amend plan.md for Omitted
+  Files").
+- Every row of that table carrying an `(added 2.{N}.{type} - reason)` provenance suffix, held
+  separately with its stated reason - these are the amendments reviewed in Step 3b.
 - Checklist — which sessions are ticked
 - Any P1/P2/P3 rule notes, including contradiction flags
 
@@ -97,30 +103,91 @@ Read sections relevant to this aggregate type:
 - `docs/concepts/testing.md` — T1–T4 structures, test locations, not-found assertions
 - `docs/concepts/events.md` — only if this aggregate has subscribed events (session 2.N.d)
 
+### 2.e — Session sub-files
+
+Read the `## Produce` section of each of `.claude/skills/implement-aggregate/session-a.md`,
+`session-b.md`, `session-c.md` and `session-d.md`. Each `###` subheading under `## Produce` names one
+file the session must emit, together with the condition under which it is emitted (per read
+functionality, per write functionality, per subscribed event, only when a field is enum-typed, and
+so on). These headings, not plan.md, are the ground truth for Step 3.
+
+Read `session-d.md` only if this aggregate has a non-empty Events-subscribed list.
+
 ---
 
 ## Step 3: File Inventory
 
-The **expected file list** for this aggregate is the Files-to-produce table read in Step 2.a — one
-row per file, tagged with the producing session (2.N.a/b/c/d). This table is authoritative for what
-this aggregate needs; `docs/architecture.md` § Package Structure Convention (Step 2.d) is used only
-to sanity-check *where* a listed file lives (correct layer directory), not to add files the plan.md
-table doesn't list.
+**Derive the expected file list yourself; do not lift it from plan.md.** plan.md is a blueprint that
+implementing sessions are required to amend, so an inventory built from it would only be able to
+report that the implementation matches a transcript of itself, and `Missing` could never be
+reported.
 
-For each file in the plan.md Files-to-produce table, determine whether it exists in the target file
-list (Step 2.d). Match by the relative path as given in plan.md (e.g. `aggregate/Course.java`).
+Build the expected list in this order:
 
-| File (relative to microservices/{aggregate}/) | Session | In Target | Status | Notes |
-|------------------------------------------------|---------|-----------|--------|-------|
+1. **Enumerate.** Walk the `## Produce` subheadings collected in Step 2.e, in session order
+   (2.N.a, then b, then c, then d). For each subheading, decide from the aggregate's own facts -
+   its read and write functionality lists, its P1/P2/P3 rules, its published and subscribed events,
+   its §1 attribute types - whether that file is required here, and how many instances of it are
+   required. Skip session `d` entirely when the Events-subscribed list is empty.
+2. **Place.** For each derived file, resolve its directory from `docs/architecture.md`
+   § Package Structure Convention.
+3. **Cross-check against plan.md.** Compare the derived list with the Files-to-produce table read in
+   Step 2.a. A file the derivation requires and plan.md omits is a defect **in plan.md**; a file
+   plan.md lists and the derivation does not require is a defect in plan.md too, in the other
+   direction. Record both in the `In plan.md` column below - they are findings against the plan, distinct
+   from findings against the implementation.
+
+Then, for each derived file, determine whether it exists in the target file list (Step 2.c).
+
+| File (relative to microservices/{aggregate}/) | Session | Derived from | In plan.md | In Target | Status | Notes |
+|------------------------------------------------|---------|--------------|------------|-----------|--------|-------|
+
+`Derived from` - the session sub-file subheading (or `docs/architecture.md` section) that requires
+the file, so every expected row is traceable to a stated rule.
+
+`In plan.md` values: `Listed` / `Listed (amended)` / `Omitted` / `Listed but not required`.
 
 Status values: `OK` / `Missing` / `Wrong location` / `Extra`
 
-Use `Wrong location` when the file exists under a different directory than either plan.md states or
-`docs/architecture.md` § Package Structure Convention implies for its layer — quote both paths.
+Use `Wrong location` when the file exists under a different directory than
+`docs/architecture.md` § Package Structure Convention implies for its layer - quote both paths.
 
-For target files not listed in plan.md's Files-to-produce table, mark `Extra` with a justification
-note (check `docs/architecture.md`'s canonical layout first — a file the convention implies but
-plan.md omitted is not automatically unjustified).
+For target files that the derivation does not require, mark `Extra` with a justification note. A
+file absent from plan.md is **not** by itself grounds for `Extra`: check the derivation first.
+
+Severity: a `Missing` file is an implementation finding. An `Omitted` file that was nonetheless
+produced is a plan.md finding of severity Minor - the session did the right thing and should have
+recorded it under Step 3b. An `Omitted` file that was **also** not produced is Major: the omission
+propagated.
+
+---
+
+## Step 3b: Review the plan.md Amendments
+
+Implementing sessions amend plan.md's file tables and mark each added row with an
+`(added 2.{N}.{type} - reason)` suffix. Amendment is expected and correct, but it is not
+self-justifying: an unjustified amendment is how a wrong implementation retroactively legitimises
+itself in the plan.
+
+For every amended row held from Step 2.a:
+
+| Row | Session that added it | Stated reason | Derivation supports it? | Verdict |
+|-----|----------------------|---------------|------------------------|---------|
+
+Verdicts:
+
+- **Justified** - the Step 3 derivation independently requires the file, and the stated reason
+  matches the rule that requires it.
+- **Justified, wrong reason** - the file is genuinely required, but the recorded reason names the
+  wrong rule or is too vague to check. Minor.
+- **Unjustified** - the Step 3 derivation does not require the file. Major: either the file should
+  not exist, or the derivation sources are themselves silent, which is harness friction (Step 10).
+- **Undocumented** - a file present in both plan.md and the target that no session produced under a
+  provenance suffix and that the original plan did not contain. Report as Minor and name the session
+  whose checkbox covers it.
+
+An amendment whose reason cites a `docs/` or `.claude/skills/` file as silent or wrong is harness
+friction as well as an amendment finding; record it in both places.
 
 ---
 
@@ -255,9 +322,8 @@ Expected scenarios per tier — full definitions in `docs/concepts/testing.md`:
   if the aggregate publishes events (plan.md's Events published list).
 - **T3** (`{Aggregate}InterInvariantTest.groovy`): § T3 — Subscription (Inter-Invariant) Test.
   Only expected if the aggregate has P2 subscribed events (session 2.N.d).
-- **T4 write functionality** (`{Operation}Test.groovy`, named exactly as plan.md's files-to-produce
-  table lists it): § T4 — Functionality Test
-  and § Assertion Ownership.
+- **T4 write functionality** (`{Operation}Test.groovy`, named per `docs/workflow.md` § Test naming
+  from the write functionality's own name): § T4 - Functionality Test and § Assertion Ownership.
 - **T4 read functionality**: happy path only — not-found cases belong in T2, not here.
 
 ---
@@ -306,8 +372,15 @@ Write `{review-file}` using the template below. Do not omit any section — writ
 
 ## File Inventory
 
-| File | Session | In Target | Status | Notes |
-|------|---------|-----------|--------|-------|
+| File | Session | Derived from | In plan.md | In Target | Status | Notes |
+|------|---------|--------------|------------|-----------|--------|-------|
+
+---
+
+## plan.md Amendments
+
+| Row | Session that added it | Stated reason | Derivation supports it? | Verdict |
+|-----|----------------------|---------------|------------------------|---------|
 
 ---
 
@@ -368,19 +441,35 @@ lines, status.)
 
 ---
 
-## Step 10: Append Harness Friction
+## Step 10: Append Harness-Log Rows
 
 The `## Action Items` table above is for defects in the **generated application** — a wrong
 implementation, a missing test, a broken build. It stays exactly as written.
 
 Findings of a different kind belong elsewhere: a `docs/` file or a `.claude/skills/` instruction that
-failed to guide the implementation, or that this review found ambiguous or wrong. Those are harness
-friction. Read `.claude/skills/_shared/conventions.md` § "Friction log" and append one row per
-distinct point to `applications/{app-name}/friction-log.md`, with `Session` = `3.{N}`.
+failed to guide the implementation, or that this review found ambiguous or wrong. Classify each one
+under the Type 1 / Type 2 / `2-fw` gates in `AGENTS.md` § "Harness evolution", then read
+`.claude/skills/_shared/conventions.md` § "Harness log" and append one row per distinct point to
+`applications/{app-name}/harness-log.md`, with `Session` = `3.{N}`.
 
-Append only — read the last row for the next `#`, never rewrite or delete rows. If there was no
-harness friction, append nothing. Do not edit the harness file itself; the freeze applies
-(`AGENTS.md` § "Harness freeze").
+This is a review skill, so the two gates resolve differently than they do during implementation:
+
+- **Type 1** - the harness contradicts the framework, contradicts itself, or names something that
+  does not exist, and you can demonstrate it. Fix it on the spot in its own `harness:` commit, then
+  log the row with `Outcome` = `fixed` and the commit sha in `Ref`. A review is precisely where such
+  a contradiction surfaces, and leaving it for a later session guarantees the next aggregate hits it.
+- **Type 2** - the harness is silent or ambiguous about something this review needed. Do **not**
+  halt: this skill does not write application code, so nothing downstream is blocked by the answer.
+  Log the row with `Outcome` = `deferred` and state the open question in the review's Summary so the
+  human sees it with the rest of the verdict.
+- **`2-fw`** - anything in `simulator/`. Log it as `deferred`; never edit `simulator/`.
+
+Append only - read the last row for the next `#`, never rewrite or delete rows. If there was no
+harness friction, append nothing.
+
+Keep rows thin: `conventions.md` § "Harness log" owns the schema, and a Type 1 row points at its
+commit rather than restating the diff. Any fix you make must obey `conventions.md`
+§ "Neutral domain" - it may not name an entity of the application under review.
 
 ---
 
@@ -393,19 +482,25 @@ Output to the conversation:
 4. Count of Major and Minor items
 5. Build result: the observed `MAVEN_EXIT` and surefire totals, plus number of test classes run and
    passed
-6. Friction rows appended in Step 10 (row numbers, or "none")
+6. Amendment verdicts from Step 3b: counts per verdict, and every Unjustified row verbatim
+7. Harness-log rows appended in Step 10 (row numbers with their Type and Outcome, or "none"), and
+   the sha of any `harness:` commit made
 
 ---
 
 ## Hard Rules
 
 1. **Read files directly.** Every comparison is based on actual file content read in Step 2. Never infer the content of an unread file.
-2. **Read-only except for the review file and appended friction rows.** Do not modify any source, doc, or skill files.
+2. **Never modify the generated application.** No source file, no test file, no plan.md row. Writes
+   are limited to the review file, appended `harness-log.md` rows, and any Type 1 harness fix made
+   under Step 10 (which lands in its own `harness:` commit, never mixed with the review file).
 3. **Never omit sections.** Write "nothing to report" if a section is empty.
 4. **Quote the evidence.** For every Incorrect or Pattern-missing finding, include the relevant snippet from the target file and the expected pattern.
-5. **Action Items are for the generated application only.** A finding whose target is a `docs/` or
-   `.claude/skills/` file is harness friction and belongs in `friction-log.md` (Step 10), never in the
-   Action Items table.
+5. **Action Items are for the generated application only.** A finding whose target is a `docs/`,
+   `.claude/skills/` or `simulator/` file is harness friction and belongs in `harness-log.md`
+   (Step 10), never in the Action Items table. plan.md findings are the exception: plan.md is a
+   generated artifact of this run, so an omitted or unjustified row is an Action Item, and only the
+   `docs/` or skill gap that caused it is a harness-log row.
 6. **Build must run, and its result must be observed, not scraped.** Do not skip Step 8. Report the
    outcome from maven's exit status and the surefire report files
    (`.claude/skills/_shared/conventions.md` § "Run the test suite"), never from piped maven stdout.
