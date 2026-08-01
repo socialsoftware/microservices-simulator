@@ -87,10 +87,10 @@ See [`docs/concepts/testing.md`](concepts/testing.md) for the full taxonomy (T1�
 | Type | Pattern | Session |
 |------|---------|---------|
 | T1 Aggregate | `{Aggregate}IntraInvariantTest.groovy` | 2.N.a |
-| T2 Service | `{Aggregate}ServiceTest.groovy` — one class per aggregate; also owns event-publication assertions | 2.N.b (write methods + event publication; read-method cases appended in 2.N.c) |
+| T2 Service | `{Aggregate}ServiceTest.groovy` — one class per aggregate; also owns event-publication assertions | 2.N.b (read methods; write-method and event-publication cases appended in 2.N.c) |
 | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` | 2.N.d |
-| T4 Write Functionality | `{Operation}Test.groovy` | 2.N.b |
-| T4 Read Functionality | `{Query}Test.groovy` | 2.N.c |
+| T4 Read Functionality | `{Query}Test.groovy` | 2.N.b |
+| T4 Write Functionality | `{Operation}Test.groovy` | 2.N.c |
 | Adversarial proof (transient) | `{Aggregate}AdversarialTest.groovy` | 3.N |
 
 ---
@@ -192,8 +192,8 @@ only:
 | Session | Name | Sub-file | Adds to BeanConfigurationSagas.groovy |
 |---------|------|----------|----------------------------------------|
 | 2.N.a | Domain Layer | [`session-a.md`](../.claude/skills/implement-aggregate/session-a.md) | `Sagas{Aggregate}Factory`, `{Aggregate}CustomRepositorySagas` |
-| 2.N.b | Write Functionalities | [`session-b.md`](../.claude/skills/implement-aggregate/session-b.md) | `{Aggregate}Service`, `{Aggregate}CommandHandler`, `{Aggregate}Functionalities` |
-| 2.N.c | Read Functionalities | [`session-c.md`](../.claude/skills/implement-aggregate/session-c.md) | none — `{Op}FunctionalitySagas` are per-request objects, not Spring beans |
+| 2.N.b | Read Functionalities | [`session-b.md`](../.claude/skills/implement-aggregate/session-b.md) | `{Aggregate}Service`, `{Aggregate}CommandHandler`, `{Aggregate}Functionalities` |
+| 2.N.c | Write Functionalities | [`session-c.md`](../.claude/skills/implement-aggregate/session-c.md) | none — the three beans are registered in 2.N.b; `{Op}FunctionalitySagas` are per-request objects, not Spring beans |
 | 2.N.d | Event Wiring *(only if aggregate has subscribed events)* | [`session-d.md`](../.claude/skills/implement-aggregate/session-d.md) | `{Aggregate}EventHandling`, `{Aggregate}EventHandler`, `{Aggregate}EventProcessing` |
 
 ---

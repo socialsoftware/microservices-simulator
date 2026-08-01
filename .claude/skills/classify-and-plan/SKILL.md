@@ -284,16 +284,16 @@ FOR each aggregate A at position i in sorted_aggregates:
       // B is ordered after A, but A's service guard reads B's DTO
       // This is a reverse P3 dependency — cannot be implemented in session 2.i.b
       Annotate R in A's cross-aggregate prerequisites as:
-        "⚠️ DEFERRED — requires {B}Dto; implement in session 2.{j}.b after {B} is done"
+        "⚠️ DEFERRED — requires {B}Dto; implement in session 2.{j}.c after {B} is done"
       Add a note to B's aggregate section in plan.md:
-        "After completing 2.{j}.b, revisit {A} session 2.{i}.b to add the deferred {R.name} guard"
+        "After completing 2.{j}.c, revisit {A} session 2.{i}.c to add the deferred {R.name} guard"
 ```
 
-**Why this matters:** Without this step, the dependency is silently invisible in plan.md and the session-b agent discovers the gap mid-implementation with no guidance. Surfacing it as a ⚠️ DEFERRED marker lets the session-b agent apply the deferred-guard protocol from `session-b.md` immediately.
+**Why this matters:** Without this step, the dependency is silently invisible in plan.md and the session-c agent discovers the gap mid-implementation with no guidance. Surfacing it as a ⚠️ DEFERRED marker lets the session-c agent apply the deferred-guard protocol from `session-c.md` immediately.
 
 **Output:** For each detected reverse P3 dependency, plan.md must show:
 - In aggregate `A`'s cross-aggregate prerequisites: the ⚠️ DEFERRED marker with a pointer to the unblocking session.
-- In aggregate `B`'s section: a "revisit" note for session 2.{j}.b implementers.
+- In aggregate `B`'s section: a "revisit" note for session 2.{j}.c implementers.
 
 ---
 
@@ -354,23 +354,25 @@ authoritative source for the file-list shape; `docs/workflow.md` only points her
 >
 > **⚠️ Collection-snapshot entity classes are commonly missed.** After filling in the 2.N.a file cell, do a final pass: for every `× N` row in §2 for this aggregate, verify that `aggregate/{Aggregate}{SourceLabel}.java` appears as a separate line (e.g., `aggregate/TournamentTopic.java` for `Tournament | Topic × N`). If it is absent, add it now — the entity class is required for the aggregate to compile even before any service code is written.
 
-**Session 2.N.b — Write Functionalities:**
+**Session 2.N.b — Read Functionalities:**
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.b | `service/{Aggregate}Service.java` (write methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), `coordination/functionalities/{Aggregate}Functionalities.java`, `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (write-method cases plus event-publication assertions if Events published is non-empty), `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op) |
+| 2.N.b | `service/{Aggregate}Service.java` (read methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/Get{Aggregate}ByIdCommand.java`, `commands/{aggregate}/Get{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `coordination/functionalities/{Aggregate}Functionalities.java`, `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (read-method cases), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
 ```
 
-> **Event classes:** If Events published is non-empty, append one `events/{Event}.java` per published event to the session-b file list. These are produced in session b alongside the service methods that publish them.
+> **`Get{Aggregate}ByIdCommand.java` is unconditional** — list it in every aggregate's 2.N.b row, whether or not §4 has any read functionality for that aggregate. Write sagas need it for their get-then-lock step, so it is infrastructure rather than a domain read, and session `b` is therefore never empty.
 
-> **`{Aggregate}Functionalities.java`:** Always include this file — it is required as a Spring bean for test wiring regardless of whether read functionalities exist. Do not omit it even when no session-c exists.
+> **`{Aggregate}Functionalities.java`:** Always include this file — it is required as a Spring bean for test wiring regardless of whether read functionalities exist.
 
-**Session 2.N.c — Read Functionalities:**
+**Session 2.N.c — Write Functionalities:**
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.c | `service/{Aggregate}Service.java` (read methods appended), `commands/{aggregate}/Get{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op), read-method cases appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
+| 2.N.c | `service/{Aggregate}Service.java` (write methods appended), `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), write coordinator methods appended to `coordination/functionalities/{Aggregate}Functionalities.java`, write cases appended to `messaging/{Aggregate}CommandHandler.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op), write-method cases plus event-publication assertions appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
 ```
+
+> **Event classes:** If Events published is non-empty, append one `events/{Event}.java` per published event to the session-c file list. These are produced in session c alongside the service methods that publish them.
 
 **Session 2.N.d — Event Wiring** (omit if no subscribed events):
 ```
@@ -470,14 +472,14 @@ every Phase 2/3/4 skill depends on the ordinal being present.
 | Session | Files |
 |---------|-------|
 | 2.N.a | `aggregate/{Aggregate}.java`, ... |
-| 2.N.b | `service/{Aggregate}Service.java`, ... |
-| 2.N.c | `service/{Aggregate}Service.java` (read methods appended), ... |
+| 2.N.b | `service/{Aggregate}Service.java` (read methods), ... |
+| 2.N.c | `service/{Aggregate}Service.java` (write methods appended), ... |
 | 2.N.d | `notification/subscribe/{Aggregate}Subscribes{Event}.java`, ... |
 
 **Checklist:**
 - [ ] 2.N.a — Domain layer
-- [ ] 2.N.b — Write functionalities
-- [ ] 2.N.c — Read functionalities
+- [ ] 2.N.b — Read functionalities
+- [ ] 2.N.c — Write functionalities
 - [ ] 2.N.d — Event wiring
 
 ---

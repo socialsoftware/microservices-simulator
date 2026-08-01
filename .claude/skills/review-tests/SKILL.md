@@ -21,8 +21,9 @@ One aggregate per invocation.
 
 **See also:**
 - `docs/concepts/testing.md` — canonical 4-tier specification (this skill enforces it)
-- `.claude/skills/implement-aggregate/session-b.md` — companion implementation skill; missing tests
-  found here should be fed back to session-b.md so the gap is not re-introduced
+- `.claude/skills/implement-aggregate/session-b.md` (reads) and `session-c.md` (writes) — companion
+  implementation skills; missing tests found here should be fed back to whichever of the two owns
+  the tier, so the gap is not re-introduced
 - `.claude/skills/adversarial-review-aggregate/SKILL.md` — Phase 3; produces the `@PendingFeature`
   proof tests this skill absorbs in Step 8.b
 

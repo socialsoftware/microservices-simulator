@@ -15,17 +15,17 @@ file(s) it produces (session → file, for file-generation purposes only):
 | Session | Test type | File |
 |---------|-----------|------|
 | `a` | T1 Aggregate | `{Aggregate}IntraInvariantTest.groovy` |
-| `b` | T2 Service (write methods + event publication) | `{Aggregate}ServiceTest.groovy` |
-| `b` | T4 Functionality (writes) | `{Op}Test.groovy` |
-| `c` | T2 Service (read methods) | appended to `{Aggregate}ServiceTest.groovy` |
-| `c` | T4 Functionality (reads) | `{Query}Test.groovy` |
+| `b` | T2 Service (read methods) | `{Aggregate}ServiceTest.groovy` |
+| `b` | T4 Functionality (reads) | `{Query}Test.groovy` |
+| `c` | T2 Service (write methods + event publication) | appended to `{Aggregate}ServiceTest.groovy` |
+| `c` | T4 Functionality (writes) | `{Op}Test.groovy` |
 | `d` | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` |
 
 > **Recorded decision — why T2 lives in sessions `b`/`c`, not `a`:** the migration plan's default
 > assigns T1+T2 to session `a`, but session `a` produces only the domain layer; the `*Service`
-> class that T2 tests invoke does not exist until session `b` (read methods until `c`). Per the
-> plan's allowance, T2 authoring (including event-publication assertions) is therefore assigned to
-> session `b`, with read-method T2 cases appended in session `c`.
+> class that T2 tests invoke does not exist until session `b`. Per the plan's allowance, T2
+> authoring is therefore assigned to session `b` for the read methods, with the write-method and
+> event-publication cases appended in session `c`.
 
 ---
 
@@ -130,8 +130,8 @@ Based on `{type}`, load and follow the corresponding sub-file. All context varia
 | type | Sub-file | Session name |
 |------|----------|--------------|
 | `a`  | `session-a.md` | Domain Layer |
-| `b`  | `session-b.md` | Write Functionalities |
-| `c`  | `session-c.md` | Read Functionalities |
+| `b`  | `session-b.md` | Read Functionalities |
+| `c`  | `session-c.md` | Write Functionalities |
 | `d`  | `session-d.md` | Event Wiring |
 
 Read the sub-file now and follow its instructions exactly. The sub-file specifies:
