@@ -101,28 +101,19 @@ For each match:
 
 #### 2.c: Parse §4 — Functionalities
 
-Extract from the §4 table (columns: Functionality, Primary Aggregate, Other Aggregates, Description):
+Extract from the §4 table (columns: Functionality, Primary Aggregate, Other Aggregates, Kind, Description):
 - Functionality name (string)
+- Kind (`Write` or `Read`; match case-insensitively)
 - Primary Aggregate (string)
 - Other Aggregates (comma-separated or "—" for none)
 - Description (string)
 
-**Output:** List of tuples `{functionality_name, primary_aggregate, other_aggregates, description}`.
+**Operation type is read from the `Kind` column, never inferred.** The domain model declares it; the
+description is prose and is not evidence. Do not apply keyword heuristics to the description and do
+not prompt the user to disambiguate — a missing or unrecognised `Kind` value is a malformed spec:
+halt with `"Functionality '{functionality_name}' has no valid Kind (expected 'Write' or 'Read'). Fix §4 of the domain model."`
 
-**Classify operation type** (write vs. read):
-- **Write** if description contains: "create", "delete", "update", "add", "remove", "execute", "perform" (case-insensitive)
-- **Read** if description contains: "get", "list", "find", "retrieve", "count", "query" (case-insensitive)
-- **Ambiguous** if neither heuristic matches or both match with contradictory signals
-
-**Ambiguity handling:** If operation type is ambiguous, prompt the user:
-```
-"The functionality '{functionality_name}' is unclear:
-  Description: '{description}'
-  Is this a (W)rite or (R)ead operation? (W/R): "
-```
-Wait for user input (single character). Default to Write if user input is invalid.
-
-**Output:** List of tuples `{functionality_name, primary_aggregate, other_aggregates, description, operation_type}`.
+**Output:** List of tuples `{functionality_name, operation_type, primary_aggregate, other_aggregates, description}`.
 
 ---
 
@@ -176,19 +167,36 @@ Extract from the §4 table (columns: Event, Publisher, Trigger, Payload fields, 
 - `event_name → {publisher, trigger, payload_fields, consumers}`
 - `(publisher, consumer) pair → [event_names]` for quick lookup
 
-#### 3.d: Parse §2 — Snapshots (for Dto generation)
+#### 3.d: Parse §2 — Snapshots
 
 From the §2 table (columns: Aggregate, Snapshots of, Fields cached, Updated on event):
 - `aggregate_name` = the aggregate that caches the snapshot
 - `snapshots_of` = the source entity name being cached (string, may contain `× N`)
+- `updated_on_event` = the events that refresh the cached copy, or `n/a` / `—` for none
 
-**Identify collection snapshots:** If the "Snapshots of" value contains `× N` (e.g., `User × N (students)`, `Topic × N`), it is a **collection snapshot** — stored as a `@OneToMany` set of owned entities. Extract the owned entity name as `{Aggregate}{SourceLabel}` (e.g., `ExecutionStudent`, `QuestionTopic`).
+**Collection snapshots** — the "Snapshots of" value contains `× N`. Stored as a `@OneToMany` set of
+owned entities, and **always** get their own entity class plus a `{OwnedEntity}Dto.java`. A set needs
+an element type; there is nothing to collapse onto the aggregate.
 
-**Identify single snapshots:** If `× N` is absent, it is a **single snapshot** — stored as a `@OneToOne` owned entity (e.g., `ExecutionCourse`). No separate Dto is needed for single snapshots.
+**Single snapshots** — no `× N`. Whether these get an owned-entity class depends on one thing only:
 
-**Output:** For each aggregate, two lists:
-- `collection_snapshot_entities[agg]` → list of owned entity class names that need a `{OwnedEntity}Dto.java` (one per `× N` row)
-- `single_snapshot_entities[agg]` → list of owned entity class names that do NOT need a separate Dto
+> A single snapshot needs an `aggregate/{OwnedEntity}.java` class **iff it subscribes to events** —
+> its "Updated on event" cell names at least one event. `EventSubscription` needs a reference object
+> to hang the subscribed id and version off, and that object is the owned entity.
+>
+> A single snapshot whose "Updated on event" cell is `n/a` (or empty) subscribes to nothing, so there
+> is nothing to hang off. It is cached **directly on the aggregate** as an id field plus a version
+> field, exactly as §1 of the domain model describes single references. **Emit no class for it.**
+
+Single snapshots never need a separate Dto in either case.
+
+**Output:** For each aggregate, three lists:
+- `collection_snapshot_entities[agg]` → owned entity class names, one per `× N` row; each needs both
+  an entity class and a `{OwnedEntity}Dto.java`
+- `subscribing_single_snapshot_entities[agg]` → owned entity class names for single snapshots with a
+  non-empty "Updated on event"; each needs an entity class, no Dto
+- `inline_single_snapshots[agg]` → single snapshots with no "Updated on event"; **no files at all**,
+  they become fields on the aggregate
 
 ---
 
@@ -199,11 +207,28 @@ rule, in the order that doc specifies (same-aggregate → P4a/P4b saga-structura
 synchronous P3 → eventual P2). That section is authoritative for what each pattern means and when
 it applies — do not re-derive the classification logic here.
 
+**Deferred rules.** A §3.2 block marked *(deferred)* carries prose instead of an Entities/Predicate
+table. This is not a parse failure and must not be flagged "needs review" — the domain model is
+stating that the rule is out of scope for this run. Record it in the Rule Classification table with
+pattern `— (deferred)` and an implementation note of the form:
+
+```
+Deferred by the domain model — do not implement. No pattern is assigned and no session produces
+code for it. Revisit only if a future revision of §3.2 gives it an Entities/Predicate table.
+```
+
+Deferred rules are excluded from Step 6.c cross-aggregate prerequisites and from every session's
+file list.
+
 **Parser heuristic** (mechanical only — this keyword matching exists to drive unattended parsing;
 it is not part of the doc's decision criteria):
 
 ```
 FOR each rule in §3.2:
+  IF rule block is marked (deferred):
+    classification = "— (deferred)"
+    CONTINUE
+
   entities = parse(rule.entities)
   predicate = rule.predicate
 
@@ -343,36 +368,72 @@ for either. Simply add one row per aggregate to each.
 For each aggregate, generate the full file list using the templates below (this skill is the
 authoritative source for the file-list shape; `docs/workflow.md` only points here):
 
+Unless noted otherwise, each path is relative to the aggregate's own package,
+`{src}microservices/{aggregate}/`.
+
 **Session 2.N.a — Domain Layer:**
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{SingleSnapshotEntity}.java` (per single snapshot from §2), `aggregate/{CollectionSnapshotEntity}.java` (per collection × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy` |
+| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{DomainEnum}.java` (per enum-typed §1 attribute), `aggregate/{CollectionSnapshotEntity}.java` (per × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{SubscribingSnapshotEntity}.java` (per single §2 snapshot that subscribes to an event — see below), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `{Aggregate}ServiceApplication.java`, `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy` |
 ```
 
-> **Never omit from 2.N.a:** `{Aggregate}Factory.java` and `{Aggregate}CustomRepository.java` must always appear in the 2.N.a row — even when the aggregate has no cross-table lookups. Every owned entity class listed in the §1 "Entities contained" column must appear individually, named `{Aggregate}{Entity}.java` (e.g., `QuizExecution.java`, `QuizQuestion.java` — not `Execution.java`, `Question.java`). **Every §2 snapshot entity — whether single or collection — also requires its own `{Entity}.java` entity class file**: e.g., `aggregate/QuestionCourse.java` for a single Course snapshot in Question, `aggregate/QuestionTopic.java` for a Topic × N snapshot in Question. Do not collapse any of these into a single placeholder and then drop them during substitution. Additionally, **every collection snapshot** (`× N` rows in §2) also requires a `{OwnedEntity}Dto.java` — e.g., `ExecutionStudentDto.java` for `Execution | User × N (students)`, `QuestionTopicDto.java` for `Question | Topic × N`. Single snapshots do NOT need a separate Dto.
+> **Never omit from 2.N.a:** `{Aggregate}Factory.java`, `{Aggregate}CustomRepository.java` and
+> `{Aggregate}ServiceApplication.java` must always appear in the 2.N.a row — the factory and
+> repository even when the aggregate has no cross-table lookups, and the service application
+> unconditionally, since it is the per-aggregate Spring entry point rather than a domain artifact.
+> Every owned entity class listed in the §1 "Entities contained" column must appear individually.
 >
-> **⚠️ Collection-snapshot entity classes are commonly missed.** After filling in the 2.N.a file cell, do a final pass: for every `× N` row in §2 for this aggregate, verify that `aggregate/{Aggregate}{SourceLabel}.java` appears as a separate line (e.g., `aggregate/TournamentTopic.java` for `Tournament | Topic × N`). If it is absent, add it now — the entity class is required for the aggregate to compile even before any service code is written.
+> **Domain enums are derivable from §1 and must be listed.** Scan the §1 attribute types of the
+> aggregate and every owned entity: any attribute whose type is not a primitive, a `String`, a date/time
+> type, an id reference or another listed entity is a domain enum and needs its own
+> `aggregate/{DomainEnum}.java`. Name the file after the type as written in §1. Enumerating them here
+> is what stops session `a` from discovering an unresolvable type mid-file.
+>
+> **Which §2 snapshots get a class** — apply the rule from Step 3.d:
+> - every `× N` collection snapshot → one `aggregate/{CollectionSnapshotEntity}.java` **and** one
+>   `aggregate/{CollectionSnapshotEntity}Dto.java`;
+> - a single snapshot **with** a non-empty "Updated on event" → one
+>   `aggregate/{SubscribingSnapshotEntity}.java`, no Dto;
+> - a single snapshot whose "Updated on event" is `n/a` → **no file**; it is cached as an id field and
+>   a version field on the aggregate itself.
+>
+> **⚠️ Collection-snapshot entity classes are commonly missed.** After filling in the 2.N.a file cell,
+> do a final pass: for every `× N` row in §2 for this aggregate, verify its entity class appears as a
+> separate entry. If it is absent, add it now — the entity class is required for the aggregate to
+> compile even before any service code is written.
 
 **Session 2.N.b — Read Functionalities:**
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.b | `service/{Aggregate}Service.java` (read methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/Get{Aggregate}ByIdCommand.java`, `commands/{aggregate}/Get{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `coordination/functionalities/{Aggregate}Functionalities.java`, `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (read-method cases), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
+| 2.N.b | `service/{Aggregate}Service.java` (read methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/Get{Aggregate}ByIdCommand.java`, `commands/{aggregate}/Get{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `coordination/functionalities/{Aggregate}Functionalities.java`, `{src}ServiceMapping.java` (add the `{AGGREGATE}` entry), `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (read-method cases), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
 ```
 
 > **`Get{Aggregate}ByIdCommand.java` is unconditional** — list it in every aggregate's 2.N.b row, whether or not §4 has any read functionality for that aggregate. Write sagas need it for their get-then-lock step, so it is infrastructure rather than a domain read, and session `b` is therefore never empty.
 
 > **`{Aggregate}Functionalities.java`:** Always include this file — it is required as a Spring bean for test wiring regardless of whether read functionalities exist.
 
+> **`{src}ServiceMapping.java` is unconditional and shared.** Every aggregate needs an entry, because
+> every command constructor resolves its target through `ServiceMapping.{AGGREGATE}.getServiceName()`.
+> It is the one path in these tables rooted at the app source root rather than at
+> `microservices/{aggregate}/`, and it is edited, not created, for every aggregate after the first.
+> It belongs to session `b` because that is where the aggregate's first command is written.
+
 **Session 2.N.c — Write Functionalities:**
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.c | `service/{Aggregate}Service.java` (write methods appended), `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), write coordinator methods appended to `coordination/functionalities/{Aggregate}Functionalities.java`, write cases appended to `messaging/{Aggregate}CommandHandler.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op), write-method cases plus event-publication assertions appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
+| 2.N.c | `service/{Aggregate}Service.java` (write methods appended), `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), write coordinator methods appended to `coordination/functionalities/{Aggregate}Functionalities.java`, write cases appended to `messaging/{Aggregate}CommandHandler.java`, `coordination/webapi/{Aggregate}Controller.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op), write-method cases plus event-publication assertions appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
 ```
 
-> **Event classes:** If Events published is non-empty, append one `events/{Event}.java` per published event to the session-c file list. These are produced in session c alongside the service methods that publish them.
+> **`{Aggregate}Controller.java` is unconditional** — a minimal `@RestController` stub under
+> `coordination/webapi/`. List it for every aggregate; it is not gated on the aggregate having any
+> HTTP-facing functionality.
+
+> **Event classes:** If Events published is non-empty, append one `events/{Event}Event.java` per
+> published event to the session-c file list — the class keeps the `Event` suffix exactly as §4 names
+> it. These are produced in session c alongside the service methods that publish them.
 
 **Session 2.N.d — Event Wiring** (omit if no subscribed events):
 ```
@@ -382,14 +443,29 @@ authoritative source for the file-list shape; `docs/workflow.md` only points her
 ```
 
 **Substitution rules:**
-- `{Aggregate}` → aggregate name (PascalCase, e.g., "Tournament")
-- `{OwnedEntity}` → owned entity class name, which always uses the `{Aggregate}{Entity}` naming pattern — e.g., `QuizExecution`, `QuizQuestion` (not bare `Execution`, `Question`). Derive from §1 "Entities contained" by prepending the aggregate name.
-- `{SingleSnapshotEntity}` → owned entity class name for each single (non-× N) §2 snapshot in this aggregate (e.g., "QuestionCourse", "ExecutionCourse"); omit if no single-snapshot rows exist for this aggregate
-- `{CollectionSnapshotEntity}` → owned entity class name for each `× N` snapshot in §2 (e.g., "ExecutionStudent", "QuestionTopic"); appears twice in 2.N.a — once for the entity class, once for the Dto; omit if no `× N` rows exist for this aggregate
-- `{Operation}` → write operation name (PascalCase, e.g., "AddParticipant")
-- `{Query}` → read operation name (PascalCase, e.g., "GetOpenTournaments")
-- `{Event}` → event name without "Event" suffix (e.g., "UpdateUserName" for "UpdateUserNameEvent")
-- `{aggregate}` → aggregate name (kebab-case or lowercase, e.g., "tournament")
+- `{Aggregate}` → aggregate name (PascalCase, e.g., "Warehouse")
+- `{AGGREGATE}` → aggregate name in SCREAMING_SNAKE_CASE, as it appears in `ServiceMapping` (e.g., "WAREHOUSE")
+- `{OwnedEntity}` → the §1 "Entities contained" name **verbatim**. Do not prepend the aggregate name:
+  a §1 entry of `Shipment` yields `Shipment.java`, not `WarehouseShipment.java`. Prepend the aggregate
+  name **only** to break an actual collision — another aggregate in §1 already claims that class name,
+  or the name is already taken by an aggregate class. Prepending by reflex produces names that stutter
+  when the §1 entity is already qualified.
+- `{DomainEnum}` → an enum-typed attribute's type name from §1, verbatim (e.g., "ShipmentStatus")
+- `{CollectionSnapshotEntity}` → owned entity class name for each `× N` snapshot in §2. Snapshot
+  entities are the standing exception to the verbatim rule: the bare source name always collides with
+  the source aggregate's own class, so qualify with the owning aggregate — a `Shipment × N` snapshot
+  cached by `Warehouse` becomes `WarehouseShipment`. Appears twice in 2.N.a, once for the entity class
+  and once for the Dto; omit if no `× N` rows exist for this aggregate.
+- `{SubscribingSnapshotEntity}` → same naming as above, for each single §2 snapshot with a non-empty
+  "Updated on event"; omit if this aggregate has none
+- `{Operation}` → write operation name (PascalCase, e.g., "AddShipment")
+- `{Query}` → read operation name (PascalCase, e.g., "GetOpenShipments")
+- `{Event}` → event name **without** the "Event" suffix (e.g., "UpdateWarehouseName" for
+  "UpdateWarehouseNameEvent"). It is used bare only inside
+  `notification/subscribe/{Aggregate}Subscribes{Event}.java`; the event class itself is
+  `events/{Event}Event.java`, which restores the suffix.
+- `{aggregate}` → aggregate name (kebab-case or lowercase, e.g., "warehouse")
+- `{src}` → the app source root, `applications/{app-name}/src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/`
 - `{App}` → app name (PascalCase, e.g., "MyApp")
 
 ---
@@ -406,8 +482,15 @@ Structure the file as follows:
 
 Generated by Phase 1. Every session agent reads this file first and ticks its checkbox last.
 
+> **This plan is a blueprint, not a manifest.** A file absent from a Files-to-produce table may
+> still be required - the concept docs and session sub-files are the authority on what an aggregate
+> needs. Amending this file mid-implementation is expected. Mark any added row with the session that
+> added it and a one-line reason.
+
 ---
 ```
+
+The blockquote is emitted verbatim, immediately under the "Generated by Phase 1" line.
 (Substitute `{AppName}` derived from domain-model.md filename.)
 
 #### Rule Classification Table
@@ -422,8 +505,10 @@ All §3.2 rules from {App}-domain-model.md classified by docs/concepts/rule-enfo
 
 Rows: one per §3.2 rule
 - Column 1: rule name (as extracted)
-- Column 2: pattern (P1, P2, P3, P4a, P4b, or "P3 (NEEDS_REVIEW)" if ambiguous)
-- Column 3: implementation note (from Step 4 classification)
+- Column 2: pattern (P1, P2, P3, P4a, P4b, "P3 (NEEDS_REVIEW)" if ambiguous, or `— (deferred)` for a
+  rule the domain model marks *(deferred)*)
+- Column 3: implementation note (from Step 4 classification); for a deferred rule, the
+  do-not-implement note from Step 4
 
 Note: Include §3.1 rules as a separate subsection if desired, all marked as P1.
 
@@ -542,18 +627,18 @@ Followed by checklist:
 ...
 ```
 
-#### Also create the friction log
+#### Also create the harness log
 
-After writing plan.md, create `applications/{app-name}/friction-log.md` with exactly this content —
+After writing plan.md, create `applications/{app-name}/harness-log.md` with exactly this content —
 header only, no rows:
 
 ```markdown
-# Friction Log — {app-name}
+# Harness Log - {app-name}
 
-Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Friction log".
+Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Harness log".
 
-| # | Session | Severity | Category | Artifact | Friction |
-|---|---------|----------|----------|----------|----------|
+| # | Session | Type | Artifact | Problem | Outcome | Ref |
+|---|---------|------|----------|---------|---------|-----|
 ```
 
 If the file already exists, leave it untouched — it is append-only and may already carry rows from a
@@ -561,7 +646,8 @@ partial run. Unlike plan.md, it is never overwritten.
 
 Any friction this session encountered with the harness (a doc or skill that failed to guide the
 parsing or classification) is appended as a row with `Session` = `1`, per
-`conventions.md` § "Friction log".
+`conventions.md` § "Harness log". The Type 1 / Type 2 gates in `AGENTS.md` § "Harness evolution"
+apply to this session as they do to every other.
 
 ---
 
@@ -573,13 +659,14 @@ After writing plan.md:
    ```
    ✓ Phase 1 plan generated successfully.
    Plan written to: applications/{app-name}/plan.md
-   Friction log created at: applications/{app-name}/friction-log.md
+   Harness log created at: applications/{app-name}/harness-log.md
    ```
 
 2. **Summary of results:**
    - Total aggregates processed: N
    - Total rules classified: M (broken down by pattern: P1: X, P2: Y, P3: Z, P4a/b/c: R)
    - Ambiguous rules flagged for review: K (marked "P3 (NEEDS_REVIEW)")
+   - Deferred rules recorded but not implemented: D
    - Total Phase 2 sessions: count (e.g., "2.1.a through 2.3.d")
    - Total Phase 3 sessions: count (= aggregate count, e.g., "3.1 through 3.8")
    - Total Phase 4 sessions: count (= aggregate count, e.g., "4.1 through 4.8")
@@ -609,9 +696,9 @@ After writing plan.md:
    - Halt with error: "Circular dependency detected between aggregates: {list}. Please check aggregate-grouping.md §3."
    - Do NOT attempt topological sort
 
-4. **Functionalities with unclear operation type:**
-   - Always prompt user; do not guess
-   - Offer clear choices: "(W)rite / (R)ead"
+4. **Functionalities with a missing or unrecognised `Kind`:**
+   - Halt; do not guess and do not prompt. §4 declares write-vs-read and is the only source for it
+   - Report the offending functionality name so the domain model can be corrected
 
 ### Ambiguity Flagging
 
@@ -635,7 +722,7 @@ The user can review these flags before Phase 2 begins.
 ## Notes
 
 - The skill does not run tests or validate the plan against code — that is Phase 2's responsibility.
-- The skill does not create any source files — `plan.md` and `friction-log.md` only.
+- The skill does not create any source files — `plan.md` and `harness-log.md` only.
 - Phase 2 agents will read plan.md and tick checkboxes as they complete each session.
 - If plan.md already exists, overwrite it with the newly generated version (this allows re-planning if the domain model changes).
 - For ambiguous sections, users can manually edit plan.md before Phase 2 begins; Phase 2 agents will read the current version.
