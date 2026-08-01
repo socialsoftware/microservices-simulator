@@ -19,7 +19,7 @@ The skill is invoked as:
 
 Examples:
 - `/classify-and-plan applications/my-app/my-app-domain-model.md applications/my-app/my-app-aggregate-grouping.md`
-- `/classify-and-plan docs/examples/example-domain-model.md docs/examples/example-aggregate-grouping.md`
+- `/classify-and-plan applications/{app-name}/{app-name}-domain-model.md applications/{app-name}/{app-name}-aggregate-grouping.md`
 
 > **If arguments are missing or incorrect**, ask the user: "Please provide two file paths: domain-model.md and aggregate-grouping.md. Example: `/classify-and-plan path/to/domain-model.md path/to/aggregate-grouping.md`"
 
@@ -664,7 +664,7 @@ After writing plan.md:
 
 2. **Summary of results:**
    - Total aggregates processed: N
-   - Total rules classified: M (broken down by pattern: P1: X, P2: Y, P3: Z, P4a/b/c: R)
+   - Total rules classified: M (broken down by pattern: P1: X, P2: Y, P3: Z, P4a/b: R)
    - Ambiguous rules flagged for review: K (marked "P3 (NEEDS_REVIEW)")
    - Deferred rules recorded but not implemented: D
    - Total Phase 2 sessions: count (e.g., "2.1.a through 2.3.d")

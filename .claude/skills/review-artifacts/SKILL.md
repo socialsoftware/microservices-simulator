@@ -199,17 +199,22 @@ rg -o '^### [0-9]+\. \S+' applications/{app-name}/plan.md | sed 's/^### [0-9]*\.
 
 ### 6.b — Diff the harness against the run's base commit
 
-The base commit is where the run branch left master:
+The base commit is where the run's harness edits begin:
 
 ```bash
 BASE=$(git merge-base HEAD master)
-git diff "$BASE" -- docs .claude/skills | rg '^\+' | rg -v '^\+\+\+' > /tmp/harness-added.txt
+[ "$BASE" = "$(git rev-parse HEAD)" ] && BASE=$(git log --format=%H --grep='^harness:' HEAD -- docs .claude/skills | tail -1)^
+git diff "$BASE" -- docs .claude/skills -M | rg '^\+' | rg -v '^\+\+\+' > /tmp/harness-added.txt
 ```
 
-If `HEAD` **is** master, `BASE` resolves to `HEAD` itself, so the diff covers only uncommitted
-working-tree edits — harness work being done outside a run. That is still worth checking, but say in
-the report that the scope was the working tree rather than a run's commits. A clean tree gives an
-empty diff and nothing to check; say that instead.
+`merge-base` alone is not enough. When harness work is committed on **master** — which is what
+happens between runs and during a harness-preparation phase — `merge-base HEAD master` resolves to
+`HEAD` itself, the diff is empty, and the check silently passes having scanned nothing. The fallback
+walks back to the parent of the oldest `harness:` commit instead, so a run of harness edits on master
+is still measured. **State in the report which base was used and how it was derived** — a reader
+cannot interpret "0 violations" without knowing how many lines were scanned.
+
+If neither rule yields a base (no `harness:` commits at all), there is nothing to check; say so.
 
 ### 6.c — Match
 
@@ -220,17 +225,33 @@ rg -n -w -f /tmp/harness-nouns.txt /tmp/harness-added.txt
 `-w` matches whole words only, so a hit is a real occurrence of the noun and not a substring of an
 unrelated identifier.
 
-Every hit is a **Major** finding. Report the added line verbatim and the file it came from
-(re-run `git diff "$BASE" -- docs .claude/skills` and locate the hunk, since the filtered file has
-lost its `+++` headers). Read each hit before reporting it: a noun that is also an ordinary English
-word can appear legitimately, and a plural or possessive form will not match `-w` at all, so scan the
-added lines for those by eye.
+**A hit is not yet a finding.** `git diff` renders a **moved** line as an addition, so any refactor
+that relocates content between harness files reports every domain noun it carried, none of which is
+new. Before reporting a hit, check whether the identical line already existed at the base:
+
+```bash
+git grep -F "<the added line>" "$BASE" -- docs .claude/skills
+```
+
+A match means the line was moved, not introduced: it is a `Moved` verdict, not a violation. This is
+not a rare case - a session-letter swap or a sub-file split produces nothing else, and on Check 4's
+first exercise all three hits were moves.
+
+Then report the added line verbatim and the file it came from (re-run
+`git diff "$BASE" -- docs .claude/skills -M` and locate the hunk, since the filtered file has lost
+its `+++` headers). Read each surviving hit before reporting it: a noun that is also an ordinary
+English word can appear legitimately, and a plural or possessive form will not match `-w` at all, so
+scan the added lines for those by eye.
 
 | File | Added line | Noun | Verdict |
 |------|-----------|------|---------|
 
-Verdicts: `Violation` (a domain noun leaked into the harness - Major, with the neutral rewrite to
-apply) / `False positive` (ordinary English usage, with the reason).
+Verdicts: `Violation` (a domain noun newly introduced into the harness - Major, with the neutral
+rewrite to apply) / `Moved` (present verbatim at the base elsewhere; name the file it came from) /
+`False positive` (ordinary English usage, with the reason).
+
+Report the three counts separately. A run whose hits are all `Moved` is a clean run, and saying so
+is more useful than a bare "0 violations".
 
 ---
 

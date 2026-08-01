@@ -29,6 +29,7 @@ Load these files before writing any code:
    - § Step Ordering (authoritative; this session no longer restates it)
    - § Lock-Acquisition Step Pattern (Two-Step Write Sagas), § Semantic Locks in Practice
    - § R4 Decision Table — `SagaCommand` vs `setForbiddenStates`
+   - § Create Functionality Sagas — only if a write functionality for this aggregate creates it; the create step declares neither a lock nor `forbiddenStates` and instead registers a compensation
    - § Write Workflow Structure
 
 6. **`docs/concepts/testing.md`** — § Assertion Ownership, § T2 — Service Test, § T4 — Functionality Test, § Fake / Wrong / Weak Detection Checklist. This session writes tests in two tiers (T2 write cases + event publication, T4 write functionality) — read the full rule set before writing any test file, apply the Fake/Wrong/Weak checklist before committing each one.
