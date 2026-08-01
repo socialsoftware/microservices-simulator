@@ -255,7 +255,8 @@ Expected scenarios per tier — full definitions in `docs/concepts/testing.md`:
   if the aggregate publishes events (plan.md's Events published list).
 - **T3** (`{Aggregate}InterInvariantTest.groovy`): § T3 — Subscription (Inter-Invariant) Test.
   Only expected if the aggregate has P2 subscribed events (session 2.N.d).
-- **T4 write functionality** (`{Operation}{Aggregate}Test.groovy`): § T4 — Functionality Test
+- **T4 write functionality** (`{Operation}Test.groovy`, named exactly as plan.md's files-to-produce
+  table lists it): § T4 — Functionality Test
   and § Assertion Ownership.
 - **T4 read functionality**: happy path only — not-found cases belong in T2, not here.
 

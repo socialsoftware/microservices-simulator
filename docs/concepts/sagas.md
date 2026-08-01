@@ -8,11 +8,11 @@ Sagas implement **semantic locking** to prevent conflicting concurrent operation
 
 | Class | Location | Role |
 |-------|---------|------|
-| `SagaAggregate` | `simulator/.../ms/sagas/aggregate/SagaAggregate.java` | Interface adding `getSagaState()` / `setSagaState()` |
-| `SagaUnitOfWork` | `simulator/.../ms/sagas/unitOfWork/SagaUnitOfWork.java` | Coordinates reads/writes for a saga execution |
-| `SagaUnitOfWorkService` | `simulator/.../ms/sagas/unitOfWork/SagaUnitOfWorkService.java` | Creates and commits/aborts `SagaUnitOfWork` instances |
-| `SagaWorkflow` | `simulator/.../ms/sagas/workflow/SagaWorkflow.java` | Workflow engine for sagas |
-| `SagaStep` | `simulator/.../ms/sagas/workflow/SagaStep.java` | A single step in a saga workflow |
+| `SagaAggregate` | `simulator/.../ms/transaction/sagas/aggregate/SagaAggregate.java` | Interface adding `getSagaState()` / `setSagaState()` |
+| `SagaUnitOfWork` | `simulator/.../ms/transaction/sagas/unitOfWork/SagaUnitOfWork.java` | Coordinates reads/writes for a saga execution |
+| `SagaUnitOfWorkService` | `simulator/.../ms/transaction/sagas/unitOfWork/SagaUnitOfWorkService.java` | Creates and commits/aborts `SagaUnitOfWork` instances |
+| `SagaWorkflow` | `simulator/.../ms/transaction/sagas/workflow/SagaWorkflow.java` | Workflow engine for sagas |
+| `SagaStep` | `simulator/.../ms/transaction/sagas/workflow/SagaStep.java` | A single step in a saga workflow |
 
 ## SagaState
 
@@ -69,9 +69,9 @@ How the automatic release works:
 - When a step runs `setSemanticLock`, the core (`SagaCommandHandler` → `registerSagaState()`) records the aggregate's **pre-lock** `SagaState`, keyed by the currently-executing step, via `savePreviousState(aggId, oldState)`, then applies the lock atomically. For a first-time lock, that recorded pre-lock state **is** `NOT_IN_SAGA`.
 - On abort, `SagaUnitOfWorkService.abortUntilStep` walks the executed steps in reverse and replays each recorded previous state through an `AbortSagaCommand`, restoring every aggregate to its pre-lock state. For the lock step, that restores `NOT_IN_SAGA` - so the automatic path alone releases every lock. The successful-commit path likewise resets `SagaState` back to `NOT_IN_SAGA`.
 
-`registerCompensation` is reserved for **genuine domain-level compensating actions** - undoing a real side effect a step generated, e.g. deleting a child aggregate a step created (cf. `CreateTournamentFunctionalitySagas` removing a generated quiz). It is never used to release a lock.
+`registerCompensation` is reserved for **genuine domain-level compensating actions** - undoing a real side effect a step generated, e.g. deleting a child aggregate a step created. It is never used to release a lock.
 
-> **⚠️ The `currentExecutingStep` re-lock pitfall.** A manual "release the lock" compensation on the lock-acquiring step does not just no-op - it actively re-locks the aggregate. When the injected fault throws before the faulting step's own `execute()` runs, `currentExecutingStep` stays pinned to the lock step. The manual release then re-enters `registerSagaState` → `savePreviousState` under that same frozen step key, appending a **spurious `(agg, LOCKED_STATE)`** record. On abort, `sendAbortCommandsForStep` replays both records in list order; the spurious `LOCKED` one is applied **last and wins**, leaving the aggregate locked. Empirically: re-adding one manual release block to `DeleteCourseFunctionalitySagas` makes `DeleteCourseCompensationTest` fail with persisted `IN_DELETE_COURSE` instead of `NOT_IN_SAGA`. The compensation test's `sagaStateOf(...) == NOT_IN_SAGA` assertion is the regression guard for exactly this class of lock-lifecycle bug.
+> **The `currentExecutingStep` re-lock pitfall.** A manual "release the lock" compensation on the lock-acquiring step does not just no-op - it actively re-locks the aggregate. When the injected fault throws before the faulting step's own `execute()` runs, `currentExecutingStep` stays pinned to the lock step. The manual release then re-enters `registerSagaState` → `savePreviousState` under that same frozen step key, appending a **spurious `(agg, LOCKED_STATE)`** record. On abort, `sendAbortCommandsForStep` replays both records in list order; the spurious `LOCKED` one is applied **last and wins**, leaving the aggregate locked. Empirically: re-adding one manual release block to a delete workflow makes its compensation test fail with the persisted `IN_DELETE_{AGGREGATE}` state instead of `NOT_IN_SAGA`. The compensation test's `sagaStateOf(...) == NOT_IN_SAGA` assertion is the regression guard for exactly this class of lock-lifecycle bug.
 
 ## Semantic Locks in Practice
 

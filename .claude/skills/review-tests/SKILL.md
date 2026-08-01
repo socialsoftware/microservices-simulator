@@ -107,8 +107,10 @@ tests must not re-assert event-store contents — T2 owns those).
 
 ### T4 — per **write** functionality (one test file per write operation under `coordination/{aggregate}/`)
 
-File-naming convention: `{Operation}{Aggregate}Test.groovy` (e.g., `CreateCourseTest.groovy`,
-`UpdateQuizTest.groovy`). Required scenarios, assertion ownership, and the semantic-lock
+File-naming convention: `{Operation}Test.groovy` — the functionality name plus `Test`, exactly as
+`plan.md`'s files-to-produce table lists it (e.g. `CreateCourseTest.groovy`, `AddParticipantTest.groovy`).
+The operation name often already carries the aggregate; do not append it a second time. Required
+scenarios, assertion ownership, and the semantic-lock
 acquisition pattern: `docs/concepts/testing.md` § T4 — Functionality Test and § Assertion
 Ownership. `setForbiddenStates` conflict validation is deferred — see `docs/concepts/testing.md`
 Appendix, Cross-Functionality Test.
@@ -227,7 +229,7 @@ gap, state: (a) the scenario, (b) what defect it would catch.
 Focus on:
 - **Intra-invariant test boundary coverage:** for every non-`final` P1 rule with an ordered predicate
   (count, timestamp, collection size), check that `{Aggregate}IntraInvariantTest` has both the on-point
-  (`notThrown`) and the off-point (`thrown` + `ex.getErrorMessage() == <RULE>`) cases. A single
+  (`notThrown`) and the off-point (`thrown` + `ex.message == <RULE>`) cases. A single
   far-side representative is **Weak (boundary under-coverage)**; propose the missing straddle explicitly.
   Categorical P1 rules (uniqueness, state-freeze) need no boundary pair.
 - Boundary values for **P3 numeric guards** — on-point and off-point straddling the threshold (see
@@ -309,8 +311,10 @@ test suite", narrowed with a wildcard so no manual enumeration is needed:
 ```
 
 `*{Aggregate}*Test` matches `{Aggregate}IntraInvariantTest` (T1), `{Aggregate}ServiceTest` (T2),
-`{Aggregate}InterInvariantTest` (T3 subscription), and all `{Operation}{Aggregate}Test` files (T4)
-— no separate `-Dtest` entries needed.
+`{Aggregate}InterInvariantTest` (T3 subscription), and any T4 `{Operation}Test` file whose operation
+name contains the aggregate name. **T4 files whose operation name does not contain it** (e.g.
+`AddParticipantTest` for `Tournament`) are not matched — enumerate those explicitly alongside the
+wildcard, from the `find` of `{tgt-test}sagas/coordination/{aggregate}/` in Step 2.
 
 If the wildcard is too broad (picks up unrelated aggregates with similar names), narrow it to explicit
 class names: `-Dtest="{Aggregate}IntraInvariantTest,Create{Aggregate}Test,..."`. The wildcard form

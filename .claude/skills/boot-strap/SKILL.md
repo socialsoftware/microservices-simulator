@@ -109,7 +109,13 @@ under `{pkg}/` — its package declaration is `pt.ulisboa.tecnico.socialsoftware
 Maven is invoked per-app, so each app carries its own untracked `.mvn/maven.config` pointing at the
 developer's settings file. Without it the very first `mvn` run fails resolving plugins from whatever
 mirror `~/.m2/settings.xml` names — an error that looks like a scaffold bug but is not. This file is
-machine config, so it is copied from a sibling app rather than templated:
+machine config, so it is copied from a sibling app rather than templated.
+
+> **The one sanctioned exception to § "Application isolation".** `.mvn/maven.config` is untracked
+> machine configuration — a `-s <path>` line naming the developer's settings file. It carries no
+> domain content and is not a design source, so copying it is not a peer-as-specification read. The
+> exception is limited to this single file: never open any other file of a sibling application, and
+> never read the sibling's `pom.xml`, source, or tests while doing it.
 
 ```bash
 src=$(ls -d applications/*/.mvn 2>/dev/null | grep -v "applications/{app-name}/" | head -1)

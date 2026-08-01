@@ -17,7 +17,7 @@ An `Aggregate` is the unit of consistency in the simulator. Every write creates 
 
 ## Base Class
 
-`simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/domain/aggregate/Aggregate.java`
+`simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/aggregate/Aggregate.java`
 
 Abstract methods every subclass must implement:
 - `verifyInvariants()` — throw if any intra-invariant is violated
@@ -26,8 +26,8 @@ Abstract methods every subclass must implement:
 ## Variants
 
 ### Sagas variant
-Interface: `ms.sagas.aggregate.SagaAggregate`
-(`simulator/.../ms/sagas/aggregate/SagaAggregate.java`)
+Interface: `ms.transaction.sagas.aggregate.SagaAggregate`
+(`simulator/.../ms/transaction/sagas/aggregate/SagaAggregate.java`)
 
 Adds:
 - `getSagaState()` / `setSagaState(SagaState state)` — semantic lock used to block conflicting concurrent operations

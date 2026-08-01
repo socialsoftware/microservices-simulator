@@ -27,7 +27,7 @@ public class AddParticipantCommand extends Command {
 
 `super(unitOfWork, serviceName, aggregateId)`:
 - `unitOfWork` — the active `SagaUnitOfWork` for this workflow execution.
-- `serviceName` — the `CommandHandler.getAggregateTypeName()` value that routes to the right handler (e.g. `"Tournament"`). Use the `ServiceMapping` enum: `ServiceMapping.TOURNAMENT.getServiceName()`.
+- `serviceName` — the routing key. Always `ServiceMapping.{AGGREGATE}.getServiceName()` (e.g. `ServiceMapping.TOURNAMENT.getServiceName()` → `"tournament"`), never a hardcoded literal and never `getAggregateTypeName()`'s PascalCase value — see § Routing Commands below for why the two differ.
 - `aggregateId` — the primary aggregate ID; used by the UoW to detect version conflicts.
 
 Commands are plain data carriers — no business logic, no Spring beans.

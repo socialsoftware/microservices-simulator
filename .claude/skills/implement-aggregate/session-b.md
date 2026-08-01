@@ -58,9 +58,16 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 - Method signature: receives the command's fields + `UnitOfWork unitOfWork`
 - **P3 own-table uniqueness guards** (if listed in plan.md P3 rules): query the repository for duplicates before creating; throw `{AppClass}Exception` with the appropriate error message constant if found
 - **P3 DTO field checks** (if listed in plan.md cross-aggregate prerequisites): receive the saga-assembled DTO as a parameter; validate the field; throw `{AppClass}Exception` on violation
-- After validation: fetch the target aggregate via `{Aggregate}CustomRepositorySagas`, mutate its fields via setters, call `verifyInvariants()`, then `unitOfWork.registerChanged(aggregate)`
-- **Soft-delete** (`remove()`): use copy-on-write — load the aggregate, create a factory copy via `factory.create{Aggregate}Copy(old)`, call `copy.remove()`, then `registerChanged(copy)`. Never call `remove()` on the managed entity returned by `aggregateLoadAndRegisterRead`; doing so lets JPA auto-flush the deleted state before the saga abort query runs, making the aggregate invisible to the abort path.
-- **Event publishing**: for each event this aggregate publishes (see plan.md Events published), call `unitOfWork.registerEvent(new {Event}(...))` at the end of the relevant service method
+- After validation, follow `docs/concepts/service.md` § Method Patterns exactly. The call shape is:
+  load with `unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork)`, create a
+  factory copy with `{aggregate}Factory.create{Aggregate}Copy(old)`, apply the setters **to the
+  copy**, then `unitOfWorkService.registerChanged(copy, unitOfWork)`. Do not mutate the loaded
+  instance (`docs/concepts/service.md` § Copy-on-Write Rule), do not load through the custom
+  repository for a by-ID mutation, and do not call `verifyInvariants()` yourself — `registerChanged`
+  invokes it.
+- **Soft-delete** (`remove()`): the same copy-on-write shape, with `copy.remove()` before
+  `registerChanged`. Never call `remove()` on the managed entity returned by `aggregateLoadAndRegisterRead`; doing so lets JPA auto-flush the deleted state before the saga abort query runs, making the aggregate invisible to the abort path.
+- **Event publishing**: for each event this aggregate publishes (see plan.md Events published), call `unitOfWorkService.registerEvent(new {Event}(...), unitOfWork)` at the end of the relevant service method
 
 > **Deferred P3 guards:** If a P3 DTO-check rule listed in plan.md cross-aggregate prerequisites requires data from an aggregate ordered _after_ this one in plan.md (because that later aggregate subscribes to this one's events), the guard cannot be implemented yet. Do the following:
 > 1. **Skip** the data-assembly saga step and the service guard — do not add stubs.
@@ -74,10 +81,16 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 
 Path: `{src}microservices/{aggregate}/messaging/{Aggregate}CommandHandler.java`
 
-- Spring `@Component`
-- One `@CommandHandler` method per command class produced in this session
-- Each handler: creates a `UnitOfWork`, calls the matching service method, commits the `UnitOfWork`, returns result
-- Routes each command to the corresponding service method
+- Spring `@Component`, extends `CommandHandler` (`pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler`)
+- Exactly two overrides, per `docs/concepts/commands.md` § Routing Commands (CommandHandler):
+  `getAggregateTypeName()` returning the PascalCase aggregate name, and a single
+  `handleDomainCommand(Command command)` holding one `switch` case per command class plus a
+  `default` branch that logs a warning
+- Each case calls the matching service method, passing `cmd.getUnitOfWork()` — the handler does
+  **not** create or commit a UnitOfWork; the workflow owns its lifecycle. Mutating cases
+  `yield null`; read cases return the DTO.
+- The Spring **bean name** must be `ServiceMapping.{AGGREGATE}.getServiceName() + "CommandHandler"`
+  (lowercase camelCase, e.g. `quizAnswerCommandHandler`) — that is the actual routing key
 
 ### One `{Op}{Aggregate}Command.java` per write functionality
 
@@ -92,8 +105,11 @@ Path: `commands/{aggregate}/{Op}{Aggregate}Command.java`
 
 Path: `{src}microservices/{aggregate}/coordination/sagas/{Op}FunctionalitySagas.java`
 
-- Extends `FunctionalitySagas` (or the appropriate saga base class from the simulator core)
-- Steps are defined as `SagaStep` instances in the constructor or `defineSteps()` method
+- Extends `WorkflowFunctionality` (`pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality`)
+- The constructor calls `buildWorkflow(...)`; `buildWorkflow` assigns
+  `this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork)`, declares each `SagaStep`
+  with its dependency list, and registers them with `this.workflow.addStep(...)` — see
+  `docs/concepts/sagas.md` § Write Workflow Structure
 - **Step ordering, lock-step pattern, R4 foreign-vs-primary distinction, and R8 upstream-only rule** — follow `docs/concepts/sagas.md` § Step Ordering (and the linked § Lock-Acquisition Step Pattern, § R4 Decision Table). That section is authoritative; do not re-derive the order from the implementation.
 - **Compensations (`registerCompensation`) are for genuine domain-level undos only** — reversing a real side effect a step produced (e.g. deleting a child aggregate a step created). Never register a compensation to release a semantic lock: lock release on abort is automatic, and a manual release re-locks the aggregate (see `docs/concepts/sagas.md` § Semantic-lock release on abort is automatic).
 - The **conditional validate-dates step** is per-aggregate guidance, not a generic pattern: if `plan.md` for this aggregate lists time-based invariants on both this aggregate and a downstream aggregate created in the same saga, insert the validate-dates step first.

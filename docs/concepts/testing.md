@@ -121,7 +121,7 @@ security. This checklist is the authoritative smell list, consumed by
 **Temporal mechanics:** the smallest `LocalDateTime` tick is `.minusNanos(1)` / `.plusNanos(1)`;
 pin **both** instants explicitly so the on-point is exactly equal. All temporal P1 boundary cases
 are T1 direct-aggregate tests — the saga path stamps `lastModifiedTime = now()` and cannot pin the
-on-point. Canonical pattern: `TournamentIntraInvariantTest` (`ANSWER_BEFORE_START`).
+on-point.
 
 When a test instead manufactures a past/future timestamp to trigger a **service-level** date guard
 (a T2 concern, not a P1 boundary), pin it against the same clock the guard under test actually
@@ -408,8 +408,8 @@ The test lets the lock-acquiring step run for real (so the lock is genuinely hel
 compensation genuinely registered), forces the very next step to throw via `ImpairmentService`,
 then makes a three-part assertion: (1) the expected exception propagates — normally
 `SimulatorException` from the injected fault, unless the step throws for an unconditional,
-non-fault reason first (e.g. `UpdateCourseTest`'s `updateCourseStep` always throws
-`COURSE_FIELDS_IMMUTABLE` — no impairment needed there, just an added
+non-fault reason first (an update step whose target fields are P1 `final` always throws its
+immutability constant, for instance — no impairment is needed there, just an added
 `sagaStateOf(...) == NOT_IN_SAGA` assertion on the existing lock-acquisition test); (2)
 `sagaStateOf(aggregateId) == GenericSagaState.NOT_IN_SAGA` (compensation actually ran); (3)
 read-back through the functionality's own getter shows the mutation never applied.
@@ -472,9 +472,8 @@ class <FunctionalityName>CompensationTest extends <AppName>SpockTest {
   ever ran, making the test a false positive. This was fixed by wiring the existing `canExecute()`
   method into a topological worklist in `execute()`, so a step's fault check now only fires once
   its full real dependency chain has genuinely completed, at arbitrary depth. Lock-acquiring steps
-  no longer need to be root steps for their compensation to be genuinely testable — see
-  `EnrollStudentInExecutionCompensationTest`, `CreateQuizAnswerUserLockCompensationTest`, and
-  `AddParticipantCompensationTest` for examples with 2- and 3-level-deep dependency chains. Always
+  no longer need to be root steps for their compensation to be genuinely testable, at any depth of
+  dependency chain. Always
   sanity-check a new compensation test by temporarily flipping its fault flag to `0` and re-running
   the *full* suite with logging, not just the exception assertion — confirm the lock-acquiring
   step's `START EXECUTION STEP` log line actually appears before the fault fires.

@@ -19,9 +19,9 @@ This document is the system-level companion to the per-concept docs. Read it bef
 
 | Class | Path | Role |
 |-------|------|------|
-| `Aggregate` | `simulator/.../ms/domain/aggregate/Aggregate.java` | Base for all domain aggregates; defines `verifyInvariants()`, `getEventSubscriptions()`, version chain |
-| `SagaAggregate` | `simulator/.../ms/sagas/aggregate/SagaAggregate.java` | Interface for semantic-lock protocol; adds `getSagaState()` / `setSagaState()` |
-| `WorkflowFunctionality` | `simulator/.../ms/coordination/workflow/WorkflowFunctionality.java` | Base for all cross-service workflows; provides `executeWorkflow()`, `executeUntilStep()`, `resumeWorkflow()` |
+| `Aggregate` | `simulator/.../ms/aggregate/Aggregate.java` | Base for all domain aggregates; defines `verifyInvariants()`, `getEventSubscriptions()`, version chain |
+| `SagaAggregate` | `simulator/.../ms/transaction/sagas/aggregate/SagaAggregate.java` | Interface for semantic-lock protocol; adds `getSagaState()` / `setSagaState()` |
+| `WorkflowFunctionality` | `simulator/.../ms/coordination/WorkflowFunctionality.java` | Base for all cross-service workflows; provides `executeWorkflow()`, `executeUntilStep()`, `resumeWorkflow()` |
 
 ---
 

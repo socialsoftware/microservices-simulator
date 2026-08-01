@@ -44,8 +44,9 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 - **Append** new methods to the existing service class — do not rewrite the file
 - One method per read functionality listed in plan.md
 - Method signature: receives query parameters (ids, filters) + `UnitOfWork unitOfWork`
-- Body: fetch aggregate via `{Aggregate}CustomRepositorySagas.getLatestVersion(...)`, map to `{Aggregate}Dto`, return it
-- Throw `{AppClass}Exception` with `AGGREGATE_NOT_FOUND` (or domain-specific constant) if not found
+- Body — follow `docs/concepts/service.md` § Method Patterns → Read method:
+  - **By primary key (the normal case):** `{aggregate}Factory.create{Aggregate}Dto(({Aggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork))`. Do not add a not-found guard — the infrastructure throws `SimulatorException` when the ID does not resolve. This is the Path A that the T2 not-found case below asserts.
+  - **By composite / non-PK key:** query `{Aggregate}CustomRepository`, and throw `{AppClass}Exception` with the domain-specific not-found constant when the `Optional` is empty. This is Path B.
 - If the read joins a foreign aggregate: fetch the foreign aggregate's DTO via its service and include in the response
 - **List-return reads**: If the read returns a collection (e.g., all open tournaments for an execution), the service method iterates all matching aggregate instances. Use a JPQL "latest-active-version" query rather than `jpaRepo.findAll()` — `findAll()` returns every historical version, not just the current one. Add `findAllLatestActive()` (or a narrower variant) to the JPA repository interface and call it from `{Aggregate}CustomRepositorySagas`. See `docs/concepts/service.md` — "Custom Repository — Latest-Active-Version Query" for the JPQL pattern.
 
@@ -66,7 +67,8 @@ Path: `commands/{aggregate}/{Query}Command.java`
 
 Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySagas.java`
 
-- Extends the read-functionality base class from simulator core
+- Extends `WorkflowFunctionality` (`pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality`) — the same base class as write sagas; there is no separate read base class
+- Constructor calls `buildWorkflow(...)`, which assigns `this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork)` and registers the step
 - Single step: send `{Query}Command` to `{Aggregate}CommandHandler`, store the result DTO in an instance field
 - Provide a getter for the result DTO
 - No compensation needed (reads are non-mutating)

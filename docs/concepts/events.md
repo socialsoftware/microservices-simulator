@@ -8,7 +8,7 @@ Domain events are the mechanism for **eventual consistency** across aggregates. 
 
 Located in `src/main/java/.../<appName>/events/` (e.g., `applications/{app-name}/src/main/java/.../{app}/events/`).
 
-Each event extends `Event` from `ms.domain.event`:
+Each event extends `Event` from `ms.aggregate` (`pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event`) — it is a JPA `@Entity`, so the subclass must be annotated `@Entity` too:
 
 ```java
 public class CreateQuestionEvent extends Event {

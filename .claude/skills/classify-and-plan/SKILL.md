@@ -444,10 +444,14 @@ Rows: one per aggregate (in sorted order from Step 5)
 - Column 6: sessions (space-separated: `a b c` or `a b c d` depending on presence of write/read/subscribed events)
 
 #### Aggregate Details Sections
-For each aggregate in sorted order:
+
+For each aggregate in sorted order. **The heading must be `### {N}. {Aggregate}`, where `{N}` is the
+aggregate's ordinal from the Implementation Order table** — `_shared/conventions.md`
+§ "Resolve aggregate context" locates the section by that exact shape and halts if it is absent, so
+every Phase 2/3/4 skill depends on the ordinal being present.
 
 ```markdown
-### {Aggregate}
+### {N}. {Aggregate}
 
 **Write functionalities** (mutating operations from §4 of domain-model.md):
 - `{Operation}({args})` — description

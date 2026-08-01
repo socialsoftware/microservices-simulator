@@ -60,7 +60,7 @@ public void removeIfUserMatches(Integer aggregateId, Integer userId, UnitOfWork 
         return; // not the affected consumer — ignore silently
     }
     aggregate.remove();
-    unitOfWork.registerChanged(aggregate);
+    unitOfWorkService.registerChanged(aggregate, unitOfWork);
 }
 ```
 
@@ -71,8 +71,10 @@ Do **not** attempt to move this check into a `subscribesEvent()` override — it
 Path: `{src}microservices/{aggregate}/notification/handling/{Aggregate}EventHandling.java`
 
 - Spring `@Component`
-- One `@Scheduled(fixedDelay = ...)` method per subscribed event type
-- Each method: calls the event service to poll for unprocessed events of that type; for each event found, calls `{Aggregate}EventHandler.handle{Event}(event)`
+- One `@Scheduled(fixedDelay = 1000)` method per subscribed event type
+- Each method body is a single call:
+  `eventApplicationService.handleSubscribedEvent({Event}.class, {aggregate}EventHandler)` — every
+  method passes the **same** autowired handler bean. See `docs/concepts/events.md` § Polling.
 
 ### `{Aggregate}EventHandler.java`
 
@@ -154,7 +156,7 @@ public void updateQuestionVersionIn{SubEntity}(Integer aggregateId, Integer ques
         .findFirst()
         .ifPresent(e -> e.setQuestionVersion(publisherVersion));
     aggregate.verifyInvariants();
-    unitOfWork.registerChanged(aggregate);
+    unitOfWorkService.registerChanged(aggregate, unitOfWork);
 }
 ```
 
@@ -224,8 +226,9 @@ Open `{bean-config}` and add three new `@Bean` methods:
 }
 
 @Bean
-{Aggregate}EventHandler {aggregate}EventHandler({Aggregate}Repository {aggregate}Repository) {
-    return new {Aggregate}EventHandler({aggregate}Repository)
+{Aggregate}EventHandler {aggregate}EventHandler({Aggregate}Repository {aggregate}Repository,
+                                                {Aggregate}EventProcessing {aggregate}EventProcessing) {
+    return new {Aggregate}EventHandler({aggregate}Repository, {aggregate}EventProcessing)
 }
 
 @Bean
@@ -234,7 +237,7 @@ Open `{bean-config}` and add three new `@Bean` methods:
 }
 ```
 
-> **Note:** `{Aggregate}EventHandler` requires the repository as a constructor arg because `EventHandler` (simulator core) accepts it. The `{Aggregate}Repository` bean is provided automatically by `@DataJpaTest` auto-configuration in tests.
+> **Note:** `{Aggregate}EventHandler` takes the repository (required by `EventHandler` in the simulator core) **and** `{Aggregate}EventProcessing`, matching the constructor described above. The `{Aggregate}Repository` bean is provided automatically by `@DataJpaTest` auto-configuration in tests.
 
 Add the corresponding `import` statements. Place new beans after the write/read functionality beans for this aggregate.
 
