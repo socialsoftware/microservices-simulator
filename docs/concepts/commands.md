@@ -28,9 +28,18 @@ public class AddParticipantCommand extends Command {
 `super(unitOfWork, serviceName, aggregateId)`:
 - `unitOfWork` — the active `SagaUnitOfWork` for this workflow execution.
 - `serviceName` — the routing key. Always `ServiceMapping.{AGGREGATE}.getServiceName()` (e.g. `ServiceMapping.TOURNAMENT.getServiceName()` → `"tournament"`), never a hardcoded literal and never `getAggregateTypeName()`'s PascalCase value — see § Routing Commands below for why the two differ.
-- `aggregateId` — the primary aggregate ID; used by the UoW to detect version conflicts.
+- `aggregateId` — stored on the base `Command` as `rootAggregateId`. It is the aggregate whose
+  **semantic lock lifecycle** this command participates in. It has no consumers in the `unitOfWork`
+  package; under sagas it is read only by `SagaCommandHandler`, for
+  `verifySagaState(rootAggregateId, forbiddenStates)` and for lock registration.
 
 Commands are plain data carriers — no business logic, no Spring beans.
+
+> A **create** command has no aggregate id - the service generates it via
+> `aggregateIdGeneratorService`. Pass `null`. This is safe rather than merely tolerated: a create
+> step declares no semantic lock and no forbidden states, so the handler never dereferences it.
+> Version conflict detection is unaffected; it operates on the aggregates registered read/changed
+> with the unit of work, not on this field.
 
 ---
 

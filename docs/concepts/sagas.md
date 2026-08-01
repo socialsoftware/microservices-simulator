@@ -96,8 +96,9 @@ SagaStep addParticipantStep = new SagaStep("addParticipantStep", () -> {
 |-------------|---------|-------------|
 | **Primary aggregate** (the aggregate owning this saga) | `SagaCommand` wrapping the read command + `setSemanticLock(state)` | Lock acquisition before mutating the saga's own aggregate — see § Lock-Acquisition Step Pattern. The lock is released automatically on abort/commit — do **not** register a manual release compensation (see § Semantic-lock release on abort is automatic) |
 | **Foreign aggregate** (upstream aggregate touched by a cross-aggregate step) | Plain command + `setForbiddenStates([...])` listing states that must block this step | Abort if the foreign aggregate is already mid-saga in a conflicting state; does **not** acquire a new lock |
+| **Newly created aggregate** (the step creates it) | Plain command, no lock and no forbidden states; register a compensation that removes it | The aggregate does not exist when the saga starts, so there is no prior state to guard - see § Create Functionality Sagas |
 
-**Rule of thumb:** if the step must **acquire** a lock on an aggregate before writing to it, use `SagaCommand` + `setSemanticLock`. If the step only needs to **check** that another aggregate is not already locked, use `setForbiddenStates`.
+**Rule of thumb:** if the step must **acquire** a lock on an aggregate before writing to it, use `SagaCommand` + `setSemanticLock`. If the step only needs to **check** that another aggregate is not already locked, use `setForbiddenStates`. If the step brings the aggregate into existence, neither applies.
 
 ## Read Functionality Sagas
 
@@ -247,6 +248,115 @@ Get{Aggregates}By{ForeignField}FunctionalitySagas saga = new Get{Aggregates}By{F
 saga.executeWorkflow(unitOfWork);
 return saga.get{Aggregates}();
 ```
+
+## Create Functionality Sagas
+
+A create saga has no aggregate to lock: the aggregate it writes does not exist when the saga starts,
+and the service mints its `aggregateId` via `aggregateIdGeneratorService`. Three consequences:
+
+1. **The create step declares no semantic lock and no `forbiddenStates`.** There is no prior state to
+   guard, so there is nothing for `setSemanticLock` to transition from and nothing for
+   `verifySagaState` to reject. Do not wrap the create command in `SagaCommand`, and do not invent a
+   saga state for the create operation. The create command's `rootAggregateId` is `null` - see
+   [`concepts/commands.md`](commands.md) § What a Command Is.
+
+2. **The create step registers a compensation that removes the created aggregate** - unless the
+   create is the saga's last step, in which case the unit of work handles abort on its own and no
+   compensation is needed. This is the part that generalises badly if omitted: a single-step create
+   saga looks correct without it, but a create saga with *any* step after the create leaks the
+   created aggregate on abort. Register the compensation whenever a later step exists, and prefer
+   registering it unconditionally if the saga is likely to grow steps.
+
+3. **Data-assembly steps are unchanged.** Reads of other aggregates keep their normal treatment: a
+   plain read command where the read only supplies data, or the get-then-lock pattern where the saga
+   also mutates that aggregate. Only the create step itself is special.
+
+### Shape 1 — single-step create
+
+The create is the only step, so abort is the unit of work's responsibility and no compensation is
+registered.
+
+```java
+public class Create{Aggregate}FunctionalitySagas extends WorkflowFunctionality {
+    private {Aggregate}Dto {aggregate}Dto;
+
+    public Create{Aggregate}FunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+            {Aggregate}Dto {aggregate}Dto,
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+        buildWorkflow(unitOfWorkService, {aggregate}Dto, unitOfWork, commandGateway);
+    }
+
+    public void buildWorkflow(SagaUnitOfWorkService unitOfWorkService,
+            {Aggregate}Dto {aggregate}Dto,
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+        SagaStep create{Aggregate}Step = new SagaStep("create{Aggregate}Step", () -> {
+            Create{Aggregate}Command cmd = new Create{Aggregate}Command(
+                    unitOfWork, ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}Dto);
+            this.{aggregate}Dto = ({Aggregate}Dto) commandGateway.send(cmd);
+        });
+
+        this.workflow.addStep(create{Aggregate}Step);
+    }
+
+    public {Aggregate}Dto get{Aggregate}Dto() {
+        return {aggregate}Dto;
+    }
+}
+```
+
+### Shape 2 — multi-step create, with compensation
+
+Here the create is followed by a step that can fail, so the create step registers a compensation that
+removes what it created. The compensation reads the id off the DTO the step captured, which is why
+the create command's result is stored on the functionality rather than discarded.
+
+```java
+public void buildWorkflow(SagaUnitOfWorkService unitOfWorkService,
+        Integer {foreignAggregate}Id, {Aggregate}Dto {aggregate}Dto,
+        SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+    // Data assembly — plain read, unchanged by the create
+    SagaStep get{ForeignAggregate}Step = new SagaStep("get{ForeignAggregate}Step", () -> {
+        Get{ForeignAggregate}ByIdCommand cmd = new Get{ForeignAggregate}ByIdCommand(
+                unitOfWork, ServiceMapping.{FOREIGN_AGGREGATE}.getServiceName(), {foreignAggregate}Id);
+        this.{foreignAggregate}Dto = ({ForeignAggregate}Dto) commandGateway.send(cmd);
+    });
+
+    // Create — no SagaCommand, no semantic lock, no forbiddenStates
+    SagaStep create{Aggregate}Step = new SagaStep("create{Aggregate}Step", () -> {
+        Create{Aggregate}Command cmd = new Create{Aggregate}Command(
+                unitOfWork, ServiceMapping.{AGGREGATE}.getServiceName(),
+                {aggregate}Dto, this.{foreignAggregate}Dto);
+        this.{aggregate}Dto = ({Aggregate}Dto) commandGateway.send(cmd);
+    }, new ArrayList<>(Arrays.asList(get{ForeignAggregate}Step)));
+
+    // Genuine domain-level undo: a later step failing must not leave the new aggregate behind
+    create{Aggregate}Step.registerCompensation(() -> {
+        Delete{Aggregate}Command cmd = new Delete{Aggregate}Command(
+                unitOfWork, ServiceMapping.{AGGREGATE}.getServiceName(),
+                this.{aggregate}Dto.getAggregateId());
+        commandGateway.send(cmd);
+    }, unitOfWork);
+
+    SagaStep {operation}Step = new SagaStep("{operation}Step", () -> {
+        {Operation}Command cmd = new {Operation}Command(
+                unitOfWork, ServiceMapping.{FOREIGN_AGGREGATE}.getServiceName(),
+                {foreignAggregate}Id, this.{aggregate}Dto);
+        cmd.setForbiddenStates(List.of({ForeignAggregate}SagaState.IN_{OPERATION}_{FOREIGN_AGGREGATE}));
+        commandGateway.send(cmd);
+    }, new ArrayList<>(Arrays.asList(create{Aggregate}Step)));
+
+    this.workflow.addStep(get{ForeignAggregate}Step);
+    this.workflow.addStep(create{Aggregate}Step);
+    this.workflow.addStep({operation}Step);
+}
+```
+
+Note that the compensation removes a real side effect, which is exactly the remit
+`registerCompensation` is reserved for. It is not a lock release - the create step never took a lock.
 
 ## Step Ordering
 

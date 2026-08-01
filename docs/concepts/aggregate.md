@@ -46,34 +46,57 @@ Each aggregate has two factory classes:
 
 ```java
 // Interface — microservices/{aggregate}/aggregate/{Aggregate}Factory.java
-public interface CourseFactory extends AggregateFactory<Course> {
-    Course createCourse(Integer aggregateId, String name, String type);
-    Course createCourseCopy(Course other);
-    CourseDto createCourseDto(Course course);
+public interface {Aggregate}Factory {
+    {Aggregate} create{Aggregate}(Integer aggregateId, ...);
+    {Aggregate} create{Aggregate}Copy({Aggregate} existing);
+    {Aggregate}Dto create{Aggregate}Dto({Aggregate} {aggregate});
 }
 
 // Sagas implementation — returns covariant Saga subtype
 @Service
 @Profile("sagas")
-public class SagasCourseFactory implements CourseFactory {
+public class Sagas{Aggregate}Factory implements {Aggregate}Factory {
     @Override
-    public SagaCourse createCourse(Integer aggregateId, String name, String type) {
-        SagaCourse course = new SagaCourse(aggregateId, name, type);
-        course.verifyInvariants();
-        return course;
+    public Saga{Aggregate} create{Aggregate}(Integer aggregateId, ...) {
+        return new Saga{Aggregate}(aggregateId, ...);
     }
-    // createCourseCopy, createCourseDto ...
+
+    @Override
+    public Saga{Aggregate} create{Aggregate}Copy({Aggregate} existing) {
+        return new Saga{Aggregate}((Saga{Aggregate}) existing);
+    }
+
+    @Override
+    public {Aggregate}Dto create{Aggregate}Dto({Aggregate} {aggregate}) {
+        return new {Aggregate}Dto({aggregate});
+    }
 }
 ```
 
-Factories implement `AggregateFactory<T>` and are injected into services via the interface — never the concrete `Sagas*` class.
+The interface is a **plain Java interface with no supertype and no annotations** - there is no
+`AggregateFactory<T>` base type in `simulator/`. Its three methods are typed against the abstract
+aggregate and the DTO, so no sagas type appears in a signature. Services inject the interface, never
+the concrete `Sagas*` class.
 
 ## Repositories
 
-Each aggregate has a JPA repository interface for the Sagas protocol:
-- `sagas/repositories/XxxCustomRepositorySagas.java` — extends `SagaAggregateRepository`
+Each aggregate has three repository artifacts:
 
-`XxxCustomRepository.java` (the base interface, no protocol suffix) is a common interface.
+| File | Shape | Purpose |
+|------|-------|---------|
+| `aggregate/{Aggregate}Repository.java` | interface extending `AggregateRepository<{Aggregate}, Integer>` | Spring Data JPA repository; holds any JPQL `@Query` methods |
+| `aggregate/{Aggregate}CustomRepository.java` | plain Java interface, no annotations | Profile-agnostic contract the service injects; declares only the custom query signatures the service needs, and may be empty |
+| `sagas/repositories/{Aggregate}CustomRepositorySagas.java` | `@Service @Profile("sagas")` class **implementing** `{Aggregate}CustomRepository` | Sagas implementation; holds an `@Autowired {Aggregate}Repository` and delegates to it |
+
+`{Aggregate}CustomRepositorySagas` does **not** extend `SagaAggregateRepository`. It is a Spring
+`@Service`, not a JPA repository interface.
+
+`SagaAggregateRepository`
+(`simulator/.../ms/transaction/sagas/aggregate/SagaAggregateRepository.java`) is framework-internal.
+It declares exactly three queries, each returning `Optional<Aggregate>` for the highest-version row
+of one `aggregateId`: `findNonDeletedSagaAggregate`, `findDeletedSagaAggregate` and
+`findAnySagaAggregate`. Application code does not call them - `SagaUnitOfWorkService` does, behind
+`aggregateLoadAndRegisterRead`.
 
 ## Naming Conventions
 

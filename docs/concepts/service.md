@@ -20,7 +20,7 @@ public class ExecutionService {
 
     private final CourseExecutionRepository courseExecutionRepository;            // own aggregate's JPA repo
     private final CourseExecutionCustomRepository courseExecutionCustomRepository; // own aggregate's custom repo
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    private final UnitOfWorkService unitOfWorkService;   // raw type, deliberately
 
     public ExecutionService(UnitOfWorkService unitOfWorkService,
                             CourseExecutionRepository courseExecutionRepository,
@@ -35,6 +35,21 @@ public class ExecutionService {
 Never inject a foreign service class or a foreign repository — see [R1, R2 in architecture.md](../architecture.md).
 
 > **Inject factories and repositories via their abstract interfaces, not the concrete sagas-profile classes.** The example above injects `CourseExecutionFactory` (the interface defined in `aggregate/`) — `SagasCourseExecutionFactory` is never referenced in the service. This keeps the service layer profile-agnostic and allows a TCC or other implementation to be wired in without touching the service.
+
+> **`UnitOfWorkService` is used raw, on both the field and the constructor parameter.** No type
+> argument, no cast, no `@SuppressWarnings`. `UnitOfWorkService<U extends UnitOfWork>` is abstract
+> with `U` in both parameter and return positions, and its concrete subclasses are
+> `SagaUnitOfWorkService` and `CausalUnitOfWorkService`. Java generics are invariant, so
+> `UnitOfWorkService<UnitOfWork>` is satisfied by neither and describes a type that cannot exist.
+>
+> The service is profile-agnostic, so it treats the unit of work as an opaque token that it hands
+> back to the collaborator which issued it. It never inspects it, so the type parameter buys nothing
+> here, and naming a concrete profile type would violate `AGENTS.md` § Architecture principle.
+>
+> Two alternatives were considered and rejected. Making the service itself generic
+> (`{Aggregate}Service<U extends UnitOfWork>`) propagates `<U>` into every `Command` and
+> `CommandHandler` signature for zero added safety at the only call site. Adding a non-generic facade
+> to `simulator/` changes the framework to repair a documentation defect, which is disproportionate.
 
 ---
 
