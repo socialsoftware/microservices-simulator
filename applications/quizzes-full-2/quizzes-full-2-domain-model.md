@@ -363,38 +363,57 @@ These rules inspect only fields of a single entity.
 
 ## §4 — Functionalities
 
-> **Deviation from the template:** the template says operations touching a single aggregate should be omitted here. This file lists them anyway, so that §4 is a complete inventory of the application's operations. Single-aggregate rows carry an empty **Other Aggregates** column and need no saga coordination.
+> This section is a complete inventory of every operation the application exposes, write and read, one row per operation regardless of how many aggregates it touches.
 >
-> **Other Aggregates** lists only aggregates the saga itself reads or writes. Aggregates that react asynchronously to a published event are not listed here — those relationships live in §3 and §4 of the aggregate grouping.
+> **Other Aggregates** lists only aggregates the saga itself reads or writes; an empty cell means the operation needs no saga coordination. Aggregates that react asynchronously to a published event are not listed here — those relationships live in §3 and §4 of the aggregate grouping.
 
-| Functionality | Primary Aggregate | Other Aggregates | Description |
-|---|---|---|---|
-| CreateCourse | Course | — | Create a new course. Courses are immutable and are never updated or deleted |
-| CreateTopic | Topic | Course | Create a topic linked to a course |
-| UpdateTopic | Topic | — | Update the name of an existing topic |
-| DeleteTopic | Topic | — | Soft-delete a topic |
-| CreateExecution | Execution | Course | Create a course execution linked to a course |
-| UpdateExecution | Execution | — | Update execution acronym or academic term |
-| DeleteExecution | Execution | — | Delete an execution |
-| EnrollStudentInExecution | Execution | User | Enroll an active user in a course execution |
-| DisenrollStudent | Execution | — | Remove a student from a course execution |
-| CreateUser | User | — | Create a user account (inactive until activated) |
-| ActivateUser | User | — | Activate a user account so it can be enrolled in executions |
-| UpdateUserName | User | — | Update a user's name |
-| AnonymizeUser | User | — | Anonymize a user (set name and username to ANONYMOUS) |
-| DeleteUser | User | — | Soft-delete a user account |
-| CreateQuestion | Question | Course, Topic | Create a question linked to a course and topics |
-| UpdateQuestion | Question | Topic | Update question title, content or topics |
-| DeleteQuestion | Question | — | Delete a question |
-| CreateQuiz | Quiz | Execution, Question | Create a quiz linked to an execution and questions |
-| UpdateQuiz | Quiz | — | Update quiz dates or questions (before available date) |
-| CreateQuizAnswer | QuizAnswer | Quiz, User, Execution, Question | Start a student's answer session for a quiz, seeding one QuestionAnswer per quiz question with that question's `correctOptionKey` |
-| AnswerQuestion | QuizAnswer | — | Record a student's answer to one question in a quiz |
-| ConcludeQuiz | QuizAnswer | — | Mark a quiz answer session as completed |
-| CreateTournament | Tournament | Execution, User, Topic, Quiz | Create a tournament for a course execution (also creates the associated Quiz) |
-| AddParticipant | Tournament | Execution, User | Enroll a student as a tournament participant |
-| UpdateTournament | Tournament | Quiz | Update tournament timing or topics |
-| CancelTournament | Tournament | — | Cancel an open tournament |
-| DeleteTournament | Tournament | — | Delete a cancelled or finished tournament, clearing its participant list in the same operation so that TOURNAMENT_DELETE holds |
+| Functionality | Primary Aggregate | Other Aggregates | Kind | Description |
+|---|---|---|---|---|
+| CreateCourse | Course | — | Write | Create a new course. Courses are immutable and are never updated or deleted |
+| CreateTopic | Topic | Course | Write | Create a topic linked to a course |
+| UpdateTopic | Topic | — | Write | Update the name of an existing topic |
+| DeleteTopic | Topic | — | Write | Soft-delete a topic |
+| CreateExecution | Execution | Course | Write | Create a course execution linked to a course |
+| UpdateExecution | Execution | — | Write | Update execution acronym or academic term |
+| DeleteExecution | Execution | — | Write | Delete an execution |
+| EnrollStudentInExecution | Execution | User | Write | Enroll an active user in a course execution |
+| DisenrollStudent | Execution | — | Write | Remove a student from a course execution |
+| CreateUser | User | — | Write | Create a user account (inactive until activated) |
+| ActivateUser | User | — | Write | Activate a user account so it can be enrolled in executions |
+| UpdateUserName | User | — | Write | Update a user's name |
+| AnonymizeUser | User | — | Write | Anonymize a user (set name and username to ANONYMOUS) |
+| DeleteUser | User | — | Write | Soft-delete a user account |
+| CreateQuestion | Question | Course, Topic | Write | Create a question linked to a course and topics |
+| UpdateQuestion | Question | Topic | Write | Update question title, content or topics |
+| DeleteQuestion | Question | — | Write | Delete a question |
+| CreateQuiz | Quiz | Execution, Question | Write | Create a quiz linked to an execution and questions |
+| UpdateQuiz | Quiz | — | Write | Update quiz dates or questions (before available date) |
+| CreateQuizAnswer | QuizAnswer | Quiz, User, Execution, Question | Write | Start a student's answer session for a quiz, seeding one QuestionAnswer per quiz question with that question's `correctOptionKey` |
+| AnswerQuestion | QuizAnswer | — | Write | Record a student's answer to one question in a quiz |
+| ConcludeQuiz | QuizAnswer | — | Write | Mark a quiz answer session as completed |
+| CreateTournament | Tournament | Execution, User, Topic, Quiz | Write | Create a tournament for a course execution (also creates the associated Quiz) |
+| AddParticipant | Tournament | Execution, User | Write | Enroll a student as a tournament participant |
+| UpdateTournament | Tournament | Quiz | Write | Update tournament timing or topics |
+| CancelTournament | Tournament | — | Write | Cancel an open tournament |
+| DeleteTournament | Tournament | — | Write | Delete a cancelled or finished tournament, clearing its participant list in the same operation so that TOURNAMENT_DELETE holds |
+| GetCourseById | Course | — | Read | Retrieve a single course by its aggregate id |
+| GetCourses | Course | — | Read | List all courses |
+| GetUserById | User | — | Read | Retrieve a single user by its aggregate id |
+| GetStudents | User | — | Read | List all users with the STUDENT role |
+| GetTeachers | User | — | Read | List all users with the TEACHER role |
+| GetTopicsByCourse | Topic | — | Read | List the topics belonging to a course |
+| GetExecutionById | Execution | — | Read | Retrieve a single course execution by its aggregate id |
+| GetExecutions | Execution | — | Read | List all course executions |
+| GetUserExecutions | Execution | — | Read | List the course executions a given user is enrolled in |
+| GetQuestionById | Question | — | Read | Retrieve a single question by its aggregate id |
+| GetQuestionsByCourse | Question | — | Read | List the questions belonging to a course |
+| GetQuizById | Quiz | — | Read | Retrieve a single quiz by its aggregate id |
+| GetQuizzesForExecution | Quiz | — | Read | List the quizzes of a course execution |
+| GetQuizAnswerById | QuizAnswer | — | Read | Retrieve a single quiz answer session by its aggregate id |
+| GetQuizAnswerForStudentAndQuiz | QuizAnswer | Quiz | Read | Retrieve the quiz answer session of a given student for a given quiz |
+| GetTournamentById | Tournament | — | Read | Retrieve a single tournament by its aggregate id |
+| GetTournamentsForExecution | Tournament | — | Read | List all tournaments of a course execution |
+| GetOpenedTournamentsForExecution | Tournament | — | Read | List the tournaments of a course execution that are currently open |
+| GetClosedTournamentsForExecution | Tournament | — | Read | List the tournaments of a course execution that have closed |
 
 ---

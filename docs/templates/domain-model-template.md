@@ -68,11 +68,27 @@ One block per rule. Use the exact three-field shape below.
 
 ## §4 — Functionalities
 
-> **One row per operation.** The **Primary Aggregate** is the one that owns the main state change (the one whose service method is the coordination entry point). List every aggregate that the saga reads or writes in **Other Aggregates**.
-> If an operation touches only a single aggregate, omit it here — it becomes a plain service method with no saga coordination.
+> **§4 is a complete inventory of every operation the application exposes** - writes and reads alike.
+> **One row per operation**, regardless of how many aggregates it touches. Nothing is omitted: an
+> operation absent from §4 is an operation the AI agent will never implement, because §4 is the only
+> source it has for functionalities.
+>
+> **Kind** — `Write` for an operation that changes state, `Read` for a query. Read functionalities
+> (get, list, search, retrieve by id) are listed here exactly like writes; they are part of the
+> application's surface and are planned and implemented like any other operation.
+>
+> **Primary Aggregate** — the aggregate that owns the main state change for a write, or the one being
+> queried for a read (the one whose service method is the entry point).
+>
+> **Other Aggregates** — every aggregate the saga additionally reads or writes. This column is the
+> saga-coordination signal: an empty cell means the operation needs no coordination and becomes a
+> plain service method. Aggregates that merely react asynchronously to a published event are not
+> listed here.
 
-| Functionality | Primary Aggregate | Other Aggregates | Description |
-|---|---|---|---|
-| {FunctionalityName} | {PrimaryAggregate} | {Aggregate1}, {Aggregate2} | {One-sentence description of what the operation does} |
+| Functionality | Primary Aggregate | Other Aggregates | Kind | Description |
+|---|---|---|---|---|
+| {WriteFunctionalityName} | {PrimaryAggregate} | {Aggregate1}, {Aggregate2} | Write | {One-sentence description of what the operation does} |
+| {SingleAggregateWriteName} | {PrimaryAggregate} | — | Write | {One-sentence description; empty Other Aggregates means no saga coordination} |
+| Get{PrimaryAggregate}ById | {PrimaryAggregate} | — | Read | {One-sentence description of what the query returns} |
 
 ---
