@@ -109,7 +109,9 @@ under `{pkg}/` — its package declaration is `pt.ulisboa.tecnico.socialsoftware
 Maven is invoked per-app, so each app carries its own untracked `.mvn/maven.config` pointing at the
 developer's settings file. Without it the very first `mvn` run fails resolving plugins from whatever
 mirror `~/.m2/settings.xml` names — an error that looks like a scaffold bug but is not. This file is
-machine config, so it is copied from a sibling app rather than templated.
+machine config, so it is copied from elsewhere in the repo rather than templated: from a sibling app
+if one exists, otherwise from `simulator/.mvn/maven.config`, which is present in every checkout of
+this repo and is what makes this step work for the **first** application.
 
 > **The one sanctioned exception to § "Application isolation".** `.mvn/maven.config` is untracked
 > machine configuration — a `-s <path>` line naming the developer's settings file. It carries no
@@ -119,18 +121,19 @@ machine config, so it is copied from a sibling app rather than templated.
 
 ```bash
 src=$(ls -d applications/*/.mvn 2>/dev/null | grep -v "applications/{app-name}/" | head -1)
-if [ -n "$src" ]; then
-  mkdir -p applications/{app-name}/.mvn
-  cp "$src/maven.config" applications/{app-name}/.mvn/
-  echo "/applications/{app-name}/.mvn/maven.config" >> .git/info/exclude
-fi
+[ -n "$src" ] || src=simulator/.mvn
+mkdir -p applications/{app-name}/.mvn
+cp "$src/maven.config" applications/{app-name}/.mvn/
+echo "/applications/{app-name}/.mvn/maven.config" >> .git/info/exclude
 ```
 
 `.git/info/exclude` lists these paths one app at a time, so the new app's entry must be appended —
 otherwise the file shows up as untracked and can be committed by accident.
 
-If no sibling app has one, skip this step; the developer's default `~/.m2/settings.xml` may already
-resolve. Never commit `.mvn/maven.config`.
+`simulator/.mvn/maven.config` is tracked and always present, so the copy has a source even on the
+first application in a repo. Do not fall back to "the default `~/.m2/settings.xml` may already
+resolve" - it typically does not, and the failure surfaces much later as an unreachable-mirror build
+error that reads like a scaffold bug. Never commit `applications/{app-name}/.mvn/maven.config`.
 
 ### Step 6: Verify and Confirm
 
@@ -158,6 +161,23 @@ resolve. Never commit `.mvn/maven.config`.
 
 3. Report that bootstrap completed successfully and list the full paths of all 9 created files.
 4. Confirm the structure and mention that Phase 1 (plan generation) is the next step.
+
+### Step 7: Commit the Scaffold
+
+Phase 0 output must be committed before Phase 1 starts. Left uncommitted, the first application
+commits of the run are not buildable from a clean checkout, and the run's history no longer shows
+where the application began.
+
+Stage the 9 generated files with explicit paths - never `git add -A` or `git add .`, which would
+sweep in unrelated working-tree files. `applications/{app-name}/.mvn/maven.config` is machine
+config and is **not** staged; Step 5 already excluded it.
+
+```
+chore({app-name}): bootstrap scaffold
+```
+
+Verify with `git status --short applications/{app-name}` that nothing generated is left untracked
+apart from `.mvn/`, and report the commit sha.
 
 ---
 

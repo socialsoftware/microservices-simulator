@@ -68,22 +68,30 @@ Path: `{src}microservices/{aggregate}/aggregate/{Entity}.java`
 - **Bidirectional `@OneToOne` (aggregate → entity):** If the aggregate side uses `@OneToOne(mappedBy = "{entityField}")`, this entity class holds the owning side: declare a plain `@OneToOne {Aggregate} {aggregate}` field (no `mappedBy`) with a getter/setter. The aggregate's setter for this entity must call `entity.set{Aggregate}(this)` to wire the back-reference before persisting.
 - **Nested entity-to-entity `@OneToOne` (entity owns a sub-entity):** When an owned entity itself exclusively owns one sub-entity (e.g., `TournamentParticipant → TournamentParticipantQuizAnswer`), use a unidirectional `@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)` on the outer entity — no `mappedBy`, no back-reference field on the sub-entity unless explicitly needed. The outer entity's copy constructor must deep-copy the sub-entity via `new SubEntity(existing.getSubEntity())`.
 
-### Domain enum (conditional)
+### Domain enums
 
-If any aggregate field is typed as a domain enum (e.g., `role: UserRole`), produce a companion enum file:
+Every aggregate field typed as a domain enum gets its own enum file, listed in the plan.md `2.{N}.a`
+row by `/classify-and-plan`:
 
-Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}Role.java` (or appropriate name)
+Path: `{src}microservices/{aggregate}/aggregate/{DomainEnum}.java`
 
-- Plain Java `enum` — no JPA annotations
+- Plain Java `enum` - no JPA annotations
 - Values matching the domain model
-- Add it explicitly to the plan.md 2.N.a row if not already listed
+- Name taken verbatim from the domain-model attribute's type
+
+An aggregate with no enum-typed field has no such row and produces none.
 
 ### `Saga{Aggregate}.java`
 
 Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
 
 - Extends `{Aggregate}`, implements `SagaAggregate`
-- Adds a `sagaState` field of type `SagaAggregate.SagaState` (the interface) — **no** JPA annotation; the simulator's `SagaStateConverter` handles persistence
+- Adds a `sagaState` field of type `SagaAggregate.SagaState` (the interface), annotated
+  `@Convert(converter = SagaStateConverter.class)`. The converter
+  (`pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter`) is declared
+  `@Converter` **without** `autoApply = true`, so it is not picked up implicitly: omit the
+  `@Convert` and Hibernate fails at EntityManagerFactory init with *"Could not determine recommended
+  JdbcType"*, taking down every test in the application
 - Constructor delegates to super and initializes `sagaState` to `GenericSagaState.NOT_IN_SAGA`
 - Implements `getSagaState()` returning the field; `setSagaState(SagaState state)` sets it directly (field type is the interface, no cast needed)
 - No other logic
@@ -180,6 +188,29 @@ Path: `{src}microservices/{aggregate}/{Aggregate}ServiceApplication.java`
 - `@EnableScheduling`
 - Implements `InitializingBean`; `@Autowired EventService eventService`; calls `eventService.clearEventsAtApplicationStartUp()` in `afterPropertiesSet()`
 - `main` method calls `SpringApplication.run({Aggregate}ServiceApplication.class, args)`
+
+---
+
+## Update {AppClass}SpockTest.groovy
+
+Path: `{test}{AppClass}SpockTest.groovy`
+
+The bootstrap scaffold ships this class with only marker comments where domain content goes. Session
+`a` is the first session allowed to add to it, and must, because the T1 happy-path test asserts on
+every aggregate field and needs literals to assert against. Insert at the markers, leaving them in
+place for later sessions:
+
+- `// Domain constants are added here` - one `public static final` constant per field value this
+  aggregate's T1 cases use, named `{AGGREGATE}_{FIELD}` (and `{AGGREGATE}_{FIELD}_2` and similar for
+  the second distinct value a uniqueness or straddle case needs). Literals belong here, not inlined
+  in the test.
+- `// Domain @Autowired fields are added here` - only what session `a` itself needs, which for a
+  pure domain-layer session is normally nothing. The factory, repository, service and functionalities
+  fields are added by the sessions that create those classes.
+- `// Domain imports` - the imports the two additions above require.
+
+Do not add `create{Aggregate}` helpers here; those belong to the write session, which owns the
+functionality that creates the aggregate.
 
 ---
 

@@ -35,7 +35,7 @@ Read `.claude/skills/_shared/conventions.md` § "Application isolation" in full 
 Do not continue until you have. It governs which files this session may read.
 
 **If the docs or skill don't cover something:** flag it explicitly in the Step 6 report and append a
-friction row (Step 7.d). Do not silently fill the gap from another application. Surfacing the gap is
+harness-log row (Step 7.d). Do not silently fill the gap from another application. Surfacing the gap is
 the correct behavior — it becomes a harness improvement, not a hidden copy of a peer's pattern.
 
 ---
@@ -119,7 +119,35 @@ Read and hold in context the entire aggregate section for `{N}` from plan.md. Th
 - Files to produce table (sessions 2.N.a through 2.N.d)
 - Checklist
 
-This is the authoritative source for what to produce. Do not re-derive the file list — use the one in plan.md exactly.
+plan.md is the **starting point** for what to produce, not an authoritative manifest. What is
+actually required for this session is determined by the session sub-file loaded in Step 4 and the
+concept docs it names. Producing a file that plan.md omitted is correct and expected - amend the row
+per Step 5b rather than skipping the file.
+
+---
+
+## Step 3b: The Self-Healing Gate
+
+Implementation starts at Step 4. Before it does, load the gate, because this is the skill where it
+actually fires: read `AGENTS.md` § "Harness evolution" in full. It defines Type 1, Type 2 and
+`2-fw`; do not proceed on a remembered version of it.
+
+Operationally, for every friction point hit between here and the end of the session:
+
+1. **Classify it first.** Can you demonstrate the harness wrong mechanically - a failing build, a
+   symbol that does not exist, two harness files prescribing different things? That is Type 1.
+   Otherwise it is Type 2.
+2. **Type 1 - fix it on the spot.** Repair the `docs/` or `.claude/skills/` file, commit it alone
+   with a `harness:` prefix, and carry on. Do not ask, do not batch it to the end of the session,
+   and do not work around it in the application code. The fix is written in the neutral vocabulary
+   of `.claude/skills/_shared/conventions.md` § "Neutral domain".
+3. **Type 2 - halt before writing any code.** The answer is a design decision and it determines the
+   code, so writing first and asking later produces code that has to be thrown away. State what the
+   harness says, what it does not settle, and the options; then wait.
+4. **Anything under `simulator/` is Type `2-fw` and always halts**, even when it looks mechanically
+   provable. There is no Type 1 fast path for the framework.
+
+Every one of these gets a row in `harness-log.md` at Step 7.d, whatever its outcome.
 
 ---
 
@@ -150,12 +178,23 @@ Replace `- [ ] 2.{N}.{type}` with `- [x] 2.{N}.{type}` in plan.md.
 
 ---
 
-## Step 5b: Patch plan.md for Missing Files
+## Step 5b: Amend plan.md for Omitted Files
 
-While producing files, note any file that should exist but is absent from plan.md's file table for this session — for example, an enum type class (e.g., `CourseType.java`) for an aggregate field typed as that enum, or an owned entity class referenced in the domain model.
+plan.md is a fallible blueprint. A file absent from its file table may still be required by the
+session sub-file or the concept docs; producing it is correct, and the omission is a defect in
+plan.md rather than in the session.
 
-- For **unambiguous** omissions (a file you had to create to make the code compile): add it to the appropriate session row in plan.md and record it in the final report.
-- For **ambiguous** cases (you are unsure whether a file belongs or should be generated elsewhere): ask the user before adding.
+For every file produced this session that the `2.{N}.{type}` row did not list, append it to that row
+with the session id and a one-line reason, so the amendment carries its own provenance:
+
+```
+`aggregate/{DomainEnum}.java` (added 2.{N}.a - field `{field}` is typed as this enum)
+```
+
+Report every amendment in the Step 6 report.
+
+If the **owning session** of a required file is genuinely unclear - it could belong to this session
+or to a later one - that is Type 2 friction: halt and ask before writing it (Step 3b).
 
 ---
 
@@ -188,7 +227,7 @@ Answer these questions by reviewing what happened during the session:
 
 1. **Which files were produced?** List every file created or modified.
 2. **Which concept docs were read?** For each: which sections were actually used? Was the doc sufficient?
-3. **Was any file outside `applications/{app-name}/` read?** Cross-app reads are a violation (see `conventions.md` § "Application isolation"); record the file and the gap that caused it as a `High` friction row.
+3. **Was any file outside `applications/{app-name}/` read?** Cross-app reads are a violation (see `conventions.md` § "Application isolation"); record the file read and the gap that drove it as a harness-log row - Type 1 if a doc or skill demonstrably failed to supply what was needed, Type 2 otherwise.
 4. **Which instructions in the skill sub-file (`session-{type}.md`) were unclear, missing, or required inference beyond what was written?**
 5. **Were there any naming, path, or pattern decisions the skill/docs didn't cover?**
 6. **Were there any bugs, corrections, or fixes applied mid-session?** What triggered them?
@@ -197,7 +236,7 @@ Answer these questions by reviewing what happened during the session:
 
 ### 7.b — Write the Retro File
 
-Run Step 7.d first — the `## Friction Recorded` section below cites the row numbers it appends.
+Run Step 7.d first - the `## Harness Changes` section below cites the row numbers it appends.
 
 Create `{retro-file}` using this exact template. Write "none" for any section with nothing to report — do not omit sections.
 
@@ -313,9 +352,16 @@ adding to docs or skills.
 
 ---
 
-## Friction Recorded
+## Harness Changes
 
-Rows appended to `applications/{app-name}/friction-log.md` this session: {row numbers, or "none"}
+Rows appended to `applications/{app-name}/harness-log.md` this session: {row numbers, or "none"}
+
+For each `fixed` row, the `harness:` commit sha:
+
+| Row # | Type | Outcome | `harness:` commit |
+|-------|------|---------|-------------------|
+
+Rows whose outcome is `declined` or `deferred` have no sha - write `-`.
 
 ---
 
@@ -332,7 +378,7 @@ Create `{retro-dir}` if it does not already exist, then write the completed retr
 1. **Synthesis only.** No filesystem audits, no grep sweeps, no re-reading files to reconstruct history.
 2. **Never omit sections.** If a section has nothing to report, write "none".
 3. **Absolute paths in Files Produced.**
-4. **Any cross-application read is a violation** — record it as a `High` severity friction row in Step 7.d, naming the file read and the gap that drove it.
+4. **Any cross-application read is a violation** — record it as a harness-log row in Step 7.d, naming the file read and the gap that drove it.
 5. **No emojis, no hype.** Terse and concrete — paths, file names, section names, decisions.
 6. **Does not modify plan.md, source files, or BeanConfigurationSagas.groovy.**
 7. **Simulator changes are mandatory to document.** If any file under `simulator/` was modified during the session, the `⚠️ SIMULATOR FRAMEWORK CHANGES` block is **required** in the Files Produced section — not optional. For each changed file include: exact diff, root cause, fix rationale, and impact scope. If no simulator files changed, remove the block entirely rather than leaving it blank.
@@ -340,24 +386,27 @@ Create `{retro-dir}` if it does not already exist, then write the completed retr
 
 Do not print a separate retro completion report — the retro file path is included in the Step 8 commit output.
 
-### 7.d — Append Friction Rows
+### 7.d — Append Harness-Log Rows
 
-Do this **before** writing the retro file, so the `## Friction Recorded` section can cite the row
+Do this **before** writing the retro file, so the `## Harness Changes` section can cite the row
 numbers it produced.
 
-Read `.claude/skills/_shared/conventions.md` § "Friction log" in full. Then, for each distinct
-harness friction point surfaced by the 7.a questions — a `docs/` file that was missing, wrong or
-ambiguous; a `.claude/skills/` instruction that failed to guide; a `simulator/` change; a halt; a
-cross-application read — append one row to `applications/{app-name}/friction-log.md`.
+Read `.claude/skills/_shared/conventions.md` § "Harness log" in full - it owns the column schema and
+the rules for `Type`, `Outcome` and `Ref`. Then, for each distinct harness friction point of this
+session - every Step 3b classification, plus anything surfaced by the 7.a questions: a `docs/` file
+that was missing, wrong or ambiguous; a `.claude/skills/` instruction that failed to guide; a
+`simulator/` change; a halt; a cross-application read - append one row to
+`applications/{app-name}/harness-log.md`.
 
 - Read the last row of the file to get the next `#`. Append only; never rewrite or delete rows.
 - `Session` is this session's `{session-id}`.
-- If the file does not exist, halt: **"friction-log.md missing. It is created by
+- `Ref` is the `harness:` commit sha for the Type 1 fixes already committed during the session.
+- If the file does not exist, halt: **"harness-log.md missing. It is created by
   /classify-and-plan."**
-- Defects in the generated application are **not** friction. They are fixed in this session or
-  carried into the Phase 3/4 review reports.
+- Defects in the generated application are **not** harness friction. They are fixed in this session
+  or carried into the Phase 3/4 review reports.
 
-If there was no friction, append nothing and write "none" in `## Friction Recorded`.
+If there was none, append nothing and write "none" in `## Harness Changes`.
 
 ---
 
@@ -366,7 +415,7 @@ If there was no friction, append nothing and write "none" in `## Friction Record
 Stage all files produced during this session using `git add <specific files>` (never `git add -A`). Include:
 - Every file created or modified (from the Step 6 report)
 - The retro file written in Step 7
-- `applications/{app-name}/friction-log.md`, if Step 7.d appended any row
+- `applications/{app-name}/harness-log.md`, if Step 7.d appended any row
 
 Issue a single commit using HEREDOC format:
 
