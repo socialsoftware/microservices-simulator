@@ -39,7 +39,7 @@ Load these files before writing any code:
 
 ## Produce
 
-Produce every file listed in the plan.md `2.{N}.c` row. The authoritative file list is in plan.md — use it exactly. The descriptions below explain what each file must contain.
+Produce every file listed in the plan.md `2.{N}.c` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `SKILL.md` § "Step 5b: Amend plan.md for Omitted Files". The descriptions below explain what each file must contain.
 
 > **Prerequisite — ServiceMapping**: The `{src}ServiceMapping.java` entry for `{AGGREGATE}` was added in session 2.{N}.b, which is where this aggregate's first commands were written. Verify it is present before writing any commands — every command constructor references `ServiceMapping.{AGGREGATE}.getServiceName()`.
 
@@ -83,7 +83,7 @@ Path: `{src}microservices/{aggregate}/messaging/{Aggregate}CommandHandler.java`
   **not** create or commit a UnitOfWork; the workflow owns its lifecycle. Mutating cases
   `yield null`; read cases return the DTO.
 - The Spring **bean name** must be `ServiceMapping.{AGGREGATE}.getServiceName() + "CommandHandler"`
-  (lowercase camelCase, e.g. `quizAnswerCommandHandler`) — that is the actual routing key
+  (lowercase camelCase, e.g. `shipmentItemCommandHandler`) — that is the actual routing key
 
 ### One `{Op}{Aggregate}Command.java` per write functionality
 

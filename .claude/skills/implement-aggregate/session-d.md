@@ -35,7 +35,7 @@ Load these files before writing any code:
 
 ## Produce
 
-Produce every file listed in the plan.md `2.{N}.d` row. The authoritative file list is in plan.md — use it exactly.
+Produce every file listed in the plan.md `2.{N}.d` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `SKILL.md` § "Step 5b: Amend plan.md for Omitted Files".
 
 ### One `{Aggregate}Subscribes{Event}.java` per subscribed event
 
@@ -197,12 +197,12 @@ See `docs/concepts/aggregate.md` for the full rationale.
 
 ### Conditional subscriptions (nullable anchor IDs)
 
-When a cached reference may be `null` until populated by a saga step or test setup (e.g., `quizAnswerAggregateId` is `null` until a participant solves the quiz), guard the subscription construction with a null check:
+When a cached reference may be `null` until populated by a saga step or test setup (e.g., a `{Entity}AggregateId` that stays `null` until the functionality which links the two aggregates has run), guard the subscription construction with a null check:
 
 ```java
-for (TournamentParticipant p : participants) {
-    if (p.getQuizAnswer() != null && p.getQuizAnswer().getQuizAnswerAggregateId() != null) {
-        subscriptions.add(new TournamentSubscribesQuizAnswerQuestionAnswer(p.getQuizAnswer()));
+for ({OwnedEntity} e : ownedEntities) {
+    if (e.get{Entity}() != null && e.get{Entity}().get{Entity}AggregateId() != null) {
+        subscriptions.add(new {Aggregate}Subscribes{Event}(e.get{Entity}()));
     }
 }
 ```

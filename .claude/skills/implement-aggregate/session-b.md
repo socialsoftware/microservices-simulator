@@ -33,7 +33,7 @@ Load these files before writing any code:
 
 ## Produce
 
-Produce every file listed in the plan.md `2.{N}.b` row. The authoritative file list is in plan.md — use it exactly.
+Produce every file listed in the plan.md `2.{N}.b` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `SKILL.md` § "Step 5b: Amend plan.md for Omitted Files".
 
 `Get{Aggregate}ByIdCommand` is produced unconditionally for **every** aggregate, whether or not §4
 lists any read functionality for it. Write sagas need it for their get-then-lock step, so it is
@@ -41,7 +41,7 @@ infrastructure rather than a domain read. Session `b` is therefore never empty.
 
 > **Prerequisite — ServiceMapping**: Verify that `{src}ServiceMapping.java` exists and contains an entry for `{AGGREGATE}`. If not, create it (or add the missing entry) before writing any commands — every command constructor references `ServiceMapping.{AGGREGATE}.getServiceName()`. This session is the first to create commands for this aggregate, so the entry lands here.
 >
-> **Multi-word aggregate naming:** The value must equal `resolveServiceName(SagaXxx)`, which strips "Saga" from the aggregate's simple class name and lowercases the first character. For multi-word aggregates this is camelCase — e.g. `SagaQuizAnswer` → `"quizAnswer"`. Never use a shortened alias; mismatches cause silent bean-lookup failures that only appear at commit/abort time.
+> **Multi-word aggregate naming:** The value must equal `resolveServiceName(Saga{Aggregate})`, which strips "Saga" from the aggregate's simple class name and lowercases the first character. For multi-word aggregates this is camelCase — a `SagaShipmentItem` resolves to `"shipmentItem"`. Never use a shortened alias such as `"item"`; mismatches cause silent bean-lookup failures that only appear at commit/abort time.
 
 ### `{Aggregate}Service.java` (read methods)
 

@@ -11,7 +11,9 @@ Load these files before writing any code:
 1. **`docs/concepts/aggregate.md`** — all sections. Specifically use:
    - § Key Fields, § Base Class — base-class fields and lifecycle methods
    - § Variants → Sagas variant — `SagaAggregate` interface; what `getSagaState()` / `setSagaState()` must return
-   - § Factories, § Repositories — `CustomRepositorySagas` `getLatestVersion` and `findSagaAggregateById` queries
+   - § Factories, § Repositories — the three artifacts this session produces, and why
+     `{Aggregate}CustomRepositorySagas` is a `@Service` implementing `{Aggregate}CustomRepository`
+     rather than an extension of `SagaAggregateRepository`
    - § getEventSubscriptions() Implementation — relevant only if this aggregate has subscribed events (otherwise skip)
    - References to `prev` (used for temporal invariants) appear under § Key Fields / § Base Class
 
@@ -37,7 +39,7 @@ If either is missing, add it to the plan.md `2.{N}.a` file cell now. These two f
 
 ## Produce
 
-Produce every file listed in the plan.md `2.{N}.a` row for this aggregate. The authoritative file list is in plan.md — use it exactly. The descriptions below explain what each file must contain.
+Produce every file listed in the plan.md `2.{N}.a` row for this aggregate. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `SKILL.md` § "Step 5b: Amend plan.md for Omitted Files". The descriptions below explain what each file must contain.
 
 ### `{Aggregate}.java`
 
@@ -96,7 +98,7 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
 - Implements `getSagaState()` returning the field; `setSagaState(SagaState state)` sets it directly (field type is the interface, no cast needed)
 - No other logic
 
-> **Bean naming constraint:** The simple class name of this saga aggregate determines the service routing string used by `resolveServiceName()` in session b. For multi-word aggregates (e.g. `SagaQuizAnswer`), `resolveServiceName` produces `"quizAnswer"` — camelCase, not a shortened alias like `"answer"`. The `ServiceMapping` entry created in session b **must** use this exact value. Note it now to avoid a silent routing failure later.
+> **Bean naming constraint:** The simple class name of this saga aggregate determines the service routing string used by `resolveServiceName()` in session b. For multi-word aggregates this is camelCase, not a shortened alias — a `SagaShipmentItem` produces `"shipmentItem"`, never `"item"`. The `ServiceMapping` entry created in session b **must** use this exact value. Note it now to avoid a silent routing failure later.
 
 ### `{Aggregate}SagaState.java`
 

@@ -215,7 +215,7 @@ After ticking the checkbox, output a concise structured report:
 
 All session context variables are already resolved. Derive retro paths:
 - `{session-id}` = `2.{N}.{type}`
-- `{session-type-name}` = map: a→"Domain Layer", b→"Write Functionalities", c→"Read Functionalities", d→"Event Wiring"
+- `{session-type-name}` = map: a→"Domain Layer", b→"Read Functionalities", c→"Write Functionalities", d→"Event Wiring"
 - `{retro-dir}` = `applications/{app-name}/retros/`
 - `{retro-file}` = `{retro-dir}retro-{session-id}-{Aggregate}.md`
 
@@ -423,8 +423,8 @@ Issue a single commit using HEREDOC format:
 feat({app-name}): 2.{N}{type} ({Aggregate} {session-type-name})
 ```
 
-Where `{session-type-name}` maps: `a`→"Domain Layer", `b`→"Write Functionalities", `c`→"Read Functionalities", `d`→"Event Wiring".
+Where `{session-type-name}` maps: `a`→"Domain Layer", `b`→"Read Functionalities", `c`→"Write Functionalities", `d`→"Event Wiring".
 
-Example: `feat({app-name}): 2.2c (User Read Functionalities)`
+Example: `feat({app-name}): 2.2c ({Aggregate} Write Functionalities)`
 
 After the commit, output the commit hash and message as the final line of the session report.

@@ -110,8 +110,8 @@ Maven is invoked per-app, so each app carries its own untracked `.mvn/maven.conf
 developer's settings file. Without it the very first `mvn` run fails resolving plugins from whatever
 mirror `~/.m2/settings.xml` names — an error that looks like a scaffold bug but is not. This file is
 machine config, so it is copied from elsewhere in the repo rather than templated: from a sibling app
-if one exists, otherwise from `simulator/.mvn/maven.config`, which is present in every checkout of
-this repo and is what makes this step work for the **first** application.
+if one exists, otherwise from `simulator/.mvn/maven.config`, which is what makes this step work for
+the **first** application in a repo, when the sibling glob matches nothing.
 
 > **The one sanctioned exception to § "Application isolation".** `.mvn/maven.config` is untracked
 > machine configuration — a `-s <path>` line naming the developer's settings file. It carries no
@@ -122,6 +122,7 @@ this repo and is what makes this step work for the **first** application.
 ```bash
 src=$(ls -d applications/*/.mvn 2>/dev/null | grep -v "applications/{app-name}/" | head -1)
 [ -n "$src" ] || src=simulator/.mvn
+[ -f "$src/maven.config" ] || { echo "no maven.config to inherit from $src"; exit 1; }
 mkdir -p applications/{app-name}/.mvn
 cp "$src/maven.config" applications/{app-name}/.mvn/
 echo "/applications/{app-name}/.mvn/maven.config" >> .git/info/exclude
@@ -130,10 +131,16 @@ echo "/applications/{app-name}/.mvn/maven.config" >> .git/info/exclude
 `.git/info/exclude` lists these paths one app at a time, so the new app's entry must be appended —
 otherwise the file shows up as untracked and can be committed by accident.
 
-`simulator/.mvn/maven.config` is tracked and always present, so the copy has a source even on the
+`simulator/.mvn/maven.config` is itself untracked machine config, for the same reason the copy is -
+it is git-excluded, not committed. It is nonetheless the right fallback: `simulator/` is where the
+core library is built, so any checkout that has ever run `mvn install` has one, which covers the
 first application in a repo. Do not fall back to "the default `~/.m2/settings.xml` may already
 resolve" - it typically does not, and the failure surfaces much later as an unreachable-mirror build
-error that reads like a scaffold bug. Never commit `applications/{app-name}/.mvn/maven.config`.
+error that reads like a scaffold bug.
+
+If `simulator/.mvn/maven.config` is absent too, the developer has no mirror configuration to inherit:
+halt and say so, rather than scaffolding an application whose build will fail for a reason unrelated
+to the scaffold. Never commit `applications/{app-name}/.mvn/maven.config`.
 
 ### Step 6: Verify and Confirm
 
