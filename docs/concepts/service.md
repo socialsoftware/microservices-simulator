@@ -180,7 +180,7 @@ This is required when two invariants interact: a deletion invariant checks a col
 
 **Why copy-on-write is required here:** If you call `remove()` on the managed JPA entity returned by `aggregateLoadAndRegisterRead`, JPA marks that entity dirty immediately. Before the saga abort path can run its `findNonDeletedSagaAggregate` JPQL query, JPA may auto-flush the dirty state — setting the aggregate's state to `DELETED` in the DB. The abort query then finds nothing (it filters `state != DELETED`), causing the abort to fail silently. Copy-on-write keeps the original managed entity unmodified; only the new (unmanaged) copy carries the `DELETED` state, so the abort query always succeeds. This problem surfaces specifically when `verifyInvariants()` contains a rule that checks `state == DELETED` (e.g., `REMOVE_NO_STUDENTS`): the abort path re-loads the aggregate and calls `verifyInvariants`, which fires the check — but JPA's auto-flush has already written the `DELETED` state, so the invariant throws a `SimulatorException` instead of the expected application exception.
 
-> **Note:** The `quizzes` reference `CourseService` uses in-place mutation for soft-delete — this is a latent bug in the reference that has not manifested only because Course invariants happen not to be checked during its abort path. Do not follow that pattern.
+> **Rule:** Soft-delete goes through copy-on-write like any other mutation, unconditionally — not only where an invariant is known to check `state == DELETED`. In-place `remove()` appears to work whenever an aggregate's invariants happen not to fire on the abort path, so a service that mutates in place is a latent bug that surfaces the moment such an invariant is added.
 
 ---
 
@@ -245,10 +245,3 @@ Add the JPQL method to `{Aggregate}Repository.java` (JPA repo interface) and cal
 ## P3 Guard Placement
 
 P3 guards (own-table reads, uniqueness checks, and DTO field validation from preceding saga steps) belong at the **top** of the service method, before any `createFromExisting` call. Throwing at this point ensures no aggregate is dirtied before the guard fires. See [`rule-enforcement-patterns.md`](rule-enforcement-patterns.md) for the full taxonomy.
-
----
-
-## Reference Implementations (Quizzes)
-
-- `applications/quizzes/src/main/java/.../execution/service/ExecutionService.java` — create, read, mutate, and event publication patterns
-- `applications/quizzes/src/main/java/.../tournament/service/TournamentService.java` — multi-field mutation and DTO return

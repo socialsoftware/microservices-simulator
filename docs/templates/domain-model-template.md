@@ -5,8 +5,6 @@
 > Replace every `{placeholder}` with content specific to your application.
 > Remove any rows or blocks that do not apply.
 > Keep the section numbers and block shapes intact — they are part of the contract this file makes with AI agents.
->
-> Example: [`applications/quizzes/quizzes-domain-model.md`](../../applications/quizzes/quizzes-domain-model.md)
 
 ---
 

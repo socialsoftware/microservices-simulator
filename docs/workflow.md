@@ -6,9 +6,6 @@ next session — agents are told exactly what to read and what to produce, not o
 
 **Scope:** Sagas transactional model only. TCC is out of scope.
 
-**Canonical example:** `applications/quizzes/` and its spec files
-`quizzes-domain-model.md` / `quizzes-aggregate-grouping.md`.
-
 ---
 
 ## Required Inputs
@@ -130,7 +127,8 @@ here; if it changes, edit the skill, not this file.
 
 **One session. No plan.md exists yet.** Produces the Maven scaffold, exception classes,
 `BeanConfigurationSagas.groovy` (infrastructure beans only — no domain beans yet), and Spock test
-base classes, all cloned and transformed from the `quizzes` reference app.
+base classes, all produced from the checked-in scaffold templates under
+`.claude/skills/boot-strap/templates/`.
 
 The full procedure — exact files read, every transformation applied, and the complete produced-file
 list — is authoritatively defined in
@@ -152,7 +150,9 @@ plan.md does not exist yet. Phase 1 creates it.
 - `docs/concepts/rule-enforcement-patterns.md` — the pattern taxonomy and classification flowchart
 
 ### Produces
-`applications/{app-name}/plan.md` using the structure defined in
+`applications/{app-name}/plan.md` and an empty `applications/{app-name}/friction-log.md` (header
+and schema per `.claude/skills/_shared/conventions.md` § "Friction log"), using the structure
+defined in
 `.claude/skills/classify-and-plan/SKILL.md` (see **plan.md — The Job Queue** above). The agent
 must:
 
@@ -167,7 +167,7 @@ must:
    the Implementation Order table. No per-scenario analysis needed for either.
 
 ### Does not modify
-Any source file. Output is plan.md only.
+Any source file. Output is plan.md and friction-log.md only.
 
 ---
 
@@ -297,7 +297,7 @@ ticked, `/implement-aggregate` synthesises the retro from conversation context a
 
 Example: `applications/{app-name}/retros/retro-2.3.b-Tournament.md`
 
-A single commit covering both the implementation files and the retro file is then issued
+A single commit covering the implementation files, the retro file and any `friction-log.md` rows is then issued
 automatically (Step 8), with message: `feat({app-name}): 2.{N}{type} ({Aggregate} {session-type-name})`.
 
 ### What it produces
@@ -306,9 +306,8 @@ automatically (Step 8), with message: `feat({app-name}): 2.{N}{type} ({Aggregate
 |---------|---------|
 | Files Produced | Audit trail of what was shipped |
 | Docs Consulted | Which concept docs were read and whether they were sufficient |
-| Reference App Consulted | Files read from `applications/quizzes/` — each entry is a gap signal |
 | Skill Instructions Feedback | What worked / what was unclear in the skill sub-file |
 | Documentation Gaps | Specific missing or ambiguous content in `docs/concepts/` |
 | Patterns to Capture | Undocumented patterns discovered during implementation |
-| Action Items | Prioritised list of improvements to make to docs and skills |
+| Friction Recorded | The `friction-log.md` row numbers appended this session |
 | One-Line Summary | The single most important finding |

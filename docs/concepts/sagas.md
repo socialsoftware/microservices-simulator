@@ -142,8 +142,6 @@ saga.executeWorkflow(unitOfWork);
 return saga.get{Aggregate}Dto();
 ```
 
-Reference: `applications/quizzes/.../execution/coordination/sagas/GetCourseExecutionByIdFunctionalitySagas.java`
-
 ### List-return read variant
 
 When a read functionality returns multiple aggregates (e.g., all topics for a course), the result field is `List<{Aggregate}Dto>`, the cast is `(List<{Aggregate}Dto>)`, and the getter returns the list:
@@ -188,8 +186,6 @@ Get{Aggregates}By{Field}FunctionalitySagas saga = new Get{Aggregates}By{Field}Fu
 saga.executeWorkflow(unitOfWork);
 return saga.get{Aggregates}();
 ```
-
-Reference: `applications/quizzes/.../topic/coordination/sagas/FindTopicsByCourseFunctionalitySagas.java`
 
 ### Two-step read saga variant
 
@@ -252,10 +248,6 @@ saga.executeWorkflow(unitOfWork);
 return saga.get{Aggregates}();
 ```
 
-Reference: `applications/quizzes-full/.../question/coordination/sagas/GetQuestionsByCourseExecutionIdFunctionalitySagas.java`
-(no equivalent two-step read saga exists in `applications/quizzes` — this pattern was first
-introduced in `quizzes-full`).
-
 ## Step Ordering
 
 The typical step order inside a write `FunctionalitySagas` class is:
@@ -306,7 +298,7 @@ Aggregate (abstract)
         └── SagaXxx implements SagaAggregate
 ```
 
-Example (Quizzes): `Execution (abstract) → SagaExecution implements SagaAggregate`
+Example: `Execution (abstract) → SagaExecution implements SagaAggregate`
 
 `SagaExecution` holds the `sagaState` field and implements `get/setSagaState()`.
 
@@ -319,8 +311,3 @@ Example (Quizzes): `Execution (abstract) → SagaExecution implements SagaAggreg
 | Functionality | `XxxFunctionalitySagas` | `AddParticipantFunctionalitySagas` |
 | Factory | `SagasXxxFactory` | `SagasExecutionFactory` |
 | Repository | `XxxCustomRepositorySagas` | `CourseExecutionCustomRepositorySagas` |
-
-## Reference Implementation
-
-- `applications/.../tournament/coordination/sagas/AddParticipantFunctionalitySagas.java` — two-step workflow with forbidden state
-- `applications/.../execution/aggregate/sagas/states/CourseExecutionSagaState.java` — state enum

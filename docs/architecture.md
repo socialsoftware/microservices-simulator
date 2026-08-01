@@ -102,7 +102,7 @@ Each microservice has a `@SpringBootApplication` entry point gated by `@Profile(
 
 ### `{Xxx}Controller.java`
 
-A minimal `@RestController` stub under `coordination/webapi/`. In the simulator, HTTP endpoints are not exercised by the test harness (tests drive operations directly via `{Xxx}Functionalities`). The controller is created as an empty stub to mark the architectural slot and match the reference app structure. Endpoints can be filled in when a web-API layer is needed.
+A minimal `@RestController` stub under `coordination/webapi/`. In the simulator, HTTP endpoints are not exercised by the test harness (tests drive operations directly via `{Xxx}Functionalities`). The controller is created as an empty stub to mark the architectural slot. Endpoints can be filled in when a web-API layer is needed.
 
 ---
 

@@ -5,8 +5,6 @@
 > This file captures the aggregate partitioning decision for [{AppName} domain model]({domain-model-file}.md).
 > Replace every `{placeholder}` with content specific to your application.
 > One domain model can have multiple aggregate grouping files.
->
-> Example: [`applications/quizzes/quizzes-aggregate-grouping.md`](../../applications/quizzes/quizzes-aggregate-grouping.md)
 
 ---
 

@@ -180,12 +180,3 @@ SagaStep getCreatorUserStep = new SagaStep("getCreatorUserStep", () -> {
 ```
 
 Name the step `getCreatorUserStep` for the tournament creator pattern, or `getUserStep` for the add-participant pattern. The `UserDto` returned by `GetUserByIdCommand` carries `version` and can be passed directly to the downstream command.
-
----
-
-## Reference Implementations (Quizzes)
-
-- `applications/quizzes/src/main/java/.../quizzes/commands/tournament/AddParticipantCommand.java` — mutate command with a DTO payload
-- `applications/quizzes/src/main/java/.../quizzes/commands/tournament/GetTournamentByIdCommand.java` — read command
-- `applications/quizzes/src/main/java/.../quizzes/microservices/tournament/messaging/TournamentCommandHandler.java` — full handler with pattern switch
-- `applications/quizzes/src/main/java/.../quizzes/ServiceMapping.java` — service name enum

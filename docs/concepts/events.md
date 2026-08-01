@@ -6,7 +6,7 @@ Domain events are the mechanism for **eventual consistency** across aggregates. 
 
 ## Event Classes
 
-Located in `src/main/java/.../<appName>/events/` (e.g., `applications/quizzes/src/main/java/.../quizzes/events/`).
+Located in `src/main/java/.../<appName>/events/` (e.g., `applications/{app-name}/src/main/java/.../{app}/events/`).
 
 Each event extends `Event` from `ms.domain.event`:
 
@@ -273,11 +273,3 @@ public class Invalidate{Consumer}Event extends Event {
 3. Downstream aggregates that cache a reference to `{Consumer}` subscribe to `Invalidate{Consumer}Event` and process it the same way — either removing the sub-entity from a collection or cascading their own invalidation.
 
 **Key invariant:** the outbound invalidation event must use the consumer's own aggregate ID as `publisherAggregateId` so that downstream `EventSubscription` instances anchored to that ID receive it. This is the same rule that applies to all events: `super(anchorAggregateId)` must match the `subscribedAggregateId` of the downstream subscriber.
-
----
-
-## Reference Implementations (Quizzes)
-
-- `applications/quizzes/src/main/java/.../events/CreateQuestionEvent.java`
-- `applications/quizzes/src/main/java/.../execution/notification/subscribe/CourseExecutionSubscribesRemoveUser.java`
-- `applications/quizzes/src/main/java/.../execution/notification/handling/CourseExecutionEventHandling.java`

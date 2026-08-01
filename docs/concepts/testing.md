@@ -506,8 +506,7 @@ Documented for future work; **not** part of the current workflow. Compensation t
 of this appendix into core T4 scope — see § Compensation Test above. Guard/forbidden-state
 transitions and Async tests remain deferred: both require staging two independent sagas against
 each other (pause one mid-workflow, run the other, resume the first), which is out of scope even
-though it's deterministic/single-threaded — the reference `quizzes` app labels this pattern
-"concurrency tests."
+though it's deterministic/single-threaded.
 
 ### Cross-Functionality Test
 

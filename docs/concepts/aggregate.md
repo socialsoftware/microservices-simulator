@@ -33,7 +33,7 @@ Adds:
 - `getSagaState()` / `setSagaState(SagaState state)` — semantic lock used to block conflicting concurrent operations
 - Inner interface `SagaState` — implemented as an enum per aggregate (e.g., `CourseExecutionSagaState`)
 
-Example (Quizzes): saga aggregates extend `Aggregate` and implement `SagaAggregate`:
+Example: saga aggregates extend `Aggregate` and implement `SagaAggregate`:
 ```
 Execution (abstract) → SagaExecution → implements SagaAggregate
 ```
@@ -114,10 +114,3 @@ Rules:
 - If the aggregate has no inter-invariants, return an empty set.
 
 See [`concepts/events.md`](events.md) for the `EventSubscription` subclass template.
-
----
-
-## Reference Implementations (Quizzes)
-
-- `applications/quizzes/src/main/java/.../execution/aggregate/Execution.java` — base with event subscriptions
-- `applications/quizzes/src/main/java/.../tournament/aggregate/Tournament.java` — multi-service references
