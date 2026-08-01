@@ -18,7 +18,7 @@ The skill is invoked as:
 ```
 
 Examples:
-- `/classify-and-plan applications/quizzes-full/quizzes-full-domain-model.md applications/quizzes-full/quizzes-full-aggregate-grouping.md`
+- `/classify-and-plan applications/my-app/my-app-domain-model.md applications/my-app/my-app-aggregate-grouping.md`
 - `/classify-and-plan docs/examples/example-domain-model.md docs/examples/example-aggregate-grouping.md`
 
 > **If arguments are missing or incorrect**, ask the user: "Please provide two file paths: domain-model.md and aggregate-grouping.md. Example: `/classify-and-plan path/to/domain-model.md path/to/aggregate-grouping.md`"
@@ -47,7 +47,7 @@ Before processing:
 
 2. **Extract app-name** from the domain-model.md filename:
    - Pattern: `{AppName}-domain-model.md`
-   - Example: `quizzes-full-domain-model.md` → app-name = `quizzes-full`
+   - Example: `my-app-domain-model.md` → app-name = `my-app`
    - Error if pattern doesn't match: `"Domain model filename must match pattern '{AppName}-domain-model.md'. Got: {filename}"`
 
 3. **Verify required sections exist** in domain-model.md (check for section headers):
@@ -388,7 +388,7 @@ authoritative source for the file-list shape; `docs/workflow.md` only points her
 - `{Query}` → read operation name (PascalCase, e.g., "GetOpenTournaments")
 - `{Event}` → event name without "Event" suffix (e.g., "UpdateUserName" for "UpdateUserNameEvent")
 - `{aggregate}` → aggregate name (kebab-case or lowercase, e.g., "tournament")
-- `{App}` → app name (PascalCase, e.g., "QuizzesFull")
+- `{App}` → app name (PascalCase, e.g., "MyApp")
 
 ---
 
@@ -536,6 +536,27 @@ Followed by checklist:
 ...
 ```
 
+#### Also create the friction log
+
+After writing plan.md, create `applications/{app-name}/friction-log.md` with exactly this content —
+header only, no rows:
+
+```markdown
+# Friction Log — {app-name}
+
+Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Friction log".
+
+| # | Session | Severity | Category | Artifact | Friction |
+|---|---------|----------|----------|----------|----------|
+```
+
+If the file already exists, leave it untouched — it is append-only and may already carry rows from a
+partial run. Unlike plan.md, it is never overwritten.
+
+Any friction this session encountered with the harness (a doc or skill that failed to guide the
+parsing or classification) is appended as a row with `Session` = `1`, per
+`conventions.md` § "Friction log".
+
 ---
 
 ### Step 9: Report Success
@@ -546,6 +567,7 @@ After writing plan.md:
    ```
    ✓ Phase 1 plan generated successfully.
    Plan written to: applications/{app-name}/plan.md
+   Friction log created at: applications/{app-name}/friction-log.md
    ```
 
 2. **Summary of results:**
@@ -607,7 +629,7 @@ The user can review these flags before Phase 2 begins.
 ## Notes
 
 - The skill does not run tests or validate the plan against code — that is Phase 2's responsibility.
-- The skill does not create any source files — plan.md only.
+- The skill does not create any source files — `plan.md` and `friction-log.md` only.
 - Phase 2 agents will read plan.md and tick checkboxes as they complete each session.
 - If plan.md already exists, overwrite it with the newly generated version (this allows re-planning if the domain model changes).
 - For ambiguous sections, users can manually edit plan.md before Phase 2 begins; Phase 2 agents will read the current version.

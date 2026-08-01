@@ -77,17 +77,7 @@ Read the `## Rule Classification` section (§3.1 and §3.2 tables). Filter rows 
 - P3 rules where this aggregate's service is the guard location
 - P4a/P4b rules where this aggregate's sagas perform data-assembly
 
-### 2.c — Retros for this aggregate
-
-Run: `find applications/{app-name}/retros -name "retro-2.{N}.*-{Aggregate}.md" | sort`
-
-Read every matching retro file. Record for each:
-- Action items (Priority + Target + Action)
-- One-Line Summary
-
-These are known issues — the review must check whether each source-file-targeted item was resolved.
-
-### 2.d — Target app files for this aggregate
+### 2.c — Target app files for this aggregate
 
 Enumerate all files under `{tgt-src}microservices/{aggregate}/` recursively.
 Also: `find applications/{app-name}/src/main/java -path "*/commands/{aggregate}/*" -name "*.java"`
@@ -95,7 +85,7 @@ Also: `find {tgt-test} -path "*/{aggregate}*" -name "*.groovy"` (covers `sagas/{
 
 Read each file. Build the target file list.
 
-### 2.e — Concept docs
+### 2.d — Concept docs
 
 Read sections relevant to this aggregate type:
 - `docs/architecture.md` § Package Structure Convention — canonical directory layout, used to sanity-check
@@ -113,7 +103,7 @@ Read sections relevant to this aggregate type:
 
 The **expected file list** for this aggregate is the Files-to-produce table read in Step 2.a — one
 row per file, tagged with the producing session (2.N.a/b/c/d). This table is authoritative for what
-this aggregate needs; `docs/architecture.md` § Package Structure Convention (Step 2.e) is used only
+this aggregate needs; `docs/architecture.md` § Package Structure Convention (Step 2.d) is used only
 to sanity-check *where* a listed file lives (correct layer directory), not to add files the plan.md
 table doesn't list.
 
@@ -137,7 +127,7 @@ plan.md omitted is not automatically unjustified).
 ## Step 4: Structural Review
 
 For each file present in the target, compare its structure against `docs/architecture.md` and the
-concept docs (Step 2.e), and against the expectations recorded from plan.md (Step 2.a-b). For every
+concept docs (Step 2.d), and against the expectations recorded from plan.md (Step 2.a-b). For every
 finding, provide: the file, the expected pattern (with source), the actual finding (quoted
 lines), and a status.
 
@@ -271,20 +261,9 @@ Expected scenarios per tier — full definitions in `docs/concepts/testing.md`:
 
 ---
 
-## Step 8: Retro Cross-Reference
+## Step 8: Build and Test
 
-List all action items from the retros found in Step 2.c.
-
-| Retro | Session | Priority | Action Item |
-|-------|---------|----------|-------------|
-
-For High-priority items targeting a source file, read the relevant file and verify the fix is present; raise a Major action item if unresolved. Items targeting skill or doc files require no investigation.
-
----
-
-## Step 9: Build and Test
-
-Build the test-class name list from all test files found in Step 2.d (comma-separated class names),
+Build the test-class name list from all test files found in Step 2.c (comma-separated class names),
 e.g. `-Dtest="{Aggregate}IntraInvariantTest,{Aggregate}ServiceTest,Create{Aggregate}Test,..."`.
 
 Run it following `.claude/skills/_shared/conventions.md` § "Run the test suite". Do not pipe maven
@@ -299,7 +278,7 @@ Capture and record:
 
 ---
 
-## Step 10: Write the Review File
+## Step 9: Write the Review File
 
 Create `{review-dir}` if it does not exist (`mkdir -p {review-dir}`).
 Write `{review-file}` using the template below. Do not omit any section — write "nothing to report" if a section has no findings.
@@ -359,13 +338,6 @@ lines, status.)
 
 ---
 
-## Retro Cross-Reference
-
-| Retro | Session | Priority | Action Item |
-|-------|---------|----------|-------------|
-
----
-
 ## Build & Test Results
 
 **Command:** `mvn clean -Ptest-sagas test -Dtest=...`
@@ -389,9 +361,25 @@ lines, status.)
 | Minor | ... | ... | ... | ... |
 
 **Critical** = breaks correctness or compilability; must fix before next session.
-**Major** = incorrect pattern, missing documented test scenario, unresolved High-priority retro item.
+**Major** = incorrect pattern, missing documented test scenario.
 **Minor** = naming deviation, unjustified extra file, cosmetic issue.
 ```
+
+---
+
+## Step 10: Append Harness Friction
+
+The `## Action Items` table above is for defects in the **generated application** — a wrong
+implementation, a missing test, a broken build. It stays exactly as written.
+
+Findings of a different kind belong elsewhere: a `docs/` file or a `.claude/skills/` instruction that
+failed to guide the implementation, or that this review found ambiguous or wrong. Those are harness
+friction. Read `.claude/skills/_shared/conventions.md` § "Friction log" and append one row per
+distinct point to `applications/{app-name}/friction-log.md`, with `Session` = `3.{N}`.
+
+Append only — read the last row for the next `#`, never rewrite or delete rows. If there was no
+harness friction, append nothing. Do not edit the harness file itself; the freeze applies
+(`AGENTS.md` § "Harness freeze").
 
 ---
 
@@ -404,17 +392,20 @@ Output to the conversation:
 4. Count of Major and Minor items
 5. Build result: the observed `MAVEN_EXIT` and surefire totals, plus number of test classes run and
    passed
+6. Friction rows appended in Step 10 (row numbers, or "none")
 
 ---
 
 ## Hard Rules
 
 1. **Read files directly.** Every comparison is based on actual file content read in Step 2. Never infer the content of an unread file.
-2. **Read-only except for the review file.** Do not modify any source or skill files.
+2. **Read-only except for the review file and appended friction rows.** Do not modify any source, doc, or skill files.
 3. **Never omit sections.** Write "nothing to report" if a section is empty.
 4. **Quote the evidence.** For every Incorrect or Pattern-missing finding, include the relevant snippet from the target file and the expected pattern.
-5. **Retro items are mandatory checks.** Every High-priority retro action item targeting a source file must be explicitly resolved or flagged in Step 8.
-6. **Build must run, and its result must be observed, not scraped.** Do not skip Step 9. Report the
+5. **Action Items are for the generated application only.** A finding whose target is a `docs/` or
+   `.claude/skills/` file is harness friction and belongs in `friction-log.md` (Step 10), never in the
+   Action Items table.
+6. **Build must run, and its result must be observed, not scraped.** Do not skip Step 8. Report the
    outcome from maven's exit status and the surefire report files
    (`.claude/skills/_shared/conventions.md` § "Run the test suite"), never from piped maven stdout.
 7. **One aggregate per invocation.**

@@ -29,11 +29,14 @@ file(s) it produces (session → file, for file-generation purposes only):
 
 ---
 
-## Anti-Pattern: Do Not Consult the Reference App
+## Application isolation
 
-**Never read files under `applications/quizzes/` during implementation.** The docs and skills are the authoritative source. The reference app contains known bugs that the docs have already corrected; consulting it will reproduce those bugs in the target implementation.
+Read `.claude/skills/_shared/conventions.md` § "Application isolation" in full before implementing.
+Do not continue until you have. It governs which files this session may read.
 
-**If the docs or skill don't cover something:** flag it explicitly in the Step 6 report and the retro. Do not silently fill the gap from the reference. Surfacing the gap is the correct behavior — it becomes a documentation improvement, not a hidden copy of a potentially buggy pattern.
+**If the docs or skill don't cover something:** flag it explicitly in the Step 6 report and append a
+friction row (Step 7.d). Do not silently fill the gap from another application. Surfacing the gap is
+the correct behavior — it becomes a harness improvement, not a hidden copy of a peer's pattern.
 
 ---
 
@@ -90,7 +93,7 @@ If no unchecked Phase 2 session found, inform: "All Phase 2 sessions are complet
 Read `.claude/skills/_shared/conventions.md` § "Resolve app context" and derive `{app-name}`,
 `{pkg}`, `{AppClass}` from the plan.md path located in Step 1 (already found — do not re-run the
 `find`). Additionally, locally:
-- `{appClass}` = same as `{AppClass}` but first segment lowercase (e.g., `quizzesFull`)
+- `{appClass}` = same as `{AppClass}` but first segment lowercase (e.g., `myApp`)
 
 From plan.md, find the aggregate details section for aggregate number `{N}`:
 - Section header pattern: `### {N}. {Aggregate}` or `### {N}. {AggregateName}`
@@ -185,7 +188,7 @@ Answer these questions by reviewing what happened during the session:
 
 1. **Which files were produced?** List every file created or modified.
 2. **Which concept docs were read?** For each: which sections were actually used? Was the doc sufficient?
-3. **Was the reference app (`applications/quizzes/`) consulted?** Consulting it is a violation of the anti-pattern rule. If it happened, note exactly which files and what gap caused it — add a High-priority Action Item to document that gap so it never needs the reference again.
+3. **Was any file outside `applications/{app-name}/` read?** Cross-app reads are a violation (see `conventions.md` § "Application isolation"); record the file and the gap that caused it as a `High` friction row.
 4. **Which instructions in the skill sub-file (`session-{type}.md`) were unclear, missing, or required inference beyond what was written?**
 5. **Were there any naming, path, or pattern decisions the skill/docs didn't cover?**
 6. **Were there any bugs, corrections, or fixes applied mid-session?** What triggered them?
@@ -193,6 +196,8 @@ Answer these questions by reviewing what happened during the session:
 8. **Were any files under `simulator/` modified?** If yes, list each one with: the exact diff (what was removed vs added), the root cause that required the change, and why the fix belongs in the framework rather than in application code.
 
 ### 7.b — Write the Retro File
+
+Run Step 7.d first — the `## Friction Recorded` section below cites the row numbers it appends.
 
 Create `{retro-file}` using this exact template. Write "none" for any section with nothing to report — do not omit sections.
 
@@ -283,7 +288,7 @@ name covering its lock-acquisition case.
 |------------|-----------|--------------------------|----------------------------|---------:|
 
 - One row per `setSemanticLock` call site.
-- "Present? = No" rows are **Major** findings: add the test in this session, or open an explicit follow-up. **Never tick the session checkbox with an unresolved `No` row** unless it is recorded with explicit deferral rationale in Action Items.
+- "Present? = No" rows are **Major** findings: add the test in this session, or open an explicit follow-up. **Never tick the session checkbox with an unresolved `No` row** unless the row is followed by an explicit deferral rationale written directly beneath this table.
 
 ---
 
@@ -308,14 +313,9 @@ adding to docs or skills.
 
 ---
 
-## Action Items
+## Friction Recorded
 
-Prioritised improvements to docs and skills based on this retro.
-
-| Priority | Target file | Action |
-|----------|------------|--------|
-| High | `.claude/skills/implement-aggregate/session-a.md` | ... |
-| Medium | `docs/concepts/aggregate.md` | ... |
+Rows appended to `applications/{app-name}/friction-log.md` this session: {row numbers, or "none"}
 
 ---
 
@@ -332,13 +332,32 @@ Create `{retro-dir}` if it does not already exist, then write the completed retr
 1. **Synthesis only.** No filesystem audits, no grep sweeps, no re-reading files to reconstruct history.
 2. **Never omit sections.** If a section has nothing to report, write "none".
 3. **Absolute paths in Files Produced.**
-4. **Any reference-app consultation is a violation** — flag the gap in Action Items as High priority.
+4. **Any cross-application read is a violation** — record it as a `High` severity friction row in Step 7.d, naming the file read and the gap that drove it.
 5. **No emojis, no hype.** Terse and concrete — paths, file names, section names, decisions.
 6. **Does not modify plan.md, source files, or BeanConfigurationSagas.groovy.**
 7. **Simulator changes are mandatory to document.** If any file under `simulator/` was modified during the session, the `⚠️ SIMULATOR FRAMEWORK CHANGES` block is **required** in the Files Produced section — not optional. For each changed file include: exact diff, root cause, fix rationale, and impact scope. If no simulator files changed, remove the block entirely rather than leaving it blank.
-8. **Semantic-Lock Coverage Audit is mandatory for session-`b` retros.** A session-`b` retro missing the audit table, or containing it with unresolved `Present? = No` rows (without an explicit deferral entry in Action Items), blocks the Step 8 commit. For sessions `a`/`c`/`d` the section is still present with the literal value "n/a".
+8. **Semantic-Lock Coverage Audit is mandatory for session-`b` retros.** A session-`b` retro missing the audit table, or containing it with unresolved `Present? = No` rows (without an explicit deferral rationale beneath the table), blocks the Step 8 commit. For sessions `a`/`c`/`d` the section is still present with the literal value "n/a".
 
 Do not print a separate retro completion report — the retro file path is included in the Step 8 commit output.
+
+### 7.d — Append Friction Rows
+
+Do this **before** writing the retro file, so the `## Friction Recorded` section can cite the row
+numbers it produced.
+
+Read `.claude/skills/_shared/conventions.md` § "Friction log" in full. Then, for each distinct
+harness friction point surfaced by the 7.a questions — a `docs/` file that was missing, wrong or
+ambiguous; a `.claude/skills/` instruction that failed to guide; a `simulator/` change; a halt; a
+cross-application read — append one row to `applications/{app-name}/friction-log.md`.
+
+- Read the last row of the file to get the next `#`. Append only; never rewrite or delete rows.
+- `Session` is this session's `{session-id}`.
+- If the file does not exist, halt: **"friction-log.md missing. It is created by
+  /classify-and-plan."**
+- Defects in the generated application are **not** friction. They are fixed in this session or
+  carried into the Phase 3/4 review reports.
+
+If there was no friction, append nothing and write "none" in `## Friction Recorded`.
 
 ---
 
@@ -347,6 +366,7 @@ Do not print a separate retro completion report — the retro file path is inclu
 Stage all files produced during this session using `git add <specific files>` (never `git add -A`). Include:
 - Every file created or modified (from the Step 6 report)
 - The retro file written in Step 7
+- `applications/{app-name}/friction-log.md`, if Step 7.d appended any row
 
 Issue a single commit using HEREDOC format:
 

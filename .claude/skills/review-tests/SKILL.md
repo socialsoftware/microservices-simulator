@@ -341,17 +341,38 @@ Sections:
 
 ---
 
-## Step 11: Print Summary to Conversation
+## Step 11: Append Harness Friction
+
+The report's findings above are about the **generated application's tests** — fake, wrong, missing or
+misplaced cases. They stay in the report exactly as written.
+
+A finding of a different kind — a `docs/` file (typically `docs/concepts/testing.md`) or a
+`.claude/skills/` instruction that failed to specify a scenario, or specified it ambiguously enough
+that the implementing session got it wrong — is harness friction. Read
+`.claude/skills/_shared/conventions.md` § "Friction log" and append one row per distinct point to
+`applications/{app-name}/friction-log.md`, with `Session` = `4.{N}`.
+
+A systematically missing test tier across several aggregates is the strongest friction signal this
+skill can produce: the gap is in the harness, not in one session's judgement.
+
+Append only — read the last row for the next `#`, never rewrite or delete rows. If there was no
+harness friction, append nothing. Do not edit the harness file itself; the freeze applies
+(`AGENTS.md` § "Harness freeze").
+
+---
+
+## Step 12: Print Summary to Conversation
 
 - Review file path
 - Verdict + one-sentence justification
 - Number of tests added, number of tests fixed
 - Build result: the observed `MAVEN_EXIT` and surefire totals, plus test classes run and passed
 - Any Fake or Critical findings verbatim
+- Friction rows appended in Step 11 (row numbers, or "none")
 
 ---
 
-## Step 12: Tick plan.md Checkbox
+## Step 13: Tick plan.md Checkbox
 
 After writing the review report and printing the summary, tick the Phase 4 checkbox in plan.md.
 
@@ -375,8 +396,9 @@ must be fixed first. Say so explicitly in the summary instead.
 3. **P1 final-field rules need no tests.** Skip them in Steps 3 and 7.
 3a. **P1 predicate tests belong only in T1 (`{Aggregate}IntraInvariantTest`).** A P1 violation
     asserted in a T2 service or T4 functionality test is **Wrong (misplaced)**; flag and move it.
-4. **Do not modify non-test files.** This review touches only `*.groovy` test files and the review
-   report.
+4. **Do not modify non-test files.** This review touches only `*.groovy` test files, the review
+   report, and appended `friction-log.md` rows. Never a `docs/` or `.claude/skills/` file — a harness
+   gap is recorded, not fixed (`AGENTS.md` § "Harness freeze").
 5. **Build must run, and its result must be observed, not scraped.** Do not skip Step 9. Report the
    outcome from maven's exit status and the surefire report files
    (`.claude/skills/_shared/conventions.md` § "Run the test suite"), never from piped maven stdout.

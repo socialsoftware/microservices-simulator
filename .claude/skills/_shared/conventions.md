@@ -31,10 +31,10 @@ Use the first result (if a skill needs different handling for multiple results �
 by unchecked checkboxes or prompting the user — that logic is defined locally in the referencing
 skill, not here). From the result path, extract:
 
-- `{app-name}` = directory containing `plan.md` (e.g., `quizzes-full`)
-- `{pkg}` = `{app-name}` with hyphens removed, lowercase (e.g., `quizzesfull`)
+- `{app-name}` = directory containing `plan.md` (e.g., `my-app`)
+- `{pkg}` = `{app-name}` with hyphens removed, lowercase (e.g., `myapp`)
 - `{AppClass}` = PascalCase of `{app-name}` — split on hyphens, capitalize each segment, join without
-  separator (e.g., `QuizzesFull`)
+  separator (e.g., `MyApp`)
 
 If no `plan.md` found, halt: **"No plan.md found. Run /classify-and-plan first."**
 

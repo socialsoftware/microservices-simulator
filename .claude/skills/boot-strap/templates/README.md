@@ -1,8 +1,8 @@
 # Phase 0 Scaffold Templates
 
-These files are the **source of truth** for `/boot-strap`. Do not derive Phase 0 output from
-`applications/quizzes/` or `applications/quizzes-full/` — a populated domain app carved back down
-leaks domain residue and drifts from the library.
+These files are the **source of truth** for `/boot-strap`. Do not derive Phase 0 output from an
+existing application — a populated domain app carved back down leaks domain residue and drifts from
+the library. See `.claude/skills/_shared/conventions.md` § "Application isolation".
 
 Every file here is complete and correct as-is. Bootstrap is: read the template, substitute the
 tokens below, write it to the output path. There are no deletion rules, no keep-lists, and no
@@ -10,12 +10,12 @@ tokens below, write it to the output path. There are no deletion rules, no keep-
 
 ## Tokens
 
-| Token | Meaning | Example (`quizzes-full`) |
-|-------|---------|--------------------------|
-| `{{APP_NAME}}` | kebab-case app name, as given to `/boot-strap` | `quizzes-full` |
-| `{{PKG}}` | `{{APP_NAME}}` with hyphens removed, lowercase | `quizzesfull` |
-| `{{APP_CLASS}}` | PascalCase — split on hyphens, capitalize each segment, join | `QuizzesFull` |
-| `{{appClass}}` | camelCase — as `{{APP_CLASS}}` but first segment lowercase | `quizzesFull` |
+| Token | Meaning | Example (`my-app`) |
+|-------|---------|--------------------|
+| `{{APP_NAME}}` | kebab-case app name, as given to `/boot-strap` | `my-app` |
+| `{{PKG}}` | `{{APP_NAME}}` with hyphens removed, lowercase | `myapp` |
+| `{{APP_CLASS}}` | PascalCase — split on hyphens, capitalize each segment, join | `MyApp` |
+| `{{appClass}}` | camelCase — as `{{APP_CLASS}}` but first segment lowercase | `myApp` |
 
 `{{APP_NAME}}`, `{{PKG}}`, and `{{APP_CLASS}}` match the derivations in
 `.claude/skills/_shared/conventions.md` ("Resolve app context"). `{{appClass}}` is only used by

@@ -84,7 +84,17 @@ Path: `{src}microservices/{aggregate}/notification/handling/handlers/{Aggregate}
 - `handleEvent(Integer subscriberAggregateId, Event event)`: dispatches via `instanceof` to the appropriate `process{Xxx}Event` call on `{Aggregate}EventProcessing`
 - Does NOT load the aggregate — that responsibility belongs to Functionalities
 
-> **Why single-class?** One `@Component` with an `instanceof` dispatch is simpler than a separate class per event type and requires only one bean in BeanConfig. Use the quizzes `CourseExecutionEventHandler` as a reference for the multi-event dispatch pattern.
+> **Why single-class?** One `@Component` with an `instanceof` dispatch is simpler than a separate class per event type and requires only one bean in BeanConfig.
+
+The dispatch body has this shape — one branch per subscribed event type:
+
+```java
+if (event instanceof {EventNameA} e) {
+    {aggregate}EventProcessing.process{Xxx}Event(subscriberAggregateId, e);
+} else if (event instanceof {EventNameB} e) {
+    {aggregate}EventProcessing.process{Yyy}Event(subscriberAggregateId, e);
+}
+```
 
 ### `{Aggregate}EventProcessing.java`
 

@@ -1,6 +1,6 @@
 ---
 name: boot-strap
-description: Bootstrap a new microservices-simulator application (Phase 0). Creates pom.xml, the {AppClass}Simulator entry point, exception classes, BeanConfigurationSagas.groovy, and Spock test base classes from the checked-in scaffold templates. Invoke with /boot-strap <App Name> (e.g., /boot-strap quizzes-full).
+description: Bootstrap a new microservices-simulator application (Phase 0). Creates pom.xml, the {AppClass}Simulator entry point, exception classes, BeanConfigurationSagas.groovy, and Spock test base classes from the checked-in scaffold templates. Invoke with /boot-strap <App Name> (e.g., /boot-strap my-app).
 argument-hint: "<App Name>"
 ---
 
@@ -10,15 +10,15 @@ This skill automates the Phase 0 bootstrap process. It creates the Maven project
 
 The bootstrap establishes a minimal, working foundation: all infrastructure beans and base test classes are in place, but domain-specific code is deferred to Phase 1 planning and Phase 2 implementation.
 
-Every file is produced from a checked-in template under `.claude/skills/boot-strap/templates/`. The templates are already correct and minimal — the only operation is token substitution. **Never read `applications/quizzes/` or `applications/quizzes-full/` during bootstrap.**
+Every file is produced from a checked-in template under `.claude/skills/boot-strap/templates/`. The templates are already correct and minimal — the only operation is token substitution. **Never read another application during bootstrap** — see `.claude/skills/_shared/conventions.md` § "Application isolation".
 
 ## Input
 
 The skill is invoked as: `/boot-strap <App Name>`
 
 Examples:
-- `/boot-strap quizzes-full`
 - `/boot-strap my-app`
+- `/boot-strap train-ticket`
 
 > **If no argument is provided**, ask the user: "What should the new application be named? (kebab-case, e.g. `my-app`)"
 
@@ -35,10 +35,10 @@ Given the `<App Name>` argument, derive the four substitution tokens:
 
 | Token | Derivation | Example |
 |-------|------------|---------|
-| `{{APP_NAME}}` | the argument as-is (kebab-case) | `quizzes-full` |
-| `{{PKG}}` | hyphens removed, lowercase | `quizzesfull` |
-| `{{APP_CLASS}}` | split on hyphens, capitalize each segment, join without separator | `QuizzesFull` |
-| `{{appClass}}` | as `{{APP_CLASS}}` but with the first segment lowercase | `quizzesFull` |
+| `{{APP_NAME}}` | the argument as-is (kebab-case) | `my-app` |
+| `{{PKG}}` | hyphens removed, lowercase | `myapp` |
+| `{{APP_CLASS}}` | split on hyphens, capitalize each segment, join without separator | `MyApp` |
+| `{{appClass}}` | as `{{APP_CLASS}}` but with the first segment lowercase | `myApp` |
 
 The argument must be kebab-case (lowercase with hyphens).
 

@@ -521,7 +521,26 @@ ran. These are NOT findings and must not appear in Action Items.)
 
 ---
 
-## Step 13: Print Summary to Conversation
+## Step 13: Append Harness Friction
+
+The `## Action Items` table above is for defects in the **generated application**. It stays exactly
+as written.
+
+A finding of a different kind — a `docs/` file or a `.claude/skills/` instruction that guided the
+implementation into the defect, or that this review found ambiguous or wrong — is harness friction.
+Read `.claude/skills/_shared/conventions.md` § "Friction log" and append one row per distinct point
+to `applications/{app-name}/friction-log.md`, with `Session` = `3.{N}`.
+
+A confirmed defect frequently has both halves: the wrong code is an Action Item, and the doc that
+licensed it is a friction row. Record both.
+
+Append only — read the last row for the next `#`, never rewrite or delete rows. If there was no
+harness friction, append nothing. Do not edit the harness file itself; the freeze applies
+(`AGENTS.md` § "Harness freeze").
+
+---
+
+## Step 14: Print Summary to Conversation
 
 1. Absolute path to `{report}`
 2. Verdict and one-sentence justification
@@ -529,17 +548,18 @@ ran. These are NOT findings and must not appear in Action Items.)
 4. Any `Contradicts` findings called out explicitly
 5. Count of dismissed candidates
 6. Build result — the observed `MAVEN_EXIT` and surefire totals (must be green)
+7. Friction rows appended in Step 13 (row numbers, or "none")
 
 ---
 
-## Step 14: Tick plan.md
+## Step 15: Tick plan.md
 
 The `3.{N}` checkbox means **both** halves of Phase 3 are done (`docs/workflow.md` § Phase 3). This
 skill is only the second half, so tick conditionally:
 
 - **If `{review-dir}review-{Aggregate}.md` exists** — `/review-aggregate` has run. Replace
   `- [ ] 3.{N} — {Aggregate}` with `- [x] 3.{N} — {Aggregate}` in `applications/{app-name}/plan.md`.
-- **If it does not exist** — leave the checkbox unticked. State in the Step 13 summary that `3.{N}`
+- **If it does not exist** — leave the checkbox unticked. State in the Step 14 summary that `3.{N}`
   was left unticked because the structural half of Phase 3 has not been run, and that
   `/review-aggregate {Aggregate}` must run before the phase is complete.
 
@@ -558,7 +578,7 @@ Never tick on the strength of this skill alone.
    report that says "nothing confirmed, here is what was attacked" is a successful run. Padding the
    report with speculation is a worse failure than missing a defect, because it destroys the signal
    that makes this skill worth running.
-3. **Never modify `src/main/**`.** Writes are limited to `{proof-test}` and `{report}` (plus the
+3. **Never modify `src/main/**`.** Writes are limited to `{proof-test}`, `{report}` and appended `friction-log.md` rows (plus the
    plan.md checkbox). Reporting a defect and fixing it in the same pass removes the human checkpoint.
 4. **Structure is out of scope.** See § Out of Scope. Do not report missing files, annotations, or
    naming.
