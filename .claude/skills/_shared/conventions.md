@@ -64,8 +64,59 @@ Path prefixes — all relative to the repository root:
 {review-dir}  = applications/{app-name}/reviews/
 ```
 
-Skills that additionally need the `quizzes` reference app define `{ref-src}` / `{ref-test}` locally —
-they are not part of this block, because most skills must not consult the reference app.
+---
+
+## Harness freeze
+
+The freeze is defined in `AGENTS.md` § "Harness freeze". Read it there; it is not restated here.
+
+One clarification specific to skills: the freeze applies **from `/boot-strap` onward**, whether or
+not `plan.md` exists yet. Phase 0 runs before any `plan.md` is written, so the plan.md predicate
+does not yet hold — the freeze still does.
+
+---
+
+## Friction log
+
+`applications/{app-name}/friction-log.md` is the single append-only record of harness friction
+for a run. It is created by `/classify-and-plan` and appended to by every skill that encounters
+friction. It is never edited retroactively and rows are never deleted.
+
+Schema — append one row per distinct friction point:
+
+| # | Session | Severity | Category | Artifact | Friction |
+|---|---------|----------|----------|----------|----------|
+
+- `#` — monotonically increasing; read the last row to get the next number.
+- `Session` — the session id (`2.3.b`, `3.5`, `4.1`) or `0`/`1` for Phase 0/1.
+- `Severity` — `High` / `Med` / `Low`. High = produced or nearly produced wrong output.
+- `Category` — one of:
+  - `doc-gap` — a `docs/` file was missing, wrong, or ambiguous
+  - `skill-gap` — a `.claude/skills/` instruction was missing, wrong, or ambiguous
+  - `framework` — `simulator/` was believed to be at fault
+  - `halt` — the session stopped and asked the human; record what unblocked it
+  - `deviation` — the human broke the freeze; record exactly what was changed and why
+- `Artifact` — the repo-relative path of the harness file at fault.
+- `Friction` — one sentence. What was needed, what was found instead.
+
+**Implementation action items are not friction.** A defect in the generated application belongs in
+the review report's own Action Items table, unchanged. Only findings that target `docs/` or
+`.claude/skills/` come here.
+
+---
+
+## Application isolation
+
+While implementing or reviewing `{app-name}`, read only within `applications/{app-name}/`.
+Files anywhere under `applications/` belonging to a **different** application must never be read —
+not as templates, not for naming, not to resolve an ambiguity. The docs and skills are the
+authoritative source; another application is a peer, not a specification.
+
+Reads **within** `applications/{app-name}/` are unrestricted, including sibling aggregates already
+implemented in earlier sessions.
+
+If a cross-application read happens anyway, it is a `High` severity `skill-gap` or `doc-gap`
+friction row naming the file read and the gap that drove it.
 
 ---
 

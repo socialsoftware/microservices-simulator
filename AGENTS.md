@@ -2,13 +2,38 @@
 
 This file is the entry point for the automated agent harness that implements this codebase. This enables **progressive disclosure**: agents start with a small, stable entry point and are taught where to look next, rather than being overwhelmed up front.
 
-**Current objective:** Build `quizzes-full` as a comparative implementation using the **same 8 aggregates** as the reference `quizzes` app. Use this comparison to validate and refine docs and skills. Only after completing all aggregates will the domain be extended further.
+**What this harness does:** it generates a simulator application from a domain-model + aggregate-grouping spec pair, aggregate by aggregate.
 
 **Architecture principle:** The current implementation targets the sagas consistency pattern only, but must remain **profile-agnostic at the service layer**. Concretely: `*Service` classes inject factories and repositories via abstract interfaces (e.g. `CourseFactory`, `CourseCustomRepository`), never via the concrete sagas-profile classes (e.g. `SagasCourseFactory`). This keeps the door open to adding a TCC or other pattern later without touching service code.
 
-Docs and skills are **living artifacts**. When something is unclear or you find yourself consulting the `quizzes/` reference app, that's a signal to update the docs or add a skill — the goal is a self-contained process that captures every pattern learned.
+Docs and skills are **living artifacts**, but they are only edited **between** runs. While a run
+is in progress (see § Harness freeze) an unclear doc is logged as friction and left alone — the
+friction log is the input to the next round of harness improvements.
 
 When in doubt, ask clarifying questions.
+
+---
+
+## Harness freeze
+
+A generation run is IN PROGRESS if and only if any `applications/*/plan.md` contains an
+unchecked `- [ ]` box.
+
+While a run is in progress, the following are **read-only for every agent** — inside a skill
+invocation and outside one:
+
+- `docs/**`
+- `.claude/**`
+- `simulator/**`
+- `AGENTS.md`, `CLAUDE.md`
+
+Friction with the harness is **recorded, never fixed**. Append a row to
+`applications/{app-name}/friction-log.md` and continue on the best defensible reading of the
+docs. If you are genuinely blocked and no defensible reading exists: **halt and report to the
+human.** Do not edit. Do not guess.
+
+Writes to `applications/{app-name}/**` (source, tests, `plan.md`, `retros/`, `reviews/`,
+`friction-log.md`) are unaffected by the freeze.
 
 ---
 
@@ -18,7 +43,7 @@ When in doubt, ask clarifying questions.
 # Install core library first
 cd simulator && mvn install
 
-# Run tests in a specific application (example: quizzes reference app or quizzes-full)
+# Run tests in a specific application
 cd applications/<appName>
 
 mvn clean -Ptest-sagas test                                     # all sagas tests
@@ -32,8 +57,7 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 | Module | Purpose                                                                                                       | Local context |
 |--------|---------------------------------------------------------------------------------------------------------------|---------------|
 | `simulator/` | Core library: `Aggregate`, `Workflow`, `UnitOfWork`, `CommandGateway`, events                                 | [`simulator/AGENTS.md`](simulator/AGENTS.md) |
-| `applications/quizzes/` | Reference example — patterns and templates for new applications                                               | [`applications/quizzes/AGENTS.md`](applications/quizzes/AGENTS.md) |
-| `applications/quizzes-full/` | Comparative implementation of quizzes using same domain; validate docs/skills | [`quizzes-full-domain-model.md`](applications/quizzes-full/quizzes-full-domain-model.md), [`quizzes-full-aggregate-grouping.md`](applications/quizzes-full/quizzes-full-aggregate-grouping.md) |
+| `applications/{app-name}/` | A generated application; its spec pair, `plan.md`, `retros/`, `reviews/` and `friction-log.md` live here | — |
 
 ---
 
