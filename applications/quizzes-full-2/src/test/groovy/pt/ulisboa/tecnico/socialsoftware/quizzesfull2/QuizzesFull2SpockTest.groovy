@@ -8,12 +8,16 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseType
 
 class QuizzesFull2SpockTest extends SpockTest {
 
     public static final String mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
 
     // Domain constants are added here as aggregates are implemented in Phase 2.
+    public static final Integer COURSE_AGGREGATE_ID = 1
+    public static final String COURSE_NAME = "Software Engineering"
+    public static final CourseType COURSE_TYPE = CourseType.TECNICO
 
     @Autowired
     public ImpairmentService impairmentService

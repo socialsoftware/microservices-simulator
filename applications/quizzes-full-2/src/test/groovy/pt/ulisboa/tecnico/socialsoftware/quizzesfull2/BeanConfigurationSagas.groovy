@@ -27,6 +27,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceClient
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.sagas.factories.SagasCourseFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.sagas.repositories.CourseCustomRepositorySagas
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -125,4 +127,13 @@ class BeanConfigurationSagas {
     }
 
     // Domain beans are added below as aggregates are implemented in Phase 2.
+    @Bean
+    SagasCourseFactory sagasCourseFactory() {
+        return new SagasCourseFactory()
+    }
+
+    @Bean
+    CourseCustomRepositorySagas courseCustomRepositorySagas() {
+        return new CourseCustomRepositorySagas()
+    }
 }
