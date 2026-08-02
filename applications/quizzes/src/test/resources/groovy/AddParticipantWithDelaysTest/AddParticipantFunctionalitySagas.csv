@@ -1,9 +1,0 @@
-run 
-getUserStep,0,0,1000
-addParticipantStep,0,1000,0
-run 
-getUserStep,0,0,0
-addParticipantStep,0,0,0
-run 
-getUserStep,0,0,0
-addParticipantStep,0,1000,0

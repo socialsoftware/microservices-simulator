@@ -1,5 +1,0 @@
-spring:
-  datasource:
-    url: jdbc:postgresql://postgres:5432/${DB_NAME:msdb}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
