@@ -46,6 +46,12 @@ Load these files before writing any code:
 
 Produce every file listed in the plan.md `2.{N}.c` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `_shared/session-completion.md` § "Amend plan.md for omitted files". The descriptions below explain what each file must contain.
 
+> **One required edit lives outside this section.** § "Update `{AppClass}SpockTest.groovy`" below
+> mandates replacing the `create{Aggregate}()` helper body with the real create functionality. It is
+> not a `###` subheading here, so a session that treats § Produce alone as its manifest ships a stale
+> placeholder helper and leaves session `b`'s read tests running against fixture-built aggregates
+> rather than the create path.
+
 > **Prerequisite — ServiceMapping**: The `{src}ServiceMapping.java` entry for `{AGGREGATE}` was added in session 2.{N}.b, which is where this aggregate's first commands were written. Verify it is present before writing any commands — every command constructor references `ServiceMapping.{AGGREGATE}.getServiceName()`.
 
 > **Prerequisite — Upstream count-manipulation commands**: If any saga for this aggregate sends an `Increment{Xxx}CountCommand` or `Decrement{Xxx}CountCommand` to an upstream aggregate's `CommandHandler`, verify that handler already routes the command. If the case is missing, add it before running tests — an unrouted command silently does nothing and will cause invariant violations or state corruption that are difficult to diagnose after the fact.
