@@ -9,8 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseType
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.sagas.SagaCourse
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.functionalities.CourseFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.service.CourseService
 
@@ -56,8 +56,9 @@ class QuizzesFull2SpockTest extends SpockTest {
     // Domain create* helpers are added below as aggregates are implemented in Phase 2.
 
     Integer createCourse(String name = COURSE_NAME, CourseType type = COURSE_TYPE) {
-        def course = new SagaCourse(aggregateIdGeneratorService.getNewAggregateId(), name, type)
-        unitOfWorkService.registerChanged(course, unitOfWorkService.createUnitOfWork("fixture"))
-        return course.getAggregateId()
+        def courseDto = new CourseDto()
+        courseDto.setName(name)
+        courseDto.setType(type)
+        return courseFunctionalities.createCourse(courseDto).aggregateId
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.QuizzesFull2SpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseType
 
 @DataJpaTest
@@ -68,6 +69,55 @@ class CourseServiceTest extends QuizzesFull2SpockTest {
 
         then:
         result.isEmpty()
+    }
+
+    def "createCourse: persisted and readable through a fresh UnitOfWork"() {
+        // Spec: plan.md §1 Course — CreateCourse(name, type) postconditions
+        given:
+        def courseDto = new CourseDto()
+        courseDto.setName("Distributed Systems")
+        courseDto.setType(CourseType.EXTERNAL)
+
+        when:
+        def created = courseService.createCourse(courseDto,
+                unitOfWorkService.createUnitOfWork("createCourse"))
+
+        then: 'read back through a second, fresh UnitOfWork'
+        created.aggregateId != null
+        def readBack = courseService.getCourseById(created.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.aggregateId == created.aggregateId
+        readBack.name == "Distributed Systems"
+        readBack.type == CourseType.EXTERNAL
+        readBack.version != null
+    }
+
+    def "createCourse: each course gets its own aggregate id and state"() {
+        // Spec: plan.md §1 Course — CreateCourse(name, type); courses are immutable and independent
+        given:
+        def firstDto = new CourseDto()
+        firstDto.setName(COURSE_NAME)
+        firstDto.setType(COURSE_TYPE)
+        def secondDto = new CourseDto()
+        secondDto.setName("Distributed Systems")
+        secondDto.setType(CourseType.EXTERNAL)
+
+        when:
+        def first = courseService.createCourse(firstDto,
+                unitOfWorkService.createUnitOfWork("createCourse"))
+        def second = courseService.createCourse(secondDto,
+                unitOfWorkService.createUnitOfWork("createCourse"))
+
+        then: 'read back through a fresh UnitOfWork'
+        first.aggregateId != second.aggregateId
+        def readBackFirst = courseService.getCourseById(first.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBackFirst.name == COURSE_NAME
+        readBackFirst.type == COURSE_TYPE
+        def readBackSecond = courseService.getCourseById(second.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBackSecond.name == "Distributed Systems"
+        readBackSecond.type == CourseType.EXTERNAL
     }
 
     @TestConfiguration

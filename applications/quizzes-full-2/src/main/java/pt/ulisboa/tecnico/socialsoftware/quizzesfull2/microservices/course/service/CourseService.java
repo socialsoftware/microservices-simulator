@@ -1,8 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.Course;
@@ -15,6 +17,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class CourseService {
+    @Autowired
+    private AggregateIdGeneratorService aggregateIdGeneratorService;
+
     private final CourseCustomRepository courseCustomRepository;
     private final CourseFactory courseFactory;
     private final UnitOfWorkService unitOfWorkService;
@@ -39,5 +44,14 @@ public class CourseService {
                 .map(courseAggregateId -> courseFactory.createCourseDto(
                         (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork)))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public CourseDto createCourse(CourseDto courseDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        Course course = courseFactory.createCourse(aggregateId, courseDto.getName(), courseDto.getType());
+
+        unitOfWorkService.registerChanged(course, unitOfWork);
+        return courseFactory.createCourseDto(course);
     }
 }

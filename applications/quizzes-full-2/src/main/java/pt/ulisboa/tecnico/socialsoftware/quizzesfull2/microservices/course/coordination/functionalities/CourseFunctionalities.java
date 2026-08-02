@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.sagas.CreateCourseFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.sagas.GetCourseByIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.sagas.GetCoursesFunctionalitySagas;
 
@@ -32,5 +33,13 @@ public class CourseFunctionalities {
                 unitOfWorkService, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
         return saga.getCourses();
+    }
+
+    public CourseDto createCourse(CourseDto courseDto) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("createCourse");
+        CreateCourseFunctionalitySagas saga = new CreateCourseFunctionalitySagas(
+                unitOfWorkService, courseDto, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getCourseDto();
     }
 }
