@@ -92,7 +92,8 @@ Path: `{src}microservices/{aggregate}/messaging/{Aggregate}CommandHandler.java`
 
 ### One `{Op}{Aggregate}Command.java` per write functionality
 
-Path: `commands/{aggregate}/{Op}{Aggregate}Command.java`
+Path: `{src}commands/{aggregate}/{Op}{Aggregate}Command.java` — rooted at the **app source root**, not
+at `microservices/{aggregate}/`. See `docs/concepts/commands.md` § "File Location".
 
 - Implements `Command`
 - Fields: all parameters needed by the service method

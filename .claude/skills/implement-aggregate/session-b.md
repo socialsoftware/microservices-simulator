@@ -64,7 +64,9 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 
 ### One `{Query}Command.java` per read functionality
 
-Path: `commands/{aggregate}/{Query}Command.java`
+Path: `{src}commands/{aggregate}/{Query}Command.java` — rooted at the **app source root**, not at
+`microservices/{aggregate}/`, so the same command class can be sent by other aggregates' sagas. See
+`docs/concepts/commands.md` § "File Location".
 
 `Get{Aggregate}ByIdCommand` is always one of them, even when plan.md lists no read functionality.
 
