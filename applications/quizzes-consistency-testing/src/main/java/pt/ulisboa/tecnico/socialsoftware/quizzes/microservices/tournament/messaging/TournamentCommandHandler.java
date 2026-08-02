@@ -25,6 +25,7 @@ public class TournamentCommandHandler extends CommandHandler {
     public Object handleDomainCommand(Command command) {
         return switch (command) {
             case GetTournamentByIdCommand cmd -> handleGetTournamentById(cmd);
+            case GetTournamentParticipantCommand cmd -> handleGetTournamentParticipant(cmd);
             case AddParticipantCommand cmd -> handleAddParticipant(cmd);
             case CreateTournamentCommand cmd -> handleCreateTournament(cmd);
             case GetTournamentsByCourseExecutionIdCommand cmd -> handleGetTournamentsByCourseExecutionId(cmd);
@@ -55,6 +56,15 @@ public class TournamentCommandHandler extends CommandHandler {
         logger.info("Getting tournament: " + command.getAggregateId());
         return tournamentService.getTournamentById(
                 command.getAggregateId(),
+                command.getUnitOfWork());
+    }
+
+    private Object handleGetTournamentParticipant(GetTournamentParticipantCommand command) {
+        logger.info("Getting participant " + command.getUserAggregateId()
+                + " of tournament: " + command.getTournamentAggregateId());
+        return tournamentService.getTournamentParticipant(
+                command.getTournamentAggregateId(),
+                command.getUserAggregateId(),
                 command.getUnitOfWork());
     }
 

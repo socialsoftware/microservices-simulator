@@ -8,8 +8,6 @@ import java.util.Set;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 
 public record TestResult(
-        // TODO add Anomalies detected
-
         StepDependencies intraDependencies,
         StepDependencies interDependencies,
         Map<FunctionalityId, WorkflowFunctionality> functionalities,
@@ -18,7 +16,15 @@ public record TestResult(
         // TODO exceptions can become memory heavy, this could be optimized memory-wise
         Map<StepId, Exception> exceptions,
         Set<TestStatus> statuses,
+
+        // The authoritative, unfiltered record of every
+        // aggregate-level read and write of the run, in order of occurrence.
+        List<StepEffect> effectSequence,
+
+        // Derived from effectSequence.
         Set<ReadsFromRelation> readsFromRelations,
+
+        List<Anomaly> anomalies,
 
         // inter-invariant name -> the violations detected for it
         Map<String, Set<InterInvariantViolation>> interInvariantViolations) {
@@ -30,7 +36,9 @@ public record TestResult(
         schedule = Objects.requireNonNull(List.copyOf(schedule));
         exceptions = Objects.requireNonNull(Map.copyOf(exceptions));
         statuses = Objects.requireNonNull(Set.copyOf(statuses));
+        effectSequence = Objects.requireNonNull(List.copyOf(effectSequence));
         readsFromRelations = Objects.requireNonNull(Set.copyOf(readsFromRelations));
+        anomalies = Objects.requireNonNull(List.copyOf(anomalies));
         interInvariantViolations = Objects.requireNonNull(Map.copyOf(interInvariantViolations));
     }
 

@@ -25,9 +25,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantWithinMaxTournamentsFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.GenerateTournamentSummaryFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.MoveParticipantBetweenTournamentsFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.functionalities.UserFunctionalities;
 
@@ -260,6 +263,55 @@ public class QuizzesTestFactory {
                 userAggrId,
                 uow,
                 gateway);
+    }
+
+    public GenerateTournamentSummaryFunctionalitySagas createGenerateTournamentSummaryFunctionality(
+            SagaUnitOfWorkService sagaUnitOfWorkService,
+            Integer tournamentAggrId,
+            CommandGateway gateway) {
+
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                GenerateTournamentSummaryFunctionalitySagas.class.getSimpleName());
+
+        return new GenerateTournamentSummaryFunctionalitySagas(
+                sagaUnitOfWorkService, tournamentAggrId, uow, gateway);
+    }
+
+    public LeaveTournamentFunctionalitySagas createLeaveTournamentFunctionality(
+            SagaUnitOfWorkService sagaUnitOfWorkService,
+            Integer tournamentAggrId,
+            Integer userAggrId,
+            CommandGateway gateway) {
+
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                LeaveTournamentFunctionalitySagas.class.getSimpleName());
+
+        return new LeaveTournamentFunctionalitySagas(
+                sagaUnitOfWorkService, tournamentAggrId, userAggrId, uow, gateway);
+    }
+
+    /**
+     * Renames a student in a course execution. This is the publisher side of the
+     * name-denormalization flow: it emits an {@code UpdateStudentNameEvent}, which
+     * the Tournament aggregate subscribes to and applies by rewriting its cached
+     * copy of the participant's name (through the tournament's
+     * {@code UpdateStudentNameEventHandler}).
+     */
+    public UpdateStudentNameFunctionalitySagas createUpdateStudentNameFunctionality(
+            SagaUnitOfWorkService sagaUnitOfWorkService,
+            Integer executionAggrId,
+            Integer studentAggrId,
+            String newName,
+            CommandGateway gateway) {
+
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                UpdateStudentNameFunctionalitySagas.class.getSimpleName());
+
+        UserDto userDto = new UserDto();
+        userDto.setName(newName);
+
+        return new UpdateStudentNameFunctionalitySagas(
+                sagaUnitOfWorkService, executionAggrId, studentAggrId, userDto, uow, gateway);
     }
 
     public MoveParticipantBetweenTournamentsFunctionalitySagas createMoveParticipantBetweenTournamentsFunctionality(

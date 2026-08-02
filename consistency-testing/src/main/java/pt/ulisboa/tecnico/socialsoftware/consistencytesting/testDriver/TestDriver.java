@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -101,6 +102,17 @@ public final class TestDriver {
     }
 
     /**
+     * Utility method, same as {@link #exploreTestCase(Supplier, Consumer)},
+     * but does not invoke any {@code beforeCleanupHook} with the run's result and
+     * data still in the database.
+     */
+    public List<TestResult> exploreTestCase(Supplier<TestCase.Builder> initialStateSetup) {
+        return exploreTestCase(initialStateSetup, result -> {
+            // do nothing
+        });
+    }
+
+    /**
      * Runs the fixed budget of randomized explorations over the test case produced
      * by {@code initialStateSetup} and returns every run's {@link TestResult}.
      * <p>
@@ -109,8 +121,15 @@ public final class TestDriver {
      * carry baseline inter-dependencies; those flow through untouched, and the
      * driver folds the resulting happens-before edges into its graph so the
      * constraints it injects never contradict them.
+     * <p>
+     * Invokes {@code beforeCleanupHook} with each run's result while that run's
+     * data is still in the database, which is the only moment a caller can inspect
+     * the final state a schedule left behind: the oracle wipes the database as soon
+     * as the run returns.
      */
-    public List<TestResult> exploreTestCase(Supplier<TestCase.Builder> initialStateSetup) {
+    public List<TestResult> exploreTestCase(
+            Supplier<TestCase.Builder> initialStateSetup, Consumer<TestResult> beforeCleanupHook) {
+
         Random rng = new Random(masterSeed);
         List<TestResult> results = new ArrayList<>();
 
@@ -128,7 +147,8 @@ public final class TestDriver {
             Set<InterDependency> chosen = chooseInterDependencies(
                     observedSteps, observedIntraDependencies, observedInterDependencies, rng);
 
-            TestResult result = oracle.runTest(() -> buildTestCase(initialStateSetup, chosen));
+            TestResult result = oracle.runTest(
+                    () -> buildTestCase(initialStateSetup, chosen), beforeCleanupHook);
 
             results.add(result);
             reportWriter.write(TestReport.from(result));

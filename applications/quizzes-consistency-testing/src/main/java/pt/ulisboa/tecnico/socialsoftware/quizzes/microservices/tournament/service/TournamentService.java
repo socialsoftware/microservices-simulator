@@ -51,6 +51,27 @@ public class TournamentService {
         return tournamentFactory.createTournamentDto((Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
     }
 
+    /**
+     * One participant's enrollment details. Participants live inside the
+     * Tournament aggregate, so this loads the tournament.
+     *
+     * @throws QuizzesException TOURNAMENT_PARTICIPANT_NOT_FOUND when the user is
+     *                          not a participant of the tournament
+     */
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public UserDto getTournamentParticipant(
+            Integer tournamentAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+
+        // TODO is this a realistic service, or should just expose the get tournament
+        // * and let the caller get the participant from it?
+        TournamentDto tournament = getTournamentById(tournamentAggregateId, unitOfWork);
+        UserDto participant = tournament.findParticipant(userAggregateId);
+        if (participant == null) {
+            throw new QuizzesException(TOURNAMENT_PARTICIPANT_NOT_FOUND, userAggregateId, tournamentAggregateId);
+        }
+        return participant;
+    }
+
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public TournamentDto createTournament(TournamentDto tournamentDto, UserDto creatorDto,
                                           CourseExecutionDto courseExecutionDto, Set<TopicDto> topicDtos,

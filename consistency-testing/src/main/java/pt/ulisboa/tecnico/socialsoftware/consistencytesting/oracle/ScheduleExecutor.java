@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -50,11 +51,14 @@ final class ScheduleExecutor {
 
     /** inter-invariant name -> violations detected for that inter-invariant */
     private final Map<String, Set<InterInvariantViolation>> interInvariantViolations = new HashMap<>();
+
     private final Set<TestStatus> detectedStatuses = new HashSet<>();
 
-    /** aggregateId -> the step that most recently wrote it */
-    private final Map<Integer, StepId> lastWriterByAggregate = new HashMap<>();
-    private final Set<ReadsFromRelation> readsFromRelations = new HashSet<>();
+    /** record of every read/write effect of the run, in order of occurrence. */
+    private final List<StepEffect> effectSequence = new ArrayList<>();
+
+    /** functionalities for which a compensation path was injected */
+    private final Set<FunctionalityId> compensatedFunctionalities = new HashSet<>();
 
     ScheduleExecutor(
             Map<FunctionalityId, WorkflowFunctionality> functionalities,
@@ -105,6 +109,8 @@ final class ScheduleExecutor {
         evaluateTestCompletionStatus();
         checkInterInvariants();
 
+        List<Anomaly> anomalies = analyzeAnomalies();
+
         return new TestResult(
                 intraDependencies,
                 interDependencies,
@@ -112,8 +118,64 @@ final class ScheduleExecutor {
                 List.copyOf(schedule), // list will reflect the LinkedHashSet order
                 stepExceptionsMap,
                 detectedStatuses,
-                readsFromRelations,
+                effectSequence,
+                ReadsFromRelation.deriveAll(effectSequence),
+                anomalies,
                 interInvariantViolations);
+    }
+
+    /**
+     * Runs the {@link AnomalyAnalyzer} over the run's effect sequence.
+     * <p>
+     * Never throws: the analyzer is diagnostic metadata, and a bug in it must
+     * not destroy the schedule/reads-from/invariant data the run already
+     * earned. A crash is made unmissable instead — logged and flagged with
+     * {@link TestStatus#ANOMALY_ANALYSIS_FAILED}, so the empty anomaly list can
+     * never pass for "no anomalies found".
+     */
+    private List<Anomaly> analyzeAnomalies() {
+        try {
+            List<Anomaly> anomalies = AnomalyAnalyzer.analyze(
+                    effectSequence, compensatedFunctionalities, committedFunctionalities());
+
+            if (!anomalies.isEmpty()) {
+                log.warn("Isolation anomalies detected: {}",
+                        anomalies.stream().map(Anomaly::description).toList());
+                detectedStatuses.add(TestStatus.ISOLATION_ANOMALY);
+            }
+            return anomalies;
+        } catch (Exception e) {
+            log.error("AnomalyAnalyzer crashed; "
+                    + "this run's anomaly list will be empty and should be ignored", e);
+            detectedStatuses.add(TestStatus.ANOMALY_ANALYSIS_FAILED);
+            return List.of();
+        }
+    }
+
+    /**
+     * Functionalities whose work was durably committed: saga functionalities
+     * whose {@link CommitStep} succeeded, and event-handler functionalities
+     * whose single {@link EventHandlerStep} succeeded (event handlers commit
+     * within their own step; the oracle adds no separate commit step for them).
+     */
+    private Set<FunctionalityId> committedFunctionalities() {
+        Set<FunctionalityId> committed = new HashSet<>();
+        for (OracleStep step : steps.values()) {
+            boolean commitsItsFunctionality = switch (step) {
+                case CommitStep commitStep -> true;
+                case EventHandlerStep eventHandlerStep -> true;
+
+                // steps that do not commit their functionality
+                case FunctionalityStep functionalityStep -> false;
+                case CompensationStep compensationStep -> false;
+                case AbortStep abortStep -> false;
+            };
+
+            if (commitsItsFunctionality && successfulSteps.contains(step.getId())) {
+                committed.add(step.getFunctionalityId());
+            }
+        }
+        return committed;
     }
 
     private void evaluateTestCompletionStatus() {
@@ -176,32 +238,16 @@ final class ScheduleExecutor {
                 }
             }
 
-            captureReadsFromRelations(stepId);
+            captureStepEffects(step);
             captureEmittedEventSteps(stepId);
         }
     }
 
-    private void captureReadsFromRelations(StepId stepId) {
-        Set<Integer> writtenByThisStep = new HashSet<>();
+    /** Appends the effects the step just produced to the effect sequence. */
+    private void captureStepEffects(OracleStep step) {
         for (Effect effect : traceSession.drain()) {
-            switch (effect) {
-                case Effect.Write write -> {
-                    lastWriterByAggregate.put(write.aggregateId(), stepId);
-                    writtenByThisStep.add(write.aggregateId());
-                }
-                case Effect.Read read -> {
-                    if (writtenByThisStep.contains(read.aggregateId())) {
-                        continue; // reading what this step just wrote is not a cross-step reads-from
-                    }
-
-                    // when there is no previous writer step registered for the aggregate,
-                    // the read is considered to have read from the initial state setup step
-                    StepId writer = lastWriterByAggregate.getOrDefault(
-                            read.aggregateId(), StepId.forInitialStateSetupStep());
-
-                    readsFromRelations.add(new ReadsFromRelation(stepId, writer, read.aggregateType()));
-                }
-            }
+            effectSequence.add(StepEffect.of(
+                    effectSequence.size(), step.getId(), StepKind.of(step), effect));
         }
     }
 
@@ -292,6 +338,7 @@ final class ScheduleExecutor {
         }
 
         addSteps(OracleStepFactory.buildStepsForFunctionalityCompensation(funcId, func, uowService));
+        compensatedFunctionalities.add(funcId);
     }
 
     private Optional<OracleStep> getNextStep() {
