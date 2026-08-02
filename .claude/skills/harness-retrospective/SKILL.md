@@ -1,14 +1,14 @@
 ---
 name: harness-retrospective
-description: End-of-run empirical evaluation of the self-healing harness. Reads a completed run's harness-log.md, all retros and all review reports, measures whether harness edits converged, re-judges every Type 1 edit the agent made without asking, and produces a prioritised gap list. Runs once, after a run is finished. No arguments. Writes docs/reviews/harness-retro-{app-name}-{YYYY-MM-DD}.md.
+description: End-of-run empirical evaluation of the self-healing harness. Reads a completed run's harness-log.md and all retros, measures whether harness edits converged, re-judges every Type 1 edit the agent made without asking, and produces a prioritised gap list. Runs once, after a run is finished. No arguments. Writes docs/reviews/harness-retro-{app-name}-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
 # Harness Retrospective
 
 End-of-run evaluation of the harness against the evidence a completed generation run produced:
-`applications/{app-name}/harness-log.md`, every file under `retros/`, every file under `reviews/`,
-and the run's own `harness:` commits.
+`applications/{app-name}/harness-log.md`, every file under `retros/`, and the run's own `harness:`
+commits.
 
 The harness is self-healing (`AGENTS.md` § "Harness evolution"), so this skill answers three
 questions rather than one:
@@ -20,8 +20,9 @@ questions rather than one:
    honest objection to that regime is that an agent will ratify its own guess by editing the doc it
    disagreed with. Every Type 1 edit is therefore re-judged here, after the fact, against the
    evidence in the commit.
-3. **What does the harness still lack?** The `declined` and `deferred` rows, plus any gap the run
-   surfaced and nobody fixed.
+3. **What does the harness still lack?** The `declined` rows and the **open** `deferred` rows (a
+   `deferred` row closed by a later row per `.claude/skills/_shared/conventions.md` § "Harness log"
+   is convergence evidence, not a standing gap), plus any gap the run surfaced and nobody fixed.
 
 It writes a prioritised gap list with a proposed fix per gap. It does not apply any fix.
 
@@ -33,9 +34,8 @@ truth is the harness files themselves. This skill's ground truth is empirical: w
 wrong while the harness was being used. The two are deliberately separate and neither subsumes the
 other.
 
-It also does not propose fixes for the **generated application**. Implementation defects belong to
-the Phase 3 and Phase 4 reports (`/review-aggregate`, `/adversarial-review-aggregate`,
-`/review-tests`) and their own Action Items tables.
+It also does not propose fixes for the **generated application**. Implementation defects in the
+generated application are out of scope for this skill.
 
 ---
 
@@ -119,22 +119,13 @@ repaired. Reconcile it against the log: a retro naming a row the log does not ca
 whose session's retro is silent about it, is a finding. Retros no longer carry an Action Items
 table; if one appears, the session used a stale skill version — record that as a finding.
 
-### 3.c — Review reports
-
-`find applications/{app-name}/reviews -name "*.md" | sort`
-
-Read each. Take the verdict, the Action Items table, and any statement that a doc or skill was
-unclear. Implementation Action Items are **not** harness evidence; they enter this report only as
-a count in the run summary, and only where a review explicitly attributes a defect to a harness
-gap.
-
-### 3.d — The artifacts under evaluation
+### 3.c — The artifacts under evaluation
 
 For every distinct path named in the harness log's `Artifact` column, read that file's **current
 content**. This is the cross-check in Step 5 and it must be a fresh read, not the version implied
 by the row's `Problem` wording, and not the post-image of the commit in `Ref`.
 
-### 3.e — Plan and build state
+### 3.d — Plan and build state
 
 Read `applications/{app-name}/plan.md` for the session list and aggregate order. Run the test
 suite following `.claude/skills/_shared/conventions.md` § "Run the test suite" and record the
@@ -145,15 +136,19 @@ suite with heavy friction and a red suite with none are different results.
 
 ## Step 4: Group Rows by Artifact
 
-Build one row per distinct `Artifact` path, aggregating every harness-log row that names it:
+Build one row per distinct `Artifact` path, aggregating every harness-log row that names it. Resolve
+`deferred` rows first by scanning the log for `Closes row {N}` references (per
+`.claude/skills/_shared/conventions.md` § "Harness log"): a `deferred` row named by such a reference
+is `deferred (closed)`; one named by none is `deferred (open)`.
 
-| Artifact | Rows | T1 | T2 | 2-fw | fixed | declined | deferred | What the friction was about |
-|----------|------|----|----|------|-------|----------|----------|-----------------------------|
+| Artifact | Rows | T1 | T2 | 2-fw | fixed | declined | deferred (open) | deferred (closed) | What the friction was about |
+|----------|------|----|----|------|-------|----------|------------------|--------------------|-----------------------------|
 
-Sort by row count descending, then by `deferred` + `declined` count descending. The artifact at the
-top of this table is the harness's largest single weakness for this run — say so explicitly in the
-report. An artifact with many rows but all of them `fixed` is a different result from one with few
-rows all `deferred`: the first absorbed its lesson, the second is still owed one.
+Sort by row count descending, then by `deferred (open)` + `declined` count descending. The artifact
+at the top of this table is the harness's largest single weakness for this run — say so explicitly
+in the report. An artifact with many rows but all of them `fixed` or `deferred (closed)` is a
+different result from one with few rows all `deferred (open)`: the first absorbed its lesson, the
+second is still owed one.
 
 Then build the same aggregation by `Type`. The shape of the answer differs by type: a run dominated
 by Type 1 means the harness contained demonstrable errors and the agent cleared them, a run
@@ -166,7 +161,7 @@ means an agent believed the framework itself was at fault.
 ## Step 5: Cross-Check Each Row Against Current Content
 
 For every harness-log row, compare its `Problem` text against the current content of its `Artifact`
-read in Step 3.d, and classify. `fixed` rows and non-`fixed` rows are judged against different
+read in Step 3.c, and classify. `fixed` rows and non-`fixed` rows are judged against different
 questions.
 
 For rows with `Outcome` = `fixed`, the question is whether the fix actually holds:
@@ -184,14 +179,19 @@ For rows with `Outcome` = `fixed`, the question is whether the fix actually hold
   principle. This is the most serious verdict this skill can return: it means the unilateral gate
   let a wrong edit through, and it is the evidence Step 7 exists to weigh.
 
-For rows with `Outcome` = `declined` or `deferred`, the question is whether the gap is still open:
+For rows with `Outcome` = `declined` or `deferred`, the question is whether the gap is still open. A
+`deferred` row named by a later row's `Closes row {N}` (Step 3.a) is resolved by that reference alone
+— treat it as **Already closed** without re-reading the artifact for it — since the later row's own
+Step 5 evaluation covers the fix it made. Only `declined` rows and `deferred (open)` rows need the
+full cross-check below:
 
 | # | Artifact | Outcome | Verdict | Evidence |
 |---|----------|---------|---------|----------|
 
 - **Confirmed** — the gap the row describes is still present in the file as it stands today.
-- **Already closed** — the file has since changed and now covers it (a later session's fix, or an
-  unrelated edit). Quote the text that now covers it.
+- **Already closed** — the file has since changed and now covers it (a later session's fix, an
+  unrelated edit, or a `Closes row {N}` reference). Quote the text that now covers it, or cite the
+  closing row.
 - **Misattributed** — the named artifact does cover it; the friction was caused by something else
   (another file, a spec ambiguity, or an agent error). Name what.
 - **Not a harness gap** — the row records an implementation defect, a spec defect, or an agent
@@ -205,8 +205,8 @@ silently.
 
 ## Step 6: Convergence
 
-Order the harness-log rows by their `Session` field in plan.md session order (`0`, `1`, `2.1.a` …
-`3.N`, `4.N`) and count rows per aggregate, split by `Type`:
+Order the harness-log rows by their `Session` field in plan.md session order (`0`, `1`, `2.1.a` …)
+and count rows per aggregate, split by `Type`:
 
 | Aggregate / phase | Sessions | Type 1 | Type 2 | 2-fw | Total |
 |-------------------|----------|--------|--------|------|-------|
@@ -271,9 +271,9 @@ entity of the application being generated. The run's fixes were authored while l
 application, so the rule needs an end-of-run measurement and not only the per-boundary one.
 
 Run the check exactly as `.claude/skills/review-artifacts/SKILL.md` § "Step 6: Check 4 — Neutral
-Domain" defines it — that skill owns the procedure; do not restate it here. Scope it to the whole
-run: the base commit is `git merge-base HEAD master`, so the diff covers every harness commit of
-the run rather than one aggregate's worth.
+Domain" defines it — that skill owns the procedure, including how the base commit is derived and
+what to do when it degenerates; do not restate it here. Scope it to the whole run rather than one
+aggregate's worth, so the diff covers every harness commit of the run.
 
 | File | Added line | Noun | harness-log row (if any) |
 |------|-----------|------|--------------------------|
@@ -334,11 +334,10 @@ Never omit a section — write "nothing to report" where a section produced no f
 |---|---|
 | Sessions executed | {count} |
 | Harness-log rows | {count} (T1 {n} / T2 {n} / 2-fw {n}) |
-| Outcomes | fixed {n} / declined {n} / deferred {n} |
+| Outcomes | fixed {n} / declined {n} / deferred (open) {n} / deferred (closed) {n} |
 | `harness:` commits on the run | {count} |
 | Type 2 halts | {count} |
 | Build outcome | MAVEN_EXIT={n}, tests={n} failures={n} errors={n} |
-| Implementation Action Items across reviews | {count} |
 
 (One paragraph: what this run says about the harness overall.)
 
@@ -349,8 +348,8 @@ row, misfiled rows — or "clean".)
 
 ## Rows by Artifact
 
-| Artifact | Rows | T1 | T2 | 2-fw | fixed | declined | deferred | What the friction was about |
-|----------|------|----|----|------|-------|----------|----------|-----------------------------|
+| Artifact | Rows | T1 | T2 | 2-fw | fixed | declined | deferred (open) | deferred (closed) | What the friction was about |
+|----------|------|----|----|------|-------|----------|------------------|--------------------|-----------------------------|
 
 ## Rows by Type
 
@@ -458,13 +457,12 @@ Output to the conversation (not to the report file):
    file path, or a quoted line. A statement about the harness with no citation does not go in the
    report.
 4. **Cross-check before confirming.** No gap is Confirmed without a fresh read of the artifact's
-   current content (Step 3.d). A harness-log row is a record of what an agent believed at the time,
+   current content (Step 3.c). A harness-log row is a record of what an agent believed at the time,
    not a standing fact — and a `fixed` row is a record of what it believed it had repaired.
 5. **No silent dismissals.** Every harness-log row appears in the report exactly once, either as
    evidence for a confirmed gap or as a dismissed row with a stated reason.
-6. **Do not propose fixes for the generated application.** Implementation defects belong to the
-   Phase 3 and Phase 4 reports. If a review's Action Item is unaddressed, note it in the run
-   summary and stop there.
+6. **Do not propose fixes for the generated application.** Implementation defects in the generated
+   application are out of scope for this skill.
 7. **Report what the evidence shows.** A run with little friction is a valid result and so is a run
    that went badly. Do not soften a bad outcome and do not manufacture gaps to fill the section.
 8. **No emojis. Terse and specific.** File paths, section names, row numbers, quoted snippets.

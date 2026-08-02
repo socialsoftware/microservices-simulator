@@ -94,9 +94,23 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
   `@Converter` **without** `autoApply = true`, so it is not picked up implicitly: omit the
   `@Convert` and Hibernate fails at EntityManagerFactory init with *"Could not determine recommended
   JdbcType"*, taking down every test in the application
-- Constructor delegates to super and initializes `sagaState` to `GenericSagaState.NOT_IN_SAGA`
+- **Two constructors**, and they differ in how they seed `sagaState`:
+  - **Creating constructor** `Saga{Aggregate}(Integer aggregateId, ...)` — delegates to super and
+    initializes `sagaState` to `GenericSagaState.NOT_IN_SAGA`. A brand-new aggregate is quiescent.
+  - **Copy constructor** `Saga{Aggregate}(Saga{Aggregate} other)` — delegates to super and
+    **inherits** `other.getSagaState()`. This is the constructor
+    `Sagas{Aggregate}Factory.create{Aggregate}Copy` calls, so it runs on every copy-on-write write
+    while a saga may be holding a semantic lock. `verifySagaState` and `abortAggregate` both resolve
+    through `findNonDeletedSagaAggregate`, i.e. the **newest version row**, so resetting to
+    `NOT_IN_SAGA` here would silently release a held lock at the locking saga's first write and turn
+    every downstream `forbiddenStates` guard into a no-op. Inheriting cannot strand a lock:
+    `commitAggregate` sets `NOT_IN_SAGA` unconditionally.
 - Implements `getSagaState()` returning the field; `setSagaState(SagaState state)` sets it directly (field type is the interface, no cast needed)
 - No other logic
+
+> `SagaAggregate` is a bare interface declaring only `getSagaState()` / `setSagaState()`; the
+> framework prescribes nothing about copy semantics, so the rule above is a harness decision rather
+> than something derivable from `simulator/`.
 
 > **Bean naming constraint:** The simple class name of this saga aggregate determines the service routing string used by `resolveServiceName()` in session b. For multi-word aggregates this is camelCase, not a shortened alias — a `SagaShipmentItem` produces `"shipmentItem"`, never `"item"`. The `ServiceMapping` entry created in session b **must** use this exact value. Note it now to avoid a silent routing failure later.
 
@@ -151,7 +165,8 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/repositories/{Aggregate}Cu
 
 Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}Repository.java`
 
-- Interface extending `AggregateRepository<{Aggregate}, Integer>` (standard Spring Data JPA)
+- Interface extending `AggregateRepository` — **no type arguments**; the framework interface is not
+  generic (`interface AggregateRepository extends JpaRepository<Aggregate, Integer>`)
 - No custom queries needed here (custom queries go in `CustomRepositorySagas`)
 
 ### `{Aggregate}Dto.java`
@@ -211,8 +226,9 @@ place for later sessions:
   fields are added by the sessions that create those classes.
 - `// Domain imports` - the imports the two additions above require.
 
-Do not add `create{Aggregate}` helpers here; those belong to the write session, which owns the
-functionality that creates the aggregate.
+Do not add `create{Aggregate}` helpers here; the read session (2.{N}.b) introduces one, and the write
+session (2.{N}.c) swaps its body onto the real create functionality. Session `a` has no test that
+needs a persisted aggregate — T1 constructs the aggregate directly.
 
 ---
 

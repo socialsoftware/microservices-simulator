@@ -132,7 +132,7 @@ Path: `{src}microservices/{aggregate}/messaging/{Aggregate}CommandHandler.java`
 Path: `{test}sagas/coordination/{aggregate}/{Query}Test.groovy`
 
 - Extends `{AppClass}SpockTest`
-- **Happy-path test only**: create the aggregate using the `{AppClass}SpockTest` helper (or directly), execute the read via `{Aggregate}Functionalities`, assert the returned DTO matches the aggregate's state
+- **Happy-path test only**: create the aggregate using the `create{Aggregate}(...)` helper this session adds to `{AppClass}SpockTest` (see § Update `{AppClass}SpockTest.groovy`), execute the read via `{Aggregate}Functionalities`, assert the returned DTO matches the aggregate's state
 - **No not-found cases here** — per `docs/concepts/testing.md` § Assertion Ownership, not-found belongs to T2 (next section)
 
 ### `{Aggregate}ServiceTest.groovy` (T2 — read-method cases)
@@ -186,7 +186,26 @@ Open `{test}{AppClass}SpockTest.groovy` and add an `@Autowired(required = false)
 protected {Aggregate}Functionalities {aggregate}Functionalities
 ```
 
-The `create{Aggregate}(...)` helper is added in session 2.{N}.c, which is where the create functionality is implemented.
+Then add the `create{Aggregate}(...)` fixture helper. This session's T2 and T4 tests need a persisted
+aggregate to read back, but the create functionality does not exist until session 2.{N}.c, so the
+helper is built **directly on the aggregate** here:
+
+```groovy
+Integer create{Aggregate}(/* minimal valid args, defaulted to the domain constants */) {
+    def {aggregate} = new Saga{Aggregate}(aggregateIdGeneratorService.getNewAggregateId(), /* args */)
+    unitOfWorkService.registerChanged({aggregate}, unitOfWorkService.createUnitOfWork("fixture"))
+    return {aggregate}.getAggregateId()
+}
+```
+
+`registerChanged` merges the aggregate immediately, so no `commit` is needed for the read-back to
+resolve through a fresh `UnitOfWork`.
+
+**The signature is a contract with session 2.{N}.c**, which replaces this body with the real create
+functionality. Choose the parameter list and defaults so that the call sites written this session
+survive that swap unchanged: minimal valid arguments, each defaulted to the domain constant, aggregate
+id returned. Do **not** name it `persist{Aggregate}` or make it `private` to a test class — a
+per-test-class fixture is thrown away in 2.{N}.c and every call site has to be rewritten.
 
 ---
 

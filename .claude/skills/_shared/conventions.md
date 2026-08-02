@@ -54,14 +54,13 @@ Verify that a section `### N. {Aggregate}` exists in `plan.md`. If not found, ha
 **"Aggregate '{Aggregate}' not found in plan.md. Check the name or run /classify-and-plan."**
 
 `{N}` = the ordinal from that section header. It is the aggregate's position in the Implementation
-Order table and the number used in session IDs (`2.{N}.a`, `3.{N}`, `4.{N}`).
+Order table and the number used in session IDs (`2.{N}.a`).
 
 Path prefixes — all relative to the repository root:
 
 ```
 {tgt-src}     = applications/{app-name}/src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/
 {tgt-test}    = applications/{app-name}/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/{pkg}/
-{review-dir}  = applications/{app-name}/reviews/
 ```
 
 ---
@@ -80,6 +79,10 @@ whether or not `plan.md` exists yet.
 `applications/{app-name}/harness-log.md` is the single append-only record of harness friction and
 harness repair for a run. It is created by `/classify-and-plan` and appended to by every skill that
 encounters friction. It is never edited retroactively and rows are never deleted.
+
+A later row may CLOSE an earlier one by beginning its `Problem` cell with `Closes row {N}.` The
+earlier row is never edited, because its `Outcome` records what happened at the time, not what
+happened eventually. A `deferred` row that no later row closes is still open at the end of the run.
 
 Schema - append one row per distinct friction point:
 
@@ -180,9 +183,9 @@ for p, body in bad:
 Interpret the two together:
 
 - **Green** = `MAVEN_EXIT=0` **and** `failures=0 errors=0`.
-- `MAVEN_EXIT` non-zero with `failures=0 errors=0` means the failure is outside the tests —
-  a compilation error, or a `@PendingFeature` test that unexpectedly passed. Neither is visible in the
-  surefire totals; treat it as a failure and find the cause.
+- `MAVEN_EXIT` non-zero with `failures=0 errors=0` means the failure is outside the tests — e.g. a
+  compilation error. It is not visible in the surefire totals; treat it as a failure and find the
+  cause.
 - The script prints the full report body for every class with a failure or error, so quote the failure
   output from there rather than from maven stdout.
 

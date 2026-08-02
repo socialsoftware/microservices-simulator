@@ -169,7 +169,7 @@ public void updateTournament(Integer tournamentAggregateId, TournamentDto tourna
 
 ## Copy-on-Write Rule
 
-Never mutate the aggregate instance returned by `aggregateLoadAndRegisterRead`. Always create a new version via `factory.createXxxFromExisting(old)` and mutate that copy. The old version remains in the UoW read set for conflict detection; the new version is the write target.
+Never mutate the aggregate instance returned by `aggregateLoadAndRegisterRead`. Always create a new version via `factory.create{Aggregate}Copy(old)` and mutate that copy. The old version remains in the UoW read set for conflict detection; the new version is the write target.
 
 **Soft-delete (`remove()`) — use copy-on-write:** Even for soft-delete, always create a factory copy before calling `remove()`:
 
@@ -259,4 +259,4 @@ Add the JPQL method to `{Aggregate}Repository.java` (JPA repo interface) and cal
 
 ## P3 Guard Placement
 
-P3 guards (own-table reads, uniqueness checks, and DTO field validation from preceding saga steps) belong at the **top** of the service method, before any `createFromExisting` call. Throwing at this point ensures no aggregate is dirtied before the guard fires. See [`rule-enforcement-patterns.md`](rule-enforcement-patterns.md) for the full taxonomy.
+P3 guards (own-table reads, uniqueness checks, and DTO field validation from preceding saga steps) belong at the **top** of the service method, before any `create{Aggregate}Copy` call. Throwing at this point ensures no aggregate is dirtied before the guard fires. See [`rule-enforcement-patterns.md`](rule-enforcement-patterns.md) for the full taxonomy.

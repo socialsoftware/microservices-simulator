@@ -131,7 +131,8 @@ public class TournamentCommandHandler extends CommandHandler {
 
     @Override
     public String getAggregateTypeName() {
-        return "Tournament";   // must match ServiceMapping value
+        // PascalCase, used for decorator lookup - not the routing key (see below)
+        return "Tournament";
     }
 
     @Override

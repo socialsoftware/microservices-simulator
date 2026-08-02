@@ -240,7 +240,7 @@ Run Step 7.d first - the `## Harness Changes` section below cites the row number
 
 Create `{retro-file}` using this exact template. Write "none" for any section with nothing to report — do not omit sections.
 
-```markdown
+````markdown
 # Retro — {session-id} — {Aggregate}
 
 **App:** {app-name}
@@ -318,7 +318,7 @@ List every file created or modified this session (absolute paths).
 
 ---
 
-## Semantic-Lock Coverage Audit (sessions `b` only — write "n/a" for `a`/`c`/`d`)
+## Semantic-Lock Coverage Audit (sessions `c` only — write "n/a" for `a`/`b`/`d`)
 
 For every saga produced this session, list every saga step that calls `setSemanticLock`, and the test
 name covering its lock-acquisition case.
@@ -368,7 +368,7 @@ Rows whose outcome is `declined` or `deferred` have no sha - write `-`.
 ## One-Line Summary
 
 (One sentence: the single most important finding from this retro.)
-```
+````
 
 ### 7.c — Create Directory and Write File
 
@@ -382,7 +382,7 @@ Create `{retro-dir}` if it does not already exist, then write the completed retr
 5. **No emojis, no hype.** Terse and concrete — paths, file names, section names, decisions.
 6. **Does not modify plan.md, source files, or BeanConfigurationSagas.groovy.**
 7. **Simulator changes are mandatory to document.** If any file under `simulator/` was modified during the session, the `⚠️ SIMULATOR FRAMEWORK CHANGES` block is **required** in the Files Produced section — not optional. For each changed file include: exact diff, root cause, fix rationale, and impact scope. If no simulator files changed, remove the block entirely rather than leaving it blank.
-8. **Semantic-Lock Coverage Audit is mandatory for session-`b` retros.** A session-`b` retro missing the audit table, or containing it with unresolved `Present? = No` rows (without an explicit deferral rationale beneath the table), blocks the Step 8 commit. For sessions `a`/`c`/`d` the section is still present with the literal value "n/a".
+8. **Semantic-Lock Coverage Audit is mandatory for session-`c` retros.** A session-`c` retro missing the audit table, or containing it with unresolved `Present? = No` rows (without an explicit deferral rationale beneath the table), blocks the Step 8 commit. For sessions `a`/`b`/`d` the section is still present with the literal value "n/a".
 
 Do not print a separate retro completion report — the retro file path is included in the Step 8 commit output.
 
@@ -403,8 +403,7 @@ that was missing, wrong or ambiguous; a `.claude/skills/` instruction that faile
 - `Ref` is the `harness:` commit sha for the Type 1 fixes already committed during the session.
 - If the file does not exist, halt: **"harness-log.md missing. It is created by
   /classify-and-plan."**
-- Defects in the generated application are **not** harness friction. They are fixed in this session
-  or carried into the Phase 3/4 review reports.
+- Defects in the generated application are **not** harness friction. Fix them in this session.
 
 If there was none, append nothing and write "none" in `## Harness Changes`.
 

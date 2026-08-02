@@ -96,7 +96,7 @@ SagaStep addParticipantStep = new SagaStep("addParticipantStep", () -> {
 |-------------|---------|-------------|
 | **Primary aggregate** (the aggregate owning this saga) | `SagaCommand` wrapping the read command + `setSemanticLock(state)` | Lock acquisition before mutating the saga's own aggregate — see § Lock-Acquisition Step Pattern. The lock is released automatically on abort/commit — do **not** register a manual release compensation (see § Semantic-lock release on abort is automatic) |
 | **Foreign aggregate** (upstream aggregate touched by a cross-aggregate step) | Plain command + `setForbiddenStates([...])` listing states that must block this step | Abort if the foreign aggregate is already mid-saga in a conflicting state; does **not** acquire a new lock |
-| **Newly created aggregate** (the step creates it) | Plain command, no lock and no forbidden states; register a compensation that removes it | The aggregate does not exist when the saga starts, so there is no prior state to guard - see § Create Functionality Sagas |
+| **Newly created aggregate** (the step creates it) | Plain command, no lock and no forbidden states; register a compensation that removes it iff a later step follows | The aggregate does not exist when the saga starts, so there is no prior state to guard - see § Create Functionality Sagas |
 
 **Rule of thumb:** if the step must **acquire** a lock on an aggregate before writing to it, use `SagaCommand` + `setSemanticLock`. If the step only needs to **check** that another aggregate is not already locked, use `setForbiddenStates`. If the step brings the aggregate into existence, neither applies.
 
@@ -264,8 +264,7 @@ and the service mints its `aggregateId` via `aggregateIdGeneratorService`. Three
    create is the saga's last step, in which case the unit of work handles abort on its own and no
    compensation is needed. This is the part that generalises badly if omitted: a single-step create
    saga looks correct without it, but a create saga with *any* step after the create leaks the
-   created aggregate on abort. Register the compensation whenever a later step exists, and prefer
-   registering it unconditionally if the saga is likely to grow steps.
+   created aggregate on abort. Register the compensation if and only if a later step exists.
 
 3. **Data-assembly steps are unchanged.** Reads of other aggregates keep their normal treatment: a
    plain read command where the read only supplies data, or the get-then-lock pattern where the saga

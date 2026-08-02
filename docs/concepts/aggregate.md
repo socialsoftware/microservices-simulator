@@ -84,9 +84,14 @@ Each aggregate has three repository artifacts:
 
 | File | Shape | Purpose |
 |------|-------|---------|
-| `aggregate/{Aggregate}Repository.java` | interface extending `AggregateRepository<{Aggregate}, Integer>` | Spring Data JPA repository; holds any JPQL `@Query` methods |
+| `aggregate/{Aggregate}Repository.java` | interface extending `AggregateRepository` (no type arguments) | Spring Data JPA repository; holds any JPQL `@Query` methods |
 | `aggregate/{Aggregate}CustomRepository.java` | plain Java interface, no annotations | Profile-agnostic contract the service injects; declares only the custom query signatures the service needs, and may be empty |
 | `sagas/repositories/{Aggregate}CustomRepositorySagas.java` | `@Service @Profile("sagas")` class **implementing** `{Aggregate}CustomRepository` | Sagas implementation; holds an `@Autowired {Aggregate}Repository` and delegates to it |
+
+`AggregateRepository` (`simulator/.../ms/aggregate/AggregateRepository.java`) is **not generic**: it
+is declared `interface AggregateRepository extends JpaRepository<Aggregate, Integer>`, so
+`{Aggregate}Repository` extends it bare. Any JPQL a subinterface adds is written against the
+concrete aggregate class (`select a from {Aggregate} a where ...`), not against a type parameter.
 
 `{Aggregate}CustomRepositorySagas` does **not** extend `SagaAggregateRepository`. It is a Spring
 `@Service`, not a JPA repository interface.

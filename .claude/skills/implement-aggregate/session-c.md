@@ -236,9 +236,26 @@ If a bean's constructor needs a new collaborator to serve a write method, update
 
 ## Update `{AppClass}SpockTest.groovy`
 
-Open `{test}{AppClass}SpockTest.groovy` and add:
+Session 2.{N}.b already added a `create{Aggregate}(...)` helper, built directly on the aggregate
+because the create functionality did not exist yet. **Replace its body** with the real thing:
 
-1. A `create{Aggregate}(...)` helper method that calls `{aggregate}Functionalities.create{Aggregate}(...)` with a minimal valid DTO and returns the resulting aggregate ID. Tests use this helper in their `setup:` block to satisfy prerequisites.
+```groovy
+Integer create{Aggregate}(/* same parameter list and defaults as 2.{N}.b */) {
+    def {aggregate}Dto = new {Aggregate}Dto()
+    // set the fields from the parameters
+    return {aggregate}Functionalities.create{Aggregate}({aggregate}Dto).aggregateId
+}
+```
+
+**Keep the signature and the defaults exactly as session 2.{N}.b wrote them.** The read tests from
+that session call this helper, and a signature change rewrites them for nothing. If the create
+functionality genuinely cannot satisfy the existing signature, that is a real mismatch — take it to
+`SKILL.md` § "Step 3b: The Self-Healing Gate" rather than silently re-shaping the helper.
+
+Once replaced, the aggregate is created through the real saga, so 2.{N}.b's read tests exercise the
+production create path from here on. Re-run them and confirm they still pass.
+
+Tests added this session use the same helper in their `setup:` block to satisfy prerequisites.
 
 ---
 

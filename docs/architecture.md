@@ -185,7 +185,7 @@ A service may accept and return `{Xxx}Dto` objects belonging to any aggregate. I
 
 In the Sagas protocol, any step that mutates an aggregate **that already exists when the saga starts** must list the `SagaState` values of concurrent operations that would conflict. Omitting `forbiddenStates` allows two operations to interleave in ways that violate business rules.
 
-The scope is deliberate. A step that **creates** an aggregate has no prior state to guard: nothing else can hold a lock on an aggregate whose id the service has not minted yet. Such a step declares neither a semantic lock nor `forbiddenStates`, and instead registers a compensation that removes what it created. See [`concepts/sagas.md`](concepts/sagas.md) § "Create Functionality Sagas".
+The scope is deliberate. A step that **creates** an aggregate has no prior state to guard: nothing else can hold a lock on an aggregate whose id the service has not minted yet. Such a step declares neither a semantic lock nor `forbiddenStates`, and instead registers a compensation that removes what it created if and only if a later step follows it. See [`concepts/sagas.md`](concepts/sagas.md) § "Create Functionality Sagas".
 
 See [`concepts/sagas.md`](concepts/sagas.md) for how semantic locks are acquired and checked.
 
