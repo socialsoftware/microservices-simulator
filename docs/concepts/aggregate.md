@@ -23,6 +23,14 @@ Abstract methods every subclass must implement:
 - `verifyInvariants()` — throw if any intra-invariant is violated
 - `getEventSubscriptions()` — return the set of events this aggregate instance subscribes to
 
+`verifyInvariants()` **must not perform repository reads** (R6, [`../architecture.md`](../architecture.md)):
+it runs inside the UoW commit path, where repository calls risk deadlocks. Check only fields already
+present on the aggregate instance. A rule that genuinely needs a DB read is a P3 service-layer guard
+instead — see [`rule-enforcement-patterns.md`](rule-enforcement-patterns.md).
+
+`getEventSubscriptions()` is implemented in the **downstream (consumer)** aggregate only (R5) — a
+publisher never subscribes to its own events.
+
 ## Variants
 
 ### Sagas variant

@@ -39,6 +39,8 @@ The event is persisted when the UoW commits.
 
 Each subscriber aggregate declares which events it watches via `getEventSubscriptions()`. Located in `microservices/<aggregate>/notification/subscribe/`.
 
+Subscriptions live in the **downstream (consumer)** aggregate only; a publisher never subscribes to its own events and never references downstream aggregate types (R5, [`../architecture.md`](../architecture.md)). Subscribing in the wrong direction creates a cycle in the event pipeline.
+
 ```java
 public class ExecutionSubscribesCreateQuestion extends EventSubscription {
     public ExecutionSubscribesCreateQuestion(CourseExecutionCourse course) {

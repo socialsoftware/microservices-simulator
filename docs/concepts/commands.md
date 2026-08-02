@@ -116,6 +116,8 @@ SagaStep addParticipantStep = new SagaStep("addParticipantStep", () -> {
 }, List.of(getExecutionStep));
 ```
 
+**Commands travel upstream only (R8).** A saga may only send commands to aggregates it depends on, never to an aggregate that depends on it — downstream aggregates learn of changes through events, not commands. See [`sagas.md`](sagas.md) § Step Ordering.
+
 ---
 
 ## Routing Commands (CommandHandler)

@@ -34,6 +34,8 @@ public class ExecutionService {
 
 Never inject a foreign service class or a foreign repository — see [R1, R2 in architecture.md](../architecture.md).
 
+Never hold a reference to another aggregate's **concrete class** either (R3). A service may accept and return any aggregate's `{Xxx}Dto`, but aggregate instances carry UoW registration state that must not cross service boundaries — cross-aggregate state flows as DTOs, assembled by the Functionality from a `Get*Command` step and passed downstream as plain values.
+
 > **Inject factories and repositories via their abstract interfaces, not the concrete sagas-profile classes.** The example above injects `CourseExecutionFactory` (the interface defined in `aggregate/`) — `SagasCourseExecutionFactory` is never referenced in the service. This keeps the service layer profile-agnostic and allows a TCC or other implementation to be wired in without touching the service.
 
 > **`UnitOfWorkService` is used raw, on both the field and the constructor parameter.** No type
