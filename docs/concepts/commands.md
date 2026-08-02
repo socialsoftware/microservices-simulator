@@ -13,6 +13,8 @@ public class AddShipmentItemCommand extends Command {
     private Integer shipmentAggregateId;
     private WarehouseDto warehouseDto;
 
+    protected AddShipmentItemCommand() {}
+
     public AddShipmentItemCommand(UnitOfWork unitOfWork, String serviceName,
                                   Integer shipmentAggregateId, WarehouseDto warehouseDto) {
         super(unitOfWork, serviceName, shipmentAggregateId);
@@ -22,8 +24,16 @@ public class AddShipmentItemCommand extends Command {
 
     public Integer getShipmentAggregateId() { return shipmentAggregateId; }
     public WarehouseDto getWarehouseDto() { return warehouseDto; }
+
+    public void setShipmentAggregateId(Integer shipmentAggregateId) { this.shipmentAggregateId = shipmentAggregateId; }
+    public void setWarehouseDto(WarehouseDto warehouseDto) { this.warehouseDto = warehouseDto; }
 }
 ```
+
+> **The no-arg constructor and the setters are mandatory, not stylistic.** The test profile sets
+> `local.messaging.serialize: true` to mimic remote communication, so every command round-trips
+> through Jackson before it reaches its handler. A command with only a multi-arg constructor and
+> getters fails to deserialize at runtime, on the first command the application sends.
 
 `super(unitOfWork, serviceName, aggregateId)`:
 - `unitOfWork` — the active `SagaUnitOfWork` for this workflow execution.
@@ -127,6 +137,7 @@ Each aggregate has one `CommandHandler` that receives all commands for that aggr
 ```java
 @Component
 public class ShipmentCommandHandler extends CommandHandler {
+    private static final Logger logger = Logger.getLogger(ShipmentCommandHandler.class.getName());
 
     @Autowired
     private ShipmentService shipmentService;
@@ -156,6 +167,9 @@ public class ShipmentCommandHandler extends CommandHandler {
     }
 }
 ```
+
+The `logger` declaration is part of the template: the base `CommandHandler` in `ms.messaging` declares
+no logger field, so the `default ->` branch above does not compile without it.
 
 `getAggregateTypeName()` returns a PascalCase name (e.g. `"Warehouse"`) used by `CommandHandlerDecorator` for decorator lookup — it is **not** the routing key.
 

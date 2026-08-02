@@ -203,6 +203,15 @@ Open `{test}{AppClass}SpockTest.groovy` and add an `@Autowired(required = false)
 protected {Aggregate}Functionalities {aggregate}Functionalities
 ```
 
+The fixture helper below calls `aggregateIdGeneratorService`, which the scaffolded base class does
+**not** declare. Add it too, once per application - the first aggregate's session `b` adds it and
+later aggregates reuse it:
+
+```groovy
+@Autowired(required = false)
+protected AggregateIdGeneratorService aggregateIdGeneratorService
+```
+
 Then add the `create{Aggregate}(...)` fixture helper. This session's T2 and T4 tests need a persisted
 aggregate to read back, but the create functionality does not exist until session 2.{N}.c, so the
 helper is built **directly on the aggregate** here:
