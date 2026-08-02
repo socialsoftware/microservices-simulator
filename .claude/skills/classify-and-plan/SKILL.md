@@ -574,6 +574,8 @@ every Phase 2/3/4 skill depends on the ordinal being present.
 
 (Omit Session 2.N.d section if Events subscribed is empty.)
 
+The checklist above is the shape **before** slices are emitted. Step 8.5 expands it.
+
 #### Also create the harness log
 
 After writing plan.md, create `applications/{app-name}/harness-log.md` with exactly this content —
@@ -598,6 +600,81 @@ apply to this session as they do to every other.
 
 ---
 
+### Step 8.5: Emit the Slice List for Each Session
+
+A Phase 2 session can be implemented by one agent or split across several, one per unit of work. The
+split is decided **here**, at plan time, and written into plan.md as sub-checkboxes under the session
+checkbox. It is not a runtime judgement: emitting it here makes it a reviewable, reproducible run
+artifact, identical on every re-run of the same spec.
+
+`/implement-aggregate-full` reads this list and spawns one subagent per slice.
+`/implement-aggregate` ignores it and implements the whole session. Both entry points require it to
+be present.
+
+#### The threshold
+
+| Session | Slices |
+|---------|--------|
+| `a` | never sliced - no sub-checkboxes |
+| `b` | never sliced - no sub-checkboxes |
+| `c` | one per write functionality **if the count is > 3**; otherwise no sub-checkboxes |
+| `d` | one per subscribed event **if the count is > 3**; otherwise no sub-checkboxes |
+
+Session `a` produces a single aggregate and is indivisible. Session `b` is small by construction.
+Sessions `c` and `d` are the only ones whose size varies with the domain, and each slice re-reads the
+session's concept docs, so paying that cost for a two-item session is waste.
+
+A session at or below the threshold gets **no** sub-checkboxes; it is one implicit slice covering the
+whole session. This is not a second control path - a session always has a slice list, and below the
+threshold it has exactly one entry, which the manager runs the same way it runs any other.
+
+#### Slice ids and ordering
+
+Slice id is `2.{N}.{type}{k}`, with `k` starting at `1`, numbered in **execution order**. Execution
+order is not arbitrary: the manager runs slices sequentially in the emitted order, and later slices
+depend on earlier ones.
+
+**Session `c` ordering:**
+
+1. The **create** write functionality is always slice 1. Session `c` rewires the
+   `create{Aggregate}()` helper in `{AppClass}SpockTest.groovy` to go through the real create saga,
+   and every later slice's test `setup:` depends on that helper.
+2. Then any write functionality that operates on state another write functionality produces, after
+   the one that produces it.
+3. Otherwise, §4 order of the domain model.
+
+**Session `d` ordering:** subscribed events carry no inter-slice dependency. Use the §4 event order
+of the aggregate-grouping spec.
+
+#### Emitted shape
+
+Sub-checkboxes are nested one level under their session checkbox. The item name is the write
+functionality name (session `c`) or the event name as §4 spells it (session `d`).
+
+```markdown
+**Checklist:**
+- [ ] 2.N.a — Domain layer
+- [ ] 2.N.b — Read functionalities
+- [ ] 2.N.c — Write functionalities
+  - [ ] 2.N.c1 {Operation1}
+  - [ ] 2.N.c2 {Operation2}
+  - [ ] 2.N.c3 {Operation3}
+  - [ ] 2.N.c4 {Operation4}
+- [ ] 2.N.d — Event wiring
+  - [ ] 2.N.d1 {Event1}
+  - [ ] 2.N.d2 {Event2}
+  - [ ] 2.N.d3 {Event3}
+  - [ ] 2.N.d4 {Event4}
+```
+
+An aggregate with three write functionalities and two subscribed events emits neither `c` nor `d`
+sub-checkboxes, and its checklist is exactly the four-line form from Step 8.
+
+Report the slice counts in the Step 9 summary: how many sessions were sliced, and into how many
+slices in total.
+
+---
+
 ### Step 9: Report Success
 
 After writing plan.md:
@@ -615,6 +692,7 @@ After writing plan.md:
    - Ambiguous rules flagged for review: K (marked "P3 (NEEDS_REVIEW)")
    - Deferred rules recorded but not implemented: D
    - Total Phase 2 sessions: count (e.g., "2.1.a through 2.3.d")
+   - Sessions sliced (Step 8.5): S, into T slices in total
 
 3. **Next steps:**
    ```

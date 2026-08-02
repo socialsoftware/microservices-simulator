@@ -2,6 +2,10 @@
 
 This sub-file is loaded by `implement-aggregate` when the target session type is `c`. All context variables (`{app-name}`, `{pkg}`, `{AppClass}`, `{Aggregate}`, `{N}`, `{src}`, `{test}`, `{bean-config}`) are already available from the router.
 
+> **Slice scope.** You may be assigned a subset of this session's items. If your brief names specific
+> functionalities or events, implement only those, and append to the shared files rather than
+> rewriting them. If no subset is named, you own the whole session.
+
 ---
 
 ## Reads
@@ -40,7 +44,7 @@ Load these files before writing any code:
 
 ## Produce
 
-Produce every file listed in the plan.md `2.{N}.c` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `SKILL.md` § "Step 5b: Amend plan.md for Omitted Files". The descriptions below explain what each file must contain.
+Produce every file listed in the plan.md `2.{N}.c` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `_shared/session-completion.md` § "Amend plan.md for omitted files". The descriptions below explain what each file must contain.
 
 > **Prerequisite — ServiceMapping**: The `{src}ServiceMapping.java` entry for `{AGGREGATE}` was added in session 2.{N}.b, which is where this aggregate's first commands were written. Verify it is present before writing any commands — every command constructor references `ServiceMapping.{AGGREGATE}.getServiceName()`.
 
@@ -190,7 +194,7 @@ that.
 - **State-transition / semantic-lock acquisition (required):** Follow `docs/concepts/testing.md` § T4 — Functionality Test. Each `setSemanticLock` step is an *acquire* transition into `IN_{OP}`. **One case per saga step that calls `setSemanticLock` — no exceptions:**
   - **`setSemanticLock` step:** run the workflow through the lock step via `executeUntilStep("<lockStep>", uow)`, assert `sagaStateOf(<id>) == <Aggregate>SagaState.IN_<OP>` in `expect:` (the post-*acquire* state), call `resumeWorkflow(uow)` in `when:`, assert `noExceptionThrown()` in `then:` (the traversal completes back to `NOT_IN_SAGA`).
   - Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix — Cross-Functionality Test** in `docs/concepts/testing.md`.
-  - **Coverage is audited mechanically.** List every `setSemanticLock` step (one row per call site) in the session retro's **Semantic-Lock Coverage Audit** table — see `.claude/skills/implement-aggregate/SKILL.md` Step 7.b. Unresolved `Present? = No` rows block the Step 8 commit.
+  - **Coverage is audited mechanically.** List every `setSemanticLock` step (one row per call site) in the session retro's **Semantic-Lock Coverage Audit** table — see `.claude/skills/_shared/session-completion.md` § "Retro template". Unresolved `Present? = No` rows block the session commit.
 
 ### Event classes (if this aggregate publishes events)
 

@@ -159,6 +159,25 @@ mvn clean -Ptest-sagas test {-Dtest=... if narrowing}
 echo "MAVEN_EXIT=$?"
 ```
 
+**The `clean` run above is the mandated form for session-level and final verification** - the
+verdict a session, a review or a phase reports comes from it, and nothing weaker.
+
+**One narrow form is permitted, for intermediate verification only.** An agent implementing a slice
+of a session (`.claude/agents/aggregate-slice.md`) drops `clean` and narrows with `-Dtest=`:
+
+```bash
+cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
+mvn -Ptest-sagas test -Dtest={NarrowedClasses}
+echo "MAVEN_EXIT=$?"
+```
+
+`clean` on every slice recompiles the whole application once per slice, and the run it guards
+against - a stale class from a previous build - is caught by the full clean suite the manager runs at
+the end of the session anyway. The narrow form is never a substitute for that run: a slice's green is
+a local signal, not the session's verdict, and cross-slice regressions are invisible to it.
+
+Everything below applies to both forms.
+
 Then aggregate the surefire reports:
 
 ```bash

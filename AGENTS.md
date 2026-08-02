@@ -38,6 +38,15 @@ the implementation.
 implementation is the cheapest way to silently corrupt a result, and "the framework is broken" is in
 practice almost always "my implementation is wrong". Log these as Type `2-fw`.
 
+**Under delegated execution, the manager owns the gate.** When a session is driven by a manager
+spawning subagents (`/implement-aggregate-full`), the definitions above are unchanged, but only one
+agent acts on them. Subagents **report** friction and **halt** on Type 2 and `2-fw` before writing
+any code; they never edit `docs/`, `.claude/` or `simulator/`, never append to `harness-log.md`, and
+never commit. The manager makes every Type 1 fix and its `harness:` commit, escalates every Type 2 to
+the human verbatim, and re-spawns the halted subagent with the answer. Single writer: several
+subagents repairing the same ambiguity would produce competing `harness:` commits and racing appends
+to an append-only log.
+
 **Harness fixes are written in neutral vocabulary** - see
 `.claude/skills/_shared/conventions.md` § "Neutral domain".
 

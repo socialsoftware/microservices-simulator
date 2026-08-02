@@ -2,6 +2,10 @@
 
 This sub-file is loaded by `implement-aggregate` when the target session type is `b`. All context variables (`{app-name}`, `{pkg}`, `{AppClass}`, `{Aggregate}`, `{N}`, `{src}`, `{test}`, `{bean-config}`) are already available from the router.
 
+> **Slice scope.** You may be assigned a subset of this session's items. If your brief names specific
+> functionalities or events, implement only those, and append to the shared files rather than
+> rewriting them. If no subset is named, you own the whole session.
+
 > **If the plan.md aggregate section lists "Read functionalities: none"**, this session is still not empty: produce the boilerplate `Get{Aggregate}ByIdCommand`, its `{Aggregate}Service` read method, its `{Aggregate}CommandHandler` case and its T2 not-found test, and nothing else. There are no domain read functionalities to add on top, so no `{Query}FunctionalitySagas`, no coordinator read methods beyond `get{Aggregate}ById`, and no `{Query}Test.groovy`.
 
 ---
@@ -33,7 +37,7 @@ Load these files before writing any code:
 
 ## Produce
 
-Produce every file listed in the plan.md `2.{N}.b` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `SKILL.md` § "Step 5b: Amend plan.md for Omitted Files".
+Produce every file listed in the plan.md `2.{N}.b` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `_shared/session-completion.md` § "Amend plan.md for omitted files".
 
 `Get{Aggregate}ByIdCommand` is produced unconditionally for **every** aggregate, whether or not §4
 lists any read functionality for it. Write sagas need it for their get-then-lock step, so it is

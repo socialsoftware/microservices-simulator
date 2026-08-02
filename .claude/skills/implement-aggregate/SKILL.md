@@ -34,8 +34,8 @@ file(s) it produces (session → file, for file-generation purposes only):
 Read `.claude/skills/_shared/conventions.md` § "Application isolation" in full before implementing.
 Do not continue until you have. It governs which files this session may read.
 
-**If the docs or skill don't cover something:** flag it explicitly in the Step 6 report and append a
-harness-log row (Step 7.d). Do not silently fill the gap from another application. Surfacing the gap is
+**If the docs or skill don't cover something:** flag it explicitly in the completion report and append a
+harness-log row (`_shared/session-completion.md` § "Harness-log rows"). Do not silently fill the gap from another application. Surfacing the gap is
 the correct behavior — it becomes a harness improvement, not a hidden copy of a peer's pattern.
 
 ---
@@ -80,7 +80,14 @@ Parse it: `{N}` = `3`, `{type}` = `b`. Verify the checkbox `- [ ] 2.3.b` exists 
 
 **If no argument (auto-detect):**
 
-Scan plan.md for the first line matching `- [ ] 2.\d+\.[abcd]`. Extract:
+Scan plan.md for the first line matching `- \[ \] 2\.\d+\.[abcd](?![0-9])`. Extract:
+
+The negative lookahead matters: a session checkbox may be followed by indented **slice**
+sub-checkboxes of the form `- [ ] 2.{N}.{type}{k} {ItemName}`
+(`.claude/skills/classify-and-plan/SKILL.md` § "Step 8.5"). Those are not sessions and this skill
+does not target them - it implements the whole session regardless of how plan.md sliced it, and ticks
+the session checkbox plus every one of its sub-checkboxes at the end.
+
 - `{N}` = the aggregate number (the `\d+`)
 - `{type}` = the session type (`a`, `b`, `c`, or `d`)
 
@@ -122,7 +129,8 @@ Read and hold in context the entire aggregate section for `{N}` from plan.md. Th
 plan.md is the **starting point** for what to produce, not an authoritative manifest. What is
 actually required for this session is determined by the session sub-file loaded in Step 4 and the
 concept docs it names. Producing a file that plan.md omitted is correct and expected - amend the row
-per Step 5b rather than skipping the file.
+per `_shared/session-completion.md` § "Amend plan.md for omitted files" rather than skipping the
+file.
 
 ---
 
@@ -147,7 +155,8 @@ Operationally, for every friction point hit between here and the end of the sess
 4. **Anything under `simulator/` is Type `2-fw` and always halts**, even when it looks mechanically
    provable. There is no Type 1 fast path for the framework.
 
-Every one of these gets a row in `harness-log.md` at Step 7.d, whatever its outcome.
+Every one of these gets a row in `harness-log.md` at `_shared/session-completion.md`
+§ "Harness-log rows", whatever its outcome.
 
 ---
 
@@ -170,260 +179,20 @@ Read the sub-file now and follow its instructions exactly. The sub-file specifie
 
 ---
 
-## Step 5: Tick the Checkbox
-
-After all files are produced and BeanConfigurationSagas.groovy is updated, update plan.md:
-
-Replace `- [ ] 2.{N}.{type}` with `- [x] 2.{N}.{type}` in plan.md.
-
----
-
-## Step 5b: Amend plan.md for Omitted Files
-
-plan.md is a fallible blueprint. A file absent from its file table may still be required by the
-session sub-file or the concept docs; producing it is correct, and the omission is a defect in
-plan.md rather than in the session.
-
-For every file produced this session that the `2.{N}.{type}` row did not list, append it to that row
-with the session id and a one-line reason, so the amendment carries its own provenance:
-
-```
-`aggregate/{DomainEnum}.java` (added 2.{N}.a - field `{field}` is typed as this enum)
-```
-
-Report every amendment in the Step 6 report.
-
-If the **owning session** of a required file is genuinely unclear - it could belong to this session
-or to a later one - that is Type 2 friction: halt and ask before writing it (Step 3b).
-
----
-
-## Step 6: Report Completion
-
-After ticking the checkbox, output a concise structured report:
-
-1. **Files produced** — list all files created or modified (full paths)
-2. **Checkbox ticked** — e.g., `[x] 2.1.a`
-3. **plan.md additions** — any files added to the plan.md file table during this session (Step 5b), and why
-4. **Contradictions / problems** — any contradiction between plan.md and the domain model or rule classification (e.g., a write functionality that mutates a field marked P1 final), or any pattern that required inference or guessing beyond what the docs cover
-5. **Doc gaps** — any pattern that wasn't covered by the docs or skill and required inference or guessing; each gap is a candidate for a documentation improvement
-6. **Next session** — "Next: 2.{N}.{next-type}" or "Aggregate {Aggregate} complete. Next: aggregate {N+1}."
-
----
-
-## Step 7: Write Retro
-
-All session context variables are already resolved. Derive retro paths:
-- `{session-id}` = `2.{N}.{type}`
-- `{session-type-name}` = map: a→"Domain Layer", b→"Read Functionalities", c→"Write Functionalities", d→"Event Wiring"
-- `{retro-dir}` = `applications/{app-name}/retros/`
-- `{retro-file}` = `{retro-dir}retro-{session-id}-{Aggregate}.md`
-
-### 7.a — Gather Evidence from Conversation Context
-
-This is a synthesis step — do NOT run filesystem audits, grep, or re-read files to reconstruct history. Use only what is already in the conversation context.
-
-Answer these questions by reviewing what happened during the session:
-
-1. **Which files were produced?** List every file created or modified.
-2. **Which concept docs were read?** For each: which sections were actually used? Was the doc sufficient?
-3. **Was any file outside `applications/{app-name}/` read?** Cross-app reads are a violation (see `conventions.md` § "Application isolation"); record the file read and the gap that drove it as a harness-log row - Type 1 if a doc or skill demonstrably failed to supply what was needed, Type 2 otherwise.
-4. **Which instructions in the skill sub-file (`session-{type}.md`) were unclear, missing, or required inference beyond what was written?**
-5. **Were there any naming, path, or pattern decisions the skill/docs didn't cover?**
-6. **Were there any bugs, corrections, or fixes applied mid-session?** What triggered them?
-7. **Were any patterns observed that aren't yet documented anywhere?**
-8. **Were any files under `simulator/` modified?** If yes, list each one with: the exact diff (what was removed vs added), the root cause that required the change, and why the fix belongs in the framework rather than in application code.
-
-### 7.b — Write the Retro File
-
-Run Step 7.d first - the `## Harness Changes` section below cites the row numbers it appends.
-
-Create `{retro-file}` using this exact template. Write "none" for any section with nothing to report — do not omit sections.
-
-````markdown
-# Retro — {session-id} — {Aggregate}
-
-**App:** {app-name}
-**Session:** {session-id} ({session-type-name})
-**Date:** {today}
-
----
-
-## Files Produced
-
-List every file created or modified this session (absolute paths).
-
-### Application files ({app-name})
-
-- `/path/to/file1`
-- `/path/to/file2`
-
-### Application bug fixes (earlier-session files)
-
-- (none) OR list files fixed this session that were produced in a previous session
-
----
-
-> ## ⚠️ SIMULATOR FRAMEWORK CHANGES
->
-> [Include this block ONLY if one or more files under `simulator/` were modified. Delete this entire block if no simulator files changed.]
->
-> The following files belong to `simulator/` — the **shared core library** used by all applications. Changes here affect every consumer of the library and must be treated as framework patches, not application fixes. Each change below includes a root-cause explanation and a justification for why the fix belongs in the framework rather than in application code.
-
-### `simulator/path/to/ChangedFile.java`
-
-**What changed (diff summary):**
-```diff
-- removed line(s)
-+ added line(s)
-```
-
-**Root cause:** (What application-level symptom triggered the investigation? What was wrong in the framework?)
-
-**Fix rationale:** (Why is this the correct fix? Why does the fix belong here and not in the application?)
-
-**Impact scope:** (Which other applications or test profiles are affected? Any production impact?)
-
----
-
-[Repeat the `### simulator/...` block for each additional simulator file changed.]
-
----
-
-## Docs Consulted
-
-| Doc file | Sections used | Sufficient? | Notes |
-|----------|--------------|-------------|-------|
-| `docs/concepts/aggregate.md` | § verifyInvariants, § SagaAggregate | Yes | — |
-
-**Sufficient?** = `Yes` / `Partial` / `No`
-- `Partial` = doc existed but was missing something important
-- `No` = doc didn't address the need; fell back to inference or guessing
-
----
-
-## Skill Instructions Feedback
-
-### What worked well
-
-- (specific instructions or patterns in the skill that produced correct output without ambiguity)
-
-### What was unclear or missing
-
-- (gaps or ambiguities that required guessing or looking elsewhere)
-
-### Suggested wording / structure changes
-
-- (optional: concrete rewrite proposals; reference the exact file and section)
-
----
-
-## Semantic-Lock Coverage Audit (sessions `c` only — write "n/a" for `a`/`b`/`d`)
-
-For every saga produced this session, list every saga step that calls `setSemanticLock`, and the test
-name covering its lock-acquisition case.
-
-| Saga class | Step name | Foreign aggregate locked | Lock-acquisition test name | Present? |
-|------------|-----------|--------------------------|----------------------------|---------:|
-
-- One row per `setSemanticLock` call site.
-- "Present? = No" rows are **Major** findings: add the test in this session, or open an explicit follow-up. **Never tick the session checkbox with an unresolved `No` row** unless the row is followed by an explicit deferral rationale written directly beneath this table.
-
----
-
-## Documentation Gaps
-
-Gaps in `docs/concepts/` files that caused friction or required inference or guessing.
-
-| Doc | Missing / unclear | Impact | Suggested fix |
-|-----|------------------|--------|---------------|
-| `docs/concepts/aggregate.md` | X not explained | High | Add section on X |
-
----
-
-## Patterns to Capture
-
-Patterns or conventions observed during this session that aren't yet documented. Candidates for
-adding to docs or skills.
-
-- **Pattern:** (name or brief title)
-  **Observed in:** (file path)
-  **Description:** (what it does, when to use it)
-
----
-
-## Harness Changes
-
-Rows appended to `applications/{app-name}/harness-log.md` this session: {row numbers, or "none"}
-
-For each `fixed` row, the `harness:` commit sha:
-
-| Row # | Type | Outcome | `harness:` commit |
-|-------|------|---------|-------------------|
-
-Rows whose outcome is `declined` or `deferred` have no sha - write `-`.
-
----
-
-## One-Line Summary
-
-(One sentence: the single most important finding from this retro.)
-````
-
-### 7.c — Create Directory and Write File
-
-Create `{retro-dir}` if it does not already exist, then write the completed retro to `{retro-file}`.
-
-**Hard rules for the retro:**
-1. **Synthesis only.** No filesystem audits, no grep sweeps, no re-reading files to reconstruct history.
-2. **Never omit sections.** If a section has nothing to report, write "none".
-3. **Absolute paths in Files Produced.**
-4. **Any cross-application read is a violation** — record it as a harness-log row in Step 7.d, naming the file read and the gap that drove it.
-5. **No emojis, no hype.** Terse and concrete — paths, file names, section names, decisions.
-6. **Does not modify plan.md, source files, or BeanConfigurationSagas.groovy.**
-7. **Simulator changes are mandatory to document.** If any file under `simulator/` was modified during the session, the `⚠️ SIMULATOR FRAMEWORK CHANGES` block is **required** in the Files Produced section — not optional. For each changed file include: exact diff, root cause, fix rationale, and impact scope. If no simulator files changed, remove the block entirely rather than leaving it blank.
-8. **Semantic-Lock Coverage Audit is mandatory for session-`c` retros.** A session-`c` retro missing the audit table, or containing it with unresolved `Present? = No` rows (without an explicit deferral rationale beneath the table), blocks the Step 8 commit. For sessions `a`/`b`/`d` the section is still present with the literal value "n/a".
-
-Do not print a separate retro completion report — the retro file path is included in the Step 8 commit output.
-
-### 7.d — Append Harness-Log Rows
-
-Do this **before** writing the retro file, so the `## Harness Changes` section can cite the row
-numbers it produced.
-
-Read `.claude/skills/_shared/conventions.md` § "Harness log" in full - it owns the column schema and
-the rules for `Type`, `Outcome` and `Ref`. Then, for each distinct harness friction point of this
-session - every Step 3b classification, plus anything surfaced by the 7.a questions: a `docs/` file
-that was missing, wrong or ambiguous; a `.claude/skills/` instruction that failed to guide; a
-`simulator/` change; a halt; a cross-application read - append one row to
-`applications/{app-name}/harness-log.md`.
-
-- Read the last row of the file to get the next `#`. Append only; never rewrite or delete rows.
-- `Session` is this session's `{session-id}`.
-- `Ref` is the `harness:` commit sha for the Type 1 fixes already committed during the session.
-- If the file does not exist, halt: **"harness-log.md missing. It is created by
-  /classify-and-plan."**
-- Defects in the generated application are **not** harness friction. Fix them in this session.
-
-If there was none, append nothing and write "none" in `## Harness Changes`.
-
----
-
-## Step 8: Commit
-
-Stage all files produced during this session using `git add <specific files>` (never `git add -A`). Include:
-- Every file created or modified (from the Step 6 report)
-- The retro file written in Step 7
-- `applications/{app-name}/harness-log.md`, if Step 7.d appended any row
-
-Issue a single commit using HEREDOC format:
-
-```
-feat({app-name}): 2.{N}{type} ({Aggregate} {session-type-name})
-```
-
-Where `{session-type-name}` maps: `a`→"Domain Layer", `b`→"Read Functionalities", `c`→"Write Functionalities", `d`→"Event Wiring".
-
-Example: `feat({app-name}): 2.2c ({Aggregate} Write Functionalities)`
-
-After the commit, output the commit hash and message as the final line of the session report.
+## Steps 5-8: Complete the Session
+
+Read `.claude/skills/_shared/session-completion.md` in full and follow it, in **single-agent mode**.
+Do not continue from memory of a previous read. It owns, in this order:
+
+| Step | Section in `session-completion.md` |
+|------|------------------------------------|
+| 5  | § "Tick the checkbox" |
+| 5b | § "Amend plan.md for omitted files" |
+| 6  | § "Report completion" |
+| 7  | § "Retro assembly" - use § "Single-agent mode", then § "Retro template" |
+| 7.d| § "Harness-log rows" (run before writing the retro file) |
+| 8  | § "Commit" |
+
+The retro template, the Semantic-Lock Coverage Audit commit-blocking rule and the commit message
+format each live there and only there. `.claude/skills/implement-aggregate-full/SKILL.md` reads the
+same file in manager mode, which is what keeps the two entry points producing identical artifacts.

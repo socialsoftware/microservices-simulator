@@ -2,6 +2,10 @@
 
 This sub-file is loaded by `implement-aggregate` when the target session type is `a`. All context variables (`{app-name}`, `{pkg}`, `{AppClass}`, `{Aggregate}`, `{N}`, `{src}`, `{test}`, `{bean-config}`) are already available from the router.
 
+> **Slice scope.** You may be assigned a subset of this session's items. If your brief names specific
+> functionalities or events, implement only those, and append to the shared files rather than
+> rewriting them. If no subset is named, you own the whole session.
+
 ---
 
 ## Reads
@@ -39,7 +43,7 @@ If either is missing, add it to the plan.md `2.{N}.a` file cell now. These two f
 
 ## Produce
 
-Produce every file listed in the plan.md `2.{N}.a` row for this aggregate. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `SKILL.md` § "Step 5b: Amend plan.md for Omitted Files". The descriptions below explain what each file must contain.
+Produce every file listed in the plan.md `2.{N}.a` row for this aggregate. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `_shared/session-completion.md` § "Amend plan.md for omitted files". The descriptions below explain what each file must contain.
 
 ### `{Aggregate}.java`
 
