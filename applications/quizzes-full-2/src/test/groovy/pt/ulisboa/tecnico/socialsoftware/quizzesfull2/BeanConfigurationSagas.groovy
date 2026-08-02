@@ -27,8 +27,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceClient
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.sagas.factories.SagasCourseFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.sagas.repositories.CourseCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.functionalities.CourseFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.messaging.CourseCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.service.CourseService
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
 @TestConfiguration
 @PropertySource("classpath:application-test.properties")
@@ -135,5 +141,22 @@ class BeanConfigurationSagas {
     @Bean
     CourseCustomRepositorySagas courseCustomRepositorySagas() {
         return new CourseCustomRepositorySagas()
+    }
+
+    @Bean
+    CourseService courseService(CourseCustomRepository courseCustomRepository,
+                                CourseFactory courseFactory,
+                                UnitOfWorkService unitOfWorkService) {
+        return new CourseService(courseCustomRepository, courseFactory, unitOfWorkService)
+    }
+
+    @Bean
+    CourseCommandHandler courseCommandHandler() {
+        return new CourseCommandHandler()
+    }
+
+    @Bean
+    CourseFunctionalities courseFunctionalities() {
+        return new CourseFunctionalities()
     }
 }
