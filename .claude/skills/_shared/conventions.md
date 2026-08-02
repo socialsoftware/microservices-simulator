@@ -47,8 +47,8 @@ For skills that take an aggregate name as their argument. Requires `{app-name}`,
 
 From the PascalCase argument, derive:
 
-- `{Aggregate}` = the argument as given (e.g., `Course`, `CourseExecution`)
-- `{aggregate}` = all-lowercase, hyphens and separators removed (e.g., `course`, `courseexecution`)
+- `{Aggregate}` = the argument as given (e.g., `Warehouse`, `ShipmentItem`)
+- `{aggregate}` = all-lowercase, hyphens and separators removed (e.g., `warehouse`, `shipmentitem`)
 
 Verify that a section `### N. {Aggregate}` exists in `plan.md`. If not found, halt:
 **"Aggregate '{Aggregate}' not found in plan.md. Check the name or run /classify-and-plan."**

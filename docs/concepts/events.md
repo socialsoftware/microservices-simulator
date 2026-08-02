@@ -11,14 +11,14 @@ Located in `src/main/java/.../<appName>/events/` (e.g., `applications/{app-name}
 Each event extends `Event` from `ms.aggregate` (`pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event`) — it is a JPA `@Entity`, so the subclass must be annotated `@Entity` too:
 
 ```java
-public class CreateQuestionEvent extends Event {
-    private Integer questionAggregateId;
-    private Integer courseAggregateId;
+public class CreateShipmentEvent extends Event {
+    private Integer shipmentAggregateId;
+    private Integer warehouseAggregateId;
 
-    public CreateQuestionEvent(Integer questionAggregateId, Integer courseAggregateId) {
-        super(courseAggregateId);  // publisherAggregateId
-        this.questionAggregateId = questionAggregateId;
-        this.courseAggregateId = courseAggregateId;
+    public CreateShipmentEvent(Integer shipmentAggregateId, Integer warehouseAggregateId) {
+        super(warehouseAggregateId);  // publisherAggregateId
+        this.shipmentAggregateId = shipmentAggregateId;
+        this.warehouseAggregateId = warehouseAggregateId;
     }
 }
 ```
@@ -60,12 +60,12 @@ Each subscriber aggregate declares which events it watches via `getEventSubscrip
 Subscriptions live in the **downstream (consumer)** aggregate only; a publisher never subscribes to its own events and never references downstream aggregate types (R5, [`../architecture.md`](../architecture.md)). Subscribing in the wrong direction creates a cycle in the event pipeline.
 
 ```java
-public class ExecutionSubscribesCreateQuestion extends EventSubscription {
-    public ExecutionSubscribesCreateQuestion(CourseExecutionCourse course) {
-        super(course.getCourseAggregateId(), course.getCourseVersion(), CreateQuestionEvent.class.getSimpleName());
+public class ShipmentSubscribesUpdateWarehouse extends EventSubscription {
+    public ShipmentSubscribesUpdateWarehouse(ShipmentWarehouse warehouse) {
+        super(warehouse.getWarehouseAggregateId(), warehouse.getWarehouseVersion(), UpdateWarehouseEvent.class.getSimpleName());
     }
 
-    public ExecutionSubscribesCreateQuestion() {}
+    public ShipmentSubscribesUpdateWarehouse() {}
 }
 ```
 
@@ -73,7 +73,7 @@ In the **sagas profile**, matching is performed by the infrastructure via a DB q
 
 `subscribedAggregateId` must match `publisherAggregateId` in the event.
 
-**`subscribedVersion`:** pass the anchor entity's current version so that only events published *after* the snapshot was taken are processed. If the subscriber entity does not track the publisher's version (e.g., a `User` cached inside an `Execution` that has no `userVersion` field), use `0L` — this means all events from that user since the beginning are eligible for processing, which is functionally correct but slightly broader than necessary.
+**`subscribedVersion`:** pass the anchor entity's current version so that only events published *after* the snapshot was taken are processed. If the subscriber entity does not track the publisher's version (e.g., a `Warehouse` cached inside a `Shipment` that has no `warehouseVersion` field), use `0L` — this means all events from that publisher since the beginning are eligible for processing, which is functionally correct but slightly broader than necessary.
 
 ## EventHandler
 
@@ -83,24 +83,24 @@ Use **one concrete `{Consumer}EventHandler` class** per consumer aggregate. It e
 
 ```java
 @Component
-public class ExecutionEventHandler extends EventHandler {
+public class ShipmentEventHandler extends EventHandler {
 
-    private final ExecutionEventProcessing executionEventProcessing;
+    private final ShipmentEventProcessing shipmentEventProcessing;
 
-    public ExecutionEventHandler(ExecutionRepository repository,
-                                 ExecutionEventProcessing executionEventProcessing) {
+    public ShipmentEventHandler(ShipmentRepository repository,
+                                ShipmentEventProcessing shipmentEventProcessing) {
         super(repository);
-        this.executionEventProcessing = executionEventProcessing;
+        this.shipmentEventProcessing = shipmentEventProcessing;
     }
 
     @Override
     public void handleEvent(Integer subscriberAggregateId, Event event) {
-        if (event instanceof DeleteUserEvent e) {
-            executionEventProcessing.processDeleteUserEvent(subscriberAggregateId, e);
-        } else if (event instanceof UpdateStudentNameEvent e) {
-            executionEventProcessing.processUpdateStudentNameEvent(subscriberAggregateId, e);
-        } else if (event instanceof AnonymizeStudentEvent e) {
-            executionEventProcessing.processAnonymizeStudentEvent(subscriberAggregateId, e);
+        if (event instanceof DeleteWarehouseEvent e) {
+            shipmentEventProcessing.processDeleteWarehouseEvent(subscriberAggregateId, e);
+        } else if (event instanceof UpdateWarehouseNameEvent e) {
+            shipmentEventProcessing.processUpdateWarehouseNameEvent(subscriberAggregateId, e);
+        } else if (event instanceof ArchiveWarehouseEvent e) {
+            shipmentEventProcessing.processArchiveWarehouseEvent(subscriberAggregateId, e);
         }
     }
 }
@@ -116,22 +116,22 @@ Each event type gets one `@Scheduled` method. All methods pass the **same** `{Co
 
 ```java
 @Component
-public class ExecutionEventHandling {
+public class ShipmentEventHandling {
 
     @Autowired
     private EventApplicationService eventApplicationService;
 
     @Autowired
-    private ExecutionEventHandler executionEventHandler;
+    private ShipmentEventHandler shipmentEventHandler;
 
     @Scheduled(fixedDelay = 1000)
-    public void handleDeleteUserEvents() {
-        eventApplicationService.handleSubscribedEvent(DeleteUserEvent.class, executionEventHandler);
+    public void handleDeleteWarehouseEvents() {
+        eventApplicationService.handleSubscribedEvent(DeleteWarehouseEvent.class, shipmentEventHandler);
     }
 
     @Scheduled(fixedDelay = 1000)
-    public void handleUpdateStudentNameEvents() {
-        eventApplicationService.handleSubscribedEvent(UpdateStudentNameEvent.class, executionEventHandler);
+    public void handleUpdateWarehouseNameEvents() {
+        eventApplicationService.handleSubscribedEvent(UpdateWarehouseNameEvent.class, shipmentEventHandler);
     }
 }
 ```
@@ -142,11 +142,11 @@ The `@Scheduled` annotation does **not** run in `@DataJpaTest` — call the meth
 
 | Layer | Pattern | Example |
 |-------|---------|---------|
-| Event class | `XxxEvent` | `CreateQuestionEvent` |
-| Subscription | `ConsumerSubscribesXxx` | `ExecutionSubscribesCreateQuestion` |
-| Handler | `{Consumer}EventHandler` (single dispatcher) | `ExecutionEventHandler` |
-| Polling bean | `<Consumer>EventHandling` | `ExecutionEventHandling` |
-| Processing | `<Consumer>EventProcessing` | `ExecutionEventProcessing` |
+| Event class | `XxxEvent` | `CreateShipmentEvent` |
+| Subscription | `ConsumerSubscribesXxx` | `ShipmentSubscribesUpdateWarehouse` |
+| Handler | `{Consumer}EventHandler` (single dispatcher) | `ShipmentEventHandler` |
+| Polling bean | `<Consumer>EventHandling` | `ShipmentEventHandling` |
+| Processing | `<Consumer>EventProcessing` | `ShipmentEventProcessing` |
 
 ## Canonical Wiring Snippet
 
@@ -242,7 +242,7 @@ public class <Consumer>EventProcessing {
 
 ### ByEvent sagaState guard
 
-For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateStudentName`, `removeStudentFromExecution`), add a separate `{operation}ByEvent` method to `<Consumer>Functionalities`. It opens its own `UnitOfWork`, loads the aggregate directly from the service, applies the cached-field change, calls `verifyInvariants()`, and commits — **without starting a new saga**.
+For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `<Consumer>Functionalities`. It opens its own `UnitOfWork`, loads the aggregate directly from the service, applies the cached-field change, calls `verifyInvariants()`, and commits — **without starting a new saga**.
 
 ```java
 public void {operation}ByEvent(Integer aggregateId, ...) {

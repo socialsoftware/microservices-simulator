@@ -97,7 +97,7 @@ Path: `commands/{aggregate}/{Op}{Aggregate}Command.java`
 - Implements `Command`
 - Fields: all parameters needed by the service method
 - Constructor, getters
-- Name convention: operation in PascalCase + aggregate name + `Command` (e.g., `CreateTournamentCommand`)
+- Name convention: operation in PascalCase + aggregate name + `Command` (e.g., `CreateShipmentCommand`)
 
 ### One `{Op}FunctionalitySagas.java` per write functionality
 
@@ -171,8 +171,8 @@ Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 At the top of every happy-path and violation test, write a single-line `// Spec:` comment that names the plan.md section and the rule (or "happy path") the test asserts. Example:
 
 ```groovy
-def "updateQuestionContent: QUESTION_CONTENT_REQUIRED violation"() {
-    // Spec: plan.md §3.5 Question / functionalities — UpdateQuestionContent; rule QUESTION_CONTENT_REQUIRED
+def "updateShipmentNotes: SHIPMENT_NOTES_REQUIRED violation"() {
+    // Spec: plan.md §3.5 Shipment / functionalities — UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED
     given:
     ...
 }
@@ -188,7 +188,7 @@ that.
 - Extends `{AppClass}SpockTest`
 - **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation via `{Aggregate}Functionalities`, and assert **orchestration outcomes only**: the operation completes, the returned DTO is coherent, and `sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA`
 - **Saga-path guard tests**: P3 guard violations that involve cross-aggregate saga coordination, driven through `{Aggregate}Functionalities` (single-aggregate guard violations are already covered in T2 via direct service calls — do not duplicate them here)
-- **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., creator not enrolled in execution)
+- **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., requester not registered in the warehouse)
 - **Assertion for all violation tests:** `thrown({AppClass}Exception)` plus `ex.message == {RULE_NAME}`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in Fault / Behavior Test (Appendix) fault-injection tests. Never accept a bare `thrown({AppClass}Exception)` without the message assertion — it passes on any thrown exception of that type, including unrelated bugs. The `{RULE_NAME}` constant must match the name in `plan.md`'s rule list, not be inferred from the implementation.
 - **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy` (session a). Do not add P1 violation tests or BVA boundary straddles to T4 functionality tests.
 - **State-transition / semantic-lock acquisition (required):** Follow `docs/concepts/testing.md` § T4 — Functionality Test. Each `setSemanticLock` step is an *acquire* transition into `IN_{OP}`. **One case per saga step that calls `setSemanticLock` — no exceptions:**

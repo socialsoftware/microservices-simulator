@@ -187,7 +187,7 @@ public Set<EventSubscription> getEventSubscriptions() {
     return subs;
 }
 ```
-Only ACTIVE aggregates subscribe. Generate one subscription per referenced object (one per item, per topic, etc.).
+Only ACTIVE aggregates subscribe. Generate one subscription per referenced object (one per cached snapshot entry).
 
 **Step 3 — Poll for matched events:**
 ```java
@@ -229,7 +229,7 @@ Both sub-cases execute inside `@Transactional(SERIALIZABLE)` in `*Service.java`,
 Placing a uniqueness check at P2 when the authoritative data is local is a mistake: the event cache lags behind reality and allows duplicates in a narrow race window.
 
 **When to choose P4a over P3 for cross-aggregate membership checks:**
-If the saga already sends a command to fetch an entity by a compound key (e.g., student by executionId + userId) and that command throws when the entity doesn't exist, no explicit P3 check is needed — the command failing IS the enforcement (P4a). Always prefer P4a when the saga query can be constructed to fail naturally.
+If the saga already sends a command to fetch an entity by a compound key (e.g., a slot by warehouseId + shipmentId) and that command throws when the entity doesn't exist, no explicit P3 check is needed — the command failing IS the enforcement (P4a). Always prefer P4a when the saga query can be constructed to fail naturally.
 
 **Implementation recipe — own-table uniqueness:**
 
@@ -270,7 +270,7 @@ The precondition is **implicit in a saga fetch query**: the command fails (throw
 
 **When it applies:** The fetch only succeeds when the precondition holds — no separate guard is needed. Prefer P4a over P3 whenever a compound-key command can naturally encode the constraint as a failure.
 
-**Canonical example — membership check:** "creator must be enrolled in the execution" is enforced by sending `GetStudentByExecutionIdAndUserIdCommand(executionId, userId)`. The ExecutionService throws `COURSE_EXECUTION_STUDENT_NOT_FOUND` if that student is not enrolled — no explicit P3 check is needed.
+**Canonical example — membership check:** "the shipment must be registered in the warehouse" is enforced by sending `GetSlotByWarehouseIdAndShipmentIdCommand(warehouseId, shipmentId)`. The `WarehouseService` throws `WAREHOUSE_SLOT_NOT_FOUND` if that shipment is not registered — no explicit P3 check is needed.
 
 ```java
 // Fetching this DTO enforces the precondition implicitly.

@@ -89,7 +89,7 @@ microservices/{serviceName}/
 ```
 
 **Optional directories:**
-- `coordination/eventProcessing/` and `notification/` are present only in aggregates that **consume events** from other services (e.g., Tournament). Aggregates that only **publish events** (e.g., User) omit both directories.
+- `coordination/eventProcessing/` and `notification/` are present only in aggregates that **consume events** from other services (e.g., Shipment). Aggregates that only **publish events** (e.g., Warehouse) omit both directories.
 
 ### `{Xxx}ServiceApplication.java`
 
@@ -173,7 +173,7 @@ A service class may `@Autowired` (or constructor-inject) only the repository, cu
 
 ### R3 — Cross-aggregate state must flow through DTOs, not aggregate instances
 
-A service may accept and return `{Xxx}Dto` objects belonging to any aggregate. It must never hold a reference to another aggregate's concrete class (e.g., `SagaExecution`, `CausalQuiz`). Aggregate instances carry UoW registration state that must not leak across service boundaries.
+A service may accept and return `{Xxx}Dto` objects belonging to any aggregate. It must never hold a reference to another aggregate's concrete class (e.g., `SagaWarehouse`, `CausalShipment`). Aggregate instances carry UoW registration state that must not leak across service boundaries.
 
 **Instead:** Expose all observable state through immutable DTO classes. The Functionality receives the DTO from a `Get*Command` step and passes the needed fields to downstream steps as plain values.
 

@@ -39,11 +39,11 @@ Interface: `ms.transaction.sagas.aggregate.SagaAggregate`
 
 Adds:
 - `getSagaState()` / `setSagaState(SagaState state)` — semantic lock used to block conflicting concurrent operations
-- Inner interface `SagaState` — implemented as an enum per aggregate (e.g., `CourseExecutionSagaState`)
+- Inner interface `SagaState` — implemented as an enum per aggregate (e.g., `WarehouseSagaState`)
 
 Example: saga aggregates extend `Aggregate` and implement `SagaAggregate`:
 ```
-Execution (abstract) → SagaExecution → implements SagaAggregate
+Warehouse (abstract) → SagaWarehouse → implements SagaAggregate
 ```
 
 ## Factories
@@ -130,11 +130,11 @@ of one `aggregateId`: `findNonDeletedSagaAggregate`, `findDeletedSagaAggregate` 
 
 | Layer | Pattern | Example |
 |-------|---------|---------|
-| Base class | `Xxx` (abstract) | `Execution` |
-| Saga subclass | `SagaXxx` | `SagaExecution` |
-| Saga factory | `SagasXxxFactory` | `SagasExecutionFactory` |
-| Saga repository | `XxxCustomRepositorySagas` | `CourseExecutionCustomRepositorySagas` |
-| Saga state enum | `XxxSagaState` | `CourseExecutionSagaState` |
+| Base class | `Xxx` (abstract) | `Warehouse` |
+| Saga subclass | `SagaXxx` | `SagaWarehouse` |
+| Saga factory | `SagasXxxFactory` | `SagasWarehouseFactory` |
+| Saga repository | `XxxCustomRepositorySagas` | `WarehouseCustomRepositorySagas` |
+| Saga state enum | `XxxSagaState` | `WarehouseSagaState` |
 
 ## getEventSubscriptions() Implementation
 
@@ -145,15 +145,15 @@ of one `aggregateId`: `findNonDeletedSagaAggregate`, `findDeletedSagaAggregate` 
 public Set<EventSubscription> getEventSubscriptions() {
     Set<EventSubscription> eventSubscriptions = new HashSet<>();
     if (getState() == AggregateState.ACTIVE) {
-        interInvariantUsersExist(eventSubscriptions);
+        interInvariantWarehousesExist(eventSubscriptions);
         // add one helper call per inter-invariant
     }
     return eventSubscriptions;
 }
 
-private void interInvariantUsersExist(Set<EventSubscription> eventSubscriptions) {
-    for (CourseExecutionStudent student : this.students) {
-        eventSubscriptions.add(new CourseExecutionSubscribesRemoveUser(student));
+private void interInvariantWarehousesExist(Set<EventSubscription> eventSubscriptions) {
+    for (ShipmentWarehouse warehouse : this.warehouses) {
+        eventSubscriptions.add(new ShipmentSubscribesRemoveWarehouse(warehouse));
     }
 }
 ```

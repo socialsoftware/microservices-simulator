@@ -10,24 +10,24 @@ A service may inject only components that belong to its own aggregate, plus shar
 
 ```java
 @Service
-public class ExecutionService {
+public class WarehouseService {
 
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
     @Autowired
-    private CourseExecutionFactory courseExecutionFactory;   // own aggregate's factory
+    private WarehouseFactory warehouseFactory;   // own aggregate's factory
 
-    private final CourseExecutionRepository courseExecutionRepository;            // own aggregate's JPA repo
-    private final CourseExecutionCustomRepository courseExecutionCustomRepository; // own aggregate's custom repo
+    private final WarehouseRepository warehouseRepository;            // own aggregate's JPA repo
+    private final WarehouseCustomRepository warehouseCustomRepository; // own aggregate's custom repo
     private final UnitOfWorkService unitOfWorkService;   // raw type, deliberately
 
-    public ExecutionService(UnitOfWorkService unitOfWorkService,
-                            CourseExecutionRepository courseExecutionRepository,
-                            CourseExecutionCustomRepository courseExecutionCustomRepository) {
+    public WarehouseService(UnitOfWorkService unitOfWorkService,
+                            WarehouseRepository warehouseRepository,
+                            WarehouseCustomRepository warehouseCustomRepository) {
         this.unitOfWorkService = unitOfWorkService;
-        this.courseExecutionRepository = courseExecutionRepository;
-        this.courseExecutionCustomRepository = courseExecutionCustomRepository;
+        this.warehouseRepository = warehouseRepository;
+        this.warehouseCustomRepository = warehouseCustomRepository;
     }
 }
 ```
@@ -36,7 +36,7 @@ Never inject a foreign service class or a foreign repository — see [R1, R2 in 
 
 Never hold a reference to another aggregate's **concrete class** either (R3). A service may accept and return any aggregate's `{Xxx}Dto`, but aggregate instances carry UoW registration state that must not cross service boundaries — cross-aggregate state flows as DTOs, assembled by the Functionality from a `Get*Command` step and passed downstream as plain values.
 
-> **Inject factories and repositories via their abstract interfaces, not the concrete sagas-profile classes.** The example above injects `CourseExecutionFactory` (the interface defined in `aggregate/`) — `SagasCourseExecutionFactory` is never referenced in the service. This keeps the service layer profile-agnostic and allows a TCC or other implementation to be wired in without touching the service.
+> **Inject factories and repositories via their abstract interfaces, not the concrete sagas-profile classes.** The example above injects `WarehouseFactory` (the interface defined in `aggregate/`) — `SagasWarehouseFactory` is never referenced in the service. This keeps the service layer profile-agnostic and allows a TCC or other implementation to be wired in without touching the service.
 
 > **`UnitOfWorkService` is used raw, on both the field and the constructor parameter.** No type
 > argument, no cast, no `@SuppressWarnings`. `UnitOfWorkService<U extends UnitOfWork>` is abstract
@@ -65,9 +65,9 @@ Loads the latest version and converts it to a DTO. No mutation, no `registerChan
 
 ```java
 @Transactional(isolation = Isolation.SERIALIZABLE)
-public CourseExecutionDto getCourseExecutionById(Integer executionAggregateId, UnitOfWork unitOfWork) {
-    return courseExecutionFactory.createCourseExecutionDto(
-            (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionAggregateId, unitOfWork));
+public WarehouseDto getWarehouseById(Integer warehouseAggregateId, UnitOfWork unitOfWork) {
+    return warehouseFactory.createWarehouseDto(
+            (Warehouse) unitOfWorkService.aggregateLoadAndRegisterRead(warehouseAggregateId, unitOfWork));
 }
 ```
 
@@ -77,22 +77,22 @@ Generates a new aggregate ID, constructs the aggregate via the factory, register
 
 ```java
 @Transactional(isolation = Isolation.SERIALIZABLE)
-public CourseExecutionDto createCourseExecution(CourseExecutionDto dto, UnitOfWork unitOfWork) {
+public WarehouseDto createWarehouse(WarehouseDto dto, UnitOfWork unitOfWork) {
     // [P3] uniqueness guard — reads own table, inside @Transactional(SERIALIZABLE)
-    Set<Integer> existingIds = courseExecutionCustomRepository.findCourseExecutionIdsOfAllNonDeleted();
+    Set<Integer> existingIds = warehouseCustomRepository.findWarehouseIdsOfAllNonDeleted();
     for (Integer id : existingIds) {
-        Execution existing = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
-        if (existing.getAcronym().equals(dto.getAcronym())
-                && existing.getAcademicTerm().equals(dto.getAcademicTerm())) {
-            throw new {AppClass}Exception(DUPLICATE_COURSE_EXECUTION, dto.getAcronym(), dto.getAcademicTerm());
+        Warehouse existing = (Warehouse) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork);
+        if (existing.getCode().equals(dto.getCode())
+                && existing.getRegion().equals(dto.getRegion())) {
+            throw new {AppClass}Exception(DUPLICATE_WAREHOUSE, dto.getCode(), dto.getRegion());
         }
     }
 
     Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-    Execution execution = courseExecutionFactory.createCourseExecution(aggregateId, dto, ...);
+    Warehouse warehouse = warehouseFactory.createWarehouse(aggregateId, dto, ...);
 
-    unitOfWorkService.registerChanged(execution, unitOfWork);
-    return courseExecutionFactory.createCourseExecutionDto(execution);
+    unitOfWorkService.registerChanged(warehouse, unitOfWork);
+    return warehouseFactory.createWarehouseDto(warehouse);
 }
 ```
 
@@ -102,20 +102,20 @@ Loads the current version, copies it via the factory's `create{Aggregate}Copy` m
 
 ```java
 @Transactional(isolation = Isolation.SERIALIZABLE)
-public void enrollStudent(Integer executionAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
+public void registerShipment(Integer warehouseAggregateId, ShipmentDto shipmentDto, UnitOfWork unitOfWork) {
     // [P3] guard — validates DTO field assembled by preceding saga step
-    Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
-            executionAggregateId, unitOfWork);
+    Warehouse oldWarehouse = (Warehouse) unitOfWorkService.aggregateLoadAndRegisterRead(
+            warehouseAggregateId, unitOfWork);
 
-    if (!userDto.isActive()) {
-        throw new {AppClass}Exception(INACTIVE_USER, userDto.getAggregateId());
+    if (!shipmentDto.isActive()) {
+        throw new {AppClass}Exception(INACTIVE_SHIPMENT, shipmentDto.getAggregateId());
     }
 
     // copy-on-write: mutations go on the new version, not the loaded one
-    Execution newExecution = courseExecutionFactory.createCourseExecutionCopy(oldExecution);
-    newExecution.addStudent(new CourseExecutionStudent(userDto));
+    Warehouse newWarehouse = warehouseFactory.createWarehouseCopy(oldWarehouse);
+    newWarehouse.addShipment(new WarehouseShipment(shipmentDto));
 
-    unitOfWorkService.registerChanged(newExecution, unitOfWork);
+    unitOfWorkService.registerChanged(newWarehouse, unitOfWork);
 }
 ```
 
@@ -125,16 +125,16 @@ After `registerChanged`, register the event. The event is persisted atomically w
 
 ```java
 @Transactional(isolation = Isolation.SERIALIZABLE)
-public void removeCourseExecution(Integer executionAggregateId, UnitOfWork unitOfWork) {
-    Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
-            executionAggregateId, unitOfWork);
-    Execution newExecution = courseExecutionFactory.createCourseExecutionCopy(oldExecution);
+public void removeWarehouse(Integer warehouseAggregateId, UnitOfWork unitOfWork) {
+    Warehouse oldWarehouse = (Warehouse) unitOfWorkService.aggregateLoadAndRegisterRead(
+            warehouseAggregateId, unitOfWork);
+    Warehouse newWarehouse = warehouseFactory.createWarehouseCopy(oldWarehouse);
 
-    newExecution.remove();   // sets state = DELETED
+    newWarehouse.remove();   // sets state = DELETED
 
-    unitOfWorkService.registerChanged(newExecution, unitOfWork);
+    unitOfWorkService.registerChanged(newWarehouse, unitOfWork);
     unitOfWorkService.registerEvent(
-            new DeleteCourseExecutionEvent(newExecution.getAggregateId()), unitOfWork);
+            new DeleteWarehouseEvent(newWarehouse.getAggregateId()), unitOfWork);
 }
 ```
 
@@ -144,26 +144,26 @@ When a saga updates an aggregate that contains a sub-collection, but cannot reco
 
 ```java
 @Transactional(isolation = Isolation.SERIALIZABLE)
-public void updateTournament(Integer tournamentAggregateId, TournamentDto tournamentDto,
-                             Set<QuizQuestion> quizQuestions,  // may be null
-                             UnitOfWork unitOfWork) {
-    Tournament oldTournament = (Tournament) unitOfWorkService
-            .aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
-    Tournament newTournament = tournamentFactory.createTournamentCopy(oldTournament);
+public void updateShipment(Integer shipmentAggregateId, ShipmentDto shipmentDto,
+                           Set<ShipmentItem> shipmentItems,  // may be null
+                           UnitOfWork unitOfWork) {
+    Shipment oldShipment = (Shipment) unitOfWorkService
+            .aggregateLoadAndRegisterRead(shipmentAggregateId, unitOfWork);
+    Shipment newShipment = shipmentFactory.createShipmentCopy(oldShipment);
 
-    if (tournamentDto.getStartTime() != null) {
-        newTournament.setStartTime(tournamentDto.getStartTime());
+    if (shipmentDto.getStartTime() != null) {
+        newShipment.setStartTime(shipmentDto.getStartTime());
     }
     // ...
-    if (quizQuestions != null) {          // skip if caller couldn't reconstruct sub-objects
-        newTournament.setQuizQuestions(quizQuestions);
+    if (shipmentItems != null) {          // skip if caller couldn't reconstruct sub-objects
+        newShipment.setShipmentItems(shipmentItems);
     }
 
-    unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    unitOfWorkService.registerChanged(newShipment, unitOfWork);
 }
 ```
 
-**When to use:** The calling saga fetches an upstream aggregate's DTO but that DTO only returns IDs for sub-objects (e.g. `QuizDto.questionIds`). Fetching each sub-object individually would require N extra command steps and is disproportionate when the update intent covers only scalar fields. Passing `null` and guarding the setter keeps the update intent explicit without polluting the saga with unnecessary reads.
+**When to use:** The calling saga fetches an upstream aggregate's DTO but that DTO only returns IDs for sub-objects (e.g. `WarehouseDto.shipmentIds`). Fetching each sub-object individually would require N extra command steps and is disproportionate when the update intent covers only scalar fields. Passing `null` and guarding the setter keeps the update intent explicit without polluting the saga with unnecessary reads.
 
 **When not to use:** If the sub-collection update is the primary intent of the operation (the caller always has the data), make the parameter non-null and remove the guard — a missing `null` check is then a silent data loss bug.
 
@@ -176,26 +176,26 @@ Never mutate the aggregate instance returned by `aggregateLoadAndRegisterRead`. 
 **Soft-delete (`remove()`) — use copy-on-write:** Even for soft-delete, always create a factory copy before calling `remove()`:
 
 ```java
-Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
-Course newCourse = courseFactory.createCourseCopy(oldCourse);
-newCourse.remove();
-unitOfWorkService.registerChanged(newCourse, unitOfWork);
+Warehouse oldWarehouse = (Warehouse) unitOfWorkService.aggregateLoadAndRegisterRead(warehouseAggregateId, unitOfWork);
+Warehouse newWarehouse = warehouseFactory.createWarehouseCopy(oldWarehouse);
+newWarehouse.remove();
+unitOfWorkService.registerChanged(newWarehouse, unitOfWork);
 ```
 
-**Sub-collection clearing before `remove()`:** When an aggregate's `verifyInvariants()` enforces a rule like "must have no members when deleted" (e.g., `TOURNAMENT_DELETE` requires `participants.isEmpty()` when `state == DELETED`), clear the collection on the copy *before* calling `remove()`:
+**Sub-collection clearing before `remove()`:** When an aggregate's `verifyInvariants()` enforces a rule like "must have no members when deleted" (e.g., `SHIPMENT_DELETE` requires `items.isEmpty()` when `state == DELETED`), clear the collection on the copy *before* calling `remove()`:
 
 ```java
-Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(
-        tournamentAggregateId, unitOfWork);
-Tournament newTournament = tournamentFactory.createTournamentCopy(oldTournament);
-newTournament.setParticipants(new HashSet<>());   // satisfy TOURNAMENT_DELETE invariant
-newTournament.remove();
-unitOfWorkService.registerChanged(newTournament, unitOfWork);
+Shipment oldShipment = (Shipment) unitOfWorkService.aggregateLoadAndRegisterRead(
+        shipmentAggregateId, unitOfWork);
+Shipment newShipment = shipmentFactory.createShipmentCopy(oldShipment);
+newShipment.setItems(new HashSet<>());   // satisfy SHIPMENT_DELETE invariant
+newShipment.remove();
+unitOfWorkService.registerChanged(newShipment, unitOfWork);
 ```
 
 This is required when two invariants interact: a deletion invariant checks a collection, and a cancellation invariant forbids mutations on cancelled aggregates. The clear step satisfies the deletion invariant before `remove()` fires `verifyInvariants()`.
 
-**Why copy-on-write is required here:** If you call `remove()` on the managed JPA entity returned by `aggregateLoadAndRegisterRead`, JPA marks that entity dirty immediately. Before the saga abort path can run its `findNonDeletedSagaAggregate` JPQL query, JPA may auto-flush the dirty state — setting the aggregate's state to `DELETED` in the DB. The abort query then finds nothing (it filters `state != DELETED`), causing the abort to fail silently. Copy-on-write keeps the original managed entity unmodified; only the new (unmanaged) copy carries the `DELETED` state, so the abort query always succeeds. This problem surfaces specifically when `verifyInvariants()` contains a rule that checks `state == DELETED` (e.g., `REMOVE_NO_STUDENTS`): the abort path re-loads the aggregate and calls `verifyInvariants`, which fires the check — but JPA's auto-flush has already written the `DELETED` state, so the invariant throws a `SimulatorException` instead of the expected application exception.
+**Why copy-on-write is required here:** If you call `remove()` on the managed JPA entity returned by `aggregateLoadAndRegisterRead`, JPA marks that entity dirty immediately. Before the saga abort path can run its `findNonDeletedSagaAggregate` JPQL query, JPA may auto-flush the dirty state — setting the aggregate's state to `DELETED` in the DB. The abort query then finds nothing (it filters `state != DELETED`), causing the abort to fail silently. Copy-on-write keeps the original managed entity unmodified; only the new (unmanaged) copy carries the `DELETED` state, so the abort query always succeeds. This problem surfaces specifically when `verifyInvariants()` contains a rule that checks `state == DELETED` (e.g., `REMOVE_NO_ITEMS`): the abort path re-loads the aggregate and calls `verifyInvariants`, which fires the check — but JPA's auto-flush has already written the `DELETED` state, so the invariant throws a `SimulatorException` instead of the expected application exception.
 
 > **Rule:** Soft-delete goes through copy-on-write like any other mutation, unconditionally — not only where an invariant is known to check `state == DELETED`. In-place `remove()` appears to work whenever an aggregate's invariants happen not to fire on the abort path, so a service that mutates in place is a latent bug that surfaces the moment such an invariant is added.
 
@@ -209,12 +209,12 @@ A Functionality method receives saga-assembled DTOs from preceding steps. Never 
 
 ## Partial-Data Owned Entities
 
-When a service method creates an owned entity (e.g. `QuestionAnswer`) and one of its constructor fields cannot be derived from the DTOs available at that point in the implementation order, initialize that field to `null` as a placeholder:
+When a service method creates an owned entity (e.g. `ShipmentItem`) and one of its constructor fields cannot be derived from the DTOs available at that point in the implementation order, initialize that field to `null` as a placeholder:
 
 ```java
-// TODO: correct cannot be determined from QuestionDto — no correctness data
-// available until Tournament (session 2.8) is implemented.
-new QuestionAnswer(questionId, sequenceChoice, /*correct=*/ null);
+// TODO: inStock cannot be determined from WarehouseDto — no stock data
+// available until Inventory (session 2.8) is implemented.
+new ShipmentItem(warehouseId, sequenceNumber, /*inStock=*/ null);
 ```
 
 Rules:
@@ -229,14 +229,14 @@ Rules:
 **Always throw exceptions with the raw error-message constant and no format arguments**, unless the constant string contains a `%` placeholder that must be filled in and the test assertion checks the formatted value.
 
 ```java
-// Correct — test can assert: ex.message == TOURNAMENT_ALREADY_CANCELLED
-throw new {AppClass}Exception(TOURNAMENT_ALREADY_CANCELLED);
+// Correct — test can assert: ex.message == SHIPMENT_ALREADY_CANCELLED
+throw new {AppClass}Exception(SHIPMENT_ALREADY_CANCELLED);
 
 // Avoid unless the test expects the formatted string, not the constant
-throw new {AppClass}Exception(TOURNAMENT_ALREADY_CANCELLED, tournamentId);
+throw new {AppClass}Exception(SHIPMENT_ALREADY_CANCELLED, shipmentId);
 ```
 
-**Why:** Test assertions use `ex.message == CONSTANT` (raw format string comparison). When a format argument is passed, `getMessage()` returns the interpolated string (e.g., `"Tournament 42 is already cancelled"`), not the literal constant `"TOURNAMENT_ALREADY_CANCELLED"`, breaking the equality check. Only use format args when the assertion explicitly verifies the interpolated value.
+**Why:** Test assertions use `ex.message == CONSTANT` (raw format string comparison). When a format argument is passed, `getMessage()` returns the interpolated string (e.g., `"Shipment 42 is already cancelled"`), not the literal constant `"SHIPMENT_ALREADY_CANCELLED"`, breaking the equality check. Only use format args when the assertion explicitly verifies the interpolated value.
 
 ---
 
@@ -247,13 +247,13 @@ throw new {AppClass}Exception(TOURNAMENT_ALREADY_CANCELLED, tournamentId);
 **JPQL pattern:**
 
 ```java
-@Query("select t from Tournament t " +
-       "where t.state = 'ACTIVE' " +
-       "and t.version = (select max(t2.version) from Tournament t2 where t2.aggregateId = t.aggregateId)")
-List<Tournament> findAllLatestActive();
+@Query("select s from Shipment s " +
+       "where s.state = 'ACTIVE' " +
+       "and s.version = (select max(s2.version) from Shipment s2 where s2.aggregateId = s.aggregateId)")
+List<Shipment> findAllLatestActive();
 ```
 
-**When to add this:** Whenever a custom repository method performs a bulk read (returns multiple aggregate instances) — e.g., `findAll`, `findAllByExecutionId`, `findAllOpen`. Scoped reads via `aggregateLoadAndRegisterRead` are unaffected (they already load the latest version).
+**When to add this:** Whenever a custom repository method performs a bulk read (returns multiple aggregate instances) — e.g., `findAll`, `findAllByWarehouseId`, `findAllOpen`. Scoped reads via `aggregateLoadAndRegisterRead` are unaffected (they already load the latest version).
 
 Add the JPQL method to `{Aggregate}Repository.java` (JPA repo interface) and call it from `{Aggregate}CustomRepositorySagas` — never call `jpaRepo.findAll()` directly in bulk-read implementations.
 

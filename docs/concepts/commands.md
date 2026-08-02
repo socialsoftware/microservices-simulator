@@ -9,25 +9,25 @@ Commands are the messages that cross the boundary between the Functionality laye
 A `Command` subclass carries the inputs for one service operation. It holds the unit of work, the target service name, the primary aggregate ID (passed to `super(...)`), and any domain-specific payload fields.
 
 ```java
-public class AddParticipantCommand extends Command {
-    private Integer tournamentAggregateId;
-    private UserDto userDto;
+public class AddShipmentItemCommand extends Command {
+    private Integer shipmentAggregateId;
+    private WarehouseDto warehouseDto;
 
-    public AddParticipantCommand(UnitOfWork unitOfWork, String serviceName,
-                                  Integer tournamentAggregateId, UserDto userDto) {
-        super(unitOfWork, serviceName, tournamentAggregateId);
-        this.tournamentAggregateId = tournamentAggregateId;
-        this.userDto = userDto;
+    public AddShipmentItemCommand(UnitOfWork unitOfWork, String serviceName,
+                                  Integer shipmentAggregateId, WarehouseDto warehouseDto) {
+        super(unitOfWork, serviceName, shipmentAggregateId);
+        this.shipmentAggregateId = shipmentAggregateId;
+        this.warehouseDto = warehouseDto;
     }
 
-    public Integer getTournamentAggregateId() { return tournamentAggregateId; }
-    public UserDto getUserDto() { return userDto; }
+    public Integer getShipmentAggregateId() { return shipmentAggregateId; }
+    public WarehouseDto getWarehouseDto() { return warehouseDto; }
 }
 ```
 
 `super(unitOfWork, serviceName, aggregateId)`:
 - `unitOfWork` — the active `SagaUnitOfWork` for this workflow execution.
-- `serviceName` — the routing key. Always `ServiceMapping.{AGGREGATE}.getServiceName()` (e.g. `ServiceMapping.TOURNAMENT.getServiceName()` → `"tournament"`), never a hardcoded literal and never `getAggregateTypeName()`'s PascalCase value — see § Routing Commands below for why the two differ.
+- `serviceName` — the routing key. Always `ServiceMapping.{AGGREGATE}.getServiceName()` (e.g. `ServiceMapping.SHIPMENT.getServiceName()` → `"shipment"`), never a hardcoded literal and never `getAggregateTypeName()`'s PascalCase value — see § Routing Commands below for why the two differ.
 - `aggregateId` — stored on the base `Command` as `rootAggregateId`. It is the aggregate whose
   **semantic lock lifecycle** this command participates in. It has no consumers in the `unitOfWork`
   package; under sagas it is read only by `SagaCommandHandler`, for
@@ -47,8 +47,8 @@ Commands are plain data carriers — no business logic, no Spring beans.
 
 | Purpose | Pattern | Example |
 |---------|---------|---------|
-| Read command | `Get<Xxx>Command` | `GetTournamentByIdCommand` |
-| Mutate command | `<Operation><Xxx>Command` | `AddParticipantCommand`, `RemoveCourseExecutionCommand` |
+| Read command | `Get<Xxx>Command` | `GetShipmentByIdCommand` |
+| Mutate command | `<Operation><Xxx>Command` | `AddShipmentItemCommand`, `RemoveWarehouseCommand` |
 | Event-driven update | `Update<Field>Command` | `UpdateUserNameCommand` |
 
 ---
@@ -71,8 +71,8 @@ Each application defines a `ServiceMapping` enum that maps aggregate names to th
 
 ```java
 public enum ServiceMapping {
-    TOURNAMENT("tournament"),
-    EXECUTION("execution"),
+    SHIPMENT("shipment"),
+    WAREHOUSE("warehouse"),
     // ...
     ;
     private final String serviceName;
@@ -81,12 +81,12 @@ public enum ServiceMapping {
 }
 ```
 
-> **Multi-word aggregates — camelCase required:** The framework derives the commit/abort service bean at runtime by calling `resolveServiceName(aggregateClass)`, which strips "Saga" from the simple class name and lowercases the first character. For multi-word aggregates this produces camelCase: `SagaQuizAnswer` → `"quizAnswer"`. The `ServiceMapping` value **must** match this result exactly. A shortened alias (e.g. `"answer"`) causes a silent bean-lookup failure that only manifests when the aggregate is locked via `SagaCommand` at runtime. Example of a correct entry:
+> **Multi-word aggregates — camelCase required:** The framework derives the commit/abort service bean at runtime by calling `resolveServiceName(aggregateClass)`, which strips "Saga" from the simple class name and lowercases the first character. For multi-word aggregates this produces camelCase: `SagaShipmentItem` → `"shipmentItem"`. The `ServiceMapping` value **must** match this result exactly. A shortened alias (e.g. `"item"`) causes a silent bean-lookup failure that only manifests when the aggregate is locked via `SagaCommand` at runtime. Example of a correct entry:
 > ```java
-> QUIZ_ANSWER("quizAnswer"),  // SagaQuizAnswer → resolveServiceName → "quizAnswer"
+> SHIPMENT_ITEM("shipmentItem"),  // SagaShipmentItem → resolveServiceName → "shipmentItem"
 > ```
 
-Pass `ServiceMapping.TOURNAMENT.getServiceName()` as the `serviceName` argument to a command constructor.
+Pass `ServiceMapping.SHIPMENT.getServiceName()` as the `serviceName` argument to a command constructor.
 
 ---
 
@@ -96,24 +96,24 @@ Inside a saga step, dispatch a command with `commandGateway.send(...)`. The retu
 
 ```java
 // Read step — returns a DTO
-SagaStep getExecutionStep = new SagaStep("getExecutionStep", () -> {
-    GetCourseExecutionByIdCommand cmd = new GetCourseExecutionByIdCommand(
+SagaStep getWarehouseStep = new SagaStep("getWarehouseStep", () -> {
+    GetWarehouseByIdCommand cmd = new GetWarehouseByIdCommand(
             unitOfWork,
-            ServiceMapping.EXECUTION.getServiceName(),
-            executionAggregateId);
-    this.executionDto = (CourseExecutionDto) commandGateway.send(cmd);
+            ServiceMapping.WAREHOUSE.getServiceName(),
+            warehouseAggregateId);
+    this.warehouseDto = (WarehouseDto) commandGateway.send(cmd);
 });
 
-// Mutate step — depends on getExecutionStep; sets forbiddenStates for Sagas
-SagaStep addParticipantStep = new SagaStep("addParticipantStep", () -> {
-    AddParticipantCommand cmd = new AddParticipantCommand(
+// Mutate step — depends on getWarehouseStep; sets forbiddenStates for Sagas
+SagaStep addShipmentItemStep = new SagaStep("addShipmentItemStep", () -> {
+    AddShipmentItemCommand cmd = new AddShipmentItemCommand(
             unitOfWork,
-            ServiceMapping.TOURNAMENT.getServiceName(),
-            tournamentAggregateId,
-            this.executionDto);
-    cmd.setForbiddenStates(List.of(TournamentSagaState.IN_UPDATE_TOURNAMENT));
+            ServiceMapping.SHIPMENT.getServiceName(),
+            shipmentAggregateId,
+            this.warehouseDto);
+    cmd.setForbiddenStates(List.of(ShipmentSagaState.IN_UPDATE_SHIPMENT));
     commandGateway.send(cmd);
-}, List.of(getExecutionStep));
+}, List.of(getWarehouseStep));
 ```
 
 **Commands travel upstream only (R8).** A saga may only send commands to aggregates it depends on, never to an aggregate that depends on it — downstream aggregates learn of changes through events, not commands. See [`sagas.md`](sagas.md) § Step Ordering.
@@ -126,25 +126,25 @@ Each aggregate has one `CommandHandler` that receives all commands for that aggr
 
 ```java
 @Component
-public class TournamentCommandHandler extends CommandHandler {
+public class ShipmentCommandHandler extends CommandHandler {
 
     @Autowired
-    private TournamentService tournamentService;
+    private ShipmentService shipmentService;
 
     @Override
     public String getAggregateTypeName() {
         // PascalCase, used for decorator lookup - not the routing key (see below)
-        return "Tournament";
+        return "Shipment";
     }
 
     @Override
     public Object handleDomainCommand(Command command) {
         return switch (command) {
-            case GetTournamentByIdCommand cmd -> tournamentService.getTournamentById(
+            case GetShipmentByIdCommand cmd -> shipmentService.getShipmentById(
                     cmd.getAggregateId(), cmd.getUnitOfWork());
-            case AddParticipantCommand cmd -> {
-                tournamentService.addParticipant(
-                        cmd.getTournamentAggregateId(), cmd.getUserDto(), cmd.getUnitOfWork());
+            case AddShipmentItemCommand cmd -> {
+                shipmentService.addShipmentItem(
+                        cmd.getShipmentAggregateId(), cmd.getWarehouseDto(), cmd.getUnitOfWork());
                 yield null;
             }
             // ... one case per command
@@ -157,9 +157,9 @@ public class TournamentCommandHandler extends CommandHandler {
 }
 ```
 
-`getAggregateTypeName()` returns a PascalCase name (e.g. `"Course"`) used by `CommandHandlerDecorator` for decorator lookup — it is **not** the routing key.
+`getAggregateTypeName()` returns a PascalCase name (e.g. `"Warehouse"`) used by `CommandHandlerDecorator` for decorator lookup — it is **not** the routing key.
 
-**Actual routing:** `LocalCommandService.send()` resolves the handler via `applicationContext.getBean(command.getServiceName() + "CommandHandler")`. The Spring bean name of the `CommandHandler` **must** equal `ServiceMapping.{AGGREGATE}.getServiceName() + "CommandHandler"` (e.g. `"courseCommandHandler"`). The `@Bean` method in `BeanConfigurationSagas` must use that exact lowercase camelCase name. For multi-word aggregates this is a camelCase name — e.g. the bean method for QuizAnswer must be named `quizAnswerCommandHandler`, not `answerCommandHandler`.
+**Actual routing:** `LocalCommandService.send()` resolves the handler via `applicationContext.getBean(command.getServiceName() + "CommandHandler")`. The Spring bean name of the `CommandHandler` **must** equal `ServiceMapping.{AGGREGATE}.getServiceName() + "CommandHandler"` (e.g. `"warehouseCommandHandler"`). The `@Bean` method in `BeanConfigurationSagas` must use that exact lowercase camelCase name. For multi-word aggregates this is a camelCase name — e.g. the bean method for ShipmentItem must be named `shipmentItemCommandHandler`, not `itemCommandHandler`.
 
 Mutating handlers return `null`; read handlers return the DTO produced by the service method.
 
@@ -167,28 +167,28 @@ Mutating handlers return `null`; read handlers return the DTO produced by the se
 
 ## Known DTO Gaps and Compensating Command Steps
 
-Some DTOs returned by upstream service commands are structurally incomplete — they carry enough data for display or enrollment checks but omit fields (such as `version`) that a saga needs to construct a dependent aggregate. When this happens, insert an extra command step to fetch the missing data rather than inferring or hardcoding it.
+Some DTOs returned by upstream service commands are structurally incomplete — they carry enough data for display or membership checks but omit fields (such as `version`) that a saga needs to construct a dependent aggregate. When this happens, insert an extra command step to fetch the missing data rather than inferring or hardcoding it.
 
-### `ExecutionStudentDto` lacks `version`
+### A nested member DTO lacks `version`
 
-`ExecutionStudentDto` (returned as part of `CourseExecutionDto.students`) does not carry a `version` field. Any saga that needs to record a user's `version` when creating or modifying an aggregate that embeds user data (e.g. `Tournament.creator`, `Tournament.participants`) cannot derive the version from the enrollment check step alone.
+A DTO nested inside an owning aggregate's DTO (e.g. `WarehouseSlotDto`, returned as part of `WarehouseDto.slots`) may not carry a `version` field. Any saga that needs to record the member aggregate's `version` when creating or modifying an aggregate that embeds a snapshot of it (e.g. `Shipment.origin`, `Shipment.items`) cannot derive the version from the membership-check step alone.
 
-**Compensating pattern:** insert a dedicated `GetUserByIdCommand` step immediately after the enrollment-check step to retrieve the full `UserDto`, which does carry `version`:
+**Compensating pattern:** insert a dedicated `Get{Publisher}ByIdCommand` step immediately after the membership-check step to retrieve the full publisher DTO, which does carry `version`:
 
 ```java
-// Step 1 — verify creator is enrolled (returns CourseExecutionDto)
-SagaStep getExecutionStep = new SagaStep("getExecutionStep", () -> {
-    this.executionDto = (CourseExecutionDto) commandGateway.send(
-            new GetCourseExecutionByIdCommand(unitOfWork,
-                    ServiceMapping.EXECUTION.getServiceName(), executionAggregateId));
+// Step 1 — verify the referenced member belongs to the owner (returns WarehouseDto)
+SagaStep getWarehouseStep = new SagaStep("getWarehouseStep", () -> {
+    this.warehouseDto = (WarehouseDto) commandGateway.send(
+            new GetWarehouseByIdCommand(unitOfWork,
+                    ServiceMapping.WAREHOUSE.getServiceName(), warehouseAggregateId));
 });
 
-// Step 2 — fetch full UserDto so we have the version field
-SagaStep getCreatorUserStep = new SagaStep("getCreatorUserStep", () -> {
-    this.creatorDto = (UserDto) commandGateway.send(
-            new GetUserByIdCommand(unitOfWork,
-                    ServiceMapping.USER.getServiceName(), creatorAggregateId));
-}, List.of(getExecutionStep));
+// Step 2 — fetch the full CarrierDto so we have the version field
+SagaStep getOriginCarrierStep = new SagaStep("getOriginCarrierStep", () -> {
+    this.carrierDto = (CarrierDto) commandGateway.send(
+            new GetCarrierByIdCommand(unitOfWork,
+                    ServiceMapping.CARRIER.getServiceName(), carrierAggregateId));
+}, List.of(getWarehouseStep));
 ```
 
-Name the step `getCreatorUserStep` for the tournament creator pattern, or `getUserStep` for the add-participant pattern. The `UserDto` returned by `GetUserByIdCommand` carries `version` and can be passed directly to the downstream command.
+Name the step after the role the fetched aggregate plays in the operation (`getOriginCarrierStep` when it is the single owner-like reference, `get{Publisher}Step` when it is one of many members). The DTO returned by `Get{Publisher}ByIdCommand` carries `version` and can be passed directly to the downstream command.

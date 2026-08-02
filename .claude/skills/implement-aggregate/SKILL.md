@@ -104,8 +104,8 @@ Read `.claude/skills/_shared/conventions.md` § "Resolve app context" and derive
 
 From plan.md, find the aggregate details section for aggregate number `{N}`:
 - Section header pattern: `### {N}. {Aggregate}` or `### {N}. {AggregateName}`
-- `{Aggregate}` = the aggregate name in PascalCase (e.g., `Tournament`)
-- `{aggregate}` = lowercase version (e.g., `tournament`)
+- `{Aggregate}` = the aggregate name in PascalCase (e.g., `Warehouse`)
+- `{aggregate}` = lowercase version (e.g., `warehouse`)
 
 Derive standard path prefixes:
 - `{src}` = `applications/{app-name}/src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/`

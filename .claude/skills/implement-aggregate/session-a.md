@@ -26,7 +26,7 @@ Load these files before writing any code:
    - That all T1 cases go via direct construction/mutation + `verifyInvariants()` — never through the service
    - The test class location and naming convention
 
-3. ***(Conditional)*** If the aggregate section in plan.md lists snapshot fields copied from an upstream aggregate (e.g., cached `courseId` from Course, or `name`/`username` from User): read the domain files of those upstream aggregates from `{src}microservices/{upstreamAggregate}/aggregate/` — only the field declarations you need to copy. Do not read the whole upstream codebase.
+3. ***(Conditional)*** If the aggregate section in plan.md lists snapshot fields copied from an upstream aggregate (e.g., cached `warehouseId` from Warehouse, or `code`/`carrier` from Shipment): read the domain files of those upstream aggregates from `{src}microservices/{upstreamAggregate}/aggregate/` — only the field declarations you need to copy. Do not read the whole upstream codebase.
 
 ---
 
@@ -72,7 +72,7 @@ Path: `{src}microservices/{aggregate}/aggregate/{Entity}.java`
 - Fields matching the domain model
 - Constructor, getters, setters
 - **Bidirectional `@OneToOne` (aggregate → entity):** If the aggregate side uses `@OneToOne(mappedBy = "{entityField}")`, this entity class holds the owning side: declare a plain `@OneToOne {Aggregate} {aggregate}` field (no `mappedBy`) with a getter/setter. The aggregate's setter for this entity must call `entity.set{Aggregate}(this)` to wire the back-reference before persisting.
-- **Nested entity-to-entity `@OneToOne` (entity owns a sub-entity):** When an owned entity itself exclusively owns one sub-entity (e.g., `TournamentParticipant → TournamentParticipantQuizAnswer`), use a unidirectional `@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)` on the outer entity — no `mappedBy`, no back-reference field on the sub-entity unless explicitly needed. The outer entity's copy constructor must deep-copy the sub-entity via `new SubEntity(existing.getSubEntity())`.
+- **Nested entity-to-entity `@OneToOne` (entity owns a sub-entity):** When an owned entity itself exclusively owns one sub-entity (e.g., `ShipmentItem → ShipmentItemLabel`), use a unidirectional `@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)` on the outer entity — no `mappedBy`, no back-reference field on the sub-entity unless explicitly needed. The outer entity's copy constructor must deep-copy the sub-entity via `new SubEntity(existing.getSubEntity())`.
 
 ### Domain enums
 

@@ -31,7 +31,7 @@ Load these files before writing any code:
 
 6. **`docs/concepts/testing.md`** — § T2 — Service Test (including § Not-Found Paths for the Path A / Path B rule of thumb), § T4 — Functionality Test, and § Assertion Ownership. T1 (aggregate) and T3 subscription (inter-invariant) tests are not produced in this session.
 
-7. ***(Conditional)*** If any read functionality joins data from an upstream aggregate (e.g., a "get with details" that includes Course name alongside Execution): read that upstream aggregate's service file to understand what it returns.
+7. ***(Conditional)*** If any read functionality joins data from an upstream aggregate (e.g., a "get with details" that includes Warehouse name alongside Shipment): read that upstream aggregate's service file to understand what it returns.
 
 ---
 
@@ -58,7 +58,7 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
   - **By primary key (the normal case):** `{aggregate}Factory.create{Aggregate}Dto(({Aggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork))`. Do not add a not-found guard — the infrastructure throws `SimulatorException` when the ID does not resolve. This is the Path A that the T2 not-found case below asserts.
   - **By composite / non-PK key:** query `{Aggregate}CustomRepository`, and throw `{AppClass}Exception` with the domain-specific not-found constant when the `Optional` is empty. This is Path B.
 - If the read joins a foreign aggregate: fetch the foreign aggregate's DTO via its service and include in the response
-- **List-return reads**: If the read returns a collection (e.g., all open tournaments for an execution), the service method iterates all matching aggregate instances. Use a JPQL "latest-active-version" query rather than `jpaRepo.findAll()` — `findAll()` returns every historical version, not just the current one. Add `findAllLatestActive()` (or a narrower variant) to the JPA repository interface and call it from `{Aggregate}CustomRepositorySagas`. See `docs/concepts/service.md` — "Custom Repository — Latest-Active-Version Query" for the JPQL pattern.
+- **List-return reads**: If the read returns a collection (e.g., all open shipments for a warehouse), the service method iterates all matching aggregate instances. Use a JPQL "latest-active-version" query rather than `jpaRepo.findAll()` — `findAll()` returns every historical version, not just the current one. Add `findAllLatestActive()` (or a narrower variant) to the JPA repository interface and call it from `{Aggregate}CustomRepositorySagas`. See `docs/concepts/service.md` — "Custom Repository — Latest-Active-Version Query" for the JPQL pattern.
 
   The service method then maps each matching aggregate to a DTO via `aggregateLoadAndRegisterRead`.
 
@@ -85,10 +85,10 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySag
 - See `docs/concepts/sagas.md` — "Read Functionality Sagas" section for the full class template
 
 > **One-step vs two-step read saga decision:**
-> - **One step** — when every filter criterion is stored directly on the aggregate (e.g., `executionAggregateId` is a field on `Tournament`). The saga sends one command and returns the result; no foreign-ID resolution is needed.
-> - **Two steps** — when the filter parameter is a foreign aggregate's ID that must be resolved to a different field before the primary query can run (e.g., `executionId → courseAggregateId`).
+> - **One step** — when every filter criterion is stored directly on the aggregate (e.g., `warehouseAggregateId` is a field on `Shipment`). The saga sends one command and returns the result; no foreign-ID resolution is needed.
+> - **Two steps** — when the filter parameter is a foreign aggregate's ID that must be resolved to a different field before the primary query can run (e.g., `shipmentId → warehouseAggregateId`).
 >
-> **Two-step read saga:** If the read's filter parameter is a foreign aggregate's ID that must be resolved before the primary read command can be sent (e.g., `executionId → courseAggregateId`), use a two-step saga instead:
+> **Two-step read saga:** If the read's filter parameter is a foreign aggregate's ID that must be resolved before the primary read command can be sent (e.g., `shipmentId → warehouseAggregateId`), use a two-step saga instead:
 > - Step 1: fetch the foreign aggregate DTO (plain read step, no compensation needed)
 > - Step 2: send the primary read command using the resolved field from step 1 (declare step 1 as a dependency)
 >

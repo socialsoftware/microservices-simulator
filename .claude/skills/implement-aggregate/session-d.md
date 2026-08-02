@@ -46,21 +46,21 @@ Produce every file listed in the plan.md `2.{N}.d` row. plan.md is a blueprint, 
 Path: `{src}microservices/{aggregate}/notification/subscribe/{Aggregate}Subscribes{Event}.java`
 
 - Extends `EventSubscription` (from simulator core)
-- Constructor: calls `super(anchorRef.getAnchorAggregateId(), anchorRef.getAnchorVersion(), {EventName}.class.getSimpleName())`. The anchor is the owning/parent aggregate whose ID and version are stored in the cached reference (e.g., for `UpdateTopicEvent` subscribed by `Question`, the anchor is the `QuestionTopic` reference that holds `topicAggregateId` and `topicVersion`).
+- Constructor: calls `super(anchorRef.getAnchorAggregateId(), anchorRef.getAnchorVersion(), {EventName}.class.getSimpleName())`. The anchor is the owning/parent aggregate whose ID and version are stored in the cached reference (e.g., for `UpdateWarehouseEvent` subscribed by `Shipment`, the anchor is the `ShipmentWarehouse` reference that holds `warehouseAggregateId` and `warehouseVersion`).
 - Empty default constructor: `public {Aggregate}Subscribes{Event}() {}`
 - In the **sagas profile**, matching is done by the infrastructure via a DB query on `subscribedAggregateId` and `subscribedVersion` — `EventApplicationService.handleSubscribedEvent()` does **not** call `subscribesEvent()`. Overriding it for sagas event filtering has no effect; any additional filtering must go in the service-layer ByEvent method (see "Shared-anchor events" below). (The TCC profile's `CausalUnitOfWork` does call `subscribesEvent()` for causal consistency checks, but that is out of scope here.)
 
 #### Shared-anchor events: service-layer filtering
 
-When a deletion event is anchored on a **collection-owner** aggregate (e.g., `DisenrollStudentFromCourseExecutionEvent` anchored on `executionAggregateId`), **every** consumer aggregate for that owner receives the event — even those that belong to a different member. The subscription infrastructure cannot distinguish them because it only filters by anchor ID.
+When a deletion event is anchored on a **collection-owner** aggregate (e.g., `RemoveShipmentFromWarehouseEvent` anchored on `warehouseAggregateId`), **every** consumer aggregate for that owner receives the event — even those that belong to a different member. The subscription infrastructure cannot distinguish them because it only filters by anchor ID.
 
-In these cases the discriminating check (e.g., `userId`) must happen inside the service ByEvent method before taking action:
+In these cases the discriminating check (e.g., `shipmentId`) must happen inside the service ByEvent method before taking action:
 
 ```java
 // In {Aggregate}Service:
-public void removeIfUserMatches(Integer aggregateId, Integer userId, UnitOfWork unitOfWork) {
+public void removeIfShipmentMatches(Integer aggregateId, Integer shipmentId, UnitOfWork unitOfWork) {
     {Aggregate} aggregate = get{Aggregate}ById(aggregateId, unitOfWork);
-    if (!aggregate.getUserId().equals(userId)) {
+    if (!aggregate.getShipmentId().equals(shipmentId)) {
         return; // not the affected consumer — ignore silently
     }
     aggregate.remove();
@@ -131,7 +131,7 @@ public class {Aggregate}EventProcessing {
 
 #### "ByEvent" methods in Functionalities — mandatory pattern
 
-For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateStudentName`, `anonymizeStudent`, `removeStudentFromExecution`), add a separate `{operation}ByEvent` method to `{Aggregate}Functionalities`. The full pattern — method body, `sagaState != NOT_IN_SAGA` guard, where the guard goes (after load, not in the shared service method), and when it may be skipped — is documented in `docs/concepts/events.md` § ByEvent sagaState guard. Follow that section.
+For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `archiveWarehouse`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `{Aggregate}Functionalities`. The full pattern — method body, `sagaState != NOT_IN_SAGA` guard, where the guard goes (after load, not in the shared service method), and when it may be skipped — is documented in `docs/concepts/events.md` § ByEvent sagaState guard. Follow that section.
 
 The `{operation}ByEvent` **Functionalities** method is always new — one per event, per `events.md` § ByEvent sagaState guard. The **service** method it delegates to is shared with the saga path: reuse the existing `{Aggregate}Service` mutate method whenever one already performs exactly this mutation. Write a new service helper (pure mutation + `verifyInvariants()`, no saga) only when no existing service method does — typically when the event updates a cached field that no saga operation touches. Never move the `sagaState` guard into the shared service method; it belongs in the ByEvent method after the load, or saga steps calling the same service method are silently skipped.
 
@@ -141,30 +141,30 @@ When the inbound event signals that a publisher aggregate has been deleted, choo
 
 | Case | When to use | Action in the ByEvent method |
 |------|-------------|------------------------------|
-| **Remove sub-entity from collection** | The deleted entity is one member of a collection and the consumer remains valid with it absent (e.g., `DeleteTopicEvent` removing one topic from a `Question`'s topic list) | Remove the sub-entity from the collection; do **not** call `remove()` on the aggregate |
-| **Invalidate the whole consumer** | The deleted entity is structurally required for the consumer to function (e.g., `DeleteQuestionEvent` for a `Quiz`, `DeleteCourseExecutionEvent` for a `Quiz`) | Call `copy.remove()` to mark the consumer `DELETED`; publish an outbound invalidation event so downstream aggregates can react (see `docs/concepts/events.md` — Cascade Invalidation Pattern) |
+| **Remove sub-entity from collection** | The deleted entity is one member of a collection and the consumer remains valid with it absent (e.g., `DeleteLabelEvent` removing one label from a `Shipment`'s label list) | Remove the sub-entity from the collection; do **not** call `remove()` on the aggregate |
+| **Invalidate the whole consumer** | The deleted entity is structurally required for the consumer to function (e.g., `DeleteShipmentEvent` for a `ShipmentItem`, `DeleteWarehouseEvent` for a `Shipment`) | Call `copy.remove()` to mark the consumer `DELETED`; publish an outbound invalidation event so downstream aggregates can react (see `docs/concepts/events.md` — Cascade Invalidation Pattern) |
 
 The distinguishing question is: *can this consumer aggregate still fulfil its purpose if the referenced entity is gone?* If the answer is no, invalidate the whole consumer.
 
-#### UpdateQuestionEvent for consumers that cache only `questionVersion`
+#### `Update{Publisher}Event` for consumers that cache only `{publisher}Version`
 
-If the consumer aggregate caches no question payload (no title, no content — only a `questionVersion` field on a sub-entity like `QuestionAnswer`), the `UpdateQuestionEvent` subscription exists solely to update that version field:
+If the consumer aggregate caches no publisher payload (no name, no description — only a `warehouseVersion` field on a sub-entity like `ShipmentWarehouse`), the `UpdateWarehouseEvent` subscription exists solely to update that version field:
 
 ```java
 // In {Aggregate}Service:
-public void updateQuestionVersionIn{SubEntity}(Integer aggregateId, Integer questionAggregateId,
-                                               Integer publisherVersion, UnitOfWork unitOfWork) {
+public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer warehouseAggregateId,
+                                                Integer publisherVersion, UnitOfWork unitOfWork) {
     {Aggregate} aggregate = get{Aggregate}ById(aggregateId, unitOfWork);
     aggregate.get{SubEntities}().stream()
-        .filter(e -> e.getQuestionAggregateId().equals(questionAggregateId))
+        .filter(e -> e.getWarehouseAggregateId().equals(warehouseAggregateId))
         .findFirst()
-        .ifPresent(e -> e.setQuestionVersion(publisherVersion));
+        .ifPresent(e -> e.setWarehouseVersion(publisherVersion));
     aggregate.verifyInvariants();
     unitOfWorkService.registerChanged(aggregate, unitOfWork);
 }
 ```
 
-The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the question aggregate at the time the event was emitted).
+The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the publisher aggregate at the time the event was emitted).
 
 ### `{Aggregate}InterInvariantTest.groovy` (T3 subscription)
 
@@ -172,11 +172,11 @@ Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
 
 - Extends `{AppClass}SpockTest`
 - **Two tests per subscribed event type:**
-  1. **Reflects event** — create the aggregate, publish the event for the enrolled/owned entity, call the polling method directly, assert the effect. Assert the new cached-field value against what the event payload specifies (from `plan.md`'s subscribed events table) — not by reading what `EventProcessing` does:
-     - **Field-update events** (e.g., `UpdateStudentNameEvent`): assert the cached field is updated on the aggregate
-     - **Sub-entity removal events** (e.g., `DeleteTopicEvent`): assert the sub-entity is removed from the aggregate's collection
-     - **Whole-consumer deletion events** (e.g., `DeleteQuestionEvent` / `DeleteCourseExecutionEvent` received by `Quiz`): the consumer aggregate is marked `DELETED` — follow the deletion-event pattern in `testing.md` § T3 — Subscription (Inter-Invariant) Test.
-  2. **Ignores unrelated** — enroll entity A, publish the same event for an unrelated entity B, call the polling method directly, assert entity A's cached data is unchanged. Follow `testing.md` § T3 for where to capture the original value.
+  1. **Reflects event** — create the aggregate, publish the event for the cached/owned entity, call the polling method directly, assert the effect. Assert the new cached-field value against what the event payload specifies (from `plan.md`'s subscribed events table) — not by reading what `EventProcessing` does:
+     - **Field-update events** (e.g., `UpdateWarehouseNameEvent`): assert the cached field is updated on the aggregate
+     - **Sub-entity removal events** (e.g., `DeleteLabelEvent`): assert the sub-entity is removed from the aggregate's collection
+     - **Whole-consumer deletion events** (e.g., `DeleteShipmentEvent` / `DeleteWarehouseEvent` received by `ShipmentItem`): the consumer aggregate is marked `DELETED` — follow the deletion-event pattern in `testing.md` § T3 — Subscription (Inter-Invariant) Test.
+  2. **Ignores unrelated** — cache entity A on the aggregate, publish the same event for an unrelated entity B, call the polling method directly, assert entity A's cached data is unchanged. Follow `testing.md` § T3 for where to capture the original value.
 - **Invariant-violation tests**: if processing the event causes `verifyInvariants()` to throw, assert the exception is raised with the correct error message and that the event is not marked as processed (event-processing outcome). This is an event-processing assertion — not a re-test of the P1 predicate itself (the predicate's violation cases belong in `{Aggregate}IntraInvariantTest.groovy`, T1 Aggregate tier).
 - Both the "reflects" and "ignores unrelated" tests are required for every subscribed event type
 

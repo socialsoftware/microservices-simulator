@@ -62,19 +62,19 @@ applications/{app-name}/
 
 | Layer | Pattern | Example |
 |-------|---------|---------|
-| Aggregate root | `{Aggregate}.java` | `Tournament.java` |
-| Sagas extension | `Saga{Aggregate}.java` | `SagaTournament.java` |
-| Saga state enum | `{Aggregate}SagaState.java` | `TournamentSagaState.java` |
-| Factory | `Sagas{Aggregate}Factory.java` | `SagasTournamentFactory.java` |
-| Custom repository | `{Aggregate}CustomRepositorySagas.java` | `TournamentCustomRepositorySagas.java` |
-| Service | `{Aggregate}Service.java` | `TournamentService.java` |
-| Command handler | `{Aggregate}CommandHandler.java` | `TournamentCommandHandler.java` |
-| Write functionality | `{Operation}FunctionalitySagas.java` | `AddParticipantFunctionalitySagas.java` |
-| Read functionality | `{Query}FunctionalitySagas.java` | `GetOpenedTournamentsFunctionalitySagas.java` |
-| Event subscription | `{Aggregate}Subscribes{Event}.java` | `TournamentSubscribesUpdateStudentName.java` |
-| Event handling | `{Aggregate}EventHandling.java` | `TournamentEventHandling.java` |
-| Event handler | `{Aggregate}EventHandler.java` | `TournamentEventHandler.java` |
-| Event processing | `{Aggregate}EventProcessing.java` | `TournamentEventProcessing.java` |
+| Aggregate root | `{Aggregate}.java` | `Shipment.java` |
+| Sagas extension | `Saga{Aggregate}.java` | `SagaShipment.java` |
+| Saga state enum | `{Aggregate}SagaState.java` | `ShipmentSagaState.java` |
+| Factory | `Sagas{Aggregate}Factory.java` | `SagasShipmentFactory.java` |
+| Custom repository | `{Aggregate}CustomRepositorySagas.java` | `ShipmentCustomRepositorySagas.java` |
+| Service | `{Aggregate}Service.java` | `ShipmentService.java` |
+| Command handler | `{Aggregate}CommandHandler.java` | `ShipmentCommandHandler.java` |
+| Write functionality | `{Operation}FunctionalitySagas.java` | `AddShipmentItemFunctionalitySagas.java` |
+| Read functionality | `{Query}FunctionalitySagas.java` | `GetOpenShipmentsFunctionalitySagas.java` |
+| Event subscription | `{Aggregate}Subscribes{Event}.java` | `ShipmentSubscribesUpdateWarehouseName.java` |
+| Event handling | `{Aggregate}EventHandling.java` | `ShipmentEventHandling.java` |
+| Event handler | `{Aggregate}EventHandler.java` | `ShipmentEventHandler.java` |
+| Event processing | `{Aggregate}EventProcessing.java` | `ShipmentEventProcessing.java` |
 
 ### Test naming
 
@@ -103,7 +103,7 @@ Illustrative excerpt (one row of the Implementation Order table):
 ```markdown
 | # | Aggregate | Upstream deps | Events published | Events subscribed | Sessions |
 |---|-----------|--------------|-----------------|-------------------|---------|
-| 1 | Course    | —            | —               | —                 | a b c   |
+| 1 | Warehouse | —            | —               | —                 | a b c   |
 ```
 
 > Sessions column: `a`=domain, `b`=read functionalities, `c`=write functionalities,
@@ -254,7 +254,7 @@ ticked, the retro is written to:
 
 `applications/{app-name}/retros/retro-{session-id}-{Aggregate}.md`
 
-Example: `applications/{app-name}/retros/retro-2.3.b-Tournament.md`
+Example: `applications/{app-name}/retros/retro-2.3.b-Shipment.md`
 
 A single commit covering the implementation files, the retro file and any `harness-log.md` rows is
 then issued automatically, in the message format defined in `session-completion.md` § "Commit".

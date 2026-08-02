@@ -20,12 +20,12 @@ Each saga aggregate has a corresponding `XxxSagaState` enum located at `microser
 
 States encode the semantic lock meaning:
 ```java
-public enum CourseExecutionSagaState implements SagaAggregate.SagaState {
-    IN_ADD_PARTICIPANT("IN_ADD_PARTICIPANT"),
-    IN_UPDATE_TOURNAMENT("IN_UPDATE_TOURNAMENT");
+public enum WarehouseSagaState implements SagaAggregate.SagaState {
+    IN_ADD_SHIPMENT("IN_ADD_SHIPMENT"),
+    IN_UPDATE_WAREHOUSE("IN_UPDATE_WAREHOUSE");
 
     private final String stateName;
-    CourseExecutionSagaState(String stateName) { this.stateName = stateName; }
+    WarehouseSagaState(String stateName) { this.stateName = stateName; }
 
     @Override
     public String getStateName() { return stateName; }
@@ -48,20 +48,20 @@ Write sagas that must lock the primary aggregate before mutating it use a two-st
 
 ```java
 // Step 1: acquire lock
-SagaStep getCourseStep = new SagaStep("getCourseStep", () -> {
-    GetCourseByIdCommand readCmd = new GetCourseByIdCommand(
-            unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId);
+SagaStep getWarehouseStep = new SagaStep("getWarehouseStep", () -> {
+    GetWarehouseByIdCommand readCmd = new GetWarehouseByIdCommand(
+            unitOfWork, ServiceMapping.WAREHOUSE.getServiceName(), warehouseAggregateId);
     SagaCommand sagaCommand = new SagaCommand(readCmd);
-    sagaCommand.setSemanticLock(CourseSagaState.IN_UPDATE_COURSE);
-    this.courseDto = (CourseDto) commandGateway.send(sagaCommand);
+    sagaCommand.setSemanticLock(WarehouseSagaState.IN_UPDATE_WAREHOUSE);
+    this.warehouseDto = (WarehouseDto) commandGateway.send(sagaCommand);
 });
 
 // Step 2: mutate (plain command, no SagaCommand wrapper)
-SagaStep updateCourseStep = new SagaStep("updateCourseStep", () -> {
-    UpdateCourseCommand cmd = new UpdateCourseCommand(
-            unitOfWork, ServiceMapping.COURSE.getServiceName(), courseAggregateId, name);
+SagaStep updateWarehouseStep = new SagaStep("updateWarehouseStep", () -> {
+    UpdateWarehouseCommand cmd = new UpdateWarehouseCommand(
+            unitOfWork, ServiceMapping.WAREHOUSE.getServiceName(), warehouseAggregateId, name);
     commandGateway.send(cmd);
-}, new ArrayList<>(Arrays.asList(getCourseStep)));
+}, new ArrayList<>(Arrays.asList(getWarehouseStep)));
 ```
 
 Contrast with plain `setForbiddenStates(...)` (shown below): that checks whether an existing lock blocks this operation, but does **not** set a new lock. `SagaCommand` + `setSemanticLock(...)` both checks and transitions atomically.
@@ -84,12 +84,12 @@ How the automatic release works:
 A step acquires a lock by setting the saga state on the command:
 
 ```java
-SagaStep addParticipantStep = new SagaStep("addParticipantStep", () -> {
+SagaStep addShipmentItemStep = new SagaStep("addShipmentItemStep", () -> {
     List<SagaAggregate.SagaState> states = new ArrayList<>();
-    states.add(TournamentSagaState.IN_UPDATE_TOURNAMENT);
+    states.add(ShipmentSagaState.IN_UPDATE_SHIPMENT);
 
-    AddParticipantCommand cmd = new AddParticipantCommand(...);
-    cmd.setForbiddenStates(states);   // abort if tournament is IN_UPDATE_TOURNAMENT
+    AddShipmentItemCommand cmd = new AddShipmentItemCommand(...);
+    cmd.setForbiddenStates(states);   // abort if the shipment is IN_UPDATE_SHIPMENT
     commandGateway.send(cmd);
 }, dependencies);
 ```
@@ -151,7 +151,7 @@ return saga.get{Aggregate}Dto();
 
 ### List-return read variant
 
-When a read functionality returns multiple aggregates (e.g., all topics for a course), the result field is `List<{Aggregate}Dto>`, the cast is `(List<{Aggregate}Dto>)`, and the getter returns the list:
+When a read functionality returns multiple aggregates (e.g., all shipments for a warehouse), the result field is `List<{Aggregate}Dto>`, the cast is `(List<{Aggregate}Dto>)`, and the getter returns the list:
 
 ```java
 public class Get{Aggregates}By{Field}FunctionalitySagas extends WorkflowFunctionality {
@@ -196,7 +196,7 @@ return saga.get{Aggregates}();
 
 ### Two-step read saga variant
 
-When a read functionality's filter parameter is a foreign aggregate's ID (e.g., `executionId`) that must be resolved to the primary aggregate's actual filter field (e.g., `courseAggregateId`), use a two-step saga:
+When a read functionality's filter parameter is a foreign aggregate's ID (e.g., `shipmentId`) that must be resolved to the primary aggregate's actual filter field (e.g., `warehouseAggregateId`), use a two-step saga:
 
 - **Step 1** — fetch the foreign aggregate DTO (plain read, no lock, no compensation).
 - **Step 2** — send the primary read command with the resolved field; declare step 1 as a dependency.
@@ -367,7 +367,7 @@ Note that the compensation removes a real side effect, which is exactly the remi
 
 The typical step order inside a write `FunctionalitySagas` class is:
 
-1. *(Conditional)* **Validate-dates step** — if the saga creates or updates an aggregate with `startTime`/`endTime` fields **and** a later step also creates/updates a downstream aggregate that independently validates dates (e.g., a Quiz), add a dedicated `validateDatesStep` as the very first step to check date constraints on the primary aggregate's DTO. If omitted, the downstream aggregate's date invariant fires first and masks the primary aggregate's date error, making the wrong exception surface to tests.
+1. *(Conditional)* **Validate-dates step** — if the saga creates or updates an aggregate with `startTime`/`endTime` fields **and** a later step also creates/updates a downstream aggregate that independently validates dates (e.g., a Shipment), add a dedicated `validateDatesStep` as the very first step to check date constraints on the primary aggregate's DTO. If omitted, the downstream aggregate's date invariant fires first and masks the primary aggregate's date error, making the wrong exception surface to tests.
 2. **Data-assembly steps** — fetch DTOs from upstream aggregates (required for P4a and P3 DTO-check rules listed in plan.md cross-aggregate prerequisites).
 3. **Primary lock step** — wrap the read command in `SagaCommand` and call `setSemanticLock(state)` on the primary aggregate. See § Lock-Acquisition Step Pattern. Do **not** register a compensation to release the lock — the core releases it automatically on abort (see § Semantic-lock release on abort is automatic). Do **not** use `setForbiddenStates` for primary-aggregate lock acquisition.
 4. **Execute step** — send a plain (unwrapped) command to `{Aggregate}CommandHandler`; declare the lock step as a dependency.
@@ -382,8 +382,8 @@ The typical step order inside a write `FunctionalitySagas` class is:
 ## Write Workflow Structure
 
 ```java
-public class AddParticipantFunctionalitySagas extends WorkflowFunctionality {
-    public AddParticipantFunctionalitySagas(..., SagaUnitOfWork unitOfWork, ...) {
+public class AddShipmentItemFunctionalitySagas extends WorkflowFunctionality {
+    public AddShipmentItemFunctionalitySagas(..., SagaUnitOfWork unitOfWork, ...) {
         this.buildWorkflow(..., unitOfWork);
     }
 
@@ -413,16 +413,16 @@ Aggregate (abstract)
         └── SagaXxx implements SagaAggregate
 ```
 
-Example: `Execution (abstract) → SagaExecution implements SagaAggregate`
+Example: `Warehouse (abstract) → SagaWarehouse implements SagaAggregate`
 
-`SagaExecution` holds the `sagaState` field and implements `get/setSagaState()`.
+`SagaWarehouse` holds the `sagaState` field and implements `get/setSagaState()`.
 
 ## Naming Conventions
 
 | Layer | Pattern | Example |
 |-------|---------|---------|
-| Saga class | `SagaXxx` | `SagaExecution` |
-| Saga state enum | `XxxSagaState` | `CourseExecutionSagaState` |
-| Functionality | `XxxFunctionalitySagas` | `AddParticipantFunctionalitySagas` |
-| Factory | `SagasXxxFactory` | `SagasExecutionFactory` |
-| Repository | `XxxCustomRepositorySagas` | `CourseExecutionCustomRepositorySagas` |
+| Saga class | `SagaXxx` | `SagaWarehouse` |
+| Saga state enum | `XxxSagaState` | `WarehouseSagaState` |
+| Functionality | `XxxFunctionalitySagas` | `AddShipmentItemFunctionalitySagas` |
+| Factory | `SagasXxxFactory` | `SagasWarehouseFactory` |
+| Repository | `XxxCustomRepositorySagas` | `WarehouseCustomRepositorySagas` |

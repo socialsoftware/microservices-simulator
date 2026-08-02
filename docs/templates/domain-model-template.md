@@ -14,11 +14,11 @@
 |---|---|---|
 | **{EntityName}** | `{field}: {Type}` (immutable?), `{field}: {Type}` | {OwnedChild} × N, or — |
 
-> **Owns** — value objects with no independent identity; created and deleted with the entity. When an owned value object has more than one field, give it its own row in the table (e.g., `TournamentParticipant` owned by `Tournament`).
+> **Owns** — value objects with no independent identity; created and deleted with the entity. When an owned value object has more than one field, give it its own row in the table (e.g., `ShipmentItem` owned by `Shipment`).
 > **immutable** — add this annotation to any field that must not change after creation.
 > **technical** — add this annotation to fields that exist for implementation reasons (e.g. `lastModifiedTime`), not domain reasons.
 > **default:** — annotate attributes with non-null initial values (e.g. `active: Boolean (default: false)`).
-> **Enum types** — list valid values inline (e.g. `type: CourseType (VALUE_A \| VALUE_B)`).
+> **Enum types** — list valid values inline (e.g. `type: {EntityName}Type (VALUE_A \| VALUE_B)`).
 > **Soft-delete state** — do **not** add a `state` field to any entity row. The simulator's `Aggregate` base class provides `state: AggregateState` (`ACTIVE`, `INACTIVE`, `DELETED`) and sets it via `remove()`. Rules predicate on `Entity.state == DELETED` using this inherited field.
 
 ---

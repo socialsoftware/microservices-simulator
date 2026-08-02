@@ -97,11 +97,11 @@ security. This checklist is the authoritative smell list, consumed by
 
 | Rule shape | Example invariant | On-point (no throw) | Off-point (throws) |
 |---|---|---|---|
-| `count > 0` | `NUMBER_OF_QUESTIONS_POSITIVE` | `1` | `0` |
-| `count <= N` | `MAX_QUESTIONS` (N=30) | `30` | `31` |
+| `count > 0` | `NUMBER_OF_ITEMS_POSITIVE` | `1` | `0` |
+| `count <= N` | `MAX_ITEMS` (N=30) | `30` | `31` |
 | `a < b` (timestamps) | `START_BEFORE_END_TIME` | `end − 1 tick` | `start == end` |
-| `a >= b` (timestamps) | `ANSWER_BEFORE_START` | `firstAnswerTime == startTime` | `startTime − 1 tick` |
-| `size >= 1` | `MUST_HAVE_ONE_TOPIC` | `1` | `0` |
+| `a >= b` (timestamps) | `DISPATCH_BEFORE_START` | `firstDispatchTime == startTime` | `startTime − 1 tick` |
+| `size >= 1` | `MUST_HAVE_ONE_LABEL` | `1` | `0` |
 
 **Temporal mechanics:** the smallest `LocalDateTime` tick is `.minusNanos(1)` / `.plusNanos(1)`;
 pin **both** instants explicitly so the on-point is exactly equal. All temporal P1 boundary cases
@@ -121,7 +121,7 @@ happy-path postconditions, events-published list, subscribed-events table, and P
 *are* the spec — assertions must trace to them, never to the implementation just written (not the
 service body, not the `EventProcessing` class). Write a 1-line `// Spec:` comment at the top of
 each test naming the plan.md section and rule, e.g.
-`// Spec: plan.md §3.5 Question — UpdateQuestionContent; rule QUESTION_CONTENT_REQUIRED`.
+`// Spec: plan.md §3.5 Shipment — UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED`.
 If the implementation disagrees (e.g. throws a different message constant than plan.md names), the
 **implementation** is the bug: flag the mismatch, do not adjust the test.
 
@@ -264,7 +264,7 @@ Two distinct not-found paths throw different exception types — **read the serv
   an ID; the infrastructure throws `SimulatorException`
   (`pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException`).
 - **Path B — composite-key lookup.** The service first queries a custom repository returning
-  `Optional` (e.g. `quizId + userId`) and throws on empty at the service level: expect
+  `Optional` (e.g. `warehouseId + shipmentId`) and throws on empty at the service level: expect
   `<App>Exception` with `ex.message == <NOT_FOUND_CONSTANT>`.
 
 ## T3 — Subscription (Inter-Invariant) Test
@@ -494,8 +494,8 @@ though it's deterministic/single-threaded.
 Two concurrent operations on overlapping aggregates must either produce a consistent result or
 correctly reject one via semantic locks (`setForbiddenStates` guard transitions). One test per
 functionality pair sharing an aggregate with real consistency risk. Includes guard/forbidden-state
-coverage, e.g. `UpdateStudentNameFunctionalitySagas`'s `updateUserNameStep` guards against
-`UserSagaState.READ_USER`.
+coverage, e.g. `UpdateWarehouseNameFunctionalitySagas`'s `updateWarehouseNameStep` guards against
+`WarehouseSagaState.READ_WAREHOUSE`.
 
 ```groovy
 def "concurrent: <op1> step1 → <op2> completes → <op1> resumes"() {
