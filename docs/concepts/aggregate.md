@@ -101,8 +101,23 @@ is declared `interface AggregateRepository extends JpaRepository<Aggregate, Inte
 `{Aggregate}Repository` extends it bare. Any JPQL a subinterface adds is written against the
 concrete aggregate class (`select a from {Aggregate} a where ...`), not against a type parameter.
 
+```java
+@Service
+@Profile("sagas")
+public class {Aggregate}CustomRepositorySagas implements {Aggregate}CustomRepository {
+    @Autowired
+    private {Aggregate}Repository {aggregate}Repository;
+
+    // One method per signature declared on {Aggregate}CustomRepository, each delegating
+    // to a @Query method on {Aggregate}Repository. Empty until a service method needs one.
+}
+```
+
 `{Aggregate}CustomRepositorySagas` does **not** extend `SagaAggregateRepository`. It is a Spring
 `@Service`, not a JPA repository interface.
+
+For the JPQL these methods delegate to — including the latest-active-version filter most custom
+queries need — see [`service.md`](service.md) § Custom Repository — Latest-Active-Version Query.
 
 `SagaAggregateRepository`
 (`simulator/.../ms/transaction/sagas/aggregate/SagaAggregateRepository.java`) is framework-internal.

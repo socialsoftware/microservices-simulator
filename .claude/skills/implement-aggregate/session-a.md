@@ -159,7 +159,7 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/repositories/{Aggregate}Cu
 
 - `@Service @Profile("sagas") public class {Aggregate}CustomRepositorySagas implements {Aggregate}CustomRepository`
 - Has an `@Autowired {Aggregate}Repository {aggregate}Repository` field
-- Add custom JPQL query method implementations only as needed; for aggregates with no cross-table lookups, the class body can be left empty beyond the autowired repository
+- **Leave the class body empty** beyond the autowired repository. Session `a` has no service methods yet, so which queries are needed is not yet knowable. Sessions `b` and `c` add a method here when a service method they write requires one — each addition paired with the matching signature on `{Aggregate}CustomRepository`.
 
 ### `{Aggregate}Repository.java`
 

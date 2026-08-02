@@ -35,6 +35,24 @@ unitOfWorkService.registerEvent(new XxxEvent(entityId, anchorAggregateId), unitO
 
 The event is persisted when the UoW commits.
 
+**Choosing the anchor id.** The second argument is the **publisher aggregate id** — the id
+subscribers match on. For an event about a child entity, this is the *parent aggregate's* id, not
+the child's. Getting it wrong is silent: the event publishes, no subscription matches, and the
+consumer never updates.
+
+```java
+// WRONG — anchored on the child entity's own id; no subscriber matches on it
+unitOfWorkService.registerEvent(
+        new Update{Entity}Event({entity}.getId(), {entity}.getId()), unitOfWork);
+
+// RIGHT — anchored on the owning aggregate; the payload still carries the child id
+unitOfWorkService.registerEvent(
+        new Update{Entity}Event({entity}.getId(), {aggregate}.getAggregateId()), unitOfWork);
+```
+
+The subscriber side of this contract is `subscribedAggregateId` — see § EventSubscription, where the
+same id must appear.
+
 ## EventSubscription
 
 Each subscriber aggregate declares which events it watches via `getEventSubscriptions()`. Located in `microservices/<aggregate>/notification/subscribe/`.

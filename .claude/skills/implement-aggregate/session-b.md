@@ -152,12 +152,23 @@ write-method and event-publication cases. For each read service method added thi
 
 ## Update BeanConfigurationSagas.groovy
 
-Open `{bean-config}` and add new `@Bean` methods for the three classes this session creates:
+Open `{bean-config}` and add new `@Bean` methods for the three classes this session creates.
+
+The service constructor takes a **closed list**, fixed by `docs/concepts/service.md` § Injected
+Dependencies: own repository, own custom repository, own factory, `UnitOfWorkService` (raw, no type
+argument), `AggregateIdGeneratorService`. Nothing else — a foreign service or foreign repository
+violates R1/R2. Inject factories and repositories through their abstract interfaces, never the
+concrete `Sagas*` classes. Omit any of the five the service genuinely does not use.
 
 ```groovy
 @Bean
-{Aggregate}Service {aggregate}Service(...) {  // inject repos and other services as needed
-    return new {Aggregate}Service(...)
+{Aggregate}Service {aggregate}Service({Aggregate}Repository {aggregate}Repository,
+                                      {Aggregate}CustomRepository {aggregate}CustomRepository,
+                                      {Aggregate}Factory {aggregate}Factory,
+                                      UnitOfWorkService unitOfWorkService,
+                                      AggregateIdGeneratorService aggregateIdGeneratorService) {
+    return new {Aggregate}Service({aggregate}Repository, {aggregate}CustomRepository,
+            {aggregate}Factory, unitOfWorkService, aggregateIdGeneratorService)
 }
 
 @Bean
