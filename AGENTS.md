@@ -4,7 +4,7 @@ This file is the entry point for the automated agent harness that implements thi
 
 **What this harness does:** it generates a simulator application from a domain-model + aggregate-grouping spec pair, aggregate by aggregate.
 
-**Architecture principle:** The current implementation targets the sagas consistency pattern only, but must remain **profile-agnostic at the service layer**. Concretely: `*Service` classes inject factories and repositories via abstract interfaces (e.g. `CourseFactory`, `CourseCustomRepository`), never via the concrete sagas-profile classes (e.g. `SagasCourseFactory`). This keeps the door open to adding a TCC or other pattern later without touching service code.
+**Architecture principle:** The current implementation targets the sagas consistency pattern only, but must remain **profile-agnostic at the service layer**. Concretely: `*Service` classes inject factories and repositories via abstract interfaces (e.g. `WarehouseFactory`, `WarehouseCustomRepository`), never via the concrete sagas-profile classes (e.g. `SagasWarehouseFactory`). This keeps the door open to adding a TCC or other pattern later without touching service code.
 
 Docs and skills are **living artifacts**, edited both between runs and during them - see
 § Harness evolution for the two gates that govern in-run edits.
