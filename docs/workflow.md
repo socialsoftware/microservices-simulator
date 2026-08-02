@@ -31,6 +31,7 @@ applications/{app-name}/
     │   └── microservices/
     │       ├── exception/             ← {App}Exception.java + {App}ErrorMessage.java
     │       └── {aggregate}/           ← one subpackage per aggregate
+    │           ├── {Aggregate}ServiceApplication.java
     │           ├── aggregate/
     │           │   └── sagas/
     │           │       ├── factories/
@@ -39,7 +40,8 @@ applications/{app-name}/
     │           ├── coordination/
     │           │   ├── eventProcessing/
     │           │   ├── functionalities/
-    │           │   └── sagas/
+    │           │   ├── sagas/
+    │           │   └── webapi/
     │           ├── messaging/
     │           ├── notification/
     │           │   ├── handling/

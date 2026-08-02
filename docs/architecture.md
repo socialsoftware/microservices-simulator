@@ -80,8 +80,6 @@ microservices/{serviceName}/
 │   └── eventProcessing/                            ← optional: only if aggregate consumes events
 │       └── {Xxx}EventProcessing.java
 └── notification/                                   ← optional: only if aggregate consumes events
-    ├── api/
-    │   └── {Xxx}EventController.java
     ├── handling/
     │   ├── {Xxx}EventHandling.java                 (polling loop)
     │   └── handlers/

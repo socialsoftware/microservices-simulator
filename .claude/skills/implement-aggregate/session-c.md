@@ -132,17 +132,12 @@ Follow the template in `docs/concepts/testing.md` § T2 — Service Test. Invoke
 `*Service` bean directly with a `UnitOfWork` — no saga workflow, no `{Aggregate}Functionalities`.
 
 - Extends `{AppClass}SpockTest`
-- **Per write service method, a happy path**: call the service with a fresh UnitOfWork, then read
-  back **through a second, fresh UnitOfWork** (via the read service method or
-  `aggregateLoadAndRegisterRead`) and assert the persisted fields. Reading back through the same
-  UnitOfWork instance used for the write is **Fake** — it never exercises the load path.
-- **Kill-mutation check (after each happy path):** Ask "if `unitOfWorkService.registerChanged(aggregate)`
-  were removed from the service, would my test still pass?" If yes, the test does not verify
-  persistence — the `then:` must read back through the fresh UnitOfWork, not from a local variable.
+- **Per write service method, a happy path**, per `testing.md` § T2 — Service Test (read-back rules)
+  and § Fake / Wrong / Weak Detection Checklist (fresh-UnitOfWork and kill-mutation smells).
 - **Uniqueness / composite-key guard cases**: one per P3 own-table or DTO-check guard in the
   service method.
-- **P3 numeric-guard boundaries**: on-point (`notThrown`) / off-point (`thrown` + `ex.message ==
-  {RULE_NAME}`) pairs per ordered-domain P3 guard (see testing.md § Choosing Input Values).
+- **P3 numeric-guard boundaries**: one on-point/off-point pair per ordered-domain P3 guard, per
+  `testing.md` § Choosing Input Values — EP & BVA.
 - **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy`
   (session a, T1).
 - `// Spec:` comment on every test naming the plan.md section and rule (see Spec-First note below).
