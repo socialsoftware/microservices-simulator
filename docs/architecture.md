@@ -181,13 +181,18 @@ A service may accept and return `{Xxx}Dto` objects belonging to any aggregate. I
 
 ---
 
-### R4 — Saga steps that mutate a pre-existing aggregate must declare `forbiddenStates`
+### R4 — Saga steps that touch a pre-existing aggregate must declare their lock intent
 
-In the Sagas protocol, any step that mutates an aggregate **that already exists when the saga starts** must list the `SagaState` values of concurrent operations that would conflict. Omitting `forbiddenStates` allows two operations to interleave in ways that violate business rules.
+In the Sagas protocol, a step that touches an aggregate **that already exists when the saga starts** must declare how it guards against concurrent operations. Which mechanism applies depends on the aggregate's relationship to the saga:
+
+- **Primary aggregate** (the one owning this saga) — wrap the *read* command in `SagaCommand` and call `setSemanticLock(state)` on it. The mutate step that follows sends a plain, unwrapped command and declares the lock step as a dependency. Do not use `forbiddenStates` to acquire a primary-aggregate lock.
+- **Foreign aggregate** (an upstream aggregate a cross-aggregate step touches) — send a plain command with `setForbiddenStates([...])`, listing the `SagaState` values of concurrent operations that would conflict. This checks that the foreign aggregate is not already mid-saga; it does not acquire a lock.
+
+Declaring neither lets two operations interleave in ways that violate business rules.
 
 The scope is deliberate. A step that **creates** an aggregate has no prior state to guard: nothing else can hold a lock on an aggregate whose id the service has not minted yet. Such a step declares neither a semantic lock nor `forbiddenStates`, and instead registers a compensation that removes what it created if and only if a later step follows it. See [`concepts/sagas.md`](concepts/sagas.md) § "Create Functionality Sagas".
 
-See [`concepts/sagas.md`](concepts/sagas.md) for how semantic locks are acquired and checked.
+[`concepts/sagas.md`](concepts/sagas.md) § "R4 Decision Table" is authoritative for which of the three cases applies, and § "Lock-Acquisition Step Pattern" shows how semantic locks are acquired and checked.
 
 ---
 

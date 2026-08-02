@@ -136,7 +136,7 @@ would most naturally be enforced:
 | R1 — service loads only own aggregate | `docs/concepts/service.md`, session-b.md, session-c.md | ... | ... | ... |
 | R2 — service injects only own components | `docs/concepts/service.md`, session-b.md, session-c.md | ... | ... | ... |
 | R3 — cross-aggregate flow via DTOs only | `docs/concepts/service.md`, session-b.md, session-c.md | ... | ... | ... |
-| R4 — setForbiddenStates on mutating saga steps | `docs/concepts/sagas.md`, session-c.md | ... | ... | ... |
+| R4 — saga steps declare lock intent (semantic lock vs forbiddenStates) | `docs/concepts/sagas.md`, session-c.md | ... | ... | ... |
 | R5 — getEventSubscriptions in consumer only | `docs/concepts/events.md`, session-d.md | ... | ... | ... |
 | R6 — verifyInvariants must not read from DB | `docs/concepts/aggregate.md`, session-a.md | ... | ... | ... |
 | R7 — DTOs are immutable value objects | `docs/concepts/service.md`, session-b.md, session-c.md | ... | ... | ... |

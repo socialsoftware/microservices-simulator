@@ -21,7 +21,6 @@ Each saga aggregate has a corresponding `XxxSagaState` enum located at `microser
 States encode the semantic lock meaning:
 ```java
 public enum CourseExecutionSagaState implements SagaAggregate.SagaState {
-    NOT_IN_SAGA("NOT_IN_SAGA"),
     IN_ADD_PARTICIPANT("IN_ADD_PARTICIPANT"),
     IN_UPDATE_TOURNAMENT("IN_UPDATE_TOURNAMENT");
 
@@ -32,6 +31,13 @@ public enum CourseExecutionSagaState implements SagaAggregate.SagaState {
     public String getStateName() { return stateName; }
 }
 ```
+
+The quiescent state is `GenericSagaState.NOT_IN_SAGA`, supplied by the framework and set in the
+`Saga{Aggregate}` constructor - never redeclare it in the per-aggregate enum. A second constant of
+that name is not identity-equal to the framework's, which breaks the
+`sagaStateOf(id) == GenericSagaState.NOT_IN_SAGA` assertions required by
+[`testing.md`](testing.md) § T4 and § Compensation Test. This enum holds operation-specific locked
+states only.
 
 ## Lock-Acquisition Step Pattern (Two-Step Write Sagas)
 
