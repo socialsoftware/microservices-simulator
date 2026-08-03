@@ -391,6 +391,18 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 }
 ```
 
+**`commandGateway` is not inherited.** Neither `SpockTest` nor `<AppName>SpockTest` declares it, so a
+lock-acquisition test that constructs its saga directly must declare the field itself:
+
+```groovy
+@Autowired
+<Concrete>CommandGateway commandGateway
+```
+
+Use the **concrete** gateway type registered by `BeanConfigurationSagas`, not the `CommandGateway`
+interface: the test profile registers more than one implementation, so injection by the interface type
+is ambiguous and fails at context startup.
+
 ### Compensation Test
 
 When a write saga acquires a semantic lock and a **later** step in the same saga throws, the lock
