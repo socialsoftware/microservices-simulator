@@ -27,4 +27,6 @@ public final class QuizzesFull2ErrorMessage {
     public static final String CANNOT_MODIFY_INACTIVE_AGGREGATE = "Cannot update aggregate %d because it is INACTIVE.";
 
     public static final String PLACEHOLDER = "placeholder";
+
+    public static final String USER_DELETED_STATE = "A deleted user cannot be active";
 }

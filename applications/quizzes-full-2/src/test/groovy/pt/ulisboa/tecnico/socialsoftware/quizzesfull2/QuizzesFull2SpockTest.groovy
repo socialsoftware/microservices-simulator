@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggre
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseType
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.functionalities.CourseFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.service.CourseService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
 
 class QuizzesFull2SpockTest extends SpockTest {
 
@@ -24,6 +25,11 @@ class QuizzesFull2SpockTest extends SpockTest {
     public static final Integer COURSE_AGGREGATE_ID = 1
     public static final String COURSE_NAME = "Software Engineering"
     public static final CourseType COURSE_TYPE = CourseType.TECNICO
+
+    public static final Integer USER_AGGREGATE_ID = 2
+    public static final String USER_NAME = "Alice Smith"
+    public static final String USER_USERNAME = "alice"
+    public static final Role USER_ROLE = Role.STUDENT
 
     @Autowired
     public ImpairmentService impairmentService
