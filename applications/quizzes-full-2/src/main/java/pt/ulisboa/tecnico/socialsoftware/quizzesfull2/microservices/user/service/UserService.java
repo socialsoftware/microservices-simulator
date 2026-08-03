@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.ActivateUserEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.AnonymizeStudentEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.DeleteUserEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.domain.QuizzesFull2DomainConstants;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.User;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserCustomRepository;
@@ -98,8 +99,8 @@ public class UserService {
         User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
         User newUser = userFactory.createUserCopy(oldUser);
 
-        newUser.setName(User.ANONYMOUS);
-        newUser.setUsername(User.ANONYMOUS);
+        newUser.setName(QuizzesFull2DomainConstants.ANONYMOUS);
+        newUser.setUsername(QuizzesFull2DomainConstants.ANONYMOUS);
 
         unitOfWorkService.registerChanged(newUser, unitOfWork);
         unitOfWorkService.registerEvent(

@@ -203,6 +203,8 @@ sends a single `CreateCourseCommand`.
 **Saga states** (`CourseSagaState`): none — `CreateCourse` is the only write functionality, and a
 create saga acquires no lock. The enum is still produced, with an empty body.
 
+**Domain sentinels:** none.
+
 **Files to produce:**
 
 | Session | Files |
@@ -250,13 +252,16 @@ data-assembly fetch is a plain read and contributes no constant.
 > `AnonymizeUser` sets both `name` and `username` to `ANONYMOUS`; the payload of
 > `AnonymizeStudentEvent` carries both.
 
+**Domain sentinels** (`QuizzesFull2DomainConstants`; session `a` transcribes this list verbatim):
+- `ANONYMOUS = "ANONYMOUS"` - written by `AnonymizeUser`; compared by `CREATOR_IS_NOT_ANONYMOUS` (`Tournament`)
+
 **Files to produce:**
 
 | Session | Files |
 |---------|-------|
-| 2.2.a | `aggregate/User.java`, `aggregate/Role.java`, `aggregate/UserFactory.java`, `aggregate/UserCustomRepository.java`, `aggregate/sagas/SagaUser.java`, `aggregate/sagas/states/UserSagaState.java`, `aggregate/sagas/factories/SagasUserFactory.java`, `aggregate/sagas/repositories/UserCustomRepositorySagas.java`, `aggregate/UserDto.java`, `aggregate/UserRepository.java`, `UserServiceApplication.java`, `sagas/user/UserIntraInvariantTest.groovy`, `{test}QuizzesFull2SpockTest.groovy` (appended 2.2.a - session-a.md § "Update `{AppClass}SpockTest.groovy`" mandates the domain constants the T1 happy path asserts against), `{test}BeanConfigurationSagas.groovy` (appended 2.2.a - session-a.md § "Update `BeanConfigurationSagas.groovy`" mandates the `SagasUserFactory` / `UserCustomRepositorySagas` beans), `microservices/exception/QuizzesFull2ErrorMessage.java` (appended 2.2.a - session-a.md mandates one constant per P1 rule enforced in `verifyInvariants()`; `USER_DELETED_STATE`) |
+| 2.2.a | `aggregate/User.java`, `aggregate/Role.java`, `aggregate/UserFactory.java`, `aggregate/UserCustomRepository.java`, `aggregate/sagas/SagaUser.java`, `aggregate/sagas/states/UserSagaState.java`, `aggregate/sagas/factories/SagasUserFactory.java`, `aggregate/sagas/repositories/UserCustomRepositorySagas.java`, `aggregate/UserDto.java`, `aggregate/UserRepository.java`, `UserServiceApplication.java`, `sagas/user/UserIntraInvariantTest.groovy`, `{test}QuizzesFull2SpockTest.groovy` (appended 2.2.a - session-a.md § "Update `{AppClass}SpockTest.groovy`" mandates the domain constants the T1 happy path asserts against), `{test}BeanConfigurationSagas.groovy` (appended 2.2.a - session-a.md § "Update `BeanConfigurationSagas.groovy`" mandates the `SagasUserFactory` / `UserCustomRepositorySagas` beans), `microservices/exception/QuizzesFull2ErrorMessage.java` (appended 2.2.a - session-a.md mandates one constant per P1 rule enforced in `verifyInvariants()`; `USER_DELETED_STATE`), `microservices/domain/QuizzesFull2DomainConstants.java` (added retroactively - session-a.md § "Domain sentinel constants" mandates it for every aggregate whose plan section declares one; `ANONYMOUS` originally landed on `aggregate/User.java` in 2.2.c, see harness-log rows 20/21) |
 | 2.2.b | `service/UserService.java` (read methods), `messaging/UserCommandHandler.java`, `commands/user/GetUserByIdCommand.java`, `commands/user/GetStudentsCommand.java`, `commands/user/GetTeachersCommand.java`, `coordination/sagas/GetUserByIdFunctionalitySagas.java`, `coordination/sagas/GetStudentsFunctionalitySagas.java`, `coordination/sagas/GetTeachersFunctionalitySagas.java`, `coordination/functionalities/UserFunctionalities.java`, `{src}ServiceMapping.java` (add `USER`), `sagas/user/UserServiceTest.groovy` (read-method cases), `sagas/coordination/user/GetUserByIdTest.groovy`, `sagas/coordination/user/GetStudentsTest.groovy`, `sagas/coordination/user/GetTeachersTest.groovy`, `aggregate/UserRepository.java` (appended 2.2.b - `findAllLatestActiveByRole` JPQL; service.md forbids `findAll()` for the `GetStudents`/`GetTeachers` bulk reads), `aggregate/UserCustomRepository.java` + `aggregate/sagas/repositories/UserCustomRepositorySagas.java` (appended 2.2.b - same rule; both created empty in 2.2.a), `{test}QuizzesFull2SpockTest.groovy` (appended 2.2.b - session-b.md mandates the `createUser` fixture helper and the functionalities field), `{test}BeanConfigurationSagas.groovy` (appended 2.2.b - session-b.md mandates the service/handler/functionalities beans) |
-| 2.2.c | `service/UserService.java` (write methods appended), `commands/user/CreateUserCommand.java`, `commands/user/ActivateUserCommand.java`, `commands/user/UpdateUserNameCommand.java`, `commands/user/AnonymizeUserCommand.java`, `commands/user/DeleteUserCommand.java`, `coordination/sagas/CreateUserFunctionalitySagas.java`, `coordination/sagas/ActivateUserFunctionalitySagas.java`, `coordination/sagas/UpdateUserNameFunctionalitySagas.java`, `coordination/sagas/AnonymizeUserFunctionalitySagas.java`, `coordination/sagas/DeleteUserFunctionalitySagas.java`, `events/ActivateUserEvent.java`, `events/UpdateStudentNameEvent.java`, `events/AnonymizeStudentEvent.java`, `events/DeleteUserEvent.java`, write coordinator methods appended to `coordination/functionalities/UserFunctionalities.java`, write cases appended to `messaging/UserCommandHandler.java`, `coordination/webapi/UserController.java`, `sagas/coordination/user/CreateUserTest.groovy`, `sagas/coordination/user/ActivateUserTest.groovy`, `sagas/coordination/user/UpdateUserNameTest.groovy`, `sagas/coordination/user/AnonymizeUserTest.groovy`, `sagas/coordination/user/DeleteUserTest.groovy`, write-method cases plus event-publication assertions appended to `sagas/user/UserServiceTest.groovy`, `sagas/coordination/user/ActivateUserCompensationTest.groovy` + `UpdateUserNameCompensationTest.groovy` + `AnonymizeUserCompensationTest.groovy` + `DeleteUserCompensationTest.groovy` and their `src/test/resources/groovy/{Op}CompensationTest/{Op}FunctionalitySagas.csv` impairment scripts (added 2.2.c - session-c.md gained a mandatory compensation-test subheading mid-session, commits 40e3414b/c49f95e4; each of the four holds a semantic lock across a later step), `aggregate/User.java` (appended 2.2.c - the `ANONYMOUS` sentinel `AnonymizeUser` writes and Tournament's `CREATOR_IS_NOT_ANONYMOUS` will compare against; belongs to the domain layer but no session owned it, see harness-log row 20), `{test}QuizzesFull2SpockTest.groovy` (modified 2.2.c - session-c.md § "Update `{AppClass}SpockTest.groovy`" re-points the `createUser` helper body at the real create saga), `{test}BeanConfigurationSagas.groovy` (appended 2.2.c - session-c.md § "BeanConfigurationSagas" required widening the existing `userService` bean with `AggregateIdGeneratorService`) |
+| 2.2.c | `service/UserService.java` (write methods appended), `commands/user/CreateUserCommand.java`, `commands/user/ActivateUserCommand.java`, `commands/user/UpdateUserNameCommand.java`, `commands/user/AnonymizeUserCommand.java`, `commands/user/DeleteUserCommand.java`, `coordination/sagas/CreateUserFunctionalitySagas.java`, `coordination/sagas/ActivateUserFunctionalitySagas.java`, `coordination/sagas/UpdateUserNameFunctionalitySagas.java`, `coordination/sagas/AnonymizeUserFunctionalitySagas.java`, `coordination/sagas/DeleteUserFunctionalitySagas.java`, `events/ActivateUserEvent.java`, `events/UpdateStudentNameEvent.java`, `events/AnonymizeStudentEvent.java`, `events/DeleteUserEvent.java`, write coordinator methods appended to `coordination/functionalities/UserFunctionalities.java`, write cases appended to `messaging/UserCommandHandler.java`, `coordination/webapi/UserController.java`, `sagas/coordination/user/CreateUserTest.groovy`, `sagas/coordination/user/ActivateUserTest.groovy`, `sagas/coordination/user/UpdateUserNameTest.groovy`, `sagas/coordination/user/AnonymizeUserTest.groovy`, `sagas/coordination/user/DeleteUserTest.groovy`, write-method cases plus event-publication assertions appended to `sagas/user/UserServiceTest.groovy`, `sagas/coordination/user/ActivateUserCompensationTest.groovy` + `UpdateUserNameCompensationTest.groovy` + `AnonymizeUserCompensationTest.groovy` + `DeleteUserCompensationTest.groovy` and their `src/test/resources/groovy/{Op}CompensationTest/{Op}FunctionalitySagas.csv` impairment scripts (added 2.2.c - session-c.md gained a mandatory compensation-test subheading mid-session, commits 40e3414b/c49f95e4; each of the four holds a semantic lock across a later step), `{test}QuizzesFull2SpockTest.groovy` (modified 2.2.c - session-c.md § "Update `{AppClass}SpockTest.groovy`" re-points the `createUser` helper body at the real create saga), `{test}BeanConfigurationSagas.groovy` (appended 2.2.c - session-c.md § "BeanConfigurationSagas" required widening the existing `userService` bean with `AggregateIdGeneratorService`) |
 
 > `DeleteUserTest.groovy` carries **no** happy-path case. `DeleteUser` soft-deletes its own
 > aggregate, so `sagaStateOf` throws instead of returning `NOT_IN_SAGA`. Human decision, 2.2.c -
@@ -303,6 +308,8 @@ data-assembly fetch is a plain read and contributes no constant.
 > `commands/topic/GetTopicByIdCommand.java` is still produced in 2.3.b — write sagas in `Question`
 > and `Tournament` need it for their data-assembly and get-then-lock steps. No
 > `GetTopicByIdFunctionalitySagas` or test accompanies it.
+
+**Domain sentinels:** none.
 
 **Files to produce:**
 
@@ -355,6 +362,8 @@ but a data-assembly fetch is a plain read and contributes no constant.
 
 > `DeleteExecution` must clear `students` in the same operation so P1 `REMOVE_NO_STUDENTS` holds, and
 > publish `DeleteCourseExecutionEvent`.
+
+**Domain sentinels:** none.
 
 **Files to produce:**
 
@@ -411,6 +420,8 @@ but a data-assembly fetch is a plain read and contributes no constant.
 `CreateQuestion` contributes none. `Question` is fetched by `Quiz` and `QuizAnswer`, but a
 data-assembly fetch is a plain read and contributes no constant.
 
+**Domain sentinels:** none.
+
 **Files to produce:**
 
 | Session | Files |
@@ -460,6 +471,8 @@ data-assembly fetch is a plain read and contributes no constant.
 > only publication site is the `DeleteQuestionEvent` handler chain written in 2.6.d (grouping §4
 > trigger: "a question in the quiz was soft-deleted"). Session 2.6.c writes the class; session 2.6.d
 > wires the publication.
+
+**Domain sentinels:** none.
 
 **Files to produce:**
 
@@ -516,6 +529,8 @@ through the `QuizAnswerQuestionAnswerEvent` subscription, which is P2 and takes 
 > `AnswerQuestion` publishes `QuizAnswerQuestionAnswerEvent` carrying `answerTime`, which is the
 > authoritative `firstAnswerTime` the `Tournament` handler stores. Do not let the consumer substitute
 > handling time.
+
+**Domain sentinels:** none.
 
 **Files to produce:**
 
@@ -593,11 +608,13 @@ through the `QuizAnswerQuestionAnswerEvent` subscription, which is P2 and takes 
 > All commands above target aggregates upstream of `Tournament` in the DAG (`Execution`, `User`,
 > `Topic`, `Quiz`), so R8 holds. `Tournament` is a DAG sink and publishes no events.
 
+**Domain sentinels:** none declared. `CREATOR_IS_NOT_ANONYMOUS` compares against `ANONYMOUS`, declared by `User`.
+
 **Files to produce:**
 
 | Session | Files |
 |---------|-------|
-| 2.8.a | `aggregate/Tournament.java`, `aggregate/TournamentExecution.java`, `aggregate/TournamentCreator.java`, `aggregate/TournamentParticipant.java`, `aggregate/TournamentParticipantDto.java`, `aggregate/TournamentParticipantQuizAnswer.java`, `aggregate/TournamentTopic.java`, `aggregate/TournamentTopicDto.java`, `aggregate/TournamentQuiz.java`, `aggregate/TournamentFactory.java`, `aggregate/TournamentCustomRepository.java`, `aggregate/sagas/SagaTournament.java`, `aggregate/sagas/states/TournamentSagaState.java`, `aggregate/sagas/factories/SagasTournamentFactory.java`, `aggregate/sagas/repositories/TournamentCustomRepositorySagas.java`, `aggregate/TournamentDto.java`, `aggregate/TournamentRepository.java`, `TournamentServiceApplication.java`, `sagas/tournament/TournamentIntraInvariantTest.groovy` |
+| 2.8.a | `aggregate/Tournament.java`, `aggregate/TournamentExecution.java`, `aggregate/TournamentCreator.java`, `aggregate/TournamentParticipant.java`, `aggregate/TournamentParticipantDto.java`, `aggregate/TournamentParticipantQuizAnswer.java`, `aggregate/TournamentTopic.java`, `aggregate/TournamentTopicDto.java`, `aggregate/TournamentQuiz.java`, `aggregate/TournamentFactory.java`, `aggregate/TournamentCustomRepository.java`, `aggregate/sagas/SagaTournament.java`, `aggregate/sagas/states/TournamentSagaState.java`, `aggregate/sagas/factories/SagasTournamentFactory.java`, `aggregate/sagas/repositories/TournamentCustomRepositorySagas.java`, `aggregate/TournamentDto.java`, `aggregate/TournamentRepository.java`, `TournamentServiceApplication.java`, `sagas/tournament/TournamentIntraInvariantTest.groovy` (no new file for the `ANONYMOUS` sentinel - `Tournament.verifyInvariants()` imports `microservices/domain/QuizzesFull2DomainConstants.java`, declared by `User` in 2.2.a) |
 | 2.8.b | `service/TournamentService.java` (read methods), `messaging/TournamentCommandHandler.java`, `commands/tournament/GetTournamentByIdCommand.java`, `commands/tournament/GetTournamentsForExecutionCommand.java`, `commands/tournament/GetOpenedTournamentsForExecutionCommand.java`, `commands/tournament/GetClosedTournamentsForExecutionCommand.java`, `coordination/sagas/GetTournamentByIdFunctionalitySagas.java`, `coordination/sagas/GetTournamentsForExecutionFunctionalitySagas.java`, `coordination/sagas/GetOpenedTournamentsForExecutionFunctionalitySagas.java`, `coordination/sagas/GetClosedTournamentsForExecutionFunctionalitySagas.java`, `coordination/functionalities/TournamentFunctionalities.java`, `{src}ServiceMapping.java` (add `TOURNAMENT`), `sagas/tournament/TournamentServiceTest.groovy` (read-method cases), `sagas/coordination/tournament/GetTournamentByIdTest.groovy`, `sagas/coordination/tournament/GetTournamentsForExecutionTest.groovy`, `sagas/coordination/tournament/GetOpenedTournamentsForExecutionTest.groovy`, `sagas/coordination/tournament/GetClosedTournamentsForExecutionTest.groovy` |
 | 2.8.c | `service/TournamentService.java` (write methods appended), `commands/tournament/CreateTournamentCommand.java`, `commands/tournament/AddParticipantCommand.java`, `commands/tournament/UpdateTournamentCommand.java`, `commands/tournament/CancelTournamentCommand.java`, `commands/tournament/DeleteTournamentCommand.java`, `coordination/sagas/CreateTournamentFunctionalitySagas.java`, `coordination/sagas/AddParticipantFunctionalitySagas.java`, `coordination/sagas/UpdateTournamentFunctionalitySagas.java`, `coordination/sagas/CancelTournamentFunctionalitySagas.java`, `coordination/sagas/DeleteTournamentFunctionalitySagas.java`, write coordinator methods appended to `coordination/functionalities/TournamentFunctionalities.java`, write cases appended to `messaging/TournamentCommandHandler.java`, `coordination/webapi/TournamentController.java`, `sagas/coordination/tournament/CreateTournamentTest.groovy`, `sagas/coordination/tournament/AddParticipantTest.groovy`, `sagas/coordination/tournament/UpdateTournamentTest.groovy`, `sagas/coordination/tournament/CancelTournamentTest.groovy`, `sagas/coordination/tournament/DeleteTournamentTest.groovy`, write-method cases appended to `sagas/tournament/TournamentServiceTest.groovy` |
 | 2.8.d | `notification/subscribe/TournamentSubscribesUpdateStudentName.java`, `notification/subscribe/TournamentSubscribesAnonymizeStudent.java`, `notification/subscribe/TournamentSubscribesDeleteUser.java`, `notification/subscribe/TournamentSubscribesUpdateTopic.java`, `notification/subscribe/TournamentSubscribesDeleteTopic.java`, `notification/subscribe/TournamentSubscribesDeleteCourseExecution.java`, `notification/subscribe/TournamentSubscribesDisenrollStudentFromCourseExecution.java`, `notification/subscribe/TournamentSubscribesInvalidateQuiz.java`, `notification/subscribe/TournamentSubscribesQuizAnswerQuestionAnswer.java`, `notification/handling/TournamentEventHandling.java`, `notification/handling/handlers/TournamentEventHandler.java`, `coordination/eventProcessing/TournamentEventProcessing.java`, `sagas/tournament/TournamentInterInvariantTest.groovy` |

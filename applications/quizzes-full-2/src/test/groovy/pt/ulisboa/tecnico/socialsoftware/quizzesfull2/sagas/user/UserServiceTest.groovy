@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.ActivateUserEvent
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.AnonymizeStudentEvent
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.DeleteUserEvent
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.UpdateStudentNameEvent
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.domain.QuizzesFull2DomainConstants
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.User
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto
@@ -306,8 +307,8 @@ class UserServiceTest extends QuizzesFull2SpockTest {
         flushAndClear()
         def readBack = userService.getUserById(userAggregateId,
                 unitOfWorkService.createUnitOfWork("check"))
-        readBack.name == User.ANONYMOUS
-        readBack.username == User.ANONYMOUS
+        readBack.name == QuizzesFull2DomainConstants.ANONYMOUS
+        readBack.username == QuizzesFull2DomainConstants.ANONYMOUS
         readBack.role == USER_ROLE
         !readBack.active
     }
@@ -337,8 +338,8 @@ class UserServiceTest extends QuizzesFull2SpockTest {
         def event = events[0] as AnonymizeStudentEvent
         event.publisherAggregateId == userAggregateId
         event.studentAggregateId == userAggregateId
-        event.name == User.ANONYMOUS
-        event.username == User.ANONYMOUS
+        event.name == QuizzesFull2DomainConstants.ANONYMOUS
+        event.username == QuizzesFull2DomainConstants.ANONYMOUS
     }
 
     def "deleteUser: soft-deletes the user and clears the active flag"() {
