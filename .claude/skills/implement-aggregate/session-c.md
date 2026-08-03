@@ -126,11 +126,14 @@ Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Fu
 - Spring `@Service`. The class already exists from session 2.{N}.b with its read coordinator methods — **append** the write methods, do not rewrite the file.
 - One public method per write functionality (matching the saga class name)
 - Each method:
-  1. Derives `functionalityName` via `new Throwable().getStackTrace()[0].getMethodName()`
-  2. Creates a `SagaUnitOfWork` with `unitOfWorkService.createUnitOfWork(functionalityName)`
-  3. Instantiates the corresponding `{Op}FunctionalitySagas` directly (not as a Spring bean)
-  4. Calls `executeWorkflow(uow)` on it
-  5. Returns the result DTO (or `void` for mutations)
+  1. Creates a `SagaUnitOfWork` with `unitOfWorkService.createUnitOfWork("{operationName}")`, passing
+     the operation name as a **string literal** matching the method name — the same idiom session `b`
+     uses for the read coordinators in this file. Do not derive it reflectively from the stack trace:
+     both forms evaluate to the same string, but a session `c` that appends to a session-`b` file
+     would leave one class carrying two idioms for one thing.
+  2. Instantiates the corresponding `{Op}FunctionalitySagas` directly (not as a Spring bean)
+  3. Calls `executeWorkflow(uow)` on it
+  4. Returns the result DTO (or `void` for mutations)
 - Tests `@Autowired` this class and call its methods directly
 
 ### `{Aggregate}ServiceTest.groovy` (T2 — write-method cases)

@@ -105,6 +105,9 @@ Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Fu
 - Spring `@Service`
 - One method per read functionality
 - The method creates a `SagaUnitOfWork`, instantiates the `{Query}FunctionalitySagas` inline, calls `executeWorkflow`, and returns the DTO via `saga.get{Aggregate}Dto()`
+- **Name the unit of work with a string literal** matching the method name —
+  `unitOfWorkService.createUnitOfWork("get{Aggregate}ById")`. Session `c` appends its write
+  coordinators to this same class under the same rule, so the file carries one idiom throughout.
 - Tests `@Autowired` this class and call its methods directly
 
 ### `{Aggregate}CommandHandler.java`
