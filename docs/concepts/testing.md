@@ -54,7 +54,7 @@ security. This checklist is the authoritative smell list, consumed by
 - `then:` is only `noExceptionThrown()` with no field assertions — flag unless the scenario is explicitly "must not throw."
 - `then:` checks only non-null / non-empty, or a trivially true condition, never actual values.
 - `when:` does not call the method under test (bypasses it via a setup helper).
-- **T2:** happy path reads back through the **same** UnitOfWork instance used for the write — the assertion never exercises the load path. Read-back must use a second, fresh UnitOfWork.
+- **T2:** happy path reads back through the **same** UnitOfWork instance used for the write, or through a fresh one without calling `flushAndClear()` first — either way the persistence context still holds the managed write instance, so the assertion never exercises the load path. Read-back is `flushAndClear()` then a second, fresh UnitOfWork (§ T2 — Service Test).
 - **T3** "ignores unrelated": `originalValue` captured *after* the event was processed — the assertion is `x == x`. Capture in `given:`, before firing.
 
 ### Wrong — tests the wrong thing (implementation instead of spec, or a different code path)
@@ -184,8 +184,25 @@ class <Aggregate>IntraInvariantTest extends <AppName>SpockTest {
 its service methods, invoked directly on the `*Service` bean with a `UnitOfWork` — no saga
 workflow. No explicit commit is needed: in the sagas profile, `registerChanged` versions,
 invariant-checks, and merges the aggregate **inside the service call**; the workflow-level
-`commit(uow)` only resets `SagaState`. **Read-back must still use a fresh UnitOfWork** so the
-assertion goes through the load path — reading via the write UoW is Fake.
+`commit(uow)` only resets `SagaState`.
+
+**Every read-back calls `flushAndClear()` first, then reads through a fresh `UnitOfWork`.** Both
+halves are required, and neither substitutes for the other:
+
+- A fresh `UnitOfWork` alone is **not** enough. Under `@DataJpaTest` the whole test runs in one
+  transaction, so every `UnitOfWork` in it shares a single persistence context. Hibernate answers
+  the read from the first-level cache and hands back the very instance the write path put there —
+  the assertion then re-reads the object it just built in memory, which is Fake.
+- `flushAndClear()` (the `<AppName>SpockTest` helper: `EntityManager.flush()` then `clear()`) pushes
+  the pending writes to the database and detaches everything, so the next load constructs the
+  aggregate through Hibernate's own instantiation path.
+
+That path is what the read-back is actually there to prove. It is where `final` fields are set
+reflectively, where `@Convert` converters run, and where a mismatched column mapping or a missing
+no-arg constructor first becomes visible — none of which the managed instance would ever exercise.
+The rule is unconditional: applying it only to aggregates believed to have `final` fields makes the
+guard depend on a judgement made when the test was written, and it is silently lost the moment the
+aggregate changes.
 
 ```groovy
 class <Aggregate>ServiceTest extends <AppName>SpockTest {
@@ -195,7 +212,8 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
         when:
         def dto = <aggregate>Service.create<Aggregate>(/* args */,
                 unitOfWorkService.createUnitOfWork("create<Aggregate>"))
-        then: 'read back through a second, fresh UnitOfWork'
+        then: 'read back off a cleared persistence context, through a fresh UnitOfWork'
+        flushAndClear()
         def readBack = <aggregate>Service.get<Aggregate>ById(dto.aggregateId,
                 unitOfWorkService.createUnitOfWork("check"))
         readBack.<field> == <expectedValue>
@@ -517,6 +535,6 @@ def "<functionality>: N concurrent invocations all succeed"() {
     participants.collect { p ->
         Thread.start { <primary>Functionalities.<functionalityName>(shared.aggregateId, p.aggregateId) }
     }*.join()
-    then: 'read back via a fresh UnitOfWork: <collection>.size() == N'
+    then: 'flushAndClear(), then read back via a fresh UnitOfWork: <collection>.size() == N'
 }
 ```

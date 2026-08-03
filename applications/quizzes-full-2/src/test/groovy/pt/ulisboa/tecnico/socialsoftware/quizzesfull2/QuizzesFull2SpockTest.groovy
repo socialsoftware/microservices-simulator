@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull2
 
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
 import pt.ulisboa.tecnico.socialsoftware.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService
@@ -29,6 +31,8 @@ class QuizzesFull2SpockTest extends SpockTest {
     protected SagaUnitOfWorkService unitOfWorkService
     @Autowired(required = false)
     protected AggregateIdGeneratorService aggregateIdGeneratorService
+    @PersistenceContext
+    protected EntityManager entityManager
 
     // Domain @Autowired fields are added here as aggregates are implemented in Phase 2.
     @Autowired(required = false)
@@ -51,6 +55,15 @@ class QuizzesFull2SpockTest extends SpockTest {
     protected <T> T loadForCheck(Integer aggregateId, Class<T> type) {
         def uow = unitOfWorkService.createUnitOfWork("check")
         return type.cast(unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, uow))
+    }
+
+    // Forces the next read to go through Hibernate's instantiation path. Under @DataJpaTest every
+    // UnitOfWork in a test shares one persistence context, so a "fresh UnitOfWork" read-back returns
+    // the managed write instance and never exercises the load path - final fields set reflectively
+    // on load, @Convert converters and lazy associations all go unproven without this.
+    protected void flushAndClear() {
+        entityManager.flush()
+        entityManager.clear()
     }
 
     // Domain create* helpers are added below as aggregates are implemented in Phase 2.

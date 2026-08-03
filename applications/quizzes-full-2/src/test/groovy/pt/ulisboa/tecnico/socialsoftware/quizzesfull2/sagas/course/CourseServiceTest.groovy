@@ -23,6 +23,7 @@ class CourseServiceTest extends QuizzesFull2SpockTest {
         def courseAggregateId = createCourse()
 
         when:
+        flushAndClear()
         def result = courseService.getCourseById(courseAggregateId,
                 unitOfWorkService.createUnitOfWork("check"))
 
@@ -50,6 +51,7 @@ class CourseServiceTest extends QuizzesFull2SpockTest {
         def secondAggregateId = createCourse("Distributed Systems", CourseType.EXTERNAL)
 
         when:
+        flushAndClear()
         def result = courseService.getCourses(unitOfWorkService.createUnitOfWork("check"))
 
         then:
@@ -82,8 +84,9 @@ class CourseServiceTest extends QuizzesFull2SpockTest {
         def created = courseService.createCourse(courseDto,
                 unitOfWorkService.createUnitOfWork("createCourse"))
 
-        then: 'read back through a second, fresh UnitOfWork'
+        then: 'read back off a cleared persistence context, through a fresh UnitOfWork'
         created.aggregateId != null
+        flushAndClear()
         def readBack = courseService.getCourseById(created.aggregateId,
                 unitOfWorkService.createUnitOfWork("check"))
         readBack.aggregateId == created.aggregateId
@@ -108,8 +111,9 @@ class CourseServiceTest extends QuizzesFull2SpockTest {
         def second = courseService.createCourse(secondDto,
                 unitOfWorkService.createUnitOfWork("createCourse"))
 
-        then: 'read back through a fresh UnitOfWork'
+        then: 'read back off a cleared persistence context, through a fresh UnitOfWork'
         first.aggregateId != second.aggregateId
+        flushAndClear()
         def readBackFirst = courseService.getCourseById(first.aggregateId,
                 unitOfWorkService.createUnitOfWork("check"))
         readBackFirst.name == COURSE_NAME
