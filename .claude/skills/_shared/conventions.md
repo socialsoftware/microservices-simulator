@@ -176,6 +176,13 @@ against - a stale class from a previous build - is caught by the full clean suit
 the end of the session anyway. The narrow form is never a substitute for that run: a slice's green is
 a local signal, not the session's verdict, and cross-slice regressions are invisible to it.
 
+**Without `clean`, `target/surefire-reports/` still holds every earlier run's reports**, so the
+aggregation script below sums classes the narrowed run never executed. Its `tests=` total therefore
+does not describe the narrowed run. Report the per-class numbers for the classes named in `-Dtest=`,
+and say which total you are quoting - a slice that reports the unfiltered total as its own is
+reporting a number it did not produce, and one that reads a stale class's failure as its own will
+chase a defect that is not there.
+
 Everything below applies to both forms.
 
 Then aggregate the surefire reports:
