@@ -391,6 +391,20 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 }
 ```
 
+**Exception — a functionality whose success makes its own aggregate unresolvable.** A
+delete-shaped operation (one that soft-deletes the primary aggregate, or otherwise leaves it outside
+what the unit of work will resolve) has **no happy-path case**. `sagaStateOf(<aggregateId>)` loads
+through `aggregateLoadAndRegisterRead`, which throws rather than returning a state once the
+aggregate no longer resolves, so the assertion the template mandates cannot run. The substitutes are
+all worse: a persistence read-back belongs to T2 (§ Assertion Ownership), and a bare
+`noExceptionThrown()` is the Fake smell named in § Fake/Wrong/Weak.
+
+Such a functionality is fully covered without one: the **lock-acquisition** case pins the acquire
+transition, the **compensation** case pins the compensate transition, and **T2** owns the assertion
+that the operation actually applied — the terminal state, any flag the owning aggregate's invariants
+require to move with it, and the published event's payload. Record the omission in the T4 file with
+a one-line comment naming this section, so a reader does not read the gap as missing coverage.
+
 **`commandGateway` is not inherited.** Neither `SpockTest` nor `<AppName>SpockTest` declares it, so a
 lock-acquisition test that constructs its saga directly must declare the field itself:
 
