@@ -208,7 +208,21 @@ that.
 
 ### One `{Op}CompensationTest.groovy` per lock-holding write functionality (T4)
 
-Path: `{test}sagas/coordination/{aggregate}/{Op}CompensationTest.groovy`
+Paths — **both files are produced**, and the test cannot fault without the second:
+
+```
+{test}sagas/coordination/{aggregate}/{Op}CompensationTest.groovy
+src/test/resources/groovy/{Op}CompensationTest/{Op}FunctionalitySagas.csv
+```
+
+The impairment CSV is selected by the **test class's simple name** (directory) and the **saga class's
+simple name** (file). A compensation test written without its CSV injects no fault, so the expected
+exception never arrives and the test fails for a reason unrelated to compensation.
+
+After writing it, run the sanity check `docs/concepts/testing.md` § Compensation Test mandates:
+temporarily flip the faulted step's flag to `0`, re-run, and confirm from the log that the
+lock-acquiring step genuinely executes before the fault fires. A compensation test that has never
+been run in both configurations is not known to be testing compensation.
 
 Compensation tests are **core T4 scope**, not deferred. Follow `docs/concepts/testing.md`
 § Compensation Test in full — it owns the shape, the `ImpairmentService` mechanism and the CSV
