@@ -28,6 +28,8 @@ Load these files before writing any code:
 
 3. ***(Conditional)*** If the aggregate section in plan.md lists snapshot fields copied from an upstream aggregate (e.g., cached `warehouseId` from Warehouse, or `code`/`carrier` from Shipment): read the domain files of those upstream aggregates from `{src}microservices/{upstreamAggregate}/aggregate/` — only the field declarations you need to copy. Do not read the whole upstream codebase.
 
+4. ***(Conditional)*** If this aggregate's `**Domain sentinels:**` line in plan.md names a constant declared by another aggregate, read `{src}microservices/domain/{AppClass}DomainConstants.java`. That constant is the **only** cross-aggregate value this session imports - snapshot fields are still copied, never shared.
+
 ---
 
 ## Verify Mandatory Files in plan.md
@@ -57,7 +59,7 @@ Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}.java`
     - **Collection** (`@OneToMany`): `@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)` — aggregate is the inverse side with no FK column
     - **Single** (`@OneToOne`): `@OneToOne(cascade = CascadeType.ALL, mappedBy = "{entityField}")` — aggregate holds the inverse side; the entity class holds the FK via a plain `@OneToOne` back-reference. The aggregate's setter must call `entity.set{Aggregate}(this)` to wire the bidirectional link before the entity is persisted
 - Constructor: accepts all required fields; sets `state = ACTIVE`; does **not** call `verifyInvariants()` — the framework calls it automatically via `registerChanged` at commit time
-- `verifyInvariants()`: enforces all **P1 rules** for this aggregate listed in plan.md. Throws `{AppClass}Exception` with the appropriate error message constant on violation.
+- `verifyInvariants()`: enforces all **P1 rules** for this aggregate listed in plan.md. Throws `{AppClass}Exception` with the appropriate error message constant on violation. A predicate that compares against a fixed literal reads it from `{AppClass}DomainConstants` (see § "Domain sentinel constants") - never inline the literal here.
 - `getEventSubscriptions()`: in session a, always return `new HashSet<>()` — do **not** reference any subscribe classes yet (they do not exist until session d). Session d will update this method to return the proper set of subscribe class instances.
 - Getters and setters for all mutable fields
 - No business logic methods (sagas call service; service calls setters then verifyInvariants)
@@ -200,7 +202,7 @@ See `docs/concepts/testing.md` § T1 — Aggregate Test for the full remit and t
 
 - Extends `{AppClass}SpockTest`
 - **Happy-path creation test**: `def "create {Aggregate}"()` — instantiate `Saga{Aggregate}` directly, call `verifyInvariants()`, and assert all fields from the `plan.md` aggregate field list. Assertion provenance: fields must trace to the spec, not to the constructor body you just wrote. If the constructor sets a field the spec doesn't list, flag the planning gap in the session report.
-- **One violation test per non-`final` P1 rule** (from this aggregate's `plan.md` P1 list): construct or mutate a `Saga{Aggregate}` so that exactly one P1 predicate fails, then call `verifyInvariants()` directly and assert `thrown({AppClass}Exception)` with `ex.message == {RULE_NAME}` (the harness-wide assertion form — `docs/concepts/testing.md` § T1 — Aggregate Test, and `docs/concepts/service.md` § Exception-Throw Convention for why exceptions are thrown without format arguments). Skip rules marked as Java `final` fields (compiler-enforced; no write path can violate them — note the omission in the session report).
+- **One violation test per non-`final` P1 rule** (from this aggregate's `plan.md` P1 list): construct or mutate a `Saga{Aggregate}` so that exactly one P1 predicate fails, then call `verifyInvariants()` directly and assert `thrown({AppClass}Exception)` with `ex.message == {RULE_NAME}` (the harness-wide assertion form - `docs/concepts/testing.md` § T1 - Aggregate Test, and `docs/concepts/service.md` § Exception-Throw Convention for why exceptions are thrown without format arguments). Skip rules marked as Java `final` fields (compiler-enforced; no write path can violate them - note the omission in the session report). Where the rule compares against a domain sentinel, build the violating value from the constant rather than retyping the literal, so the case fails if the constant is ever changed without the rule.
 - **Boundary straddle for every ordered-domain P1 predicate** (count, timestamp, or collection-size comparison — `<`/`<=`/`>`/`>=`/`==`): write the on-point and off-point pair against `verifyInvariants()`, per `docs/concepts/testing.md` § Choosing Input Values — EP & BVA. Categorical rules (uniqueness, boolean/state freezes, set membership) keep their single representative case.
 - **Do not** use `{AppClass}Functionalities.create{Aggregate}(...)` — write functionalities are not available until session b. All T1 cases use direct construction/mutation + `verifyInvariants()`.
 - If the aggregate constructor takes `{Aggregate}Dto` rather than raw args, build the DTO in the `given:` block before calling `new Saga{Aggregate}(id, dto)`
@@ -208,6 +210,37 @@ See `docs/concepts/testing.md` § T1 — Aggregate Test for the full remit and t
 ### Error message constants
 
 Open `{src}microservices/exception/{AppClass}ErrorMessage.java` and add one `public static final String` constant per P1 rule enforced in `verifyInvariants()` for this aggregate. Append to the existing file; do not remove existing constants.
+
+### Domain sentinel constants
+
+Path: `{src}microservices/domain/{AppClass}DomainConstants.java`
+
+Produce this file only if plan.md's `**Domain sentinels:**` line for this aggregate lists at least one
+constant to declare. Transcribe each listed entry verbatim as a `public static final` field. Create the
+file if it does not exist yet (private constructor, as in `{AppClass}ErrorMessage`); append otherwise,
+and never remove an existing constant. If the line reads `none declared` this aggregate is a
+*consumer*: produce nothing, and import the class where the predicate needs it.
+
+A sentinel is a fixed literal that a write functionality assigns to a field and that some P1
+predicate compares against - usually a P1 rule of a **later** aggregate, reading its own cached
+snapshot of this one. It is declared in a shared, aggregate-neutral package so that neither side
+depends on the other's microservice package, and so that one literal has one home.
+
+Three placements that look defensible are wrong, and each fails differently:
+
+- **Not on `{Aggregate}.java`.** It compiles, but the consuming aggregate must then import
+  `...microservices.{thisAggregate}.aggregate.{Aggregate}` from its own microservice package - the
+  one source dependency between microservices in an otherwise separately-deployable app.
+- **Not on `{Aggregate}Dto.java`.** The Dto is a transport shape, rebuilt per read; a domain value
+  does not belong to it.
+- **Not in `{AppClass}SpockTest.groovy`.** That constants block is test-fixture values for T1
+  (§ "Update {AppClass}SpockTest.groovy" below); a sentinel is production code, and a copy in the
+  test tree would not be visible to `verifyInvariants()` at all.
+
+Re-declaring the same literal on both aggregates is also wrong, and is the one failure with no
+symptom: snapshot *fields* are deliberately copied because each copy carries its own version stamp,
+but a sentinel carries no version. Two copies that drift do not throw - the predicate silently stops
+matching and every test stays green.
 
 ### `{Aggregate}ServiceApplication.java`
 

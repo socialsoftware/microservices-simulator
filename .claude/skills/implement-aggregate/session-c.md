@@ -75,6 +75,7 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 - **Soft-delete** (`remove()`): the same copy-on-write shape, with `copy.remove()` before
   `registerChanged`. Never call `remove()` on the managed entity returned by `aggregateLoadAndRegisterRead`; doing so lets JPA auto-flush the deleted state before the saga abort query runs, making the aggregate invisible to the abort path.
 - **Event publishing**: for each event this aggregate publishes (see plan.md Events published), call `unitOfWorkService.registerEvent(new {Event}(...), unitOfWork)` at the end of the relevant service method
+- **Domain sentinels**: a write method that assigns a fixed literal named on plan.md's `**Domain sentinels:**` line reads it from `{src}microservices/domain/{AppClass}DomainConstants.java` - never inline the literal, and never declare a new constant here. Session `a` owns that file (`session-a.md` § "Domain sentinel constants"). If plan.md names a sentinel that session `a` did not emit, report it as Type 1 against the completed session; the placement is settled and is not a decision to re-make mid-session.
 
 > **Deferred P3 guards:** If a P3 DTO-check rule listed in plan.md cross-aggregate prerequisites requires data from an aggregate ordered _after_ this one in plan.md (because that later aggregate subscribes to this one's events), the guard cannot be implemented yet. Do the following:
 > 1. **Skip** the data-assembly saga step and the service guard — do not add stubs.

@@ -404,6 +404,50 @@ catch a constant that nothing acquires.
 **Output:** for each aggregate, an ordered list of `(constant, origin)` pairs — emitted by Step 8 as
 the `**Saga states:**` line of the aggregate section.
 
+#### 6.e: Compute the domain sentinel set for this aggregate
+
+A **domain sentinel** is a fixed literal that a write functionality assigns to a field, and that some
+P1 predicate - in this aggregate or in a downstream one - compares against. It lives in the shared
+`{src}microservices/domain/{AppClass}DomainConstants.java`, is emitted by session `a` of the
+aggregate that **writes** it, and like the saga-state set it is **decided here**, not there.
+
+The reason is the same as 6.d's, one step stronger. The session that writes the literal cannot see
+the rule that gives it meaning: the writing aggregate is upstream, so its session `a` runs long
+before the downstream aggregate's P1 predicate exists. Left to infer, that session emits an inline
+string, and the downstream session finds no constant to import - so it inlines a second copy. Two
+copies of a sentinel that later diverge do not fail a test; the predicate simply stops matching, and
+every suite stays green.
+
+**Detection.** Scan every predicate classified P1 in Step 4 (plus every §3.1 predicate, which is P1
+by construction) for a comparison against a **literal** - a quoted string, or a bare numeric or
+boolean constant that is not another field of the same predicate. Ordered-domain bounds are not
+sentinels: a threshold in `count <= 5` is a rule parameter, not a value any write functionality
+assigns. The test is whether some §4 functionality *writes* it.
+
+**Attribution.** The sentinel belongs to the aggregate whose **write functionality assigns it**, read
+from the §4 Description column - not to the aggregate whose rule compares against it. Attribution to
+the writer is what makes the ordering safe: a sentinel is compared against a snapshot field cached
+from the writer, so the writer is always upstream in the Step 5 topological order and always has the
+lower ordinal. Its session `a` therefore always precedes the consuming aggregate's.
+
+**Naming.** `SCREAMING_SNAKE_CASE` of the literal's domain meaning. Where the literal is already a
+word, the constant matches it.
+
+For each sentinel, record the writing functionality plus every rule and aggregate that compares
+against it. That origin is what lets session `a` transcribe the line without re-deriving it, and what
+lets a reviewer catch a constant nothing writes or nothing reads.
+
+```
+sentinels[agg] = [(name(lit), lit, origin)
+                  for r in rules_classified if r.pattern == P1
+                  for lit in literals(r.predicate)
+                  if writer_of(lit) == agg]
+```
+
+**Output:** for each aggregate, an ordered list of `(constant, literal, origin)` triples - emitted by
+Step 8 as the `**Domain sentinels:**` line of the aggregate section, on both the writing aggregate
+(which declares it) and every consuming aggregate (which imports it).
+
 ---
 
 ### Step 7: Generate File Lists for Each Session (2.N.a–d)
@@ -418,8 +462,15 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{DomainEnum}.java` (per enum-typed §1 attribute), `aggregate/{CollectionSnapshotEntity}.java` (per × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{SubscribingSnapshotEntity}.java` (per single §2 snapshot that subscribes to an event — see below), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `{Aggregate}ServiceApplication.java`, `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy` |
+| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{DomainEnum}.java` (per enum-typed §1 attribute), `aggregate/{CollectionSnapshotEntity}.java` (per × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{SubscribingSnapshotEntity}.java` (per single §2 snapshot that subscribes to an event - see below), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `{Aggregate}ServiceApplication.java`, `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy`, `{src}microservices/domain/{AppClass}DomainConstants.java` (only if Step 6.e gave this aggregate a sentinel to declare) |
 ```
+
+> **`{AppClass}DomainConstants.java` is conditional and shared.** List it in the 2.N.a row of every
+> aggregate whose Step 6.e sentinel list is non-empty, and only those - a *consuming* aggregate
+> imports the class but produces nothing in it. Like the `{src}commands/{aggregate}/` entries and
+> `{src}ServiceMapping.java`, it is rooted at the app source root rather than at
+> `microservices/{aggregate}/`, because it is shared across microservices. The first aggregate that
+> declares a sentinel creates it; every later one appends.
 
 > **Never omit from 2.N.a:** `{Aggregate}Factory.java`, `{Aggregate}CustomRepository.java` and
 > `{Aggregate}ServiceApplication.java` must always appear in the 2.N.a row — the factory and
@@ -599,6 +650,9 @@ every Phase 2/3/4 skill depends on the ordinal being present.
 - `IN_{OPERATION}` — acquired by `{Operation}FunctionalitySagas` primary lock step
 - `IN_{OPERATION}` — acquired by `{Operation}FunctionalitySagas` primary lock step; guarded by `{OtherOperation}FunctionalitySagas` (`{OtherAggregate}`) via `setForbiddenStates`
 
+**Domain sentinels** (`{AppClass}DomainConstants` - from Step 6.e; session `a` transcribes this list verbatim):
+- `{CONSTANT} = "{literal}"` - written by `{Operation}`; compared by `{RULE_NAME}` (`{OtherAggregate}`)
+
 **Files to produce:**
 
 | Session | Files |
@@ -623,6 +677,14 @@ The **Saga states** line is never omitted. When Step 6.d yields no constant, emi
 `**Saga states:** none — {reason}` (typically: the aggregate's only write functionality is a create).
 An absent line is indistinguishable from a forgotten one, and session `a` halts on it rather than
 guessing.
+
+The **Domain sentinels** line is never omitted either, for the same reason, and has two `none` forms
+that must not be collapsed into one:
+
+- `**Domain sentinels:** none.` - the aggregate neither declares nor compares against one.
+- `**Domain sentinels:** none declared. `{RULE_NAME}` compares against `{CONSTANT}`, declared by `{Aggregate}`.`
+  - the aggregate is a *consumer*. Its session `a` produces no constant but must import the class
+  rather than re-derive the literal, so the line has to say so.
 
 The checklist above is the shape **before** slices are emitted. Step 8.5 expands it.
 
