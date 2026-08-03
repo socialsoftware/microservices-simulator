@@ -235,11 +235,19 @@ Path: `{src}microservices/{aggregate}/coordination/webapi/{Aggregate}Controller.
 
 ---
 
-## BeanConfigurationSagas — No Change Needed
+## BeanConfigurationSagas — No New Bean, But Check the Existing Ones
 
-The three beans this aggregate needs — `{Aggregate}Service`, `{Aggregate}CommandHandler` and `{Aggregate}Functionalities` — were registered in `{bean-config}` during session 2.{N}.b. This session appends methods to those existing classes, so no new bean is required. `{Op}FunctionalitySagas` classes are **not** Spring beans — they are instantiated inline inside `{Aggregate}Functionalities`. **Do not add any `@Bean` method in this session.**
+The three beans this aggregate needs — `{Aggregate}Service`, `{Aggregate}CommandHandler` and `{Aggregate}Functionalities` — were registered in `{bean-config}` during session 2.{N}.b. This session appends methods to those existing classes, so no *new* bean is required. `{Op}FunctionalitySagas` classes are **not** Spring beans — they are instantiated inline inside `{Aggregate}Functionalities`. **Do not add any `@Bean` method in this session.**
 
-If a bean's constructor needs a new collaborator to serve a write method, update that existing `@Bean` method's arguments in place rather than adding a second bean.
+**Existing `@Bean` methods do change.** A service takes every dependency through its constructor and
+declares no `@Autowired` field (`docs/concepts/service.md` § Injected Dependencies), so a write method
+needing a collaborator the service does not yet hold requires **two** edits, not one: widen
+`{Aggregate}Service`'s constructor and field list, **and** widen the matching
+`{aggregate}Service(...)` `@Bean` method's parameters and `new {Aggregate}Service(...)` call to pass
+it. Update that `@Bean` method in place; never add a second bean for the same class.
+
+The usual case is `AggregateIdGeneratorService`: session `b` omits it when no read method mints an
+aggregate id, and this session's create method is the first to need it.
 
 ---
 

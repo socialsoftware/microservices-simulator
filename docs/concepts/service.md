@@ -12,25 +12,36 @@ A service may inject only components that belong to its own aggregate, plus shar
 @Service
 public class WarehouseService {
 
-    @Autowired
-    private AggregateIdGeneratorService aggregateIdGeneratorService;
-
-    @Autowired
-    private WarehouseFactory warehouseFactory;   // own aggregate's factory
-
-    private final WarehouseRepository warehouseRepository;            // own aggregate's JPA repo
+    private final WarehouseRepository warehouseRepository;             // own aggregate's JPA repo
     private final WarehouseCustomRepository warehouseCustomRepository; // own aggregate's custom repo
-    private final UnitOfWorkService unitOfWorkService;   // raw type, deliberately
+    private final WarehouseFactory warehouseFactory;                   // own aggregate's factory
+    private final UnitOfWorkService unitOfWorkService;                 // raw type, deliberately
+    private final AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    public WarehouseService(UnitOfWorkService unitOfWorkService,
-                            WarehouseRepository warehouseRepository,
-                            WarehouseCustomRepository warehouseCustomRepository) {
-        this.unitOfWorkService = unitOfWorkService;
+    public WarehouseService(WarehouseRepository warehouseRepository,
+                            WarehouseCustomRepository warehouseCustomRepository,
+                            WarehouseFactory warehouseFactory,
+                            UnitOfWorkService unitOfWorkService,
+                            AggregateIdGeneratorService aggregateIdGeneratorService) {
         this.warehouseRepository = warehouseRepository;
         this.warehouseCustomRepository = warehouseCustomRepository;
+        this.warehouseFactory = warehouseFactory;
+        this.unitOfWorkService = unitOfWorkService;
+        this.aggregateIdGeneratorService = aggregateIdGeneratorService;
     }
 }
 ```
+
+> **Every dependency goes through the constructor. A service declares no `@Autowired` field.** All
+> fields are `final`, which makes a half-wired service impossible to construct and lets the compiler,
+> rather than a runtime `NullPointerException`, catch a dependency that was added to the class but not
+> to the `@Bean` method. It also keeps one rule instead of two: a session appending a method that
+> needs a collaborator the service does not yet hold widens the constructor **and** the matching
+> `@Bean` method in `BeanConfigurationSagas.groovy`, whichever collaborator it is — there is no
+> second, field-injected category that would let it skip the `@Bean` edit.
+>
+> The list above is closed: own repository, own custom repository, own factory, `UnitOfWorkService`,
+> `AggregateIdGeneratorService`. Omit any the service genuinely does not use; add nothing else.
 
 Never inject a foreign service class or a foreign repository — see [R1, R2 in architecture.md](../architecture.md).
 

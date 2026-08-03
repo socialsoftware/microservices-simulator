@@ -167,7 +167,12 @@ The service constructor takes a **closed list**, fixed by `docs/concepts/service
 Dependencies: own repository, own custom repository, own factory, `UnitOfWorkService` (raw, no type
 argument), `AggregateIdGeneratorService`. Nothing else — a foreign service or foreign repository
 violates R1/R2. Inject factories and repositories through their abstract interfaces, never the
-concrete `Sagas*` classes. Omit any of the five the service genuinely does not use.
+concrete `Sagas*` classes. Every one of them goes through the constructor into a `final` field; a
+service declares no `@Autowired` field.
+
+Omit any of the five the service genuinely does not use — typically `AggregateIdGeneratorService`,
+which no read method needs. Session 2.{N}.c's create method is then the first to need it, and widens
+both this `@Bean` method and the service constructor to match.
 
 ```groovy
 @Bean

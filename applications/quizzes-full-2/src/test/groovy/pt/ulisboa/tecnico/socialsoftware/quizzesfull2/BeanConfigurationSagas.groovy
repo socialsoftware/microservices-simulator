@@ -146,8 +146,10 @@ class BeanConfigurationSagas {
     @Bean
     CourseService courseService(CourseCustomRepository courseCustomRepository,
                                 CourseFactory courseFactory,
-                                UnitOfWorkService unitOfWorkService) {
-        return new CourseService(courseCustomRepository, courseFactory, unitOfWorkService)
+                                UnitOfWorkService unitOfWorkService,
+                                AggregateIdGeneratorService aggregateIdGeneratorService) {
+        return new CourseService(courseCustomRepository, courseFactory, unitOfWorkService,
+                aggregateIdGeneratorService)
     }
 
     @Bean

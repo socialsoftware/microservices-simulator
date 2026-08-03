@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,19 +16,19 @@ import java.util.stream.Collectors;
 
 @Service
 public class CourseService {
-    @Autowired
-    private AggregateIdGeneratorService aggregateIdGeneratorService;
-
     private final CourseCustomRepository courseCustomRepository;
     private final CourseFactory courseFactory;
     private final UnitOfWorkService unitOfWorkService;
+    private final AggregateIdGeneratorService aggregateIdGeneratorService;
 
     public CourseService(CourseCustomRepository courseCustomRepository,
                          CourseFactory courseFactory,
-                         UnitOfWorkService unitOfWorkService) {
+                         UnitOfWorkService unitOfWorkService,
+                         AggregateIdGeneratorService aggregateIdGeneratorService) {
         this.courseCustomRepository = courseCustomRepository;
         this.courseFactory = courseFactory;
         this.unitOfWorkService = unitOfWorkService;
+        this.aggregateIdGeneratorService = aggregateIdGeneratorService;
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
