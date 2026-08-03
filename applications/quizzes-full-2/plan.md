@@ -200,6 +200,9 @@ Topological sort of the dependency DAG (§3 of `quizzes-full-2-aggregate-groupin
 **Cross-aggregate prerequisites:** none. `Course` is a DAG root; `CreateCourseFunctionalitySagas`
 sends a single `CreateCourseCommand`.
 
+**Saga states** (`CourseSagaState`): none — `CreateCourse` is the only write functionality, and a
+create saga acquires no lock. The enum is still produced, with an empty body.
+
 **Files to produce:**
 
 | Session | Files |
@@ -233,6 +236,15 @@ sends a single `CreateCourseCommand`.
 **Events subscribed:** —
 
 **Cross-aggregate prerequisites:** none. `User` is a DAG root and caches no external state.
+
+**Saga states** (`UserSagaState`):
+- `IN_ACTIVATE_USER` — acquired by `ActivateUserFunctionalitySagas` primary lock step
+- `IN_UPDATE_USER_NAME` — acquired by `UpdateUserNameFunctionalitySagas` primary lock step
+- `IN_ANONYMIZE_USER` — acquired by `AnonymizeUserFunctionalitySagas` primary lock step
+- `IN_DELETE_USER` — acquired by `DeleteUserFunctionalitySagas` primary lock step
+
+`CreateUser` contributes none. `User` is fetched by `Execution`, `QuizAnswer` and `Tournament`, but a
+data-assembly fetch is a plain read and contributes no constant.
 
 > `DeleteUser` must also set `active = false` so the P1 `USER_DELETED_STATE` predicate holds.
 > `AnonymizeUser` sets both `name` and `username` to `ANONYMOUS`; the payload of
@@ -275,6 +287,12 @@ sends a single `CreateCourseCommand`.
 - Snapshot seed (P4a) → `CreateTopicFunctionalitySagas` data-assembly step `GetCourseByIdCommand`
   (fetch from `Course`). The fetch throws if the course does not exist, so no explicit guard is
   written. Add the mandatory saga comment.
+
+**Saga states** (`TopicSagaState`):
+- `IN_UPDATE_TOPIC` — acquired by `UpdateTopicFunctionalitySagas` primary lock step
+- `IN_DELETE_TOPIC` — acquired by `DeleteTopicFunctionalitySagas` primary lock step
+
+`CreateTopic` contributes none.
 
 > `Topic` has no `GetTopicById` read functionality in §4, but
 > `commands/topic/GetTopicByIdCommand.java` is still produced in 2.3.b — write sagas in `Question`
@@ -320,6 +338,15 @@ sends a single `CreateCourseCommand`.
 - `INACTIVE_USER` (P3) → `EnrollStudentInExecutionFunctionalitySagas` data-assembly step
   `GetUserByIdCommand` (fetch from `User`); validated in `ExecutionService.enrollStudent()` on
   `userDto.isActive()`. The same DTO seeds the `ExecutionStudent` snapshot.
+
+**Saga states** (`ExecutionSagaState`):
+- `IN_UPDATE_EXECUTION` — acquired by `UpdateExecutionFunctionalitySagas` primary lock step
+- `IN_DELETE_EXECUTION` — acquired by `DeleteExecutionFunctionalitySagas` primary lock step
+- `IN_ENROLL_STUDENT_IN_EXECUTION` — acquired by `EnrollStudentInExecutionFunctionalitySagas` primary lock step
+- `IN_DISENROLL_STUDENT` — acquired by `DisenrollStudentFunctionalitySagas` primary lock step
+
+`CreateExecution` contributes none. `Execution` is fetched by `Quiz`, `QuizAnswer` and `Tournament`,
+but a data-assembly fetch is a plain read and contributes no constant.
 
 > `DeleteExecution` must clear `students` in the same operation so P1 `REMOVE_NO_STUDENTS` holds, and
 > publish `DeleteCourseExecutionEvent`.
@@ -372,6 +399,13 @@ sends a single `CreateCourseCommand`.
   `Topic`); seeds each `QuestionTopic`, including `courseAggregateId`. The rule itself is enforced at
   P1 in `Question.verifyInvariants()` — do not add a duplicate guard in the saga or the service.
 
+**Saga states** (`QuestionSagaState`):
+- `IN_UPDATE_QUESTION` — acquired by `UpdateQuestionFunctionalitySagas` primary lock step
+- `IN_DELETE_QUESTION` — acquired by `DeleteQuestionFunctionalitySagas` primary lock step
+
+`CreateQuestion` contributes none. `Question` is fetched by `Quiz` and `QuizAnswer`, but a
+data-assembly fetch is a plain read and contributes no constant.
+
 **Files to produce:**
 
 | Session | Files |
@@ -409,6 +443,13 @@ sends a single `CreateCourseCommand`.
   after the fact.
 - Snapshot seed (P4a) → `CreateQuizFunctionalitySagas` / `UpdateQuizFunctionalitySagas` data-assembly
   step `GetQuestionByIdCommand` per question (fetch from `Question`); seeds each `QuizQuestion`.
+
+**Saga states** (`QuizSagaState`):
+- `IN_UPDATE_QUIZ` — acquired by `UpdateQuizFunctionalitySagas` primary lock step; guarded by
+  `UpdateTournamentFunctionalitySagas` (`Tournament`) via `setForbiddenStates` on its
+  `UpdateQuizCommand` step
+
+`CreateQuiz` contributes none.
 
 > **`InvalidateQuizEvent` is listed under 2.6.c** with the other published-event classes, but its
 > only publication site is the `DeleteQuestionEvent` handler chain written in 2.6.d (grouping §4
@@ -459,6 +500,13 @@ sends a single `CreateCourseCommand`.
   `questionVersion` and `correctOptionKey` read off `QuestionDto.options`. The rule itself is P1.
 - `UNIQUE_QUIZ_ANSWER_PER_STUDENT` (P3) → own-table read in `QuizAnswerService.createQuizAnswer()`;
   no saga fetch.
+
+**Saga states** (`QuizAnswerSagaState`):
+- `IN_ANSWER_QUESTION` — acquired by `AnswerQuestionFunctionalitySagas` primary lock step
+- `IN_CONCLUDE_QUIZ` — acquired by `ConcludeQuizFunctionalitySagas` primary lock step
+
+`CreateQuizAnswer` contributes none. Nothing fetches `QuizAnswer` — `Tournament` reaches it only
+through the `QuizAnswerQuestionAnswerEvent` subscription, which is P2 and takes no lock.
 
 > `AnswerQuestion` publishes `QuizAnswerQuestionAnswerEvent` carrying `answerTime`, which is the
 > authoritative `firstAnswerTime` the `Tournament` handler stores. Do not let the consumer substitute
@@ -528,6 +576,14 @@ sends a single `CreateCourseCommand`.
   seeds the `TournamentParticipant`.
 - `START_TIME_AVAILABLE_DATE / END_TIME_CONCLUSION_DATE` (P4b, update path) →
   `UpdateTournamentFunctionalitySagas` sends `UpdateQuizCommand` with the same new dates.
+
+**Saga states** (`TournamentSagaState`):
+- `IN_ADD_PARTICIPANT` — acquired by `AddParticipantFunctionalitySagas` primary lock step
+- `IN_UPDATE_TOURNAMENT` — acquired by `UpdateTournamentFunctionalitySagas` primary lock step
+- `IN_CANCEL_TOURNAMENT` — acquired by `CancelTournamentFunctionalitySagas` primary lock step
+- `IN_DELETE_TOURNAMENT` — acquired by `DeleteTournamentFunctionalitySagas` primary lock step
+
+`CreateTournament` contributes none. `Tournament` is a DAG sink, so no foreign saga guards on these.
 
 > All commands above target aggregates upstream of `Tournament` in the DAG (`Execution`, `User`,
 > `Topic`, `Quiz`), so R8 holds. `Tournament` is a DAG sink and publishes no events.

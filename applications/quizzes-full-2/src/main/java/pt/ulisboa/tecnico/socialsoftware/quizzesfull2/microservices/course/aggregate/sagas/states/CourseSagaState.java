@@ -3,7 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggr
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 
 public enum CourseSagaState implements SagaAggregate.SagaState {
-    READ_COURSE("READ_COURSE");
+    ;
 
     private final String stateName;
 

@@ -123,10 +123,20 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
 Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaState.java`
 
 - Enum implementing `SagaState`
-- **Do not** include `NOT_IN_SAGA` — the initial state is set to `GenericSagaState.NOT_IN_SAGA` (from the framework) in the `Saga{Aggregate}` constructor. This enum only holds operation-specific locked states.
-- Include `IN_UPDATE_{AGGREGATE}` or `IN_DELETE_{AGGREGATE}` only when the saga has additional steps **after** the primary write step that must observe the aggregate under a distinct locked state. For a simple two-step saga (read → write-as-final-step), `READ_{AGGREGATE}` is sufficient as the only state in this enum.
-- **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock
-- Include `READ_{AGGREGATE}` if other aggregates use this aggregate as a cross-aggregate prerequisite (another aggregate's write saga fetches this one's DTO — check plan.md's write functionalities for other aggregates)
+- **Transcribe the constants from the `**Saga states:**` line of this aggregate's plan.md section.**
+  That line is computed by `/classify-and-plan` (§ Step 6.d), which has the whole write-functionality
+  set and the whole dependency graph in front of it. Session `a` writes the domain layer before any
+  saga exists, so deriving the set here would mean inferring the shape of sagas that later sessions —
+  often for later aggregates — have not written yet. Take the list as given; do not add, drop or
+  rename a constant. Each carries a one-line origin naming the saga that acquires it.
+- If plan.md's line reads `none`, emit the enum with an **empty body**. That is the correct output for
+  an aggregate whose only write functionality is a create, and the file is still produced — a later
+  aggregate's session may add write functionalities that need it.
+- If the `**Saga states:**` line is **absent** from the aggregate section, halt and report it rather
+  than deriving a set. plan.md predating § Step 6.d is the likely cause, and a guessed enum surfaces
+  as a missing or unreferenced constant only in a much later session's `c`.
+- **Do not** include `NOT_IN_SAGA` — the initial state is set to `GenericSagaState.NOT_IN_SAGA` (from the framework) in the `Saga{Aggregate}` constructor. This enum only holds operation-specific locked states, and plan.md never lists it.
+- **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock. plan.md already applies this exclusion, so a create operation never appears in the transcribed list.
 
 ### `{Aggregate}Factory.java` (interface)
 

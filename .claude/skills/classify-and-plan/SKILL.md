@@ -363,6 +363,47 @@ cross_agg_rules = [r for r in rules_classified
 
 Map each rule to the saga data-assembly step that provides the needed data and, for P3 DTO-check rules, to the service method that performs the explicit validation.
 
+#### 6.d: Compute the saga-state set for this aggregate
+
+The `{Aggregate}SagaState` enum is emitted by session `a`, but the set of constants it must hold is
+**decided here**, not there. Session `a` writes the domain layer before any saga exists, so deriving
+the set at that point forces an agent to infer the shape of write sagas that other sessions - and
+often other aggregates - have not written yet. A wrong inference surfaces only in a much later
+session's `c`, as a missing constant or an unreferenced one.
+
+Each **non-create write functionality** of this aggregate contributes exactly one constant, named
+`IN_` + the functionality name in `SCREAMING_SNAKE_CASE` (`UpdateTopic` → `IN_UPDATE_TOPIC`,
+`AddParticipant` → `IN_ADD_PARTICIPANT`). That is the state its saga's **primary lock step** acquires
+via `setSemanticLock` — see `docs/concepts/sagas.md` § Lock-Acquisition Step Pattern and
+§ Step Ordering step 3.
+
+Nothing else contributes:
+
+- **Create functionalities contribute no constant.** The aggregate does not exist when the saga
+  starts, so there is no prior state to transition from (`sagas.md` § Create Functionality Sagas).
+  An aggregate whose only write functionality is a create therefore has an **empty** enum, which is
+  correct and must still be emitted — later aggregates may add write functionalities to it.
+- **Being fetched by another aggregate contributes no constant.** A foreign saga's data-assembly step
+  is a plain read, and a foreign saga's *mutating* step guards with
+  `setForbiddenStates([{This}SagaState.IN_{OP}])` — it consumes the constants above rather than
+  needing one of its own (`sagas.md` § R4 Decision Table).
+- **`NOT_IN_SAGA` is never declared.** It is `GenericSagaState.NOT_IN_SAGA`, supplied by the
+  framework.
+
+```
+saga_states[agg] = ['IN_' + screaming_snake(f.name)
+                    for f in write_functionalities[agg]
+                    if f.operation_type != create]
+```
+
+For each constant, record a one-line origin: the saga that acquires it, plus any **foreign** saga
+that guards on it, which Step 6.c's cross-aggregate prerequisites already identify. The origin is
+what lets a session `a` agent transcribe the line without re-deriving it, and what lets a reviewer
+catch a constant that nothing acquires.
+
+**Output:** for each aggregate, an ordered list of `(constant, origin)` pairs — emitted by Step 8 as
+the `**Saga states:**` line of the aggregate section.
+
 ---
 
 ### Step 7: Generate File Lists for Each Session (2.N.a–d)
@@ -554,6 +595,10 @@ every Phase 2/3/4 skill depends on the ordinal being present.
 **Cross-aggregate prerequisites** (P4a rules and P3 DTO-check rules requiring a saga data-assembly fetch):
 - `{RuleName}` → `{Operation}FunctionalitySagas` data-assembly step (fetch from `{OtherAggregate}`)
 
+**Saga states** (`{Aggregate}SagaState` — from Step 6.d; session `a` transcribes this list verbatim):
+- `IN_{OPERATION}` — acquired by `{Operation}FunctionalitySagas` primary lock step
+- `IN_{OPERATION}` — acquired by `{Operation}FunctionalitySagas` primary lock step; guarded by `{OtherOperation}FunctionalitySagas` (`{OtherAggregate}`) via `setForbiddenStates`
+
 **Files to produce:**
 
 | Session | Files |
@@ -573,6 +618,11 @@ every Phase 2/3/4 skill depends on the ordinal being present.
 ```
 
 (Omit Session 2.N.d section if Events subscribed is empty.)
+
+The **Saga states** line is never omitted. When Step 6.d yields no constant, emit it as
+`**Saga states:** none — {reason}` (typically: the aggregate's only write functionality is a create).
+An absent line is indistinguishable from a forgotten one, and session `a` halts on it rather than
+guessing.
 
 The checklist above is the shape **before** slices are emitted. Step 8.5 expands it.
 
