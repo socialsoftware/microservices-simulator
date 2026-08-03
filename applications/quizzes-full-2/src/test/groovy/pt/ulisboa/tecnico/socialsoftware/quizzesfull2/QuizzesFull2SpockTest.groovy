@@ -16,6 +16,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggre
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.functionalities.CourseFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.service.CourseService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.sagas.SagaUser
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.functionalities.UserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.service.UserService
 
 class QuizzesFull2SpockTest extends SpockTest {
 
@@ -45,6 +48,10 @@ class QuizzesFull2SpockTest extends SpockTest {
     protected CourseService courseService
     @Autowired(required = false)
     protected CourseFunctionalities courseFunctionalities
+    @Autowired(required = false)
+    protected UserService userService
+    @Autowired(required = false)
+    protected UserFunctionalities userFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -79,5 +86,11 @@ class QuizzesFull2SpockTest extends SpockTest {
         courseDto.setName(name)
         courseDto.setType(type)
         return courseFunctionalities.createCourse(courseDto).aggregateId
+    }
+
+    Integer createUser(String name = USER_NAME, String username = USER_USERNAME, Role role = USER_ROLE) {
+        def user = new SagaUser(aggregateIdGeneratorService.getNewAggregateId(), name, username, role)
+        unitOfWorkService.registerChanged(user, unitOfWorkService.createUnitOfWork("fixture"))
+        return user.getAggregateId()
     }
 }

@@ -34,8 +34,13 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggre
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.functionalities.CourseFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.messaging.CourseCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.service.CourseService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.sagas.factories.SagasUserFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.sagas.repositories.UserCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.functionalities.UserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.messaging.UserCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.service.UserService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
 @TestConfiguration
@@ -172,5 +177,22 @@ class BeanConfigurationSagas {
     @Bean
     UserCustomRepositorySagas userCustomRepositorySagas() {
         return new UserCustomRepositorySagas()
+    }
+
+    @Bean
+    UserService userService(UserCustomRepository userCustomRepository,
+                            UserFactory userFactory,
+                            UnitOfWorkService unitOfWorkService) {
+        return new UserService(userCustomRepository, userFactory, unitOfWorkService)
+    }
+
+    @Bean
+    UserCommandHandler userCommandHandler() {
+        return new UserCommandHandler()
+    }
+
+    @Bean
+    UserFunctionalities userFunctionalities() {
+        return new UserFunctionalities()
     }
 }
