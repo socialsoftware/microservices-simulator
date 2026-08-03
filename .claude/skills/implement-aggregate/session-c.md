@@ -206,6 +206,28 @@ that.
   - Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix — Cross-Functionality Test** in `docs/concepts/testing.md`.
   - **Coverage is audited mechanically.** List every `setSemanticLock` step (one row per call site) in the session retro's **Semantic-Lock Coverage Audit** table — see `.claude/skills/_shared/session-completion.md` § "Retro template". Unresolved `Present? = No` rows block the session commit.
 
+### One `{Op}CompensationTest.groovy` per lock-holding write functionality (T4)
+
+Path: `{test}sagas/coordination/{aggregate}/{Op}CompensationTest.groovy`
+
+Compensation tests are **core T4 scope**, not deferred. Follow `docs/concepts/testing.md`
+§ Compensation Test in full — it owns the shape, the `ImpairmentService` mechanism and the CSV
+format — and note in particular its § "CRITICAL gotcha — one saga class, one compensation test file":
+the case cannot live inside `{Op}Test.groovy`, because the two need opposite fault state in the same
+CSV block.
+
+**Applicability test:** required for every write functionality whose saga holds a semantic lock
+**across a later step** — a `setSemanticLock` step with a dependent step registered after it. Skip it
+for a functionality whose only step has no dependents (nothing to compensate), and for read
+functionalities, which acquire no lock.
+
+A create functionality typically has no compensation test: a single-step create acquires no lock. A
+mutate functionality that locks in a `get{Aggregate}Step` and mutates in a dependent step typically
+does have one.
+
+Whether each write functionality of this session needs the file is decided by the applicability test
+above, per functionality — not once for the session.
+
 ### Event classes (if this aggregate publishes events)
 
 For each event listed in plan.md Events published that does not yet exist:
