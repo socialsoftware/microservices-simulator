@@ -30,6 +30,7 @@ applications/{app-name}/
     │   ├── events/                    ← shared event classes (published by any aggregate)
     │   └── microservices/
     │       ├── exception/             ← {App}Exception.java + {App}ErrorMessage.java
+    │       ├── domain/                ← {App}DomainConstants.java (shared sentinels; only if an aggregate declares one)
     │       └── {aggregate}/           ← one subpackage per aggregate
     │           ├── {Aggregate}ServiceApplication.java
     │           ├── aggregate/

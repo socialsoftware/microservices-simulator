@@ -219,7 +219,13 @@ Produce this file only if plan.md's `**Domain sentinels:**` line for this aggreg
 constant to declare. Transcribe each listed entry verbatim as a `public static final` field. Create the
 file if it does not exist yet (private constructor, as in `{AppClass}ErrorMessage`); append otherwise,
 and never remove an existing constant. If the line reads `none declared` this aggregate is a
-*consumer*: produce nothing, and import the class where the predicate needs it.
+*consumer*: produce nothing, and import the class where the predicate needs it. If it reads `none.`,
+produce nothing at all.
+
+If the `**Domain sentinels:**` line is **absent** from the aggregate section, halt and report it
+rather than deciding a placement here. plan.md predating § Step 6.e is the likely cause, and the
+consequence of guessing is invisible: an inlined literal type-checks and every test passes, right up
+until a later aggregate's predicate compares against its own second copy.
 
 A sentinel is a fixed literal that a write functionality assigns to a field and that some P1
 predicate compares against - usually a P1 rule of a **later** aggregate, reading its own cached

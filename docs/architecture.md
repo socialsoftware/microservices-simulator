@@ -52,6 +52,11 @@ Aggregate publishes event
 
 Canonical directory layout for one microservice. Each package maps to an architectural layer:
 
+Two packages under `microservices/` are shared rather than per-service: `exception/`
+(`{App}Exception`, `{App}ErrorMessage`) and `domain/` (`{App}DomainConstants`, present only when some
+aggregate declares a sentinel). Both hold plain constants and exception types rather than beans, so
+they cross service boundaries without coupling one microservice's package to another's.
+
 ```
 microservices/{serviceName}/
 ├── {Xxx}ServiceApplication.java
