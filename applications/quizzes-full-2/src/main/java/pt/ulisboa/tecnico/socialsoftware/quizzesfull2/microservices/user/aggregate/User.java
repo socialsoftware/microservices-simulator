@@ -15,6 +15,10 @@ import java.util.Set;
 @Entity
 @Table(name = "users")
 public abstract class User extends Aggregate {
+    // The sentinel AnonymizeUser writes into name and username. Downstream aggregates compare their
+    // cached snapshot against it, so it must be one shared constant rather than a repeated literal.
+    public static final String ANONYMOUS = "ANONYMOUS";
+
     private String name;
     private String username;
     @Enumerated(EnumType.STRING)

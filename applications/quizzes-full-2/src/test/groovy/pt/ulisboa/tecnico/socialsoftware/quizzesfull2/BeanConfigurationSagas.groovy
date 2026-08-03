@@ -182,8 +182,10 @@ class BeanConfigurationSagas {
     @Bean
     UserService userService(UserCustomRepository userCustomRepository,
                             UserFactory userFactory,
-                            UnitOfWorkService unitOfWorkService) {
-        return new UserService(userCustomRepository, userFactory, unitOfWorkService)
+                            UnitOfWorkService unitOfWorkService,
+                            AggregateIdGeneratorService aggregateIdGeneratorService) {
+        return new UserService(userCustomRepository, userFactory, unitOfWorkService,
+                aggregateIdGeneratorService)
     }
 
     @Bean
