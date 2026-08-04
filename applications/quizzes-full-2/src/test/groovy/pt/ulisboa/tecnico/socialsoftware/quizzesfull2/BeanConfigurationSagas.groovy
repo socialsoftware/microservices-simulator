@@ -218,8 +218,10 @@ class BeanConfigurationSagas {
     @Bean
     TopicService topicService(TopicCustomRepository topicCustomRepository,
                               TopicFactory topicFactory,
-                              UnitOfWorkService unitOfWorkService) {
-        return new TopicService(topicCustomRepository, topicFactory, unitOfWorkService)
+                              UnitOfWorkService unitOfWorkService,
+                              AggregateIdGeneratorService aggregateIdGeneratorService) {
+        return new TopicService(topicCustomRepository, topicFactory, unitOfWorkService,
+                aggregateIdGeneratorService)
     }
 
     @Bean
