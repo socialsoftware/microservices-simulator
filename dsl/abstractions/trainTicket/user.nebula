@@ -1,12 +1,32 @@
+// Source: ts-user-service User + ts-inside-payment-service Balance (absorbed — see 07-decisions.md D9)
 Aggregate User {
     @GenerateCrud
 
     Root Entity User {
         String userName
         String password
-        Integer gender
-        Integer documentType
+        Gender gender
+        DocumentType documentType
         String documentNum
         String email
+
+        // Absorbed from ts-inside-payment-service Balance { userId, balance }
+        Double balance = 0.0
+
+        invariants {
+            check userNameNotBlank { userName != null && userName.length() > 0 }
+                error "User name cannot be blank"
+            check passwordNotBlank { password != null && password.length() > 0 }
+                error "Password cannot be blank"
+            check documentTypeSet { documentType != null }
+                error "User must have a document type"
+            check balanceNotNegative { balance >= 0 }
+                error "User balance cannot be negative"
+        }
+    }
+
+    Events {
+        publish UserDeletedEvent {
+        }
     }
 }

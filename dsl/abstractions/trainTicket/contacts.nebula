@@ -1,15 +1,48 @@
+// Source: ts-contacts-service Contacts.
+// ContactsUser carries only the base projection fields (userAggregateId / userVersion /
+// userState) — that aggregateId *is* the source's accountId, and Contacts needs nothing
+// else from User.
 Aggregate Contacts {
     @GenerateCrud
 
+    Entity ContactsUser from User {
+    }
+
     Root Entity Contacts {
         String name
-        Integer documentType
+        DocumentType documentType
         String documentNumber
         String phoneNumber
 
         ContactsUser user
+
+        invariants {
+            check nameNotBlank { name != null && name.length() > 0 }
+                error "Contact name cannot be blank"
+            check documentNumberNotBlank { documentNumber != null && documentNumber.length() > 0 }
+                error "Document number cannot be blank"
+            check documentTypeSet { documentType != null }
+                error "Contact must have a document type"
+            check userSet { user != null }
+                error "Contact must belong to a user account"
+        }
     }
 
-    Entity ContactsUser from User {
+    References {
+        user -> User {
+            onDelete: cascade
+            message: "User deleted, removing the contacts they own"
+        }
+    }
+
+    Events {
+        publish ContactsDeletedEvent {
+        }
+
+        interInvariant CONTACTS_USER_EXISTS {
+            subscribe UserDeletedEvent from User {
+                user.userAggregateId == event.aggregateId
+            }
+        }
     }
 }

@@ -1,8 +1,21 @@
+// Source: ts-station-service Station
 Aggregate Station {
     @GenerateCrud
 
     Root Entity Station {
         String name
         Integer stayTime
+
+        invariants {
+            check nameNotBlank { name != null && name.length() > 0 }
+                error "Station name cannot be blank"
+            check stayTimeNonNegative { stayTime >= 0 }
+                error "Station stay time cannot be negative"
+        }
+    }
+
+    Events {
+        publish StationDeletedEvent {
+        }
     }
 }

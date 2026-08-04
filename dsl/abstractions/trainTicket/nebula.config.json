@@ -15,5 +15,8 @@
     "java": {
         "version": "21",
         "springBootVersion": "3.5.3"
+    },
+    "framework": {
+        "version": "3.1.0-SNAPSHOT"
     }
 }

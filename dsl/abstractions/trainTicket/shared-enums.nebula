@@ -10,4 +10,48 @@ SharedEnums {
         USED
     }
 
+    // Source: ts-order-service SeatClass (numeric codes 0..8) — see 07-decisions.md D5
+    enum SeatClass {
+        NONE,
+        BUSINESS,
+        FIRSTCLASS,
+        SECONDCLASS,
+        HARDSEAT,
+        SOFTSEAT,
+        HARDBED,
+        SOFTBED,
+        HIGHSOFTBED
+    }
+
+    // Source: ts-travel-service TripId.Type — G/D are high-speed, Z/T/K are the rest
+    enum TripType {
+        G,
+        D,
+        Z,
+        T,
+        K
+    }
+
+    // Source: ts-contacts-service DocumentType (numeric codes) — see 07-decisions.md D5
+    enum DocumentType {
+        NONE,
+        ID_CARD,
+        PASSPORT,
+        OTHER
+    }
+
+    enum Gender {
+        NONE,
+        MALE,
+        FEMALE,
+        OTHER
+    }
+
+    // Source: ts-inside-payment-service PaymentType — see 07-decisions.md D9
+    enum PaymentType {
+        INSIDE,
+        OUTSIDE,
+        REFUND
+    }
+
 }

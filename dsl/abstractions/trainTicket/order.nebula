@@ -1,33 +1,26 @@
+// Source: ts-order-service Order (+ ts-order-other-service, a field-identical shard — modelled as one).
+// Pure downstream sink: it references User, Contacts, Trip, Train and two Stations, and
+// nothing references it back except Payment.
+// All projections are FROZEN at booking time (07-decisions.md D1): the order subscribes only to
+// the *DeletedEvent of each referenced aggregate, never to *UpdatedEvent. A ticket must keep
+// saying who travelled and between which stations as of the day it was bought.
 Aggregate Order {
     @GenerateCrud
-
-     Root Entity Order {
-        String boughtDate
-        String travelDate
-        String travelTime
-        Integer coachNumber
-        Integer seatClass
-        String seatNumber
-        String price
-        
-        OrderStatus status
-        OrderUser user
-        OrderContacts contacts
-        OrderTrainType train
-        OrderFromStation fromStation
-        OrderToStation toStation
-    }
 
     Entity OrderUser from User {
     }
 
     Entity OrderContacts from Contacts {
         map name as contactsName
-        map documentType as documentType
+        map documentType as contactsDocumentType
         map documentNumber as contactsDocumentNumber
     }
 
-    Entity OrderTrainType from TrainType {
+    Entity OrderTrip from Trip {
+        map tripNumber as tripNumber
+    }
+
+    Entity OrderTrain from Train {
         map name as trainNumber
     }
 
@@ -39,5 +32,99 @@ Aggregate Order {
         map name as toName
     }
 
-    
+    Root Entity Order {
+        String boughtDate
+        String travelDate
+        String travelTime
+        Integer coachNumber
+        SeatClass seatClass
+        String seatNumber
+        Double price
+
+        OrderStatus status
+        OrderUser user
+        OrderContacts contacts
+        OrderTrip trip
+        OrderTrain train
+        OrderFromStation fromStation
+        OrderToStation toStation
+
+        invariants {
+            check seatClassSet { seatClass != null }
+                error "Order must have a seat class"
+            check coachNumberPositive { coachNumber > 0 }
+                error "Coach number must be positive"
+            check statusSet { status != null }
+                error "Order must have a status"
+            check priceNotNegative { price >= 0 }
+                error "Order price cannot be negative"
+            check userSet { user != null }
+                error "Order must belong to a user account"
+            check tripSet { trip != null }
+                error "Order must reference a trip"
+        }
+    }
+
+    References {
+        user -> User {
+            onDelete: prevent
+            message: "Cannot delete an account with existing orders"
+        }
+        contacts -> Contacts {
+            onDelete: prevent
+            message: "Cannot delete a contact referenced by an order"
+        }
+        trip -> Trip {
+            onDelete: prevent
+            message: "Cannot delete a trip with existing orders"
+        }
+        train -> Train {
+            onDelete: prevent
+            message: "Cannot delete a train type referenced by an order"
+        }
+        fromStation -> Station {
+            onDelete: prevent
+            message: "Cannot delete a station referenced as the origin of an order"
+        }
+        toStation -> Station {
+            onDelete: prevent
+            message: "Cannot delete a station referenced as the destination of an order"
+        }
+    }
+
+    Events {
+        publish OrderDeletedEvent {
+        }
+
+        interInvariant ORDER_USER_EXISTS {
+            subscribe UserDeletedEvent from User {
+                user.userAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant ORDER_CONTACTS_EXISTS {
+            subscribe ContactsDeletedEvent from Contacts {
+                contacts.contactsAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant ORDER_TRIP_EXISTS {
+            subscribe TripDeletedEvent from Trip {
+                trip.tripAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant ORDER_TRAINTYPE_EXISTS {
+            subscribe TrainDeletedEvent from Train {
+                train.trainAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant ORDER_STATIONS_EXIST {
+            subscribe StationDeletedEvent from Station {
+                fromStation.stationAggregateId == event.aggregateId ||
+                toStation.stationAggregateId == event.aggregateId
+            }
+        }
+    }
 }

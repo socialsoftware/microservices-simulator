@@ -1,0 +1,59 @@
+// Source: ts-price-service PriceConfig { trainType, routeId, basicPriceRate, firstClassPriceRate }.
+// Terminal downstream aggregate: it references Train and Route but nothing references it —
+// the PreserveOrder saga reads it to compute the ticket price and does not keep a link to it.
+// Both references cascade: a fare rule for a train type or route that no longer exists is dead
+// data (07-decisions.md D4).
+Aggregate PriceConfig {
+    @GenerateCrud
+
+    Entity PriceConfigTrain from Train {
+        map name as trainTypeName
+    }
+
+    Entity PriceConfigRoute from Route {
+    }
+
+    Root Entity PriceConfig {
+        Double basicPriceRate
+        Double firstClassPriceRate
+
+        PriceConfigTrain trainType
+        PriceConfigRoute route
+
+        invariants {
+            check basicPriceRateNonNegative { basicPriceRate >= 0 }
+                error "Basic price rate cannot be negative"
+            check firstClassPriceRateNonNegative { firstClassPriceRate >= 0 }
+                error "First-class price rate cannot be negative"
+            check trainTypeSet { trainType != null }
+                error "Price config must reference a train type"
+            check routeSet { route != null }
+                error "Price config must reference a route"
+        }
+    }
+
+    References {
+        trainType -> Train {
+            onDelete: cascade
+            message: "Train type deleted, removing its price configuration"
+        }
+        route -> Route {
+            onDelete: cascade
+            message: "Route deleted, removing its price configuration"
+        }
+    }
+
+    Events {
+        interInvariant PRICE_CONFIG_TRAINTYPE_EXISTS {
+            subscribe TrainDeletedEvent from Train {
+                trainType.trainAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant PRICE_CONFIG_ROUTE_EXISTS {
+            subscribe RouteDeletedEvent from Route {
+                route.routeAggregateId == event.aggregateId
+            }
+        }
+    }
+}

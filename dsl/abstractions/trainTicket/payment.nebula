@@ -1,0 +1,60 @@
+// Source: ts-payment-service Payment { orderId, userId, price } and the movements recorded by
+// ts-inside-payment-service. The wallet balance itself is NOT here — it lives as User.balance,
+// since it is 1:1 with the account and has no life cycle of its own (07-decisions.md D9).
+// A Payment row is the historical record of one movement: a charge (INSIDE/OUTSIDE) or a REFUND.
+Aggregate Payment {
+    @GenerateCrud
+
+    Entity PaymentOrder from Order {
+    }
+
+    Entity PaymentUser from User {
+    }
+
+    Root Entity Payment {
+        Double amount
+        PaymentType type
+        String paymentDate
+
+        PaymentOrder order
+        PaymentUser user
+
+        invariants {
+            check amountPositive { amount > 0 }
+                error "Payment amount must be positive"
+            check typeSet { type != null }
+                error "Payment must have a type"
+            check paymentDateSet { paymentDate != null && paymentDate.length() > 0 }
+                error "Payment must have a date"
+            check orderSet { order != null }
+                error "Payment must reference an order"
+            check userSet { user != null }
+                error "Payment must reference a user account"
+        }
+    }
+
+    References {
+        order -> Order {
+            onDelete: prevent
+            message: "Cannot delete an order that has payment records"
+        }
+        user -> User {
+            onDelete: prevent
+            message: "Cannot delete an account that has payment records"
+        }
+    }
+
+    Events {
+        interInvariant PAYMENT_ORDER_EXISTS {
+            subscribe OrderDeletedEvent from Order {
+                order.orderAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant PAYMENT_USER_EXISTS {
+            subscribe UserDeletedEvent from User {
+                user.userAggregateId == event.aggregateId
+            }
+        }
+    }
+}

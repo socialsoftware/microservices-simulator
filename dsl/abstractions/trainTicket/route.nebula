@@ -1,10 +1,42 @@
+// Source: ts-route-service Route.
+// The source keeps two parallel lists — List<String> stations and List<Integer> distances —
+// whose positional alignment nothing validates. They are merged into one ordered list of
+// Station projections, which removes the alignment invariant entirely (07-decisions.md D7)
+// and gives real referential integrity instead of soft references by name (D2).
+// startStation / endStation are dropped: they are the first and last element of the list.
 Aggregate Route {
     @GenerateCrud
 
+    Entity RouteStation from Station {
+        map name as stationName
+        Integer stationOrder
+        Integer distanceFromStart
+    }
+
     Root Entity Route {
-        List<String> stations       
-        List<Integer> distances      
-        String startStation
-        String endStation           
+        List<RouteStation> stations
+
+        invariants {
+            check stationsNotNull { stations != null }
+                error "Route must have a stations collection"
+        }
+    }
+
+    References {
+        stations -> Station {
+            onDelete: prevent
+            message: "Cannot delete a station used by an existing route"
+        }
+    }
+
+    Events {
+        publish RouteDeletedEvent {
+        }
+
+        interInvariant ROUTE_STATIONS_EXIST {
+            subscribe StationDeletedEvent from Station {
+                stations.stationAggregateId == event.aggregateId
+            }
+        }
     }
 }

@@ -1,20 +1,12 @@
+// Source: ts-travel-service Trip (+ ts-travel2-service, a field-identical shard — modelled as one).
+// The source's @Embeddable TripId { Type type; String number } (e.g. G1234) is flattened into
+// tripType + tripNumber, since Nebula has no embeddable value objects (07-decisions.md D6).
+// The denormalised `stationsName` (comma-joined intermediate stops) is dropped — the ordered
+// station list belongs to the referenced Route (D2/D7).
 Aggregate Trip {
     @GenerateCrud
 
-    Root Entity Trip {
-        // TODO: tripId — embedded value object (type enum + number); to be modeled later
-
-        String stationsName          // intermediate stops, comma-joined Station names (soft ref)
-        String startTime
-        String endTime
-
-        TripTrainType trainType
-        TripRoute route
-        TripStartStation startStation
-        TripTerminalStation terminalStation
-    }
-
-    Entity TripTrainType from TrainType {
+    Entity TripTrain from Train {
         map name as trainTypeName
     }
 
@@ -27,5 +19,79 @@ Aggregate Trip {
 
     Entity TripTerminalStation from Station {
         map name as terminalStationName
+    }
+
+    Root Entity Trip {
+        TripType tripType
+        String tripNumber
+        String startTime
+        String endTime
+
+        TripTrain trainType
+        TripRoute route
+        TripStartStation startStation
+        TripTerminalStation terminalStation
+
+        invariants {
+            check tripTypeSet { tripType != null }
+                error "Trip must have a trip type"
+            check tripNumberNotBlank { tripNumber != null && tripNumber.length() > 0 }
+                error "Trip must have a trip number"
+            check trainTypeSet { trainType != null }
+                error "Trip must have a train type"
+            check routeSet { route != null }
+                error "Trip must have a route"
+            check startStationSet { startStation != null }
+                error "Trip must have a start station"
+            check terminalStationSet { terminalStation != null }
+                error "Trip must have a terminal station"
+            check startTimeSet { startTime != null && startTime.length() > 0 }
+                error "Trip must have a start time"
+            check endTimeSet { endTime != null && endTime.length() > 0 }
+                error "Trip must have an end time"
+        }
+    }
+
+    References {
+        trainType -> Train {
+            onDelete: prevent
+            message: "Cannot delete a train type with scheduled trips"
+        }
+        route -> Route {
+            onDelete: prevent
+            message: "Cannot delete a route with scheduled trips"
+        }
+        startStation -> Station {
+            onDelete: prevent
+            message: "Cannot delete a station used as the start of a trip"
+        }
+        terminalStation -> Station {
+            onDelete: prevent
+            message: "Cannot delete a station used as the terminus of a trip"
+        }
+    }
+
+    Events {
+        publish TripDeletedEvent {
+        }
+
+        interInvariant TRIP_TRAINTYPE_EXISTS {
+            subscribe TrainDeletedEvent from Train {
+                trainType.trainAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant TRIP_ROUTE_EXISTS {
+            subscribe RouteDeletedEvent from Route {
+                route.routeAggregateId == event.aggregateId
+            }
+        }
+
+        interInvariant TRIP_STATIONS_EXIST {
+            subscribe StationDeletedEvent from Station {
+                startStation.stationAggregateId == event.aggregateId ||
+                terminalStation.stationAggregateId == event.aggregateId
+            }
+        }
     }
 }

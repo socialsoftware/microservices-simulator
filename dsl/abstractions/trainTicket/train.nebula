@@ -1,0 +1,29 @@
+// Source: ts-train-service Train.
+// economyClass / confortClass are seat capacities — they are what the seat-availability
+// guard of the PreserveOrder saga counts against (see 07-decisions.md D3).
+Aggregate Train {
+    @GenerateCrud
+
+    Root Entity Train {
+        String name
+        Integer economyClass
+        Integer confortClass
+        Integer averageSpeed
+
+        invariants {
+            check nameNotBlank { name != null && name.length() > 0 }
+                error "Train type name cannot be blank"
+            check economyClassNonNegative { economyClass >= 0 }
+                error "Economy-class capacity cannot be negative"
+            check confortClassNonNegative { confortClass >= 0 }
+                error "First-class capacity cannot be negative"
+            check averageSpeedNonNegative { averageSpeed >= 0 }
+                error "Average speed cannot be negative"
+        }
+    }
+
+    Events {
+        publish TrainDeletedEvent {
+        }
+    }
+}
