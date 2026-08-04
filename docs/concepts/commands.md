@@ -51,6 +51,12 @@ Commands are plain data carriers — no business logic, no Spring beans.
 > Version conflict detection is unaffected; it operates on the aggregates registered read/changed
 > with the unit of work, not on this field.
 
+> A **bulk read filtered by a non-PK field** likewise has no single root aggregate. Pass `null`, for
+> the same reason: it declares no semantic lock and no forbidden states, so the handler never
+> dereferences it. Do **not** pass the filter value even when the filter is a foreign aggregate's
+> id - `rootAggregateId` names the aggregate whose lock lifecycle this command joins, and a
+> foreign aggregate that merely narrows the result set is not it.
+
 ---
 
 ## Naming Conventions
