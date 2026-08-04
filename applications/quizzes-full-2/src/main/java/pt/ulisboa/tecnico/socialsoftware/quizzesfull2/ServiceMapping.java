@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull2;
 public enum ServiceMapping {
     COURSE("course"),
     USER("user"),
+    TOPIC("topic"),
     ;
 
     private final String serviceName;

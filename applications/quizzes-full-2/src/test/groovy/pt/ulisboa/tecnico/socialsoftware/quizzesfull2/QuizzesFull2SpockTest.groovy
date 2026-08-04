@@ -15,6 +15,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggre
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseType
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.functionalities.CourseFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.service.CourseService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.aggregate.sagas.SagaTopic
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.coordination.functionalities.TopicFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.service.TopicService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.functionalities.UserFunctionalities
@@ -55,6 +58,10 @@ class QuizzesFull2SpockTest extends SpockTest {
     protected UserService userService
     @Autowired(required = false)
     protected UserFunctionalities userFunctionalities
+    @Autowired(required = false)
+    protected TopicService topicService
+    @Autowired(required = false)
+    protected TopicFunctionalities topicFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -97,5 +104,13 @@ class QuizzesFull2SpockTest extends SpockTest {
         userDto.setUsername(username)
         userDto.setRole(role)
         return userFunctionalities.createUser(userDto).aggregateId
+    }
+
+    // Built directly on the aggregate because CreateTopic does not exist until session 2.3.c, which
+    // replaces this body with the real functionality call under the same signature.
+    Integer createTopic(Integer courseAggregateId, String name = TOPIC_NAME) {
+        def topic = new SagaTopic(aggregateIdGeneratorService.getNewAggregateId(), name, courseAggregateId)
+        unitOfWorkService.registerChanged(topic, unitOfWorkService.createUnitOfWork("fixture"))
+        return topic.getAggregateId()
     }
 }
