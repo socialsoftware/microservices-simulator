@@ -437,8 +437,8 @@ then makes a three-part assertion: (1) the expected exception propagates — nor
 non-fault reason first (an update step whose target fields are P1 `final` always throws its
 immutability constant, for instance — no impairment is needed there, just an added
 `sagaStateOf(...) == NOT_IN_SAGA` assertion on the existing lock-acquisition test); (2)
-`sagaStateOf(aggregateId) == GenericSagaState.NOT_IN_SAGA` (compensation actually ran); (3)
-read-back through the functionality's own getter shows the mutation never applied.
+`sagaStateOf(aggregateId) == GenericSagaState.NOT_IN_SAGA` (compensation actually ran); (3) a
+read-back through the aggregate's read surface shows the mutation never applied.
 
 ```groovy
 class <FunctionalityName>CompensationTest extends <AppName>SpockTest {
@@ -469,6 +469,14 @@ class <FunctionalityName>CompensationTest extends <AppName>SpockTest {
     }
 }
 ```
+
+**The read-back uses whatever read coordinator the aggregate actually exposes.** The template shows
+a by-id getter because that is the common shape, but an aggregate may deliberately expose only a
+filtered list read - and the read surface is fixed by session 2.{N}.b, not by this test. In that
+case call the list coordinator and select the aggregate under test from the result by its id.
+Never add a read coordinator, a service method or a command to satisfy this template: an unplanned
+by-id read is a functionality the domain model did not ask for, and it ships to production code to
+serve a test.
 
 **The `ImpairmentService` mechanism** — read before writing any of these:
 
