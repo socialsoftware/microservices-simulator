@@ -274,7 +274,8 @@ reads depend on**, named after that functionality and built directly on the aggr
 ```groovy
 void {operation}{Aggregate}(Integer {aggregate}AggregateId, Integer {foreign}AggregateId) {
     def unitOfWork = unitOfWorkService.createUnitOfWork("fixture")
-    def {aggregate} = {aggregate}Service.get{Aggregate}(  {aggregate}AggregateId, unitOfWork)
+    def {aggregate} = new Saga{Aggregate}((Saga{Aggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(
+            {aggregate}AggregateId, unitOfWork))
     {aggregate}.add{Element}(new {Element}({foreign}AggregateId, /* snapshot fields */))
     unitOfWorkService.registerChanged({aggregate}, unitOfWork)
 }
