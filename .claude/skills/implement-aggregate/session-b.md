@@ -259,6 +259,33 @@ survive that swap unchanged: minimal valid arguments, own-field parameters defau
 constants and foreign-aggregate-id parameters required and leading, aggregate id returned. Do **not** name it `persist{Aggregate}` or make it `private` to a test class — a
 per-test-class fixture is thrown away in 2.{N}.c and every call site has to be rewritten.
 
+### Fixture state a create cannot reach
+
+`create{Aggregate}` builds a **minimal valid** aggregate, so its owned collections come out empty. A
+read functionality that filters on a field of an owned entity - `Get{Aggregate}sBy{Element}({foreign}AggregateId)`
+selecting over `{Aggregate}.{elements}` - therefore cannot be tested through `create{Aggregate}`
+alone, because only a session-2.{N}.c write functionality can populate that collection.
+
+Do **not** widen `create{Aggregate}` to carry the collection, and do **not** populate the collection
+inline in a test class. Instead add **one sibling helper per write functionality the session-`b`
+reads depend on**, named after that functionality and built directly on the aggregate exactly as
+`create{Aggregate}` is:
+
+```groovy
+void {operation}{Aggregate}(Integer {aggregate}AggregateId, Integer {foreign}AggregateId) {
+    def unitOfWork = unitOfWorkService.createUnitOfWork("fixture")
+    def {aggregate} = {aggregate}Service.get{Aggregate}(  {aggregate}AggregateId, unitOfWork)
+    {aggregate}.add{Element}(new {Element}({foreign}AggregateId, /* snapshot fields */))
+    unitOfWorkService.registerChanged({aggregate}, unitOfWork)
+}
+```
+
+The same signature contract binds these helpers: parameters minimal, foreign-aggregate-id parameters
+required and leading, and the signature unchanged when 2.{N}.c replaces the body with the real
+functionality. Keeping `create{Aggregate}` minimal is what makes that swap safe - a collection
+parameter on the create helper would have no counterpart in the create functionality and would force
+a signature change in 2.{N}.c, rewriting every call site.
+
 ---
 
 ## Tick the Checkbox

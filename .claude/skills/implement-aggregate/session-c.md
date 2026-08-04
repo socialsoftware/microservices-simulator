@@ -315,6 +315,11 @@ that session call this helper, and a signature change rewrites them for nothing.
 functionality genuinely cannot satisfy the existing signature, that is a real mismatch — take it to
 `SKILL.md` § "Step 3b: The Self-Healing Gate" rather than silently re-shaping the helper.
 
+Session 2.{N}.b may also have added **sibling fixture helpers** named after write functionalities its
+reads depended on - see session-b.md § "Fixture state a create cannot reach". Replace each of those
+bodies too, with a call to the functionality it is named after, under the same rule: signature and
+defaults unchanged, mismatches escalated rather than re-shaped.
+
 Once replaced, the aggregate is created through the real saga, so 2.{N}.b's read tests exercise the
 production create path from here on. Re-run them and confirm they still pass.
 
