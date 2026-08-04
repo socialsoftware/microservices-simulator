@@ -142,6 +142,54 @@ class CreateTournamentFaultTest extends QuizzesSpockTest {
         impairmentService.cleanDirectory()
     }
 
+    def 'Check Quiz existence step by step compensation'() {
+        given: 'a clear report'
+        impairmentService.cleanReportFile()
+        
+        and: 'create unit of works for the creation of a tournament'
+        def functionalityName1 = CreateTournamentFunctionalitySagas.class.getSimpleName()
+        def unitOfWork1 = unitOfWorkService.createUnitOfWork(functionalityName1)
+
+        and: 'the create tournament functionality'
+        def createTournamentFunctionality = new CreateTournamentFunctionalitySagas(
+                unitOfWorkService, userCreatorDto.getAggregateId(),
+             courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], tournamentDto, unitOfWork1, commandGateway)
+        
+        when: 'execute until the step that generates the quiz'
+        createTournamentFunctionality.executeUntilStep("generateQuizStep", unitOfWork1)
+
+        then: 'check that the quiz was created'
+        def quizId = createTournamentFunctionality.getQuizDto().getAggregateId()
+        def quizdto = quizFunctionalities.findQuiz(quizId)
+        quizdto != null
+
+        when: 'we set a fault in the next step and execute it'
+        createTournamentFunctionality.executeUntilStep("createTournamentStep", unitOfWork1)
+
+        then: 'Fault is thrown and we catch it'
+        thrown(SimulatorException)
+
+        when: 'we check if the quiz still exists before compensation'
+        def quizdto1 = quizFunctionalities.findQuiz(quizId)
+        
+        then: 'it still exists'
+        quizdto1 != null
+
+        when: 'we compensate until the step that generates the quiz'
+        createTournamentFunctionality.compensateUntilStep("generateQuizStep", unitOfWork1)
+
+        and: 'we check if the quiz still exists'
+        def quizdto2 = quizFunctionalities.findQuiz(quizId)
+        
+        then: 'it does not exist because generateQuizStep compensation was executed'
+        thrown(SimulatorException)
+
+        cleanup:
+        traceService.endRootSpan()
+        traceService.spanFlush()
+        impairmentService.cleanDirectory()
+    }
+
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}
 }

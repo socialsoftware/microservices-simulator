@@ -125,24 +125,44 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         // aggregates are committed at the end of each service
     }
 
-    public void compensate(SagaUnitOfWork unitOfWork) {
-        unitOfWork.compensate();
-    }
+
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void sendAbortCommandsForStep(SagaUnitOfWork unitOfWork, String stepName) {
+        List<SagaUnitOfWork.AggregateStateRecord> records = unitOfWork.getPreviousStates().get(stepName);
+        if (records != null) {
+            for (SagaUnitOfWork.AggregateStateRecord record : records) {
+                Integer aggregateId = record.aggregateId();
+                SagaState previousState = record.state();
+
+                String aggregateType = unitOfWork.getAggregatesInSaga().get(aggregateId);
+                String serviceName = this.resolveServiceName(aggregateType);
+
+                AbortSagaCommand command = new AbortSagaCommand(aggregateId, serviceName, previousState);
+                commandGateway.send(command);
+            }
+        }
+    }
+
     @Override
     public void abort(SagaUnitOfWork unitOfWork) {
-        for (Map.Entry<Integer, SagaState> entry : unitOfWork.getPreviousStates().entrySet()) {
-            Integer aggregateId = entry.getKey();
-            SagaState previousState = entry.getValue();
+        abortUntilStep(unitOfWork, null);
+    }
 
-            String aggregateType = unitOfWork.getAggregatesInSaga().get(aggregateId);
-            String serviceName = this.resolveServiceName(aggregateType);
+    public void abortUntilStep(SagaUnitOfWork unitOfWork, String stepName) {
+        List<String> executedSteps = new java.util.ArrayList<>(unitOfWork.getExecutedSteps());
+        java.util.Collections.reverse(executedSteps);
 
-            AbortSagaCommand command = new AbortSagaCommand(aggregateId, serviceName, previousState);
-            commandGateway.send(command);
+        for (String currentStep : executedSteps) {
+            unitOfWork.compensateStep(currentStep);
+            if (!unitOfWork.isStepAborted(currentStep)) {
+                sendAbortCommandsForStep(unitOfWork, currentStep);
+                unitOfWork.setStepAborted(currentStep);
+            }
+            if (currentStep != null && currentStep.equals(stepName)) {
+                break;
+            }
         }
-        compensate(unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

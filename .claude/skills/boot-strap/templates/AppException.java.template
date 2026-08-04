@@ -1,0 +1,63 @@
+package pt.ulisboa.tecnico.socialsoftware.{{PKG}}.microservices.exception;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+public class {{APP_CLASS}}Exception extends SimulatorException {
+    private static final Logger logger = LoggerFactory.getLogger({{APP_CLASS}}Exception.class);
+    private final String {{appClass}}ErrorMessage;
+
+    private {{APP_CLASS}}Exception(String {{appClass}}ErrorMessage, String formattedMessage, boolean alreadyFormatted) {
+        super({{appClass}}ErrorMessage, formattedMessage, true);
+        logger.info(formattedMessage);
+        this.{{appClass}}ErrorMessage = {{appClass}}ErrorMessage;
+    }
+
+    public {{APP_CLASS}}Exception(String {{appClass}}ErrorMessage) {
+        super({{appClass}}ErrorMessage);
+        logger.info({{appClass}}ErrorMessage);
+        this.{{appClass}}ErrorMessage = {{appClass}}ErrorMessage;
+    }
+
+    public {{APP_CLASS}}Exception(String {{appClass}}ErrorMessage, String value) {
+        super(String.format({{appClass}}ErrorMessage, value));
+        logger.info(String.format({{appClass}}ErrorMessage, value));
+        this.{{appClass}}ErrorMessage = {{appClass}}ErrorMessage;
+    }
+
+    public {{APP_CLASS}}Exception(String {{appClass}}ErrorMessage, String value1, String value2) {
+        super(String.format({{appClass}}ErrorMessage, value1, value2));
+        logger.info(String.format({{appClass}}ErrorMessage, value1, value2));
+        this.{{appClass}}ErrorMessage = {{appClass}}ErrorMessage;
+    }
+
+    public {{APP_CLASS}}Exception(String {{appClass}}ErrorMessage, int value) {
+        super(String.format({{appClass}}ErrorMessage, value));
+        logger.info(String.format({{appClass}}ErrorMessage, value));
+        this.{{appClass}}ErrorMessage = {{appClass}}ErrorMessage;
+    }
+
+    public {{APP_CLASS}}Exception(String {{appClass}}ErrorMessage, int value1, int value2) {
+        super(String.format({{appClass}}ErrorMessage, value1, value2));
+        logger.info(String.format({{appClass}}ErrorMessage, value1, value2));
+        this.{{appClass}}ErrorMessage = {{appClass}}ErrorMessage;
+    }
+
+    public {{APP_CLASS}}Exception(String {{appClass}}ErrorMessage, String value1, int value2) {
+        super(String.format({{appClass}}ErrorMessage, value1, value2));
+        logger.info(String.format({{appClass}}ErrorMessage, value1, value2));
+        this.{{appClass}}ErrorMessage = {{appClass}}ErrorMessage;
+    }
+
+    public String getErrorMessage() {
+        return this.{{appClass}}ErrorMessage;
+    }
+
+    public static {{APP_CLASS}}Exception fromRemote(String {{appClass}}ErrorMessage, String formattedMessage) {
+        return new {{APP_CLASS}}Exception({{appClass}}ErrorMessage, formattedMessage, true);
+    }
+}

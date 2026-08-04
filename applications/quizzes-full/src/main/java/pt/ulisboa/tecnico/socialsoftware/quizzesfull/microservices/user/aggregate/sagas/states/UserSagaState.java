@@ -8,5 +8,5 @@ public enum UserSagaState implements SagaState {
         public String getStateName() {
             return "READ_USER";
         }
-    }
+    },
 }

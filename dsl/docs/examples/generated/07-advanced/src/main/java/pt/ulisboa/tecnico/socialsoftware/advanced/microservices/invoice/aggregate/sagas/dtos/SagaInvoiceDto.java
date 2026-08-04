@@ -5,8 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregat
 import pt.ulisboa.tecnico.socialsoftware.advanced.shared.dtos.InvoiceDto;
 import pt.ulisboa.tecnico.socialsoftware.advanced.microservices.invoice.aggregate.sagas.SagaInvoice;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 public class SagaInvoiceDto extends InvoiceDto {
+@Convert(converter = SagaStateConverter.class)
 private SagaState sagaState;
 
 public SagaInvoiceDto(Invoice invoice) {

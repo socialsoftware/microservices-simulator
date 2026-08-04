@@ -4,15 +4,11 @@ public enum ServiceMapping {
     COURSE("course"),
     USER("user"),
     TOPIC("topic"),
-    COURSE_EXECUTION("courseExecution"),
     QUESTION("question"),
-    QUIZ("quiz"),
-    QUIZ_ANSWER("quizAnswer"),
+    EXECUTION("execution"),
     TOURNAMENT("tournament"),
-    ASSESSMENT("assessment"),
-    DISCUSSION("discussion"),
-    QUESTION_SUBMISSION("questionSubmission"),
-    DASHBOARD("dashboard");
+    QUIZ("quiz"),
+    ANSWER("quizAnswer");
 
     private final String serviceName;
 
