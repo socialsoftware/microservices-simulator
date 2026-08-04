@@ -62,6 +62,7 @@ Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}.java`
 - `verifyInvariants()`: enforces all **P1 rules** for this aggregate listed in plan.md. Throws `{AppClass}Exception` with the appropriate error message constant on violation. It reads only fields already held by the aggregate - never a repository, a service or any other DB access (R6 - see `docs/concepts/aggregate.md`). A predicate that compares against a fixed literal reads it from `{AppClass}DomainConstants` (see § "Domain sentinel constants") - never inline the literal here.
 - `getEventSubscriptions()`: in session a, always return `new HashSet<>()` — do **not** reference any subscribe classes yet (they do not exist until session d). Session d will update this method to return the proper set of subscribe class instances.
 - Getters and setters for all mutable fields
+- A collection field additionally gets a plain `add{Element}` / `remove{Element}` helper alongside its getter and setter. These are setters, not business logic, so they belong to this session - a later session never re-opens the aggregate to add them, and the T1 test mutates the collection through them rather than through the getter's live list
 - No business logic methods (sagas call service; service calls setters then verifyInvariants)
 
 ### Owned entity classes
