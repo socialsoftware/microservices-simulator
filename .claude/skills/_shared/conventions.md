@@ -153,6 +153,11 @@ Get the verdict from two sources the hook does not touch: maven's own **exit sta
 
 Run the build with no pipe, then read the exit status on the following line:
 
+A full run's stdout can exceed the tool's output budget and be truncated, taking the `MAVEN_EXIT`
+line with it. **Redirect to a file** - `> build.log 2>&1` is a redirection, not a pipe, so maven's
+own exit code still reaches `$?` and the verdict line stays visible. Read the log only to quote a
+failure; the totals still come from the surefire reports below.
+
 ```bash
 cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
 mvn clean -Ptest-sagas test {-Dtest=... if narrowing}
