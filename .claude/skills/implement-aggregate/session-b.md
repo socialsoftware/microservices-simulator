@@ -95,6 +95,11 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySag
 > - Step 2: send the primary read command using the resolved field from step 1 (declare step 1 as a dependency)
 >
 > No compensation is needed on either step since reads are non-mutating. See `docs/concepts/sagas.md` — "Two-step read saga variant" section for the full class template.
+>
+> Step 1 fetches the foreign aggregate through a command sent **upstream** - to an aggregate this one
+> already depends on (R8 - see `docs/concepts/commands.md`); never downstream to an aggregate that
+> depends on this one. The DTO it returns is read as-is and never mutated
+> (see `docs/concepts/service.md` § DTO Immutability (R7)).
 
 ### `{Aggregate}Functionalities.java` (read methods)
 

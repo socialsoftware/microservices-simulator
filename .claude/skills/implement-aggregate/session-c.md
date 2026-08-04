@@ -61,6 +61,7 @@ Produce every file listed in the plan.md `2.{N}.c` row. plan.md is a blueprint, 
 Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 
 - Spring `@Service`. The class already exists from session 2.{N}.b — **append** the write methods, do not rewrite the file.
+- A write method touches **this aggregate only**: it loads no foreign aggregate, injects no foreign service or repository, holds no reference to a foreign aggregate's concrete class, and receives everything it needs about another aggregate as a saga-assembled DTO parameter (R1/R2/R3 - see `docs/concepts/service.md` § Injected Dependencies).
 - One method per write functionality listed in plan.md
 - Method signature: receives the command's fields + `UnitOfWork unitOfWork`
 - **P3 own-table uniqueness guards** (if listed in plan.md P3 rules): query the repository for duplicates before creating; throw `{AppClass}Exception` with the appropriate error message constant if found
@@ -284,6 +285,12 @@ needing a collaborator the service does not yet hold requires **two** edits, not
 `{Aggregate}Service`'s constructor and field list, **and** widen the matching
 `{aggregate}Service(...)` `@Bean` method's parameters and `new {Aggregate}Service(...)` call to pass
 it. Update that `@Bean` method in place; never add a second bean for the same class.
+
+**The widened constructor may only take this aggregate's own components** - its own factory, its own
+repositories, and framework-level services. A foreign service, a foreign repository or a foreign
+aggregate's concrete class is never a valid parameter, whatever the write method appears to need
+(R1/R2/R3 - see `docs/concepts/service.md` § Injected Dependencies). Cross-aggregate data reaches the
+method as a DTO the saga assembled, not as an injected collaborator.
 
 The usual case is `AggregateIdGeneratorService`: session `b` omits it when no read method mints an
 aggregate id, and this session's create method is the first to need it.

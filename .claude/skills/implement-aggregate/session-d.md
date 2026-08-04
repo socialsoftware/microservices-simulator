@@ -41,9 +41,12 @@ Load these files before writing any code:
 
 Produce every file listed in the plan.md `2.{N}.d` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `_shared/session-completion.md` § "Amend plan.md for omitted files".
 
-### One `{Aggregate}Subscribes{Event}.java` per subscribed event
+### One `{Aggregate}Subscribes{Event}.java` per subscribed event (R5)
 
 Path: `{src}microservices/{aggregate}/notification/subscribe/{Aggregate}Subscribes{Event}.java`
+
+R5 (see `docs/concepts/events.md`): subscription classes and the `getEventSubscriptions()` entries
+that return them belong to the **consuming** aggregate only. Never add either to the publisher.
 
 - Extends `EventSubscription` (from simulator core)
 - Constructor: calls `super(anchorRef.getAnchorAggregateId(), anchorRef.getAnchorVersion(), {EventName}.class.getSimpleName())`. The anchor is the owning/parent aggregate whose ID and version are stored in the cached reference (e.g., for `UpdateWarehouseEvent` subscribed by `Shipment`, the anchor is the `ShipmentWarehouse` reference that holds `warehouseAggregateId` and `warehouseVersion`).
