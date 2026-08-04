@@ -23,6 +23,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.service.UserService
 
+import java.time.LocalDateTime
+
 class QuizzesFull2SpockTest extends SpockTest {
 
     public static final String mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -39,6 +41,17 @@ class QuizzesFull2SpockTest extends SpockTest {
 
     public static final Integer TOPIC_AGGREGATE_ID = 3
     public static final String TOPIC_NAME = "Algorithms"
+
+    public static final Integer EXECUTION_AGGREGATE_ID = 4
+    public static final String EXECUTION_ACRONYM = "SE-01"
+    public static final String EXECUTION_ACADEMIC_TERM = "2025/2026"
+    public static final LocalDateTime EXECUTION_END_DATE = LocalDateTime.of(2026, 7, 31, 23, 59)
+
+    public static final Integer EXECUTION_STUDENT_USER_AGGREGATE_ID = 20
+    public static final Integer EXECUTION_STUDENT_USER_AGGREGATE_ID_2 = 21
+    public static final String EXECUTION_STUDENT_USER_NAME = "Bob Jones"
+    public static final String EXECUTION_STUDENT_USER_USERNAME = "bob"
+    public static final Long EXECUTION_STUDENT_USER_VERSION = 1L
 
     @Autowired
     public ImpairmentService impairmentService

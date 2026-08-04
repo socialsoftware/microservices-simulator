@@ -29,4 +29,7 @@ public final class QuizzesFull2ErrorMessage {
     public static final String PLACEHOLDER = "placeholder";
 
     public static final String USER_DELETED_STATE = "A deleted user cannot be active";
+
+    public static final String REMOVE_NO_STUDENTS = "A deleted course execution cannot have students";
+    public static final String STUDENT_ALREADY_ENROLLED = "The student is already enrolled in the course execution";
 }
