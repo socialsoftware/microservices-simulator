@@ -34,6 +34,9 @@ class QuizzesFull2SpockTest extends SpockTest {
     public static final String USER_USERNAME = "alice"
     public static final Role USER_ROLE = Role.STUDENT
 
+    public static final Integer TOPIC_AGGREGATE_ID = 3
+    public static final String TOPIC_NAME = "Algorithms"
+
     @Autowired
     public ImpairmentService impairmentService
     @Autowired(required = false)
