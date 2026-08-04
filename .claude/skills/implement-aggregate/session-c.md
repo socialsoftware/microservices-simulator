@@ -161,7 +161,9 @@ Follow the template in `docs/concepts/testing.md` § T2 — Service Test. Invoke
 **Event-publication assertions (only if plan.md lists events published):** appended to the same
 `{Aggregate}ServiceTest.groovy` class as separate `def` methods (not folded into existing `then:`
 blocks — event-store facts and persisted-state facts stay separate assertions). Follow the
-template in `docs/concepts/testing.md` § T2 — Service Test. Autowire `EventService`. Trigger the
+template in `docs/concepts/testing.md` § T2 — Service Test. Autowire `EventService` - the field and
+its import are **class-scoped and added once**, so under slicing a slice appending event cases adds
+them only if absent; two slices of one session each declaring the field is a compile error. Trigger the
 publishing operation **via a direct service call** with a `UnitOfWork` (not via
 `{Aggregate}Functionalities`), then assert against the event store via the `EventService` bean.
 
