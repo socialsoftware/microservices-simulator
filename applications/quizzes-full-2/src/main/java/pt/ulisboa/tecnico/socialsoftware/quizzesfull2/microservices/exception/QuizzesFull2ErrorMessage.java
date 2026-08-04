@@ -32,4 +32,6 @@ public final class QuizzesFull2ErrorMessage {
 
     public static final String REMOVE_NO_STUDENTS = "A deleted course execution cannot have students";
     public static final String STUDENT_ALREADY_ENROLLED = "The student is already enrolled in the course execution";
+    public static final String NO_DUPLICATE_COURSE_EXECUTION = "A course execution with the same acronym and academic term already exists";
+    public static final String INACTIVE_USER = "An inactive user cannot be enrolled in a course execution";
 }

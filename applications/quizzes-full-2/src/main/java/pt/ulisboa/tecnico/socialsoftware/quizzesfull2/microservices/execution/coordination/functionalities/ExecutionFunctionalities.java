@@ -6,9 +6,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.CreateExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.DeleteExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.DisenrollStudentFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.EnrollStudentInExecutionFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.GetExecutionByIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.GetExecutionsFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.GetUserExecutionsFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.UpdateExecutionFunctionalitySagas;
 
 import java.util.List;
 
@@ -41,5 +46,41 @@ public class ExecutionFunctionalities {
                 unitOfWorkService, userAggregateId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
         return saga.getExecutions();
+    }
+
+    public ExecutionDto createExecution(ExecutionDto executionDto) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("createExecution");
+        CreateExecutionFunctionalitySagas saga = new CreateExecutionFunctionalitySagas(
+                unitOfWorkService, executionDto, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getExecutionDto();
+    }
+
+    public void updateExecution(Integer executionAggregateId, String acronym, String academicTerm) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateExecution");
+        UpdateExecutionFunctionalitySagas saga = new UpdateExecutionFunctionalitySagas(
+                unitOfWorkService, executionAggregateId, acronym, academicTerm, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+    }
+
+    public void enrollStudentInExecution(Integer executionAggregateId, Integer userAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("enrollStudentInExecution");
+        EnrollStudentInExecutionFunctionalitySagas saga = new EnrollStudentInExecutionFunctionalitySagas(
+                unitOfWorkService, executionAggregateId, userAggregateId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+    }
+
+    public void disenrollStudent(Integer executionAggregateId, Integer userAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("disenrollStudent");
+        DisenrollStudentFunctionalitySagas saga = new DisenrollStudentFunctionalitySagas(
+                unitOfWorkService, executionAggregateId, userAggregateId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+    }
+
+    public void deleteExecution(Integer executionAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("deleteExecution");
+        DeleteExecutionFunctionalitySagas saga = new DeleteExecutionFunctionalitySagas(
+                unitOfWorkService, executionAggregateId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
     }
 }

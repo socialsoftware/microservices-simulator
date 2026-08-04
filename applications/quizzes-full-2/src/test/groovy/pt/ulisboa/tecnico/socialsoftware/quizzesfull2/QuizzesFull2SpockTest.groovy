@@ -18,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.servi
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.coordination.functionalities.TopicFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.service.TopicService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.ExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.ExecutionStudent
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.sagas.SagaExecution
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.functionalities.ExecutionFunctionalities
@@ -137,18 +138,23 @@ class QuizzesFull2SpockTest extends SpockTest {
     Integer createExecution(Integer courseAggregateId, String acronym = EXECUTION_ACRONYM,
                             String academicTerm = EXECUTION_ACADEMIC_TERM,
                             LocalDateTime endDate = EXECUTION_END_DATE) {
-        def execution = new SagaExecution(aggregateIdGeneratorService.getNewAggregateId(), courseAggregateId,
-                COURSE_NAME, COURSE_TYPE, acronym, academicTerm, endDate)
-        unitOfWorkService.registerChanged(execution, unitOfWorkService.createUnitOfWork("fixture"))
-        return execution.getAggregateId()
+        def executionDto = new ExecutionDto()
+        executionDto.setCourseAggregateId(courseAggregateId)
+        executionDto.setAcronym(acronym)
+        executionDto.setAcademicTerm(academicTerm)
+        executionDto.setEndDate(endDate)
+        return executionFunctionalities.createExecution(executionDto).aggregateId
     }
 
     void enrollStudentInExecution(Integer executionAggregateId, Integer userAggregateId) {
-        def unitOfWork = unitOfWorkService.createUnitOfWork("fixture")
-        def execution = new SagaExecution((SagaExecution) unitOfWorkService.aggregateLoadAndRegisterRead(
-                executionAggregateId, unitOfWork))
-        execution.addStudent(new ExecutionStudent(userAggregateId, EXECUTION_STUDENT_USER_NAME,
-                EXECUTION_STUDENT_USER_USERNAME, EXECUTION_STUDENT_USER_VERSION, true))
-        unitOfWorkService.registerChanged(execution, unitOfWork)
+        executionFunctionalities.enrollStudentInExecution(executionAggregateId, userAggregateId)
+    }
+
+    // The enroll functionality fetches the user and rejects an inactive one (INACTIVE_USER), so a
+    // student fixture is a created user plus an activation.
+    Integer createActiveUser(String name = USER_NAME, String username = USER_USERNAME, Role role = USER_ROLE) {
+        def userAggregateId = createUser(name, username, role)
+        userFunctionalities.activateUser(userAggregateId)
+        return userAggregateId
     }
 }

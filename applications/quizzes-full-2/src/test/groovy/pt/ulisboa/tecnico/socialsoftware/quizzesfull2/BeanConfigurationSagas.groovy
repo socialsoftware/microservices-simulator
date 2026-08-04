@@ -254,8 +254,10 @@ class BeanConfigurationSagas {
     @Bean
     ExecutionService executionService(ExecutionCustomRepository executionCustomRepository,
                                       ExecutionFactory executionFactory,
-                                      UnitOfWorkService unitOfWorkService) {
-        return new ExecutionService(executionCustomRepository, executionFactory, unitOfWorkService)
+                                      UnitOfWorkService unitOfWorkService,
+                                      AggregateIdGeneratorService aggregateIdGeneratorService) {
+        return new ExecutionService(executionCustomRepository, executionFactory, unitOfWorkService,
+                aggregateIdGeneratorService)
     }
 
     @Bean

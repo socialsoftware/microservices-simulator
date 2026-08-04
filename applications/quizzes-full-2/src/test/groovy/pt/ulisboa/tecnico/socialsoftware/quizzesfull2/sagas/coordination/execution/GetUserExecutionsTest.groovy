@@ -19,11 +19,13 @@ class GetUserExecutionsTest extends QuizzesFull2SpockTest {
         def courseAggregateId = createCourse()
         def enrolledAggregateId = createExecution(courseAggregateId, EXECUTION_ACRONYM)
         def otherAggregateId = createExecution(courseAggregateId, "SE-02")
-        enrollStudentInExecution(enrolledAggregateId, EXECUTION_STUDENT_USER_AGGREGATE_ID)
-        enrollStudentInExecution(otherAggregateId, EXECUTION_STUDENT_USER_AGGREGATE_ID_2)
+        def studentAggregateId = createActiveUser(EXECUTION_STUDENT_USER_NAME, EXECUTION_STUDENT_USER_USERNAME)
+        def otherStudentAggregateId = createActiveUser()
+        enrollStudentInExecution(enrolledAggregateId, studentAggregateId)
+        enrollStudentInExecution(otherAggregateId, otherStudentAggregateId)
 
         when:
-        def result = executionFunctionalities.getUserExecutions(EXECUTION_STUDENT_USER_AGGREGATE_ID)
+        def result = executionFunctionalities.getUserExecutions(studentAggregateId)
 
         then: 'orchestration outcome only — persistence is asserted in T2'
         result.collect { it.aggregateId } == [enrolledAggregateId]

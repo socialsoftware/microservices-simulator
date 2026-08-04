@@ -136,4 +136,8 @@ public abstract class Execution extends Aggregate {
     public void addStudent(ExecutionStudent student) {
         this.students.add(student);
     }
+
+    public void removeStudent(Integer userAggregateId) {
+        this.students.removeIf(student -> userAggregateId.equals(student.getUserAggregateId()));
+    }
 }
