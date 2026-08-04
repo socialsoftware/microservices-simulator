@@ -48,8 +48,13 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.coordination.functionalities.TopicFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.messaging.TopicCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.service.TopicService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.ExecutionCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.ExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.sagas.factories.SagasExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.sagas.repositories.ExecutionCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.functionalities.ExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.messaging.ExecutionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.service.ExecutionService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
 @TestConfiguration
@@ -244,5 +249,22 @@ class BeanConfigurationSagas {
     @Bean
     ExecutionCustomRepositorySagas executionCustomRepositorySagas() {
         return new ExecutionCustomRepositorySagas()
+    }
+
+    @Bean
+    ExecutionService executionService(ExecutionCustomRepository executionCustomRepository,
+                                      ExecutionFactory executionFactory,
+                                      UnitOfWorkService unitOfWorkService) {
+        return new ExecutionService(executionCustomRepository, executionFactory, unitOfWorkService)
+    }
+
+    @Bean
+    ExecutionCommandHandler executionCommandHandler() {
+        return new ExecutionCommandHandler()
+    }
+
+    @Bean
+    ExecutionFunctionalities executionFunctionalities() {
+        return new ExecutionFunctionalities()
     }
 }

@@ -18,6 +18,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.servi
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.coordination.functionalities.TopicFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.service.TopicService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.ExecutionStudent
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.sagas.SagaExecution
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.functionalities.ExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.service.ExecutionService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.functionalities.UserFunctionalities
@@ -75,6 +79,10 @@ class QuizzesFull2SpockTest extends SpockTest {
     protected TopicService topicService
     @Autowired(required = false)
     protected TopicFunctionalities topicFunctionalities
+    @Autowired(required = false)
+    protected ExecutionService executionService
+    @Autowired(required = false)
+    protected ExecutionFunctionalities executionFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -124,5 +132,23 @@ class QuizzesFull2SpockTest extends SpockTest {
         topicDto.setName(name)
         topicDto.setCourseAggregateId(courseAggregateId)
         return topicFunctionalities.createTopic(topicDto).aggregateId
+    }
+
+    Integer createExecution(Integer courseAggregateId, String acronym = EXECUTION_ACRONYM,
+                            String academicTerm = EXECUTION_ACADEMIC_TERM,
+                            LocalDateTime endDate = EXECUTION_END_DATE) {
+        def execution = new SagaExecution(aggregateIdGeneratorService.getNewAggregateId(), courseAggregateId,
+                COURSE_NAME, COURSE_TYPE, acronym, academicTerm, endDate)
+        unitOfWorkService.registerChanged(execution, unitOfWorkService.createUnitOfWork("fixture"))
+        return execution.getAggregateId()
+    }
+
+    void enrollStudentInExecution(Integer executionAggregateId, Integer userAggregateId) {
+        def unitOfWork = unitOfWorkService.createUnitOfWork("fixture")
+        def execution = new SagaExecution((SagaExecution) unitOfWorkService.aggregateLoadAndRegisterRead(
+                executionAggregateId, unitOfWork))
+        execution.addStudent(new ExecutionStudent(userAggregateId, EXECUTION_STUDENT_USER_NAME,
+                EXECUTION_STUDENT_USER_USERNAME, EXECUTION_STUDENT_USER_VERSION, true))
+        unitOfWorkService.registerChanged(execution, unitOfWork)
     }
 }

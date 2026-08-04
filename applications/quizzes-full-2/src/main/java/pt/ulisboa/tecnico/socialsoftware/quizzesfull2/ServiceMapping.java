@@ -4,6 +4,7 @@ public enum ServiceMapping {
     COURSE("course"),
     USER("user"),
     TOPIC("topic"),
+    EXECUTION("execution"),
     ;
 
     private final String serviceName;
