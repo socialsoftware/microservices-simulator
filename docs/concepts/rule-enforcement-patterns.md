@@ -121,6 +121,12 @@ If you need data from another aggregate to enforce a constraint, either (1) stru
 
 **Comparing against a fixed value:** a predicate that tests a field against a literal some write functionality assigns (rather than against another field, or against a threshold the domain model states) reads it from `{App}DomainConstants` in the shared `microservices/domain/` package. The literal is never inlined here and never declared on the aggregate, because the aggregate that writes it and the aggregate whose predicate reads it are usually different ones. See `.claude/skills/implement-aggregate/session-a.md` § "Domain sentinel constants".
 
+   ```java
+   private boolean invariantCarrierIsAssigned() {
+       return !this.carrierName.equals({App}DomainConstants.UNASSIGNED);
+   }
+   ```
+
 ### Variant: temporal immutability via `lastModifiedTime`
 
 Some invariants express a transition rule of the form "field X cannot change once condition Y holds at wall-clock time". These cannot call `DateHandler.now()` directly inside `verifyInvariants()` — the check would be non-idempotent across TCC merges.

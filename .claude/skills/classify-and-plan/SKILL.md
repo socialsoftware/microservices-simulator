@@ -422,7 +422,10 @@ every suite stays green.
 by construction) for a comparison against a **literal** - a quoted string, or a bare numeric or
 boolean constant that is not another field of the same predicate. Ordered-domain bounds are not
 sentinels: a threshold in `count <= 5` is a rule parameter, not a value any write functionality
-assigns. The test is whether some §4 functionality *writes* it.
+assigns. The test is whether some §4 functionality *writes* it: a bound appearing only inside a
+comparison (`remainingCapacity <= 5`) is a rule parameter the domain model states; a literal some §4
+Description says an operation *sets* (`ReleaseShipment` sets `carrierName` to `"unassigned"`) is a
+sentinel.
 
 **Attribution.** The sentinel belongs to the aggregate whose **write functionality assigns it**, read
 from the §4 Description column - not to the aggregate whose rule compares against it. Attribution to
@@ -446,7 +449,12 @@ sentinels[agg] = [(name(lit), lit, origin)
 
 **Output:** for each aggregate, an ordered list of `(constant, literal, origin)` triples - emitted by
 Step 8 as the `**Domain sentinels:**` line of the aggregate section, on both the writing aggregate
-(which declares it) and every consuming aggregate (which imports it).
+(which declares it) and every consuming aggregate (which imports it). Worked example, `Shipment`
+writes it and `Carrier` compares against it:
+
+```
+- `UNASSIGNED = "unassigned"` - written by `ReleaseShipment`; compared by `CARRIER_IS_ASSIGNED` (`Carrier`)
+```
 
 ---
 

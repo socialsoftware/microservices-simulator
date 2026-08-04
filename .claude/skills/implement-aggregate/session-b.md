@@ -166,9 +166,10 @@ Open `{bean-config}` and add new `@Bean` methods for the three classes this sess
 The service constructor takes a **closed list**, fixed by `docs/concepts/service.md` § Injected
 Dependencies: own repository, own custom repository, own factory, `UnitOfWorkService` (raw, no type
 argument), `AggregateIdGeneratorService`. Nothing else — a foreign service or foreign repository
-violates R1/R2. Inject factories and repositories through their abstract interfaces, never the
-concrete `Sagas*` classes. Every one of them goes through the constructor into a `final` field; a
-service declares no `@Autowired` field.
+violates R1/R2; cross-aggregate data reaches this service as a DTO passed in by a saga, never by
+injecting the other aggregate's components (R3). Inject factories and repositories through their
+abstract interfaces, never the concrete `Sagas*` classes. Every one of them goes through the
+constructor into a `final` field; a service declares no `@Autowired` field.
 
 Omit any of the five the service genuinely does not use — typically `AggregateIdGeneratorService`,
 which no read method needs. Session 2.{N}.c's create method is then the first to need it, and widens
