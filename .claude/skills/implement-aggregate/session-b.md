@@ -233,13 +233,25 @@ Integer create{Aggregate}(/* minimal valid args, defaulted to the domain constan
 }
 ```
 
+Not every parameter can be defaulted. A parameter carrying a **foreign aggregate's id** has no
+domain constant to default to - the id is minted at fixture time by whichever upstream helper
+created that aggregate, and differs per test. Such parameters stay **required and undefaulted, and
+come first** in the signature, ahead of the defaulted own-field parameters; the caller passes the
+id returned by the upstream fixture helper:
+
+```groovy
+Integer create{Aggregate}(Integer {foreign}AggregateId, {Field} {field} = {FIELD_CONSTANT}) { ... }
+```
+
+Only the aggregate's **own** fields get constant defaults.
+
 `registerChanged` merges the aggregate immediately, so no `commit` is needed for the read-back to
 resolve through a fresh `UnitOfWork`.
 
 **The signature is a contract with session 2.{N}.c**, which replaces this body with the real create
 functionality. Choose the parameter list and defaults so that the call sites written this session
-survive that swap unchanged: minimal valid arguments, each defaulted to the domain constant, aggregate
-id returned. Do **not** name it `persist{Aggregate}` or make it `private` to a test class — a
+survive that swap unchanged: minimal valid arguments, own-field parameters defaulted to the domain
+constants and foreign-aggregate-id parameters required and leading, aggregate id returned. Do **not** name it `persist{Aggregate}` or make it `private` to a test class — a
 per-test-class fixture is thrown away in 2.{N}.c and every call site has to be rewritten.
 
 ---
