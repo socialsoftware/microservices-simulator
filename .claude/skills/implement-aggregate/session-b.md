@@ -283,7 +283,16 @@ void {operation}{Aggregate}(Integer {aggregate}AggregateId, Integer {foreign}Agg
 
 The same signature contract binds these helpers: parameters minimal, foreign-aggregate-id parameters
 required and leading, and the signature unchanged when 2.{N}.c replaces the body with the real
-functionality. Keeping `create{Aggregate}` minimal is what makes that swap safe - a collection
+functionality.
+
+**The foreign id must be minted by the upstream aggregate's own fixture helper, never a domain
+constant** - the same rule as for `create{Aggregate}`, and for a sharper reason here. This helper's
+2.{N}.c replacement calls a write functionality that *fetches* that foreign aggregate and runs its P3
+guards against it, so a synthetic id names an aggregate that does not exist and every call site
+throws on the swap. The upstream aggregate must also already be in whatever state those guards
+require: if the functionality rejects an inactive counterpart, the fixture activates it first. Where
+no upstream helper produces that state yet, add one, in the same base class and under this same
+contract. Keeping `create{Aggregate}` minimal is what makes that swap safe - a collection
 parameter on the create helper would have no counterpart in the create functionality and would force
 a signature change in 2.{N}.c, rewriting every call site.
 

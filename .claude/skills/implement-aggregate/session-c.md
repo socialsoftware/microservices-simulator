@@ -320,6 +320,12 @@ reads depended on - see session-b.md § "Fixture state a create cannot reach". R
 bodies too, with a call to the functionality it is named after, under the same rule: signature and
 defaults unchanged, mismatches escalated rather than re-shaped.
 
+The replacement calls a functionality that fetches the foreign aggregate and runs its P3 guards, so a
+call site passing a synthetic foreign id now throws where the direct-on-aggregate body did not. Session
+`b` is required to mint that id from an upstream fixture helper in the state those guards demand, so
+this should not arise; where it does, repairing the offending call sites and adding any missing
+upstream helper belongs to the slice performing the swap, which owns this helper body exclusively.
+
 Once replaced, the aggregate is created through the real saga, so 2.{N}.b's read tests exercise the
 production create path from here on. Re-run them and confirm they still pass.
 
