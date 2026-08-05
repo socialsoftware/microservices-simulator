@@ -63,8 +63,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.agg
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.QuestionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.sagas.factories.SagasQuestionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.sagas.repositories.QuestionCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.QuestionRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.coordination.eventProcessing.QuestionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.messaging.QuestionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.notification.handling.QuestionEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.notification.handling.handlers.QuestionEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.service.QuestionService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
@@ -324,5 +328,21 @@ class BeanConfigurationSagas {
     @Bean
     QuestionFunctionalities questionFunctionalities() {
         return new QuestionFunctionalities()
+    }
+
+    @Bean
+    QuestionEventHandling questionEventHandling() {
+        return new QuestionEventHandling()
+    }
+
+    @Bean
+    QuestionEventHandler questionEventHandler(QuestionRepository questionRepository,
+                                              QuestionEventProcessing questionEventProcessing) {
+        return new QuestionEventHandler(questionRepository, questionEventProcessing)
+    }
+
+    @Bean
+    QuestionEventProcessing questionEventProcessing() {
+        return new QuestionEventProcessing()
     }
 }

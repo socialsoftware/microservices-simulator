@@ -175,14 +175,15 @@ class QuizzesFull2SpockTest extends SpockTest {
         return userAggregateId
     }
 
-    // Minimal valid question: no options and no topics. creationDate is not a CreateQuestion
-    // parameter - the 2.5.c functionality stamps it - so it stays out of the signature.
+    // Minimal valid question: no options, and no topics unless the caller asks for them.
+    // creationDate is not a CreateQuestion parameter - the 2.5.c functionality stamps it - so it
+    // stays out of the signature.
     Integer createQuestion(Integer courseAggregateId, String title = QUESTION_TITLE,
-                           String content = QUESTION_CONTENT) {
+                           String content = QUESTION_CONTENT, List<Integer> topicAggregateIds = []) {
         def questionDto = new QuestionDto()
         questionDto.setCourseAggregateId(courseAggregateId)
         questionDto.setTitle(title)
         questionDto.setContent(content)
-        return questionFunctionalities.createQuestion(questionDto, []).aggregateId
+        return questionFunctionalities.createQuestion(questionDto, topicAggregateIds).aggregateId
     }
 }

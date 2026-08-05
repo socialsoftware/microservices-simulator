@@ -95,6 +95,46 @@ public class QuestionService {
                 newQuestion.getCourseAggregateId()), unitOfWork);
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void setTopicName(Integer questionAggregateId, Integer topicAggregateId, String topicName,
+                             Long topicVersion, UnitOfWork unitOfWork) {
+        Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(
+                questionAggregateId, unitOfWork);
+        Question newQuestion = questionFactory.createQuestionCopy(oldQuestion);
+
+        QuestionTopic topic = findTopic(newQuestion, topicAggregateId);
+        if (topic == null) {
+            return;
+        }
+        topic.setTopicName(topicName);
+        topic.setTopicVersion(topicVersion);
+
+        newQuestion.verifyInvariants();
+        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeDeletedTopic(Integer questionAggregateId, Integer topicAggregateId, UnitOfWork unitOfWork) {
+        Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(
+                questionAggregateId, unitOfWork);
+        Question newQuestion = questionFactory.createQuestionCopy(oldQuestion);
+
+        if (findTopic(newQuestion, topicAggregateId) == null) {
+            return;
+        }
+        newQuestion.removeTopic(topicAggregateId);
+
+        newQuestion.verifyInvariants();
+        unitOfWorkService.registerChanged(newQuestion, unitOfWork);
+    }
+
+    private static QuestionTopic findTopic(Question question, Integer topicAggregateId) {
+        return question.getTopics().stream()
+                .filter(topic -> topicAggregateId.equals(topic.getTopicAggregateId()))
+                .findFirst()
+                .orElse(null);
+    }
+
     private QuestionTopic toQuestionTopic(QuestionTopicDto topicDto) {
         return new QuestionTopic(topicDto.getTopicAggregateId(), topicDto.getTopicName(),
                 topicDto.getTopicVersion(), topicDto.getCourseAggregateId());

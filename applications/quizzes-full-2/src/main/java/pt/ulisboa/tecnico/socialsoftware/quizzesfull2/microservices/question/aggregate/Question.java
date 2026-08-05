@@ -8,6 +8,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2Exception;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -71,7 +73,14 @@ public abstract class Question extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (getState() == AggregateState.ACTIVE) {
+            for (QuestionTopic topic : this.topics) {
+                eventSubscriptions.add(new QuestionSubscribesUpdateTopic(topic));
+                eventSubscriptions.add(new QuestionSubscribesDeleteTopic(topic));
+            }
+        }
+        return eventSubscriptions;
     }
 
     public String getTitle() {
