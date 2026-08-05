@@ -180,6 +180,22 @@ Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
      - **Sub-entity removal events** (e.g., `DeleteLabelEvent`): assert the sub-entity is removed from the aggregate's collection
      - **Whole-consumer deletion events** (e.g., `DeleteShipmentEvent` / `DeleteWarehouseEvent` received by `ShipmentItem`): the consumer aggregate is marked `DELETED` — follow the deletion-event pattern in `testing.md` § T3 — Subscription (Inter-Invariant) Test.
   2. **Ignores unrelated** — cache entity A on the aggregate, publish the same event for an unrelated entity B, call the polling method directly, assert entity A's cached data is unchanged. Follow `testing.md` § T3 for where to capture the original value.
+- **Re-affirming payloads.** Some events carry a value the consumer is already guaranteed to hold,
+  because a guard on the operation that cached the entity admits only that value (e.g. an
+  `Activate{Entity}Event` carrying `active=true` reaching a consumer whose own P3 guard on the
+  caching operation already rejects an inactive `{Entity}`). Asserting the payload value there is
+  trivially satisfied, which
+  `testing.md` § Fake forbids. Resolve in this order:
+  1. **Prefer a reachable contrary state.** If the consumer can legally reach a state where the
+     cached field differs from the payload, set that state up in `given:` and assert the transition.
+     The payload assertion is then non-trivial and discharges the test on its own.
+  2. **Otherwise assert the payload value plus the cached publisher-version advance.** When no such
+     state is reachable — no subscribed event and no operation can produce the contrary value — keep
+     the payload assertion as the statement of the spec, and add `versionAfter > versionBefore` on
+     the cached publisher version, which is the assertion that fails if the handler never ran.
+     Capture `versionBefore` after setup, per the Version numbers note below.
+  Never drop the "reflects event" test: it is the only evidence the polling method reached the
+  consumer at all.
 - **Invariant-violation tests**: if processing the event causes `verifyInvariants()` to throw, assert the exception is raised with the correct error message and that the event is not marked as processed (event-processing outcome). This is an event-processing assertion — not a re-test of the P1 predicate itself (the predicate's violation cases belong in `{Aggregate}IntraInvariantTest.groovy`, T1 Aggregate tier).
 - Both the "reflects" and "ignores unrelated" tests are required for every subscribed event type
 

@@ -56,6 +56,7 @@ security. This checklist is the authoritative smell list, consumed by
 - `when:` does not call the method under test (bypasses it via a setup helper).
 - **T2:** happy path reads back through the **same** UnitOfWork instance used for the write, or through a fresh one without calling `flushAndClear()` first — either way the persistence context still holds the managed write instance, so the assertion never exercises the load path. Read-back is `flushAndClear()` then a second, fresh UnitOfWork (§ T2 — Service Test).
 - **T3** "ignores unrelated": `originalValue` captured *after* the event was processed — the assertion is `x == x`. Capture in `given:`, before firing.
+- **T3 "reflects event" — carve-out, not a smell:** when the event payload re-affirms a value the consumer is already guaranteed to hold and no legal consumer state can differ from it, the payload assertion *is* trivially satisfied and is nonetheless required, paired with an assertion that the cached publisher version advanced. That pairing is the sanctioned form — flagging it as Fake is itself a Wrong finding. The reachable-contrary-state alternative comes first; see `.claude/skills/implement-aggregate/session-d.md` § `{Aggregate}InterInvariantTest.groovy`.
 
 ### Wrong — tests the wrong thing (implementation instead of spec, or a different code path)
 
