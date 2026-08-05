@@ -170,8 +170,15 @@ publishing operation **via a direct service call** with a `UnitOfWork` (not via
 - **Per published event type** (from plan.md's Events published list): one case asserting the
   event exists with the correct type, `publisherAggregateId`, and **every payload field** —
   asserting only type/count is **Weak**.
-- **One negative case**: capture the event-store count before, run a service operation that must
-  *not* publish, assert the count is unchanged.
+- **One negative case per test class** — not per event type. Capture the **total** event-store count
+  before, run a write operation of this aggregate that publishes nothing at all, assert the total is
+  unchanged. A total-count assertion over a silent operation already proves that operation publishes
+  *none* of the aggregate's event types, so a per-type case adds a weaker assertion, not coverage.
+  Like the `EventService` field, the negative case is class-scoped and added **once**: under slicing,
+  a slice appending event cases adds it only if the class does not already have one.
+  - If every write operation of the aggregate publishes something, no totally silent operation
+    exists. Fall back to one case that filters the store by a single event type and runs an
+    operation publishing a *different* type, asserting that type's count is unchanged.
 - Consumers are out of scope here — they are covered by T3 subscription tests in session `d`.
 
 ### One `{Op}Test.groovy` per write functionality (T4)
