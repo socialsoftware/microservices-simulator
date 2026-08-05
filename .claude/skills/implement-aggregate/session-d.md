@@ -169,6 +169,8 @@ public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer war
 
 The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the publisher aggregate at the time the event was emitted).
 
+This section covers the case where the version is the *only* thing cached. Stamping that version is **not** confined to it: every ByEvent mutation advances the cached publisher version, whatever payload fields it also applies — see `docs/concepts/events.md` § ByEvent sagaState guard, "Always advance the cached publisher version", and the redelivery backlog it bounds.
+
 ### `{Aggregate}InterInvariantTest.groovy` (T3 subscription)
 
 Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`

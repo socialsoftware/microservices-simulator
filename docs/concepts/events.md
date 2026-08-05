@@ -73,7 +73,17 @@ In the **sagas profile**, matching is performed by the infrastructure via a DB q
 
 `subscribedAggregateId` must match `publisherAggregateId` in the event.
 
-**`subscribedVersion`:** pass the anchor entity's current version so that only events published *after* the snapshot was taken are processed. If the subscriber entity does not track the publisher's version (e.g., a `Warehouse` cached inside a `Shipment` that has no `warehouseVersion` field), use `0L` — this means all events from that publisher since the beginning are eligible for processing, which is functionally correct but slightly broader than necessary.
+**`subscribedVersion`:** pass the anchor entity's current version, so that the eligible set is narrowed to events the consumer has not already folded in. If the subscriber entity does not track the publisher's version (e.g., a `Warehouse` cached inside a `Shipment` that has no `warehouseVersion` field), use `0L` — this means all events from that publisher since the beginning are eligible for processing, which is functionally correct but slightly broader than necessary.
+
+### A snapshot-seeded version does not exclude the events already published
+
+`subscribedVersion` does **not** mean "events emitted after this snapshot was taken". Aggregate versions and event versions are two draws from the *same* global counter: `registerChanged` takes one tick and stamps it on the aggregate, then `registerEvent` takes another and stamps it on the event. A publisher that commits and then publishes therefore emits an event whose `publisherAggregateVersion` is strictly **greater** than the aggregate version that same operation committed — and that aggregate version is what a fetched `{Publisher}Dto` carries into the consumer's snapshot.
+
+Since `EventRepository.findUnprocessedEvents` keeps events with `publisherAggregateVersion > subscribedVersion`, a consumer seeded from a DTO stays eligible for every event the publisher emitted up to and including the commit that produced that DTO. **This backlog is expected behaviour, not a defect to work around.** Consequences to design for:
+
+- **The consumer's first poll drains the backlog**, not just the event under consideration. Handlers must therefore be idempotent under re-application of a payload already folded in.
+- **A stale payload can overwrite a fresher cached value** if the backlog is drained after the consumer cached a newer one. Advancing the cached publisher version on every ByEvent mutation (below) is what bounds this.
+- **T3 subscription tests must drain the backlog in `given:`**, before capturing the `versionBefore` the "reflects event" assertion compares against. Call the polling method once at the end of setup — where a fixture helper creates the publisher in several commits, give that drain its own named private helper so the reason survives. Without the drain, the fixture's own event moves the cached version before the test fires anything, and the assertion cannot tell the two apart.
 
 ## EventHandler
 
@@ -259,6 +269,21 @@ public void {operation}ByEvent(Integer aggregateId, ...) {
 **Why not call the saga `Functionalities` method from `EventProcessing`?** Saga methods set a semantic lock (`sagaState`) and trigger compensations; calling them from an event handler creates a circular saga loop (the saga emits another event → handler fires again → infinite loop). The `ByEvent` method sidesteps this by talking directly to the service layer.
 
 **Where the guard goes.** Put the `sagaState != NOT_IN_SAGA` check inside the `{operation}ByEvent` method **after the load** — not in the shared service method. If the guard lived in a service method that is also called from saga steps on the same aggregate, those saga steps would silently be skipped.
+
+**Always advance the cached publisher version.** Every ByEvent mutation must stamp the cached publisher version from `event.getPublisherAggregateVersion()` alongside whatever payload fields it applies — not only in the version-carries-no-payload case shown in `.claude/skills/implement-aggregate/session-d.md`. The service method takes the version as a parameter and sets it on the cached entity in the same mutation:
+
+```java
+public void set{Entity}{Field}(Integer aggregateId, Integer {entity}AggregateId,
+                               {FieldType} {field}, Long {entity}Version, UnitOfWork unitOfWork) {
+    // ... load, copy, locate the cached entity ...
+    cached.set{Field}({field});
+    cached.set{Entity}Version({entity}Version);
+    aggregate.verifyInvariants();
+    unitOfWorkService.registerChanged(aggregate, unitOfWork);
+}
+```
+
+Without it the subscription's `subscribedVersion` never moves, the same event stays eligible on every subsequent poll, and the backlog described in § "A snapshot-seeded version does not exclude the events already published" never converges. It is also what makes the T3 "reflects event" assertion meaningful for a re-affirming payload.
 
 **When to skip the guard.** Only when the event must apply even while the aggregate is mid-saga (rare). For standard cached-field updates and sub-entity removals, always skip when `sagaState != NOT_IN_SAGA`. For whole-consumer invalidation via `copy.remove()`, apply the same guard unless a T3 subscription test (`<Consumer>InterInvariantTest`) explicitly requires processing during an in-flight saga on the same aggregate.
 
