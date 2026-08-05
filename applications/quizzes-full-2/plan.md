@@ -432,7 +432,7 @@ data-assembly fetch is a plain read and contributes no constant.
 | 2.5.d | `notification/subscribe/QuestionSubscribesUpdateTopic.java`, `notification/subscribe/QuestionSubscribesDeleteTopic.java`, `notification/handling/QuestionEventHandling.java`, `notification/handling/handlers/QuestionEventHandler.java`, `coordination/eventProcessing/QuestionEventProcessing.java`, `sagas/question/QuestionInterInvariantTest.groovy` |
 
 **Checklist:**
-- [ ] 2.5.a — Domain layer
+- [x] 2.5.a — Domain layer
 - [ ] 2.5.b — Read functionalities
 - [ ] 2.5.c — Write functionalities
 - [ ] 2.5.d — Event wiring

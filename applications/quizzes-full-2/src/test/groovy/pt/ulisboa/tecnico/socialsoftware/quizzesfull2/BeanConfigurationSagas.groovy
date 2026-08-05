@@ -59,6 +59,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.me
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.handling.ExecutionEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.handling.handlers.ExecutionEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.service.ExecutionService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.sagas.factories.SagasQuestionFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.sagas.repositories.QuestionCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
 @TestConfiguration
@@ -288,5 +290,15 @@ class BeanConfigurationSagas {
     @Bean
     ExecutionEventProcessing executionEventProcessing() {
         return new ExecutionEventProcessing()
+    }
+
+    @Bean
+    SagasQuestionFactory sagasQuestionFactory() {
+        return new SagasQuestionFactory()
+    }
+
+    @Bean
+    QuestionCustomRepositorySagas questionCustomRepositorySagas() {
+        return new QuestionCustomRepositorySagas()
     }
 }

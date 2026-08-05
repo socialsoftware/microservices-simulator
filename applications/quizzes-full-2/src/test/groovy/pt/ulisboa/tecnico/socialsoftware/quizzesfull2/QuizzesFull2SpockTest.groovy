@@ -36,6 +36,7 @@ class QuizzesFull2SpockTest extends SpockTest {
 
     // Domain constants are added here as aggregates are implemented in Phase 2.
     public static final Integer COURSE_AGGREGATE_ID = 1
+    public static final Integer COURSE_AGGREGATE_ID_2 = 6
     public static final String COURSE_NAME = "Software Engineering"
     public static final CourseType COURSE_TYPE = CourseType.TECNICO
 
@@ -57,6 +58,15 @@ class QuizzesFull2SpockTest extends SpockTest {
     public static final String EXECUTION_STUDENT_USER_NAME = "Bob Jones"
     public static final String EXECUTION_STUDENT_USER_USERNAME = "bob"
     public static final Long EXECUTION_STUDENT_USER_VERSION = 1L
+
+    public static final Integer QUESTION_AGGREGATE_ID = 5
+    public static final String QUESTION_TITLE = "Sorting complexity"
+    public static final String QUESTION_CONTENT = "What is the worst-case complexity of merge sort?"
+    public static final LocalDateTime QUESTION_CREATION_DATE = LocalDateTime.of(2025, 9, 1, 10, 0)
+
+    public static final Integer QUESTION_TOPIC_AGGREGATE_ID = 30
+    public static final String QUESTION_TOPIC_NAME = "Algorithms"
+    public static final Long QUESTION_TOPIC_VERSION = 1L
 
     @Autowired
     public ImpairmentService impairmentService

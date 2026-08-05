@@ -34,4 +34,6 @@ public final class QuizzesFull2ErrorMessage {
     public static final String STUDENT_ALREADY_ENROLLED = "The student is already enrolled in the course execution";
     public static final String NO_DUPLICATE_COURSE_EXECUTION = "A course execution with the same acronym and academic term already exists";
     public static final String INACTIVE_USER = "An inactive user cannot be enrolled in a course execution";
+
+    public static final String TOPIC_BELONGS_TO_QUESTION_COURSE = "A question topic must belong to the question's course";
 }
