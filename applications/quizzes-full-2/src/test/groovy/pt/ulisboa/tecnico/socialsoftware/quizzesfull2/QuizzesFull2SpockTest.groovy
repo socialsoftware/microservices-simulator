@@ -23,6 +23,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.ag
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.sagas.SagaExecution
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.service.ExecutionService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.sagas.SagaQuestion
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.coordination.functionalities.QuestionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.service.QuestionService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.functionalities.UserFunctionalities
@@ -94,6 +97,10 @@ class QuizzesFull2SpockTest extends SpockTest {
     protected ExecutionService executionService
     @Autowired(required = false)
     protected ExecutionFunctionalities executionFunctionalities
+    @Autowired(required = false)
+    protected QuestionService questionService
+    @Autowired(required = false)
+    protected QuestionFunctionalities questionFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -166,5 +173,15 @@ class QuizzesFull2SpockTest extends SpockTest {
         def userAggregateId = createUser(name, username, role)
         userFunctionalities.activateUser(userAggregateId)
         return userAggregateId
+    }
+
+    // Minimal valid question: no options and no topics. creationDate is not a CreateQuestion
+    // parameter - the 2.5.c functionality stamps it - so it stays out of the signature.
+    Integer createQuestion(Integer courseAggregateId, String title = QUESTION_TITLE,
+                           String content = QUESTION_CONTENT) {
+        def question = new SagaQuestion(aggregateIdGeneratorService.getNewAggregateId(), courseAggregateId,
+                title, content, QUESTION_CREATION_DATE)
+        unitOfWorkService.registerChanged(question, unitOfWorkService.createUnitOfWork("fixture"))
+        return question.getAggregateId()
     }
 }

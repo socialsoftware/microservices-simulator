@@ -59,8 +59,13 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.me
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.handling.ExecutionEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.handling.handlers.ExecutionEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.service.ExecutionService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.QuestionCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.QuestionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.sagas.factories.SagasQuestionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.sagas.repositories.QuestionCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.coordination.functionalities.QuestionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.messaging.QuestionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.service.QuestionService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
 @TestConfiguration
@@ -300,5 +305,22 @@ class BeanConfigurationSagas {
     @Bean
     QuestionCustomRepositorySagas questionCustomRepositorySagas() {
         return new QuestionCustomRepositorySagas()
+    }
+
+    @Bean
+    QuestionService questionService(QuestionCustomRepository questionCustomRepository,
+                                    QuestionFactory questionFactory,
+                                    UnitOfWorkService unitOfWorkService) {
+        return new QuestionService(questionCustomRepository, questionFactory, unitOfWorkService)
+    }
+
+    @Bean
+    QuestionCommandHandler questionCommandHandler() {
+        return new QuestionCommandHandler()
+    }
+
+    @Bean
+    QuestionFunctionalities questionFunctionalities() {
+        return new QuestionFunctionalities()
     }
 }
