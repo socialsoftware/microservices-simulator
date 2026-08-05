@@ -310,8 +310,10 @@ class BeanConfigurationSagas {
     @Bean
     QuestionService questionService(QuestionCustomRepository questionCustomRepository,
                                     QuestionFactory questionFactory,
-                                    UnitOfWorkService unitOfWorkService) {
-        return new QuestionService(questionCustomRepository, questionFactory, unitOfWorkService)
+                                    UnitOfWorkService unitOfWorkService,
+                                    AggregateIdGeneratorService aggregateIdGeneratorService) {
+        return new QuestionService(questionCustomRepository, questionFactory, unitOfWorkService,
+                aggregateIdGeneratorService)
     }
 
     @Bean

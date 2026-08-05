@@ -23,7 +23,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.ag
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.sagas.SagaExecution
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.service.ExecutionService
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.sagas.SagaQuestion
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.service.QuestionService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
@@ -179,9 +179,10 @@ class QuizzesFull2SpockTest extends SpockTest {
     // parameter - the 2.5.c functionality stamps it - so it stays out of the signature.
     Integer createQuestion(Integer courseAggregateId, String title = QUESTION_TITLE,
                            String content = QUESTION_CONTENT) {
-        def question = new SagaQuestion(aggregateIdGeneratorService.getNewAggregateId(), courseAggregateId,
-                title, content, QUESTION_CREATION_DATE)
-        unitOfWorkService.registerChanged(question, unitOfWorkService.createUnitOfWork("fixture"))
-        return question.getAggregateId()
+        def questionDto = new QuestionDto()
+        questionDto.setCourseAggregateId(courseAggregateId)
+        questionDto.setTitle(title)
+        questionDto.setContent(content)
+        return questionFunctionalities.createQuestion(questionDto, []).aggregateId
     }
 }
