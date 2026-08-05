@@ -373,6 +373,37 @@ The typical step order inside a write `FunctionalitySagas` class is:
 4. **Execute step** — send a plain (unwrapped) command to `{Aggregate}CommandHandler`; declare the lock step as a dependency.
 5. *(For multi-aggregate sagas)* **Steps for other aggregates involved** — use `setForbiddenStates` only on steps that touch a **foreign** aggregate to abort if that aggregate is mid-saga (see § R4 Decision Table).
 
+### Collection-valued data-assembly step
+
+When the data a saga must assemble is a **collection** — one upstream fetch per element of a
+caller-supplied id list, each seeding one owned snapshot entity — express it as **one step whose
+action loops over the ids**, not one step per element:
+
+```java
+SagaStep get{Members}Step = new SagaStep("get{Members}Step", () -> {
+    for (Integer {member}AggregateId : {member}AggregateIds) {
+        Get{Member}ByIdCommand cmd = new Get{Member}ByIdCommand(
+                unitOfWork, ServiceMapping.{MEMBER}.getServiceName(), {member}AggregateId);
+        {Member}Dto {member}Dto = ({Member}Dto) commandGateway.send(cmd);
+        this.{members}.add(new {Aggregate}{Member}Dto({member}Dto.getAggregateId(), /* cached fields */));
+    }
+});
+```
+
+The step name must stay independent of the input, because three mechanisms key on it as a literal:
+`executeUntilStep("{step}", uow)` in T4 lock-acquisition tests, the impairment CSV rows of a
+compensation test (`testing.md` § Compensation Test), and the step names a retro's Semantic-Lock
+Coverage Audit cites. A step per element forces the name to carry an aggregate id or an index, so
+every one of those call sites has to know the fixture's data — and the id is not knowable at all
+where the collection is empty or caller-sized.
+
+The cost is that fault injection cannot target one element's fetch: the whole loop faults or none of
+it does. That is the accepted trade — a per-element fault has no distinct domain meaning, since any
+one failed fetch aborts the saga exactly as the loop does.
+
+A single-valued fetch keeps its own dedicated step (§ Step Ordering item 2); this pattern applies
+only where the fetch is `× N`.
+
 **R8 — upstream-only commands:** a saga may only send commands to aggregates that are upstream (aggregates this one depends on, not aggregates that depend on it). Never dispatch a write command to a downstream aggregate from within an upstream aggregate's saga.
 
 `registerCompensation` is **only** for genuine domain-level undos — reversing a real side effect a step produced (e.g. deleting a child aggregate a step created). It is **never** used to release a semantic lock: lock release on abort is automatic (see § Semantic-lock release on abort is automatic). Each data-assembly step that enforces a **P4a rule** treats an upstream-command failure as the prerequisite violation — no extra guard is needed in the service layer.
