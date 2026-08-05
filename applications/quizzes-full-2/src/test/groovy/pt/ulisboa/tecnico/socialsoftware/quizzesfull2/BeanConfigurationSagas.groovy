@@ -52,8 +52,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.ag
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.ExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.sagas.factories.SagasExecutionFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.sagas.repositories.ExecutionCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.ExecutionRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.messaging.ExecutionCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.handling.ExecutionEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.handling.handlers.ExecutionEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.service.ExecutionService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
@@ -268,5 +272,21 @@ class BeanConfigurationSagas {
     @Bean
     ExecutionFunctionalities executionFunctionalities() {
         return new ExecutionFunctionalities()
+    }
+
+    @Bean
+    ExecutionEventHandling executionEventHandling() {
+        return new ExecutionEventHandling()
+    }
+
+    @Bean
+    ExecutionEventHandler executionEventHandler(ExecutionRepository executionRepository,
+                                                ExecutionEventProcessing executionEventProcessing) {
+        return new ExecutionEventHandler(executionRepository, executionEventProcessing)
+    }
+
+    @Bean
+    ExecutionEventProcessing executionEventProcessing() {
+        return new ExecutionEventProcessing()
     }
 }

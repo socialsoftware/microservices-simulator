@@ -11,6 +11,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseType;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2Exception;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.subscribe.ExecutionSubscribesActivateUser;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.subscribe.ExecutionSubscribesAnonymizeStudent;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.subscribe.ExecutionSubscribesDeleteUser;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.subscribe.ExecutionSubscribesUpdateStudentName;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -86,7 +90,16 @@ public abstract class Execution extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (getState() == AggregateState.ACTIVE) {
+            for (ExecutionStudent student : this.students) {
+                eventSubscriptions.add(new ExecutionSubscribesActivateUser(student));
+                eventSubscriptions.add(new ExecutionSubscribesUpdateStudentName(student));
+                eventSubscriptions.add(new ExecutionSubscribesAnonymizeStudent(student));
+                eventSubscriptions.add(new ExecutionSubscribesDeleteUser(student));
+            }
+        }
+        return eventSubscriptions;
     }
 
     public String getAcronym() {

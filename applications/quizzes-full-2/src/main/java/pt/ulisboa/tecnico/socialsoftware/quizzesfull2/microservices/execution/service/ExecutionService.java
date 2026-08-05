@@ -129,6 +129,86 @@ public class ExecutionService {
         unitOfWorkService.registerEvent(new DeleteCourseExecutionEvent(executionAggregateId), unitOfWork);
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void setStudentActive(Integer executionAggregateId, Integer userAggregateId, Boolean active,
+                                 Long userVersion, UnitOfWork unitOfWork) {
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
+                executionAggregateId, unitOfWork);
+        Execution newExecution = executionFactory.createExecutionCopy(oldExecution);
+
+        ExecutionStudent student = findStudent(newExecution, userAggregateId);
+        if (student == null) {
+            return;
+        }
+        student.setActive(active);
+        student.setUserVersion(userVersion);
+
+        newExecution.verifyInvariants();
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void setStudentName(Integer executionAggregateId, Integer userAggregateId, String userName,
+                               Long userVersion, UnitOfWork unitOfWork) {
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
+                executionAggregateId, unitOfWork);
+        Execution newExecution = executionFactory.createExecutionCopy(oldExecution);
+
+        ExecutionStudent student = findStudent(newExecution, userAggregateId);
+        if (student == null) {
+            return;
+        }
+        student.setUserName(userName);
+        student.setUserVersion(userVersion);
+
+        newExecution.verifyInvariants();
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void anonymizeStudent(Integer executionAggregateId, Integer userAggregateId, String userName,
+                                 String userUsername, Long userVersion, UnitOfWork unitOfWork) {
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
+                executionAggregateId, unitOfWork);
+        Execution newExecution = executionFactory.createExecutionCopy(oldExecution);
+
+        ExecutionStudent student = findStudent(newExecution, userAggregateId);
+        if (student == null) {
+            return;
+        }
+        student.setUserName(userName);
+        student.setUserUsername(userUsername);
+        student.setUserVersion(userVersion);
+
+        newExecution.verifyInvariants();
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
+    }
+
+    // Distinct from disenrollStudent: dropping a student because the User was deleted must not
+    // publish DisenrollStudentFromCourseExecutionEvent, whose spec trigger is the DisenrollStudent
+    // operation.
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeDeletedStudent(Integer executionAggregateId, Integer userAggregateId, UnitOfWork unitOfWork) {
+        Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
+                executionAggregateId, unitOfWork);
+        Execution newExecution = executionFactory.createExecutionCopy(oldExecution);
+
+        if (findStudent(newExecution, userAggregateId) == null) {
+            return;
+        }
+        newExecution.removeStudent(userAggregateId);
+
+        newExecution.verifyInvariants();
+        unitOfWorkService.registerChanged(newExecution, unitOfWork);
+    }
+
+    private static ExecutionStudent findStudent(Execution execution, Integer userAggregateId) {
+        return execution.getStudents().stream()
+                .filter(student -> userAggregateId.equals(student.getUserAggregateId()))
+                .findFirst()
+                .orElse(null);
+    }
+
     private void checkNoDuplicateCourseExecution(String acronym, String academicTerm, UnitOfWork unitOfWork) {
         for (Integer executionAggregateId : executionCustomRepository.findAllExecutionIds()) {
             Execution existing = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(

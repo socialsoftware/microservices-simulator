@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.c
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.ExecutionDto;
@@ -14,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.co
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.GetExecutionsFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.GetUserExecutionsFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.UpdateExecutionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.service.ExecutionService;
 
 import java.util.List;
 
@@ -23,6 +26,8 @@ public class ExecutionFunctionalities {
     private SagaUnitOfWorkService unitOfWorkService;
     @Autowired
     private CommandGateway commandGateway;
+    @Autowired
+    private ExecutionService executionService;
 
     public ExecutionDto getExecutionById(Integer executionAggregateId) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("getExecutionById");
@@ -82,5 +87,52 @@ public class ExecutionFunctionalities {
         DeleteExecutionFunctionalitySagas saga = new DeleteExecutionFunctionalitySagas(
                 unitOfWorkService, executionAggregateId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
+    }
+
+    public void setStudentActiveByEvent(Integer executionAggregateId, Integer userAggregateId, Boolean active,
+                                        Long userVersion) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("setStudentActiveByEvent");
+        if (isInSaga(executionAggregateId, unitOfWork)) {
+            return;
+        }
+        executionService.setStudentActive(executionAggregateId, userAggregateId, active, userVersion, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void setStudentNameByEvent(Integer executionAggregateId, Integer userAggregateId, String userName,
+                                      Long userVersion) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("setStudentNameByEvent");
+        if (isInSaga(executionAggregateId, unitOfWork)) {
+            return;
+        }
+        executionService.setStudentName(executionAggregateId, userAggregateId, userName, userVersion, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void anonymizeStudentByEvent(Integer executionAggregateId, Integer userAggregateId, String userName,
+                                        String userUsername, Long userVersion) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("anonymizeStudentByEvent");
+        if (isInSaga(executionAggregateId, unitOfWork)) {
+            return;
+        }
+        executionService.anonymizeStudent(executionAggregateId, userAggregateId, userName, userUsername,
+                userVersion, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    public void removeDeletedStudentByEvent(Integer executionAggregateId, Integer userAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("removeDeletedStudentByEvent");
+        if (isInSaga(executionAggregateId, unitOfWork)) {
+            return;
+        }
+        executionService.removeDeletedStudent(executionAggregateId, userAggregateId, unitOfWork);
+        unitOfWorkService.commit(unitOfWork);
+    }
+
+    // The guard belongs here rather than in the service methods, which the saga steps also call.
+    private boolean isInSaga(Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
+        SagaAggregate execution = (SagaAggregate) unitOfWorkService.aggregateLoadAndRegisterRead(
+                executionAggregateId, unitOfWork);
+        return !GenericSagaState.NOT_IN_SAGA.equals(execution.getSagaState());
     }
 }
