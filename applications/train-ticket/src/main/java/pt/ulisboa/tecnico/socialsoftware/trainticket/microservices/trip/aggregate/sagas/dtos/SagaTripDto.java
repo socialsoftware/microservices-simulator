@@ -7,7 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregat
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregate.Trip;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.TripDto;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregate.sagas.SagaTrip;
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 
 public class SagaTripDto extends TripDto {
 @Convert(converter = SagaStateConverter.class)

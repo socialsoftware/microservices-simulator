@@ -5,7 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState;
 
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.RouteDto;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.TripRouteDto;
@@ -16,7 +16,7 @@ public class TripRoute {
     @GeneratedValue
     private Long id;
     private Integer routeAggregateId;
-    private Integer routeVersion;
+    private Long routeVersion;
     private AggregateState routeState;
     @OneToOne
     private Trip trip;
@@ -59,11 +59,11 @@ public class TripRoute {
         this.routeAggregateId = routeAggregateId;
     }
 
-    public Integer getRouteVersion() {
+    public Long getRouteVersion() {
         return routeVersion;
     }
 
-    public void setRouteVersion(Integer routeVersion) {
+    public void setRouteVersion(Long routeVersion) {
         this.routeVersion = routeVersion;
     }
 

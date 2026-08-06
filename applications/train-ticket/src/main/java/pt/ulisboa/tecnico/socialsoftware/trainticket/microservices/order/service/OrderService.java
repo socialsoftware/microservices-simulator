@@ -19,9 +19,9 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.OrderToStationD
 
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.enums.SeatClass;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.enums.OrderStatus;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.OrderDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.OrderUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainTicketException;

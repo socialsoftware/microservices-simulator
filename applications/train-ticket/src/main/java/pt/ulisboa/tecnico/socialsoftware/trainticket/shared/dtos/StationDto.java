@@ -1,12 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos;
 
 import java.io.Serializable;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.Station;
 
 public class StationDto implements Serializable {
     private Integer aggregateId;
-    private Integer version;
+    private Long version;
     private AggregateState state;
     private String name;
     private Integer stayTime;
@@ -30,11 +30,11 @@ public class StationDto implements Serializable {
         this.aggregateId = aggregateId;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 

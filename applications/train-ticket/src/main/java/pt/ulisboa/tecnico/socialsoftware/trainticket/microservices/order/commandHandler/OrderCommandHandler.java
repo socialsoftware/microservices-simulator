@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.comman
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.command.order.*;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.service.OrderService;
 
@@ -17,12 +17,12 @@ public class OrderCommandHandler extends CommandHandler {
     private OrderService orderService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Order";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateOrderCommand cmd -> handleCreateOrder(cmd);
             case GetOrderByIdCommand cmd -> handleGetOrderById(cmd);

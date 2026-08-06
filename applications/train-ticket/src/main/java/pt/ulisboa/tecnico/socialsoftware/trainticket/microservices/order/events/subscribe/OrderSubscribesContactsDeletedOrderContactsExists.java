@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.events.subscribe;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.OrderContacts;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.ContactsDeletedEvent;
 

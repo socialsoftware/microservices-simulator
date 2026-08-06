@@ -14,9 +14,9 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.PaymentOrderDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.PaymentUserDto;
 
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.enums.PaymentType;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.PaymentDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.PaymentUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainTicketException;

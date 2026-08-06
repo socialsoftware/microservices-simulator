@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.train.comman
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.command.train.*;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.train.service.TrainService;
 
@@ -17,12 +17,12 @@ public class TrainCommandHandler extends CommandHandler {
     private TrainService trainService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Train";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateTrainCommand cmd -> handleCreateTrain(cmd);
             case GetTrainByIdCommand cmd -> handleGetTrainById(cmd);

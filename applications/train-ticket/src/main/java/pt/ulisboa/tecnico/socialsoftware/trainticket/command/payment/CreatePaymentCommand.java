@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.trainticket.command.payment;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.payment.coordination.webapi.requestDtos.CreatePaymentRequestDto;
 
 public class CreatePaymentCommand extends Command {

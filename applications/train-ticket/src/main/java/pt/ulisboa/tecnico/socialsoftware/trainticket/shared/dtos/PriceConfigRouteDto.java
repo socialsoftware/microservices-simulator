@@ -5,7 +5,7 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.a
 
 public class PriceConfigRouteDto implements Serializable {
     private Integer aggregateId;
-    private Integer version;
+    private Long version;
     private String state;
 
     public PriceConfigRouteDto() {
@@ -25,11 +25,11 @@ public class PriceConfigRouteDto implements Serializable {
         this.aggregateId = aggregateId;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 

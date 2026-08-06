@@ -16,9 +16,9 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.TripStartStatio
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.TripTerminalStationDto;
 
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.enums.TripType;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.TripDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.TripUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainTicketException;

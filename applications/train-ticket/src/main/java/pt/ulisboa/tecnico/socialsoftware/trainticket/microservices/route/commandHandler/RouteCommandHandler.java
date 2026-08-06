@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.comman
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.command.route.*;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.service.RouteService;
 
@@ -17,12 +17,12 @@ public class RouteCommandHandler extends CommandHandler {
     private RouteService routeService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "Route";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreateRouteCommand cmd -> handleCreateRoute(cmd);
             case GetRouteByIdCommand cmd -> handleGetRouteById(cmd);

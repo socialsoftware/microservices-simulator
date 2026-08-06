@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.RouteDto;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.RouteStationDto;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.RouteDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.RouteUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.RouteStationRemovedEvent;

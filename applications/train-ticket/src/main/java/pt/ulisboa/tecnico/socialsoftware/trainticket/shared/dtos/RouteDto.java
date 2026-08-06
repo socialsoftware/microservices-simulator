@@ -3,13 +3,13 @@ package pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos;
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.Route;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.RouteStation;
 
 public class RouteDto implements Serializable {
     private Integer aggregateId;
-    private Integer version;
+    private Long version;
     private AggregateState state;
     private List<RouteStationDto> stations;
 
@@ -31,11 +31,11 @@ public class RouteDto implements Serializable {
         this.aggregateId = aggregateId;
     }
 
-    public Integer getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 

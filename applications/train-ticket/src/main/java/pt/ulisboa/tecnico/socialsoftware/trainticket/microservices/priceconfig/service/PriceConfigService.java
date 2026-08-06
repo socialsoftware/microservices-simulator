@@ -13,9 +13,9 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.PriceConfigDto;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.PriceConfigTrainDto;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.PriceConfigRouteDto;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.PriceConfigDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.PriceConfigUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainTicketException;

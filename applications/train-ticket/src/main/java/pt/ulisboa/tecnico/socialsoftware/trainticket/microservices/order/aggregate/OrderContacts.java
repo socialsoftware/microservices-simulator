@@ -7,7 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.Aggregate.AggregateState;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate.AggregateState;
 
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.ContactsDto;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.OrderContactsDto;
@@ -23,7 +23,7 @@ public class OrderContacts {
     private DocumentType contactsDocumentType;
     private String contactsDocumentNumber;
     private Integer contactsAggregateId;
-    private Integer contactsVersion;
+    private Long contactsVersion;
     private AggregateState contactsState;
     @OneToOne
     private Order order;
@@ -96,11 +96,11 @@ public class OrderContacts {
         this.contactsAggregateId = contactsAggregateId;
     }
 
-    public Integer getContactsVersion() {
+    public Long getContactsVersion() {
         return contactsVersion;
     }
 
-    public void setContactsVersion(Integer contactsVersion) {
+    public void setContactsVersion(Long contactsVersion) {
         this.contactsVersion = contactsVersion;
     }
 

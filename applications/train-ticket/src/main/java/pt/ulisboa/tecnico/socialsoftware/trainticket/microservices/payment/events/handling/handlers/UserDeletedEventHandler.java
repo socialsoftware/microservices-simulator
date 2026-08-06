@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.payment.events.handling.handlers;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.payment.aggregate.PaymentRepository;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.payment.coordination.eventProcessing.PaymentEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.UserDeletedEvent;

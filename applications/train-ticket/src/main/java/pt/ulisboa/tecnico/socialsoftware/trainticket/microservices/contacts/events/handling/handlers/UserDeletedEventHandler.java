@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.events.handling.handlers;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.aggregate.ContactsRepository;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.coordination.eventProcessing.ContactsEventProcessing;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.UserDeletedEvent;

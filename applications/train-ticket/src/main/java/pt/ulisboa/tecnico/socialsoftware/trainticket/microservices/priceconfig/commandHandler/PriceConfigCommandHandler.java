@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.Command;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.workflow.command.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.command.priceconfig.*;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.service.PriceConfigService;
 
@@ -17,12 +17,12 @@ public class PriceConfigCommandHandler extends CommandHandler {
     private PriceConfigService priceconfigService;
 
     @Override
-    protected String getAggregateTypeName() {
+    public String getAggregateTypeName() {
         return "PriceConfig";
     }
 
     @Override
-    protected Object handleDomainCommand(Command command) {
+    public Object handleDomainCommand(Command command) {
         return switch (command) {
             case CreatePriceConfigCommand cmd -> handleCreatePriceConfig(cmd);
             case GetPriceConfigByIdCommand cmd -> handleGetPriceConfigById(cmd);
@@ -69,7 +69,7 @@ public class PriceConfigCommandHandler extends CommandHandler {
     private Object handleUpdatePriceConfig(UpdatePriceConfigCommand cmd) {
         logger.info("handleUpdatePriceConfig");
         try {
-            return priceconfigService.updatePriceConfig(cmd.getPriceConfigDto(), cmd.getUnitOfWork());
+            return priceconfigService.updatePriceConfig(cmd.getPriceconfigDto(), cmd.getUnitOfWork());
         } catch (Exception e) {
             logger.severe("Failed: " + e.getMessage());
             return e;

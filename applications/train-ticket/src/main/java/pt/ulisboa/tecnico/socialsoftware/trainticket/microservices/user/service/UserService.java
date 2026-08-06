@@ -13,9 +13,9 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.dtos.UserDto;
 
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.enums.Gender;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.shared.enums.DocumentType;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.unitOfWork.UnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.domain.aggregate.AggregateIdGeneratorService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.UserDeletedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.events.UserUpdatedEvent;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainTicketException;

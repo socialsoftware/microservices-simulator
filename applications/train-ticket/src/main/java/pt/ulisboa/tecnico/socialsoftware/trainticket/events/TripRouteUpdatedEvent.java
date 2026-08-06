@@ -1,12 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.trainticket.events;
 
 import jakarta.persistence.Entity;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 
 @Entity
 public class TripRouteUpdatedEvent extends Event {
     private Integer routeAggregateId;
-    private Integer routeVersion;
+    private Long routeVersion;
 
     public TripRouteUpdatedEvent() {
         super();
@@ -16,7 +16,7 @@ public class TripRouteUpdatedEvent extends Event {
         super(aggregateId);
     }
 
-    public TripRouteUpdatedEvent(Integer aggregateId, Integer routeAggregateId, Integer routeVersion) {
+    public TripRouteUpdatedEvent(Integer aggregateId, Integer routeAggregateId, Long routeVersion) {
         super(aggregateId);
         setRouteAggregateId(routeAggregateId);
         setRouteVersion(routeVersion);
@@ -30,11 +30,11 @@ public class TripRouteUpdatedEvent extends Event {
         this.routeAggregateId = routeAggregateId;
     }
 
-    public Integer getRouteVersion() {
+    public Long getRouteVersion() {
         return routeVersion;
     }
 
-    public void setRouteVersion(Integer routeVersion) {
+    public void setRouteVersion(Long routeVersion) {
         this.routeVersion = routeVersion;
     }
 

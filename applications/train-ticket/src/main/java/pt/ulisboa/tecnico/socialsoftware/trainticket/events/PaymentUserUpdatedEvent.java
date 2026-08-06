@@ -1,12 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.trainticket.events;
 
 import jakarta.persistence.Entity;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.Event;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 
 @Entity
 public class PaymentUserUpdatedEvent extends Event {
     private Integer userAggregateId;
-    private Integer userVersion;
+    private Long userVersion;
 
     public PaymentUserUpdatedEvent() {
         super();
@@ -16,7 +16,7 @@ public class PaymentUserUpdatedEvent extends Event {
         super(aggregateId);
     }
 
-    public PaymentUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Integer userVersion) {
+    public PaymentUserUpdatedEvent(Integer aggregateId, Integer userAggregateId, Long userVersion) {
         super(aggregateId);
         setUserAggregateId(userAggregateId);
         setUserVersion(userVersion);
@@ -30,11 +30,11 @@ public class PaymentUserUpdatedEvent extends Event {
         this.userAggregateId = userAggregateId;
     }
 
-    public Integer getUserVersion() {
+    public Long getUserVersion() {
         return userVersion;
     }
 
-    public void setUserVersion(Integer userVersion) {
+    public void setUserVersion(Long userVersion) {
         this.userVersion = userVersion;
     }
 

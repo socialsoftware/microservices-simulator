@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.sagas.states;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum StationSagaState implements SagaState {
     DELETE_STATION {
