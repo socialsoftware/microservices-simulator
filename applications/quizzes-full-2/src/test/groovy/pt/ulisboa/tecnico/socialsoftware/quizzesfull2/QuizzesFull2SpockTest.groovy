@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.aggregate.CourseDto
@@ -26,8 +27,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.se
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.service.QuestionService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.QuizType
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.sagas.SagaQuiz
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
@@ -74,10 +75,13 @@ class QuizzesFull2SpockTest extends SpockTest {
     public static final Integer QUIZ_AGGREGATE_ID = 7
     public static final String QUIZ_TITLE = "Sorting quiz"
     public static final QuizType QUIZ_TYPE = QuizType.TEST
-    public static final LocalDateTime QUIZ_CREATION_DATE = LocalDateTime.of(2025, 9, 1, 12, 0)
-    public static final LocalDateTime QUIZ_AVAILABLE_DATE = LocalDateTime.of(2025, 9, 10, 9, 0)
-    public static final LocalDateTime QUIZ_CONCLUSION_DATE = LocalDateTime.of(2025, 9, 10, 11, 0)
-    public static final LocalDateTime QUIZ_RESULTS_DATE = LocalDateTime.of(2025, 9, 11, 9, 0)
+    // CreateQuiz stamps creationDate from DateHandler.now() and QUIZ_DATE_ORDERING requires it to
+    // precede availableDate, so the three caller-supplied dates are pinned relative to that same
+    // clock. A fixed absolute instant would put every fixture quiz in the past and fail the invariant.
+    public static final LocalDateTime QUIZ_CREATION_DATE = DateHandler.now().plusDays(1)
+    public static final LocalDateTime QUIZ_AVAILABLE_DATE = DateHandler.now().plusDays(10)
+    public static final LocalDateTime QUIZ_CONCLUSION_DATE = DateHandler.now().plusDays(10).plusHours(2)
+    public static final LocalDateTime QUIZ_RESULTS_DATE = DateHandler.now().plusDays(11)
     public static final Long QUIZ_EXECUTION_VERSION = 1L
 
     public static final Integer QUIZ_QUESTION_AGGREGATE_ID = 40
@@ -218,10 +222,13 @@ class QuizzesFull2SpockTest extends SpockTest {
                        LocalDateTime conclusionDate = QUIZ_CONCLUSION_DATE,
                        LocalDateTime resultsDate = QUIZ_RESULTS_DATE,
                        QuizType quizType = QUIZ_TYPE) {
-        def quiz = new SagaQuiz(aggregateIdGeneratorService.getNewAggregateId(), executionAggregateId,
-                QUIZ_EXECUTION_VERSION, title, QUIZ_CREATION_DATE, availableDate, conclusionDate,
-                resultsDate, quizType)
-        unitOfWorkService.registerChanged(quiz, unitOfWorkService.createUnitOfWork("fixture"))
-        return quiz.getAggregateId()
+        def quizDto = new QuizDto()
+        quizDto.setExecutionAggregateId(executionAggregateId)
+        quizDto.setTitle(title)
+        quizDto.setAvailableDate(availableDate)
+        quizDto.setConclusionDate(conclusionDate)
+        quizDto.setResultsDate(resultsDate)
+        quizDto.setQuizType(quizType)
+        return quizFunctionalities.createQuiz(quizDto, []).aggregateId
     }
 }

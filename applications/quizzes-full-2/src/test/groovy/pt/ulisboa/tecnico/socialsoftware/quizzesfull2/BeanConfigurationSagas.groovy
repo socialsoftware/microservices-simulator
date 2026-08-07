@@ -366,8 +366,10 @@ class BeanConfigurationSagas {
     @Bean
     QuizService quizService(QuizCustomRepository quizCustomRepository,
                             QuizFactory quizFactory,
-                            UnitOfWorkService unitOfWorkService) {
-        return new QuizService(quizCustomRepository, quizFactory, unitOfWorkService)
+                            UnitOfWorkService unitOfWorkService,
+                            AggregateIdGeneratorService aggregateIdGeneratorService) {
+        return new QuizService(quizCustomRepository, quizFactory, unitOfWorkService,
+                aggregateIdGeneratorService)
     }
 
     @Bean
