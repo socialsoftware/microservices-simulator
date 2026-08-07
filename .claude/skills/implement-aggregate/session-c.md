@@ -335,8 +335,25 @@ call site passing a synthetic foreign id now throws where the direct-on-aggregat
 this should not arise; where it does, repairing the offending call sites and adding any missing
 upstream helper belongs to the slice performing the swap, which owns this helper body exclusively.
 
+**A fixture *value* can break the same way, and this one is not avoidable by session `b`.** Where the
+create functionality **stamps a field from the clock** that a P1 invariant then orders against a
+caller-supplied field - `{Aggregate}.creationDate = DateHandler.now()` compared against a
+`{startField}` the caller passes in - a constant session `b` pinned to a fixed absolute instant is
+in the past by the time the real create path runs, and every call of the helper now throws that
+invariant's constant. The direct-on-aggregate body could not surface this: it passed the stamped
+field in as a constant too, so the two were consistent by construction.
+
+Repair it by re-pinning the offending `{AppClass}SpockTest.groovy` constants **relative to the same
+clock the create path reads** - `DateHandler.now().plusDays(n)`, keeping the ordering the invariant
+requires - not by changing the helper's signature and not by weakening the invariant. Session `b`
+had no way to choose better: it wrote its fixture before the create functionality existed, so the
+value repair belongs to this session. Keep the constant names: T1 already asserts against them, and
+renaming rewrites that file for nothing.
+
 Once replaced, the aggregate is created through the real saga, so 2.{N}.b's read tests exercise the
-production create path from here on. Re-run them and confirm they still pass.
+production create path from here on. Re-run them and confirm they still pass. A read test that
+asserted a clock-stamped field **equals** one of those constants was asserting the fixture, not the
+aggregate; it becomes a non-null assertion, since only the create path can now decide the value.
 
 Tests added this session use the same helper in their `setup:` block to satisfy prerequisites.
 
