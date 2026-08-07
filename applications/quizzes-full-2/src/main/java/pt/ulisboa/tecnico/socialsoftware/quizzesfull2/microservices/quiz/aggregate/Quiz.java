@@ -12,6 +12,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2Exception;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.notification.subscribe.QuizSubscribesDeleteCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.notification.subscribe.QuizSubscribesDeleteQuestion;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.notification.subscribe.QuizSubscribesUpdateQuestion;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -111,7 +114,15 @@ public abstract class Quiz extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (getState() == AggregateState.ACTIVE) {
+            eventSubscriptions.add(new QuizSubscribesDeleteCourseExecution(this.execution));
+            for (QuizQuestion question : this.questions) {
+                eventSubscriptions.add(new QuizSubscribesUpdateQuestion(question));
+                eventSubscriptions.add(new QuizSubscribesDeleteQuestion(question));
+            }
+        }
+        return eventSubscriptions;
     }
 
     public String getTitle() {

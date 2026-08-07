@@ -74,8 +74,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.QuizFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.sagas.factories.SagasQuizFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.sagas.repositories.QuizCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.QuizRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.coordination.eventProcessing.QuizEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.messaging.QuizCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.notification.handling.QuizEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.notification.handling.handlers.QuizEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
@@ -380,5 +384,21 @@ class BeanConfigurationSagas {
     @Bean
     QuizFunctionalities quizFunctionalities() {
         return new QuizFunctionalities()
+    }
+
+    @Bean
+    QuizEventHandling quizEventHandling() {
+        return new QuizEventHandling()
+    }
+
+    @Bean
+    QuizEventHandler quizEventHandler(QuizRepository quizRepository,
+                                      QuizEventProcessing quizEventProcessing) {
+        return new QuizEventHandler(quizRepository, quizEventProcessing)
+    }
+
+    @Bean
+    QuizEventProcessing quizEventProcessing() {
+        return new QuizEventProcessing()
     }
 }

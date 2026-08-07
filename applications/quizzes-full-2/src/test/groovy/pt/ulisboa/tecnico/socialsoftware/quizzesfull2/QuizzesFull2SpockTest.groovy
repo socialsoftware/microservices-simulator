@@ -214,14 +214,15 @@ class QuizzesFull2SpockTest extends SpockTest {
         return questionFunctionalities.createQuestion(questionDto, topicAggregateIds).aggregateId
     }
 
-    // Minimal valid quiz: no questions. creationDate is not a CreateQuiz parameter - the 2.6.c
-    // functionality stamps it - so it stays out of the signature, as does the execution version the
-    // create saga reads off the fetched execution.
+    // Minimal valid quiz: no questions unless the caller asks for them. creationDate is not a
+    // CreateQuiz parameter - the 2.6.c functionality stamps it - so it stays out of the signature, as
+    // does the execution version the create saga reads off the fetched execution.
     Integer createQuiz(Integer executionAggregateId, String title = QUIZ_TITLE,
                        LocalDateTime availableDate = QUIZ_AVAILABLE_DATE,
                        LocalDateTime conclusionDate = QUIZ_CONCLUSION_DATE,
                        LocalDateTime resultsDate = QUIZ_RESULTS_DATE,
-                       QuizType quizType = QUIZ_TYPE) {
+                       QuizType quizType = QUIZ_TYPE,
+                       List<Integer> questionAggregateIds = []) {
         def quizDto = new QuizDto()
         quizDto.setExecutionAggregateId(executionAggregateId)
         quizDto.setTitle(title)
@@ -229,6 +230,6 @@ class QuizzesFull2SpockTest extends SpockTest {
         quizDto.setConclusionDate(conclusionDate)
         quizDto.setResultsDate(resultsDate)
         quizDto.setQuizType(quizType)
-        return quizFunctionalities.createQuiz(quizDto, []).aggregateId
+        return quizFunctionalities.createQuiz(quizDto, questionAggregateIds).aggregateId
     }
 }
