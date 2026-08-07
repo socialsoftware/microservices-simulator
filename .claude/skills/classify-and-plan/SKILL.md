@@ -526,8 +526,17 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.c | `service/{Aggregate}Service.java` (write methods appended), `{src}commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), write coordinator methods appended to `coordination/functionalities/{Aggregate}Functionalities.java`, write cases appended to `messaging/{Aggregate}CommandHandler.java`, `coordination/webapi/{Aggregate}Controller.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op), write-method cases plus event-publication assertions appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
+| 2.N.c | `service/{Aggregate}Service.java` (write methods appended), `{src}commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), write coordinator methods appended to `coordination/functionalities/{Aggregate}Functionalities.java`, write cases appended to `messaging/{Aggregate}CommandHandler.java`, `coordination/webapi/{Aggregate}Controller.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op), `sagas/coordination/{aggregate}/{Operation}CompensationTest.groovy` and `applications/{app-name}/src/test/resources/groovy/{Operation}CompensationTest/{Operation}FunctionalitySagas.csv` (per write op whose saga holds a semantic lock across a later step), write-method cases plus event-publication assertions appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
 ```
+
+> **The compensation-test pair is listed for every write functionality, gated by a note.** Whether a
+> given operation needs it is decided in session `c` by the applicability test in
+> `.claude/skills/implement-aggregate/session-c.md` § "One `{Op}CompensationTest.groovy` per
+> lock-holding write functionality", which owns that rule — do not restate or re-derive it here. List
+> both files with the gate wording above so a session that does need them never has to amend plan.md,
+> and the impairment CSV is never forgotten: the test injects no fault without it and fails for an
+> unrelated reason. A create functionality typically drops the pair; a lock-then-mutate functionality
+> typically keeps it.
 
 > **`{Aggregate}Controller.java` is unconditional** — a minimal `@RestController` stub under
 > `coordination/webapi/`. List it for every aggregate; it is not gated on the aggregate having any
