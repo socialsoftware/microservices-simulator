@@ -49,14 +49,15 @@ applications/{app-name}/
     │           │   │   └── handlers/
     │           │   └── subscribe/
     │           └── service/
-    └── test/groovy/pt/ulisboa/tecnico/socialsoftware/{app}/
-        ├── BeanConfigurationSagas.groovy
-        ├── SpockTest.groovy
-        ├── {App}SpockTest.groovy
-        └── sagas/
-            ├── coordination/
-            │   └── {aggregate}/       ← T4 functionality tests
-            └── {aggregate}/           ← T1 + T2 (incl. event pub.) + T3 subscription tests
+    └── test/groovy/pt/ulisboa/tecnico/socialsoftware/
+        ├── SpockTest.groovy           ← package pt.ulisboa.tecnico.socialsoftware (parent, not {app})
+        └── {app}/
+            ├── BeanConfigurationSagas.groovy
+            ├── {App}SpockTest.groovy
+            └── sagas/
+                ├── coordination/
+                │   └── {aggregate}/   ← T4 functionality tests
+                └── {aggregate}/       ← T1 + T2 (incl. event pub.) + T3 subscription tests
 ```
 
 ### Naming conventions

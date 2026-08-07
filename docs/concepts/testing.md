@@ -129,18 +129,20 @@ If the implementation disagrees (e.g. throws a different message constant than p
 ## Directory Layout
 
 ```
-src/test/groovy/<pkg>/
-├── BeanConfigurationSagas.groovy     ← test configuration (infrastructure beans)
-├── SpockTest.groovy                  ← root Spock marker class
-├── <AppName>SpockTest.groovy         ← base class: @Autowired services + factory helpers
-└── sagas/
-    ├── coordination/
-    │   └── <aggregate>/              ← one dir per primary aggregate
-    │       └── <FunctionalityName>Test.groovy          (T4)
-    └── <aggregate>/                  ← one dir per aggregate
-        ├── <Aggregate>IntraInvariantTest.groovy        (T1)
-        ├── <Aggregate>ServiceTest.groovy               (T2)
-        └── <Aggregate>InterInvariantTest.groovy        (T3, consumers only)
+src/test/groovy/pt/ulisboa/tecnico/socialsoftware/
+├── SpockTest.groovy                      ← root Spock marker class; its package is the
+│                                            parent, not <pkg>
+└── <pkg>/
+    ├── BeanConfigurationSagas.groovy     ← test configuration (infrastructure beans)
+    ├── <AppName>SpockTest.groovy         ← base class: @Autowired services + factory helpers
+    └── sagas/
+        ├── coordination/
+        │   └── <aggregate>/              ← one dir per primary aggregate
+        │       └── <FunctionalityName>Test.groovy          (T4)
+        └── <aggregate>/                  ← one dir per aggregate
+            ├── <Aggregate>IntraInvariantTest.groovy        (T1)
+            ├── <Aggregate>ServiceTest.groovy               (T2)
+            └── <Aggregate>InterInvariantTest.groovy        (T3, consumers only)
 ```
 
 ## T1 — Aggregate Test
