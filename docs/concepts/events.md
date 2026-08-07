@@ -11,6 +11,7 @@ Located in `src/main/java/.../<appName>/events/` (e.g., `applications/{app-name}
 Each event extends `Event` from `ms.aggregate` (`pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event`) — it is a JPA `@Entity`, so the subclass must be annotated `@Entity` too:
 
 ```java
+@Entity
 public class CreateShipmentEvent extends Event {
     private Integer shipmentAggregateId;
     private Integer warehouseAggregateId;
@@ -164,6 +165,7 @@ Use this exact pattern in all skills and implementations. All skill files must r
 
 ### Event class
 ```java
+@Entity
 public class <EventName> extends Event {
     private Integer entityAggregateId;
     private Integer anchorAggregateId;
