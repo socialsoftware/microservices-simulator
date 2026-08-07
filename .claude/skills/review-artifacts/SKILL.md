@@ -63,8 +63,14 @@ If a report for today already exists, append `-2`, `-3`, etc. to avoid overwriti
 Run:
 ```
 find docs -type f -name "*.md" | sort
-find .claude/skills -type f -name "*.md" | sort
+find .claude/skills -type f \( -name "*.md" -o -name "*.template" \) | sort
 ```
+
+The `*.template` files under `.claude/skills/boot-strap/templates/` are part of the review set:
+`boot-strap/SKILL.md` and `templates/README.md` make specific claims about their contents (beans,
+fields, marker comments, package declarations), and nothing else in the harness checks those claims.
+Read them as code, not as prose — Checks 2 and 3 apply to them only where a doc or skill describes
+what they contain.
 
 Hold both lists. These are the complete artifact sets. Any file path referenced in a skill
 or doc must appear in one of these lists to be a valid reference.
@@ -75,8 +81,9 @@ or doc must appear in one of these lists to be a valid reference.
 
 ## Step 2: Read All Artifacts
 
-Read every file returned by the two `find` commands in Step 1.b (all `docs/**/*.md` and all
-`.claude/skills/**/*.md`) — this is the complete review set. Do not maintain a separate
+Read every file returned by the two `find` commands in Step 1.b (all `docs/**/*.md`, all
+`.claude/skills/**/*.md` and the `.claude/skills/boot-strap/templates/*.template` scaffolds) — this
+is the complete review set. Do not maintain a separate
 hard-coded list here: because the set is derived directly from Step 1.b, newly added files
 (e.g. `.claude/skills/_shared/conventions.md`, each `.claude/skills/implement-aggregate/session-*.md`,
 or any future skill/doc) are picked up automatically without editing this skill.
@@ -103,6 +110,22 @@ skill or doc is a Major finding: it should be `{app-name}`.
 
 Flag every broken reference as a finding (severity: Critical if the missing file is a skill
 that another skill delegates to at runtime; Major otherwise).
+
+### 3.b — Symbols the scaffold templates are claimed to contain
+
+`boot-strap/SKILL.md` and `.claude/skills/boot-strap/templates/README.md` describe what each
+`*.template` file contains: its target path and package declaration, the beans it declares, the
+fields and helper methods it ships, and the marker comments later phases append at. Every such
+named symbol must be present in the template it is attributed to, and every helper method a
+template ships must be described by some doc or skill — a helper no artifact mentions is a Minor
+finding, since agents hand-roll the equivalent instead of calling it.
+
+| Template | Symbol claimed | Claimed by | Present? | Notes |
+|----------|---------------|------------|----------|-------|
+| ... | bean / field / method / marker / package | `boot-strap/SKILL.md:NN` | Yes / No / Undocumented | ... |
+
+Severity: Critical if a template omits something `boot-strap/SKILL.md` tells a later phase to rely
+on (Phase 0 then produces an application that does not compile); Minor for an undocumented helper.
 
 ---
 
@@ -258,6 +281,7 @@ Write `{report-file}` using the template below. Never omit a section — write
 
 **Date:** {review-date}
 **Skill files reviewed:** {count}
+**Scaffold templates reviewed:** {count}
 **Doc files reviewed:** {count}
 **Verdict:** Clean | Minor issues | Issues requiring action
 
@@ -278,6 +302,11 @@ Write `{report-file}` using the template below. Never omit a section — write
 
 | Source file | Referenced path | Status | Notes |
 |-------------|----------------|--------|-------|
+
+### Scaffold template contents
+
+| Template | Symbol claimed | Claimed by | Present? | Notes |
+|----------|---------------|------------|----------|-------|
 
 ---
 
