@@ -236,11 +236,15 @@ These accumulate one member per item, which is why slices append and never rewri
 | Session | Shared files |
 |---------|--------------|
 | `b` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `ServiceMapping.java` |
-| `c` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy` |
-| `d` | `{Aggregate}EventHandling.java` (one `@Scheduled` method per event), `{Aggregate}EventHandler.java` (one `instanceof` branch per event), `{Aggregate}EventProcessing.java` (one `process{Xxx}Event` method per event), `{Aggregate}InterInvariantTest.groovy` |
+| `c` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `{AppClass}SpockTest.groovy` (fixture-helper bodies only - see below) |
+| `d` | `{Aggregate}EventHandling.java` (one `@Scheduled` method per event), `{Aggregate}EventHandler.java` (one `instanceof` branch per event), `{Aggregate}EventProcessing.java` (one `process{Xxx}Event` method per event), `{Aggregate}InterInvariantTest.groovy`, `{Aggregate}Functionalities.java` (one `{operation}ByEvent` method per event), `{Aggregate}Service.java` (one mutate helper per event), `{Aggregate}.java` (one `getEventSubscriptions()` entry per event) |
 
 Session `a` produces one aggregate and is never sliced, so it has no shared-file hazard.
 
-Session `c` additionally has one file that is **replaced, not appended to**: the
-`create{Aggregate}()` helper body in `{AppClass}SpockTest.groovy`. It belongs to slice `c1`, the
-create functionality, which plan.md always orders first. No later slice may touch it.
+Session `c` additionally touches one file that is **replaced, not appended to**: the fixture-helper
+bodies in `{AppClass}SpockTest.groovy`, which session `b` wrote direct-on-aggregate and session `c`
+swaps for real functionality calls (`session-c.md` § "Update `{AppClass}SpockTest.groovy`"). Each
+body is owned by the slice named after the functionality it calls: `create{Aggregate}()` by slice
+`c1`, the create functionality plan.md always orders first, and each sibling helper by the slice
+implementing the write functionality it is named after. No slice may touch a body it does not own,
+and no slice may change any helper's signature or defaults.
