@@ -10,28 +10,21 @@ x-limits-quizzes: &limits-quizzes
   deploy:
     resources:
       limits:
-        #cpus: '${QUIZZES_CPUS:-2.0}'
-        memory: '${QUIZZES_MEM_LIMIT:-1.2g}'
+        cpus: '${QUIZZES_CPUS:-1.0}'
+        memory: '${QUIZZES_MEM_LIMIT:-1.0g}'
       reservations:
-        memory: '${QUIZZES_MEM_RESERVATION:-768m}'
+        memory: '${QUIZZES_MEM_RESERVATION:-640m}'
 
 x-limits-h2: &limits-h2
   deploy:
     resources:
       limits:
-        #cpus: '${H2_CPUS:-0.5}'
-        memory: '${H2_MEM_LIMIT:-1.5g}'
+        cpus: '${H2_CPUS:-0.5}'
+        memory: '${H2_MEM_LIMIT:-1.0g}'
       reservations:
-        memory: '${H2_MEM_RESERVATION:-1g}'
+        memory: '${H2_MEM_RESERVATION:-640m}'
 
-x-limits-eureka: &limits-eureka
-  deploy:
-    resources:
-      limits:
-        #cpus: '${EUREKA_CPUS:-1.0}'
-        memory: '${EUREKA_MEM_LIMIT:-512m}'
-      reservations:
-        memory: '${EUREKA_MEM_RESERVATION:-256m}'
+#  --- Only enabled in debug profile ---
 
 x-limits-otel: &limits-otel
   deploy:
@@ -52,26 +45,46 @@ x-limits-jaeger: &limits-jaeger
         memory: '${JAEGER_MEM_RESERVATION:-128m}'
 
 # ==========================================
+# SIMULATOR ANCHORS
+# ==========================================
+
+x-quizzes-base: &quizzes-base
+  <<: *limits-quizzes
+  image: quizzes:latest
+  cap_add:
+    - ${PERF_CAP:-CHOWN}
+  build:
+    context: .
+    dockerfile: performance-analysis/Dockerfile
+    args:
+      PROFILE: ${TX_MODE:-sagas},local
+  pull_policy: build
+  ports:
+    - ${GATEWAY_PORT:-8080}:8080
+  restart: unless-stopped
+  environment: &quizzes-env
+    SPRING_PROFILES_INCLUDE: ${VERSION_MODE:-}
+    SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local
+    EUREKA_CLIENT_ENABLED: "false"
+    LOGGING_LEVEL_ROOT: "WARN"
+    LOGGING_LEVEL_PT_ULISBOA_TECNICO: "WARN"
+    SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+    SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+    SPRING_DATASOURCE_USERNAME: sa
+    SPRING_DATASOURCE_PASSWORD: sa
+    SPRING_DATASOURCE_URL: jdbc:h2:tcp://h2-mock:1521/mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+  volumes:
+    - ./src/main/resources:/resources
+    - ./src/main/logs:/logs
+  networks:
+    - messaging-network
+  extra_hosts:
+    - host.docker.internal:host-gateway
+
+# ==========================================
 # SERVICES
 # ==========================================
 services:
-  eureka-server:
-    <<: *limits-eureka
-    image: steeltoeoss/eureka-server:4.1.1
-    networks:
-      - messaging-network
-    restart: unless-stopped
-    healthcheck:
-      test:
-        - CMD
-        - wget
-        - -q
-        - --spider
-        - http://localhost:8761/actuator/health
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
 
   # Database Layer
   h2-mock:
@@ -85,48 +98,37 @@ services:
       - messaging-network
 
   # Core Application (Simulator)
-  quizzes-rl:
-    <<: *limits-quizzes
-    image: quizzes:latest
-    cap_add:
-      - ${PERF_CAP:-CHOWN}
-    build:
-      context: .
-      dockerfile: performance-analysis/Dockerfile
-      args:
-        PROFILE: ${TX_MODE:-sagas},local
-    pull_policy: build
-    ports:
-      - ${GATEWAY_PORT:-8080}:8080
+
+  # Profile: TRAIN (Direct to Python)
+  quizzes-train:
+    <<: *quizzes-base
+    profiles: [ "train" ]
+    depends_on:
+      h2-mock:
+        condition: service_started
+    environment:
+      <<: *quizzes-env
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://host.docker.internal:${GRPC_PORT:-4319}
+
+  # Profile: DEBUG (Routed via OTel Collector)
+  quizzes-debug:
+    <<: *quizzes-base
+    profiles: [ "debug" ]
     depends_on:
       h2-mock:
         condition: service_started
       jaeger:
         condition: service_started
-      eureka-server:
-        condition: service_healthy
       otel-collector:
         condition: service_started
-    restart: unless-stopped
     environment:
-      SPRING_PROFILES_INCLUDE: ${VERSION_MODE:-}
-      SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local
-      EUREKA_HOST: eureka-server
-      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
-      SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: sa
-      SPRING_DATASOURCE_URL: jdbc:h2:tcp://h2-mock:1521/mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+      <<: *quizzes-env
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
-    volumes:
-      - ./src/main/resources:/resources
-      - ./src/main/logs:/logs
-    networks:
-      - messaging-network
 
   # Tracing & Observability
   jaeger:
     <<: *limits-jaeger
+    profiles: [ "debug" ]
     image: jaegertracing/all-in-one:1.75.0
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
@@ -137,6 +139,7 @@ services:
       - messaging-network
 
   otel-collector:
+    profiles: [ "debug" ]
     <<: *limits-otel
     image: otel/opentelemetry-collector-contrib:latest
     command:
