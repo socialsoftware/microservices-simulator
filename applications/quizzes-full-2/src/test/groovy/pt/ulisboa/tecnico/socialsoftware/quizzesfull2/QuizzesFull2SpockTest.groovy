@@ -26,6 +26,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.se
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.service.QuestionService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.QuizType
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.functionalities.UserFunctionalities
@@ -66,6 +67,21 @@ class QuizzesFull2SpockTest extends SpockTest {
     public static final String QUESTION_TITLE = "Sorting complexity"
     public static final String QUESTION_CONTENT = "What is the worst-case complexity of merge sort?"
     public static final LocalDateTime QUESTION_CREATION_DATE = LocalDateTime.of(2025, 9, 1, 10, 0)
+
+    public static final Integer QUIZ_AGGREGATE_ID = 7
+    public static final String QUIZ_TITLE = "Sorting quiz"
+    public static final QuizType QUIZ_TYPE = QuizType.TEST
+    public static final LocalDateTime QUIZ_CREATION_DATE = LocalDateTime.of(2025, 9, 1, 12, 0)
+    public static final LocalDateTime QUIZ_AVAILABLE_DATE = LocalDateTime.of(2025, 9, 10, 9, 0)
+    public static final LocalDateTime QUIZ_CONCLUSION_DATE = LocalDateTime.of(2025, 9, 10, 11, 0)
+    public static final LocalDateTime QUIZ_RESULTS_DATE = LocalDateTime.of(2025, 9, 11, 9, 0)
+    public static final Long QUIZ_EXECUTION_VERSION = 1L
+
+    public static final Integer QUIZ_QUESTION_AGGREGATE_ID = 40
+    public static final Integer QUIZ_QUESTION_AGGREGATE_ID_2 = 41
+    public static final Long QUIZ_QUESTION_VERSION = 1L
+    public static final String QUIZ_QUESTION_TITLE = "Sorting complexity"
+    public static final String QUIZ_QUESTION_CONTENT = "What is the worst-case complexity of merge sort?"
 
     public static final Integer QUESTION_TOPIC_AGGREGATE_ID = 30
     public static final String QUESTION_TOPIC_NAME = "Algorithms"

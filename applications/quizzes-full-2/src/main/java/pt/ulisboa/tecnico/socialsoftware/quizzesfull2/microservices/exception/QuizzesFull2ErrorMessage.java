@@ -36,4 +36,7 @@ public final class QuizzesFull2ErrorMessage {
     public static final String INACTIVE_USER = "An inactive user cannot be enrolled in a course execution";
 
     public static final String TOPIC_BELONGS_TO_QUESTION_COURSE = "A question topic must belong to the question's course";
+
+    public static final String QUIZ_DATE_ORDERING = "The quiz dates must be ordered: creation before available, available before conclusion, conclusion not after results";
+    public static final String QUIZ_FIELDS_FINAL_AFTER_AVAILABLE_DATE = "The quiz dates and questions cannot be changed after the quiz becomes available";
 }
