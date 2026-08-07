@@ -27,6 +27,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.agg
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.service.QuestionService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.QuizType
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.sagas.SagaQuiz
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.coordination.functionalities.QuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.functionalities.UserFunctionalities
@@ -117,6 +120,10 @@ class QuizzesFull2SpockTest extends SpockTest {
     protected QuestionService questionService
     @Autowired(required = false)
     protected QuestionFunctionalities questionFunctionalities
+    @Autowired(required = false)
+    protected QuizService quizService
+    @Autowired(required = false)
+    protected QuizFunctionalities quizFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -201,5 +208,20 @@ class QuizzesFull2SpockTest extends SpockTest {
         questionDto.setTitle(title)
         questionDto.setContent(content)
         return questionFunctionalities.createQuestion(questionDto, topicAggregateIds).aggregateId
+    }
+
+    // Minimal valid quiz: no questions. creationDate is not a CreateQuiz parameter - the 2.6.c
+    // functionality stamps it - so it stays out of the signature, as does the execution version the
+    // create saga reads off the fetched execution.
+    Integer createQuiz(Integer executionAggregateId, String title = QUIZ_TITLE,
+                       LocalDateTime availableDate = QUIZ_AVAILABLE_DATE,
+                       LocalDateTime conclusionDate = QUIZ_CONCLUSION_DATE,
+                       LocalDateTime resultsDate = QUIZ_RESULTS_DATE,
+                       QuizType quizType = QUIZ_TYPE) {
+        def quiz = new SagaQuiz(aggregateIdGeneratorService.getNewAggregateId(), executionAggregateId,
+                QUIZ_EXECUTION_VERSION, title, QUIZ_CREATION_DATE, availableDate, conclusionDate,
+                resultsDate, quizType)
+        unitOfWorkService.registerChanged(quiz, unitOfWorkService.createUnitOfWork("fixture"))
+        return quiz.getAggregateId()
     }
 }

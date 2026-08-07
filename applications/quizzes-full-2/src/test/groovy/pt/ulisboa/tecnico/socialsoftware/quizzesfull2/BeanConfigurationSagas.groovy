@@ -70,8 +70,13 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.mes
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.notification.handling.QuestionEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.notification.handling.handlers.QuestionEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.service.QuestionService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.QuizCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.QuizFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.sagas.factories.SagasQuizFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.sagas.repositories.QuizCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.coordination.functionalities.QuizFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.messaging.QuizCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
 @TestConfiguration
@@ -356,5 +361,22 @@ class BeanConfigurationSagas {
     @Bean
     QuizCustomRepositorySagas quizCustomRepositorySagas() {
         return new QuizCustomRepositorySagas()
+    }
+
+    @Bean
+    QuizService quizService(QuizCustomRepository quizCustomRepository,
+                            QuizFactory quizFactory,
+                            UnitOfWorkService unitOfWorkService) {
+        return new QuizService(quizCustomRepository, quizFactory, unitOfWorkService)
+    }
+
+    @Bean
+    QuizCommandHandler quizCommandHandler() {
+        return new QuizCommandHandler()
+    }
+
+    @Bean
+    QuizFunctionalities quizFunctionalities() {
+        return new QuizFunctionalities()
     }
 }
