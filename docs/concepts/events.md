@@ -270,6 +270,8 @@ public void {operation}ByEvent(Integer aggregateId, ...) {
 
 **Where the guard goes.** Put the `sagaState != NOT_IN_SAGA` check inside the `{operation}ByEvent` method **after the load** — not in the shared service method. If the guard lived in a service method that is also called from saga steps on the same aggregate, those saga steps would silently be skipped.
 
+**Every cached publisher version is a `Long`.** The field on the cached sub-entity, the service-method parameter carrying it and any local holding it are all `Long`, because `Event.getPublisherAggregateVersion()` returns `Long` and `EventSubscription`'s constructor is `(Integer subscribedAggregateId, Long subscribedVersion, String eventType)`. `Aggregate.version` is likewise `Long` ([`aggregate.md`](aggregate.md) § Key Fields). Only aggregate *ids* are `Integer`.
+
 **Always advance the cached publisher version.** Every ByEvent mutation must stamp the cached publisher version from `event.getPublisherAggregateVersion()` alongside whatever payload fields it applies — not only in the version-carries-no-payload case shown in `.claude/skills/implement-aggregate/session-d.md`. The service method takes the version as a parameter and sets it on the cached entity in the same mutation:
 
 ```java

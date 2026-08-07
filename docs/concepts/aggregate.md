@@ -10,7 +10,7 @@ An `Aggregate` is the unit of consistency in the simulator. Every write creates 
 |-------|------|---------|
 | `id` | `Integer` | JPA physical row PK (auto-generated) |
 | `aggregateId` | `Integer` | Logical identity — stable across versions |
-| `version` | `Integer` | Global monotonic version from `VersionService` |
+| `version` | `Long` | Global monotonic version, assigned by `SagaUnitOfWorkService.registerChanged` via `IVersionService.incrementAndGetVersionNumber()` |
 | `state` | `AggregateState` | `ACTIVE`, `INACTIVE`, or `DELETED` |
 | `prev` | `Aggregate` | Pointer to the previous version row |
 | `aggregateType` | `String` | Simple class name, set in subclass constructor |

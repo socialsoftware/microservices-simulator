@@ -156,7 +156,7 @@ If the consumer aggregate caches no publisher payload (no name, no description �
 ```java
 // In {Aggregate}Service:
 public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer warehouseAggregateId,
-                                                Integer publisherVersion, UnitOfWork unitOfWork) {
+                                                Long publisherVersion, UnitOfWork unitOfWork) {
     {Aggregate} aggregate = get{Aggregate}ById(aggregateId, unitOfWork);
     aggregate.get{SubEntities}().stream()
         .filter(e -> e.getWarehouseAggregateId().equals(warehouseAggregateId))
@@ -167,7 +167,7 @@ public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer war
 }
 ```
 
-The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the publisher aggregate at the time the event was emitted).
+The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the publisher aggregate at the time the event was emitted). It is a `Long`, as is the cached `warehouseVersion` field it is assigned to - see `docs/concepts/events.md` § "Always advance the cached publisher version", which owns the rule.
 
 This section covers the case where the version is the *only* thing cached. Stamping that version is **not** confined to it: every ByEvent mutation advances the cached publisher version, whatever payload fields it also applies — see `docs/concepts/events.md` § ByEvent sagaState guard, "Always advance the cached publisher version", and the redelivery backlog it bounds.
 
