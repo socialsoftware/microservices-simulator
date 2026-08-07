@@ -99,8 +99,7 @@ If no unchecked Phase 2 session found, inform: "All Phase 2 sessions are complet
 
 Read `.claude/skills/_shared/conventions.md` § "Resolve app context" and derive `{app-name}`,
 `{pkg}`, `{AppClass}` from the plan.md path located in Step 1 (already found — do not re-run the
-`find`). Additionally, locally:
-- `{appClass}` = same as `{AppClass}` but first segment lowercase (e.g., `myApp`)
+`find`).
 
 From plan.md, find the aggregate details section for aggregate number `{N}`:
 - Section header pattern: `### {N}. {Aggregate}` or `### {N}. {AggregateName}`

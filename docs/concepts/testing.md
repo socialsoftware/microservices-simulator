@@ -70,7 +70,7 @@ security. This checklist is the authoritative smell list, consumed by
 ### Weak — real scenario, under-specified assertions
 
 - Happy-path `then:` asserts only fields already set in `setup:` — at least one asserted field must be a value the operation itself produces.
-- Removing `unitOfWorkService.registerChanged(aggregate)` from the service would leave the test passing (kill-mutation thought experiment) — add an assertion readable only through the persisted aggregate.
+- Removing `unitOfWorkService.registerChanged(aggregate, unitOfWork)` from the service would leave the test passing (kill-mutation thought experiment) — add an assertion readable only through the persisted aggregate.
 - Violation test asserts `thrown(<App>Exception)` without `ex.message == <RULE_NAME>` — passes on any unrelated bug of that type.
 - **T2:** asserts only that "an event exists" (type/count) without asserting the payload fields — a wrong-payload regression slips through.
 - Returned DTO assertions cover only a subset of the semantically important fields.
@@ -295,8 +295,18 @@ unrelated event → state unchanged; deletion event → consumer deleted. `@Sche
 run in `@DataJpaTest` — call the polling method directly:
 `<consumer>EventHandling.handle<Xxx>Events()`. These tests trigger publication via a functionality
 but must not re-assert event-store contents (T2 owns that). If the consumer DTO does not expose a
-cached sub-entity field, load the aggregate via `aggregateLoadAndRegisterRead` and assert on
-`agg.<subEntity>.<cachedField>`.
+cached sub-entity field, load the aggregate with the `loadForCheck(aggregateId, type)` helper the
+scaffolded `<AppName>SpockTest` ships and assert on `agg.<subEntity>.<cachedField>`:
+
+```groovy
+def agg = loadForCheck(consumer.aggregateId, Saga<Consumer>)
+agg.<subEntity>.<cachedField> == <newValue>
+```
+
+`loadForCheck` creates the `"check"` unit of work and casts, so it is the read-back shape everywhere
+a test asserts through the aggregate rather than a DTO — in T3 and T4 alike. Call
+`unitOfWorkService.aggregateLoadAndRegisterRead` directly only where the test needs the unit of work
+itself, or registers the read on a unit of work it goes on to use.
 
 **Deletion events:** when processing calls `remove()` on the consumer, `aggregateLoadAndRegisterRead`
 filters out `DELETED` aggregates and throws `SimulatorException` — the load-and-assert pattern

@@ -6,7 +6,7 @@ This sub-file is loaded by `implement-aggregate` when the target session type is
 > functionalities or events, implement only those, and append to the shared files rather than
 > rewriting them. If no subset is named, you own the whole session.
 
-> **If the plan.md aggregate section lists "Read functionalities: none"**, this session is still not empty: produce the boilerplate `Get{Aggregate}ByIdCommand`, its `{Aggregate}Service` read method, its `{Aggregate}CommandHandler` case and its T2 not-found test, and nothing else. There are no domain read functionalities to add on top, so no `{Query}FunctionalitySagas`, no coordinator read methods beyond `get{Aggregate}ById`, and no `{Query}Test.groovy`.
+> **If the plan.md aggregate section lists "Read functionalities: none"**, this session is still not empty: produce the boilerplate `Get{Aggregate}ByIdCommand`, its `{Aggregate}Service` read method, its `{Aggregate}CommandHandler` case and its T2 not-found test, and no *domain read* artifacts beyond these. There are no domain read functionalities to add on top, so no `{Query}FunctionalitySagas`, no coordinator read methods beyond `get{Aggregate}ById`, and no `{Query}Test.groovy`.
 
 ---
 

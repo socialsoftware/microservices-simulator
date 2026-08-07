@@ -225,7 +225,7 @@ Paths — **both files are produced**, and the test cannot fault without the sec
 
 ```
 {test}sagas/coordination/{aggregate}/{Op}CompensationTest.groovy
-src/test/resources/groovy/{Op}CompensationTest/{Op}FunctionalitySagas.csv
+applications/{app-name}/src/test/resources/groovy/{Op}CompensationTest/{Op}FunctionalitySagas.csv
 ```
 
 The impairment CSV is selected by the **test class's simple name** (directory) and the **saga class's
