@@ -158,7 +158,7 @@ public class ShipmentCommandHandler extends CommandHandler {
     public Object handleDomainCommand(Command command) {
         return switch (command) {
             case GetShipmentByIdCommand cmd -> shipmentService.getShipmentById(
-                    cmd.getAggregateId(), cmd.getUnitOfWork());
+                    cmd.getShipmentAggregateId(), cmd.getUnitOfWork());
             case AddShipmentItemCommand cmd -> {
                 shipmentService.addShipmentItem(
                         cmd.getShipmentAggregateId(), cmd.getWarehouseDto(), cmd.getUnitOfWork());

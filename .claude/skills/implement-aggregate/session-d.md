@@ -15,7 +15,7 @@ This sub-file is loaded by `implement-aggregate` when the target session type is
 Load these files before writing any code:
 
 1. **`docs/concepts/events.md`** — specifically:
-   - § Event Classes, § Publishing Events, § EventSubscription (anchor field, `getAggregateId()`, `getEventType()`)
+   - § Event Classes, § Publishing Events, § EventSubscription (anchor field, `getSubscribedAggregateId()`, `getEventType()`)
    - § EventHandler, § Polling — dispatch and `@Scheduled` polling
    - § Canonical Wiring Snippet (and all subsections) — the per-file structure for this session
    - § Canonical Wiring Snippet → EventProcessing class, § ByEvent sagaState guard — the contract: `verifyInvariants()` after the cached-field change, plus the saga-state skip
