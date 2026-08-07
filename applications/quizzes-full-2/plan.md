@@ -542,7 +542,7 @@ through the `QuizAnswerQuestionAnswerEvent` subscription, which is P2 and takes 
 | 2.7.d | `notification/subscribe/QuizAnswerSubscribesUpdateStudentName.java`, `notification/subscribe/QuizAnswerSubscribesAnonymizeStudent.java`, `notification/subscribe/QuizAnswerSubscribesDeleteUser.java`, `notification/subscribe/QuizAnswerSubscribesUpdateQuestion.java`, `notification/subscribe/QuizAnswerSubscribesDeleteCourseExecution.java`, `notification/subscribe/QuizAnswerSubscribesDisenrollStudentFromCourseExecution.java`, `notification/subscribe/QuizAnswerSubscribesInvalidateQuiz.java`, `notification/handling/QuizAnswerEventHandling.java`, `notification/handling/handlers/QuizAnswerEventHandler.java`, `coordination/eventProcessing/QuizAnswerEventProcessing.java`, `sagas/quizanswer/QuizAnswerInterInvariantTest.groovy` |
 
 **Checklist:**
-- [ ] 2.7.a — Domain layer
+- [x] 2.7.a — Domain layer
 - [ ] 2.7.b — Read functionalities
 - [ ] 2.7.c — Write functionalities
 - [ ] 2.7.d — Event wiring

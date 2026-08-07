@@ -39,4 +39,7 @@ public final class QuizzesFull2ErrorMessage {
 
     public static final String QUIZ_DATE_ORDERING = "The quiz dates must be ordered: creation before available, available before conclusion, conclusion not after results";
     public static final String QUIZ_FIELDS_FINAL_AFTER_AVAILABLE_DATE = "The quiz dates and questions cannot be changed after the quiz becomes available";
+
+    public static final String QUESTION_ALREADY_ANSWERED = "The question has already been answered in this quiz answer";
+    public static final String ANSWER_MATCHES_CORRECT_OPTION = "An answer is correct if and only if the chosen option key is the question's correct option key";
 }

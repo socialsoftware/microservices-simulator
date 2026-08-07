@@ -90,6 +90,21 @@ class QuizzesFull2SpockTest extends SpockTest {
     public static final String QUIZ_QUESTION_TITLE = "Sorting complexity"
     public static final String QUIZ_QUESTION_CONTENT = "What is the worst-case complexity of merge sort?"
 
+    public static final Integer QUIZ_ANSWER_AGGREGATE_ID = 8
+    public static final LocalDateTime QUIZ_ANSWER_CREATION_DATE = LocalDateTime.of(2025, 10, 1, 9, 0)
+    public static final LocalDateTime QUIZ_ANSWER_ANSWER_DATE = LocalDateTime.of(2025, 10, 1, 9, 5)
+    public static final Long QUIZ_ANSWER_QUIZ_VERSION = 1L
+    public static final Long QUIZ_ANSWER_USER_VERSION = 1L
+    public static final Long QUIZ_ANSWER_EXECUTION_VERSION = 1L
+
+    public static final Integer QUESTION_ANSWER_QUESTION_AGGREGATE_ID = 50
+    public static final Integer QUESTION_ANSWER_QUESTION_AGGREGATE_ID_2 = 51
+    public static final Long QUESTION_ANSWER_QUESTION_VERSION = 1L
+    public static final Integer QUESTION_ANSWER_CORRECT_OPTION_KEY = 1
+    public static final Integer QUESTION_ANSWER_WRONG_OPTION_KEY = 2
+    public static final Integer QUESTION_ANSWER_OPTION_SEQUENCE_CHOICE = 0
+    public static final Integer QUESTION_ANSWER_TIME_TAKEN = 30
+
     public static final Integer QUESTION_TOPIC_AGGREGATE_ID = 30
     public static final String QUESTION_TOPIC_NAME = "Algorithms"
     public static final Long QUESTION_TOPIC_VERSION = 1L
