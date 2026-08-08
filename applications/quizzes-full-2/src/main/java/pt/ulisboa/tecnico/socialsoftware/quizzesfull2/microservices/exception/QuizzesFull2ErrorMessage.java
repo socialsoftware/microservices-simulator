@@ -46,4 +46,15 @@ public final class QuizzesFull2ErrorMessage {
     public static final String UNIQUE_QUIZ_ANSWER_PER_STUDENT = "The student already has a quiz answer for this quiz";
     public static final String COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION = "The quiz answer's course execution must be the quiz's course execution";
     public static final String QUESTION_NOT_IN_QUIZ_ANSWER = "The question is not part of this quiz answer";
+
+    public static final String TOURNAMENT_START_BEFORE_END_TIME = "The tournament start time must precede its end time";
+    public static final String TOURNAMENT_UNIQUE_AS_PARTICIPANT = "A student can only participate once in a tournament";
+    public static final String TOURNAMENT_ENROLL_UNTIL_START_TIME = "A participant must enroll before the tournament starts";
+    public static final String TOURNAMENT_ANSWER_BEFORE_START = "A participant cannot answer before the tournament starts";
+    public static final String TOURNAMENT_CREATOR_PARTICIPANT_CONSISTENCY = "The creator's participation must mirror the creator snapshot";
+    public static final String TOURNAMENT_FINAL_AFTER_START = "The tournament schedule and topics cannot be changed after the tournament starts";
+    public static final String TOURNAMENT_IS_CANCELED = "A cancelled tournament cannot be changed";
+    public static final String TOURNAMENT_DELETE = "A deleted tournament cannot have participants";
+    public static final String CREATOR_IS_NOT_ANONYMOUS = "An anonymized user cannot be the creator of a tournament";
+    public static final String TOPIC_COURSE_EXECUTION = "A tournament topic must belong to the course of the tournament's course execution";
 }

@@ -109,6 +109,36 @@ class QuizzesFull2SpockTest extends SpockTest {
     public static final Integer QUESTION_ANSWER_OPTION_SEQUENCE_CHOICE = 0
     public static final Integer QUESTION_ANSWER_TIME_TAKEN = 30
 
+    public static final Integer TOURNAMENT_AGGREGATE_ID = 9
+    // CreateTournament stamps lastModifiedTime from DateHandler.now() and TOURNAMENT_FINAL_AFTER_START
+    // compares that stamp against startTime, so the tournament instants are pinned relative to the same
+    // clock. A fixed absolute instant would put every fixture tournament in the past.
+    public static final LocalDateTime TOURNAMENT_START_TIME = DateHandler.now().plusDays(10)
+    public static final LocalDateTime TOURNAMENT_END_TIME = DateHandler.now().plusDays(10).plusHours(2)
+    public static final Integer TOURNAMENT_NUMBER_OF_QUESTIONS = 5
+    public static final Long TOURNAMENT_EXECUTION_VERSION = 1L
+    public static final Long TOURNAMENT_QUIZ_VERSION = 1L
+
+    public static final Integer TOURNAMENT_CREATOR_AGGREGATE_ID = 60
+    public static final String TOURNAMENT_CREATOR_NAME = "Carol White"
+    public static final String TOURNAMENT_CREATOR_USERNAME = "carol"
+    public static final Long TOURNAMENT_CREATOR_VERSION = 1L
+
+    public static final Integer TOURNAMENT_PARTICIPANT_AGGREGATE_ID = 61
+    public static final Integer TOURNAMENT_PARTICIPANT_AGGREGATE_ID_2 = 62
+    public static final String TOURNAMENT_PARTICIPANT_NAME = "Dave Black"
+    public static final String TOURNAMENT_PARTICIPANT_USERNAME = "dave"
+    public static final Long TOURNAMENT_PARTICIPANT_VERSION = 1L
+    public static final LocalDateTime TOURNAMENT_ENROLL_TIME = DateHandler.now().plusDays(1)
+
+    public static final Integer TOURNAMENT_TOPIC_AGGREGATE_ID = 70
+    public static final Integer TOURNAMENT_TOPIC_AGGREGATE_ID_2 = 71
+    public static final String TOURNAMENT_TOPIC_NAME = "Algorithms"
+    public static final Long TOURNAMENT_TOPIC_VERSION = 1L
+
+    public static final Integer TOURNAMENT_QUIZ_ANSWER_AGGREGATE_ID = 80
+    public static final Long TOURNAMENT_QUIZ_ANSWER_VERSION = 1L
+
     public static final Integer QUESTION_TOPIC_AGGREGATE_ID = 30
     public static final String QUESTION_TOPIC_NAME = "Algorithms"
     public static final Long QUESTION_TOPIC_VERSION = 1L

@@ -620,7 +620,7 @@ through the `QuizAnswerQuestionAnswerEvent` subscription, which is P2 and takes 
 | 2.8.d | `notification/subscribe/TournamentSubscribesUpdateStudentName.java`, `notification/subscribe/TournamentSubscribesAnonymizeStudent.java`, `notification/subscribe/TournamentSubscribesDeleteUser.java`, `notification/subscribe/TournamentSubscribesUpdateTopic.java`, `notification/subscribe/TournamentSubscribesDeleteTopic.java`, `notification/subscribe/TournamentSubscribesDeleteCourseExecution.java`, `notification/subscribe/TournamentSubscribesDisenrollStudentFromCourseExecution.java`, `notification/subscribe/TournamentSubscribesInvalidateQuiz.java`, `notification/subscribe/TournamentSubscribesQuizAnswerQuestionAnswer.java`, `notification/handling/TournamentEventHandling.java`, `notification/handling/handlers/TournamentEventHandler.java`, `coordination/eventProcessing/TournamentEventProcessing.java`, `sagas/tournament/TournamentInterInvariantTest.groovy` |
 
 **Checklist:**
-- [ ] 2.8.a — Domain layer
+- [x] 2.8.a — Domain layer
 - [ ] 2.8.b — Read functionalities
 - [ ] 2.8.c — Write functionalities
   - [ ] 2.8.c1 CreateTournament
