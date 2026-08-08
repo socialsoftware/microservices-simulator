@@ -243,10 +243,13 @@ public class <Consumer>EventProcessing {
     private <Consumer>Functionalities <consumer>Functionalities;
 
     public void process<Xxx>Event(Integer aggregateId, <EventName> event) {
-        <consumer>Functionalities.<updateMethod>(aggregateId, event.get<RelevantField>());
+        <consumer>Functionalities.<operation>ByEvent(aggregateId, event.get<RelevantField>());
     }
 }
 ```
+
+The `ByEvent` suffix is **mandatory** — see § ByEvent sagaState guard below. Calling the saga
+`Functionalities` method here instead creates a circular saga loop.
 
 `aggregateId` is the consumer aggregate's ID (passed down from the handler). The `<Consumer>Functionalities` update method opens its own UoW, loads the consumer aggregate, checks `sagaState != NOT_IN_SAGA` (skipping the update if the aggregate is mid-saga to avoid conflicting with its in-progress state), applies the cached-field update, calls `verifyInvariants()`, and commits.
 
