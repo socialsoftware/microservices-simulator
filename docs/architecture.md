@@ -88,7 +88,7 @@ microservices/{serviceName}/
     ├── handling/
     │   ├── {Xxx}EventHandling.java                 (polling loop)
     │   └── handlers/
-    │       └── {Event}EventHandler.java
+    │       └── {Xxx}EventHandler.java             (single dispatcher - one per aggregate, not per event)
     └── subscribe/
         └── {Xxx}Subscribes{Event}.java
 ```

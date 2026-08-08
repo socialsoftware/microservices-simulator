@@ -535,8 +535,8 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 > lock-holding write functionality", which owns that rule — do not restate or re-derive it here. List
 > both files with the gate wording above so a session that does need them never has to amend plan.md,
 > and the impairment CSV is never forgotten: the test injects no fault without it and fails for an
-> unrelated reason. A create functionality typically drops the pair; a lock-then-mutate functionality
-> typically keeps it.
+> unrelated reason. Which functionalities need the pair is decided in session `c` by the applicability
+> test named above.
 
 > **`{Aggregate}Controller.java` is unconditional** — a minimal `@RestController` stub under
 > `coordination/webapi/`. List it for every aggregate; it is not gated on the aggregate having any
