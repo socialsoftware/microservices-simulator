@@ -6,6 +6,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswerDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.sagas.AnswerQuestionFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.sagas.ConcludeQuizFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.sagas.CreateQuizAnswerFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.sagas.GetQuizAnswerByIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.sagas.GetQuizAnswerForStudentAndQuizFunctionalitySagas;
 
@@ -30,5 +33,31 @@ public class QuizAnswerFunctionalities {
                 unitOfWorkService, userAggregateId, quizAggregateId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
         return saga.getQuizAnswerDto();
+    }
+
+    public QuizAnswerDto createQuizAnswer(Integer quizAggregateId, Integer userAggregateId,
+                                          Integer executionAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("createQuizAnswer");
+        CreateQuizAnswerFunctionalitySagas saga = new CreateQuizAnswerFunctionalitySagas(
+                unitOfWorkService, quizAggregateId, userAggregateId, executionAggregateId, unitOfWork,
+                commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getQuizAnswerDto();
+    }
+
+    public void answerQuestion(Integer quizAnswerAggregateId, Integer questionAggregateId,
+                               Integer optionSequenceChoice, Integer optionKey, Integer timeTaken) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("answerQuestion");
+        AnswerQuestionFunctionalitySagas saga = new AnswerQuestionFunctionalitySagas(
+                unitOfWorkService, quizAnswerAggregateId, questionAggregateId, optionSequenceChoice, optionKey,
+                timeTaken, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+    }
+
+    public void concludeQuiz(Integer quizAnswerAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("concludeQuiz");
+        ConcludeQuizFunctionalitySagas saga = new ConcludeQuizFunctionalitySagas(
+                unitOfWorkService, quizAnswerAggregateId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
     }
 }

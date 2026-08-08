@@ -24,6 +24,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.ag
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.sagas.SagaExecution
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.service.ExecutionService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.OptionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.service.QuestionService
@@ -236,6 +237,30 @@ class QuizzesFull2SpockTest extends SpockTest {
         return questionFunctionalities.createQuestion(questionDto, topicAggregateIds).aggregateId
     }
 
+    // CreateQuizAnswer caches each question's correct option key on the seeded QuestionAnswer, so any
+    // fixture exercising AnswerQuestion needs a question that actually has one.
+    Integer createQuestionWithOptions(Integer courseAggregateId, String title = QUESTION_TITLE,
+                                      String content = QUESTION_CONTENT) {
+        def questionDto = new QuestionDto()
+        questionDto.setCourseAggregateId(courseAggregateId)
+        questionDto.setTitle(title)
+        questionDto.setContent(content)
+        questionDto.setOptions([
+                optionDto(0, QUESTION_ANSWER_CORRECT_OPTION_KEY, true),
+                optionDto(1, QUESTION_ANSWER_WRONG_OPTION_KEY, false)
+        ])
+        return questionFunctionalities.createQuestion(questionDto, []).aggregateId
+    }
+
+    private static OptionDto optionDto(Integer sequence, Integer optionKey, Boolean correct) {
+        def option = new OptionDto()
+        option.setSequence(sequence)
+        option.setOptionKey(optionKey)
+        option.setContent("Option " + optionKey)
+        option.setCorrect(correct)
+        return option
+    }
+
     // Minimal valid quiz: no questions unless the caller asks for them. creationDate is not a
     // CreateQuiz parameter - the 2.6.c functionality stamps it - so it stays out of the signature, as
     // does the execution version the create saga reads off the fetched execution.
@@ -255,21 +280,11 @@ class QuizzesFull2SpockTest extends SpockTest {
         return quizFunctionalities.createQuiz(quizDto, questionAggregateIds).aggregateId
     }
 
-    // Minimal valid quiz answer: no question answers, since only AnswerQuestion (2.7.c) fills them.
-    // The three snapshots are seeded from the real upstream aggregates, the way CreateQuizAnswer will,
-    // so the cached names and versions survive the 2.7.c swap. creationDate and answerDate are not
-    // CreateQuizAnswer parameters - the functionality stamps them - so they stay out of the signature.
+    // One QuestionAnswer is seeded per question of the quiz, so a quiz created with no questions yields
+    // an empty question-answer list. creationDate and answerDate are not CreateQuizAnswer parameters -
+    // the functionality stamps them - so they stay out of the signature.
     Integer createQuizAnswer(Integer quizAggregateId, Integer userAggregateId, Integer executionAggregateId) {
-        def quizDto = quizService.getQuizById(quizAggregateId, unitOfWorkService.createUnitOfWork("fixture"))
-        def userDto = userService.getUserById(userAggregateId, unitOfWorkService.createUnitOfWork("fixture"))
-        def executionDto = executionService.getExecutionById(executionAggregateId,
-                unitOfWorkService.createUnitOfWork("fixture"))
-
-        def unitOfWork = unitOfWorkService.createUnitOfWork("fixture")
-        def quizAnswer = new SagaQuizAnswer(aggregateIdGeneratorService.getNewAggregateId(),
-                quizDto.aggregateId, quizDto.version, userDto.aggregateId, userDto.name, userDto.version,
-                executionDto.aggregateId, executionDto.version, DateHandler.now(), DateHandler.now())
-        unitOfWorkService.registerChanged(quizAnswer, unitOfWork)
-        return quizAnswer.getAggregateId()
+        return quizAnswerFunctionalities.createQuizAnswer(quizAggregateId, userAggregateId,
+                executionAggregateId).aggregateId
     }
 }

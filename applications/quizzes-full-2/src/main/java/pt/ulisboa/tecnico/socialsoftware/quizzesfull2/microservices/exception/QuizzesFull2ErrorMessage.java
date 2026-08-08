@@ -43,4 +43,7 @@ public final class QuizzesFull2ErrorMessage {
     public static final String QUESTION_ALREADY_ANSWERED = "The question has already been answered in this quiz answer";
     public static final String ANSWER_MATCHES_CORRECT_OPTION = "An answer is correct if and only if the chosen option key is the question's correct option key";
     public static final String QUIZ_ANSWER_NOT_FOUND = "The student has no quiz answer for this quiz";
+    public static final String UNIQUE_QUIZ_ANSWER_PER_STUDENT = "The student already has a quiz answer for this quiz";
+    public static final String COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION = "The quiz answer's course execution must be the quiz's course execution";
+    public static final String QUESTION_NOT_IN_QUIZ_ANSWER = "The question is not part of this quiz answer";
 }
