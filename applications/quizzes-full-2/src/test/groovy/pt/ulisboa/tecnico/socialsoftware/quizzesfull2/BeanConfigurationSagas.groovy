@@ -85,8 +85,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.a
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.sagas.factories.SagasQuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.sagas.repositories.QuizAnswerCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswerRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.eventProcessing.QuizAnswerEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.functionalities.QuizAnswerFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.messaging.QuizAnswerCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.handling.QuizAnswerEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.handling.handlers.QuizAnswerEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
@@ -436,5 +440,21 @@ class BeanConfigurationSagas {
     @Bean
     QuizAnswerFunctionalities quizAnswerFunctionalities() {
         return new QuizAnswerFunctionalities()
+    }
+
+    @Bean
+    QuizAnswerEventHandling quizAnswerEventHandling() {
+        return new QuizAnswerEventHandling()
+    }
+
+    @Bean
+    QuizAnswerEventHandler quizAnswerEventHandler(QuizAnswerRepository quizAnswerRepository,
+                                                  QuizAnswerEventProcessing quizAnswerEventProcessing) {
+        return new QuizAnswerEventHandler(quizAnswerRepository, quizAnswerEventProcessing)
+    }
+
+    @Bean
+    QuizAnswerEventProcessing quizAnswerEventProcessing() {
+        return new QuizAnswerEventProcessing()
     }
 }

@@ -18,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.a
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswerCustomRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswerDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswerFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswerStudent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto;
 
 import java.time.LocalDateTime;
@@ -119,6 +120,104 @@ public class QuizAnswerService {
         QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerCopy(oldQuizAnswer);
 
         newQuizAnswer.setCompleted(true);
+
+        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void setStudentName(Integer quizAnswerAggregateId, Integer userAggregateId, String userName,
+                               Long userVersion, UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(
+                quizAnswerAggregateId, unitOfWork);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerCopy(oldQuizAnswer);
+
+        QuizAnswerStudent student = newQuizAnswer.getStudent();
+        if (!userAggregateId.equals(student.getUserAggregateId())) {
+            return;
+        }
+        student.setUserName(userName);
+        student.setUserVersion(userVersion);
+
+        newQuizAnswer.verifyInvariants();
+        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void setQuestionVersion(Integer quizAnswerAggregateId, Integer questionAggregateId,
+                                   Long questionVersion, UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(
+                quizAnswerAggregateId, unitOfWork);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerCopy(oldQuizAnswer);
+
+        QuestionAnswer questionAnswer = findQuestionAnswer(newQuizAnswer, questionAggregateId);
+        if (questionAnswer == null) {
+            return;
+        }
+        questionAnswer.setQuestionVersion(questionVersion);
+
+        newQuizAnswer.verifyInvariants();
+        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeForDeletedStudent(Integer quizAnswerAggregateId, Integer userAggregateId,
+                                        UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(
+                quizAnswerAggregateId, unitOfWork);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerCopy(oldQuizAnswer);
+
+        if (!userAggregateId.equals(newQuizAnswer.getStudent().getUserAggregateId())) {
+            return;
+        }
+        newQuizAnswer.remove();
+
+        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
+    }
+
+    // Anchored on the execution, so every quiz answer of that execution is delivered the disenroll
+    // event; only the disenrolled student's own session may be removed.
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeForDisenrolledStudent(Integer quizAnswerAggregateId, Integer executionAggregateId,
+                                            Integer userAggregateId, UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(
+                quizAnswerAggregateId, unitOfWork);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerCopy(oldQuizAnswer);
+
+        if (!executionAggregateId.equals(newQuizAnswer.getExecution().getExecutionAggregateId())
+                || !userAggregateId.equals(newQuizAnswer.getStudent().getUserAggregateId())) {
+            return;
+        }
+        newQuizAnswer.remove();
+
+        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeForDeletedExecution(Integer quizAnswerAggregateId, Integer executionAggregateId,
+                                          UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(
+                quizAnswerAggregateId, unitOfWork);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerCopy(oldQuizAnswer);
+
+        if (!executionAggregateId.equals(newQuizAnswer.getExecution().getExecutionAggregateId())) {
+            return;
+        }
+        newQuizAnswer.remove();
+
+        unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeForInvalidatedQuiz(Integer quizAnswerAggregateId, Integer quizAggregateId,
+                                         UnitOfWork unitOfWork) {
+        QuizAnswer oldQuizAnswer = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(
+                quizAnswerAggregateId, unitOfWork);
+        QuizAnswer newQuizAnswer = quizAnswerFactory.createQuizAnswerCopy(oldQuizAnswer);
+
+        if (!quizAggregateId.equals(newQuizAnswer.getQuiz().getQuizAggregateId())) {
+            return;
+        }
+        newQuizAnswer.remove();
 
         unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
     }

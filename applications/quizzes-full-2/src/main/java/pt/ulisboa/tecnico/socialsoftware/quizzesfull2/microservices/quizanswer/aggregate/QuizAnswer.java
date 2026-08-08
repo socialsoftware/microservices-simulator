@@ -9,6 +9,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2Exception;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.subscribe.QuizAnswerSubscribesAnonymizeStudent;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.subscribe.QuizAnswerSubscribesDeleteCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.subscribe.QuizAnswerSubscribesDeleteUser;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.subscribe.QuizAnswerSubscribesDisenrollStudentFromCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.subscribe.QuizAnswerSubscribesInvalidateQuiz;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.subscribe.QuizAnswerSubscribesUpdateQuestion;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.subscribe.QuizAnswerSubscribesUpdateStudentName;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -92,7 +99,19 @@ public abstract class QuizAnswer extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (getState() == AggregateState.ACTIVE) {
+            eventSubscriptions.add(new QuizAnswerSubscribesUpdateStudentName(this.student));
+            eventSubscriptions.add(new QuizAnswerSubscribesAnonymizeStudent(this.student));
+            eventSubscriptions.add(new QuizAnswerSubscribesDeleteUser(this.student));
+            eventSubscriptions.add(new QuizAnswerSubscribesDeleteCourseExecution(this.execution));
+            eventSubscriptions.add(new QuizAnswerSubscribesDisenrollStudentFromCourseExecution(this.execution));
+            eventSubscriptions.add(new QuizAnswerSubscribesInvalidateQuiz(this.quiz));
+            for (QuestionAnswer questionAnswer : this.questionAnswers) {
+                eventSubscriptions.add(new QuizAnswerSubscribesUpdateQuestion(questionAnswer));
+            }
+        }
+        return eventSubscriptions;
     }
 
     public LocalDateTime getCreationDate() {
