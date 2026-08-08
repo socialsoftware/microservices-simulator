@@ -182,9 +182,25 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/repositories/{Aggregate}Cu
 
 Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}Repository.java`
 
-- Interface extending `AggregateRepository` — **no type arguments**; the framework interface is not
-  generic (`interface AggregateRepository extends JpaRepository<Aggregate, Integer>`)
-- No custom queries needed here (custom queries go in `CustomRepositorySagas`)
+- `@Repository @Transactional public interface {Aggregate}Repository extends JpaRepository<{Aggregate}, Integer>`
+- **Type the repository against the concrete aggregate, never against the shared
+  `AggregateRepository`.** `AggregateRepository` is declared over the abstract `Aggregate`, and
+  `Aggregate` uses `InheritanceType.TABLE_PER_CLASS`, so any query it inherits is polymorphic and
+  unions every aggregate's table: `findAll()` would return foreign aggregates, and the consumer that
+  casts them to its own type fails with a `ClassCastException`. Extending `JpaRepository<{Aggregate},
+  Integer>` scopes every query to one physical table by construction.
+- Because the repository no longer inherits from `AggregateRepository`, redeclare both of its
+  methods here, typed to `{Aggregate}`:
+
+```java
+@Query(value = "select a1 from {Aggregate} a1 where a1.aggregateId = :aggregateId AND a1.state = 'ACTIVE' AND a1.version = (select max(a2.version) from Aggregate a2 where a2.aggregateId = :aggregateId)")
+Optional<{Aggregate}> findLastAggregateVersion(Integer aggregateId);
+
+Optional<{Aggregate}> findTopByOrderByVersionDesc();
+```
+
+  The subquery stays `from Aggregate a2` — the version counter is global across aggregate types.
+- No other custom queries needed here (those go in `CustomRepositorySagas`)
 
 ### `{Aggregate}Dto.java`
 

@@ -105,11 +105,6 @@ public class ShipmentEventHandler extends EventHandler {
     }
 
     @Override
-    protected Class<? extends Aggregate> aggregateType() {
-        return Shipment.class;
-    }
-
-    @Override
     public void handleEvent(Integer subscriberAggregateId, Event event) {
         if (event instanceof DeleteWarehouseEvent e) {
             shipmentEventProcessing.processDeleteWarehouseEvent(subscriberAggregateId, e);
@@ -123,13 +118,6 @@ public class ShipmentEventHandler extends EventHandler {
 ```
 
 The handler does **not** load or mutate the aggregate — that happens inside `{Consumer}Functionalities` ByEvent methods.
-
-**`aggregateType()` is what makes `subscriberAggregateId` this consumer's.** Every `{Xxx}Repository`
-derives from `AggregateRepository`, which is declared over `Aggregate`, so `findAll()` returns every
-aggregate of every type. `EventHandler` narrows that set with `aggregateType()` before handing ids to
-`handleEvent`. Omit the override and the handler is delivered the ids of *foreign* aggregates that
-subscribe to the same event type — the consumer's own service then casts them to its aggregate class
-and fails with a `ClassCastException`. Any event type with two consumers hits this.
 
 ## Polling
 
@@ -220,11 +208,6 @@ public class {Consumer}EventHandler extends EventHandler {
                                   {Consumer}EventProcessing {consumer}EventProcessing) {
         super(repository);
         this.{consumer}EventProcessing = {consumer}EventProcessing;
-    }
-
-    @Override
-    protected Class<? extends Aggregate> aggregateType() {
-        return {Consumer}.class;
     }
 
     @Override

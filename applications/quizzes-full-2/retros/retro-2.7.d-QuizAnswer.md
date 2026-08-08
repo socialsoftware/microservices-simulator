@@ -186,3 +186,17 @@ Rows appended to `applications/quizzes-full-2/harness-log.md` this session: 54
 `EventHandler` handed every consumer the ids of every aggregate in the database, so the first
 aggregate to share an event type with an already-implemented consumer exposed a latent
 `ClassCastException` that had been sitting in the framework since 2.4.d.
+
+---
+
+## Addendum - 2026-08-08
+
+The `EventHandler.aggregateType()` filter recorded above was reverted the same day; see harness-log
+row 55. The diagnosis held (a handler really was receiving foreign aggregate ids) but the cause was
+misattributed to `simulator/`. `AggregateRepository` is polymorphic by design, and no generated
+repository is obliged to extend it - `master`'s applications type theirs as
+`JpaRepository<{ConcreteEntity}, Integer>` and never reach the fault. The defect was in
+session-a.md's repository template, which this run had followed seven times. `EventHandler.java` is
+back to `master`'s version and the seven repositories are typed against their concrete aggregates.
+
+The rest of this retro stands as written.

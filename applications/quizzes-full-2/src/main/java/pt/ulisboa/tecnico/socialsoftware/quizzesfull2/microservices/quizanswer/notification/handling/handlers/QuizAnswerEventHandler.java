@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.handling.handlers;
 
 import org.springframework.stereotype.Component;
-import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.AnonymizeStudentEvent;
@@ -11,7 +10,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.DisenrollStudentFro
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.InvalidateQuizEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.UpdateQuestionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.UpdateStudentNameEvent;
-import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswerRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.eventProcessing.QuizAnswerEventProcessing;
 
@@ -24,11 +22,6 @@ public class QuizAnswerEventHandler extends EventHandler {
                                   QuizAnswerEventProcessing quizAnswerEventProcessing) {
         super(quizAnswerRepository);
         this.quizAnswerEventProcessing = quizAnswerEventProcessing;
-    }
-
-    @Override
-    protected Class<? extends Aggregate> aggregateType() {
-        return QuizAnswer.class;
     }
 
     @Override
