@@ -94,6 +94,11 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.n
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.sagas.factories.SagasTournamentFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.sagas.repositories.TournamentCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.messaging.TournamentCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
 @TestConfiguration
@@ -468,5 +473,22 @@ class BeanConfigurationSagas {
     @Bean
     TournamentCustomRepositorySagas tournamentCustomRepositorySagas() {
         return new TournamentCustomRepositorySagas()
+    }
+
+    @Bean
+    TournamentService tournamentService(TournamentCustomRepository tournamentCustomRepository,
+                                        TournamentFactory tournamentFactory,
+                                        UnitOfWorkService unitOfWorkService) {
+        return new TournamentService(tournamentCustomRepository, tournamentFactory, unitOfWorkService)
+    }
+
+    @Bean
+    TournamentCommandHandler tournamentCommandHandler() {
+        return new TournamentCommandHandler()
+    }
+
+    @Bean
+    TournamentFunctionalities tournamentFunctionalities() {
+        return new TournamentFunctionalities()
     }
 }

@@ -35,6 +35,10 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.service
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.sagas.SagaQuizAnswer
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.functionalities.QuizAnswerFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.service.QuizAnswerService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentTopic
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.sagas.SagaTournament
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.functionalities.TournamentFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.functionalities.UserFunctionalities
@@ -181,6 +185,10 @@ class QuizzesFull2SpockTest extends SpockTest {
     protected QuizAnswerService quizAnswerService
     @Autowired(required = false)
     protected QuizAnswerFunctionalities quizAnswerFunctionalities
+    @Autowired(required = false)
+    protected TournamentService tournamentService
+    @Autowired(required = false)
+    protected TournamentFunctionalities tournamentFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -316,5 +324,48 @@ class QuizzesFull2SpockTest extends SpockTest {
     Integer createQuizAnswer(Integer quizAggregateId, Integer userAggregateId, Integer executionAggregateId) {
         return quizAnswerFunctionalities.createQuizAnswer(quizAggregateId, userAggregateId,
                 executionAggregateId).aggregateId
+    }
+
+    // Built directly on the aggregate: CreateTournament does not exist until 2.8.c. The execution,
+    // creator and topic snapshots are read off the real upstream aggregates rather than filled from
+    // constants, so the DTO fields these tests assert are the same values the 2.8.c create saga will
+    // seed and the assertions survive the swap. The caller must have enrolled the creator in the
+    // execution — CREATOR_COURSE_EXECUTION is checked by the 2.8.c functionality.
+    Integer createTournament(Integer executionAggregateId, Integer creatorAggregateId,
+                             LocalDateTime startTime = TOURNAMENT_START_TIME,
+                             LocalDateTime endTime = TOURNAMENT_END_TIME,
+                             Integer numberOfQuestions = TOURNAMENT_NUMBER_OF_QUESTIONS,
+                             List<Integer> topicAggregateIds = []) {
+        def executionDto = executionFunctionalities.getExecutionById(executionAggregateId)
+        def creatorDto = userFunctionalities.getUserById(creatorAggregateId)
+        // The Quiz reference is a placeholder: 2.8.c creates the Quiz inside the same saga and passes
+        // its real id and version. No P1 rule reads it, so no read-side assertion depends on it.
+        def tournament = new SagaTournament(aggregateIdGeneratorService.getNewAggregateId(),
+                executionAggregateId, executionDto.version, executionDto.courseAggregateId,
+                creatorAggregateId, creatorDto.name, creatorDto.username, creatorDto.version,
+                QUIZ_AGGREGATE_ID, TOURNAMENT_QUIZ_VERSION,
+                startTime, endTime, numberOfQuestions)
+
+        if (!topicAggregateIds.isEmpty()) {
+            def topicsOfCourse = topicFunctionalities.getTopicsByCourse(executionDto.courseAggregateId)
+            topicAggregateIds.each { topicAggregateId ->
+                def topicDto = topicsOfCourse.find { it.aggregateId == topicAggregateId }
+                tournament.addTopic(new TournamentTopic(topicDto.aggregateId, topicDto.name,
+                        topicDto.version, topicDto.courseAggregateId))
+            }
+        }
+
+        unitOfWorkService.registerChanged(tournament, unitOfWorkService.createUnitOfWork("fixture"))
+        return tournament.getAggregateId()
+    }
+
+    // Sibling of createTournament, for the same reason: the open/closed reads of 2.8.b partition on
+    // the cancelled flag, which only CancelTournament (2.8.c) can raise.
+    void cancelTournament(Integer tournamentAggregateId) {
+        def unitOfWork = unitOfWorkService.createUnitOfWork("fixture")
+        def tournament = new SagaTournament((SagaTournament) unitOfWorkService.aggregateLoadAndRegisterRead(
+                tournamentAggregateId, unitOfWork))
+        tournament.setCancelled(true)
+        unitOfWorkService.registerChanged(tournament, unitOfWork)
     }
 }
