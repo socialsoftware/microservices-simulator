@@ -90,7 +90,8 @@ Schema - append one row per distinct friction point:
 |---|---------|------|----------|---------|---------|-----|
 
 - `#` - monotonically increasing; read the last row to get the next number.
-- `Session` - the session id (`2.3.b`, `3.5`, `4.1`) or `0`/`1` for Phase 0/1.
+- `Session` - the session id (`2.3.b`, `3.5`, `4.1`), `0`/`1` for Phase 0/1, or `review` for a repair
+  driven by a `docs/reviews/` report rather than by friction hit inside a session.
 - `Type` - `1` (contradiction, fixed unilaterally), `2` (ambiguity, human decided), `2-fw`
   (`simulator/`, always human-decided).
 - `Artifact` - the repo-relative path of the harness file at fault.

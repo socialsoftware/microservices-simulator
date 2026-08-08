@@ -198,65 +198,9 @@ private boolean invariantFieldsFinalAfterThreshold() {
 
 **Upstream / Downstream:** If aggregate A caches state from aggregate B, then B is upstream of A. `getEventSubscriptions()` always lives in the **downstream (consumer) aggregate**. The upstream (publisher) aggregate must not subscribe to its own events.
 
-**Implementation recipe:**
-
-**Step 1 — Create a subscription class:**
-```java
-public class {Aggregate}Subscribes{EventName} extends EventSubscription {
-    private {OwnedEntity} ref;
-
-    public {Aggregate}Subscribes{EventName}({OwnedEntity} ref) {
-        super(ref.getExternalAggregateId(), ref.getExternalVersion(),
-              {EventName}.class.getSimpleName());
-        this.ref = ref;
-    }
-
-    @Override
-    public boolean subscribesEvent(Event event) {
-        return super.subscribesEvent(event)
-            && this.ref.getExternalAggregateId().equals(event.getPublisherAggregateId())
-            && this.ref.isActive();
-    }
-}
-```
-
-**Step 2 — Register subscriptions in the aggregate:**
-```java
-@Override
-public Set<EventSubscription> getEventSubscriptions() {
-    Set<EventSubscription> subs = new HashSet<>();
-    if (getState() == ACTIVE) {
-        for ({OwnedEntity} item : this.items) {
-            subs.add(new {Aggregate}Subscribes{EventName}(item));
-        }
-    }
-    return subs;
-}
-```
-Only ACTIVE aggregates subscribe. Generate one subscription per referenced object (one per cached snapshot entry).
-
-**Step 3 — Poll for matched events:**
-```java
-@Component
-public class {Aggregate}EventHandling {
-    @Scheduled(fixedDelay = 1000)
-    public void handle{EventName}Events() {
-        eventApplicationService.handleSubscribedEvent({EventName}.class,
-            new {EventName}Handler(repository, {aggregate}EventProcessing));
-    }
-}
-```
-
-**Step 4 — Delegate to the functionality layer:**
-```java
-@Service
-public class {Aggregate}EventProcessing {
-    public void process{EventName}(Integer aggregateId, {EventName} event) {
-        {aggregate}Functionalities.handleExternalChange(
-            aggregateId, event.getPublisherAggregateId());
-    }
-}
-```
+**Implementation:** [`events.md`](events.md) § Canonical Wiring Snippet owns the P2 wiring end to
+end — subscription class, single-dispatcher handler, polling bean, EventProcessing and the ByEvent
+method. Do not reproduce or vary it here.
 
 ---
 
