@@ -201,6 +201,8 @@ def "updateShipmentNotes: SHIPMENT_NOTES_REQUIRED violation"() {
 
 If the implementation disagrees with the cited section, flag it as an impl deviation — do not adjust the cited rule to match.
 
+If the cited section is *silent* rather than in disagreement - plan.md specifies no behaviour for the input, such as a write method called with a target outside the aggregate's domain - apply `docs/concepts/rule-enforcement-patterns.md` § Decision Guide, Step 4, and cite the constant it has you add to plan.md's rule list.
+
 **Strict assertion ownership (testing.md § Assertion Ownership):** T4 functionality tests do **not**
 assert field-level persistence, uniqueness, or not-found — those belong in `{Aggregate}ServiceTest`
 (T2, above). They also do not re-assert event-store contents — `{Aggregate}ServiceTest` (T2) owns

@@ -125,6 +125,10 @@ each test naming the plan.md section and rule, e.g.
 `// Spec: plan.md §3.5 Shipment — UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED`.
 If the implementation disagrees (e.g. throws a different message constant than plan.md names), the
 **implementation** is the bug: flag the mismatch, do not adjust the test.
+When plan.md is instead *silent* - it specifies no behaviour for the input under test, such as a
+write method called with an out-of-domain target - see
+`docs/concepts/rule-enforcement-patterns.md` § Decision Guide, Step 4, which fixes the behaviour and
+requires the resulting constant to be added to plan.md's rule list before the test cites it.
 
 ## Directory Layout
 

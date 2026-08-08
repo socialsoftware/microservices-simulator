@@ -72,6 +72,44 @@ If you concluded that a rule belongs at P2 but also requires blocking an operati
 - Blocking must be synchronous → **P3** (add a saga data-assembly step if the data lives in another aggregate; validate it in the service method).
 - True eventual consistency is acceptable → **P2**; no guard is added.
 
+### Step 4 - Unspecified out-of-domain input to a write method
+
+A write method may be handed an argument that is syntactically valid but names something outside the
+target aggregate's domain - e.g. `{Op}({Aggregate}AggregateId, {Entity}AggregateId, ...)` where the
+`{Entity}` is not one of the entities this `{Aggregate}` holds. When `plan.md` and the domain model
+are **silent** about that case, do not halt and do not invent a rule: apply this ordered default,
+which is the P4a-over-P3 preference of § P3 applied to an input no rule mentions.
+
+1. **A saga fetch already targets it → P4a, no explicit guard.** If the functionality's saga fetches
+   the target and that fetch is keyed so it fails on an out-of-domain id, the fetch failing *is* the
+   enforcement. Add the § P4 comment at the saga step; add nothing to the service.
+2. **The target is an entity owned by this aggregate → P3 service guard.** An owned entity is
+   resolved from the aggregate's own collection, so there is no saga fetch that could fail. Resolve
+   it, and throw a named constant when the lookup finds nothing - **before any mutation**, alongside
+   the other P3 guards.
+3. **Record the constant in the target aggregate's `plan.md` rule list**, so T2/T4 can cite it
+   through the `// Spec:` convention (`docs/concepts/testing.md` § Spec-First Ordering), and note the
+   addition in the session retro. The guard is not specified until the rule list names it.
+4. **Only halt and ask the human when neither 1 nor 2 fits** - for instance when the target belongs
+   to another aggregate and no saga step fetches it, so the choice between adding a fetch and adding
+   a guard is a real design decision.
+
+```java
+public void {op}(Integer {aggregate}AggregateId, Integer {entity}AggregateId, ..., UnitOfWork unitOfWork) {
+    {Aggregate} new{Aggregate} = {aggregate}Factory.create{Aggregate}Copy(old{Aggregate});
+
+    {OwnedEntity} {entity} = find{OwnedEntity}(new{Aggregate}, {entity}AggregateId);
+    if ({entity} == null) {
+        throw new {App}Exception({ENTITY}_NOT_IN_{AGGREGATE});
+    }
+    // proceed with the mutation
+}
+```
+
+Silently ignoring the call is **not** the default. The no-op idiom belongs to event handlers, where a
+subscriber legitimately receives events it does not care about; a write method invoked with an
+out-of-domain target is a caller error and must be observable.
+
 ### Common Mistakes to Avoid
 
 **Do not duplicate a rule across patterns.**
