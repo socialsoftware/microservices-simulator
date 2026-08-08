@@ -42,4 +42,5 @@ public final class QuizzesFull2ErrorMessage {
 
     public static final String QUESTION_ALREADY_ANSWERED = "The question has already been answered in this quiz answer";
     public static final String ANSWER_MATCHES_CORRECT_OPTION = "An answer is correct if and only if the chosen option key is the question's correct option key";
+    public static final String QUIZ_ANSWER_NOT_FOUND = "The student has no quiz answer for this quiz";
 }

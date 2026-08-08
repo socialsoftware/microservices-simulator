@@ -81,8 +81,13 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.messagi
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.notification.handling.QuizEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.notification.handling.handlers.QuizEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.service.QuizService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswerCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.QuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.sagas.factories.SagasQuizAnswerFactory
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.sagas.repositories.QuizAnswerCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.functionalities.QuizAnswerFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.messaging.QuizAnswerCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
 @TestConfiguration
@@ -412,5 +417,22 @@ class BeanConfigurationSagas {
     @Bean
     QuizAnswerCustomRepositorySagas quizAnswerCustomRepositorySagas() {
         return new QuizAnswerCustomRepositorySagas()
+    }
+
+    @Bean
+    QuizAnswerService quizAnswerService(QuizAnswerCustomRepository quizAnswerCustomRepository,
+                                        QuizAnswerFactory quizAnswerFactory,
+                                        UnitOfWorkService unitOfWorkService) {
+        return new QuizAnswerService(quizAnswerCustomRepository, quizAnswerFactory, unitOfWorkService)
+    }
+
+    @Bean
+    QuizAnswerCommandHandler quizAnswerCommandHandler() {
+        return new QuizAnswerCommandHandler()
+    }
+
+    @Bean
+    QuizAnswerFunctionalities quizAnswerFunctionalities() {
+        return new QuizAnswerFunctionalities()
     }
 }

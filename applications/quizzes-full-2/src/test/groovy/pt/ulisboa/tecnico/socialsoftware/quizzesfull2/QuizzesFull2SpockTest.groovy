@@ -31,6 +31,9 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggrega
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.QuizType
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.service.QuizService
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.aggregate.sagas.SagaQuizAnswer
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.coordination.functionalities.QuizAnswerFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.Role
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.functionalities.UserFunctionalities
@@ -143,6 +146,10 @@ class QuizzesFull2SpockTest extends SpockTest {
     protected QuizService quizService
     @Autowired(required = false)
     protected QuizFunctionalities quizFunctionalities
+    @Autowired(required = false)
+    protected QuizAnswerService quizAnswerService
+    @Autowired(required = false)
+    protected QuizAnswerFunctionalities quizAnswerFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -246,5 +253,23 @@ class QuizzesFull2SpockTest extends SpockTest {
         quizDto.setResultsDate(resultsDate)
         quizDto.setQuizType(quizType)
         return quizFunctionalities.createQuiz(quizDto, questionAggregateIds).aggregateId
+    }
+
+    // Minimal valid quiz answer: no question answers, since only AnswerQuestion (2.7.c) fills them.
+    // The three snapshots are seeded from the real upstream aggregates, the way CreateQuizAnswer will,
+    // so the cached names and versions survive the 2.7.c swap. creationDate and answerDate are not
+    // CreateQuizAnswer parameters - the functionality stamps them - so they stay out of the signature.
+    Integer createQuizAnswer(Integer quizAggregateId, Integer userAggregateId, Integer executionAggregateId) {
+        def quizDto = quizService.getQuizById(quizAggregateId, unitOfWorkService.createUnitOfWork("fixture"))
+        def userDto = userService.getUserById(userAggregateId, unitOfWorkService.createUnitOfWork("fixture"))
+        def executionDto = executionService.getExecutionById(executionAggregateId,
+                unitOfWorkService.createUnitOfWork("fixture"))
+
+        def unitOfWork = unitOfWorkService.createUnitOfWork("fixture")
+        def quizAnswer = new SagaQuizAnswer(aggregateIdGeneratorService.getNewAggregateId(),
+                quizDto.aggregateId, quizDto.version, userDto.aggregateId, userDto.name, userDto.version,
+                executionDto.aggregateId, executionDto.version, DateHandler.now(), DateHandler.now())
+        unitOfWorkService.registerChanged(quizAnswer, unitOfWork)
+        return quizAnswer.getAggregateId()
     }
 }

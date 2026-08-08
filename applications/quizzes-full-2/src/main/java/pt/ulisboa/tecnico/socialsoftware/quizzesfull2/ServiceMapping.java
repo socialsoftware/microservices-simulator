@@ -7,6 +7,7 @@ public enum ServiceMapping {
     EXECUTION("execution"),
     QUESTION("question"),
     QUIZ("quiz"),
+    QUIZ_ANSWER("quizAnswer"),
     ;
 
     private final String serviceName;
