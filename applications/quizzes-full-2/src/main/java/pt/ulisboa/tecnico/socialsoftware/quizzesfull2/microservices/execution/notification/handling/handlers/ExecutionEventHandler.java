@@ -1,12 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.notification.handling.handlers;
 
 import org.springframework.stereotype.Component;
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.ActivateUserEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.AnonymizeStudentEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.DeleteUserEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.UpdateStudentNameEvent;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.aggregate.ExecutionRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.eventProcessing.ExecutionEventProcessing;
 
@@ -19,6 +21,11 @@ public class ExecutionEventHandler extends EventHandler {
                                  ExecutionEventProcessing executionEventProcessing) {
         super(executionRepository);
         this.executionEventProcessing = executionEventProcessing;
+    }
+
+    @Override
+    protected Class<? extends Aggregate> aggregateType() {
+        return Execution.class;
     }
 
     @Override

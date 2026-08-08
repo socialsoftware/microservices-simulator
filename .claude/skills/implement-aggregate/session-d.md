@@ -90,6 +90,8 @@ Path: `{src}microservices/{aggregate}/notification/handling/handlers/{Aggregate}
 - Spring `@Component`
 - A **single concrete class** that extends `EventHandler` and dispatches all subscribed event types
 - Constructor: accepts `{Aggregate}Repository` (required by `EventHandler`) and `{Aggregate}EventProcessing`
+- `aggregateType()`: returns `{Aggregate}.class`. Mandatory — it is the only thing narrowing the
+  handler's aggregate set to this consumer's own type. See `docs/concepts/events.md` § EventHandler.
 - `handleEvent(Integer subscriberAggregateId, Event event)`: dispatches via `instanceof` to the appropriate `process{Xxx}Event` call on `{Aggregate}EventProcessing`
 - Does NOT load the aggregate — that responsibility belongs to Functionalities
 
