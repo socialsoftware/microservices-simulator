@@ -13,8 +13,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 
 class {{APP_CLASS}}SpockTest extends SpockTest {
 
-    public static final String mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
-
     // Domain constants are added here as aggregates are implemented in Phase 2.
 
     @Autowired

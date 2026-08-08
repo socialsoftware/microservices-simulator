@@ -72,6 +72,36 @@ If you concluded that a rule belongs at P2 but also requires blocking an operati
 - Blocking must be synchronous → **P3** (add a saga data-assembly step if the data lives in another aggregate; validate it in the service method).
 - True eventual consistency is acceptable → **P2**; no guard is added.
 
+The P2→P3 rewrite in full. The cached snapshot is *not* what the guard reads — a saga step fetches
+the value fresh, and the service validates the parameter it was handed:
+
+```java
+// P2 (cache only) — the consumer mirrors the field, and nothing reads it to decide anything.
+public void {operation}ByEvent(Integer aggregateId, {FieldType} {field}, Long {publisher}Version) {
+    // ... load, apply, verifyInvariants(), commit
+}
+
+// P3 (blocking) — the saga adds a data-assembly step before the lock step ...
+SagaStep get{Publisher}Step = new SagaStep("get{Publisher}Step", () -> {
+    this.{publisher}Dto = ({Publisher}Dto) commandGateway.sendAndCollect(
+            new Get{Publisher}ByIdCommand(unitOfWork,
+                    ServiceMapping.{PUBLISHER}.getServiceName(), {publisher}AggregateId));
+});
+
+// ... and the service validates the DTO it receives, before any mutation.
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public void {operation}(Integer aggregateId, {Publisher}Dto {publisher}Dto, UnitOfWork unitOfWork) {
+    if (!{publisher}Dto.is{Condition}()) {
+        throw new {AppClass}Exception({AppClass}ErrorMessage.{RULE_CONSTANT});
+    }
+    // ... load, mutate, verifyInvariants(), registerChanged
+}
+```
+
+Keep the P2 subscription as well if the consumer genuinely needs the cached copy for a P1 rule or a
+read. P2 and P3 are not mutually exclusive — what the re-classification forbids is *deciding* from
+the cached value.
+
 ### Step 4 - Unspecified out-of-domain input to a write method
 
 A write method may be handed an argument that is syntactically valid but names something outside the

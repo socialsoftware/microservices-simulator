@@ -292,7 +292,15 @@ public void set{Entity}{Field}(Integer aggregateId, Integer {entity}AggregateId,
 
 Without it the subscription's `subscribedVersion` never moves, the same event stays eligible on every subsequent poll, and the backlog described in § "A snapshot-seeded version does not exclude the events already published" never converges. It is also what makes the T3 "reflects event" assertion meaningful for a re-affirming payload.
 
-**When to skip the guard.** Only when the event must apply even while the aggregate is mid-saga (rare). For standard cached-field updates and sub-entity removals, always skip when `sagaState != NOT_IN_SAGA`. For whole-consumer invalidation via `copy.remove()`, apply the same guard unless a T3 subscription test (`<Consumer>InterInvariantTest`) explicitly requires processing during an in-flight saga on the same aggregate.
+**When to skip the guard.** Apply the test: **skip the guard only when the cached field the event
+writes is one that no saga step of this aggregate ever writes.** The guard exists to stop an event
+from overwriting a value an in-flight saga is mid-way through setting; where no saga touches that
+field, there is nothing to conflict with and the event must apply. Where any saga step does write it,
+the guard is mandatory — that includes every standard cached-field update and sub-entity removal.
+
+For whole-consumer invalidation via `copy.remove()`, apply the guard unless a T3 subscription test
+(`<Consumer>InterInvariantTest`) explicitly requires processing during an in-flight saga on the same
+aggregate.
 
 ---
 

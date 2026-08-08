@@ -250,9 +250,9 @@ CSV block.
 for a functionality whose only step has no dependents (nothing to compensate), and for read
 functionalities, which acquire no lock.
 
-A create functionality typically has no compensation test: a single-step create acquires no lock. A
-mutate functionality that locks in a `get{Aggregate}Step` and mutates in a dependent step typically
-does have one.
+A create functionality has no compensation test: a single-step create acquires no lock. A
+mutate functionality that locks in a `get{Aggregate}Step` and mutates in a dependent step does have
+one.
 
 Whether each write functionality of this session needs the file is decided by the applicability test
 above, per functionality — not once for the session.

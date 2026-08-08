@@ -219,6 +219,17 @@ See [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns
 
 DTOs are point-in-time snapshots of an aggregate's observable state. A Functionality step must not mutate a DTO it received from a `Get*Command`. Mutations must be expressed as new commands dispatched to the owning service.
 
+```java
+// WRONG — mutates a snapshot owned by another aggregate. The write is invisible to
+// that aggregate's UoW, so it is never persisted and never compensated.
+{Aggregate}Dto dto = ({Aggregate}Dto) commandGateway.sendAndCollect(new Get{Aggregate}ByIdCommand(id));
+dto.set{Field}(newValue);
+
+// RIGHT — read the snapshot, send the change as a command to the owning service.
+{Aggregate}Dto dto = ({Aggregate}Dto) commandGateway.sendAndCollect(new Get{Aggregate}ByIdCommand(id));
+commandGateway.sendAndCollect(new Update{Aggregate}{Field}Command(dto.getAggregateId(), newValue));
+```
+
 ---
 
 ### R8 — Functionalities may only send commands to upstream aggregates

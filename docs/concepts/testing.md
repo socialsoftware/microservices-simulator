@@ -142,7 +142,9 @@ src/test/groovy/pt/ulisboa/tecnico/socialsoftware/
     └── sagas/
         ├── coordination/
         │   └── <aggregate>/              ← one dir per primary aggregate
-        │       └── <FunctionalityName>Test.groovy          (T4)
+        │       ├── <FunctionalityName>Test.groovy             (T4)
+        │       └── <FunctionalityName>CompensationTest.groovy (T4, sibling — not a
+        │                                                       separate behaviour package)
         └── <aggregate>/                  ← one dir per aggregate
             ├── <Aggregate>IntraInvariantTest.groovy        (T1)
             ├── <Aggregate>ServiceTest.groovy               (T2)
@@ -276,10 +278,23 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
         event.<payloadField> == <expectedValue>   // every payload field from plan.md
     }
 
-    // Negative case: capture countBefore = eventService.getAllEvents().size() in given:,
-    // run the non-publishing service op, assert getAllEvents().size() == countBefore.
+    def "<nonPublishingOp> publishes no <Xxx>Event"() {
+        // Spec: plan.md §<n> <Aggregate> — <NonPublishingOp> is not in "Events published"
+        given:
+        def publisher = create<Aggregate>(/* fixture via base-class helper */)
+        def countBefore = eventService.getAllEvents().size()
+        when:
+        <aggregate>Service.<nonPublishingOp>(publisher.aggregateId, /* args */,
+                unitOfWorkService.createUnitOfWork("<nonPublishingOp>"))
+        then:
+        eventService.getAllEvents().size() == countBefore
+    }
 }
 ```
+
+`countBefore` is captured in `given:` **after** the fixture is built — fixture helpers commit
+operations that publish events of their own, so a count taken before them measures the fixture, not
+the operation under test.
 
 ### Not-Found Paths
 

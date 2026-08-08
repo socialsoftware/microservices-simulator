@@ -368,6 +368,17 @@ Note that the compensation removes a real side effect, which is exactly the remi
 The typical step order inside a write `FunctionalitySagas` class is:
 
 1. *(Conditional)* **Validate-dates step** — if the saga creates or updates an aggregate with `startTime`/`endTime` fields **and** a later step also creates/updates a downstream aggregate that independently validates dates (e.g., a Shipment), add a dedicated `validateDatesStep` as the very first step to check date constraints on the primary aggregate's DTO. If omitted, the downstream aggregate's date invariant fires first and masks the primary aggregate's date error, making the wrong exception surface to tests.
+
+   ```java
+   SagaStep validateDatesStep = new SagaStep("validateDatesStep", () -> {
+       if (this.{aggregate}Dto.getStartTime().isAfter(this.{aggregate}Dto.getEndTime())) {
+           throw new {AppClass}Exception({AppClass}ErrorMessage.{DATE_ORDERING_CONSTANT});
+       }
+   });
+   ```
+
+   Register it with **no dependencies** — being unconditionally first is the entire point, so it must
+   not be chained behind a data-assembly step.
 2. **Data-assembly steps** — fetch DTOs from upstream aggregates (required for P4a and P3 DTO-check rules listed in plan.md cross-aggregate prerequisites).
 3. **Primary lock step** — wrap the read command in `SagaCommand` and call `setSemanticLock(state)` on the primary aggregate. See § Lock-Acquisition Step Pattern. Do **not** register a compensation to release the lock — the core releases it automatically on abort (see § Semantic-lock release on abort is automatic). Do **not** use `setForbiddenStates` for primary-aggregate lock acquisition.
 4. **Execute step** — send a plain (unwrapped) command to `{Aggregate}CommandHandler`; declare the lock step as a dependency.

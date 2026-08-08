@@ -29,7 +29,9 @@ Run: `find applications -name plan.md`
 
 Use the first result (if a skill needs different handling for multiple results — e.g. disambiguating
 by unchecked checkboxes or prompting the user — that logic is defined locally in the referencing
-skill, not here). From the result path, extract:
+skill, not here). **If `find` returns more than one result and the referencing skill defines no local
+rule, halt and ask which application** — `find` order is filesystem-dependent, so "the first result"
+would otherwise pick an arbitrary app. From the result path, extract:
 
 - `{app-name}` = directory containing `plan.md` (e.g., `my-app`)
 - `{pkg}` = `{app-name}` with hyphens removed, lowercase (e.g., `myapp`)
@@ -84,10 +86,15 @@ A later row may CLOSE an earlier one by beginning its `Problem` cell with `Close
 earlier row is never edited, because its `Outcome` records what happened at the time, not what
 happened eventually. A `deferred` row that no later row closes is still open at the end of the run.
 
-Schema - append one row per distinct friction point:
+Schema - append one row per distinct friction point. The three rows below are **illustrative**, not
+real entries: they show the `Problem` phrasing to aim for, a `Closes row {N}.` row, and how thin a
+thin row is.
 
 | # | Session | Type | Artifact | Problem | Outcome | Ref |
 |---|---------|------|----------|---------|---------|-----|
+| 12 | 2.4.b | 1 | `.claude/skills/implement-aggregate/session-b.md` | § "{Aggregate}Service.java (read methods)" told the service to fetch a foreign aggregate's DTO through that aggregate's service, which requires injecting a foreign `*Service` - forbidden by R2 and contradicted by the same file's § "Two-step read saga variant". Two sections of one skill prescribed opposite mechanisms for the same read. | fixed | a1b2c3d4e |
+| 19 | 2.6.d | 2 | `docs/concepts/events.md` | § ByEvent sagaState guard says the guard may be skipped when the event "must apply even while the aggregate is mid-saga" but gives no test for which events those are, and `{Operation}` here writes a cached field two saga steps also write. Silent, not contradictory - the answer is a design decision. Human chose the field-overlap test. | fixed | f6g7h8i9j |
+| 24 | 2.7.d | 1 | `docs/concepts/events.md`, `.claude/skills/implement-aggregate/session-d.md` | Closes row 19. The test agreed there was stated in `events.md` only; `session-d.md` still carried its own softer paraphrase, so the two could drift. Paraphrase replaced with a pointer to the owning section. | fixed | k1l2m3n4o |
 
 - `#` - monotonically increasing; read the last row to get the next number.
 - `Session` - the session id (`2.3.b`, `3.5`, `4.1`), `0`/`1` for Phase 0/1, or `review` for a repair
@@ -152,12 +159,12 @@ reporting a result it did not observe.
 Get the verdict from two sources the hook does not touch: maven's own **exit status**, and the
 **surefire report files** maven writes to disk.
 
-Run the build with no pipe, then read the exit status on the following line:
-
 A full run's stdout can exceed the tool's output budget and be truncated, taking the `MAVEN_EXIT`
 line with it. **Redirect to a file** - `> build.log 2>&1` is a redirection, not a pipe, so maven's
 own exit code still reaches `$?` and the verdict line stays visible. Read the log only to quote a
 failure; the totals still come from the surefire reports below.
+
+Run the build with no pipe, then read the exit status from the `MAVEN_EXIT` line:
 
 ```bash
 cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
