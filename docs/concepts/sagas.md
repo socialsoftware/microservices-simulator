@@ -89,12 +89,23 @@ SagaStep addShipmentItemStep = new SagaStep("addShipmentItemStep", () -> {
     states.add(ShipmentSagaState.IN_UPDATE_SHIPMENT);
 
     AddShipmentItemCommand cmd = new AddShipmentItemCommand(...);
-    cmd.setForbiddenStates(states);   // abort if the shipment is IN_UPDATE_SHIPMENT
-    commandGateway.send(cmd);
+    SagaCommand sagaCommand = new SagaCommand(cmd);
+    sagaCommand.setForbiddenStates(states);   // abort if the shipment is IN_UPDATE_SHIPMENT
+    commandGateway.send(sagaCommand);
 }, dependencies);
 ```
 
 `setForbiddenStates(...)` causes the command handler to check the current saga state and throw if it matches any forbidden state.
+
+**Both saga-state mechanisms live on `SagaCommand`, not on `Command`.** `setForbiddenStates` and
+`setSemanticLock` are declared by
+`simulator/.../ms/transaction/sagas/messaging/SagaCommand.java`, so a guarded step wraps its command
+exactly as a lock step does — the difference is which setter it calls, not whether it wraps. Calling
+`setForbiddenStates` on the plain command does not compile.
+
+The parameter type is `List<SagaAggregate.SagaState>`, and Java's generics are invariant: a
+`List.of({Aggregate}SagaState.IN_{OP})` infers `List<{Aggregate}SagaState>` and will not convert.
+Declare the list at the interface type and add to it, as above.
 
 ## R4 Decision Table — `SagaCommand` vs `setForbiddenStates`
 
@@ -347,11 +358,15 @@ public void buildWorkflow(SagaUnitOfWorkService unitOfWorkService,
     }, unitOfWork);
 
     SagaStep {operation}Step = new SagaStep("{operation}Step", () -> {
+        List<SagaAggregate.SagaState> forbiddenStates = new ArrayList<>();
+        forbiddenStates.add({ForeignAggregate}SagaState.IN_{OPERATION}_{FOREIGN_AGGREGATE});
+
         {Operation}Command cmd = new {Operation}Command(
                 unitOfWork, ServiceMapping.{FOREIGN_AGGREGATE}.getServiceName(),
                 {foreignAggregate}Id, this.{aggregate}Dto);
-        cmd.setForbiddenStates(List.of({ForeignAggregate}SagaState.IN_{OPERATION}_{FOREIGN_AGGREGATE}));
-        commandGateway.send(cmd);
+        SagaCommand sagaCommand = new SagaCommand(cmd);
+        sagaCommand.setForbiddenStates(forbiddenStates);
+        commandGateway.send(sagaCommand);
     }, new ArrayList<>(Arrays.asList(create{Aggregate}Step)));
 
     this.workflow.addStep(get{ForeignAggregate}Step);
