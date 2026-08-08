@@ -4,10 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.tournament.AddParticipantCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.tournament.CancelTournamentCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.tournament.CreateTournamentCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.tournament.DeleteTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.tournament.GetClosedTournamentsForExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.tournament.GetOpenedTournamentsForExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.tournament.GetTournamentsForExecutionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.tournament.UpdateTournamentCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.service.TournamentService;
 
 import java.util.logging.Logger;
@@ -31,6 +36,23 @@ public class TournamentCommandHandler extends CommandHandler {
             case GetTournamentsForExecutionCommand cmd -> handleGetTournamentsForExecution(cmd);
             case GetOpenedTournamentsForExecutionCommand cmd -> handleGetOpenedTournamentsForExecution(cmd);
             case GetClosedTournamentsForExecutionCommand cmd -> handleGetClosedTournamentsForExecution(cmd);
+            case CreateTournamentCommand cmd -> handleCreateTournament(cmd);
+            case AddParticipantCommand cmd -> {
+                handleAddParticipant(cmd);
+                yield null;
+            }
+            case UpdateTournamentCommand cmd -> {
+                handleUpdateTournament(cmd);
+                yield null;
+            }
+            case CancelTournamentCommand cmd -> {
+                handleCancelTournament(cmd);
+                yield null;
+            }
+            case DeleteTournamentCommand cmd -> {
+                handleDeleteTournament(cmd);
+                yield null;
+            }
             default -> {
                 logger.warning("Unknown command: " + command.getClass().getName());
                 yield null;
@@ -55,5 +77,31 @@ public class TournamentCommandHandler extends CommandHandler {
     private Object handleGetClosedTournamentsForExecution(GetClosedTournamentsForExecutionCommand command) {
         return tournamentService.getClosedTournamentsForExecution(command.getExecutionAggregateId(),
                 command.getUnitOfWork());
+    }
+
+    private Object handleCreateTournament(CreateTournamentCommand command) {
+        return tournamentService.createTournament(command.getExecutionDto(), command.getCreatorDto(),
+                command.getTopics(), command.getSelectedQuestions(), command.getQuizAggregateId(),
+                command.getQuizVersion(), command.getStartTime(), command.getEndTime(),
+                command.getNumberOfQuestions(), command.getUnitOfWork());
+    }
+
+    private void handleAddParticipant(AddParticipantCommand command) {
+        tournamentService.addParticipant(command.getTournamentAggregateId(), command.getUserDto(),
+                command.getExecutionDto(), command.getUnitOfWork());
+    }
+
+    private void handleUpdateTournament(UpdateTournamentCommand command) {
+        tournamentService.updateTournament(command.getTournamentAggregateId(), command.getStartTime(),
+                command.getEndTime(), command.getNumberOfQuestions(), command.getTopics(),
+                command.getSelectedQuestions(), command.getUnitOfWork());
+    }
+
+    private void handleCancelTournament(CancelTournamentCommand command) {
+        tournamentService.cancelTournament(command.getTournamentAggregateId(), command.getUnitOfWork());
+    }
+
+    private void handleDeleteTournament(DeleteTournamentCommand command) {
+        tournamentService.deleteTournament(command.getTournamentAggregateId(), command.getUnitOfWork());
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.quiz.CreateQuizCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.quiz.DeleteQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.quiz.GetQuizByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.quiz.GetQuizzesForExecutionCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.quiz.UpdateQuizCommand;
@@ -34,6 +35,10 @@ public class QuizCommandHandler extends CommandHandler {
                 handleUpdateQuiz(cmd);
                 yield null;
             }
+            case DeleteQuizCommand cmd -> {
+                handleDeleteQuiz(cmd);
+                yield null;
+            }
             default -> {
                 logger.warning("Unknown command: " + command.getClass().getName());
                 yield null;
@@ -52,6 +57,10 @@ public class QuizCommandHandler extends CommandHandler {
     private Object handleCreateQuiz(CreateQuizCommand command) {
         return quizService.createQuiz(command.getQuizDto(), command.getExecutionDto(), command.getQuestions(),
                 command.getUnitOfWork());
+    }
+
+    private void handleDeleteQuiz(DeleteQuizCommand command) {
+        quizService.deleteQuiz(command.getQuizAggregateId(), command.getUnitOfWork());
     }
 
     private void handleUpdateQuiz(UpdateQuizCommand command) {

@@ -81,6 +81,19 @@ public class QuizService {
         unitOfWorkService.registerChanged(newQuiz, unitOfWork);
     }
 
+    // The compensating undo for a saga step that created this quiz. It publishes nothing: an
+    // InvalidateQuizEvent would tell subscribers a quiz they were told about has become invalid,
+    // and a compensated quiz is one they were never told about.
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deleteQuiz(Integer quizAggregateId, UnitOfWork unitOfWork) {
+        Quiz oldQuiz = (Quiz) unitOfWorkService.aggregateLoadAndRegisterRead(quizAggregateId, unitOfWork);
+        Quiz newQuiz = quizFactory.createQuizCopy(oldQuiz);
+
+        newQuiz.remove();
+
+        unitOfWorkService.registerChanged(newQuiz, unitOfWork);
+    }
+
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void setQuestionDetails(Integer quizAggregateId, Integer questionAggregateId, String title,
                                    String content, Long questionVersion, UnitOfWork unitOfWork) {

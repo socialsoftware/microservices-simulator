@@ -478,8 +478,10 @@ class BeanConfigurationSagas {
     @Bean
     TournamentService tournamentService(TournamentCustomRepository tournamentCustomRepository,
                                         TournamentFactory tournamentFactory,
-                                        UnitOfWorkService unitOfWorkService) {
-        return new TournamentService(tournamentCustomRepository, tournamentFactory, unitOfWorkService)
+                                        UnitOfWorkService unitOfWorkService,
+                                        AggregateIdGeneratorService aggregateIdGeneratorService) {
+        return new TournamentService(tournamentCustomRepository, tournamentFactory, unitOfWorkService,
+                aggregateIdGeneratorService)
     }
 
     @Bean

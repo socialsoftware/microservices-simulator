@@ -57,4 +57,7 @@ public final class QuizzesFull2ErrorMessage {
     public static final String TOURNAMENT_DELETE = "A deleted tournament cannot have participants";
     public static final String CREATOR_IS_NOT_ANONYMOUS = "An anonymized user cannot be the creator of a tournament";
     public static final String TOPIC_COURSE_EXECUTION = "A tournament topic must belong to the course of the tournament's course execution";
+    public static final String CREATOR_COURSE_EXECUTION = "The tournament creator must be enrolled in the tournament's course execution";
+    public static final String PARTICIPANT_COURSE_EXECUTION = "A tournament participant must be enrolled in the tournament's course execution";
+    public static final String TOURNAMENT_NOT_ENOUGH_QUESTIONS = "The tournament's topics do not yield enough questions in the course";
 }

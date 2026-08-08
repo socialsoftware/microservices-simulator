@@ -214,6 +214,23 @@ class QuizServiceTest extends QuizzesFull2SpockTest {
         thrown(SimulatorException)
     }
 
+    def "deleteQuiz: the deleted quiz no longer resolves through a fresh UnitOfWork"() {
+        // Spec: plan.md §8 Tournament — CreateTournament's createQuizStep compensation
+        // (DeleteQuizCommand); a DELETED aggregate is not loadable
+        given:
+        def courseAggregateId = createCourse()
+        def executionAggregateId = createExecution(courseAggregateId)
+        def quizAggregateId = createQuiz(executionAggregateId)
+
+        when:
+        quizService.deleteQuiz(quizAggregateId, unitOfWorkService.createUnitOfWork("deleteQuiz"))
+        flushAndClear()
+        quizService.getQuizById(quizAggregateId, unitOfWorkService.createUnitOfWork("check"))
+
+        then:
+        thrown(SimulatorException)
+    }
+
     // InvalidateQuizEvent is the only event Quiz publishes, and its publication site is the
     // DeleteQuestionEvent handler chain written in 2.6.d (plan.md §6 Quiz). Its payload-asserting
     // case therefore belongs to that session; 2.6.c owns the class-scoped negative case below.

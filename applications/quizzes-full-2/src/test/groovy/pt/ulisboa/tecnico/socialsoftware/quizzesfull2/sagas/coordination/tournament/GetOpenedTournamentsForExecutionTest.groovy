@@ -5,19 +5,13 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.QuizzesFull2SpockTest
-
-import java.time.LocalDateTime
 
 @DataJpaTest
 @Transactional
 @Import(GetOpenedTournamentsForExecutionTest.LocalBeanConfiguration)
 class GetOpenedTournamentsForExecutionTest extends QuizzesFull2SpockTest {
-
-    public static final LocalDateTime PAST_START_TIME = DateHandler.now().minusDays(2)
-    public static final LocalDateTime PAST_END_TIME = DateHandler.now().minusDays(1)
 
     def "getOpenedTournamentsForExecution: success"() {
         // Spec: plan.md §8 Tournament — GetOpenedTournamentsForExecution(executionAggregateId)
@@ -27,7 +21,7 @@ class GetOpenedTournamentsForExecutionTest extends QuizzesFull2SpockTest {
         def creatorAggregateId = createActiveUser()
         enrollStudentInExecution(executionAggregateId, creatorAggregateId)
         def openAggregateId = createTournament(executionAggregateId, creatorAggregateId)
-        createTournament(executionAggregateId, creatorAggregateId, PAST_START_TIME, PAST_END_TIME)
+        createClosedTournament(executionAggregateId, creatorAggregateId)
 
         when:
         def result = tournamentFunctionalities.getOpenedTournamentsForExecution(executionAggregateId)

@@ -9,15 +9,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.QuizzesFull2SpockTest
 
-import java.time.LocalDateTime
-
 @DataJpaTest
 @Transactional
 @Import(GetClosedTournamentsForExecutionTest.LocalBeanConfiguration)
 class GetClosedTournamentsForExecutionTest extends QuizzesFull2SpockTest {
-
-    public static final LocalDateTime PAST_START_TIME = DateHandler.now().minusDays(2)
-    public static final LocalDateTime PAST_END_TIME = DateHandler.now().minusDays(1)
 
     def "getClosedTournamentsForExecution: success"() {
         // Spec: plan.md §8 Tournament — GetClosedTournamentsForExecution(executionAggregateId)
@@ -27,15 +22,14 @@ class GetClosedTournamentsForExecutionTest extends QuizzesFull2SpockTest {
         def creatorAggregateId = createActiveUser()
         enrollStudentInExecution(executionAggregateId, creatorAggregateId)
         createTournament(executionAggregateId, creatorAggregateId)
-        def closedAggregateId = createTournament(executionAggregateId, creatorAggregateId,
-                PAST_START_TIME, PAST_END_TIME)
+        def closedAggregateId = createClosedTournament(executionAggregateId, creatorAggregateId)
 
         when:
         def result = tournamentFunctionalities.getClosedTournamentsForExecution(executionAggregateId)
 
         then: 'orchestration outcome only — persistence is asserted in T2'
         result.collect { it.aggregateId } == [closedAggregateId]
-        result[0].endTime == PAST_END_TIME
+        !result[0].endTime.isAfter(DateHandler.now())
         sagaStateOf(closedAggregateId) == GenericSagaState.NOT_IN_SAGA
     }
 
