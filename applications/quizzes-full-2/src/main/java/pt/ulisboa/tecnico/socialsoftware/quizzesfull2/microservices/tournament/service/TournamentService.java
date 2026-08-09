@@ -12,10 +12,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.Qu
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2Exception;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.aggregate.QuizQuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.Tournament;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentCreator;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentCustomRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentParticipant;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentParticipantQuizAnswer;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentTopic;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentTopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto;
@@ -138,15 +140,205 @@ public class TournamentService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteTournament(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
-        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(
-                tournamentAggregateId, unitOfWork);
-        Tournament newTournament = tournamentFactory.createTournamentCopy(oldTournament);
+        Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
 
-        // TOURNAMENT_DELETE fires inside remove()'s verifyInvariants, so the participants go first.
-        newTournament.setParticipants(new ArrayList<>());
-        newTournament.remove();
+        removeTournament(newTournament);
 
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    // The creator snapshot and any creator-shaped participant entry carry the same three cached user
+    // fields, and TOURNAMENT_CREATOR_PARTICIPANT_CONSISTENCY requires them to agree, so one rename
+    // touches every entry for that user.
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void setUserName(Integer tournamentAggregateId, Integer userAggregateId, String userName,
+                            Long userVersion, UnitOfWork unitOfWork) {
+        Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
+
+        TournamentCreator creator = newTournament.getCreator();
+        if (Objects.equals(userAggregateId, creator.getUserAggregateId())) {
+            creator.setUserName(userName);
+            creator.setUserVersion(userVersion);
+        }
+        newTournament.getParticipants().stream()
+                .filter(participant -> Objects.equals(userAggregateId, participant.getUserAggregateId()))
+                .forEach(participant -> {
+                    participant.setUserName(userName);
+                    participant.setUserVersion(userVersion);
+                });
+
+        newTournament.verifyInvariants();
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void anonymizeUser(Integer tournamentAggregateId, Integer userAggregateId, String userName,
+                              String userUsername, Long userVersion, UnitOfWork unitOfWork) {
+        Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
+
+        TournamentCreator creator = newTournament.getCreator();
+        if (Objects.equals(userAggregateId, creator.getUserAggregateId())) {
+            creator.setUserName(userName);
+            creator.setUserUsername(userUsername);
+            creator.setUserVersion(userVersion);
+        }
+        newTournament.getParticipants().stream()
+                .filter(participant -> Objects.equals(userAggregateId, participant.getUserAggregateId()))
+                .forEach(participant -> {
+                    participant.setUserName(userName);
+                    participant.setUserUsername(userUsername);
+                    participant.setUserVersion(userVersion);
+                });
+
+        newTournament.verifyInvariants();
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    // A participant is one member of a collection the tournament survives without; the creator is
+    // structural - it is constructor-final and CREATOR_IS_NOT_ANONYMOUS reads it - so its deletion
+    // takes the whole tournament.
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeForDeletedUser(Integer tournamentAggregateId, Integer userAggregateId,
+                                     UnitOfWork unitOfWork) {
+        Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
+
+        if (Objects.equals(userAggregateId, newTournament.getCreator().getUserAggregateId())) {
+            removeTournament(newTournament);
+        } else {
+            newTournament.removeParticipant(userAggregateId);
+            newTournament.verifyInvariants();
+        }
+
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void setTopicName(Integer tournamentAggregateId, Integer topicAggregateId, String topicName,
+                             Long topicVersion, UnitOfWork unitOfWork) {
+        Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
+
+        newTournament.getTopics().stream()
+                .filter(topic -> Objects.equals(topicAggregateId, topic.getTopicAggregateId()))
+                .forEach(topic -> {
+                    topic.setTopicName(topicName);
+                    topic.setTopicVersion(topicVersion);
+                });
+
+        newTournament.verifyInvariants();
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    // A tournament still draws questions from its remaining topics, so a deleted topic costs it the
+    // one entry rather than the whole aggregate.
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeDeletedTopic(Integer tournamentAggregateId, Integer topicAggregateId,
+                                   UnitOfWork unitOfWork) {
+        Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
+
+        newTournament.removeTopic(topicAggregateId);
+
+        newTournament.verifyInvariants();
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeForDeletedExecution(Integer tournamentAggregateId, Integer executionAggregateId,
+                                          UnitOfWork unitOfWork) {
+        Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
+
+        if (!Objects.equals(executionAggregateId,
+                newTournament.getExecution().getExecutionAggregateId())) {
+            return;
+        }
+        removeTournament(newTournament);
+
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    // Anchored on the execution, so every tournament of that execution is delivered the disenroll
+    // event; only the disenrolled student's own participation may be dropped.
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeDisenrolledParticipant(Integer tournamentAggregateId, Integer executionAggregateId,
+                                             Integer userAggregateId, UnitOfWork unitOfWork) {
+        Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
+
+        if (!Objects.equals(executionAggregateId,
+                newTournament.getExecution().getExecutionAggregateId())) {
+            return;
+        }
+        newTournament.removeParticipant(userAggregateId);
+
+        newTournament.verifyInvariants();
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    // An invalidated quiz is treated as deleted downstream, and Tournament.quiz is constructor-final,
+    // so the tournament cannot outlive it.
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeForInvalidatedQuiz(Integer tournamentAggregateId, Integer quizAggregateId,
+                                         UnitOfWork unitOfWork) {
+        Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
+
+        if (!Objects.equals(quizAggregateId, newTournament.getQuiz().getQuizAggregateId())) {
+            return;
+        }
+        removeTournament(newTournament);
+
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    // Anchored on the tournament's quiz, so the participant is identified by studentAggregateId. The
+    // version comparison is what makes the fold idempotent: the same answer event is redelivered under
+    // every participant subscription whose cursor still trails it, and the counters must not double.
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void recordQuestionAnswer(Integer tournamentAggregateId, Integer quizAggregateId,
+                                     Integer studentAggregateId, Integer quizAnswerAggregateId,
+                                     Boolean correct, LocalDateTime answerTime, Long quizAnswerVersion,
+                                     UnitOfWork unitOfWork) {
+        Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
+
+        if (!Objects.equals(quizAggregateId, newTournament.getQuiz().getQuizAggregateId())) {
+            return;
+        }
+        TournamentParticipant participant = newTournament.getParticipants().stream()
+                .filter(candidate -> Objects.equals(studentAggregateId, candidate.getUserAggregateId()))
+                .findFirst()
+                .orElse(null);
+        if (participant == null) {
+            return;
+        }
+        TournamentParticipantQuizAnswer quizAnswer = participant.getQuizAnswer();
+        if (quizAnswer.getQuizAnswerVersion() != null
+                && quizAnswer.getQuizAnswerVersion() >= quizAnswerVersion) {
+            return;
+        }
+
+        quizAnswer.setQuizAnswerAggregateId(quizAnswerAggregateId);
+        quizAnswer.setAnswered(true);
+        quizAnswer.setNumberOfAnswered(quizAnswer.getNumberOfAnswered() + 1);
+        if (Boolean.TRUE.equals(correct)) {
+            quizAnswer.setNumberOfCorrect(quizAnswer.getNumberOfCorrect() + 1);
+        }
+        // Set once: TOURNAMENT_ANSWER_BEFORE_START reads the instant of the student's first answer.
+        if (quizAnswer.getFirstAnswerTime() == null) {
+            quizAnswer.setFirstAnswerTime(answerTime);
+        }
+        quizAnswer.setQuizAnswerVersion(quizAnswerVersion);
+
+        newTournament.verifyInvariants();
+        unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    private Tournament loadCopy(Integer tournamentAggregateId, UnitOfWork unitOfWork) {
+        Tournament oldTournament = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(
+                tournamentAggregateId, unitOfWork);
+        return tournamentFactory.createTournamentCopy(oldTournament);
+    }
+
+    // TOURNAMENT_DELETE fires on the registerChanged that follows, so the participants go first.
+    private static void removeTournament(Tournament tournament) {
+        tournament.setParticipants(new ArrayList<>());
+        tournament.remove();
     }
 
     private static void verifyEnrolled(Integer userAggregateId, ExecutionDto executionDto, String errorMessage) {

@@ -96,8 +96,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.a
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.sagas.repositories.TournamentCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentCustomRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentFactory
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.TournamentRepository
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.eventProcessing.TournamentEventProcessing
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.messaging.TournamentCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.handling.TournamentEventHandling
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.handling.handlers.TournamentEventHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.service.TournamentService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
 
@@ -492,5 +496,21 @@ class BeanConfigurationSagas {
     @Bean
     TournamentFunctionalities tournamentFunctionalities() {
         return new TournamentFunctionalities()
+    }
+
+    @Bean
+    TournamentEventHandling tournamentEventHandling() {
+        return new TournamentEventHandling()
+    }
+
+    @Bean
+    TournamentEventHandler tournamentEventHandler(TournamentRepository tournamentRepository,
+                                                  TournamentEventProcessing tournamentEventProcessing) {
+        return new TournamentEventHandler(tournamentRepository, tournamentEventProcessing)
+    }
+
+    @Bean
+    TournamentEventProcessing tournamentEventProcessing() {
+        return new TournamentEventProcessing()
     }
 }

@@ -345,7 +345,7 @@ class QuizAnswerServiceTest extends QuizzesFull2SpockTest {
         def events = eventService.getAllEvents().findAll { it instanceof QuizAnswerQuestionAnswerEvent }
         events.size() == 1
         def event = events[0] as QuizAnswerQuestionAnswerEvent
-        event.publisherAggregateId == fixture.quizAnswerAggregateId
+        event.publisherAggregateId == fixture.quizAggregateId
         event.quizAnswerAggregateId == fixture.quizAnswerAggregateId
         event.questionAggregateId == fixture.questionAggregateId
         event.quizAggregateId == fixture.quizAggregateId

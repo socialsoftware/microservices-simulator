@@ -11,6 +11,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.domain.QuizzesFull2DomainConstants;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2ErrorMessage;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.exception.QuizzesFull2Exception;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.subscribe.TournamentSubscribesAnonymizeStudent;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteUser;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.subscribe.TournamentSubscribesDisenrollStudentFromCourseExecution;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.subscribe.TournamentSubscribesInvalidateQuiz;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.subscribe.TournamentSubscribesQuizAnswerQuestionAnswer;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateStudentName;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -202,7 +211,27 @@ public abstract class Tournament extends Aggregate {
 
     @Override
     public Set<EventSubscription> getEventSubscriptions() {
-        return new HashSet<>();
+        Set<EventSubscription> eventSubscriptions = new HashSet<>();
+        if (getState() == AggregateState.ACTIVE) {
+            eventSubscriptions.add(new TournamentSubscribesUpdateStudentName(this.creator));
+            eventSubscriptions.add(new TournamentSubscribesAnonymizeStudent(this.creator));
+            eventSubscriptions.add(new TournamentSubscribesDeleteUser(this.creator));
+            eventSubscriptions.add(new TournamentSubscribesDeleteCourseExecution(this.execution));
+            eventSubscriptions.add(new TournamentSubscribesDisenrollStudentFromCourseExecution(this.execution));
+            eventSubscriptions.add(new TournamentSubscribesInvalidateQuiz(this.quiz));
+            for (TournamentParticipant participant : this.participants) {
+                eventSubscriptions.add(new TournamentSubscribesUpdateStudentName(participant));
+                eventSubscriptions.add(new TournamentSubscribesAnonymizeStudent(participant));
+                eventSubscriptions.add(new TournamentSubscribesDeleteUser(participant));
+                eventSubscriptions.add(new TournamentSubscribesQuizAnswerQuestionAnswer(
+                        this.quiz.getQuizAggregateId(), participant));
+            }
+            for (TournamentTopic topic : this.topics) {
+                eventSubscriptions.add(new TournamentSubscribesUpdateTopic(topic));
+                eventSubscriptions.add(new TournamentSubscribesDeleteTopic(topic));
+            }
+        }
+        return eventSubscriptions;
     }
 
     public LocalDateTime getStartTime() {

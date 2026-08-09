@@ -575,6 +575,19 @@ through the `QuizAnswerQuestionAnswerEvent` subscription, which is P2 and takes 
 **Events published:** —
 **Events subscribed:** `UpdateStudentNameEvent`, `AnonymizeStudentEvent`, `DeleteUserEvent`, `UpdateTopicEvent`, `DeleteTopicEvent`, `DeleteCourseExecutionEvent`, `DisenrollStudentFromCourseExecutionEvent`, `InvalidateQuizEvent`, `QuizAnswerQuestionAnswerEvent`
 
+> **`QuizAnswerQuestionAnswerEvent` is anchored on `quizAggregateId`, not on the `quizAnswerAggregateId`
+> grouping §4 marks `(anchor)`** (settled in 2.8.d, harness-log row 71). Nothing writes
+> `TournamentParticipantQuizAnswer.quizAnswerAggregateId` and no functionality links a QuizAnswer to a
+> participant, so a subscription on the quiz-answer id could never be constructed - while §4's own note
+> requires the Tournament to link the QuizAnswer *on the first answer*. Tournament therefore anchors on
+> the quiz it generated and discriminates on `studentAggregateId` in `TournamentService`, per
+> `session-d.md` § Shared-anchor events, linking `quizAnswerAggregateId` from the payload. The version
+> cursor is the participant's own `quizAnswerVersion`, **not** `TournamentQuiz.quizVersion`: the two
+> events share the quiz anchor, and advancing the quiz snapshot on an answer would hide a pending
+> `InvalidateQuizEvent`. Because that leaves the cursor behind the subscription's own
+> `subscribedVersion`, the same answer event is redelivered under every trailing participant
+> subscription, so the fold compares `quizAnswerVersion` against the event version and is idempotent.
+
 **Cross-aggregate prerequisites:**
 - `CREATOR_COURSE_EXECUTION` (P3) → `CreateTournamentFunctionalitySagas` data-assembly step
   `GetExecutionByIdCommand` (fetch from `Execution`); validated in
@@ -628,7 +641,7 @@ through the `QuizAnswerQuestionAnswerEvent` subscription, which is P2 and takes 
 | 2.8.a | `aggregate/Tournament.java`, `aggregate/TournamentExecution.java`, `aggregate/TournamentCreator.java`, `aggregate/TournamentParticipant.java`, `aggregate/TournamentParticipantDto.java`, `aggregate/TournamentParticipantQuizAnswer.java`, `aggregate/TournamentTopic.java`, `aggregate/TournamentTopicDto.java`, `aggregate/TournamentQuiz.java`, `aggregate/TournamentFactory.java`, `aggregate/TournamentCustomRepository.java`, `aggregate/sagas/SagaTournament.java`, `aggregate/sagas/states/TournamentSagaState.java`, `aggregate/sagas/factories/SagasTournamentFactory.java`, `aggregate/sagas/repositories/TournamentCustomRepositorySagas.java`, `aggregate/TournamentDto.java`, `aggregate/TournamentRepository.java`, `TournamentServiceApplication.java`, `sagas/tournament/TournamentIntraInvariantTest.groovy` (no new file for the `ANONYMOUS` sentinel - `Tournament.verifyInvariants()` imports `microservices/domain/QuizzesFull2DomainConstants.java`, declared by `User` in 2.2.a) |
 | 2.8.b | `service/TournamentService.java` (read methods), `messaging/TournamentCommandHandler.java`, `commands/tournament/GetTournamentByIdCommand.java`, `commands/tournament/GetTournamentsForExecutionCommand.java`, `commands/tournament/GetOpenedTournamentsForExecutionCommand.java`, `commands/tournament/GetClosedTournamentsForExecutionCommand.java`, `coordination/sagas/GetTournamentByIdFunctionalitySagas.java`, `coordination/sagas/GetTournamentsForExecutionFunctionalitySagas.java`, `coordination/sagas/GetOpenedTournamentsForExecutionFunctionalitySagas.java`, `coordination/sagas/GetClosedTournamentsForExecutionFunctionalitySagas.java`, `coordination/functionalities/TournamentFunctionalities.java`, `{src}ServiceMapping.java` (add `TOURNAMENT`), `sagas/tournament/TournamentServiceTest.groovy` (read-method cases), `sagas/coordination/tournament/GetTournamentByIdTest.groovy`, `sagas/coordination/tournament/GetTournamentsForExecutionTest.groovy`, `sagas/coordination/tournament/GetOpenedTournamentsForExecutionTest.groovy`, `sagas/coordination/tournament/GetClosedTournamentsForExecutionTest.groovy`, `aggregate/TournamentRepository.java` (added 2.8.b - the three list reads need the `findAllLatestActiveByExecution` JPQL required by `service.md` § Custom Repository - Latest-Active-Version Query), `aggregate/TournamentCustomRepository.java` (added 2.8.b - declares `findTournamentIdsByExecution`, the interface the profile-agnostic service injects), `aggregate/sagas/repositories/TournamentCustomRepositorySagas.java` (added 2.8.b - implements it against the JPQL query) |
 | 2.8.c | `service/TournamentService.java` (write methods appended), `commands/tournament/CreateTournamentCommand.java`, `commands/tournament/AddParticipantCommand.java`, `commands/tournament/UpdateTournamentCommand.java`, `commands/tournament/CancelTournamentCommand.java`, `commands/tournament/DeleteTournamentCommand.java`, `coordination/sagas/CreateTournamentFunctionalitySagas.java`, `coordination/sagas/AddParticipantFunctionalitySagas.java`, `coordination/sagas/UpdateTournamentFunctionalitySagas.java`, `coordination/sagas/CancelTournamentFunctionalitySagas.java`, `coordination/sagas/DeleteTournamentFunctionalitySagas.java`, write coordinator methods appended to `coordination/functionalities/TournamentFunctionalities.java`, write cases appended to `messaging/TournamentCommandHandler.java`, `coordination/webapi/TournamentController.java`, `sagas/coordination/tournament/CreateTournamentTest.groovy`, `sagas/coordination/tournament/AddParticipantTest.groovy`, `sagas/coordination/tournament/UpdateTournamentTest.groovy`, `sagas/coordination/tournament/CancelTournamentTest.groovy`, `sagas/coordination/tournament/DeleteTournamentTest.groovy`, write-method cases appended to `sagas/tournament/TournamentServiceTest.groovy`, plus (not listed when this row was written, amended on completion) `sagas/coordination/tournament/{CreateTournament,AddParticipant,UpdateTournament,CancelTournament,DeleteTournament}CompensationTest.groovy` with their five `src/test/resources/groovy/{Op}CompensationTest/{Op}FunctionalitySagas.csv` impairment scripts, `microservices/exception/QuizzesFull2ErrorMessage.java` (`CREATOR_COURSE_EXECUTION`, `PARTICIPANT_COURSE_EXECUTION`, `TOURNAMENT_NOT_ENOUGH_QUESTIONS`), `microservices/domain/QuizzesFull2DomainConstants.java` (`TOURNAMENT_QUIZ_TITLE`), the `tournamentService(...)` `@Bean` widening in `BeanConfigurationSagas.groovy` (first need of `AggregateIdGeneratorService`), the `createTournament` / `cancelTournament` helper swap plus the new `createClosedTournament` helper in `QuizzesFull2SpockTest.groovy`, and the Quiz-side delete trio reopening 2.6.c - `microservices/quiz/service/QuizService.java` (`deleteQuiz`), `commands/quiz/DeleteQuizCommand.java`, a `QuizCommandHandler` case and its `QuizServiceTest.groovy` case - which `CreateTournamentFunctionalitySagas`' compensation requires |
-| 2.8.d | `notification/subscribe/TournamentSubscribesUpdateStudentName.java`, `notification/subscribe/TournamentSubscribesAnonymizeStudent.java`, `notification/subscribe/TournamentSubscribesDeleteUser.java`, `notification/subscribe/TournamentSubscribesUpdateTopic.java`, `notification/subscribe/TournamentSubscribesDeleteTopic.java`, `notification/subscribe/TournamentSubscribesDeleteCourseExecution.java`, `notification/subscribe/TournamentSubscribesDisenrollStudentFromCourseExecution.java`, `notification/subscribe/TournamentSubscribesInvalidateQuiz.java`, `notification/subscribe/TournamentSubscribesQuizAnswerQuestionAnswer.java`, `notification/handling/TournamentEventHandling.java`, `notification/handling/handlers/TournamentEventHandler.java`, `coordination/eventProcessing/TournamentEventProcessing.java`, `sagas/tournament/TournamentInterInvariantTest.groovy` |
+| 2.8.d | `notification/subscribe/TournamentSubscribesUpdateStudentName.java`, `notification/subscribe/TournamentSubscribesAnonymizeStudent.java`, `notification/subscribe/TournamentSubscribesDeleteUser.java`, `notification/subscribe/TournamentSubscribesUpdateTopic.java`, `notification/subscribe/TournamentSubscribesDeleteTopic.java`, `notification/subscribe/TournamentSubscribesDeleteCourseExecution.java`, `notification/subscribe/TournamentSubscribesDisenrollStudentFromCourseExecution.java`, `notification/subscribe/TournamentSubscribesInvalidateQuiz.java`, `notification/subscribe/TournamentSubscribesQuizAnswerQuestionAnswer.java`, `notification/handling/TournamentEventHandling.java`, `notification/handling/handlers/TournamentEventHandler.java`, `coordination/eventProcessing/TournamentEventProcessing.java`, `sagas/tournament/TournamentInterInvariantTest.groovy`, plus (not listed when this row was written, amended on completion) `aggregate/Tournament.java` (added 2.8.d - `getEventSubscriptions()` under the mandatory ACTIVE guard), `service/TournamentService.java` (added 2.8.d - the nine ByEvent mutate helpers plus the shared `loadCopy` / `removeTournament` extractions), `coordination/functionalities/TournamentFunctionalities.java` (added 2.8.d - one `{operation}ByEvent` method per subscribed event plus the shared `isInSaga` guard), `{bean-config}` (added 2.8.d - the three event-wiring beans), and the QuizAnswer-side re-anchor reopening 2.7.c - `events/QuizAnswerQuestionAnswerEvent.java` and the `publisherAggregateId` assertion in `sagas/quizanswer/QuizAnswerServiceTest.groovy` - which the subscription below requires |
 
 **Checklist:**
 - [x] 2.8.a — Domain layer
@@ -639,15 +652,15 @@ through the `QuizAnswerQuestionAnswerEvent` subscription, which is P2 and takes 
   - [x] 2.8.c3 UpdateTournament
   - [x] 2.8.c4 CancelTournament
   - [x] 2.8.c5 DeleteTournament
-- [ ] 2.8.d — Event wiring
-  - [ ] 2.8.d1 UpdateStudentNameEvent
-  - [ ] 2.8.d2 AnonymizeStudentEvent
-  - [ ] 2.8.d3 DeleteUserEvent
-  - [ ] 2.8.d4 UpdateTopicEvent
-  - [ ] 2.8.d5 DeleteTopicEvent
-  - [ ] 2.8.d6 DeleteCourseExecutionEvent
-  - [ ] 2.8.d7 DisenrollStudentFromCourseExecutionEvent
-  - [ ] 2.8.d8 InvalidateQuizEvent
-  - [ ] 2.8.d9 QuizAnswerQuestionAnswerEvent
+- [x] 2.8.d — Event wiring
+  - [x] 2.8.d1 UpdateStudentNameEvent
+  - [x] 2.8.d2 AnonymizeStudentEvent
+  - [x] 2.8.d3 DeleteUserEvent
+  - [x] 2.8.d4 UpdateTopicEvent
+  - [x] 2.8.d5 DeleteTopicEvent
+  - [x] 2.8.d6 DeleteCourseExecutionEvent
+  - [x] 2.8.d7 DisenrollStudentFromCourseExecutionEvent
+  - [x] 2.8.d8 InvalidateQuizEvent
+  - [x] 2.8.d9 QuizAnswerQuestionAnswerEvent
 
 ---

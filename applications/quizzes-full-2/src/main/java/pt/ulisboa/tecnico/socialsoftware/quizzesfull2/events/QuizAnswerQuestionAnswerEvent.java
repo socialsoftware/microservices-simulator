@@ -16,10 +16,15 @@ public class QuizAnswerQuestionAnswerEvent extends Event {
 
     protected QuizAnswerQuestionAnswerEvent() {}
 
+    // Anchored on the quiz, not on the publishing quiz answer. The only consumer is Tournament, which
+    // caches the quiz it generated but never learns a quiz answer id - no functionality links the two -
+    // so a subscription anchored on quizAnswerAggregateId could never be constructed. The consumer
+    // discriminates on studentAggregateId in its service ByEvent method and links quizAnswerAggregateId
+    // from this payload on the first answer.
     public QuizAnswerQuestionAnswerEvent(Integer quizAnswerAggregateId, Integer questionAggregateId,
                                          Integer quizAggregateId, Integer studentAggregateId, Boolean correct,
                                          LocalDateTime answerTime) {
-        super(quizAnswerAggregateId);
+        super(quizAggregateId);
         this.quizAnswerAggregateId = quizAnswerAggregateId;
         this.questionAggregateId = questionAggregateId;
         this.quizAggregateId = quizAggregateId;
