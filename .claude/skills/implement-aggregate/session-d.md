@@ -51,7 +51,7 @@ that return them belong to the **consuming** aggregate only. Never add either to
 - Extends `EventSubscription` (from simulator core)
 - Constructor: calls `super(anchorRef.getAnchorAggregateId(), anchorRef.getAnchorVersion(), {EventName}.class.getSimpleName())`. The anchor is the owning/parent aggregate whose ID and version are stored in the cached reference (e.g., for `UpdateWarehouseEvent` subscribed by `Shipment`, the anchor is the `ShipmentWarehouse` reference that holds `warehouseAggregateId` and `warehouseVersion`).
 - Empty default constructor: `public {Aggregate}Subscribes{Event}() {}`
-- In the **sagas profile**, matching is done by the infrastructure via a DB query on `subscribedAggregateId` and `subscribedVersion` — `EventApplicationService.handleSubscribedEvent()` does **not** call `subscribesEvent()`. Overriding it for sagas event filtering has no effect; any additional filtering must go in the service-layer ByEvent method (see "Shared-anchor events" below). (The TCC profile's `CausalUnitOfWork` does call `subscribesEvent()` for causal consistency checks, but that is out of scope here.)
+- Matching is done by the infrastructure on `subscribedAggregateId` and `subscribedVersion`. Never override `subscribesEvent()` to add filtering — `docs/concepts/events.md` § EventSubscription owns that rule and its reasons. Additional filtering goes in the service-layer ByEvent method (see "Shared-anchor events" below).
 
 #### Shared-anchor events: service-layer filtering
 
@@ -71,7 +71,7 @@ public void removeIfShipmentMatches(Integer aggregateId, Integer shipmentId, Uni
 }
 ```
 
-Do **not** attempt to move this check into a `subscribesEvent()` override — it is not called by the sagas event processing infrastructure.
+Do **not** attempt to move this check into a `subscribesEvent()` override — see `docs/concepts/events.md` § EventSubscription.
 
 ### `{Aggregate}EventHandling.java`
 

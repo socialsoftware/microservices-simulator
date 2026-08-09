@@ -70,7 +70,7 @@ public class ShipmentSubscribesUpdateWarehouse extends EventSubscription {
 }
 ```
 
-In the **sagas profile**, matching is performed by the infrastructure via a DB query on `subscribedAggregateId` and `subscribedVersion` — `EventApplicationService.handleSubscribedEvent()` does **not** call `subscribesEvent()`. Any additional filtering (e.g., checking a discriminating field for shared-anchor events) must be implemented in the service-layer ByEvent method. Note: the TCC profile's `CausalUnitOfWork` does call `subscribesEvent()` for causal consistency checks — a `subscribesEvent()` override is meaningful there but irrelevant for sagas.
+Matching is performed by the infrastructure: `EventService.getSubscribedEvents` runs a DB query on `subscribedAggregateId` and `subscribedVersion`, then re-applies the same predicate through `subscribesEvent()`. **Do not override `subscribesEvent()`** for additional filtering (e.g. checking a discriminating field for shared-anchor events). It sees only the three fields the subscription was constructed with, not the consumer's current state, and it is re-evaluated against a subscription rebuilt on every poll — so any discrimination expressed there is both state-blind and duplicated. Put it in the service-layer ByEvent method instead, where the consumer aggregate is loaded.
 
 `subscribedAggregateId` must match `publisherAggregateId` in the event.
 
@@ -192,7 +192,7 @@ public class <Consumer>Subscribes<Xxx> extends EventSubscription {
 }
 ```
 
-`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. In the sagas profile, `EventApplicationService` does **not** call `subscribesEvent()` — do not override it for sagas event filtering; use the service-layer ByEvent method instead.
+`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. Do not override `subscribesEvent()` to filter — use the service-layer ByEvent method, per § EventSubscription.
 
 ### Handler (single dispatcher)
 
