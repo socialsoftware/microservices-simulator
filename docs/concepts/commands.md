@@ -127,10 +127,18 @@ SagaStep addShipmentItemStep = new SagaStep("addShipmentItemStep", () -> {
             ServiceMapping.SHIPMENT.getServiceName(),
             shipmentAggregateId,
             this.warehouseDto);
-    cmd.setForbiddenStates(List.of(ShipmentSagaState.IN_UPDATE_SHIPMENT));
-    commandGateway.send(cmd);
+    List<SagaAggregate.SagaState> forbiddenStates = new ArrayList<>();
+    forbiddenStates.add(ShipmentSagaState.IN_UPDATE_SHIPMENT);
+    SagaCommand sagaCommand = new SagaCommand(cmd);
+    sagaCommand.setForbiddenStates(forbiddenStates);
+    commandGateway.send(sagaCommand);
 }, List.of(getWarehouseStep));
 ```
+
+`setForbiddenStates` is declared on `SagaCommand`, not on `Command`, and its parameter type is
+`List<SagaAggregate.SagaState>` — a `List.of(ShipmentSagaState.IN_UPDATE_SHIPMENT)` infers
+`List<ShipmentSagaState>` and will not convert. [`sagas.md`](sagas.md) § Semantic Locks in Practice
+owns both rules.
 
 **Commands travel upstream only (R8).** A saga may only send commands to aggregates it depends on, never to an aggregate that depends on it — downstream aggregates learn of changes through events, not commands. See [`sagas.md`](sagas.md) § Step Ordering.
 
