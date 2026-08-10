@@ -230,3 +230,19 @@ Interpret the two together:
 
 Report the build outcome using these observed numbers. Do not write "BUILD SUCCESS" unless
 `MAVEN_EXIT` was `0`.
+
+---
+
+## Commands whose output feeds a verdict
+
+The same `PreToolUse` hook that rewrites maven output also rewrites other CLI invocations - a bare
+`rg` can reach the shell as `grep`, which rejects `rg`-only flags and fails the command outright, or
+accepts a pattern file with different semantics and scans differently. Two rules follow:
+
+- **A check whose command errored is a failed check, never a pass with zero hits.** Zero output from
+  a command that did not run to completion is the absence of evidence, not evidence of absence.
+  Inspect the exit status before reporting any "clean" verdict derived from a search.
+- **Where a search result decides a verdict, use `python3 -` rather than `rg` or `grep`.** A short
+  inline script reads the files itself, so the pattern semantics are in the script and not at the
+  mercy of which binary the hook substituted. `rg` remains fine for exploration, where a mangled
+  result costs a retry rather than a wrong conclusion.

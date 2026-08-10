@@ -1,13 +1,14 @@
 ---
 name: review-artifacts
-description: Static consistency check over docs/ and .claude/skills/ - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to docs/reviews/review-{YYYY-MM-DD}.md.
+description: Static consistency check over docs/, .claude/skills/ and .claude/agents/ - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to docs/reviews/review-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
 # Review Artifacts
 
-Static pre-flight check over the harness itself: `docs/**` and `.claude/skills/**`. It reads only
-those two trees, checks them for internal consistency, and writes one dated report. Every check
+Static pre-flight check over the harness itself: `docs/**`, `.claude/skills/**` and
+`.claude/agents/**`. It reads only those three trees, checks them for internal consistency, and
+writes one dated report. Every check
 reads files directly from disk. The only write is the report file produced at the end.
 
 **When to run it:** at every **aggregate boundary** — after the last session of aggregate `{N}` is
@@ -64,6 +65,7 @@ Run:
 ```
 find docs -type f -name "*.md" | sort
 find .claude/skills -type f \( -name "*.md" -o -name "*.template" \) | sort
+find .claude/agents -type f -name "*.md" | sort
 ```
 
 The `*.template` files under `.claude/skills/boot-strap/templates/` are part of the review set:
@@ -72,7 +74,12 @@ fields, marker comments, package declarations), and nothing else in the harness 
 Read them as code, not as prose — Checks 2 and 3 apply to them only where a doc or skill describes
 what they contain.
 
-Hold both lists. These are the complete artifact sets. Any file path referenced in a skill
+The files under `.claude/agents/` are part of the review set too. `.claude/agents/aggregate-slice.md`
+defines the scope, friction gate and return contract every slice obeys, and
+`implement-aggregate-full/SKILL.md` delegates to it at runtime; a stale rule or a leaked domain noun
+there reaches generated code exactly as one in a `session-*.md` would.
+
+Hold all three lists. These are the complete artifact sets. Any file path referenced in a skill
 or doc must appear in one of these lists to be a valid reference.
 
 **Generated outputs excluded from input set:** files under `docs/reviews/` (e.g., `review-YYYY-MM-DD.md`, `harness-retro-{app-name}-YYYY-MM-DD.md`) are produced by `/review-artifacts` and `/harness-retrospective` and are **not** part of the input artifact enumeration. Do not flag them as untracked artifacts or broken references when they appear on disk but not in the `find docs` list.
@@ -81,9 +88,9 @@ or doc must appear in one of these lists to be a valid reference.
 
 ## Step 2: Read All Artifacts
 
-Read every file returned by the two `find` commands in Step 1.b (all `docs/**/*.md`, all
-`.claude/skills/**/*.md` and the `.claude/skills/boot-strap/templates/*.template` scaffolds) — this
-is the complete review set. Do not maintain a separate
+Read every file returned by the three `find` commands in Step 1.b (all `docs/**/*.md`, all
+`.claude/skills/**/*.md`, the `.claude/skills/boot-strap/templates/*.template` scaffolds and all
+`.claude/agents/**/*.md`) — this is the complete review set. Do not maintain a separate
 hard-coded list here: because the set is derived directly from Step 1.b, newly added files
 (e.g. `.claude/skills/_shared/conventions.md`, each `.claude/skills/implement-aggregate/session-*.md`,
 or any future skill/doc) are picked up automatically without editing this skill.
@@ -94,9 +101,9 @@ Read all files in parallel where possible.
 
 ## Step 3: Check 1 — Path Validity
 
-For every file path of the form `docs/...` or `.claude/skills/...` mentioned literally (not as a
-template pattern) in any skill or doc file, verify the path appears in the Step 1.b artifact list
-or as a real file on disk.
+For every file path of the form `docs/...`, `.claude/skills/...` or `.claude/agents/...` mentioned
+literally (not as a template pattern) in any skill, agent or doc file, verify the path appears in the
+Step 1.b artifact list or as a real file on disk.
 
 Paths under `applications/` are **never** existence-checked — a generated application is transient
 and its absence is not a finding. Instead check that every such path is written as a template
@@ -200,62 +207,92 @@ continuous, so this check is what turns the rule from a disclaimer into a contro
 Skip this check only when no run is in progress (no `plan.md` anywhere under `applications/`); say so
 in the report rather than omitting the section.
 
-### 6.a — Collect the forbidden nouns
+### 6.a — Run the scan
 
-Derive `{app-name}` per `.claude/skills/_shared/conventions.md` § "Resolve app context". The names
-come from that run's own `plan.md`: one per `### {N}. {Aggregate}` section header. Write them to a
-scratch file, one per line.
+Derive `{app-name}` per `.claude/skills/_shared/conventions.md` § "Resolve app context". The
+forbidden nouns come from that run's own `plan.md`: one per `### {N}. {Aggregate}` section header.
+
+Run the whole scan as one `python3` script. It must be `python3`, not `rg`: a `PreToolUse` hook in
+this environment can rewrite a bare `rg` into `grep`, which either fails on `rg`-only flags or scans
+with different semantics — see `.claude/skills/_shared/conventions.md` § "Commands whose output feeds
+a verdict". Substitute `{app-name}` before running.
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"
-rg -o '^### [0-9]+\. \S+' applications/{app-name}/plan.md | sed 's/^### [0-9]*\. //' | sort -u > /tmp/harness-nouns.txt
+python3 - <<'EOF'
+import re, subprocess, sys
+
+APP = "{app-name}"
+PATHSPEC = ["docs", ".claude/skills", ".claude/agents", ":(exclude)docs/reviews"]
+
+def git(*args):
+    return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout
+
+plan = open(f"applications/{APP}/plan.md").read()
+nouns = sorted(set(re.findall(r'^### \d+\. (\S+)', plan, re.M)))
+if not nouns:
+    sys.exit("no aggregate headers found in plan.md - check {app-name}")
+
+head = git("rev-parse", "HEAD").strip()
+base = git("merge-base", "HEAD", "master").strip()
+derivation = "git merge-base HEAD master"
+if base == head:
+    oldest = git("log", "--format=%H", "--grep=^harness:", "HEAD", "--", *PATHSPEC[:3]).split()
+    if not oldest:
+        sys.exit("no harness: commits and merge-base == HEAD - nothing to check")
+    base = oldest[-1] + "^"
+    derivation = "parent of the oldest harness: commit (merge-base == HEAD)"
+
+diff = git("diff", base, "-M", "--", *PATHSPEC).splitlines()
+pattern = re.compile(r"\b(" + "|".join(map(re.escape, nouns)) + r")(s|es|'s)?\b")
+
+current, added, hits = None, 0, []
+for line in diff:
+    if line.startswith("+++ "):
+        current = line[6:]
+    elif line.startswith("+"):
+        added += 1
+        m = pattern.search(line)
+        if m:
+            hits.append((current, line[1:], m.group(1)))
+
+print(f"BASE={base}  ({derivation})")
+print(f"nouns={nouns}")
+print(f"added lines scanned={added}  hits={len(hits)}")
+for path, line, noun in hits:
+    moved = subprocess.run(["git", "grep", "-F", line.strip(), base, "--", *PATHSPEC[:3]],
+                           capture_output=True, text=True).returncode == 0
+    print(f"\n{'MOVED' if moved else 'HIT  '} {path} [{noun}]\n  {line.strip()}")
+EOF
 ```
 
-### 6.b — Diff the harness against the run's base commit
+**Why the base is derived this way.** `merge-base` alone is not enough: when harness work is
+committed on **master** — what happens between runs and during a harness-preparation phase —
+`merge-base HEAD master` resolves to `HEAD` itself, the diff is empty, and the check silently passes
+having scanned nothing. The fallback walks back to the parent of the oldest `harness:` commit
+instead. **State in the report which base was used and how it was derived** — a reader cannot
+interpret "0 violations" without knowing how many lines were scanned. If neither rule yields a base
+(no `harness:` commits at all), there is nothing to check; say so.
 
-The base commit is where the run's harness edits begin:
+**Why `docs/reviews` is excluded from the pathspec.** For the same reason Step 1.b excludes it from
+the input artifact set: those files are this skill's own generated output, and every previous report
+prints the forbidden-noun list about itself. Including them turns each past report into a spurious
+hit that the move-test cannot clear, because the line is genuinely new at that commit.
 
-```bash
-BASE=$(git merge-base HEAD master)
-[ "$BASE" = "$(git rev-parse HEAD)" ] && BASE=$(git log --format=%H --grep='^harness:' HEAD -- docs .claude/skills | tail -1)^
-git diff "$BASE" -- docs .claude/skills -M | rg '^\+' | rg -v '^\+\+\+' > /tmp/harness-added.txt
-```
+### 6.b — Classify each hit
 
-`merge-base` alone is not enough. When harness work is committed on **master** — which is what
-happens between runs and during a harness-preparation phase — `merge-base HEAD master` resolves to
-`HEAD` itself, the diff is empty, and the check silently passes having scanned nothing. The fallback
-walks back to the parent of the oldest `harness:` commit instead, so a run of harness edits on master
-is still measured. **State in the report which base was used and how it was derived** — a reader
-cannot interpret "0 violations" without knowing how many lines were scanned.
-
-If neither rule yields a base (no `harness:` commits at all), there is nothing to check; say so.
-
-### 6.c — Match
-
-```bash
-rg -n -w -f /tmp/harness-nouns.txt /tmp/harness-added.txt
-```
-
-`-w` matches whole words only, so a hit is a real occurrence of the noun and not a substring of an
-unrelated identifier.
+The script prints one line per match, prefixed `MOVED` or `HIT`, plus the totals the report needs.
 
 **A hit is not yet a finding.** `git diff` renders a **moved** line as an addition, so any refactor
 that relocates content between harness files reports every domain noun it carried, none of which is
-new. Before reporting a hit, check whether the identical line already existed at the base:
+new. The `git grep` in the script is that move-test: a `MOVED` line already existed verbatim at the
+base and is not a violation. This is not a rare case — a session-letter swap or a sub-file split
+produces nothing else, and on Check 4's first exercise all three hits were moves.
 
-```bash
-git grep -F "<the added line>" "$BASE" -- docs .claude/skills
-```
-
-A match means the line was moved, not introduced: it is a `Moved` verdict, not a violation. This is
-not a rare case - a session-letter swap or a sub-file split produces nothing else, and on Check 4's
-first exercise all three hits were moves.
-
-Then report the added line verbatim and the file it came from (re-run
-`git diff "$BASE" -- docs .claude/skills -M` and locate the hunk, since the filtered file has lost
-its `+++` headers). Read each surviving hit before reporting it: a noun that is also an ordinary
-English word can appear legitimately, and a plural or possessive form will not match `-w` at all, so
-scan the added lines for those by eye.
+Read each surviving `HIT` before reporting it: a noun that is also an ordinary English word can
+appear legitimately, and is a `False positive` with the reason stated. The pattern already matches
+the regular `s` / `es` / `'s` inflections; scan the added lines by eye only for an **irregular**
+plural of a domain noun (e.g. a noun whose plural changes its stem), which no suffix rule catches.
 
 | File | Added line | Noun | Verdict |
 |------|-----------|------|---------|
@@ -282,6 +319,7 @@ Write `{report-file}` using the template below. Never omit a section — write
 **Date:** {review-date}
 **Skill files reviewed:** {count}
 **Scaffold templates reviewed:** {count}
+**Agent contract files reviewed:** {count}
 **Doc files reviewed:** {count}
 **Verdict:** Clean | Minor issues | Issues requiring action
 
@@ -386,7 +424,7 @@ Output to the conversation (not to the report file):
 3. **Never omit sections.** Write "nothing to report" in any section with no findings.
 4. **Quote the evidence.** For every Critical or Major finding, quote the conflicting text
    verbatim from both sources (with file path and approximate line context).
-5. **Static scope only.** The review set is `docs/**` and `.claude/skills/**`. The single permitted
+5. **Static scope only.** The review set is `docs/**`, `.claude/skills/**` and `.claude/agents/**`. The single permitted
    read under `applications/**` is the `### {N}. {Aggregate}` header list in `plan.md`, for Check 4
    (Step 6). No retros, no reviews, no harness log, no generated source. Empirical evaluation of a
    completed run belongs to `/harness-retrospective`.
