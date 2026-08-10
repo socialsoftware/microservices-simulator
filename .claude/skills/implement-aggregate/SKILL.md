@@ -188,8 +188,8 @@ Do not continue from memory of a previous read. It owns, in this order:
 | 5  | § "Tick the checkbox" |
 | 5b | § "Amend plan.md for omitted files" |
 | 6  | § "Report completion" |
+| 6b | § "Harness-log rows" |
 | 7  | § "Retro assembly" - use § "Single-agent mode", then § "Retro template" |
-| 7.d| § "Harness-log rows" (run before writing the retro file) |
 | 8  | § "Commit" |
 
 The retro template, the Semantic-Lock Coverage Audit commit-blocking rule and the commit message
