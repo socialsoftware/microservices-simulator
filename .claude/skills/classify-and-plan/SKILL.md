@@ -655,7 +655,7 @@ every Phase 2/3/4 skill depends on the ordinal being present.
 - `{Operation}({args})` — description
 
 **Read functionalities** (query operations):
-- `Get{Query}({args})` — description
+- `{Query}({args})` — description
 
 **Events published:** list from aggregate-grouping §4
 **Events subscribed:** list from aggregate-grouping §4
