@@ -112,7 +112,16 @@ which is the P4a-over-P3 preference of § P3 applied to an input no rule mention
 
 1. **A saga fetch already targets it → P4a, no explicit guard.** If the functionality's saga fetches
    the target and that fetch is keyed so it fails on an out-of-domain id, the fetch failing *is* the
-   enforcement. Add the § P4 comment at the saga step; add nothing to the service.
+   enforcement. Discharge the § P4 documentation obligation with a comment at the saga step; add
+   nothing to the service.
+
+   ```java
+   // Fetching this DTO enforces the precondition implicitly.
+   // If the precondition is not met, the command throws and the saga aborts - {RULE_NAME}.
+   {Target}Dto {target}Dto = ({Target}Dto) commandGateway.sendAndCollect(
+       new Get{Target}By{Key}Command(unitOfWork, ServiceMapping.{TARGET}.getServiceName(), ...));
+   ```
+
 2. **The target is an entity owned by this aggregate → P3 service guard.** An owned entity is
    resolved from the aggregate's own collection, so there is no saga fetch that could fail. Resolve
    it, and throw a named constant when the lookup finds nothing - **before any mutation**, alongside
