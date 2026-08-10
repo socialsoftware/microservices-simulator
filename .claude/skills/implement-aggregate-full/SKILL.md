@@ -227,7 +227,7 @@ Return the block defined in .claude/agents/aggregate-slice.md.
 | Session | Test class(es) for `-Dtest` |
 |---------|------------------------------|
 | `a` | `{Aggregate}IntraInvariantTest` (T1) |
-| `b` | `{Query}Test` (T4) for this slice's read op |
+| `b` | `{Query}Test` (T4) for this slice's read op - omit when the aggregate has no read functionality (`session-b.md` produces no `{Query}Test.groovy` then), leaving `{Aggregate}ServiceTest` alone as the slice's verification |
 | `c` | `{Operation}Test` (T4) for this slice's write op, plus `{Operation}CompensationTest` when the slice has one |
 | `d` | `{Aggregate}InterInvariantTest` (T3) |
 
