@@ -143,7 +143,6 @@ public class ExecutionService {
         student.setActive(active);
         student.setUserVersion(userVersion);
 
-        newExecution.verifyInvariants();
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
     }
 
@@ -161,7 +160,6 @@ public class ExecutionService {
         student.setUserName(userName);
         student.setUserVersion(userVersion);
 
-        newExecution.verifyInvariants();
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
     }
 
@@ -180,7 +178,6 @@ public class ExecutionService {
         student.setUserUsername(userUsername);
         student.setUserVersion(userVersion);
 
-        newExecution.verifyInvariants();
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
     }
 
@@ -198,7 +195,6 @@ public class ExecutionService {
         }
         newExecution.removeStudent(userAggregateId);
 
-        newExecution.verifyInvariants();
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
     }
 

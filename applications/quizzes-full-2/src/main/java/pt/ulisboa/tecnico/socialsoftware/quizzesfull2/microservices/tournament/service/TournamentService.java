@@ -167,7 +167,6 @@ public class TournamentService {
                     participant.setUserVersion(userVersion);
                 });
 
-        newTournament.verifyInvariants();
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
@@ -190,7 +189,6 @@ public class TournamentService {
                     participant.setUserVersion(userVersion);
                 });
 
-        newTournament.verifyInvariants();
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
@@ -206,7 +204,6 @@ public class TournamentService {
             removeTournament(newTournament);
         } else {
             newTournament.removeParticipant(userAggregateId);
-            newTournament.verifyInvariants();
         }
 
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
@@ -224,7 +221,6 @@ public class TournamentService {
                     topic.setTopicVersion(topicVersion);
                 });
 
-        newTournament.verifyInvariants();
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
@@ -237,7 +233,6 @@ public class TournamentService {
 
         newTournament.removeTopic(topicAggregateId);
 
-        newTournament.verifyInvariants();
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
@@ -268,7 +263,6 @@ public class TournamentService {
         }
         newTournament.removeParticipant(userAggregateId);
 
-        newTournament.verifyInvariants();
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 
@@ -325,7 +319,6 @@ public class TournamentService {
         }
         quizAnswer.setQuizAnswerVersion(quizAnswerVersion);
 
-        newTournament.verifyInvariants();
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
 

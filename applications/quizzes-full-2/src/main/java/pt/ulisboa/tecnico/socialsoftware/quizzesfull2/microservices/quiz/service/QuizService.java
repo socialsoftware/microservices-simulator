@@ -108,7 +108,6 @@ public class QuizService {
         question.setContent(content);
         question.setQuestionVersion(questionVersion);
 
-        newQuiz.verifyInvariants();
         unitOfWorkService.registerChanged(newQuiz, unitOfWork);
     }
 

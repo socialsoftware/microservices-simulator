@@ -138,7 +138,6 @@ public class QuizAnswerService {
         student.setUserName(userName);
         student.setUserVersion(userVersion);
 
-        newQuizAnswer.verifyInvariants();
         unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
     }
 
@@ -155,7 +154,6 @@ public class QuizAnswerService {
         }
         questionAnswer.setQuestionVersion(questionVersion);
 
-        newQuizAnswer.verifyInvariants();
         unitOfWorkService.registerChanged(newQuizAnswer, unitOfWork);
     }
 

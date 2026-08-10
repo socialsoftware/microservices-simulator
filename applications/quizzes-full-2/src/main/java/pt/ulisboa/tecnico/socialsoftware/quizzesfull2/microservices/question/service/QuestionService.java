@@ -109,7 +109,6 @@ public class QuestionService {
         topic.setTopicName(topicName);
         topic.setTopicVersion(topicVersion);
 
-        newQuestion.verifyInvariants();
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
     }
 
@@ -124,7 +123,6 @@ public class QuestionService {
         }
         newQuestion.removeTopic(topicAggregateId);
 
-        newQuestion.verifyInvariants();
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
     }
 
