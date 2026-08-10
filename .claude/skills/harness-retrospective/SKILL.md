@@ -59,13 +59,31 @@ If a report with that name already exists, append `-2`, `-3`, etc. rather than o
 
 ## Step 2: Precondition — the run must be complete
 
-Read `applications/{app-name}/plan.md` and count unchecked boxes:
+Read `applications/{app-name}/plan.md` and count unchecked boxes. The count decides whether the
+retrospective runs at all, so it comes from `python3` rather than `grep` — see
+`.claude/skills/_shared/conventions.md` § "Commands whose output feeds a verdict". Substitute
+`{app-name}` before running:
 
 ```bash
-grep -c -- "- \[ \]" applications/{app-name}/plan.md
+cd "$(git rev-parse --show-toplevel)"
+python3 - <<'EOF'
+import pathlib, sys
+
+plan = pathlib.Path("applications/{app-name}/plan.md")
+if not plan.is_file():
+    sys.exit(f"{plan} does not exist - check the app name")
+
+lines = plan.read_text().splitlines()
+unchecked = [(n, l.strip()) for n, l in enumerate(lines, 1) if "- [ ]" in l]
+print(f"scanned {len(lines)} lines of {plan}")
+print(f"unchecked={len(unchecked)}")
+for n, l in unchecked:
+    print(f"  {plan}:{n}: {l}")
+EOF
 ```
 
-If the count is non-zero, **halt** and report:
+If the script errors, or prints `scanned 0 lines`, that is a failed check, not a complete run — fix
+the app name and re-run. If `unchecked` is non-zero, **halt** and report:
 
 > "Run not complete: {count} unchecked boxes remain in applications/{app-name}/plan.md.
 > /harness-retrospective evaluates finished runs only."
@@ -90,9 +108,9 @@ Check the log's own integrity while reading and record any of these as a finding
 summary: gaps or duplicates in the `#` sequence; rows with a `Type` outside `1` / `2` / `2-fw`; rows
 with an `Outcome` outside `fixed` / `declined` / `deferred`; `fixed` rows with an empty or
 unresolvable `Ref`; any row whose `Type` is `1` but whose `Artifact` is under `simulator/`, which
-the gates forbid; and rows whose `Artifact` is not a path under `docs/`, `.claude/skills/` or
-`simulator/` (implementation defects misfiled as friction — dismiss them in Step 9, do not count
-them as harness gaps).
+the gates forbid; and rows whose `Artifact` is not a path under `docs/`, `.claude/skills/`,
+`.claude/agents/`, `simulator/`, or `AGENTS.md` itself (implementation defects misfiled as
+friction — dismiss them in Step 9, do not count them as harness gaps).
 
 ### 3.a.i — The harness commits
 
@@ -101,7 +119,7 @@ here:
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"
-git log --oneline "$(git merge-base HEAD master)"..HEAD -- docs .claude/skills
+git log --oneline "$(git merge-base HEAD master)"..HEAD -- docs .claude/skills .claude/agents AGENTS.md
 ```
 
 That listing is the run's complete harness delta. Read `git show {Ref}` for every `fixed` row. Two
