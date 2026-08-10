@@ -338,6 +338,27 @@ public class Invalidate{Consumer}Event extends Event {
 }
 ```
 
-3. Downstream aggregates that cache a reference to `{Consumer}` subscribe to `Invalidate{Consumer}Event` and process it the same way — either removing the sub-entity from a collection or cascading their own invalidation.
+3. Downstream aggregates that cache a reference to `{Consumer}` declare the subscription and route the event into a ByEvent method, exactly as for any other subscribed event:
+
+```java
+// In {Downstream}.getEventSubscriptions() — anchored to the cached {Consumer}'s aggregate id
+eventSubscriptions.add(new {Downstream}SubscribesInvalidate{Consumer}(this.get{Consumer}()));
+
+// In {Downstream}Functionalities — the § ByEvent sagaState guard shape
+public void invalidate{Consumer}ByEvent(Integer aggregateId) {
+    SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork();
+    {Downstream} aggregate = ({Downstream}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+    if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
+        return;
+    }
+    {downstream}Service.invalidate{Consumer}(aggregateId, unitOfWork);
+    unitOfWorkService.commit(unitOfWork);
+}
+```
+
+**Which branch the service method takes** is decided by whether the downstream aggregate can still function without the invalidated reference:
+
+- **It only caches the reference** → remove the cached sub-entity from its collection and `registerChanged` the copy. The cascade stops here; no outbound event.
+- **It is itself non-functional without the reference** → `copy.remove()` plus its own `registerEvent(new Invalidate{Downstream}Event(...))`, i.e. step 1 again one level down. The cascade continues.
 
 **Key invariant:** the outbound invalidation event must use the consumer's own aggregate ID as `publisherAggregateId` so that downstream `EventSubscription` instances anchored to that ID receive it. This is the same rule that applies to all events: `super(anchorAggregateId)` must match the `subscribedAggregateId` of the downstream subscriber.
