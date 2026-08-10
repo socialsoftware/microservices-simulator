@@ -550,7 +550,7 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.d | `notification/subscribe/{Aggregate}Subscribes{Event}.java` (one per subscribed event), `notification/handling/{Aggregate}EventHandling.java`, `notification/handling/handlers/{Aggregate}EventHandler.java`, `coordination/eventProcessing/{Aggregate}EventProcessing.java`, `sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` |
+| 2.N.d | `notification/subscribe/{Aggregate}Subscribes{Event}.java` (one per subscribed event), `notification/handling/{Aggregate}EventHandling.java`, `notification/handling/handlers/{Aggregate}EventHandler.java`, `coordination/eventProcessing/{Aggregate}EventProcessing.java`, `coordination/functionalities/{Aggregate}Functionalities.java` (one `{operation}ByEvent` appended per event), `service/{Aggregate}Service.java` (one mutate helper appended per event), `aggregate/{Aggregate}.java` (`getEventSubscriptions()` updated), `sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` |
 ```
 
 **Substitution rules:**
