@@ -229,7 +229,19 @@ Deferred rules are excluded from Step 6.c cross-aggregate prerequisites and from
 file list.
 
 **Parser heuristic** (mechanical only — this keyword matching exists to drive unattended parsing;
-it is not part of the doc's decision criteria):
+it is not part of the doc's decision criteria).
+
+The two P4 branches read a proxy each, so the block is runnable without a human in the loop:
+
+- `rule_is_implicitly_enforced_by_fetch(rule)` — the rule's predicate names a lookup that §4 of the
+  domain model already describes the saga performing, keyed so the command throws when the
+  precondition is unmet (typically a compound-key `Get…By…And…Command`).
+- `rule_holds_by_shared_value_in_same_saga(rule)` — the rule equates a field across two aggregates
+  that a single §4 saga creates or updates in the same run, passing that value to both.
+
+Both are parse proxies, not the criteria. A rule either proxy catches is still classified by
+`docs/concepts/rule-enforcement-patterns.md` § Decision Guide, and where proxy and guide disagree the
+guide wins.
 
 ```
 FOR each rule in §3.2:
