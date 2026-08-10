@@ -51,11 +51,23 @@ Commands are plain data carriers — no business logic, no Spring beans.
 > Version conflict detection is unaffected; it operates on the aggregates registered read/changed
 > with the unit of work, not on this field.
 
+It is the third `super(...)` argument that goes `null`, not a payload field:
+
+```java
+public Create{Aggregate}Command(UnitOfWork unitOfWork, String serviceName, {Aggregate}Dto {aggregate}Dto) {
+    super(unitOfWork, serviceName, null);  // rootAggregateId - the service mints the id
+    this.{aggregate}Dto = {aggregate}Dto;
+}
+```
+
 > A **bulk read filtered by a non-PK field** likewise has no single root aggregate. Pass `null`, for
 > the same reason: it declares no semantic lock and no forbidden states, so the handler never
 > dereferences it. Do **not** pass the filter value even when the filter is a foreign aggregate's
 > id - `rootAggregateId` names the aggregate whose lock lifecycle this command joins, and a
 > foreign aggregate that merely narrows the result set is not it.
+
+Same position, same argument: `super(unitOfWork, serviceName, null)`, with the filter value carried
+as an ordinary payload field beside it.
 
 ---
 
