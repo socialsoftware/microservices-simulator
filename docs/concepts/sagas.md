@@ -112,7 +112,7 @@ Declare the list at the interface type and add to it, as above.
 | Step target | Pattern | When to use |
 |-------------|---------|-------------|
 | **Primary aggregate** (the aggregate owning this saga) | `SagaCommand` wrapping the read command + `setSemanticLock(state)` | Lock acquisition before mutating the saga's own aggregate — see § Lock-Acquisition Step Pattern. The lock is released automatically on abort/commit — do **not** register a manual release compensation (see § Semantic-lock release on abort is automatic) |
-| **Foreign aggregate** (upstream aggregate touched by a cross-aggregate step) | Plain command + `setForbiddenStates([...])` listing states that must block this step | Abort if the foreign aggregate is already mid-saga in a conflicting state; does **not** acquire a new lock |
+| **Foreign aggregate** (upstream aggregate touched by a cross-aggregate step) | `SagaCommand` wrapping the command + `setForbiddenStates([...])` on it, listing states that must block this step — no lock is acquired | Abort if the foreign aggregate is already mid-saga in a conflicting state; does **not** acquire a new lock |
 | **Newly created aggregate** (the step creates it) | Plain command, no lock and no forbidden states; register a compensation that removes it iff a later step follows | The aggregate does not exist when the saga starts, so there is no prior state to guard - see § Create Functionality Sagas |
 
 **Rule of thumb:** if the step must **acquire** a lock on an aggregate before writing to it, use `SagaCommand` + `setSemanticLock`. If the step only needs to **check** that another aggregate is not already locked, use `setForbiddenStates`. If the step brings the aggregate into existence, neither applies.

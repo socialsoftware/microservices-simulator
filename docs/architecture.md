@@ -189,7 +189,7 @@ A service may accept and return `{Xxx}Dto` objects belonging to any aggregate. I
 In the Sagas protocol, a step that touches an aggregate **that already exists when the saga starts** must declare how it guards against concurrent operations. Which mechanism applies depends on the aggregate's relationship to the saga:
 
 - **Primary aggregate** (the one owning this saga) — wrap the *read* command in `SagaCommand` and call `setSemanticLock(state)` on it. The mutate step that follows sends a plain, unwrapped command and declares the lock step as a dependency. Do not use `forbiddenStates` to acquire a primary-aggregate lock.
-- **Foreign aggregate** (an upstream aggregate a cross-aggregate step touches) — send a plain command with `setForbiddenStates([...])`, listing the `SagaState` values of concurrent operations that would conflict. This checks that the foreign aggregate is not already mid-saga; it does not acquire a lock.
+- **Foreign aggregate** (an upstream aggregate a cross-aggregate step touches) — wrap the command in `SagaCommand` and call `setForbiddenStates([...])` on it, listing the `SagaState` values of concurrent operations that would conflict. This checks that the foreign aggregate is not already mid-saga; it does not acquire a lock. Both saga-state setters live on `SagaCommand`, so a guarded step wraps exactly as a lock step does.
 
 Declaring neither lets two operations interleave in ways that violate business rules.
 
