@@ -215,12 +215,21 @@ PLAN CONTEXT FOR THIS ITEM:
 
 VERIFY:
   cd applications/{app-name}
-  mvn -Ptest-sagas test -Dtest=<this slice's T4 test>,{Aggregate}ServiceTest
+  mvn -Ptest-sagas test -Dtest=<this slice's own test class(es)>,{Aggregate}ServiceTest
   echo "MAVEN_EXIT=$?"
   then the surefire aggregation script from _shared/conventions.md
 
 Return the block defined in .claude/agents/aggregate-slice.md.
 ```
+
+`<this slice's own test class(es)>` resolves per session type - only `b` and `c` produce a T4 test:
+
+| Session | Test class(es) for `-Dtest` |
+|---------|------------------------------|
+| `a` | `{Aggregate}IntraInvariantTest` (T1) |
+| `b` | `{Query}Test` (T4) for this slice's read op |
+| `c` | `{Operation}Test` (T4) for this slice's write op, plus `{Operation}CompensationTest` when the slice has one |
+| `d` | `{Aggregate}InterInvariantTest` (T3) |
 
 For a whole-session (unsliced) run, `YOUR SLICE` names the session itself and the "only this item"
 sentence is dropped; everything else is unchanged.
