@@ -78,7 +78,7 @@ the value fresh, and the service validates the parameter it was handed:
 ```java
 // P2 (cache only) — the consumer mirrors the field, and nothing reads it to decide anything.
 public void {operation}ByEvent(Integer aggregateId, {FieldType} {field}, Long {publisher}Version) {
-    // ... load, apply, verifyInvariants(), commit
+    // ... load, delegate to the service, commit
 }
 
 // P3 (blocking) — the saga adds a data-assembly step before the lock step ...
@@ -94,7 +94,7 @@ public void {operation}(Integer aggregateId, {Publisher}Dto {publisher}Dto, Unit
     if (!{publisher}Dto.is{Condition}()) {
         throw new {AppClass}Exception({AppClass}ErrorMessage.{RULE_CONSTANT});
     }
-    // ... load, mutate, verifyInvariants(), registerChanged
+    // ... load, copy, mutate the copy, registerChanged
 }
 ```
 
