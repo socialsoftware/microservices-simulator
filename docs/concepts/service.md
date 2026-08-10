@@ -43,7 +43,11 @@ public class WarehouseService {
 > The list above is closed: own repository, own custom repository, own factory, `UnitOfWorkService`,
 > `AggregateIdGeneratorService`. Omit any the service genuinely does not use; add nothing else.
 
-Never inject a foreign service class or a foreign repository — see [R1, R2 in architecture.md](../architecture.md).
+Never inject a foreign service class or a foreign repository — see [R2 in architecture.md](../architecture.md).
+
+`aggregateLoadAndRegisterRead` is called only with ids of this service's own aggregate type (R1). A
+foreign aggregate's state never arrives by loading it here; it arrives as a DTO parameter, assembled
+by the Functionality from a `Get*Command` step.
 
 Never hold a reference to another aggregate's **concrete class** either (R3). A service may accept and return any aggregate's `{Xxx}Dto`, but aggregate instances carry UoW registration state that must not cross service boundaries — cross-aggregate state flows as DTOs, assembled by the Functionality from a `Get*Command` step and passed downstream as plain values.
 
