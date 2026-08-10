@@ -62,14 +62,19 @@ In these cases the discriminating check (e.g., `shipmentId`) must happen inside 
 ```java
 // In {Aggregate}Service:
 public void removeIfShipmentMatches(Integer aggregateId, Integer shipmentId, UnitOfWork unitOfWork) {
-    {Aggregate} aggregate = get{Aggregate}ById(aggregateId, unitOfWork);
-    if (!aggregate.getShipmentId().equals(shipmentId)) {
+    {Aggregate} old{Aggregate} = ({Aggregate}) unitOfWorkService
+            .aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+    if (!old{Aggregate}.getShipmentId().equals(shipmentId)) {
         return; // not the affected consumer — ignore silently
     }
-    aggregate.remove();
-    unitOfWorkService.registerChanged(aggregate, unitOfWork);
+    {Aggregate} new{Aggregate} = {aggregate}Factory.create{Aggregate}Copy(old{Aggregate});
+    new{Aggregate}.remove();
+    unitOfWorkService.registerChanged(new{Aggregate}, unitOfWork);
 }
 ```
+
+Soft-delete goes through copy-on-write here as everywhere else — `docs/concepts/service.md`
+§ Copy-on-Write Rule owns the rule and the abort-path bug that motivates it.
 
 Do **not** attempt to move this check into a `subscribesEvent()` override — see `docs/concepts/events.md` § EventSubscription.
 
@@ -157,13 +162,14 @@ If the consumer aggregate caches no publisher payload (no name, no description �
 // In {Aggregate}Service:
 public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer warehouseAggregateId,
                                                 Long publisherVersion, UnitOfWork unitOfWork) {
-    {Aggregate} aggregate = get{Aggregate}ById(aggregateId, unitOfWork);
-    aggregate.get{SubEntities}().stream()
+    {Aggregate} old{Aggregate} = ({Aggregate}) unitOfWorkService
+            .aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+    {Aggregate} new{Aggregate} = {aggregate}Factory.create{Aggregate}Copy(old{Aggregate});
+    new{Aggregate}.get{SubEntities}().stream()
         .filter(e -> e.getWarehouseAggregateId().equals(warehouseAggregateId))
         .findFirst()
         .ifPresent(e -> e.setWarehouseVersion(publisherVersion));
-    aggregate.verifyInvariants();
-    unitOfWorkService.registerChanged(aggregate, unitOfWork);
+    unitOfWorkService.registerChanged(new{Aggregate}, unitOfWork);
 }
 ```
 
