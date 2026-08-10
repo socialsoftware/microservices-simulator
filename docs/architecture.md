@@ -238,6 +238,22 @@ A functionality that belongs to aggregate A may only issue commands (read or mut
 
 **Why:** Downstream aggregates depend on A's events to cache A's state — the data-flow direction is A → downstream. Sending a command from A's functionality to a downstream aggregate reverses that direction, couples A to downstream internals, and risks circular command chains.
 
+```java
+// WRONG — A's functionality reaches into a downstream aggregate to push the new value.
+// The command chain now runs both ways, and A must know which downstream types cache the field.
+commandGateway.sendAndCollect(new Update{Aggregate}Command(unitOfWork,
+        ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}AggregateId, newValue));
+commandGateway.sendAndCollect(new Set{Downstream}{Field}Command(unitOfWork,
+        ServiceMapping.{DOWNSTREAM}.getServiceName(), {downstream}AggregateId, newValue));
+
+// RIGHT — A's step updates A only. The downstream aggregate subscribes to A's event and
+// folds the new value into its cached copy through its own ByEvent path.
+commandGateway.sendAndCollect(new Update{Aggregate}Command(unitOfWork,
+        ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}AggregateId, newValue));
+// {Aggregate}Service registers Update{Aggregate}Event; the downstream aggregate declares the
+// matching subscription in getEventSubscriptions() — see concepts/events.md § Canonical Wiring Snippet.
+```
+
 ---
 
 ## Choosing the Right Enforcement Pattern
