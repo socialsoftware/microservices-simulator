@@ -72,7 +72,11 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 | Module | Purpose                                                                                                       | Local context |
 |--------|---------------------------------------------------------------------------------------------------------------|---------------|
 | `simulator/` | Core library: `Aggregate`, `Workflow`, `UnitOfWork`, `CommandGateway`, events                                 | [`simulator/AGENTS.md`](simulator/AGENTS.md) |
-| `applications/{app-name}/` | A generated application; its spec pair, `plan.md`, `retros/`, `reviews/` and `harness-log.md` live here | — |
+| `applications/{app-name}/` | A generated application; its spec pair, `plan.md`, `retros/`, `logs/` and `harness-log.md` live here | — |
+
+Review reports are **not** per-application: `docs/reviews/` holds both kinds, `review-{date}.md`
+written by `/review-artifacts` and `harness-retro-{app-name}-{date}.md` written by
+`/harness-retrospective`.
 
 ---
 
