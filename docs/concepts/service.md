@@ -178,7 +178,7 @@ public void updateShipment(Integer shipmentAggregateId, ShipmentDto shipmentDto,
 }
 ```
 
-**When to use:** The calling saga fetches an upstream aggregate's DTO but that DTO only returns IDs for sub-objects (e.g. `WarehouseDto.shipmentIds`). Fetching each sub-object individually would require N extra command steps and is disproportionate when the update intent covers only scalar fields. Passing `null` and guarding the setter keeps the update intent explicit without polluting the saga with unnecessary reads.
+**When to use:** The calling saga fetches an upstream aggregate's DTO but that DTO only returns IDs for sub-objects (e.g. `WarehouseDto.shipmentIds`). Fetching each sub-object individually would require N extra command steps, which buy nothing when the sub-collection is not the operation's primary intent (see § When not to use). Passing `null` and guarding the setter keeps the update intent explicit without polluting the saga with unnecessary reads.
 
 **When not to use:** If the sub-collection update is the primary intent of the operation (the caller always has the data), make the parameter non-null and remove the guard — a missing `null` check is then a silent data loss bug.
 
