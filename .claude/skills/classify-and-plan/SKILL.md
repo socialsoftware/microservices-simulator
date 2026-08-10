@@ -509,7 +509,7 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.b | `service/{Aggregate}Service.java` (read methods), `messaging/{Aggregate}CommandHandler.java`, `{src}commands/{aggregate}/Get{Aggregate}ByIdCommand.java`, `{src}commands/{aggregate}/Get{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `coordination/functionalities/{Aggregate}Functionalities.java`, `{src}ServiceMapping.java` (add the `{AGGREGATE}` entry), `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (read-method cases), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
+| 2.N.b | `service/{Aggregate}Service.java` (read methods), `messaging/{Aggregate}CommandHandler.java`, `{src}commands/{aggregate}/Get{Aggregate}ByIdCommand.java`, `{src}commands/{aggregate}/{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `coordination/functionalities/{Aggregate}Functionalities.java`, `{src}ServiceMapping.java` (add the `{AGGREGATE}` entry), `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (read-method cases), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
 ```
 
 > **`Get{Aggregate}ByIdCommand.java` is unconditional** — list it in every aggregate's 2.N.b row, whether or not §4 has any read functionality for that aggregate. Write sagas need it for their get-then-lock step, so it is infrastructure rather than a domain read, and session `b` is therefore never empty.
