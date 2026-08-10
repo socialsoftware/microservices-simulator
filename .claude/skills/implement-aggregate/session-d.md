@@ -18,7 +18,7 @@ Load these files before writing any code:
    - § Event Classes, § Publishing Events, § EventSubscription (anchor field, `getSubscribedAggregateId()`, `getEventType()`)
    - § EventHandler, § Polling — dispatch and `@Scheduled` polling
    - § Canonical Wiring Snippet (and all subsections) — the per-file structure for this session
-   - § Canonical Wiring Snippet → EventProcessing class, § ByEvent sagaState guard — the contract: `verifyInvariants()` after the cached-field change, plus the saga-state skip
+   - § Canonical Wiring Snippet → EventProcessing class, § ByEvent sagaState guard — the contract: the saga-state skip, and the service-method signature the ByEvent method delegates to
    - § Cascade Invalidation Pattern — only if a deletion event causes `copy.remove()` on this aggregate
 
 2. **`docs/concepts/testing.md`** — § T3 — Subscription (Inter-Invariant) Test, including the deletion-event `and:`-block pattern, plus § Assertion Ownership. Note:
@@ -133,15 +133,15 @@ public class {Aggregate}EventProcessing {
 ```
 
 - Does NOT load, mutate, or persist the aggregate directly
-- The cached-field update, `verifyInvariants()`, and UoW commit all happen inside the Functionalities update method
+- The cached-field update and the UoW commit both happen inside the Functionalities update method
 
-**P2 rule enforcement:** The invariant check happens inside the Functionalities update method, which loads the aggregate, applies the cached-field change, and calls `verifyInvariants()` before committing. If the invariant fails, the exception propagates and the event is not marked as processed (allowing retry or manual intervention).
+**P2 rule enforcement:** The invariant check happens inside the Functionalities update method, which loads the aggregate, applies the cached-field change and registers the new version changed — which invariant-checks it. If the invariant fails, `registerChanged` throws, the exception propagates and the event is not marked as processed (allowing retry or manual intervention).
 
 #### "ByEvent" methods in Functionalities — mandatory pattern
 
 For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `archiveWarehouse`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `{Aggregate}Functionalities`. The full pattern — method body, `sagaState != NOT_IN_SAGA` guard, where the guard goes (after load, not in the shared service method), and when it may be skipped — is documented in `docs/concepts/events.md` § ByEvent sagaState guard. Follow that section.
 
-The `{operation}ByEvent` **Functionalities** method is always new — one per event, per `events.md` § ByEvent sagaState guard. The **service** method it delegates to is shared with the saga path: reuse the existing `{Aggregate}Service` mutate method whenever one already performs exactly this mutation. Write a new service helper (pure mutation + `verifyInvariants()`, no saga) only when no existing service method does — typically when the event updates a cached field that no saga operation touches. Never move the `sagaState` guard into the shared service method; it belongs in the ByEvent method after the load, or saga steps calling the same service method are silently skipped.
+The `{operation}ByEvent` **Functionalities** method is always new — one per event, per `events.md` § ByEvent sagaState guard. The **service** method it delegates to is shared with the saga path: reuse the existing `{Aggregate}Service` mutate method whenever one already performs exactly this mutation. Write a new service helper (pure mutation, no saga) only when no existing service method does — typically when the event updates a cached field that no saga operation touches. Never move the `sagaState` guard into the shared service method; it belongs in the ByEvent method after the load, or saga steps calling the same service method are silently skipped.
 
 #### Deletion events: `remove()` on the whole consumer vs. remove a sub-entity
 

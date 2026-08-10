@@ -251,13 +251,13 @@ public class <Consumer>EventProcessing {
 The `ByEvent` suffix is **mandatory** — see § ByEvent sagaState guard below. Calling the saga
 `Functionalities` method here instead creates a circular saga loop.
 
-`aggregateId` is the consumer aggregate's ID (passed down from the handler). The `<Consumer>Functionalities` update method opens its own UoW, loads the consumer aggregate, checks `sagaState != NOT_IN_SAGA` (skipping the update if the aggregate is mid-saga to avoid conflicting with its in-progress state), applies the cached-field update, calls `verifyInvariants()`, and commits.
+`aggregateId` is the consumer aggregate's ID (passed down from the handler). The `<Consumer>Functionalities` update method opens its own UoW, loads the consumer aggregate, checks `sagaState != NOT_IN_SAGA` (skipping the update if the aggregate is mid-saga to avoid conflicting with its in-progress state), calls the service method that applies the cached-field update and registers the new version changed — which invariant-checks it — and commits.
 
 ---
 
 ### ByEvent sagaState guard
 
-For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `<Consumer>Functionalities`. It opens its own `UnitOfWork`, loads the aggregate directly from the service, applies the cached-field change, calls `verifyInvariants()`, and commits — **without starting a new saga**.
+For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `<Consumer>Functionalities`. It opens its own `UnitOfWork`, loads the aggregate to evaluate the guard, delegates the cached-field change to the service, and commits — **without starting a new saga**.
 
 ```java
 public void {operation}ByEvent(Integer aggregateId, ...) {
@@ -266,10 +266,16 @@ public void {operation}ByEvent(Integer aggregateId, ...) {
     if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
         return;  // skip — aggregate is mid-saga; avoid conflicting with in-progress state
     }
-    {consumer}Service.{operation}(aggregate, ..., unitOfWork);
+    {consumer}Service.{operation}(aggregateId, ..., unitOfWork);
     unitOfWorkService.commit(unitOfWork);
 }
 ```
+
+**The service method takes the aggregate id, not the loaded aggregate.** This section owns that
+signature. Every service method in the harness is `(Integer aggregateId, ..., UnitOfWork unitOfWork)`
+and loads its own aggregate, which is what lets it mutate a factory copy rather than the instance the
+caller holds ([`service.md`](service.md) § Copy-on-Write Rule). The load in the ByEvent method exists
+to evaluate the guard.
 
 **Why not call the saga `Functionalities` method from `EventProcessing`?** Saga methods set a semantic lock (`sagaState`) and trigger compensations; calling them from an event handler creates a circular saga loop (the saga emits another event → handler fires again → infinite loop). The `ByEvent` method sidesteps this by talking directly to the service layer.
 
@@ -282,11 +288,10 @@ public void {operation}ByEvent(Integer aggregateId, ...) {
 ```java
 public void set{Entity}{Field}(Integer aggregateId, Integer {entity}AggregateId,
                                {FieldType} {field}, Long {entity}Version, UnitOfWork unitOfWork) {
-    // ... load, copy, locate the cached entity ...
+    // ... load, copy, locate the cached entity on the copy ...
     cached.set{Field}({field});
     cached.set{Entity}Version({entity}Version);
-    aggregate.verifyInvariants();
-    unitOfWorkService.registerChanged(aggregate, unitOfWork);
+    unitOfWorkService.registerChanged(new{Consumer}, unitOfWork);
 }
 ```
 
