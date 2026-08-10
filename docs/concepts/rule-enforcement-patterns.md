@@ -228,6 +228,27 @@ private boolean invariantFieldsFinalAfterThreshold() {
 
 **Upstream / Downstream:** If aggregate A caches state from aggregate B, then B is upstream of A. `getEventSubscriptions()` always lives in the **downstream (consumer) aggregate**. The upstream (publisher) aggregate must not subscribe to its own events.
 
+The classification consequence is visible in one place — the consumer's `getEventSubscriptions()`,
+which is where a P2 classification lands and the publisher has nothing:
+
+```java
+// in Shipment (downstream), which caches Warehouse state — never in Warehouse
+@Override
+public Set<EventSubscription> getEventSubscriptions() {
+    Set<EventSubscription> eventSubscriptions = new HashSet<>();
+    if (getState() == AggregateState.ACTIVE) {
+        for (ShipmentWarehouse warehouse : this.warehouses) {
+            eventSubscriptions.add(new ShipmentSubscribesUpdateWarehouse(warehouse));
+        }
+    }
+    return eventSubscriptions;
+}
+```
+
+That fragment is here to make the direction concrete at classification time, not to be copied:
+[`aggregate.md`](aggregate.md) § getEventSubscriptions() Implementation owns the method, including the
+`AggregateState.ACTIVE` guard and the one-helper-per-inter-invariant decomposition.
+
 **Implementation:** [`events.md`](events.md) § Canonical Wiring Snippet owns the P2 wiring end to
 end — subscription class, single-dispatcher handler, polling bean, EventProcessing and the ByEvent
 method. Do not reproduce or vary it here.

@@ -127,10 +127,16 @@ public class {Aggregate}CustomRepositorySagas implements {Aggregate}CustomReposi
     @Autowired
     private {Aggregate}Repository {aggregate}Repository;
 
-    // One method per signature declared on {Aggregate}CustomRepository, each delegating
-    // to a @Query method on {Aggregate}Repository. Empty until a service method needs one.
+    @Override
+    public List<{Aggregate}> findAllLatestActive() {
+        return {aggregate}Repository.findAllLatestActive();
+    }
 }
 ```
+
+One method per signature declared on `{Aggregate}CustomRepository`, each a plain delegation to a
+`@Query` method of the same name on `{Aggregate}Repository` — the class holds no JPQL and no logic
+of its own. It stays empty until a service method needs a query.
 
 `{Aggregate}CustomRepositorySagas` does **not** extend `SagaAggregateRepository`. It is a Spring
 `@Service`, not a JPA repository interface.
