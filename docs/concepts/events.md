@@ -288,7 +288,10 @@ to evaluate the guard.
 ```java
 public void set{Entity}{Field}(Integer aggregateId, Integer {entity}AggregateId,
                                {FieldType} {field}, Long {entity}Version, UnitOfWork unitOfWork) {
-    // ... load, copy, locate the cached entity on the copy ...
+    {Consumer} old{Consumer} = ({Consumer}) unitOfWorkService
+            .aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+    {Consumer} new{Consumer} = {consumer}Factory.create{Consumer}Copy(old{Consumer});
+    // ... locate the cached entity on new{Consumer} ...
     cached.set{Field}({field});
     cached.set{Entity}Version({entity}Version);
     unitOfWorkService.registerChanged(new{Consumer}, unitOfWork);
