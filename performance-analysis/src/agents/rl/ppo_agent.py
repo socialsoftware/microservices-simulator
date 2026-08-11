@@ -85,26 +85,53 @@ def run_ppo():
     # Setup Agent Model
     # ==========================================
 
-    model = MaskablePPO(
-        "MultiInputPolicy",
-        env,
-        learning_rate=hyperparameters["learning_rate"],
-        gamma=hyperparameters["gamma"],
-        ent_coef=hyperparameters["ent_coef"],
-        n_steps=hyperparameters["n_steps"],
-        batch_size=hyperparameters["batch_size"],
-        n_epochs=hyperparameters["n_epochs"],
-        clip_range=hyperparameters["clip_range"],
-        verbose=1,
-        tensorboard_log=paths["tensorboard_log"]
+    policy_kwargs = dict(
+        net_arch=dict(
+            pi=[256, 256],
+            vf=[256, 256]
+        )
     )
+
+    reset_timesteps = True
+    resume_path = train_cfg.get("resume_from_checkpoint", None)
+
+    if resume_path and os.path.exists(resume_path):
+        logging.info(f"Resuming training from checkpoint: {resume_path}")
+        model = MaskablePPO.load(
+            resume_path,
+            env=env,
+            tensorboard_log=paths["tensorboard_log"],
+            custom_objects={"learning_rate": hyperparameters["learning_rate"]}
+        )
+        reset_timesteps = False
+    else:
+        logging.info("Initializing new PPO model...")
+        model = MaskablePPO(
+            "MultiInputPolicy",
+            env,
+            learning_rate=hyperparameters["learning_rate"],
+            gamma=hyperparameters["gamma"],
+            ent_coef=hyperparameters["ent_coef"],
+            n_steps=hyperparameters["n_steps"],
+            batch_size=hyperparameters["batch_size"],
+            n_epochs=hyperparameters["n_epochs"],
+            clip_range=hyperparameters["clip_range"],
+            policy_kwargs=policy_kwargs,
+            verbose=1,
+            tensorboard_log=paths["tensorboard_log"]
+        )
 
     custom_tb_callback = CustomTensorboardCallback()
 
     logging.info(
         f"Starting Training for {train_cfg['total_timesteps']} timesteps with {num_envs} workers...")
-    model.learn(total_timesteps=train_cfg["total_timesteps"], callback=[
-                checkpoint_callback, custom_tb_callback])
+
+    try:
+        model.learn(total_timesteps=train_cfg["total_timesteps"], callback=[
+            checkpoint_callback, custom_tb_callback], reset_num_timesteps=reset_timesteps)
+    except KeyboardInterrupt:
+        logging.info(
+            "Training interrupted manually (Ctrl+C). Gracefully exiting and saving model...")
 
     logging.info("Saving Final Model...")
     model.save(os.path.join(paths["models_dir"], "final_model.zip"))

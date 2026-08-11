@@ -36,6 +36,8 @@ training:
   steps_per_episode: 15
   total_timesteps: 3000
   checkpoint_freq: 96
+  # Uncomment the line bellow to resume train from a checkpoint.
+  # resume_from_checkpoint: "./models/checkpoints/ppo_model_1000_steps.zip"
 
 paths:
   models_dir: "./models/"

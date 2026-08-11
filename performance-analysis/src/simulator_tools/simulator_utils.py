@@ -43,6 +43,20 @@ class SimInterface:
         SimInterface._get("traces/flush")
 
     @staticmethod
+    def wait_for_simulator(timeout=300):
+        import time
+        start = time.time()
+        while time.time() - start < timeout:
+            try:
+                r = requests.get(f"{SimInterface.get_gateway()}/actuator/health", timeout=2)
+                if r.status_code == 200 and r.json().get("status") == "UP":
+                    return True
+            except:
+                pass
+            time.sleep(2)
+        return False
+
+    @staticmethod
     def inject_configuration(config):
         SimInterface._post("behaviour/inject", json=config)
         SimInterface._post("capacity/inject", json=config)

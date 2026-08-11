@@ -50,6 +50,12 @@ def create_rl_env(trace_manager: TraceManager, worker_id: int = 1, is_training: 
     os.environ["GATEWAY_URL"] = f"http://localhost:{8080 + worker_id}"
     os.environ["H2_PORT"] = str(1521 + worker_id)
 
+    from src.simulator_tools.simulator_utils import SimInterface
+    import logging
+    logging.info(f"Waiting for simulator to boot on {os.environ['GATEWAY_URL']}...")
+    if not SimInterface.wait_for_simulator():
+        logging.error("Timed out waiting for simulator to boot!")
+
     if is_training:
         H2DBManager.setup_db_state()
 
