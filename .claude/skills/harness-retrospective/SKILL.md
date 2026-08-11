@@ -95,8 +95,9 @@ being influenced by it.
 
 ## Step 3: Read the Evidence
 
-Read every file below in full. Read in parallel where possible. An absent file is itself a
-finding — record it, do not skip past it silently.
+Every file below is read in full during the retrospective, but not all of them by you: 3.a, 3.a.i and
+3.d are yours, while the bulk reading in 3.b and 3.c is delegated in Step 4.b. Each subsection says
+which. An absent file is itself a finding - record it, do not skip past it silently.
 
 ### 3.a — Harness log
 
@@ -112,24 +113,86 @@ the gates forbid; and rows whose `Artifact` is not a path under `docs/`, `.claud
 `.claude/agents/`, `simulator/`, or `AGENTS.md` itself (implementation defects misfiled as
 friction — dismiss them in Step 9, do not count them as harness gaps).
 
+**Compound `Type` values.** `.claude/skills/_shared/conventions.md` § "Harness log" admits `1`, `2`
+and `2-fw` only, so a row logging a bundle of findings under a compound value (`1+2`) is an integrity
+finding - record it. The log is append-only, so the row stands and every later step must still handle
+it: **a compound row counts once in the row total and once in each `Type` bucket it names**, and its
+Type 1 half is audited in Step 7 like any other Type 1 edit. Say so wherever the counts are reported;
+per-type counts summing to more than the row total is correct in that case and confusing without the
+sentence.
+
 ### 3.a.i — The harness commits
 
 The log's `Ref` column points at commits rather than restating diffs, so the diffs must be read
-here:
+here. The listing feeds two cross-checks and every Step 7 verdict, so it is derived with `python3 -`
+and `subprocess` rather than bare `git` - see `.claude/skills/_shared/conventions.md`
+§ "Commands whose output feeds a verdict". The `git` helper below is the same one
+`.claude/skills/review-artifacts/SKILL.md` § "Step 6: Check 4 — Neutral Domain" uses.
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"
-git log --oneline "$(git merge-base HEAD master)"..HEAD -- docs .claude/skills .claude/agents AGENTS.md
+python3 - <<'EOF'
+import subprocess
+
+TREES = ["docs", ".claude/skills", ".claude/agents", "AGENTS.md"]
+PATHSPEC = TREES + [":(exclude)docs/reviews"]
+
+def git(*args):
+    return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout
+
+base = git("merge-base", "HEAD", "master").strip()
+rng = f"{base}..HEAD"
+
+harness = git("log", "--oneline", "--grep=^harness:", rng, "--", *PATHSPEC).splitlines()
+everything = git("log", "--oneline", rng, "--", *PATHSPEC).splitlines()
+other = [l for l in everything if l not in harness]
+
+print(f"BASE={base}")
+print(f"harness: commits={len(harness)}")
+for l in harness:
+    print(f"  {l}")
+print(f"\nharness-path commits without a harness: prefix={len(other)}")
+for l in other:
+    print(f"  {l}")
+EOF
 ```
 
-That listing is the run's complete harness delta. Read `git show {Ref}` for every `fixed` row. Two
-cross-checks: every `fixed` row's `Ref` must appear in the listing, and every commit in the listing
-must be referenced by some row. A `harness:` commit with no log row is an unrecorded edit and a
-finding in its own right.
+The `harness:` listing is the run's complete harness delta. Read the diff of every `fixed` row's
+`Ref` the same way - `git("show", "-M", ref)` inside a `python3 -` script, never a bare `git show`,
+for the same reason.
+
+Two cross-checks against the `harness:` listing: every `fixed` row's `Ref` must appear in it, and
+every commit in it must be referenced by some row. A `harness:` commit with no log row is an
+unrecorded edit and a finding in its own right.
+
+**A `Ref` missing from the listing is not automatically unresolvable.** A rebase or amend anywhere in
+the run rewrites shas, and the log is append-only, so a row keeps the sha the commit had when it was
+written. Three cases, and they are different findings:
+
+- the sha resolves and is an ancestor of `HEAD` - normal;
+- the sha resolves but `git merge-base --is-ancestor {ref} HEAD` fails - the commit was rewritten.
+  Find its replacement on the branch by identical subject, or by `git patch-id`, judge **that** diff,
+  and record a stale-`Ref` integrity finding naming both shas. Do not report the row as unresolvable
+  and do not skip its Step 7 audit;
+- no replacement is found - genuinely unresolvable, and the row's Step 5 and Step 7 verdicts must say
+  the evidence was unavailable rather than infer one.
+
+Report the stale-sha count in the run summary. It measures how faithfully the log's `Ref` column
+survived the run, which is a property of the harness, not of the application.
+
+The second listing is a **different** finding class and must not be reported as unrecorded edits.
+`docs/reviews` is excluded by the pathspec, so what remains is a commit that changed a harness file
+without the `harness:` prefix `AGENTS.md` § "Harness evolution" requires - a commit-convention
+deviation. Report each one with its sha and subject, and say whether the edit it carries is recorded
+by a log row.
 
 ### 3.b — Retros
 
 `find applications/{app-name}/retros -name "*.md" | sort`
+
+A run's retros are collectively large, so the reconciliation below is delegated to a batch of
+`harness-retro-evidence` workers per Step 4.b. Read directly only the retros of the sessions whose
+rows you end up judging yourself in Step 5.
 
 Read each. Take the narrative sections and the `## Harness Changes` sub-table
 (`Row # / Type / Outcome / harness: commit`), which is the session's own account of what it
@@ -139,9 +202,13 @@ table; if one appears, the session used a stale skill version — record that as
 
 ### 3.c — The artifacts under evaluation
 
-For every distinct path named in the harness log's `Artifact` column, read that file's **current
-content**. This is the cross-check in Step 5 and it must be a fresh read, not the version implied
+For every distinct path named in the harness log's `Artifact` column, the file's **current content**
+must be read: this is the cross-check in Step 5, and it must be a fresh read, not the version implied
 by the row's `Problem` wording, and not the post-image of the commit in `Ref`.
+
+These reads are what Step 4.b delegates. Do not perform them here - the artifact set of a full run
+does not fit one context alongside the diffs and the retros. Read an artifact yourself only when
+Step 5 requires you to re-judge one of its rows.
 
 ### 3.d — Plan and build state
 
@@ -149,6 +216,10 @@ Read `applications/{app-name}/plan.md` for the session list and aggregate order.
 suite following `.claude/skills/_shared/conventions.md` § "Run the test suite" and record the
 observed `MAVEN_EXIT` and surefire totals. The build outcome is part of the run summary; a green
 suite with heavy friction and a red suite with none are different results.
+
+This is the full clean suite over every aggregate of the run and takes a while. Start it before
+spawning the Step 4.b workers so it runs alongside them. Its result is **recorded, not acted on** -
+a red suite is reported as the run's outcome and never repaired here (Hard Rule 1).
 
 ---
 
@@ -168,7 +239,8 @@ in the report. An artifact with many rows but all of them `fixed` or `deferred (
 different result from one with few rows all `deferred (open)`: the first absorbed its lesson, the
 second is still owed one.
 
-Then build the same aggregation by `Type`. The shape of the answer differs by type: a run dominated
+Then build the same aggregation by `Type`. A compound row counts in each bucket it names (Step 3.a).
+The shape of the answer differs by type: a run dominated
 by Type 1 means the harness contained demonstrable errors and the agent cleared them, a run
 dominated by Type 2 means the harness was silent where it needed to speak and the human had to
 supply the design, and any `2-fw` row is individually significant regardless of count because it
@@ -176,11 +248,81 @@ means an agent believed the framework itself was at fault.
 
 ---
 
+## Step 4.b: Gather the Evidence in Batches
+
+A full run's evidence does not fit one context: the harness diffs, the retros and the current content
+of every named artifact together run to several hundred thousand tokens, before a single verdict is
+written. Gathering is therefore delegated; judging is not (Step 5, Step 7).
+
+**Batching.** One batch per `Artifact` path, keyed off the Step 4 table. Merge the small artifacts so
+that no batch exceeds roughly ten rows and no batch is a single row; leave each of the heaviest
+artifacts as a batch of its own. Add one batch per aggregate for retro reconciliation (Step 3.b).
+Every row of the log belongs to exactly one artifact batch - a row naming several artifacts goes to
+the batch of the first one it names, judged against all of them.
+
+**Spawning.** One `harness-retro-evidence` subagent per batch, with the brief in § "Evidence brief".
+Spawn them in parallel; they are read-only by tool list, so they cannot collide. Their contract is
+`.claude/agents/harness-retro-evidence.md`.
+
+**What you never delegate.** Read yourself: `harness-log.md`, `plan.md`, the Step 3.a.i commit
+listing, the Step 8 neutral-domain script output, and any artifact or diff you must re-judge under
+Step 5 or Step 7. The batch returns are evidence and proposals, not findings.
+
+**Checkpointing.** Batch returns may be written to the session scratchpad and re-read while
+assembling the report. Nothing under the repository is written before Step 10.
+
+**An `INCOMPLETE` or missing return is not a silent hole.** Re-spawn that batch once. If it returns
+incomplete again, judge its rows yourself - a row with no evidence cannot be dismissed for lack of
+evidence (Hard Rule 5).
+
+### Evidence brief
+
+Fill this template for every spawn. Substitute every placeholder; a worker that receives an unfilled
+placeholder cannot do its job.
+
+```
+You are gathering evidence for ONE batch of harness-log rows in the
+end-of-run retrospective for application {app-name}.
+
+Read and follow: .claude/agents/harness-retro-evidence.md
+Verdict definitions: .claude/skills/harness-retrospective/SKILL.md
+                     § "Step 5: Cross-Check Each Row Against Current Content"
+                     § "Step 7: Post-Hoc Justification of the Type 1 Edits"
+
+BATCH: {batch-id}
+ARTIFACT(S): {repo-relative path(s)}
+
+ROWS (verbatim from applications/{app-name}/harness-log.md):
+  <the full row: # | Session | Type | Artifact | Problem | Outcome | Ref>
+  <one per row in this batch>
+
+CLOSURE CONTEXT:
+  <for each deferred row in this batch, the later row that closes it, or
+   "no closer" - from the Step 4 resolution>
+
+RESOLVED REFS:
+  <row # -> the on-branch sha to read, for every fixed row whose logged Ref
+   was made stale by a history rewrite (Step 3.a.i); "none" if there are none>
+
+Return the block defined in .claude/agents/harness-retro-evidence.md.
+```
+
+For a retro reconciliation batch, replace `ARTIFACT(S)` and `ROWS` with the retro file paths and the
+harness-log rows whose `Session` those retros cover, and drop `CLOSURE CONTEXT`.
+
+---
+
 ## Step 5: Cross-Check Each Row Against Current Content
 
 For every harness-log row, compare its `Problem` text against the current content of its `Artifact`
-read in Step 3.c, and classify. `fixed` rows and non-`fixed` rows are judged against different
-questions.
+as the Step 4.b batch returned it, and classify. `fixed` rows and non-`fixed` rows are judged against
+different questions.
+
+**Where judgement lives.** A batch return carries a *proposed* verdict. You may accept a proposed
+**Fix holds** on the strength of the quote it carries. Every other proposed verdict - and every
+`EVIDENCE: insufficient` return - you verify yourself: read the artifact, and for a `fixed` row the
+diff in `Ref`, before the verdict enters the report. Those are the rows that become gaps, so they are
+the rows the run's conclusions rest on. Their number is a minority of the log.
 
 For rows with `Outcome` = `fixed`, the question is whether the fix actually holds:
 
@@ -200,8 +342,14 @@ For rows with `Outcome` = `fixed`, the question is whether the fix actually hold
 For rows with `Outcome` = `declined` or `deferred`, the question is whether the gap is still open. A
 `deferred` row named by a later row's `Closes row {N}` (Step 3.a) is resolved by that reference alone
 — treat it as **Already closed** without re-reading the artifact for it — since the later row's own
-Step 5 evaluation covers the fix it made. Only `declined` rows and `deferred (open)` rows need the
-full cross-check below:
+Step 5 evaluation covers the fix it made.
+
+That shortcut holds only for an **unqualified** closure. A closer whose text qualifies what it closed
+(`Closes row {N} in part`, or any wording naming a remainder) leaves the rest of the gap open, so the
+row it names gets the full cross-check below and its verdict speaks to the remainder only.
+
+Only `declined` rows, `deferred (open)` rows and partially-closed rows need the full cross-check
+below:
 
 | # | Artifact | Outcome | Verdict | Evidence |
 |---|----------|---------|---------|----------|
@@ -216,8 +364,8 @@ full cross-check below:
   mistake the harness could not reasonably have prevented.
 
 **Confirmed**, **Fix incomplete**, **Fix reverted or superseded** and **Fix wrong** rows become gaps
-in Step 9. Everything else is listed with its reason in the dismissed section — never dropped
-silently.
+in Step 9. A **Fix holds** row is listed in the report's Fixes Re-Checked section; every remaining
+row is listed with its reason in the dismissed section. Nothing is dropped silently.
 
 ---
 
@@ -253,10 +401,17 @@ zero rows in the last two aggregates and fewer than three aggregates before them
 Type 1 edits were made unilaterally, mid-session, with no human gate. This step is the audit that
 regime is owed, and its output belongs in the run's written evaluation verbatim.
 
-For every `Type` = `1` row, read the diff in its `Ref` (Step 3.a.i) and judge it against the
-definition in `AGENTS.md` § "Harness evolution": a Type 1 fix requires a contradiction the agent
-could **demonstrate mechanically** — a failing build, a missing symbol, two skills prescribing
-different things.
+For every row whose `Type` names `1` - including a compound row (Step 3.a), whose Type 1 half is
+audited here - read the diff in its `Ref` (Step 3.a.i) and judge it against the definition in
+`AGENTS.md` § "Harness evolution": a Type 1 fix requires a contradiction the agent could
+**demonstrate mechanically** - a failing build, a missing symbol, two skills prescribing different
+things.
+
+**This step's judgement is yours, not a worker's.** A proposed **Sound** verdict may be accepted on
+the diff hunk the batch return quotes. Every proposed **Sound but over-broad**, **Ratified a guess**
+or **Misclassified** verdict you confirm yourself against the full diff before it enters the report,
+and so is every `EVIDENCE: insufficient` row. This section exists to catch an agent ratifying its own
+guess; a section written by unreviewed agents would not do that.
 
 | # | Session | Artifact | Claimed contradiction | Demonstrable? | Verdict |
 |---|---------|----------|----------------------|---------------|---------|
@@ -279,6 +434,33 @@ Verdicts:
 Count the verdicts and state the ratio in the report. That ratio, not the raw edit count, is what
 says whether the unilateral gate was safe on this run. Do not soften a **Ratified a guess** verdict:
 finding none is a claim, and finding some is what makes the section worth reading.
+
+---
+
+## Step 7.b: Type 2 Halts
+
+A **halt** is the Type 2 gate working: a session stopped, put the question to the human, and resumed
+on the answer. Not every Type 2 row is one - a session may record an ambiguity, resolve it by analogy
+and carry on, which is a different and weaker event.
+
+Classify every `2` and `2-fw` row:
+
+- **Halt** - its `Problem` says the session stopped or the manager escalated, **or** the row that
+  closes it records a human decision.
+- **Proceeded** - its `Problem` states the session resolved it and continued, or the row is still
+  open with no closer and no escalation.
+
+Count both. Build the table the report carries, one line per halt, pairing the halting row with its
+closer:
+
+| # | Session | What the harness did not settle | What the human decided | Was the harness then fixed? |
+|---|---------|--------------------------------|------------------------|-----------------------------|
+
+The last column is `yes` with the closing row's `Ref` when the closer is `fixed`, and `no` otherwise.
+A halt that produced a decision but no harness edit means the next run hits the same silence.
+
+Name the **Proceeded** rows separately, with their numbers. Each is a place where the gate was
+available and not used - worth a sentence, not a gap on its own.
 
 ---
 
@@ -333,7 +515,7 @@ Never omit a section — write "nothing to report" where a section produced no f
 **App:** {app-name}
 **Date:** {retro-date}
 **Harness-log rows:** {count} (Type 1 {n} / Type 2 {n} / 2-fw {n})
-**Sessions with friction:** {count} of {total sessions in plan.md}
+**Sessions with friction:** {distinct Session values in the log} of {distinct session ids in plan.md}
 **Harness commits:** {count}
 **Verdict:** Harness converged | Harness converged with gaps | Harness did not converge
 
@@ -350,17 +532,23 @@ Never omit a section — write "nothing to report" where a section produced no f
 
 | | |
 |---|---|
-| Sessions executed | {count} |
+| Sessions executed | {count} ({n} plan.md checkboxes) |
 | Harness-log rows | {count} (T1 {n} / T2 {n} / 2-fw {n}) |
 | Outcomes | fixed {n} / declined {n} / deferred (open) {n} / deferred (closed) {n} |
 | `harness:` commits on the run | {count} |
-| Type 2 halts | {count} |
+| Harness edits without a `harness:` prefix | {count} |
+| `Ref`s made stale by a history rewrite | {count} |
+| Type 2 halts | {count} halted / {n} proceeded |
 | Build outcome | MAVEN_EXIT={n}, tests={n} failures={n} errors={n} |
 
 (One paragraph: what this run says about the harness overall.)
 
-Harness-log integrity: (numbering, `Type`/`Outcome` values, `Ref` resolvability, commits with no
-row, misfiled rows — or "clean".)
+(When a compound `Type` row exists, state here that the per-type counts sum to more than the row
+total, and why.)
+
+Harness-log integrity: (numbering, `Type`/`Outcome` values including compound ones, `Ref`
+resolvability, `harness:` commits with no row, harness-path commits without a `harness:` prefix,
+misfiled rows - or "clean".)
 
 ---
 
@@ -385,6 +573,17 @@ row, misfiled rows — or "clean".)
 
 (If declining: the aggregate at which the count reaches and stays at zero. If flat or rising: the
 artifacts that recur across aggregates, which are the structural gaps.)
+
+---
+
+## Fixes Re-Checked
+
+(Every `fixed` row, with the Step 5 verdict on whether the fix holds today. `Fix incomplete`,
+`Fix reverted or superseded` and `Fix wrong` rows also appear under Confirmed Gaps; the rest appear
+only here.)
+
+| # | Artifact | Ref | Verdict | Evidence |
+|---|----------|-----|---------|----------|
 
 ---
 
@@ -438,6 +637,8 @@ finding).
 | # | Session | What the harness did not settle | What the human decided | Was the harness then fixed? |
 |---|---------|--------------------------------|------------------------|-----------------------------|
 
+**Proceeded without halting:** rows {#, #} - one sentence on what each resolved by itself.
+
 ---
 
 ## Recorded Limitations
@@ -459,26 +660,34 @@ Output to the conversation (not to the report file):
 5. The artifact that generated the most rows, with its count
 6. Every confirmed gap whose Step 5 verdict is **Fix wrong**, verbatim
 7. Counts: confirmed gaps, dismissed rows, Type 2 halts, neutral-domain violations
-8. Build outcome: observed `MAVEN_EXIT` and surefire totals
+8. How many rows were accepted on a batch quote and how many you re-judged directly
+9. Build outcome: observed `MAVEN_EXIT` and surefire totals
 
 ---
 
 ## Hard Rules
 
-1. **Read-only except for the report.** This skill writes exactly one file:
+1. **Read-only except for the report.** This skill writes exactly one file in the repository:
    `docs/reviews/harness-retro-{app-name}-{retro-date}.md`. It never edits a doc, a skill, the
    harness log, a retro, a review, or any source file — including the gaps it identifies. This is
    the one skill with no Type 1 fast path of its own: it is judging the fixes, so it may not also be
-   making them. Fixes are applied between runs by a later session.
+   making them. Fixes are applied between runs by a later session. Batch returns may be checkpointed
+   to the session scratchpad, which is outside the repository; the `harness-retro-evidence` workers
+   hold no write tool at all, so the rule holds through the delegation.
 2. **Completed runs only.** Halt on any unchecked `- [ ]` in `plan.md` (Step 2). No partial reports.
 3. **Every claim cites evidence.** A harness-log row number (`#7`), a commit sha, a repo-relative
    file path, or a quoted line. A statement about the harness with no citation does not go in the
    report.
 4. **Cross-check before confirming.** No gap is Confirmed without a fresh read of the artifact's
-   current content (Step 3.c). A harness-log row is a record of what an agent believed at the time,
-   not a standing fact — and a `fixed` row is a record of what it believed it had repaired.
-5. **No silent dismissals.** Every harness-log row appears in the report exactly once, either as
-   evidence for a confirmed gap or as a dismissed row with a stated reason.
+   current content. A harness-log row is a record of what an agent believed at the time, not a
+   standing fact - and a `fixed` row is a record of what it believed it had repaired.
+5. **No verdict on a worker's word alone.** Only a proposed **Fix holds** or **Sound** carrying a
+   verbatim quote may be accepted from a batch return. Every other verdict, and every
+   `EVIDENCE: insufficient` row, is confirmed against the artifact or the diff by the agent writing
+   the report.
+6. **No silent dismissals.** Every harness-log row appears in the report exactly once, in exactly one
+   of three places: **Fixes Re-Checked**, **Confirmed Gaps**, or **Dismissed Rows** with a stated
+   reason. A row whose fix holds belongs in the first, not in Dismissed Rows.
 6. **Do not propose fixes for the generated application.** Implementation defects in the generated
    application are out of scope for this skill.
 7. **Report what the evidence shows.** A run with little friction is a valid result and so is a run
