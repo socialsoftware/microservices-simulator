@@ -102,7 +102,19 @@ Keep the P2 subscription as well if the consumer genuinely needs the cached copy
 read. P2 and P3 are not mutually exclusive — what the re-classification forbids is *deciding* from
 the cached value.
 
-### Step 4 - Unspecified out-of-domain input to a write method
+### Step 4 - When plan.md is silent
+
+`plan.md` is the spec (`docs/concepts/testing.md` § Spec-First Ordering). When it *disagrees* with
+the implementation, the implementation is the bug. When it is **silent** - it fixes no behaviour for
+the case in front of you - the cases below carry a **mandatory** default. Apply the matching one; do
+not halt, and do not invent a rule of your own. Only a silence matching none of them is a Type 2 halt
+under `AGENTS.md` § "Harness evolution".
+
+Every default here ends the same way: **the constant or predicate it settles is added to the target
+aggregate's `plan.md` rule list**, so T2/T4 can cite it through the `// Spec:` convention, and the
+addition is noted in the session retro. The behaviour is not specified until the rule list names it.
+
+#### Case A - unspecified out-of-domain input to a write method
 
 A write method may be handed an argument that is syntactically valid but names something outside the
 target aggregate's domain - e.g. `{Op}({Aggregate}AggregateId, {Entity}AggregateId, ...)` where the
@@ -148,6 +160,41 @@ public void {op}(Integer {aggregate}AggregateId, Integer {entity}AggregateId, ..
 Silently ignoring the call is **not** the default. The no-op idiom belongs to event handlers, where a
 subscriber legitimately receives events it does not care about; a write method invoked with an
 out-of-domain target is a caller error and must be observable.
+
+#### Case B - a read functionality's filter predicate stated only in prose
+
+`plan.md` may name a read functionality and describe its result set in words - "the {Aggregate}s
+still {adjective}", "the ones that have {verb}ed" - while the aggregate carries several fields any of
+which could carry that meaning. The candidate predicates differ in observable result set, so the
+choice is not free.
+
+1. **Prefer the reading under which the specified result sets partition.** When `plan.md` specifies
+   two or more reads over the same aggregate whose descriptions are complements in ordinary language
+   (`Get{Adjective}{Aggregate}s` / `Get{OppositeAdjective}{Aggregate}s`), choose the pair of
+   predicates that is mutually exclusive over the aggregates the domain admits. A reading that lets
+   one aggregate appear in both lists, or in neither by accident, is wrong on the spec's own terms.
+2. **A field the descriptions do not mention stays outside every result set** unless `plan.md` says
+   otherwise - a state flag neither description names (a cancellation, a soft delete) excludes the
+   aggregate from both sides rather than being folded into one.
+3. **Record the chosen predicate in the target aggregate's `plan.md` rule list**, per the rule above,
+   in the terms the query will use.
+4. **Halt only when no reading partitions** - when the descriptions genuinely overlap, or when the
+   aggregate has no field that could carry one of them.
+
+#### Case C - a quantity the saga cannot satisfy
+
+`plan.md` may require an operation to assemble a caller-supplied number of items from a source that
+may hold fewer - "draws `{n}` {Entity}s from the {Aggregate}'s {collection}" - and name no constant
+for the shortfall.
+
+1. **Throw on a named constant.** The shortfall is a caller error against a stated quantity, so it is
+   observable: add `{AGGREGATE}_NOT_ENOUGH_{ENTITIES}` to the rule list and throw it.
+2. **Never truncate and never pad.** Returning fewer items silently, or filling from outside the
+   named source, produces an aggregate that satisfies no rule anyone wrote and cannot be asserted
+   against.
+3. **Guard it in the service, not in the saga step**, per § Common Mistakes to Avoid ("Never validate
+   cross-aggregate constraints in saga code"): the saga passes the assembled collection to its own
+   service method, which counts and throws before any mutation.
 
 ### Common Mistakes to Avoid
 
