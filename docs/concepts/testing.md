@@ -115,6 +115,40 @@ reads — e.g. `pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler.now()` (f
 `LocalDateTime.now()` (JVM default timezone). A mismatch between the two can silently fail to
 trigger the guard rather than throwing an obvious error.
 
+## Reaching a time-gated state
+
+The two cases above both **pin** an instant. A third case cannot: where the create path itself stamps
+a clock field - `DateHandler.now()` at creation, or a field derived from it under a P4b construction
+invariant - and a P1 invariant orders that field against a caller-supplied one, every aggregate the
+production path can build lies on one side of the clock. A state on the far side is **unreachable by
+construction**, not merely inconvenient to set up.
+
+A test that needs such a state - a window that has already elapsed, a deadline already passed -
+reaches it by **creating a short future window and waiting it out**:
+
+- Compute the window **inside the fixture helper**, immediately before the create call
+  (`start = DateHandler.now().plusSeconds(N)`), so the only race is the saga's own latency rather
+  than the time the rest of the test setup took.
+- Wait by **polling the same clock the production code reads** (`DateHandler.now().isAfter(end)`),
+  not by sleeping a fixed duration.
+- Give the far-side state its **own fixture helper** (`create{Adjective}{Aggregate}(...)`) that owns
+  both the window and the wait. The plain `create{Aggregate}` helper keeps the signature and defaults
+  its own session mandates - see `.claude/skills/implement-aggregate/session-c.md` § "Update
+  `{AppClass}SpockTest.groovy`".
+- Assert against the window the helper returns, not against a constant the test declared.
+
+Two shortcuts are **forbidden**:
+
+- **Back-dating a constant.** A `PAST_START_TIME` / `PAST_END_TIME` pair fed to the create path makes
+  the create throw the ordering invariant, and making it not throw means one of the two shortcuts
+  below.
+- **Weakening the invariant** - relaxing the P1 rule, or adding a parameter that lets the test supply
+  the stamped clock field - to make the unreachable state reachable. The invariant is the spec; a
+  test that has to break it to run is testing a state the application cannot be in.
+
+If the margin is chosen too small and a stall beats it, creation throws the ordering constant loudly.
+That is the intended failure mode: the test cannot pass for the wrong reason.
+
 ## Spec-First Ordering
 
 Before writing any test, locate the **`plan.md` aggregate section** for the target aggregate. Its
