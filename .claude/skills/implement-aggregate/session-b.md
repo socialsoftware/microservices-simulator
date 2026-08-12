@@ -6,7 +6,7 @@ This sub-file is loaded by `implement-aggregate` when the target session type is
 > functionalities or events, implement only those, and append to the shared files rather than
 > rewriting them. If no subset is named, you own the whole session.
 
-> **If the plan.md aggregate section lists "Read functionalities: none"**, this session is still not empty: produce the boilerplate `Get{Aggregate}ByIdCommand`, its `{Aggregate}Service` read method, its `{Aggregate}CommandHandler` case and its T2 not-found test, and nothing else. There are no domain read functionalities to add on top, so no `{Query}FunctionalitySagas`, no coordinator read methods beyond `get{Aggregate}ById`, and no `{Query}Test.groovy`.
+> **If the plan.md aggregate section lists "Read functionalities: none"**, this session is still not empty: produce the boilerplate `Get{Aggregate}ByIdCommand`, its `{Aggregate}Service` read method, its `{Aggregate}CommandHandler` case and its T2 not-found test, and no *domain read* artifacts beyond these. There are no domain read functionalities to add on top, so no `{Query}FunctionalitySagas`, no coordinator read methods beyond `get{Aggregate}ById`, and no `{Query}Test.groovy`.
 
 ---
 
@@ -57,14 +57,16 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 - Body — follow `docs/concepts/service.md` § Method Patterns → Read method:
   - **By primary key (the normal case):** `{aggregate}Factory.create{Aggregate}Dto(({Aggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork))`. Do not add a not-found guard — the infrastructure throws `SimulatorException` when the ID does not resolve. This is the Path A that the T2 not-found case below asserts.
   - **By composite / non-PK key:** query `{Aggregate}CustomRepository`, and throw `{AppClass}Exception` with the domain-specific not-found constant when the `Optional` is empty. This is Path B.
-- If the read joins a foreign aggregate: fetch the foreign aggregate's DTO via its service and include in the response
+- If the read needs data from a foreign aggregate, the service does **not** fetch it. The saga resolves it in a preceding step and passes the DTO in as a parameter — see § "Two-step read saga variant" below, and `docs/concepts/service.md` § Injected Dependencies (R1/R2/R3). Injecting a foreign `*Service` to fetch it here violates R2.
 - **List-return reads**: If the read returns a collection (e.g., all open shipments for a warehouse), the service method iterates all matching aggregate instances. Use a JPQL "latest-active-version" query rather than `jpaRepo.findAll()` — `findAll()` returns every historical version, not just the current one. Add `findAllLatestActive()` (or a narrower variant) to the JPA repository interface and call it from `{Aggregate}CustomRepositorySagas`. See `docs/concepts/service.md` — "Custom Repository — Latest-Active-Version Query" for the JPQL pattern.
 
   The service method then maps each matching aggregate to a DTO via `aggregateLoadAndRegisterRead`.
 
 ### One `{Query}Command.java` per read functionality
 
-Path: `commands/{aggregate}/{Query}Command.java`
+Path: `{src}commands/{aggregate}/{Query}Command.java` — rooted at the **app source root**, not at
+`microservices/{aggregate}/`, so the same command class can be sent by other aggregates' sagas. See
+`docs/concepts/commands.md` § "File Location".
 
 `Get{Aggregate}ByIdCommand` is always one of them, even when plan.md lists no read functionality.
 
@@ -93,6 +95,11 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySag
 > - Step 2: send the primary read command using the resolved field from step 1 (declare step 1 as a dependency)
 >
 > No compensation is needed on either step since reads are non-mutating. See `docs/concepts/sagas.md` — "Two-step read saga variant" section for the full class template.
+>
+> Step 1 fetches the foreign aggregate through a command sent **upstream** - to an aggregate this one
+> already depends on (R8 - see `docs/concepts/commands.md`); never downstream to an aggregate that
+> depends on this one. The DTO it returns is read as-is and never mutated
+> (see `docs/concepts/service.md` § DTO Immutability (R7)).
 
 ### `{Aggregate}Functionalities.java` (read methods)
 
@@ -103,6 +110,9 @@ Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Fu
 - Spring `@Service`
 - One method per read functionality
 - The method creates a `SagaUnitOfWork`, instantiates the `{Query}FunctionalitySagas` inline, calls `executeWorkflow`, and returns the DTO via `saga.get{Aggregate}Dto()`
+- **Name the unit of work with a string literal** matching the method name —
+  `unitOfWorkService.createUnitOfWork("get{Aggregate}ById")`. Session `c` appends its write
+  coordinators to this same class under the same rule, so the file carries one idiom throughout.
 - Tests `@Autowired` this class and call its methods directly
 
 ### `{Aggregate}CommandHandler.java`
@@ -161,8 +171,14 @@ Open `{bean-config}` and add new `@Bean` methods for the three classes this sess
 The service constructor takes a **closed list**, fixed by `docs/concepts/service.md` § Injected
 Dependencies: own repository, own custom repository, own factory, `UnitOfWorkService` (raw, no type
 argument), `AggregateIdGeneratorService`. Nothing else — a foreign service or foreign repository
-violates R1/R2. Inject factories and repositories through their abstract interfaces, never the
-concrete `Sagas*` classes. Omit any of the five the service genuinely does not use.
+violates R1/R2; cross-aggregate data reaches this service as a DTO passed in by a saga, never by
+injecting the other aggregate's components (R3). Inject factories and repositories through their
+abstract interfaces, never the concrete `Sagas*` classes. Every one of them goes through the
+constructor into a `final` field; a service declares no `@Autowired` field.
+
+Omit any of the five the service genuinely does not use — typically `AggregateIdGeneratorService`,
+which no read method needs. Session 2.{N}.c's create method is then the first to need it, and widens
+both this `@Bean` method and the service constructor to match.
 
 ```groovy
 @Bean
@@ -201,6 +217,15 @@ Open `{test}{AppClass}SpockTest.groovy` and add an `@Autowired(required = false)
 protected {Aggregate}Functionalities {aggregate}Functionalities
 ```
 
+The fixture helper below calls `aggregateIdGeneratorService`, which the scaffolded base class does
+**not** declare. Add it too, once per application - the first aggregate's session `b` adds it and
+later aggregates reuse it:
+
+```groovy
+@Autowired(required = false)
+protected AggregateIdGeneratorService aggregateIdGeneratorService
+```
+
 Then add the `create{Aggregate}(...)` fixture helper. This session's T2 and T4 tests need a persisted
 aggregate to read back, but the create functionality does not exist until session 2.{N}.c, so the
 helper is built **directly on the aggregate** here:
@@ -213,24 +238,70 @@ Integer create{Aggregate}(/* minimal valid args, defaulted to the domain constan
 }
 ```
 
+Not every parameter can be defaulted. A parameter carrying a **foreign aggregate's id** has no
+domain constant to default to - the id is minted at fixture time by whichever upstream helper
+created that aggregate, and differs per test. Such parameters stay **required and undefaulted, and
+come first** in the signature, ahead of the defaulted own-field parameters; the caller passes the
+id returned by the upstream fixture helper:
+
+```groovy
+Integer create{Aggregate}(Integer {foreign}AggregateId, {Field} {field} = {FIELD_CONSTANT}) { ... }
+```
+
+Only the aggregate's **own** fields get constant defaults.
+
 `registerChanged` merges the aggregate immediately, so no `commit` is needed for the read-back to
 resolve through a fresh `UnitOfWork`.
 
 **The signature is a contract with session 2.{N}.c**, which replaces this body with the real create
 functionality. Choose the parameter list and defaults so that the call sites written this session
-survive that swap unchanged: minimal valid arguments, each defaulted to the domain constant, aggregate
-id returned. Do **not** name it `persist{Aggregate}` or make it `private` to a test class — a
+survive that swap unchanged: minimal valid arguments, own-field parameters defaulted to the domain
+constants and foreign-aggregate-id parameters required and leading, aggregate id returned. Do **not** name it `persist{Aggregate}` or make it `private` to a test class — a
 per-test-class fixture is thrown away in 2.{N}.c and every call site has to be rewritten.
+
+### Fixture state a create cannot reach
+
+`create{Aggregate}` builds a **minimal valid** aggregate, so its owned collections come out empty. A
+read functionality that filters on a field of an owned entity - `Get{Aggregate}sBy{Element}({foreign}AggregateId)`
+selecting over `{Aggregate}.{elements}` - therefore cannot be tested through `create{Aggregate}`
+alone, because only a session-2.{N}.c write functionality can populate that collection.
+
+Do **not** widen `create{Aggregate}` to carry the collection, and do **not** populate the collection
+inline in a test class. Instead add **one sibling helper per write functionality the session-`b`
+reads depend on**, named after that functionality and built directly on the aggregate exactly as
+`create{Aggregate}` is:
+
+```groovy
+void {operation}{Aggregate}(Integer {aggregate}AggregateId, Integer {foreign}AggregateId) {
+    def unitOfWork = unitOfWorkService.createUnitOfWork("fixture")
+    def {aggregate} = new Saga{Aggregate}((Saga{Aggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(
+            {aggregate}AggregateId, unitOfWork))
+    {aggregate}.add{Element}(new {Element}({foreign}AggregateId, /* snapshot fields */))
+    unitOfWorkService.registerChanged({aggregate}, unitOfWork)
+}
+```
+
+The same signature contract binds these helpers: parameters minimal, foreign-aggregate-id parameters
+required and leading, and the signature unchanged when 2.{N}.c replaces the body with the real
+functionality.
+
+**The foreign id must be minted by the upstream aggregate's own fixture helper, never a domain
+constant** - the same rule as for `create{Aggregate}`, and for a sharper reason here. This helper's
+2.{N}.c replacement calls a write functionality that *fetches* that foreign aggregate and runs its P3
+guards against it, so a synthetic id names an aggregate that does not exist and every call site
+throws on the swap. The upstream aggregate must also already be in whatever state those guards
+require: if the functionality rejects an inactive counterpart, the fixture activates it first. Where
+no upstream helper produces that state yet, add one, in the same base class and under this same
+contract. Keeping `create{Aggregate}` minimal is what makes that swap safe - a collection
+parameter on the create helper would have no counterpart in the create functionality and would force
+a signature change in 2.{N}.c, rewriting every call site.
 
 ---
 
 ## Tick the Checkbox
 
-In plan.md, replace:
-```
-- [ ] 2.{N}.b — Read functionalities
-```
-with:
-```
-- [x] 2.{N}.b — Read functionalities
-```
+The session checkbox for this session is `- [ ] 2.{N}.b — Read functionalities`. Read
+`_shared/session-completion.md` § "Tick the checkbox" in full and follow it. Do not continue until
+you have. It owns the whole rule, including how to anchor on the session line rather than doing a
+bare string replace, and what manager mode and single-agent mode each do about the slice
+sub-checkboxes underneath it.

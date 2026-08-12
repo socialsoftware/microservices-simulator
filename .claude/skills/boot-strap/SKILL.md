@@ -144,13 +144,39 @@ to the scaffold. Never commit `applications/{app-name}/.mvn/maven.config`.
 
 ### Step 6: Verify and Confirm
 
-1. Assert no token survived substitution:
+1. Assert no token survived substitution. The result is a verdict on the scaffold, so it comes from
+   `python3` rather than `rg` — a `PreToolUse` hook in this environment can rewrite a bare `rg` into
+   `grep`, and a command that failed outright prints no matches either, which would read as a pass.
+   See `.claude/skills/_shared/conventions.md` § "Commands whose output feeds a verdict". Substitute
+   `{app-name}` before running:
 
    ```bash
-   rg -n '\{\{' applications/{app-name}
+   cd "$(git rev-parse --show-toplevel)"
+   python3 - <<'EOF'
+   import pathlib, sys
+
+   root = pathlib.Path("applications/{app-name}")
+   if not root.is_dir():
+       sys.exit(f"{root} does not exist - check the app name")
+
+   scanned, hits = 0, []
+   for path in sorted(p for p in root.rglob("*") if p.is_file()):
+       try:
+           lines = path.read_text().splitlines()
+       except (UnicodeDecodeError, OSError):
+           continue
+       scanned += 1
+       hits += [(path, n, l.strip()) for n, l in enumerate(lines, 1) if "{{" in l]
+
+   print(f"scanned {scanned} files under {root}")
+   print(f"surviving tokens={len(hits)}")
+   for path, n, l in hits:
+       print(f"  {path}:{n}: {l}")
+   EOF
    ```
 
-   This must return no matches. If it does, fix the file before continuing.
+   Expect `surviving tokens=0` over a non-zero file count. A zero over `scanned 0 files` is a failed
+   check, not a pass. If any token survived, fix the file before continuing.
 
 2. Compile the scaffold. Read `.claude/skills/_shared/conventions.md` § "Run the test suite" and
    follow it — no pipes, verdict from maven's exit status:

@@ -52,6 +52,11 @@ Aggregate publishes event
 
 Canonical directory layout for one microservice. Each package maps to an architectural layer:
 
+Two packages under `microservices/` are shared rather than per-service: `exception/`
+(`{App}Exception`, `{App}ErrorMessage`) and `domain/` (`{App}DomainConstants`, present only when some
+aggregate declares a sentinel). Both hold plain constants and exception types rather than beans, so
+they cross service boundaries without coupling one microservice's package to another's.
+
 ```
 microservices/{serviceName}/
 ├── {Xxx}ServiceApplication.java
@@ -83,7 +88,7 @@ microservices/{serviceName}/
     ├── handling/
     │   ├── {Xxx}EventHandling.java                 (polling loop)
     │   └── handlers/
-    │       └── {Event}EventHandler.java
+    │       └── {Xxx}EventHandler.java             (single dispatcher - one per aggregate, not per event)
     └── subscribe/
         └── {Xxx}Subscribes{Event}.java
 ```
@@ -184,7 +189,7 @@ A service may accept and return `{Xxx}Dto` objects belonging to any aggregate. I
 In the Sagas protocol, a step that touches an aggregate **that already exists when the saga starts** must declare how it guards against concurrent operations. Which mechanism applies depends on the aggregate's relationship to the saga:
 
 - **Primary aggregate** (the one owning this saga) — wrap the *read* command in `SagaCommand` and call `setSemanticLock(state)` on it. The mutate step that follows sends a plain, unwrapped command and declares the lock step as a dependency. Do not use `forbiddenStates` to acquire a primary-aggregate lock.
-- **Foreign aggregate** (an upstream aggregate a cross-aggregate step touches) — send a plain command with `setForbiddenStates([...])`, listing the `SagaState` values of concurrent operations that would conflict. This checks that the foreign aggregate is not already mid-saga; it does not acquire a lock.
+- **Foreign aggregate** (an upstream aggregate a cross-aggregate step touches) — wrap the command in `SagaCommand` and call `setForbiddenStates([...])` on it, listing the `SagaState` values of concurrent operations that would conflict. This checks that the foreign aggregate is not already mid-saga; it does not acquire a lock. Both saga-state setters live on `SagaCommand`, so a guarded step wraps exactly as a lock step does.
 
 Declaring neither lets two operations interleave in ways that violate business rules.
 
@@ -214,6 +219,17 @@ See [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns
 
 DTOs are point-in-time snapshots of an aggregate's observable state. A Functionality step must not mutate a DTO it received from a `Get*Command`. Mutations must be expressed as new commands dispatched to the owning service.
 
+```java
+// WRONG — mutates a snapshot owned by another aggregate. The write is invisible to
+// that aggregate's UoW, so it is never persisted and never compensated.
+{Aggregate}Dto dto = ({Aggregate}Dto) commandGateway.send(new Get{Aggregate}ByIdCommand(id));
+dto.set{Field}(newValue);
+
+// RIGHT — read the snapshot, send the change as a command to the owning service.
+{Aggregate}Dto dto = ({Aggregate}Dto) commandGateway.send(new Get{Aggregate}ByIdCommand(id));
+commandGateway.send(new Update{Aggregate}{Field}Command(dto.getAggregateId(), newValue));
+```
+
 ---
 
 ### R8 — Functionalities may only send commands to upstream aggregates
@@ -221,6 +237,22 @@ DTOs are point-in-time snapshots of an aggregate's observable state. A Functiona
 A functionality that belongs to aggregate A may only issue commands (read or mutate) to aggregates that are **upstream of A** in the event dependency graph. It must never send commands to aggregates that are downstream of A.
 
 **Why:** Downstream aggregates depend on A's events to cache A's state — the data-flow direction is A → downstream. Sending a command from A's functionality to a downstream aggregate reverses that direction, couples A to downstream internals, and risks circular command chains.
+
+```java
+// WRONG — A's functionality reaches into a downstream aggregate to push the new value.
+// The command chain now runs both ways, and A must know which downstream types cache the field.
+commandGateway.send(new Update{Aggregate}Command(unitOfWork,
+        ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}AggregateId, newValue));
+commandGateway.send(new Set{Downstream}{Field}Command(unitOfWork,
+        ServiceMapping.{DOWNSTREAM}.getServiceName(), {downstream}AggregateId, newValue));
+
+// RIGHT — A's step updates A only. The downstream aggregate subscribes to A's event and
+// folds the new value into its cached copy through its own ByEvent path.
+commandGateway.send(new Update{Aggregate}Command(unitOfWork,
+        ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}AggregateId, newValue));
+// {Aggregate}Service registers Update{Aggregate}Event; the downstream aggregate declares the
+// matching subscription in getEventSubscriptions() — see concepts/events.md § Canonical Wiring Snippet.
+```
 
 ---
 

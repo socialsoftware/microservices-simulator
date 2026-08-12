@@ -89,19 +89,30 @@ SagaStep addShipmentItemStep = new SagaStep("addShipmentItemStep", () -> {
     states.add(ShipmentSagaState.IN_UPDATE_SHIPMENT);
 
     AddShipmentItemCommand cmd = new AddShipmentItemCommand(...);
-    cmd.setForbiddenStates(states);   // abort if the shipment is IN_UPDATE_SHIPMENT
-    commandGateway.send(cmd);
+    SagaCommand sagaCommand = new SagaCommand(cmd);
+    sagaCommand.setForbiddenStates(states);   // abort if the shipment is IN_UPDATE_SHIPMENT
+    commandGateway.send(sagaCommand);
 }, dependencies);
 ```
 
 `setForbiddenStates(...)` causes the command handler to check the current saga state and throw if it matches any forbidden state.
+
+**Both saga-state mechanisms live on `SagaCommand`, not on `Command`.** `setForbiddenStates` and
+`setSemanticLock` are declared by
+`simulator/.../ms/transaction/sagas/messaging/SagaCommand.java`, so a guarded step wraps its command
+exactly as a lock step does — the difference is which setter it calls, not whether it wraps. Calling
+`setForbiddenStates` on the plain command does not compile.
+
+The parameter type is `List<SagaAggregate.SagaState>`, and Java's generics are invariant: a
+`List.of({Aggregate}SagaState.IN_{OP})` infers `List<{Aggregate}SagaState>` and will not convert.
+Declare the list at the interface type and add to it, as above.
 
 ## R4 Decision Table — `SagaCommand` vs `setForbiddenStates`
 
 | Step target | Pattern | When to use |
 |-------------|---------|-------------|
 | **Primary aggregate** (the aggregate owning this saga) | `SagaCommand` wrapping the read command + `setSemanticLock(state)` | Lock acquisition before mutating the saga's own aggregate — see § Lock-Acquisition Step Pattern. The lock is released automatically on abort/commit — do **not** register a manual release compensation (see § Semantic-lock release on abort is automatic) |
-| **Foreign aggregate** (upstream aggregate touched by a cross-aggregate step) | Plain command + `setForbiddenStates([...])` listing states that must block this step | Abort if the foreign aggregate is already mid-saga in a conflicting state; does **not** acquire a new lock |
+| **Foreign aggregate** (upstream aggregate touched by a cross-aggregate step) | `SagaCommand` wrapping the command + `setForbiddenStates([...])` on it, listing states that must block this step — no lock is acquired | Abort if the foreign aggregate is already mid-saga in a conflicting state; does **not** acquire a new lock |
 | **Newly created aggregate** (the step creates it) | Plain command, no lock and no forbidden states; register a compensation that removes it iff a later step follows | The aggregate does not exist when the saga starts, so there is no prior state to guard - see § Create Functionality Sagas |
 
 **Rule of thumb:** if the step must **acquire** a lock on an aggregate before writing to it, use `SagaCommand` + `setSemanticLock`. If the step only needs to **check** that another aggregate is not already locked, use `setForbiddenStates`. If the step brings the aggregate into existence, neither applies.
@@ -276,6 +287,49 @@ and the service mints its `aggregateId` via `aggregateIdGeneratorService`. Three
    plain read command where the read only supplies data, or the get-then-lock pattern where the saga
    also mutates that aggregate. Only the create step itself is special.
 
+### Field provenance — where the created aggregate's unsupplied values come from
+
+When a saga creates a **second** aggregate as part of a larger functionality, the functionality's own
+signature was written for the first one, so the second aggregate needs field values no caller
+supplies. Where those come from is not free: it is a published-API decision, and leaving it to the
+implementing agent produces a different answer per aggregate. State it, in this order:
+
+1. **Derive it in the saga from parameters already present.** Preferred, and the default. If a field
+   of the created aggregate is a function of arguments the functionality already takes or of a DTO an
+   earlier step already fetched, compute it in the create step. The signature does not change.
+2. **Use a domain sentinel for a genuine constant.** A field with no defensible derivation but one
+   correct value for every aggregate created down this path takes a named constant, declared
+   alongside the other domain constants, not a literal at the call site.
+3. **Widen the functionality's signature only when neither fits** - when the value is a real caller
+   choice the domain model gives no way to derive. This changes the published API, so it is the last
+   resort, not the convenient one.
+
+Do **not** discharge the problem by defaulting the field on the created aggregate itself. A default
+inside `{Aggregate}` applies to every create path, including the direct one, and silently weakens
+whatever P1 invariant the field participates in. Record the chosen provenance in the retro.
+
+### The compensating delete — when the created aggregate ships no delete
+
+Item 2 requires a removal compensation whenever a later step follows the create, and the Shape 2
+snippet below assumes `Delete{Aggregate}Command` exists. It often does not: the created aggregate's
+own session may have shipped no delete of any kind - no service method, no command, no handler case -
+because nothing in that aggregate's own functionality list needed one.
+
+**Then the saga's session writes it, by reopening the created aggregate's session `c`** for that one
+method: `{Aggregate}Service.delete{Aggregate}`, `Delete{Aggregate}Command`, and its
+`{Aggregate}CommandHandler` case, with the T2 coverage that session's conventions require. The
+compensation is a step of the created aggregate's own contract, so it belongs in that aggregate's
+service, not assembled inline in the saga.
+
+Two alternatives are **forbidden**, however much cheaper they look:
+
+- **Reordering the steps so the create is last**, to fall back on item 2's no-compensation branch.
+  The order is fixed by the data dependency - a later step consumes the created aggregate's id or
+  DTO - and where it is not, moving a create to the end to dodge writing a delete makes the step
+  order an artifact of what was convenient to implement.
+- **Skipping the compensation.** An abort then leaves the created aggregate behind with nothing
+  referencing it, and no test in the aggregate's own suite can see it.
+
 ### Shape 1 — single-step create
 
 The create is the only step, so abort is the unit of work's responsibility and no compensation is
@@ -347,11 +401,15 @@ public void buildWorkflow(SagaUnitOfWorkService unitOfWorkService,
     }, unitOfWork);
 
     SagaStep {operation}Step = new SagaStep("{operation}Step", () -> {
+        List<SagaAggregate.SagaState> forbiddenStates = new ArrayList<>();
+        forbiddenStates.add({ForeignAggregate}SagaState.IN_{OPERATION}_{FOREIGN_AGGREGATE});
+
         {Operation}Command cmd = new {Operation}Command(
                 unitOfWork, ServiceMapping.{FOREIGN_AGGREGATE}.getServiceName(),
                 {foreignAggregate}Id, this.{aggregate}Dto);
-        cmd.setForbiddenStates(List.of({ForeignAggregate}SagaState.IN_{OPERATION}_{FOREIGN_AGGREGATE}));
-        commandGateway.send(cmd);
+        SagaCommand sagaCommand = new SagaCommand(cmd);
+        sagaCommand.setForbiddenStates(forbiddenStates);
+        commandGateway.send(sagaCommand);
     }, new ArrayList<>(Arrays.asList(create{Aggregate}Step)));
 
     this.workflow.addStep(get{ForeignAggregate}Step);
@@ -368,10 +426,52 @@ Note that the compensation removes a real side effect, which is exactly the remi
 The typical step order inside a write `FunctionalitySagas` class is:
 
 1. *(Conditional)* **Validate-dates step** — if the saga creates or updates an aggregate with `startTime`/`endTime` fields **and** a later step also creates/updates a downstream aggregate that independently validates dates (e.g., a Shipment), add a dedicated `validateDatesStep` as the very first step to check date constraints on the primary aggregate's DTO. If omitted, the downstream aggregate's date invariant fires first and masks the primary aggregate's date error, making the wrong exception surface to tests.
+
+   ```java
+   SagaStep validateDatesStep = new SagaStep("validateDatesStep", () -> {
+       if (this.{aggregate}Dto.getStartTime().isAfter(this.{aggregate}Dto.getEndTime())) {
+           throw new {AppClass}Exception({AppClass}ErrorMessage.{DATE_ORDERING_CONSTANT});
+       }
+   });
+   ```
+
+   Register it with **no dependencies** — being unconditionally first is the entire point, so it must
+   not be chained behind a data-assembly step.
 2. **Data-assembly steps** — fetch DTOs from upstream aggregates (required for P4a and P3 DTO-check rules listed in plan.md cross-aggregate prerequisites).
 3. **Primary lock step** — wrap the read command in `SagaCommand` and call `setSemanticLock(state)` on the primary aggregate. See § Lock-Acquisition Step Pattern. Do **not** register a compensation to release the lock — the core releases it automatically on abort (see § Semantic-lock release on abort is automatic). Do **not** use `setForbiddenStates` for primary-aggregate lock acquisition.
 4. **Execute step** — send a plain (unwrapped) command to `{Aggregate}CommandHandler`; declare the lock step as a dependency.
 5. *(For multi-aggregate sagas)* **Steps for other aggregates involved** — use `setForbiddenStates` only on steps that touch a **foreign** aggregate to abort if that aggregate is mid-saga (see § R4 Decision Table).
+
+### Collection-valued data-assembly step
+
+When the data a saga must assemble is a **collection** — one upstream fetch per element of a
+caller-supplied id list, each seeding one owned snapshot entity — express it as **one step whose
+action loops over the ids**, not one step per element:
+
+```java
+SagaStep get{Members}Step = new SagaStep("get{Members}Step", () -> {
+    for (Integer {member}AggregateId : {member}AggregateIds) {
+        Get{Member}ByIdCommand cmd = new Get{Member}ByIdCommand(
+                unitOfWork, ServiceMapping.{MEMBER}.getServiceName(), {member}AggregateId);
+        {Member}Dto {member}Dto = ({Member}Dto) commandGateway.send(cmd);
+        this.{members}.add(new {Aggregate}{Member}Dto({member}Dto.getAggregateId(), /* cached fields */));
+    }
+});
+```
+
+The step name must stay independent of the input, because three mechanisms key on it as a literal:
+`executeUntilStep("{step}", uow)` in T4 lock-acquisition tests, the impairment CSV rows of a
+compensation test (`testing.md` § Compensation Test), and the step names a retro's Semantic-Lock
+Coverage Audit cites. A step per element forces the name to carry an aggregate id or an index, so
+every one of those call sites has to know the fixture's data — and the id is not knowable at all
+where the collection is empty or caller-sized.
+
+The cost is that fault injection cannot target one element's fetch: the whole loop faults or none of
+it does. That is the accepted trade — a per-element fault has no distinct domain meaning, since any
+one failed fetch aborts the saga exactly as the loop does.
+
+A single-valued fetch keeps its own dedicated step (§ Step Ordering item 2); this pattern applies
+only where the fetch is `× N`.
 
 **R8 — upstream-only commands:** a saga may only send commands to aggregates that are upstream (aggregates this one depends on, not aggregates that depend on it). Never dispatch a write command to a downstream aggregate from within an upstream aggregate's saga.
 

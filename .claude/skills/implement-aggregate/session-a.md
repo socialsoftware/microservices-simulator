@@ -28,6 +28,8 @@ Load these files before writing any code:
 
 3. ***(Conditional)*** If the aggregate section in plan.md lists snapshot fields copied from an upstream aggregate (e.g., cached `warehouseId` from Warehouse, or `code`/`carrier` from Shipment): read the domain files of those upstream aggregates from `{src}microservices/{upstreamAggregate}/aggregate/` — only the field declarations you need to copy. Do not read the whole upstream codebase.
 
+4. ***(Conditional)*** If this aggregate's `**Domain sentinels:**` line in plan.md names a constant declared by another aggregate, read `{src}microservices/domain/{AppClass}DomainConstants.java`. That constant is the **only** cross-aggregate value this session imports - snapshot fields are still copied, never shared.
+
 ---
 
 ## Verify Mandatory Files in plan.md
@@ -54,12 +56,13 @@ Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}.java`
 - Contains all fields defined in the domain model for this aggregate, including:
   - Snapshot fields copied from other aggregates (cached denormalized data)
   - Owned entity fields — choose based on cardinality:
-    - **Collection** (`@OneToMany`): `@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)` — aggregate is the inverse side with no FK column
-    - **Single** (`@OneToOne`): `@OneToOne(cascade = CascadeType.ALL, mappedBy = "{entityField}")` — aggregate holds the inverse side; the entity class holds the FK via a plain `@OneToOne` back-reference. The aggregate's setter must call `entity.set{Aggregate}(this)` to wire the bidirectional link before the entity is persisted
+    - **Collection** (`@OneToMany`): `@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)` with **no** `mappedBy` — the aggregate is the owning side and the association is materialised as a join table; the owned entity declares no back-reference field. Do not add `mappedBy` here: there is no back-reference for it to name, and the persistence unit fails to initialise if you do
+    - **Single** (`@OneToOne`): `@OneToOne(cascade = CascadeType.ALL, mappedBy = "{aggregate}")` — aggregate holds the inverse side; the entity class holds the FK via a plain `@OneToOne` back-reference. `mappedBy` names the back-reference field **on the entity** (`{aggregate}`), never the aggregate's own field holding the entity — naming the latter fails at EntityManagerFactory init with *"mappedBy reference an unknown target entity property"*. Whichever constructor or setter installs the entity must call `entity.set{Aggregate}(this)` to wire the bidirectional link before the entity is persisted; where the reference is immutable and therefore has no setter, that is the constructor
 - Constructor: accepts all required fields; sets `state = ACTIVE`; does **not** call `verifyInvariants()` — the framework calls it automatically via `registerChanged` at commit time
-- `verifyInvariants()`: enforces all **P1 rules** for this aggregate listed in plan.md. Throws `{AppClass}Exception` with the appropriate error message constant on violation.
+- `verifyInvariants()`: enforces all **P1 rules** for this aggregate listed in plan.md. Throws `{AppClass}Exception` with the appropriate error message constant on violation. It reads only fields already held by the aggregate - never a repository, a service or any other DB access (R6 - see `docs/concepts/aggregate.md`). A predicate that compares against a fixed literal reads it from `{AppClass}DomainConstants` (see § "Domain sentinel constants") - never inline the literal here.
 - `getEventSubscriptions()`: in session a, always return `new HashSet<>()` — do **not** reference any subscribe classes yet (they do not exist until session d). Session d will update this method to return the proper set of subscribe class instances.
 - Getters and setters for all mutable fields
+- A collection field additionally gets a plain `add{Element}` / `remove{Element}` helper alongside its getter and setter. These are setters, not business logic, so they belong to this session - a later session never re-opens the aggregate to add them, and the T1 test mutates the collection through them rather than through the getter's live list
 - No business logic methods (sagas call service; service calls setters then verifyInvariants)
 
 ### Owned entity classes
@@ -71,8 +74,70 @@ Path: `{src}microservices/{aggregate}/aggregate/{Entity}.java`
 - `@Entity` + `@Table`; `@Id` auto-generated
 - Fields matching the domain model
 - Constructor, getters, setters
-- **Bidirectional `@OneToOne` (aggregate → entity):** If the aggregate side uses `@OneToOne(mappedBy = "{entityField}")`, this entity class holds the owning side: declare a plain `@OneToOne {Aggregate} {aggregate}` field (no `mappedBy`) with a getter/setter. The aggregate's setter for this entity must call `entity.set{Aggregate}(this)` to wire the back-reference before persisting.
+- **Bidirectional `@OneToOne` (aggregate → entity):** If the aggregate side uses `@OneToOne(mappedBy = "{aggregate}")`, this entity class holds the owning side: declare a plain `@OneToOne {Aggregate} {aggregate}` field (no `mappedBy`) with a getter/setter — this is the field `mappedBy` names. Whatever installs the entity on the aggregate (setter, or constructor when the reference is immutable) must call `entity.set{Aggregate}(this)` to wire the back-reference before persisting.
 - **Nested entity-to-entity `@OneToOne` (entity owns a sub-entity):** When an owned entity itself exclusively owns one sub-entity (e.g., `ShipmentItem → ShipmentItemLabel`), use a unidirectional `@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)` on the outer entity — no `mappedBy`, no back-reference field on the sub-entity unless explicitly needed. The outer entity's copy constructor must deep-copy the sub-entity via `new SubEntity(existing.getSubEntity())`.
+
+### Snapshot entity classes
+
+Distinct from § "Owned entity classes" above, which covers only the §1 entities this aggregate owns
+outright. A **snapshot** entity caches state belonging to another aggregate. Which §2 snapshots get a
+class is decided by `/classify-and-plan` — see `.claude/skills/classify-and-plan/SKILL.md` § Step 3.d
+and its restatement in the 2.N.a file-table notes — and every file it decides on is already named in
+the plan.md `2.{N}.a` row. Three cases, and the row tells you which applies:
+
+- a `× N` **collection** snapshot → `aggregate/{CollectionSnapshotEntity}.java` **and**
+  `aggregate/{CollectionSnapshotEntity}Dto.java`;
+- a **single** snapshot with a non-empty "Updated on event" →
+  `aggregate/{SubscribingSnapshotEntity}.java`, no Dto;
+- a **single** snapshot whose "Updated on event" is `n/a` → **no file at all**; it is cached as an id
+  field and a version field directly on the aggregate.
+
+Every version field named below is a `Long` — that typing is owned by
+`docs/concepts/events.md` § ByEvent sagaState guard, "Every cached publisher version is a `Long`".
+Only aggregate *ids* are `Integer`.
+
+#### `{CollectionSnapshotEntity}.java`
+
+Path: `{src}microservices/{aggregate}/aggregate/{CollectionSnapshotEntity}.java`
+
+- `@Entity` + `@Table`; `@Id @GeneratedValue Integer id`
+- `Integer {publisher}AggregateId` — which publisher aggregate this row caches
+- One field per cached attribute named by the §2 row
+- `Long {publisher}Version` — the publisher version the cached fields were taken at. Session `d`'s
+  ByEvent path stamps it on every mutation that leaves the row in place
+- No-arg constructor (JPA), a field constructor, and a **copy constructor**
+  `{CollectionSnapshotEntity}({CollectionSnapshotEntity} other)` — the copy-on-write path deep-copies
+  the collection through it
+- **No back-reference field.** The aggregate side is `@OneToMany` with no `mappedBy`
+  (§ `{Aggregate}.java` above), so the association is a join table and there is nothing for a
+  back-reference to name
+- Getters and setters
+
+#### `{SubscribingSnapshotEntity}.java`
+
+Path: `{src}microservices/{aggregate}/aggregate/{SubscribingSnapshotEntity}.java`
+
+Same shape as above, with one difference: the aggregate holds it as
+`@OneToOne(cascade = CascadeType.ALL, mappedBy = "{aggregate}")`, so this class holds the owning side
+— declare a plain `@OneToOne {Aggregate} {aggregate}` field with getter and setter, exactly as
+§ "Owned entity classes" describes for a bidirectional `@OneToOne`. **No Dto is produced for it.**
+
+#### `{CollectionSnapshotEntity}Dto.java`
+
+Path: `{src}microservices/{aggregate}/aggregate/{CollectionSnapshotEntity}Dto.java`
+
+- Plain Java class — no JPA annotations. It is a DTO and therefore an immutable value object (R7 —
+  see `docs/architecture.md` § R7)
+- Field set mirrors the entity: `Integer {publisher}AggregateId`, the cached fields, and
+  `Long {publisher}Version`
+- **No-arg constructor**, an all-fields constructor, and a constructor from the entity. The no-arg
+  constructor is mandatory: the test profile sets `local.messaging.serialize: true`, so anything
+  reachable from a command round-trips through Jackson
+- Getters and setters
+
+This is what a saga's collection-valued data-assembly step constructs when it fetches one upstream DTO
+per caller-supplied id — see `docs/concepts/sagas.md` § "Collection-valued data-assembly step". Do not
+confuse it with § `{Aggregate}Dto.java` below, which is this aggregate's own DTO.
 
 ### Domain enums
 
@@ -123,10 +188,20 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
 Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaState.java`
 
 - Enum implementing `SagaState`
-- **Do not** include `NOT_IN_SAGA` — the initial state is set to `GenericSagaState.NOT_IN_SAGA` (from the framework) in the `Saga{Aggregate}` constructor. This enum only holds operation-specific locked states.
-- Include `IN_UPDATE_{AGGREGATE}` or `IN_DELETE_{AGGREGATE}` only when the saga has additional steps **after** the primary write step that must observe the aggregate under a distinct locked state. For a simple two-step saga (read → write-as-final-step), `READ_{AGGREGATE}` is sufficient as the only state in this enum.
-- **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock
-- Include `READ_{AGGREGATE}` if other aggregates use this aggregate as a cross-aggregate prerequisite (another aggregate's write saga fetches this one's DTO — check plan.md's write functionalities for other aggregates)
+- **Transcribe the constants from the `**Saga states:**` line of this aggregate's plan.md section.**
+  That line is computed by `/classify-and-plan` (§ Step 6.d), which has the whole write-functionality
+  set and the whole dependency graph in front of it. Session `a` writes the domain layer before any
+  saga exists, so deriving the set here would mean inferring the shape of sagas that later sessions —
+  often for later aggregates — have not written yet. Take the list as given; do not add, drop or
+  rename a constant. Each carries a one-line origin naming the saga that acquires it.
+- If plan.md's line reads `none`, emit the enum with an **empty body**. That is the correct output for
+  an aggregate whose only write functionality is a create, and the file is still produced — a later
+  aggregate's session may add write functionalities that need it.
+- If the `**Saga states:**` line is **absent** from the aggregate section, halt and report it rather
+  than deriving a set. plan.md predating § Step 6.d is the likely cause, and a guessed enum surfaces
+  as a missing or unreferenced constant only in a much later session's `c`.
+- **Do not** include `NOT_IN_SAGA` — the initial state is set to `GenericSagaState.NOT_IN_SAGA` (from the framework) in the `Saga{Aggregate}` constructor. This enum only holds operation-specific locked states, and plan.md never lists it.
+- **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock. plan.md already applies this exclusion, so a create operation never appears in the transcribed list.
 
 ### `{Aggregate}Factory.java` (interface)
 
@@ -169,9 +244,25 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/repositories/{Aggregate}Cu
 
 Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}Repository.java`
 
-- Interface extending `AggregateRepository` — **no type arguments**; the framework interface is not
-  generic (`interface AggregateRepository extends JpaRepository<Aggregate, Integer>`)
-- No custom queries needed here (custom queries go in `CustomRepositorySagas`)
+- `@Repository @Transactional public interface {Aggregate}Repository extends JpaRepository<{Aggregate}, Integer>`
+- **Type the repository against the concrete aggregate, never against the shared
+  `AggregateRepository`.** `AggregateRepository` is declared over the abstract `Aggregate`, and
+  `Aggregate` uses `InheritanceType.TABLE_PER_CLASS`, so any query it inherits is polymorphic and
+  unions every aggregate's table: `findAll()` would return foreign aggregates, and the consumer that
+  casts them to its own type fails with a `ClassCastException`. Extending `JpaRepository<{Aggregate},
+  Integer>` scopes every query to one physical table by construction.
+- Because the repository no longer inherits from `AggregateRepository`, redeclare both of its
+  methods here, typed to `{Aggregate}`:
+
+```java
+@Query(value = "select a1 from {Aggregate} a1 where a1.aggregateId = :aggregateId AND a1.state = 'ACTIVE' AND a1.version = (select max(a2.version) from Aggregate a2 where a2.aggregateId = :aggregateId)")
+Optional<{Aggregate}> findLastAggregateVersion(Integer aggregateId);
+
+Optional<{Aggregate}> findTopByOrderByVersionDesc();
+```
+
+  The subquery stays `from Aggregate a2` — the version counter is global across aggregate types.
+- No other custom queries needed here (those go in `CustomRepositorySagas`)
 
 ### `{Aggregate}Dto.java`
 
@@ -190,7 +281,7 @@ See `docs/concepts/testing.md` § T1 — Aggregate Test for the full remit and t
 
 - Extends `{AppClass}SpockTest`
 - **Happy-path creation test**: `def "create {Aggregate}"()` — instantiate `Saga{Aggregate}` directly, call `verifyInvariants()`, and assert all fields from the `plan.md` aggregate field list. Assertion provenance: fields must trace to the spec, not to the constructor body you just wrote. If the constructor sets a field the spec doesn't list, flag the planning gap in the session report.
-- **One violation test per non-`final` P1 rule** (from this aggregate's `plan.md` P1 list): construct or mutate a `Saga{Aggregate}` so that exactly one P1 predicate fails, then call `verifyInvariants()` directly and assert `thrown({AppClass}Exception)` with `ex.message == {RULE_NAME}` (the harness-wide assertion form — `docs/concepts/testing.md` § T1 — Aggregate Test, and `docs/concepts/service.md` § Exception-Throw Convention for why exceptions are thrown without format arguments). Skip rules marked as Java `final` fields (compiler-enforced; no write path can violate them — note the omission in the session report).
+- **One violation test per non-`final` P1 rule** (from this aggregate's `plan.md` P1 list): construct or mutate a `Saga{Aggregate}` so that exactly one P1 predicate fails, then call `verifyInvariants()` directly and assert `thrown({AppClass}Exception)` with `ex.message == {RULE_NAME}` (the harness-wide assertion form - `docs/concepts/testing.md` § T1 - Aggregate Test, and `docs/concepts/service.md` § Exception-Throw Convention for why exceptions are thrown without format arguments). Skip rules marked as Java `final` fields (compiler-enforced; no write path can violate them - note the omission in the session report). Where the rule compares against a domain sentinel, build the violating value from the constant rather than retyping the literal, so the case fails if the constant is ever changed without the rule.
 - **Boundary straddle for every ordered-domain P1 predicate** (count, timestamp, or collection-size comparison — `<`/`<=`/`>`/`>=`/`==`): write the on-point and off-point pair against `verifyInvariants()`, per `docs/concepts/testing.md` § Choosing Input Values — EP & BVA. Categorical rules (uniqueness, boolean/state freezes, set membership) keep their single representative case.
 - **Do not** use `{AppClass}Functionalities.create{Aggregate}(...)` — write functionalities are not available until session b. All T1 cases use direct construction/mutation + `verifyInvariants()`.
 - If the aggregate constructor takes `{Aggregate}Dto` rather than raw args, build the DTO in the `given:` block before calling `new Saga{Aggregate}(id, dto)`
@@ -198,6 +289,43 @@ See `docs/concepts/testing.md` § T1 — Aggregate Test for the full remit and t
 ### Error message constants
 
 Open `{src}microservices/exception/{AppClass}ErrorMessage.java` and add one `public static final String` constant per P1 rule enforced in `verifyInvariants()` for this aggregate. Append to the existing file; do not remove existing constants.
+
+### Domain sentinel constants
+
+Path: `{src}microservices/domain/{AppClass}DomainConstants.java`
+
+Produce this file only if plan.md's `**Domain sentinels:**` line for this aggregate lists at least one
+constant to declare. Transcribe each listed entry verbatim as a `public static final` field. Create the
+file if it does not exist yet (private constructor, as in `{AppClass}ErrorMessage`); append otherwise,
+and never remove an existing constant. If the line reads `none declared` this aggregate is a
+*consumer*: produce nothing, and import the class where the predicate needs it. If it reads `none.`,
+produce nothing at all.
+
+If the `**Domain sentinels:**` line is **absent** from the aggregate section, halt and report it
+rather than deciding a placement here. plan.md predating § Step 6.e is the likely cause, and the
+consequence of guessing is invisible: an inlined literal type-checks and every test passes, right up
+until a later aggregate's predicate compares against its own second copy.
+
+A sentinel is a fixed literal that a write functionality assigns to a field and that some P1
+predicate compares against - usually a P1 rule of a **later** aggregate, reading its own cached
+snapshot of this one. It is declared in a shared, aggregate-neutral package so that neither side
+depends on the other's microservice package, and so that one literal has one home.
+
+Three placements that look defensible are wrong, and each fails differently:
+
+- **Not on `{Aggregate}.java`.** It compiles, but the consuming aggregate must then import
+  `...microservices.{thisAggregate}.aggregate.{Aggregate}` from its own microservice package - the
+  one source dependency between microservices in an otherwise separately-deployable app.
+- **Not on `{Aggregate}Dto.java`.** The Dto is a transport shape, rebuilt per read; a domain value
+  does not belong to it.
+- **Not in `{AppClass}SpockTest.groovy`.** That constants block is test-fixture values for T1
+  (§ "Update {AppClass}SpockTest.groovy" below); a sentinel is production code, and a copy in the
+  test tree would not be visible to `verifyInvariants()` at all.
+
+Re-declaring the same literal on both aggregates is also wrong, and is the one failure with no
+symptom: snapshot *fields* are deliberately copied because each copy carries its own version stamp,
+but a sentinel carries no version. Two copies that drift do not throw - the predicate silently stops
+matching and every test stays green.
 
 ### `{Aggregate}ServiceApplication.java`
 
@@ -258,11 +386,8 @@ Add the corresponding `import` statements for both classes. Place new bean metho
 
 ## Tick the Checkbox
 
-In plan.md, replace:
-```
-- [ ] 2.{N}.a — Domain layer
-```
-with:
-```
-- [x] 2.{N}.a — Domain layer
-```
+The session checkbox for this session is `- [ ] 2.{N}.a — Domain layer`. Read
+`_shared/session-completion.md` § "Tick the checkbox" in full and follow it. Do not continue until
+you have. It owns the whole rule, including how to anchor on the session line rather than doing a
+bare string replace, and what manager mode and single-agent mode each do about the slice
+sub-checkboxes underneath it.

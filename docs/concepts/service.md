@@ -12,27 +12,42 @@ A service may inject only components that belong to its own aggregate, plus shar
 @Service
 public class WarehouseService {
 
-    @Autowired
-    private AggregateIdGeneratorService aggregateIdGeneratorService;
-
-    @Autowired
-    private WarehouseFactory warehouseFactory;   // own aggregate's factory
-
-    private final WarehouseRepository warehouseRepository;            // own aggregate's JPA repo
+    private final WarehouseRepository warehouseRepository;             // own aggregate's JPA repo
     private final WarehouseCustomRepository warehouseCustomRepository; // own aggregate's custom repo
-    private final UnitOfWorkService unitOfWorkService;   // raw type, deliberately
+    private final WarehouseFactory warehouseFactory;                   // own aggregate's factory
+    private final UnitOfWorkService unitOfWorkService;                 // raw type, deliberately
+    private final AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    public WarehouseService(UnitOfWorkService unitOfWorkService,
-                            WarehouseRepository warehouseRepository,
-                            WarehouseCustomRepository warehouseCustomRepository) {
-        this.unitOfWorkService = unitOfWorkService;
+    public WarehouseService(WarehouseRepository warehouseRepository,
+                            WarehouseCustomRepository warehouseCustomRepository,
+                            WarehouseFactory warehouseFactory,
+                            UnitOfWorkService unitOfWorkService,
+                            AggregateIdGeneratorService aggregateIdGeneratorService) {
         this.warehouseRepository = warehouseRepository;
         this.warehouseCustomRepository = warehouseCustomRepository;
+        this.warehouseFactory = warehouseFactory;
+        this.unitOfWorkService = unitOfWorkService;
+        this.aggregateIdGeneratorService = aggregateIdGeneratorService;
     }
 }
 ```
 
-Never inject a foreign service class or a foreign repository — see [R1, R2 in architecture.md](../architecture.md).
+> **Every dependency goes through the constructor. A service declares no `@Autowired` field.** All
+> fields are `final`, which makes a half-wired service impossible to construct and lets the compiler,
+> rather than a runtime `NullPointerException`, catch a dependency that was added to the class but not
+> to the `@Bean` method. It also keeps one rule instead of two: a session appending a method that
+> needs a collaborator the service does not yet hold widens the constructor **and** the matching
+> `@Bean` method in `BeanConfigurationSagas.groovy`, whichever collaborator it is — there is no
+> second, field-injected category that would let it skip the `@Bean` edit.
+>
+> The list above is closed: own repository, own custom repository, own factory, `UnitOfWorkService`,
+> `AggregateIdGeneratorService`. Omit any the service genuinely does not use; add nothing else.
+
+Never inject a foreign service class or a foreign repository — see [R2 in architecture.md](../architecture.md).
+
+`aggregateLoadAndRegisterRead` is called only with ids of this service's own aggregate type (R1). A
+foreign aggregate's state never arrives by loading it here; it arrives as a DTO parameter, assembled
+by the Functionality from a `Get*Command` step.
 
 Never hold a reference to another aggregate's **concrete class** either (R3). A service may accept and return any aggregate's `{Xxx}Dto`, but aggregate instances carry UoW registration state that must not cross service boundaries — cross-aggregate state flows as DTOs, assembled by the Functionality from a `Get*Command` step and passed downstream as plain values.
 
@@ -163,7 +178,7 @@ public void updateShipment(Integer shipmentAggregateId, ShipmentDto shipmentDto,
 }
 ```
 
-**When to use:** The calling saga fetches an upstream aggregate's DTO but that DTO only returns IDs for sub-objects (e.g. `WarehouseDto.shipmentIds`). Fetching each sub-object individually would require N extra command steps and is disproportionate when the update intent covers only scalar fields. Passing `null` and guarding the setter keeps the update intent explicit without polluting the saga with unnecessary reads.
+**When to use:** The calling saga fetches an upstream aggregate's DTO but that DTO only returns IDs for sub-objects (e.g. `WarehouseDto.shipmentIds`). Fetching each sub-object individually would require N extra command steps, which buy nothing when the sub-collection is not the operation's primary intent (see § When not to use). Passing `null` and guarding the setter keeps the update intent explicit without polluting the saga with unnecessary reads.
 
 **When not to use:** If the sub-collection update is the primary intent of the operation (the caller always has the data), make the parameter non-null and remove the guard — a missing `null` check is then a silent data loss bug.
 

@@ -11,6 +11,7 @@ Located in `src/main/java/.../<appName>/events/` (e.g., `applications/{app-name}
 Each event extends `Event` from `ms.aggregate` (`pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event`) — it is a JPA `@Entity`, so the subclass must be annotated `@Entity` too:
 
 ```java
+@Entity
 public class CreateShipmentEvent extends Event {
     private Integer shipmentAggregateId;
     private Integer warehouseAggregateId;
@@ -69,11 +70,21 @@ public class ShipmentSubscribesUpdateWarehouse extends EventSubscription {
 }
 ```
 
-In the **sagas profile**, matching is performed by the infrastructure via a DB query on `subscribedAggregateId` and `subscribedVersion` — `EventApplicationService.handleSubscribedEvent()` does **not** call `subscribesEvent()`. Any additional filtering (e.g., checking a discriminating field for shared-anchor events) must be implemented in the service-layer ByEvent method. Note: the TCC profile's `CausalUnitOfWork` does call `subscribesEvent()` for causal consistency checks — a `subscribesEvent()` override is meaningful there but irrelevant for sagas.
+Matching is performed by the infrastructure: `EventService.getSubscribedEvents` runs a DB query on `subscribedAggregateId` and `subscribedVersion`, then re-applies the same predicate through `subscribesEvent()`. **Do not override `subscribesEvent()`** for additional filtering (e.g. checking a discriminating field for shared-anchor events). It sees only the three fields the subscription was constructed with, not the consumer's current state, and it is re-evaluated against a subscription rebuilt on every poll — so any discrimination expressed there is both state-blind and duplicated. Put it in the service-layer ByEvent method instead, where the consumer aggregate is loaded.
 
 `subscribedAggregateId` must match `publisherAggregateId` in the event.
 
-**`subscribedVersion`:** pass the anchor entity's current version so that only events published *after* the snapshot was taken are processed. If the subscriber entity does not track the publisher's version (e.g., a `Warehouse` cached inside a `Shipment` that has no `warehouseVersion` field), use `0L` — this means all events from that publisher since the beginning are eligible for processing, which is functionally correct but slightly broader than necessary.
+**`subscribedVersion`:** pass the anchor entity's current version, so that the eligible set is narrowed to events the consumer has not already folded in. If the subscriber entity does not track the publisher's version (e.g., a `Warehouse` cached inside a `Shipment` that has no `warehouseVersion` field), use `0L` — this means all events from that publisher since the beginning are eligible for processing, which is functionally correct but slightly broader than necessary.
+
+### A snapshot-seeded version does not exclude the events already published
+
+`subscribedVersion` does **not** mean "events emitted after this snapshot was taken". Aggregate versions and event versions are two draws from the *same* global counter: `registerChanged` takes one tick and stamps it on the aggregate, then `registerEvent` takes another and stamps it on the event. A publisher that commits and then publishes therefore emits an event whose `publisherAggregateVersion` is strictly **greater** than the aggregate version that same operation committed — and that aggregate version is what a fetched `{Publisher}Dto` carries into the consumer's snapshot.
+
+Since `EventRepository.findUnprocessedEvents` keeps events with `publisherAggregateVersion > subscribedVersion`, a consumer seeded from a DTO stays eligible for every event the publisher emitted up to and including the commit that produced that DTO. **This backlog is expected behaviour, not a defect to work around.** Consequences to design for:
+
+- **The consumer's first poll drains the backlog**, not just the event under consideration. Handlers must therefore be idempotent under re-application of a payload already folded in.
+- **A stale payload can overwrite a fresher cached value** if the backlog is drained after the consumer cached a newer one. Advancing the cached publisher version on every ByEvent mutation (below) is what bounds this.
+- **T3 subscription tests must drain the backlog in `given:`**, before capturing the `versionBefore` the "reflects event" assertion compares against. Call the polling method once at the end of setup — where a fixture helper creates the publisher in several commits, give that drain its own named private helper so the reason survives. Without the drain, the fixture's own event moves the cached version before the test fires anything, and the assertion cannot tell the two apart.
 
 ## EventHandler
 
@@ -154,6 +165,7 @@ Use this exact pattern in all skills and implementations. All skill files must r
 
 ### Event class
 ```java
+@Entity
 public class <EventName> extends Event {
     private Integer entityAggregateId;
     private Integer anchorAggregateId;
@@ -180,7 +192,7 @@ public class <Consumer>Subscribes<Xxx> extends EventSubscription {
 }
 ```
 
-`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. In the sagas profile, `EventApplicationService` does **not** call `subscribesEvent()` — do not override it for sagas event filtering; use the service-layer ByEvent method instead.
+`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. Do not override `subscribesEvent()` to filter — use the service-layer ByEvent method, per § EventSubscription.
 
 ### Handler (single dispatcher)
 
@@ -231,36 +243,96 @@ public class <Consumer>EventProcessing {
     private <Consumer>Functionalities <consumer>Functionalities;
 
     public void process<Xxx>Event(Integer aggregateId, <EventName> event) {
-        <consumer>Functionalities.<updateMethod>(aggregateId, event.get<RelevantField>());
+        <consumer>Functionalities.<operation>ByEvent(aggregateId, event.get<RelevantField>(),
+                event.getPublisherAggregateVersion());
+    }
+
+    // Removal / invalidation events take no version — the cached row does not survive
+    // the mutation, so there is nothing to stamp. See § "Advance the cached publisher version".
+    public void process<DeleteXxx>Event(Integer aggregateId, <DeleteEventName> event) {
+        <consumer>Functionalities.removeFor<Publisher>ByEvent(aggregateId,
+                event.get<Publisher>AggregateId());
     }
 }
 ```
 
-`aggregateId` is the consumer aggregate's ID (passed down from the handler). The `<Consumer>Functionalities` update method opens its own UoW, loads the consumer aggregate, checks `sagaState != NOT_IN_SAGA` (skipping the update if the aggregate is mid-saga to avoid conflicting with its in-progress state), applies the cached-field update, calls `verifyInvariants()`, and commits.
+The `ByEvent` suffix is **mandatory** — see § ByEvent sagaState guard below. Calling the saga
+`Functionalities` method here instead creates a circular saga loop.
+
+`aggregateId` is the consumer aggregate's ID (passed down from the handler). The `<Consumer>Functionalities` update method opens its own UoW, loads the consumer aggregate, checks `sagaState != NOT_IN_SAGA` (skipping the update if the aggregate is mid-saga to avoid conflicting with its in-progress state), calls the service method that applies the cached-field update and registers the new version changed — which invariant-checks it — and commits.
 
 ---
 
 ### ByEvent sagaState guard
 
-For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `<Consumer>Functionalities`. It opens its own `UnitOfWork`, loads the aggregate directly from the service, applies the cached-field change, calls `verifyInvariants()`, and commits — **without starting a new saga**.
+For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `<Consumer>Functionalities`. It opens its own `UnitOfWork`, loads the aggregate to evaluate the guard, delegates the cached-field change to the service, and commits — **without starting a new saga**.
 
 ```java
-public void {operation}ByEvent(Integer aggregateId, ...) {
+public void {operation}ByEvent(Integer aggregateId, {FieldType} {field}, Long {publisher}Version) {
     SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork();
     {Consumer} aggregate = ({Consumer}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
     if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
         return;  // skip — aggregate is mid-saga; avoid conflicting with in-progress state
     }
-    {consumer}Service.{operation}(aggregate, ..., unitOfWork);
+    {consumer}Service.{operation}(aggregateId, {field}, {publisher}Version, unitOfWork);
     unitOfWorkService.commit(unitOfWork);
 }
 ```
+
+The `Long {publisher}Version` parameter is mandatory for every mutation that leaves the cached row in
+place, and absent for one that removes it — see § "Advance the cached publisher version" below for
+which is which. Where the event carries several payload fields, they all sit between `aggregateId` and
+the version, which stays last before the `UnitOfWork`.
+
+**The service method takes the aggregate id, not the loaded aggregate.** This section owns that
+signature. Every service method in the harness is `(Integer aggregateId, ..., UnitOfWork unitOfWork)`
+and loads its own aggregate, which is what lets it mutate a factory copy rather than the instance the
+caller holds ([`service.md`](service.md) § Copy-on-Write Rule). The load in the ByEvent method exists
+to evaluate the guard.
 
 **Why not call the saga `Functionalities` method from `EventProcessing`?** Saga methods set a semantic lock (`sagaState`) and trigger compensations; calling them from an event handler creates a circular saga loop (the saga emits another event → handler fires again → infinite loop). The `ByEvent` method sidesteps this by talking directly to the service layer.
 
 **Where the guard goes.** Put the `sagaState != NOT_IN_SAGA` check inside the `{operation}ByEvent` method **after the load** — not in the shared service method. If the guard lived in a service method that is also called from saga steps on the same aggregate, those saga steps would silently be skipped.
 
-**When to skip the guard.** Only when the event must apply even while the aggregate is mid-saga (rare). For standard cached-field updates and sub-entity removals, always skip when `sagaState != NOT_IN_SAGA`. For whole-consumer invalidation via `copy.remove()`, apply the same guard unless a T3 subscription test (`<Consumer>InterInvariantTest`) explicitly requires processing during an in-flight saga on the same aggregate.
+**Every cached publisher version is a `Long`.** The field on the cached sub-entity, the service-method parameter carrying it and any local holding it are all `Long`, because `Event.getPublisherAggregateVersion()` returns `Long` and `EventSubscription`'s constructor is `(Integer subscribedAggregateId, Long subscribedVersion, String eventType)`. `Aggregate.version` is likewise `Long` ([`aggregate.md`](aggregate.md) § Key Fields). Only aggregate *ids* are `Integer`.
+
+**Advance the cached publisher version.** A ByEvent mutation that leaves the cached row in place must stamp the cached publisher version from `event.getPublisherAggregateVersion()` alongside whatever payload fields it applies — not only in the version-carries-no-payload case shown in `.claude/skills/implement-aggregate/session-d.md`. The service method takes the version as a parameter and sets it on the cached entity in the same mutation:
+
+```java
+public void set{Entity}{Field}(Integer aggregateId, Integer {entity}AggregateId,
+                               {FieldType} {field}, Long {entity}Version, UnitOfWork unitOfWork) {
+    {Consumer} old{Consumer} = ({Consumer}) unitOfWorkService
+            .aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+    {Consumer} new{Consumer} = {consumer}Factory.create{Consumer}Copy(old{Consumer});
+    // ... locate the cached entity on new{Consumer} ...
+    cached.set{Field}({field});
+    cached.set{Entity}Version({entity}Version);
+    unitOfWorkService.registerChanged(new{Consumer}, unitOfWork);
+}
+```
+
+Without it the subscription's `subscribedVersion` never moves, the same event stays eligible on every subsequent poll, and the backlog described in § "A snapshot-seeded version does not exclude the events already published" never converges. It is also what makes the T3 "reflects event" assertion meaningful for a re-affirming payload.
+
+**The exception: mutations that do not leave a cached row.** A ByEvent method that removes the cached
+sub-entity from its collection, or calls `copy.remove()` on the whole consumer (§ Cascade Invalidation
+Pattern), takes **no** version parameter and stamps nothing — there is no surviving row to carry it,
+and no backlog can build up: `getEventSubscriptions()` constructs one subscription per cached row, so
+removing the row removes the subscription with it, and `copy.remove()` takes the consumer out of
+`ACTIVE`, which drops every subscription it declares. The redelivery loop that the version guards
+against cannot occur where there is no longer a subscription to redeliver against.
+
+Apply this test rather than the shape of the event name: **does a cached row survive this mutation?**
+If yes, the version parameter is mandatory; if no, it must be absent.
+
+**When to skip the guard.** Apply the test: **skip the guard only when the cached field the event
+writes is one that no saga step of this aggregate ever writes.** The guard exists to stop an event
+from overwriting a value an in-flight saga is mid-way through setting; where no saga touches that
+field, there is nothing to conflict with and the event must apply. Where any saga step does write it,
+the guard is mandatory — that includes every standard cached-field update and sub-entity removal.
+
+For whole-consumer invalidation via `copy.remove()`, apply the guard unless a T3 subscription test
+(`<Consumer>InterInvariantTest`) explicitly requires processing during an in-flight saga on the same
+aggregate.
 
 ---
 
@@ -290,6 +362,27 @@ public class Invalidate{Consumer}Event extends Event {
 }
 ```
 
-3. Downstream aggregates that cache a reference to `{Consumer}` subscribe to `Invalidate{Consumer}Event` and process it the same way — either removing the sub-entity from a collection or cascading their own invalidation.
+3. Downstream aggregates that cache a reference to `{Consumer}` declare the subscription and route the event into a ByEvent method, exactly as for any other subscribed event:
+
+```java
+// In {Downstream}.getEventSubscriptions() — anchored to the cached {Consumer}'s aggregate id
+eventSubscriptions.add(new {Downstream}SubscribesInvalidate{Consumer}(this.get{Consumer}()));
+
+// In {Downstream}Functionalities — the § ByEvent sagaState guard shape
+public void invalidate{Consumer}ByEvent(Integer aggregateId) {
+    SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork();
+    {Downstream} aggregate = ({Downstream}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+    if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
+        return;
+    }
+    {downstream}Service.invalidate{Consumer}(aggregateId, unitOfWork);
+    unitOfWorkService.commit(unitOfWork);
+}
+```
+
+**Which branch the service method takes** is decided by whether the downstream aggregate can still function without the invalidated reference:
+
+- **It only caches the reference** → remove the cached sub-entity from its collection and `registerChanged` the copy. The cascade stops here; no outbound event.
+- **It is itself non-functional without the reference** → `copy.remove()` plus its own `registerEvent(new Invalidate{Downstream}Event(...))`, i.e. step 1 again one level down. The cascade continues.
 
 **Key invariant:** the outbound invalidation event must use the consumer's own aggregate ID as `publisherAggregateId` so that downstream `EventSubscription` instances anchored to that ID receive it. This is the same rule that applies to all events: `super(anchorAggregateId)` must match the `subscribedAggregateId` of the downstream subscriber.

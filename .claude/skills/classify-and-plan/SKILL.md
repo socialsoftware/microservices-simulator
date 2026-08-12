@@ -181,10 +181,10 @@ an element type; there is nothing to collapse onto the aggregate.
 **Single snapshots** — no `× N`. Whether these get an owned-entity class depends on one thing only:
 
 > A single snapshot needs an `aggregate/{OwnedEntity}.java` class **iff it subscribes to events** —
-> its "Updated on event" cell names at least one event. The subscription class overrides
-> `subscribesEvent(Event)` to filter on the snapshot's own id and liveness, and the harness
-> standardises the thing it filters on as an owned entity, so every subscription — single or
-> collection — is constructed from a reference object of the same shape.
+> its "Updated on event" cell names at least one event. The harness standardises the thing a
+> subscription is built from as an owned entity, so that every subscription — single or collection —
+> is constructed from a reference object of the same shape, and so that the service-layer ByEvent
+> discriminator has a stable object to match the incoming event against.
 >
 > This is a uniformity rule, not a framework constraint. `EventSubscription`'s constructor takes
 > `(Integer subscribedAggregateId, Long subscribedVersion, String eventType)` — plain scalars — so a
@@ -229,7 +229,19 @@ Deferred rules are excluded from Step 6.c cross-aggregate prerequisites and from
 file list.
 
 **Parser heuristic** (mechanical only — this keyword matching exists to drive unattended parsing;
-it is not part of the doc's decision criteria):
+it is not part of the doc's decision criteria).
+
+The two P4 branches read a proxy each, so the block is runnable without a human in the loop:
+
+- `rule_is_implicitly_enforced_by_fetch(rule)` — the rule's predicate names a lookup that §4 of the
+  domain model already describes the saga performing, keyed so the command throws when the
+  precondition is unmet (typically a compound-key `Get…By…And…Command`).
+- `rule_holds_by_shared_value_in_same_saga(rule)` — the rule equates a field across two aggregates
+  that a single §4 saga creates or updates in the same run, passing that value to both.
+
+Both are parse proxies, not the criteria. A rule either proxy catches is still classified by
+`docs/concepts/rule-enforcement-patterns.md` § Decision Guide, and where proxy and guide disagree the
+guide wins.
 
 ```
 FOR each rule in §3.2:
@@ -363,6 +375,99 @@ cross_agg_rules = [r for r in rules_classified
 
 Map each rule to the saga data-assembly step that provides the needed data and, for P3 DTO-check rules, to the service method that performs the explicit validation.
 
+#### 6.d: Compute the saga-state set for this aggregate
+
+The `{Aggregate}SagaState` enum is emitted by session `a`, but the set of constants it must hold is
+**decided here**, not there. Session `a` writes the domain layer before any saga exists, so deriving
+the set at that point forces an agent to infer the shape of write sagas that other sessions - and
+often other aggregates - have not written yet. A wrong inference surfaces only in a much later
+session's `c`, as a missing constant or an unreferenced one.
+
+Each **non-create write functionality** of this aggregate contributes exactly one constant, named
+`IN_` + the functionality name in `SCREAMING_SNAKE_CASE` (`UpdateTopic` → `IN_UPDATE_TOPIC`,
+`AddParticipant` → `IN_ADD_PARTICIPANT`). That is the state its saga's **primary lock step** acquires
+via `setSemanticLock` — see `docs/concepts/sagas.md` § Lock-Acquisition Step Pattern and
+§ Step Ordering step 3.
+
+Nothing else contributes:
+
+- **Create functionalities contribute no constant.** The aggregate does not exist when the saga
+  starts, so there is no prior state to transition from (`sagas.md` § Create Functionality Sagas).
+  An aggregate whose only write functionality is a create therefore has an **empty** enum, which is
+  correct and must still be emitted — later aggregates may add write functionalities to it.
+- **Being fetched by another aggregate contributes no constant.** A foreign saga's data-assembly step
+  is a plain read, and a foreign saga's *mutating* step guards with
+  `setForbiddenStates([{This}SagaState.IN_{OP}])` — it consumes the constants above rather than
+  needing one of its own (`sagas.md` § R4 Decision Table).
+- **`NOT_IN_SAGA` is never declared.** It is `GenericSagaState.NOT_IN_SAGA`, supplied by the
+  framework.
+
+```
+saga_states[agg] = ['IN_' + screaming_snake(f.name)
+                    for f in write_functionalities[agg]
+                    if f.operation_type != create]
+```
+
+For each constant, record a one-line origin: the saga that acquires it, plus any **foreign** saga
+that guards on it, which Step 6.c's cross-aggregate prerequisites already identify. The origin is
+what lets a session `a` agent transcribe the line without re-deriving it, and what lets a reviewer
+catch a constant that nothing acquires.
+
+**Output:** for each aggregate, an ordered list of `(constant, origin)` pairs — emitted by Step 8 as
+the `**Saga states:**` line of the aggregate section.
+
+#### 6.e: Compute the domain sentinel set for this aggregate
+
+A **domain sentinel** is a fixed literal that a write functionality assigns to a field, and that some
+P1 predicate - in this aggregate or in a downstream one - compares against. It lives in the shared
+`{src}microservices/domain/{AppClass}DomainConstants.java`, is emitted by session `a` of the
+aggregate that **writes** it, and like the saga-state set it is **decided here**, not there.
+
+The reason is the same as 6.d's, one step stronger. The session that writes the literal cannot see
+the rule that gives it meaning: the writing aggregate is upstream, so its session `a` runs long
+before the downstream aggregate's P1 predicate exists. Left to infer, that session emits an inline
+string, and the downstream session finds no constant to import - so it inlines a second copy. Two
+copies of a sentinel that later diverge do not fail a test; the predicate simply stops matching, and
+every suite stays green.
+
+**Detection.** Scan every predicate classified P1 in Step 4 (plus every §3.1 predicate, which is P1
+by construction) for a comparison against a **literal** - a quoted string, or a bare numeric or
+boolean constant that is not another field of the same predicate. Ordered-domain bounds are not
+sentinels: a threshold in `count <= 5` is a rule parameter, not a value any write functionality
+assigns. The test is whether some §4 functionality *writes* it: a bound appearing only inside a
+comparison (`remainingCapacity <= 5`) is a rule parameter the domain model states; a literal some §4
+Description says an operation *sets* (`ReleaseShipment` sets `carrierName` to `"unassigned"`) is a
+sentinel.
+
+**Attribution.** The sentinel belongs to the aggregate whose **write functionality assigns it**, read
+from the §4 Description column - not to the aggregate whose rule compares against it. Attribution to
+the writer is what makes the ordering safe: a sentinel is compared against a snapshot field cached
+from the writer, so the writer is always upstream in the Step 5 topological order and always has the
+lower ordinal. Its session `a` therefore always precedes the consuming aggregate's.
+
+**Naming.** `SCREAMING_SNAKE_CASE` of the literal's domain meaning. Where the literal is already a
+word, the constant matches it.
+
+For each sentinel, record the writing functionality plus every rule and aggregate that compares
+against it. That origin is what lets session `a` transcribe the line without re-deriving it, and what
+lets a reviewer catch a constant nothing writes or nothing reads.
+
+```
+sentinels[agg] = [(name(lit), lit, origin)
+                  for r in rules_classified if r.pattern == P1
+                  for lit in literals(r.predicate)
+                  if writer_of(lit) == agg]
+```
+
+**Output:** for each aggregate, an ordered list of `(constant, literal, origin)` triples - emitted by
+Step 8 as the `**Domain sentinels:**` line of the aggregate section, on both the writing aggregate
+(which declares it) and every consuming aggregate (which imports it). Worked example, `Shipment`
+writes it and `Carrier` compares against it:
+
+```
+- `UNASSIGNED = "unassigned"` - written by `ReleaseShipment`; compared by `CARRIER_IS_ASSIGNED` (`Carrier`)
+```
+
 ---
 
 ### Step 7: Generate File Lists for Each Session (2.N.a–d)
@@ -377,8 +482,15 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{DomainEnum}.java` (per enum-typed §1 attribute), `aggregate/{CollectionSnapshotEntity}.java` (per × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{SubscribingSnapshotEntity}.java` (per single §2 snapshot that subscribes to an event — see below), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `{Aggregate}ServiceApplication.java`, `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy` |
+| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{DomainEnum}.java` (per enum-typed §1 attribute), `aggregate/{CollectionSnapshotEntity}.java` (per × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{SubscribingSnapshotEntity}.java` (per single §2 snapshot that subscribes to an event - see below), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `{Aggregate}ServiceApplication.java`, `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy`, `{src}microservices/domain/{AppClass}DomainConstants.java` (only if Step 6.e gave this aggregate a sentinel to declare) |
 ```
+
+> **`{AppClass}DomainConstants.java` is conditional and shared.** List it in the 2.N.a row of every
+> aggregate whose Step 6.e sentinel list is non-empty, and only those - a *consuming* aggregate
+> imports the class but produces nothing in it. Like the `{src}commands/{aggregate}/` entries and
+> `{src}ServiceMapping.java`, it is rooted at the app source root rather than at
+> `microservices/{aggregate}/`, because it is shared across microservices. The first aggregate that
+> declares a sentinel creates it; every later one appends.
 
 > **Never omit from 2.N.a:** `{Aggregate}Factory.java`, `{Aggregate}CustomRepository.java` and
 > `{Aggregate}ServiceApplication.java` must always appear in the 2.N.a row — the factory and
@@ -409,7 +521,7 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.b | `service/{Aggregate}Service.java` (read methods), `messaging/{Aggregate}CommandHandler.java`, `commands/{aggregate}/Get{Aggregate}ByIdCommand.java`, `commands/{aggregate}/Get{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `coordination/functionalities/{Aggregate}Functionalities.java`, `{src}ServiceMapping.java` (add the `{AGGREGATE}` entry), `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (read-method cases), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
+| 2.N.b | `service/{Aggregate}Service.java` (read methods), `messaging/{Aggregate}CommandHandler.java`, `{src}commands/{aggregate}/Get{Aggregate}ByIdCommand.java`, `{src}commands/{aggregate}/{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `coordination/functionalities/{Aggregate}Functionalities.java`, `{src}ServiceMapping.java` (add the `{AGGREGATE}` entry), `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (read-method cases), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
 ```
 
 > **`Get{Aggregate}ByIdCommand.java` is unconditional** — list it in every aggregate's 2.N.b row, whether or not §4 has any read functionality for that aggregate. Write sagas need it for their get-then-lock step, so it is infrastructure rather than a domain read, and session `b` is therefore never empty.
@@ -418,7 +530,7 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 
 > **`{src}ServiceMapping.java` is unconditional and shared.** Every aggregate needs an entry, because
 > every command constructor resolves its target through `ServiceMapping.{AGGREGATE}.getServiceName()`.
-> It is the one path in these tables rooted at the app source root rather than at
+> Like the `{src}commands/{aggregate}/` entries, it is rooted at the app source root rather than at
 > `microservices/{aggregate}/`, and it is edited, not created, for every aggregate after the first.
 > It belongs to session `b` because that is where the aggregate's first command is written.
 
@@ -426,8 +538,17 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.c | `service/{Aggregate}Service.java` (write methods appended), `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), write coordinator methods appended to `coordination/functionalities/{Aggregate}Functionalities.java`, write cases appended to `messaging/{Aggregate}CommandHandler.java`, `coordination/webapi/{Aggregate}Controller.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op), write-method cases plus event-publication assertions appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
+| 2.N.c | `service/{Aggregate}Service.java` (write methods appended), `{src}commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), write coordinator methods appended to `coordination/functionalities/{Aggregate}Functionalities.java`, write cases appended to `messaging/{Aggregate}CommandHandler.java`, `coordination/webapi/{Aggregate}Controller.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op), `sagas/coordination/{aggregate}/{Operation}CompensationTest.groovy` and `applications/{app-name}/src/test/resources/groovy/{Operation}CompensationTest/{Operation}FunctionalitySagas.csv` (per write op whose saga holds a semantic lock across a later step), write-method cases plus event-publication assertions appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
 ```
+
+> **The compensation-test pair is listed for every write functionality, gated by a note.** Whether a
+> given operation needs it is decided in session `c` by the applicability test in
+> `.claude/skills/implement-aggregate/session-c.md` § "One `{Op}CompensationTest.groovy` per
+> lock-holding write functionality", which owns that rule — do not restate or re-derive it here. List
+> both files with the gate wording above so a session that does need them never has to amend plan.md,
+> and the impairment CSV is never forgotten: the test injects no fault without it and fails for an
+> unrelated reason. Which functionalities need the pair is decided in session `c` by the applicability
+> test named above.
 
 > **`{Aggregate}Controller.java` is unconditional** — a minimal `@RestController` stub under
 > `coordination/webapi/`. List it for every aggregate; it is not gated on the aggregate having any
@@ -441,7 +562,7 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.d | `notification/subscribe/{Aggregate}Subscribes{Event}.java` (one per subscribed event), `notification/handling/{Aggregate}EventHandling.java`, `notification/handling/handlers/{Aggregate}EventHandler.java`, `coordination/eventProcessing/{Aggregate}EventProcessing.java`, `sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` |
+| 2.N.d | `notification/subscribe/{Aggregate}Subscribes{Event}.java` (one per subscribed event), `notification/handling/{Aggregate}EventHandling.java`, `notification/handling/handlers/{Aggregate}EventHandler.java`, `coordination/eventProcessing/{Aggregate}EventProcessing.java`, `coordination/functionalities/{Aggregate}Functionalities.java` (one `{operation}ByEvent` appended per event), `service/{Aggregate}Service.java` (one mutate helper appended per event), `aggregate/{Aggregate}.java` (`getEventSubscriptions()` updated), `sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy` |
 ```
 
 **Substitution rules:**
@@ -546,13 +667,20 @@ every Phase 2/3/4 skill depends on the ordinal being present.
 - `{Operation}({args})` — description
 
 **Read functionalities** (query operations):
-- `Get{Query}({args})` — description
+- `{Query}({args})` — description
 
 **Events published:** list from aggregate-grouping §4
 **Events subscribed:** list from aggregate-grouping §4
 
 **Cross-aggregate prerequisites** (P4a rules and P3 DTO-check rules requiring a saga data-assembly fetch):
 - `{RuleName}` → `{Operation}FunctionalitySagas` data-assembly step (fetch from `{OtherAggregate}`)
+
+**Saga states** (`{Aggregate}SagaState` — from Step 6.d; session `a` transcribes this list verbatim):
+- `IN_{OPERATION}` — acquired by `{Operation}FunctionalitySagas` primary lock step
+- `IN_{OPERATION}` — acquired by `{Operation}FunctionalitySagas` primary lock step; guarded by `{OtherOperation}FunctionalitySagas` (`{OtherAggregate}`) via `setForbiddenStates`
+
+**Domain sentinels** (`{AppClass}DomainConstants` - from Step 6.e; session `a` transcribes this list verbatim):
+- `{CONSTANT} = "{literal}"` - written by `{Operation}`; compared by `{RULE_NAME}` (`{OtherAggregate}`)
 
 **Files to produce:**
 
@@ -573,6 +701,19 @@ every Phase 2/3/4 skill depends on the ordinal being present.
 ```
 
 (Omit Session 2.N.d section if Events subscribed is empty.)
+
+The **Saga states** line is never omitted. When Step 6.d yields no constant, emit it as
+`**Saga states:** none — {reason}` (typically: the aggregate's only write functionality is a create).
+An absent line is indistinguishable from a forgotten one, and session `a` halts on it rather than
+guessing.
+
+The **Domain sentinels** line is never omitted either, for the same reason, and has two `none` forms
+that must not be collapsed into one:
+
+- `**Domain sentinels:** none.` - the aggregate neither declares nor compares against one.
+- `**Domain sentinels:** none declared. `{RULE_NAME}` compares against `{CONSTANT}`, declared by `{Aggregate}`.`
+  - the aggregate is a *consumer*. Its session `a` produces no constant but must import the class
+  rather than re-derive the literal, so the line has to say so.
 
 The checklist above is the shape **before** slices are emitted. Step 8.5 expands it.
 
