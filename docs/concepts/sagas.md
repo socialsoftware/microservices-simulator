@@ -287,6 +287,49 @@ and the service mints its `aggregateId` via `aggregateIdGeneratorService`. Three
    plain read command where the read only supplies data, or the get-then-lock pattern where the saga
    also mutates that aggregate. Only the create step itself is special.
 
+### Field provenance — where the created aggregate's unsupplied values come from
+
+When a saga creates a **second** aggregate as part of a larger functionality, the functionality's own
+signature was written for the first one, so the second aggregate needs field values no caller
+supplies. Where those come from is not free: it is a published-API decision, and leaving it to the
+implementing agent produces a different answer per aggregate. State it, in this order:
+
+1. **Derive it in the saga from parameters already present.** Preferred, and the default. If a field
+   of the created aggregate is a function of arguments the functionality already takes or of a DTO an
+   earlier step already fetched, compute it in the create step. The signature does not change.
+2. **Use a domain sentinel for a genuine constant.** A field with no defensible derivation but one
+   correct value for every aggregate created down this path takes a named constant, declared
+   alongside the other domain constants, not a literal at the call site.
+3. **Widen the functionality's signature only when neither fits** - when the value is a real caller
+   choice the domain model gives no way to derive. This changes the published API, so it is the last
+   resort, not the convenient one.
+
+Do **not** discharge the problem by defaulting the field on the created aggregate itself. A default
+inside `{Aggregate}` applies to every create path, including the direct one, and silently weakens
+whatever P1 invariant the field participates in. Record the chosen provenance in the retro.
+
+### The compensating delete — when the created aggregate ships no delete
+
+Item 2 requires a removal compensation whenever a later step follows the create, and the Shape 2
+snippet below assumes `Delete{Aggregate}Command` exists. It often does not: the created aggregate's
+own session may have shipped no delete of any kind - no service method, no command, no handler case -
+because nothing in that aggregate's own functionality list needed one.
+
+**Then the saga's session writes it, by reopening the created aggregate's session `c`** for that one
+method: `{Aggregate}Service.delete{Aggregate}`, `Delete{Aggregate}Command`, and its
+`{Aggregate}CommandHandler` case, with the T2 coverage that session's conventions require. The
+compensation is a step of the created aggregate's own contract, so it belongs in that aggregate's
+service, not assembled inline in the saga.
+
+Two alternatives are **forbidden**, however much cheaper they look:
+
+- **Reordering the steps so the create is last**, to fall back on item 2's no-compensation branch.
+  The order is fixed by the data dependency - a later step consumes the created aggregate's id or
+  DTO - and where it is not, moving a create to the end to dodge writing a delete makes the step
+  order an artifact of what was convenient to implement.
+- **Skipping the compensation.** An abort then leaves the created aggregate behind with nothing
+  referencing it, and no test in the aggregate's own suite can see it.
+
 ### Shape 1 — single-step create
 
 The create is the only step, so abort is the unit of work's responsibility and no compensation is
