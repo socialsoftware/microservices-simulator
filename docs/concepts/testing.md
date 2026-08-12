@@ -383,7 +383,7 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
         and: 'consumer polls for the event'
         <consumer>EventHandling.handle<Xxx>Events()
         then: 'consumer cached field is updated'
-        <consumer>Service.get<Consumer>(consumer.aggregateId,
+        <consumer>Service.get<Consumer>ById(consumer.aggregateId,
                 unitOfWorkService.createUnitOfWork("check")).<cachedField> == <newValue>
     }
 
