@@ -222,12 +222,12 @@ DTOs are point-in-time snapshots of an aggregate's observable state. A Functiona
 ```java
 // WRONG — mutates a snapshot owned by another aggregate. The write is invisible to
 // that aggregate's UoW, so it is never persisted and never compensated.
-{Aggregate}Dto dto = ({Aggregate}Dto) commandGateway.sendAndCollect(new Get{Aggregate}ByIdCommand(id));
+{Aggregate}Dto dto = ({Aggregate}Dto) commandGateway.send(new Get{Aggregate}ByIdCommand(id));
 dto.set{Field}(newValue);
 
 // RIGHT — read the snapshot, send the change as a command to the owning service.
-{Aggregate}Dto dto = ({Aggregate}Dto) commandGateway.sendAndCollect(new Get{Aggregate}ByIdCommand(id));
-commandGateway.sendAndCollect(new Update{Aggregate}{Field}Command(dto.getAggregateId(), newValue));
+{Aggregate}Dto dto = ({Aggregate}Dto) commandGateway.send(new Get{Aggregate}ByIdCommand(id));
+commandGateway.send(new Update{Aggregate}{Field}Command(dto.getAggregateId(), newValue));
 ```
 
 ---
@@ -241,14 +241,14 @@ A functionality that belongs to aggregate A may only issue commands (read or mut
 ```java
 // WRONG — A's functionality reaches into a downstream aggregate to push the new value.
 // The command chain now runs both ways, and A must know which downstream types cache the field.
-commandGateway.sendAndCollect(new Update{Aggregate}Command(unitOfWork,
+commandGateway.send(new Update{Aggregate}Command(unitOfWork,
         ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}AggregateId, newValue));
-commandGateway.sendAndCollect(new Set{Downstream}{Field}Command(unitOfWork,
+commandGateway.send(new Set{Downstream}{Field}Command(unitOfWork,
         ServiceMapping.{DOWNSTREAM}.getServiceName(), {downstream}AggregateId, newValue));
 
 // RIGHT — A's step updates A only. The downstream aggregate subscribes to A's event and
 // folds the new value into its cached copy through its own ByEvent path.
-commandGateway.sendAndCollect(new Update{Aggregate}Command(unitOfWork,
+commandGateway.send(new Update{Aggregate}Command(unitOfWork,
         ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}AggregateId, newValue));
 // {Aggregate}Service registers Update{Aggregate}Event; the downstream aggregate declares the
 // matching subscription in getEventSubscriptions() — see concepts/events.md § Canonical Wiring Snippet.

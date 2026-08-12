@@ -77,6 +77,68 @@ Path: `{src}microservices/{aggregate}/aggregate/{Entity}.java`
 - **Bidirectional `@OneToOne` (aggregate → entity):** If the aggregate side uses `@OneToOne(mappedBy = "{aggregate}")`, this entity class holds the owning side: declare a plain `@OneToOne {Aggregate} {aggregate}` field (no `mappedBy`) with a getter/setter — this is the field `mappedBy` names. Whatever installs the entity on the aggregate (setter, or constructor when the reference is immutable) must call `entity.set{Aggregate}(this)` to wire the back-reference before persisting.
 - **Nested entity-to-entity `@OneToOne` (entity owns a sub-entity):** When an owned entity itself exclusively owns one sub-entity (e.g., `ShipmentItem → ShipmentItemLabel`), use a unidirectional `@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)` on the outer entity — no `mappedBy`, no back-reference field on the sub-entity unless explicitly needed. The outer entity's copy constructor must deep-copy the sub-entity via `new SubEntity(existing.getSubEntity())`.
 
+### Snapshot entity classes
+
+Distinct from § "Owned entity classes" above, which covers only the §1 entities this aggregate owns
+outright. A **snapshot** entity caches state belonging to another aggregate. Which §2 snapshots get a
+class is decided by `/classify-and-plan` — see `.claude/skills/classify-and-plan/SKILL.md` § Step 3.d
+and its restatement in the 2.N.a file-table notes — and every file it decides on is already named in
+the plan.md `2.{N}.a` row. Three cases, and the row tells you which applies:
+
+- a `× N` **collection** snapshot → `aggregate/{CollectionSnapshotEntity}.java` **and**
+  `aggregate/{CollectionSnapshotEntity}Dto.java`;
+- a **single** snapshot with a non-empty "Updated on event" →
+  `aggregate/{SubscribingSnapshotEntity}.java`, no Dto;
+- a **single** snapshot whose "Updated on event" is `n/a` → **no file at all**; it is cached as an id
+  field and a version field directly on the aggregate.
+
+Every version field named below is a `Long` — that typing is owned by
+`docs/concepts/events.md` § ByEvent sagaState guard, "Every cached publisher version is a `Long`".
+Only aggregate *ids* are `Integer`.
+
+#### `{CollectionSnapshotEntity}.java`
+
+Path: `{src}microservices/{aggregate}/aggregate/{CollectionSnapshotEntity}.java`
+
+- `@Entity` + `@Table`; `@Id @GeneratedValue Integer id`
+- `Integer {publisher}AggregateId` — which publisher aggregate this row caches
+- One field per cached attribute named by the §2 row
+- `Long {publisher}Version` — the publisher version the cached fields were taken at. Session `d`'s
+  ByEvent path stamps it on every mutation that leaves the row in place
+- No-arg constructor (JPA), a field constructor, and a **copy constructor**
+  `{CollectionSnapshotEntity}({CollectionSnapshotEntity} other)` — the copy-on-write path deep-copies
+  the collection through it
+- **No back-reference field.** The aggregate side is `@OneToMany` with no `mappedBy`
+  (§ `{Aggregate}.java` above), so the association is a join table and there is nothing for a
+  back-reference to name
+- Getters and setters
+
+#### `{SubscribingSnapshotEntity}.java`
+
+Path: `{src}microservices/{aggregate}/aggregate/{SubscribingSnapshotEntity}.java`
+
+Same shape as above, with one difference: the aggregate holds it as
+`@OneToOne(cascade = CascadeType.ALL, mappedBy = "{aggregate}")`, so this class holds the owning side
+— declare a plain `@OneToOne {Aggregate} {aggregate}` field with getter and setter, exactly as
+§ "Owned entity classes" describes for a bidirectional `@OneToOne`. **No Dto is produced for it.**
+
+#### `{CollectionSnapshotEntity}Dto.java`
+
+Path: `{src}microservices/{aggregate}/aggregate/{CollectionSnapshotEntity}Dto.java`
+
+- Plain Java class — no JPA annotations. It is a DTO and therefore an immutable value object (R7 —
+  see `docs/architecture.md` § R7)
+- Field set mirrors the entity: `Integer {publisher}AggregateId`, the cached fields, and
+  `Long {publisher}Version`
+- **No-arg constructor**, an all-fields constructor, and a constructor from the entity. The no-arg
+  constructor is mandatory: the test profile sets `local.messaging.serialize: true`, so anything
+  reachable from a command round-trips through Jackson
+- Getters and setters
+
+This is what a saga's collection-valued data-assembly step constructs when it fetches one upstream DTO
+per caller-supplied id — see `docs/concepts/sagas.md` § "Collection-valued data-assembly step". Do not
+confuse it with § `{Aggregate}Dto.java` below, which is this aggregate's own DTO.
+
 ### Domain enums
 
 Every aggregate field typed as a domain enum gets its own enum file, listed in the plan.md `2.{N}.a`

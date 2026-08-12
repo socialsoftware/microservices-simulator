@@ -243,7 +243,15 @@ public class <Consumer>EventProcessing {
     private <Consumer>Functionalities <consumer>Functionalities;
 
     public void process<Xxx>Event(Integer aggregateId, <EventName> event) {
-        <consumer>Functionalities.<operation>ByEvent(aggregateId, event.get<RelevantField>());
+        <consumer>Functionalities.<operation>ByEvent(aggregateId, event.get<RelevantField>(),
+                event.getPublisherAggregateVersion());
+    }
+
+    // Removal / invalidation events take no version — the cached row does not survive
+    // the mutation, so there is nothing to stamp. See § "Advance the cached publisher version".
+    public void process<DeleteXxx>Event(Integer aggregateId, <DeleteEventName> event) {
+        <consumer>Functionalities.removeFor<Publisher>ByEvent(aggregateId,
+                event.get<Publisher>AggregateId());
     }
 }
 ```
@@ -260,16 +268,21 @@ The `ByEvent` suffix is **mandatory** — see § ByEvent sagaState guard below. 
 For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `<Consumer>Functionalities`. It opens its own `UnitOfWork`, loads the aggregate to evaluate the guard, delegates the cached-field change to the service, and commits — **without starting a new saga**.
 
 ```java
-public void {operation}ByEvent(Integer aggregateId, ...) {
+public void {operation}ByEvent(Integer aggregateId, {FieldType} {field}, Long {publisher}Version) {
     SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork();
     {Consumer} aggregate = ({Consumer}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
     if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
         return;  // skip — aggregate is mid-saga; avoid conflicting with in-progress state
     }
-    {consumer}Service.{operation}(aggregateId, ..., unitOfWork);
+    {consumer}Service.{operation}(aggregateId, {field}, {publisher}Version, unitOfWork);
     unitOfWorkService.commit(unitOfWork);
 }
 ```
+
+The `Long {publisher}Version` parameter is mandatory for every mutation that leaves the cached row in
+place, and absent for one that removes it — see § "Advance the cached publisher version" below for
+which is which. Where the event carries several payload fields, they all sit between `aggregateId` and
+the version, which stays last before the `UnitOfWork`.
 
 **The service method takes the aggregate id, not the loaded aggregate.** This section owns that
 signature. Every service method in the harness is `(Integer aggregateId, ..., UnitOfWork unitOfWork)`
@@ -283,7 +296,7 @@ to evaluate the guard.
 
 **Every cached publisher version is a `Long`.** The field on the cached sub-entity, the service-method parameter carrying it and any local holding it are all `Long`, because `Event.getPublisherAggregateVersion()` returns `Long` and `EventSubscription`'s constructor is `(Integer subscribedAggregateId, Long subscribedVersion, String eventType)`. `Aggregate.version` is likewise `Long` ([`aggregate.md`](aggregate.md) § Key Fields). Only aggregate *ids* are `Integer`.
 
-**Always advance the cached publisher version.** Every ByEvent mutation must stamp the cached publisher version from `event.getPublisherAggregateVersion()` alongside whatever payload fields it applies — not only in the version-carries-no-payload case shown in `.claude/skills/implement-aggregate/session-d.md`. The service method takes the version as a parameter and sets it on the cached entity in the same mutation:
+**Advance the cached publisher version.** A ByEvent mutation that leaves the cached row in place must stamp the cached publisher version from `event.getPublisherAggregateVersion()` alongside whatever payload fields it applies — not only in the version-carries-no-payload case shown in `.claude/skills/implement-aggregate/session-d.md`. The service method takes the version as a parameter and sets it on the cached entity in the same mutation:
 
 ```java
 public void set{Entity}{Field}(Integer aggregateId, Integer {entity}AggregateId,
@@ -299,6 +312,17 @@ public void set{Entity}{Field}(Integer aggregateId, Integer {entity}AggregateId,
 ```
 
 Without it the subscription's `subscribedVersion` never moves, the same event stays eligible on every subsequent poll, and the backlog described in § "A snapshot-seeded version does not exclude the events already published" never converges. It is also what makes the T3 "reflects event" assertion meaningful for a re-affirming payload.
+
+**The exception: mutations that do not leave a cached row.** A ByEvent method that removes the cached
+sub-entity from its collection, or calls `copy.remove()` on the whole consumer (§ Cascade Invalidation
+Pattern), takes **no** version parameter and stamps nothing — there is no surviving row to carry it,
+and no backlog can build up: `getEventSubscriptions()` constructs one subscription per cached row, so
+removing the row removes the subscription with it, and `copy.remove()` takes the consumer out of
+`ACTIVE`, which drops every subscription it declares. The redelivery loop that the version guards
+against cannot occur where there is no longer a subscription to redeliver against.
+
+Apply this test rather than the shape of the event name: **does a cached row survive this mutation?**
+If yes, the version parameter is mandatory; if no, it must be absent.
 
 **When to skip the guard.** Apply the test: **skip the guard only when the cached field the event
 writes is one that no saga step of this aggregate ever writes.** The guard exists to stop an event

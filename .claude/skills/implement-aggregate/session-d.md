@@ -127,13 +127,24 @@ public class {Aggregate}EventProcessing {
     private {Aggregate}Functionalities {aggregate}Functionalities;
 
     public void process{Xxx}Event(Integer aggregateId, {EventName} event) {
-        {aggregate}Functionalities.{updateMethod}ByEvent(aggregateId, event.get{RelevantField}());
+        {aggregate}Functionalities.{updateMethod}ByEvent(aggregateId, event.get{RelevantField}(),
+                event.getPublisherAggregateVersion());
+    }
+
+    // Removal / invalidation events take no version — no cached row survives to stamp it
+    public void process{DeleteXxx}Event(Integer aggregateId, {DeleteEventName} event) {
+        {aggregate}Functionalities.removeFor{Publisher}ByEvent(aggregateId,
+                event.get{Publisher}AggregateId());
     }
 }
 ```
 
 - Does NOT load, mutate, or persist the aggregate directly
 - The cached-field update and the UoW commit both happen inside the Functionalities update method
+- **Whether the call carries `event.getPublisherAggregateVersion()` is decided by one test:** does a
+  cached row survive the mutation? A cached-field update stamps the version and must pass it; a
+  removal or a whole-consumer invalidation has no surviving row and must not. The rule and its
+  rationale are owned by `docs/concepts/events.md` § "Advance the cached publisher version"
 
 **P2 rule enforcement:** The invariant check happens inside the Functionalities update method, which loads the aggregate, applies the cached-field change and registers the new version changed — which invariant-checks it. If the invariant fails, `registerChanged` throws, the exception propagates and the event is not marked as processed (allowing retry or manual intervention).
 
@@ -153,6 +164,10 @@ When the inbound event signals that a publisher aggregate has been deleted, choo
 | **Invalidate the whole consumer** | The deleted entity is structurally required for the consumer to function (e.g., `DeleteShipmentEvent` for a `ShipmentItem`, `DeleteWarehouseEvent` for a `Shipment`) | Call `copy.remove()` to mark the consumer `DELETED`; publish an outbound invalidation event so downstream aggregates can react (see `docs/concepts/events.md` — Cascade Invalidation Pattern) |
 
 The distinguishing question is: *can this consumer aggregate still fulfil its purpose if the referenced entity is gone?* If the answer is no, invalidate the whole consumer.
+
+Both branches are the no-surviving-row case, so **neither takes a publisher-version parameter** — see
+`docs/concepts/events.md` § "Advance the cached publisher version", "The exception: mutations that do
+not leave a cached row".
 
 #### `Update{Publisher}Event` for consumers that cache only `{publisher}Version`
 

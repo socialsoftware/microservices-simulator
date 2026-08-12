@@ -83,7 +83,7 @@ public void {operation}ByEvent(Integer aggregateId, {FieldType} {field}, Long {p
 
 // P3 (blocking) — the saga adds a data-assembly step before the lock step ...
 SagaStep get{Publisher}Step = new SagaStep("get{Publisher}Step", () -> {
-    this.{publisher}Dto = ({Publisher}Dto) commandGateway.sendAndCollect(
+    this.{publisher}Dto = ({Publisher}Dto) commandGateway.send(
             new Get{Publisher}ByIdCommand(unitOfWork,
                     ServiceMapping.{PUBLISHER}.getServiceName(), {publisher}AggregateId));
 });
@@ -130,7 +130,7 @@ which is the P4a-over-P3 preference of § P3 applied to an input no rule mention
    ```java
    // Fetching this DTO enforces the precondition implicitly.
    // If the precondition is not met, the command throws and the saga aborts - {RULE_NAME}.
-   {Target}Dto {target}Dto = ({Target}Dto) commandGateway.sendAndCollect(
+   {Target}Dto {target}Dto = ({Target}Dto) commandGateway.send(
        new Get{Target}By{Key}Command(unitOfWork, ServiceMapping.{TARGET}.getServiceName(), ...));
    ```
 
