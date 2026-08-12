@@ -168,7 +168,7 @@ Run the build with no pipe, then read the exit status from the `MAVEN_EXIT` line
 
 ```bash
 cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
-mvn clean -Ptest-sagas test {-Dtest=... if narrowing}
+mvn clean -Ptest-sagas test {-Dtest=... if narrowing} > build.log 2>&1
 echo "MAVEN_EXIT=$?"
 ```
 
@@ -180,7 +180,7 @@ of a session (`.claude/agents/aggregate-slice.md`) drops `clean` and narrows wit
 
 ```bash
 cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
-mvn -Ptest-sagas test -Dtest={NarrowedClasses}
+mvn -Ptest-sagas test -Dtest={NarrowedClasses} > build.log 2>&1
 echo "MAVEN_EXIT=$?"
 ```
 
