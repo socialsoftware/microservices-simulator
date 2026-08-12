@@ -159,16 +159,19 @@ reporting a result it did not observe.
 Get the verdict from two sources the hook does not touch: maven's own **exit status**, and the
 **surefire report files** maven writes to disk.
 
-A full run's stdout can exceed the tool's output budget and be truncated, taking the `MAVEN_EXIT`
-line with it. **Redirect to a file** - `> build.log 2>&1` is a redirection, not a pipe, so maven's
-own exit code still reaches `$?` and the verdict line stays visible. Read the log only to quote a
-failure; the totals still come from the surefire reports below.
+**Do not redirect maven's output to a file.** A build log written into the working tree is an
+artifact of a verification step, not of the application, and nothing downstream reads it - failures
+are quoted from the surefire report `.txt` files, which maven writes to disk anyway.
 
-Run the build with no pipe, then read the exit status from the `MAVEN_EXIT` line:
+A full run's stdout can exceed the tool's output budget and be truncated, taking the `MAVEN_EXIT`
+line with it. **A run whose `MAVEN_EXIT` line you did not see is unverified**: re-run it, do not
+infer the verdict from whatever stdout survived, and never report a pass you did not observe.
+
+Run the build with no pipe and no redirect, then read the exit status from the `MAVEN_EXIT` line:
 
 ```bash
 cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
-mvn clean -Ptest-sagas test {-Dtest=... if narrowing} > build.log 2>&1
+mvn clean -Ptest-sagas test {-Dtest=... if narrowing}
 echo "MAVEN_EXIT=$?"
 ```
 
@@ -180,7 +183,7 @@ of a session (`.claude/agents/aggregate-slice.md`) drops `clean` and narrows wit
 
 ```bash
 cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
-mvn -Ptest-sagas test -Dtest={NarrowedClasses} > build.log 2>&1
+mvn -Ptest-sagas test -Dtest={NarrowedClasses}
 echo "MAVEN_EXIT=$?"
 ```
 
