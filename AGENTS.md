@@ -33,6 +33,11 @@ the right answer, because there is not one yet - it is a design decision. **Halt
 before writing the code**, since the answer determines the code. Then write both the harness fix and
 the implementation.
 
+A finding whose only defect is a missing example, a cross-reference the reader must follow, or
+imprecise wording is silence, not contradiction, however obvious the improvement looks - it is
+Type 2 and it halts. This is what `/review-artifacts` Check 3 ("Improvement Opportunities" and
+"Ambiguous Guidance") produces by construction; Checks 1, 2 and 4 produce Type 1 candidates.
+
 **`simulator/` is always Type 2**, with no Type 1 fast path. Docs are guidance *about* the system;
 `simulator/` *is* the system under study. A framework patch made to accommodate a wrong
 implementation is the cheapest way to silently corrupt a result, and "the framework is broken" is in

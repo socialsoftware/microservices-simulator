@@ -327,6 +327,21 @@ Run `mkdir -p docs/reviews` (no-op if exists).
 Write `{report-file}` using the template below. Never omit a section — write
 "nothing to report" if a check produced no findings.
 
+**State the harness-evolution type each check's findings carry** (`AGENTS.md` § "Harness
+evolution"), because a later session acting on this report decides from it whether it may fix
+unilaterally:
+
+| Check | Type its findings carry | Why |
+|-------|------------------------|-----|
+| Check 1 — Path Validity | Type 1 candidates | A path or symbol that does not exist is a mechanical contradiction. |
+| Check 2 — Pattern Alignment | Type 1 candidates | Two artifacts prescribing different things for the same pattern is a demonstrable contradiction. |
+| Check 3 — Improvement Opportunities | **Type 2 - must halt** | Missing examples and ambiguous guidance are silences, not contradictions: nothing in the harness is provably wrong, so the fix is a design decision the human owns. |
+| Check 4 — Neutral Domain | Type 1 candidates | A domain noun in a harness file contradicts `_shared/conventions.md` § "Neutral domain". |
+
+A Check 3 finding never becomes Type 1 by being obviously right, small, or already agreed in
+conversation. If a Check 3 finding also exposes a genuine contradiction, the contradiction is a
+Check 1 or Check 2 finding and belongs in that section, filed on its own evidence.
+
 ```markdown
 # Artifacts Review — {review-date}
 
@@ -377,6 +392,9 @@ Write `{report-file}` using the template below. Never omit a section — write
 ---
 
 ## Check 3 — Improvement Opportunities
+
+> Findings in this check are **Type 2** (`AGENTS.md` § "Harness evolution"): a session acting on
+> them halts and asks the human, and never applies them under the Type 1 fast path.
 
 ### Missing Examples
 
