@@ -20,6 +20,10 @@ repairing them, so the same mistake is never made twice. Every repair is recorde
 `applications/{app-name}/harness-log.md` and committed separately with a `harness:` prefix, so the
 harness delta of a run is exactly `git log --oneline docs/ .claude/`.
 
+That claim only holds if the log covers every commit, so: **every `harness:` commit carries at least
+one `harness-log.md` row**, and a commit closing N review findings carries either N rows or one row
+naming all N. A `harness:` commit with no row is a defect in the run's record, not a shortcut.
+
 Two kinds of friction, with different gates:
 
 **Type 1 - contradiction.** The harness contradicts the framework, contradicts itself, or names
