@@ -1,0 +1,31 @@
+package pt.ulisboa.tecnico.socialsoftware.teastore.events;
+
+import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.domain.event.Event;
+
+@Entity
+public class OrderStatusUpdatedEvent extends Event {
+    private String status;
+
+    public OrderStatusUpdatedEvent() {
+        super();
+    }
+
+    public OrderStatusUpdatedEvent(Integer aggregateId) {
+        super(aggregateId);
+    }
+
+    public OrderStatusUpdatedEvent(Integer aggregateId, String status) {
+        super(aggregateId);
+        setStatus(status);
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+}

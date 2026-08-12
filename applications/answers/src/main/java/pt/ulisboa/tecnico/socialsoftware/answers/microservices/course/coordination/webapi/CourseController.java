@@ -1,0 +1,42 @@
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.coordination.webapi;
+
+import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.coordination.functionalities.CourseFunctionalities;
+import org.springframework.http.HttpStatus;
+import java.util.List;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.CourseDto;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.course.coordination.webapi.requestDtos.CreateCourseRequestDto;
+
+@RestController
+public class CourseController {
+    @Autowired
+    private CourseFunctionalities courseFunctionalities;
+
+    @PostMapping("/courses/create")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CourseDto createCourse(@RequestBody CreateCourseRequestDto createRequest) {
+        return courseFunctionalities.createCourse(createRequest);
+    }
+
+    @GetMapping("/courses/{courseAggregateId}")
+    public CourseDto getCourseById(@PathVariable Integer courseAggregateId) {
+        return courseFunctionalities.getCourseById(courseAggregateId);
+    }
+
+    @PutMapping("/courses")
+    public CourseDto updateCourse(@RequestBody CourseDto courseDto) {
+        return courseFunctionalities.updateCourse(courseDto);
+    }
+
+    @DeleteMapping("/courses/{courseAggregateId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCourse(@PathVariable Integer courseAggregateId) {
+        courseFunctionalities.deleteCourse(courseAggregateId);
+    }
+
+    @GetMapping("/courses")
+    public List<CourseDto> getAllCourses() {
+        return courseFunctionalities.getAllCourses();
+    }
+}

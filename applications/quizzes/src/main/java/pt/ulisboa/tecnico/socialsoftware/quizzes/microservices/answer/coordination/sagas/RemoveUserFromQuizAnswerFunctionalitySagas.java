@@ -1,0 +1,36 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.answer.RemoveUserFromQuizAnswerCommand;
+
+public class RemoveUserFromQuizAnswerFunctionalitySagas extends WorkflowFunctionality {
+    private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
+
+    public RemoveUserFromQuizAnswerFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+            Integer quizAnswerAggregateId, Integer userAggregateId, Long publisherAggregateVersion,
+            SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
+        buildWorkflow(quizAnswerAggregateId, userAggregateId, publisherAggregateVersion, unitOfWork);
+    }
+
+    private void buildWorkflow(Integer quizAnswerAggregateId, Integer userAggregateId,
+            Long publisherAggregateVersion,
+            SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+        SagaStep step = new SagaStep("removeUserFromQuizAnswer", () -> {
+            RemoveUserFromQuizAnswerCommand command = new RemoveUserFromQuizAnswerCommand(unitOfWork,
+                    ServiceMapping.ANSWER.getServiceName(), quizAnswerAggregateId, userAggregateId,
+                    publisherAggregateVersion);
+            commandGateway.send(command);
+        });
+        workflow.addStep(step);
+    }
+}

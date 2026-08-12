@@ -1,0 +1,35 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.InvalidateQuizCommand;
+
+public class InvalidateQuizFunctionalitySagas extends WorkflowFunctionality {
+    private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
+
+    public InvalidateQuizFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService, Integer tournamentAggregateId,
+            Integer quizAggregateId, Long eventVersion, SagaUnitOfWork unitOfWork,
+            CommandGateway commandGateway) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
+        buildWorkflow(tournamentAggregateId, quizAggregateId, eventVersion, unitOfWork);
+    }
+
+    private void buildWorkflow(Integer tournamentAggregateId, Integer quizAggregateId, Long eventVersion,
+            SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+        SagaStep step = new SagaStep("invalidateQuizStep", () -> {
+            InvalidateQuizCommand command = new InvalidateQuizCommand(unitOfWork,
+                    ServiceMapping.TOURNAMENT.getServiceName(),
+                    tournamentAggregateId, quizAggregateId, eventVersion);
+            commandGateway.send(command);
+        });
+        workflow.addStep(step);
+    }
+}

@@ -1,0 +1,241 @@
+spring:
+  application:
+    name: quizzes
+  profiles:
+    active: "@activatedProperties@"
+    group:
+      stream: remote
+      grpc: remote
+
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/msdb
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+
+  jpa:
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create # IMPORTANT this is only for jmeter testing -> it cleans the database every time it runs
+    show-sql: false
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,beans"
+
+command:
+  gateway:
+    timeout-seconds: 10
+
+resilience4j:
+  retry:
+    instances:
+      commandGateway:
+        max-attempts: 5
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        enable-randomized-wait: true
+        randomized-wait-factor: 0.5
+        retry-exceptions:
+          - java.lang.RuntimeException
+        ignore-exceptions:
+          - pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+
+eureka:
+  client:
+    enabled: false
+
+# Local-specific health tuning
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+management:
+  health:
+    rabbit:
+      enabled: false
+
+# Tech-agnostic remote configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: remote
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+
+  cloud:
+    stream:
+      default:
+        contentType: application/json
+      bindings:
+        # --- Single Event channel (all events go through here) ---
+        event-channel:
+          destination: event-channel
+
+        # --- Event Subscribers (common to all remote modes) ---
+        questionEventSubscriber-in-0:
+          destination: event-channel
+          group: question-service-group
+        tournamentEventSubscriber-in-0:
+          destination: event-channel
+          group: tournament-service-group
+        executionEventSubscriber-in-0:
+          destination: event-channel
+          group: execution-service-group
+        answerEventSubscriber-in-0:
+          destination: event-channel
+          group: answer-service-group
+        quizEventSubscriber-in-0:
+          destination: event-channel
+          group: quiz-service-group
+        courseEventSubscriber-in-0:
+          destination: event-channel
+          group: course-service-group
+        topicEventSubscriber-in-0:
+          destination: event-channel
+          group: topic-service-group
+        userEventSubscriber-in-0:
+          destination: event-channel
+          group: user-service-group
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5 
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    metadata-map:
+      grpcPort: ${grpc.server.port:9090}
+
+quizzes:
+  function-definition:
+    events: >-
+      questionEventSubscriber;
+      tournamentEventSubscriber;
+      executionEventSubscriber;
+      answerEventSubscriber;
+      quizEventSubscriber;
+      courseEventSubscriber;
+      topicEventSubscriber;
+      userEventSubscriber
+
+# Spring Cloud Stream specific (commands via RabbitMQ)
+---
+spring:
+  config:
+    activate:
+      on-profile: stream
+
+  cloud:
+    function:
+      definition: >-
+        ${quizzes.function-definition.events};
+        commandResponseChannel;
+        answerServiceCommandChannel;
+        executionServiceCommandChannel;
+        questionServiceCommandChannel;
+        quizServiceCommandChannel;
+        topicServiceCommandChannel;
+        tournamentServiceCommandChannel;
+        userServiceCommandChannel;
+        courseServiceCommandChannel;
+
+    stream:
+      bindings:
+        # --- Command producers (outputs) ---
+        quiz-command-channel:
+          destination: quiz-command-channel
+        topic-command-channel:
+          destination: topic-command-channel
+        user-command-channel:
+          destination: user-command-channel
+        answer-command-channel:
+          destination: answer-command-channel
+        execution-command-channel:
+          destination: execution-command-channel
+        question-command-channel:
+          destination: question-command-channel
+        tournament-command-channel:
+          destination: tournament-command-channel
+        course-command-channel:
+          destination: course-command-channel
+
+        # --- Command consumers (inputs) ---
+        quizServiceCommandChannel-in-0:
+          destination: quiz-command-channel
+          group: quiz-service-group
+        topicServiceCommandChannel-in-0:
+          destination: topic-command-channel
+          group: topic-service-group
+        userServiceCommandChannel-in-0:
+          destination: user-command-channel
+          group: user-service-group
+        answerServiceCommandChannel-in-0:
+          destination: answer-command-channel
+          group: answer-service-group
+        executionServiceCommandChannel-in-0:
+          destination: execution-command-channel
+          group: execution-service-group
+        questionServiceCommandChannel-in-0:
+          destination: question-command-channel
+          group: question-service-group
+        tournamentServiceCommandChannel-in-0:
+          destination: tournament-command-channel
+          group: tournament-service-group
+        courseServiceCommandChannel-in-0:
+          destination: course-command-channel
+          group: course-service-group
+
+        # --- Response channel ---
+        commandResponseChannel-in-0:
+          destination: ${spring.application.name}-command-responses
+          group: response-group
+
+# gRPC specific (commands via gRPC)
+---
+spring:
+  config:
+    activate:
+      on-profile: grpc
+
+  cloud:
+    function:
+      definition: ${quizzes.function-definition.events}
+
+grpc:
+  server:
+    port: 9090
+  fallback-service: ${spring.application.name}
+  command:
+    default-port: 9090
+    version:
+      port: 9091
+
+# Kubernetes specific
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+    import:
+      - "classpath:application-kubernetes.yaml"
+

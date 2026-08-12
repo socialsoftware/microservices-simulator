@@ -1,0 +1,54 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.DeleteExecutionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.execution.GetExecutionByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.ExecutionDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.states.ExecutionSagaState;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class DeleteExecutionFunctionalitySagas extends WorkflowFunctionality {
+    private ExecutionDto executionDto;
+    private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
+
+    public DeleteExecutionFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                             Integer executionAggregateId,
+                                             SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
+        this.buildWorkflow(executionAggregateId, unitOfWork);
+    }
+
+    public void buildWorkflow(Integer executionAggregateId, SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+        SagaStep getExecutionStep = new SagaStep("getExecutionStep", () -> {
+            GetExecutionByIdCommand getCmd = new GetExecutionByIdCommand(
+                    unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
+            SagaCommand sagaCommand = new SagaCommand(getCmd);
+            sagaCommand.setSemanticLock(ExecutionSagaState.IN_DELETE_EXECUTION);
+            this.executionDto = (ExecutionDto) commandGateway.send(sagaCommand);
+        });
+
+        SagaStep deleteExecutionStep = new SagaStep("deleteExecutionStep", () -> {
+            DeleteExecutionCommand deleteCmd = new DeleteExecutionCommand(
+                    unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
+            commandGateway.send(deleteCmd);
+        }, new ArrayList<>(Arrays.asList(getExecutionStep)));
+
+        workflow.addStep(getExecutionStep);
+        workflow.addStep(deleteExecutionStep);
+    }
+
+    public ExecutionDto getExecutionDto() { return executionDto; }
+}

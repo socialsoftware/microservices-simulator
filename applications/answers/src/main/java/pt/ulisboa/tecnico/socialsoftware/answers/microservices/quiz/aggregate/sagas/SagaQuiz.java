@@ -1,0 +1,41 @@
+package pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.sagas;
+
+import jakarta.persistence.Entity;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.answers.microservices.quiz.aggregate.Quiz;
+import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.QuizDto;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
+
+@Entity
+public class SagaQuiz extends Quiz implements SagaAggregate {
+    @Convert(converter = SagaStateConverter.class)
+    private SagaState sagaState;
+
+    public SagaQuiz() {
+        super();
+        this.sagaState = GenericSagaState.NOT_IN_SAGA;
+    }
+
+    public SagaQuiz(SagaQuiz other) {
+        super(other);
+        this.sagaState = other.getSagaState();
+    }
+
+    public SagaQuiz(Integer aggregateId, QuizDto quizDto) {
+        super(aggregateId, quizDto);
+        this.sagaState = GenericSagaState.NOT_IN_SAGA;
+    }
+
+    @Override
+    public void setSagaState(SagaState state) {
+        this.sagaState = state;
+    }
+
+    @Override
+    public SagaState getSagaState() {
+        return this.sagaState;
+    }
+}

@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: answer
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${spring.application.name}db
+
+  cloud:
+    function:
+      definition: commandResponseChannel;answerServiceCommandChannel;answerEventSubscriber;
+    stream:
+      bindings:
+        answer-command-channel:
+          destination: ${spring.application.name}-command-channel
+        answerServiceCommandChannel-in-0:
+          destination: ${spring.application.name}-command-channel
+          group: ${spring.application.name}-service-group
+        commandResponseChannel-in-0:
+          destination: ${spring.application.name}-command-responses
+          group: ${spring.application.name}-response-group
+        answerEventSubscriber-in-0:
+          destination: event-channel
+          group: ${spring.application.name}-service-group
+
+server:
+  port: 8082
+grpc:
+  server:
+    port: 9092
+
+routes:
+  - id: ${spring.application.name}-service
+    uri: lb://${spring.application.name}${gateway.service-suffix}
+    predicates:
+      - Path=/quizzes/*/answer
+    order: 5
