@@ -3,17 +3,24 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Oracle;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencies;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencyGraph;
@@ -21,6 +28,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestCase;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestStatus;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 
 public final class TestDriver {
 
@@ -257,6 +265,108 @@ public final class TestDriver {
     private static boolean isFinding(TestResult result) {
         return !result.exceptions().isEmpty()
                 || result.statuses().stream().anyMatch(INTERESTING_STATUSES::contains);
+    }
+
+    /**
+     * A solo profiling run raising any of these does not describe the
+     * functionality's behaviour — it signals a broken catalog entry or initial
+     * state, so profiling fails loudly instead of emitting a garbage footprint.
+     * <p>
+     * Plain step exceptions are deliberately NOT rejected: a functionality that
+     * aborts and compensates even when running alone (a business-rule
+     * rejection) is a legitimate catalog entry, and capturing its solo run —
+     * compensation writes included — is exactly its footprint.
+     */
+    private static final Set<TestStatus> PROFILING_INVALIDATING_STATUSES = Set.of(
+            TestStatus.INTERNAL_SYSTEM_EXCEPTION,
+            TestStatus.CRITICAL_STEP_FAILURE,
+            TestStatus.EXECUTION_LIMIT_EXCEEDED,
+            TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED,
+            TestStatus.INTER_INVARIANT_VIOLATION);
+
+    /**
+     * Runs each functionality of {@code catalog} ALONE, once, on a fresh
+     * instance of the catalog's initial state, and returns its observed
+     * {@link FunctionalityFootprint}.
+     * <p>
+     * Solo runs use the fixed master seed: with no concurrency in the schedule
+     * the footprint is expected to be stable, and a fixed seed keeps profiling
+     * reproducible.
+     */
+    public Map<FunctionalityId, FunctionalityFootprint> profileFunctionalities(FunctionalityCatalog catalog) {
+        Map<FunctionalityId, FunctionalityFootprint> footprints = new LinkedHashMap<>();
+
+        for (var entry : catalog.funcFactories().entrySet()) {
+            FunctionalityId functionalityId = entry.getKey();
+            Function<AggregateHandlesRegistry, WorkflowFunctionality> factory = entry.getValue();
+
+            oracle.setSchedulerSeed(masterSeed);
+
+            // The registry only exists once the run's initial state was set up,
+            // but is needed after the run to resolve effects to handles.
+            AtomicReference<AggregateHandlesRegistry> registryRef = new AtomicReference<>();
+
+            TestResult result = oracle.runTest(() -> {
+                AggregateHandlesRegistry registry = catalog.initialStateSetup().get();
+                registryRef.set(registry);
+                return new TestCase.Builder()
+                        .addFunctionality(functionalityId, factory.apply(registry))
+                        .build();
+            });
+
+            Set<TestStatus> invalidating = new HashSet<>(result.statuses());
+            invalidating.retainAll(PROFILING_INVALIDATING_STATUSES);
+            if (!invalidating.isEmpty()) {
+                throw new IllegalStateException(
+                        "Solo profiling run of functionality '%s' raised %s: the catalog entry or the initial state is broken, exceptions=%s"
+                                .formatted(functionalityId, invalidating, result.exceptions().keySet()));
+            }
+
+            FunctionalityFootprint footprint = FunctionalityFootprint.fromSoloRun(
+                    functionalityId, result, registryRef.get());
+            footprints.put(functionalityId, footprint);
+            log.info("Profiled functionality '{}': hasWrites={}, writes=[{}], reads=[{}]",
+                    functionalityId, footprint.writesAnything(),
+                    footprint.accesses().stream().filter(a -> a.isWrite()).map(a -> a.identity())
+                            .collect(Collectors.joining(", ")),
+                    footprint.accesses().stream().filter(a -> !a.isWrite()).map(a -> a.identity())
+                            .collect(Collectors.joining(", ")));
+        }
+
+        return footprints;
+    }
+
+    /**
+     * Explores one {@link FunctionalityGroup}: builds the group's functionalities
+     * from the catalog on a fresh initial state per run and delegates to
+     * {@link #exploreTestCase}.
+     * <p>
+     * A self-pair instantiates its functionality's factory twice — two
+     * independent instances with the same arguments — with the second instance
+     * registered under a {@code #2}-suffixed id.
+     */
+    public List<TestResult> exploreGroup(FunctionalityCatalog catalog, FunctionalityGroup group) {
+        for (FunctionalityId member : group.members()) {
+            if (!catalog.funcFactories().containsKey(member)) {
+                throw new IllegalArgumentException(
+                        "Group member '%s' has no factory in the catalog".formatted(member));
+            }
+        }
+
+        return exploreTestCase(() -> {
+            AggregateHandlesRegistry registry = catalog.initialStateSetup().get();
+
+            TestCase.Builder builder = new TestCase.Builder();
+            Map<FunctionalityId, Integer> occurrences = new HashMap<>();
+            for (FunctionalityId member : group.members()) {
+                int occurrence = occurrences.merge(member, 1, Integer::sum);
+                FunctionalityId instanceId = occurrence == 1
+                        ? member
+                        : FunctionalityId.forSagaFunctionality(member + "#" + occurrence);
+                builder.addFunctionality(instanceId, catalog.funcFactories().get(member).apply(registry));
+            }
+            return builder;
+        });
     }
 
     Oracle getOracle() {
