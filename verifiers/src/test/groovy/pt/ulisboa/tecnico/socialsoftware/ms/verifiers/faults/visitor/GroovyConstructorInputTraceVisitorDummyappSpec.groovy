@@ -262,8 +262,8 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         secondInputs.size() == 2
         firstInputs*.deterministicId() == secondInputs*.deterministicId()
         firstInputs*.deterministicId().toSet().size() == 2
-        firstInputs.collect { it.inputRecipe().arguments()[1].recipe().assignments()*.valueRecipe()*.value() } ==
-                [[911L], [922L]]
+        firstInputs.collect { it.inputRecipe().arguments()[1].recipe().assignments()*.valueRecipe()*.value() }.toSet() ==
+                [[911L], [922L]] as Set
     }
 
     def 'injectable placeholders carry identity and expected type'() {

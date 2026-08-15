@@ -2,15 +2,23 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.EntityManager
+import org.springframework.core.env.Environment
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.test.util.ReflectionTestUtils
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventHandler
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorDomainException
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorBoundaryContext
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.InMemoryFaultVectorProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceEvent
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceNoopRecorder
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayCoordinator
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
@@ -48,6 +56,7 @@ class ScenarioExecutorSpec extends Specification {
 
     def setup() {
         FixtureWorkflow.reset()
+        FixtureEventHandling.reset()
         FaultVectorProviderHolder.clear()
     }
 
@@ -70,7 +79,7 @@ class ScenarioExecutorSpec extends Specification {
         def report = new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId()), runtime(service))
 
         then:
-        report.schemaVersion() == 'microservices-simulator.scenario-execution-report.v4'
+        report.schemaVersion() == 'microservices-simulator.scenario-execution-report.v5'
         report.executionAttemptId()
         report.workloadPlanId() == workload.deterministicId()
         report.faultScenarioId() == scenario.deterministicId()
@@ -94,7 +103,7 @@ class ScenarioExecutorSpec extends Specification {
         packageChecksums(packageFixture.directory) == before
         Files.isRegularFile(output)
         def json = MAPPER.readTree(output.toFile())
-        json.path('schemaVersion').asText() == 'microservices-simulator.scenario-execution-report.v4'
+        json.path('schemaVersion').asText() == 'microservices-simulator.scenario-execution-report.v5'
         json.path('plannedActions').size() == 4
         json.path('actualActions').size() == 4
     }
@@ -1362,8 +1371,8 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         def error = thrown(IllegalArgumentException)
-        error.message.contains('v3 WorkloadPlan/FaultScenario packages are required')
-        error.message.contains('v2 catalogs are not supported')
+        error.message.contains('v4 WorkloadPlan/FaultScenario packages are required')
+        error.message.contains('v3 catalogs are not supported')
     }
 
     def 'executor rejects checksum-mismatched fault-scenario content before selection or execution'() {
@@ -1577,6 +1586,295 @@ class ScenarioExecutorSpec extends Specification {
         'dry-run'   | 'yes'
     }
 
+    def 'event consequence executes synchronously outside fault boundaries and masks on its trigger fault'() {
+        given:
+        def workload = eventWorkload()
+        def successScenario = scenarios(workload, '00').find { scenario ->
+            scenario.actions()*.kind() == [FaultScenarioActionKind.FORWARD,
+                                          FaultScenarioActionKind.EVENT_CONSEQUENCE,
+                                          FaultScenarioActionKind.FORWARD]
+        }
+        def packageFixture = writePackage(workload, [successScenario])
+        def before = packageChecksums(packageFixture.directory)
+        def service = new TrackingSagaUnitOfWorkService()
+        def handling = new FixtureEventHandling(service.fixtureEventService, 1, 'SUCCESS')
+        def runtime = new TrackingRuntimeContext(service, [(FixtureEventHandling): handling])
+        FixtureWorkflow.emitEvents('solo', 'first', 1)
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, packageFixture.directory.resolve('reports/event-success.json'),
+                            successScenario.deterministicId()), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.schemaVersion() == 'microservices-simulator.scenario-execution-report.v5'
+        report.terminalStatus() == 'SUCCESS'
+        report.scheduleConformance() == 'EXACT'
+        report.actualActions()*.kind() == ['FORWARD', 'EVENT_CONSEQUENCE', 'FORWARD']
+        report.actualActions()*.status() == ['COMPLETED', 'COMPLETED', 'COMPLETED']
+        report.actualActions()[1].sourceFaultSlotId() == null
+        report.actualActions()[1].sourceCompensationCheckpointId() == null
+        report.actualActions()[1].eventEvidence().eventTypeFqn() == FixtureEvent.name
+        report.actualActions()[1].eventEvidence().subscriberAggregateId() == 99
+        FixtureEventHandling.ORDER == ['handler-start', 'downstream-saga-complete', 'handler-return']
+        FixtureEventHandling.BOUNDARIES == [null]
+        packageChecksums(packageFixture.directory) == before
+
+        when: 'the trigger is assigned a pre-body fault'
+        FixtureWorkflow.reset()
+        FixtureEventHandling.reset()
+        def maskedScenario = scenarios(workload, '10').find { scenario ->
+            scenario.actions().any { it.kind() == FaultScenarioActionKind.EVENT_CONSEQUENCE }
+        }
+        def maskedPackage = writePackage(workload, [maskedScenario])
+        def maskedBefore = packageChecksums(maskedPackage.directory)
+        def maskedService = new TrackingSagaUnitOfWorkService()
+        def maskedRuntime = new TrackingRuntimeContext(maskedService,
+                [(FixtureEventHandling): new FixtureEventHandling(maskedService.fixtureEventService, 1, 'SUCCESS')])
+        FixtureWorkflow.emitEvents('solo', 'first', 1)
+        gate = activateEventReplay()
+        def masked
+        try {
+            masked = new ScenarioExecutor().execute(
+                    options(maskedPackage.manifest, null, maskedScenario.deterministicId()), maskedRuntime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        masked.actualActions().find { it.kind() == 'EVENT_CONSEQUENCE' }.status() == 'MASKED_BY_TRIGGER_FAULT'
+        FixtureEventHandling.ORDER.isEmpty()
+        masked.faultSlots()[0].state() == 'REALIZED'
+        packageChecksums(maskedPackage.directory) == maskedBefore
+    }
+
+    def 'event consequence is causally masked when its trigger fails at runtime'() {
+        given:
+        def workload = eventWorkload()
+        def scenario = scenarios(workload, '00').find { it.actions()*.kind().contains(FaultScenarioActionKind.EVENT_CONSEQUENCE) }
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService()
+        def runtime = new TrackingRuntimeContext(service,
+                [(FixtureEventHandling): new FixtureEventHandling(service.fixtureEventService, 1, 'SUCCESS')])
+        FixtureWorkflow.failBodyWithDomainException('solo', 'first')
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, null, scenario.deterministicId()), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.actualActions().find { it.kind() == 'EVENT_CONSEQUENCE' }.status() == 'MASKED_BY_TRIGGER_FAILURE'
+        FixtureEventHandling.ORDER.isEmpty()
+        report.scheduleConformance() == 'DEVIATED'
+    }
+
+    def 'trigger failure after matching event emission hard stops without dispatch and preserves event occurrence identity'() {
+        given:
+        def workload = eventWorkload()
+        def scenario = scenarios(workload, '00').find {
+            it.actions()*.kind().contains(FaultScenarioActionKind.EVENT_CONSEQUENCE)
+        }
+        def eventAction = scenario.actions().find { it.kind() == FaultScenarioActionKind.EVENT_CONSEQUENCE }
+        def packageFixture = writePackage(workload, [scenario])
+        def impact = packageFixture.directory.resolve('reports/trigger-failed-after-emission-impact.json')
+        def service = new TrackingSagaUnitOfWorkService()
+        def runtime = new TrackingRuntimeContext(service,
+                [(FixtureEventHandling): new FixtureEventHandling(service.fixtureEventService, 1, 'SUCCESS')])
+        FixtureWorkflow.emitEvents('solo', 'first', 1)
+        FixtureWorkflow.failBodyWithDomainException('solo', 'first')
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, null, scenario.deterministicId(), impact), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.hardStopReason() == 'TRIGGER_FAILED_AFTER_EVENT_EMISSION'
+        report.actualActions().find { it.kind() == 'FORWARD' }.status() ==
+                'TRIGGER_FAILED_AFTER_EVENT_EMISSION'
+        def eventOutcome = report.actualActions().find { it.kind() == 'EVENT_CONSEQUENCE' }
+        eventOutcome.status() == 'NOT_REACHED'
+        eventOutcome.runtimeOccurrenceId() == eventAction.occurrenceId()
+        eventOutcome.runtimeOccurrenceId() == workload.eventConsequences().first().deterministicId()
+        FixtureEventHandling.ORDER.isEmpty()
+        MAPPER.readTree(impact.toFile()).path('evaluationStatus').asText() == 'NOT_EVALUATED'
+    }
+
+    def 'trigger commit failure after matching event emission also hard stops before event dispatch'() {
+        given:
+        def workload = eventWorkload(1)
+        def scenario = scenarios(workload, '00').find {
+            it.actions()*.kind().contains(FaultScenarioActionKind.EVENT_CONSEQUENCE)
+        }
+        def packageFixture = writePackage(workload, [scenario])
+        def impact = packageFixture.directory.resolve('reports/trigger-commit-failed-after-emission-impact.json')
+        def service = new TrackingSagaUnitOfWorkService(failCommitDomainFor: 'solo')
+        def runtime = new TrackingRuntimeContext(service,
+                [(FixtureEventHandling): new FixtureEventHandling(service.fixtureEventService, 1, 'SUCCESS')])
+        FixtureWorkflow.emitEvents('solo', 'second', 1)
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, null, scenario.deterministicId(), impact), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.hardStopReason() == 'TRIGGER_FAILED_AFTER_EVENT_EMISSION'
+        report.actualActions().find { it.runtimeStepName() == 'second' }.with {
+            status() == 'TRIGGER_FAILED_AFTER_EVENT_EMISSION' &&
+                    bodyOutcome() == 'SUCCEEDED' && commitOutcome() == 'FAILED'
+        }
+        report.actualActions().find { it.kind() == 'EVENT_CONSEQUENCE' }.status() == 'NOT_REACHED'
+        FixtureEventHandling.ORDER.isEmpty()
+        MAPPER.readTree(impact.toFile()).path('evaluationStatus').asText() == 'NOT_EVALUATED'
+    }
+
+    def 'event consequence hard stops every exact replay failure classification and leaves impact unevaluated'() {
+        given:
+        def workload = eventWorkload()
+        def scenario = scenarios(workload, '00').find { it.actions()*.kind().contains(FaultScenarioActionKind.EVENT_CONSEQUENCE) }
+        def packageFixture = writePackage(workload, [scenario])
+        def impact = packageFixture.directory.resolve("reports/event-${expected}.impact.json".toString())
+        def service = new TrackingSagaUnitOfWorkService()
+        def handling = new FixtureEventHandling(service.fixtureEventService, subscribers, handlerMode)
+        def runtime = new TrackingRuntimeContext(service, [(FixtureEventHandling): handling])
+        FixtureWorkflow.emitEvents('solo', 'first', emissions)
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, null, scenario.deterministicId(), impact), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.hardStopReason() == expected
+        report.actualActions().find { it.kind() == 'EVENT_CONSEQUENCE' }.status() == expected
+        MAPPER.readTree(impact.toFile()).path('evaluationStatus').asText() == 'NOT_EVALUATED'
+
+        where:
+        emissions | subscribers | handlerMode || expected
+        0         | 1           | 'SUCCESS'   || 'EXPECTED_EVENT_NOT_EMITTED'
+        2         | 1           | 'SUCCESS'   || 'MULTIPLE_MATCHING_EVENTS_UNSUPPORTED'
+        1         | 0           | 'SUCCESS'   || 'SELECTED_SUBSCRIBER_NOT_FOUND'
+        1         | 2           | 'SUCCESS'   || 'MULTIPLE_MATCHING_SUBSCRIBERS_UNSUPPORTED'
+        1         | 1           | 'FAIL'      || 'EVENT_CONSEQUENCE_FAILED'
+        1         | 1           | 'RECURSIVE' || 'RECURSIVE_EVENT_CONSEQUENCE_UNSUPPORTED'
+    }
+
+    def 'event workload without the pre-start replay gate hard stops before measured actions'() {
+        given:
+        def workload = eventWorkload()
+        def scenario = scenarios(workload, '00').find { it.actions()*.kind().contains(FaultScenarioActionKind.EVENT_CONSEQUENCE) }
+        def packageFixture = writePackage(workload, [scenario])
+        def impact = packageFixture.directory.resolve('reports/replay-control-impact.json')
+
+        when:
+        def report = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, null, scenario.deterministicId(), impact),
+                runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.hardStopReason() == 'EVENT_REPLAY_CONTROL_FAILED'
+        report.actualActions().find { it.kind() == 'EVENT_CONSEQUENCE' }.status() == 'NOT_REACHED'
+        MAPPER.readTree(impact.toFile()).path('evaluationStatus').asText() == 'NOT_EVALUATED'
+    }
+
+    def 'typed prerequisite provider resolves baseline binding clears pending events and fails before measurement'() {
+        given:
+        def workload = prerequisiteWorkload()
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def before = packageChecksums(packageFixture.directory)
+        def service = new TrackingSagaUnitOfWorkService()
+        def provider = new FixturePrerequisiteProvider('fixture-provider', '1', providerMode, service.fixtureEventService)
+        def runtime = new TrackingRuntimeContext(service, [:], includeProvider ? [provider] : [])
+        def impact = packageFixture.directory.resolve("reports/prerequisite-${providerMode}-${includeProvider}.json".toString())
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, null, scenario.deterministicId(), impact), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.terminalStatus() == terminal
+        report.prerequisiteSetup().status() == setupStatus
+        report.actualActions().size() == measuredActions
+        MAPPER.readTree(impact.toFile()).path('evaluationStatus').asText() == impactStatus
+        packageChecksums(packageFixture.directory) == before
+        if (terminal == 'SUCCESS') {
+            assert report.prerequisiteSetup().pendingEventsCleared() == 1
+            assert report.prerequisiteSetup().emptyPendingEventBaseline()
+            assert report.prerequisiteSetup().bindings()*.status() == ['RESOLVED']
+            assert FixtureWorkflow.BODIES[0] == 'bound:first'
+        } else {
+            assert report.hardStopReason() == 'PREREQUISITE_BASELINE_FAILED'
+        }
+
+        where:
+        providerMode    | includeProvider || terminal                       | setupStatus | measuredActions | impactStatus
+        'SUCCESS'       | true            || 'SUCCESS'                      | 'SUCCEEDED' | 2               | 'EVALUATED'
+        'MISSING_KEY'   | true            || 'PREREQUISITE_BASELINE_FAILED' | 'FAILED'    | 0               | 'NOT_EVALUATED'
+        'WRONG_TYPE'    | true            || 'PREREQUISITE_BASELINE_FAILED' | 'FAILED'    | 0               | 'NOT_EVALUATED'
+        'SUCCESS'       | false           || 'PREREQUISITE_BASELINE_FAILED' | 'FAILED'    | 0               | 'NOT_EVALUATED'
+    }
+
+    def 'CLI activates simulator replay control before Spring context startup'() {
+        when:
+        def activation = ScenarioExecutorCli.activateReplayMode()
+
+        then:
+        System.getProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY) == 'true'
+        EventReplayCoordinator.active
+
+        cleanup:
+        activation?.close()
+        System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+    }
+
     def 'CLI success vocabulary accepts only complete measured outcomes and dry run'() {
         expect:
         ScenarioExecutorCli.exitCodeFor(status) == code
@@ -1591,6 +1889,70 @@ class ScenarioExecutorSpec extends Specification {
         'MATERIALIZATION_FAILED'  || 1
         'UNEXPECTED_EXECUTION_FAILURE' || 1
         'COMPENSATION_FAILED'     || 1
+    }
+
+    private static EventReplayCoordinator.Activation activateEventReplay() {
+        System.setProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY, 'true')
+        EventReplayCoordinator.activate()
+    }
+
+    private static WorkloadPlan eventWorkload(int triggerIndex = 0) {
+        def base = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
+        def trigger = base.forwardSchedule()[triggerIndex]
+        def site = new EventEmissionSite(
+                ScenarioIdGenerator.eventEmissionSiteId('dummyapp.FixtureService', 'emit()', 0, FixtureEvent.name),
+                'dummyapp.FixtureService', 'emit()', 0, FixtureEvent.name, ['dummyapp runtime fixture'])
+        def consequenceId = ScenarioIdGenerator.eventConsequenceId(
+                trigger.deterministicId(), site, FixtureEventHandling.name, 'handleFixtureEvents',
+                FixtureEventHandler.name, 'dummyapp.FixtureEventProcessing', 'process',
+                'dummyapp.FixtureFacade', 'startSaga', 'dummyapp.DownstreamFunctionalitySagas',
+                EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER)
+        def consequence = new EventConsequence(consequenceId, trigger.deterministicId(), site, FixtureEvent.name,
+                FixtureEventHandling.name, 'handleFixtureEvents', FixtureEventHandler.name,
+                'dummyapp.FixtureEventProcessing', 'process', 'dummyapp.FixtureFacade', 'startSaga',
+                'dummyapp.DownstreamFunctionalitySagas', EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER, [])
+        def withoutId = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
+                base.participants(), base.acceptedInputs(), base.forwardSchedule(), [consequence],
+                triggerIndex == 0
+                        ? [NormalActionRef.forward(0, base.forwardSchedule()[0].deterministicId()),
+                           NormalActionRef.eventConsequence(1, consequenceId),
+                           NormalActionRef.forward(2, base.forwardSchedule()[1].deterministicId())]
+                        : [NormalActionRef.forward(0, base.forwardSchedule()[0].deterministicId()),
+                           NormalActionRef.forward(1, base.forwardSchedule()[1].deterministicId()),
+                           NormalActionRef.eventConsequence(2, consequenceId)],
+                null, base.conflictEvidence(), base.faultSlots(), base.compensationCheckpoints(), base.warnings())
+        new WorkloadPlan(withoutId.schemaVersion(), ScenarioIdGenerator.workloadPlanId(withoutId), withoutId.kind(),
+                withoutId.executionShape(), withoutId.participants(), withoutId.acceptedInputs(),
+                withoutId.forwardSchedule(), withoutId.eventConsequences(), withoutId.normalSchedule(),
+                withoutId.prerequisiteBaseline(), withoutId.conflictEvidence(), withoutId.faultSlots(),
+                withoutId.compensationCheckpoints(), withoutId.warnings())
+    }
+
+    private static WorkloadPlan prerequisiteWorkload() {
+        def base = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
+        def oldInput = base.acceptedInputs()[0]
+        def bindingNode = InputRecipeNode.builder('baseline_binding').executorReady(true)
+                .bindingKey('participant').bindingTypeFqn(String.name).build()
+        def arguments = new ArrayList<>(oldInput.inputRecipe().arguments())
+        arguments[0] = new InputRecipeArgument(0, String.name, InputResolutionStatus.RESOLVED,
+                true, [], 'provider binding', bindingNode)
+        def recipe = new InputRecipe(InputRecipe.SCHEMA_VERSION, null, true, [], arguments)
+        def input = new InputVariant(oldInput.deterministicId(), oldInput.sagaFqn(), oldInput.sourceClassFqn(),
+                oldInput.sourceMethodName(), oldInput.sourceBindingName(), oldInput.callContextMethodName(),
+                oldInput.inputRole(), oldInput.fixtureOrigin(), oldInput.resolutionStatus(), oldInput.sourceMode(),
+                oldInput.sourceModeConfidence(), oldInput.sourceModeEvidence(), oldInput.stableSourceText(),
+                oldInput.provenanceText(), oldInput.owners(), oldInput.constructorArgumentSummaries(),
+                oldInput.logicalKeyBindings(), oldInput.warnings(), recipe)
+        def baseline = new PrerequisiteBaseline('fixture-provider', '1',
+                [new BaselineBindingRequirement('participant', String.name)])
+        def withoutId = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
+                base.participants(), [input], base.forwardSchedule(), base.eventConsequences(), base.normalSchedule(),
+                baseline, base.conflictEvidence(), base.faultSlots(), base.compensationCheckpoints(), base.warnings())
+        new WorkloadPlan(withoutId.schemaVersion(), ScenarioIdGenerator.workloadPlanId(withoutId), withoutId.kind(),
+                withoutId.executionShape(), withoutId.participants(), withoutId.acceptedInputs(),
+                withoutId.forwardSchedule(), withoutId.eventConsequences(), withoutId.normalSchedule(),
+                withoutId.prerequisiteBaseline(), withoutId.conflictEvidence(), withoutId.faultSlots(),
+                withoutId.compensationCheckpoints(), withoutId.warnings())
     }
 
     private static Set<String> codes(FaultScenarioValidator.ValidationResult result) {
@@ -1911,20 +2273,125 @@ class ScenarioExecutorSpec extends Specification {
         }
     }
 
+    static class FixtureEventHandling {
+        static final List<String> ORDER = []
+        static final List<FaultVectorBoundaryContext> BOUNDARIES = []
+        private final EventApplicationService eventApplicationService
+        private final int subscriberCount
+        private final String mode
+
+        FixtureEventHandling(EventService eventService, int subscriberCount, String mode) {
+            this.subscriberCount = subscriberCount
+            this.mode = mode
+            this.eventApplicationService = new EventApplicationService()
+            ReflectionTestUtils.setField(this.eventApplicationService, 'eventService', eventService)
+        }
+
+        void handleFixtureEvents() {
+            eventApplicationService.handleSubscribedEvent(FixtureEvent, new FixtureEventHandler(subscriberCount, mode))
+        }
+
+        static void reset() {
+            ORDER.clear()
+            BOUNDARIES.clear()
+        }
+    }
+
+    static class FixtureEventHandler extends EventHandler {
+        private final int subscriberCount
+        private final String mode
+
+        FixtureEventHandler(int subscriberCount, String mode) {
+            super(mock(JpaRepository))
+            this.subscriberCount = subscriberCount
+            this.mode = mode
+        }
+
+        @Override
+        Set<Integer> getAggregateIds() {
+            subscriberCount == 0 ? [] as Set : (99..<(99 + subscriberCount)) as Set
+        }
+
+        @Override
+        Set<EventSubscription> getEventSubscriptions(Integer subscriberAggregateId,
+                                                       Class<? extends pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event> eventClass) {
+            [new EventSubscription(Math.abs('solo'.hashCode()), 0L, FixtureEvent.simpleName) {}] as Set
+        }
+
+        @Override
+        void handleEvent(Integer subscriberAggregateId,
+                         pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event event) {
+            FixtureEventHandling.ORDER.add('handler-start')
+            FixtureEventHandling.BOUNDARIES.add(FaultVectorProviderHolder.currentBoundary().orElse(null))
+            if (mode == 'RECURSIVE') EventReplayCoordinator.beforeEventRegistration()
+            if (mode == 'FAIL') throw new IllegalStateException('dummyapp-labelled handler failure')
+            FixtureEventHandling.ORDER.add('downstream-saga-complete')
+            FixtureEventHandling.ORDER.add('handler-return')
+        }
+    }
+
+    private static class FixturePrerequisiteProvider implements ScenarioPrerequisiteProvider {
+        private final String id
+        private final String version
+        private final String mode
+        private final TrackingEventService fixtureEventService
+
+        FixturePrerequisiteProvider(String id, String version, String mode, TrackingEventService eventService) {
+            this.id = id
+            this.version = version
+            this.mode = mode
+            this.fixtureEventService = eventService
+        }
+
+        @Override
+        String providerId() { id }
+
+        @Override
+        String providerVersion() { version }
+
+        @Override
+        ScenarioPrerequisiteResult prepare(ScenarioRuntimeContext runtimeContext,
+                                           List<BaselineBindingRequirement> requiredBindings) {
+            def event = new FixtureEvent(1)
+            event.publisherAggregateVersion = 1L
+            event.published = true
+            fixtureEventService.saveEvent(event)
+            def bindings = switch (mode) {
+                case 'MISSING_KEY' -> [:]
+                case 'WRONG_TYPE' -> [participant: 42]
+                default -> [participant: 'bound']
+            }
+            new ScenarioPrerequisiteResult(bindings, [fixture: 'dummyapp-labelled'])
+        }
+    }
+
     private static class TrackingRuntimeContext implements ScenarioRuntimeContext {
-        private final SagaUnitOfWorkService service
+        private final TrackingSagaUnitOfWorkService service
+        private final Map<Class<?>, Object> extraBeans
+        private final List<ScenarioPrerequisiteProvider> prerequisiteProviders
         int unitOfWorkCreations
         List<Class<?>> beanRequests = []
         List<String> functionalityNames = []
 
-        TrackingRuntimeContext(SagaUnitOfWorkService service) {
-            this.service = service
+        TrackingRuntimeContext(SagaUnitOfWorkService service,
+                               Map<Class<?>, Object> extraBeans = [:],
+                               List<ScenarioPrerequisiteProvider> prerequisiteProviders = []) {
+            this.service = (TrackingSagaUnitOfWorkService) service
+            this.extraBeans = extraBeans
+            this.prerequisiteProviders = prerequisiteProviders
         }
 
         @Override
         Object bean(Class<?> type) {
             beanRequests.add(type)
-            type == SagaUnitOfWorkService ? service : null
+            if (type == SagaUnitOfWorkService) return service
+            if (type == EventService) return service.fixtureEventService
+            extraBeans[type]
+        }
+
+        @Override
+        def <T> List<T> beans(Class<T> type) {
+            type == ScenarioPrerequisiteProvider ? prerequisiteProviders as List<T> : []
         }
 
         @Override
@@ -1936,6 +2403,7 @@ class ScenarioExecutorSpec extends Specification {
     }
 
     private static class TrackingSagaUnitOfWorkService extends SagaUnitOfWorkService {
+        final TrackingEventService fixtureEventService = new TrackingEventService()
         Map<String, Integer> commitCounts = [:].withDefault { 0 }
         Map<String, Integer> implicitAttempts = [:].withDefault { 0 }
         List<String> implicitRollbacks = []
@@ -1949,6 +2417,10 @@ class ScenarioExecutorSpec extends Specification {
             when(versionService.incrementAndGetVersionNumber()).thenReturn(1L, 2L, 3L)
             ReflectionTestUtils.setField(this, 'versionService', versionService)
             ReflectionTestUtils.setField(this, 'entityManager', mock(EntityManager))
+            ReflectionTestUtils.setField(this, 'eventService', fixtureEventService)
+            def environment = mock(Environment)
+            when(environment.activeProfiles).thenReturn(['local'] as String[])
+            ReflectionTestUtils.setField(this, 'environment', environment)
             this.failCommitDomainFor = values.failCommitDomainFor
             this.failCommitPlainSimulatorFor = values.failCommitPlainSimulatorFor
             this.failCommitInfrastructureFor = values.failCommitInfrastructureFor
@@ -1977,6 +2449,32 @@ class ScenarioExecutorSpec extends Specification {
             if (key == failImplicitFor) {
                 throw new IllegalStateException("fixture implicit rollback failure ${key}".toString())
             }
+        }
+    }
+
+    private static class TrackingEventService extends EventService {
+        final Map<Integer, pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event> events = [:]
+        int nextId = 1
+
+        @Override
+        void saveEvent(pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event event) {
+            if (event.id == null) event.id = nextId++
+            events[event.id] = event
+        }
+
+        @Override
+        pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event getEventForReplay(Integer eventId) {
+            events[eventId]
+        }
+
+        @Override
+        long eventCountForReplay() {
+            events.size()
+        }
+
+        @Override
+        void clearEventsForReplay() {
+            events.clear()
         }
     }
 }

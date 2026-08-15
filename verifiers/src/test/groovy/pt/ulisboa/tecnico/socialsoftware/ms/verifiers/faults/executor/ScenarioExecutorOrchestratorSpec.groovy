@@ -22,7 +22,7 @@ class ScenarioExecutorOrchestratorSpec extends Specification {
         calls[0][0] == ['mvn', '-P', 'test-sagas', 'test-compile']
         calls[0][1] == Path.of('/tmp/app')
         calls[1][0].containsAll([
-                'java', '-cp', 'target/classes:verifiers.jar',
+                'java', '-Dmicroservices.simulator.event-replay.enabled=true', '-cp', 'target/classes:verifiers.jar',
                 'pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorCli',
                 '--spring-profiles', 'local,sagas', '--application-base', '/tmp/app', '--application-id', 'app',
                 '--maven-profile', 'test-sagas', '--package-path', '/tmp/run/scenario-catalog-manifest.json',

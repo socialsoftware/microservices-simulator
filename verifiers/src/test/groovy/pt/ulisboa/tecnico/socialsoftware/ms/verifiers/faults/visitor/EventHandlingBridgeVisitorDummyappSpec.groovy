@@ -52,5 +52,21 @@ class EventHandlingBridgeVisitorDummyappSpec extends VisitorTestSupport {
         bridge.argumentSources()*.provenance().any { it.contains('EVENT_FIELD:ItemRenamedEvent.publisherAggregateId') }
         bridge.argumentSources()*.provenance().any { it.contains('EVENT_FIELD:ItemRenamedEvent.publisherAggregateVersion') }
         bridge.resolutionNotes().any { it.contains('resolved via event handler DummyEventHandling.handleItemRenamedEvents()') }
+
+        and: 'conditional and repeated delegations are rejected rather than selected'
+        !state.eventDrivenFunctionalityInvocations.any {
+            it.eventHandlingMethodName() in [
+                    'handleItemRenamedEventsConditionally',
+                    'handleItemRenamedEventsRepeatedly'
+            ]
+        }
+        state.eventDrivenFunctionalityDiagnostics.any {
+            it.contains('DummyEventHandling.handleItemRenamedEventsConditionally()') &&
+                    it.contains('exactly one unconditional unrepeated direct')
+        }
+        state.eventDrivenFunctionalityDiagnostics.any {
+            it.contains('DummyEventHandling.handleItemRenamedEventsRepeatedly()') &&
+                    it.contains('exactly one unconditional unrepeated direct')
+        }
     }
 }

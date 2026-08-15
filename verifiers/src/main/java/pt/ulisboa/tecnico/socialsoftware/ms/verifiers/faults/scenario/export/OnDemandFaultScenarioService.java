@@ -103,7 +103,7 @@ public final class OnDemandFaultScenarioService {
     public OnDemandFaultScenarioResult request(OnDemandFaultScenarioRequest request) {
         if (request == null || request.manifestPath() == null) {
             return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, null,
-                    "MISSING_MANIFEST_PATH", "A v3 package manifest path is required");
+                    "MISSING_MANIFEST_PATH", "A v4 package manifest path is required");
         }
         Path manifestPath = request.manifestPath().toAbsolutePath().normalize();
         Path packageIdentity;

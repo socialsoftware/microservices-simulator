@@ -480,7 +480,7 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
 
         then:
         recipes
-        recipes.every { it.schemaVersion() == 'microservices-simulator.input-recipe.v1' }
+        recipes.every { it.schemaVersion() == 'microservices-simulator.input-recipe.v2' }
         recipes.every { it.recipeFingerprint() }
         allNodes*.kind().containsAll(['literal', 'constructor', 'collection', 'local_transform', 'helper_result', 'property_access', 'call_result', 'placeholder'])
         !allNodes*.kind().contains('facade_call')

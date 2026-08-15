@@ -219,11 +219,13 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         helperEager.computedVectors()*.assignedVector() == ['00', '10', '01']
         helperEager.faultScenarios()*.assignedVector() == ['00', '10', '01']
 
-        and: 'the fixed cap now selects seven ready workloads and exports one all-zero plus one vector per fault slot'
+        and: 'the fixed cap exports eager vectors only for the statically ready subset'
         eager.workloadPlans().size() == 7
-        eager.workloadMaterializability().every { it.materializable() }
-        eager.computedVectors().size() == eager.workloadPlans().sum { it.faultSlots().size() + 1 }
-        eager.computedVectors().size() == 17
+        eager.workloadMaterializability().count { it.materializable() } == 6
+        eager.workloadMaterializability().count { !it.materializable() } == 1
+        eager.computedVectors().size() == eager.workloadPlans().findAll { plan ->
+            eager.workloadMaterializability().find { it.workloadPlanId() == plan.deterministicId() }.materializable()
+        }.sum { it.faultSlots().size() + 1 }
         eager.faultScenarios().size() == eager.computedVectors().size()
         eager.workloadPlans()*.deterministicId().toSet() == workloads.workloadPlans()*.deterministicId().toSet()
         eager.faultScenarios()*.workloadPlanId().toSet() ==

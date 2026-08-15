@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryExc
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayCoordinator;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
@@ -257,6 +258,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void registerEvent(Event event, SagaUnitOfWork unitOfWork) {
+        EventReplayCoordinator.beforeEventRegistration();
         Long commitVersion = versionService.incrementAndGetVersionNumber();
         event.setPublisherAggregateVersion(commitVersion);
         // If running with "local" profile, mark event as published immediately
@@ -264,6 +266,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
             event.setPublished(true);
         }
         eventService.saveEvent(event);
+        EventReplayCoordinator.recordPersistedEvent(event);
     }
 
     private void recordAggregateAccess(String accessMode, Aggregate aggregate, SagaUnitOfWork unitOfWork,

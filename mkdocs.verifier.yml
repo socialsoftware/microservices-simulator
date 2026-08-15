@@ -33,6 +33,7 @@ nav:
       - Static Package vs Dynamic Evidence: decisions/2026-04-28-hybrid-static-dynamic-key-binding.md
       - Conflict-Anchor Segment Compression: decisions/2026-06-16-conflict-anchor-segment-compression.md
       - Compensation-Aware v3 Contract: decisions/2026-07-19-compensation-aware-fault-scenario-contract.md
+      - Event-Consequence Replay Contract: decisions/2026-07-30-deterministic-event-consequence-replay.md
 plugins:
   - search
 markdown_extensions:

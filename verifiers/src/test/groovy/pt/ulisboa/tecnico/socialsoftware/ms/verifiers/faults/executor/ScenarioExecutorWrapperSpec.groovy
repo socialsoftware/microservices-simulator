@@ -6,6 +6,14 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 class ScenarioExecutorWrapperSpec extends Specification {
+    def 'wrapper activates simulator replay property on the JVM command'() {
+        given:
+        Path script = Path.of(System.getProperty('user.dir')).resolve('scripts/run-scenario-executor.sh')
+
+        expect:
+        script.text.contains('java -Dmicroservices.simulator.event-replay.enabled=true -cp "$CP"')
+    }
+
     def 'wrapper rejects ambiguous mode values and combinations before build work'() {
         when:
         def result = runWrapper(environment)

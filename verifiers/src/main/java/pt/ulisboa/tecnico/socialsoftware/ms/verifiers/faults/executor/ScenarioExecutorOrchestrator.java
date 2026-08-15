@@ -18,6 +18,7 @@ public final class ScenarioExecutorOrchestrator {
         if (prepare != 0) return prepare;
         List<String> command = new ArrayList<>();
         command.add("java");
+        command.add("-Dmicroservices.simulator.event-replay.enabled=true");
         command.add("-cp");
         command.add(config.classpath());
         command.add("pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorCli");
@@ -49,7 +50,7 @@ public final class ScenarioExecutorOrchestrator {
         if (blank(config.springApplicationClass())) throw new IllegalArgumentException("Spring application class is required");
         if (blank(config.mavenProfile())) throw new IllegalArgumentException("Maven profile is required");
         if (blank(config.springProfiles())) throw new IllegalArgumentException("Spring profiles are required");
-        if (config.packagePath() == null) throw new IllegalArgumentException("v3 package path is required");
+        if (config.packagePath() == null) throw new IllegalArgumentException("v4 package path is required");
         if (config.outputPath() == null) throw new IllegalArgumentException("output path is required");
         if (blank(config.faultScenarioId())) throw new IllegalArgumentException("persisted FaultScenario id is required");
     }

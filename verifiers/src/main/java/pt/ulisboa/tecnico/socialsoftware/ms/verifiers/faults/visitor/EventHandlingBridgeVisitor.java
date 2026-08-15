@@ -58,7 +58,7 @@ public class EventHandlingBridgeVisitor extends VoidVisitorAdapter<ApplicationAn
             }
         });
 
-        cu.findAll(ClassOrInterfaceDeclaration.class).forEach(decl -> extractSubscriptions(decl));
+        cu.findAll(ClassOrInterfaceDeclaration.class).forEach(decl -> extractSubscriptions(decl, state));
         resolveKnownSubscriptions(state, false);
     }
 
@@ -66,33 +66,57 @@ public class EventHandlingBridgeVisitor extends VoidVisitorAdapter<ApplicationAn
         resolveKnownSubscriptions(state, true);
     }
 
-    private void extractSubscriptions(ClassOrInterfaceDeclaration eventHandlingClass) {
+    private void extractSubscriptions(ClassOrInterfaceDeclaration eventHandlingClass,
+                                      ApplicationAnalysisState state) {
         String eventHandlingClassFqn = classFqn(eventHandlingClass).orElse(null);
         if (eventHandlingClassFqn == null) {
             return;
         }
 
-        eventHandlingClass.getMethods().forEach(method -> method.findAll(MethodCallExpr.class).stream()
-                .filter(call -> "handleSubscribedEvent".equals(call.getNameAsString()))
-                .filter(call -> call.getArguments().size() >= 2)
-                .forEach(call -> {
-                    String eventTypeFqn = resolveEventType(call.getArgument(0)).orElse(null);
-                    String eventHandlerClassFqn = resolveEventHandlerType(call.getArgument(1)).orElse(null);
-                    if (eventTypeFqn == null || eventHandlerClassFqn == null) {
-                        logger.debug("Could not resolve event subscription {}.{}: eventType={}, handlerType={}",
-                                eventHandlingClassFqn, method.getNameAsString(), eventTypeFqn, eventHandlerClassFqn);
-                        return;
-                    }
+        eventHandlingClass.getMethods().forEach(method -> {
+            List<MethodCallExpr> delegations = method.findAll(MethodCallExpr.class).stream()
+                    .filter(call -> "handleSubscribedEvent".equals(call.getNameAsString()))
+                    .filter(call -> call.findAncestor(MethodDeclaration.class).orElse(null) == method)
+                    .toList();
+            if (delegations.isEmpty()) {
+                return;
+            }
+            if (delegations.size() != 1 || !isDirectUnconditionalDelegation(method, delegations.get(0))) {
+                addDiagnostic(state, eventHandlingClassFqn + "." + method.getNameAsString()
+                        + "(): exactly one unconditional unrepeated direct handleSubscribedEvent delegation is required");
+                return;
+            }
+            MethodCallExpr call = delegations.get(0);
+            if (call.getArguments().size() < 2) {
+                addDiagnostic(state, eventHandlingClassFqn + "." + method.getNameAsString()
+                        + "(): malformed direct handleSubscribedEvent delegation");
+                return;
+            }
+            String eventTypeFqn = resolveEventType(call.getArgument(0)).orElse(null);
+            String eventHandlerClassFqn = resolveEventHandlerType(call.getArgument(1)).orElse(null);
+            if (eventTypeFqn == null || eventHandlerClassFqn == null) {
+                logger.debug("Could not resolve event subscription {}.{}: eventType={}, handlerType={}",
+                        eventHandlingClassFqn, method.getNameAsString(), eventTypeFqn, eventHandlerClassFqn);
+                return;
+            }
 
-                    HandlingSubscription subscription = new HandlingSubscription(
-                            eventHandlingClassFqn,
-                            method.getNameAsString(),
-                            eventTypeFqn,
-                            eventHandlerClassFqn);
-                    if (subscriptionKeys.add(subscription.key())) {
-                        subscriptions.add(subscription);
-                    }
-                }));
+            HandlingSubscription subscription = new HandlingSubscription(
+                    eventHandlingClassFqn,
+                    method.getNameAsString(),
+                    eventTypeFqn,
+                    eventHandlerClassFqn);
+            if (subscriptionKeys.add(subscription.key())) {
+                subscriptions.add(subscription);
+            }
+        });
+    }
+
+    private boolean isDirectUnconditionalDelegation(MethodDeclaration method, MethodCallExpr call) {
+        if (method.getBody().isEmpty()
+                || !(call.getParentNode().orElse(null) instanceof com.github.javaparser.ast.stmt.ExpressionStmt statement)) {
+            return false;
+        }
+        return statement.getParentNode().orElse(null) == method.getBody().orElse(null);
     }
 
     private Optional<String> resolveEventType(Expression expression) {

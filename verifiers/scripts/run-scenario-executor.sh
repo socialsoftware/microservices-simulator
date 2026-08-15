@@ -68,7 +68,7 @@ mvn -q -DskipTests -Dprotobuf.skip -f /tmp/scenario-executor/simulator/pom.xml c
 
 echo "Building verifier executor classes"
 cd /verifiers
-mvn -q -Dmaven.test.skip=true package
+mvn -q -Dmaven.test.skip=true install
 mvn -q dependency:build-classpath -Dmdep.outputFile=/tmp/scenario-executor/verifiers-classpath.txt
 
 echo "Preparing target application: ${APPLICATION_BASE_DIR}"
@@ -113,7 +113,8 @@ else
   fi
 fi
 
-java -cp "$CP" pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorCli \
+java -Dmicroservices.simulator.event-replay.enabled=true -cp "$CP" \
+  pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorCli \
   "${EXECUTOR_ARGS[@]}" \
   --verifiers.application.enabled=false \
   --server.port="$SERVER_PORT"

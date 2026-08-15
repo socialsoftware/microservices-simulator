@@ -38,6 +38,7 @@ public class FixtureWorkflow extends WorkflowFunctionality {
     private static final Set<String> EXPLICIT_COMPENSATION_FAILURES = new HashSet<>();
     private static final Map<String, Integer> INVARIANT_SIGNALS = new LinkedHashMap<>();
     private static final Set<String> INVARIANT_REJECTIONS = new HashSet<>();
+    private static final Map<String, Integer> EVENT_EMISSIONS = new LinkedHashMap<>();
     public static int constructorCalls;
 
     private final String participant;
@@ -77,6 +78,9 @@ public class FixtureWorkflow extends WorkflowFunctionality {
         }
         if (EXPLICIT_REGISTRATION_BEFORE_FAILURES.contains(key)) {
             unitOfWork.registerCompensation(stepName, () -> runCompensation(key));
+        }
+        for (int index = 0; index < EVENT_EMISSIONS.getOrDefault(key, 0); index++) {
+            unitOfWorkService.registerEvent(new FixtureEvent(Math.abs(participant.hashCode())), unitOfWork);
         }
         if (INVARIANT_REJECTIONS.contains(key)) {
             unitOfWorkService.registerChanged(new RejectingFixtureAggregate(1, key), unitOfWork);
@@ -142,6 +146,10 @@ public class FixtureWorkflow extends WorkflowFunctionality {
         IMPLICIT_STATE_STEPS.add(participant + ":" + stepName);
     }
 
+    public static void emitEvents(String participant, String stepName, int count) {
+        EVENT_EMISSIONS.put(participant + ":" + stepName, count);
+    }
+
     public static void rejectInvariantOnWrite(String participant, String stepName) {
         INVARIANT_REJECTIONS.add(participant + ":" + stepName);
     }
@@ -173,6 +181,7 @@ public class FixtureWorkflow extends WorkflowFunctionality {
         EXPLICIT_COMPENSATION_FAILURES.clear();
         INVARIANT_SIGNALS.clear();
         INVARIANT_REJECTIONS.clear();
+        EVENT_EMISSIONS.clear();
         constructorCalls = 0;
     }
 

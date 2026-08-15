@@ -285,7 +285,7 @@ public final class ScenarioCatalogPackageReader {
 
     private IllegalArgumentException unsupportedSchema(String schema) {
         return new IllegalArgumentException("Unsupported scenario catalog schema '" + schema
-                + "'; v3 WorkloadPlan/FaultScenario packages are required and v2 catalogs are not supported");
+                + "'; v4 WorkloadPlan/FaultScenario packages are required and v3 catalogs are not supported");
     }
 
     private String text(JsonNode node, String field) {

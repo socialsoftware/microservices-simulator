@@ -301,6 +301,10 @@ public final class ScenarioCatalogJsonlWriter {
                 .map(vector -> BigInteger.valueOf(vector.writtenScheduleCount()))
                 .reduce(BigInteger.ZERO, BigInteger::add);
         counts.put("workloadsExported", Integer.toString(workloadsExported));
+        counts.put("eventConsequencesExported", Integer.toString(result.workloadPlans().stream()
+                .mapToInt(workload -> workload.eventConsequences().size()).sum()));
+        counts.put("normalActionsExported", Integer.toString(result.workloadPlans().stream()
+                .mapToInt(workload -> workload.normalSchedule().size()).sum()));
         counts.put("materializableWorkloadPlans", Long.toString(materializableWorkloads));
         counts.put("nonMaterializableWorkloadPlans", Long.toString(workloadsExported - materializableWorkloads));
         counts.put("computedEagerVectors", Integer.toString(result.computedVectors().size()));

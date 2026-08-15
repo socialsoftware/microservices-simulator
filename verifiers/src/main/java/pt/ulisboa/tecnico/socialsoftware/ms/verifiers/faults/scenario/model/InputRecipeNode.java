@@ -27,6 +27,8 @@ public record InputRecipeNode(
         String propertyName,
         String placeholderId,
         String placeholderPurpose,
+        String bindingKey,
+        String bindingTypeFqn,
         String expectedTypeFqn,
         String helperName,
         InputRecipeNode resultRecipe,
@@ -54,6 +56,8 @@ public record InputRecipeNode(
         propertyName = normalize(propertyName);
         placeholderId = normalize(placeholderId);
         placeholderPurpose = normalize(placeholderPurpose);
+        bindingKey = normalize(bindingKey);
+        bindingTypeFqn = normalize(bindingTypeFqn);
         expectedTypeFqn = normalize(expectedTypeFqn);
         helperName = normalize(helperName);
         internalCategory = normalize(internalCategory);
@@ -92,6 +96,8 @@ public record InputRecipeNode(
         private String propertyName;
         private String placeholderId;
         private String placeholderPurpose;
+        private String bindingKey;
+        private String bindingTypeFqn;
         private String expectedTypeFqn;
         private String helperName;
         private InputRecipeNode resultRecipe;
@@ -216,6 +222,16 @@ public record InputRecipeNode(
             return this;
         }
 
+        public Builder bindingKey(String bindingKey) {
+            this.bindingKey = bindingKey;
+            return this;
+        }
+
+        public Builder bindingTypeFqn(String bindingTypeFqn) {
+            this.bindingTypeFqn = bindingTypeFqn;
+            return this;
+        }
+
         public Builder expectedTypeFqn(String expectedTypeFqn) {
             this.expectedTypeFqn = expectedTypeFqn;
             return this;
@@ -261,6 +277,8 @@ public record InputRecipeNode(
                     propertyName,
                     placeholderId,
                     placeholderPurpose,
+                    bindingKey,
+                    bindingTypeFqn,
                     expectedTypeFqn,
                     helperName,
                     resultRecipe,

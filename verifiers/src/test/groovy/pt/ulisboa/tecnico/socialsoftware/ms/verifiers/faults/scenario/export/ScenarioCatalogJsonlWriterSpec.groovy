@@ -57,7 +57,7 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         workloadJson.path('faultSlots').size() == workloadJson.path('forwardSchedule').size()
         workloadJson.path('compensationCheckpoints').first().path('evidenceClass').asText() == 'EXPLICIT_COMPENSATION'
         def accounting = mapper.readTree(Files.readString(paths.accounting))
-        accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v3'
+        accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v4'
         accounting.path('workloadCatalogSpace').path('workloadPlansWritten').isTextual()
         accounting.path('workloadCatalogSpace').path('perWorkloadVectorSpace').first().path('possibleBinaryVectors').asText() == '2'
         accounting.path('workloadCatalogSpace').path('perWorkloadVectorSpace').first().path('eagerVectorCount').asText() == '2'
@@ -109,11 +109,11 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
 
         then:
         def v2Failure = thrown(IllegalArgumentException)
-        v2Failure.message.contains('v2 catalogs are not supported')
+        v2Failure.message.contains('v3 catalogs are not supported')
 
         when: 'a linked FaultScenario references an absent WorkloadPlan'
         Files.writeString(paths.faultScenario,
-                '{"schemaVersion":"microservices-simulator.fault-scenario.v3","deterministicId":"fault-1","workloadPlanId":"missing"}\n')
+                '{"schemaVersion":"microservices-simulator.fault-scenario.v4","deterministicId":"fault-1","workloadPlanId":"missing"}\n')
         def manifestJson = mapper.readTree(Files.readString(paths.manifest))
         manifestJson.withObject('/faultScenarioCatalog').put('recordCount', '1')
                 .put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(paths.faultScenario)))

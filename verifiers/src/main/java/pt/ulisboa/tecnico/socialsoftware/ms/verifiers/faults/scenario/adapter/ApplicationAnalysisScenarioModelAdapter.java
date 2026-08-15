@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.AccessPolicy;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchPhase;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.EventConsequenceCandidate;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaFunctionalityBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaStepBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint;
@@ -10,6 +11,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Acce
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationEvidenceClass;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequenceDefinition;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventEmissionSite;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument;
@@ -94,7 +97,49 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         counts.put("replayableTraces", adaptedInputs.replayableTraceCount());
         counts.putIfAbsent("sagasWithoutUsableInputs", 0);
 
-        return new ScenarioModelAdapterResult(sagaDefinitions, adaptedInputs.inputVariants(), counts, new ArrayList<>(diagnostics));
+        List<EventConsequenceDefinition> eventDefinitions = adaptEventConsequences(state, diagnostics, counts);
+        return new ScenarioModelAdapterResult(sagaDefinitions, adaptedInputs.inputVariants(), eventDefinitions,
+                counts, new ArrayList<>(diagnostics));
+    }
+
+    private List<EventConsequenceDefinition> adaptEventConsequences(ApplicationAnalysisState state,
+                                                                      LinkedHashSet<String> diagnostics,
+                                                                      LinkedHashMap<String, Integer> counts) {
+        state.eventConsequenceDiagnostics.stream().sorted().forEach(diagnostics::add);
+        List<EventConsequenceDefinition> definitions = state.eventConsequenceCandidates.stream()
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(EventConsequenceCandidate::triggerSagaFqn)
+                        .thenComparing(EventConsequenceCandidate::triggerStepKey)
+                        .thenComparing(candidate -> candidate.emissionSite().eventTypeFqn())
+                        .thenComparing(candidate -> candidate.selectedConsumerRoute().eventHandlingClassFqn())
+                        .thenComparing(candidate -> candidate.selectedConsumerRoute().eventHandlingMethodName()))
+                .map(candidate -> {
+                    String emissionId = ScenarioIdGenerator.eventEmissionSiteId(
+                            candidate.emissionSite().sourceServiceClassFqn(),
+                            candidate.emissionSite().sourceServiceMethodSignature(),
+                            candidate.emissionSite().emissionOrdinal(),
+                            candidate.emissionSite().eventTypeFqn());
+                    EventEmissionSite site = new EventEmissionSite(
+                            emissionId,
+                            candidate.emissionSite().sourceServiceClassFqn(),
+                            candidate.emissionSite().sourceServiceMethodSignature(),
+                            candidate.emissionSite().emissionOrdinal(),
+                            candidate.emissionSite().eventTypeFqn(),
+                            candidate.emissionSite().extractionEvidence());
+                    var route = candidate.selectedConsumerRoute();
+                    return new EventConsequenceDefinition(
+                            candidate.triggerSagaFqn(), candidate.triggerStepKey(), site,
+                            route.eventHandlingClassFqn(), route.eventHandlingMethodName(),
+                            route.eventHandlerClassFqn(), route.eventProcessingClassFqn(),
+                            route.eventProcessingMethodName(), route.facadeClassFqn(),
+                            route.facadeMethodName(), route.sagaClassFqn(),
+                            EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER,
+                            candidate.diagnostics());
+                })
+                .toList();
+        counts.put("eventConsequenceCandidatesAdapted", definitions.size());
+        counts.put("eventConsequenceDiagnostics", state.eventConsequenceDiagnostics.size());
+        return definitions;
     }
 
     private List<SagaDefinition> adaptSagas(ApplicationAnalysisState state,

@@ -1,6 +1,6 @@
 # Verifier roadmap
 
-Last updated: 2026-07-28
+Last updated: 2026-08-01
 
 [`current-state.md`](current-state.md) describes what exists now and the evidence behind it. This roadmap describes the remaining outcomes, why they matter to the thesis, their dependencies, and what would count as done. It deliberately avoids repeating current metrics and commands.
 
@@ -59,13 +59,15 @@ The current handbook records the supported recipe model, the latest setup-ready 
 
 ## Outcome 2 — Make a harmful generated interaction executable
 
+**Status: complete (2026-08-01).** The persisted Quizzes event-consequence positive/control pair now provides repeatable ImpactV1 discrimination. See [`current-state.md`](current-state.md#quizzes-event-consequence-replay-positive-control-and-masking). Further event breadth is not part of this outcome.
+
 ### Goal
 
 Persist and replay at least one realistic multi-Saga or Saga/event interaction that produces a non-zero generic impact signal under a controlled fault schedule.
 
 ### Why it matters
 
-The generic invariant detector already has a real Quizzes positive control, but the current generated action model cannot reproduce its prerequisite-heavy schedule. The available generated assigned-fault replay has impact zero. Search over a flat or unrepresentative fitness landscape has no thesis value.
+The generic invariant detector needed a persisted scenario with enough prerequisite and event structure to reproduce the real Quizzes stale-read interaction. That gap is now closed for one conservative unique local event route; broader event patterns remain deferred.
 
 ### Work direction
 
@@ -77,7 +79,7 @@ The generic invariant detector already has a real Quizzes positive control, but 
 
 ### Done when
 
-- the interaction is represented by a valid v3 package and exact persisted FaultScenario id;
+- the interaction is represented by a valid v4 package and exact persisted FaultScenario id;
 - setup succeeds in the supported runtime;
 - repeated execution produces the expected conformance boundary and non-zero generic impact finding;
 - a nearby control produces zero impact;
@@ -86,13 +88,15 @@ The generic invariant detector already has a real Quizzes positive control, but 
 
 ## Outcome 3 — Define repeatable execution and reset
 
+**Status: complete for the supported boundary (2026-08-01).** Isolation is one fresh ScenarioExecutor container/process with a fresh H2 database per attempt; same-process reset is unsupported. Repeated positive/control evidence is linked from [`current-state.md`](current-state.md#quizzes-event-consequence-replay-positive-control-and-masking).
+
 ### Goal
 
 Make repeated attempts comparable by defining who resets persistent application state and what constitutes an isolated execution environment.
 
 ### Why it matters
 
-Fault-vector search assumes that reward differences come from the vector/scenario rather than residue from earlier attempts. The current executor leaves environment reset to the caller or orchestrator.
+Fault-vector search assumes that reward differences come from the vector/scenario rather than residue from earlier attempts. The supported reset owner is the caller/orchestrator, which must create a fresh process/container and H2 database for each attempt. The executor does not claim same-process cleanup.
 
 ### Work direction
 
@@ -150,8 +154,8 @@ Dynamic enrichment is expensive and produces many raw artifacts. Historical broa
 
 ### Work direction
 
-- First identify a current v3 workload whose usefulness depends on unresolved runtime identity.
-- Run a bounded v3 enrichment baseline with explicit memory, profile, and test selection.
+- First identify a current v4 workload whose usefulness depends on unresolved runtime identity.
+- Run a bounded v4 enrichment baseline with explicit memory, profile, and test selection.
 - Prefer direct input ids and structured simulator events over fuzzy value/name matching.
 - Treat ambiguous, unmatched, and not-covered results as evidence boundaries, not metrics to optimize blindly.
 - Do not let dynamic evidence rewrite package identity or persisted actions.
@@ -163,7 +167,7 @@ Dynamic enrichment is expensive and produces many raw artifacts. Historical broa
 - attribution improvement is measured against a controlled before/after case;
 - raw artifacts and runtime cost are justified by information that changes a decision.
 
-A broad Quizzes v3 refresh is not automatically a higher priority than executable harmful-scenario work.
+A broad Quizzes v4 refresh is not automatically a higher priority than executable harmful-scenario work.
 
 ## Outcome 6 — Local fault-vector search
 
@@ -178,7 +182,7 @@ Do not start until:
 - the chosen workload is setup-ready and repeatably executable;
 - environment reset is defined;
 - at least one vector produces a discriminating evaluated impact;
-- arbitrary valid vectors can be persisted idempotently through the v3 on-demand path;
+- arbitrary valid vectors can be persisted idempotently through the v4 on-demand path;
 - invalid/infrastructure attempts cannot masquerade as zero fitness.
 
 ### Minimal design boundary

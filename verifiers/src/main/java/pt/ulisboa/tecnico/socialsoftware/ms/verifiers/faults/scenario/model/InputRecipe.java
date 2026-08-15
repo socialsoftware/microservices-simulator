@@ -10,7 +10,7 @@ public record InputRecipe(
         List<String> blockers,
         List<InputRecipeArgument> arguments) {
 
-    public static final String SCHEMA_VERSION = "microservices-simulator.input-recipe.v1";
+    public static final String SCHEMA_VERSION = "microservices-simulator.input-recipe.v2";
 
     public InputRecipe {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion.trim();

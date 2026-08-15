@@ -1,7 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor;
 
+import java.util.List;
+
 public interface ScenarioRuntimeContext {
     Object bean(Class<?> type);
+
+    default <T> List<T> beans(Class<T> type) {
+        return List.of();
+    }
 
     default Object createSagaUnitOfWork(String functionalityName) {
         try {

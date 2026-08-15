@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-07-28
+Last updated: 2026-08-01
 
 This is the canonical handbook for verifier and fault-analysis scenario work. It owns the current conceptual model, terminology, supported operations, latest representative evidence, reproduction commands, and limitations. [`roadmap.md`](roadmap.md) owns future direction. [`decisions/`](decisions/index.md) explains the few design choices whose rationale is not obvious from current behavior.
 
@@ -46,7 +46,7 @@ Use this page by question:
 
 - [What the main terms mean](#the-essential-terms)
 - [What inputs are analyzed](#inputs-and-static-extraction)
-- [What the five v3 files contain](#the-v3-package)
+- [What the five v4 files contain](#the-v4-package)
 - [What the accounting metrics mean](#how-to-read-scenario-space-accounting)
 - [What dynamic enrichment contributes](#optional-dynamic-evidence)
 - [How setup preflight and execution differ](#scenarioexecutor)
@@ -69,7 +69,7 @@ An accepted input passed source-mode and configured input-policy filtering. Acce
 
 A **static setup candidate** is a WorkloadPlan whose accepted inputs pass the current deterministic input-readiness checks and whose structure is admissible to the Saga/local executor.
 
-The v3 manifest still stores this as `workloadMaterializability[].materializable=true`. Read that legacy field as **setup candidate**, not runtime proof. Eager all-zero and single-point FaultScenario generation uses this gate.
+The v4 manifest stores this as `workloadMaterializability[].materializable=true`. Read `materializable` as **setup candidate**, not runtime proof. Eager all-zero and single-point FaultScenario generation uses this gate.
 
 ### Runtime setup-ready
 
@@ -83,19 +83,22 @@ A **WorkloadPlan** is reusable normal-execution structure. It contains:
 
 - one or more Saga participants and their accepted inputs;
 - one deterministic global forward schedule;
+- one dense normal-action schedule containing forward actions and any event consequences;
+- persisted event-consequence definitions and their selected producer/consumer routes;
+- optional prerequisite-provider identity and typed baseline-binding requirements;
 - conflict evidence;
 - ordered forward fault slots;
 - compensation checkpoints and evidence;
 - stable occurrence and plan identities.
 
-It does not contain an assigned fault vector or one chosen recovery ordering.
+It does not contain an assigned fault vector or one chosen recovery ordering. `forwardSchedule` remains the only source of fault slots, vector bits, and compensation checkpoints.
 
 ### FaultScenario
 
 A **FaultScenario** is one reproducible experiment. It references one WorkloadPlan and adds:
 
 - one assigned binary vector aligned with the WorkloadPlan fault slots;
-- one complete ordered action sequence containing `FORWARD` and, when applicable, `COMPENSATION` actions;
+- one complete ordered action sequence containing `FORWARD`, `EVENT_CONSEQUENCE`, and, when applicable, `COMPENSATION` actions;
 - a deterministic identity derived from the workload, vector, and action order.
 
 The executor selects a persisted FaultScenario by id. It does not accept an ad hoc runtime vector overlay.
@@ -133,7 +136,7 @@ Static generation consumes:
 - Groovy/Spock tests and fixtures;
 - verifier generation configuration such as source policy, schedule strategy, caps, and seed.
 
-Optional dynamic enrichment additionally runs selected application tests and consumes simulator runtime evidence. ScenarioExecutor additionally consumes a complete v3 package, target application classpath/Spring context, and one persisted FaultScenario id or the preflight mode.
+Optional dynamic enrichment additionally runs selected application tests and consumes simulator runtime evidence. ScenarioExecutor additionally consumes a complete v4 package, target application classpath/Spring context, and one persisted FaultScenario id or the preflight mode.
 
 The main targets are:
 
@@ -152,7 +155,10 @@ The Java visitors discover:
 - aggregate read/write footprints;
 - compensation and rollback evidence;
 - functionality/facade creation sites;
-- the implemented `EventHandling -> EventProcessing -> functionality -> Saga` chain shape.
+- event producers through `Saga step -> command dispatch -> service -> direct registerEvent(new EventType(...))`;
+- event consumers through `EventHandling -> EventProcessing -> functionality -> Saga`.
+
+An **event consequence** is the deterministic atomic normal action joining one supported producer emission to one selected consumer route. The producer call must use a directly resolved `UnitOfWorkService` variable, pass the service method's single relevant `UnitOfWork` parameter, and construct the event directly. A step is rejected if any matching emission comes from compensation, even when it also has a supported forward emission. The selected `EventHandling` method must contain exactly one unconditional, unrepeated, direct `handleSubscribedEvent` delegation. The extractor also rejects ambiguous producer dispatch, multiple/repeated/conditional emissions, unresolved routes, non-Saga origins, recursion, and unsupported fan-out instead of guessing. Genuinely distinct globally selected routes remain distinct candidates. Event placement and the selected route participate in workload identity. Event consequences never own fault slots, vector bits, generated compensation, or compensation checkpoints.
 
 Domain services are identified structurally through command-handler dispatch targets rather than package or class-name conventions. This prevents coordination facades from being treated as domain state services. The rationale is retained in [`decisions/2026-04-06-domain-service-vs-coordination-facade.md`](decisions/2026-04-06-domain-service-vs-coordination-facade.md).
 
@@ -177,16 +183,17 @@ A helper-created fixture can retain helper provenance while being owned by the f
 
 ### Structured input recipes
 
-Accepted inputs embed `microservices-simulator.input-recipe.v1` under `WorkloadPlan.acceptedInputs[].inputRecipe`. Recipes describe argument construction as nodes such as:
+Accepted inputs embed `microservices-simulator.input-recipe.v2` under `WorkloadPlan.acceptedInputs[].inputRecipe`. Recipes describe argument construction as nodes such as:
 
 - typed literals and collections;
 - constructors and ordered setter/property assignments;
 - helper results reduced to nested recipes;
 - property accesses and supported calls/transforms;
 - explicit placeholders;
+- typed `baseline_binding` nodes supplied by an exact prerequisite provider;
 - unresolved nodes with blockers.
 
-The executor materializes a supported subset. Runtime-owned arguments currently include `SagaUnitOfWorkService`, `CommandGateway`, and a fresh `SagaUnitOfWork`. Unsupported calls, unresolved source values, and event payload placeholders remain blockers.
+The executor materializes a supported subset. Runtime-owned arguments currently include `SagaUnitOfWorkService`, `CommandGateway`, and a fresh `SagaUnitOfWork`. A baseline binding is materializable only when the persisted provider id/version is present and the provider returns the required key with the persisted exact type. Applications may declare bounded prerequisite workloads in `src/test/resources/verifier-prerequisite-scenarios.json`; the generic adapter resolves the named Saga steps and exact event route without application FQNs in verifier production code. The matching provider may live on the application's test classpath. Unsupported calls and unresolved source values remain blockers.
 
 Recipe readiness, catalog acceptance, static setup candidacy, runtime setup readiness, and successful execution are different stages. Do not collapse them into one “executable” count.
 
@@ -209,27 +216,27 @@ UNKNOWN -> accepted with warning
 
 Rejected inputs remain in `workload-catalog-rejected-inputs.jsonl` with provenance, source-mode evidence, recipe, warnings, and rejection reason. TCC execution remains out of scope.
 
-## The v3 package
+## The v4 package
 
-V3 is the current package and executor contract. Older `ScenarioPlan` and `scenario-catalog.jsonl` artifacts are unsupported.
+V4 is the current package and executor contract. V3 records are rejected rather than upgraded in place; older `ScenarioPlan` and `scenario-catalog.jsonl` artifacts are also unsupported.
 
 A normal generation run writes exactly five contract files:
 
 | File | Purpose | Main consumer |
 |---|---|---|
 | `scenario-catalog-manifest.json` | Package entry point: paths, schemas, hashes, configuration, counts, setup candidates, and recovery cap | Package readers, preflight, executor, on-demand writer |
-| `workload-catalog.jsonl` | Deterministic `microservices-simulator.workload-plan.v3` records | Dynamic sidecars, FaultScenario generation, executor |
-| `fault-scenario-catalog.jsonl` | Deterministic `microservices-simulator.fault-scenario.v3` records | Executor and on-demand vector workflow |
-| `scenario-space-accounting.json` | Workload-space, setup-candidate, vector, and recovery-schedule accounting | Thesis evaluation and on-demand accounting updates |
+| `workload-catalog.jsonl` | Deterministic `microservices-simulator.workload-plan.v4` records | Dynamic sidecars, FaultScenario generation, executor |
+| `fault-scenario-catalog.jsonl` | Deterministic `microservices-simulator.fault-scenario.v4` records | Executor and on-demand vector workflow |
+| `scenario-space-accounting.json` | `microservices-simulator.scenario-space-accounting.v4` workload-space, setup-candidate, vector, recovery-schedule, and event-consequence accounting | Thesis evaluation and on-demand accounting updates |
 | `workload-catalog-rejected-inputs.jsonl` | Inputs excluded by source mode or policy, with diagnostics | Input-coverage debugging |
 
-`analysis-report.html` is no longer produced. It was a pre-v3 static trace browser rendered before WorkloadPlan/FaultScenario generation and had no current package, setup, execution, or impact content.
+The manifest uses `microservices-simulator.scenario-catalog-manifest.v4`; input recipes use v2. `analysis-report.html` is no longer produced. It was a pre-v3 static trace browser rendered before WorkloadPlan/FaultScenario generation and had no current package, setup, execution, or impact content.
 
 The manifest is the package entry point and checksum boundary. The executor validates the complete package before selection. Preflight, execution, impact, dynamic sidecars, and logs are outside the five-file semantic package and must not change its bytes.
 
 ### Determinism and bounds
 
-The generator preserves stable ordering, deterministic ids, explicit configuration, and an explicit seed. Bounded defaults and caps prevent accidental materialization of the full combinatorial space.
+The generator preserves stable ordering, deterministic ids, explicit configuration, and an explicit seed. `maxCatalogScenarios` is one total exported-workload cap: descriptor-selected prerequisite workloads are ordered deterministically and reserved first, then remaining capacity is filled from stable base-workload order. Manifest generated/selected/capped/exported counts distinguish those stages, and the final workload catalog never exceeds the configured cap. If event-consequence expansion reaches its reserved base-workload capacity between base records, the manifest records the cap encounter and number of remaining base workloads omitted at that stage instead of silently exiting. Bounded defaults and caps prevent accidental materialization of the full combinatorial space.
 
 Implemented generation choices include:
 
@@ -347,7 +354,7 @@ dynamic-evidence-join-report.json
 dynamic-evidence/                 # raw events, input map, test reports, Maven log
 ```
 
-These artifacts are not part of v3 package identity and do not rewrite WorkloadPlans, FaultScenarios, vectors, or action schedules.
+These artifacts are not part of v4 package identity and do not rewrite WorkloadPlans, FaultScenarios, vectors, or action schedules.
 
 A run-level `dynamic-input-map.json` lets runtime events carry an exact static `inputVariantId` when test identity, functionality class, step, and ownership resolve uniquely. Current join statuses are:
 
@@ -360,7 +367,7 @@ A run-level `dynamic-input-map.json` lets runtime events carry an exact static `
 | `UNMATCHED` | Relevant evidence exists but cannot be joined usefully |
 | `NOT_COVERED` | No useful runtime evidence was observed for the workload |
 
-These statuses currently support attribution quality and debugging. They do not change execution behavior. The latest broad Quizzes counts are historical v2 evidence and are intentionally not retained as a current v3 headline. Current v3 package/sidecar immutability is covered by dummyapp integration; a fresh broad Quizzes v3 enrichment run has not yet been recorded.
+These statuses currently support attribution quality and debugging. They do not change execution behavior. The latest broad Quizzes counts are historical v2 evidence and are intentionally not retained as a current v4 headline. Current v4 package/sidecar immutability is covered by integration tests; a fresh broad Quizzes v4 enrichment run has not yet been recorded.
 
 The durable static/dynamic boundary is explained in [`decisions/2026-04-28-hybrid-static-dynamic-key-binding.md`](decisions/2026-04-28-hybrid-static-dynamic-key-binding.md).
 
@@ -390,24 +397,32 @@ Normal execution uses the same setup implementation, so a separate preflight is 
 
 Normal execution requires:
 
-- a complete v3 package path;
+- a complete v4 package path;
 - one exact persisted FaultScenario id;
 - an output path;
 - an application classpath/Spring application with supported Saga/local runtime dependencies.
 
-It sequentially replays the persisted `FORWARD` and `COMPENSATION` actions, injects assigned faults at their exact slots, and commits each participant after its final successful forward action.
+It sequentially replays persisted `FORWARD`, `EVENT_CONSEQUENCE`, and `COMPENSATION` actions, injects assigned faults at their exact forward slots, and commits each participant after its final successful forward action. Before measured execution, an optional exact `ScenarioPrerequisiteProvider` creates the baseline, resolves typed bindings, clears prerequisite-created pending events, and proves an empty pending-event baseline. This setup has separate report evidence and is excluded from measured actions, fault allocation, recovery, conformance, and ImpactV1.
 
 Only a zero-bit body/commit failure explicitly marked with the simulator `DomainFailure` contract may use immediate checkpoint recovery, skip the failed participant's remaining forwards, continue valid survivor actions, and report `DEVIATED`.
 
 Unmarked failures—including plain `SimulatorException`, service unavailability, ordinary runtime failures, missing infrastructure, and leaked assigned-fault exceptions—are infrastructure failures. They run no fallback, stop survivor execution, and report `INCOMPLETE` after measured execution starts. Thrown compensation actions also hard-stop.
 
+### Event replay
+
+Replay mode is activated before Spring startup. The simulator captures the exact event only after persistence, suppresses unscoped scheduled polling, and allows one selected event id through one persisted `EventHandling` bean method and one eligible subscriber. The executor invokes that real Spring bean synchronously outside the fault-vector boundary and before the next outer action.
+
+An event consequence is masked when its specific trigger occurrence has a pre-body assigned fault, fails before capturing a matching event, or is not reached. If the trigger body or commit captures the selected event and then fails, execution hard-stops as `TRIGGER_FAILED_AFTER_EVENT_EMISSION`; the event is not dispatched and ImpactV1 is not evaluated. This prevents an emitted-but-undelivered event from becoming a false zero. Missing or multiple matching events/subscribers, selected-route mismatch, recursive registration, replay-control failure, and handler failure also hard-stop measured execution and leave ImpactV1 not evaluated. Replay currently supports one exact local subscriber only—no fan-out, recursion, nested event chain, retry, TCC, remote, stream, or gRPC delivery.
+
 ### Report
 
-`microservices-simulator.scenario-execution-report.v4` records:
+`microservices-simulator.scenario-execution-report.v5` records:
 
-- attempt, package, WorkloadPlan, FaultScenario, vector, and provider identity;
+- attempt, package, WorkloadPlan, FaultScenario, vector, and fault-provider identity;
+- separate prerequisite-provider, binding, cleanup, and baseline evidence;
 - planned and actual action order;
-- fault-slot realization or masking;
+- planned event route and actual persisted event/subscriber evidence;
+- fault-slot realization or causal event masking;
 - action body, commit, and recovery outcomes;
 - participant setup/final state and skipped forwards;
 - lifecycle events and blockers;
@@ -420,7 +435,8 @@ Execution reports live outside the package and must not alias package artifacts 
 Supported:
 
 - persisted setup-candidate Saga/local single- and multi-participant workloads;
-- deterministic sequential replay;
+- deterministic sequential replay, including one exact local event consequence;
+- exact prerequisite providers and typed baseline bindings outside measurement;
 - binary forward faults;
 - persisted compensation schedules;
 - explicit domain-failure fallback and conservative infrastructure hard stops;
@@ -436,7 +452,7 @@ Unsupported:
 - generic persistent-environment reset;
 - automatic FaultScenario selection or runtime vector overlays.
 
-The current v3 execution/failure contract is retained in [`decisions/2026-07-19-compensation-aware-fault-scenario-contract.md`](decisions/2026-07-19-compensation-aware-fault-scenario-contract.md).
+The compensation/failure boundary is retained in [`decisions/2026-07-19-compensation-aware-fault-scenario-contract.md`](decisions/2026-07-19-compensation-aware-fault-scenario-contract.md). Event-consequence ownership and replay isolation are retained in [`decisions/2026-07-30-deterministic-event-consequence-replay.md`](decisions/2026-07-30-deterministic-event-consequence-replay.md).
 
 ## ImpactV1
 
@@ -562,57 +578,106 @@ result:          COMPENSATED / EXACT; assigned fault realized
 
 These are targeted controls, not a batch execution-coverage claim. All five package hashes remained unchanged.
 
-### Generic invariant impact
+### Quizzes event-consequence replay: positive, control, and masking
 
-Focused simulator verification:
-
-```bash
-cd simulator
-mvn -Dtest=SagaUnitOfWorkServiceDynamicEvidenceTest,DynamicEvidenceRecorderTest,DynamicEvidenceAutoConfigurationTest test
-```
-
-Focused verifier verification:
+The v4 Quizzes package was generated from the repository root with default catalog bounds, static analysis, and the application's prerequisite descriptor:
 
 ```bash
-cd simulator && mvn -DskipTests -Dprotobuf.skip install
-cd ../verifiers
-mvn -Dtest=ScenarioExecutorSpec,ScenarioExecutorOrchestratorSpec,ScenarioExecutorWrapperSpec test
+MEDIUM_MEM_LIMIT=4g MEDIUM_MEM_RESERVATION=1g \
+docker compose run --rm -T \
+  -e JAVA_TOOL_OPTIONS=-Xmx3g \
+  -e VERIFIERS_DYNAMIC_ENRICHMENT_ENABLED=false \
+  fault-analysis-scenario-gen
 ```
 
-The real Quizzes positive control is the existing stale-read feature in `AddParticipantAndUpdateStudentNameTest`. It reaches one application-declared `SagaTournament` invariant rejection at `AddParticipantFunctionalitySagas.addParticipantStep`:
-
-```bash
-cd applications/quizzes
-mvn -Ptest-sagas -Dtest=AddParticipantAndUpdateStudentNameTest test
-```
-
-This proves the detector on a realistic interaction, but that prerequisite-heavy event schedule is not yet a persisted executable FaultScenario.
-
-A generated assigned-fault zero-impact control used:
-
-```bash
-MEDIUM_MEM_LIMIT=3g MEDIUM_MEM_RESERVATION=1g \
-PACKAGE_PATH=/reports/outcome2-helper-tracing/quizzes-20260727-180306-391/scenario-catalog-manifest.json \
-FAULT_SCENARIO_ID=142eccc9b6d9464439f9607061ff6c7a32109108d34a1ddc076e6bf8519ab71b \
-OUTPUT_PATH=/reports/generic-invariant-impact-baseline/execution-single-fault.json \
-IMPACT_OUTPUT_PATH=/reports/generic-invariant-impact-baseline/impact-single-fault.json \
-docker compose run --rm -e JAVA_TOOL_OPTIONS=-Xmx2g scenario-executor
-```
-
-Outputs and result:
+The default 768 MiB container limit was insufficient and the first attempt was OOM-killed; the explicit limit and heap above are part of the reproducible generation configuration. The persisted package is:
 
 ```text
-execution: verifiers/target/generic-invariant-impact-baseline/execution-single-fault.json
-impact:    verifiers/target/generic-invariant-impact-baseline/impact-single-fault.json
-execution: COMPENSATED / EXACT; assigned slot REALIZED
-impact:    EVALUATED; invariantViolationCount=0; impactScore=0
+verifiers/target/quizzes-20260801-014405-816/
 ```
 
-Interpretation: realizing a fault and compensating does not automatically count as harmful. ImpactV1 scores only observed invariant rejections.
+It includes one exact `UpdateStudentNameEvent` consequence from `UpdateStudentNameFunctionalitySagas.updateStudentNameStep` through `TournamentEventHandling.handleUpdateStudentNameEvent`. Two workloads place that consequence around `AddParticipantFunctionalitySagas.addParticipantStep`:
 
-### Bounded multi-Saga package generation
+```text
+positive: getUserStep -> updateStudentNameStep -> EVENT_CONSEQUENCE -> addParticipantStep
+control:  getUserStep -> updateStudentNameStep -> addParticipantStep -> EVENT_CONSEQUENCE
+```
 
-The current v3 package contract was exercised at Quizzes scale with:
+The workloads require `quizzes-stale-read-baseline@1`. Its Quizzes test-classpath provider uses application functionality APIs to create a course execution, creator/enrollment, topics/questions, tournament, and updated user, then returns four typed bindings. Provider execution, binding resolution, and pending-event cleanup occur before measurement.
+
+Each replay was a fresh `docker compose run --rm` process with H2 state. The command shape was:
+
+```bash
+MEDIUM_MEM_LIMIT=4g MEDIUM_MEM_RESERVATION=1g \
+docker compose run --rm -T \
+  -e JAVA_TOOL_OPTIONS=-Xmx3g \
+  -e PACKAGE_PATH=/reports/quizzes-20260801-014405-816/scenario-catalog-manifest.json \
+  -e FAULT_SCENARIO_ID=<persisted-scenario-id> \
+  -e OUTPUT_PATH=/reports/outcome3-ec-rev002-20260801-014405-816-evidence/<run>-execution.json \
+  -e IMPACT_OUTPUT_PATH=/reports/outcome3-ec-rev002-20260801-014405-816-evidence/<run>-impact.json \
+  scenario-executor
+```
+
+Persisted ids:
+
+```text
+positive workload: ee36b9a067b501c82e9be7ee7bf85531d39b530de2ada01fa5f2e2edfbc60c2c
+positive scenario: 24fbeb3b05830543f1deb1aa6eaa0be29e63b2eac807cae3264ce8f1f171e601
+control workload:  481ea3b5c05ad122dd46fa9db904fe0c1b6d01b99446f55a3d199b62fcb1be13
+control scenario:  ec869302d0912ce60c57a69e9a220dba0afd2aa6246a93fb141f727ffc34ca24
+B1 masking:       5b1991d323f2ad8d1066d7c82f33a3559be2444a127adbac07bc6f4c9cd3dede
+```
+
+The manifest records the configured total cap and final selection honestly:
+
+```text
+maxCatalogScenarios:                         100
+prerequisite workloads:                      2 generated / 2 exported / 0 capped
+base workloads:                              98 generated / 98 exported / 0 merge-capped
+final workloads exported:                    100
+workloadsCapped:                             1
+eventConsequenceExpansionCapEncounters:      1
+eventConsequenceBaseWorkloadsOmittedAtCap:  14
+warning: reached maxCatalogScenarios=98 between base workloads during event-consequence
+         expansion; 14 remaining base workloads and their placements were not emitted
+```
+
+Measured result and fresh execution-attempt ids:
+
+```text
+positive-1  151d07b0-8894-4579-96ba-81471f2b456f  PARTIAL_COMPENSATED / DEVIATED  E=COMPLETED  ImpactV1=1
+positive-2  eb8a434c-96ea-42ca-bfa5-6918854e9a8d  PARTIAL_COMPENSATED / DEVIATED  E=COMPLETED  ImpactV1=1
+positive-3  b4729ce1-99d3-465f-a94a-dd2fb11024ce  PARTIAL_COMPENSATED / DEVIATED  E=COMPLETED  ImpactV1=1
+control-1   24f40dcf-4cdb-42ec-a686-6bc51a9b462f  SUCCESS / EXACT                  E=COMPLETED  ImpactV1=0
+control-2   4f24d37e-70de-41ba-aa40-6439f142fdcf  SUCCESS / EXACT                  E=COMPLETED  ImpactV1=0
+control-3   a7c6cf8b-8098-4ad0-9391-6219fd846e08  SUCCESS / EXACT                  E=COMPLETED  ImpactV1=0
+masking-1   0aa1f90e-dc5b-4daf-bf64-50f1869dc5e4  PARTIAL_COMPENSATED / EXACT      E=MASKED_BY_TRIGGER_FAULT  ImpactV1=0
+```
+
+Every completed E used persisted event id `3`, publisher id `2`, subscriber id `9`, and `TournamentEventHandling.handleUpdateStudentNameEvent` with `UpdateStudentNameEventHandler`. Positive actions completed `getUserStep`, `updateStudentNameStep`, and E before `addParticipantStep` failed its invariant. Control actions completed all three forwards before E. The masking attempt completed A1, realized B1's assigned pre-body fault, causally masked E, and completed A2.
+
+Reports, logs, per-attempt hashes/diffs, and the derived complete matrix are under:
+
+```text
+verifiers/target/outcome3-ec-rev002-20260801-014405-816-evidence/
+verifiers/target/outcome3-ec-rev002-20260801-014405-816-evidence/verification-summary.json
+```
+
+All seven fresh-process runs used `quizzes-stale-read-baseline@1`, cleared two prerequisite-created pending events, resolved all four typed bindings, and established an empty pending-event baseline. Every per-attempt hash diff is empty. The five package hashes before and after all attempts are:
+
+```text
+workload catalog:  fa46dd469c2c60d18096d666f1066d68903ff4893236afb5701b2447848588a8
+fault catalog:     165790570406f2ba4d3e9a6358e2a5b00afa43e5a2996043910df567e79a0281
+manifest:          63f9fc77221c1c27bd89190b94a864f20f01df8852157249ef07cfe404a13f98
+accounting:        7bf7cdf08eba72667fef1e4375f1e3a05ab8f4b64d7f56835056558abc8c9643
+rejected inputs:   dd4b4a7051600d5856df6c02a2230a1971b9c7092e85f43130c89e4f959ea0bf
+```
+
+This proves one realistic Saga/local event interaction is statically represented, prerequisite-bound, causally replayed, discriminating under ImpactV1, and repeatable at the fresh-process/H2 boundary. It does not prove generic fan-out, nested event chains, distributed event replay, same-process reset, or broad event-pattern coverage.
+
+### Historical bounded multi-Saga package generation
+
+The prior v3 package contract was exercised at Quizzes scale with the following historical command. V4 readers now reject this package; retain the result only as bounded-generation evidence:
 
 ```bash
 MEDIUM_MEM_LIMIT=3g MEDIUM_MEM_RESERVATION=2g MEDIUM_CPUS=2 \
@@ -672,13 +737,16 @@ This proves exact BigInteger counting with bounded retained schedules for one co
 
 ### Regression baseline
 
-The latest recorded affected-module baseline after ImpactV1 integration is:
+The event-consequence implementation recorded:
 
 ```text
-simulator complete suite: 106 tests passed
-verifier complete suite:  595 tests passed
-Docker verifier test:     passed
+simulator complete suite: 111 tests passed
+verifier focused repair suite: 214 tests passed
+verifier complete suite:  628 tests passed
+focused Quizzes oracle/provider: 10 tests passed
 ```
+
+`mvn -Ptest-sagas test` in Quizzes ran 152 tests but retained seven unrelated async/concurrency assertion failures: those tests expect `SimulatorException` directly while the async path returns `CompletionException`. No changed path belongs to those tests or their async implementation. The event-consequence provider and stale-read oracle pass, and the verifier dependency no longer activates `ScenarioGeneratorApplication` in ordinary Quizzes tests. This is a full-suite baseline failure, not a passing claim.
 
 These totals are point-in-time evidence, not permanent acceptance criteria. Current changes should run focused affected tests and broaden only when the changed boundary justifies it.
 
@@ -686,13 +754,13 @@ These totals are point-in-time evidence, not permanent acceptance criteria. Curr
 
 - Thirty-two discovered Quizzes Sagas still lack accepted static inputs. This does not mean no tests exist; their invocation/value shapes remain unclassified or unsupported.
 - Exact aggregate-instance key extraction is incomplete. Type-level and symbolic conflicts can over-approximate interaction.
-- Event payload placeholders can allow static acceptance while blocking setup candidacy.
+- Event-consequence extraction supports one conservative direct producer shape and one unique local consumer. Wrong receiver or unit-of-work binding, mixed compensation-origin emission, conditional/repeated consumer delegation, multiple/repeated/conditional producer emissions, fan-out, recursion, nested event chains, and unresolved routes are rejected diagnostically.
 - Helper-built course DTOs now preserve `DateHandler.toISOString(endDate)`, but that local transform remains unsupported and blocks those candidates rather than fabricating empty DTOs.
 - Static setup candidacy is conservative prediction. The latest package achieved 82/82 runtime setup readiness, but other packages and environments still require actual setup evidence.
 - Repeated same-participant runtime step names are structurally rejected because current Saga/local runtime state is keyed by step name rather than occurrence id.
 - Segment compression preserves conflict-anchor order cases under extracted evidence; it does not prove every semantically distinct runtime interleaving is retained.
-- Dynamic enrichment remains local/Saga-focused. There is no fresh broad Quizzes v3 attribution baseline.
-- The current generated action model cannot persist and replay the existing positive Quizzes invariant interaction, so generated ImpactV1 fitness is currently flat in the available real replay control.
+- Dynamic enrichment remains local/Saga-focused. There is no fresh broad Quizzes v4 attribution baseline.
+- The generated Quizzes event-consequence pair provides one ImpactV1 1/0 discrimination; this is one representative interaction, not evidence that other workloads or vectors have non-flat fitness.
 - No current post-remediation Quizzes smoke demonstrates the explicitly marked zero-bit domain-fallback path.
 - Persistent-environment reset is the caller/orchestrator's responsibility.
 - On-demand package writes are serialized but not crash-atomic.
@@ -711,7 +779,7 @@ These totals are point-in-time evidence, not permanent acceptance criteria. Curr
 
 Safe current claim:
 
-> The verifier deterministically extracts Saga-oriented workload structure and test-derived inputs, publishes compensation-aware WorkloadPlan/FaultScenario v3 packages, can verify exact Saga/local setup readiness, can replay one persisted setup-ready FaultScenario sequentially, and can report generic Saga aggregate-invariant rejections through a first narrow impact model.
+> The verifier deterministically extracts Saga-oriented workload structure, conservative exact event consequences, and test-derived or prerequisite-bound inputs; publishes compensation-aware WorkloadPlan/FaultScenario v4 packages; can verify exact Saga/local setup readiness; can replay one persisted setup-ready FaultScenario sequentially, including one unique local event consequence; and can report generic Saga aggregate-invariant rejections through a first narrow impact model.
 
 Required qualifications:
 
@@ -721,7 +789,7 @@ Required qualifications:
 - assigned fault or compensation does not by itself mean impact;
 - static conflict evidence and segment compression do not prove semantic completeness;
 - current execution is Saga/local and sequential, not generic distributed concurrency;
-- historical v1/v2 catalogs and broad dynamic counts are not current v3 evidence.
+- historical v1/v2/v3 catalogs and broad dynamic counts are not current v4 evidence.
 
 Unsafe current claim:
 

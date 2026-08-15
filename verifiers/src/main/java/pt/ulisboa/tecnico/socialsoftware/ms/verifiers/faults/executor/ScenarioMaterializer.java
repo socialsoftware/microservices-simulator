@@ -7,10 +7,18 @@ import java.util.*;
 
 class ScenarioMaterializer {
     MaterializedArguments materialize(InputVariant input, ScenarioRuntimeContext runtimeContext, String functionalityName) {
-        return materialize(input, runtimeContext, functionalityName, null);
+        return materialize(input, runtimeContext, functionalityName, null, Map.of());
     }
 
     MaterializedArguments materialize(InputVariant input, ScenarioRuntimeContext runtimeContext, String functionalityName, Object sagaUnitOfWork) {
+        return materialize(input, runtimeContext, functionalityName, sagaUnitOfWork, Map.of());
+    }
+
+    MaterializedArguments materialize(InputVariant input,
+                                      ScenarioRuntimeContext runtimeContext,
+                                      String functionalityName,
+                                      Object sagaUnitOfWork,
+                                      Map<String, Object> baselineBindings) {
         InputRecipe recipe = input == null ? null : input.inputRecipe();
         if (recipe == null) {
             return MaterializedArguments.failure(List.of(blocker(input, null, "MISSING_INPUT_RECIPE", "Input variant has no inputRecipe")));
@@ -21,7 +29,8 @@ class ScenarioMaterializer {
         List<Object> values = new ArrayList<>();
         List<ScenarioExecutionReport.Blocker> blockers = new ArrayList<>();
         for (InputRecipeArgument argument : arguments) {
-            MaterializationResult result = materializeArgument(input, argument, runtimeContext, functionalityName, sagaUnitOfWork);
+            MaterializationResult result = materializeArgument(input, argument, runtimeContext, functionalityName,
+                    sagaUnitOfWork, baselineBindings);
             if (result.blocker() != null) {
                 blockers.add(result.blocker());
             } else {
@@ -35,7 +44,8 @@ class ScenarioMaterializer {
                                                      InputRecipeArgument argument,
                                                      ScenarioRuntimeContext runtimeContext,
                                                      String functionalityName,
-                                                     Object sagaUnitOfWork) {
+                                                     Object sagaUnitOfWork,
+                                                     Map<String, Object> baselineBindings) {
         String type = argument.expectedTypeFqn();
         if (ScenarioExecutorMaterializationPolicy.isRuntimeOwned(type)) {
             return MaterializationResult.value(runtimeOwnedValue(type, runtimeContext, functionalityName, sagaUnitOfWork));
@@ -43,7 +53,8 @@ class ScenarioMaterializer {
         if (!argument.executorReady()) {
             return MaterializationResult.blocker(blocker(input, argument.index(), "UNRESOLVED_ARGUMENT", "Argument is not executor-ready"));
         }
-        return materializeNode(input, argument.index(), argument.recipe(), runtimeContext, functionalityName, sagaUnitOfWork);
+        return materializeNode(input, argument.index(), argument.recipe(), runtimeContext, functionalityName,
+                sagaUnitOfWork, baselineBindings);
     }
 
     private MaterializationResult materializeNode(InputVariant input,
@@ -51,7 +62,8 @@ class ScenarioMaterializer {
                                                  InputRecipeNode node,
                                                  ScenarioRuntimeContext runtimeContext,
                                                  String functionalityName,
-                                                 Object sagaUnitOfWork) {
+                                                 Object sagaUnitOfWork,
+                                                 Map<String, Object> baselineBindings) {
         if (node == null) {
             return MaterializationResult.blocker(blocker(input, argumentIndex, "MISSING_RECIPE", "Missing recipe node"));
         }
@@ -59,12 +71,13 @@ class ScenarioMaterializer {
         try {
             return switch (kind == null ? "" : kind) {
                 case "literal" -> MaterializationResult.value(node.value());
+                case "baseline_binding" -> materializeBaselineBinding(input, argumentIndex, node, baselineBindings);
                 case "placeholder" -> materializePlaceholder(input, argumentIndex, node, runtimeContext);
-                case "constructor" -> materializeConstructor(input, argumentIndex, node, runtimeContext, functionalityName, sagaUnitOfWork);
-                case "collection" -> materializeCollection(input, argumentIndex, node, runtimeContext, functionalityName, sagaUnitOfWork);
-                case "local_transform" -> materializeLocalTransform(input, argumentIndex, node, runtimeContext, functionalityName, sagaUnitOfWork);
-                case "helper_result" -> materializeNode(input, argumentIndex, node.resultRecipe(), runtimeContext, functionalityName, sagaUnitOfWork);
-                case "property_access" -> materializePropertyAccess(input, argumentIndex, node, runtimeContext, functionalityName, sagaUnitOfWork);
+                case "constructor" -> materializeConstructor(input, argumentIndex, node, runtimeContext, functionalityName, sagaUnitOfWork, baselineBindings);
+                case "collection" -> materializeCollection(input, argumentIndex, node, runtimeContext, functionalityName, sagaUnitOfWork, baselineBindings);
+                case "local_transform" -> materializeLocalTransform(input, argumentIndex, node, runtimeContext, functionalityName, sagaUnitOfWork, baselineBindings);
+                case "helper_result" -> materializeNode(input, argumentIndex, node.resultRecipe(), runtimeContext, functionalityName, sagaUnitOfWork, baselineBindings);
+                case "property_access" -> materializePropertyAccess(input, argumentIndex, node, runtimeContext, functionalityName, sagaUnitOfWork, baselineBindings);
                 case "call_result" -> MaterializationResult.blocker(blocker(input, argumentIndex, "UNSUPPORTED_CALL_RESULT", "Unsupported call_result recipe"));
                 case "unresolved" -> MaterializationResult.blocker(blocker(input, argumentIndex, "UNRESOLVED_VALUE", "Non-whitelisted unresolved recipe"));
                 default -> MaterializationResult.blocker(blocker(input, argumentIndex, "UNSUPPORTED_RECIPE_KIND", "Unsupported recipe kind: " + kind));
@@ -72,6 +85,25 @@ class ScenarioMaterializer {
         } catch (ReflectiveOperationException | RuntimeException e) {
             return MaterializationResult.blocker(blocker(input, argumentIndex, "MATERIALIZATION_EXCEPTION", e.getMessage()));
         }
+    }
+
+    private MaterializationResult materializeBaselineBinding(InputVariant input,
+                                                             Integer argumentIndex,
+                                                             InputRecipeNode node,
+                                                             Map<String, Object> baselineBindings) {
+        if (node.bindingKey() == null || node.bindingTypeFqn() == null
+                || !baselineBindings.containsKey(node.bindingKey())) {
+            return MaterializationResult.blocker(blocker(input, argumentIndex,
+                    "MISSING_BASELINE_BINDING", "Missing provider binding " + node.bindingKey()));
+        }
+        Object value = baselineBindings.get(node.bindingKey());
+        Class<?> expected = loadClass(node.bindingTypeFqn());
+        if (value == null || !expected.isInstance(value)) {
+            return MaterializationResult.blocker(blocker(input, argumentIndex,
+                    "BASELINE_BINDING_TYPE_MISMATCH", "Binding " + node.bindingKey()
+                            + " must have type " + node.bindingTypeFqn()));
+        }
+        return MaterializationResult.value(value);
     }
 
     private MaterializationResult materializePlaceholder(InputVariant input, Integer argumentIndex, InputRecipeNode node, ScenarioRuntimeContext runtimeContext) {
@@ -86,14 +118,16 @@ class ScenarioMaterializer {
                                                         InputRecipeNode node,
                                                         ScenarioRuntimeContext runtimeContext,
                                                         String functionalityName,
-                                                        Object sagaUnitOfWork) throws ReflectiveOperationException {
+                                                        Object sagaUnitOfWork,
+                                                        Map<String, Object> baselineBindings) throws ReflectiveOperationException {
         if (node.targetTypeFqn() == null) {
             return MaterializationResult.blocker(blocker(input, argumentIndex, "MISSING_TARGET_TYPE", "Constructor recipe has no target type FQN"));
         }
         List<Object> args = new ArrayList<>();
         for (InputRecipeArgument child : node.arguments().stream().sorted(Comparator.comparingInt(InputRecipeArgument::index)).toList()) {
             MaterializationResult result = child.executorReady()
-                    ? materializeNode(input, argumentIndex, child.recipe(), runtimeContext, functionalityName, sagaUnitOfWork)
+                    ? materializeNode(input, argumentIndex, child.recipe(), runtimeContext, functionalityName,
+                    sagaUnitOfWork, baselineBindings)
                     : MaterializationResult.blocker(blocker(input, argumentIndex, "UNRESOLVED_CONSTRUCTOR_ARGUMENT", "Constructor argument is not executor-ready"));
             if (result.blocker() != null) {
                 return result;
@@ -103,7 +137,8 @@ class ScenarioMaterializer {
         Class<?> type = Class.forName(node.targetTypeFqn());
         Object instance = instantiate(type, args);
         for (InputRecipeAssignment assignment : node.assignments().stream().sorted(Comparator.comparingInt(InputRecipeAssignment::orderIndex)).toList()) {
-            MaterializationResult value = materializeNode(input, argumentIndex, assignment.valueRecipe(), runtimeContext, functionalityName, sagaUnitOfWork);
+            MaterializationResult value = materializeNode(input, argumentIndex, assignment.valueRecipe(),
+                    runtimeContext, functionalityName, sagaUnitOfWork, baselineBindings);
             if (value.blocker() != null) {
                 return MaterializationResult.blocker(new ScenarioExecutionReport.Blocker(input == null ? null : null,
                         input == null ? null : input.deterministicId(), argumentIndex, null, "UNMATERIALIZABLE_ASSIGNMENT",
@@ -119,13 +154,16 @@ class ScenarioMaterializer {
                                                        InputRecipeNode node,
                                                        ScenarioRuntimeContext runtimeContext,
                                                        String functionalityName,
-                                                       Object sagaUnitOfWork) {
+                                                       Object sagaUnitOfWork,
+                                                       Map<String, Object> baselineBindings) {
         String collectionKind = node.collectionKind() == null ? "list" : node.collectionKind().toLowerCase(Locale.ROOT);
         if ("map".equals(collectionKind)) {
             Map<Object, Object> map = new LinkedHashMap<>();
             for (InputRecipeMapEntry entry : node.entries().stream().sorted(Comparator.comparingInt(InputRecipeMapEntry::index)).toList()) {
-                MaterializationResult key = materializeNode(input, argumentIndex, entry.keyRecipe(), runtimeContext, functionalityName, sagaUnitOfWork);
-                MaterializationResult value = materializeNode(input, argumentIndex, entry.valueRecipe(), runtimeContext, functionalityName, sagaUnitOfWork);
+                MaterializationResult key = materializeNode(input, argumentIndex, entry.keyRecipe(), runtimeContext,
+                        functionalityName, sagaUnitOfWork, baselineBindings);
+                MaterializationResult value = materializeNode(input, argumentIndex, entry.valueRecipe(), runtimeContext,
+                        functionalityName, sagaUnitOfWork, baselineBindings);
                 if (key.blocker() != null) return key;
                 if (value.blocker() != null) return value;
                 map.put(key.value(), value.value());
@@ -134,7 +172,8 @@ class ScenarioMaterializer {
         }
         List<Object> values = new ArrayList<>();
         for (InputRecipeNode element : node.elements()) {
-            MaterializationResult result = materializeNode(input, argumentIndex, element, runtimeContext, functionalityName, sagaUnitOfWork);
+            MaterializationResult result = materializeNode(input, argumentIndex, element, runtimeContext,
+                    functionalityName, sagaUnitOfWork, baselineBindings);
             if (result.blocker() != null) return result;
             values.add(result.value());
         }
@@ -149,11 +188,13 @@ class ScenarioMaterializer {
                                                            InputRecipeNode node,
                                                            ScenarioRuntimeContext runtimeContext,
                                                            String functionalityName,
-                                                           Object sagaUnitOfWork) {
+                                                           Object sagaUnitOfWork,
+                                                           Map<String, Object> baselineBindings) {
         if (!"toSet".equals(node.transformName())) {
             return MaterializationResult.blocker(blocker(input, argumentIndex, "UNSUPPORTED_TRANSFORM", "Unsupported local_transform: " + node.transformName()));
         }
-        MaterializationResult receiver = materializeNode(input, argumentIndex, node.receiver(), runtimeContext, functionalityName, sagaUnitOfWork);
+        MaterializationResult receiver = materializeNode(input, argumentIndex, node.receiver(), runtimeContext,
+                functionalityName, sagaUnitOfWork, baselineBindings);
         if (receiver.blocker() != null) return receiver;
         Object value = receiver.value();
         if (value instanceof Collection<?> collection) {
@@ -167,8 +208,10 @@ class ScenarioMaterializer {
                                                            InputRecipeNode node,
                                                            ScenarioRuntimeContext runtimeContext,
                                                            String functionalityName,
-                                                           Object sagaUnitOfWork) throws ReflectiveOperationException {
-        MaterializationResult receiver = materializeNode(input, argumentIndex, node.receiver(), runtimeContext, functionalityName, sagaUnitOfWork);
+                                                           Object sagaUnitOfWork,
+                                                           Map<String, Object> baselineBindings) throws ReflectiveOperationException {
+        MaterializationResult receiver = materializeNode(input, argumentIndex, node.receiver(), runtimeContext,
+                functionalityName, sagaUnitOfWork, baselineBindings);
         if (receiver.blocker() != null) {
             return MaterializationResult.blocker(blocker(input, argumentIndex, "UNMATERIALIZABLE_RECEIVER", receiver.blocker().reason()));
         }

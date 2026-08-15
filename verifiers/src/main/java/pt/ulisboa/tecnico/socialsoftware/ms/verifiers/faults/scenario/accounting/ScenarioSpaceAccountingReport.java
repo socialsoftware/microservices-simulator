@@ -26,7 +26,7 @@ public record ScenarioSpaceAccountingReport(
         WorkloadCatalogSpace workloadCatalogSpace,
         FaultScenarioCatalogSpace faultScenarioCatalogSpace) {
 
-    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-space-accounting.v3";
+    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-space-accounting.v4";
 
     public ScenarioSpaceAccountingReport {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;
@@ -72,6 +72,8 @@ public record ScenarioSpaceAccountingReport(
                             plan.deterministicId(),
                             Integer.toString(plan.faultSlots().size()),
                             BigInteger.TWO.pow(plan.faultSlots().size()).toString(),
+                            Integer.toString(plan.eventConsequences().size()),
+                            Integer.toString(plan.normalSchedule().size()),
                             materializability != null && materializability.materializable(),
                             materializability == null ? List.of("MISSING_MATERIALIZABILITY_DIAGNOSTIC") : materializability.diagnostics(),
                             Integer.toString(vectors.size()),
@@ -107,6 +109,8 @@ public record ScenarioSpaceAccountingReport(
                         Integer.toString(result.workloadPlans().size()),
                         Long.toString(materializableCount),
                         Long.toString(result.workloadPlans().size() - materializableCount),
+                        Integer.toString(result.workloadPlans().stream().mapToInt(plan -> plan.eventConsequences().size()).sum()),
+                        Integer.toString(result.workloadPlans().stream().mapToInt(plan -> plan.normalSchedule().size()).sum()),
                         workloadRows),
                 new FaultScenarioCatalogSpace(
                         Integer.toString(result.faultScenarios().size()),
@@ -155,6 +159,8 @@ public record ScenarioSpaceAccountingReport(
                         row.workloadPlanId(),
                         row.faultSlotCount(),
                         row.possibleBinaryVectors(),
+                        row.eventConsequenceCount(),
+                        row.normalActionCount(),
                         row.executorMaterializable(),
                         row.materializabilityDiagnostics(),
                         row.eagerVectorCount(),
@@ -187,6 +193,8 @@ public record ScenarioSpaceAccountingReport(
                         workloadCatalogSpace.workloadPlansWritten(),
                         workloadCatalogSpace.materializableWorkloadPlans(),
                         workloadCatalogSpace.nonMaterializableWorkloadPlans(),
+                        workloadCatalogSpace.eventConsequencesWritten(),
+                        workloadCatalogSpace.normalActionsWritten(),
                         workloadRows),
                 revisedFaultSpace);
     }
@@ -211,22 +219,36 @@ public record ScenarioSpaceAccountingReport(
     public record WorkloadCatalogSpace(String workloadPlansWritten,
                                        String materializableWorkloadPlans,
                                        String nonMaterializableWorkloadPlans,
+                                       String eventConsequencesWritten,
+                                       String normalActionsWritten,
                                        List<WorkloadVectorSpace> perWorkloadVectorSpace) {
         public WorkloadCatalogSpace {
             workloadPlansWritten = decimalOrZero(workloadPlansWritten);
             materializableWorkloadPlans = decimalOrZero(materializableWorkloadPlans);
             nonMaterializableWorkloadPlans = decimalOrZero(nonMaterializableWorkloadPlans);
+            eventConsequencesWritten = decimalOrZero(eventConsequencesWritten);
+            normalActionsWritten = decimalOrZero(normalActionsWritten);
             perWorkloadVectorSpace = perWorkloadVectorSpace == null ? List.of() : List.copyOf(perWorkloadVectorSpace);
         }
 
+        public WorkloadCatalogSpace(String workloadPlansWritten,
+                                    String materializableWorkloadPlans,
+                                    String nonMaterializableWorkloadPlans,
+                                    List<WorkloadVectorSpace> perWorkloadVectorSpace) {
+            this(workloadPlansWritten, materializableWorkloadPlans, nonMaterializableWorkloadPlans,
+                    "0", "0", perWorkloadVectorSpace);
+        }
+
         public static WorkloadCatalogSpace empty() {
-            return new WorkloadCatalogSpace("0", "0", "0", List.of());
+            return new WorkloadCatalogSpace("0", "0", "0", "0", "0", List.of());
         }
     }
 
     public record WorkloadVectorSpace(String workloadPlanId,
                                       String faultSlotCount,
                                       String possibleBinaryVectors,
+                                      String eventConsequenceCount,
+                                      String normalActionCount,
                                       boolean executorMaterializable,
                                       List<String> materializabilityDiagnostics,
                                       String eagerVectorCount,
@@ -234,11 +256,24 @@ public record ScenarioSpaceAccountingReport(
         public WorkloadVectorSpace {
             faultSlotCount = decimalOrZero(faultSlotCount);
             possibleBinaryVectors = decimalOrZero(possibleBinaryVectors);
+            eventConsequenceCount = decimalOrZero(eventConsequenceCount);
+            normalActionCount = decimalOrZero(normalActionCount);
             materializabilityDiagnostics = materializabilityDiagnostics == null
                     ? List.of()
                     : List.copyOf(materializabilityDiagnostics);
             eagerVectorCount = decimalOrZero(eagerVectorCount);
             onDemandVectorCount = decimalOrZero(onDemandVectorCount);
+        }
+
+        public WorkloadVectorSpace(String workloadPlanId,
+                                   String faultSlotCount,
+                                   String possibleBinaryVectors,
+                                   boolean executorMaterializable,
+                                   List<String> materializabilityDiagnostics,
+                                   String eagerVectorCount,
+                                   String onDemandVectorCount) {
+            this(workloadPlanId, faultSlotCount, possibleBinaryVectors, "0", "0",
+                    executorMaterializable, materializabilityDiagnostics, eagerVectorCount, onDemandVectorCount);
         }
     }
 

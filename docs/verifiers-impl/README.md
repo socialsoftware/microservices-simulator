@@ -4,7 +4,7 @@ This directory documents the current verifier and fault-analysis scenario pipeli
 
 ## Reading order
 
-1. [`current-state.md`](current-state.md) — canonical handbook: purpose, concepts, inputs, five-file v3 package, metrics, operations, latest evidence, commands, limits, and safe claims.
+1. [`current-state.md`](current-state.md) — canonical handbook: purpose, concepts, inputs, five-file v4 package, metrics, operations, latest evidence, commands, limits, and safe claims.
 2. [`roadmap.md`](roadmap.md) — detailed future outcomes and their completion boundaries.
 3. [`decisions/`](decisions/index.md) — only when you need the rationale behind a non-obvious active design choice.
 
@@ -16,7 +16,7 @@ Do not start from old issue packages or Git history when answering a current-beh
 |---|---|
 | What does the verifier determine? | [`Current state — short version`](current-state.md#the-short-version) |
 | What do accepted, setup candidate, setup-ready, WorkloadPlan, and FaultScenario mean? | [`Current state — essential terms`](current-state.md#the-essential-terms) |
-| What are the five v3 files? | [`Current state — v3 package`](current-state.md#the-v3-package) |
+| What are the five v4 files? | [`Current state — v4 package`](current-state.md#the-v4-package) |
 | What do scenario-space, strict/broad, and recovery metrics mean? | [`Current state — accounting`](current-state.md#how-to-read-scenario-space-accounting) |
 | How does source/test input extraction work? | [`Current state — inputs and static extraction`](current-state.md#inputs-and-static-extraction) |
 | What does dynamic enrichment add? | [`Current state — dynamic evidence`](current-state.md#optional-dynamic-evidence) |

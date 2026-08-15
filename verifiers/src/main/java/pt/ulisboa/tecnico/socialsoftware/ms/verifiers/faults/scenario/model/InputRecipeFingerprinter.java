@@ -106,6 +106,8 @@ final class InputRecipeFingerprinter {
         updateString(digest, node.propertyName());
         updateString(digest, node.placeholderId());
         updateString(digest, node.placeholderPurpose());
+        updateString(digest, node.bindingKey());
+        updateString(digest, node.bindingTypeFqn());
         updateString(digest, node.expectedTypeFqn());
         updateString(digest, node.helperName());
         updateNode(digest, node.resultRecipe());

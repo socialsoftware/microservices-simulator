@@ -24,4 +24,19 @@ public class DummyEventHandling implements EventHandling {
         eventApplicationService.handleSubscribedEvent(ItemRenamedEvent.class,
                 new ItemRenamedEventHandler(itemRepository, itemEventProcessing));
     }
+
+    // Negative verifier fixtures: conditional or repeated delegation is not an exact replay route.
+    public void handleItemRenamedEventsConditionally(boolean enabled) {
+        if (enabled) {
+            eventApplicationService.handleSubscribedEvent(ItemRenamedEvent.class,
+                    new ItemRenamedEventHandler(itemRepository, itemEventProcessing));
+        }
+    }
+
+    public void handleItemRenamedEventsRepeatedly() {
+        for (int index = 0; index < 2; index++) {
+            eventApplicationService.handleSubscribedEvent(ItemRenamedEvent.class,
+                    new ItemRenamedEventHandler(itemRepository, itemEventProcessing));
+        }
+    }
 }

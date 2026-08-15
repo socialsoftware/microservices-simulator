@@ -2,7 +2,7 @@
 
 Date: 2026-04-28
 
-Status: active; updated for the v3 package boundary on 2026-07-28
+Status: active; updated for the v4 package boundary on 2026-08-01
 
 ## Context
 
@@ -14,7 +14,7 @@ Pure static propagation across every supported Java/Groovy shape would be a larg
 
 Keep a hybrid pipeline with a hard ownership boundary:
 
-1. Static analysis owns InputVariants, WorkloadPlans, FaultScenarios, vectors, action schedules, and the five-file v3 package identity.
+1. Static analysis owns InputVariants, WorkloadPlans, FaultScenarios, vectors, action schedules, and the five-file v4 package identity.
 2. Optional dynamic enrichment runs selected tests with generic simulator evidence hooks.
 3. The verifier joins runtime evidence back to static inputs and WorkloadPlans conservatively.
 4. Dynamic outputs remain workload-linked sidecars. They may strengthen attribution and explain uncertainty, but they do not create or rewrite semantic package records.
@@ -33,7 +33,7 @@ The verifier writes a run-level `dynamic-input-map.json` from accepted static in
 
 ## Consequences
 
-Current v3 dynamic output is:
+Current v4 dynamic output is:
 
 ```text
 workload-dynamic-evidence.jsonl
@@ -44,7 +44,7 @@ dynamic-evidence/                 # raw operational evidence
 
 ScenarioExecutor does not use these sidecars to redefine a persisted action schedule. Package immutability is covered by dummyapp integration.
 
-Dynamic enrichment remains optional and relatively expensive. A broad run is justified only when it answers a named attribution, generation, or execution question. Historical v2 attribution counts are not current v3 package evidence.
+Dynamic enrichment remains optional and relatively expensive. A broad run is justified only when it answers a named attribution, generation, or execution question. Historical v2/v3 attribution counts are not current v4 package evidence.
 
 ## Rejected alternatives
 
@@ -57,6 +57,6 @@ Dynamic enrichment remains optional and relatively expensive. A broad run is jus
 
 - a representative executable scenario requires stronger runtime aggregate-key binding;
 - dynamic evidence must affect selection rather than remain explanatory;
-- a fresh v3 baseline shows that the sidecar boundary no longer answers the required thesis question.
+- a fresh v4 baseline shows that the sidecar boundary no longer answers the required thesis question.
 
 Current behavior and evidence are documented in [`../current-state.md#optional-dynamic-evidence`](../current-state.md#optional-dynamic-evidence).

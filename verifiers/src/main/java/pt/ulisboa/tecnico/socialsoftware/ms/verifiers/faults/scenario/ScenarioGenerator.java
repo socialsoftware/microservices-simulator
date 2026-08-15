@@ -7,8 +7,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Acce
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationCheckpoint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictEvidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequence;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequenceDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ForwardFaultSlot;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.NormalActionRef;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult;
@@ -36,6 +39,13 @@ public final class ScenarioGenerator {
 
     public static WorkloadGenerationResult generate(List<SagaDefinition> sagaDefinitions,
                                                     List<InputVariant> inputVariants,
+                                                    ScenarioGeneratorConfig config) {
+        return generate(sagaDefinitions, inputVariants, List.of(), config);
+    }
+
+    public static WorkloadGenerationResult generate(List<SagaDefinition> sagaDefinitions,
+                                                    List<InputVariant> inputVariants,
+                                                    List<EventConsequenceDefinition> eventConsequenceDefinitions,
                                                     ScenarioGeneratorConfig config) {
         ScenarioGeneratorConfig effectiveConfig = config == null ? new ScenarioGeneratorConfig() : config;
         LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
@@ -80,6 +90,8 @@ public final class ScenarioGenerator {
             emitMultiSagaWorkloads(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), usableSagaFqns, conflictGraph, workloadsById, warnings, counts);
         }
 
+        workloadsById = addEventConsequencePlacements(
+                workloadsById, eventConsequenceDefinitions, effectiveConfig, counts, warnings);
         counts.put("workloadsEmitted", workloadsById.size());
         putDefaultCounts(counts);
 
@@ -213,6 +225,133 @@ public final class ScenarioGenerator {
         }
 
         counts.merge("multiWorkloadsEmitted", emitted, Integer::sum);
+    }
+
+    private static LinkedHashMap<String, WorkloadPlan> addEventConsequencePlacements(
+            LinkedHashMap<String, WorkloadPlan> baseWorkloads,
+            List<EventConsequenceDefinition> rawDefinitions,
+            ScenarioGeneratorConfig config,
+            Map<String, Integer> counts,
+            LinkedHashSet<String> warnings) {
+        List<EventConsequenceDefinition> definitions = rawDefinitions == null ? List.of() : rawDefinitions.stream()
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(EventConsequenceDefinition::triggerSagaFqn, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(EventConsequenceDefinition::triggerStepKey, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(definition -> definition.emissionSite() == null ? null : definition.emissionSite().deterministicId(), Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(EventConsequenceDefinition::eventHandlingClassFqn, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(EventConsequenceDefinition::eventHandlingMethodName, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(EventConsequenceDefinition::downstreamSagaFqn, Comparator.nullsFirst(String::compareTo)))
+                .toList();
+        counts.put("eventConsequenceDefinitionsSeen", definitions.size());
+        counts.putIfAbsent("eventConsequenceWorkloadsEmitted", 0);
+        counts.putIfAbsent("eventConsequencePlacementsEmitted", 0);
+        if (definitions.isEmpty() || baseWorkloads.isEmpty()) {
+            return baseWorkloads;
+        }
+
+        int cap = Math.max(0, config.maxCatalogScenarios());
+        LinkedHashMap<String, WorkloadPlan> expanded = new LinkedHashMap<>();
+        List<WorkloadPlan> orderedBase = baseWorkloads.values().stream()
+                .sorted(Comparator.comparing(WorkloadPlan::kind)
+                        .thenComparing(WorkloadPlan::deterministicId, Comparator.nullsFirst(String::compareTo)))
+                .toList();
+        outer:
+        for (int baseIndex = 0; baseIndex < orderedBase.size(); baseIndex++) {
+            if (expanded.size() >= cap) {
+                int omittedBaseWorkloads = orderedBase.size() - baseIndex;
+                warnings.add("reached maxCatalogScenarios=" + cap
+                        + " between base workloads during event-consequence expansion; "
+                        + omittedBaseWorkloads + " remaining base workloads and their placements were not emitted");
+                counts.merge("workloadsCapped", 1, Integer::sum);
+                counts.merge("eventConsequenceExpansionCapEncounters", 1, Integer::sum);
+                counts.merge("eventConsequenceBaseWorkloadsOmittedAtCap", omittedBaseWorkloads, Integer::sum);
+                break;
+            }
+            WorkloadPlan base = orderedBase.get(baseIndex);
+            expanded.putIfAbsent(base.deterministicId(), base);
+            Set<String> participantSagaFqns = base.participants().stream()
+                    .map(SagaInstance::sagaFqn)
+                    .collect(java.util.stream.Collectors.toSet());
+            for (EventConsequenceDefinition definition : definitions) {
+                if (!participantSagaFqns.contains(definition.triggerSagaFqn())
+                        || participantSagaFqns.contains(definition.downstreamSagaFqn())) {
+                    continue;
+                }
+                ScheduledStep trigger = base.forwardSchedule().stream()
+                        .filter(step -> Objects.equals(step.stepId(), definition.triggerStepKey())
+                                || Objects.equals(definition.triggerStepKey(),
+                                definition.triggerSagaFqn() + "::" + step.runtimeStepName()))
+                        .filter(step -> base.participants().stream()
+                                .anyMatch(participant -> Objects.equals(participant.deterministicId(), step.sagaInstanceId())
+                                        && Objects.equals(participant.sagaFqn(), definition.triggerSagaFqn())))
+                        .findFirst()
+                        .orElse(null);
+                if (trigger == null || definition.emissionSite() == null) {
+                    continue;
+                }
+                String consequenceId = ScenarioIdGenerator.eventConsequenceId(
+                        trigger.deterministicId(), definition.emissionSite(),
+                        definition.eventHandlingClassFqn(), definition.eventHandlingMethodName(),
+                        definition.eventHandlerClassFqn(), definition.eventProcessingClassFqn(),
+                        definition.eventProcessingMethodName(), definition.facadeClassFqn(),
+                        definition.facadeMethodName(), definition.downstreamSagaFqn(),
+                        definition.deliveryPolicy());
+                EventConsequence consequence = new EventConsequence(
+                        consequenceId, trigger.deterministicId(), definition.emissionSite(),
+                        definition.emissionSite().eventTypeFqn(), definition.eventHandlingClassFqn(),
+                        definition.eventHandlingMethodName(), definition.eventHandlerClassFqn(),
+                        definition.eventProcessingClassFqn(), definition.eventProcessingMethodName(),
+                        definition.facadeClassFqn(), definition.facadeMethodName(),
+                        definition.downstreamSagaFqn(), definition.deliveryPolicy(), definition.diagnostics());
+                int triggerForwardIndex = base.forwardSchedule().indexOf(trigger);
+                for (int placement = triggerForwardIndex + 1; placement <= base.forwardSchedule().size(); placement++) {
+                    if (expanded.size() >= cap) {
+                        warnings.add("reached maxCatalogScenarios=" + cap
+                                + "; remaining event-consequence placements were not emitted");
+                        counts.merge("workloadsCapped", 1, Integer::sum);
+                        break outer;
+                    }
+                    List<NormalActionRef> normalSchedule = normalScheduleWithConsequence(
+                            base.forwardSchedule(), consequence.deterministicId(), placement);
+                    WorkloadPlan withoutId = new WorkloadPlan(
+                            WorkloadPlan.SCHEMA_VERSION, null, base.kind(), base.executionShape(),
+                            base.participants(), base.acceptedInputs(), base.forwardSchedule(),
+                            List.of(consequence), normalSchedule, base.conflictEvidence(),
+                            base.faultSlots(), base.compensationCheckpoints(), base.warnings());
+                    WorkloadPlan eventWorkload = withWorkloadId(withoutId);
+                    if (expanded.putIfAbsent(eventWorkload.deterministicId(), eventWorkload) == null) {
+                        counts.merge("eventConsequenceWorkloadsEmitted", 1, Integer::sum);
+                        counts.merge("eventConsequencePlacementsEmitted", 1, Integer::sum);
+                    }
+                }
+            }
+        }
+        return expanded;
+    }
+
+    private static List<NormalActionRef> normalScheduleWithConsequence(List<ScheduledStep> forwardSchedule,
+                                                                        String consequenceId,
+                                                                        int forwardPlacement) {
+        List<NormalActionRef> actions = new ArrayList<>();
+        int normalOrder = 0;
+        for (int index = 0; index < forwardSchedule.size(); index++) {
+            if (index == forwardPlacement) {
+                actions.add(NormalActionRef.eventConsequence(normalOrder++, consequenceId));
+            }
+            actions.add(NormalActionRef.forward(normalOrder++, forwardSchedule.get(index).deterministicId()));
+        }
+        if (forwardPlacement == forwardSchedule.size()) {
+            actions.add(NormalActionRef.eventConsequence(normalOrder, consequenceId));
+        }
+        return List.copyOf(actions);
+    }
+
+    private static WorkloadPlan withWorkloadId(WorkloadPlan plan) {
+        return new WorkloadPlan(
+                plan.schemaVersion(), ScenarioIdGenerator.workloadPlanId(plan), plan.kind(), plan.executionShape(),
+                plan.participants(), plan.acceptedInputs(), plan.forwardSchedule(), plan.eventConsequences(),
+                plan.normalSchedule(), plan.conflictEvidence(), plan.faultSlots(),
+                plan.compensationCheckpoints(), plan.warnings());
     }
 
     private static WorkloadPlan buildSingleSagaWorkload(ScenarioGeneratorConfig config, SagaDefinition saga, InputVariant input) {
@@ -514,6 +653,8 @@ public final class ScenarioGenerator {
 
     private static void putDefaultCounts(Map<String, Integer> counts) {
         counts.putIfAbsent("workloadsCapped", 0);
+        counts.putIfAbsent("eventConsequenceExpansionCapEncounters", 0);
+        counts.putIfAbsent("eventConsequenceBaseWorkloadsOmittedAtCap", 0);
         counts.putIfAbsent("workloadPlansEmitted", 0);
         counts.putIfAbsent("workloadPlansDeduplicated", 0);
         counts.putIfAbsent("singleWorkloadsEmitted", 0);

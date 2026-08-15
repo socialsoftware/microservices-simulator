@@ -42,7 +42,7 @@ public final class ScenarioExecutorReadinessEvaluator {
         }
         String kind = node.kind() == null ? "" : node.kind();
         switch (kind) {
-            case "literal" -> {
+            case "literal", "baseline_binding" -> {
             }
             case "placeholder" -> {
                 if (!ScenarioExecutorMaterializationPolicy.isRuntimeOwned(node.expectedTypeFqn())) {

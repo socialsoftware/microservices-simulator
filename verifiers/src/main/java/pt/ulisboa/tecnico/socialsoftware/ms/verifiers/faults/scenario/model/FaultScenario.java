@@ -9,7 +9,7 @@ public record FaultScenario(
         String assignedVector,
         List<FaultScenarioAction> actions) {
 
-    public static final String SCHEMA_VERSION = "microservices-simulator.fault-scenario.v3";
+    public static final String SCHEMA_VERSION = "microservices-simulator.fault-scenario.v4";
 
     public FaultScenario {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;

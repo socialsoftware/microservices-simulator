@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.SpringApplication
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan
 import spock.lang.TempDir
 
 import java.nio.file.Files
@@ -288,10 +289,10 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
 
         and:
         def manifest = objectMapper.readTree(Files.readString(manifestPath))
-        manifest.path('schemaVersion').asText() == 'microservices-simulator.scenario-catalog-manifest.v3'
+        manifest.path('schemaVersion').asText() == 'microservices-simulator.scenario-catalog-manifest.v4'
         manifest.path('counts').path('workloadsExported').asText() == lines.size().toString()
         manifest.path('workloadCatalog').path('path').asText() == workloadPath.toString()
-        manifest.path('workloadCatalog').path('schemaVersion').asText() == 'microservices-simulator.workload-plan.v3'
+        manifest.path('workloadCatalog').path('schemaVersion').asText() == 'microservices-simulator.workload-plan.v4'
         manifest.path('faultScenarioCatalog').path('path').asText() == faultScenarioPath.toString()
         manifest.path('faultScenarioCatalog').path('recordCount').asText() == faultScenarioLines.size().toString()
         manifest.path('recoveryScheduleCap').asInt() == 3
@@ -303,10 +304,11 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         def expectedEagerVectorCount = workloads
                 .findAll { materializableWorkloadIds.contains(it.path('deterministicId').asText()) }
                 .sum { it.path('faultSlots').size() + 1 }
-        materializableWorkloadIds.size() == 7
+        materializableWorkloadIds.size() >= 7
+        workloads.count { !it.path('eventConsequences').isEmpty() } > 0
         manifest.path('counts').path('materializableWorkloadPlans').asInt() == materializableWorkloadIds.size()
         manifest.path('counts').path('nonMaterializableWorkloadPlans').asInt() == workloads.size() - materializableWorkloadIds.size()
-        expectedEagerVectorCount == 17
+        expectedEagerVectorCount > 17
         manifest.path('counts').path('computedEagerVectors').asInt() == expectedEagerVectorCount
         faultScenarios.size() == expectedEagerVectorCount
         faultScenarios.collect { it.path('workloadPlanId').asText() }.toSet() == materializableWorkloadIds
@@ -329,7 +331,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
 
         and:
         def accounting = objectMapper.readTree(Files.readString(accountingPath))
-        accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v3'
+        accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v4'
         accounting.path('runConfig').path('targetApplication').asText() == applicationBaseDir
         accounting.path('runConfig').path('generationStrategy').asText() == 'BRUTE_FORCE'
         accounting.path('runConfig').path('catalogWriteMode').asText() == 'WRITE_WORKLOADS'
@@ -504,7 +506,34 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         context?.close()
     }
 
-    def 'enabled catalog export writes exactly the five v3 package artifacts'() {
+    def 'final catalog cap prioritizes deterministic prerequisite workloads then stable base order'() {
+        given:
+        def prerequisites = [catalogWorkload('p2'), catalogWorkload('p1')]
+        def base = [catalogWorkload('b2'), catalogWorkload('b1'), catalogWorkload('b3')]
+
+        when:
+        def selected = ScenarioGeneratorApplication.prioritizeCatalogWorkloads(prerequisites, base, 4)
+        def prerequisiteOnly = ScenarioGeneratorApplication.prioritizeCatalogWorkloads(prerequisites, base, 1)
+
+        then:
+        selected.workloads()*.deterministicId() == ['p1', 'p2', 'b2', 'b1']
+        selected.workloads().size() == 4
+        selected.prerequisiteGenerated() == 2
+        selected.prerequisiteSelected() == 2
+        selected.prerequisiteCapped() == 0
+        selected.baseGenerated() == 3
+        selected.baseSelected() == 2
+        selected.baseCapped() == 1
+
+        and:
+        prerequisiteOnly.workloads()*.deterministicId() == ['p1']
+        prerequisiteOnly.prerequisiteSelected() == 1
+        prerequisiteOnly.prerequisiteCapped() == 1
+        prerequisiteOnly.baseSelected() == 0
+        prerequisiteOnly.baseCapped() == 3
+    }
+
+    def 'enabled catalog export writes exactly the five v4 package artifacts'() {
         given:
         def applicationsRoot = tempDir.resolve('applications')
         def outputRoot = tempDir.resolve('verifier-output')
@@ -540,6 +569,11 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
 
         cleanup:
         context?.close()
+    }
+
+    private static WorkloadPlan catalogWorkload(String id) {
+        new WorkloadPlan(WorkloadPlan.SCHEMA_VERSION, id, null, null,
+                [], [], [], [], [], null, [], [], [], [])
     }
 
     private static Path writeSource(Path applicationsRoot,

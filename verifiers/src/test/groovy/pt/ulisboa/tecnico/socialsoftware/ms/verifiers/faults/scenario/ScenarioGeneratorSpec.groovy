@@ -5,6 +5,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequenceDefinition
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventEmissionSite
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe
@@ -380,6 +382,45 @@ class ScenarioGeneratorSpec extends Specification {
         first.workloadPlans()*.deterministicId() == second.workloadPlans()*.deterministicId()
         first.counts().get('workloadsCapped') > 0
         first.warnings().any { it.contains('maxCatalogScenarios') }
+    }
+
+    def 'event expansion reports reaching the cap between base workloads'() {
+        given:
+        def sagaA = saga('com.example.A',
+                step('com.example.A', 'emit', 0, AccessMode.WRITE, 'a'))
+        def sagaB = saga('com.example.B',
+                step('com.example.B', 'emit', 0, AccessMode.WRITE, 'b'))
+        def inputs = [
+                input('input-a', 'com.example.A', 'a'),
+                input('input-b', 'com.example.B', 'b')
+        ]
+        def definitions = ['com.example.A', 'com.example.B'].collect { sagaFqn ->
+            def eventType = "${sagaFqn}Event"
+            def site = new EventEmissionSite(
+                    ScenarioIdGenerator.eventEmissionSiteId("${sagaFqn}Service", 'emit()', 0, eventType),
+                    "${sagaFqn}Service", 'emit()', 0, eventType, ['direct'])
+            new EventConsequenceDefinition(
+                    sagaFqn, "${sagaFqn}::emit", site,
+                    "${sagaFqn}Handling", 'handle', "${sagaFqn}Handler",
+                    "${sagaFqn}Processing", 'process', "${sagaFqn}Facade", 'invoke',
+                    'com.example.Downstream', EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER, [])
+        }
+        def cappedConfig = config(maxSagaSetSize: 1, maxCatalogScenarios: 2)
+
+        when:
+        def first = ScenarioGenerator.generate([sagaA, sagaB], inputs, definitions, cappedConfig)
+        def permuted = ScenarioGenerator.generate([sagaB, sagaA], inputs.reverse(), definitions.reverse(), cappedConfig)
+
+        then:
+        first.workloadPlans().size() == 2
+        first.workloadPlans()*.deterministicId() == permuted.workloadPlans()*.deterministicId()
+        first.counts().workloadsCapped == 1
+        first.counts().eventConsequenceExpansionCapEncounters == 1
+        first.counts().eventConsequenceBaseWorkloadsOmittedAtCap == 1
+        first.warnings().any {
+            it == 'reached maxCatalogScenarios=2 between base workloads during event-consequence expansion; ' +
+                    '1 remaining base workloads and their placements were not emitted'
+        }
     }
 
     def 'scenario ids are stable after input order permutation'() {

@@ -1,9 +1,18 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.BaselineBindingRequirement;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationCheckpoint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictEvidence;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequence;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequenceDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ForwardFaultSlot;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.NormalActionKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.NormalActionRef;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.PrerequisiteBaseline;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep;
@@ -56,7 +65,11 @@ public final class WorkloadPlanValidator {
             }
         }
 
+        validatePrerequisiteBaseline(plan.prerequisiteBaseline(), plan.acceptedInputs(), diagnostics);
         Map<String, ScheduledStep> stepsById = indexForwardSchedule(plan.forwardSchedule(), participantsById, diagnostics);
+        Map<String, EventConsequence> consequencesById = validateEventConsequences(
+                plan.eventConsequences(), stepsById, participantsById, diagnostics);
+        validateNormalSchedule(plan.normalSchedule(), stepsById, consequencesById, diagnostics);
         validateConflicts(plan.conflictEvidence(), stepsById, diagnostics);
         validateFaultSlots(plan.faultSlots(), plan.forwardSchedule(), stepsById, diagnostics);
         validateCheckpoints(plan.compensationCheckpoints(), stepsById, participantsById, diagnostics);
@@ -95,12 +108,74 @@ public final class WorkloadPlanValidator {
             if (byId.putIfAbsent(input.deterministicId(), input) != null) {
                 diagnostics.add(new Diagnostic("DUPLICATE_INPUT_ID", input.deterministicId()));
             }
+            if (input.inputRecipe() != null && !InputRecipe.SCHEMA_VERSION.equals(input.inputRecipe().schemaVersion())) {
+                diagnostics.add(new Diagnostic("UNSUPPORTED_INPUT_RECIPE_SCHEMA",
+                        "input " + input.deterministicId() + " uses " + input.inputRecipe().schemaVersion()));
+            }
             if (input.inputRecipe() != null && !input.inputRecipe().fingerprintMatchesSemanticContent()) {
                 diagnostics.add(new Diagnostic("INPUT_RECIPE_FINGERPRINT_MISMATCH",
                         "input " + input.deterministicId() + " recipeFingerprint does not match its semantic content"));
             }
         }
         return byId;
+    }
+
+    private void validatePrerequisiteBaseline(PrerequisiteBaseline baseline,
+                                              List<InputVariant> inputs,
+                                              List<Diagnostic> diagnostics) {
+        Map<String, String> declared = new LinkedHashMap<>();
+        if (baseline != null) {
+            if (baseline.providerId() == null || baseline.providerVersion() == null) {
+                diagnostics.add(new Diagnostic("MALFORMED_PREREQUISITE_BASELINE",
+                        "provider id and version are required"));
+            }
+            for (BaselineBindingRequirement requirement : baseline.requiredBindings()) {
+                if (requirement == null || requirement.key() == null || requirement.typeFqn() == null
+                        || declared.putIfAbsent(requirement.key(), requirement.typeFqn()) != null) {
+                    diagnostics.add(new Diagnostic("MALFORMED_PREREQUISITE_BASELINE_BINDING",
+                            requirement == null ? "null" : requirement.key()));
+                }
+            }
+        }
+        Set<String> referenced = new HashSet<>();
+        for (InputVariant input : inputs) {
+            if (input == null || input.inputRecipe() == null) continue;
+            for (InputRecipeArgument argument : input.inputRecipe().arguments()) {
+                collectBaselineBindings(argument == null ? null : argument.recipe(), declared, referenced, diagnostics);
+            }
+        }
+        if (baseline == null && !referenced.isEmpty()) {
+            diagnostics.add(new Diagnostic("MISSING_PREREQUISITE_BASELINE",
+                    "baseline_binding recipes require a prerequisite baseline"));
+        } else if (baseline != null && !referenced.equals(declared.keySet())) {
+            diagnostics.add(new Diagnostic("PREREQUISITE_BINDING_COVERAGE_MISMATCH",
+                    "declared and referenced baseline bindings differ"));
+        }
+    }
+
+    private void collectBaselineBindings(InputRecipeNode node,
+                                         Map<String, String> declared,
+                                         Set<String> referenced,
+                                         List<Diagnostic> diagnostics) {
+        if (node == null) return;
+        if ("baseline_binding".equals(node.kind())) {
+            referenced.add(node.bindingKey());
+            if (node.bindingKey() == null || node.bindingTypeFqn() == null
+                    || !Objects.equals(declared.get(node.bindingKey()), node.bindingTypeFqn())) {
+                diagnostics.add(new Diagnostic("INVALID_BASELINE_BINDING_REFERENCE",
+                        String.valueOf(node.bindingKey())));
+            }
+        }
+        node.arguments().forEach(argument -> collectBaselineBindings(argument.recipe(), declared, referenced, diagnostics));
+        node.assignments().forEach(assignment -> collectBaselineBindings(assignment.valueRecipe(), declared, referenced, diagnostics));
+        node.elements().forEach(child -> collectBaselineBindings(child, declared, referenced, diagnostics));
+        node.entries().forEach(entry -> {
+            collectBaselineBindings(entry.keyRecipe(), declared, referenced, diagnostics);
+            collectBaselineBindings(entry.valueRecipe(), declared, referenced, diagnostics);
+        });
+        collectBaselineBindings(node.receiver(), declared, referenced, diagnostics);
+        node.callArguments().forEach(argument -> collectBaselineBindings(argument.recipe(), declared, referenced, diagnostics));
+        collectBaselineBindings(node.resultRecipe(), declared, referenced, diagnostics);
     }
 
     private Map<String, ScheduledStep> indexForwardSchedule(List<ScheduledStep> schedule,
@@ -146,6 +221,146 @@ public final class WorkloadPlanValidator {
             }
         }
         return byId;
+    }
+
+    private Map<String, EventConsequence> validateEventConsequences(List<EventConsequence> consequences,
+                                                                      Map<String, ScheduledStep> stepsById,
+                                                                      Map<String, SagaInstance> participantsById,
+                                                                      List<Diagnostic> diagnostics) {
+        Map<String, EventConsequence> byId = new LinkedHashMap<>();
+        Set<String> selectedOrigins = new HashSet<>();
+        for (EventConsequence consequence : consequences) {
+            if (consequence == null || consequence.deterministicId() == null
+                    || byId.putIfAbsent(consequence.deterministicId(), consequence) != null) {
+                diagnostics.add(new Diagnostic("DUPLICATE_OR_MISSING_EVENT_CONSEQUENCE_ID",
+                        consequence == null ? "null" : consequence.deterministicId()));
+                continue;
+            }
+            ScheduledStep trigger = stepsById.get(consequence.triggerScheduledStepId());
+            SagaInstance triggerParticipant = trigger == null ? null : participantsById.get(trigger.sagaInstanceId());
+            boolean downstreamIsOuterParticipant = participantsById.values().stream()
+                    .anyMatch(participant -> Objects.equals(participant.sagaFqn(), consequence.downstreamSagaFqn()));
+            boolean malformed = trigger == null
+                    || triggerParticipant == null
+                    || consequence.eventTypeFqn() == null
+                    || consequence.emissionSite() == null
+                    || consequence.emissionSite().deterministicId() == null
+                    || consequence.emissionSite().sourceServiceClassFqn() == null
+                    || consequence.emissionSite().sourceServiceMethodSignature() == null
+                    || consequence.emissionSite().emissionOrdinal() < 0
+                    || consequence.emissionSite().eventTypeFqn() == null
+                    || !Objects.equals(consequence.eventTypeFqn(), consequence.emissionSite().eventTypeFqn())
+                    || consequence.eventHandlingClassFqn() == null
+                    || consequence.eventHandlingMethodName() == null
+                    || consequence.eventHandlerClassFqn() == null
+                    || consequence.eventProcessingClassFqn() == null
+                    || consequence.eventProcessingMethodName() == null
+                    || consequence.facadeClassFqn() == null
+                    || consequence.facadeMethodName() == null
+                    || consequence.downstreamSagaFqn() == null
+                    || downstreamIsOuterParticipant
+                    || Objects.equals(triggerParticipant == null ? null : triggerParticipant.sagaFqn(),
+                    consequence.downstreamSagaFqn())
+                    || !EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER.equals(consequence.deliveryPolicy())
+                    || !selectedOrigins.add(selectedEventRouteKey(consequence));
+            if (malformed) {
+                diagnostics.add(new Diagnostic("MALFORMED_EVENT_CONSEQUENCE", consequence.deterministicId()));
+                continue;
+            }
+            String expectedSiteId = ScenarioIdGenerator.eventEmissionSiteId(
+                    consequence.emissionSite().sourceServiceClassFqn(),
+                    consequence.emissionSite().sourceServiceMethodSignature(),
+                    consequence.emissionSite().emissionOrdinal(),
+                    consequence.emissionSite().eventTypeFqn());
+            String expectedId = ScenarioIdGenerator.eventConsequenceId(
+                    consequence.triggerScheduledStepId(), consequence.emissionSite(),
+                    consequence.eventHandlingClassFqn(), consequence.eventHandlingMethodName(),
+                    consequence.eventHandlerClassFqn(), consequence.eventProcessingClassFqn(),
+                    consequence.eventProcessingMethodName(), consequence.facadeClassFqn(),
+                    consequence.facadeMethodName(), consequence.downstreamSagaFqn(),
+                    consequence.deliveryPolicy());
+            if (!Objects.equals(expectedSiteId, consequence.emissionSite().deterministicId())) {
+                diagnostics.add(new Diagnostic("EVENT_EMISSION_SITE_ID_MISMATCH", consequence.deterministicId()));
+            }
+            if (!Objects.equals(expectedId, consequence.deterministicId())) {
+                diagnostics.add(new Diagnostic("EVENT_CONSEQUENCE_ID_MISMATCH", consequence.deterministicId()));
+            }
+        }
+        return byId;
+    }
+
+    private String selectedEventRouteKey(EventConsequence consequence) {
+        return String.join("|",
+                String.valueOf(consequence.triggerScheduledStepId()),
+                String.valueOf(consequence.emissionSite() == null
+                        ? null : consequence.emissionSite().deterministicId()),
+                String.valueOf(consequence.eventTypeFqn()),
+                String.valueOf(consequence.eventHandlingClassFqn()),
+                String.valueOf(consequence.eventHandlingMethodName()),
+                String.valueOf(consequence.eventHandlerClassFqn()),
+                String.valueOf(consequence.eventProcessingClassFqn()),
+                String.valueOf(consequence.eventProcessingMethodName()),
+                String.valueOf(consequence.facadeClassFqn()),
+                String.valueOf(consequence.facadeMethodName()),
+                String.valueOf(consequence.downstreamSagaFqn()),
+                String.valueOf(consequence.deliveryPolicy()));
+    }
+
+    private void validateNormalSchedule(List<NormalActionRef> normalSchedule,
+                                        Map<String, ScheduledStep> stepsById,
+                                        Map<String, EventConsequence> consequencesById,
+                                        List<Diagnostic> diagnostics) {
+        if (normalSchedule.size() != stepsById.size() + consequencesById.size()) {
+            diagnostics.add(new Diagnostic("NORMAL_SCHEDULE_COVERAGE_MISMATCH",
+                    "normal schedule must cover every forward and event consequence exactly once"));
+        }
+        Set<String> forwardIds = new HashSet<>();
+        Set<String> consequenceIds = new HashSet<>();
+        Map<String, Integer> normalPositionByForward = new LinkedHashMap<>();
+        Map<String, Integer> normalPositionByConsequence = new LinkedHashMap<>();
+        for (int index = 0; index < normalSchedule.size(); index++) {
+            NormalActionRef action = normalSchedule.get(index);
+            if (action == null || action.normalOrder() != index || action.kind() == null) {
+                diagnostics.add(new Diagnostic("INVALID_NORMAL_ORDER", "normal action at index " + index));
+                continue;
+            }
+            if (action.kind() == NormalActionKind.FORWARD) {
+                if (action.eventConsequenceId() != null || !stepsById.containsKey(action.scheduledStepId())
+                        || !forwardIds.add(action.scheduledStepId())) {
+                    diagnostics.add(new Diagnostic("MALFORMED_NORMAL_FORWARD", "normal action at index " + index));
+                } else {
+                    normalPositionByForward.put(action.scheduledStepId(), index);
+                }
+            } else if (action.kind() == NormalActionKind.EVENT_CONSEQUENCE) {
+                if (action.scheduledStepId() != null || !consequencesById.containsKey(action.eventConsequenceId())
+                        || !consequenceIds.add(action.eventConsequenceId())) {
+                    diagnostics.add(new Diagnostic("MALFORMED_NORMAL_EVENT_CONSEQUENCE", "normal action at index " + index));
+                } else {
+                    normalPositionByConsequence.put(action.eventConsequenceId(), index);
+                }
+            }
+        }
+        if (!forwardIds.equals(stepsById.keySet()) || !consequenceIds.equals(consequencesById.keySet())) {
+            diagnostics.add(new Diagnostic("NORMAL_SCHEDULE_COVERAGE_MISMATCH",
+                    "normal schedule references do not match workload normal actions"));
+        }
+        List<String> normalForwardOrder = normalSchedule.stream()
+                .filter(Objects::nonNull)
+                .filter(action -> action.kind() == NormalActionKind.FORWARD)
+                .map(NormalActionRef::scheduledStepId)
+                .toList();
+        if (!normalForwardOrder.equals(List.copyOf(stepsById.keySet()))) {
+            diagnostics.add(new Diagnostic("NORMAL_FORWARD_ORDER_VIOLATION",
+                    "normal schedule must preserve forwardSchedule order"));
+        }
+        consequencesById.values().forEach(consequence -> {
+            Integer triggerPosition = normalPositionByForward.get(consequence.triggerScheduledStepId());
+            Integer consequencePosition = normalPositionByConsequence.get(consequence.deterministicId());
+            if (triggerPosition == null || consequencePosition == null || consequencePosition <= triggerPosition) {
+                diagnostics.add(new Diagnostic("EVENT_CONSEQUENCE_CAUSAL_ORDER_VIOLATION",
+                        consequence.deterministicId()));
+            }
+        });
     }
 
     private void validateConflicts(List<ConflictEvidence> conflicts,

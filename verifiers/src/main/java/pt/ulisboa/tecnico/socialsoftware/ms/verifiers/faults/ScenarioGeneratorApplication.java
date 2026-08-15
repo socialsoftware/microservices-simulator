@@ -19,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnri
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentTestClassDiscoveryService;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.PrerequisiteScenarioGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapter;
@@ -27,6 +28,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogJsonlWriter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.*;
@@ -278,6 +280,16 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         });
         eventHandlingBridgeVisitor.finish(applicationAnalysisState);
 
+        EventConsequenceVisitor eventConsequenceVisitor = new EventConsequenceVisitor();
+        parser.getJavaFilePathsForApplication(applicationsRootPath, applicationBaseDir).forEach((fqn, path) -> {
+            try {
+                eventConsequenceVisitor.visit(StaticJavaParser.parse(path), applicationAnalysisState);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        eventConsequenceVisitor.finish(applicationAnalysisState);
+
         GroovySourceIndex groovySourceIndex = new GroovySourceIndex();
         Path groovyTestRoot = applicationPath.resolve(Paths.get("src", "test", "groovy")).normalize();
         if (Files.isDirectory(groovyTestRoot)) {
@@ -325,18 +337,50 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 scenarioCatalogDeterministicSeed
         );
 
+        PrerequisiteScenarioGenerator.Result prerequisiteScenarios = new PrerequisiteScenarioGenerator().generate(
+                applicationPath,
+                adapterResult.sagaDefinitions(),
+                adapterResult.inputVariants(),
+                adapterResult.eventConsequenceDefinitions(),
+                scenarioGeneratorConfig);
+        int totalCatalogCap = Math.max(0, scenarioGeneratorConfig.maxCatalogScenarios());
+        int reservedPrerequisiteCapacity = Math.min(
+                distinctWorkloads(prerequisiteScenarios.workloads()).size(), totalCatalogCap);
+        ScenarioGeneratorConfig baseGenerationConfig = withCatalogCap(
+                scenarioGeneratorConfig, totalCatalogCap - reservedPrerequisiteCapacity);
         var generationResult = ScenarioGenerator.generate(
                 adapterResult.sagaDefinitions(),
                 adapterResult.inputVariants(),
-                scenarioGeneratorConfig);
+                adapterResult.eventConsequenceDefinitions(),
+                baseGenerationConfig);
+        CatalogSelection catalogSelection = prioritizeCatalogWorkloads(
+                prerequisiteScenarios.workloads(), generationResult.workloadPlans(), totalCatalogCap);
+        Map<String, Integer> generationCounts = new LinkedHashMap<>(generationResult.counts());
+        generationCounts.put("prerequisiteWorkloadsGenerated", catalogSelection.prerequisiteGenerated());
+        generationCounts.put("prerequisiteWorkloads", catalogSelection.prerequisiteSelected());
+        generationCounts.put("prerequisiteWorkloadsCapped", catalogSelection.prerequisiteCapped());
+        generationCounts.put("baseWorkloadsGenerated", catalogSelection.baseGenerated());
+        generationCounts.put("baseWorkloadsExported", catalogSelection.baseSelected());
+        generationCounts.put("baseWorkloadsCappedAtMerge", catalogSelection.baseCapped());
+        generationCounts.put("workloadPlansEmitted", catalogSelection.workloads().size());
+        generationCounts.put("workloadsEmitted", catalogSelection.workloads().size());
+        generationCounts.merge("workloadsCapped",
+                catalogSelection.prerequisiteCapped() + catalogSelection.baseCapped(), Integer::sum);
+        List<String> capWarnings = catalogSelection.prerequisiteCapped() == 0
+                ? List.of()
+                : List.of("maxCatalogScenarios=" + totalCatalogCap + " capped "
+                + catalogSelection.prerequisiteCapped() + " prerequisite workloads after deterministic priority");
 
         WorkloadGenerationResult exportResult = new WorkloadGenerationResult(
                 generationResult.schemaVersion(),
-                generationResult.effectiveConfig(),
-                generationResult.workloadPlans(),
+                scenarioGeneratorConfig,
+                catalogSelection.workloads(),
                 generationResult.rejectedInputVariants(),
-                mergeCounts(adapterResult.counts(), generationResult.counts()),
-                mergeWarnings(adapterResult.diagnostics(), generationResult.warnings()));
+                mergeCounts(adapterResult.counts(), generationCounts),
+                mergeWarnings(mergeWarnings(
+                                mergeWarnings(adapterResult.diagnostics(), generationResult.warnings()),
+                                prerequisiteScenarios.diagnostics()),
+                        capWarnings));
         var eagerGenerationResult = EagerFaultScenarioGenerator.generate(
                 exportResult,
                 scenarioCatalogRecoveryScheduleCap);
@@ -532,6 +576,71 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         }
 
         return ScenarioGeneratorConfig.CatalogWriteMode.valueOf(value.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
+    }
+
+    static ScenarioGeneratorConfig withCatalogCap(ScenarioGeneratorConfig config, int cap) {
+        return new ScenarioGeneratorConfig(
+                config.exportEnabled(), config.generationStrategy(), config.catalogWriteMode(),
+                config.includeSingles(), config.maxSagaSetSize(), Math.max(0, cap),
+                config.maxInputVariantsPerSaga(), config.maxSchedulesPerInputTuple(),
+                config.allowTypeOnlyFallback(), config.inputPolicy(), config.scheduleStrategy(),
+                config.deterministicSeed(), config.maxGroupedSagaSetRows());
+    }
+
+    static CatalogSelection prioritizeCatalogWorkloads(List<WorkloadPlan> prerequisiteWorkloads,
+                                                        List<WorkloadPlan> baseWorkloads,
+                                                        int configuredCap) {
+        int cap = Math.max(0, configuredCap);
+        List<WorkloadPlan> prerequisites = distinctWorkloads(prerequisiteWorkloads);
+        List<WorkloadPlan> base = distinctWorkloadsInStableOrder(baseWorkloads);
+        LinkedHashMap<String, WorkloadPlan> selected = new LinkedHashMap<>();
+        int prerequisiteSelected = 0;
+        for (WorkloadPlan workload : prerequisites) {
+            if (selected.size() >= cap) break;
+            if (selected.putIfAbsent(workload.deterministicId(), workload) == null) {
+                prerequisiteSelected++;
+            }
+        }
+        int baseSelected = 0;
+        for (WorkloadPlan workload : base) {
+            if (selected.size() >= cap) break;
+            if (selected.putIfAbsent(workload.deterministicId(), workload) == null) {
+                baseSelected++;
+            }
+        }
+        return new CatalogSelection(
+                List.copyOf(selected.values()), prerequisites.size(), prerequisiteSelected,
+                prerequisites.size() - prerequisiteSelected, base.size(), baseSelected,
+                base.size() - baseSelected);
+    }
+
+    static List<WorkloadPlan> distinctWorkloads(List<WorkloadPlan> workloads) {
+        Map<String, WorkloadPlan> distinct = new java.util.TreeMap<>();
+        if (workloads != null) {
+            workloads.stream().filter(Objects::nonNull)
+                    .filter(workload -> workload.deterministicId() != null)
+                    .forEach(workload -> distinct.putIfAbsent(workload.deterministicId(), workload));
+        }
+        return List.copyOf(distinct.values());
+    }
+
+    private static List<WorkloadPlan> distinctWorkloadsInStableOrder(List<WorkloadPlan> workloads) {
+        LinkedHashMap<String, WorkloadPlan> distinct = new LinkedHashMap<>();
+        if (workloads != null) {
+            workloads.stream().filter(Objects::nonNull)
+                    .filter(workload -> workload.deterministicId() != null)
+                    .forEach(workload -> distinct.putIfAbsent(workload.deterministicId(), workload));
+        }
+        return List.copyOf(distinct.values());
+    }
+
+    record CatalogSelection(List<WorkloadPlan> workloads,
+                            int prerequisiteGenerated,
+                            int prerequisiteSelected,
+                            int prerequisiteCapped,
+                            int baseGenerated,
+                            int baseSelected,
+                            int baseCapped) {
     }
 
     private static LinkedHashMap<String, Integer> mergeCounts(Map<String, Integer> first, Map<String, Integer> second) {

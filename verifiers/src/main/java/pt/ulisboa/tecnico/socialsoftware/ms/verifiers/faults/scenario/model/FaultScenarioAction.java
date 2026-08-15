@@ -6,6 +6,7 @@ public record FaultScenarioAction(
         String sagaInstanceId,
         String sourceFaultSlotId,
         String sourceCompensationCheckpointId,
+        String sourceEventConsequenceId,
         String occurrenceId) {
 
     public FaultScenarioAction {
@@ -13,7 +14,18 @@ public record FaultScenarioAction(
         sagaInstanceId = normalize(sagaInstanceId);
         sourceFaultSlotId = normalize(sourceFaultSlotId);
         sourceCompensationCheckpointId = normalize(sourceCompensationCheckpointId);
+        sourceEventConsequenceId = normalize(sourceEventConsequenceId);
         occurrenceId = normalize(occurrenceId);
+    }
+
+    public FaultScenarioAction(String deterministicId,
+                               FaultScenarioActionKind kind,
+                               String sagaInstanceId,
+                               String sourceFaultSlotId,
+                               String sourceCompensationCheckpointId,
+                               String occurrenceId) {
+        this(deterministicId, kind, sagaInstanceId, sourceFaultSlotId,
+                sourceCompensationCheckpointId, null, occurrenceId);
     }
 
     private static String normalize(String value) {

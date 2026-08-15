@@ -22,6 +22,7 @@ public record ScenarioExecutionReport(
         String hardStopActionId,
         String hardStopReason,
         RuntimeMetadata runtimeMetadata,
+        PrerequisiteSetup prerequisiteSetup,
         List<FaultSlot> faultSlots,
         List<PlannedAction> plannedActions,
         List<ActionOutcome> actualActions,
@@ -29,7 +30,7 @@ public record ScenarioExecutionReport(
         List<Participant> participants,
         List<Blocker> blockers) {
 
-    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-execution-report.v4";
+    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-execution-report.v5";
 
     public ScenarioExecutionReport {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;
@@ -77,10 +78,16 @@ public record ScenarioExecutionReport(
             String sagaInstanceId,
             String sourceFaultSlotId,
             String sourceCompensationCheckpointId,
+            String sourceEventConsequenceId,
             String sourceScheduledStepId,
             String sourceStepId,
             String runtimeStepName,
             String compensationEvidenceClass,
+            String eventTypeFqn,
+            String eventHandlingClassFqn,
+            String eventHandlingMethodName,
+            String eventHandlerClassFqn,
+            String deliveryPolicy,
             int plannedPosition) {
     }
 
@@ -90,6 +97,7 @@ public record ScenarioExecutionReport(
             String sagaInstanceId,
             String sourceFaultSlotId,
             String sourceCompensationCheckpointId,
+            String sourceEventConsequenceId,
             String sourceScheduledStepId,
             String sourceStepId,
             String runtimeStepName,
@@ -101,12 +109,50 @@ public record ScenarioExecutionReport(
             String bodyOutcome,
             String commitOutcome,
             String faultOrigin,
+            EventRuntimeEvidence eventEvidence,
             List<RecoverySubOutcome> recoverySubOutcomes,
             String exceptionClass,
             String exceptionMessage) {
         public ActionOutcome {
             recoverySubOutcomes = copy(recoverySubOutcomes);
         }
+    }
+
+    public record EventRuntimeEvidence(
+            Integer eventId,
+            String eventTypeFqn,
+            Integer publisherAggregateId,
+            Long publisherAggregateVersion,
+            Boolean published,
+            Integer subscriberAggregateId,
+            String eventHandlingClassFqn,
+            String eventHandlingMethodName,
+            String eventHandlerClassFqn) {
+    }
+
+    public record PrerequisiteSetup(
+            String providerId,
+            String providerVersion,
+            String status,
+            long durationNanos,
+            long pendingEventsCleared,
+            boolean emptyPendingEventBaseline,
+            List<BaselineBinding> bindings,
+            java.util.Map<String, String> evidence,
+            String failureReason,
+            String failureMessage) {
+        public PrerequisiteSetup {
+            bindings = copy(bindings);
+            evidence = evidence == null ? java.util.Map.of()
+                    : java.util.Collections.unmodifiableMap(new java.util.TreeMap<>(evidence));
+        }
+    }
+
+    public record BaselineBinding(
+            String key,
+            String expectedTypeFqn,
+            String actualTypeFqn,
+            String status) {
     }
 
     public record RecoverySubOutcome(

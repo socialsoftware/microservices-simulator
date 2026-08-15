@@ -18,7 +18,7 @@ public final class ScenarioCatalogReader {
     }
 
     public ScenarioCatalogPackageReader.PackageContents read(ScenarioExecutorOptions options) {
-        Path configured = Objects.requireNonNull(options.packagePath(), "v3 scenario package path is required");
+        Path configured = Objects.requireNonNull(options.packagePath(), "v4 scenario package path is required");
         Path manifest = Files.isDirectory(configured)
                 ? configured.resolve("scenario-catalog-manifest.json")
                 : configured;

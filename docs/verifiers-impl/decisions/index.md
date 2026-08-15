@@ -17,7 +17,8 @@ Superseded designs, implementation chronology, and evidence baselines belong in 
 | [`Domain service vs coordination facade`](2026-04-06-domain-service-vs-coordination-facade.md) | Preserves the application-independent structural classification rule and rejects naming/package heuristics |
 | [`Static package vs dynamic evidence`](2026-04-28-hybrid-static-dynamic-key-binding.md) | Defines which facts own reproducible scenario identity and why runtime evidence remains sidecar-only |
 | [`Conflict-anchor segment compression`](2026-06-16-conflict-anchor-segment-compression.md) | Defines the non-obvious schedule reduction and its semantic limits |
-| [`Compensation-aware v3 contract`](2026-07-19-compensation-aware-fault-scenario-contract.md) | Defines the current WorkloadPlan/FaultScenario and executor failure boundary |
+| [`Compensation-aware v3 contract`](2026-07-19-compensation-aware-fault-scenario-contract.md) | Defines the retained two-level WorkloadPlan/FaultScenario compensation and executor failure boundary introduced in v3 |
+| [`Event-consequence ownership and replay contract`](2026-07-30-deterministic-event-consequence-replay.md) | Defines v4 event-action ownership, exact local replay isolation, causal masking, prerequisites, and the fresh-process reset boundary |
 
 ## Maintenance rule
 

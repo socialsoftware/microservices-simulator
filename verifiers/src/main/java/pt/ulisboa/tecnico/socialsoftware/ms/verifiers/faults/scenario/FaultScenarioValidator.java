@@ -1,10 +1,13 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationCheckpoint;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenario;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioAction;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioActionKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ForwardFaultSlot;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.NormalActionKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.NormalActionRef;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 
 import java.util.ArrayList;
@@ -42,9 +45,11 @@ public final class FaultScenarioValidator {
         workloadPlan.faultSlots().forEach(slot -> slotsById.put(slot.deterministicId(), slot));
         Map<String, CompensationCheckpoint> checkpointsById = new HashMap<>();
         workloadPlan.compensationCheckpoints().forEach(checkpoint -> checkpointsById.put(checkpoint.deterministicId(), checkpoint));
+        Map<String, EventConsequence> consequencesById = new HashMap<>();
+        workloadPlan.eventConsequences().forEach(consequence -> consequencesById.put(consequence.deterministicId(), consequence));
         Set<String> actionIds = new HashSet<>();
         for (FaultScenarioAction action : scenario.actions()) {
-            validateAction(action, slotsById, checkpointsById, actionIds, diagnostics);
+            validateAction(action, slotsById, checkpointsById, consequencesById, actionIds, diagnostics);
         }
         if (scenario.assignedVector() != null
                 && scenario.assignedVector().length() == workloadPlan.faultSlots().size()
@@ -69,6 +74,7 @@ public final class FaultScenarioValidator {
     private void validateAction(FaultScenarioAction action,
                                 Map<String, ForwardFaultSlot> slotsById,
                                 Map<String, CompensationCheckpoint> checkpointsById,
+                                Map<String, EventConsequence> consequencesById,
                                 Set<String> actionIds,
                                 List<Diagnostic> diagnostics) {
         if (action == null || action.deterministicId() == null || !actionIds.add(action.deterministicId())) {
@@ -82,14 +88,29 @@ public final class FaultScenarioValidator {
             ForwardFaultSlot slot = slotsById.get(action.sourceFaultSlotId());
             if (slot == null
                     || action.sourceCompensationCheckpointId() != null
+                    || action.sourceEventConsequenceId() != null
                     || !Objects.equals(action.sagaInstanceId(), slot.sagaInstanceId())
                     || !Objects.equals(action.occurrenceId(), slot.occurrenceId())) {
                 diagnostics.add(new Diagnostic("MALFORMED_FORWARD_ACTION", action.deterministicId()));
+            }
+        } else if (action.kind() == FaultScenarioActionKind.EVENT_CONSEQUENCE) {
+            EventConsequence consequence = consequencesById.get(action.sourceEventConsequenceId());
+            ForwardFaultSlot triggerSlot = consequence == null ? null : slotsById.values().stream()
+                    .filter(slot -> Objects.equals(slot.scheduledStepId(), consequence.triggerScheduledStepId()))
+                    .findFirst().orElse(null);
+            if (consequence == null
+                    || triggerSlot == null
+                    || action.sourceFaultSlotId() != null
+                    || action.sourceCompensationCheckpointId() != null
+                    || !Objects.equals(action.sagaInstanceId(), triggerSlot.sagaInstanceId())
+                    || !Objects.equals(action.occurrenceId(), consequence.deterministicId())) {
+                diagnostics.add(new Diagnostic("MALFORMED_EVENT_CONSEQUENCE_ACTION", action.deterministicId()));
             }
         } else if (action.kind() == FaultScenarioActionKind.COMPENSATION) {
             CompensationCheckpoint checkpoint = checkpointsById.get(action.sourceCompensationCheckpointId());
             if (checkpoint == null
                     || action.sourceFaultSlotId() != null
+                    || action.sourceEventConsequenceId() != null
                     || !Objects.equals(action.sagaInstanceId(), checkpoint.sagaInstanceId())
                     || !Objects.equals(action.occurrenceId(), checkpoint.occurrenceId())) {
                 diagnostics.add(new Diagnostic("MALFORMED_COMPENSATION_ACTION", action.deterministicId()));
@@ -104,33 +125,34 @@ public final class FaultScenarioValidator {
                                         Map<String, ForwardFaultSlot> slotsById,
                                         Map<String, CompensationCheckpoint> checkpointsById,
                                         List<Diagnostic> diagnostics) {
+        Map<String, ForwardFaultSlot> slotsByScheduledStep = new HashMap<>();
+        workloadPlan.faultSlots().forEach(slot -> slotsByScheduledStep.put(slot.scheduledStepId(), slot));
+        Map<String, EventConsequence> consequencesById = new HashMap<>();
+        workloadPlan.eventConsequences().forEach(consequence -> consequencesById.put(consequence.deterministicId(), consequence));
         Map<String, CompensationCheckpoint> checkpointsBySourceStep = new HashMap<>();
         workloadPlan.compensationCheckpoints().forEach(checkpoint ->
                 checkpointsBySourceStep.put(checkpoint.sourceScheduledStepId(), checkpoint));
         Map<String, List<CompensationCheckpoint>> completedCheckpoints = new HashMap<>();
         Map<String, List<CompensationCheckpoint>> enabledRecovery = new HashMap<>();
         Set<String> failedParticipants = new HashSet<>();
-        int forwardCursor = 0;
+        Set<String> successfulScheduledSteps = new HashSet<>();
+        int normalCursor = 0;
 
         for (FaultScenarioAction action : scenario.actions()) {
             if (action == null || action.kind() == null) {
                 continue;
             }
+            normalCursor = skipFailedOwnerForwards(
+                    workloadPlan.normalSchedule(), normalCursor, slotsByScheduledStep, failedParticipants);
             if (action.kind() == FaultScenarioActionKind.FORWARD) {
                 ForwardFaultSlot slot = slotsById.get(action.sourceFaultSlotId());
-                if (slot == null) {
-                    continue;
-                }
-                while (forwardCursor < workloadPlan.faultSlots().size()
-                        && failedParticipants.contains(workloadPlan.faultSlots().get(forwardCursor).sagaInstanceId())) {
-                    forwardCursor++;
-                }
-                if (forwardCursor >= workloadPlan.faultSlots().size()
-                        || !Objects.equals(workloadPlan.faultSlots().get(forwardCursor).deterministicId(), slot.deterministicId())) {
+                NormalActionRef expected = normalCursor < workloadPlan.normalSchedule().size()
+                        ? workloadPlan.normalSchedule().get(normalCursor) : null;
+                if (slot == null || expected == null || expected.kind() != NormalActionKind.FORWARD
+                        || !Objects.equals(expected.scheduledStepId(), slot.scheduledStepId())) {
                     diagnostics.add(new Diagnostic("RESIDUAL_FORWARD_ORDER_VIOLATION", action.deterministicId()));
                     continue;
                 }
-
                 int assignedBit = scenario.assignedVector().charAt(slot.slotIndex()) - '0';
                 if (assignedBit == 1) {
                     failedParticipants.add(slot.sagaInstanceId());
@@ -139,14 +161,28 @@ public final class FaultScenarioValidator {
                     Collections.reverse(reverse);
                     enabledRecovery.put(slot.sagaInstanceId(), reverse);
                 } else {
+                    successfulScheduledSteps.add(slot.scheduledStepId());
                     CompensationCheckpoint checkpoint = checkpointsBySourceStep.get(slot.scheduledStepId());
                     if (checkpoint != null) {
                         completedCheckpoints.computeIfAbsent(slot.sagaInstanceId(), ignored -> new ArrayList<>())
                                 .add(checkpoint);
                     }
                 }
-                forwardCursor++;
+                normalCursor++;
+            } else if (action.kind() == FaultScenarioActionKind.EVENT_CONSEQUENCE) {
+                NormalActionRef expected = normalCursor < workloadPlan.normalSchedule().size()
+                        ? workloadPlan.normalSchedule().get(normalCursor) : null;
+                if (expected == null || expected.kind() != NormalActionKind.EVENT_CONSEQUENCE
+                        || !Objects.equals(expected.eventConsequenceId(), action.sourceEventConsequenceId())) {
+                    diagnostics.add(new Diagnostic("RESIDUAL_NORMAL_ORDER_VIOLATION", action.deterministicId()));
+                } else {
+                    normalCursor++;
+                }
             } else if (action.kind() == FaultScenarioActionKind.COMPENSATION) {
+                if (nextNormalIsMaskedConsequence(workloadPlan.normalSchedule(), normalCursor,
+                        consequencesById, successfulScheduledSteps)) {
+                    diagnostics.add(new Diagnostic("MASKED_EVENT_ORDER_VIOLATION", action.deterministicId()));
+                }
                 CompensationCheckpoint checkpoint = checkpointsById.get(action.sourceCompensationCheckpointId());
                 if (checkpoint == null) {
                     continue;
@@ -162,18 +198,52 @@ public final class FaultScenarioValidator {
             }
         }
 
-        while (forwardCursor < workloadPlan.faultSlots().size()
-                && failedParticipants.contains(workloadPlan.faultSlots().get(forwardCursor).sagaInstanceId())) {
-            forwardCursor++;
-        }
-        if (forwardCursor != workloadPlan.faultSlots().size()) {
-            diagnostics.add(new Diagnostic("INCOMPLETE_RESIDUAL_FORWARD_SEQUENCE", "forward sequence ended at slot " + forwardCursor));
+        normalCursor = skipFailedOwnerForwards(
+                workloadPlan.normalSchedule(), normalCursor, slotsByScheduledStep, failedParticipants);
+        if (normalCursor != workloadPlan.normalSchedule().size()) {
+            diagnostics.add(new Diagnostic("INCOMPLETE_RESIDUAL_NORMAL_SEQUENCE",
+                    "normal sequence ended at action " + normalCursor));
         }
         enabledRecovery.forEach((participantId, queue) -> {
             if (!queue.isEmpty()) {
                 diagnostics.add(new Diagnostic("INCOMPLETE_COMPENSATION_SEQUENCE", participantId));
             }
         });
+    }
+
+    private int skipFailedOwnerForwards(List<NormalActionRef> normalSchedule,
+                                        int cursor,
+                                        Map<String, ForwardFaultSlot> slotsByScheduledStep,
+                                        Set<String> failedParticipants) {
+        int next = cursor;
+        while (next < normalSchedule.size()) {
+            NormalActionRef action = normalSchedule.get(next);
+            if (action.kind() != NormalActionKind.FORWARD) {
+                break;
+            }
+            ForwardFaultSlot slot = slotsByScheduledStep.get(action.scheduledStepId());
+            if (slot == null || !failedParticipants.contains(slot.sagaInstanceId())) {
+                break;
+            }
+            next++;
+        }
+        return next;
+    }
+
+    private boolean nextNormalIsMaskedConsequence(List<NormalActionRef> normalSchedule,
+                                                   int cursor,
+                                                   Map<String, EventConsequence> consequencesById,
+                                                   Set<String> successfulScheduledSteps) {
+        if (cursor >= normalSchedule.size()) {
+            return false;
+        }
+        NormalActionRef next = normalSchedule.get(cursor);
+        if (next.kind() != NormalActionKind.EVENT_CONSEQUENCE) {
+            return false;
+        }
+        EventConsequence consequence = consequencesById.get(next.eventConsequenceId());
+        return consequence != null
+                && !successfulScheduledSteps.contains(consequence.triggerScheduledStepId());
     }
 
     public record ValidationResult(boolean valid, List<Diagnostic> diagnostics) {

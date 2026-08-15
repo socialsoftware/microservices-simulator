@@ -2,8 +2,10 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayCoordinator;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -18,7 +20,8 @@ public final class ScenarioExecutorCli {
         }
         Class<?> applicationClass = Class.forName(options.get("spring-application-class"));
         int exitCode;
-        try (ConfigurableApplicationContext context = SpringApplication.run(applicationClass, args)) {
+        try (EventReplayCoordinator.Activation replayMode = activateReplayMode();
+             ConfigurableApplicationContext context = SpringApplication.run(applicationClass, args)) {
             ScenarioRuntimeContext runtimeContext = new SpringScenarioRuntimeContext(context);
             ScenarioExecutor executor = new ScenarioExecutor();
             if (enabled(options, "preflight")) {
@@ -69,6 +72,11 @@ public final class ScenarioExecutorCli {
             }
         }
         System.exit(exitCode);
+    }
+
+    static EventReplayCoordinator.Activation activateReplayMode() {
+        System.setProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY, "true");
+        return EventReplayCoordinator.activate();
     }
 
     static int exitCodeFor(String terminalStatus) {
@@ -152,6 +160,11 @@ public final class ScenarioExecutorCli {
         @Override
         public Object bean(Class<?> type) {
             return context.getBean(type);
+        }
+
+        @Override
+        public <T> List<T> beans(Class<T> type) {
+            return List.copyOf(context.getBeansOfType(type).values());
         }
     }
 }

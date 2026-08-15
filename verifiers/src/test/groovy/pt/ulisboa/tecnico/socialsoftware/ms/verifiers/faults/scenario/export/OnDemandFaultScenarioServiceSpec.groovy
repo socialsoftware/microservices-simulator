@@ -24,6 +24,16 @@ class OnDemandFaultScenarioServiceSpec extends Specification {
 
     private final ObjectMapper mapper = new ObjectMapper()
 
+    def 'missing manifest diagnostic identifies the required v4 package'() {
+        when:
+        def result = new OnDemandFaultScenarioService().request(null)
+
+        then:
+        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
+        result.diagnostics().first().code() == 'MISSING_MANIFEST_PATH'
+        result.diagnostics().first().message() == 'A v4 package manifest path is required'
+    }
+
     def 'valid multi-fault request persists one consistent bounded package revision before returning'() {
         given:
         def fixture = writePackage(Files.createTempDirectory('on-demand-valid'), 2)

@@ -26,6 +26,21 @@ public class EventService {
         return eventRepository.existsById(eventId);
     }
 
+    public Event getEventForReplay(Integer eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventReplayException("EVENT_REPLAY_CONTROL_FAILED",
+                        "selected persisted event " + eventId + " was not found"));
+    }
+
+    public long eventCountForReplay() {
+        return eventRepository.count();
+    }
+
+    public void clearEventsForReplay() {
+        eventRepository.deleteAll();
+        eventRepository.flush();
+    }
+
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<? extends Event> getSubscribedEvents(EventSubscription eventSubscription, Class<? extends Event> eventClass) {
         return eventRepository.findUnprocessedEvents(

@@ -19,6 +19,8 @@ public class ApplicationAnalysisState {
     public final List<WorkflowFunctionalityCreationSite> sagaCreationSites = new ArrayList<>();
     public final List<EventDrivenFunctionalityInvocation> eventDrivenFunctionalityInvocations = new ArrayList<>();
     public final List<String> eventDrivenFunctionalityDiagnostics = new ArrayList<>();
+    public final List<EventConsequenceCandidate> eventConsequenceCandidates = new ArrayList<>();
+    public final List<String> eventConsequenceDiagnostics = new ArrayList<>();
     public final List<GroovyConstructorInputTrace> groovyConstructorInputTraces = new ArrayList<>();
     public final List<GroovyFullTraceResult> groovyFullTraceResults = new ArrayList<>();
 

@@ -1,12 +1,15 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationCheckpoint;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenario;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioAction;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioActionKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultSlotGenerationDiagnostic;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultSlotGenerationState;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ForwardFaultSlot;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.NormalActionKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.NormalActionRef;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.RecoveryScheduleGenerationMetrics;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.RecoveryScheduleGenerationResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep;
@@ -115,16 +118,33 @@ public final class RecoveryScheduleGenerator {
         for (ScheduledStep step : plan.forwardSchedule()) {
             finalOccurrenceByParticipant.put(step.sagaInstanceId(), step.deterministicId());
         }
+        Map<String, ForwardFaultSlot> slotsByScheduledStep = new HashMap<>();
+        for (ForwardFaultSlot slot : plan.faultSlots()) {
+            slotsByScheduledStep.put(slot.scheduledStepId(), slot);
+        }
+        Map<String, EventConsequence> consequencesById = new HashMap<>();
+        for (EventConsequence consequence : plan.eventConsequences()) {
+            consequencesById.put(consequence.deterministicId(), consequence);
+        }
 
         Set<String> failedParticipants = new HashSet<>();
+        Set<String> successfulScheduledSteps = new HashSet<>();
         Map<String, List<CompensationCheckpoint>> completedCheckpoints = new HashMap<>();
         List<ForwardEvent> forwardEvents = new ArrayList<>();
         List<RecoveryQueue> recoveryQueues = new ArrayList<>();
         List<FaultSlotGenerationDiagnostic> diagnostics = new ArrayList<>();
 
-        for (int index = 0; index < plan.faultSlots().size(); index++) {
-            ForwardFaultSlot slot = plan.faultSlots().get(index);
-            int assignedBit = assignedVector.charAt(index) - '0';
+        for (NormalActionRef normalAction : plan.normalSchedule()) {
+            if (normalAction.kind() == NormalActionKind.EVENT_CONSEQUENCE) {
+                EventConsequence consequence = consequencesById.get(normalAction.eventConsequenceId());
+                ForwardFaultSlot trigger = slotsByScheduledStep.get(consequence.triggerScheduledStepId());
+                boolean forcedNoOp = !successfulScheduledSteps.contains(trigger.scheduledStepId());
+                forwardEvents.add(new ForwardEvent(eventConsequenceAction(consequence, trigger), false, forcedNoOp));
+                continue;
+            }
+
+            ForwardFaultSlot slot = slotsByScheduledStep.get(normalAction.scheduledStepId());
+            int assignedBit = assignedVector.charAt(slot.slotIndex()) - '0';
             if (failedParticipants.contains(slot.sagaInstanceId())) {
                 FaultSlotGenerationState state = assignedBit == 1
                         ? FaultSlotGenerationState.MASKED
@@ -137,7 +157,7 @@ public final class RecoveryScheduleGenerator {
             FaultScenarioAction action = forwardAction(slot);
             boolean successfulFinalBoundary = !assignedFault
                     && Objects.equals(finalOccurrenceByParticipant.get(slot.sagaInstanceId()), slot.scheduledStepId());
-            forwardEvents.add(new ForwardEvent(action, successfulFinalBoundary));
+            forwardEvents.add(new ForwardEvent(action, successfulFinalBoundary, false));
             diagnostics.add(diagnostic(slot, assignedBit, assignedFault
                     ? FaultSlotGenerationState.REALIZED
                     : FaultSlotGenerationState.NOT_ASSIGNED));
@@ -156,6 +176,7 @@ public final class RecoveryScheduleGenerator {
                             List.copyOf(reverseActions)));
                 }
             } else {
+                successfulScheduledSteps.add(slot.scheduledStepId());
                 CompensationCheckpoint checkpoint = checkpointsBySource.get(slot.scheduledStepId());
                 if (checkpoint != null) {
                     completedCheckpoints.computeIfAbsent(slot.sagaInstanceId(), ignored -> new ArrayList<>())
@@ -194,6 +215,25 @@ public final class RecoveryScheduleGenerator {
                 slot.deterministicId(),
                 null,
                 slot.occurrenceId());
+    }
+
+    private static FaultScenarioAction eventConsequenceAction(EventConsequence consequence,
+                                                               ForwardFaultSlot trigger) {
+        String actionId = ScenarioIdGenerator.faultScenarioActionId(
+                FaultScenarioActionKind.EVENT_CONSEQUENCE,
+                trigger.sagaInstanceId(),
+                null,
+                null,
+                consequence.deterministicId(),
+                consequence.deterministicId());
+        return new FaultScenarioAction(
+                actionId,
+                FaultScenarioActionKind.EVENT_CONSEQUENCE,
+                trigger.sagaInstanceId(),
+                null,
+                null,
+                consequence.deterministicId(),
+                consequence.deterministicId());
     }
 
     private static FaultScenarioAction compensationAction(CompensationCheckpoint checkpoint) {
@@ -341,6 +381,10 @@ public final class RecoveryScheduleGenerator {
     }
 
     private static List<Transition> enabledCompensationTransitions(PreparedPlan prepared, MutableState state) {
+        if (state.forwardIndex < prepared.forwardEvents().size()
+                && prepared.forwardEvents().get(state.forwardIndex).forcedNoOp()) {
+            return List.of();
+        }
         List<Transition> transitions = new ArrayList<>();
         for (int queueIndex = 0; queueIndex < prepared.recoveryQueues().size(); queueIndex++) {
             RecoveryQueue queue = prepared.recoveryQueues().get(queueIndex);
@@ -428,7 +472,11 @@ public final class RecoveryScheduleGenerator {
     private static List<Transition> availableTransitions(PreparedPlan prepared, State state) {
         List<Transition> transitions = new ArrayList<>();
         if (state.forwardIndex() < prepared.forwardEvents().size()) {
-            transitions.add(new Transition(prepared.forwardEvents().get(state.forwardIndex()).action(), -1));
+            ForwardEvent next = prepared.forwardEvents().get(state.forwardIndex());
+            transitions.add(new Transition(next.action(), -1));
+            if (next.forcedNoOp()) {
+                return transitions;
+            }
         }
         for (int queueIndex = 0; queueIndex < prepared.recoveryQueues().size(); queueIndex++) {
             RecoveryQueue queue = prepared.recoveryQueues().get(queueIndex);
@@ -474,7 +522,9 @@ public final class RecoveryScheduleGenerator {
             List<FaultSlotGenerationDiagnostic> faultSlotDiagnostics) {
     }
 
-    private record ForwardEvent(FaultScenarioAction action, boolean successfulFinalBoundary) {
+    private record ForwardEvent(FaultScenarioAction action,
+                                boolean successfulFinalBoundary,
+                                boolean forcedNoOp) {
     }
 
     private record RecoveryQueue(String sagaInstanceId,

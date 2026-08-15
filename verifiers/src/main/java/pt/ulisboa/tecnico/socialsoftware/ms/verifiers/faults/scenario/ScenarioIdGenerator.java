@@ -2,15 +2,20 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.BaselineBindingRequirement;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationCheckpoint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictEvidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequence;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventEmissionSite;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenario;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioAction;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioActionKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ForwardFaultSlot;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.NormalActionRef;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.PrerequisiteBaseline;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance;
@@ -141,15 +146,21 @@ public final class ScenarioIdGenerator {
 
     public static String workloadPlanId(WorkloadPlan workloadPlan) {
         WorkloadPlan plan = Objects.requireNonNull(workloadPlan, "workloadPlan");
-        return workloadPlanId(
-                plan.kind(),
-                plan.executionShape() == null ? null : plan.executionShape().name(),
-                plan.participants(),
-                plan.acceptedInputs(),
-                plan.forwardSchedule(),
-                plan.conflictEvidence(),
-                plan.faultSlots(),
-                plan.compensationCheckpoints());
+        return hash(digest -> {
+            updateString(digest, "workload-plan");
+            updateString(digest, WorkloadPlan.SCHEMA_VERSION);
+            updateString(digest, plan.kind() == null ? null : plan.kind().name());
+            updateString(digest, plan.executionShape() == null ? null : plan.executionShape().name());
+            updateSagaInstances(digest, plan.participants());
+            updateInputVariants(digest, plan.acceptedInputs());
+            updateScheduledSteps(digest, plan.forwardSchedule());
+            updateEventConsequences(digest, plan.eventConsequences());
+            updateNormalSchedule(digest, plan.normalSchedule());
+            updatePrerequisiteBaseline(digest, plan.prerequisiteBaseline());
+            updateConflictEvidence(digest, plan.conflictEvidence());
+            updateFaultSlots(digest, plan.faultSlots());
+            updateCompensationCheckpoints(digest, plan.compensationCheckpoints());
+        });
     }
 
     public static String workloadPlanId(pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind kind,
@@ -168,6 +179,11 @@ public final class ScenarioIdGenerator {
             updateSagaInstances(digest, participants);
             updateInputVariants(digest, acceptedInputs);
             updateScheduledSteps(digest, forwardSchedule);
+            updateEventConsequences(digest, List.of());
+            updateNormalSchedule(digest, forwardSchedule == null ? List.of() : java.util.stream.IntStream.range(0, forwardSchedule.size())
+                    .mapToObj(index -> NormalActionRef.forward(index, forwardSchedule.get(index).deterministicId()))
+                    .toList());
+            updatePrerequisiteBaseline(digest, null);
             updateConflictEvidence(digest, conflictEvidence);
             updateFaultSlots(digest, faultSlots);
             updateCompensationCheckpoints(digest, compensationCheckpoints);
@@ -197,22 +213,72 @@ public final class ScenarioIdGenerator {
         });
     }
 
+    public static String eventEmissionSiteId(String serviceClassFqn,
+                                             String serviceMethodSignature,
+                                             int emissionOrdinal,
+                                             String eventTypeFqn) {
+        return hash(digest -> {
+            updateString(digest, "event-emission-site");
+            updateString(digest, normalize(serviceClassFqn));
+            updateString(digest, normalize(serviceMethodSignature));
+            updateInt(digest, emissionOrdinal);
+            updateString(digest, normalize(eventTypeFqn));
+        });
+    }
+
+    public static String eventConsequenceId(String triggerScheduledStepId,
+                                            EventEmissionSite site,
+                                            String eventHandlingClassFqn,
+                                            String eventHandlingMethodName,
+                                            String eventHandlerClassFqn,
+                                            String eventProcessingClassFqn,
+                                            String eventProcessingMethodName,
+                                            String facadeClassFqn,
+                                            String facadeMethodName,
+                                            String downstreamSagaFqn,
+                                            String deliveryPolicy) {
+        return hash(digest -> {
+            updateString(digest, "event-consequence");
+            updateString(digest, normalize(triggerScheduledStepId));
+            updateEventEmissionSite(digest, site);
+            updateString(digest, normalize(eventHandlingClassFqn));
+            updateString(digest, normalize(eventHandlingMethodName));
+            updateString(digest, normalize(eventHandlerClassFqn));
+            updateString(digest, normalize(eventProcessingClassFqn));
+            updateString(digest, normalize(eventProcessingMethodName));
+            updateString(digest, normalize(facadeClassFqn));
+            updateString(digest, normalize(facadeMethodName));
+            updateString(digest, normalize(downstreamSagaFqn));
+            updateString(digest, normalize(deliveryPolicy));
+        });
+    }
+
     public static String faultScenarioActionId(FaultScenarioActionKind kind,
                                                String sagaInstanceId,
                                                String sourceFaultSlotId,
                                                String sourceCompensationCheckpointId,
                                                String occurrenceId) {
+        return faultScenarioActionId(kind, sagaInstanceId, sourceFaultSlotId,
+                sourceCompensationCheckpointId, null, occurrenceId);
+    }
+
+    public static String faultScenarioActionId(FaultScenarioActionKind kind,
+                                               String sagaInstanceId,
+                                               String sourceFaultSlotId,
+                                               String sourceCompensationCheckpointId,
+                                               String sourceEventConsequenceId,
+                                               String occurrenceId) {
         return hash(digest -> {
             updateString(digest, "fault-scenario-action");
             updateFaultScenarioActionFields(digest, kind, sagaInstanceId, sourceFaultSlotId,
-                    sourceCompensationCheckpointId, occurrenceId);
+                    sourceCompensationCheckpointId, sourceEventConsequenceId, occurrenceId);
         });
     }
 
     public static String faultScenarioActionId(FaultScenarioAction action) {
         FaultScenarioAction value = Objects.requireNonNull(action, "action");
         return faultScenarioActionId(value.kind(), value.sagaInstanceId(), value.sourceFaultSlotId(),
-                value.sourceCompensationCheckpointId(), value.occurrenceId());
+                value.sourceCompensationCheckpointId(), value.sourceEventConsequenceId(), value.occurrenceId());
     }
 
     public static String faultScenarioId(FaultScenario faultScenario) {
@@ -237,6 +303,7 @@ public final class ScenarioIdGenerator {
                         action == null ? null : action.sagaInstanceId(),
                         action == null ? null : action.sourceFaultSlotId(),
                         action == null ? null : action.sourceCompensationCheckpointId(),
+                        action == null ? null : action.sourceEventConsequenceId(),
                         action == null ? null : action.occurrenceId());
             }
         });
@@ -247,11 +314,13 @@ public final class ScenarioIdGenerator {
                                                         String sagaInstanceId,
                                                         String sourceFaultSlotId,
                                                         String sourceCompensationCheckpointId,
+                                                        String sourceEventConsequenceId,
                                                         String occurrenceId) {
         updateString(digest, kind == null ? null : kind.name());
         updateString(digest, normalize(sagaInstanceId));
         updateString(digest, normalize(sourceFaultSlotId));
         updateString(digest, normalize(sourceCompensationCheckpointId));
+        updateString(digest, normalize(sourceEventConsequenceId));
         updateString(digest, normalize(occurrenceId));
     }
 
@@ -318,6 +387,56 @@ public final class ScenarioIdGenerator {
         updateString(digest, step == null ? null : step.stepId());
         updateInt(digest, step == null ? -1 : step.scheduleOrder());
         updateString(digest, step == null ? null : step.runtimeStepName());
+    }
+
+    private static void updateEventConsequences(MessageDigest digest, List<EventConsequence> consequences) {
+        List<EventConsequence> ordered = consequences == null ? List.of() : consequences;
+        updateInt(digest, ordered.size());
+        for (EventConsequence consequence : ordered) {
+            updateString(digest, consequence == null ? null : consequence.deterministicId());
+            updateString(digest, consequence == null ? null : consequence.triggerScheduledStepId());
+            updateEventEmissionSite(digest, consequence == null ? null : consequence.emissionSite());
+            updateString(digest, consequence == null ? null : consequence.eventTypeFqn());
+            updateString(digest, consequence == null ? null : consequence.eventHandlingClassFqn());
+            updateString(digest, consequence == null ? null : consequence.eventHandlingMethodName());
+            updateString(digest, consequence == null ? null : consequence.eventHandlerClassFqn());
+            updateString(digest, consequence == null ? null : consequence.eventProcessingClassFqn());
+            updateString(digest, consequence == null ? null : consequence.eventProcessingMethodName());
+            updateString(digest, consequence == null ? null : consequence.facadeClassFqn());
+            updateString(digest, consequence == null ? null : consequence.facadeMethodName());
+            updateString(digest, consequence == null ? null : consequence.downstreamSagaFqn());
+            updateString(digest, consequence == null ? null : consequence.deliveryPolicy());
+        }
+    }
+
+    private static void updateEventEmissionSite(MessageDigest digest, EventEmissionSite site) {
+        updateString(digest, site == null ? null : site.deterministicId());
+        updateString(digest, site == null ? null : site.sourceServiceClassFqn());
+        updateString(digest, site == null ? null : site.sourceServiceMethodSignature());
+        updateInt(digest, site == null ? -1 : site.emissionOrdinal());
+        updateString(digest, site == null ? null : site.eventTypeFqn());
+    }
+
+    private static void updateNormalSchedule(MessageDigest digest, List<NormalActionRef> normalSchedule) {
+        List<NormalActionRef> ordered = normalSchedule == null ? List.of() : normalSchedule;
+        updateInt(digest, ordered.size());
+        for (NormalActionRef action : ordered) {
+            updateInt(digest, action == null ? -1 : action.normalOrder());
+            updateString(digest, action == null || action.kind() == null ? null : action.kind().name());
+            updateString(digest, action == null ? null : action.scheduledStepId());
+            updateString(digest, action == null ? null : action.eventConsequenceId());
+        }
+    }
+
+    private static void updatePrerequisiteBaseline(MessageDigest digest, PrerequisiteBaseline baseline) {
+        updateString(digest, baseline == null ? null : baseline.providerId());
+        updateString(digest, baseline == null ? null : baseline.providerVersion());
+        List<BaselineBindingRequirement> bindings = baseline == null ? List.of() : baseline.requiredBindings();
+        updateInt(digest, bindings.size());
+        for (BaselineBindingRequirement binding : bindings) {
+            updateString(digest, binding == null ? null : binding.key());
+            updateString(digest, binding == null ? null : binding.typeFqn());
+        }
     }
 
     private static void updateConflictEvidence(MessageDigest digest, List<ConflictEvidence> conflictEvidence) {
