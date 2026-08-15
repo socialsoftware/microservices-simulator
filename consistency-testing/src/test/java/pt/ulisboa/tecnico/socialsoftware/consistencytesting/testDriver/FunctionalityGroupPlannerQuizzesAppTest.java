@@ -230,7 +230,7 @@ class FunctionalityGroupPlannerQuizzesAppTest {
             return new UpdateTopicFunctionalitySagas(unitOfWorkService, updateDto, unitOfWork, gateway);
         });
 
-        return new FunctionalityCatalog(initialStateSetup, factories);
+        return new FunctionalityCatalog("tournaments", initialStateSetup, factories);
     }
 
     private FunctionalityGroup groupOf(FunctionalityId a, FunctionalityId b) {

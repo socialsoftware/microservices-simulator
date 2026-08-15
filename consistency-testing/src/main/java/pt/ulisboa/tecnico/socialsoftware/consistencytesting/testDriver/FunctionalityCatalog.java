@@ -19,6 +19,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
  * what keeps a functionality logically stable ("the same") across runs even
  * though every concrete aggregate id possibly changed.
  *
+ * @param name              identifies this catalog in logs and reports; must be
+ *                          non-blank
  * @param initialStateSetup creates the initial database state and returns the
  *                          registry of the aggregates it created
  * @param funcFactories     one factory per functionality, keyed by the stable
@@ -26,10 +28,14 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
  *                          refer to it by
  */
 public record FunctionalityCatalog(
+        String name,
         Supplier<AggregateHandlesRegistry> initialStateSetup,
         Map<FunctionalityId, Function<AggregateHandlesRegistry, WorkflowFunctionality>> funcFactories) {
 
     public FunctionalityCatalog {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("A catalog must have a non-blank name");
+        }
         funcFactories = Map.copyOf(funcFactories);
     }
 }

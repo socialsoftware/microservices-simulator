@@ -116,6 +116,33 @@
                 </plugins>
             </build>
         </profile>
+        <!--
+            Runs the consistency-testing sweep over this application.
+            Kept out of the ordinary build because it runs hundreds of
+            schedules; the sweep class is not named *Test so only this profile's
+            explicit include picks it up.
+        -->
+        <profile>
+            <id>consistency-sweep</id>
+            <properties>
+                <activatedProperties>test,sagas,local</activatedProperties>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.5.3</version>
+                        <configuration>
+                            <includes>
+                                <include>**/QuizzesConsistencySweep.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <!-- Microservice Profiles -->
         <profile>
             <id>answer-service</id>

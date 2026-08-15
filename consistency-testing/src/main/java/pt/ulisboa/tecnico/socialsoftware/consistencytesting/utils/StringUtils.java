@@ -1,5 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils;
 
+import java.io.File;
+import java.nio.file.Path;
+
 public class StringUtils {
 
     private StringUtils() {
@@ -30,5 +33,32 @@ public class StringUtils {
             default:
                 return i + suffixes[i % 10];
         }
+    }
+
+    /** Longest file name segment {@link #toFileNameSafe} emits. */
+    private static final int MAX_FILE_NAME_LENGTH = 80;
+
+    /**
+     * Rewrites {@code name} into a single path segment safe on every filesystem:
+     * every character outside {@code [A-Za-z0-9._-]} becomes {@code '_'} and the
+     * result is truncated to {@value #MAX_FILE_NAME_LENGTH} characters.
+     * <p>
+     * Truncation can make two long names collide; callers that need uniqueness
+     * (report directories, for instance) must not rely on this alone.
+     */
+    public static String toFileNameSafe(String name) {
+        String sanitized = name.replaceAll("[^A-Za-z0-9._-]", "_");
+        return sanitized.length() <= MAX_FILE_NAME_LENGTH
+                ? sanitized
+                : sanitized.substring(0, MAX_FILE_NAME_LENGTH);
+    }
+
+    /**
+     * {@code path} as text with {@code '/'} separators whatever the platform
+     * that produced it, e.g. {@code reports\run-1.json} becomes
+     * {@code reports/run-1.json} on Windows.
+     */
+    public static String toPortableString(Path path) {
+        return path.toString().replace(File.separatorChar, '/');
     }
 }

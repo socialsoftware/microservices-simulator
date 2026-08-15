@@ -5,6 +5,7 @@ import java.util.Set;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepEffect;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
 
 /**
  * A pair of functionalities the planner deems worth testing concurrently,
@@ -72,6 +73,14 @@ public record FunctionalityGroup(
 
     public boolean isSelfPair() {
         return first.equals(second);
+    }
+
+    /**
+     * A stable, filesystem-safe name for this group, derived from its members in
+     * canonical order.
+     */
+    public String label() {
+        return StringUtils.toFileNameSafe(first + "__" + second);
     }
 
     /** Whether this group is exactly the (unordered) pair {@code a}, {@code b}. */

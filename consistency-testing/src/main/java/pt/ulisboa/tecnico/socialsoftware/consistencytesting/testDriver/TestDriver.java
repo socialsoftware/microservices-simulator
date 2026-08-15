@@ -17,9 +17,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Oracle;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencies;
@@ -28,6 +30,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestCase;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestStatus;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 
 public final class TestDriver {
@@ -55,6 +58,11 @@ public final class TestDriver {
      * likelier to be unsatisfiable.
      */
     private static final int MAX_INTER_DEPENDENCIES_PER_RUN = 10; // TODO experiment and change
+
+    /** For explorations that do not inspect a run's data before it is wiped. */
+    private static final Consumer<TestResult> NO_BEFORE_CLEANUP_HOOK = result -> {
+        // do nothing
+    };
 
     /**
      * A run exhibiting any of these (or a thrown step exception) is reported as a
@@ -110,14 +118,36 @@ public final class TestDriver {
     }
 
     /**
+     * The directory {@link #exploreGroup} writes a group's reports into, relative
+     * to the driver's reports directory.
+     */
+    public static Path reportsSubdirectoryOf(FunctionalityCatalog catalog, FunctionalityGroup group) {
+        return Path.of(StringUtils.toFileNameSafe(catalog.name()), group.label());
+    }
+
+    /** A bean of the application under test; only valid after {@link #init()}. */
+    public <T> T getApplicationBean(Class<T> beanClass) {
+        return oracle.getBean(beanClass);
+    }
+
+    /**
      * Utility method, same as {@link #exploreTestCase(Supplier, Consumer)},
      * but does not invoke any {@code beforeCleanupHook} with the run's result and
      * data still in the database.
      */
     public List<TestResult> exploreTestCase(Supplier<TestCase.Builder> initialStateSetup) {
-        return exploreTestCase(initialStateSetup, result -> {
-            // do nothing
-        });
+        return exploreTestCase(initialStateSetup, NO_BEFORE_CLEANUP_HOOK);
+    }
+
+    /**
+     * Same as {@link #exploreTestCase(Supplier, Consumer, Path)}, writing this
+     * exploration's reports into the driver's reports directory itself rather
+     * than into a subdirectory of it.
+     */
+    public List<TestResult> exploreTestCase(
+            Supplier<TestCase.Builder> initialStateSetup, Consumer<TestResult> beforeCleanupHook) {
+
+        return exploreTestCase(initialStateSetup, beforeCleanupHook, null);
     }
 
     /**
@@ -134,9 +164,14 @@ public final class TestDriver {
      * data is still in the database, which is the only moment a caller can inspect
      * the final state a schedule left behind: the oracle wipes the database as soon
      * as the run returns.
+     * <p>
+     * Every run's report is written into {@code reportSubdirectory} of the driver's
+     * reports directory ({@code null} writes into the reports directory itself).
      */
-    public List<TestResult> exploreTestCase(
-            Supplier<TestCase.Builder> initialStateSetup, Consumer<TestResult> beforeCleanupHook) {
+    private List<TestResult> exploreTestCase(
+            Supplier<TestCase.Builder> initialStateSetup,
+            Consumer<TestResult> beforeCleanupHook,
+            @Nullable Path reportSubdirectory) {
 
         Random rng = new Random(masterSeed);
         List<TestResult> results = new ArrayList<>();
@@ -159,7 +194,7 @@ public final class TestDriver {
                     () -> buildTestCase(initialStateSetup, chosen), beforeCleanupHook);
 
             results.add(result);
-            reportWriter.write(TestReport.from(result));
+            reportWriter.write(TestReport.from(result), reportSubdirectory);
 
             observedSteps.addAll(result.schedule());
             observedSteps.addAll(result.intraDependencies().getSteps());
@@ -262,7 +297,15 @@ public final class TestDriver {
         return pairs;
     }
 
-    private static boolean isFinding(TestResult result) {
+    /**
+     * Whether {@code result} is worth a developer's attention: it raised an
+     * {@link #INTERESTING_STATUSES interesting status} or a step threw.
+     * <p>
+     * Detected {@link Anomaly anomalies} deliberately do NOT make a run a finding
+     * by themselves — they are reported as evidence, but an anomaly alone does not
+     * mean the application misbehaved.
+     */
+    public static boolean isFinding(TestResult result) {
         return !result.exceptions().isEmpty()
                 || result.statuses().stream().anyMatch(INTERESTING_STATUSES::contains);
     }
@@ -337,15 +380,31 @@ public final class TestDriver {
     }
 
     /**
+     * Utility method, same as {@link #exploreGroup(FunctionalityCatalog,
+     * FunctionalityGroup, Consumer)}, but does not invoke any
+     * {@code beforeCleanupHook} with the run's result and data still in the
+     * database.
+     */
+    public List<TestResult> exploreGroup(FunctionalityCatalog catalog, FunctionalityGroup group) {
+        return exploreGroup(catalog, group, NO_BEFORE_CLEANUP_HOOK);
+    }
+
+    /**
      * Explores one {@link FunctionalityGroup}: builds the group's functionalities
-     * from the catalog on a fresh initial state per run and delegates to
-     * {@link #exploreTestCase}.
+     * from the catalog on a fresh initial state per run, writing the reports into
+     * the group's own {@link #reportsSubdirectoryOf subdirectory}.
      * <p>
      * A self-pair instantiates its functionality's factory twice — two
      * independent instances with the same arguments — with the second instance
      * registered under a {@code #2}-suffixed id.
+     * <p>
+     * {@code beforeCleanupHook} runs on each run's final state, receiving its
+     * result and being able to observe that run's data while it's still in the
+     * database.
      */
-    public List<TestResult> exploreGroup(FunctionalityCatalog catalog, FunctionalityGroup group) {
+    public List<TestResult> exploreGroup(
+            FunctionalityCatalog catalog, FunctionalityGroup group, Consumer<TestResult> beforeCleanupHook) {
+
         for (FunctionalityId member : group.members()) {
             if (!catalog.funcFactories().containsKey(member)) {
                 throw new IllegalArgumentException(
@@ -353,7 +412,7 @@ public final class TestDriver {
             }
         }
 
-        return exploreTestCase(() -> {
+        Supplier<TestCase.Builder> initialStateSetup = () -> {
             AggregateHandlesRegistry registry = catalog.initialStateSetup().get();
 
             TestCase.Builder builder = new TestCase.Builder();
@@ -366,7 +425,10 @@ public final class TestDriver {
                 builder.addFunctionality(instanceId, catalog.funcFactories().get(member).apply(registry));
             }
             return builder;
-        });
+        };
+
+        return exploreTestCase(
+                initialStateSetup, beforeCleanupHook, reportsSubdirectoryOf(catalog, group));
     }
 
     Oracle getOracle() {
