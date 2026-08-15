@@ -199,7 +199,7 @@ class TestDriverQuizzesAppTest {
         // A second tournament in the SAME course execution: the quota is counted per
         // course execution, so both tournaments must fall inside the same one.
         Integer tournament2 = factory.createTournament(
-                QuizzesTestFactory.TIME_1, QuizzesTestFactory.TIME_3, 1,
+                QuizzesTestFactory.time1(), QuizzesTestFactory.time3(), 1,
                 creatorId, executionId, List.of(topicId)).getAggregateId();
 
         // The user who will try to join both tournaments concurrently.

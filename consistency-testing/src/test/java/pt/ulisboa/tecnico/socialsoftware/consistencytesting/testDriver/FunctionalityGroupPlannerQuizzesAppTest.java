@@ -156,7 +156,7 @@ class FunctionalityGroupPlannerQuizzesAppTest {
             Integer tournamentAId = initialState.tournamentDto().getAggregateId();
 
             TournamentDto tournamentB = factory.createTournament(
-                    QuizzesTestFactory.TIME_1, QuizzesTestFactory.TIME_3, 1,
+                    QuizzesTestFactory.time1(), QuizzesTestFactory.time3(), 1,
                     creatorId, executionId, List.of(topicId));
 
             TournamentDto startedTournament = factory.createStartedTournament(
@@ -198,8 +198,8 @@ class FunctionalityGroupPlannerQuizzesAppTest {
         factories.put(UPDATE_B, registry -> {
             TournamentDto updateDto = new TournamentDto();
             updateDto.setAggregateId(registry.idOf("tournamentB"));
-            updateDto.setStartTime(DateHandler.toISOString(QuizzesTestFactory.TIME_1));
-            updateDto.setEndTime(DateHandler.toISOString(QuizzesTestFactory.TIME_3));
+            updateDto.setStartTime(DateHandler.toISOString(QuizzesTestFactory.time1()));
+            updateDto.setEndTime(DateHandler.toISOString(QuizzesTestFactory.time3()));
             updateDto.setNumberOfQuestions(1);
             return factory.createUpdateTournamentFunctionality(
                     unitOfWorkService, updateDto, Set.of(registry.idOf("topic")), gateway);

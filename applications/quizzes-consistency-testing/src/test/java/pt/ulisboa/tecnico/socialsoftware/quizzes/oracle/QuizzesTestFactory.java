@@ -38,10 +38,33 @@ public class QuizzesTestFactory {
 
     public static final String ANONYMOUS = "ANONYMOUS";
 
-    public static final LocalDateTime TIME_1 = DateHandler.now().plusMinutes(5);
-    public static final LocalDateTime TIME_2 = DateHandler.now().plusMinutes(25);
-    public static final LocalDateTime TIME_3 = DateHandler.now().plusHours(1).plusMinutes(5);
-    public static final LocalDateTime TIME_4 = DateHandler.now().plusHours(1).plusMinutes(25);
+    /*
+     * The reference instants are computed RELATIVE TO NOW on every call, never
+     * cached in a constant. For tests that run for many minutes, a
+     * "5 minutes from now" captured when the class loaded silently becomes a past
+     * instant halfway through it — turning every tournament created afterwards into
+     * an already-started one, which then rejects its participants and breaks the
+     * initial state.
+     */
+
+    /** Shortly in the future: the usual tournament start time. */
+    public static LocalDateTime time1() {
+        return DateHandler.now().plusMinutes(5);
+    }
+
+    public static LocalDateTime time2() {
+        return DateHandler.now().plusMinutes(25);
+    }
+
+    /** Comfortably in the future: the usual tournament end time. */
+    public static LocalDateTime time3() {
+        return DateHandler.now().plusHours(1).plusMinutes(5);
+    }
+
+    /** The furthest out: the usual course execution end date. */
+    public static LocalDateTime time4() {
+        return DateHandler.now().plusHours(1).plusMinutes(25);
+    }
 
     public static final Integer COURSE_EXECUTION_AGGREGATE_ID_1 = 1;
     public static final String COURSE_EXECUTION_NAME = "BLCM";
@@ -201,7 +224,7 @@ public class QuizzesTestFactory {
                 QuizzesTestFactory.COURSE_EXECUTION_TYPE,
                 QuizzesTestFactory.COURSE_EXECUTION_ACRONYM,
                 QuizzesTestFactory.COURSE_EXECUTION_ACADEMIC_TERM,
-                QuizzesTestFactory.TIME_4);
+                QuizzesTestFactory.time4());
 
         TopicDto topic = createTopic(courseExecution, QuizzesTestFactory.TOPIC_NAME_1);
 
@@ -215,8 +238,8 @@ public class QuizzesTestFactory {
                 courseExecution.getAggregateId(), user.getAggregateId());
 
         TournamentDto tournament = createTournament(
-                QuizzesTestFactory.TIME_1,
-                QuizzesTestFactory.TIME_3,
+                QuizzesTestFactory.time1(),
+                QuizzesTestFactory.time3(),
                 1,
                 user.getAggregateId(),
                 courseExecution.getAggregateId(),
@@ -357,7 +380,7 @@ public class QuizzesTestFactory {
             Integer userCreatorId, Integer courseExecutionId, List<Integer> topicIds) {
 
         return createTournament(
-                DateHandler.now().minusHours(1), TIME_3, 1,
+                DateHandler.now().minusHours(1), time3(), 1,
                 userCreatorId, courseExecutionId, topicIds);
     }
 

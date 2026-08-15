@@ -682,7 +682,7 @@ class OracleQuizzesAppTest {
                     QuizzesTestFactory.COURSE_EXECUTION_TYPE,
                     "EXTRA-CE",
                     "2023/2024",
-                    QuizzesTestFactory.TIME_4);
+                    QuizzesTestFactory.time4());
 
             RemoveCourseExecutionFunctionalitySagas removeFunc = factory.createRemoveCourseExecutionFunctionality(
                     sagaUnitOfWorkService,
