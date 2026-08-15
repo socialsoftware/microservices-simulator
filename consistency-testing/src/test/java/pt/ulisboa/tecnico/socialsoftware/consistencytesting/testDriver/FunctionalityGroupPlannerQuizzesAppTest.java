@@ -26,8 +26,8 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Functionality
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Oracle;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestStatus;
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testsupport.InitialState;
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testsupport.QuizzesTestFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.oracle.InitialState;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.oracle.QuizzesTestFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;

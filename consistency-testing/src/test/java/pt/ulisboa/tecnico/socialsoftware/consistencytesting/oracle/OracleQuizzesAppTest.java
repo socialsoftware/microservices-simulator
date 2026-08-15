@@ -25,8 +25,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testsupport.InitialState;
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testsupport.QuizzesTestFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.oracle.InitialState;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.oracle.QuizzesTestFactory;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testsupport.ReadsFromAssertions;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.FunctionalityUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;

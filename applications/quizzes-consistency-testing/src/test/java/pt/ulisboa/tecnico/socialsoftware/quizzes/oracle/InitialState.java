@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.consistencytesting.testsupport;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.oracle;
 
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;

@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.consistencytesting.testsupport;
+package pt.ulisboa.tecnico.socialsoftware.quizzes.oracle;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
