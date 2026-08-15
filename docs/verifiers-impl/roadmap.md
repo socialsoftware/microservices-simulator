@@ -1,6 +1,6 @@
 # Verifier roadmap
 
-Last updated: 2026-08-01
+Last updated: 2026-08-15
 
 [`current-state.md`](current-state.md) describes what exists now and the evidence behind it. This roadmap describes the remaining outcomes, why they matter to the thesis, their dependencies, and what would count as done. It deliberately avoids repeating current metrics and commands.
 
@@ -113,34 +113,35 @@ Fault-vector search assumes that reward differences come from the vector/scenari
 - repeated controls have stable terminal/conformance and impact results within the defined boundary;
 - the reset mechanism remains application-agnostic for the supported Saga/local profile.
 
-## Outcome 4 — Broaden impact only when a signal discriminates
+## Outcome 4 — Characterize one harmful workload before broadening impact
 
 ### Goal
 
-Add the smallest application-independent impact signal that detects a harmful outcome invisible to invariant-count ImpactV1.
+Turn one already demonstrated harmful Quizzes interaction into a persisted, generated, repeatably executable benchmark. Run its bounded fault and recovery space and record execution validity, existing ImpactV1 evidence, and the known final-state condition separately.
+
+Use that result landscape to decide the smallest broader impact contract and later GA reward. Do not choose weights, category ordering, or a general application-check framework before this evidence exists.
 
 ### Why it matters
 
-ImpactV1 observes thrown aggregate-invariant rejections. It cannot detect silent compensation mistakes, incorrect final state, missing postconditions, or other domain-visible divergence. Adding many weak metrics would recreate the current reporting problem and make search results hard to interpret.
+ImpactV1 observes thrown aggregate-invariant rejections, but the exploratory Quizzes tests already prove repeatable harmful final states that it misses. The next uncertainty is not whether those states exist. It is whether the normal generator and executor can reproduce one of them, which fault scenarios produce it, and whether the observed landscape is useful for search.
 
-### Candidate signal families
+### First experiment
 
-Evaluate only against explicit positive and negative controls:
+- reuse the existing `RemoveTournament` and `AddParticipant` recovery-window evidence;
+- identify only the missing generation, shared-input, recovery, execution, and final-state observation capabilities;
+- persist the exact workload and its bounded FaultScenarios through the normal package path;
+- replay a known harmful case and a safe control from fresh state;
+- produce a simple per-scenario table rather than a premature combined score.
 
-- final aggregate/state divergence from the all-zero control;
-- compensation postcondition failure;
-- incomplete or inconsistent Saga lifecycle state after an otherwise evaluated attempt;
-- explicit application-independent postcondition contracts, if the simulator can expose them generically.
-
-Unhandled infrastructure failures, latency, logs, and trace errors should not automatically become impact. They need a clear domain interpretation and evaluation boundary first.
+The final-state rule is applied once across executions: an active Tournament referring to its deleted Quiz is harmful for this experiment. Setup or infrastructure failure remains not evaluated. Existing invariant rejections stay separately visible.
 
 ### Done when
 
-- one new signal catches a demonstrated harmful case missed by ImpactV1;
-- a safe compensation and ordinary failure control remain non-harmful or not evaluated as appropriate;
-- the report separates raw finding facts from any scalar score;
-- the model has a clear rule for invalid attempts and correlation to one execution attempt;
-- the signal is useful enough to change ranking or search reward in a representative set.
+- the selected interaction is a valid persisted WorkloadPlan with executable FaultScenarios rather than only a hand-driven test;
+- repeated execution reproduces the known harmful final state and a safe control;
+- the bounded fault/recovery landscape records valid, harmful-for-this-rule, safe-for-this-rule, and not-evaluated outcomes without manual per-scenario labels;
+- package, scenario, execution, and result identities are reproducible;
+- the evidence supports a concrete decision about the minimum later impact contract and whether a GA reward has useful variation.
 
 ## Outcome 5 — Refresh dynamic attribution only for a concrete need
 
