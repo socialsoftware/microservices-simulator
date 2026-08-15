@@ -5,8 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.OrderDto;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.order.aggregate.sagas.SagaOrder;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 public class SagaOrderDto extends OrderDto {
+@Convert(converter = SagaStateConverter.class)
 private SagaState sagaState;
 
 public SagaOrderDto(Order order) {

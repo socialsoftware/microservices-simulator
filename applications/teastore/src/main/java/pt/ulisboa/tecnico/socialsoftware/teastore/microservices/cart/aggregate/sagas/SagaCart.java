@@ -6,9 +6,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaSt
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.teastore.microservices.cart.aggregate.Cart;
 import pt.ulisboa.tecnico.socialsoftware.teastore.shared.dtos.CartDto;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 @Entity
 public class SagaCart extends Cart implements SagaAggregate {
+    @Convert(converter = SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaCart() {

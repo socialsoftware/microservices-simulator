@@ -1,0 +1,23 @@
+package pt.ulisboa.tecnico.socialsoftware.quizzesfull2.commands.question;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+
+public class DeleteQuestionCommand extends Command {
+    private Integer questionAggregateId;
+
+    protected DeleteQuestionCommand() {}
+
+    public DeleteQuestionCommand(UnitOfWork unitOfWork, String serviceName, Integer questionAggregateId) {
+        super(unitOfWork, serviceName, questionAggregateId);
+        this.questionAggregateId = questionAggregateId;
+    }
+
+    public Integer getQuestionAggregateId() {
+        return questionAggregateId;
+    }
+
+    public void setQuestionAggregateId(Integer questionAggregateId) {
+        this.questionAggregateId = questionAggregateId;
+    }
+}

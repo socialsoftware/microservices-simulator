@@ -6,9 +6,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaSt
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.Execution;
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 @Entity
 public class SagaExecution extends Execution implements SagaAggregate {
+    @Convert(converter = SagaStateConverter.class)
     private SagaState sagaState;
 
     public SagaExecution() {

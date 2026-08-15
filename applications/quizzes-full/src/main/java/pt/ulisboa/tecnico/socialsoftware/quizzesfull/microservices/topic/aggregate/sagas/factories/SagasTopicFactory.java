@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggreg
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.Topic;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicCourse;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.TopicFactory;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.sagas.SagaTopic;
@@ -12,12 +13,12 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggrega
 public class SagasTopicFactory implements TopicFactory {
 
     @Override
-    public Topic createTopic(Integer aggregateId, TopicDto topicDto) {
-        return new SagaTopic(aggregateId, topicDto);
+    public SagaTopic createTopic(Integer aggregateId, String name, TopicCourse topicCourse) {
+        return new SagaTopic(aggregateId, name, topicCourse);
     }
 
     @Override
-    public Topic createTopicFromExisting(Topic existing) {
+    public SagaTopic createTopicCopy(Topic existing) {
         return new SagaTopic((SagaTopic) existing);
     }
 

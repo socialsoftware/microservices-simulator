@@ -5,6 +5,9 @@ import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.CreateCourseCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.GetCourseByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.DeleteCourseCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.commands.course.UpdateCourseCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.service.CourseService;
 
 import java.util.logging.Logger;
@@ -24,15 +27,23 @@ public class CourseCommandHandler extends CommandHandler {
     @Override
     public Object handleDomainCommand(Command command) {
         return switch (command) {
-            case CreateCourseCommand cmd -> handleCreateCourse(cmd);
+            case GetCourseByIdCommand cmd -> courseService.getCourseById(
+                    cmd.getCourseAggregateId(), cmd.getUnitOfWork());
+            case CreateCourseCommand cmd -> courseService.createCourse(
+                    cmd.getName(), cmd.getType(), cmd.getUnitOfWork());
+            case UpdateCourseCommand cmd -> {
+                courseService.updateCourse(
+                        cmd.getCourseAggregateId(), cmd.getName(), cmd.getType(), cmd.getUnitOfWork());
+                yield null;
+            }
+            case DeleteCourseCommand cmd -> {
+                courseService.deleteCourse(cmd.getCourseAggregateId(), cmd.getUnitOfWork());
+                yield null;
+            }
             default -> {
                 logger.warning("Unknown command type: " + command.getClass().getName());
                 yield null;
             }
         };
-    }
-
-    private Object handleCreateCourse(CreateCourseCommand command) {
-        return courseService.createCourse(command.getCourseDto(), command.getUnitOfWork());
     }
 }

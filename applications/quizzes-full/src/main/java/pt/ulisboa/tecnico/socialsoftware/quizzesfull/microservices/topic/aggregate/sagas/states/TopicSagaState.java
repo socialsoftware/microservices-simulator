@@ -8,5 +8,5 @@ public enum TopicSagaState implements SagaState {
         public String getStateName() {
             return "READ_TOPIC";
         }
-    }
+    },
 }

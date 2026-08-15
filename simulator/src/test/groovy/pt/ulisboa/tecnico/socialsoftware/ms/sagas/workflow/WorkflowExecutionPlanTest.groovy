@@ -135,7 +135,7 @@ class WorkflowExecutionPlanTest extends SpockTest {
         workflow.execute(unitOfWork).join()
 
         then:
-        1 * unitOfWork.registerCompensation(_ as Runnable)
+        1 * unitOfWork.registerCompensation('compensatedStep', _ as Runnable)
         1 * unitOfWorkService.commit(unitOfWork)
         0 * unitOfWorkService.abort(_)
     }

@@ -1,0 +1,5 @@
+run
+getUserStep,0,0,0
+getStudentStep,0,0,0
+getTournamentStep,0,0,0
+addParticipantStep,1,0,0

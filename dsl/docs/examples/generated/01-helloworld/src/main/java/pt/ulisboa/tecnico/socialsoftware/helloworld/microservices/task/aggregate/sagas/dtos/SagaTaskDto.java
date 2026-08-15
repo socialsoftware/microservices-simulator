@@ -5,8 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.helloworld.microservices.task.aggregate
 import pt.ulisboa.tecnico.socialsoftware.helloworld.shared.dtos.TaskDto;
 import pt.ulisboa.tecnico.socialsoftware.helloworld.microservices.task.aggregate.sagas.SagaTask;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 public class SagaTaskDto extends TaskDto {
+@Convert(converter = SagaStateConverter.class)
 private SagaState sagaState;
 
 public SagaTaskDto(Task task) {

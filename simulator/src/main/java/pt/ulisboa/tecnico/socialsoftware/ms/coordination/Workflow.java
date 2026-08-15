@@ -22,6 +22,7 @@ public abstract class Workflow {
     private ExecutionPlan executionPlan; // redefined for each transaction model
     private final HashMap<String, FlowStep> stepNameMap = new HashMap<>();
     private TraceManager traceManager;
+    protected boolean aborted = false;
 
     public Workflow(WorkflowFunctionality functionality, UnitOfWorkService unitOfWorkService, UnitOfWork unitOfWork) {
         this.functionality = functionality;
@@ -75,7 +76,15 @@ public abstract class Workflow {
         this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "hasBehaviour", hasBehaviour);
 
         FlowStep targetStep = getStepByName(stepName);
-        executionPlan.executeUntilStep(targetStep, unitOfWork).join();
+        try {
+            executionPlan.executeUntilStep(targetStep, unitOfWork).join();
+        } catch (CompletionException e) {
+            this.aborted = true;
+            throw e;
+        } catch (SimulatorException e) {
+            this.aborted = true;
+            throw e;
+        }
     }
 
     public CompletableFuture<Void> resume(UnitOfWork unitOfWork) {
@@ -87,6 +96,7 @@ public abstract class Workflow {
                     this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
                 })
                 .exceptionally(ex -> {
+                    this.aborted = true;
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
 
                     this.traceManager.recordException(unitOfWork.getFunctionalityName(), ex, ex.getMessage());
@@ -101,6 +111,7 @@ public abstract class Workflow {
                     }
                 });
         } catch (SimulatorException e) {
+            this.aborted = true;
             this.traceManager.recordWarning(unitOfWork.getFunctionalityName(), e, e.getMessage());
             this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
             unitOfWorkService.abort(unitOfWork);
@@ -115,6 +126,14 @@ public abstract class Workflow {
             throw new IllegalArgumentException("Step with name " + stepName + " not found.");
         }
         return step;
+    }
+
+    public void compensateUntilStep(String stepName, UnitOfWork unitOfWork) {
+        throw new UnsupportedOperationException("Compensations are only supported for sagas");
+    }
+
+    public void resumeCompensation(UnitOfWork unitOfWork) {
+        throw new UnsupportedOperationException("Compensations are only supported for sagas");
     }
 
     public abstract ExecutionPlan planOrder(HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies);
@@ -142,6 +161,7 @@ public abstract class Workflow {
                     this.traceManager.endSpanForFunctionality(functionalityName);
                 })
                 .exceptionally(ex -> {
+                    this.aborted = true;
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
 
                     this.traceManager.recordException(functionalityName, ex, ex.getMessage());
@@ -159,6 +179,7 @@ public abstract class Workflow {
                     }
                 });
         } catch (SimulatorException e) {
+            this.aborted = true;
             this.traceManager.recordWarning(functionalityName, e, e.getMessage());
             this.traceManager.endSpanForFunctionality(functionalityName);
             unitOfWorkService.abort(unitOfWork);

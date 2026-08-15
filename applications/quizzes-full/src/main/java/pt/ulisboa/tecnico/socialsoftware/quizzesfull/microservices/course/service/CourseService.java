@@ -11,6 +11,8 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggreg
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseCustomRepository;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.CourseFactory;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullErrorMessage;
+import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.exception.QuizzesFullException;
 
 @Service
 public class CourseService {
@@ -18,16 +20,15 @@ public class CourseService {
     @Autowired
     private AggregateIdGeneratorService aggregateIdGeneratorService;
 
-    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
-
-    private final CourseCustomRepository courseCustomRepository;
-
     @Autowired
     private CourseFactory courseFactory;
 
-    public CourseService(UnitOfWorkService unitOfWorkService, CourseCustomRepository courseCustomRepository) {
+    private final UnitOfWorkService<UnitOfWork> unitOfWorkService;
+    private final CourseCustomRepository courseRepository;
+
+    public CourseService(UnitOfWorkService unitOfWorkService, CourseCustomRepository courseRepository) {
         this.unitOfWorkService = unitOfWorkService;
-        this.courseCustomRepository = courseCustomRepository;
+        this.courseRepository = courseRepository;
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -37,23 +38,24 @@ public class CourseService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public CourseDto createCourse(CourseDto courseDto, UnitOfWork unitOfWork) {
+    public CourseDto createCourse(String name, String type, UnitOfWork unitOfWork) {
         Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-        Course course = courseFactory.createCourse(aggregateId, courseDto);
+        Course course = courseFactory.createCourse(aggregateId, name, type);
         unitOfWorkService.registerChanged(course, unitOfWork);
         return courseFactory.createCourseDto(course);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public CourseDto getOrCreateCourse(CourseDto courseDto, UnitOfWork unitOfWork) {
-        Course course = courseCustomRepository.findCourseIdByName(courseDto.getName())
-                .map(id -> (Course) unitOfWorkService.aggregateLoadAndRegisterRead(id, unitOfWork))
-                .orElse(null);
-        if (course == null) {
-            Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
-            course = courseFactory.createCourse(aggregateId, courseDto);
-            unitOfWorkService.registerChanged(course, unitOfWork);
-        }
-        return courseFactory.createCourseDto(course);
+    public void updateCourse(Integer courseAggregateId, String name, String type, UnitOfWork unitOfWork) {
+        // COURSE_NAME_FINAL and COURSE_TYPE_FINAL are P1 invariants (final fields) — update is not permitted
+        throw new QuizzesFullException(QuizzesFullErrorMessage.COURSE_FIELDS_IMMUTABLE);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deleteCourse(Integer courseAggregateId, UnitOfWork unitOfWork) {
+        Course oldCourse = (Course) unitOfWorkService.aggregateLoadAndRegisterRead(courseAggregateId, unitOfWork);
+        Course newCourse = courseFactory.createCourseCopy(oldCourse);
+        newCourse.remove();
+        unitOfWorkService.registerChanged(newCourse, unitOfWork);
     }
 }
