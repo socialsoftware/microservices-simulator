@@ -83,3 +83,16 @@ Plans approve outcomes and change boundaries, not exhaustive file allowlists. Ne
 - Preserve unrelated dirty work.
 - Never perform destructive, production, deployment, release, push, or merge actions without explicit authority.
 - Run the narrowest meaningful validation and report checks honestly.
+
+## Application-Generation Harness
+
+The aggregate-by-aggregate application-generation harness is a supported, explicitly scoped workflow; it is not the repository's default objective. Use it only when the user requests generated-application work, then follow `docs/workflow.md`, the relevant material under `docs/concepts/` and `docs/templates/`, and the target application's local guidance.
+
+Generated application service code must remain profile-agnostic: service classes depend on abstract factories and repository interfaces, not concrete Saga-profile implementations. This preserves compatibility with other transactional profiles.
+
+Relevant module guidance:
+
+- `simulator/AGENTS.md` for framework-specific work;
+- `applications/quizzes/AGENTS.md` for Quizzes application-generation work.
+
+For that workflow, install the simulator first with `cd simulator && mvn install`, then run application tests from the application module with the required profile, for example `cd applications/quizzes && mvn -Ptest-sagas test`.

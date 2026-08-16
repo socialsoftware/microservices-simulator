@@ -129,10 +129,13 @@ class FaultVectorProviderTest {
         FlowStep reserveStock = new TestStep("reserveStock", () -> { });
         ExecutionPlan executionPlan = executionPlan(List.of(reserveStock));
 
-        assertThatThrownBy(() -> executionPlan.execute(new TestUnitOfWork(1L, "checkout")))
-                .isInstanceOf(SimulatorException.class)
-                .isNotInstanceOf(FaultVectorInjectedFaultException.class)
-                .hasMessageContaining("Fault on reserveStock");
+        assertThatThrownBy(() -> executionPlan.execute(new TestUnitOfWork(1L, "checkout")).join())
+                .isInstanceOf(CompletionException.class)
+                .hasCauseInstanceOf(SimulatorException.class)
+                .satisfies(error -> {
+                    assertThat(error.getCause()).isNotInstanceOf(FaultVectorInjectedFaultException.class);
+                    assertThat(error.getCause()).hasMessageContaining("Fault on reserveStock");
+                });
     }
 
     @Test

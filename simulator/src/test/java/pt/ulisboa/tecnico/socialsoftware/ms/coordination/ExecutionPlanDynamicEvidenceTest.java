@@ -3,6 +3,11 @@ package pt.ulisboa.tecnico.socialsoftware.ms.coordination;
 import io.opentelemetry.api.trace.Span;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorBoundaryContext;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorFault;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorInjectedFaultException;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.InMemoryFaultVectorProvider;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceContext;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceEvent;
@@ -35,6 +40,7 @@ class ExecutionPlanDynamicEvidenceTest {
     void resetRecorder() {
         DynamicEvidenceRecorderHolder.setRecorder(new DynamicEvidenceNoopRecorder());
         DynamicEvidenceContext.clear();
+        FaultVectorProviderHolder.clear();
         clearTraceManagerState();
         Thread.interrupted();
     }
@@ -74,6 +80,47 @@ class ExecutionPlanDynamicEvidenceTest {
         assertThat(contextDuringStep.get().functionalityClassSimpleName()).isEqualTo(TestFunctionality.class.getSimpleName());
         assertThat(contextDuringStep.get().stepName()).isEqualTo("reserveStock");
         assertThat(contextDuringStep.get().unitOfWorkVersion()).isEqualTo(41L);
+        assertThat(DynamicEvidenceContext.current()).isEmpty();
+    }
+
+    @Test
+    void schedulesArbitraryDepthOutOfOrderThroughInstrumentationBeforeAssignedFault() {
+        RecordingRecorder recorder = new RecordingRecorder();
+        DynamicEvidenceRecorderHolder.setRecorder(recorder);
+        List<String> calls = new CopyOnWriteArrayList<>();
+        FlowStep first = new TestStep("first", () -> calls.add("first"));
+        FlowStep second = new TestStep("second", () -> calls.add("second"));
+        FlowStep third = new TestStep("third", () -> calls.add("third"));
+        FlowStep fourth = new TestStep("fourth", () -> calls.add("fourth"));
+        second.setDependencies(new ArrayList<>(List.of(first)));
+        third.setDependencies(new ArrayList<>(List.of(second)));
+        fourth.setDependencies(new ArrayList<>(List.of(third)));
+        ArrayList<FlowStep> plan = new ArrayList<>(List.of(fourth, third, second, first));
+        HashMap<FlowStep, ArrayList<FlowStep>> dependencies = new HashMap<>();
+        dependencies.put(first, new ArrayList<>());
+        dependencies.put(second, new ArrayList<>(List.of(first)));
+        dependencies.put(third, new ArrayList<>(List.of(second)));
+        dependencies.put(fourth, new ArrayList<>(List.of(third)));
+        FaultVectorBoundaryContext context = new FaultVectorBoundaryContext(
+                "execution-1", "plan-1", "saga-1", "scheduled-third", 2,
+                TestFunctionality.class.getName(), TestFunctionality.class.getSimpleName(), "third", 1);
+
+        try (FaultVectorProviderHolder.Scope ignoredProvider = FaultVectorProviderHolder.install(
+                new InMemoryFaultVectorProvider(Map.of(2, FaultVectorFault.from(context))));
+             FaultVectorProviderHolder.BoundaryScope ignoredBoundary = FaultVectorProviderHolder.enterBoundary(context)) {
+            CompletableFuture<Void> execution = new ExecutionPlan(plan, dependencies, new TestFunctionality())
+                    .execute(new TestUnitOfWork(49L, "checkout"));
+
+            assertThatThrownBy(execution::join)
+                    .isInstanceOf(CompletionException.class)
+                    .hasCauseInstanceOf(FaultVectorInjectedFaultException.class);
+        }
+
+        assertThat(calls).containsExactly("first", "second");
+        assertThat(recorder.events).extracting(DynamicEvidenceEvent::getStepName)
+                .containsExactly("first", "first", "second", "second");
+        assertThat(recorder.events).extracting(DynamicEvidenceEvent::getEventKind)
+                .containsExactly("STEP_STARTED", "STEP_FINISHED", "STEP_STARTED", "STEP_FINISHED");
         assertThat(DynamicEvidenceContext.current()).isEmpty();
     }
 

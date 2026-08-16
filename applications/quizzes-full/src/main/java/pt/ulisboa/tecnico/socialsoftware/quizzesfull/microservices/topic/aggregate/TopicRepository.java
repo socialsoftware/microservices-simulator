@@ -1,6 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface TopicRepository extends AggregateRepository, TopicCustomRepository {
-}
+@Repository
+@Transactional
+public interface TopicRepository extends JpaRepository<Topic, Integer> {}

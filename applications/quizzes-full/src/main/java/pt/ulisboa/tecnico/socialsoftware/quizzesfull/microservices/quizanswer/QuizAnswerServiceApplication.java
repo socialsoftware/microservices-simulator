@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
 
-@Profile("quizAnswer-service")
+@Profile("quizanswer-service")
 @SpringBootApplication(scanBasePackages = {
         "pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer",
         "pt.ulisboa.tecnico.socialsoftware.ms",
@@ -21,11 +21,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
 })
 @EntityScan(basePackages = {
         "pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer",
-        "pt.ulisboa.tecnico.socialsoftware.quizzesfull.events",
-        "pt.ulisboa.tecnico.socialsoftware.ms"
+        "pt.ulisboa.tecnico.socialsoftware.ms",
 })
 @EnableScheduling
 public class QuizAnswerServiceApplication implements InitializingBean {
+
     @Autowired
     private EventService eventService;
 

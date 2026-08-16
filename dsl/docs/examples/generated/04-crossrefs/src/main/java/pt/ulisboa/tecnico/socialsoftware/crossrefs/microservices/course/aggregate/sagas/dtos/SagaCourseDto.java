@@ -5,8 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggregat
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.shared.dtos.CourseDto;
 import pt.ulisboa.tecnico.socialsoftware.crossrefs.microservices.course.aggregate.sagas.SagaCourse;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 public class SagaCourseDto extends CourseDto {
+@Convert(converter = SagaStateConverter.class)
 private SagaState sagaState;
 
 public SagaCourseDto(Course course) {

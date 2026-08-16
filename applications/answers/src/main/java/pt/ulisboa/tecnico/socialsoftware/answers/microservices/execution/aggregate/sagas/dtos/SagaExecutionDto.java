@@ -5,8 +5,11 @@ import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggrega
 import pt.ulisboa.tecnico.socialsoftware.answers.shared.dtos.ExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.answers.microservices.execution.aggregate.sagas.SagaExecution;
 import pt.ulisboa.tecnico.socialsoftware.ms.sagas.aggregate.SagaAggregate.SagaState;
+import jakarta.persistence.Convert;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter;
 
 public class SagaExecutionDto extends ExecutionDto {
+@Convert(converter = SagaStateConverter.class)
 private SagaState sagaState;
 
 public SagaExecutionDto(Execution execution) {

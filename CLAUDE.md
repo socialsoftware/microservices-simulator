@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # Repository Guidance
 
 Read [`AGENTS.md`](AGENTS.md) for the repository's active instructions and [`CONTEXT-MAP.md`](CONTEXT-MAP.md) for canonical context.
