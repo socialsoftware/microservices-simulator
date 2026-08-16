@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
+import jakarta.persistence.EntityManager
 import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import pt.ulisboa.tecnico.socialsoftware.SpockTest
@@ -89,6 +90,8 @@ class QuizzesSpockTest extends SpockTest {
     public ImpairmentService impairmentService
     @Autowired(required = false)
     protected SagaUnitOfWorkService unitOfWorkService
+    @Autowired
+    protected EntityManager entityManager
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -158,5 +161,13 @@ class QuizzesSpockTest extends SpockTest {
         def uow = unitOfWorkService.createUnitOfWork("TEST")
         def agg = (SagaAggregate) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, uow)
         return agg.getSagaState()
+    }
+
+    // Same as sagaStateOf but forces a DB fetch: flush pending changes and clear the
+    // persistence context so the load cannot be served from the in-memory cache.
+    SagaState sagaStateOfFromDb(Integer aggregateId) {
+        entityManager.flush()
+        entityManager.clear()
+        return sagaStateOf(aggregateId)
     }
 }
