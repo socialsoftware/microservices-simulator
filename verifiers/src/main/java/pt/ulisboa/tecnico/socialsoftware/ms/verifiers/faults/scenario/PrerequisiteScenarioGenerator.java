@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 public final class PrerequisiteScenarioGenerator {
-    public static final String SCHEMA_VERSION = "microservices-simulator.prerequisite-scenario-descriptor.v1";
+    public static final String SCHEMA_VERSION = "microservices-simulator.prerequisite-scenario-descriptor.v2";
     public static final String DEFAULT_RELATIVE_PATH = "src/test/resources/verifier-prerequisite-scenarios.json";
 
     private final ObjectMapper mapper;
@@ -199,6 +199,9 @@ public final class PrerequisiteScenarioGenerator {
     }
 
     private boolean selectedEventRoute(WorkloadPlan workload, ScenarioDescriptor descriptor) {
+        if (descriptor.selectionKind() == SelectionKind.NO_EVENT) {
+            return workload.eventConsequences().isEmpty();
+        }
         return workload.eventConsequences().size() == 1
                 && Objects.equals(workload.eventConsequences().get(0).eventTypeFqn(), descriptor.eventTypeFqn())
                 && Objects.equals(workload.eventConsequences().get(0).eventHandlingClassFqn(),
@@ -224,10 +227,19 @@ public final class PrerequisiteScenarioGenerator {
     private void validateDescriptor(ScenarioDescriptor descriptor) {
         if (descriptor == null || blank(descriptor.id()) || blank(descriptor.providerId())
                 || blank(descriptor.providerVersion()) || descriptor.participants().size() < 2
-                || descriptor.forwardRuntimeOrder().isEmpty() || blank(descriptor.eventTypeFqn())
-                || blank(descriptor.eventHandlingClassFqn()) || blank(descriptor.eventHandlingMethodName())
+                || descriptor.forwardRuntimeOrder().isEmpty() || descriptor.selectionKind() == null
                 || descriptor.expectedWorkloadCount() < 1) {
             throw new IllegalArgumentException("Malformed prerequisite scenario descriptor");
+        }
+        boolean completeEventRoute = !blank(descriptor.eventTypeFqn())
+                && !blank(descriptor.eventHandlingClassFqn())
+                && !blank(descriptor.eventHandlingMethodName());
+        boolean hasAnyEventField = !blank(descriptor.eventTypeFqn())
+                || !blank(descriptor.eventHandlingClassFqn())
+                || !blank(descriptor.eventHandlingMethodName());
+        if ((descriptor.selectionKind() == SelectionKind.EVENT && !completeEventRoute)
+                || (descriptor.selectionKind() == SelectionKind.NO_EVENT && hasAnyEventField)) {
+            throw new IllegalArgumentException("Malformed prerequisite scenario descriptor event selection");
         }
     }
 
@@ -252,12 +264,18 @@ public final class PrerequisiteScenarioGenerator {
         }
     }
 
+    public enum SelectionKind {
+        EVENT,
+        NO_EVENT
+    }
+
     public record ScenarioDescriptor(
             String id,
             String providerId,
             String providerVersion,
             List<ParticipantBinding> participants,
             List<String> forwardRuntimeOrder,
+            SelectionKind selectionKind,
             String eventTypeFqn,
             String eventHandlingClassFqn,
             String eventHandlingMethodName,

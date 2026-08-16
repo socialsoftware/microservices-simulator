@@ -30,6 +30,9 @@ public class QuizzesStaleReadPrerequisiteProvider implements ScenarioPrerequisit
     public static final String PROVIDER_VERSION = "1";
     public static final String UPDATED_NAME = "UpdatedName";
 
+    private Map<String, Object> preparedBindings;
+    private Integer preparedQuizAggregateId;
+
     @Override
     public String providerId() {
         return PROVIDER_ID;
@@ -41,8 +44,12 @@ public class QuizzesStaleReadPrerequisiteProvider implements ScenarioPrerequisit
     }
 
     @Override
-    public ScenarioPrerequisiteResult prepare(ScenarioRuntimeContext runtimeContext,
-                                              List<BaselineBindingRequirement> requiredBindings) {
+    public synchronized ScenarioPrerequisiteResult prepare(ScenarioRuntimeContext runtimeContext,
+                                                           List<BaselineBindingRequirement> requiredBindings) {
+        if (preparedBindings != null) {
+            return result(preparedBindings, requiredBindings, "reused");
+        }
+
         ExecutionFunctionalities executions = bean(runtimeContext, ExecutionFunctionalities.class);
         UserFunctionalities users = bean(runtimeContext, UserFunctionalities.class);
         TopicFunctionalities topics = bean(runtimeContext, TopicFunctionalities.class);
@@ -93,8 +100,21 @@ public class QuizzesStaleReadPrerequisiteProvider implements ScenarioPrerequisit
         bindings.put("tournamentAggregateId", tournament.getAggregateId());
         bindings.put("updatedUser", updatedUser);
 
+        preparedBindings = Map.copyOf(bindings);
+        preparedQuizAggregateId = tournament.getQuiz().getAggregateId();
+        return result(preparedBindings, requiredBindings, "created");
+    }
+
+    private ScenarioPrerequisiteResult result(Map<String, Object> bindings,
+                                              List<BaselineBindingRequirement> requiredBindings,
+                                              String baselineInstance) {
         Map<String, String> evidence = new LinkedHashMap<>();
-        evidence.put("baseline", "creator enrolled in course execution and owns tournament");
+        evidence.put("baseline", "creator enrolled in course execution and owns participant-free tournament");
+        evidence.put("baselineInstance", baselineInstance);
+        evidence.put("courseExecutionAggregateId", bindings.get("courseExecutionAggregateId").toString());
+        evidence.put("participantUserAggregateId", bindings.get("creatorUserAggregateId").toString());
+        evidence.put("referencedQuizAggregateId", preparedQuizAggregateId.toString());
+        evidence.put("tournamentAggregateId", bindings.get("tournamentAggregateId").toString());
         evidence.put("provider", PROVIDER_ID + "@" + PROVIDER_VERSION);
         evidence.put("requiredBindingCount", Integer.toString(requiredBindings.size()));
         return new ScenarioPrerequisiteResult(bindings, evidence);

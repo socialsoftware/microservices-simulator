@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-08-01
+Last updated: 2026-08-16
 
 This is the canonical handbook for verifier and fault-analysis scenario work. It owns the current conceptual model, terminology, supported operations, latest representative evidence, reproduction commands, and limitations. [`roadmap.md`](roadmap.md) owns future direction. [`decisions/`](decisions/index.md) explains the few design choices whose rationale is not obvious from current behavior.
 
@@ -25,6 +25,7 @@ The verifier does **not** prove that an application is correct. It currently ans
 3. Which generated inputs are static setup candidates, and which can actually start in the current Saga/local runtime?
 4. What happened when one persisted FaultScenario was replayed?
 5. Did that attempt trigger an observed aggregate-invariant rejection?
+6. For the bounded Quizzes RemoveTournament–AddParticipant benchmark, did final state satisfy its explicit broken-reference rule?
 
 The current high-level Quizzes result is:
 
@@ -126,6 +127,12 @@ ImpactV1 = invariantViolationCount
 
 It counts structured `INVARIANT_VIOLATION` events emitted when the existing Saga aggregate-write boundary rejects a change through `Aggregate.verifyInvariants()`. It does not infer harm from an assigned fault, abort, or compensation alone.
 
+### Benchmark observation
+
+A **benchmark observation** is an application-side evaluation record joined to one persisted package, FaultScenario, execution attempt, and ImpactV1 report. The current Quizzes RemoveTournament–AddParticipant benchmark applies one bounded final-state predicate: an active Tournament still referring to the observed deleted Quiz is `HARMFUL_FOR_RULE`. A valid observation additionally requires the latest raw persisted Tournament Saga-state column to decode through `SagaStateConverter` as exact `GenericSagaState.NOT_IN_SAGA`; SQL null, missing, malformed, wrong-class, or different-state evidence is `NOT_EVALUATED`. `NO_BROKEN_REFERENCE` means only that the predicate is false after this proof succeeds; it is not a global safety claim.
+
+This observation is additive test/evaluation evidence. It does not change package v4, ScenarioExecutor, ImpactV1, production Quizzes behavior, or measured final state.
+
 ## Inputs and static extraction
 
 ### Inputs consumed
@@ -193,7 +200,7 @@ Accepted inputs embed `microservices-simulator.input-recipe.v2` under `WorkloadP
 - typed `baseline_binding` nodes supplied by an exact prerequisite provider;
 - unresolved nodes with blockers.
 
-The executor materializes a supported subset. Runtime-owned arguments currently include `SagaUnitOfWorkService`, `CommandGateway`, and a fresh `SagaUnitOfWork`. A baseline binding is materializable only when the persisted provider id/version is present and the provider returns the required key with the persisted exact type. Applications may declare bounded prerequisite workloads in `src/test/resources/verifier-prerequisite-scenarios.json`; the generic adapter resolves the named Saga steps and exact event route without application FQNs in verifier production code. The matching provider may live on the application's test classpath. Unsupported calls and unresolved source values remain blockers.
+The executor materializes a supported subset. Runtime-owned arguments currently include `SagaUnitOfWorkService`, `CommandGateway`, and a fresh `SagaUnitOfWork`. A baseline binding is materializable only when the persisted provider id/version is present and the provider returns the required key with the persisted exact type. Applications may declare bounded prerequisite workloads in `src/test/resources/verifier-prerequisite-scenarios.json`; descriptor schema `microservices-simulator.prerequisite-scenario-descriptor.v2` requires `selectionKind=EVENT|NO_EVENT`. `EVENT` preserves the exact selected route, while `NO_EVENT` rejects event-route fields and selects only a source-derived workload with no event consequence. The generic adapter resolves named Saga steps without application FQNs in verifier production code. The matching provider may live on the application's test classpath. Unsupported calls and unresolved source values remain blockers.
 
 Recipe readiness, catalog acceptance, static setup candidacy, runtime setup readiness, and successful execution are different stages. Do not collapse them into one “executable” count.
 
@@ -675,6 +682,50 @@ rejected inputs:   dd4b4a7051600d5856df6c02a2230a1971b9c7092e85f43130c89e4f959ea
 
 This proves one realistic Saga/local event interaction is statically represented, prerequisite-bound, causally replayed, discriminating under ImpactV1, and repeatable at the fresh-process/H2 boundary. It does not prove generic fan-out, nested event chains, distributed event replay, same-process reset, or broad event-pattern coverage.
 
+### Quizzes persisted RemoveTournament–AddParticipant benchmark
+
+The no-event descriptor selects this exact source-derived forward and fault-slot order:
+
+```text
+getTournamentStep -> removeQuizStep -> removeTournamentStep -> getUserStep -> addParticipantStep
+```
+
+The authoritative package was generated after merging `origin/master` at `45fcdb81a130c4df99418c5060468753b70b6fcd`:
+
+```text
+package:       verifiers/target/persisted-remove-add-benchmark/quizzes-20260816-170828-044/
+manifest SHA:  aa87cdcfa811bdb4726def9f760c54b74eb818db1270937fb052404c36d8364c
+WorkloadPlan:  c2c26ffa89e647e9be3c4b2d20289a711674714a9736d195acf45a19bf816c5f
+recovery cap:  20
+control:       00000 / 48fd7658066475567b17edd29e38220622f7581a056a6b0a372247f96a73f156
+known harmful: 00100 / e8ce3c2e7d03aeab87acf346ab2e2418fcda5890c16afb88967584dada8f58ee
+```
+
+The existing `quizzes-stale-read-baseline@1` provider creates and reports an active participant-free Tournament, its generated Quiz, an enrolled participant user, and the exact typed bindings. It is process-idempotent for preflight reuse; every measured attempt still uses a separate process and in-memory H2 database. Fresh preflight reports all 9 candidates and all 12 participants setup-ready, including both benchmark participants.
+
+Attempt schema v3 reads the latest raw `saga_tournament.saga_state` column without mutation, retains aggregate/version and `RAW_DATABASE_COLUMN` table/column/selection provenance, and decodes the typed value through master’s `SagaStateConverter`. Evaluation requires exact decoded `GenericSagaState.NOT_IN_SAGA`. SQL null, malformed text, the wrong enum class or value, missing/duplicate rows, or identity/provenance mismatch is `INVALID / NOT_EVALUATED`; no such case can become either benchmark classification.
+
+Three fresh immediate-recovery target attempts—`aff4e302-3756-436d-a8ea-766e68345cc4`, `07fd74d7-9323-4a1a-b0a6-c2ed8c24646b`, and `57ebb5d9-2862-4794-940b-a345d95cc69b`—are stable `VALID / HARMFUL_FOR_RULE`, `PARTIAL_COMPENSATED / EXACT`, and ImpactV1 zero. Each observes active Tournament `9` referring to deleted Quiz `8`; latest Tournament version `18` stores raw `pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState:NOT_IN_SAGA` and decodes to exact `GenericSagaState.NOT_IN_SAGA`.
+
+Three fresh all-zero controls—`23176826-b21a-41b8-bda0-03cf97e52e3a`, `a01da5c6-07bb-4ece-a5b6-2f610dd5c14d`, and `a2f42317-00a8-4dcc-84a0-fafdf28e8ad8`—are stable `VALID / NO_BROKEN_REFERENCE`, `PARTIAL_COMPENSATED / DEVIATED`, and ImpactV1 zero. The supported all-zero fallback deletes the Tournament; the same explicit decoded outside-Saga proof succeeds.
+
+The canonical set is derived from persisted participant slot ownership: no fault or one of three RemoveTournament faults, crossed with no fault or one of two AddParticipant faults. This yields 12 vectors. The other 20 five-bit vectors contain multiple assigned faults in at least one participant and are listed with their first masking slot rather than executed as separate candidates. The on-demand path persisted the six missing vectors and deduplicated every repeated request.
+
+Exact `uncapped / persisted / executed` recovery counts are:
+
+```text
+00000  1/1/1    00001  1/1/1    00010  1/1/1
+00100  6/6/6    00101 10/10/10  00110  3/3/3
+01000  3/3/3    01001  4/4/4    01010  2/2/2
+10000  1/1/1    10001  1/1/1    10010  1/1/1
+```
+
+The cap truncates none of these vectors: totals are `34 / 34 / 34`. Every retained schedule ran in a fresh process/H2 boundary. All 34 rows are valid, all decode exact `NOT_IN_SAGA`, and all have ImpactV1 score zero. Nineteen rows satisfy the bounded broken-reference rule—all schedules for `00100`, `00101`, and `00110`—while 15 do not. Terminal statuses are 21 `COMPENSATED` and 13 `PARTIAL_COMPENSATED`; schedule conformance is 33 `EXACT` and one supported all-zero `DEVIATED`.
+
+The authoritative landscape is `verifiers/target/persisted-remove-add-benchmark/m3/quizzes-remove-add-landscape.json` (SHA-256 `e0fad7d7e97f06a0d2b5015f20c73fce41442bd30b6001112e108025cf31ea4c`); the derived CSV SHA-256 is `dac36ad2c480e218601d3dc093e4c5503dadd0a79d89de75ff12a4074006c995`. Package-execution, JSON-reaggregation, and CSV-reaggregation diffs are empty. Strict negative checks reject obsolete schemas, malformed/incorrect state evidence, duplicate attempts, non-evaluated ImpactV1 marked valid, and inconsistent stored classifications.
+
+All pre-merge packages and rows are retained only under `verifiers/target/persisted-remove-add-benchmark/superseded-pre-master-merge-45fcdb81a/`. `NO_BROKEN_REFERENCE` still means only that this one predicate is false, not that the application is globally safe. The 19/15 final-state variation with ImpactV1 flat at zero supports defining the minimum broader versioned impact contract next; it does not establish weights, category ordering, GA fitness, random search, workload allocation, or a generic application observer.
+
 ### Historical bounded multi-Saga package generation
 
 The prior v3 package contract was exercised at Quizzes scale with the following historical command. V4 readers now reject this package; retain the result only as bounded-generation evidence:
@@ -737,16 +788,17 @@ This proves exact BigInteger counting with bounded retained schedules for one co
 
 ### Regression baseline
 
-The event-consequence implementation recorded:
+The latest benchmark implementation recorded:
 
 ```text
-simulator complete suite: 111 tests passed
-verifier focused repair suite: 214 tests passed
-verifier complete suite:  628 tests passed
-focused Quizzes oracle/provider: 10 tests passed
+simulator Saga-state converter:           7 tests passed
+verifier descriptor-focused suite:        7 tests passed
+verifier complete suite:                634 tests passed
+focused Quizzes runner/provider/reload:  37 tests passed
+Python/shell syntax and diff check:       passed
 ```
 
-`mvn -Ptest-sagas test` in Quizzes ran 152 tests but retained seven unrelated async/concurrency assertion failures: those tests expect `SimulatorException` directly while the async path returns `CompletionException`. No changed path belongs to those tests or their async implementation. The event-consequence provider and stale-read oracle pass, and the verifier dependency no longer activates `ScenarioGeneratorApplication` in ordinary Quizzes tests. This is a full-suite baseline failure, not a passing claim.
+The prior event-consequence implementation also recorded 111 passing simulator tests. Its full `mvn -Ptest-sagas test` Quizzes baseline ran 152 tests but retained seven unrelated async/concurrency assertion failures: those tests expect `SimulatorException` directly while the async path returns `CompletionException`. No current changed path belongs to those tests or their async implementation. The benchmark uses focused Quizzes proof rather than converting that historical full-suite baseline into a passing claim.
 
 These totals are point-in-time evidence, not permanent acceptance criteria. Current changes should run focused affected tests and broaden only when the changed boundary justifies it.
 
@@ -760,8 +812,8 @@ These totals are point-in-time evidence, not permanent acceptance criteria. Curr
 - Repeated same-participant runtime step names are structurally rejected because current Saga/local runtime state is keyed by step name rather than occurrence id.
 - Segment compression preserves conflict-anchor order cases under extracted evidence; it does not prove every semantically distinct runtime interleaving is retained.
 - Dynamic enrichment remains local/Saga-focused. There is no fresh broad Quizzes v4 attribution baseline.
-- The generated Quizzes event-consequence pair provides one ImpactV1 1/0 discrimination; this is one representative interaction, not evidence that other workloads or vectors have non-flat fitness.
-- No current post-remediation Quizzes smoke demonstrates the explicitly marked zero-bit domain-fallback path.
+- The generated Quizzes event-consequence pair provides one ImpactV1 1/0 discrimination. The RemoveTournament–AddParticipant benchmark provides a complete 34-row retained landscape with 19/15 bounded final-state variation, but ImpactV1 is zero for every row; a broader impact contract is still undefined.
+- Three refreshed benchmark controls demonstrate the explicitly marked zero-bit domain-fallback path; other fallback shapes remain unqualified.
 - Persistent-environment reset is the caller/orchestrator's responsibility.
 - On-demand package writes are serialized but not crash-atomic.
 
@@ -773,13 +825,13 @@ These totals are point-in-time evidence, not permanent acceptance criteria. Curr
 - Semantic deduplication of value-equivalent inputs.
 - Profile-aware resolution for ambiguous multiple `@Service` implementations.
 - State-divergence, postcondition, or silent-compensation impact models beyond invariant-count ImpactV1.
-- Batch execution qualification, generic reset orchestration, GA/local fault search, or scenario prioritization.
+- Generic batch execution qualification, generic reset orchestration, GA/local fault search, or scenario prioritization. The current batch command is benchmark-specific.
 
 ## Safe thesis framing
 
 Safe current claim:
 
-> The verifier deterministically extracts Saga-oriented workload structure, conservative exact event consequences, and test-derived or prerequisite-bound inputs; publishes compensation-aware WorkloadPlan/FaultScenario v4 packages; can verify exact Saga/local setup readiness; can replay one persisted setup-ready FaultScenario sequentially, including one unique local event consequence; and can report generic Saga aggregate-invariant rejections through a first narrow impact model.
+> The verifier deterministically extracts Saga-oriented workload structure, conservative exact event consequences, and test-derived or prerequisite-bound inputs; publishes compensation-aware WorkloadPlan/FaultScenario v4 packages; can verify exact Saga/local setup readiness; can replay one persisted setup-ready FaultScenario sequentially, including one unique local event consequence; and can report generic Saga aggregate-invariant rejections through a first narrow impact model. A separate Quizzes test/evaluation runner applies one bounded broken-reference rule only after converter-decoded persisted `NOT_IN_SAGA` proof; its fresh 34-row retained landscape contains 19 harmful and 15 non-broken-reference rows while ImpactV1 remains zero throughout.
 
 Required qualifications:
 

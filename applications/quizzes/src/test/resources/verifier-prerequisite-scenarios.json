@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "microservices-simulator.prerequisite-scenario-descriptor.v1",
+  "schemaVersion": "microservices-simulator.prerequisite-scenario-descriptor.v2",
   "scenarios": [
     {
       "id": "quizzes-add-participant-update-student-name",
@@ -28,10 +28,41 @@
         "updateStudentNameStep",
         "addParticipantStep"
       ],
+      "selectionKind": "EVENT",
       "eventTypeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent",
       "eventHandlingClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.TournamentEventHandling",
       "eventHandlingMethodName": "handleUpdateStudentNameEvent",
       "expectedWorkloadCount": 2
+    },
+    {
+      "id": "quizzes-remove-tournament-add-participant",
+      "providerId": "quizzes-stale-read-baseline",
+      "providerVersion": "1",
+      "participants": [
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas",
+          "bindings": [
+            { "argumentIndex": 1, "key": "tournamentAggregateId", "typeFqn": "java.lang.Integer" }
+          ]
+        },
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+          "bindings": [
+            { "argumentIndex": 1, "key": "tournamentAggregateId", "typeFqn": "java.lang.Integer" },
+            { "argumentIndex": 2, "key": "courseExecutionAggregateId", "typeFqn": "java.lang.Integer" },
+            { "argumentIndex": 3, "key": "creatorUserAggregateId", "typeFqn": "java.lang.Integer" }
+          ]
+        }
+      ],
+      "forwardRuntimeOrder": [
+        "getTournamentStep",
+        "removeQuizStep",
+        "removeTournamentStep",
+        "getUserStep",
+        "addParticipantStep"
+      ],
+      "selectionKind": "NO_EVENT",
+      "expectedWorkloadCount": 1
     }
   ]
 }

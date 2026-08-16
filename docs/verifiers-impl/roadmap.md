@@ -1,6 +1,6 @@
 # Verifier roadmap
 
-Last updated: 2026-08-15
+Last updated: 2026-08-16
 
 [`current-state.md`](current-state.md) describes what exists now and the evidence behind it. This roadmap describes the remaining outcomes, why they matter to the thesis, their dependencies, and what would count as done. It deliberately avoids repeating current metrics and commands.
 
@@ -115,6 +115,8 @@ Fault-vector search assumes that reward differences come from the vector/scenari
 
 ## Outcome 4 — Characterize one harmful workload before broadening impact
 
+**Status: complete (2026-08-16).** After merging master’s typed Saga-state persistence, a fresh v4 package, target/control repetitions, and all 34 retained schedules pass exact converter-decoded `GenericSagaState.NOT_IN_SAGA` proof. Landscape schema v2 records 19 bounded harmful rows and 15 no-broken-reference rows while ImpactV1 remains zero throughout. See [`current-state.md`](current-state.md#quizzes-persisted-removetournamentaddparticipant-benchmark).
+
 ### Goal
 
 Turn one already demonstrated harmful Quizzes interaction into a persisted, generated, repeatably executable benchmark. Run its bounded fault and recovery space and record execution validity, existing ImpactV1 evidence, and the known final-state condition separately.
@@ -134,6 +136,8 @@ ImpactV1 observes thrown aggregate-invariant rejections, but the exploratory Qui
 - produce a simple per-scenario table rather than a premature combined score.
 
 The final-state rule is applied once across executions: an active Tournament referring to its deleted Quiz is harmful for this experiment. Setup or infrastructure failure remains not evaluated. Existing invariant rejections stay separately visible.
+
+The completed landscape shows useful final-state variation that ImpactV1 does not detect: all schedules for `00100`, `00101`, and `00110` satisfy the bounded harmful rule, while all other canonical rows do not, yet every ImpactV1 score is zero. The next decision is the minimum broader versioned impact contract that keeps invariant and final-state evidence separately inspectable. GA reward design remains downstream; no weights or category ordering are implied by these labels.
 
 ### Done when
 
@@ -182,7 +186,7 @@ Do not start until:
 
 - the chosen workload is setup-ready and repeatably executable;
 - environment reset is defined;
-- at least one vector produces a discriminating evaluated impact;
+- at least one vector produces a discriminating evaluated result under an approved versioned impact contract; the benchmark-specific final-state rule is evidence for designing that contract, not yet the generic search reward;
 - arbitrary valid vectors can be persisted idempotently through the v4 on-demand path;
 - invalid/infrastructure attempts cannot masquerade as zero fitness.
 

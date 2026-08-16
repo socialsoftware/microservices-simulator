@@ -8,13 +8,21 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioRu
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.BaselineBindingRequirement
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzes.executor.QuizzesPersistedSagaStateObserver
 import pt.ulisboa.tecnico.socialsoftware.quizzes.executor.QuizzesStaleReadPrerequisiteProvider
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
+
+import javax.sql.DataSource
 
 @DataJpaTest
 class QuizzesStaleReadPrerequisiteProviderTest extends QuizzesSpockTest {
     @Autowired
     ApplicationContext applicationContext
+
+    @Autowired
+    DataSource dataSource
 
     def 'provider creates the stale-read baseline and returns all typed bindings'() {
         given:
@@ -29,6 +37,13 @@ class QuizzesStaleReadPrerequisiteProviderTest extends QuizzesSpockTest {
 
         when:
         def result = provider.prepare(runtime, requirements)
+        def repeated = provider.prepare(runtime, requirements.take(3))
+        def tournament = applicationContext.getBean(TournamentFunctionalities)
+                .findTournament(result.bindings().tournamentAggregateId as Integer)
+        def execution = applicationContext.getBean(ExecutionFunctionalities)
+                .getCourseExecutionByAggregateId(result.bindings().courseExecutionAggregateId as Integer)
+        def persistedSagaState = new QuizzesPersistedSagaStateObserver(dataSource)
+                .observeTournament(result.bindings().tournamentAggregateId as Integer)
 
         then:
         provider.providerId() == 'quizzes-stale-read-baseline'
@@ -39,6 +54,29 @@ class QuizzesStaleReadPrerequisiteProviderTest extends QuizzesSpockTest {
         result.bindings().tournamentAggregateId instanceof Integer
         result.bindings().updatedUser instanceof UserDto
         result.bindings().updatedUser.name == 'UpdatedName'
+        result.evidence().baselineInstance == 'created'
+        repeated.bindings() == result.bindings()
+        repeated.evidence().baselineInstance == 'reused'
+        repeated.evidence().requiredBindingCount == '3'
+        result.evidence().tournamentAggregateId == result.bindings().tournamentAggregateId.toString()
+        result.evidence().courseExecutionAggregateId == result.bindings().courseExecutionAggregateId.toString()
+        result.evidence().participantUserAggregateId == result.bindings().creatorUserAggregateId.toString()
+        result.evidence().referencedQuizAggregateId == tournament.quiz.aggregateId.toString()
+        tournament.participants.empty
+        tournament.quiz != null
+        tournament.state == 'ACTIVE'
+        persistedSagaState.aggregateId() == tournament.aggregateId
+        persistedSagaState.rawValue() == 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState:NOT_IN_SAGA'
+        persistedSagaState.valueStatus() == 'VALUE'
+        persistedSagaState.decodeStatus() == 'DECODED'
+        persistedSagaState.decodedStateClass() == 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState'
+        persistedSagaState.decodedStateName() == 'NOT_IN_SAGA'
+        persistedSagaState.decoder() == 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaStateConverter'
+        persistedSagaState.source() == 'RAW_DATABASE_COLUMN'
+        persistedSagaState.storageTable() == 'saga_tournament'
+        persistedSagaState.storageColumn() == 'saga_state'
+        persistedSagaState.rowSelection() == 'LATEST_AGGREGATE_VERSION'
+        execution.students*.aggregateId.contains(result.bindings().creatorUserAggregateId)
         result.evidence().requiredBindingCount == '4'
     }
 
