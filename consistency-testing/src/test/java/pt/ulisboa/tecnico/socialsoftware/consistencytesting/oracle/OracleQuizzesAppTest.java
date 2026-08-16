@@ -363,6 +363,34 @@ class OracleQuizzesAppTest {
         assertEquals(expectedSchedule, result.schedule());
     }
 
+    @Test
+    @DisplayName("Each registered compensation runs exactly once")
+    void eachRegisteredCompensationRunsExactlyOnce() {
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                TestBrokenFunctionality.class.getSimpleName());
+        var expectedException = new SimulatorException("This step is expected to break");
+        var testFunc = new TestBrokenFunctionality(sagaUnitOfWorkService, uow, expectedException);
+
+        Supplier<TestCase> testFuncScenario = () -> new TestCase.Builder()
+                .addFunctionality(simpleFunctionalityId(testFunc, 1), testFunc)
+                .build();
+        TestResult result = oracle.runTest(testFuncScenario);
+
+        FunctionalityId funcId = getOnlyFunctionalityId(result);
+        WorkflowFunctionality executedFunc = result.functionalities().get(funcId);
+        assertInstanceOf(TestBrokenFunctionality.class, executedFunc);
+        TestBrokenFunctionality executedTestFunc = (TestBrokenFunctionality) executedFunc;
+
+        // The abort step reverts the semantic locks of every executed step, and the
+        // system's own abort also compensates them. A compensation that the oracle
+        // already ran as its own step must not be run a second time by the abort.
+        assertEquals(1, executedTestFunc.getFirstStepCompensations());
+        assertEquals(1, executedTestFunc.getSecondStepCompensations());
+
+        // the step that failed never completed, so it registered no compensation
+        assertEquals(0, executedTestFunc.getThirdStepCompensations());
+    }
+
     @ParameterizedTest()
     @ValueSource(ints = { 0, 1, 2 })
     @DisplayName("Inter dependencies are respected")
@@ -716,7 +744,8 @@ class OracleQuizzesAppTest {
         var testFunc = new TestBrokenFunctionality(sagaUnitOfWorkService, uow, expectedException);
 
         FunctionalityId funcId = simpleFunctionalityId(testFunc, 1);
-        StepId blockedCompensationStep = StepId.forCompensationStep(funcId, 1);
+        StepId blockedCompensationStep = StepId.forCompensationStep(
+                funcId, TestBrokenFunctionality.SECOND_STEP_NAME);
         StepId nonExecutedStep = StepId.forFunctionalityStep(
                 FunctionalityId.forSagaFunctionality("nonExecutedFunc"), "nonExecutedStep");
 
@@ -855,7 +884,8 @@ class OracleQuizzesAppTest {
 
             StepId otherFuncStep = getFunctionalityStepIds(otherFuncId, otherFunc, false).get(0);
             otherFuncFirstStepRef.set(otherFuncStep);
-            StepId firstCompensationStep = StepId.forCompensationStep(brokenFuncId, 1);
+            StepId firstCompensationStep = StepId.forCompensationStep(
+                    brokenFuncId, TestBrokenFunctionality.SECOND_STEP_NAME);
 
             return new TestCase.Builder()
                     .addFunctionality(otherFuncId, otherFunc)
@@ -869,7 +899,8 @@ class OracleQuizzesAppTest {
         FunctionalityId brokenFuncId = Objects.requireNonNull(brokenFuncIdRef.get());
         StepId otherFuncFirstStep = Objects.requireNonNull(otherFuncFirstStepRef.get());
 
-        StepId firstCompensationStep = StepId.forCompensationStep(brokenFuncId, 1);
+        StepId firstCompensationStep = StepId.forCompensationStep(
+                brokenFuncId, TestBrokenFunctionality.SECOND_STEP_NAME);
 
         assertTrue(result.schedule().contains(firstCompensationStep));
         assertTrue(result.schedule().indexOf(firstCompensationStep) > result.schedule().indexOf(otherFuncFirstStep));
@@ -1070,6 +1101,11 @@ class OracleQuizzesAppTest {
         return withCommit;
     }
 
+    /**
+     * The ids of the steps a functionality is expected to run when it aborts: one
+     * compensation per executed step that registered a compensation, in reverse
+     * execution order, followed by the abort that reverts the semantic locks.
+     */
     private List<StepId> getFunctionalityCompensationStepIds(FunctionalityId funcId, WorkflowFunctionality func) {
         UnitOfWork uow = func.getWorkflow().getUnitOfWork();
         if (!(uow instanceof SagaUnitOfWork sagaUow)) {
@@ -1078,10 +1114,13 @@ class OracleQuizzesAppTest {
                             .formatted(uow.getClass().getName(), SagaUnitOfWork.class.getName()));
         }
 
-        int compensationCount = sagaUow.getRegisteredCompensations().size();
-        List<StepId> compensationStepIds = new ArrayList<>(compensationCount + 1);
-        for (int i = compensationCount - 1; i >= 0; i--) {
-            compensationStepIds.add(StepId.forCompensationStep(funcId, i));
+        Set<String> registeredCompensationStepNames = Set.copyOf(sagaUow.getRegisteredCompensationStepNames());
+
+        List<StepId> compensationStepIds = new ArrayList<>();
+        for (String stepName : sagaUow.getExecutedSteps().reversed()) {
+            if (registeredCompensationStepNames.contains(stepName)) {
+                compensationStepIds.add(StepId.forCompensationStep(funcId, stepName));
+            }
         }
         compensationStepIds.add(StepId.forAbortStep(funcId));
         return compensationStepIds;

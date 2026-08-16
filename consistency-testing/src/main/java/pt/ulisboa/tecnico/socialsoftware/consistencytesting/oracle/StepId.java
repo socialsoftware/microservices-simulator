@@ -2,8 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 import org.jspecify.annotations.Nullable;
 
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
-
 public final class StepId {
     private static final String ID_SEPARATOR = "::";
     private static final String ID_CONNECTOR = "-";
@@ -30,21 +28,12 @@ public final class StepId {
     /**
      * @param functionalityId the identifier of the functionality this step belongs
      *                        to
-     * @param zeroBasedIndex  the 0-based index representing the order in which the
-     *                        step was registered (e.g., 0 for the 1st step, 1 for
-     *                        the 2nd step)
+     * @param stepName        the name of the functionality step whose compensation
+     *                        this step runs
      * @return the corresponding {@link StepId}
-     * @throws IllegalArgumentException if {@code zeroBasedIndex} is negative
      */
-    public static StepId forCompensationStep(FunctionalityId functionalityId, int zeroBasedIndex) {
-        // ? TODO could it be possible to have "originalStepId-compensation" instead of
-        // ? simple "1st-registeredCompensationStep" which is less descriptive?
-        // ? Careful that since not all steps register compensations, so its not a
-        // ? simple 1-to-1 relation between compensation steps
-        // ? and the original function steps in order
-        return new StepId(
-                functionalityId,
-                StringUtils.ordinal(zeroBasedIndex + 1) + ID_CONNECTOR + "registeredCompensationStep");
+    public static StepId forCompensationStep(FunctionalityId functionalityId, String stepName) {
+        return new StepId(functionalityId, stepName + ID_CONNECTOR + "compensation");
     }
 
     public static StepId forCommitStep(FunctionalityId functionalityId) {

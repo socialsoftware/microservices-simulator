@@ -18,9 +18,10 @@ class TestBrokenFunctionality extends WorkflowFunctionality {
     private boolean secondStepExecuted = false;
     private boolean thirdStepBroke = false;
 
-    private boolean firstStepCompensated = false;
-    private boolean secondStepCompensated = false;
-    private boolean thirdStepCompensated = false;
+    // ints so multiple runs of the same compensation are detectable
+    private int firstStepCompensations = 0;
+    private int secondStepCompensations = 0;
+    private int thirdStepCompensations = 0;
 
     TestBrokenFunctionality(
             SagaUnitOfWorkService unitOfWorkService,
@@ -42,7 +43,7 @@ class TestBrokenFunctionality extends WorkflowFunctionality {
         }, new ArrayList<>());
 
         firstStepCorrect.registerCompensation(() -> {
-            firstStepCompensated = true;
+            firstStepCompensations++;
         }, unitOfWork);
 
         SagaStep secondStepCorrect = new SagaStep(SECOND_STEP_NAME, () -> {
@@ -50,7 +51,7 @@ class TestBrokenFunctionality extends WorkflowFunctionality {
         }, new ArrayList<>(List.of(firstStepCorrect)));
 
         secondStepCorrect.registerCompensation(() -> {
-            secondStepCompensated = true;
+            secondStepCompensations++;
         }, unitOfWork);
 
         SagaStep thirdStepBreaks = new SagaStep(THIRD_STEP_NAME, () -> {
@@ -59,7 +60,7 @@ class TestBrokenFunctionality extends WorkflowFunctionality {
         }, new ArrayList<>(List.of(firstStepCorrect, secondStepCorrect)));
 
         thirdStepBreaks.registerCompensation(() -> {
-            thirdStepCompensated = true;
+            thirdStepCompensations++;
         }, unitOfWork);
 
         this.workflow.addStep(firstStepCorrect);
@@ -80,14 +81,26 @@ class TestBrokenFunctionality extends WorkflowFunctionality {
     }
 
     boolean hasFirstStepCompensated() {
-        return firstStepCompensated;
+        return firstStepCompensations > 0;
     }
 
     boolean hasSecondStepCompensated() {
-        return secondStepCompensated;
+        return secondStepCompensations > 0;
     }
 
     boolean hasThirdStepCompensated() {
-        return thirdStepCompensated;
+        return thirdStepCompensations > 0;
+    }
+
+    int getFirstStepCompensations() {
+        return firstStepCompensations;
+    }
+
+    int getSecondStepCompensations() {
+        return secondStepCompensations;
+    }
+
+    int getThirdStepCompensations() {
+        return thirdStepCompensations;
     }
 }

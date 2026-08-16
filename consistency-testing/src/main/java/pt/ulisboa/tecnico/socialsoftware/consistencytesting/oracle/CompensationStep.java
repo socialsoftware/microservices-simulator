@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
@@ -14,19 +13,20 @@ final class CompensationStep implements OracleStep {
 
     private final StepId id;
     private final FunctionalityId functionalityId;
-    private final Runnable compensationAction;
+    private final SagaUnitOfWork uow;
+    private final String compensatedStepName;
     private final Set<StepId> dependencies;
 
     private CompensationStep(
             FunctionalityId functionalityId,
-            WorkflowFunctionality functionality,
-            int compensationIndex,
-            Runnable compensationAction,
+            SagaUnitOfWork uow,
+            String compensatedStepName,
             Set<StepId> dependencies) {
 
-        id = StepId.forCompensationStep(functionalityId, compensationIndex);
+        id = StepId.forCompensationStep(functionalityId, compensatedStepName);
         this.functionalityId = functionalityId;
-        this.compensationAction = compensationAction;
+        this.uow = uow;
+        this.compensatedStepName = compensatedStepName;
         this.dependencies = Set.copyOf(dependencies);
     }
 
@@ -38,21 +38,22 @@ final class CompensationStep implements OracleStep {
                             .formatted(uow.getClass(), SagaUnitOfWork.class));
         }
 
+        // Mirrors how the simulator aborts: it walks the executed steps in reverse and
+        // compensates each one that registered a compensation.
+        // Steps that failed mid-execution are recorded as executed but register no
+        // compensation, so they are skipped here too.
+        Set<String> registeredCompensationStepNames = Set.copyOf(sagaUow.getRegisteredCompensationStepNames());
+
         List<CompensationStep> compensationSteps = new ArrayList<>();
         Set<StepId> previousStepsIds = new HashSet<>();
-        List<Runnable> registeredCompensations = sagaUow.getRegisteredCompensations();
 
-        int i = registeredCompensations.size() - 1;
-        for (Runnable action : registeredCompensations.reversed()) {
-            // compensationIndex goes from highest index to 0 (representing the order in
-            // which the compensations are being created)
-            int compensationIndex = i--;
-            Objects.requireNonNull(action,
-                    () -> "Compensation action cannot be null for compensation index %d at functionality %s"
-                            .formatted(compensationIndex, functionalityId));
+        for (String stepName : sagaUow.getExecutedSteps().reversed()) {
+            if (!registeredCompensationStepNames.contains(stepName)) {
+                continue;
+            }
 
             var newCompensationStep = new CompensationStep(
-                    functionalityId, functionality, compensationIndex, action, previousStepsIds);
+                    functionalityId, sagaUow, stepName, previousStepsIds);
 
             compensationSteps.add(newCompensationStep);
             previousStepsIds.add(newCompensationStep.getId());
@@ -63,7 +64,7 @@ final class CompensationStep implements OracleStep {
 
     @Override
     public void execute() {
-        compensationAction.run();
+        uow.compensateStep(compensatedStepName);
     }
 
     @Override

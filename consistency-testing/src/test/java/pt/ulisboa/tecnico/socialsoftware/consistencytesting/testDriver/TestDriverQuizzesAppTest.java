@@ -516,7 +516,8 @@ class TestDriverQuizzesAppTest {
     @Test
     void driverExploresImpossibleCompensationFindingStrandedAndRecoveredRuns() {
         StepId addToTargetStep = StepId.forFunctionalityStep(MOVE_PARTICIPANT_FUNC_ID, "addToTargetTournamentStep");
-        StepId moveCompensationStep = StepId.forCompensationStep(MOVE_PARTICIPANT_FUNC_ID, 0);
+        StepId moveCompensationStep = StepId.forCompensationStep(
+                MOVE_PARTICIPANT_FUNC_ID, "leaveSourceTournamentStep");
         StepId deleteStep = StepId.forFunctionalityStep(REMOVE_SOURCE_TOURNAMENT_FUNC_ID, "removeTournamentStep");
 
         List<CompensationRunOutcome> outcomes = new ArrayList<>();

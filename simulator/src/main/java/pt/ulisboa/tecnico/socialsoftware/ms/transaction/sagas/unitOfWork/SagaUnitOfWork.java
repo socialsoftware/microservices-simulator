@@ -53,11 +53,10 @@ public class SagaUnitOfWork extends UnitOfWork {
         registerCompensation(null, compensationAction);
     }
 
+    /** Names of the steps that have a compensation registered. */
     @JsonIgnore
-    public List<Runnable> getRegisteredCompensations() {
-        return this.compensatingActions.values().stream()
-                .map(CompensatingAction::getAction)
-                .toList();
+    public List<String> getRegisteredCompensationStepNames() {
+        return List.copyOf(this.compensatingActions.keySet());
     }
 
     public void compensateStep(String stepName) {
