@@ -34,6 +34,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.FlowStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
@@ -490,6 +491,7 @@ class OracleQuizzesAppTest {
     @Test
     @DisplayName("Commit is called after successfully executing all steps of a functionality")
     void commitIsCalledAfterSuccessfullyExecutingAllStepsOfAFunctionality() {
+        AtomicReference<Integer> tournamentIdRef = new AtomicReference<>();
         Supplier<TestCase> setupTestCase = () -> {
             InitialState initialState = factory.setupInitialState();
 
@@ -506,17 +508,19 @@ class OracleQuizzesAppTest {
                     topicIds,
                     gateway);
 
-            // TODO requires fixing SagaStateConverter to return SagaState
-            // Integer tournamentId = initialState.tournamentDto().getAggregateId();
-            // assertEquals(GenericSagaState.NOT_IN_SAGA,
-            // factory.sagaStateOf(tournamentId));
+            Integer tournamentId = initialState.tournamentDto().getAggregateId();
+            tournamentIdRef.set(tournamentId);
+            assertEquals(GenericSagaState.NOT_IN_SAGA, factory.sagaStateOf(tournamentId));
 
             return new TestCase.Builder()
                     .addFunctionality(simpleFunctionalityId(updateSaga, 1), updateSaga)
                     .build();
         };
 
-        TestResult result = oracle.runTest(setupTestCase);
+        TestResult result = oracle.runTest(setupTestCase, res -> {
+            Integer tournamentId = Objects.requireNonNull(tournamentIdRef.get());
+            assertEquals(GenericSagaState.NOT_IN_SAGA, factory.sagaStateOf(tournamentId));
+        });
 
         assertEquals(1, result.functionalities().size());
         FunctionalityId funcId = getOnlyFunctionalityId(result);
@@ -538,10 +542,6 @@ class OracleQuizzesAppTest {
         // no exceptions/statuses
         assertTrue(result.exceptions().isEmpty());
         assertTrue(result.statuses().isEmpty());
-
-        // TODO requires fixing SagaStateConverter to return SagaState
-        // assertEquals(GenericSagaState.NOT_IN_SAGA,
-        // factory.sagaStateOf(tournamentId));
     }
 
     @Test

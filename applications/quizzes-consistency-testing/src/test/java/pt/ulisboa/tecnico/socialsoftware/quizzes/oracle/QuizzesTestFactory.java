@@ -474,7 +474,6 @@ public class QuizzesTestFactory {
                 gateway);
     }
 
-    // TODO requires fixing SagaStateConverter to return SagaState
     public SagaState sagaStateOf(Integer sagaAggregateId) {
         SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork("TEST");
         Aggregate agg = sagaUnitOfWorkService.aggregateLoadAndRegisterRead(sagaAggregateId, uow);
