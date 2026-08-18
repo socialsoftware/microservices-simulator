@@ -464,9 +464,11 @@ class TestDriverQuizzesAppTest {
                     "the deleter should read the source-tournament version written by the departure");
 
             // ... and the move must have failed on the target tournament, which is what
-            // sends it down the compensation path in the first place. Note the move's
-            // AbortStep is NOT in the schedule: the compensation itself blows up, and a
-            // failing compensation is a critical failure that halts the run.
+            // sends it down the compensation path in the first place. Note the abort
+            // never reaches the departure step: aborting walks the executed steps in
+            // reverse, and the compensation of the departure blows up before its locks
+            // are reverted - a failing compensation is a critical failure that halts the
+            // run.
             assertTrue(res.exceptions().containsKey(addToTargetStep),
                     "the move should have failed to enrol the user in the already-started target "
                             + "tournament, but that failure was not registered in the verified "
@@ -534,6 +536,7 @@ class TestDriverQuizzesAppTest {
         long stranded = 0;
         long recovered = 0;
         long recoveredWithNonRepeatableRead = 0;
+        long recoveredWithDirtyRead = 0;
         long resolutionFailed = 0;
         for (int run = 0; run < results.size(); run++) {
             TestResult result = results.get(run);
@@ -554,7 +557,6 @@ class TestDriverQuizzesAppTest {
                     && !outcome.userInSource() && !outcome.userInTarget() && !outcome.sourceExists();
 
             boolean recoveredRun = !result.statuses().contains(TestStatus.CRITICAL_STEP_FAILURE)
-                    && result.anomalies().stream().noneMatch(anomaly -> anomaly.type() == AnomalyType.DIRTY_READ)
                     && !result.exceptions().containsKey(moveCompensationStep)
                     && result.exceptions().containsKey(deleteStep)
                     && outcome.userInSource() && !outcome.userInTarget() && outcome.sourceExists();
@@ -563,9 +565,14 @@ class TestDriverQuizzesAppTest {
                     && result.anomalies().stream()
                             .anyMatch(anomaly -> anomaly.type() == AnomalyType.NON_REPEATABLE_READ);
 
+            boolean recoveredWithDirty = recoveredRun
+                    && result.anomalies().stream()
+                            .anyMatch(anomaly -> anomaly.type() == AnomalyType.DIRTY_READ);
+
             stranded += strandedRun ? 1 : 0;
             recovered += recoveredRun ? 1 : 0;
             recoveredWithNonRepeatableRead += recoveredWithNrr ? 1 : 0;
+            recoveredWithDirtyRead += recoveredWithDirty ? 1 : 0;
 
             assertFalse(strandedRun && recoveredRun,
                     "a run cannot both strand the compensation and let it succeed.");
@@ -580,9 +587,11 @@ class TestDriverQuizzesAppTest {
 
         log.info("impossible-compensation exploration over {} run(s): "
                 + "{} stranded the move's compensation, {} let it compensate "
-                + "(being that {} of those carried a non-repeatable read), "
+                + "(being that {} of those carried a non-repeatable read "
+                + "and {} a dirty read the deleter was later refused for), "
                 + "{} did not play out (interdependency resolution failed)",
-                results.size(), stranded, recovered, recoveredWithNonRepeatableRead, resolutionFailed);
+                results.size(), stranded, recovered, recoveredWithNonRepeatableRead,
+                recoveredWithDirtyRead, resolutionFailed);
 
         assertTrue(stranded > 0,
                 "driver should explore at least one interleaving where the source tournament is deleted "
@@ -591,11 +600,10 @@ class TestDriverQuizzesAppTest {
                 "driver should also explore interleavings where the compensation succeeds, showing the "
                         + "anomaly is interleaving-dependent and not always reachable");
         assertTrue(recoveredWithNonRepeatableRead > 0 && recoveredWithNonRepeatableRead < recovered / 2,
-                "driver should explore at least one interleaving where the compensation succeeds - so no "
-                        + "dirty read and no failed compensation - yet the move's departure still "
-                        + "happens between the deleter's two reads of the source tournament,"
-                        + "leaving a NON_REPEATABLE_READ: a milder isolation anomaly that "
-                        + "surfaces even when the run recovers, "
+                "driver should explore at least one interleaving where the compensation succeeds, yet "
+                        + "the move's departure still happens between the deleter's two reads of "
+                        + "the source tournament, leaving a NON_REPEATABLE_READ: a milder "
+                        + "isolation anomaly that surfaces even when the run recovers, "
                         + "but not every recovered run should carry it, just a few");
         assertTrue(resolutionFailed < results.size() / 4,
                 "most of the exploration budget should have played out the scenario; too many runs "
@@ -779,7 +787,9 @@ class TestDriverQuizzesAppTest {
 
     private static final String RENAMED_STUDENT_NAME = "RENAMED_STUDENT_NAME";
 
-    /** Ids captured by the most recent {@link #studentRenameSyncTestCase()} build. */
+    /**
+     * Ids captured by the most recent {@link #studentRenameSyncTestCase()} build.
+     */
     private @Nullable Integer renameTournamentId, renameStudentId;
 
     /**

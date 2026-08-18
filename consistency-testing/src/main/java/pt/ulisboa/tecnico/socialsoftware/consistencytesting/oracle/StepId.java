@@ -40,8 +40,14 @@ public final class StepId {
         return new StepId(functionalityId, "commitStep");
     }
 
-    public static StepId forAbortStep(FunctionalityId functionalityId) {
-        return new StepId(functionalityId, "abortStep");
+    /**
+     * @param functionalityId the identifier of the functionality this step belongs
+     *                        to
+     * @param stepName        the name of the functionality step this step aborts
+     * @return the corresponding {@link StepId}
+     */
+    public static StepId forAbortStep(FunctionalityId functionalityId, String stepName) {
+        return new StepId(functionalityId, stepName + ID_CONNECTOR + "abort");
     }
 
     public static StepId forEventHandlerStep(FunctionalityId eventHandlerFunctionalityId) {

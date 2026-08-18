@@ -2,42 +2,48 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 import java.util.Set;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
+/**
+ * Runs the abort logic for a single functionality step, which is the second
+ * half of what the system does for that step while aborting. The first half is
+ * handled by the corresponding {@link CompensationStep}.
+ */
 final class AbortStep implements OracleStep {
 
     private final StepId id;
     private final FunctionalityId functionalityId;
     private final SagaUnitOfWorkService uowService;
     private final SagaUnitOfWork uow;
+    private final String abortedStepName;
     private final Set<StepId> dependencies;
 
     AbortStep(
             FunctionalityId functionalityId,
-            WorkflowFunctionality functionality,
-            Set<StepId> dependencies,
-            SagaUnitOfWorkService uowService) {
+            SagaUnitOfWork uow,
+            SagaUnitOfWorkService uowService,
+            String abortedStepName,
+            Set<StepId> dependencies) {
 
-        UnitOfWork uow = functionality.getWorkflow().getUnitOfWork();
-        if (!(uow instanceof SagaUnitOfWork sagaUow)) {
-            throw new IllegalArgumentException(
-                    "Cannot retrieve abort step from a unit of work of type %s expected type was %s"
-                            .formatted(uow.getClass(), SagaUnitOfWork.class));
-        }
-
-        id = StepId.forAbortStep(functionalityId);
+        id = StepId.forAbortStep(functionalityId, abortedStepName);
         this.functionalityId = functionalityId;
         this.uowService = uowService;
-        this.uow = sagaUow;
+        this.uow = uow;
+        this.abortedStepName = abortedStepName;
         this.dependencies = Set.copyOf(dependencies);
     }
 
     @Override
     public void execute() {
-        uowService.abort(uow);
+        // Same guard the simulator's own abort loop uses, so a step whose locks were
+        // already reverted (by an earlier partial abort) is not reverted twice.
+        if (uow.isStepAborted(abortedStepName)) {
+            return;
+        }
+
+        uowService.sendAbortCommandsForStep(uow, abortedStepName);
+        uow.setStepAborted(abortedStepName);
     }
 
     @Override

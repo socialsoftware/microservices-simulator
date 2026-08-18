@@ -1,14 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 
+/**
+ * Runs the compensation registered by a single functionality step, which is the
+ * first half of what the system does for that step while aborting. The second
+ * half is handled by the corresponding {@link AbortStep}.
+ */
 final class CompensationStep implements OracleStep {
 
     private final StepId id;
@@ -17,7 +17,7 @@ final class CompensationStep implements OracleStep {
     private final String compensatedStepName;
     private final Set<StepId> dependencies;
 
-    private CompensationStep(
+    CompensationStep(
             FunctionalityId functionalityId,
             SagaUnitOfWork uow,
             String compensatedStepName,
@@ -28,38 +28,6 @@ final class CompensationStep implements OracleStep {
         this.uow = uow;
         this.compensatedStepName = compensatedStepName;
         this.dependencies = Set.copyOf(dependencies);
-    }
-
-    static List<CompensationStep> from(FunctionalityId functionalityId, WorkflowFunctionality functionality) {
-        UnitOfWork uow = functionality.getWorkflow().getUnitOfWork();
-        if (!(uow instanceof SagaUnitOfWork sagaUow)) {
-            throw new IllegalArgumentException(
-                    "Cannot create compensation steps for a workflow with a unit of work of type %s expect type was %s"
-                            .formatted(uow.getClass(), SagaUnitOfWork.class));
-        }
-
-        // Mirrors how the simulator aborts: it walks the executed steps in reverse and
-        // compensates each one that registered a compensation.
-        // Steps that failed mid-execution are recorded as executed but register no
-        // compensation, so they are skipped here too.
-        Set<String> registeredCompensationStepNames = Set.copyOf(sagaUow.getRegisteredCompensationStepNames());
-
-        List<CompensationStep> compensationSteps = new ArrayList<>();
-        Set<StepId> previousStepsIds = new HashSet<>();
-
-        for (String stepName : sagaUow.getExecutedSteps().reversed()) {
-            if (!registeredCompensationStepNames.contains(stepName)) {
-                continue;
-            }
-
-            var newCompensationStep = new CompensationStep(
-                    functionalityId, sagaUow, stepName, previousStepsIds);
-
-            compensationSteps.add(newCompensationStep);
-            previousStepsIds.add(newCompensationStep.getId());
-        }
-
-        return compensationSteps;
     }
 
     @Override

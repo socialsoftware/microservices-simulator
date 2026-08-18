@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
@@ -274,9 +275,10 @@ class OracleQuizzesAppTest {
         List<StepId> actualSchedule = result.schedule();
         assertEquals(brokenSchedule, actualSchedule.subList(0, brokenSchedule.size()));
 
-        // should end with abort step from the compensation functionality
-        StepId abortId = StepId.forAbortStep(funcId);
-        assertEquals(abortId, actualSchedule.getLast());
+        // aborting walks the executed steps in reverse, so the run ends by reverting
+        // the locks of the step the functionality executed first
+        StepId lastAbortId = getFunctionalityAbortPathStepIds(funcId, executedSaga).getLast();
+        assertEquals(lastAbortId, actualSchedule.getLast());
 
         StepId brokenStep = brokenSchedule.getFirst();
         assertEquals(1, result.exceptions().size());
@@ -358,7 +360,7 @@ class OracleQuizzesAppTest {
 
         List<StepId> expectedSchedule = new ArrayList<>();
         expectedSchedule.addAll(getFunctionalityStepIds(funcId, executedTestFunc, false));
-        expectedSchedule.addAll(getFunctionalityCompensationStepIds(funcId, executedTestFunc));
+        expectedSchedule.addAll(getFunctionalityAbortPathStepIds(funcId, executedTestFunc));
 
         assertEquals(expectedSchedule, result.schedule());
     }
@@ -529,9 +531,9 @@ class OracleQuizzesAppTest {
         StepId commitId = StepId.forCommitStep(funcId);
         assertEquals(commitId, actualSchedule.getLast());
 
-        // No abort step in schedule
-        StepId abortId = StepId.forAbortStep(funcId);
-        assertTrue(actualSchedule.stream().noneMatch(abortId::equals));
+        // No abort step in schedule, for any of the functionality's steps
+        Set<StepId> abortPathStepIds = Set.copyOf(getFunctionalityAbortPathStepIds(funcId, executed));
+        assertTrue(actualSchedule.stream().noneMatch(abortPathStepIds::contains));
 
         // no exceptions/statuses
         assertTrue(result.exceptions().isEmpty());
@@ -580,11 +582,11 @@ class OracleQuizzesAppTest {
 
         assertEquals(expectedException, result.exceptions().get(thirdStep));
 
-        // compensation steps (for 2nd and 1st) + abort at the end
-        List<StepId> compensationSchedule = getFunctionalityCompensationStepIds(funcId, executedFunc);
+        // compensation and abort steps execute in correct order
+        List<StepId> abortPathSchedule = getFunctionalityAbortPathStepIds(funcId, executedFunc);
 
         int lastIndex = -1;
-        for (StepId stepId : compensationSchedule) {
+        for (StepId stepId : abortPathSchedule) {
             int index = scheduleIds.indexOf(stepId);
             assertTrue(index > lastIndex);
             lastIndex = index;
@@ -593,7 +595,7 @@ class OracleQuizzesAppTest {
         int failIndex = scheduleIds.indexOf(thirdStep);
         assertTrue(lastIndex > failIndex);
 
-        assertEquals(compensationSchedule.getLast(), scheduleIds.getLast());
+        assertEquals(abortPathSchedule.getLast(), scheduleIds.getLast());
     }
 
     @Test
@@ -630,16 +632,15 @@ class OracleQuizzesAppTest {
         StepId commitId = StepId.forCommitStep(funcId);
         assertTrue(scheduleIds.stream().noneMatch(commitId::equals));
 
-        // compensation steps (if any) plus abort should execute in order, ending with
-        // abort
-        List<StepId> compensationSchedule = getFunctionalityCompensationStepIds(funcId, executedFunc);
+        // compensation and abort steps execute in correct order
+        List<StepId> abortPathSchedule = getFunctionalityAbortPathStepIds(funcId, executedFunc);
         int lastIndex = -1;
-        for (StepId stepId : compensationSchedule) {
+        for (StepId stepId : abortPathSchedule) {
             int index = scheduleIds.indexOf(stepId);
             assertTrue(index > lastIndex);
             lastIndex = index;
         }
-        assertEquals(compensationSchedule.getLast(), scheduleIds.getLast());
+        assertEquals(abortPathSchedule.getLast(), scheduleIds.getLast());
 
         // should have a SimulatorException recorded on some step
         assertFalse(result.exceptions().isEmpty());
@@ -757,12 +758,29 @@ class OracleQuizzesAppTest {
         TestResult result = oracle.runTest(setupTestCase);
 
         assertEquals(1, result.functionalities().size());
-        List<StepId> compensationSteps = getFunctionalityCompensationStepIds(funcId, testFunc);
 
         assertFalse(testFunc.hasFirstStepCompensated());
         assertFalse(testFunc.hasSecondStepCompensated());
         assertFalse(testFunc.hasThirdStepCompensated());
+
+        List<StepId> compensationSteps = Stream.of(
+                TestBrokenFunctionality.FIRST_STEP_NAME,
+                TestBrokenFunctionality.SECOND_STEP_NAME,
+                TestBrokenFunctionality.THIRD_STEP_NAME)
+                .map(stepName -> StepId.forCompensationStep(funcId, stepName))
+                .toList();
         assertTrue(compensationSteps.stream().noneMatch(result.schedule()::contains));
+
+        // The abort of the step that failed comes first in the reverse walk and
+        // depends on nothing, so it still runs; the aborts of the two steps behind
+        // the blocked compensation cannot.
+        assertTrue(result.schedule().contains(
+                StepId.forAbortStep(funcId, TestBrokenFunctionality.THIRD_STEP_NAME)));
+        assertFalse(result.schedule().contains(
+                StepId.forAbortStep(funcId, TestBrokenFunctionality.SECOND_STEP_NAME)));
+        assertFalse(result.schedule().contains(
+                StepId.forAbortStep(funcId, TestBrokenFunctionality.FIRST_STEP_NAME)));
+
         assertEquals(Set.of(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED), result.statuses());
     }
 
@@ -1102,11 +1120,11 @@ class OracleQuizzesAppTest {
     }
 
     /**
-     * The ids of the steps a functionality is expected to run when it aborts: one
-     * compensation per executed step that registered a compensation, in reverse
-     * execution order, followed by the abort that reverts the semantic locks.
+     * The ids of the steps a functionality is expected to run when it aborts: the
+     * executed steps in reverse order and, for each one, its compensation (only if
+     * it registered one) followed by its abort.
      */
-    private List<StepId> getFunctionalityCompensationStepIds(FunctionalityId funcId, WorkflowFunctionality func) {
+    private List<StepId> getFunctionalityAbortPathStepIds(FunctionalityId funcId, WorkflowFunctionality func) {
         UnitOfWork uow = func.getWorkflow().getUnitOfWork();
         if (!(uow instanceof SagaUnitOfWork sagaUow)) {
             throw new IllegalArgumentException(
@@ -1116,13 +1134,13 @@ class OracleQuizzesAppTest {
 
         Set<String> registeredCompensationStepNames = Set.copyOf(sagaUow.getRegisteredCompensationStepNames());
 
-        List<StepId> compensationStepIds = new ArrayList<>();
+        List<StepId> abortPathStepIds = new ArrayList<>();
         for (String stepName : sagaUow.getExecutedSteps().reversed()) {
             if (registeredCompensationStepNames.contains(stepName)) {
-                compensationStepIds.add(StepId.forCompensationStep(funcId, stepName));
+                abortPathStepIds.add(StepId.forCompensationStep(funcId, stepName));
             }
+            abortPathStepIds.add(StepId.forAbortStep(funcId, stepName));
         }
-        compensationStepIds.add(StepId.forAbortStep(funcId));
-        return compensationStepIds;
+        return abortPathStepIds;
     }
 }
