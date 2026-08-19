@@ -16,7 +16,7 @@ class SimInterface:
     @staticmethod
     def _get(query, params=None, client=requests):
         try:
-            return client.get(f"{SimInterface.get_gateway()}/{query.lstrip('/')}", params=params)
+            return client.get(f"{SimInterface.get_gateway()}/{query.lstrip('/')}", params=params, timeout=10)
         except Exception as e:
             logging.error(f"GET Request to {query} failed critically: {e}")
             return None
@@ -24,7 +24,7 @@ class SimInterface:
     @staticmethod
     def _post(query, json=None, params=None, client=requests):
         try:
-            return client.post(f"{SimInterface.get_gateway()}/{query.lstrip('/')}", json=json, params=params)
+            return client.post(f"{SimInterface.get_gateway()}/{query.lstrip('/')}", json=json, params=params, timeout=10)
         except Exception as e:
             logging.error(f"POST Request to {query} failed critically: {e}")
             return None

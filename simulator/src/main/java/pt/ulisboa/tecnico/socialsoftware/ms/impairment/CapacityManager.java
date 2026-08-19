@@ -331,7 +331,7 @@ public class CapacityManager {
         reportService.report(msg);
     }
 
-    private synchronized void logState(String msName, String action, String operationName, String requestId) {
+    private void logState(String msName, String action, String operationName, String requestId) {
         List<String> active_snapshot;
         List<String> waiting_snapshot;
         synchronized (activeRequests.get(msName)) {

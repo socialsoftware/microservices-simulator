@@ -88,16 +88,30 @@ class TraceManager:
                 self._lock.wait(remaining)
 
             if not self._spans:
+                logging.error(
+                    "[TraceCollector] Timed out waiting! No spans received.")
                 return False
+
+            logging.info(
+                f"[TraceCollector] Initial spans received!")
 
             # Wait to stop receiving
             while (time.time() - self._last_span_time) < wait_window:
                 remaining = wait_window - (time.time() - self._last_span_time)
                 if remaining <= 0:
                     break
-                self._lock.wait(remaining)
-                if (time.time() - start_time) > total_timeout:
+
+                # Check for total timeout
+                elapsed = time.time() - start_time
+                if elapsed > total_timeout:
+                    logging.error(
+                        f"[TraceCollector] Reached total_timeout ({total_timeout}s) while spans were still arriving!")
                     break
+
+                self._lock.wait(remaining)
+
+        logging.info(
+            "[TraceCollector] Data stream has stopped.")
         return True
 
     @staticmethod
