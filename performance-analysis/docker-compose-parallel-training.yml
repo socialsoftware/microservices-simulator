@@ -15,15 +15,6 @@ x-limits-quizzes: &limits-quizzes
       reservations:
         memory: '${QUIZZES_MEM_RESERVATION:-640m}'
 
-x-limits-h2: &limits-h2
-  deploy:
-    resources:
-      limits:
-        #cpus: '${H2_CPUS:-0.5}'
-        memory: '${H2_MEM_LIMIT:-1.0g}'
-      reservations:
-        memory: '${H2_MEM_RESERVATION:-640m}'
-
 #  --- Only enabled in debug profile ---
 
 x-limits-otel: &limits-otel
@@ -66,13 +57,13 @@ x-quizzes-base: &quizzes-base
     SPRING_PROFILES_INCLUDE: ${VERSION_MODE:-}
     SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local
     EUREKA_CLIENT_ENABLED: "false"
-    LOGGING_LEVEL_ROOT: "WARN"
-    LOGGING_LEVEL_PT_ULISBOA_TECNICO: "WARN"
+    LOGGING_LEVEL_ROOT: "ERROR"
+    LOGGING_LEVEL_PT_ULISBOA_TECNICO: "ERROR"
     SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
     SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
     SPRING_DATASOURCE_USERNAME: sa
     SPRING_DATASOURCE_PASSWORD: sa
-    SPRING_DATASOURCE_URL: jdbc:h2:tcp://h2-mock:1521/mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    SPRING_DATASOURCE_URL: jdbc:h2:mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
   volumes:
     - ./src/main/resources:/resources
     - ./src/main/logs:/logs
@@ -86,50 +77,35 @@ x-quizzes-base: &quizzes-base
 # ==========================================
 services:
 
-  # Database Layer
-  h2-mock:
-    <<: *limits-h2
-    image: oscarfonts/h2:latest
-    stop_grace_period: 1s
-    ports:
-      - ${H2_PORT:-1521}:5432
-    environment:
-      - H2_OPTIONS=-pg -pgPort 5432 -pgAllowOthers -tcpAllowOthers -webAllowOthers -ifNotExists
-    networks:
-      - messaging-network
-
   # Core Application (Simulator)
 
   # Profile: TRAIN (Direct to Python)
   quizzes-train:
     <<: *quizzes-base
     profiles: [ "train" ]
-    depends_on:
-      h2-mock:
-        condition: service_started
     environment:
       <<: *quizzes-env
+      SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local,train
       OTEL_EXPORTER_OTLP_ENDPOINT: http://host.docker.internal:${GRPC_PORT:-4319}
 
   # Profile: DEBUG (Routed via OTel Collector)
-  quizzes-debug:
+  quizzes-train-debug:
     <<: *quizzes-base
-    profiles: [ "debug" ]
+    profiles: [ "train-debug" ]
     depends_on:
-      h2-mock:
-        condition: service_started
       jaeger:
         condition: service_started
       otel-collector:
         condition: service_started
     environment:
       <<: *quizzes-env
+      SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local,train-debug
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
 
   # Tracing & Observability
   jaeger:
     <<: *limits-jaeger
-    profiles: [ "debug" ]
+    profiles: [ "train-debug" ]
     image: jaegertracing/all-in-one:1.75.0
     stop_grace_period: 1s
     environment:
@@ -140,7 +116,7 @@ services:
       - messaging-network
 
   otel-collector:
-    profiles: [ "debug" ]
+    profiles: [ "train-debug" ]
     <<: *limits-otel
     image: otel/opentelemetry-collector-contrib:latest
     stop_grace_period: 1s
