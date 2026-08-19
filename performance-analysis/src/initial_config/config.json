@@ -5,26 +5,26 @@
         "name": "Node1",
         "capacity": 100,
         "microservices": [
-          "user",
-          "execution",
-          "course"
+          "course",
+          "topic",
+          "tournament"
         ]
       },
       {
         "name": "Node2",
         "capacity": 100,
         "microservices": [
-          "quiz",
-          "tournament"
+          "user",
+          "quiz"
         ]
       },
       {
         "name": "Node3",
         "capacity": 100,
         "microservices": [
-          "question",
-          "topic",
-          "answer"
+          "execution",
+          "answer",
+          "question"
         ]
       }
     ]
@@ -39,13 +39,13 @@
     "intranode": {
       "uni": [
         0,
-        50
+        1
       ]
     },
     "internode": {
       "uni": [
-        100,
-        105
+        5,
+        10
       ]
     }
   },
@@ -53,7 +53,7 @@
     "microservices": [
       {
         "name": "answer",
-        "capacity": 20,
+        "capacity": 10,
         "services": [
           {
             "name": "getQuizAnswerDtoByQuizIdAndUserId",
@@ -91,7 +91,7 @@
       },
       {
         "name": "course",
-        "capacity": 20,
+        "capacity": 10,
         "services": [
           {
             "name": "getCourseById",
@@ -183,7 +183,7 @@
       },
       {
         "name": "question",
-        "capacity": 20,
+        "capacity": 10,
         "services": [
           {
             "name": "getQuestionById",
@@ -225,7 +225,7 @@
       },
       {
         "name": "quiz",
-        "capacity": 20,
+        "capacity": 15,
         "services": [
           {
             "name": "getQuizById",

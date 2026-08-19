@@ -1,17 +1,15 @@
 environment:
   microservices_num: 8
   nodes_num: 3
-  # NOTE: If you are evaluating an already trained model make sure you select the same 
-  # reward and observation strategy used to train it, otherwise errors and weird results might occur.
   reward_type: "proportional_fairness"
-  observation_type: "complex"
+  observation_type: "normalized_complex"
   alpha: 0.5
   beta: 0.5
 
 workloads:
-  workloads: ["quizzes/user_wl.py"]
+  workloads: ["quizzes/semester_start_wl.py"]
   # Interval of min, max users per workload
-  users: [50, 50]
+  users: [80, 80]
   # Interval for dynamic read/write workload multipliers
   weights_ratio: [1, 1]
   # Interval for wait time in seconds between requests
@@ -25,19 +23,19 @@ workloads:
 ppo_hyperparameters:
   learning_rate: 0.0003
   gamma: 0.99
-  ent_coef: 0.01
-  n_steps: 16 # 6 * 16 = 96
-  batch_size: 32 # Batch size 32 means 3 mini-batches.
+  ent_coef: 0.0
+  n_steps: 160 # Steps per env before update
+  batch_size: 192 # n_steps * num_envs / N_batches
   n_epochs: 10
   clip_range: 0.2
 
 training:
-  num_envs: 2
-  steps_per_episode: 15
-  total_timesteps: 3000
-  checkpoint_freq: 96
-  # Uncomment the line bellow to resume train from a checkpoint.
-  # resume_from_checkpoint: "./models/checkpoints/ppo_model_1000_steps.zip"
+  num_envs: 12
+  steps_per_episode: 16
+  total_timesteps: 57600
+  checkpoint_freq: 1600 # Total steps to checkpoint
+  # NOTE: If you want to resume from a checkpoint uncomment and replace the line bellow
+  #resume_from_checkpoint: "./models/checkpoints/ppo_model_5376_steps.zip"
 
 paths:
   models_dir: "./models/"

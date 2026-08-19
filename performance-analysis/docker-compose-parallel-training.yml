@@ -10,7 +10,7 @@ x-limits-quizzes: &limits-quizzes
   deploy:
     resources:
       limits:
-        cpus: '${QUIZZES_CPUS:-1.0}'
+        #cpus: '${QUIZZES_CPUS:-1.0}'
         memory: '${QUIZZES_MEM_LIMIT:-1.0g}'
       reservations:
         memory: '${QUIZZES_MEM_RESERVATION:-640m}'
@@ -19,7 +19,7 @@ x-limits-h2: &limits-h2
   deploy:
     resources:
       limits:
-        cpus: '${H2_CPUS:-0.5}'
+        #cpus: '${H2_CPUS:-0.5}'
         memory: '${H2_MEM_LIMIT:-1.0g}'
       reservations:
         memory: '${H2_MEM_RESERVATION:-640m}'
@@ -51,18 +51,18 @@ x-limits-jaeger: &limits-jaeger
 x-quizzes-base: &quizzes-base
   <<: *limits-quizzes
   image: quizzes:latest
-  cap_add:
-    - ${PERF_CAP:-CHOWN}
   build:
     context: .
     dockerfile: performance-analysis/Dockerfile
     args:
       PROFILE: ${TX_MODE:-sagas},local
-  pull_policy: build
+  init: true
+  stop_grace_period: 2s
   ports:
     - ${GATEWAY_PORT:-8080}:8080
-  restart: unless-stopped
   environment: &quizzes-env
+    # JVM Container Ergonomics to prevent memory page locking on cgroup destruction
+    JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=2 -XX:ParallelGCThreads=2 -XX:ConcGCThreads=1 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2"
     SPRING_PROFILES_INCLUDE: ${VERSION_MODE:-}
     SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local
     EUREKA_CLIENT_ENABLED: "false"
@@ -90,6 +90,7 @@ services:
   h2-mock:
     <<: *limits-h2
     image: oscarfonts/h2:latest
+    stop_grace_period: 1s
     ports:
       - ${H2_PORT:-1521}:5432
     environment:
@@ -130,11 +131,11 @@ services:
     <<: *limits-jaeger
     profiles: [ "debug" ]
     image: jaegertracing/all-in-one:1.75.0
+    stop_grace_period: 1s
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     ports:
       - ${JAEGER_PORT:-16686}:16686
-    restart: unless-stopped
     networks:
       - messaging-network
 
@@ -142,6 +143,7 @@ services:
     profiles: [ "debug" ]
     <<: *limits-otel
     image: otel/opentelemetry-collector-contrib:latest
+    stop_grace_period: 1s
     command:
       - --config=/etc/otel-collector-config.yaml
     depends_on:

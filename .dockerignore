@@ -1,0 +1,45 @@
+# Git
+.git
+.github
+.gitignore
+
+# IDEs and Editors
+.idea
+.vscode
+*.iml
+*.iws
+*.ipr
+.settings
+.project
+.classpath
+.factorypath
+
+# Maven / Java Build Artifacts
+**/target/
+build/
+dist/
+*.jar
+
+# Logs and Data
+data/
+logs/
+*.log
+**/*.log
+**/logs/
+
+# Python / AI / Local 
+.claude
+.run
+performance-analysis/venv/
+performance-analysis/tensorboard_logs/
+performance-analysis/experiments/
+performance-analysis/models/
+**/__pycache__/
+*.egg-info/
+.eggs/
+
+# Simulator Reports
+**/BehaviourReport.txt
+**/CapacityReport.txt
+**/ImpairmentReport.txt
+**/service-hardware-profiling.txt
