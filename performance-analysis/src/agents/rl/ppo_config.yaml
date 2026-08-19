@@ -22,6 +22,7 @@ workloads:
 
 ppo_hyperparameters:
   learning_rate: 0.0003
+  use_linear_rate_decay: true
   gamma: 0.99
   ent_coef: 0.0
   n_steps: 160 # Steps per env before update

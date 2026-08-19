@@ -5,6 +5,20 @@ from src.agents.utils.tensorboard_metrics import aggregate_metrics
 from src.agents.utils.env_setup import load_ppo_config
 import os
 import logging
+from typing import Callable
+
+def linear_schedule(initial_value: float) -> Callable[[float], float]:
+    """
+    Linear learning rate schedule.
+    :param initial_value: Initial learning rate.
+    :return: schedule that computes current learning rate depending on remaining progress
+    """
+    def func(progress_remaining: float) -> float:
+        """
+        Progress will decrease from 1 (beginning) to 0.
+        """
+        return progress_remaining * initial_value
+    return func
 
 
 class CustomTensorboardCallback(BaseCallback):
@@ -95,13 +109,17 @@ def run_ppo():
     reset_timesteps = True
     resume_path = train_cfg.get("resume_from_checkpoint", None)
 
+    lr_value = hyperparameters["learning_rate"]
+    use_linear_decay = hyperparameters.get("use_linear_rate_decay", True)
+    learning_rate = linear_schedule(lr_value) if use_linear_decay else lr_value
+
     if resume_path and os.path.exists(resume_path):
         logging.info(f"Resuming training from checkpoint: {resume_path}")
         model = MaskablePPO.load(
             resume_path,
             env=env,
             tensorboard_log=paths["tensorboard_log"],
-            custom_objects={"learning_rate": hyperparameters["learning_rate"]}
+            custom_objects={"learning_rate": learning_rate}
         )
         reset_timesteps = False
     else:
@@ -109,7 +127,7 @@ def run_ppo():
         model = MaskablePPO(
             "MultiInputPolicy",
             env,
-            learning_rate=hyperparameters["learning_rate"],
+            learning_rate=learning_rate,
             gamma=hyperparameters["gamma"],
             ent_coef=hyperparameters["ent_coef"],
             n_steps=hyperparameters["n_steps"],

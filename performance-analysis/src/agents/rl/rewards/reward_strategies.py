@@ -36,6 +36,8 @@ class RewardStrategyFactory:
             return GlobalAverageLatencyReward(**kwargs)
         elif strategy_type == "proportional_fairness":
             return ProportionalFairnessReward(**kwargs)
+        elif strategy_type == "bottleneck_targeting":
+            return BottleneckTargetingReward(**kwargs)
         else:
             raise ValueError(f"Unknown reward strategy: {strategy_type}")
 
@@ -119,6 +121,50 @@ class GlobalAverageLatencyReward(RewardStrategy):
         delta_d = old_d_avg - new_d_avg
 
         return (self.alpha * delta_q) + (self.beta * delta_d)
+
+
+class BottleneckTargetingReward(RewardStrategy):
+    """
+    Evaluates architecture by summing raw linear latencies and explicitly 
+    applying a heavy penalty to the worst-performing bottleneck service.
+    """
+
+    stop_reward = -0.1
+    invalid_action_reward = -1
+    time_tax = 0.05
+    c = 1000.0
+    
+    def __init__(self, alpha=1.0, beta=1.0):
+        self.alpha = alpha
+        self.beta = beta
+        self.bottleneck_multiplier = 2.0
+
+    def compute(self, old_metrics: dict, new_metrics: dict) -> float:
+        if new_metrics is None or not new_metrics.get("microservices"):
+            return -1.0
+
+        new_mss_metrics = new_metrics.get("microservices", {})
+
+        total_penalty = 0.0
+        max_queue = 0.0
+        max_delay = 0.0
+
+        for metrics in new_mss_metrics.values():
+            invocs = metrics.get("invocations", 0)
+
+            avg_q = metrics.get("queue_time", 0.0) / invocs if invocs > 0 else 0.0
+            avg_d = metrics.get("delay_time", 0.0) / invocs if invocs > 0 else 0.0
+        
+            if avg_q > max_queue: max_queue = avg_q
+            if avg_d > max_delay: max_delay = avg_d
+
+            total_penalty += (self.alpha * avg_q) + (self.beta * avg_d)
+
+        bottleneck_penalty = (self.alpha * max_queue + self.beta * max_delay) * self.bottleneck_multiplier
+        
+        total_penalty += bottleneck_penalty
+
+        return -(total_penalty / self.c)
 
 
 class ProportionalFairnessReward(RewardStrategy):
