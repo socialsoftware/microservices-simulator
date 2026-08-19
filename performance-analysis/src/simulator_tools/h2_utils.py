@@ -1,4 +1,4 @@
-import psycopg2
+import requests
 import logging
 import os
 import time
@@ -8,29 +8,45 @@ ALLOCATION_SIZE = 50
 
 
 class H2DBManager:
-    """Class responsible for communicating with the H2 database for faster agent training."""
+    """Class responsible for communicating with the Java API for faster agent training."""
 
-    _conn = None
     _cached_tables = []
+    _base_url = None
 
     @classmethod
-    def _get_connection(cls):
-        if cls._conn is None or cls._conn.closed:
-            try:
-                db_config = {
-                    "dbname": "mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1",
-                    "user": "sa",
-                    "password": "sa",
-                    "host": os.environ.get("DB_HOST", "127.0.0.1"),
-                    "port": int(os.environ.get("H2_PORT", 1521)),
-                    "sslmode": "disable"
-                }
-                cls._conn = psycopg2.connect(**db_config)
-                cls._conn.autocommit = True
-            except Exception as e:
-                logging.error(f"Failed to connect to H2 database: {e}")
-                raise e
-        return cls._conn
+    def _get_base_url(cls):
+        if cls._base_url is None:
+            # Infer the gateway port based on the worker H2_PORT assignment
+            h2_port = int(os.environ.get("H2_PORT", 1522))
+            worker_id = h2_port - 1521
+            gateway_port = int(os.environ.get(
+                "GATEWAY_PORT", 8080 + worker_id))
+
+            host = os.environ.get("DB_HOST", "127.0.0.1")
+            cls._base_url = f"http://{host}:{gateway_port}/simulator/db"
+        return cls._base_url
+
+    @classmethod
+    def _execute(cls, query):
+        url = f"{cls._get_base_url()}/execute"
+        resp = requests.post(url, data=query.encode(
+            'utf-8'), headers={'Content-Type': 'text/plain'}, timeout=10)
+        resp.raise_for_status()
+
+    @classmethod
+    def _query_tables(cls):
+        url = f"{cls._get_base_url()}/tables"
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
+
+    @classmethod
+    def _query_single(cls, query):
+        url = f"{cls._get_base_url()}/query-single"
+        resp = requests.post(url, data=query.encode(
+            'utf-8'), headers={'Content-Type': 'text/plain'}, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
 
     @classmethod
     def _parse_sql(cls, lines: list[str]) -> str:
@@ -63,7 +79,7 @@ class H2DBManager:
         return "".join(clean_lines), sequence_fixes
 
     @classmethod
-    def _advance_sequences(cls, sequence: list[str], cur):
+    def _advance_sequences(cls, sequence: list[str]):
         """Manually adcanve sequence IDs to sync the database.
         It advances an extra 'ALLOCATION_SIZE' which represents the amount of IDs the simulator reserves at a time."""
 
@@ -74,25 +90,20 @@ class H2DBManager:
                 if val_expr.isdigit():
                     # If it's a hardcoded number (like 501)
                     next_val = int(val_expr) + ALLOCATION_SIZE
-                    cur.execute(
+                    cls._execute(
                         f'ALTER SEQUENCE public."{seq}" RESTART WITH {next_val};')
                 else:
                     # If it's a subquery (like SELECT COALESCE(MAX(id)...)
                     query = val_expr[1:-1] if val_expr.startswith("(") else val_expr
-                    cur.execute(query)
-                    val = cur.fetchone()[0]
+                    val = cls._query_single(query)
                     next_val = val + ALLOCATION_SIZE
-                    cur.execute(
+                    cls._execute(
                         f'ALTER SEQUENCE public."{seq}" RESTART WITH {next_val};')
             except Exception as seq_e:
-                logging.warning(
-                    f"Could not sync sequence {seq}: {seq_e}")
+                logging.warning(f"Could not sync sequence {seq}: {seq_e}")
 
     @classmethod
     def _populate_db(cls, max_retries: int = 5, retry_delay: float = 0.5):
-        """Populates database with baseline_data snapshot.
-        It carefully parses the snapshot's SQL to match H2 syntax."""
-
         snapshot_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "initial_config", "baseline_data.sql")
 
@@ -104,7 +115,6 @@ class H2DBManager:
         try:
             with open(snapshot_path, 'r', encoding='utf-8-sig') as file:
                 lines = file.readlines()
-
             populate_query, sequence_fixes = cls._parse_sql(lines)
         except Exception as e:
             logging.error(f"Failed to read snapshot file: {e}")
@@ -112,15 +122,12 @@ class H2DBManager:
 
         for _ in range(1, max_retries + 1):
             try:
-                conn = cls._get_connection()
-                with conn.cursor() as cur:
-                    cur.execute(populate_query)
-                    cls._advance_sequences(sequence_fixes, cur)
+                cls._execute(populate_query)
+                cls._advance_sequences(sequence_fixes)
                 return
-            except psycopg2.OperationalError as e:
+            except requests.RequestException as e:
                 logging.warning(
-                    f"Database connection lost during populate: {e}. Reconnecting...")
-                cls._conn = None
+                    f"Connection lost during populate: {e}. Reconnecting...")
                 time.sleep(retry_delay)
             except Exception as e:
                 logging.error(f"Failed to populate database critically: {e}")
@@ -131,38 +138,32 @@ class H2DBManager:
         """Populates the database and creates a backup for faster resets. 
         Also caches tables in memory for faster operations."""
 
-        conn = cls._get_connection()
-
         # Drop any old backups if they exist
-        with conn.cursor() as cur:
-            cur.execute("SET REFERENTIAL_INTEGRITY FALSE;")
+        try:
+            cls._execute("SET REFERENTIAL_INTEGRITY FALSE;")
             # Force MVStore to immediately garbage collect old chunks instead of waiting 45s
-            cur.execute("SET RETENTION_TIME 0;")
-            cur.execute("DROP SCHEMA IF EXISTS backup CASCADE;")
-            cur.execute(
-                "SELECT table_name FROM information_schema.tables "
-                "WHERE table_schema = 'public' AND table_type = 'BASE TABLE';"
-            )
-            existing_tables = [row[0] for row in cur.fetchall()]
+            cls._execute("SET RETENTION_TIME 0;")
+            cls._execute("DROP SCHEMA IF EXISTS backup CASCADE;")
+
+            existing_tables = cls._query_tables()
             for table in existing_tables:
-                cur.execute(f'TRUNCATE TABLE public."{table}";')
-            cur.execute("SET REFERENTIAL_INTEGRITY TRUE;")
+                cls._execute(f'TRUNCATE TABLE public."{table}";')
+
+            cls._execute("SET REFERENTIAL_INTEGRITY TRUE;")
+        except Exception as e:
+            logging.warning(
+                f"Initial setup cleanup failed (normal if DB is empty): {e}")
 
         cls._populate_db()
-        conn = cls._get_connection()  # fallback in case connection has any issue
 
         # Create state backup
-        with conn.cursor() as cur:
-            cur.execute("CREATE SCHEMA backup;")
-            cur.execute(
-                "SELECT table_name FROM information_schema.tables "
-                "WHERE table_schema = 'public' AND table_type = 'BASE TABLE';"
-            )
-            # Cache ALL public schema Tables
-            cls._cached_tables = [row[0] for row in cur.fetchall()]
-            for table in cls._cached_tables:
-                cur.execute(
-                    f'CREATE TABLE backup."{table}" AS SELECT * FROM public."{table}";')
+        cls._execute("CREATE SCHEMA backup;")
+
+        # Cache ALL public schema Tables
+        cls._cached_tables = cls._query_tables()
+        for table in cls._cached_tables:
+            cls._execute(
+                f'CREATE TABLE backup."{table}" AS SELECT * FROM public."{table}";')
 
         logging.info("Database Setup Finished!")
 
@@ -176,13 +177,9 @@ class H2DBManager:
             cls.setup_db_state()
             return
 
-        conn = cls._get_connection()
-        with conn.cursor() as cur:
-            cur.execute("SET REFERENTIAL_INTEGRITY FALSE;")
-
-            for table in cls._cached_tables:
-                cur.execute(f'TRUNCATE TABLE public."{table}";')
-                cur.execute(
-                    f'INSERT INTO public."{table}" SELECT * FROM backup."{table}";')
-
-            cur.execute("SET REFERENTIAL_INTEGRITY TRUE;")
+        cls._execute("SET REFERENTIAL_INTEGRITY FALSE;")
+        for table in cls._cached_tables:
+            cls._execute(f'TRUNCATE TABLE public."{table}";')
+            cls._execute(
+                f'INSERT INTO public."{table}" SELECT * FROM backup."{table}";')
+        cls._execute("SET REFERENTIAL_INTEGRITY TRUE;")
