@@ -13,6 +13,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.StationDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.coordination.functionalities.StationFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.service.StationService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.TrainTypeDto
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.sagas.SagaTrainType
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.coordination.functionalities.TrainTypeFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.service.TrainTypeService
 
 class TrainticketSpockTest extends SpockTest {
 
@@ -55,6 +59,10 @@ class TrainticketSpockTest extends SpockTest {
     protected StationService stationService
     @Autowired(required = false)
     protected StationFunctionalities stationFunctionalities
+    @Autowired(required = false)
+    protected TrainTypeService trainTypeService
+    @Autowired(required = false)
+    protected TrainTypeFunctionalities trainTypeFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -80,5 +88,15 @@ class TrainticketSpockTest extends SpockTest {
         stationDto.setName(name)
         stationDto.setStayTime(stayTime)
         return stationFunctionalities.createStation(stationDto).aggregateId
+    }
+
+    Integer createTrainType(String name = TRAIN_TYPE_NAME,
+                            Integer economyClassSeats = TRAIN_TYPE_ECONOMY_CLASS_SEATS,
+                            Integer firstClassSeats = TRAIN_TYPE_FIRST_CLASS_SEATS,
+                            Integer averageSpeed = TRAIN_TYPE_AVERAGE_SPEED) {
+        def trainTypeDto = new TrainTypeDto(name, economyClassSeats, firstClassSeats, averageSpeed)
+        def trainType = new SagaTrainType(aggregateIdGeneratorService.getNewAggregateId(), trainTypeDto)
+        unitOfWorkService.registerChanged(trainType, unitOfWorkService.createUnitOfWork("fixture"))
+        return trainType.getAggregateId()
     }
 }

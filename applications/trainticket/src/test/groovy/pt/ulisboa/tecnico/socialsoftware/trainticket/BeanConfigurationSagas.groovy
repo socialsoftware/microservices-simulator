@@ -32,8 +32,13 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggre
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.coordination.functionalities.StationFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.messaging.StationCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.service.StationService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.TrainTypeCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.TrainTypeRepository
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.sagas.factories.SagasTrainTypeFactory
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.sagas.repositories.TrainTypeCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.coordination.functionalities.TrainTypeFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.messaging.TrainTypeCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.service.TrainTypeService
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
@@ -171,6 +176,23 @@ class BeanConfigurationSagas {
     @Bean
     TrainTypeCustomRepositorySagas trainTypeCustomRepositorySagas() {
         return new TrainTypeCustomRepositorySagas()
+    }
+
+    @Bean
+    TrainTypeService trainTypeService(SagaUnitOfWorkService unitOfWorkService,
+                                      TrainTypeRepository trainTypeRepository,
+                                      TrainTypeCustomRepository trainTypeCustomRepository) {
+        return new TrainTypeService(unitOfWorkService, trainTypeRepository, trainTypeCustomRepository)
+    }
+
+    @Bean
+    TrainTypeCommandHandler trainTypeCommandHandler() {
+        return new TrainTypeCommandHandler()
+    }
+
+    @Bean
+    TrainTypeFunctionalities trainTypeFunctionalities() {
+        return new TrainTypeFunctionalities()
     }
 
 }
