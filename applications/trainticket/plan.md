@@ -152,14 +152,14 @@ both create and update - `name` is mutable).
 | Session | Files |
 |---------|-------|
 | 2.1.a | `aggregate/Station.java`, `aggregate/StationFactory.java`, `aggregate/StationCustomRepository.java`, `aggregate/sagas/SagaStation.java`, `aggregate/sagas/states/StationSagaState.java`, `aggregate/sagas/factories/SagasStationFactory.java`, `aggregate/sagas/repositories/StationCustomRepositorySagas.java`, `aggregate/StationDto.java`, `aggregate/StationRepository.java`, `StationServiceApplication.java`, `sagas/station/StationIntraInvariantTest.groovy` |
-| 2.1.b | `service/StationService.java` (read methods), `messaging/StationCommandHandler.java`, `commands/station/GetStationByIdCommand.java`, `commands/station/GetStationsCommand.java`, `coordination/sagas/GetStationByIdFunctionalitySagas.java`, `coordination/sagas/GetStationsFunctionalitySagas.java`, `coordination/functionalities/StationFunctionalities.java`, `{src}ServiceMapping.java` (create the enum; add the `STATION("station")` entry), `sagas/station/StationServiceTest.groovy` (read-method cases), `sagas/coordination/station/GetStationByIdTest.groovy`, `sagas/coordination/station/GetStationsTest.groovy` |
+| 2.1.b | `service/StationService.java` (read methods), `messaging/StationCommandHandler.java`, `commands/station/GetStationByIdCommand.java`, `commands/station/GetStationsCommand.java`, `coordination/sagas/GetStationByIdFunctionalitySagas.java`, `coordination/sagas/GetStationsFunctionalitySagas.java`, `coordination/functionalities/StationFunctionalities.java`, `{src}ServiceMapping.java` (create the enum; add the `STATION("station")` entry), `sagas/station/StationServiceTest.groovy` (read-method cases), `sagas/coordination/station/GetStationByIdTest.groovy`, `sagas/coordination/station/GetStationsTest.groovy`, `aggregate/StationRepository.java` (amended 2.1.b - `findAllLatestActive()` JPQL; `GetStations` is a bulk read and `findAll()` returns historical versions), `aggregate/StationCustomRepository.java` (amended 2.1.b - declares `findAllLatestActive()` so `StationService` stays profile-agnostic), `aggregate/sagas/repositories/StationCustomRepositorySagas.java` (amended 2.1.b - implements it) |
 | 2.1.c | `service/StationService.java` (write methods appended), `commands/station/CreateStationCommand.java`, `commands/station/UpdateStationCommand.java`, `commands/station/DeleteStationCommand.java`, `coordination/sagas/CreateStationFunctionalitySagas.java`, `coordination/sagas/UpdateStationFunctionalitySagas.java`, `coordination/sagas/DeleteStationFunctionalitySagas.java`, write coordinator methods appended to `coordination/functionalities/StationFunctionalities.java`, write cases appended to `messaging/StationCommandHandler.java`, `coordination/webapi/StationController.java`, `sagas/coordination/station/CreateStationTest.groovy`, `sagas/coordination/station/UpdateStationTest.groovy`, `sagas/coordination/station/DeleteStationTest.groovy`, write-method cases appended to `sagas/station/StationServiceTest.groovy` |
 
 > Session 2.1.b **creates** `{src}ServiceMapping.java`; every later aggregate's session `b` edits it.
 
 **Checklist:**
 - [x] 2.1.a - Domain layer
-- [ ] 2.1.b - Read functionalities
+- [x] 2.1.b - Read functionalities
 - [ ] 2.1.c - Write functionalities
 
 ---

@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.trainticket
 
 import org.springframework.beans.factory.annotation.Autowired
 import pt.ulisboa.tecnico.socialsoftware.SpockTest
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdGeneratorService
 import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState
@@ -9,14 +10,23 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
 
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.StationDto
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.sagas.SagaStation
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.coordination.functionalities.StationFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.service.StationService
+
 class TrainticketSpockTest extends SpockTest {
 
     public static final String mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
 
     // Domain constants are added here as aggregates are implemented in Phase 2.
 
+    public static final Integer NONEXISTENT_AGGREGATE_ID = 9999
+
     public static final String STATION_NAME = "Shanghai"
+    public static final String STATION_NAME_TWO = "Beijing"
     public static final Integer STATION_STAY_TIME = 10
+    public static final Integer STATION_STAY_TIME_TWO = 25
     public static final Integer STATION_STAY_TIME_ZERO = 0
     public static final Integer STATION_STAY_TIME_NEGATIVE = -1
 
@@ -25,8 +35,15 @@ class TrainticketSpockTest extends SpockTest {
     public ImpairmentService impairmentService
     @Autowired(required = false)
     protected SagaUnitOfWorkService unitOfWorkService
+    @Autowired
+    protected AggregateIdGeneratorService aggregateIdGeneratorService
 
     // Domain @Autowired fields are added here as aggregates are implemented in Phase 2.
+
+    @Autowired(required = false)
+    protected StationService stationService
+    @Autowired(required = false)
+    protected StationFunctionalities stationFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -46,4 +63,11 @@ class TrainticketSpockTest extends SpockTest {
     }
 
     // Domain create* helpers are added below as aggregates are implemented in Phase 2.
+
+    Integer createStation(String name = STATION_NAME, Integer stayTime = STATION_STAY_TIME) {
+        def station = new SagaStation(aggregateIdGeneratorService.getNewAggregateId(),
+                new StationDto(name, stayTime))
+        unitOfWorkService.registerChanged(station, unitOfWorkService.createUnitOfWork("fixture"))
+        return station.getAggregateId()
+    }
 }

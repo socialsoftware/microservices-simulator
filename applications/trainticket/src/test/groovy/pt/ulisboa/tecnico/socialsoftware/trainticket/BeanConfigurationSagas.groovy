@@ -25,8 +25,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceClient
 
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.StationCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.StationRepository
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.sagas.factories.SagasStationFactory
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.sagas.repositories.StationCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.coordination.functionalities.StationFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.messaging.StationCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.service.StationService
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
@@ -137,6 +142,23 @@ class BeanConfigurationSagas {
     @Bean
     StationCustomRepositorySagas stationCustomRepositorySagas() {
         return new StationCustomRepositorySagas()
+    }
+
+    @Bean
+    StationService stationService(SagaUnitOfWorkService unitOfWorkService,
+                                  StationRepository stationRepository,
+                                  StationCustomRepository stationCustomRepository) {
+        return new StationService(unitOfWorkService, stationRepository, stationCustomRepository)
+    }
+
+    @Bean
+    StationCommandHandler stationCommandHandler() {
+        return new StationCommandHandler()
+    }
+
+    @Bean
+    StationFunctionalities stationFunctionalities() {
+        return new StationFunctionalities()
     }
 
 }
