@@ -168,6 +168,7 @@ write-method and event-publication cases. For each read service method added thi
   - **Path A (PK load):** service calls `aggregateLoadAndRegisterRead` with a non-existent ID → assert `thrown(SimulatorException)`
   - **Path B (composite/custom-repo lookup):** service queries a custom repository returning `Optional` and throws on empty → assert `thrown({AppClass}Exception)` with `ex.message == <NOT_FOUND_CONSTANT>`
   - **Rule of thumb:** read the service method first — if it calls `aggregateLoadAndRegisterRead` directly with an ID, use Path A; if it first calls a custom repository returning `Optional`, use Path B.
+  - **Collection reads have neither path.** A read returning a list has no id that can fail to resolve: an empty result is a valid answer, not an error. Write an **empty-result** case instead — run the read with no matching aggregate present and assert the returned list is empty. Do not invent a not-found exception for it.
 
 ---
 

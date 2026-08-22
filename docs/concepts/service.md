@@ -257,6 +257,17 @@ List<Shipment> findAllLatestActive();
 
 Add the JPQL method to `{Aggregate}Repository.java` (JPA repo interface) and call it from `{Aggregate}CustomRepositorySagas` — never call `jpaRepo.findAll()` directly in bulk-read implementations.
 
+**Declare it on the abstract `{Aggregate}CustomRepository` too.** The service injects the interface,
+never the concrete `Sagas` class (§ Injected Dependencies, and `AGENTS.md` § Architecture principle),
+so a method that exists only on `{Aggregate}CustomRepositorySagas` is unreachable from the service and
+the call does not compile. All three files carry it:
+
+| File | Role |
+|------|------|
+| `{Aggregate}Repository.java` | the `@Query` JPQL itself |
+| `{Aggregate}CustomRepository.java` | the abstract declaration the service calls through |
+| `{Aggregate}CustomRepositorySagas.java` | `@Override`, delegating to the JPA repo |
+
 ---
 
 ## P3 Guard Placement
