@@ -83,19 +83,37 @@ Extract from the §3.1 table (columns: Rule, Entity, Predicate):
 
 #### 2.b: Parse §3.2 — Cross-Entity Rules
 
-Extract from the custom block format. Each rule is a separate block delimited by heading `#### Rule: {RuleName}`, followed by a table with rows for "Entities" and "Predicate".
+Extract from the custom block format. Each rule is a separate block whose shape
+`docs/templates/domain-model-template.md` § 3.2 defines, and that template is the authority on it:
+
+```
+#### Rule: {RULE_NAME}[ ({Qualifier})]
+
+| Field | Value |
+|---|---|
+| Entities | {Entity1}, {Entity2} |
+| Predicate | {predicate} |
+```
+
+Two things vary and both are legitimate. The heading may carry a **parenthetical qualifier** naming
+the aggregate the rule is stated against — it disambiguates two rules that share a name across
+aggregates, and it is part of the rule's identity, so carry it into the Rule Classification table
+verbatim. And the `| Field | Value |` header plus its separator row sit **between** the heading and
+the `| Entities |` row; a pattern that expects `| Entities |` on the line after the heading matches
+nothing the template produces.
 
 **Regex pattern to find rule blocks:**
 ```
-#### Rule: ([A-Z_0-9]+)\n.*?\n\| Entities \| ([^\|]+) \|\n\| Predicate \| ([^\|]+) \|
+#### Rule: ([A-Z_0-9]+)(?: \(([^)]*)\))?[^\n]*\n(?:[^\n]*\n)*?\| Entities \|([^|]*)\|[^\n]*\n\| Predicate \|(.*)\|
 ```
 
 For each match:
 - `rule_name` = captured group 1
-- `entities` = captured group 2 (comma-separated aggregate/entity names)
-- `predicate` = captured group 3 (the condition)
+- `qualifier` = captured group 2 (the aggregate the rule is stated against; absent for most rules)
+- `entities` = captured group 3 (comma-separated aggregate/entity names)
+- `predicate` = captured group 4 (the condition)
 
-**Output:** List of tuples `{rule_name, entities, predicate}`.
+**Output:** List of tuples `{rule_name, qualifier, entities, predicate}`.
 
 **Ambiguity handling:** If parsing fails for a rule block (malformed table or missing fields), flag as `"Needs review — Rule {rule_name} has unusual format"` and continue. Do not halt.
 
