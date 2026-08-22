@@ -54,6 +54,16 @@ to an append-only log.
 
 ## Build Commands
 
+**JDK 21 is required.** The application poms set `<java.version>21</java.version>`, so a shell
+defaulting to an older JDK fails at the first compile with `error: release version 21 not supported`
+- a toolchain error that reads like a scaffold bug. Select a 21 before building:
+
+```bash
+sdk use java 21.0.10-tem     # or any 21.x; SDKMAN users
+# or, per-command:
+JAVA_HOME=/path/to/jdk-21 mvn ...
+```
+
 ```bash
 # Install core library first
 cd simulator && mvn install
