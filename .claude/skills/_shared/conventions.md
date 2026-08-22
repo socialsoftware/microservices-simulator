@@ -210,3 +210,33 @@ Interpret the two together:
 
 Report the build outcome using these observed numbers. Do not write "BUILD SUCCESS" unless
 `MAVEN_EXIT` was `0`.
+
+### Inspecting maven output
+
+The verdict never comes from maven's stdout - that is what the exit status and the surefire reports
+above are for. A few checks nonetheless need the build's *real* stdout, because what they look for
+is written only to the console: a framework log line a test's correctness depends on, for instance.
+
+A shell redirect (`mvn ... > file.log`) does not reliably capture it. A `PreToolUse` hook may
+filter or summarize the command's output before it is written, so the file can hold a condensed
+transcript in which the line you are looking for simply is not present - and a `grep` returning
+zero matches then reads as "the line never appeared" when it means "the line was filtered out".
+
+Capture it from a child process instead, which the hook does not sit in front of:
+
+```bash
+cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
+python3 -c "
+import subprocess, os, re
+env = dict(os.environ); env['JAVA_HOME'] = '/path/to/jdk-21'
+r = subprocess.run(['mvn','clean','-Ptest-sagas','test'{, '-Dtest=...'}],
+                   capture_output=True, text=True, env=env)
+print('MAVEN_EXIT', r.returncode)
+out = r.stdout + r.stderr
+for line in sorted(set(re.findall(r'{pattern to confirm}', out))):
+    print(line)
+"
+```
+
+The exit status is still `r.returncode`, and the surefire aggregation above still runs afterwards
+unchanged - this recipe adds a console-log assertion, it does not replace either signal.

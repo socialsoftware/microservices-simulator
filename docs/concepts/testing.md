@@ -489,7 +489,10 @@ class <FunctionalityName>CompensationTest extends <AppName>SpockTest {
   dependency chain. Always
   sanity-check a new compensation test by temporarily flipping its fault flag to `0` and re-running
   the *full* suite with logging, not just the exception assertion — confirm the lock-acquiring
-  step's `START EXECUTION STEP` log line actually appears before the fault fires.
+  step's `START EXECUTION STEP` log line actually appears before the fault fires. Capturing that
+  log line needs maven's real stdout, which a shell redirect does not reliably give you — use the
+  capture recipe in `.claude/skills/_shared/conventions.md` § "Run the test suite"
+  (§ "Inspecting maven output").
 
 ### CRITICAL gotcha — one saga class, one compensation test file
 
