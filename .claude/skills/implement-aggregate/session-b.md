@@ -85,7 +85,7 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySag
 - See `docs/concepts/sagas.md` — "Read Functionality Sagas" section for the full class template
 
 > **One-step vs two-step read saga decision:**
-> - **One step** — when every filter criterion is stored directly on the aggregate (e.g., `warehouseAggregateId` is a field on `Shipment`). The saga sends one command and returns the result; no foreign-ID resolution is needed.
+> - **One step** — when every filter criterion is stored directly on the aggregate (e.g., `warehouseAggregateId` is a field on `Shipment`), **or when there is no filter at all** (a read returning every instance of its type). The saga sends one command and returns the result; no foreign-ID resolution is needed. An unfiltered read takes no id parameter anywhere and its command passes `null` as `rootAggregateId` — see `docs/concepts/sagas.md` § "Unfiltered variant — no filter parameter at all".
 > - **Two steps** — when the filter parameter is a foreign aggregate's ID that must be resolved to a different field before the primary query can run (e.g., `shipmentId → warehouseAggregateId`).
 >
 > **Two-step read saga:** If the read's filter parameter is a foreign aggregate's ID that must be resolved before the primary read command can be sent (e.g., `shipmentId → warehouseAggregateId`), use a two-step saga instead:

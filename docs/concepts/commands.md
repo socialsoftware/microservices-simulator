@@ -35,11 +35,19 @@ public class AddShipmentItemCommand extends Command {
 
 Commands are plain data carriers — no business logic, no Spring beans.
 
-> A **create** command has no aggregate id - the service generates it via
-> `aggregateIdGeneratorService`. Pass `null`. This is safe rather than merely tolerated: a create
-> step declares no semantic lock and no forbidden states, so the handler never dereferences it.
-> Version conflict detection is unaffected; it operates on the aggregates registered read/changed
-> with the unit of work, not on this field.
+> **When there is no root aggregate to name, pass `null`.** Two step shapes have none: a **create**
+> command, whose id the service has not minted yet (it generates it via `aggregateIdGeneratorService`),
+> and an **unfiltered collection read** — a `Get{Aggregates}Command` that returns every instance of
+> its type and so takes no id at all.
+>
+> This is safe rather than merely tolerated, and the reason is a property of the *step*, not of
+> createness: the field is dereferenced only by `SagaCommandHandler`, and only for a `SagaCommand`
+> carrying forbidden states or a semantic lock. A step that declares neither never reaches that code.
+> Both shapes above declare neither. Version conflict detection is unaffected either way; it operates
+> on the aggregates registered read/changed with the unit of work, not on this field.
+>
+> The converse still holds: a step that *does* declare a semantic lock or forbidden states must name
+> the aggregate whose lock lifecycle it participates in.
 
 ---
 
