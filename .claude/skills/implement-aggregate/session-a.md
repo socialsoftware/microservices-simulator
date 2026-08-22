@@ -99,6 +99,11 @@ An aggregate with no enum-typed field has no such row and produces none.
 
 Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
 
+- Annotated `@Entity`. This is the **concrete** class of the aggregate hierarchy, and the abstract
+  `{Aggregate}` above it holds the `@Table`, so under `TABLE_PER_CLASS` this is the only class
+  Hibernate can map a row to. Omit it and every intra-invariant test still passes - they never
+  persist - while the first write in session `b`/`c` fails with
+  *"Unable to locate persister: ...Saga{Aggregate}"*
 - Extends `{Aggregate}`, implements `SagaAggregate`
 - Adds a `sagaState` field of type `SagaAggregate.SagaState` (the interface), annotated
   `@Convert(converter = SagaStateConverter.class)`. The converter
