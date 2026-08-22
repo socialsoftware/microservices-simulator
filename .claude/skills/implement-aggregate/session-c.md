@@ -196,6 +196,30 @@ that.
   - Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix — Cross-Functionality Test** in `docs/concepts/testing.md`.
   - **Coverage is audited mechanically.** List every `setSemanticLock` step (one row per call site) in the session retro's **Semantic-Lock Coverage Audit** table — see `.claude/skills/_shared/session-completion.md` § "Retro template". Unresolved `Present? = No` rows block the session commit.
 
+### One `{Op}CompensationTest.groovy` per lock-holding write functionality (T4)
+
+Path: `{test}sagas/coordination/{aggregate}/{Op}CompensationTest.groovy`
+
+Required by `docs/concepts/testing.md` § Compensation Test for every write functionality whose
+`setSemanticLock` step has a **dependent step after it** - that is the compensate transition of the
+saga's state machine, and no other session produces it. Skip it where that section says to skip:
+a functionality with no semantic lock, or one whose only step has no dependents.
+
+Follow the template and the `ImpairmentService` mechanism in that section; do not re-derive either
+here. Two constraints it states are easy to miss and expensive to get wrong:
+
+- **Its own file, never a `def` added to `{Op}Test.groovy`.** The fault-block index counts saga-class
+  instantiations since the last `cleanUpCounter()`, so the success cases need block 1 clean while the
+  compensation case needs block 1 faulty - the same block. See § "CRITICAL gotcha".
+- **The fault CSV is named after the saga class**, `{Op}FunctionalitySagas.csv`, and lives in
+  `applications/{app-name}/src/test/resources/groovy/{Op}CompensationTest/` - the lookup path keys on the *test* class's simple
+  name and the *saga* class's simple name, not on the package of either.
+
+Where the step after the lock throws unconditionally for a non-fault reason (an update step whose
+target fields are all P1 `final`, for instance), § Compensation Test directs you to add the
+`sagaStateOf(...) == GenericSagaState.NOT_IN_SAGA` assertion to the existing lock-acquisition case
+instead of writing this file. Record that choice in the session retro.
+
 ### Event classes (if this aggregate publishes events)
 
 For each event listed in plan.md Events published that does not yet exist:

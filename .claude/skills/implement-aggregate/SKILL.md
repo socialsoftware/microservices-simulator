@@ -18,7 +18,7 @@ file(s) it produces (session → file, for file-generation purposes only):
 | `b` | T2 Service (read methods) | `{Aggregate}ServiceTest.groovy` |
 | `b` | T4 Functionality (reads) | `{Query}Test.groovy` |
 | `c` | T2 Service (write methods + event publication) | appended to `{Aggregate}ServiceTest.groovy` |
-| `c` | T4 Functionality (writes) | `{Op}Test.groovy` |
+| `c` | T4 Functionality (writes) | `{Op}Test.groovy`, `{Op}CompensationTest.groovy` |
 | `d` | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` |
 
 > **Recorded decision — why T2 lives in sessions `b`/`c`, not `a`:** the migration plan's default
