@@ -27,6 +27,7 @@ applications/{app-name}/
     ├── main/java/pt/ulisboa/tecnico/socialsoftware/{app}/
     │   ├── commands/
     │   │   └── {aggregate}/           ← one subpackage per aggregate
+    │   ├── enums/                     ← domain enums named by more than one aggregate
     │   ├── events/                    ← shared event classes (published by any aggregate)
     │   └── microservices/
     │       ├── exception/             ← {App}Exception.java + {App}ErrorMessage.java

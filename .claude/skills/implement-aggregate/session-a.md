@@ -79,11 +79,19 @@ Path: `{src}microservices/{aggregate}/aggregate/{Entity}.java`
 Every aggregate field typed as a domain enum gets its own enum file, listed in the plan.md `2.{N}.a`
 row by `/classify-and-plan`:
 
-Path: `{src}microservices/{aggregate}/aggregate/{DomainEnum}.java`
+Path: `{src}microservices/{aggregate}/aggregate/{DomainEnum}.java`, unless the plan.md row marks the
+enum `(shared)`, in which case the row gives `{src}enums/{DomainEnum}.java` instead - the app-root
+package for an enum type that more than one aggregate's §1 attributes name. Follow the path in the
+row; do not re-derive it.
 
 - Plain Java `enum` - no JPA annotations
 - Values matching the domain model
 - Name taken verbatim from the domain-model attribute's type
+
+A `(shared)` enum is written once, by the earliest session whose row lists it, and imported unchanged
+by every later one: check whether the file already exists before writing it, and if it does, leave it
+alone. Never copy it into your aggregate's own package - the copies become distinct Java types and a
+value can no longer cross an aggregate boundary without conversion.
 
 An aggregate with no enum-typed field has no such row and produces none.
 

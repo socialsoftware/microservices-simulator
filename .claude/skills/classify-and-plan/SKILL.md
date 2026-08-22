@@ -455,6 +455,16 @@ Paths in the tables below resolve against **three** roots, and the leading segme
 > `aggregate/{DomainEnum}.java`. Name the file after the type as written in §1. Enumerating them here
 > is what stops session `a` from discovering an unresolvable type mid-file.
 >
+> **An enum named by more than one aggregate is emitted once, at the app source root.** Scan §1 as a
+> whole before assigning enum paths. A type that only one aggregate's attributes name stays at
+> `aggregate/{DomainEnum}.java` in that aggregate's own package. A type that **two or more**
+> aggregates name is one domain concept, so emit `{src}enums/{DomainEnum}.java` and list that path in
+> the 2.N.a row of **every** aggregate that names it, suffixed `(shared)`. The earliest such session
+> creates the file; the later ones import it unchanged. Copying it into each aggregate package instead
+> would turn one concept into several mutually unassignable Java types, forcing a name-based
+> conversion wherever a value crosses an aggregate boundary and letting a value added to one copy
+> drift from the others.
+>
 > **Which §2 snapshots get a class** — apply the rule from Step 3.d:
 > - every `× N` collection snapshot → one `aggregate/{CollectionSnapshotEntity}.java` **and** one
 >   `aggregate/{CollectionSnapshotEntity}Dto.java`;
@@ -515,7 +525,9 @@ Paths in the tables below resolve against **three** roots, and the leading segme
   name **only** to break an actual collision — another aggregate in §1 already claims that class name,
   or the name is already taken by an aggregate class. Prepending by reflex produces names that stutter
   when the §1 entity is already qualified.
-- `{DomainEnum}` → an enum-typed attribute's type name from §1, verbatim (e.g., "ShipmentStatus")
+- `{DomainEnum}` → an enum-typed attribute's type name from §1, verbatim (e.g., "ShipmentStatus").
+  Rooted at `aggregate/` when one aggregate names it, at `{src}enums/` when several do - see the
+  2.N.a note above
 - `{CollectionSnapshotEntity}` → owned entity class name for each `× N` snapshot in §2. Which name
   depends on which of the two row forms §2 uses:
   - **`| {Aggregate} | {Source} × N | ... |`** — the row names only the source, so derive the class
