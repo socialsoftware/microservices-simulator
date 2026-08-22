@@ -373,6 +373,37 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 }
 ```
 
+### Soft-delete functionalities — the happy-path state assertion
+
+`sagaStateOf(id)` loads through `aggregateLoadAndRegisterRead`, which resolves only the latest
+**non-`DELETED`** version. A functionality whose whole purpose is the soft delete therefore leaves
+nothing for that call to load: the happy-path `sagaStateOf(id) == GenericSagaState.NOT_IN_SAGA`
+assertion throws `SimulatorException` instead of failing an equality, and no ordering of the test
+recovers it — the state it would read no longer exists by the time the operation has succeeded.
+
+For those functionalities only, the happy path substitutes the assertion that the delete actually
+landed. Put the load in an `and:` block so it sits inside the `when:` phase's exception-capture
+scope, exactly as § T3 does for deletion events:
+
+```groovy
+def "delete<Aggregate>: success"() {
+    given:
+    def aggregateId = create<Aggregate>(/* args */)
+    when:
+    <primary>Functionalities.delete<Aggregate>(aggregateId)
+    and: 'attempt to load the now-deleted aggregate'
+    unitOfWorkService.aggregateLoadAndRegisterRead(
+            aggregateId, unitOfWorkService.createUnitOfWork("check"))
+    then: 'DELETED aggregate is not loadable'
+    thrown(SimulatorException)
+}
+```
+
+Every other T4 case for the functionality is unaffected, and the substitution does **not** extend to
+them: the lock-acquisition case reads the state before the delete step runs, and the compensation
+case reads it after an abort left the aggregate `ACTIVE`. Both keep the `NOT_IN_SAGA` assertion, and
+the compensation case is where the lock lifecycle of a delete saga is actually pinned.
+
 ### Compensation Test
 
 When a write saga acquires a semantic lock and a **later** step in the same saga throws, the lock
