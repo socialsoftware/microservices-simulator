@@ -174,9 +174,16 @@ From the §2 table (columns: Aggregate, Snapshots of, Fields cached, Updated on 
 - `snapshots_of` = the source entity name being cached (string, may contain `× N`)
 - `updated_on_event` = the events that refresh the cached copy, or `n/a` / `—` for none
 
-**Collection snapshots** — the "Snapshots of" value contains `× N`. Stored as a `@OneToMany` set of
-owned entities, and **always** get their own entity class plus a `{OwnedEntity}Dto.java`. A set needs
-an element type; there is nothing to collapse onto the aggregate.
+**Collection snapshots** — `× N` appears on the row, in **either** the "Aggregate" column or the
+"Snapshots of" column. Both forms are in use: `| Warehouse | Shipment × N | ... |` marks the
+collection on the source, while `| Warehouse / WarehouseSlot × N | Shipment | ... |` marks it on the
+owned entity that holds it. Scan both cells — a row whose `× N` sits in the "Aggregate" column is a
+collection snapshot exactly like any other, and reading only the "Snapshots of" cell silently
+misclassifies it as a single snapshot and drops its `Dto`.
+
+Collection snapshots are stored as a `@OneToMany` set of owned entities, and **always** get their own
+entity class plus a `{OwnedEntity}Dto.java`. A set needs an element type; there is nothing to collapse
+onto the aggregate.
 
 **Single snapshots** — no `× N`. Whether these get an owned-entity class depends on one thing only:
 
@@ -192,9 +199,14 @@ an element type; there is nothing to collapse onto the aggregate.
 > way: the two snapshot kinds would then need two different subscription shapes for no gain.
 >
 > A single snapshot whose "Updated on event" cell is `n/a` (or empty) subscribes to nothing, so no
-> subscription is ever constructed for it. It is cached **directly on the aggregate** as an id field
-> plus a version field, exactly as §1 of the domain model describes single references.
-> **Emit no class for it.**
+> subscription is ever constructed for it. It is cached **directly on the aggregate** as an id field,
+> exactly as §1 of the domain model describes single references. **Emit no class for it.**
+>
+> **No version field on an `n/a` row.** A cached version exists for exactly one purpose: to build the
+> `(subscribedAggregateId, subscribedVersion, eventType)` triple an `EventSubscription` needs. A row
+> that never subscribes never constructs one, so the version would be written, persisted and never
+> read. Add a version field **iff** the row's "Updated on event" cell names at least one event. An
+> application with no events therefore caches no versions at all.
 
 Single snapshots never need a separate Dto in either case.
 
@@ -305,9 +317,13 @@ Using edges from §3 (DAG):
 
 ---
 
-### Step 5.5: Detect Reverse P3 Dependencies (Deferred Guards)
+### Step 5.5: Detect Reverse Dependencies (Deferred Guards and Deferred Reads)
 
-After the topological sort, check for P3 DTO-check rules where the required data comes from an aggregate ordered _later_ than the aggregate that owns the guard. The topological sort is driven by P2 event-subscription edges only — P3 read-time edges are not DAG edges and do not affect ordering, but they create a runtime dependency that must be tracked explicitly.
+After the topological sort, check for **two** kinds of dependency that run backwards against it. The
+topological sort is driven by P2 event-subscription edges only; neither kind below is a DAG edge, so
+neither affects ordering, but both create a runtime dependency that must be tracked explicitly.
+
+**5.5a — Reverse P3 guards.** P3 DTO-check rules where the required data comes from an aggregate ordered _later_ than the aggregate that owns the guard.
 
 ```
 FOR each aggregate A at position i in sorted_aggregates:
@@ -322,11 +338,33 @@ FOR each aggregate A at position i in sorted_aggregates:
         "After completing 2.{j}.c, revisit {A} session 2.{i}.c to add the deferred {R.name} guard"
 ```
 
-**Why this matters:** Without this step, the dependency is silently invisible in plan.md and the session-c agent discovers the gap mid-implementation with no guidance. Surfacing it as a ⚠️ DEFERRED marker lets the session-c agent apply the deferred-guard protocol from `session-c.md` immediately.
+**5.5b — Reverse reads.** A **read** functionality is not a rule and has no pattern, so 5.5a cannot
+see it. Apply the same test to §4 directly: any read functionality whose "Other Aggregates" cell names
+an aggregate ordered later than its own Primary Aggregate is unimplementable in its own session `b`.
 
-**Output:** For each detected reverse P3 dependency, plan.md must show:
-- In aggregate `A`'s cross-aggregate prerequisites: the ⚠️ DEFERRED marker with a pointer to the unblocking session.
-- In aggregate `B`'s section: a "revisit" note for session 2.{j}.c implementers.
+```
+FOR each read functionality F in §4:
+  A = F.primary_aggregate
+  FOR each B in F.other_aggregates:
+    IF position(B) > position(A):
+      Annotate F in A's read-functionality list as:
+        "⚠️ DEFERRED — reads {B}; implement in a revisit session after 2.{j}.c"
+      Add a note to B's aggregate section in plan.md:
+        "After completing 2.{j}.c, revisit {A} session 2.{i}.b to implement {F}"
+```
+
+A deferred read does **not** hold up the rest of session `b`: every other read for that aggregate is
+implemented normally and the session's checkbox is ticked. Only the marked functionality waits.
+
+**Why this matters:** Without this step, the dependency is silently invisible in plan.md and the
+implementing agent discovers the gap mid-session with no guidance — sending a command to a service
+that does not exist yet. Surfacing it as a ⚠️ DEFERRED marker lets a session-`c` agent apply the
+deferred-guard protocol from `session-c.md` immediately, and tells a session-`b` agent to skip the
+marked read rather than improvise one.
+
+**Output:** For each detected reverse dependency, plan.md must show:
+- In aggregate `A`'s cross-aggregate prerequisites (5.5a) or read-functionality list (5.5b): the ⚠️ DEFERRED marker with a pointer to the unblocking session.
+- In aggregate `B`'s section: a "revisit" note naming the session that must come back.
 
 ---
 
@@ -453,11 +491,19 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
   or the name is already taken by an aggregate class. Prepending by reflex produces names that stutter
   when the §1 entity is already qualified.
 - `{DomainEnum}` → an enum-typed attribute's type name from §1, verbatim (e.g., "ShipmentStatus")
-- `{CollectionSnapshotEntity}` → owned entity class name for each `× N` snapshot in §2. Snapshot
-  entities are the standing exception to the verbatim rule: the bare source name always collides with
-  the source aggregate's own class, so qualify with the owning aggregate — a `Shipment × N` snapshot
-  cached by `Warehouse` becomes `WarehouseShipment`. Appears twice in 2.N.a, once for the entity class
-  and once for the Dto; omit if no `× N` rows exist for this aggregate.
+- `{CollectionSnapshotEntity}` → owned entity class name for each `× N` snapshot in §2. Which name
+  depends on which of the two row forms §2 uses:
+  - **`| {Aggregate} | {Source} × N | ... |`** — the row names only the source, so derive the class
+    name by qualifying it with the owning aggregate. Snapshot entities are the standing exception to
+    the verbatim rule here, because the bare source name collides with the source aggregate's own
+    class: a `Shipment × N` snapshot cached by `Warehouse` becomes `WarehouseShipment`.
+  - **`| {Aggregate} / {OwnedEntity} × N | {Source} | ... |`** — the row already names the owned
+    entity. Use that name **verbatim**; do not qualify it again. A `| Warehouse / WarehouseSlot × N |
+    Shipment |` row yields `WarehouseSlot`, never `WarehouseShipment` or `WarehouseWarehouseSlot`.
+
+  Cross-check the result against the §1 "Entities contained" column of the aggregate grouping, which
+  is authoritative: the class name you emit must appear there. Appears twice in 2.N.a, once for the
+  entity class and once for the Dto; omit if no `× N` rows exist for this aggregate.
 - `{SubscribingSnapshotEntity}` → same naming as above, for each single §2 snapshot with a non-empty
   "Updated on event"; omit if this aggregate has none
 - `{Operation}` → write operation name (PascalCase, e.g., "AddShipment")

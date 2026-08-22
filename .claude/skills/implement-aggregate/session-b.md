@@ -94,6 +94,23 @@ Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySag
 >
 > No compensation is needed on either step since reads are non-mutating. See `docs/concepts/sagas.md` — "Two-step read saga variant" section for the full class template.
 
+> **Deferred reads:** If a read functionality carries a ⚠️ DEFERRED marker in plan.md, it reads an
+> aggregate ordered _after_ this one, whose service does not exist yet. The marker is added by
+> `classify-and-plan` § "Step 5.5b". Do the following:
+> 1. **Skip it entirely** — produce no `{Query}Command.java`, no `{Query}FunctionalitySagas.java`, no
+>    `{Query}Test.groovy`, and no service method. Do not add stubs; a stub that compiles is worse than
+>    an absent file, because nothing later forces it to be revisited.
+> 2. Implement **every other** read for this aggregate as normal and tick the session checkbox. A
+>    deferred read does not hold up session `b`.
+> 3. Flag the deferral explicitly in the session retro.
+> 4. When the blocking aggregate's session `c` completes, revisit this session and add the skipped
+>    files. plan.md carries a matching "revisit" note in that aggregate's section.
+>
+> This is the read-side counterpart of § "Deferred P3 guards" in
+> [`session-c.md`](session-c.md), and arises for the same reason: the topological sort follows
+> event-subscription edges, and a read-time dependency running the other way is its deferred
+> consequence.
+
 ### `{Aggregate}Functionalities.java` (read methods)
 
 Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Functionalities.java`
