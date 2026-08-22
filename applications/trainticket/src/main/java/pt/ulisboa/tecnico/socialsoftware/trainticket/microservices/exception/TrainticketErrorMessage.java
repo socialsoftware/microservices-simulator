@@ -27,6 +27,7 @@ public final class TrainticketErrorMessage {
     public static final String CANNOT_MODIFY_INACTIVE_AGGREGATE = "Cannot update aggregate %d because it is INACTIVE.";
 
     public static final String STATION_STAY_TIME_NON_NEGATIVE = "Station stay time must be non-negative.";
+    public static final String DUPLICATE_STATION_NAME = "Another active station already holds this name.";
 
     public static final String PLACEHOLDER = "placeholder";
 }

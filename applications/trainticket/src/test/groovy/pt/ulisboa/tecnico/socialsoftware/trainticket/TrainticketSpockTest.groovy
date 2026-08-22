@@ -11,7 +11,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
 
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.StationDto
-import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.sagas.SagaStation
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.coordination.functionalities.StationFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.service.StationService
 
@@ -65,9 +64,9 @@ class TrainticketSpockTest extends SpockTest {
     // Domain create* helpers are added below as aggregates are implemented in Phase 2.
 
     Integer createStation(String name = STATION_NAME, Integer stayTime = STATION_STAY_TIME) {
-        def station = new SagaStation(aggregateIdGeneratorService.getNewAggregateId(),
-                new StationDto(name, stayTime))
-        unitOfWorkService.registerChanged(station, unitOfWorkService.createUnitOfWork("fixture"))
-        return station.getAggregateId()
+        def stationDto = new StationDto()
+        stationDto.setName(name)
+        stationDto.setStayTime(stayTime)
+        return stationFunctionalities.createStation(stationDto).aggregateId
     }
 }
