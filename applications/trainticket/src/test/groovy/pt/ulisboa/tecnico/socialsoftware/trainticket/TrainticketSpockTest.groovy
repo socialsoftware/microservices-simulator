@@ -19,7 +19,6 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.ser
 import pt.ulisboa.tecnico.socialsoftware.trainticket.enums.DocumentType
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.Gender
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.UserDto
-import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.sagas.SagaUser
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.service.UserService
 
@@ -129,8 +128,6 @@ class TrainticketSpockTest extends SpockTest {
                        String documentNumber = USER_DOCUMENT_NUMBER,
                        String email = USER_EMAIL) {
         def userDto = new UserDto(userName, password, gender, documentType, documentNumber, email)
-        def user = new SagaUser(aggregateIdGeneratorService.getNewAggregateId(), userDto)
-        unitOfWorkService.registerChanged(user, unitOfWorkService.createUnitOfWork("fixture"))
-        return user.getAggregateId()
+        return userFunctionalities.createUser(userDto).aggregateId
     }
 }

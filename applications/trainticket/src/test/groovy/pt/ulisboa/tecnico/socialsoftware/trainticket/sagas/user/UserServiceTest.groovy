@@ -7,6 +7,10 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.trainticket.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.TrainticketSpockTest
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainticketException
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.UserDto
+
+import static pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainticketErrorMessage.DUPLICATE_USER_NAME
 
 @DataJpaTest
 @Transactional
@@ -80,6 +84,142 @@ class UserServiceTest extends TrainticketSpockTest {
 
         then:
         result.isEmpty()
+    }
+
+    def "createUser: persisted and readable through a fresh UnitOfWork"() {
+        // Spec: plan.md §3 User - CreateUser
+        given:
+        def userDto = new UserDto(USER_NAME, USER_PASSWORD, USER_GENDER, USER_DOCUMENT_TYPE,
+                USER_DOCUMENT_NUMBER, USER_EMAIL)
+
+        when:
+        def result = userService.createUser(userDto, unitOfWorkService.createUnitOfWork("createUser"))
+
+        then: 'read back through a second, fresh UnitOfWork'
+        result.aggregateId != null
+        def readBack = userService.getUserById(result.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.userName == USER_NAME
+        readBack.password == USER_PASSWORD
+        readBack.gender == USER_GENDER
+        readBack.documentType == USER_DOCUMENT_TYPE
+        readBack.documentNumber == USER_DOCUMENT_NUMBER
+        readBack.email == USER_EMAIL
+        readBack.isActive()
+    }
+
+    def "createUser: DUPLICATE_USER_NAME violation"() {
+        // Spec: plan.md §3 User - rule UNIQUE_USER_NAME (P3, own table)
+        given:
+        createUser(USER_NAME, USER_PASSWORD, USER_GENDER, USER_DOCUMENT_TYPE,
+                USER_DOCUMENT_NUMBER, USER_EMAIL)
+
+        when:
+        userService.createUser(new UserDto(USER_NAME, USER_PASSWORD_TWO, USER_GENDER_TWO,
+                USER_DOCUMENT_TYPE_TWO, USER_DOCUMENT_NUMBER_TWO, USER_EMAIL_TWO),
+                unitOfWorkService.createUnitOfWork("createUser"))
+
+        then:
+        def ex = thrown(TrainticketException)
+        ex.message == DUPLICATE_USER_NAME
+    }
+
+    def "createUser: a user name freed by a soft-deleted user is reusable"() {
+        // Spec: plan.md §3 User - rule UNIQUE_USER_NAME constrains active users only
+        given:
+        def deletedAggregateId = createUser(USER_NAME, USER_PASSWORD, USER_GENDER, USER_DOCUMENT_TYPE,
+                USER_DOCUMENT_NUMBER, USER_EMAIL)
+        userService.deleteUser(deletedAggregateId, unitOfWorkService.createUnitOfWork("deleteUser"))
+
+        when:
+        def result = userService.createUser(new UserDto(USER_NAME, USER_PASSWORD_TWO, USER_GENDER_TWO,
+                USER_DOCUMENT_TYPE_TWO, USER_DOCUMENT_NUMBER_TWO, USER_EMAIL_TWO),
+                unitOfWorkService.createUnitOfWork("createUser"))
+
+        then:
+        result.aggregateId != deletedAggregateId
+        def readBack = userService.getUserById(result.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.userName == USER_NAME
+        readBack.password == USER_PASSWORD_TWO
+        readBack.email == USER_EMAIL_TWO
+    }
+
+    def "updateUser: new password, gender, document and email persisted, user name untouched"() {
+        // Spec: plan.md §3 User - UpdateUser; rule USER_NAME_FINAL (userName is not updatable)
+        given:
+        def userAggregateId = createUser(USER_NAME, USER_PASSWORD, USER_GENDER, USER_DOCUMENT_TYPE,
+                USER_DOCUMENT_NUMBER, USER_EMAIL)
+
+        when:
+        userService.updateUser(userAggregateId,
+                new UserDto(USER_NAME_TWO, USER_PASSWORD_TWO, USER_GENDER_TWO,
+                        USER_DOCUMENT_TYPE_TWO, USER_DOCUMENT_NUMBER_TWO, USER_EMAIL_TWO),
+                unitOfWorkService.createUnitOfWork("updateUser"))
+
+        then: 'read back through a second, fresh UnitOfWork'
+        def readBack = userService.getUserById(userAggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.password == USER_PASSWORD_TWO
+        readBack.gender == USER_GENDER_TWO
+        readBack.documentType == USER_DOCUMENT_TYPE_TWO
+        readBack.documentNumber == USER_DOCUMENT_NUMBER_TWO
+        readBack.email == USER_EMAIL_TWO
+        readBack.userName == USER_NAME
+    }
+
+    def "updateUser: unknown aggregate id"() {
+        // Spec: plan.md §3 User - UpdateUser; Path A (aggregateLoadAndRegisterRead)
+        when:
+        userService.updateUser(NONEXISTENT_AGGREGATE_ID,
+                new UserDto(USER_NAME, USER_PASSWORD_TWO, USER_GENDER_TWO,
+                        USER_DOCUMENT_TYPE_TWO, USER_DOCUMENT_NUMBER_TWO, USER_EMAIL_TWO),
+                unitOfWorkService.createUnitOfWork("updateUser"))
+
+        then:
+        thrown(SimulatorException)
+    }
+
+    def "deleteUser: soft-deleted user is no longer loadable"() {
+        // Spec: plan.md §3 User - DeleteUser (soft delete)
+        given:
+        def userAggregateId = createUser(USER_NAME, USER_PASSWORD, USER_GENDER, USER_DOCUMENT_TYPE,
+                USER_DOCUMENT_NUMBER, USER_EMAIL)
+
+        when:
+        userService.deleteUser(userAggregateId, unitOfWorkService.createUnitOfWork("deleteUser"))
+
+        and: 'read back through a second, fresh UnitOfWork'
+        userService.getUserById(userAggregateId, unitOfWorkService.createUnitOfWork("check"))
+
+        then: 'DELETED aggregate is not loadable'
+        thrown(SimulatorException)
+    }
+
+    def "deleteUser: the deleted user stops being an active user"() {
+        // Spec: plan.md §3 User - DeleteUser (soft delete)
+        given:
+        def deletedAggregateId = createUser(USER_NAME, USER_PASSWORD, USER_GENDER, USER_DOCUMENT_TYPE,
+                USER_DOCUMENT_NUMBER, USER_EMAIL)
+        def survivingAggregateId = createUser(USER_NAME_TWO, USER_PASSWORD_TWO, USER_GENDER_TWO,
+                USER_DOCUMENT_TYPE_TWO, USER_DOCUMENT_NUMBER_TWO, USER_EMAIL_TWO)
+
+        when:
+        userService.deleteUser(deletedAggregateId, unitOfWorkService.createUnitOfWork("deleteUser"))
+
+        then:
+        def remaining = userService.getUsers(unitOfWorkService.createUnitOfWork("check"))
+        remaining.collect { it.aggregateId } == [survivingAggregateId]
+    }
+
+    def "deleteUser: unknown aggregate id"() {
+        // Spec: plan.md §3 User - DeleteUser; Path A (aggregateLoadAndRegisterRead)
+        when:
+        userService.deleteUser(NONEXISTENT_AGGREGATE_ID,
+                unitOfWorkService.createUnitOfWork("deleteUser"))
+
+        then:
+        thrown(SimulatorException)
     }
 
     @TestConfiguration

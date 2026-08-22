@@ -34,6 +34,7 @@ public final class TrainticketErrorMessage {
     public static final String TRAIN_TYPE_SPEED_POSITIVE = "Train type average speed must be positive.";
 
     public static final String USER_DOCUMENT_NUMBER_PRESENT = "User document number must be present when a document type is set.";
+    public static final String DUPLICATE_USER_NAME = "Another active user already holds this user name.";
 
     public static final String PLACEHOLDER = "placeholder";
 }

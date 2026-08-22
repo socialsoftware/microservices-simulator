@@ -12,9 +12,12 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregat
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.UserDto;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.UserFactory;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.UserRepository;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainticketException;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainticketErrorMessage.DUPLICATE_USER_NAME;
 
 @Service
 public class UserService {
@@ -50,5 +53,47 @@ public class UserService {
                     (User) unitOfWorkService.aggregateLoadAndRegisterRead(user.getAggregateId(), unitOfWork)));
         }
         return users;
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public UserDto createUser(UserDto userDto, UnitOfWork unitOfWork) {
+        checkUserNameIsUnique(userDto.getUserName());
+
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        User user = userFactory.createUser(aggregateId, userDto);
+
+        unitOfWorkService.registerChanged(user, unitOfWork);
+        return userFactory.createUserDto(user);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateUser(Integer userAggregateId, UserDto userDto, UnitOfWork unitOfWork) {
+        User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
+        User newUser = userFactory.createUserCopy(oldUser);
+        newUser.setPassword(userDto.getPassword());
+        newUser.setGender(userDto.getGender());
+        newUser.setDocumentType(userDto.getDocumentType());
+        newUser.setDocumentNumber(userDto.getDocumentNumber());
+        newUser.setEmail(userDto.getEmail());
+
+        unitOfWorkService.registerChanged(newUser, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deleteUser(Integer userAggregateId, UnitOfWork unitOfWork) {
+        User oldUser = (User) unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId, unitOfWork);
+        User newUser = userFactory.createUserCopy(oldUser);
+        newUser.remove();
+
+        unitOfWorkService.registerChanged(newUser, unitOfWork);
+    }
+
+    // UNIQUE_USER_NAME is a create-only guard: userName is final, so no update path can break it.
+    private void checkUserNameIsUnique(String userName) {
+        for (User user : userCustomRepository.findAllLatestActive()) {
+            if (user.getUserName().equals(userName)) {
+                throw new TrainticketException(DUPLICATE_USER_NAME);
+            }
+        }
     }
 }
