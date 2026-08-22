@@ -176,21 +176,24 @@ write-method and event-publication cases. For each read service method added thi
 
 Open `{bean-config}` and add new `@Bean` methods for the three classes this session creates.
 
-The service constructor takes a **closed list**, fixed by `docs/concepts/service.md` § Injected
+The service's dependencies are a **closed list**, fixed by `docs/concepts/service.md` § Injected
 Dependencies: own repository, own custom repository, own factory, `UnitOfWorkService` (raw, no type
 argument), `AggregateIdGeneratorService`. Nothing else — a foreign service or foreign repository
 violates R1/R2. Inject factories and repositories through their abstract interfaces, never the
 concrete `Sagas*` classes. Omit any of the five the service genuinely does not use.
 
+That list is split two ways, and the bean method must match the split: `UnitOfWorkService`, the
+repository and the custom repository are **constructor** parameters, while the factory and
+`AggregateIdGeneratorService` are `@Autowired` **fields** on the service and therefore do not appear
+in the bean method at all. Passing all five to the constructor does not compile against the service
+`docs/concepts/service.md` prescribes.
+
 ```groovy
 @Bean
-{Aggregate}Service {aggregate}Service({Aggregate}Repository {aggregate}Repository,
-                                      {Aggregate}CustomRepository {aggregate}CustomRepository,
-                                      {Aggregate}Factory {aggregate}Factory,
-                                      UnitOfWorkService unitOfWorkService,
-                                      AggregateIdGeneratorService aggregateIdGeneratorService) {
-    return new {Aggregate}Service({aggregate}Repository, {aggregate}CustomRepository,
-            {aggregate}Factory, unitOfWorkService, aggregateIdGeneratorService)
+{Aggregate}Service {aggregate}Service(SagaUnitOfWorkService unitOfWorkService,
+                                      {Aggregate}Repository {aggregate}Repository,
+                                      {Aggregate}CustomRepository {aggregate}CustomRepository) {
+    return new {Aggregate}Service(unitOfWorkService, {aggregate}Repository, {aggregate}CustomRepository)
 }
 
 @Bean
