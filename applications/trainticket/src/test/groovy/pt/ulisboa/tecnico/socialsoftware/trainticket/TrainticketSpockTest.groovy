@@ -29,6 +29,18 @@ class TrainticketSpockTest extends SpockTest {
     public static final Integer STATION_STAY_TIME_ZERO = 0
     public static final Integer STATION_STAY_TIME_NEGATIVE = -1
 
+    public static final String TRAIN_TYPE_NAME = "GaoTieOne"
+    public static final String TRAIN_TYPE_NAME_TWO = "DongCheTwo"
+    public static final Integer TRAIN_TYPE_ECONOMY_CLASS_SEATS = 100
+    public static final Integer TRAIN_TYPE_FIRST_CLASS_SEATS = 50
+    public static final Integer TRAIN_TYPE_AVERAGE_SPEED = 300
+    public static final Integer TRAIN_TYPE_SEATS_ZERO = 0
+    public static final Integer TRAIN_TYPE_SEATS_ONE = 1
+    public static final Integer TRAIN_TYPE_SEATS_NEGATIVE = -1
+    public static final Integer TRAIN_TYPE_AVERAGE_SPEED_ONE = 1
+    public static final Integer TRAIN_TYPE_AVERAGE_SPEED_ZERO = 0
+    public static final Integer TRAIN_TYPE_AVERAGE_SPEED_NEGATIVE = -1
+
 
     @Autowired
     public ImpairmentService impairmentService

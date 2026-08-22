@@ -192,7 +192,7 @@ TRAIN_TYPE_HAS_SEATS (P1), TRAIN_TYPE_SPEED_POSITIVE (P1).
 
 | Session | Files |
 |---------|-------|
-| 2.2.a | `aggregate/TrainType.java`, `aggregate/TrainTypeFactory.java`, `aggregate/TrainTypeCustomRepository.java`, `aggregate/sagas/SagaTrainType.java`, `aggregate/sagas/states/TrainTypeSagaState.java`, `aggregate/sagas/factories/SagasTrainTypeFactory.java`, `aggregate/sagas/repositories/TrainTypeCustomRepositorySagas.java`, `aggregate/TrainTypeDto.java`, `aggregate/TrainTypeRepository.java`, `TrainTypeServiceApplication.java`, `sagas/traintype/TrainTypeIntraInvariantTest.groovy` |
+| 2.2.a | `aggregate/TrainType.java`, `aggregate/TrainTypeFactory.java`, `aggregate/TrainTypeCustomRepository.java`, `aggregate/sagas/SagaTrainType.java`, `aggregate/sagas/states/TrainTypeSagaState.java`, `aggregate/sagas/factories/SagasTrainTypeFactory.java`, `aggregate/sagas/repositories/TrainTypeCustomRepositorySagas.java`, `aggregate/TrainTypeDto.java`, `aggregate/TrainTypeRepository.java`, `TrainTypeServiceApplication.java`, `sagas/traintype/TrainTypeIntraInvariantTest.groovy`, `{src}microservices/exception/TrainticketErrorMessage.java` (added 2.2.a - one constant per P1 rule `verifyInvariants()` enforces), `{test}TrainticketSpockTest.groovy` (added 2.2.a - the T1 field and boundary literals), `{test}BeanConfigurationSagas.groovy` (added 2.2.a - the factory and custom-repository beans) |
 | 2.2.b | `service/TrainTypeService.java` (read methods), `messaging/TrainTypeCommandHandler.java`, `commands/traintype/GetTrainTypeByIdCommand.java`, `commands/traintype/GetTrainTypesCommand.java`, `coordination/sagas/GetTrainTypeByIdFunctionalitySagas.java`, `coordination/sagas/GetTrainTypesFunctionalitySagas.java`, `coordination/functionalities/TrainTypeFunctionalities.java`, `{src}ServiceMapping.java` (add `TRAIN_TYPE("trainType")`), `sagas/traintype/TrainTypeServiceTest.groovy` (read-method cases), `sagas/coordination/traintype/GetTrainTypeByIdTest.groovy`, `sagas/coordination/traintype/GetTrainTypesTest.groovy` |
 | 2.2.c | `service/TrainTypeService.java` (write methods appended), `commands/traintype/CreateTrainTypeCommand.java`, `commands/traintype/UpdateTrainTypeCommand.java`, `commands/traintype/DeleteTrainTypeCommand.java`, `coordination/sagas/CreateTrainTypeFunctionalitySagas.java`, `coordination/sagas/UpdateTrainTypeFunctionalitySagas.java`, `coordination/sagas/DeleteTrainTypeFunctionalitySagas.java`, write coordinator methods appended to `coordination/functionalities/TrainTypeFunctionalities.java`, write cases appended to `messaging/TrainTypeCommandHandler.java`, `coordination/webapi/TrainTypeController.java`, `sagas/coordination/traintype/CreateTrainTypeTest.groovy`, `sagas/coordination/traintype/UpdateTrainTypeTest.groovy`, `sagas/coordination/traintype/DeleteTrainTypeTest.groovy`, write-method cases appended to `sagas/traintype/TrainTypeServiceTest.groovy` |
 
@@ -202,7 +202,7 @@ TRAIN_TYPE_HAS_SEATS (P1), TRAIN_TYPE_SPEED_POSITIVE (P1).
 > `SagaCommand` at runtime. See `docs/concepts/commands.md` § ServiceMapping Enum.
 
 **Checklist:**
-- [ ] 2.2.a - Domain layer
+- [x] 2.2.a - Domain layer
 - [ ] 2.2.b - Read functionalities
 - [ ] 2.2.c - Write functionalities
 
