@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 import java.util.ArrayList;
 import java.util.List;
 
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
+
 /**
  * Mutable campaign state used to produce durable, immutable report snapshots.
  */
@@ -16,6 +18,7 @@ final class CampaignProgress {
     private final long startedAtEpochMillis;
     private final List<CatalogProgress> catalogs = new ArrayList<>();
     private final List<OrchestrationReport.Finding> findings = new ArrayList<>();
+    private final CampaignMetrics outcomeMetrics;
     private String lastCompletedGroupCatalog;
     private String lastCompletedGroup;
 
@@ -33,6 +36,7 @@ final class CampaignProgress {
         this.iterationsPerGroup = iterationsPerGroup;
         this.reportsDirectory = reportsDirectory;
         this.startedAtEpochMillis = startedAtEpochMillis;
+        this.outcomeMetrics = new CampaignMetrics(startedAtEpochMillis);
     }
 
     void registerCatalog(String name, int functionalitiesProfiled, int possiblePairs, int groupsPlanned) {
@@ -56,6 +60,10 @@ final class CampaignProgress {
         lastCompletedGroup = group.label();
     }
 
+    void recordCompletedRun(TestResult result) {
+        outcomeMetrics.record(result);
+    }
+
     /**
      * Creates an immutable report snapshot. A null finish time means the
      * campaign is still running; in that case the current time is used only to
@@ -67,6 +75,9 @@ final class CampaignProgress {
         List<OrchestrationReport.CatalogSummary> catalogSummaries = catalogs.stream()
                 .map(CatalogProgress::snapshot)
                 .toList();
+        int runsPlanned = catalogSummaries.stream()
+                .mapToInt(OrchestrationReport.CatalogSummary::groupsPlanned)
+                .sum() * iterationsPerGroup;
 
         return new OrchestrationReport(
                 application,
@@ -80,6 +91,7 @@ final class CampaignProgress {
                 lastCompletedGroupCatalog,
                 lastCompletedGroup,
                 endedAt - startedAtEpochMillis,
+                outcomeMetrics.snapshot(runsPlanned),
                 catalogSummaries,
                 List.copyOf(findings));
     }

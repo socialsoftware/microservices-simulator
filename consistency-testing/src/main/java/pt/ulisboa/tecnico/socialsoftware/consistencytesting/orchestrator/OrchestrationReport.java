@@ -1,10 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * What a campaign found, and enough about how it ran to reproduce it.
@@ -25,6 +29,8 @@ import java.util.stream.Collectors;
  * @param lastCompletedGroup        latest group checkpoint, absent before group
  *                                  exploration
  * @param durationMillis            wall-clock duration of the campaign
+ * @param outcomeMetrics            counts and timings for signals observed in
+ *                                  completed oracle runs
  * @param catalogs                  per-catalog totals, in the order they were
  *                                  explored
  * @param findings                  every run worth attention, in the order
@@ -42,6 +48,7 @@ public record OrchestrationReport(
         String lastCompletedGroupCatalog,
         String lastCompletedGroup,
         long durationMillis,
+        OutcomeMetrics outcomeMetrics,
         List<CatalogSummary> catalogs,
         List<Finding> findings) {
 
@@ -50,6 +57,57 @@ public record OrchestrationReport(
         COMPLETED,
         CANCELLED,
         FAILED
+    }
+
+    /**
+     * Metrics collected from completed oracle runs. They complement the
+     * {@link CatalogSummary}s.
+     *
+     * @param runsPlanned                               planned runs in the catalogs
+     *                                                  known at this checkpoint
+     * @param runsCompleted                             runs that completed
+     *                                                  execution so far
+     * @param anomaliesObserved                         total anomaly instances
+     * @param runsWithAnomalies                         runs containing an anomaly
+     * @param firstAnomalyElapsedMillis                 elapsed time until the first
+     *                                                  anomaly; {@code null} when
+     *                                                  no anomaly was observed
+     * @param interInvariantViolationsObserved          total inter-invariant
+     *                                                  violation instances
+     * @param runsWithInterInvariantViolations          runs containing an
+     *                                                  inter-invariant violation
+     * @param firstInterInvariantViolationElapsedMillis elapsed time until the
+     *                                                  first inter-invariant
+     *                                                  violation;
+     *                                                  {@code null} when none was
+     *                                                  observed
+     * @param violatedInterInvariantNames               distinct invariant names
+     *                                                  reported as broken
+     * @param stepExceptionsObserved                    total failed step executions
+     * @param runsWithStepExceptions                    runs with a failed step
+     * @param statusRunCounts                           exact oracle status -> count
+     *                                                  of completed runs carrying
+     *                                                  it
+     */
+    public record OutcomeMetrics(
+            int runsPlanned,
+            int runsCompleted,
+            int anomaliesObserved,
+            int runsWithAnomalies,
+            @Nullable Long firstAnomalyElapsedMillis,
+            int interInvariantViolationsObserved,
+            int runsWithInterInvariantViolations,
+            @Nullable Long firstInterInvariantViolationElapsedMillis,
+            List<String> violatedInterInvariantNames,
+            int stepExceptionsObserved,
+            int runsWithStepExceptions,
+            Map<String, Integer> statusRunCounts) {
+
+        public OutcomeMetrics {
+            violatedInterInvariantNames = List.copyOf(violatedInterInvariantNames);
+            // TreeMap so serialized reports keep status names in alphabetical order.
+            statusRunCounts = Collections.unmodifiableMap(new TreeMap<>(statusRunCounts));
+        }
     }
 
     /**
@@ -176,7 +234,19 @@ public record OrchestrationReport(
         String total = "total: %d/%d group(s), %d finding(s) in %d run(s)".formatted(
                 completedGroups(), plannedGroups(), findings.size(), totalRuns());
 
-        return String.join(System.lineSeparator(), header, reports, perCatalog, total);
+        String outcomes = "outcomes: %d/%d run(s), %d anomaly instance(s) in %d run(s) (first %s), "
+                + "%d inter-invariant violation(s) in %d run(s) (first %s), %d step exception(s) in %d run(s)";
+        outcomes = outcomes.formatted(
+                outcomeMetrics.runsCompleted(), outcomeMetrics.runsPlanned(),
+                outcomeMetrics.anomaliesObserved(), outcomeMetrics.runsWithAnomalies(),
+                formatOptionalDuration(outcomeMetrics.firstAnomalyElapsedMillis()),
+                outcomeMetrics.interInvariantViolationsObserved(),
+                outcomeMetrics.runsWithInterInvariantViolations(),
+                formatOptionalDuration(outcomeMetrics.firstInterInvariantViolationElapsedMillis()),
+                outcomeMetrics.stepExceptionsObserved(), outcomeMetrics.runsWithStepExceptions());
+        String statuses = "number of runs carrying each status: " + outcomeMetrics.statusRunCounts();
+
+        return String.join(System.lineSeparator(), header, reports, perCatalog, total, outcomes, statuses);
     }
 
     /**
@@ -193,6 +263,10 @@ public record OrchestrationReport(
             return "%dm%02ds".formatted(duration.toMinutes(), duration.toSecondsPart());
         }
         return "%ds".formatted(duration.toSeconds());
+    }
+
+    private static String formatOptionalDuration(Long durationMillis) {
+        return durationMillis == null ? "not observed" : formatDuration(durationMillis);
     }
 
     private static String describe(Finding finding) {

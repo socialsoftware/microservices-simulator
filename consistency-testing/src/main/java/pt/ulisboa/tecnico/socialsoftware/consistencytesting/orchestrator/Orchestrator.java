@@ -208,9 +208,10 @@ public final class Orchestrator {
         checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
 
         // TODO progress tracking: plan every catalog before exploration so a
-        // partial summary can show campaign-wide, rather than discovered-so-far, totals.
+        // partial summary can show campaign-wide, rather than discovered-so-far,
+        // totals.
         for (FunctionalityGroup group : groups) {
-            List<TestResult> results = driver.exploreGroup(catalog, group);
+            List<TestResult> results = driver.exploreGroup(catalog, group, progress::recordCompletedRun);
 
             List<OrchestrationReport.Finding> groupFindings = findingsOf(catalog, group, results);
             progress.recordCompletedGroup(
