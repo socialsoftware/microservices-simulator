@@ -52,19 +52,61 @@ No rule in §3 comes from railway domain knowledge that TrainTicket does not its
 Provenance is recorded here rather than as a column in §3.1 or a marker on the §3.2 headings, because
 both of those are positions `/classify-and-plan` parses.
 
-**Enforced tier, §3.1:** `ORDER_STATUS_TRANSITION`, `ORDER_SEAT_NUMBER_POSITIVE`,
-`ORDER_REFUND_AMOUNT`. Every other §3.1 rule is implied.
+Every assignment below names the site that justifies it. The tiers were re-derived rule by rule
+against the pinned commit at the §9 review, which moved seven of them, and again at the §10 review,
+which moved one more and re-declared two — see §9 and §10 of the rationale.
 
-**Enforced tier, §3.2:** `STATIONS_EXIST`, `ROUTE_AND_TRAIN_TYPE_EXIST` (both blocks),
-`ACCOUNT_EXISTS` (both blocks), `TRIP_EXISTS`, `CONTACTS_EXIST`, `ENDPOINTS_ON_TRIP_ROUTE`,
-`SEAT_CLASS_OFFERED`, `PRICE_MATCHES_TARIFF`, `SEAT_CAPACITY_NOT_EXCEEDED`,
-`SEAT_NUMBER_UNIQUE_PER_DEPARTURE`. Every other §3.2 rule is implied.
+**Enforced tier, §3.1:** `ORDER_STATUS_TRANSITION` (`ExecuteServiceImpl` guards
+`PAID → COLLECTED` and `COLLECTED → USED`; `CancelServiceImpl` guards `{NOTPAID, PAID} → CANCELLED`),
+`ORDER_REFUND_AMOUNT` (`CancelServiceImpl.calculateRefund`, `CancelServiceImpl.java:200`). Every
+other §3.1 rule is implied.
+
+**Two rules straddle the tiers**, each with an enforced core and an implied strengthening this file
+states on top of it. Both are declared here rather than passed off as wholly enforced.
+
+- `ROUTE_ENDPOINTS_MATCH_STATION_LIST`. `AdminRouteServiceImpl.java:58` rejects a route whose
+  declared start or end is absent from the station list, so **containment is enforced**; nothing
+  anywhere requires the endpoints to be the **first and last** entries, so the positional
+  strengthening is **implied**. It is admitted because `Route.stations` is `@OrderColumn` and
+  `Route.startStation` means the origin: unless the first entry is the start, neither representation
+  means what its name says.
+- `ORDER_STATUS_TRANSITION`. The two `ExecuteServiceImpl` guards and the `CancelServiceImpl` guard
+  above are real, so **every edge into `COLLECTED`, `USED` and `CANCELLED` is enforced**. The edge
+  into `PAID` is not: `OrderServiceImpl.payOrder` sets `status = PAID` without reading the previous
+  status at all, so the benchmark accepts paying an order that is already `CANCELLED` or `USED`.
+  This file's table forbids those, and that half is **implied** — the state machine is not a state
+  machine if any state can jump to `PAID`. Found at the §10 review, which is also where the claim
+  that `ROUTE_ENDPOINTS_MATCH_STATION_LIST` was the only straddling rule was corrected.
+
+**Enforced tier, §3.2:** `STATIONS_EXIST` (`AdminRouteServiceImpl.checkStationsExists`, called from
+`createAndModifyRoute`), `UNIQUE_STATION_NAME` (`StationServiceImpl.create` rejects a duplicate name;
+`Station.name` is also `@Column(unique = true)`), `ROUTE_AND_TRAIN_TYPE_EXIST` (**Trip block only** —
+`AdminTravelServiceImpl.checkTravelInfo`, called from `addTravel` and `updateTravel`),
+`UNIQUE_TRIP_NUMBER` (`TravelServiceImpl.java:61`, which declines to save a second trip under an
+existing id), `UNIQUE_USER_NAME` (`UserServiceImpl.saveUser`, whose own comment reads
+`// avoid same user name`), `TRIP_EXISTS` (`TravelServiceImpl.getTripAllDetailInfo` returns
+"Trip not found" and `PreserveServiceImpl` rejects the booking on it), `CONTACTS_EXIST`
+(`PreserveServiceImpl` step 2 rejects the booking when the contacts fetch fails),
+`ENDPOINTS_ON_TRIP_ROUTE` (`BasicServiceImpl.queryForTravel`, which rejects with
+"Station not correct in Route" unless `indexOf(from) < indexOf(to)` on the route's station list),
+`PRICE_MATCHES_TARIFF` (`BasicServiceImpl.java:102-107`: the distance subtraction at `:102`, the
+multiplication by each class's rate at `:106` and `:107`), `SEAT_CAPACITY_NOT_EXCEEDED`. Every other
+§3.2 rule is implied.
 
 `SEAT_CAPACITY_NOT_EXCEEDED` is enforced-but-corrected: TrainTicket has the check, and the check is
-defect **F1** below. It is the **only** rule in this file that departs from benchmark behaviour.
+defect **F1** below.
 
-Two candidate rules were **dropped** at the design review (§8 of the rationale) rather than admitted
-to either tier, because neither survived the provenance test:
+**Two rules in this file depart from benchmark behaviour, not one.** The second is
+`PRICE_CONFIG_EXISTS`, which fails the booking when no price configuration exists for the route and
+train type; TrainTicket instead books at a hard-coded default fare, which is defect **F5** below.
+Both departures are corrections of a defect rather than additions of a constraint. Both are also
+*corrections*, which is what distinguishes them from the *simplifications* recorded as threat 6 of
+the rationale: a simplification makes this application stricter than the benchmark without claiming
+the benchmark is wrong, and `SEAT_NUMBER_UNIQUE_PER_DEPARTURE` is the rule that carries one.
+
+Six candidate rules were **dropped** rather than admitted to either tier, because none survived the
+provenance test. The first two went at the design review (§8 of the rationale), the last four at the
+scope and provenance review (§9):
 
 - **`TRIP_NUMBER_FORMAT`** (`^[GDZTK][0-9]+$`) — nothing in TrainTicket validates a trip number.
   `SeatServiceImpl` and `AdminOrderServiceImpl` only *branch* on the leading letter
@@ -76,11 +118,33 @@ to either tier, because neither survived the provenance test:
   check therefore never fires in a stock deployment, and any usable threshold would have been an
   authored number. Keeping it would have made the application's one temporal-window rule an invention
   wearing a benchmark's name.
+- **`ACCOUNT_EXISTS` (Contacts)** — `ts-contacts-service` never calls `ts-user-service`. `create`
+  checks only that the same document is not already registered against the account; nothing verifies
+  the account itself. The rule had been listed as enforced.
+- **`ACCOUNT_EXISTS` (Order)** — `PreserveServiceImpl` fetches the account exactly once, at
+  `PreserveServiceImpl.java:245`, **after** `createOrder` has already succeeded at `:170`, and uses
+  the result only to populate the `NotifyInfo` for a notification whose send call (`:261`) is
+  commented out. It never inspects the result to reject the booking. The only account-touching
+  precondition on the preserve path was `checkSecurity`, whose rule was itself dropped at §8. The
+  rule had been listed as enforced. *(§9 placed this fetch inside `sendEmail`; that method exists at
+  `:288` but is dead code. Corrected at §10 — the conclusion is unchanged.)*
+- **`ROUTE_AND_TRAIN_TYPE_EXIST` (PriceConfig)** — `AdminBasicInfoServiceImpl.addPrice` is a bare
+  passthrough to `ts-price-service`, and `PriceServiceImpl.createNewPriceConfig` validates neither
+  `routeId` nor `trainType`. The Trip block of the same rule **is** enforced and is kept; only the
+  PriceConfig block goes. The rule had been listed as enforced in both blocks.
+- **`SEAT_CLASS_OFFERED`** — nothing checks that a seat class is offered at all. The first-class
+  branch in `PreserveServiceImpl` tests `tripResponse.getConfortClass() == 0`, which is the
+  *remaining* seat count, so the benchmark cannot distinguish a class that does not exist from one
+  that is sold out; that guard is `SEAT_CAPACITY_NOT_EXCEEDED`. With no independent site, the rule
+  was a duplicate of `SEAT_NUMBER_WITHIN_CAPACITY`, which bounds the same quantity, and the tier
+  difference that had justified keeping both did not survive re-checking either — see the note on
+  `ORDER_SEAT_NUMBER_POSITIVE` in §3.1.
 
 ### Findings recorded against the benchmark
 
-Four defects and modelling flaws surfaced while writing this specification. They are recorded here
-because they are results, not incidental notes.
+Five defects and modelling flaws surfaced while writing this specification. They are recorded here
+because they are results, not incidental notes. F1–F4 were found while writing it; F5 at the §9
+review.
 
 - **F1 — the second-class availability check is broken.** `PreserveServiceImpl` rejects a
   second-class booking only when `tripResponse.getEconomyClass() == SeatClass.SECONDCLASS.getCode()
@@ -104,6 +168,16 @@ because they are results, not incidental notes.
   each use site (`calculateRefund` builds a `java.util.Date` from parsed fragments via a deprecated
   constructor). This file uses `BigDecimal`, `LocalDate`, `LocalDateTime`, `LocalTime` and
   `Integer`.
+- **F5 — a missing price configuration silently books at an invented fare.**
+  `BasicServiceImpl.queryForTravel` computes the fare inside a `try` whose `catch (Exception e)`
+  writes `prices.put("economyClass", "95.0")` and `prices.put("confortClass", "120.0")`.
+  `queryPriceConfigByRouteIdAndTrainType` returns `null` when no configuration exists for the pair,
+  the multiplication throws inside the try, and the booking proceeds at the hard-coded default. The
+  same catch swallows any other arithmetic failure on that path. Two consequences: no route and train
+  type combination can ever fail for want of a tariff, and `PRICE_MATCHES_TARIFF` — which the
+  benchmark otherwise enforces — does not hold on the orders the catch produces.
+  `PRICE_CONFIG_EXISTS` in §3.2 is the corrected rule, and it is the second of this file's two
+  departures from benchmark behaviour.
 
 ### Other deliberate departures
 
@@ -232,6 +306,24 @@ These rules inspect only fields of a single entity.
 > construction. No `verifyInvariants()` check is needed. The same applies to `TRAIN_TYPE_NAME_FINAL`,
 > `TRIP_NUMBER_FINAL` and `USER_NAME_FINAL`.
 
+> **`ORDER_SEAT_NUMBER_POSITIVE` is implied, not enforced.** It was listed as enforced until the §9
+> review. Nothing in TrainTicket *checks* a seat number; `SeatServiceImpl.distributeSeat` *produces*
+> one, as `rand.nextInt(range) + 1`. The `+ 1` is this rule's lower bound and `nextInt(range)` is
+> `SEAT_NUMBER_WITHIN_CAPACITY`'s upper bound, so the two rules are the two halves of one expression
+> and must sit in the same tier. Both are implied: the data model needs them, no code asserts them.
+
+> **`ROUTE_ENDPOINTS_MATCH_STATION_LIST` straddles the tiers.** Containment is enforced
+> (`AdminRouteServiceImpl.java:58`); the first-and-last positions are implied. See § "Rule
+> provenance" in the preamble for why the strengthening is admitted.
+
+> **`ORDER_STATUS_TRANSITION` straddles the tiers too.** Every edge into `COLLECTED`, `USED` and
+> `CANCELLED` is enforced by the `ExecuteServiceImpl` and `CancelServiceImpl` guards named in the
+> preamble. The edge into `PAID` is not: `OrderServiceImpl.payOrder` writes `status = PAID` without
+> reading the previous status, so the benchmark accepts paying an order that is already `CANCELLED`
+> or `USED`. The `⟹` clauses this table states for those two source states are therefore implied.
+> Found at the §10 review; until then the preamble claimed
+> `ROUTE_ENDPOINTS_MATCH_STATION_LIST` was the only rule that straddled.
+
 > **`ORDER_REFUND_AMOUNT` is `[E]`, corrected.** TrainTicket's `calculateRefund` implements exactly
 > this three-branch rule (`0.00` when unpaid, `0` once the departure has passed, otherwise 80% of the
 > fare). The correction is that it builds the departure instant with a deprecated `java.util.Date`
@@ -297,14 +389,6 @@ These rules inspect only fields of a single entity.
 
 ---
 
-#### Rule: ROUTE_AND_TRAIN_TYPE_EXIST (PriceConfig)
-
-| Field | Value |
-|---|---|
-| Entities | PriceConfig, Route, TrainType |
-| Predicate | `PriceConfig.routeAggregateId` and `PriceConfig.trainTypeAggregateId` named a Route and a TrainType that were ACTIVE when the price configuration was created |
-
----
 
 #### Rule: UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE
 
@@ -315,14 +399,6 @@ These rules inspect only fields of a single entity.
 
 ---
 
-#### Rule: ACCOUNT_EXISTS (Contacts)
-
-| Field | Value |
-|---|---|
-| Entities | Contacts, User |
-| Predicate | `Contacts.userAggregateId` named a User that was ACTIVE when the contact was created |
-
----
 
 #### Rule: UNIQUE_USER_NAME
 
@@ -351,21 +427,21 @@ These rules inspect only fields of a single entity.
 
 ---
 
-#### Rule: ACCOUNT_EXISTS (Order)
-
-| Field | Value |
-|---|---|
-| Entities | Order, User |
-| Predicate | `Order.userAggregateId` named a User that was ACTIVE when the order was created |
-
----
 
 #### Rule: CONTACTS_BELONG_TO_ACCOUNT (Order)
 
 | Field | Value |
 |---|---|
-| Entities | Order, Contacts, User |
+| Entities | Order, Contacts |
 | Predicate | `Order.userAggregateId == Contacts.userAggregateId` — a passenger may only be booked under the account that owns that contact record |
+
+> **User is deliberately absent from the Entities list.** The rule is *about* account ownership, but
+> both sides of the comparison are local to the booking saga: `Order.userAggregateId` comes from the
+> request and `Contacts.userAggregateId` from the `Contacts` fetch §4 already declares. No User read
+> is needed, and §4 declares none — see §3 of
+> [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md) on why `PreserveTicket`
+> does not read User. Listing User here would make `/classify-and-plan` raise a cross-aggregate
+> prerequisite with no operation to satisfy it.
 
 ---
 
@@ -373,19 +449,18 @@ These rules inspect only fields of a single entity.
 
 | Field | Value |
 |---|---|
-| Entities | Order, Trip, Route, Station |
+| Entities | Order, Trip, Route |
 | Predicate | `Order.fromStationName` and `Order.toStationName` both name a `RouteStation` of the Trip's Route, and `sequence(from) < sequence(to)` |
 
----
-
-#### Rule: SEAT_CLASS_OFFERED (Order)
-
-| Field | Value |
-|---|---|
-| Entities | Order, Trip, TrainType |
-| Predicate | `capacity(Trip.trainType, Order.seatClass) > 0`, where `capacity` is `firstClassSeats` for `FIRST_CLASS` and `economyClassSeats` for `SECOND_CLASS` |
+> **Station is deliberately absent from the Entities list.** The predicate resolves entirely from
+> `RouteStation.stationName` and `RouteStation.sequence`, which the Route fetch already carries, so
+> no Station read is needed and §4 declares none for `PreserveTicket`. TrainTicket does call
+> `checkStationExists` on both endpoints before this check (`BasicServiceImpl.java:49-51`), so adding
+> the read would be faithful rather than authored; it is declined because the endpoint names on the
+> order are validated against the route's own station list, which is the stronger of the two checks.
 
 ---
+
 
 #### Rule: PRICE_CONFIG_EXISTS (Order)
 
@@ -397,7 +472,14 @@ These rules inspect only fields of a single entity.
 > Enforced by the `GetPriceConfigByRouteAndTrainType` fetch in the booking saga, which throws when no
 > configuration exists for the pair — **P4a**. Stated as its own rule so that the saga step has a rule
 > name to cite, as `docs/concepts/rule-enforcement-patterns.md` § P4 requires, and so the fare source
-> gets the same explicit existence block as `TRIP_EXISTS`, `CONTACTS_EXIST` and `ACCOUNT_EXISTS`.
+> gets the same explicit existence block as `TRIP_EXISTS` and `CONTACTS_EXIST`.
+>
+> **This is a correction, not a reproduction — finding F5.** TrainTicket does not fail the booking
+> when the tariff is missing: `BasicServiceImpl.queryForTravel` catches the resulting exception and
+> charges a hard-coded `95.0` or `120.0`. Implementing that faithfully would mean an application
+> whose own `PRICE_MATCHES_TARIFF` rule its own booking path can violate, which is the same reason
+> F1 is corrected rather than reproduced. It is one of this file's two behavioural departures, both
+> declared in the preamble.
 
 ---
 
@@ -446,11 +528,25 @@ These rules inspect only fields of a single entity.
 | Entities | Order, Trip |
 | Predicate | No two Orders with `status != CANCELLED ∧ state != DELETED` share the same `(tripAggregateId, travelDate, seatClass, seatNumber)` |
 
-> TrainTicket's `SeatServiceImpl.distributeSeat` picks a random seat number and retries while
-> `isContained(soldTickets, seat)`, so seat-number uniqueness within a departure is the property that
-> loop is trying to establish. Its segment-reuse optimisation — handing out a seat whose previously
-> sold journey ends at or before the new passenger's boarding station — is **not** modelled here;
-> this application allocates one seat per journey for the whole trip.
+> **Implied, not enforced — re-tiered at the §10 review.** `SeatServiceImpl.distributeSeat` picks a
+> random seat number and retries while `isContained(soldTickets, seat)`
+> (`SeatServiceImpl.java:109-111`), and that loop was cited as this rule's enforcement site until
+> §10. It is not one. The loop is never reached on the segment-reuse path: at
+> `SeatServiceImpl.java:100-108`, *before* any uniqueness check, `distributeSeat` walks the sold
+> tickets and returns `soldTicket.getSeatNo()` outright for any ticket whose destination precedes the
+> new passenger's boarding station. The benchmark therefore hands out a duplicate
+> `(trip, date, seatClass, seatNumber)` deliberately, and the unconditional predicate above is false
+> in it. `isContained` guards only the fall-through path — the right line for a claim it does not
+> support, which is the §9 failure mode applied to §9's own residue.
+>
+> The rule is kept because the interval-packing optimisation is **not** modelled here: this
+> application allocates one seat per journey for the whole trip, and once packing is gone the retry
+> loop is the whole allocator and uniqueness does follow from it. That makes this rule a consequence
+> of a declared simplification rather than a transcription of a benchmark check, which is what the
+> implied tier is for. It joins `ORDER_SEAT_NUMBER_POSITIVE` and `SEAT_NUMBER_WITHIN_CAPACITY`, so
+> all three seat rules now sit in one tier as three consequences of one allocator. See threat 6 of
+> the rationale, which already recorded that seat uniqueness is stricter here than in the benchmark
+> without that fact having reached this block.
 
 ---
 
@@ -463,14 +559,17 @@ These rules inspect only fields of a single entity.
 
 > Bounds the seat number above, which `ORDER_SEAT_NUMBER_POSITIVE` in §3.1 cannot: `capacity` lives on
 > TrainType, so the limit crosses an aggregate boundary and the booking saga passes it in alongside
-> the one it already passes for `SEAT_CAPACITY_NOT_EXCEEDED`.
+> the one it already passes for `SEAT_CAPACITY_NOT_EXCEEDED`. The two rules are the two halves of
+> `rand.nextInt(range) + 1` in `SeatServiceImpl.distributeSeat`, which is why they share a tier.
 >
-> **This rule subsumes `SEAT_CLASS_OFFERED`** — when `capacity` is `0` the interval `[1, 0]` is empty,
-> so no seat can be allocated. Both are kept deliberately: `SEAT_CLASS_OFFERED` is in the **enforced**
-> provenance tier (TrainTicket checks it) while this rule is **implied**, and collapsing the enforced
-> rule into the implied one would weaken the provenance claim the two-tier discipline exists to make
-> checkable. They are separate rules at separate patterns, not one rule duplicated across patterns.
+> **This rule also covers the seat-class case.** When `capacity` is `0` the interval `[1, 0]` is
+> empty, so no seat can be allocated for a class the train type does not offer. A separate
+> `SEAT_CLASS_OFFERED` rule stated that condition until the §9 review, on the argument that it was
+> enforced where this rule is implied. Re-checking found no site that tests capacity for zero —
+> TrainTicket's first-class guard reads the *remaining* count, not the capacity — so the tier
+> difference the argument rested on did not exist, and the rule was a duplicate. It was dropped.
 
+---
 
 ## §4 — Functionalities
 
@@ -484,12 +583,12 @@ These rules inspect only fields of a single entity.
 | UpdateStation | Station | — | Write | Update a station's name or dwell time |
 | DeleteStation | Station | — | Write | Soft-delete a station |
 | CreateRoute | Route | Station | Write | Create a route as an ordered list of stations with cumulative distances |
-| UpdateRoute | Route | Station | Write | Replace a route's station list and distances |
+| UpdateRoute | Route | Station | Write | Replace a route's station list and distances, and its start and end station names with them |
 | DeleteRoute | Route | — | Write | Soft-delete a route |
 | CreateTrainType | TrainType | — | Write | Create a train type with its seat counts per class and average speed |
 | UpdateTrainType | TrainType | — | Write | Update a train type's seat counts or average speed |
 | DeleteTrainType | TrainType | — | Write | Soft-delete a train type |
-| CreatePriceConfig | PriceConfig | Route, TrainType | Write | Create the per-distance fare rates for one route and train type |
+| CreatePriceConfig | PriceConfig | — | Write | Create the per-distance fare rates for one route and train type |
 | UpdatePriceConfig | PriceConfig | — | Write | Update the fare rates of an existing price configuration |
 | DeletePriceConfig | PriceConfig | — | Write | Soft-delete a price configuration |
 | CreateTrip | Trip | Route, TrainType | Write | Create a scheduled trip on a route with a train type and times of day |
@@ -498,10 +597,10 @@ These rules inspect only fields of a single entity.
 | CreateUser | User | — | Write | Create a user account |
 | UpdateUser | User | — | Write | Update a user's password, gender, document or email |
 | DeleteUser | User | — | Write | Soft-delete a user account |
-| CreateContacts | Contacts | User | Write | Create a passenger contact record owned by an account |
+| CreateContacts | Contacts | — | Write | Create a passenger contact record owned by an account |
 | UpdateContacts | Contacts | — | Write | Update a contact's name, document or phone number |
 | DeleteContacts | Contacts | — | Write | Soft-delete a contact record |
-| PreserveTicket | Order | Trip, Route, TrainType, PriceConfig, Contacts, User | Write | Book a ticket: resolve the passenger contact and its owning account, validate the journey against the trip's route, compute the fare from distance and rates, allocate the **lowest seat number in `[1, capacity]` not already held by a non-cancelled order for that departure**, and create the order as NOTPAID |
+| PreserveTicket | Order | Trip, Route, TrainType, PriceConfig, Contacts | Write | Book a ticket: resolve the passenger contact and its owning account, validate the journey against the trip's route, compute the fare from distance and rates, allocate the **lowest seat number in `[1, capacity]` not already held by a non-cancelled order for that departure**, and create the order as NOTPAID |
 | PayOrder | Order | — | Write | Move an order from NOTPAID to PAID |
 | CollectTicket | Order | — | Write | Move a paid order to COLLECTED |
 | UseTicket | Order | — | Write | Move a collected order to USED |
@@ -511,7 +610,7 @@ These rules inspect only fields of a single entity.
 | GetStations | Station | — | Read | List all stations |
 | GetRouteById | Route | — | Read | Retrieve a single route by its aggregate id |
 | GetRoutes | Route | — | Read | List all routes |
-| GetRoutesByStation | Route | — | Read | List the routes that stop at a given station, each returned in full including its ordered `routeStations`, so a caller can intersect two stations and check their relative sequence itself |
+| GetRoutesByStation | Route | — | Read | List the routes that stop at a given station |
 | GetTrainTypeById | TrainType | — | Read | Retrieve a single train type by its aggregate id |
 | GetTrainTypes | TrainType | — | Read | List all train types |
 | GetPriceConfigById | PriceConfig | — | Read | Retrieve a single price configuration by its aggregate id |
@@ -519,7 +618,6 @@ These rules inspect only fields of a single entity.
 | GetPriceConfigByRouteAndTrainType | PriceConfig | — | Read | Retrieve the fare rates configured for a given route and train type; fails when no configuration exists for the pair |
 | GetTripById | Trip | — | Read | Retrieve a single trip by its aggregate id |
 | GetTrips | Trip | — | Read | List all trips |
-| GetTripsByRoute | Trip | — | Read | List the trips scheduled on a given route |
 | GetUserById | User | — | Read | Retrieve a single user by its aggregate id |
 | GetUsers | User | — | Read | List all users |
 | GetContactsById | Contacts | — | Read | Retrieve a single contact record by its aggregate id |
@@ -528,25 +626,14 @@ These rules inspect only fields of a single entity.
 | GetOrders | Order | — | Read | List all orders |
 | GetOrdersByAccount | Order | — | Read | List the orders placed by an account |
 | GetLeftTicketCount | Order | Trip, TrainType | Read | Count the seats still available for a given trip, travel date and seat class, by subtracting the non-cancelled orders from the train type's capacity |
-| SearchTrips ⚠️ | Trip | Route, TrainType, PriceConfig, Order | Read | Search the trips serving a departure and arrival station on a travel date, returning for each the departure and arrival times, the fare for both seat classes, and the remaining seats per class |
 
-> **`SearchTrips` and `GetLeftTicketCount` are read sagas.** They assemble state from several
-> aggregates without writing anything. `SearchTrips` is TrainTicket's `queryForTravels` /
-> `ts-basic-service` pairing; `GetLeftTicketCount` is `ts-seat-service`'s
-> `getLeftTicketOfInterval`.
-
-> **⚠️ `SearchTrips` is deferred past its own session.** It is Trip-primary, so the plan schedules it
-> in Trip's session `b`, but it reads Order, which the topological sort places last. It therefore
-> **cannot** be implemented when Trip's session `b` runs: implement it in a revisit session after
-> Order's session `c`, once `OrderDto` exists. Every other Trip read is implementable in session `b`
-> as normal. This is the read-side analogue of the reverse-P3 dependency that
-> `.claude/skills/classify-and-plan/SKILL.md` § "Step 5.5" tracks for write guards.
-
-> **How `SearchTrips` resolves a station pair.** `Trip` holds only `routeAggregateId`, so the search
-> runs `GetRoutesByStation` for the departure and arrival stations, intersects the two result sets,
-> keeps the routes whose `routeStations` place the departure before the arrival, then calls
-> `GetTripsByRoute` for each surviving route. Fares come from
-> `GetPriceConfigByRouteAndTrainType`; remaining seats come from Order.
+> **`GetLeftTicketCount` is the application's one read saga.** It assembles state from three
+> aggregates without writing anything, and is TrainTicket's `ts-seat-service.getLeftTicketOfInterval`.
+>
+> A second read saga, `SearchTrips`, spanned five aggregates and was cut at the §9 review to keep the
+> first delivery small; it is recorded in §7 of the rationale as the first planned extension once the
+> core is built. Cutting it also removed `GetTripsByRoute` and returned `GetRoutesByStation` to a
+> plain list, since both existed only to serve it.
 
 > **`PreserveTicket` is the only multi-aggregate write.** The other four Order operations are
 > single-aggregate state transitions, matching TrainTicket's `ts-cancel-service` and

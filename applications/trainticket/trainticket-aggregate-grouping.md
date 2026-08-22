@@ -99,8 +99,15 @@ User ─────────────────────────
 
 > An arrow `A ──► B` means B holds a reference to A and caches the fields listed in §2. **In this
 > application no arrow carries an event subscription.** Every snapshot is seeded once, at the
-> consuming aggregate's creation, by a direct service call in the creating saga, and is never
-> refreshed thereafter.
+> consuming aggregate's creation, and is never refreshed thereafter.
+>
+> **Not every arrow is a saga fetch.** Four are seeded from a value the caller supplies, because the
+> rule that would have made the creating operation fetch the source was dropped at the §9 review for
+> having no benchmark support: `User ──► Contacts`, `User ──► Order`, `Route ──► PriceConfig` and
+> `TrainType ──► PriceConfig`. `CreateContacts` and `CreatePriceConfig` are therefore
+> single-aggregate writes, and `PreserveTicket` does not read User. The reference is still stored and
+> the arrow still holds; nothing validates that it points at a live aggregate, which is the same
+> dangling-reference behaviour §3 specifies everywhere else.
 
 ### Consistency policy: no cascade
 
@@ -161,19 +168,20 @@ Points where these two files constrain each other, recorded so they get re-check
   price of the no-cascade decision, not an oversight, and it is what the cascade variant above would
   recover.
 
-- **`SearchTrips` is scheduled before the aggregate it reads.** It is Trip-primary, so it lands in
-  Trip's session `b`, but it reads Order, which the topological sort places last. `classify-and-plan`
-  § "Step 5.5" detects reverse dependencies only for P3/P4a *rules* bound to write guards, so nothing
-  in the generated plan catches a *read* functionality in the same position. `SearchTrips` must be
-  deferred to a revisit session after Order's session `c`; the domain model's §4 marks it `⚠️`. Every
-  other Trip read is implementable in session `b` as normal.
+- **No functionality is scheduled before an aggregate it reads.** `SearchTrips` was, being
+  Trip-primary while reading Order, which the topological sort places last; it was cut at the §9
+  review. Phase 2 is therefore 24 sessions with no revisit session, and every read is implementable
+  in its primary aggregate's session `b`. If `SearchTrips` returns as the extension §7 of the
+  rationale plans, this constraint returns with it, and `classify-and-plan` § "Step 5.5b" is the
+  mechanism that catches it.
 - **Order's immutability is what makes empty §4 safe.** Every field `Order` copies from another
   aggregate is Java `final`. If a later change makes any of them mutable, the frozen-contract
   argument in §2 collapses and those rows need real event subscriptions.
-- **Seat capacity is enforced inside one aggregate.** `SEAT_CAPACITY_NOT_EXCEEDED`,
-  `SEAT_NUMBER_UNIQUE_PER_DEPARTURE` and `SEAT_NUMBER_WITHIN_CAPACITY` all resolve against the Order
-  aggregate's own table; only the capacity *limit* crosses a boundary, and the booking saga passes it
-  in once from the Trip's TrainType, serving all three. The seat number itself is allocated by the
+- **Seat capacity is enforced inside one aggregate.** `SEAT_CAPACITY_NOT_EXCEEDED` and
+  `SEAT_NUMBER_UNIQUE_PER_DEPARTURE` resolve against the Order aggregate's own table;
+  `SEAT_NUMBER_WITHIN_CAPACITY` reads no rows at all and tests the allocated number against a single
+  passed-in scalar. Only the capacity *limit* crosses a boundary, and the booking saga passes it in
+  once from the Trip's TrainType, serving all three. The seat number itself is allocated by the
   saga as the lowest free value in `[1, capacity]`, so the allocation and the rules that bound it read
   the same rows. Introducing a seat-inventory aggregate later would move all three from P3 to P1 and
   would add an aggregate the benchmark does not have.

@@ -8,7 +8,9 @@
 > state *what* the application is; this one is the audit trail behind them, written to be cited from
 > the dissertation.
 >
-> Authored 2026-08-13 from a structured design interview; reviewed and extended 2026-08-22 (§8).
+> Authored 2026-08-13 from a structured design interview; reviewed and extended 2026-08-22 (§8),
+> reviewed again the same day for scope and provenance (§9), and audited a third time before Phase 0
+> for provenance reproducibility (§10).
 >
 > **Source of truth.** Every factual claim about TrainTicket below was verified against
 > `github.com/FudanSELab/train-ticket` at commit
@@ -60,7 +62,7 @@ Two of the four findings in §4 were discovered this way and are not documented 
 | D8 | §3.2 phrasing | Saga-time preconditions; cascade variant recorded as follow-up | Standing invariants over live references |
 | D9 | Data-model fidelity | Structure normalised, behaviour faithful | Preserving parallel lists and `String` scalars |
 | D10 | Order state machine | 5 states + `refundAmount` | 3 states as originally scoped at D2 |
-| D11 | Closing details | Rate limit as constants *(reversed at §8 — rule dropped)*; name `trainticket`; full query surface incl. `SearchTrips` | A `SecurityConfig` aggregate; minimal reads |
+| D11 | Closing details | Rate limit as constants *(reversed at §8 — rule dropped)*; name `trainticket`; full query surface incl. `SearchTrips` *(reversed at §9 — cut, deferred to §7)* | A `SecurityConfig` aggregate; minimal reads |
 
 ### D1 — Selection criterion
 
@@ -150,7 +152,15 @@ sharpest threat to this application's validity.
 
 - **Enforced** — TrainTicket's code checks it somewhere.
 - **Implied** — TrainTicket's *data model* requires it for the data to mean anything, but no code
-  checks it (e.g. `|stations| == |distances|`, legal status transitions).
+  checks it (e.g. `UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE`, whose repository method returns a
+  single row for the pair and so assumes a uniqueness nothing establishes; or
+  `DEPARTURE_TIME_MATCHES_TRIP`).
+
+  *This pair of examples replaces two chosen when D6 was written —* `|stations| == |distances|` *and
+  "legal status transitions" — both of which the §9 review found are in fact enforced, at
+  `RouteServiceImpl.java:38` and in `ExecuteServiceImpl` / `CancelServiceImpl` respectively. That the
+  original illustration of the implied tier was drawn from the enforced one is itself a small piece
+  of evidence for threat 1.*
 
 **Rejected:** *enforced-only*, which yields ~8 rules dominated by reference-existence checks — the
 shape Quizzes already covers in abundance, so the second application would have demonstrated little.
@@ -239,23 +249,43 @@ demanded a refund the order never earned. The rule is now guarded on the cancell
   threshold would have been authored outright. The rule was dropped. See §8 R11 for the reasoning and
   §5 for what the application loses with it.
 - **Name `trainticket`.**
-- **Full query surface, including `SearchTrips`** — a read spanning five aggregates. In Quizzes only
-  one read (`GetQuizAnswerForStudentAndQuiz`) touches a second aggregate at all.
+- **Full query surface, including `SearchTrips` — reversed at the §9 review.** The original decision
+  kept a read spanning five aggregates, on the grounds that in Quizzes only one read
+  (`GetQuizAnswerForStudentAndQuiz`) touches a second aggregate at all. It was cut on delivery-cost
+  grounds rather than provenance grounds — the first cut in this file made for that reason — and is
+  recorded in §7 as the first planned extension once the core is built. Three arguments carried it:
 
-The §8 review added three operations the query surface needed but did not have: `GetTripsByRoute` and
-a widened `GetRoutesByStation` (without them `SearchTrips` had no route from a station pair to a
-trip, since `Trip` holds only `routeAggregateId`), and `GetPriceConfigByRouteAndTrainType` (without
-which the booking saga had no operation to call for the fare, even though
-`UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE` names that exact lookup as the one whose uniqueness it
-protects). All three are single-aggregate reads over their own tables, so the multi-aggregate counts
-in §5 are unchanged.
+  - It was the only operation in §4 that could not be built in its own session. Trip-primary but
+    Order-reading, it had to be deferred to a revisit session after Order's session `c`, and it was
+    the sole consumer of the reverse-read protocol added to `classify-and-plan` § "Step 5.5b" and
+    `session-b.md` at §8 — new harness machinery with no second user, where a failure would have been
+    ambiguous between a harness defect and a specification defect. That ambiguity is expensive in a
+    run whose purpose is to measure the harness.
+  - The shape it contributed survives. §5's row is "multi-aggregate read saga", and
+    `GetLeftTicketCount` still spans three aggregates against Quizzes' one. What is lost is degree,
+    five down to three, and §5 records it as such.
+  - It is the one cut that D1 arguably *requires*. D1 fixes the criterion as `ts-preserve-service`'s
+    flow, taken wholesale. `SearchTrips` is `ts-travel-service.queryForTravels` paired with
+    `ts-basic-service` — the **search** flow, not the preserve flow — and the booking saga never
+    calls it. Cutting it brings the subset closer to its own stated criterion.
+
+The §8 review had added three operations the query surface needed but did not have:
+`GetTripsByRoute` and a widened `GetRoutesByStation` (without them `SearchTrips` had no route from a
+station pair to a trip, since `Trip` holds only `routeAggregateId`), and
+`GetPriceConfigByRouteAndTrainType` (without which the booking saga had no operation to call for the
+fare, even though `UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE` names that exact lookup as the one
+whose uniqueness it protects). The first two existed only to serve `SearchTrips` and went with it at
+§9; `GetRoutesByStation` reverted to a plain list. `GetPriceConfigByRouteAndTrainType` serves the
+booking saga and stays.
 
 ---
 
 ## 4. Findings against the benchmark
 
-Four defects and modelling flaws surfaced while writing the specification. F1 and F2 are behavioural
-defects; F3 and F4 are modelling flaws. All four are reproduced in the domain model's preamble.
+Five defects and modelling flaws surfaced while writing the specification. F1, F2 and F5 are
+behavioural defects; F3 and F4 are modelling flaws. All five are recorded in the domain model's
+preamble. F1–F4 were found while writing the specification; F5 at the §9 review, while re-testing
+the provenance of `PRICE_CONFIG_EXISTS`.
 
 ### F1 — the second-class availability check is broken
 
@@ -266,8 +296,11 @@ if (tripResponse.getEconomyClass() == SeatClass.SECONDCLASS.getCode()
         && tripResponse.getConfortClass() == 0) { /* Seat Not Enough */ }
 ```
 
-- `TripResponse.economyClass` holds the **remaining second-class ticket count**
-  (`TravelServiceImpl.java:432`, assigned from `getRestTicketNumber(... SECONDCLASS ...)`).
+- `TripResponse.economyClass` holds the **remaining second-class ticket count**: computed by the
+  `getRestTicketNumber(... SECONDCLASS ...)` call at `TravelServiceImpl.java:429-430`, and assigned
+  at `TravelServiceImpl.java:432`. *(§8's R9 listed `:432` as re-verified but this section had it as
+  the end of the call's argument list and `:434` as the assignment; both were two lines late.
+  Corrected at §10.)*
 - `SeatClass.SECONDCLASS.getCode()` is the constant **3** (`SeatClass.java:23`).
 
 The guard therefore fires only when exactly **3** second-class seats remain *and* first class is sold
@@ -275,8 +308,12 @@ out. It compares a seat count against an enum code, and conjoins an unrelated cl
 **A second-class booking against zero remaining seats is accepted.** The first-class branch, by
 contrast, is correct.
 
-`SEAT_CAPACITY_NOT_EXCEEDED` in the domain model is the corrected rule. This is the only place where
-the specification knowingly departs from the benchmark's *behaviour* rather than its structure.
+`SEAT_CAPACITY_NOT_EXCEEDED` in the domain model is the corrected rule. It is one of the two places
+where the specification knowingly *corrects* the benchmark's behaviour rather than reproducing it;
+the other is F5, found at the §9 review. Until then this section claimed to be the only one. A
+correction is not the only way this specification can differ from the benchmark — the *simplification*
+recorded as threat 6 also makes it stricter, without claiming the benchmark is wrong — and §10
+separates the two vocabularies, which had been used interchangeably.
 
 ### F2 — admin deletion leaves dangling references
 
@@ -311,8 +348,45 @@ objects and passing the extracted fragments to the deprecated
 with `BigDecimal`, `LocalDate`, `LocalDateTime`, `LocalTime` and `Integer`.
 
 A fifth field is inert rather than mistyped: `coachNumber` (`Order.java:57`) is hard-coded to `5` in
-the constructor (`Order.java:79`) and never assigned again, so every order in the benchmark is in
-coach 5. It is dropped here rather than modelled.
+the constructor (`Order.java:79`) and never assigned anywhere in the booking flow, so every order the
+benchmark creates is in coach 5. It is dropped here rather than modelled. *(The order-modification
+path does copy whatever a caller supplies, at `OrderServiceImpl.java:234` and `:453`. §8's R10
+rewrote this sentence to say the field is "never assigned again", which those two lines contradict;
+the domain model's own wording, scoped to the booking flow, was already right. Corrected at §10.)*
+
+### F5 — a missing price configuration silently books at an invented fare
+
+`BasicServiceImpl.queryForTravel` computes the fare inside a `try`, and its `catch` is:
+
+```java
+}catch (Exception e){
+        prices.put("economyClass", "95.0");
+        prices.put("confortClass", "120.0");
+}
+```
+
+`queryPriceConfigByRouteIdAndTrainType` returns `null` when no `PriceConfig` exists for the
+`(routeId, trainType)` pair. The multiplication then throws inside the try, the catch swallows it,
+and the booking completes at the hard-coded default. `PriceServiceImpl.createNewPriceConfig`
+validates neither foreign key, and `AdminBasicInfoServiceImpl.addPrice` is a bare passthrough, so
+nothing upstream prevents the pair from being unconfigured either.
+
+Two consequences. No route and train type combination can ever fail for want of a tariff. And
+`PRICE_MATCHES_TARIFF` — which the benchmark otherwise genuinely enforces, at
+`BasicServiceImpl.java:102` — does not hold on any order the catch produces, because `95.0` is not
+`distance × rate` for any distance or rate.
+
+`PRICE_CONFIG_EXISTS` in the domain model is the corrected rule, and it is the **second** of the
+specification's two corrections of benchmark behaviour. Like F1, the reason for correcting rather
+than reproducing is that reproducing it yields an application whose own booking path can violate its
+own rule.
+
+The mechanism is worth stating precisely, because one link in it decides whether the finding holds.
+`queryPriceConfigByRouteIdAndTrainType` (`BasicServiceImpl.java:442-455`) hands the price service's
+empty response to `JsonUtils.conveterObject`, which serialises `null` to the string `"null"` and
+deserialises it back to `null` without throwing (`JsonUtils.java:58-76`). The `null` therefore
+reaches line `:106` **inside** the `try` opened at `:100`, and the catch swallows it. Had that
+conversion thrown at `:98` instead, the request would have failed outright and there would be no F5.
 
 ---
 
@@ -329,7 +403,7 @@ The point of the second application is the delta. This table is the honest accou
 | Derived cross-aggregate arithmetic asserted as an invariant | `PRICE_MATCHES_TARIFF` (Route distances × PriceConfig rates) | None |
 | Entity whose identity depends on two foreign aggregates | `PriceConfig` | None |
 | Ordered collection with positional arithmetic | `RouteStation.sequence` + `distanceFromStart` monotonicity | `Option.sequence` exists but carries no arithmetic |
-| Multi-aggregate read saga | `SearchTrips` (5 aggregates), `GetLeftTicketCount` (3) | Only `GetQuizAnswerForStudentAndQuiz`, touching one |
+| Multi-aggregate read saga | `GetLeftTicketCount` (3 aggregates) | Only `GetQuizAnswerForStudentAndQuiz`, touching one |
 | An application where P2 is entirely absent | Whole application (D7) | Quizzes is P2-heavy — 12 events |
 | Deliberately non-refreshing snapshots as a domain requirement | Order's frozen contract fields | Quizzes refreshes every snapshot it holds |
 
@@ -339,6 +413,14 @@ The point of the second application is the delta. This table is the honest accou
 > honest accounting is that neither application now exercises a temporal-window count, and that
 > TrainTicket's remaining contribution rests on the eight shapes above. Recovering it would mean
 > authoring the rule outright, which D6 forbids.
+
+> **One shape was weakened at the §9 review, and none was lost.** The multi-aggregate read row read
+> "`SearchTrips` (5 aggregates), `GetLeftTicketCount` (3)" until `SearchTrips` was cut for delivery
+> cost (D11). The shape itself survives on `GetLeftTicketCount`, which still spans three aggregates
+> against Quizzes' one, so the row is a degradation from five to three rather than a deletion. This is
+> a weaker claim than the one originally made and is recorded as such. Unlike the §8 losses it is
+> recoverable without authoring anything: the operation is fully specified in this file's §7 and can
+> be restored once the core application is delivered.
 
 ### Shapes Quizzes covers and TrainTicket does not
 
@@ -358,24 +440,33 @@ saga-fetch preconditions (P4a); reference-data CRUD; temporal ordering invariant
 
 ### Comparative size
 
-Counted mechanically from the four specification files, recounted on 2026-08-22 after the design review in §8.
+Counted mechanically from the four specification files, recounted on 2026-08-22 after the scope and
+provenance review in §9, and recounted again at the §10 audit, which changed none of them. The trainticket column fell from 20 / 49 / 8 at §8: four §3.2 rules were
+dropped for failing the provenance test or duplicating another rule, and two read operations were cut
+with `SearchTrips`. Three of the four dropped rules were the only reason their creating operation
+touched a second aggregate, which is why the multi-aggregate count falls further than the rule count
+alone would suggest.
 
 | Metric | quizzes-full-2 | trainticket |
 |---|---|---|
 | Aggregates | 8 | 8 |
 | Entities (incl. owned value objects) | 17 | 9 |
 | §3.1 single-entity rules | 15 | 23 |
-| §3.2 cross-entity rules | 28 (+1 deferred) | 20 |
-| §4 functionalities | 46 (27 write, 19 read) | 49 (27 write, 22 read) |
-| Multi-aggregate operations | 11 (10 write, 1 read) | 8 (6 write, 2 read) |
+| §3.2 cross-entity rules | 28 (+1 deferred) | 16 |
+| §4 functionalities | 46 (27 write, 19 read) | 47 (27 write, 20 read) |
+| Multi-aggregate operations | 11 (10 write, 1 read) | 5 (4 write, 1 read) |
 | Domain events | 12 | **0** |
 
-The two applications are within three functionalities of each other, which is coincidence rather than
-design. The distribution differs in the way the shape analysis above predicts: TrainTicket carries
-**over half again as many single-entity rules** (23 vs 15) and **fewer cross-entity ones** (20 vs 28),
-because its complexity sits inside aggregates — route geometry, status transitions, refund arithmetic
-— where Quizzes' sits between them. It also has fewer multi-aggregate writes (6 vs 10) but twice the
-multi-aggregate reads.
+The two applications are within one functionality of each other, which is coincidence rather than
+design. The distribution differs in the way the shape analysis above predicts, and after §9 it does
+so more sharply: TrainTicket carries **over half again as many single-entity rules** (23 vs 15) and
+**little more than half as many cross-entity ones** (16 vs 28), because its complexity sits inside
+aggregates — route geometry, status transitions, refund arithmetic — where Quizzes' sits between
+them. The gap in multi-aggregate operations (5 vs 11) is now the starkest number in the table, and it
+is the honest consequence of two decisions taken for different reasons: D7 removed the events, and §9
+removed four cross-aggregate rules that had no benchmark support to justify the fetches they implied.
+An equal-sized specification with less than half the cross-aggregate coordination is the shape this
+application actually has.
 
 ---
 
@@ -386,11 +477,46 @@ Stated so the dissertation can address them rather than have them raised for it.
 1. **The rules were authored by the same process being evaluated.** TrainTicket enforces almost
    nothing, so any invariant-rich specification of it is partly written rather than transcribed.
    *Mitigation:* the two-tier provenance discipline (D6), with the enforced and implied sets named
-   explicitly in the domain model's preamble, and no third tier admitted. The §8 review applied that
-   test rule by rule against the pinned commit and **removed two rules that failed it** — a threshold
-   the benchmark ships disabled, and a format nothing validates (R11, R12). That the discipline caught
-   two is evidence it has teeth; that two survived the original pass is evidence the threat is real,
-   and neither reading should be dropped in favour of the other.
+   explicitly in the domain model's preamble, and no third tier admitted.
+
+   *This threat is the one that has cost the most, and the accounting should be stated plainly.* The
+   §8 review applied the test to two candidate rules and **removed both** — a threshold the benchmark
+   ships disabled, and a format nothing validates (R11, R12). The §9 review then applied it to every
+   rule already admitted, which §8 had not done, and found **seven of the twenty §3.2 provenance
+   assignments wrong**: four rules claimed enforced had no enforcement site anywhere
+   (`ACCOUNT_EXISTS` in both blocks, `ROUTE_AND_TRAIN_TYPE_EXIST` in its PriceConfig block, and
+   `SEAT_CLASS_OFFERED`), and three claimed implied were in fact enforced (`UNIQUE_STATION_NAME`,
+   `UNIQUE_TRIP_NUMBER`, `UNIQUE_USER_NAME`). §3.1 contributed an eighth,
+   `ORDER_SEAT_NUMBER_POSITIVE`, and D6's own illustration of the implied tier turned out to be drawn
+   from the enforced one.
+
+   Two readings follow and both should be kept. The errors ran in **both** directions, three of the
+   eight understating the benchmark's support and five overstating it, which is what an
+   author-in-good-faith error distribution looks like rather than a systematic bias toward invention.
+   But the four overstatements were all of one kind — a reference-existence check assumed to be
+   somewhere in a forty-service codebase, because such a check is what a careful author would write
+   — and they survived one full review that had already been told to look for exactly this. **A
+   provenance tier is only as good as the pass that last re-derived it**, and neither §8 nor the
+   original authoring pass re-derived it; §8 re-verified line numbers, which is a weaker test than it
+   appears, because a citation can point at the right line for a claim that line does not support.
+   The four rules were dropped rather than re-tiered, so the specification is now smaller than the
+   threat's mitigation would strictly require. That is deliberate: under D6 cutting is always
+   available and inventing never is, and a rule that has already been mis-tiered once has earned no
+   presumption.
+
+   *§10 then found that §9 had a residual blind spot of its own shape.* §9 re-derived every §3.2
+   rule against the source, which is the right test, but it applied that test to rules whose cited
+   site is a single guard — a call that returns, a repository lookup that rejects. It did not ask
+   whether a cited site that is a **loop, a branch or a partial guard** establishes the rule's
+   *stated* predicate or only part of it. Two rules failed on exactly that. The seat-uniqueness retry
+   loop is skipped entirely on the benchmark's segment-reuse path, so it never establishes the
+   unconditional uniqueness the rule asserted; and the order status guards cover every transition
+   except the one into `PAID`, which nothing guards. Both are now declared honestly — one re-tiered,
+   one split across tiers. The lesson generalises past this application: **re-deriving a tier means
+   re-deriving the whole predicate, not confirming that the cited code is about the right subject.**
+   A site can be about exactly the right subject and still permit what the rule forbids. That is a
+   third distinct way for a provenance claim to fail, after "no site at all" (§9) and "wrong line"
+   (§8), and it is the one that survives both of the earlier tests.
 
 2. **Subset selection could have been tuned to harness strengths.** *Mitigation:* the criterion (D1)
    was fixed to the canonical flow before any service was examined for what it would exercise, the
@@ -407,18 +533,45 @@ Stated so the dissertation can address them rather than have them raised for it.
 4. **Aggregate boundaries were inherited, not chosen.** A strength for D5's validity, but it means the
    harness's sensitivity to partitioning quality is untested by this application.
 
-5. **One deliberate departure from benchmark behaviour.** `SEAT_CAPACITY_NOT_EXCEEDED` corrects F1
-   rather than reproducing it. Implementing a known-defective check would have produced an
-   application that cannot satisfy its own capacity rule, but the departure should be declared.
+5. **Two deliberate corrections of benchmark behaviour.** `SEAT_CAPACITY_NOT_EXCEEDED` corrects F1
+   rather than reproducing it, and `PRICE_CONFIG_EXISTS` corrects F5. In both cases implementing the
+   benchmark faithfully would have produced an application whose own booking path violates its own
+   rule — an over-booking past capacity in the first case, an order priced at neither
+   `distance × rate` nor anything else derivable in the second. Both are corrections of defects,
+   never additions of constraints, and both are declared in the domain model's preamble. The second
+   was found at §9; until then this threat claimed there was only one, which was itself a small
+   instance of threat 1.
+
+   *This threat counts corrections only, and §10 tightened the wording to say so.* It previously read
+   "departures from benchmark behaviour", which is a wider category that also covers the
+   simplifications in threat 6 — and by that wider reading the count of two was wrong, since
+   `SEAT_NUMBER_UNIQUE_PER_DEPARTURE` forbids an allocation the benchmark performs on purpose. The
+   two threats partition the difference between this application and the benchmark: **a correction
+   says the benchmark is wrong and departs from it; a simplification says the benchmark is more
+   elaborate than this study needs and is stricter than it.** Corrections are the ones that need
+   defending, because only they assert something about the benchmark. There are two, and the count is
+   now stable under the narrower definition it was always meant to have.
 
 6. **The seat-allocation algorithm is simplified.** TrainTicket's `distributeSeat` reuses a seat whose
-   previously sold journey ends at or before the new passenger's boarding station — interval packing
-   along the route. This application allocates one seat per journey for the whole trip. Capacity and
-   seat uniqueness are therefore stricter here than in the benchmark, which under-counts availability
-   relative to TrainTicket but never over-books. It is also **deterministic** where the benchmark is
-   random (D3): the lowest free seat number rather than a retry loop. This makes the tests assertable
-   at the cost of one more divergence, and it changes which seat a passenger gets but never how many
-   passengers fit.
+   previously sold journey ends at or before the new passenger's boarding station
+   (`SeatServiceImpl.java:100-108`) — interval packing along the route. This application allocates one
+   seat per journey for the whole trip. Capacity and seat uniqueness are therefore stricter here than
+   in the benchmark, which under-counts availability relative to TrainTicket but never over-books. It
+   is also **deterministic** where the benchmark is random (D3): the lowest free seat number rather
+   than a retry loop. This makes the tests assertable at the cost of one more divergence, and it
+   changes which seat a passenger gets but never how many passengers fit.
+
+   *This threat is what carries `SEAT_NUMBER_UNIQUE_PER_DEPARTURE`, and §10 made that load-bearing
+   rather than incidental.* The rule was in the **enforced** tier until then, citing the
+   `isContained` retry loop. But that loop sits *after* the reuse branch and is skipped whenever
+   reuse applies, so the benchmark deliberately issues two non-cancelled orders on one departure
+   holding the same seat number: the rule's unconditional predicate is false in the benchmark, and
+   the cited site is the right code for a claim it does not support. The rule survives only because
+   this threat removes interval packing, and once packing is gone the retry loop *is* the allocator
+   and uniqueness follows. So it is now **implied** — a consequence of a declared simplification, not
+   a transcribed check — alongside `ORDER_SEAT_NUMBER_POSITIVE` and `SEAT_NUMBER_WITHIN_CAPACITY`.
+   All three seat rules now sit in one tier as three consequences of one allocator, which is the
+   arrangement §9 reached for the other two and stopped one rule short of.
 
 ---
 
@@ -428,19 +581,36 @@ Stated so the dissertation can address them rather than have them raised for it.
   adding event propagation. Requires re-reading §3.2, since rules phrased as "held when the operation
   ran" become standing invariants and move from P4a/P3 to P2.
 - **Phase 0 onward** — `/boot-strap trainticket`, then `/classify-and-plan` over the two
-  specification files, then Phase 2 aggregate by aggregate.
+  specification files, then Phase 2 aggregate by aggregate: 24 sessions, 8 × `a b c`, with no session
+  `d` (empty §4) and, after the §9 cuts, no revisit session either.
 - **Harness finding, deferred by decision.** `classify-and-plan/SKILL.md` step 2.b documents a §3.2
   extraction regex requiring a newline immediately after the rule name; it matches 9 of the 29 rule
   headings in `quizzes-full-2-domain-model.md`. Nothing breaks in practice, since the skill is
   executed by a model rather than a regex engine. Recorded, not fixed.
-- **`SearchTrips` revisit** (§8 R1) — Trip's session `b` leaves it unimplemented. Return to it once
-  Order's session `c` is done and `OrderDto` exists.
-- **Rule-name collisions in the §3.2 parser, recorded not fixed.** `classify-and-plan` step 4 keys its
-  classification map by the rule name its regex captures (`[A-Z_0-9]+`), which drops the
-  parenthesised qualifier. `ROUTE_AND_TRAIN_TYPE_EXIST (Trip)` and `(PriceConfig)` therefore collide,
-  as do the two `ACCOUNT_EXISTS` blocks. `quizzes-full-2` has the same shape — three
-  `COURSE_EXECUTION_EXISTS` blocks — and Phase 1 handles it correctly, because the skill is executed
-  by a model rather than a regex engine. Left alone for the same reason as the item above.
+- **`SearchTrips`, the first planned extension after the core is delivered.** Cut at §9 for delivery
+  cost, not for provenance: it is benchmark behaviour
+  (`ts-travel-service.queryForTravels` paired with `ts-basic-service`) and remains fully specified
+  here, so restoring it authors nothing. Restoring it means: re-adding the `SearchTrips` row to §4
+  (Trip-primary; Route, TrainType, PriceConfig, Order); re-adding `GetTripsByRoute`; widening
+  `GetRoutesByStation` to return each route in full including its ordered `routeStations`, so a
+  caller can intersect two stations and check their relative sequence; and restoring §5's
+  multi-aggregate read row to five aggregates. The search resolves a station pair by running
+  `GetRoutesByStation` for the departure and arrival stations, intersecting the two result sets,
+  keeping the routes whose `routeStations` place the departure before the arrival, then calling
+  `GetTripsByRoute` for each survivor; fares come from `GetPriceConfigByRouteAndTrainType` and
+  remaining seats from Order. **It is Trip-primary but reads Order, which the topological sort places
+  last**, so it cannot be built in Trip's session `b` and needs a revisit session after Order's
+  session `c`, once `OrderDto` exists — the reverse-read case that `classify-and-plan` § "Step 5.5b"
+  and `session-b.md` were extended to catch at §8. That machinery is in place and unexercised; this
+  extension is what would exercise it.
+- **Rule-name collisions in the §3.2 parser, recorded not fixed — and now latent here.**
+  `classify-and-plan` step 4 keys its classification map by the rule name its regex captures
+  (`[A-Z_0-9]+`), which drops the parenthesised qualifier. This file had two collisions until §9:
+  `ROUTE_AND_TRAIN_TYPE_EXIST (Trip)` against `(PriceConfig)`, and the two `ACCOUNT_EXISTS` blocks.
+  Dropping three of those four rules removed both, so **no §3.2 rule name in this application now
+  collides** — but by accident, not by fix. `quizzes-full-2` still has the shape, with three
+  `COURSE_EXECUTION_EXISTS` blocks, and Phase 1 handles it correctly because the skill is executed by
+  a model rather than a regex engine. Left alone for the same reason as the item above.
 
 ---
 
@@ -489,5 +659,204 @@ the T3 test type is unexercised. The §5 size table was recounted.
 explicitly — plus one Type 2 extension authorised by the reviewer, the reverse-**read** detection in
 Step 5.5b and its counterpart protocol in `session-b.md`. None of the three Type 1 defects was the
 specification's fault; in all three the specification was on the correct side and the skill was wrong.
+
+---
+
+## 9. Scope and provenance review — 2026-08-22
+
+A second review the same day as §8, with a different question. §8 asked whether the two specification
+files were internally consistent and implementable. This one asked two things §8 did not: whether
+every rule already admitted still passes D6's provenance test when re-derived from the source, and
+what the application would lose if the expensive parts of it were cut to shorten first delivery.
+
+It is recorded separately from §8 for the same reason §8 is recorded separately from §3: each section
+is what a given pass found, and collapsing them would hide that §8's pass did not catch what §9's
+did.
+
+**Why §8 missed the provenance errors.** §8's R9 re-verified every line citation against the pinned
+commit and found them all correct, which is a weaker guarantee than it looks: a citation can point at
+exactly the right line for a claim that line does not support. R11 and R12 applied the provenance
+test properly, but only to two *candidate* rules — ones already under suspicion. No pass had ever
+re-derived the tier of a rule that was already admitted and unremarkable. The four enforced-tier
+errors below all sat in that blind spot.
+
+### Provenance corrections
+
+Every §3.2 rule was re-derived from the source at commit `313886e9`. **Seven of the twenty
+assignments were wrong**, plus one in §3.1.
+
+Claimed enforced, no enforcement site — all four **dropped** rather than re-tiered, since under D6
+cutting is always available and a rule mis-tiered once has earned no presumption:
+
+| Rule | What the source actually does |
+|---|---|
+| `ACCOUNT_EXISTS` (Contacts) | `ts-contacts-service` never calls `ts-user-service` at all; `create` checks only for a duplicate document on the account |
+| `ACCOUNT_EXISTS` (Order) | `PreserveServiceImpl` fetches the account once, at `:245`, **after** `createOrder` has succeeded at `:170`, and never rejects on it — the result only fills a `NotifyInfo` whose send call at `:261` is commented out. *(This row said the fetch was inside `sendEmail`; that method, at `:288`, is dead code. Corrected at §10; the drop stands.)* |
+| `ROUTE_AND_TRAIN_TYPE_EXIST` (PriceConfig) | `AdminBasicInfoServiceImpl.addPrice` is a passthrough; `createNewPriceConfig` validates neither foreign key. The **Trip** block of the same rule is genuinely enforced by `AdminTravelServiceImpl.checkTravelInfo` and is kept |
+| `SEAT_CLASS_OFFERED` | Nothing tests capacity for zero. The first-class guard reads the *remaining* count, so the benchmark cannot tell a class that does not exist from one that is sold out — that guard is `SEAT_CAPACITY_NOT_EXCEEDED` |
+
+Claimed implied, actually enforced — all three **re-tiered**, none dropped:
+
+| Rule | Enforcement site |
+|---|---|
+| `UNIQUE_STATION_NAME` | `StationServiceImpl.create` rejects a duplicate name; `Station.name` is also `@Column(unique = true)` |
+| `UNIQUE_TRIP_NUMBER` | `TravelServiceImpl.java:61` declines to save a second trip under an existing id. It returns status `1` with the message "already exists" rather than an error, so "rejects" overstates the response, but no duplicate is written and the uniqueness is genuinely code-maintained |
+| `UNIQUE_USER_NAME` | `UserServiceImpl.saveUser`, whose own comment reads `// avoid same user name` |
+
+Two further corrections:
+
+- **`ORDER_SEAT_NUMBER_POSITIVE` re-tiered to implied.** It and `SEAT_NUMBER_WITHIN_CAPACITY` are the
+  two halves of one expression, `rand.nextInt(range) + 1` in `SeatServiceImpl.distributeSeat`.
+  Nothing *checks* a seat number; the allocator *produces* one. Splitting them across tiers was
+  arbitrary, and the split had been load-bearing: it was the stated reason for keeping
+  `SEAT_CLASS_OFFERED` alongside the rule that already subsumed it.
+- **`ROUTE_ENDPOINTS_MATCH_STATION_LIST` straddles both tiers.**
+  `AdminRouteServiceImpl.java:58` enforces *containment* of the declared endpoints in the station
+  list; nothing requires them to be the **first and last** entries. The positional strengthening is
+  kept — `Route.stations` is `@OrderColumn` and `startStation` means origin, so the data model does
+  need it — but it is now declared as implied rather than passed off as part of an enforced check.
+  *(This bullet called it the only rule that straddles. §10 found a second,
+  `ORDER_STATUS_TRANSITION`, whose edge into `PAID` no code guards.)*
+- **D6's own example of the implied tier was drawn from the enforced one.** It offered
+  `|stations| == |distances|` and "legal status transitions"; the first is checked at
+  `RouteServiceImpl.java:38`, the second in `ExecuteServiceImpl` and `CancelServiceImpl`. Replaced.
+
+### F5
+
+Re-testing `PRICE_CONFIG_EXISTS` surfaced a fifth finding against the benchmark, of the same class as
+F1: `BasicServiceImpl.queryForTravel` wraps the fare computation in a `try` whose `catch` writes a
+hard-coded `95.0` / `120.0`, so a missing price configuration books at an invented fare instead of
+failing. §4 records it. It makes `PRICE_CONFIG_EXISTS` the **second** of the specification's
+departures from benchmark behaviour, where the preamble and threat 5 had both claimed there was only
+one.
+
+### Scope cuts
+
+The brief was a subset large enough to be interesting and small enough to deliver quickly, cutting
+what adds implementation complexity without being essential to the core booking application. Each cut
+was put separately with its knock-on effects. Cuts made:
+
+| Cut | Reason | Effect |
+|---|---|---|
+| `SearchTrips`, `GetTripsByRoute`; `GetRoutesByStation` un-widened | Delivery cost (D11, reversed) | §4 49 → 47; removes the one out-of-band revisit session; §5's multi-aggregate read degrades 5 → 3 |
+| `SEAT_CLASS_OFFERED` | No enforcement site; duplicates `SEAT_NUMBER_WITHIN_CAPACITY` | §3.2 20 → 19 |
+| `ACCOUNT_EXISTS` (Contacts) | No enforcement site | `CreateContacts` becomes a single-aggregate write |
+| `ACCOUNT_EXISTS` (Order) | No enforcement site | `PreserveTicket` stops reading User: 6 other aggregates → 5 |
+| `ROUTE_AND_TRAIN_TYPE_EXIST` (PriceConfig) | No enforcement site | `CreatePriceConfig` becomes a single-aggregate write; §3.2 → 16 |
+
+Note that only the first was a scope decision. The other four are provenance corrections that happen
+to reduce scope, which is why the multi-aggregate count falls further than a purely cost-driven trim
+would have taken it.
+
+Cuts **considered and rejected**, since what was declined carries as much of the argument as what was
+taken:
+
+- **Dropping the `Station` aggregate**, letting `RouteStation` hold a plain station name as
+  TrainTicket's `Route` literally does (`List<String> stations`). Available, and closer to the
+  benchmark's data model than the current normalisation. Rejected because it breaks D5's 1:1
+  aggregate-to-service mapping — a stated validity claim — to save the three *lightest* sessions in a
+  24-session run. The lever with the largest denominator is only ever available on the cheapest
+  aggregates, which is what makes it a bad trade.
+- **Dropping `User`**, the other trim D4 considered. Rejected: it removes more rules than Station but
+  takes `GetOrdersByAccount`, `GetContactsByAccount` and the whole notion of who booked a ticket with
+  it, which is a larger hole in a booking application.
+- **`CollectTicket` and `UseTicket`**, cutting the lifecycle to three states. Rejected as the worst
+  ratio available: two single-aggregate status writes with no saga and no new fetch, against §5's
+  leading shape, the five-state transition table with no Quizzes analogue.
+- **The eight `Delete*` operations.** Rejected: they are the cheapest rows in §4 and they carry F2
+  and D7, the file's central finding. With nothing deleted, nothing dangles, and the no-cascade
+  decision would have had nothing to demonstrate. *(This bullet said seven. §4 declares eight:
+  `DeleteStation`, `DeleteRoute`, `DeleteTrainType`, `DeletePriceConfig`, `DeleteTrip`, `DeleteUser`,
+  `DeleteContacts` and `DeleteOrder`. Corrected at §10.)*
+- **`PriceConfig`, folded into `Route`.** Rejected: D4 protected it as the only entity whose identity
+  depends on two foreign aggregates, a §5 shape with no Quizzes analogue, and folding it would remove
+  that shape outright as well as breaking D5.
+- **`Route.startStationName` / `endStationName`.** Rejected: one P1 rule saved against F3's third
+  representation of the route's shape losing its illustration.
+
+### Resulting size
+
+8 aggregates, 9 entities, 23 §3.1 rules, 16 §3.2 rules, 47 functionalities (27 write, 20 read),
+5 multi-aggregate operations (4 write, 1 read), 0 domain events. Phase 2 is 24 sessions — 8 × `a b c`,
+no session `d`, and now no revisit session.
+
+D5 is intact: all eight data-owning services of the preserve flow remain aggregates, and no cut
+touched the partitioning.
+
+---
+
+## 10. Provenance reproducibility audit — 2026-08-22
+
+A third pass, immediately before Phase 0, with a narrower question than either of the first two. §8
+asked whether the two specification files are internally consistent and implementable. §9 asked
+whether every admitted rule still passes D6's provenance test. This one asked whether a reader with
+only the clone and these files can **reproduce each enforced-tier assignment from the source**, and
+treated a correct citation as insufficient evidence on its own.
+
+It is recorded separately for the same reason §9 is recorded separately from §8: each section is what
+a given pass found, and collapsing them would hide that §9's pass did not catch what this one did.
+
+**Why §9 missed these.** §9 re-derived every §3.2 rule against the source, which is the right test,
+but every rule it re-derived had a cited site that is a *single guard* — a call that returns, a
+repository lookup that rejects. Such a site either exists or it does not, which is what made §9's
+sweep tractable and what made its four "no enforcement site" findings clean. It never asked whether a
+site that is a **loop, a branch, or a guard covering some transitions and not others** establishes
+the rule's whole stated predicate. Both findings below sat in that gap. This is a third distinct way
+for a provenance claim to fail, after "wrong line" (§8's concern) and "no site at all" (§9's), and it
+is the only one that survives both earlier tests — see threat 1.
+
+### Provenance corrections
+
+Every §3.2 and §3.1 enforced-tier assignment was re-derived at commit `313886e9`, this time by
+checking the *predicate* against the site rather than the *subject*. Two of the thirteen were wrong.
+Both were kept in some form; neither was dropped, because in each case the rule states something the
+application genuinely needs and the defect was in the tier, not the rule.
+
+| Rule | What the source actually does | Resolution |
+|---|---|---|
+| `SEAT_NUMBER_UNIQUE_PER_DEPARTURE` | The cited `isContained` retry loop (`SeatServiceImpl.java:109-111`) is never reached on the segment-reuse path. At `:100-108`, before any uniqueness check, `distributeSeat` returns `soldTicket.getSeatNo()` for any sold ticket whose destination precedes the new boarding station, so the benchmark issues duplicate `(trip, date, class, seat)` tuples **on purpose** | **Re-tiered to implied.** The rule holds only under threat 6's removal of interval packing, which is a simplification this file already declared. It joins `ORDER_SEAT_NUMBER_POSITIVE` and `SEAT_NUMBER_WITHIN_CAPACITY`: all three seat rules are now consequences of one allocator, in one tier |
+| `ORDER_STATUS_TRANSITION` | The three cited guards are real and cover every edge into `COLLECTED`, `USED` and `CANCELLED`. Nothing guards the edge into `PAID`: `OrderServiceImpl.payOrder` writes `status = PAID` without reading the previous status, so a `CANCELLED` or `USED` order can be paid | **Declared as straddling both tiers**, like `ROUTE_ENDPOINTS_MATCH_STATION_LIST`. The guarded edges stay enforced; the `→ PAID` restriction is implied. §9's claim that `ROUTE_ENDPOINTS_MATCH_STATION_LIST` was the only straddling rule is withdrawn |
+
+Both were verified in the other direction too: the eleven remaining enforced assignments and all five
+implied §3.2 assignments reproduce as stated. `TRIP_EXISTS` and `CONTACTS_EXIST` had been the only
+enforced rules with no named site, contrary to the preamble's own promise that every assignment names
+one; both reproduce, and both now carry their sites.
+
+### Specification corrections
+
+- **Two §3.2 Entities cells named an aggregate no declared operation reaches.**
+  `ENDPOINTS_ON_TRIP_ROUTE` listed Station and `CONTACTS_BELONG_TO_ACCOUNT` listed User, but both
+  predicates resolve entirely from data §4's declared fetches already carry, and §4 is the complete
+  inventory. `classify-and-plan` step 6.c selects cross-aggregate prerequisites by entity membership,
+  so both would have produced a saga fetch with no operation behind it. Both cells trimmed, each with
+  a note saying why the aggregate is absent. Quizzes' comparable blocks name only what the operation
+  fetches, so this was a divergence from the reference application, not a convention.
+- **`SearchTrips` and the other §9 cuts** were re-checked for live references across all three files.
+  None remains: every mention is in a drop list, a cut explanation, or §7's planned-extension text.
+
+### Corrections to earlier sections
+
+Five factual errors in §8's and §9's own prose, none of which changes a decision:
+
+| Where | Error | Correction |
+|---|---|---|
+| §9, `ACCOUNT_EXISTS` (Order) | The account fetch is "inside `sendEmail`" | It is at `PreserveServiceImpl.java:245`, in `preserve()` itself. `sendEmail` (`:288`) is dead code — its only call site, `:261`, is commented out. The drop stands on the timing, which was right |
+| F1 | The `SECONDCLASS` call's argument list "ends at `:432`", assigned at `:434` | The call is `:429-430` and the assignment `:432`. Both were two lines late, and `:432` is one of the citations §8's R9 reported as re-verified |
+| F4 | `coachNumber` is "never assigned again" | `OrderServiceImpl.java:234` and `:453` assign it on the order-modification path. The domain model's wording, scoped to the booking flow, was already correct; §8's R10 introduced the unqualified version |
+| §9, `UNIQUE_TRIP_NUMBER` | `TravelServiceImpl.java:61` "rejects" an existing trip id | It declines the save but returns status `1`. The uniqueness is still code-maintained, so the enforced tier is unaffected |
+| §9, cuts rejected | "The seven `Delete*` operations" | §4 declares eight |
+
+`PRICE_MATCHES_TARIFF`'s citation was widened from `BasicServiceImpl.java:102` to `:102-107`: `:102`
+is the distance subtraction, and the multiplication the rule actually asserts is at `:106` and `:107`.
+The tier was never in doubt; the citation named half the expression.
+
+### What did not change
+
+The size table is untouched: 8 aggregates, 9 entities, 23 / 16 / 47 (27 write, 20 read), 5
+multi-aggregate (4 write, 1 read), 0 events, 24 sessions with no session `d` and no revisit session.
+All eight counts were recounted mechanically from the files rather than carried forward. §5's
+shape-coverage table survives unchanged — no shape rested on either mis-tiered rule — and **D5 is
+intact**, since nothing here touches the partitioning. The corrections were to tiers, citations and
+prose; the application this specification describes is the same one §9 left behind.
 
 ---
