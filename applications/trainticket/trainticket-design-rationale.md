@@ -8,9 +8,14 @@
 > state *what* the application is; this one is the audit trail behind them, written to be cited from
 > the dissertation.
 >
-> Authored 2026-08-13 from a structured design interview. Every factual claim about TrainTicket below
-> was verified against the source at `github.com/FudanSELab/train-ticket`; line citations are given
-> where a claim is load-bearing.
+> Authored 2026-08-13 from a structured design interview; reviewed and extended 2026-08-22 (§8).
+>
+> **Source of truth.** Every factual claim about TrainTicket below was verified against
+> `github.com/FudanSELab/train-ticket` at commit
+> **`313886e99befb94be6cd45f085c98e0019f59829`** (2022-11-01). **All line citations refer to that
+> commit** and were re-verified against it on 2026-08-22. The `master` branch has moved since, and its
+> line numbers no longer match — a citation checked against `master` will appear wrong when it is not.
+> Pinning the commit is what makes this audit trail reproducible.
 
 ---
 
@@ -55,7 +60,7 @@ Two of the four findings in §4 were discovered this way and are not documented 
 | D8 | §3.2 phrasing | Saga-time preconditions; cascade variant recorded as follow-up | Standing invariants over live references |
 | D9 | Data-model fidelity | Structure normalised, behaviour faithful | Preserving parallel lists and `String` scalars |
 | D10 | Order state machine | 5 states + `refundAmount` | 3 states as originally scoped at D2 |
-| D11 | Closing details | Rate limit as constants; name `trainticket`; full query surface incl. `SearchTrips` | A `SecurityConfig` aggregate; minimal reads |
+| D11 | Closing details | Rate limit as constants *(reversed at §8 — rule dropped)*; name `trainticket`; full query surface incl. `SearchTrips` | A `SecurityConfig` aggregate; minimal reads |
 
 ### D1 — Selection criterion
 
@@ -85,6 +90,14 @@ field load-bearing.
 **Chosen:** `OrderService` counts its own active orders for `(tripAggregateId, travelDate,
 seatClass)` against a capacity the booking saga supplies from the trip's `TrainType`. Pattern **P3**
 for the count, **P4b** for the capacity value.
+
+**Allocation policy (settled at the §8 review):** the saga assigns the **lowest seat number in
+`[1, capacity]` not already held by a non-cancelled order for that departure**. TrainTicket's
+`distributeSeat` picks at random and retries; reproducing that would make every capacity and booking
+test non-deterministic, and the simulator offers no seeded-RNG hook. The deterministic rule preserves
+the benchmark's intent — one seat per journey, never double-allocated — while remaining assertable.
+`SEAT_NUMBER_WITHIN_CAPACITY` records the resulting bound, in the **implied** tier: it derives from
+TrainTicket's own seat distribution, not from railway knowledge, so D6's discipline holds.
 
 This mirrors the benchmark exactly: TrainTicket has no seat-inventory entity, and derives
 availability via `OrderRepository.findByTravelDateAndTrainNumber` (`OrderRepository.java:26`).
@@ -185,6 +198,16 @@ lost: monotonicity and sequence contiguity survive as P1 invariants.
 
 Reference-by-name was not a choice — the simulator identifies aggregates by `Integer aggregateId`.
 
+**`Route.startStationName` / `endStationName` are fidelity, not redundancy.** They duplicate what
+`routeStations[0]` and `routeStations[last]` already carry, and `ROUTE_ENDPOINTS_MATCH_STATION_LIST`
+exists only to keep the two in step. Both fields are TrainTicket's own — `Route.startStation`
+(`Route.java:36`) and `Route.endStation` (`Route.java:38`), stored alongside the `stations` list
+rather than derived from it. Reproducing the duplication keeps D6's discipline intact: the invariant
+is the **implied** rule that TrainTicket's data model needs for the two representations to agree, not
+an authored railway constraint. Dropping the fields would have been the departure requiring
+justification, not keeping them. Verified at the §8 review, which is why the citation is recorded
+here rather than left implicit.
+
 ### D10 — Order state machine
 
 **Chosen:** `NOTPAID → PAID → COLLECTED → USED`, with `CANCEL` from `{NOTPAID, PAID}`, plus
@@ -198,15 +221,34 @@ aggregates. Both transitions and the refund formula are enforced in the benchmar
 `refundAmount` was included because it is a **temporal derived value** — its outcome depends on
 comparing the cancellation instant against the departure instant — for the cost of one field.
 
+**`DeleteOrder` was added at the §8 review.** `OrderRepository` declares `deleteById`, so order
+deletion is benchmark behaviour, and without it Order was the only one of the eight aggregates with
+no delete operation while two §3.2 rules filtered on a `state != DELETED` condition nothing could
+ever make true. Adding it also exposed a latent flaw in `ORDER_REFUND_AMOUNT`, which branched on
+`prev.status` while triggering on the standing `CANCELLED` state: soft-deleting a cancelled order
+commits a version whose `prev.status` is `CANCELLED`, so the rule fell through to the paid branch and
+demanded a refund the order never earned. The rule is now guarded on the cancelling transition.
+
 ### D11 — Closing details
 
-- **Rate limit as constants.** TrainTicket's scalper check is real and its rule (a count over a
-  one-hour window) has no Quizzes analogue, but its thresholds live in a generic `name`/`value`/
-  `description` config table. A key-value config table is not domain data, so the rule was kept and
-  the ninth aggregate was not.
+- **Rate limit as constants — reversed at the §8 review.** The original decision kept TrainTicket's
+  scalper rule (a count over a one-hour window, with no Quizzes analogue) while declining the ninth
+  aggregate its thresholds live in, on the grounds that a generic `name`/`value`/`description` config
+  table is not domain data. Re-verification found that `ts-security-service` ships **both** thresholds
+  as `Integer.MAX_VALUE` (`InitData.java:24,29`), so the check never fires as deployed and any usable
+  threshold would have been authored outright. The rule was dropped. See §8 R11 for the reasoning and
+  §5 for what the application loses with it.
 - **Name `trainticket`.**
 - **Full query surface, including `SearchTrips`** — a read spanning five aggregates. In Quizzes only
   one read (`GetQuizAnswerForStudentAndQuiz`) touches a second aggregate at all.
+
+The §8 review added three operations the query surface needed but did not have: `GetTripsByRoute` and
+a widened `GetRoutesByStation` (without them `SearchTrips` had no route from a station pair to a
+trip, since `Trip` holds only `routeAggregateId`), and `GetPriceConfigByRouteAndTrainType` (without
+which the booking saga had no operation to call for the fare, even though
+`UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE` names that exact lookup as the one whose uniqueness it
+protects). All three are single-aggregate reads over their own tables, so the multi-aggregate counts
+in §5 are unchanged.
 
 ---
 
@@ -253,14 +295,24 @@ position, with nothing enforcing equal length or consistent ordering. Fare compu
 (`BasicServiceImpl.java:102`) indexes both by the same position, so a misalignment silently yields a
 wrong fare. Normalised here into an owned `RouteStation` value object.
 
-### F4 — dates and money are `String`
+The same class separately stores `startStation` (`Route.java:36`) and `endStation`
+(`Route.java:38`) as scalars duplicating the first and last entries of `stations`, again with nothing
+keeping them in step — a third representation of the route's shape, and a third way for the three to
+disagree. Both fields are retained (D9); `ROUTE_ENDPOINTS_MATCH_STATION_LIST` is the invariant that
+closes the gap.
+
+### F4 — dates, money and the seat number are `String`
 
 `Order.boughtDate`, `travelDate`, `travelTime` and `price` are all `String`
-(`Order.java:32,35,38,71`), parsed ad hoc at each use site. `calculateRefund` reconstructs the
-departure instant by parsing two separate strings into `Calendar` objects and passing the extracted
-fragments to the deprecated `java.util.Date(int,int,int,int,int,int)` constructor
-(`CancelServiceImpl.java:216`). Replaced here with `BigDecimal`, `LocalDate`, `LocalDateTime` and
-`LocalTime`.
+(`Order.java:32,35,38,71`), as is `seatNumber` (`Order.java:61`), parsed ad hoc at each use site.
+`calculateRefund` reconstructs the departure instant by parsing two separate strings into `Calendar`
+objects and passing the extracted fragments to the deprecated
+`java.util.Date(int,int,int,int,int,int)` constructor (`CancelServiceImpl.java:216`). Replaced here
+with `BigDecimal`, `LocalDate`, `LocalDateTime`, `LocalTime` and `Integer`.
+
+A fifth field is inert rather than mistyped: `coachNumber` (`Order.java:57`) is hard-coded to `5` in
+the constructor (`Order.java:79`) and never assigned again, so every order in the benchmark is in
+coach 5. It is dropped here rather than modelled.
 
 ---
 
@@ -277,10 +329,16 @@ The point of the second application is the delta. This table is the honest accou
 | Derived cross-aggregate arithmetic asserted as an invariant | `PRICE_MATCHES_TARIFF` (Route distances × PriceConfig rates) | None |
 | Entity whose identity depends on two foreign aggregates | `PriceConfig` | None |
 | Ordered collection with positional arithmetic | `RouteStation.sequence` + `distanceFromStart` monotonicity | `Option.sequence` exists but carries no arithmetic |
-| Count over a temporal window | `ACCOUNT_ORDER_RATE_LIMIT` (orders in the last hour) | None |
 | Multi-aggregate read saga | `SearchTrips` (5 aggregates), `GetLeftTicketCount` (3) | Only `GetQuizAnswerForStudentAndQuiz`, touching one |
 | An application where P2 is entirely absent | Whole application (D7) | Quizzes is P2-heavy — 12 events |
 | Deliberately non-refreshing snapshots as a domain requirement | Order's frozen contract fields | Quizzes refreshes every snapshot it holds |
+
+> **One shape was lost at the §8 review.** *Count over a temporal window* —
+> `ACCOUNT_ORDER_RATE_LIMIT`, orders in the last hour — was listed here and had no Quizzes analogue.
+> It was dropped when re-verification showed the benchmark ships the check disabled (§8 R11). The
+> honest accounting is that neither application now exercises a temporal-window count, and that
+> TrainTicket's remaining contribution rests on the eight shapes above. Recovering it would mean
+> authoring the rule outright, which D6 forbids.
 
 ### Shapes Quizzes covers and TrainTicket does not
 
@@ -300,23 +358,24 @@ saga-fetch preconditions (P4a); reference-data CRUD; temporal ordering invariant
 
 ### Comparative size
 
-Counted mechanically from the four specification files on 2026-08-13.
+Counted mechanically from the four specification files, recounted on 2026-08-22 after the design review in §8.
 
 | Metric | quizzes-full-2 | trainticket |
 |---|---|---|
 | Aggregates | 8 | 8 |
 | Entities (incl. owned value objects) | 17 | 9 |
-| §3.1 single-entity rules | 15 | 24 |
-| §3.2 cross-entity rules | 28 (+1 deferred) | 19 |
-| §4 functionalities | 46 (27 write, 19 read) | 46 (26 write, 20 read) |
+| §3.1 single-entity rules | 15 | 23 |
+| §3.2 cross-entity rules | 28 (+1 deferred) | 20 |
+| §4 functionalities | 46 (27 write, 19 read) | 49 (27 write, 22 read) |
 | Multi-aggregate operations | 11 (10 write, 1 read) | 8 (6 write, 2 read) |
 | Domain events | 12 | **0** |
 
-The two applications landing on 46 functionalities each is coincidence, not design. The distribution
-differs in the way the shape analysis above predicts: TrainTicket carries **60% more single-entity
-rules** (24 vs 15) and **fewer cross-entity ones** (19 vs 28), because its complexity sits inside
-aggregates — route geometry, status transitions, refund arithmetic — where Quizzes' sits between
-them. It also has fewer multi-aggregate writes (6 vs 10) but twice the multi-aggregate reads.
+The two applications are within three functionalities of each other, which is coincidence rather than
+design. The distribution differs in the way the shape analysis above predicts: TrainTicket carries
+**over half again as many single-entity rules** (23 vs 15) and **fewer cross-entity ones** (20 vs 28),
+because its complexity sits inside aggregates — route geometry, status transitions, refund arithmetic
+— where Quizzes' sits between them. It also has fewer multi-aggregate writes (6 vs 10) but twice the
+multi-aggregate reads.
 
 ---
 
@@ -327,15 +386,21 @@ Stated so the dissertation can address them rather than have them raised for it.
 1. **The rules were authored by the same process being evaluated.** TrainTicket enforces almost
    nothing, so any invariant-rich specification of it is partly written rather than transcribed.
    *Mitigation:* the two-tier provenance discipline (D6), with the enforced and implied sets named
-   explicitly in the domain model's preamble, and no third tier admitted.
+   explicitly in the domain model's preamble, and no third tier admitted. The §8 review applied that
+   test rule by rule against the pinned commit and **removed two rules that failed it** — a threshold
+   the benchmark ships disabled, and a format nothing validates (R11, R12). That the discipline caught
+   two is evidence it has teeth; that two survived the original pass is evidence the threat is real,
+   and neither reading should be dropped in favour of the other.
 
 2. **Subset selection could have been tuned to harness strengths.** *Mitigation:* the criterion (D1)
    was fixed to the canonical flow before any service was examined for what it would exercise, the
    spine was taken wholesale, and shapes Quizzes lacks were identified only after selection.
 
 3. **The no-cascade decision removes P2 from the experiment entirely.** This is the largest single
-   limitation. A quarter of Phase 2 (session `d`) is vacuous, and the harness's eventual-consistency
-   machinery — the most Quizzes-shaped part of it — gets no independent test.
+   limitation. Because no aggregate has subscribed events, session `d` is never generated at all —
+   Phase 2 is 24 sessions (8 × `a b c`), not 32 with eight empty ones. The T3 Subscription test type
+   and the harness's whole eventual-consistency machinery — the most Quizzes-shaped part of it — get
+   no independent test here.
    *Mitigation:* none in this application; the planned cascade variant (D8) exists precisely to
    recover it, and until it is written this limitation stands.
 
@@ -350,7 +415,10 @@ Stated so the dissertation can address them rather than have them raised for it.
    previously sold journey ends at or before the new passenger's boarding station — interval packing
    along the route. This application allocates one seat per journey for the whole trip. Capacity and
    seat uniqueness are therefore stricter here than in the benchmark, which under-counts availability
-   relative to TrainTicket but never over-books.
+   relative to TrainTicket but never over-books. It is also **deterministic** where the benchmark is
+   random (D3): the lowest free seat number rather than a retry loop. This makes the tests assertable
+   at the cost of one more divergence, and it changes which seat a passenger gets but never how many
+   passengers fit.
 
 ---
 
@@ -365,5 +433,61 @@ Stated so the dissertation can address them rather than have them raised for it.
   extraction regex requiring a newline immediately after the rule name; it matches 9 of the 29 rule
   headings in `quizzes-full-2-domain-model.md`. Nothing breaks in practice, since the skill is
   executed by a model rather than a regex engine. Recorded, not fixed.
+- **`SearchTrips` revisit** (§8 R1) — Trip's session `b` leaves it unimplemented. Return to it once
+  Order's session `c` is done and `OrderDto` exists.
+- **Rule-name collisions in the §3.2 parser, recorded not fixed.** `classify-and-plan` step 4 keys its
+  classification map by the rule name its regex captures (`[A-Z_0-9]+`), which drops the
+  parenthesised qualifier. `ROUTE_AND_TRAIN_TYPE_EXIST (Trip)` and `(PriceConfig)` therefore collide,
+  as do the two `ACCOUNT_EXISTS` blocks. `quizzes-full-2` has the same shape — three
+  `COURSE_EXECUTION_EXISTS` blocks — and Phase 1 handles it correctly, because the skill is executed
+  by a model rather than a regex engine. Left alone for the same reason as the item above.
+
+---
+
+## 8. Design review — 2026-08-22
+
+The two specification files were reviewed for internal consistency and implementability before Phase
+0. Twelve changes followed, two of them reversing earlier decisions. They are recorded here rather
+than folded into §3 so that the decision log stays a record of what was decided **when**: §3 is the
+original design interview, this section is what a second pass found in it.
+
+The two reversals (R11, R12) both went the same way, and both cost the application something: a rule
+was removed because re-reading the source showed it had less benchmark support than §3 had assumed.
+That direction is worth noting, because it is the direction threat 1 predicts — a specification of a
+benchmark that enforces almost nothing will drift toward authoring, and the drift is visible only when
+the claims are checked one at a time against the source.
+
+Every line citation in this file was re-checked against the pinned commit during the review:
+`Route.java` 30/34/36/38, `OrderRepository.java:26`, `PreserveServiceImpl.java:93`,
+`SeatClass.java:23`, `TravelServiceImpl.java:432`, `CancelServiceImpl.java:200` and `:216`,
+`BasicServiceImpl.java:102`, and `Order.java` 32/35/38/57/61/71/79. All were correct as cited; the
+two errors found (R10) were in prose, not in line numbers.
+
+| # | Finding | Resolution |
+|---|---|---|
+| R1 | `SearchTrips` is Trip-primary but reads Order, which the topological sort places last; it cannot be built in its own session `b`, and `classify-and-plan` § "Step 5.5" detects reverse dependencies only for write guards | Deferred to a revisit session after Order's `c`, marked `⚠️` in §4; harness extended (Step 5.5b, `session-b.md`) |
+| R2 | `SearchTrips` had no path from a station pair to a trip — `Trip` holds only `routeAggregateId` | §4 gains `GetTripsByRoute`; `GetRoutesByStation` widened to return the full route including `routeStations` |
+| R3 | The booking saga's fare lookup had no operation to call, though `UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE` names that exact lookup | §4 gains `GetPriceConfigByRouteAndTrainType`; §3.2 gains `PRICE_CONFIG_EXISTS` (implied tier, P4a) |
+| R4 | Nothing said where `Order.seatNumber` came from, and nothing bounded it above | Deterministic lowest-free-in-`[1, capacity]` allocation stated in §4; §3.2 gains `SEAT_NUMBER_WITHIN_CAPACITY` (implied tier) |
+| R5 | `SEAT_CAPACITY_NOT_EXCEEDED` was written as a post-state invariant but enforced as a pre-mutation P3 guard — transcribed literally, it admitted `capacity + 1` bookings | Restated over *existing* rows with strict `<`, matching the §3.2 preamble's own precondition framing |
+| R6 | Two seat rules filtered on `state != DELETED`, which no operation could make true; adding the missing delete exposed `ORDER_REFUND_AMOUNT` branching on `prev.status` while triggering on the standing `CANCELLED` state | §4 gains `DeleteOrder`; `ORDER_REFUND_AMOUNT` guarded on the cancelling transition; `ORDER_STATUS_TRANSITION` pins `prev == null ⟹ NOTPAID` |
+| R7 | `Order.accountAggregateId` and `Contacts.userAggregateId` named the same target two ways | Unified on `userAggregateId` |
+| R8 | `Route.startStationName` / `endStationName` carried no citation, leaving the rule most exposed to threat 1 unsupported | Verified present in the benchmark (`Route.java:36,38`); kept, citation recorded in D9 and F3 |
+| R9 | Line citations were unreproducible against a moving `master` | Commit `313886e9` pinned in the preamble; all citations re-verified against it |
+| R10 | Re-verification found two wrong claims of its own: F4 omitted `Order.seatNumber` from the `String`-typed fields, and the preamble said `coachNumber` "is never assigned" when the constructor hard-codes it to `5` | F4 extended to five fields; the `coachNumber` note corrected — an inert constant is a better reason to drop the field than an unassigned one |
+| R11 | `ACCOUNT_ORDER_RATE_LIMIT` failed the provenance test: `ts-security-service` ships both thresholds as `Integer.MAX_VALUE` (`InitData.java:24,29`), so the check never fires as deployed and any usable value would have been authored (D11 had assumed the config rows carried real numbers) | Rule **dropped**. §3.2 falls to 20. Costs the "count over a temporal window" shape in §5 — recorded there as a loss rather than quietly deleted |
+| R12 | `TRIP_NUMBER_FORMAT` was listed in the **enforced** tier, but nothing validates a trip number; `SeatServiceImpl` and `AdminOrderServiceImpl` only branch on the leading letter to select high-speed behaviour, accepting anything else | Rule **dropped** rather than re-tiered. §3.1 falls to 23. A format no code enforces and no other rule depends on carries no weight |
+
+Two claims were also corrected. Grouping §5 and threat 3 said session `d` was "vacuous for all eight
+aggregates" and cost "a quarter of Phase 2"; in fact the harness omits the session entirely when an
+aggregate subscribes to no events, so Phase 2 is 24 sessions rather than 32 and the real cost is that
+the T3 test type is unexercised. The §5 size table was recounted.
+
+**Harness repairs made in the same pass** (`AGENTS.md` § "Harness evolution"): three Type 1 fixes to
+`classify-and-plan` — version fields made conditional on event subscription, `× N` accepted in either
+§2 column, and collection-snapshot class naming corrected for rows that name the owned entity
+explicitly — plus one Type 2 extension authorised by the reviewer, the reverse-**read** detection in
+Step 5.5b and its counterpart protocol in `session-b.md`. None of the three Type 1 defects was the
+specification's fault; in all three the specification was on the correct side and the skill was wrong.
 
 ---

@@ -53,9 +53,14 @@ Field names below match the entity attributes declared in §1 of the [domain mod
 | Contacts | User | `userAggregateId` | n/a — no cascade (see §3) |
 | Order | Trip | `tripAggregateId`, `tripNumber`, `departureTime` | n/a — frozen contract |
 | Order | Contacts | `contactsAggregateId`, `contactsName`, `contactsDocumentType`, `contactsDocumentNumber` | n/a — frozen contract |
-| Order | User (account) | `accountAggregateId` | n/a — frozen contract |
+| Order | User (account) | `userAggregateId` | n/a — frozen contract |
 | Order | Route (endpoints) | `fromStationName`, `toStationName` | n/a — frozen contract |
 | Order | PriceConfig (fare) | `price` | n/a — frozen contract |
+
+> **`departureTime` is derived, not copied.** It is the only entry in the "Fields cached" column that
+> is not a field of the source aggregate: it is `Order.travelDate` combined with the `Trip.startTime`
+> in force at purchase, computed by the booking saga and frozen on the Order. It is listed on the Trip
+> row because Trip is where its non-local half comes from.
 
 > **`RouteStation.stationName` is a real copy.** TrainTicket's `Route` stores station **names**, not
 > ids — `List<String> stations` — and every consumer matches on the name. Caching the name alongside
@@ -147,18 +152,31 @@ Points where these two files constrain each other, recorded so they get re-check
   exercises P2. If that file is written, §3.2 of the domain model must be re-read: rules currently
   phrased as "held when the operation ran" become standing invariants over live references, and
   several move from P4a/P3 to P2.
-- **Empty §4 leaves one Phase 2 session with nothing to do.** Session `d` produces
-  `{Aggregate}InterInvariantTest.groovy`, which tests event subscriptions. With no events, session
-  `d` is vacuous for all eight aggregates. This is the acknowledged cost of the no-cascade decision,
-  not an oversight, and it is what the cascade variant above would recover.
+- **Empty §4 means session `d` is never generated.** Session `d` produces
+  `{Aggregate}InterInvariantTest.groovy`, which tests event subscriptions. `docs/workflow.md` sets the
+  `d` checkbox "only for aggregates that have a non-empty Events subscribed list", and
+  `classify-and-plan` § "Step 8" omits the section entirely when that list is empty — so no aggregate
+  here gets a session `d` at all. Phase 2 is **24 sessions (8 × `a b c`), not 32 with eight empty
+  ones**. The cost is that the T3 Subscription test type goes unexercised, which is the acknowledged
+  price of the no-cascade decision, not an oversight, and it is what the cascade variant above would
+  recover.
+
+- **`SearchTrips` is scheduled before the aggregate it reads.** It is Trip-primary, so it lands in
+  Trip's session `b`, but it reads Order, which the topological sort places last. `classify-and-plan`
+  § "Step 5.5" detects reverse dependencies only for P3/P4a *rules* bound to write guards, so nothing
+  in the generated plan catches a *read* functionality in the same position. `SearchTrips` must be
+  deferred to a revisit session after Order's session `c`; the domain model's §4 marks it `⚠️`. Every
+  other Trip read is implementable in session `b` as normal.
 - **Order's immutability is what makes empty §4 safe.** Every field `Order` copies from another
   aggregate is Java `final`. If a later change makes any of them mutable, the frozen-contract
   argument in §2 collapses and those rows need real event subscriptions.
-- **Seat capacity is enforced inside one aggregate.** `SEAT_CAPACITY_NOT_EXCEEDED` and
-  `SEAT_NUMBER_UNIQUE_PER_DEPARTURE` are counts over the Order aggregate's own table; only the
-  capacity *limit* crosses a boundary, and the booking saga passes it in from the Trip's TrainType.
-  Introducing a seat-inventory aggregate later would move both rules from P3 to P1 and would add an
-  aggregate the benchmark does not have.
+- **Seat capacity is enforced inside one aggregate.** `SEAT_CAPACITY_NOT_EXCEEDED`,
+  `SEAT_NUMBER_UNIQUE_PER_DEPARTURE` and `SEAT_NUMBER_WITHIN_CAPACITY` all resolve against the Order
+  aggregate's own table; only the capacity *limit* crosses a boundary, and the booking saga passes it
+  in once from the Trip's TrainType, serving all three. The seat number itself is allocated by the
+  saga as the lowest free value in `[1, capacity]`, so the allocation and the rules that bound it read
+  the same rows. Introducing a seat-inventory aggregate later would move all three from P3 to P1 and
+  would add an aggregate the benchmark does not have.
 - **`PriceConfig` is the only aggregate keyed on two foreign aggregates.**
   `UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE` is an own-table uniqueness check over the
   `(routeAggregateId, trainTypeAggregateId)` pair. Co-locating `PriceConfig` inside `Route` in a

@@ -52,16 +52,30 @@ No rule in §3 comes from railway domain knowledge that TrainTicket does not its
 Provenance is recorded here rather than as a column in §3.1 or a marker on the §3.2 headings, because
 both of those are positions `/classify-and-plan` parses.
 
-**Enforced tier, §3.1:** `TRIP_NUMBER_FORMAT`, `ORDER_STATUS_TRANSITION`,
-`ORDER_SEAT_NUMBER_POSITIVE`, `ORDER_REFUND_AMOUNT`. Every other §3.1 rule is implied.
+**Enforced tier, §3.1:** `ORDER_STATUS_TRANSITION`, `ORDER_SEAT_NUMBER_POSITIVE`,
+`ORDER_REFUND_AMOUNT`. Every other §3.1 rule is implied.
 
 **Enforced tier, §3.2:** `STATIONS_EXIST`, `ROUTE_AND_TRAIN_TYPE_EXIST` (both blocks),
 `ACCOUNT_EXISTS` (both blocks), `TRIP_EXISTS`, `CONTACTS_EXIST`, `ENDPOINTS_ON_TRIP_ROUTE`,
 `SEAT_CLASS_OFFERED`, `PRICE_MATCHES_TARIFF`, `SEAT_CAPACITY_NOT_EXCEEDED`,
-`SEAT_NUMBER_UNIQUE_PER_DEPARTURE`, `ACCOUNT_ORDER_RATE_LIMIT`. Every other §3.2 rule is implied.
+`SEAT_NUMBER_UNIQUE_PER_DEPARTURE`. Every other §3.2 rule is implied.
 
 `SEAT_CAPACITY_NOT_EXCEEDED` is enforced-but-corrected: TrainTicket has the check, and the check is
-defect **F1** below.
+defect **F1** below. It is the **only** rule in this file that departs from benchmark behaviour.
+
+Two candidate rules were **dropped** at the design review (§8 of the rationale) rather than admitted
+to either tier, because neither survived the provenance test:
+
+- **`TRIP_NUMBER_FORMAT`** (`^[GDZTK][0-9]+$`) — nothing in TrainTicket validates a trip number.
+  `SeatServiceImpl` and `AdminOrderServiceImpl` only *branch* on the leading letter
+  (`trainNumber.startsWith("G") || startsWith("D")`) to select high-speed behaviour; a malformed
+  number is accepted and simply takes the other path. Seed data does use `[GDZTK]` plus four digits,
+  but a format no code enforces and no rule depends on is decoration.
+- **`ACCOUNT_ORDER_RATE_LIMIT`** — TrainTicket's scalper check reads its two thresholds from
+  `ts-security-service`, which ships **both** as `Integer.MAX_VALUE` (`InitData.java:24,29`). The
+  check therefore never fires in a stock deployment, and any usable threshold would have been an
+  authored number. Keeping it would have made the application's one temporal-window rule an invention
+  wearing a benchmark's name.
 
 ### Findings recorded against the benchmark
 
@@ -85,10 +99,11 @@ because they are results, not incidental notes.
   `List<Integer> distances`, related only by position, with nothing enforcing equal length or
   ordering. This file normalises them into an owned `RouteStation` value object; the ordering
   invariants survive as `ROUTE_DISTANCES_MONOTONIC` and `ROUTE_SEQUENCE_CONTIGUOUS`.
-- **F4 — dates and money are `String`.** `Order.price`, `Order.travelDate`, `Order.boughtDate` and
-  `Order.travelTime` are all `String`, parsed ad hoc at each use site (`calculateRefund` builds a
-  `java.util.Date` from parsed fragments via a deprecated constructor). This file uses
-  `BigDecimal`, `LocalDate`, `LocalDateTime` and `LocalTime`.
+- **F4 — dates, money and the seat number are `String`.** `Order.price`, `Order.travelDate`,
+  `Order.boughtDate`, `Order.travelTime` and `Order.seatNumber` are all `String`, parsed ad hoc at
+  each use site (`calculateRefund` builds a `java.util.Date` from parsed fragments via a deprecated
+  constructor). This file uses `BigDecimal`, `LocalDate`, `LocalDateTime`, `LocalTime` and
+  `Integer`.
 
 ### Other deliberate departures
 
@@ -101,12 +116,12 @@ because they are results, not incidental notes.
   journey is a `(Trip, travelDate)` pair, which is why seat availability in §3.2 is keyed on
   `(tripAggregateId, travelDate, seatClass)`. This matches
   `OrderRepository.findByTravelDateAndTrainNumber`.
-- **The scalper rate limit uses constants, not a `SecurityConfig` aggregate.** TrainTicket stores the
-  thresholds as `name`/`value`/`description` rows in `ts-security-service`
-  (`max_order_1_hour`, `max_order_not_use`). A generic key-value config table is not domain data, so
-  `ACCOUNT_ORDER_RATE_LIMIT` uses fixed constants instead.
-- **`Order.coachNumber` is dropped.** The field exists on TrainTicket's `Order` but is never assigned
-  anywhere in the booking flow.
+- **The scalper rate limit is not modelled at all.** `ts-security-service` is out of scope, and the
+  rule it would have contributed was dropped on provenance grounds — see § "Rule provenance" above.
+  `ts-user-service` is still in scope; only the security check is gone.
+- **`Order.coachNumber` is dropped.** The field exists on TrainTicket's `Order` (`Order.java:57`) but
+  carries no information: the constructor hard-codes it to `5` (`Order.java:79`) and nothing in the
+  booking flow ever assigns it again. Every order in the benchmark is in coach 5.
 
 ---
 
@@ -199,17 +214,16 @@ These rules inspect only fields of a single entity.
 | TRAIN_TYPE_SPEED_POSITIVE | TrainType | `TrainType.averageSpeed > 0` |
 | PRICE_RATES_POSITIVE | PriceConfig | `PriceConfig.basicPriceRate > 0 ∧ PriceConfig.firstClassPriceRate > 0` |
 | TRIP_NUMBER_FINAL | Trip | `Trip.tripNumber` is immutable (Java `final` field) |
-| TRIP_NUMBER_FORMAT | Trip | `Trip.tripNumber` matches `^[GDZTK][0-9]+$` — a single train-category letter followed by digits |
 | TRIP_START_BEFORE_END | Trip | `Trip.startTime < Trip.endTime` |
 | USER_NAME_FINAL | User | `User.userName` is immutable (Java `final` field) |
 | USER_DOCUMENT_NUMBER_PRESENT | User | `User.documentType != NONE ⟹ User.documentNumber` is non-blank |
 | CONTACTS_DOCUMENT_NUMBER_PRESENT | Contacts | `Contacts.documentType != NONE ⟹ Contacts.documentNumber` is non-blank |
-| ORDER_STATUS_TRANSITION | Order | `prev.status → status` is one of: `NOTPAID → {PAID, CANCELLED}`, `PAID → {COLLECTED, CANCELLED}`, `COLLECTED → {USED}`, `USED → {}`, `CANCELLED → {}`; `status == prev.status` is always permitted |
+| ORDER_STATUS_TRANSITION | Order | `prev == null ⟹ status == NOTPAID`; otherwise `prev.status → status` is one of: `NOTPAID → {PAID, CANCELLED}`, `PAID → {COLLECTED, CANCELLED}`, `COLLECTED → {USED}`, `USED → {}`, `CANCELLED → {}`; `status == prev.status` is always permitted |
 | ORDER_PRICE_POSITIVE | Order | `Order.price > 0` |
 | ORDER_SEAT_NUMBER_POSITIVE | Order | `Order.seatNumber >= 1` |
 | ORDER_DEPARTURE_AFTER_PURCHASE | Order | `Order.boughtDate <= Order.departureTime` |
 | ORDER_CANCELLATION_FIELDS_SET | Order | `Order.status == CANCELLED ⟺ (Order.cancelledTime != null ∧ Order.refundAmount != null)` |
-| ORDER_REFUND_AMOUNT | Order | `Order.status == CANCELLED ⟹ Order.refundAmount == (prev.status == NOTPAID ? 0 : (Order.cancelledTime > Order.departureTime ? 0 : Order.price × 0.80))` |
+| ORDER_REFUND_AMOUNT | Order | `Order.status == CANCELLED ∧ (prev == null ∨ prev.status != CANCELLED) ⟹ Order.refundAmount == (prev.status == NOTPAID ? 0 : (Order.cancelledTime > Order.departureTime ? 0 : Order.price × 0.80))` |
 
 > **Immutability fields:** `ORDER_CONTRACT_FIELDS_FINAL` — `boughtDate`, `travelDate`,
 > `departureTime`, `tripNumber`, `fromStationName`, `toStationName`, `seatClass`, `seatNumber`,
@@ -223,6 +237,14 @@ These rules inspect only fields of a single entity.
 > fare). The correction is that it builds the departure instant with a deprecated `java.util.Date`
 > constructor from separately parsed date and time strings; here `departureTime` is frozen on the
 > order at purchase.
+
+> **Why `ORDER_REFUND_AMOUNT` guards on the transition, not the state.** The refund branch is chosen
+> from `prev.status`, which only carries the intended meaning on the commit that performs the
+> cancellation. Any later commit on an already-cancelled order — `DeleteOrder` is the one §4 provides
+> — sees `prev.status == CANCELLED`, would fall through to the paid branch, and would demand
+> `price × 0.80` from an order that was cancelled while `NOTPAID` and correctly refunded `0`. The
+> `prev.status != CANCELLED` conjunct confines the rule to the cancelling commit;
+> `ORDER_CANCELLATION_FIELDS_SET` continues to hold `refundAmount` non-null for the standing state.
 
 ---
 
@@ -240,6 +262,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: STATIONS_EXIST (Route)
+
 | Field | Value |
 |---|---|
 | Entities | Route, Station |
@@ -248,6 +271,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: UNIQUE_STATION_NAME
+
 | Field | Value |
 |---|---|
 | Entities | Station |
@@ -256,6 +280,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: ROUTE_AND_TRAIN_TYPE_EXIST (Trip)
+
 | Field | Value |
 |---|---|
 | Entities | Trip, Route, TrainType |
@@ -264,6 +289,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: UNIQUE_TRIP_NUMBER
+
 | Field | Value |
 |---|---|
 | Entities | Trip |
@@ -272,6 +298,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: ROUTE_AND_TRAIN_TYPE_EXIST (PriceConfig)
+
 | Field | Value |
 |---|---|
 | Entities | PriceConfig, Route, TrainType |
@@ -280,6 +307,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE
+
 | Field | Value |
 |---|---|
 | Entities | PriceConfig, Route, TrainType |
@@ -288,6 +316,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: ACCOUNT_EXISTS (Contacts)
+
 | Field | Value |
 |---|---|
 | Entities | Contacts, User |
@@ -296,6 +325,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: UNIQUE_USER_NAME
+
 | Field | Value |
 |---|---|
 | Entities | User |
@@ -304,6 +334,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: TRIP_EXISTS (Order)
+
 | Field | Value |
 |---|---|
 | Entities | Order, Trip |
@@ -312,6 +343,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: CONTACTS_EXIST (Order)
+
 | Field | Value |
 |---|---|
 | Entities | Order, Contacts |
@@ -320,22 +352,25 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: ACCOUNT_EXISTS (Order)
+
 | Field | Value |
 |---|---|
 | Entities | Order, User |
-| Predicate | `Order.accountAggregateId` named a User that was ACTIVE when the order was created |
+| Predicate | `Order.userAggregateId` named a User that was ACTIVE when the order was created |
 
 ---
 
 #### Rule: CONTACTS_BELONG_TO_ACCOUNT (Order)
+
 | Field | Value |
 |---|---|
 | Entities | Order, Contacts, User |
-| Predicate | `Order.accountAggregateId == Contacts.userAggregateId` — a passenger may only be booked under the account that owns that contact record |
+| Predicate | `Order.userAggregateId == Contacts.userAggregateId` — a passenger may only be booked under the account that owns that contact record |
 
 ---
 
 #### Rule: ENDPOINTS_ON_TRIP_ROUTE (Order)
+
 | Field | Value |
 |---|---|
 | Entities | Order, Trip, Route, Station |
@@ -344,6 +379,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: SEAT_CLASS_OFFERED (Order)
+
 | Field | Value |
 |---|---|
 | Entities | Order, Trip, TrainType |
@@ -351,7 +387,22 @@ These rules inspect only fields of a single entity.
 
 ---
 
+#### Rule: PRICE_CONFIG_EXISTS (Order)
+
+| Field | Value |
+|---|---|
+| Entities | Order, Trip, PriceConfig |
+| Predicate | A PriceConfig for the pair `(Trip.routeAggregateId, Trip.trainTypeAggregateId)` was ACTIVE when the order was created |
+
+> Enforced by the `GetPriceConfigByRouteAndTrainType` fetch in the booking saga, which throws when no
+> configuration exists for the pair — **P4a**. Stated as its own rule so that the saga step has a rule
+> name to cite, as `docs/concepts/rule-enforcement-patterns.md` § P4 requires, and so the fare source
+> gets the same explicit existence block as `TRIP_EXISTS`, `CONTACTS_EXIST` and `ACCOUNT_EXISTS`.
+
+---
+
 #### Rule: PRICE_MATCHES_TARIFF (Order)
+
 | Field | Value |
 |---|---|
 | Entities | Order, Trip, Route, PriceConfig |
@@ -360,6 +411,7 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: DEPARTURE_TIME_MATCHES_TRIP (Order)
+
 | Field | Value |
 |---|---|
 | Entities | Order, Trip |
@@ -368,19 +420,27 @@ These rules inspect only fields of a single entity.
 ---
 
 #### Rule: SEAT_CAPACITY_NOT_EXCEEDED
+
 | Field | Value |
 |---|---|
 | Entities | Order, Trip, TrainType |
-| Predicate | `count(Orders o where o.tripAggregateId == this.tripAggregateId ∧ o.travelDate == this.travelDate ∧ o.seatClass == this.seatClass ∧ o.status != CANCELLED ∧ o.state != DELETED) <= capacity(Trip.trainType, seatClass)` |
+| Predicate | `count(existing Orders o where o.tripAggregateId == tripAggregateId ∧ o.travelDate == travelDate ∧ o.seatClass == seatClass ∧ o.status != CANCELLED ∧ o.state != DELETED) < capacity(Trip.trainType, seatClass)` |
 
 > The count is over the Order aggregate's own table, keyed exactly as
 > `OrderRepository.findByTravelDateAndTrainNumber`. `capacity` is supplied to the Order service by
 > the booking saga, which fetched the Trip's TrainType. TrainTicket's own version of this check is
 > defect **F1**.
 
+> **Phrased pre-mutation, deliberately.** `existing` excludes the order being created, and the
+> inequality is strict, because this rule is enforced as a **P3** service guard that runs *before* any
+> aggregate mutation. Writing it as a post-state invariant (`count(...) <= capacity`) and transcribing
+> it literally into that guard would admit `capacity + 1` bookings. See the §3.2 preamble: every rule
+> in this section is a precondition, not a standing invariant.
+
 ---
 
 #### Rule: SEAT_NUMBER_UNIQUE_PER_DEPARTURE
+
 | Field | Value |
 |---|---|
 | Entities | Order, Trip |
@@ -394,17 +454,23 @@ These rules inspect only fields of a single entity.
 
 ---
 
-#### Rule: ACCOUNT_ORDER_RATE_LIMIT
+#### Rule: SEAT_NUMBER_WITHIN_CAPACITY (Order)
+
 | Field | Value |
 |---|---|
-| Entities | Order, User |
-| Predicate | For the booking account: `count(Orders with boughtDate within the last hour) <= MAX_ORDERS_PER_HOUR` **and** `count(Orders with status ∈ {NOTPAID, PAID, COLLECTED}) <= MAX_OUTSTANDING_ORDERS`, with `MAX_ORDERS_PER_HOUR = 5` and `MAX_OUTSTANDING_ORDERS = 5` |
+| Entities | Order, Trip, TrainType |
+| Predicate | `1 <= Order.seatNumber <= capacity(Trip.trainType, Order.seatClass)`, where `capacity` is `firstClassSeats` for `FIRST_CLASS` and `economyClassSeats` for `SECOND_CLASS` |
 
-> This is TrainTicket's ticket-scalper check (`SecurityServiceImpl`, step 1 of `preserve`). The
-> thresholds are the `max_order_1_hour` and `max_order_not_use` `SecurityConfig` rows; they are
-> constants here rather than a ninth aggregate, per the preamble.
+> Bounds the seat number above, which `ORDER_SEAT_NUMBER_POSITIVE` in §3.1 cannot: `capacity` lives on
+> TrainType, so the limit crosses an aggregate boundary and the booking saga passes it in alongside
+> the one it already passes for `SEAT_CAPACITY_NOT_EXCEEDED`.
+>
+> **This rule subsumes `SEAT_CLASS_OFFERED`** — when `capacity` is `0` the interval `[1, 0]` is empty,
+> so no seat can be allocated. Both are kept deliberately: `SEAT_CLASS_OFFERED` is in the **enforced**
+> provenance tier (TrainTicket checks it) while this rule is **implied**, and collapsing the enforced
+> rule into the implied one would weaken the provenance claim the two-tier discipline exists to make
+> checkable. They are separate rules at separate patterns, not one rule duplicated across patterns.
 
----
 
 ## §4 — Functionalities
 
@@ -435,22 +501,25 @@ These rules inspect only fields of a single entity.
 | CreateContacts | Contacts | User | Write | Create a passenger contact record owned by an account |
 | UpdateContacts | Contacts | — | Write | Update a contact's name, document or phone number |
 | DeleteContacts | Contacts | — | Write | Soft-delete a contact record |
-| PreserveTicket | Order | Trip, Route, TrainType, PriceConfig, Contacts, User | Write | Book a ticket: check the account's rate limit, resolve the passenger contact, validate the journey against the trip's route, compute the fare from distance and rates, allocate a seat within the train type's capacity, and create the order as NOTPAID |
+| PreserveTicket | Order | Trip, Route, TrainType, PriceConfig, Contacts, User | Write | Book a ticket: resolve the passenger contact and its owning account, validate the journey against the trip's route, compute the fare from distance and rates, allocate the **lowest seat number in `[1, capacity]` not already held by a non-cancelled order for that departure**, and create the order as NOTPAID |
 | PayOrder | Order | — | Write | Move an order from NOTPAID to PAID |
 | CollectTicket | Order | — | Write | Move a paid order to COLLECTED |
 | UseTicket | Order | — | Write | Move a collected order to USED |
 | CancelOrder | Order | — | Write | Cancel an unpaid or paid order, stamping the cancellation time and computing the refund |
+| DeleteOrder | Order | — | Write | Soft-delete an order |
 | GetStationById | Station | — | Read | Retrieve a single station by its aggregate id |
 | GetStations | Station | — | Read | List all stations |
 | GetRouteById | Route | — | Read | Retrieve a single route by its aggregate id |
 | GetRoutes | Route | — | Read | List all routes |
-| GetRoutesByStation | Route | — | Read | List the routes that stop at a given station |
+| GetRoutesByStation | Route | — | Read | List the routes that stop at a given station, each returned in full including its ordered `routeStations`, so a caller can intersect two stations and check their relative sequence itself |
 | GetTrainTypeById | TrainType | — | Read | Retrieve a single train type by its aggregate id |
 | GetTrainTypes | TrainType | — | Read | List all train types |
 | GetPriceConfigById | PriceConfig | — | Read | Retrieve a single price configuration by its aggregate id |
 | GetPriceConfigs | PriceConfig | — | Read | List all price configurations |
+| GetPriceConfigByRouteAndTrainType | PriceConfig | — | Read | Retrieve the fare rates configured for a given route and train type; fails when no configuration exists for the pair |
 | GetTripById | Trip | — | Read | Retrieve a single trip by its aggregate id |
 | GetTrips | Trip | — | Read | List all trips |
+| GetTripsByRoute | Trip | — | Read | List the trips scheduled on a given route |
 | GetUserById | User | — | Read | Retrieve a single user by its aggregate id |
 | GetUsers | User | — | Read | List all users |
 | GetContactsById | Contacts | — | Read | Retrieve a single contact record by its aggregate id |
@@ -459,12 +528,25 @@ These rules inspect only fields of a single entity.
 | GetOrders | Order | — | Read | List all orders |
 | GetOrdersByAccount | Order | — | Read | List the orders placed by an account |
 | GetLeftTicketCount | Order | Trip, TrainType | Read | Count the seats still available for a given trip, travel date and seat class, by subtracting the non-cancelled orders from the train type's capacity |
-| SearchTrips | Trip | Route, TrainType, PriceConfig, Order | Read | Search the trips serving a departure and arrival station on a travel date, returning for each the departure and arrival times, the fare for both seat classes, and the remaining seats per class |
+| SearchTrips ⚠️ | Trip | Route, TrainType, PriceConfig, Order | Read | Search the trips serving a departure and arrival station on a travel date, returning for each the departure and arrival times, the fare for both seat classes, and the remaining seats per class |
 
 > **`SearchTrips` and `GetLeftTicketCount` are read sagas.** They assemble state from several
 > aggregates without writing anything. `SearchTrips` is TrainTicket's `queryForTravels` /
 > `ts-basic-service` pairing; `GetLeftTicketCount` is `ts-seat-service`'s
 > `getLeftTicketOfInterval`.
+
+> **⚠️ `SearchTrips` is deferred past its own session.** It is Trip-primary, so the plan schedules it
+> in Trip's session `b`, but it reads Order, which the topological sort places last. It therefore
+> **cannot** be implemented when Trip's session `b` runs: implement it in a revisit session after
+> Order's session `c`, once `OrderDto` exists. Every other Trip read is implementable in session `b`
+> as normal. This is the read-side analogue of the reverse-P3 dependency that
+> `.claude/skills/classify-and-plan/SKILL.md` § "Step 5.5" tracks for write guards.
+
+> **How `SearchTrips` resolves a station pair.** `Trip` holds only `routeAggregateId`, so the search
+> runs `GetRoutesByStation` for the departure and arrival stations, intersects the two result sets,
+> keeps the routes whose `routeStations` place the departure before the arrival, then calls
+> `GetTripsByRoute` for each surviving route. Fares come from
+> `GetPriceConfigByRouteAndTrainType`; remaining seats come from Order.
 
 > **`PreserveTicket` is the only multi-aggregate write.** The other four Order operations are
 > single-aggregate state transitions, matching TrainTicket's `ts-cancel-service` and
