@@ -9,23 +9,48 @@ import java.util.stream.Collectors;
 /**
  * What a campaign found, and enough about how it ran to reproduce it.
  *
- * @param application        the Spring application class explored
- * @param masterSeed         the seed the whole campaign derived from; replaying
- *                           it reproduces every schedule
- * @param iterationsPerGroup oracle runs performed per planned group
- * @param reportsDirectory   where the per-run reports were written
- * @param durationMillis     wall-clock duration of the campaign
- * @param catalogs           per-catalog totals, in the order they were explored
- * @param findings           every run worth attention, in the order found
+ * @param application               the Spring application class explored
+ * @param masterSeed                the seed the whole campaign derived from;
+ *                                  replaying
+ *                                  it reproduces every schedule
+ * @param springAppArgs             application arguments used for this campaign
+ * @param iterationsPerGroup        oracle runs performed per planned group
+ * @param reportsDirectory          where the per-run reports were written
+ * @param status                    whether the campaign is still running, ended
+ *                                  normally, was interrupted, or failed
+ * @param startedAtEpochMillis      campaign start timestamp
+ * @param finishedAtEpochMillis     campaign end timestamp, absent while running
+ * @param lastCompletedGroupCatalog catalog containing the latest durable group
+ *                                  checkpoint
+ * @param lastCompletedGroup        latest group checkpoint, absent before group
+ *                                  exploration
+ * @param durationMillis            wall-clock duration of the campaign
+ * @param catalogs                  per-catalog totals, in the order they were
+ *                                  explored
+ * @param findings                  every run worth attention, in the order
+ *                                  found
  */
 public record OrchestrationReport(
         String application,
         long masterSeed,
+        List<String> springAppArgs,
         int iterationsPerGroup,
         String reportsDirectory,
+        CampaignStatus status,
+        long startedAtEpochMillis,
+        Long finishedAtEpochMillis,
+        String lastCompletedGroupCatalog,
+        String lastCompletedGroup,
         long durationMillis,
         List<CatalogSummary> catalogs,
         List<Finding> findings) {
+
+    public enum CampaignStatus {
+        RUNNING,
+        COMPLETED,
+        CANCELLED,
+        FAILED
+    }
 
     /**
      * @param possiblePairs    how many pairs brute force would have run
@@ -34,9 +59,9 @@ public record OrchestrationReport(
      *                         if a campaign stops early)
      * @param findingCount     how many runs the planner found worth
      *                         attention
-     * @param groups           one entry per planned group, in the order they
-     *                         were explored (by group label, so two campaigns
-     *                         over the same catalog line up entry by entry)
+     * @param groups           completed groups, in exploration order (by group
+     *                         label, so completed portions of two campaigns line
+     *                         up entry by entry)
      */
     public record CatalogSummary(
             String name,
@@ -126,10 +151,18 @@ public record OrchestrationReport(
         return catalogs.stream().mapToInt(CatalogSummary::runsExecuted).sum();
     }
 
+    public int plannedGroups() {
+        return catalogs.stream().mapToInt(CatalogSummary::groupsPlanned).sum();
+    }
+
+    public int completedGroups() {
+        return catalogs.stream().mapToInt(catalog -> catalog.groups().size()).sum();
+    }
+
     /** A short, human-readable summary of the campaign. */
     public String summary() {
-        String header = "Consistency campaign over %s [seed=%d, iterationsPerGroup=%d, duration=%s]".formatted(
-                application, masterSeed, iterationsPerGroup, formatDuration(durationMillis));
+        String header = "Consistency campaign over %s [status=%s, seed=%d, iterationsPerGroup=%d, duration=%s]"
+                .formatted(application, status, masterSeed, iterationsPerGroup, formatDuration(durationMillis));
 
         String reports = "reports: " + reportsDirectory;
 
@@ -140,7 +173,8 @@ public record OrchestrationReport(
                                 catalog.runsExecuted(), catalog.findingCount()))
                 .collect(Collectors.joining(System.lineSeparator()));
 
-        String total = "total: %d finding(s) in %d run(s)".formatted(findings.size(), totalRuns());
+        String total = "total: %d/%d group(s), %d finding(s) in %d run(s)".formatted(
+                completedGroups(), plannedGroups(), findings.size(), totalRuns());
 
         return String.join(System.lineSeparator(), header, reports, perCatalog, total);
     }

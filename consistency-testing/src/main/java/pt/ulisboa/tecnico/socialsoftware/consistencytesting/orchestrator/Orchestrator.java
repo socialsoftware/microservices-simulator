@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -12,9 +10,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
@@ -64,9 +59,6 @@ public final class Orchestrator {
     private static final int DEFAULT_ITERATIONS_PER_GROUP = 20;
     private static final long DEFAULT_MASTER_SEED = 42L;
     private static final Path DEFAULT_REPORTS_DIRECTORY = Path.of("target", "consistency-reports");
-
-    /** Name of the campaign-level summary written at the reports root. */
-    private static final String SUMMARY_FILE_NAME = "campaign-summary.json";
 
     private static final String RUN_REPORT_FILE_NAME = "test-report-%05d.json";
 
@@ -141,42 +133,54 @@ public final class Orchestrator {
                 .setIterations(iterationsPerGroup)
                 .setMasterSeed(masterSeed);
 
-        List<OrchestrationReport.CatalogSummary> catalogSummaries = new ArrayList<>();
-        List<OrchestrationReport.Finding> findings = new ArrayList<>();
+        CampaignProgress progress = new CampaignProgress(
+                springAppClass.getName(), masterSeed, springAppArgs, iterationsPerGroup,
+                StringUtils.toPortableString(reportsDirectory), startedAt);
 
-        driver.init();
+        CampaignSummaryWriter summaryWriter = new CampaignSummaryWriter(reportsDirectory);
+
+        CampaignCheckpoint checkpoint = new CampaignCheckpoint(progress, summaryWriter);
+        Thread shutdownCheckpoint = new Thread(checkpoint::cancel, "consistency-sweep-summary-checkpoint");
+        Runtime.getRuntime().addShutdownHook(shutdownCheckpoint);
+
         try {
+            checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
+            driver.init();
+
             List<FunctionalityCatalog> catalogs = getCatalogs(driver);
             log.info("Campaign over {}: {} catalog(s), {} iteration(s) per group, master seed {}",
                     springAppClass.getSimpleName(), catalogs.size(), iterationsPerGroup, masterSeed);
 
             for (FunctionalityCatalog catalog : catalogs) {
-                catalogSummaries.add(exploreCatalog(driver, catalog, findings));
+                exploreCatalog(driver, catalog, progress, checkpoint);
             }
+
+            OrchestrationReport report = checkpoint.write(
+                    OrchestrationReport.CampaignStatus.COMPLETED, System.currentTimeMillis());
+            log.info("Campaign finished:{}{}", System.lineSeparator(), report.summary());
+            return report;
+        } catch (RuntimeException | Error e) {
+            checkpoint.write(OrchestrationReport.CampaignStatus.FAILED, System.currentTimeMillis());
+            throw e;
         } finally {
             driver.shutdown();
+            try {
+                Runtime.getRuntime().removeShutdownHook(shutdownCheckpoint);
+            } catch (IllegalStateException ignored) {
+                // The shutdown hook is running and has written the cancellation checkpoint.
+            }
         }
-
-        OrchestrationReport report = new OrchestrationReport(
-                springAppClass.getName(),
-                masterSeed,
-                iterationsPerGroup,
-                StringUtils.toPortableString(reportsDirectory),
-                System.currentTimeMillis() - startedAt,
-                List.copyOf(catalogSummaries),
-                List.copyOf(findings));
-
-        writeSummary(report);
-        log.info("Campaign finished:{}{}", System.lineSeparator(), report.summary());
-        return report;
     }
 
     /**
-     * Profiles, plans and explores one catalog, appending its findings to
-     * {@code findings}.
+     * Profiles, plans and explores one catalog, checkpointing it after each
+     * completed group.
      */
-    private OrchestrationReport.CatalogSummary exploreCatalog(
-            TestDriver driver, FunctionalityCatalog catalog, List<OrchestrationReport.Finding> findings) {
+    private void exploreCatalog(
+            TestDriver driver,
+            FunctionalityCatalog catalog,
+            CampaignProgress progress,
+            CampaignCheckpoint checkpoint) {
 
         /*
          * Profiling is deliberately fail-fast: a functionality whose SOLO run
@@ -200,33 +204,22 @@ public final class Orchestrator {
         log.info("Catalog '{}': profiled {} functionalities, planned {} of {} possible pairs",
                 catalog.name(), footprints.size(), groups.size(), possiblePairs);
 
-        List<OrchestrationReport.GroupSummary> groupSummaries = new ArrayList<>();
-        int runsExecuted = 0;
-        int catalogFindings = 0;
+        progress.registerCatalog(catalog.name(), footprints.size(), possiblePairs, groups.size());
+        checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
 
+        // TODO progress tracking: plan every catalog before exploration so a
+        // partial summary can show campaign-wide, rather than discovered-so-far, totals.
         for (FunctionalityGroup group : groups) {
             List<TestResult> results = driver.exploreGroup(catalog, group);
 
             List<OrchestrationReport.Finding> groupFindings = findingsOf(catalog, group, results);
-            findings.addAll(groupFindings);
-
-            runsExecuted += results.size();
-            catalogFindings += groupFindings.size();
-            groupSummaries.add(summaryOf(group, results, groupFindings.size()));
+            progress.recordCompletedGroup(
+                    catalog.name(), summaryOf(group, results, groupFindings.size()), groupFindings);
+            checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
 
             log.info("Catalog '{}', group '{}': {} run(s), {} finding(s)",
                     catalog.name(), group.label(), results.size(), groupFindings.size());
         }
-
-        return new OrchestrationReport.CatalogSummary(
-                catalog.name(),
-                footprints.size(),
-                possiblePairs,
-                groups.size(),
-                0, // every planned group is explored under the fixed-budget policy
-                runsExecuted,
-                catalogFindings,
-                List.copyOf(groupSummaries));
     }
 
     private List<OrchestrationReport.Finding> findingsOf(
@@ -313,14 +306,4 @@ public final class Orchestrator {
         return catalogs;
     }
 
-    private void writeSummary(OrchestrationReport report) {
-        Path target = reportsDirectory.resolve(SUMMARY_FILE_NAME);
-        try {
-            new ObjectMapper()
-                    .enable(SerializationFeature.INDENT_OUTPUT)
-                    .writeValue(target.toFile(), report);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not write campaign summary to " + target, e);
-        }
-    }
 }
