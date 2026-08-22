@@ -96,7 +96,7 @@ Extract from the custom block format. Each rule is a separate block whose shape
 ```
 
 Two things vary and both are legitimate. The heading may carry a **parenthetical qualifier** naming
-the aggregate the rule is stated against — it disambiguates two rules that share a name across
+the aggregate the rule is stated against - it disambiguates two rules that share a name across
 aggregates, and it is part of the rule's identity, so carry it into the Rule Classification table
 verbatim. And the `| Field | Value |` header plus its separator row sit **between** the heading and
 the `| Entities |` row; a pattern that expects `| Entities |` on the line after the heading matches
@@ -426,8 +426,15 @@ Map each rule to the saga data-assembly step that provides the needed data and, 
 For each aggregate, generate the full file list using the templates below (this skill is the
 authoritative source for the file-list shape; `docs/workflow.md` only points here):
 
-Unless noted otherwise, each path is relative to the aggregate's own package,
-`{src}microservices/{aggregate}/`.
+Paths in the tables below resolve against **three** roots, and the leading segment says which:
+
+- `commands/...`, `events/...`, and any path written with an explicit `{src}` prefix are rooted at the
+  **app source root**, `{src}`. Commands and events are shared across services and deliberately do
+  not live inside a microservice package - see `docs/workflow.md` § "Package layout" and
+  `docs/concepts/commands.md` § "File Location".
+- `sagas/...` paths are Groovy tests, rooted at the **app test root**, `{tgt-test}` as defined in
+  `.claude/skills/_shared/conventions.md` § "Resolve aggregate context".
+- Everything else is relative to the aggregate's own package, `{src}microservices/{aggregate}/`.
 
 **Session 2.N.a — Domain Layer:**
 ```
@@ -474,7 +481,7 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 
 > **`{src}ServiceMapping.java` is unconditional and shared.** Every aggregate needs an entry, because
 > every command constructor resolves its target through `ServiceMapping.{AGGREGATE}.getServiceName()`.
-> It is the one path in these tables rooted at the app source root rather than at
+> Like `commands/` and `events/`, it sits at the app source root rather than under
 > `microservices/{aggregate}/`, and it is edited, not created, for every aggregate after the first.
 > It belongs to session `b` because that is where the aggregate's first command is written.
 
