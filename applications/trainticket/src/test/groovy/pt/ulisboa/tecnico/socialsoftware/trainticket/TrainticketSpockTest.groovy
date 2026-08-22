@@ -16,6 +16,8 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.servi
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.TrainTypeDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.coordination.functionalities.TrainTypeFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.service.TrainTypeService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.enums.DocumentType
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.Gender
 
 class TrainticketSpockTest extends SpockTest {
 
@@ -43,6 +45,21 @@ class TrainticketSpockTest extends SpockTest {
     public static final Integer TRAIN_TYPE_AVERAGE_SPEED_ONE = 1
     public static final Integer TRAIN_TYPE_AVERAGE_SPEED_ZERO = 0
     public static final Integer TRAIN_TYPE_AVERAGE_SPEED_NEGATIVE = -1
+
+    public static final String USER_NAME = "zhangsan"
+    public static final String USER_NAME_TWO = "lisi"
+    public static final String USER_PASSWORD = "pass-zhangsan"
+    public static final String USER_PASSWORD_TWO = "pass-lisi"
+    public static final Gender USER_GENDER = Gender.FEMALE
+    public static final Gender USER_GENDER_TWO = Gender.MALE
+    public static final DocumentType USER_DOCUMENT_TYPE = DocumentType.ID_CARD
+    public static final DocumentType USER_DOCUMENT_TYPE_TWO = DocumentType.PASSPORT
+    public static final DocumentType USER_DOCUMENT_TYPE_NONE = DocumentType.NONE
+    public static final String USER_DOCUMENT_NUMBER = "ID-100200300"
+    public static final String USER_DOCUMENT_NUMBER_TWO = "PP-400500600"
+    public static final String USER_DOCUMENT_NUMBER_BLANK = "   "
+    public static final String USER_EMAIL = "zhangsan@trainticket.test"
+    public static final String USER_EMAIL_TWO = "lisi@trainticket.test"
 
 
     @Autowired

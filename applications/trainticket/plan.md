@@ -232,7 +232,7 @@ UNIQUE_USER_NAME (P3, own table, create only - `userName` is immutable).
 
 | Session | Files |
 |---------|-------|
-| 2.3.a | `aggregate/User.java`, `aggregate/Gender.java`, `{src}enums/DocumentType.java` (shared - see Application-wide facts), `aggregate/UserFactory.java`, `aggregate/UserCustomRepository.java`, `aggregate/sagas/SagaUser.java`, `aggregate/sagas/states/UserSagaState.java`, `aggregate/sagas/factories/SagasUserFactory.java`, `aggregate/sagas/repositories/UserCustomRepositorySagas.java`, `aggregate/UserDto.java`, `aggregate/UserRepository.java`, `UserServiceApplication.java`, `sagas/user/UserIntraInvariantTest.groovy` |
+| 2.3.a | `aggregate/User.java`, `aggregate/Gender.java`, `{src}enums/DocumentType.java` (shared - see Application-wide facts), `aggregate/UserFactory.java`, `aggregate/UserCustomRepository.java`, `aggregate/sagas/SagaUser.java`, `aggregate/sagas/states/UserSagaState.java`, `aggregate/sagas/factories/SagasUserFactory.java`, `aggregate/sagas/repositories/UserCustomRepositorySagas.java`, `aggregate/UserDto.java`, `aggregate/UserRepository.java`, `UserServiceApplication.java`, `sagas/user/UserIntraInvariantTest.groovy`, `{src}microservices/exception/TrainticketErrorMessage.java` (added 2.3.a - the USER_DOCUMENT_NUMBER_PRESENT constant `verifyInvariants()` throws), `{test}TrainticketSpockTest.groovy` (added 2.3.a - the T1 literals for the User field list and the document-number cases), `{test}BeanConfigurationSagas.groovy` (added 2.3.a - the factory and custom-repository beans) |
 | 2.3.b | `service/UserService.java` (read methods), `messaging/UserCommandHandler.java`, `commands/user/GetUserByIdCommand.java`, `commands/user/GetUsersCommand.java`, `coordination/sagas/GetUserByIdFunctionalitySagas.java`, `coordination/sagas/GetUsersFunctionalitySagas.java`, `coordination/functionalities/UserFunctionalities.java`, `{src}ServiceMapping.java` (add `USER("user")`), `sagas/user/UserServiceTest.groovy` (read-method cases), `sagas/coordination/user/GetUserByIdTest.groovy`, `sagas/coordination/user/GetUsersTest.groovy` |
 | 2.3.c | `service/UserService.java` (write methods appended), `commands/user/CreateUserCommand.java`, `commands/user/UpdateUserCommand.java`, `commands/user/DeleteUserCommand.java`, `coordination/sagas/CreateUserFunctionalitySagas.java`, `coordination/sagas/UpdateUserFunctionalitySagas.java`, `coordination/sagas/DeleteUserFunctionalitySagas.java`, write coordinator methods appended to `coordination/functionalities/UserFunctionalities.java`, write cases appended to `messaging/UserCommandHandler.java`, `coordination/webapi/UserController.java`, `sagas/coordination/user/CreateUserTest.groovy`, `sagas/coordination/user/UpdateUserTest.groovy`, `sagas/coordination/user/DeleteUserTest.groovy`, write-method cases appended to `sagas/user/UserServiceTest.groovy` |
 
@@ -241,7 +241,7 @@ UNIQUE_USER_NAME (P3, own table, create only - `userName` is immutable).
 > packages. `Gender` is named only by User and stays in `user/aggregate/`.
 
 **Checklist:**
-- [ ] 2.3.a - Domain layer
+- [x] 2.3.a - Domain layer
 - [ ] 2.3.b - Read functionalities
 - [ ] 2.3.c - Write functionalities
 

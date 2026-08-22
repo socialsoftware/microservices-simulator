@@ -33,5 +33,7 @@ public final class TrainticketErrorMessage {
     public static final String TRAIN_TYPE_HAS_SEATS = "Train type must have at least one seat.";
     public static final String TRAIN_TYPE_SPEED_POSITIVE = "Train type average speed must be positive.";
 
+    public static final String USER_DOCUMENT_NUMBER_PRESENT = "User document number must be present when a document type is set.";
+
     public static final String PLACEHOLDER = "placeholder";
 }

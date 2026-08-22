@@ -39,6 +39,8 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.agg
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.coordination.functionalities.TrainTypeFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.messaging.TrainTypeCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.service.TrainTypeService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.sagas.factories.SagasUserFactory
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.sagas.repositories.UserCustomRepositorySagas
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
@@ -193,6 +195,16 @@ class BeanConfigurationSagas {
     @Bean
     TrainTypeFunctionalities trainTypeFunctionalities() {
         return new TrainTypeFunctionalities()
+    }
+
+    @Bean
+    SagasUserFactory sagasUserFactory() {
+        return new SagasUserFactory()
+    }
+
+    @Bean
+    UserCustomRepositorySagas userCustomRepositorySagas() {
+        return new UserCustomRepositorySagas()
     }
 
 }
