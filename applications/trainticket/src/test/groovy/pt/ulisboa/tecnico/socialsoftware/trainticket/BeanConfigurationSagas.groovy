@@ -39,8 +39,13 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.agg
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.coordination.functionalities.TrainTypeFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.messaging.TrainTypeCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.service.TrainTypeService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.UserCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.UserRepository
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.sagas.factories.SagasUserFactory
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.sagas.repositories.UserCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.coordination.functionalities.UserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.messaging.UserCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.service.UserService
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
@@ -205,6 +210,23 @@ class BeanConfigurationSagas {
     @Bean
     UserCustomRepositorySagas userCustomRepositorySagas() {
         return new UserCustomRepositorySagas()
+    }
+
+    @Bean
+    UserService userService(SagaUnitOfWorkService unitOfWorkService,
+                            UserRepository userRepository,
+                            UserCustomRepository userCustomRepository) {
+        return new UserService(unitOfWorkService, userRepository, userCustomRepository)
+    }
+
+    @Bean
+    UserCommandHandler userCommandHandler() {
+        return new UserCommandHandler()
+    }
+
+    @Bean
+    UserFunctionalities userFunctionalities() {
+        return new UserFunctionalities()
     }
 
 }

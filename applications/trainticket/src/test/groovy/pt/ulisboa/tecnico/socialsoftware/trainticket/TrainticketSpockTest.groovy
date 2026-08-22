@@ -18,6 +18,10 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.coo
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.service.TrainTypeService
 import pt.ulisboa.tecnico.socialsoftware.trainticket.enums.DocumentType
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.Gender
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.UserDto
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.sagas.SagaUser
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.coordination.functionalities.UserFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.service.UserService
 
 class TrainticketSpockTest extends SpockTest {
 
@@ -79,6 +83,10 @@ class TrainticketSpockTest extends SpockTest {
     protected TrainTypeService trainTypeService
     @Autowired(required = false)
     protected TrainTypeFunctionalities trainTypeFunctionalities
+    @Autowired(required = false)
+    protected UserService userService
+    @Autowired(required = false)
+    protected UserFunctionalities userFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -112,5 +120,17 @@ class TrainticketSpockTest extends SpockTest {
                             Integer averageSpeed = TRAIN_TYPE_AVERAGE_SPEED) {
         def trainTypeDto = new TrainTypeDto(name, economyClassSeats, firstClassSeats, averageSpeed)
         return trainTypeFunctionalities.createTrainType(trainTypeDto).aggregateId
+    }
+
+    Integer createUser(String userName = USER_NAME,
+                       String password = USER_PASSWORD,
+                       Gender gender = USER_GENDER,
+                       DocumentType documentType = USER_DOCUMENT_TYPE,
+                       String documentNumber = USER_DOCUMENT_NUMBER,
+                       String email = USER_EMAIL) {
+        def userDto = new UserDto(userName, password, gender, documentType, documentNumber, email)
+        def user = new SagaUser(aggregateIdGeneratorService.getNewAggregateId(), userDto)
+        unitOfWorkService.registerChanged(user, unitOfWorkService.createUnitOfWork("fixture"))
+        return user.getAggregateId()
     }
 }
