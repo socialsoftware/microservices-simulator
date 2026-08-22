@@ -158,7 +158,7 @@ both create and update - `name` is mutable).
 > Session 2.1.b **creates** `{src}ServiceMapping.java`; every later aggregate's session `b` edits it.
 
 **Checklist:**
-- [ ] 2.1.a - Domain layer
+- [x] 2.1.a - Domain layer
 - [ ] 2.1.b - Read functionalities
 - [ ] 2.1.c - Write functionalities
 

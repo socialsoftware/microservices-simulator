@@ -15,6 +15,12 @@ class TrainticketSpockTest extends SpockTest {
 
     // Domain constants are added here as aggregates are implemented in Phase 2.
 
+    public static final String STATION_NAME = "Shanghai"
+    public static final Integer STATION_STAY_TIME = 10
+    public static final Integer STATION_STAY_TIME_ZERO = 0
+    public static final Integer STATION_STAY_TIME_NEGATIVE = -1
+
+
     @Autowired
     public ImpairmentService impairmentService
     @Autowired(required = false)
