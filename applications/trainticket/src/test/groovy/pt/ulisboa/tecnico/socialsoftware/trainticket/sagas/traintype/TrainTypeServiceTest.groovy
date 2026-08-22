@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.trainticket.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.TrainticketSpockTest
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.TrainTypeDto
 
 @DataJpaTest
 @Transactional
@@ -74,6 +75,86 @@ class TrainTypeServiceTest extends TrainticketSpockTest {
 
         then:
         result.isEmpty()
+    }
+
+    def "createTrainType: persisted and readable through a fresh UnitOfWork"() {
+        // Spec: plan.md §2 TrainType - CreateTrainType
+        when:
+        def created = trainTypeService.createTrainType(
+                new TrainTypeDto(TRAIN_TYPE_NAME, TRAIN_TYPE_ECONOMY_CLASS_SEATS,
+                        TRAIN_TYPE_FIRST_CLASS_SEATS, TRAIN_TYPE_AVERAGE_SPEED),
+                unitOfWorkService.createUnitOfWork("createTrainType"))
+
+        then: 'read back through a second, fresh UnitOfWork'
+        def readBack = trainTypeService.getTrainTypeById(created.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.aggregateId == created.aggregateId
+        readBack.name == TRAIN_TYPE_NAME
+        readBack.economyClassSeats == TRAIN_TYPE_ECONOMY_CLASS_SEATS
+        readBack.firstClassSeats == TRAIN_TYPE_FIRST_CLASS_SEATS
+        readBack.averageSpeed == TRAIN_TYPE_AVERAGE_SPEED
+        readBack.isActive()
+    }
+
+    def "updateTrainType: new seat counts and speed persisted, name untouched"() {
+        // Spec: plan.md §2 TrainType - UpdateTrainType; rule TRAIN_TYPE_NAME_FINAL (name is not updatable)
+        given:
+        def trainTypeAggregateId = createTrainType(TRAIN_TYPE_NAME, TRAIN_TYPE_ECONOMY_CLASS_SEATS,
+                TRAIN_TYPE_FIRST_CLASS_SEATS, TRAIN_TYPE_AVERAGE_SPEED)
+
+        when:
+        trainTypeService.updateTrainType(trainTypeAggregateId,
+                new TrainTypeDto(TRAIN_TYPE_NAME_TWO, TRAIN_TYPE_SEATS_ONE,
+                        TRAIN_TYPE_SEATS_ZERO, TRAIN_TYPE_AVERAGE_SPEED_ONE),
+                unitOfWorkService.createUnitOfWork("updateTrainType"))
+
+        then: 'read back through a second, fresh UnitOfWork'
+        def readBack = trainTypeService.getTrainTypeById(trainTypeAggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.economyClassSeats == TRAIN_TYPE_SEATS_ONE
+        readBack.firstClassSeats == TRAIN_TYPE_SEATS_ZERO
+        readBack.averageSpeed == TRAIN_TYPE_AVERAGE_SPEED_ONE
+        readBack.name == TRAIN_TYPE_NAME
+    }
+
+    def "updateTrainType: unknown aggregate id"() {
+        // Spec: plan.md §2 TrainType - UpdateTrainType; Path A (aggregateLoadAndRegisterRead)
+        when:
+        trainTypeService.updateTrainType(NONEXISTENT_AGGREGATE_ID,
+                new TrainTypeDto(TRAIN_TYPE_NAME, TRAIN_TYPE_SEATS_ONE,
+                        TRAIN_TYPE_SEATS_ZERO, TRAIN_TYPE_AVERAGE_SPEED_ONE),
+                unitOfWorkService.createUnitOfWork("updateTrainType"))
+
+        then:
+        thrown(SimulatorException)
+    }
+
+    def "deleteTrainType: soft-deleted train type is no longer loadable"() {
+        // Spec: plan.md §2 TrainType - DeleteTrainType (soft delete)
+        given:
+        def trainTypeAggregateId = createTrainType(TRAIN_TYPE_NAME, TRAIN_TYPE_ECONOMY_CLASS_SEATS,
+                TRAIN_TYPE_FIRST_CLASS_SEATS, TRAIN_TYPE_AVERAGE_SPEED)
+
+        when:
+        trainTypeService.deleteTrainType(trainTypeAggregateId,
+                unitOfWorkService.createUnitOfWork("deleteTrainType"))
+
+        and: 'read back through a second, fresh UnitOfWork'
+        trainTypeService.getTrainTypeById(trainTypeAggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+
+        then: 'DELETED aggregate is not loadable'
+        thrown(SimulatorException)
+    }
+
+    def "deleteTrainType: unknown aggregate id"() {
+        // Spec: plan.md §2 TrainType - DeleteTrainType; Path A (aggregateLoadAndRegisterRead)
+        when:
+        trainTypeService.deleteTrainType(NONEXISTENT_AGGREGATE_ID,
+                unitOfWorkService.createUnitOfWork("deleteTrainType"))
+
+        then:
+        thrown(SimulatorException)
     }
 
     @TestConfiguration

@@ -4,8 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.commands.traintype.CreateTrainTypeCommand;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.commands.traintype.DeleteTrainTypeCommand;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.commands.traintype.GetTrainTypeByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.commands.traintype.GetTrainTypesCommand;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.commands.traintype.UpdateTrainTypeCommand;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.service.TrainTypeService;
 
 import java.util.logging.Logger;
@@ -27,6 +30,9 @@ public class TrainTypeCommandHandler extends CommandHandler {
         return switch (command) {
             case GetTrainTypeByIdCommand cmd -> handleGetTrainTypeById(cmd);
             case GetTrainTypesCommand cmd -> handleGetTrainTypes(cmd);
+            case CreateTrainTypeCommand cmd -> handleCreateTrainType(cmd);
+            case UpdateTrainTypeCommand cmd -> handleUpdateTrainType(cmd);
+            case DeleteTrainTypeCommand cmd -> handleDeleteTrainType(cmd);
             default -> {
                 logger.warning("Unknown command: " + command.getClass().getName());
                 yield null;
@@ -40,5 +46,20 @@ public class TrainTypeCommandHandler extends CommandHandler {
 
     private Object handleGetTrainTypes(GetTrainTypesCommand command) {
         return trainTypeService.getTrainTypes(command.getUnitOfWork());
+    }
+
+    private Object handleCreateTrainType(CreateTrainTypeCommand command) {
+        return trainTypeService.createTrainType(command.getTrainTypeDto(), command.getUnitOfWork());
+    }
+
+    private Object handleUpdateTrainType(UpdateTrainTypeCommand command) {
+        trainTypeService.updateTrainType(command.getTrainTypeAggregateId(), command.getTrainTypeDto(),
+                command.getUnitOfWork());
+        return null;
+    }
+
+    private Object handleDeleteTrainType(DeleteTrainTypeCommand command) {
+        trainTypeService.deleteTrainType(command.getTrainTypeAggregateId(), command.getUnitOfWork());
+        return null;
     }
 }

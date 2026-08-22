@@ -8,5 +8,17 @@ public enum TrainTypeSagaState implements SagaAggregate.SagaState {
         public String getStateName() {
             return "READ_TRAIN_TYPE";
         }
+    },
+    IN_UPDATE_TRAIN_TYPE {
+        @Override
+        public String getStateName() {
+            return "IN_UPDATE_TRAIN_TYPE";
+        }
+    },
+    IN_DELETE_TRAIN_TYPE {
+        @Override
+        public String getStateName() {
+            return "IN_DELETE_TRAIN_TYPE";
+        }
     }
 }

@@ -14,7 +14,6 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggre
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.coordination.functionalities.StationFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.service.StationService
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.TrainTypeDto
-import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.sagas.SagaTrainType
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.coordination.functionalities.TrainTypeFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.service.TrainTypeService
 
@@ -95,8 +94,6 @@ class TrainticketSpockTest extends SpockTest {
                             Integer firstClassSeats = TRAIN_TYPE_FIRST_CLASS_SEATS,
                             Integer averageSpeed = TRAIN_TYPE_AVERAGE_SPEED) {
         def trainTypeDto = new TrainTypeDto(name, economyClassSeats, firstClassSeats, averageSpeed)
-        def trainType = new SagaTrainType(aggregateIdGeneratorService.getNewAggregateId(), trainTypeDto)
-        unitOfWorkService.registerChanged(trainType, unitOfWorkService.createUnitOfWork("fixture"))
-        return trainType.getAggregateId()
+        return trainTypeFunctionalities.createTrainType(trainTypeDto).aggregateId
     }
 }

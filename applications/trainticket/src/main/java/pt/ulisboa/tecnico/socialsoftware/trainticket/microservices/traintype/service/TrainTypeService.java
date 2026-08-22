@@ -51,4 +51,33 @@ public class TrainTypeService {
         }
         return trainTypes;
     }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public TrainTypeDto createTrainType(TrainTypeDto trainTypeDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        TrainType trainType = trainTypeFactory.createTrainType(aggregateId, trainTypeDto);
+
+        unitOfWorkService.registerChanged(trainType, unitOfWork);
+        return trainTypeFactory.createTrainTypeDto(trainType);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateTrainType(Integer trainTypeAggregateId, TrainTypeDto trainTypeDto, UnitOfWork unitOfWork) {
+        TrainType oldTrainType = (TrainType) unitOfWorkService.aggregateLoadAndRegisterRead(trainTypeAggregateId, unitOfWork);
+        TrainType newTrainType = trainTypeFactory.createTrainTypeCopy(oldTrainType);
+        newTrainType.setEconomyClassSeats(trainTypeDto.getEconomyClassSeats());
+        newTrainType.setFirstClassSeats(trainTypeDto.getFirstClassSeats());
+        newTrainType.setAverageSpeed(trainTypeDto.getAverageSpeed());
+
+        unitOfWorkService.registerChanged(newTrainType, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deleteTrainType(Integer trainTypeAggregateId, UnitOfWork unitOfWork) {
+        TrainType oldTrainType = (TrainType) unitOfWorkService.aggregateLoadAndRegisterRead(trainTypeAggregateId, unitOfWork);
+        TrainType newTrainType = trainTypeFactory.createTrainTypeCopy(oldTrainType);
+        newTrainType.remove();
+
+        unitOfWorkService.registerChanged(newTrainType, unitOfWork);
+    }
 }
