@@ -54,7 +54,7 @@ Path: `{src}microservices/{aggregate}/aggregate/{Aggregate}.java`
 - Contains all fields defined in the domain model for this aggregate, including:
   - Snapshot fields copied from other aggregates (cached denormalized data)
   - Owned entity fields — choose based on cardinality:
-    - **Collection** (`@OneToMany`): `@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)` — aggregate is the inverse side with no FK column
+    - **Collection** (`@OneToMany`): `@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)` — unidirectional and **owning**, mapped through a join table. Do **not** add `mappedBy`: there is no back-reference on the entity to name, and the entity class declares no field pointing at the aggregate
     - **Single** (`@OneToOne`): `@OneToOne(cascade = CascadeType.ALL, mappedBy = "{entityField}")` — aggregate holds the inverse side; the entity class holds the FK via a plain `@OneToOne` back-reference. The aggregate's setter must call `entity.set{Aggregate}(this)` to wire the bidirectional link before the entity is persisted
 - Constructor: accepts all required fields; sets `state = ACTIVE`; does **not** call `verifyInvariants()` — the framework calls it automatically via `registerChanged` at commit time
 - `verifyInvariants()`: enforces all **P1 rules** for this aggregate listed in plan.md. Throws `{AppClass}Exception` with the appropriate error message constant on violation.
