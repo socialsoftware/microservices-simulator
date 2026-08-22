@@ -205,21 +205,24 @@ public final class Orchestrator {
                 catalog.name(), footprints.size(), groups.size(), possiblePairs);
 
         progress.registerCatalog(catalog.name(), footprints.size(), possiblePairs, groups.size());
-        checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
+        OrchestrationReport catalogCheckpoint = checkpoint.write(
+                OrchestrationReport.CampaignStatus.RUNNING, null);
+        log.info("{}", CampaignProgressDisplay.format(catalogCheckpoint));
 
         // TODO progress tracking: plan every catalog before exploration so a
         // partial summary can show campaign-wide, rather than discovered-so-far,
-        // totals.
+        // totals (relevant for multi-catalog campaigns).
         for (FunctionalityGroup group : groups) {
             List<TestResult> results = driver.exploreGroup(catalog, group, progress::recordCompletedRun);
 
             List<OrchestrationReport.Finding> groupFindings = findingsOf(catalog, group, results);
             progress.recordCompletedGroup(
                     catalog.name(), summaryOf(group, results, groupFindings.size()), groupFindings);
-            checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
+            OrchestrationReport summary = checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
 
             log.info("Catalog '{}', group '{}': {} run(s), {} finding(s)",
                     catalog.name(), group.label(), results.size(), groupFindings.size());
+            log.info("{}", CampaignProgressDisplay.format(summary));
         }
     }
 

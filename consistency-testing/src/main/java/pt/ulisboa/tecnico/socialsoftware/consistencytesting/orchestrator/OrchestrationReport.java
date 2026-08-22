@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +8,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
+
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
 
 /**
  * What a campaign found, and enough about how it ran to reproduce it.
@@ -220,7 +221,8 @@ public record OrchestrationReport(
     /** A short, human-readable summary of the campaign. */
     public String summary() {
         String header = "Consistency campaign over %s [status=%s, seed=%d, iterationsPerGroup=%d, duration=%s]"
-                .formatted(application, status, masterSeed, iterationsPerGroup, formatDuration(durationMillis));
+                .formatted(application, status, masterSeed, iterationsPerGroup,
+                        StringUtils.formatDuration(durationMillis));
 
         String reports = "reports: " + reportsDirectory;
 
@@ -249,24 +251,8 @@ public record OrchestrationReport(
         return String.join(System.lineSeparator(), header, reports, perCatalog, total, outcomes, statuses);
     }
 
-    /**
-     * Duration as {@code 1h07m12s} / {@code 6m42s} / {@code 12s}, dropping the
-     * units it does not need.
-     */
-    private static String formatDuration(long durationMillis) {
-        Duration duration = Duration.ofMillis(durationMillis);
-        if (duration.toHours() > 0) {
-            return "%dh%02dm%02ds".formatted(
-                    duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
-        }
-        if (duration.toMinutes() > 0) {
-            return "%dm%02ds".formatted(duration.toMinutes(), duration.toSecondsPart());
-        }
-        return "%ds".formatted(duration.toSeconds());
-    }
-
     private static String formatOptionalDuration(Long durationMillis) {
-        return durationMillis == null ? "not observed" : formatDuration(durationMillis);
+        return durationMillis == null ? "not observed" : StringUtils.formatDuration(durationMillis);
     }
 
     private static String describe(Finding finding) {

@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.time.Duration;
 
 public class StringUtils {
 
@@ -60,5 +61,21 @@ public class StringUtils {
      */
     public static String toPortableString(Path path) {
         return path.toString().replace(File.separatorChar, '/');
+    }
+
+    /**
+     * Duration as {@code 1h07m12s} / {@code 6m42s} / {@code 12s}, dropping the
+     * units it does not need.
+     */
+    public static String formatDuration(long durationMillis) {
+        Duration duration = Duration.ofMillis(durationMillis);
+        if (duration.toHours() > 0) {
+            return "%dh%02dm%02ds".formatted(
+                    duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
+        }
+        if (duration.toMinutes() > 0) {
+            return "%dm%02ds".formatted(duration.toMinutes(), duration.toSecondsPart());
+        }
+        return "%ds".formatted(duration.toSeconds());
     }
 }
