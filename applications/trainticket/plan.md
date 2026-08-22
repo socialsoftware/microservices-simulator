@@ -279,7 +279,7 @@ ROUTE_ENDPOINTS_MATCH_STATION_LIST (all P1); STATIONS_EXIST (P4a).
 
 | Session | Files |
 |---------|-------|
-| 2.4.a | `aggregate/Route.java`, `aggregate/RouteStation.java`, `aggregate/RouteStationDto.java`, `aggregate/RouteFactory.java`, `aggregate/RouteCustomRepository.java`, `aggregate/sagas/SagaRoute.java`, `aggregate/sagas/states/RouteSagaState.java`, `aggregate/sagas/factories/SagasRouteFactory.java`, `aggregate/sagas/repositories/RouteCustomRepositorySagas.java`, `aggregate/RouteDto.java`, `aggregate/RouteRepository.java`, `RouteServiceApplication.java`, `sagas/route/RouteIntraInvariantTest.groovy` |
+| 2.4.a | `aggregate/Route.java`, `aggregate/RouteStation.java`, `aggregate/RouteStationDto.java`, `aggregate/RouteFactory.java`, `aggregate/RouteCustomRepository.java`, `aggregate/sagas/SagaRoute.java`, `aggregate/sagas/states/RouteSagaState.java`, `aggregate/sagas/factories/SagasRouteFactory.java`, `aggregate/sagas/repositories/RouteCustomRepositorySagas.java`, `aggregate/RouteDto.java`, `aggregate/RouteRepository.java`, `RouteServiceApplication.java`, `sagas/route/RouteIntraInvariantTest.groovy`, `{src}microservices/exception/TrainticketErrorMessage.java` (added 2.4.a - the six P1 constants `verifyInvariants()` throws), `{test}TrainticketSpockTest.groovy` (added 2.4.a - the T1 literals for the Route field list and the six rules' cases), `{test}BeanConfigurationSagas.groovy` (added 2.4.a - the factory and custom-repository beans) |
 | 2.4.b | `service/RouteService.java` (read methods), `messaging/RouteCommandHandler.java`, `commands/route/GetRouteByIdCommand.java`, `commands/route/GetRoutesCommand.java`, `commands/route/GetRoutesByStationCommand.java`, `coordination/sagas/GetRouteByIdFunctionalitySagas.java`, `coordination/sagas/GetRoutesFunctionalitySagas.java`, `coordination/sagas/GetRoutesByStationFunctionalitySagas.java`, `coordination/functionalities/RouteFunctionalities.java`, `{src}ServiceMapping.java` (add `ROUTE("route")`), `sagas/route/RouteServiceTest.groovy` (read-method cases), `sagas/coordination/route/GetRouteByIdTest.groovy`, `sagas/coordination/route/GetRoutesTest.groovy`, `sagas/coordination/route/GetRoutesByStationTest.groovy` |
 | 2.4.c | `service/RouteService.java` (write methods appended), `commands/route/CreateRouteCommand.java`, `commands/route/UpdateRouteCommand.java`, `commands/route/DeleteRouteCommand.java`, `coordination/sagas/CreateRouteFunctionalitySagas.java`, `coordination/sagas/UpdateRouteFunctionalitySagas.java`, `coordination/sagas/DeleteRouteFunctionalitySagas.java`, write coordinator methods appended to `coordination/functionalities/RouteFunctionalities.java`, write cases appended to `messaging/RouteCommandHandler.java`, `coordination/webapi/RouteController.java`, `sagas/coordination/route/CreateRouteTest.groovy`, `sagas/coordination/route/UpdateRouteTest.groovy`, `sagas/coordination/route/DeleteRouteTest.groovy`, write-method cases appended to `sagas/route/RouteServiceTest.groovy` |
 
@@ -291,7 +291,7 @@ ROUTE_ENDPOINTS_MATCH_STATION_LIST (all P1); STATIONS_EXIST (P4a).
 > built from it.
 
 **Checklist:**
-- [ ] 2.4.a - Domain layer
+- [x] 2.4.a - Domain layer
 - [ ] 2.4.b - Read functionalities
 - [ ] 2.4.c - Write functionalities
 

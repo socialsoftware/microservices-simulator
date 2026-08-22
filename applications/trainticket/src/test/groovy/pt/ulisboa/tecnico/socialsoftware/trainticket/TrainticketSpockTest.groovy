@@ -64,6 +64,22 @@ class TrainticketSpockTest extends SpockTest {
     public static final String USER_EMAIL = "zhangsan@trainticket.test"
     public static final String USER_EMAIL_TWO = "lisi@trainticket.test"
 
+    public static final String ROUTE_START_STATION_NAME = "Shanghai"
+    public static final String ROUTE_MIDDLE_STATION_NAME = "Nanjing"
+    public static final String ROUTE_END_STATION_NAME = "Beijing"
+    public static final String ROUTE_OTHER_STATION_NAME = "Suzhou"
+    public static final Integer ROUTE_STATION_AGGREGATE_ID_ONE = 101
+    public static final Integer ROUTE_STATION_AGGREGATE_ID_TWO = 102
+    public static final Integer ROUTE_STATION_AGGREGATE_ID_THREE = 103
+    public static final Integer ROUTE_SEQUENCE_ZERO = 0
+    public static final Integer ROUTE_SEQUENCE_ONE = 1
+    public static final Integer ROUTE_SEQUENCE_TWO = 2
+    public static final Integer ROUTE_SEQUENCE_THREE = 3
+    public static final Integer ROUTE_DISTANCE_ZERO = 0
+    public static final Integer ROUTE_DISTANCE_ONE = 1
+    public static final Integer ROUTE_DISTANCE_MIDDLE = 150
+    public static final Integer ROUTE_DISTANCE_END = 350
+
 
     @Autowired
     public ImpairmentService impairmentService

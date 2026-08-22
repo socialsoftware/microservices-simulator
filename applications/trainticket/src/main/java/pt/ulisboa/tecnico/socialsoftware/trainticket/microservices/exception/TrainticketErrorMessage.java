@@ -36,5 +36,12 @@ public final class TrainticketErrorMessage {
     public static final String USER_DOCUMENT_NUMBER_PRESENT = "User document number must be present when a document type is set.";
     public static final String DUPLICATE_USER_NAME = "Another active user already holds this user name.";
 
+    public static final String ROUTE_HAS_AT_LEAST_TWO_STATIONS = "Route must have at least two stations.";
+    public static final String ROUTE_SEQUENCE_CONTIGUOUS = "Route station sequences must be contiguous and start at zero.";
+    public static final String ROUTE_DISTANCES_MONOTONIC = "Route station distances must strictly increase along the sequence.";
+    public static final String ROUTE_FIRST_DISTANCE_IS_ZERO = "The first route station must be at distance zero.";
+    public static final String ROUTE_STATIONS_DISTINCT = "Route stations must reference distinct stations.";
+    public static final String ROUTE_ENDPOINTS_MATCH_STATION_LIST = "Route start and end station names must match the first and last stations of its list.";
+
     public static final String PLACEHOLDER = "placeholder";
 }
