@@ -378,7 +378,7 @@ UNIQUE_TRIP_NUMBER (P3, own table, create only), ROUTE_AND_TRAIN_TYPE_EXIST (P4a
 > onto the Order, and derives `departureTime` from `startTime`.
 
 **Checklist:**
-- [ ] 2.6.a - Domain layer
+- [x] 2.6.a - Domain layer
 - [ ] 2.6.b - Read functionalities
 - [ ] 2.6.c - Write functionalities
 

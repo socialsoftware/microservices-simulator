@@ -45,5 +45,7 @@ public final class TrainticketErrorMessage {
 
     public static final String CONTACTS_DOCUMENT_NUMBER_PRESENT = "Contacts document number must be present when a document type is set.";
 
+    public static final String TRIP_START_BEFORE_END = "Trip start time must be before its end time.";
+
     public static final String PLACEHOLDER = "placeholder";
 }

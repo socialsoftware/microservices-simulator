@@ -8,6 +8,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 
+import java.time.LocalTime
+
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
 
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.StationDto
@@ -99,6 +101,19 @@ class TrainticketSpockTest extends SpockTest {
     public static final String CONTACTS_DOCUMENT_NUMBER_BLANK = "   "
     public static final String CONTACTS_PHONE_NUMBER = "+86-21-5555-0100"
     public static final String CONTACTS_PHONE_NUMBER_TWO = "+86-10-6666-0200"
+
+    public static final String TRIP_NUMBER = "G1234"
+    public static final String TRIP_NUMBER_TWO = "D5678"
+    public static final Integer TRIP_ROUTE_AGGREGATE_ID = 301
+    public static final Integer TRIP_ROUTE_AGGREGATE_ID_TWO = 302
+    public static final Integer TRIP_TRAIN_TYPE_AGGREGATE_ID = 401
+    public static final Integer TRIP_TRAIN_TYPE_AGGREGATE_ID_TWO = 402
+    public static final LocalTime TRIP_START_TIME = LocalTime.of(8, 0)
+    public static final LocalTime TRIP_END_TIME = LocalTime.of(14, 30)
+    public static final LocalTime TRIP_END_TIME_TWO = LocalTime.of(16, 45)
+    public static final LocalTime TRIP_END_TIME_ON_POINT = TRIP_START_TIME.plusNanos(1)
+    public static final LocalTime TRIP_END_TIME_EQUAL_TO_START = TRIP_START_TIME
+    public static final LocalTime TRIP_END_TIME_BEFORE_START = TRIP_START_TIME.minusNanos(1)
 
 
     @Autowired
