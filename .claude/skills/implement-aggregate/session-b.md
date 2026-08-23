@@ -243,6 +243,21 @@ survive that swap unchanged: minimal valid arguments, each defaulted to the doma
 id returned. Do **not** name it `persist{Aggregate}` or make it `private` to a test class — a
 per-test-class fixture is thrown away in 2.{N}.c and every call site has to be rewritten.
 
+> **Foreign aggregate ids are never defaulted to a constant.** "Defaulted to the domain constant"
+> holds for the aggregate's own scalar fields. It does not hold for a parameter that names *another*
+> aggregate, when plan.md § "Cross-aggregate prerequisites" gives this aggregate's create saga a
+> data-assembly step that fetches that foreign aggregate. The step's fetch throwing **is** the
+> prerequisite's enforcement, so in 2.{N}.c a placeholder id resolves to nothing and the fetch
+> throws - the helper's own call sites break on the very swap the signature exists to survive, and
+> 2.{N}.b's green suite hides it because the fixture bypasses the saga entirely.
+>
+> Have the helper mint the prerequisite instead: call the foreign aggregate's own
+> `create{Foreign}(...)` helper (already on the base class - the topological sort puts it in an
+> earlier session) and pass the id it returns. Defaults stay defaults; only their **source** changes
+> from a literal to a fixture call. Where a test needs two aggregates to share, or deliberately not
+> share, a prerequisite, it mints the foreign ids itself and passes them in explicitly, so make that
+> parameter overridable rather than computed inside the helper only.
+
 ---
 
 ## Tick the Checkbox
