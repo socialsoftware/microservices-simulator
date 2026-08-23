@@ -48,6 +48,7 @@ final class ScheduleExecutor {
     private final Set<StepId> schedule = new LinkedHashSet<>(); // keeps execution order and allows O(1) contains checks
     private final Set<StepId> successfulSteps = new HashSet<>();
     private final Map<StepId, Exception> stepExceptionsMap = new HashMap<>();
+    private final DeferredEventRetryTracker deferredEventRetryTracker = new DeferredEventRetryTracker();
 
     /** inter-invariant name -> violations detected for that inter-invariant */
     private final Map<String, Set<InterInvariantViolation>> interInvariantViolations = new HashMap<>();
@@ -238,17 +239,27 @@ final class ScheduleExecutor {
                 }
             }
 
-            captureStepEffects(step);
+            boolean stepWroteState = captureStepEffects(step);
+            deferredEventRetryTracker.recordExecutedStep(step, stepWroteState);
             captureEmittedEventSteps(stepId);
         }
     }
 
-    /** Appends the effects the step just produced to the effect sequence. */
-    private void captureStepEffects(OracleStep step) {
+    /**
+     * Appends the effects the step just produced to the effect sequence.
+     *
+     * @return whether the step wrote aggregate state
+     */
+    private boolean captureStepEffects(OracleStep step) {
+        boolean wroteState = false;
         for (Effect effect : traceSession.drain()) {
-            effectSequence.add(StepEffect.of(
-                    effectSequence.size(), step.getId(), StepKind.of(step), effect));
+            effectSequence.add(
+                    StepEffect.of(effectSequence.size(), step.getId(), StepKind.of(step), effect));
+            if (effect instanceof Effect.Write) {
+                wroteState = true;
+            }
         }
+        return wroteState;
     }
 
     private void captureEmittedEventSteps(StepId stepId) {
@@ -257,16 +268,97 @@ final class ScheduleExecutor {
         Set<DeferredEventInvocation> eventInvocations = captureSession.drain();
 
         // TODO should capture all events, or filter to selected EventHandlers for test?
-        List<EventHandlerStep> eventHandlerSteps = eventInvocations.stream()
-                .map(invocation -> new EventHandlerStep(
-                        invocation.event(),
-                        invocation.handler(),
-                        stepId,
-                        invocation.publisherAggregateId(),
-                        invocation.subscriberAggregateId()))
-                .toList();
+        List<EventHandlerStep> eventHandlerSteps = new ArrayList<>();
+        for (DeferredEventInvocation invocation : eventInvocations) {
+            if (!deferredEventRetryTracker.canSchedule(invocation)) {
+                continue;
+            }
+
+            EventHandlerStep eventHandlerStep = new EventHandlerStep(
+                    invocation.event(),
+                    invocation.handler(),
+                    stepId,
+                    invocation.publisherAggregateId(),
+                    invocation.subscriberAggregateId());
+            deferredEventRetryTracker.recordScheduled(invocation, eventHandlerStep.getId());
+            eventHandlerSteps.add(eventHandlerStep);
+        }
 
         addSteps(eventHandlerSteps);
+    }
+
+    /**
+     * Prevents a deferred event from scheduling itself repeatedly when its handler
+     * makes no progress, while allowing a later polling opportunity to retry it.
+     */
+    private static final class DeferredEventRetryTracker {
+        /** Sentinel used while a scheduled event-handler step has not executed yet. */
+        private static final long PENDING_ATTEMPT = -1L;
+
+        private final Map<DeferredEventInvocation, EventAttempt> latestAttempts = new HashMap<>();
+        private final Map<StepId, DeferredEventInvocation> invocationsByStep = new HashMap<>();
+        /**
+         * Counts progress boundaries used to decide whether a deferred invocation
+         * may be retried. It advances after non-event steps and state-writing handlers.
+         */
+        private long pollingEpoch;
+
+        /**
+         * Returns whether a captured invocation should become a new event-handler step.
+         * <p>
+         * Pending attempts and attempts completed in the current polling epoch are
+         * suppressed. A later epoch permits retrying the invocation.
+         */
+        boolean canSchedule(DeferredEventInvocation invocation) {
+            EventAttempt previousAttempt = latestAttempts.get(invocation);
+            return previousAttempt == null
+                    || (previousAttempt.executedEpoch() != PENDING_ATTEMPT
+                            && previousAttempt.executedEpoch() < pollingEpoch);
+        }
+
+        /**
+         * Records a newly scheduled attempt so duplicate polls are suppressed until
+         * it executes and becomes eligible for a later retry.
+         */
+        void recordScheduled(DeferredEventInvocation invocation, StepId eventStepId) {
+            latestAttempts.put(invocation, new EventAttempt(eventStepId, PENDING_ATTEMPT));
+            invocationsByStep.put(eventStepId, invocation);
+        }
+
+        /**
+         * Records an executed step and advances the retry epoch when another poll may
+         * see progress. Non-event steps always advance it; event-handler steps advance
+         * it only when they write aggregate state.
+         */
+        void recordExecutedStep(OracleStep step, boolean wroteState) {
+            if (step instanceof EventHandlerStep) {
+                recordExecutedEventAttempt(step.getId());
+                if (wroteState) {
+                    pollingEpoch++;
+                }
+            } else {
+                pollingEpoch++;
+            }
+        }
+
+        /** Marks an event-handler attempt as executed in the current polling epoch. */
+        private void recordExecutedEventAttempt(StepId eventStepId) {
+            DeferredEventInvocation invocation = invocationsByStep.get(eventStepId);
+            if (invocation == null) {
+                throw new IllegalStateException("Missing deferred invocation for event-handler step '%s'"
+                        .formatted(eventStepId));
+            }
+
+            EventAttempt latestAttempt = latestAttempts.get(invocation);
+            if (latestAttempt == null || !latestAttempt.eventStepId().equals(eventStepId)) {
+                throw new IllegalStateException("Event-handler step '%s' is not the latest scheduled attempt"
+                        .formatted(eventStepId));
+            }
+            latestAttempts.put(invocation, new EventAttempt(eventStepId, pollingEpoch));
+        }
+
+        private record EventAttempt(StepId eventStepId, long executedEpoch) {
+        }
     }
 
     /**

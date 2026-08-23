@@ -72,7 +72,6 @@ final class DeferredEventApplicationService extends EventApplicationService {
 
         private final DeferredEventApplicationService owner;
         private final Set<DeferredEventInvocation> currentDeferred = ConcurrentHashMap.newKeySet();
-        private final Set<DeferredEventInvocation> allDeferred = ConcurrentHashMap.newKeySet();
         private volatile boolean closed = false;
 
         private CaptureSession(DeferredEventApplicationService owner) {
@@ -84,11 +83,10 @@ final class DeferredEventApplicationService extends EventApplicationService {
                 throw new IllegalStateException("Capture session already closed");
             }
 
-            if (allDeferred.add(invocation)) {
-                // Track new event handling invocations while avoiding duplication of
-                // invocations that were previously recorded on allDeferred registry.
-                currentDeferred.add(invocation);
-            }
+            // Collapse duplicate captures within one poll. A pending invocation whose
+            // subscription is still valid may be captured again by a later poll to allow
+            // for retries.
+            currentDeferred.add(invocation);
         }
 
         Set<DeferredEventInvocation> drain() {
