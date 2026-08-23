@@ -5,6 +5,7 @@ public enum ServiceMapping {
     TRAIN_TYPE("trainType"),
     USER("user"),
     ROUTE("route"),
+    CONTACTS("contacts"),
     ;
 
     private final String serviceName;

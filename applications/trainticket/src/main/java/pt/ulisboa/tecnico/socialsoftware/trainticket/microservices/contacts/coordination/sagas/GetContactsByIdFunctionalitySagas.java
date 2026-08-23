@@ -1,0 +1,41 @@
+package pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.coordination.sagas;
+
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.ServiceMapping;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.commands.contacts.GetContactsByIdCommand;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.aggregate.ContactsDto;
+
+public class GetContactsByIdFunctionalitySagas extends WorkflowFunctionality {
+    private ContactsDto contactsDto;
+    private final SagaUnitOfWorkService unitOfWorkService;
+    private final CommandGateway commandGateway;
+
+    public GetContactsByIdFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                             Integer contactsAggregateId,
+                                             SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+        this.unitOfWorkService = unitOfWorkService;
+        this.commandGateway = commandGateway;
+        buildWorkflow(contactsAggregateId, unitOfWork);
+    }
+
+    public void buildWorkflow(Integer contactsAggregateId, SagaUnitOfWork unitOfWork) {
+        this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+        SagaStep getContactsStep = new SagaStep("getContactsStep", () -> {
+            GetContactsByIdCommand cmd = new GetContactsByIdCommand(
+                    unitOfWork, ServiceMapping.CONTACTS.getServiceName(), contactsAggregateId);
+            this.contactsDto = (ContactsDto) commandGateway.send(cmd);
+        });
+
+        this.workflow.addStep(getContactsStep);
+    }
+
+    public ContactsDto getContactsDto() {
+        return contactsDto;
+    }
+}

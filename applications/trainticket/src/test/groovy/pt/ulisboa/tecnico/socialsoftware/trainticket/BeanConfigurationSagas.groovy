@@ -53,8 +53,13 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggrega
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.coordination.functionalities.RouteFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.messaging.RouteCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.service.RouteService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.aggregate.ContactsCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.aggregate.ContactsRepository
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.aggregate.sagas.factories.SagasContactsFactory
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.aggregate.sagas.repositories.ContactsCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.coordination.functionalities.ContactsFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.messaging.ContactsCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.service.ContactsService
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
@@ -273,6 +278,23 @@ class BeanConfigurationSagas {
     @Bean
     ContactsCustomRepositorySagas contactsCustomRepositorySagas() {
         return new ContactsCustomRepositorySagas()
+    }
+
+    @Bean
+    ContactsService contactsService(SagaUnitOfWorkService unitOfWorkService,
+                                    ContactsRepository contactsRepository,
+                                    ContactsCustomRepository contactsCustomRepository) {
+        return new ContactsService(unitOfWorkService, contactsRepository, contactsCustomRepository)
+    }
+
+    @Bean
+    ContactsCommandHandler contactsCommandHandler() {
+        return new ContactsCommandHandler()
+    }
+
+    @Bean
+    ContactsFunctionalities contactsFunctionalities() {
+        return new ContactsFunctionalities()
     }
 
 }
