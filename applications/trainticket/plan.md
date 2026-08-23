@@ -370,7 +370,7 @@ UNIQUE_TRIP_NUMBER (P3, own table, create only), ROUTE_AND_TRAIN_TYPE_EXIST (P4a
 | Session | Files |
 |---------|-------|
 | 2.6.a | `aggregate/Trip.java`, `aggregate/TripFactory.java`, `aggregate/TripCustomRepository.java`, `aggregate/sagas/SagaTrip.java`, `aggregate/sagas/states/TripSagaState.java`, `aggregate/sagas/factories/SagasTripFactory.java`, `aggregate/sagas/repositories/TripCustomRepositorySagas.java`, `aggregate/TripDto.java`, `aggregate/TripRepository.java`, `TripServiceApplication.java`, `sagas/trip/TripIntraInvariantTest.groovy` |
-| 2.6.b | `service/TripService.java` (read methods), `messaging/TripCommandHandler.java`, `commands/trip/GetTripByIdCommand.java`, `commands/trip/GetTripsCommand.java`, `coordination/sagas/GetTripByIdFunctionalitySagas.java`, `coordination/sagas/GetTripsFunctionalitySagas.java`, `coordination/functionalities/TripFunctionalities.java`, `{src}ServiceMapping.java` (add `TRIP("trip")`), `sagas/trip/TripServiceTest.groovy` (read-method cases), `sagas/coordination/trip/GetTripByIdTest.groovy`, `sagas/coordination/trip/GetTripsTest.groovy` |
+| 2.6.b | `service/TripService.java` (read methods), `messaging/TripCommandHandler.java`, `commands/trip/GetTripByIdCommand.java`, `commands/trip/GetTripsCommand.java`, `coordination/sagas/GetTripByIdFunctionalitySagas.java`, `coordination/sagas/GetTripsFunctionalitySagas.java`, `coordination/functionalities/TripFunctionalities.java`, `{src}ServiceMapping.java` (add `TRIP("trip")`), `sagas/trip/TripServiceTest.groovy` (read-method cases), `sagas/coordination/trip/GetTripByIdTest.groovy`, `sagas/coordination/trip/GetTripsTest.groovy`, `aggregate/TripRepository.java`, `aggregate/TripCustomRepository.java`, `aggregate/sagas/repositories/TripCustomRepositorySagas.java` (added 2.6.b - `GetTrips` is a collection read, so all three carry `findAllLatestActive()`) |
 | 2.6.c | `service/TripService.java` (write methods appended), `commands/trip/CreateTripCommand.java`, `commands/trip/UpdateTripCommand.java`, `commands/trip/DeleteTripCommand.java`, `coordination/sagas/CreateTripFunctionalitySagas.java`, `coordination/sagas/UpdateTripFunctionalitySagas.java`, `coordination/sagas/DeleteTripFunctionalitySagas.java`, write coordinator methods appended to `coordination/functionalities/TripFunctionalities.java`, write cases appended to `messaging/TripCommandHandler.java`, `coordination/webapi/TripController.java`, `sagas/coordination/trip/CreateTripTest.groovy`, `sagas/coordination/trip/UpdateTripTest.groovy`, `sagas/coordination/trip/DeleteTripTest.groovy`, write-method cases appended to `sagas/trip/TripServiceTest.groovy` |
 
 > **`TripDto` must expose `routeAggregateId`, `trainTypeAggregateId`, `tripNumber` and `startTime`.**
@@ -379,7 +379,7 @@ UNIQUE_TRIP_NUMBER (P3, own table, create only), ROUTE_AND_TRAIN_TYPE_EXIST (P4a
 
 **Checklist:**
 - [x] 2.6.a - Domain layer
-- [ ] 2.6.b - Read functionalities
+- [x] 2.6.b - Read functionalities
 - [ ] 2.6.c - Write functionalities
 
 ---

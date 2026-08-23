@@ -62,6 +62,11 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.mess
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.service.ContactsService
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregate.sagas.factories.SagasTripFactory
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregate.sagas.repositories.TripCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregate.TripCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregate.TripRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.coordination.functionalities.TripFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.messaging.TripCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.service.TripService
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
@@ -307,6 +312,23 @@ class BeanConfigurationSagas {
     @Bean
     TripCustomRepositorySagas tripCustomRepositorySagas() {
         return new TripCustomRepositorySagas()
+    }
+
+    @Bean
+    TripService tripService(SagaUnitOfWorkService unitOfWorkService,
+                            TripRepository tripRepository,
+                            TripCustomRepository tripCustomRepository) {
+        return new TripService(unitOfWorkService, tripRepository, tripCustomRepository)
+    }
+
+    @Bean
+    TripCommandHandler tripCommandHandler() {
+        return new TripCommandHandler()
+    }
+
+    @Bean
+    TripFunctionalities tripFunctionalities() {
+        return new TripFunctionalities()
     }
 
 }

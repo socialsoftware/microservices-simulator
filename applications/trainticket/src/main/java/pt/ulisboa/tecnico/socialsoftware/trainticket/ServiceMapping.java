@@ -6,6 +6,7 @@ public enum ServiceMapping {
     USER("user"),
     ROUTE("route"),
     CONTACTS("contacts"),
+    TRIP("trip"),
     ;
 
     private final String serviceName;
