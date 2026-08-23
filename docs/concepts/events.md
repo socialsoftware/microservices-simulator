@@ -85,7 +85,7 @@ One site, always the same one.
 
 `subscribedAggregateId` must match `publisherAggregateId` in the event.
 
-**`subscribedVersion`:** pass the anchor entity's current version so that only events published *after* the snapshot was taken are processed. If the subscriber entity does not track the publisher's version (e.g., a `Warehouse` cached inside a `Shipment` that has no `warehouseVersion` field), use `0L` — this means all events from that publisher since the beginning are eligible for processing, which is functionally correct but slightly broader than necessary.
+**`subscribedVersion`:** pass the anchor entity's current version so that only events published *after* the snapshot was taken are processed. The anchor entity always has one: `.claude/skills/classify-and-plan/SKILL.md` § Step 3.d gives a version field to every snapshot whose "Updated on event" cell names an event, and withholds one from every snapshot that names none - and a snapshot that subscribes to nothing never constructs a subscription. A missing version field is therefore a planning defect to fix at its source, not something to paper over with a `0L` default.
 
 ## EventHandler
 
