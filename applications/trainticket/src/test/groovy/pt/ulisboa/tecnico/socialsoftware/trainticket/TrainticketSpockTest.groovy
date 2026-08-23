@@ -84,6 +84,15 @@ class TrainticketSpockTest extends SpockTest {
     public static final Integer ROUTE_DISTANCE_MIDDLE = 150
     public static final Integer ROUTE_DISTANCE_END = 350
 
+    public static final Integer CONTACTS_USER_AGGREGATE_ID = 201
+    public static final String CONTACTS_NAME = "Zhang San"
+    public static final DocumentType CONTACTS_DOCUMENT_TYPE = DocumentType.ID_CARD
+    public static final DocumentType CONTACTS_DOCUMENT_TYPE_TWO = DocumentType.PASSPORT
+    public static final DocumentType CONTACTS_DOCUMENT_TYPE_NONE = DocumentType.NONE
+    public static final String CONTACTS_DOCUMENT_NUMBER = "ID-700800900"
+    public static final String CONTACTS_DOCUMENT_NUMBER_BLANK = "   "
+    public static final String CONTACTS_PHONE_NUMBER = "+86-21-5555-0100"
+
 
     @Autowired
     public ImpairmentService impairmentService

@@ -43,5 +43,7 @@ public final class TrainticketErrorMessage {
     public static final String ROUTE_STATIONS_DISTINCT = "Route stations must reference distinct stations.";
     public static final String ROUTE_ENDPOINTS_MATCH_STATION_LIST = "Route start and end station names must match the first and last stations of its list.";
 
+    public static final String CONTACTS_DOCUMENT_NUMBER_PRESENT = "Contacts document number must be present when a document type is set.";
+
     public static final String PLACEHOLDER = "placeholder";
 }

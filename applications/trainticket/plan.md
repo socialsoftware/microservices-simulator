@@ -324,7 +324,7 @@ stored from the value the caller supplies and nothing validates that it points a
 
 | Session | Files |
 |---------|-------|
-| 2.5.a | `aggregate/Contacts.java`, `aggregate/ContactsFactory.java`, `aggregate/ContactsCustomRepository.java`, `aggregate/sagas/SagaContacts.java`, `aggregate/sagas/states/ContactsSagaState.java`, `aggregate/sagas/factories/SagasContactsFactory.java`, `aggregate/sagas/repositories/ContactsCustomRepositorySagas.java`, `aggregate/ContactsDto.java`, `aggregate/ContactsRepository.java`, `ContactsServiceApplication.java`, `sagas/contacts/ContactsIntraInvariantTest.groovy` |
+| 2.5.a | `aggregate/Contacts.java`, `aggregate/ContactsFactory.java`, `aggregate/ContactsCustomRepository.java`, `aggregate/sagas/SagaContacts.java`, `aggregate/sagas/states/ContactsSagaState.java`, `aggregate/sagas/factories/SagasContactsFactory.java`, `aggregate/sagas/repositories/ContactsCustomRepositorySagas.java`, `aggregate/ContactsDto.java`, `aggregate/ContactsRepository.java`, `ContactsServiceApplication.java`, `sagas/contacts/ContactsIntraInvariantTest.groovy`, `{src}microservices/exception/TrainticketErrorMessage.java` (added 2.5.a - the CONTACTS_DOCUMENT_NUMBER_PRESENT constant `verifyInvariants()` throws), `{test}TrainticketSpockTest.groovy` (added 2.5.a - the T1 literals for the Contacts field list and the document-number cases), `{test}BeanConfigurationSagas.groovy` (added 2.5.a - the factory and custom-repository beans) |
 | 2.5.b | `service/ContactsService.java` (read methods), `messaging/ContactsCommandHandler.java`, `commands/contacts/GetContactsByIdCommand.java`, `commands/contacts/GetContactsByAccountCommand.java`, `coordination/sagas/GetContactsByIdFunctionalitySagas.java`, `coordination/sagas/GetContactsByAccountFunctionalitySagas.java`, `coordination/functionalities/ContactsFunctionalities.java`, `{src}ServiceMapping.java` (add `CONTACTS("contacts")`), `sagas/contacts/ContactsServiceTest.groovy` (read-method cases), `sagas/coordination/contacts/GetContactsByIdTest.groovy`, `sagas/coordination/contacts/GetContactsByAccountTest.groovy` |
 | 2.5.c | `service/ContactsService.java` (write methods appended), `commands/contacts/CreateContactsCommand.java`, `commands/contacts/UpdateContactsCommand.java`, `commands/contacts/DeleteContactsCommand.java`, `coordination/sagas/CreateContactsFunctionalitySagas.java`, `coordination/sagas/UpdateContactsFunctionalitySagas.java`, `coordination/sagas/DeleteContactsFunctionalitySagas.java`, write coordinator methods appended to `coordination/functionalities/ContactsFunctionalities.java`, write cases appended to `messaging/ContactsCommandHandler.java`, `coordination/webapi/ContactsController.java`, `sagas/coordination/contacts/CreateContactsTest.groovy`, `sagas/coordination/contacts/UpdateContactsTest.groovy`, `sagas/coordination/contacts/DeleteContactsTest.groovy`, write-method cases appended to `sagas/contacts/ContactsServiceTest.groovy` |
 
@@ -333,7 +333,7 @@ stored from the value the caller supplies and nothing validates that it points a
 > CONTACTS_BELONG_TO_ACCOUNT guard reads it, and it is the only source for that comparison.
 
 **Checklist:**
-- [ ] 2.5.a - Domain layer
+- [x] 2.5.a - Domain layer
 - [ ] 2.5.b - Read functionalities
 - [ ] 2.5.c - Write functionalities
 
