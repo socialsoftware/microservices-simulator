@@ -206,10 +206,10 @@ onto the aggregate.
 **Single snapshots** — no `× N`. Whether these get an owned-entity class depends on one thing only:
 
 > A single snapshot needs an `aggregate/{OwnedEntity}.java` class **iff it subscribes to events** —
-> its "Updated on event" cell names at least one event. The subscription class overrides
-> `subscribesEvent(Event)` to filter on the snapshot's own id and liveness, and the harness
-> standardises the thing it filters on as an owned entity, so every subscription — single or
-> collection — is constructed from a reference object of the same shape.
+> its "Updated on event" cell names at least one event. The subscription class is constructed from the
+> cached snapshot, which must supply the `(subscribedAggregateId, subscribedVersion)` pair, and the
+> harness standardises that carrier as an owned entity, so every subscription — single or collection —
+> is constructed from a reference object of the same shape.
 >
 > This is a uniformity rule, not a framework constraint. `EventSubscription`'s constructor takes
 > `(Integer subscribedAggregateId, Long subscribedVersion, String eventType)` — plain scalars — so a

@@ -157,22 +157,18 @@ private boolean invariantFieldsFinalAfterThreshold() {
 **Step 1 — Create a subscription class:**
 ```java
 public class {Aggregate}Subscribes{EventName} extends EventSubscription {
-    private {OwnedEntity} ref;
-
     public {Aggregate}Subscribes{EventName}({OwnedEntity} ref) {
         super(ref.getExternalAggregateId(), ref.getExternalVersion(),
               {EventName}.class.getSimpleName());
-        this.ref = ref;
     }
 
-    @Override
-    public boolean subscribesEvent(Event event) {
-        return super.subscribesEvent(event)
-            && this.ref.getExternalAggregateId().equals(event.getPublisherAggregateId())
-            && this.ref.isActive();
-    }
+    public {Aggregate}Subscribes{EventName}() {}
 }
 ```
+
+Do not override `subscribesEvent()`. It is applied by the event infrastructure, but the inherited
+implementation is the whole subscription-level contract; any discriminating check belongs in the
+service-layer ByEvent method. See [`events.md`](events.md) § EventSubscription.
 
 **Step 2 — Register subscriptions in the aggregate:**
 ```java

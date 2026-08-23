@@ -69,7 +69,19 @@ public class ShipmentSubscribesUpdateWarehouse extends EventSubscription {
 }
 ```
 
-In the **sagas profile**, matching is performed by the infrastructure via a DB query on `subscribedAggregateId` and `subscribedVersion` — `EventApplicationService.handleSubscribedEvent()` does **not** call `subscribesEvent()`. Any additional filtering (e.g., checking a discriminating field for shared-anchor events) must be implemented in the service-layer ByEvent method. Note: the TCC profile's `CausalUnitOfWork` does call `subscribesEvent()` for causal consistency checks — a `subscribesEvent()` override is meaningful there but irrelevant for sagas.
+Matching happens in two stages, both inside `EventApplicationService.handleSubscribedEvent()`. First a DB
+query pre-filters on `subscribedAggregateId` and `subscribedVersion`; then the surviving events are
+passed through `EventSubscription.subscribesEvent()`
+(`EventService.getSubscribedEvents()` ends `.filter(eventSubscription::subscribesEvent)`). The base
+implementation re-checks event type, publisher aggregate id and version, and that is the whole
+subscription-level contract.
+
+**Do not override `subscribesEvent()`.** The override runs, but the harness keeps every discriminating
+check (e.g. matching a payload field for shared-anchor events) in the service-layer ByEvent method
+instead. A subscription is constructed from one cached reference object and can only see what that
+object holds, while the discriminating value often lives on the consumer aggregate itself — so an
+override-first rule would still need a service-layer fallback, and filtering would live in two places.
+One site, always the same one.
 
 `subscribedAggregateId` must match `publisherAggregateId` in the event.
 
@@ -180,7 +192,7 @@ public class <Consumer>Subscribes<Xxx> extends EventSubscription {
 }
 ```
 
-`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. In the sagas profile, `EventApplicationService` does **not** call `subscribesEvent()` — do not override it for sagas event filtering; use the service-layer ByEvent method instead.
+`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. Do not override `subscribesEvent()` — the inherited implementation is the whole subscription-level contract; discriminating filtering goes in the service-layer ByEvent method (§ EventSubscription).
 
 ### Handler (single dispatcher)
 

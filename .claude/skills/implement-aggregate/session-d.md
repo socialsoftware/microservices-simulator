@@ -48,7 +48,7 @@ Path: `{src}microservices/{aggregate}/notification/subscribe/{Aggregate}Subscrib
 - Extends `EventSubscription` (from simulator core)
 - Constructor: calls `super(anchorRef.getAnchorAggregateId(), anchorRef.getAnchorVersion(), {EventName}.class.getSimpleName())`. The anchor is the owning/parent aggregate whose ID and version are stored in the cached reference (e.g., for `UpdateWarehouseEvent` subscribed by `Shipment`, the anchor is the `ShipmentWarehouse` reference that holds `warehouseAggregateId` and `warehouseVersion`).
 - Empty default constructor: `public {Aggregate}Subscribes{Event}() {}`
-- In the **sagas profile**, matching is done by the infrastructure via a DB query on `subscribedAggregateId` and `subscribedVersion` — `EventApplicationService.handleSubscribedEvent()` does **not** call `subscribesEvent()`. Overriding it for sagas event filtering has no effect; any additional filtering must go in the service-layer ByEvent method (see "Shared-anchor events" below). (The TCC profile's `CausalUnitOfWork` does call `subscribesEvent()` for causal consistency checks, but that is out of scope here.)
+- **Do not override `subscribesEvent()`.** `EventApplicationService.handleSubscribedEvent()` does apply it, after a DB pre-filter on `subscribedAggregateId` and `subscribedVersion`, but the inherited implementation (event type, publisher aggregate id, version) is the whole subscription-level contract. Every discriminating check goes in the service-layer ByEvent method instead (see "Shared-anchor events" below) — `docs/concepts/events.md` § EventSubscription owns the rule and the reason.
 
 #### Shared-anchor events: service-layer filtering
 
@@ -68,7 +68,7 @@ public void removeIfShipmentMatches(Integer aggregateId, Integer shipmentId, Uni
 }
 ```
 
-Do **not** attempt to move this check into a `subscribesEvent()` override — it is not called by the sagas event processing infrastructure.
+Do **not** move this check into a `subscribesEvent()` override. The override would run, but the subscription only sees the cached reference object it was constructed from, not the consumer aggregate that holds the discriminating field — and the harness keeps filtering at a single site regardless (`docs/concepts/events.md` § EventSubscription).
 
 ### `{Aggregate}EventHandling.java`
 
