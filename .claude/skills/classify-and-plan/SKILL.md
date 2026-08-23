@@ -17,8 +17,7 @@ The skill is invoked as:
 /classify-and-plan <path/to/{App}-domain-model.md> <path/to/{App}-aggregate-grouping.md>
 ```
 
-Examples:
-- `/classify-and-plan applications/my-app/my-app-domain-model.md applications/my-app/my-app-aggregate-grouping.md`
+Example:
 - `/classify-and-plan applications/{app-name}/{app-name}-domain-model.md applications/{app-name}/{app-name}-aggregate-grouping.md`
 
 > **If arguments are missing or incorrect**, ask the user: "Please provide two file paths: domain-model.md and aggregate-grouping.md. Example: `/classify-and-plan path/to/domain-model.md path/to/aggregate-grouping.md`"
