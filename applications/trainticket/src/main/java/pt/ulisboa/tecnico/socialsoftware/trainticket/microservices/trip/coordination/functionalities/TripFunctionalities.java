@@ -6,8 +6,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregate.TripDto;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.coordination.sagas.CreateTripFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.coordination.sagas.DeleteTripFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.coordination.sagas.GetTripByIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.coordination.sagas.GetTripsFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.coordination.sagas.UpdateTripFunctionalitySagas;
 
 import java.util.List;
 
@@ -33,5 +36,27 @@ public class TripFunctionalities {
                 unitOfWorkService, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
         return saga.getTrips();
+    }
+
+    public TripDto createTrip(TripDto tripDto) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("createTrip");
+        CreateTripFunctionalitySagas saga = new CreateTripFunctionalitySagas(
+                unitOfWorkService, tripDto, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getCreatedTripDto();
+    }
+
+    public void updateTrip(Integer tripAggregateId, TripDto tripDto) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateTrip");
+        UpdateTripFunctionalitySagas saga = new UpdateTripFunctionalitySagas(
+                unitOfWorkService, tripAggregateId, tripDto, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+    }
+
+    public void deleteTrip(Integer tripAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("deleteTrip");
+        DeleteTripFunctionalitySagas saga = new DeleteTripFunctionalitySagas(
+                unitOfWorkService, tripAggregateId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
     }
 }

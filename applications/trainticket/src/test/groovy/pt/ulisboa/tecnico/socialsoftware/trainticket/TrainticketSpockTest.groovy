@@ -31,7 +31,6 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.aggr
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.coordination.functionalities.ContactsFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.service.ContactsService
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregate.TripDto
-import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregate.sagas.SagaTrip
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.coordination.functionalities.TripFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.service.TripService
 
@@ -230,16 +229,12 @@ class TrainticketSpockTest extends SpockTest {
         return contactsFunctionalities.createContacts(contactsDto).aggregateId
     }
 
-    // The route and train type a trip references must resolve to real aggregates: session 2.6.c
-    // reroutes this helper onto CreateTrip, whose data-assembly steps fetch both.
     Integer createTrip(String tripNumber = TRIP_NUMBER,
                        Integer routeAggregateId = createRoute(),
                        Integer trainTypeAggregateId = createTrainType(),
                        LocalTime startTime = TRIP_START_TIME,
                        LocalTime endTime = TRIP_END_TIME) {
         def tripDto = new TripDto(tripNumber, routeAggregateId, trainTypeAggregateId, startTime, endTime)
-        def trip = new SagaTrip(aggregateIdGeneratorService.getNewAggregateId(), tripDto)
-        unitOfWorkService.registerChanged(trip, unitOfWorkService.createUnitOfWork("fixture"))
-        return trip.getAggregateId()
+        return tripFunctionalities.createTrip(tripDto).aggregateId
     }
 }
