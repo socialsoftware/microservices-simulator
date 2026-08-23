@@ -302,6 +302,19 @@ public class Invalidate{Consumer}Event extends Event {
 }
 ```
 
-3. Downstream aggregates that cache a reference to `{Consumer}` subscribe to `Invalidate{Consumer}Event` and process it the same way — either removing the sub-entity from a collection or cascading their own invalidation.
+3. Downstream aggregates that cache a reference to `{Consumer}` subscribe to `Invalidate{Consumer}Event` and process it the same way — either removing the sub-entity from a collection or cascading their own invalidation. The subscription is an ordinary one, anchored on the consumer's own aggregate id:
+
+```java
+public class {Downstream}SubscribesInvalidate{Consumer} extends EventSubscription {
+    public {Downstream}SubscribesInvalidate{Consumer}({Downstream}{Consumer} ref) {
+        super(ref.get{Consumer}AggregateId(), ref.get{Consumer}Version(),
+              Invalidate{Consumer}Event.class.getSimpleName());
+    }
+
+    public {Downstream}SubscribesInvalidate{Consumer}() {}
+}
+```
+
+`ref` is the cached reference `{Downstream}` holds to `{Consumer}` — the same object the rest of `{Downstream}`'s subscriptions are built from. The handler, polling method and `{operation}ByEvent` follow § Canonical Wiring Snippet and § ByEvent sagaState guard unchanged; nothing about an invalidation event is special on the receiving side.
 
 **Key invariant:** the outbound invalidation event must use the consumer's own aggregate ID as `publisherAggregateId` so that downstream `EventSubscription` instances anchored to that ID receive it. This is the same rule that applies to all events: `super(anchorAggregateId)` must match the `subscribedAggregateId` of the downstream subscriber.
