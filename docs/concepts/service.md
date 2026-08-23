@@ -32,7 +32,9 @@ public class WarehouseService {
 }
 ```
 
-Never inject a foreign service class or a foreign repository — see [R1, R2 in architecture.md](../architecture.md).
+A service loads only its own aggregate type: every `aggregateLoadAndRegisterRead` call it makes resolves a `{Aggregate}` this service owns, never another aggregate's (R1). Whatever it needs from elsewhere arrives as a DTO the Functionality assembled.
+
+Never inject a foreign service class or a foreign repository either (R2) - see [R1, R2 in architecture.md](../architecture.md).
 
 Never hold a reference to another aggregate's **concrete class** either (R3). A service may accept and return any aggregate's `{Xxx}Dto`, but aggregate instances carry UoW registration state that must not cross service boundaries — cross-aggregate state flows as DTOs, assembled by the Functionality from a `Get*Command` step and passed downstream as plain values.
 
