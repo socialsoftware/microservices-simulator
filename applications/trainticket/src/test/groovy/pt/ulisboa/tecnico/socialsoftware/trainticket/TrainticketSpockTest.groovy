@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 
+import java.math.BigDecimal
 import java.time.LocalTime
 
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
@@ -117,6 +118,18 @@ class TrainticketSpockTest extends SpockTest {
     public static final LocalTime TRIP_END_TIME_ON_POINT = TRIP_START_TIME.plusNanos(1)
     public static final LocalTime TRIP_END_TIME_EQUAL_TO_START = TRIP_START_TIME
     public static final LocalTime TRIP_END_TIME_BEFORE_START = TRIP_START_TIME.minusNanos(1)
+
+    public static final Integer PRICE_CONFIG_ROUTE_AGGREGATE_ID = 501
+    public static final Integer PRICE_CONFIG_ROUTE_AGGREGATE_ID_TWO = 502
+    public static final Integer PRICE_CONFIG_TRAIN_TYPE_AGGREGATE_ID = 601
+    public static final Integer PRICE_CONFIG_TRAIN_TYPE_AGGREGATE_ID_TWO = 602
+    public static final BigDecimal PRICE_CONFIG_BASIC_RATE = new BigDecimal("0.7500")
+    public static final BigDecimal PRICE_CONFIG_BASIC_RATE_TWO = new BigDecimal("0.9000")
+    public static final BigDecimal PRICE_CONFIG_FIRST_CLASS_RATE = new BigDecimal("1.2500")
+    public static final BigDecimal PRICE_CONFIG_FIRST_CLASS_RATE_TWO = new BigDecimal("1.5000")
+    public static final BigDecimal PRICE_CONFIG_RATE_ON_POINT = new BigDecimal("0.0001")
+    public static final BigDecimal PRICE_CONFIG_RATE_OFF_POINT = BigDecimal.ZERO
+    public static final BigDecimal PRICE_CONFIG_RATE_NEGATIVE = new BigDecimal("-0.5000")
 
 
     @Autowired

@@ -419,7 +419,7 @@ own table over the compound key, create only - both ids are immutable).
 
 | Session | Files |
 |---------|-------|
-| 2.7.a | `aggregate/PriceConfig.java`, `aggregate/PriceConfigFactory.java`, `aggregate/PriceConfigCustomRepository.java`, `aggregate/sagas/SagaPriceConfig.java`, `aggregate/sagas/states/PriceConfigSagaState.java`, `aggregate/sagas/factories/SagasPriceConfigFactory.java`, `aggregate/sagas/repositories/PriceConfigCustomRepositorySagas.java`, `aggregate/PriceConfigDto.java`, `aggregate/PriceConfigRepository.java`, `PriceConfigServiceApplication.java`, `sagas/priceconfig/PriceConfigIntraInvariantTest.groovy` |
+| 2.7.a | `aggregate/PriceConfig.java`, `aggregate/PriceConfigFactory.java`, `aggregate/PriceConfigCustomRepository.java`, `aggregate/sagas/SagaPriceConfig.java`, `aggregate/sagas/states/PriceConfigSagaState.java`, `aggregate/sagas/factories/SagasPriceConfigFactory.java`, `aggregate/sagas/repositories/PriceConfigCustomRepositorySagas.java`, `aggregate/PriceConfigDto.java`, `aggregate/PriceConfigRepository.java`, `PriceConfigServiceApplication.java`, `sagas/priceconfig/PriceConfigIntraInvariantTest.groovy`, `{src}microservices/exception/TrainticketErrorMessage.java` (added 2.7.a - the PRICE_RATES_POSITIVE constant `verifyInvariants()` throws), `{test}TrainticketSpockTest.groovy` (amended 2.7.a - the domain constants the T1 cases assert against) |
 | 2.7.b | `service/PriceConfigService.java` (read methods), `messaging/PriceConfigCommandHandler.java`, `commands/priceconfig/GetPriceConfigByIdCommand.java`, `commands/priceconfig/GetPriceConfigsCommand.java`, `commands/priceconfig/GetPriceConfigByRouteAndTrainTypeCommand.java`, `coordination/sagas/GetPriceConfigByIdFunctionalitySagas.java`, `coordination/sagas/GetPriceConfigsFunctionalitySagas.java`, `coordination/sagas/GetPriceConfigByRouteAndTrainTypeFunctionalitySagas.java`, `coordination/functionalities/PriceConfigFunctionalities.java`, `{src}ServiceMapping.java` (add `PRICE_CONFIG("priceConfig")`), `sagas/priceconfig/PriceConfigServiceTest.groovy` (read-method cases), `sagas/coordination/priceconfig/GetPriceConfigByIdTest.groovy`, `sagas/coordination/priceconfig/GetPriceConfigsTest.groovy`, `sagas/coordination/priceconfig/GetPriceConfigByRouteAndTrainTypeTest.groovy` |
 | 2.7.c | `service/PriceConfigService.java` (write methods appended), `commands/priceconfig/CreatePriceConfigCommand.java`, `commands/priceconfig/UpdatePriceConfigCommand.java`, `commands/priceconfig/DeletePriceConfigCommand.java`, `coordination/sagas/CreatePriceConfigFunctionalitySagas.java`, `coordination/sagas/UpdatePriceConfigFunctionalitySagas.java`, `coordination/sagas/DeletePriceConfigFunctionalitySagas.java`, write coordinator methods appended to `coordination/functionalities/PriceConfigFunctionalities.java`, write cases appended to `messaging/PriceConfigCommandHandler.java`, `coordination/webapi/PriceConfigController.java`, `sagas/coordination/priceconfig/CreatePriceConfigTest.groovy`, `sagas/coordination/priceconfig/UpdatePriceConfigTest.groovy`, `sagas/coordination/priceconfig/DeletePriceConfigTest.groovy`, write-method cases appended to `sagas/priceconfig/PriceConfigServiceTest.groovy` |
 
@@ -427,7 +427,7 @@ own table over the compound key, create only - both ids are immutable).
 > to `"priceConfig"`. See the note under aggregate 2.
 
 **Checklist:**
-- [ ] 2.7.a - Domain layer
+- [x] 2.7.a - Domain layer
 - [ ] 2.7.b - Read functionalities
 - [ ] 2.7.c - Write functionalities
 

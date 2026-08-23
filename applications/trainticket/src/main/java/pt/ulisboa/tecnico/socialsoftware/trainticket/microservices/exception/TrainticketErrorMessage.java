@@ -48,5 +48,7 @@ public final class TrainticketErrorMessage {
     public static final String TRIP_START_BEFORE_END = "Trip start time must be before its end time.";
     public static final String DUPLICATE_TRIP_NUMBER = "Another active trip already holds this trip number.";
 
+    public static final String PRICE_RATES_POSITIVE = "Price configuration rates must be positive.";
+
     public static final String PLACEHOLDER = "placeholder";
 }
