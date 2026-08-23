@@ -69,6 +69,11 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.messagin
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.service.TripService
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.sagas.factories.SagasPriceConfigFactory
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.sagas.repositories.PriceConfigCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.functionalities.PriceConfigFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.messaging.PriceConfigCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.service.PriceConfigService
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
@@ -341,6 +346,23 @@ class BeanConfigurationSagas {
     @Bean
     PriceConfigCustomRepositorySagas priceConfigCustomRepositorySagas() {
         return new PriceConfigCustomRepositorySagas()
+    }
+
+    @Bean
+    PriceConfigService priceConfigService(SagaUnitOfWorkService unitOfWorkService,
+                                          PriceConfigRepository priceConfigRepository,
+                                          PriceConfigCustomRepository priceConfigCustomRepository) {
+        return new PriceConfigService(unitOfWorkService, priceConfigRepository, priceConfigCustomRepository)
+    }
+
+    @Bean
+    PriceConfigCommandHandler priceConfigCommandHandler() {
+        return new PriceConfigCommandHandler()
+    }
+
+    @Bean
+    PriceConfigFunctionalities priceConfigFunctionalities() {
+        return new PriceConfigFunctionalities()
     }
 
 }

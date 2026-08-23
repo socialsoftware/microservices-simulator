@@ -34,6 +34,10 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.serv
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.aggregate.TripDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.coordination.functionalities.TripFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.service.TripService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigDto
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.sagas.SagaPriceConfig
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.functionalities.PriceConfigFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.service.PriceConfigService
 
 class TrainticketSpockTest extends SpockTest {
 
@@ -165,6 +169,10 @@ class TrainticketSpockTest extends SpockTest {
     protected TripService tripService
     @Autowired(required = false)
     protected TripFunctionalities tripFunctionalities
+    @Autowired(required = false)
+    protected PriceConfigService priceConfigService
+    @Autowired(required = false)
+    protected PriceConfigFunctionalities priceConfigFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -249,5 +257,18 @@ class TrainticketSpockTest extends SpockTest {
                        LocalTime endTime = TRIP_END_TIME) {
         def tripDto = new TripDto(tripNumber, routeAggregateId, trainTypeAggregateId, startTime, endTime)
         return tripFunctionalities.createTrip(tripDto).aggregateId
+    }
+
+    // Built directly on the aggregate: CreatePriceConfig does not exist until session 2.7.c, which
+    // reroutes this helper onto the real create saga without changing the signature.
+    Integer createPriceConfig(Integer routeAggregateId = PRICE_CONFIG_ROUTE_AGGREGATE_ID,
+                              Integer trainTypeAggregateId = PRICE_CONFIG_TRAIN_TYPE_AGGREGATE_ID,
+                              BigDecimal basicPriceRate = PRICE_CONFIG_BASIC_RATE,
+                              BigDecimal firstClassPriceRate = PRICE_CONFIG_FIRST_CLASS_RATE) {
+        def priceConfigDto = new PriceConfigDto(routeAggregateId, trainTypeAggregateId,
+                basicPriceRate, firstClassPriceRate)
+        def priceConfig = new SagaPriceConfig(aggregateIdGeneratorService.getNewAggregateId(), priceConfigDto)
+        unitOfWorkService.registerChanged(priceConfig, unitOfWorkService.createUnitOfWork("fixture"))
+        return priceConfig.getAggregateId()
     }
 }
