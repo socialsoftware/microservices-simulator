@@ -39,7 +39,11 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.service.
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.functionalities.PriceConfigFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.service.PriceConfigService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.OrderDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.SeatClass
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.sagas.SagaOrder
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.coordination.functionalities.OrderFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.service.OrderService
 
 class TrainticketSpockTest extends SpockTest {
 
@@ -177,6 +181,9 @@ class TrainticketSpockTest extends SpockTest {
     @Autowired
     protected AggregateIdGeneratorService aggregateIdGeneratorService
 
+    // Seats the createOrder fixture hands out while it still bypasses PreserveTicket's allocator.
+    protected Integer nextFixtureSeatNumber = ORDER_SEAT_NUMBER_ON_POINT
+
     // Domain @Autowired fields are added here as aggregates are implemented in Phase 2.
 
     @Autowired(required = false)
@@ -207,6 +214,10 @@ class TrainticketSpockTest extends SpockTest {
     protected PriceConfigService priceConfigService
     @Autowired(required = false)
     protected PriceConfigFunctionalities priceConfigFunctionalities
+    @Autowired(required = false)
+    protected OrderService orderService
+    @Autowired(required = false)
+    protected OrderFunctionalities orderFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -300,5 +311,41 @@ class TrainticketSpockTest extends SpockTest {
         def priceConfigDto = new PriceConfigDto(routeAggregateId, trainTypeAggregateId,
                 basicPriceRate, firstClassPriceRate)
         return priceConfigFunctionalities.createPriceConfig(priceConfigDto).aggregateId
+    }
+
+    // Session 2.8.c replaces this body with PreserveTicket; the parameter list is already that
+    // functionality's, so call sites survive the swap. Until then the order is built directly on
+    // the aggregate, and the terms the booking saga would derive are read back from the
+    // prerequisites it would fetch.
+    Integer createOrder(Integer userAggregateId = createUser(),
+                        Integer contactsAggregateId = createContacts(userAggregateId),
+                        Integer tripAggregateId = createBookableTrip(),
+                        LocalDate travelDate = ORDER_TRAVEL_DATE,
+                        String fromStationName = ORDER_FROM_STATION_NAME,
+                        String toStationName = ORDER_TO_STATION_NAME,
+                        SeatClass seatClass = ORDER_SEAT_CLASS) {
+        def contactsDto = contactsFunctionalities.getContactsById(contactsAggregateId)
+        def tripDto = tripFunctionalities.getTripById(tripAggregateId)
+
+        def orderDto = new OrderDto(tripAggregateId, contactsAggregateId, userAggregateId,
+                ORDER_BOUGHT_DATE, travelDate, LocalDateTime.of(travelDate, tripDto.startTime),
+                tripDto.tripNumber, fromStationName, toStationName,
+                seatClass, nextFixtureSeatNumber++, contactsDto.name,
+                contactsDto.documentType, contactsDto.documentNumber, ORDER_PRICE)
+
+        def order = new SagaOrder(aggregateIdGeneratorService.getNewAggregateId(), orderDto)
+        unitOfWorkService.registerChanged(order, unitOfWorkService.createUnitOfWork("fixture"))
+        return order.getAggregateId()
+    }
+
+    // A trip that can actually be booked: its route carries the endpoints an order names, and a
+    // price configuration covers the (route, train type) pair PreserveTicket prices against.
+    Integer createBookableTrip(String tripNumber = TRIP_NUMBER,
+                               String fromStationName = ORDER_FROM_STATION_NAME,
+                               String toStationName = ORDER_TO_STATION_NAME) {
+        def routeAggregateId = createRoute(fromStationName, toStationName)
+        def trainTypeAggregateId = createTrainType()
+        createPriceConfig(routeAggregateId, trainTypeAggregateId)
+        return createTrip(tripNumber, routeAggregateId, trainTypeAggregateId)
     }
 }

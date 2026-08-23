@@ -8,6 +8,7 @@ public enum ServiceMapping {
     CONTACTS("contacts"),
     TRIP("trip"),
     PRICE_CONFIG("priceConfig"),
+    ORDER("order"),
     ;
 
     private final String serviceName;

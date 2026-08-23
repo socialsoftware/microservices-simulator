@@ -71,6 +71,11 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.a
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.sagas.repositories.PriceConfigCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.sagas.factories.SagasOrderFactory
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.sagas.repositories.OrderCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.OrderCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.OrderRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.coordination.functionalities.OrderFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.messaging.OrderCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.service.OrderService
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigCustomRepository
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigRepository
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.functionalities.PriceConfigFunctionalities
@@ -375,6 +380,23 @@ class BeanConfigurationSagas {
     @Bean
     OrderCustomRepositorySagas orderCustomRepositorySagas() {
         return new OrderCustomRepositorySagas()
+    }
+
+    @Bean
+    OrderService orderService(SagaUnitOfWorkService unitOfWorkService,
+                              OrderRepository orderRepository,
+                              OrderCustomRepository orderCustomRepository) {
+        return new OrderService(unitOfWorkService, orderRepository, orderCustomRepository)
+    }
+
+    @Bean
+    OrderCommandHandler orderCommandHandler() {
+        return new OrderCommandHandler()
+    }
+
+    @Bean
+    OrderFunctionalities orderFunctionalities() {
+        return new OrderFunctionalities()
     }
 
 }
