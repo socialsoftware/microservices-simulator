@@ -35,15 +35,20 @@ public class AddShipmentItemCommand extends Command {
 
 Commands are plain data carriers — no business logic, no Spring beans.
 
-> **When there is no root aggregate to name, pass `null`.** Two step shapes have none: a **create**
-> command, whose id the service has not minted yet (it generates it via `aggregateIdGeneratorService`),
-> and an **unfiltered collection read** — a `Get{Aggregates}Command` that returns every instance of
-> its type and so takes no id at all.
+> **When there is no root aggregate to name, pass `null`.** Several step shapes have none: a
+> **create** command, whose id the service has not minted yet (it generates it via
+> `aggregateIdGeneratorService`); an **unfiltered collection read** - a `Get{Aggregates}Command` that
+> returns every instance of its type and so takes no id at all; and a **composite-key read** - a
+> `Get{Aggregate}By{Field}Command` that names its target by a compound domain key held on the
+> aggregate, so the target's own id is unknown until the service has resolved that key.
+>
+> A **filtered** collection read is not one of them: its filter *is* a foreign aggregate id, which it
+> passes.
 >
 > This is safe rather than merely tolerated, and the reason is a property of the *step*, not of
 > createness: the field is dereferenced only by `SagaCommandHandler`, and only for a `SagaCommand`
 > carrying forbidden states or a semantic lock. A step that declares neither never reaches that code.
-> Both shapes above declare neither. Version conflict detection is unaffected either way; it operates
+> All the shapes above declare neither. Version conflict detection is unaffected either way; it operates
 > on the aggregates registered read/changed with the unit of work, not on this field.
 >
 > The converse still holds: a step that *does* declare a semantic lock or forbidden states must name
