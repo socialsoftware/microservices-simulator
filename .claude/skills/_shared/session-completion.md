@@ -225,10 +225,12 @@ List every file created or modified this session (absolute paths).
 For every saga produced this session, list every saga step that calls `setSemanticLock`, and the test
 name covering its lock-acquisition case.
 
-| Saga class | Step name | Foreign aggregate locked | Lock-acquisition test name | Present? |
-|------------|-----------|--------------------------|----------------------------|---------:|
+| Saga class | Step name | Aggregate locked (primary) | Lock-acquisition test name | Present? |
+|------------|-----------|----------------------------|----------------------------|---------:|
 
-- One row per `setSemanticLock` call site.
+- One row per `setSemanticLock` call site. Per R4 (`docs/concepts/sagas.md` § R4 Decision Table) that is
+  always the saga's **primary** aggregate; a foreign aggregate gets `setForbiddenStates` and acquires no
+  lock, so a `setForbiddenStates` step is never a row here.
 - "Present? = No" rows are **Major** findings: add the test in this session, or open an explicit follow-up. **Never tick the session checkbox with an unresolved `No` row** unless the row is followed by an explicit deferral rationale written directly beneath this table.
 
 ---
