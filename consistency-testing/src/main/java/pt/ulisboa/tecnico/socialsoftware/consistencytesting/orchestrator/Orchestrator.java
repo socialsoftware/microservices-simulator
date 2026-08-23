@@ -62,6 +62,16 @@ public final class Orchestrator {
 
     private static final String RUN_REPORT_FILE_NAME = "test-report-%05d.json";
 
+    /**
+     * A sweep should show its own checkpoints, not every application command and
+     * framework lifecycle message.
+     */
+    private static final List<String> DEFAULT_SWEEP_LOGGING_ARGS = List.of(
+            "--logging.level.root=WARN",
+            "--logging.level.pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator=INFO",
+            "--logging.level.org.springframework.scheduling.support=OFF",
+            "--spring.main.banner-mode=off");
+
     private final Class<?> springAppClass;
 
     private List<String> springAppArgs = List.of();
@@ -128,13 +138,14 @@ public final class Orchestrator {
      */
     public OrchestrationReport run() {
         long startedAt = System.currentTimeMillis();
+        List<String> effectiveSpringAppArgs = defaultedSpringAppArgs(springAppArgs);
 
-        TestDriver driver = new TestDriver(springAppClass, springAppArgs, reportsDirectory)
+        TestDriver driver = new TestDriver(springAppClass, effectiveSpringAppArgs, reportsDirectory)
                 .setIterations(iterationsPerGroup)
                 .setMasterSeed(masterSeed);
 
         CampaignProgress progress = new CampaignProgress(
-                springAppClass.getName(), masterSeed, springAppArgs, iterationsPerGroup,
+                springAppClass.getName(), masterSeed, effectiveSpringAppArgs, iterationsPerGroup,
                 StringUtils.toPortableString(reportsDirectory), startedAt);
 
         CampaignSummaryWriter summaryWriter = new CampaignSummaryWriter(reportsDirectory);
@@ -258,6 +269,26 @@ public final class Orchestrator {
     private static Path resolveRunReportPath(FunctionalityCatalog catalog, FunctionalityGroup group, int runIndex) {
         return TestDriver.reportsSubdirectoryOf(catalog, group)
                 .resolve(RUN_REPORT_FILE_NAME.formatted(runIndex + 1));
+    }
+
+    /**
+     * Adds sweep logging defaults, while letting caller-supplied command-line
+     * properties override the same default property. The returned values are the
+     * exact Spring arguments recorded in the campaign summary.
+     */
+    static List<String> defaultedSpringAppArgs(List<String> applicationArgs) {
+        Map<String, String> argumentsByProperty = new LinkedHashMap<>();
+        DEFAULT_SWEEP_LOGGING_ARGS.forEach(argument -> argumentsByProperty.put(argumentProperty(argument), argument));
+        applicationArgs.forEach(argument -> argumentsByProperty.put(argumentProperty(argument), argument));
+        return List.copyOf(argumentsByProperty.values());
+    }
+
+    private static String argumentProperty(String argument) {
+        if (!argument.startsWith("--")) {
+            return argument;
+        }
+        int assignment = argument.indexOf('=');
+        return assignment < 0 ? argument : argument.substring(0, assignment);
     }
 
     private static OrchestrationReport.GroupSummary summaryOf(
