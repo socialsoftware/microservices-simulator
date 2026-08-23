@@ -146,7 +146,7 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaStat
   Ordering" item 3 require the lock step regardless of how many steps follow it. Read the
   aggregate's write functionalities in plan.md and emit one constant per non-create operation.
 - **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock
-- Include `READ_{AGGREGATE}` if other aggregates use this aggregate as a cross-aggregate prerequisite (another aggregate's write saga fetches this one's DTO — check plan.md's write functionalities for other aggregates)
+- **Do not** add a read state. A cross-aggregate step that only fetches this aggregate's DTO acquires no lock — `docs/concepts/sagas.md` § R4 Decision Table gives it `setForbiddenStates` — so no documented step shape ever assigns such a constant, and a `forbiddenStates` list naming it would be a permanent no-op.
 
 ### `{Aggregate}Factory.java` (interface)
 
