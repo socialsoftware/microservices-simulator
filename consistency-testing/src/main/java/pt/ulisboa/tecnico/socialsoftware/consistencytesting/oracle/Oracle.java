@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
 import java.beans.Introspector;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,6 +23,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.EventUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateIdRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.AggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService;
@@ -228,6 +230,11 @@ public final class Oracle {
     }
 
     private void getRequiredBeans() {
+        ConfigurableApplicationContext context = Objects.requireNonNull(springContext);
+        EventUtils.validateEventHandlingRegistration(
+                Arrays.stream(context.getBeanDefinitionNames())
+                        .map(context::getType).filter(Objects::nonNull).toList());
+
         EventApplicationService eventAppService = getBean(EventApplicationService.class);
         if (!(eventAppService instanceof DeferredEventApplicationService defEventAppService)) {
             throw new IllegalStateException(
