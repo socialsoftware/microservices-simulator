@@ -79,7 +79,7 @@ subscription-level contract.
 **Do not override `subscribesEvent()`.** The override runs, but the harness keeps every discriminating
 check (e.g. matching a payload field for shared-anchor events) in the service-layer ByEvent method
 instead. A subscription is constructed from one cached reference object and can only see what that
-object holds, while the discriminating value often lives on the consumer aggregate itself — so an
+object holds, while the discriminating value often lives on the consumer aggregate itself - so an
 override-first rule would still need a service-layer fallback, and filtering would live in two places.
 One site, always the same one.
 
@@ -192,7 +192,7 @@ public class <Consumer>Subscribes<Xxx> extends EventSubscription {
 }
 ```
 
-`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. Do not override `subscribesEvent()` — the inherited implementation is the whole subscription-level contract; discriminating filtering goes in the service-layer ByEvent method (§ EventSubscription).
+`subscribedAggregateId` (from the `super(...)` call) must match `publisherAggregateId` used in the event constructor. Do not override `subscribesEvent()` - the inherited implementation is the whole subscription-level contract; discriminating filtering goes in the service-layer ByEvent method (§ EventSubscription).
 
 ### Handler (single dispatcher)
 
@@ -248,7 +248,7 @@ public class <Consumer>EventProcessing {
 }
 ```
 
-`aggregateId` is the consumer aggregate's ID (passed down from the handler). The `<Consumer>Functionalities` update method opens its own UoW, loads the consumer aggregate, checks `sagaState != NOT_IN_SAGA` (skipping the update if the aggregate is mid-saga to avoid conflicting with its in-progress state), applies the cached-field update, and commits. It does **not** call `verifyInvariants()` — `registerChanged` does, inside the service method (`service.md` § Method Patterns).
+`aggregateId` is the consumer aggregate's ID (passed down from the handler). The `<Consumer>Functionalities` update method opens its own UoW, loads the consumer aggregate, checks `sagaState != NOT_IN_SAGA` (skipping the update if the aggregate is mid-saga to avoid conflicting with its in-progress state), applies the cached-field update, and commits. It does **not** call `verifyInvariants()` - `registerChanged` does, inside the service method (`service.md` § Method Patterns).
 
 ---
 
@@ -302,7 +302,7 @@ public class Invalidate{Consumer}Event extends Event {
 }
 ```
 
-3. Downstream aggregates that cache a reference to `{Consumer}` subscribe to `Invalidate{Consumer}Event` and process it the same way — either removing the sub-entity from a collection or cascading their own invalidation. The subscription is an ordinary one, anchored on the consumer's own aggregate id:
+3. Downstream aggregates that cache a reference to `{Consumer}` subscribe to `Invalidate{Consumer}Event` and process it the same way - either removing the sub-entity from a collection or cascading their own invalidation. The subscription is an ordinary one, anchored on the consumer's own aggregate id:
 
 ```java
 public class {Downstream}SubscribesInvalidate{Consumer} extends EventSubscription {
@@ -315,6 +315,6 @@ public class {Downstream}SubscribesInvalidate{Consumer} extends EventSubscriptio
 }
 ```
 
-`ref` is the cached reference `{Downstream}` holds to `{Consumer}` — the same object the rest of `{Downstream}`'s subscriptions are built from. The handler, polling method and `{operation}ByEvent` follow § Canonical Wiring Snippet and § ByEvent sagaState guard unchanged; nothing about an invalidation event is special on the receiving side.
+`ref` is the cached reference `{Downstream}` holds to `{Consumer}` - the same object the rest of `{Downstream}`'s subscriptions are built from. The handler, polling method and `{operation}ByEvent` follow § Canonical Wiring Snippet and § ByEvent sagaState guard unchanged; nothing about an invalidation event is special on the receiving side.
 
 **Key invariant:** the outbound invalidation event must use the consumer's own aggregate ID as `publisherAggregateId` so that downstream `EventSubscription` instances anchored to that ID receive it. This is the same rule that applies to all events: `super(anchorAggregateId)` must match the `subscribedAggregateId` of the downstream subscriber.

@@ -62,7 +62,7 @@ Every service method is annotated `@Transactional(isolation = Isolation.SERIALIZ
 > **Never call `verifyInvariants()` from a service method.** `registerChanged` invokes it on the
 > aggregate it is given (`SagaUnitOfWorkService.registerChanged`), so an explicit call is at best a
 > duplicate and at worst fires against a half-applied mutation. This holds for every mutation path
-> without exception — saga steps and event-driven (`ByEvent`) updates alike. This section is the single
+> without exception - saga steps and event-driven (`ByEvent`) updates alike. This section is the single
 > owner of the rule; other docs point here rather than restating it.
 
 ### Read method

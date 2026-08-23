@@ -27,7 +27,7 @@ silently created.
 
 Run: `find applications -name plan.md`
 
-If there is exactly one result, use it. If there are several, apply this tie-break in order — `find`
+If there is exactly one result, use it. If there are several, apply this tie-break in order - `find`
 returns them in directory order, which has nothing to do with which run is current, so never just take
 the first:
 

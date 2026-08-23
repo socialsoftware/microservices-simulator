@@ -207,7 +207,7 @@ onto the aggregate.
 > A single snapshot needs an `aggregate/{OwnedEntity}.java` class **iff it subscribes to events** —
 > its "Updated on event" cell names at least one event. The subscription class is constructed from the
 > cached snapshot, which must supply the `(subscribedAggregateId, subscribedVersion)` pair, and the
-> harness standardises that carrier as an owned entity, so every subscription — single or collection —
+> harness standardises that carrier as an owned entity, so every subscription - single or collection -
 > is constructed from a reference object of the same shape.
 >
 > This is a uniformity rule, not a framework constraint. `EventSubscription`'s constructor takes
@@ -508,7 +508,7 @@ Paths in the tables below resolve against **three** roots, and the leading segme
 
 > **`{Operation}CompensationTest.groovy`** is required for every write functionality that holds a
 > semantic lock across a later step. Omit the entry for a write op that `docs/concepts/testing.md`
-> § Compensation Test says to skip — a read-only functionality, or one whose only step has no
+> § Compensation Test says to skip - a read-only functionality, or one whose only step has no
 > dependents.
 
 > **`{Aggregate}Controller.java` is unconditional** — a minimal `@RestController` stub under

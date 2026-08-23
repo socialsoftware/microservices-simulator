@@ -20,7 +20,7 @@ Load these files before writing any code:
      rather than an extension of `SagaAggregateRepository`
    - § getEventSubscriptions() Implementation — relevant only if this aggregate has subscribed events (otherwise skip)
    - References to `prev` (used for temporal invariants) appear under § Key Fields / § Base Class
-   - **R6** — `verifyInvariants()` must not perform DB reads. This session writes it; the restriction is
+   - **R6** - `verifyInvariants()` must not perform DB reads. This session writes it; the restriction is
      owned by `docs/architecture.md` § R6 and `docs/concepts/aggregate.md`.
 
 2. **`docs/concepts/testing.md`** — § T1 — Aggregate Test. Note:
@@ -148,7 +148,7 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaStat
   Ordering" item 3 require the lock step regardless of how many steps follow it. Read the
   aggregate's write functionalities in plan.md and emit one constant per non-create operation.
 - **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock
-- **Do not** add a read state. A cross-aggregate step that only fetches this aggregate's DTO acquires no lock — `docs/concepts/sagas.md` § R4 Decision Table gives it `setForbiddenStates` — so no documented step shape ever assigns such a constant, and a `forbiddenStates` list naming it would be a permanent no-op.
+- **Do not** add a read state. A cross-aggregate step that only fetches this aggregate's DTO acquires no lock - `docs/concepts/sagas.md` § R4 Decision Table gives it `setForbiddenStates` - so no documented step shape ever assigns such a constant, and a `forbiddenStates` list naming it would be a permanent no-op.
 
 ### `{Aggregate}Factory.java` (interface)
 

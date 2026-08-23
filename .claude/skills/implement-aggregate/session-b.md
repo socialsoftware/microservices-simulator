@@ -21,9 +21,9 @@ Load these files before writing any code:
 3. **`docs/concepts/service.md`** — specifically:
    - § Method Patterns → Read method
    - § Custom Repository — Latest-Active-Version Query (only if the read returns a collection)
-   - **R3** — cross-aggregate state flows as DTOs, never as aggregate instances (`docs/architecture.md`
+   - **R3** - cross-aggregate state flows as DTOs, never as aggregate instances (`docs/architecture.md`
      § R3, restated in § Injected Dependencies). A read method returns this aggregate's own DTO.
-   - **R7** — DTOs are immutable value objects; never call a setter on one (`docs/architecture.md` § R7,
+   - **R7** - DTOs are immutable value objects; never call a setter on one (`docs/architecture.md` § R7,
      `service.md` § DTO Immutability).
 
 4. **`docs/concepts/commands.md`** — specifically:
@@ -33,7 +33,7 @@ Load these files before writing any code:
 5. **`docs/concepts/sagas.md`** — specifically:
    - § Read Functionality Sagas, and its § List-return read variant when the read returns a collection.
      For § Two-step read saga variant the criterion is § One-step vs two-step decision, below in this file.
-   - **R8** — a functionality may only send commands to aggregates upstream of its own. A read saga is no
+   - **R8** - a functionality may only send commands to aggregates upstream of its own. A read saga is no
      exception (`docs/architecture.md` § R8, `docs/concepts/commands.md`).
 
 6. **`docs/concepts/testing.md`** — § T2 — Service Test (including § Not-Found Paths for the Path A / Path B rule of thumb), § T4 — Functionality Test, and § Assertion Ownership. T1 (aggregate) and T3 subscription (inter-invariant) tests are not produced in this session.

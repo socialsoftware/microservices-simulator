@@ -18,9 +18,9 @@ Load these files before writing any code:
    - § Event Classes, § Publishing Events, § EventSubscription (anchor field, `getAggregateId()`, `getEventType()`)
    - § EventHandler, § Polling — dispatch and `@Scheduled` polling
    - § Canonical Wiring Snippet (and all subsections) — the per-file structure for this session
-   - § Canonical Wiring Snippet → EventProcessing class, § ByEvent sagaState guard — the contract: the cached-field change goes through the service method, plus the saga-state skip
+   - § Canonical Wiring Snippet → EventProcessing class, § ByEvent sagaState guard - the contract: the cached-field change goes through the service method, plus the saga-state skip
    - § Cascade Invalidation Pattern — only if a deletion event causes `copy.remove()` on this aggregate
-   - **R5** — `getEventSubscriptions()` lives in the downstream (consumer) aggregate only; a publisher
+   - **R5** - `getEventSubscriptions()` lives in the downstream (consumer) aggregate only; a publisher
      never subscribes to its own events and never names a downstream aggregate type
      (`docs/architecture.md` § R5, restated in `events.md` § EventSubscription). Subscribing in the wrong
      direction creates a cycle in the event pipeline.
@@ -52,7 +52,7 @@ Path: `{src}microservices/{aggregate}/notification/subscribe/{Aggregate}Subscrib
 - Extends `EventSubscription` (from simulator core)
 - Constructor: calls `super(anchorRef.getAnchorAggregateId(), anchorRef.getAnchorVersion(), {EventName}.class.getSimpleName())`. The anchor is the owning/parent aggregate whose ID and version are stored in the cached reference (e.g., for `UpdateWarehouseEvent` subscribed by `Shipment`, the anchor is the `ShipmentWarehouse` reference that holds `warehouseAggregateId` and `warehouseVersion`).
 - Empty default constructor: `public {Aggregate}Subscribes{Event}() {}`
-- **Do not override `subscribesEvent()`.** `EventApplicationService.handleSubscribedEvent()` does apply it, after a DB pre-filter on `subscribedAggregateId` and `subscribedVersion`, but the inherited implementation (event type, publisher aggregate id, version) is the whole subscription-level contract. Every discriminating check goes in the service-layer ByEvent method instead (see "Shared-anchor events" below) — `docs/concepts/events.md` § EventSubscription owns the rule and the reason.
+- **Do not override `subscribesEvent()`.** `EventApplicationService.handleSubscribedEvent()` does apply it, after a DB pre-filter on `subscribedAggregateId` and `subscribedVersion`, but the inherited implementation (event type, publisher aggregate id, version) is the whole subscription-level contract. Every discriminating check goes in the service-layer ByEvent method instead (see "Shared-anchor events" below) - `docs/concepts/events.md` § EventSubscription owns the rule and the reason.
 
 #### Shared-anchor events: service-layer filtering
 
@@ -79,9 +79,9 @@ public void removeIfShipmentMatches(Integer aggregateId, Integer shipmentId, Uni
 Note the shape, which is the same one every mutate method uses (`docs/concepts/service.md` § Method
 Patterns → Mutate method, § Copy-on-Write Rule): the discriminating guard reads the loaded instance and
 returns before anything is dirtied; the mutation goes on a factory copy, never on the loaded instance;
-and `registerChanged` is what calls `verifyInvariants()` — never call it yourself.
+and `registerChanged` is what calls `verifyInvariants()` - never call it yourself.
 
-Do **not** move this check into a `subscribesEvent()` override. The override would run, but the subscription only sees the cached reference object it was constructed from, not the consumer aggregate that holds the discriminating field — and the harness keeps filtering at a single site regardless (`docs/concepts/events.md` § EventSubscription).
+Do **not** move this check into a `subscribesEvent()` override. The override would run, but the subscription only sees the cached reference object it was constructed from, not the consumer aggregate that holds the discriminating field - and the harness keeps filtering at a single site regardless (`docs/concepts/events.md` § EventSubscription).
 
 ### `{Aggregate}EventHandling.java`
 
@@ -140,13 +140,13 @@ public class {Aggregate}EventProcessing {
 - Does NOT load, mutate, or persist the aggregate directly
 - The cached-field update and the UoW commit both happen inside the Functionalities update method
 
-**P2 rule enforcement:** The invariant check happens on the ByEvent path, when the service method's `registerChanged` call invokes `verifyInvariants()` on the copy (`docs/concepts/service.md` § Method Patterns — never call it yourself). If the invariant fails, the exception propagates and the event is not marked as processed (allowing retry or manual intervention).
+**P2 rule enforcement:** The invariant check happens on the ByEvent path, when the service method's `registerChanged` call invokes `verifyInvariants()` on the copy (`docs/concepts/service.md` § Method Patterns - never call it yourself). If the invariant fails, the exception propagates and the event is not marked as processed (allowing retry or manual intervention).
 
 #### "ByEvent" methods in Functionalities — mandatory pattern
 
 For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `archiveWarehouse`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `{Aggregate}Functionalities`. The full pattern — method body, `sagaState != NOT_IN_SAGA` guard, where the guard goes (after load, not in the shared service method), and when it may be skipped — is documented in `docs/concepts/events.md` § ByEvent sagaState guard. Follow that section.
 
-The `{operation}ByEvent` **Functionalities** method is always new — one per event, per `events.md` § ByEvent sagaState guard. The **service** method it delegates to is shared with the saga path: reuse the existing `{Aggregate}Service` mutate method whenever one already performs exactly this mutation. Write a new service helper (copy-on-write mutation plus `registerChanged`, no saga) only when no existing service method does — typically when the event updates a cached field that no saga operation touches. Never move the `sagaState` guard into the shared service method; it belongs in the ByEvent method after the load, or saga steps calling the same service method are silently skipped.
+The `{operation}ByEvent` **Functionalities** method is always new - one per event, per `events.md` § ByEvent sagaState guard. The **service** method it delegates to is shared with the saga path: reuse the existing `{Aggregate}Service` mutate method whenever one already performs exactly this mutation. Write a new service helper (copy-on-write mutation plus `registerChanged`, no saga) only when no existing service method does - typically when the event updates a cached field that no saga operation touches. Never move the `sagaState` guard into the shared service method; it belongs in the ByEvent method after the load, or saga steps calling the same service method are silently skipped.
 
 #### Deletion events: `remove()` on the whole consumer vs. remove a sub-entity
 
@@ -181,7 +181,7 @@ public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer war
 }
 ```
 
-The sub-entity is mutated through the copy's own collection, not the loaded aggregate's — the factory
+The sub-entity is mutated through the copy's own collection, not the loaded aggregate's - the factory
 copy constructor is what gives the new version its own sub-entity instances.
 
 The `publisherVersion` to use is `event.getPublisherAggregateVersion()`, which is a `Long` (the version
