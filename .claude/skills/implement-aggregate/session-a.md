@@ -137,7 +137,14 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaStat
 
 - Enum implementing `SagaState`
 - **Do not** include `NOT_IN_SAGA` — the initial state is set to `GenericSagaState.NOT_IN_SAGA` (from the framework) in the `Saga{Aggregate}` constructor. This enum only holds operation-specific locked states.
-- Include `IN_UPDATE_{AGGREGATE}` or `IN_DELETE_{AGGREGATE}` only when the saga has additional steps **after** the primary write step that must observe the aggregate under a distinct locked state. For a simple two-step saga (read → write-as-final-step), `READ_{AGGREGATE}` is sufficient as the only state in this enum.
+- **One locked state per mutating saga this aggregate owns**, named `IN_{OPERATION}_{AGGREGATE}`
+  after the operation rather than after a fixed CRUD verb - `IN_UPDATE_{AGGREGATE}` and
+  `IN_DELETE_{AGGREGATE}` are just the two commonest instances, and an aggregate with several
+  domain-specific mutating operations gets one constant for each. This is the state the saga's
+  lock-acquisition step passes to `setSemanticLock(...)`, and every two-step write saga has one:
+  `docs/concepts/sagas.md` § "Lock-Acquisition Step Pattern (Two-Step Write Sagas)" and § "Step
+  Ordering" item 3 require the lock step regardless of how many steps follow it. Read the
+  aggregate's write functionalities in plan.md and emit one constant per non-create operation.
 - **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock
 - Include `READ_{AGGREGATE}` if other aggregates use this aggregate as a cross-aggregate prerequisite (another aggregate's write saga fetches this one's DTO — check plan.md's write functionalities for other aggregates)
 
