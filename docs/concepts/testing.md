@@ -121,7 +121,9 @@ happy-path postconditions, events-published list, subscribed-events table, and P
 *are* the spec — assertions must trace to them, never to the implementation just written (not the
 service body, not the `EventProcessing` class). Write a 1-line `// Spec:` comment at the top of
 each test naming the plan.md section and rule, e.g.
-`// Spec: plan.md §3.5 Shipment — UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED`.
+`// Spec: plan.md § 5. Shipment — UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED`.
+The section reference is the `### {N}. {Aggregate}` heading `classify-and-plan` § Step 8 emits — plan.md
+has no `§n.n` numbering, so a `§3.5`-style citation points at nothing.
 If the implementation disagrees (e.g. throws a different message constant than plan.md names), the
 **implementation** is the bug: flag the mismatch, do not adjust the test.
 
@@ -191,7 +193,7 @@ assertion goes through the load path — reading via the write UoW is Fake.
 class <Aggregate>ServiceTest extends <AppName>SpockTest {
 
     def "create<Aggregate>: persisted and readable through a fresh UnitOfWork"() {
-        // Spec: plan.md §<n> <Aggregate> — Create<Aggregate> postconditions
+        // Spec: plan.md § <n>. <Aggregate> — Create<Aggregate> postconditions
         when:
         def dto = <aggregate>Service.create<Aggregate>(/* args */,
                 unitOfWorkService.createUnitOfWork("create<Aggregate>"))
@@ -202,7 +204,7 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
     }
 
     def "<serviceMethod>: <RULE_NAME> violation"() {
-        // Spec: plan.md §<n> <Aggregate> — rule <RULE_NAME> (P3 guard / uniqueness)
+        // Spec: plan.md § <n>. <Aggregate> — rule <RULE_NAME> (P3 guard / uniqueness)
         given:
         def existing = create<Aggregate>(/* fixture via base-class helper */)
         when:
@@ -237,7 +239,7 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
     EventService eventService
 
     def "<serviceOp> publishes <Xxx>Event with correct payload"() {
-        // Spec: plan.md §<n> <Aggregate> — events published by <ServiceOp>
+        // Spec: plan.md § <n>. <Aggregate> — events published by <ServiceOp>
         given:
         def publisher = create<Aggregate>(/* fixture via base-class helper */)
         when:

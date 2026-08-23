@@ -172,11 +172,11 @@ Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 
 **Cite plan.md as the spec — do not author a parallel artifact.** The `plan.md` aggregate section for the target aggregate already contains the happy-path postconditions, the events-published list, and the P1/P3 rule list. That section *is* the spec; the test asserts it. See `docs/concepts/testing.md` § Spec-First Ordering.
 
-At the top of every happy-path and violation test, write a single-line `// Spec:` comment that names the plan.md section and the rule (or "happy path") the test asserts. Example:
+At the top of every happy-path and violation test, write a single-line `// Spec:` comment that names the plan.md section and the rule (or "happy path") the test asserts. The section is the `### {N}. {Aggregate}` heading as plan.md writes it — plan.md carries no `§n.n` numbering, so a `§3.5`-style citation is unsearchable. Example:
 
 ```groovy
 def "updateShipmentNotes: SHIPMENT_NOTES_REQUIRED violation"() {
-    // Spec: plan.md §3.5 Shipment / functionalities — UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED
+    // Spec: plan.md § 5. Shipment — UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED
     given:
     ...
 }
