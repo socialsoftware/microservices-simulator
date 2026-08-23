@@ -69,7 +69,7 @@ Commands are plain data carriers — no business logic, no Spring beans.
 ## File Location
 
 ```
-src/main/java/<pkg>/<appName>/commands/<aggregate>/
+src/main/java/pt/ulisboa/tecnico/socialsoftware/{app}/commands/{aggregate}/
     Get<Xxx>Command.java
     <Operation><Xxx>Command.java
 ```
