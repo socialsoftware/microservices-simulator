@@ -20,6 +20,10 @@ Load these files before writing any code:
    - § Canonical Wiring Snippet (and all subsections) — the per-file structure for this session
    - § Canonical Wiring Snippet → EventProcessing class, § ByEvent sagaState guard — the contract: the cached-field change goes through the service method, plus the saga-state skip
    - § Cascade Invalidation Pattern — only if a deletion event causes `copy.remove()` on this aggregate
+   - **R5** — `getEventSubscriptions()` lives in the downstream (consumer) aggregate only; a publisher
+     never subscribes to its own events and never names a downstream aggregate type
+     (`docs/architecture.md` § R5, restated in `events.md` § EventSubscription). Subscribing in the wrong
+     direction creates a cycle in the event pipeline.
 
 2. **`docs/concepts/testing.md`** — § T3 — Subscription (Inter-Invariant) Test, including the deletion-event `and:`-block pattern, plus § Assertion Ownership. Note:
    - What a T3 subscription test asserts (event received → cached field updated → invariant re-evaluated)

@@ -20,6 +20,8 @@ Load these files before writing any code:
      rather than an extension of `SagaAggregateRepository`
    - § getEventSubscriptions() Implementation — relevant only if this aggregate has subscribed events (otherwise skip)
    - References to `prev` (used for temporal invariants) appear under § Key Fields / § Base Class
+   - **R6** — `verifyInvariants()` must not perform DB reads. This session writes it; the restriction is
+     owned by `docs/architecture.md` § R6 and `docs/concepts/aggregate.md`.
 
 2. **`docs/concepts/testing.md`** — § T1 — Aggregate Test. Note:
    - What the full T1 matrix covers: creation happy-path, one violation per non-`final` P1 rule, BVA straddles for ordered predicates

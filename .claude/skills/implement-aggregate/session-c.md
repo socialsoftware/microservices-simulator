@@ -20,6 +20,10 @@ Load these files before writing any code:
    - § Method Patterns (Read / Create / Mutate / Mutate with event publication / Mutate with optional sub-collection parameter)
    - § Copy-on-Write Rule, § DTO Immutability (R7), § Exception-Throw Convention
    - § P3 Guard Placement — where own-table uniqueness checks and DTO field validation live
+   - **R1, R2, R3** — the service loads only its own aggregate type, injects only its own aggregate's
+     components plus shared infrastructure, and receives upstream state as DTOs rather than aggregate
+     instances (`docs/architecture.md` § R1-R3, restated in `service.md` § Injected Dependencies). This
+     session is where upstream DTOs assembled by preceding saga steps enter service method signatures.
    - § Partial-Data Owned Entities (only if the aggregate has owned sub-entities)
    - § Custom Repository — Latest-Active-Version Query (only if returning lists)
 
