@@ -204,7 +204,8 @@ Implement only this item. The other items in this session are owned by
 other agents; do not create, modify or test them.
 
 FILES YOU CREATE:
-  <the per-item files for this item, from the plan.md 2.{N}.{type} row>
+  <the per-item files for this item, from the plan.md 2.{N}.{type} row,
+   plus - for slice k=1 only - that row's aggregate-level files>
 
 SHARED FILES YOU APPEND TO (never rewrite, never reformat):
   <the session's shared files, from the table below>
@@ -244,3 +245,15 @@ Session `a` produces one aggregate and is never sliced, so it has no shared-file
 Session `c` additionally has one file that is **replaced, not appended to**: the
 `create{Aggregate}()` helper body in `{AppClass}SpockTest.groovy`. It belongs to slice `c1`, the
 create functionality, which plan.md always orders first. No later slice may touch it.
+
+### Aggregate-level files belong to slice `k=1`
+
+A plan.md session row carries two kinds of created file: **per-item** files, one per write op, read
+op or subscribed event, and **aggregate-level** files, exactly one per aggregate however many items
+the session has. `{Aggregate}Controller.java` is the standing example - `classify-and-plan`
+§ Step 7 lists it in every 2.N.c row and gates it on nothing, so it is not attached to any item.
+
+Every aggregate-level file in the row belongs to the session's **first** slice, `k=1`. Later slices
+neither create nor modify it. This is the same rule that already gives `c1` the `create{Aggregate}()`
+helper body, generalised: a create-once file needs a single writer, and the first slice is the only
+one every session is guaranteed to have.
