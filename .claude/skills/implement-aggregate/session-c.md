@@ -188,8 +188,17 @@ that.
 - Extends `{AppClass}SpockTest`
 - **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation via `{Aggregate}Functionalities`, and assert **orchestration outcomes only**: the operation completes, the returned DTO is coherent, and `sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA`
 - **Saga-path guard tests**: P3 guard violations that involve cross-aggregate saga coordination, driven through `{Aggregate}Functionalities` (single-aggregate guard violations are already covered in T2 via direct service calls — do not duplicate them here)
-- **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., requester not registered in the warehouse)
+- **P4a prerequisite tests**: test what happens when the upstream fetch fails - the referenced
+  upstream aggregate does not exist, or has been soft-deleted. Where the rule is enforced by the
+  fetch itself (the case `docs/concepts/sagas.md` § Step Ordering describes as needing no service
+  guard), see the carve-out in the assertion rule below
 - **Assertion for all violation tests:** `thrown({AppClass}Exception)` plus `ex.message == {RULE_NAME}`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in Fault / Behavior Test (Appendix) fault-injection tests. Never accept a bare `thrown({AppClass}Exception)` without the message assertion — it passes on any thrown exception of that type, including unrelated bugs. The `{RULE_NAME}` constant must match the name in `plan.md`'s rule list, not be inferred from the implementation.
+  **Carve-out - a P4a rule enforced by the fetch:** a data-assembly step that enforces its rule by
+  letting the upstream read fail has no `{AppClass}Exception` and no `{RULE_NAME}` constant to
+  assert - the failure comes from the framework's `aggregateLoadAndRegisterRead`, which raises
+  `SimulatorException` (`docs/concepts/testing.md` § T2 - Not-Found Paths, Path A). Those tests
+  assert `thrown(SimulatorException)` and nothing further. Every other violation test, P3 guards
+  included, keeps the rule above.
 - **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy` (session a). Do not add P1 violation tests or BVA boundary straddles to T4 functionality tests.
 - **State-transition / semantic-lock acquisition (required):** Follow `docs/concepts/testing.md` § T4 — Functionality Test. Each `setSemanticLock` step is an *acquire* transition into `IN_{OP}`. **One case per saga step that calls `setSemanticLock` — no exceptions:**
   - **`setSemanticLock` step:** run the workflow through the lock step via `executeUntilStep("<lockStep>", uow)`, assert `sagaStateOf(<id>) == <Aggregate>SagaState.IN_<OP>` in `expect:` (the post-*acquire* state), call `resumeWorkflow(uow)` in `when:`, assert `noExceptionThrown()` in `then:` (the traversal completes back to `NOT_IN_SAGA`).
