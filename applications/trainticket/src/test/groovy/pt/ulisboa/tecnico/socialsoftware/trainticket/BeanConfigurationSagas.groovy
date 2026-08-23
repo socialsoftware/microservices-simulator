@@ -46,8 +46,13 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregat
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.messaging.UserCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.service.UserService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.RouteCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.RouteRepository
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.sagas.factories.SagasRouteFactory
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.sagas.repositories.RouteCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.coordination.functionalities.RouteFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.messaging.RouteCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.service.RouteService
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
@@ -239,6 +244,23 @@ class BeanConfigurationSagas {
     @Bean
     RouteCustomRepositorySagas routeCustomRepositorySagas() {
         return new RouteCustomRepositorySagas()
+    }
+
+    @Bean
+    RouteService routeService(SagaUnitOfWorkService unitOfWorkService,
+                              RouteRepository routeRepository,
+                              RouteCustomRepository routeCustomRepository) {
+        return new RouteService(unitOfWorkService, routeRepository, routeCustomRepository)
+    }
+
+    @Bean
+    RouteCommandHandler routeCommandHandler() {
+        return new RouteCommandHandler()
+    }
+
+    @Bean
+    RouteFunctionalities routeFunctionalities() {
+        return new RouteFunctionalities()
     }
 
 }

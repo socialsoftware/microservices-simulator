@@ -21,6 +21,11 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregat
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.aggregate.UserDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.coordination.functionalities.UserFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.service.UserService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.RouteDto
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.RouteStationDto
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.sagas.SagaRoute
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.coordination.functionalities.RouteFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.service.RouteService
 
 class TrainticketSpockTest extends SpockTest {
 
@@ -102,6 +107,10 @@ class TrainticketSpockTest extends SpockTest {
     protected UserService userService
     @Autowired(required = false)
     protected UserFunctionalities userFunctionalities
+    @Autowired(required = false)
+    protected RouteService routeService
+    @Autowired(required = false)
+    protected RouteFunctionalities routeFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -145,5 +154,31 @@ class TrainticketSpockTest extends SpockTest {
                        String email = USER_EMAIL) {
         def userDto = new UserDto(userName, password, gender, documentType, documentNumber, email)
         return userFunctionalities.createUser(userDto).aggregateId
+    }
+
+    // The station ids a route stations on must resolve to real Station aggregates: session 2.4.c
+    // reroutes this helper onto CreateRoute, whose data-assembly step fetches each one.
+    Set<RouteStationDto> routeStationsOf(List<List> stations) {
+        return stations.withIndex().collect { entry, index ->
+            new RouteStationDto(index, entry[0] as Integer, entry[1] as String, entry[2] as Integer)
+        }.toSet()
+    }
+
+    Set<RouteStationDto> twoStationRoute(String startStationName = ROUTE_START_STATION_NAME,
+                                         String endStationName = ROUTE_END_STATION_NAME) {
+        return routeStationsOf([
+                [createStation(startStationName, STATION_STAY_TIME), startStationName, ROUTE_DISTANCE_ZERO],
+                [createStation(endStationName, STATION_STAY_TIME), endStationName, ROUTE_DISTANCE_END]
+        ])
+    }
+
+    Integer createRoute(String startStationName = ROUTE_START_STATION_NAME,
+                        String endStationName = ROUTE_END_STATION_NAME,
+                        Set<RouteStationDto> routeStations = null) {
+        def stations = routeStations != null ? routeStations : twoStationRoute(startStationName, endStationName)
+        def route = new SagaRoute(aggregateIdGeneratorService.getNewAggregateId(),
+                new RouteDto(startStationName, endStationName, stations))
+        unitOfWorkService.registerChanged(route, unitOfWorkService.createUnitOfWork("fixture"))
+        return route.getAggregateId()
     }
 }
