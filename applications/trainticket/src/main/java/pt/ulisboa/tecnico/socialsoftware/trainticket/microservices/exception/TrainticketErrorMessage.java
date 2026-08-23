@@ -59,5 +59,10 @@ public final class TrainticketErrorMessage {
     public static final String ORDER_CANCELLATION_FIELDS_SET = "Order cancellation time and refund amount must be set exactly when the order is cancelled.";
     public static final String ORDER_REFUND_AMOUNT = "Order refund amount does not match the refund due on cancellation.";
 
+    public static final String CONTACTS_BELONG_TO_ACCOUNT = "The passenger contact is not owned by the booking account.";
+    public static final String ENDPOINTS_ON_TRIP_ROUTE = "The journey endpoints are not two stations of the trip's route, in travel order.";
+    public static final String SEAT_CAPACITY_NOT_EXCEEDED = "The requested seat class is fully booked on this departure.";
+    public static final String SEAT_NUMBER_WITHIN_CAPACITY = "The allocated seat number lies outside the seat class capacity.";
+
     public static final String PLACEHOLDER = "placeholder";
 }

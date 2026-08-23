@@ -30,7 +30,7 @@ class GetOrderByIdTest extends TrainticketSpockTest {
         result.tripAggregateId == tripAggregateId
         result.travelDate == ORDER_TRAVEL_DATE
         result.seatClass == ORDER_SEAT_CLASS
-        result.price == ORDER_PRICE
+        result.price == ORDER_BOOKED_PRICE
     }
 
     @TestConfiguration

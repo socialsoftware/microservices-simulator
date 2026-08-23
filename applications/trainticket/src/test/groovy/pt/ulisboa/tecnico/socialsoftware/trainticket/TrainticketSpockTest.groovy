@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -39,9 +40,7 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.service.
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.functionalities.PriceConfigFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.service.PriceConfigService
-import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.OrderDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.SeatClass
-import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.sagas.SagaOrder
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.coordination.functionalities.OrderFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.service.OrderService
 
@@ -155,9 +154,12 @@ class TrainticketSpockTest extends SpockTest {
     public static final String ORDER_CONTACTS_NAME = "Zhang San"
     public static final DocumentType ORDER_CONTACTS_DOCUMENT_TYPE = DocumentType.ID_CARD
     public static final String ORDER_CONTACTS_DOCUMENT_NUMBER = "ID-700800900"
-    public static final LocalDate ORDER_TRAVEL_DATE = LocalDate.of(2026, 6, 1)
-    public static final LocalDateTime ORDER_DEPARTURE_TIME = LocalDateTime.of(2026, 6, 1, 8, 0)
-    public static final LocalDateTime ORDER_BOUGHT_DATE = LocalDateTime.of(2026, 5, 20, 10, 30)
+    // Pinned relative to the clock PreserveTicket stamps boughtDate from, so a booked departure is
+    // always still ahead of its purchase and ORDER_DEPARTURE_AFTER_PURCHASE holds however long the
+    // suite outlives the day it was written.
+    public static final LocalDate ORDER_TRAVEL_DATE = DateHandler.now().toLocalDate().plusMonths(1)
+    public static final LocalDateTime ORDER_DEPARTURE_TIME = LocalDateTime.of(ORDER_TRAVEL_DATE, TRIP_START_TIME)
+    public static final LocalDateTime ORDER_BOUGHT_DATE = ORDER_DEPARTURE_TIME.minusDays(12)
     public static final LocalDateTime ORDER_BOUGHT_DATE_ON_POINT = ORDER_DEPARTURE_TIME
     public static final LocalDateTime ORDER_BOUGHT_DATE_OFF_POINT = ORDER_DEPARTURE_TIME.plusNanos(1)
     public static final Integer ORDER_SEAT_NUMBER = 42
@@ -167,11 +169,22 @@ class TrainticketSpockTest extends SpockTest {
     public static final BigDecimal ORDER_PRICE_ON_POINT = new BigDecimal("0.0001")
     public static final BigDecimal ORDER_PRICE_OFF_POINT = BigDecimal.ZERO
     public static final BigDecimal ORDER_PRICE_NEGATIVE = new BigDecimal("-1.0000")
-    public static final LocalDateTime ORDER_CANCELLED_TIME = LocalDateTime.of(2026, 5, 25, 9, 0)
+    public static final LocalDateTime ORDER_CANCELLED_TIME = ORDER_DEPARTURE_TIME.minusDays(7)
     public static final LocalDateTime ORDER_CANCELLED_TIME_ON_POINT = ORDER_DEPARTURE_TIME
     public static final LocalDateTime ORDER_CANCELLED_TIME_OFF_POINT = ORDER_DEPARTURE_TIME.plusNanos(1)
     public static final BigDecimal ORDER_REFUND_NONE = BigDecimal.ZERO
     public static final BigDecimal ORDER_REFUND_PAID = new BigDecimal("100.0000")
+
+    // The terms PreserveTicket derives for a booking on the default bookable trip: the fare is the
+    // route's end-to-end distance at the configured rate, and the refund is 80% of it.
+    public static final Integer ORDER_BOOKED_DISTANCE = ROUTE_DISTANCE_END - ROUTE_DISTANCE_ZERO
+    public static final BigDecimal ORDER_BOOKED_PRICE =
+            PRICE_CONFIG_BASIC_RATE.multiply(new BigDecimal(ORDER_BOOKED_DISTANCE))
+    public static final BigDecimal ORDER_BOOKED_PRICE_FIRST_CLASS =
+            PRICE_CONFIG_FIRST_CLASS_RATE.multiply(new BigDecimal(ORDER_BOOKED_DISTANCE))
+    public static final BigDecimal ORDER_BOOKED_REFUND_PAID =
+            ORDER_BOOKED_PRICE.multiply(new BigDecimal("0.80"))
+    public static final String ORDER_UNKNOWN_STATION_NAME = "Guangzhou"
 
 
     @Autowired
@@ -180,9 +193,6 @@ class TrainticketSpockTest extends SpockTest {
     protected SagaUnitOfWorkService unitOfWorkService
     @Autowired
     protected AggregateIdGeneratorService aggregateIdGeneratorService
-
-    // Seats the createOrder fixture hands out while it still bypasses PreserveTicket's allocator.
-    protected Integer nextFixtureSeatNumber = ORDER_SEAT_NUMBER_ON_POINT
 
     // Domain @Autowired fields are added here as aggregates are implemented in Phase 2.
 
@@ -313,10 +323,6 @@ class TrainticketSpockTest extends SpockTest {
         return priceConfigFunctionalities.createPriceConfig(priceConfigDto).aggregateId
     }
 
-    // Session 2.8.c replaces this body with PreserveTicket; the parameter list is already that
-    // functionality's, so call sites survive the swap. Until then the order is built directly on
-    // the aggregate, and the terms the booking saga would derive are read back from the
-    // prerequisites it would fetch.
     Integer createOrder(Integer userAggregateId = createUser(),
                         Integer contactsAggregateId = createContacts(userAggregateId),
                         Integer tripAggregateId = createBookableTrip(),
@@ -324,18 +330,8 @@ class TrainticketSpockTest extends SpockTest {
                         String fromStationName = ORDER_FROM_STATION_NAME,
                         String toStationName = ORDER_TO_STATION_NAME,
                         SeatClass seatClass = ORDER_SEAT_CLASS) {
-        def contactsDto = contactsFunctionalities.getContactsById(contactsAggregateId)
-        def tripDto = tripFunctionalities.getTripById(tripAggregateId)
-
-        def orderDto = new OrderDto(tripAggregateId, contactsAggregateId, userAggregateId,
-                ORDER_BOUGHT_DATE, travelDate, LocalDateTime.of(travelDate, tripDto.startTime),
-                tripDto.tripNumber, fromStationName, toStationName,
-                seatClass, nextFixtureSeatNumber++, contactsDto.name,
-                contactsDto.documentType, contactsDto.documentNumber, ORDER_PRICE)
-
-        def order = new SagaOrder(aggregateIdGeneratorService.getNewAggregateId(), orderDto)
-        unitOfWorkService.registerChanged(order, unitOfWorkService.createUnitOfWork("fixture"))
-        return order.getAggregateId()
+        return orderFunctionalities.preserveTicket(userAggregateId, contactsAggregateId, tripAggregateId,
+                travelDate, fromStationName, toStationName, seatClass).aggregateId
     }
 
     // A trip that can actually be booked: its route carries the endpoints an order names, and a

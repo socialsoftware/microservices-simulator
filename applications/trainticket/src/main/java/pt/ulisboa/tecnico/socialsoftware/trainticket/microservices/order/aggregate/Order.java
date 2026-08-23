@@ -139,6 +139,21 @@ public abstract class Order extends Aggregate {
         setCancelledTime(other.getCancelledTime());
     }
 
+    // Applied to the copy that supersedes this version, so this.status is still the pre-cancellation
+    // status - the same value verifyRefundAmount() reads as prev.status once the copy is chained.
+    public void cancel(LocalDateTime cancelledTime) {
+        setRefundAmount(refundDueOn(cancelledTime));
+        setCancelledTime(cancelledTime);
+        setStatus(OrderStatus.CANCELLED);
+    }
+
+    private BigDecimal refundDueOn(LocalDateTime cancelledTime) {
+        if (this.status == OrderStatus.NOTPAID || cancelledTime.isAfter(this.departureTime)) {
+            return BigDecimal.ZERO;
+        }
+        return this.price.multiply(REFUND_RATE);
+    }
+
     private static Map<OrderStatus, Set<OrderStatus>> allowedTransitions() {
         Map<OrderStatus, Set<OrderStatus>> transitions = new EnumMap<>(OrderStatus.class);
         transitions.put(OrderStatus.NOTPAID, EnumSet.of(OrderStatus.PAID, OrderStatus.CANCELLED));
