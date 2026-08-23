@@ -58,15 +58,24 @@ In these cases the discriminating check (e.g., `shipmentId`) must happen inside 
 
 ```java
 // In {Aggregate}Service:
+@Transactional(isolation = Isolation.SERIALIZABLE)
 public void removeIfShipmentMatches(Integer aggregateId, Integer shipmentId, UnitOfWork unitOfWork) {
-    {Aggregate} aggregate = get{Aggregate}ById(aggregateId, unitOfWork);
-    if (!aggregate.getShipmentId().equals(shipmentId)) {
+    {Aggregate} old{Aggregate} = ({Aggregate}) unitOfWorkService
+            .aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+    if (!old{Aggregate}.getShipmentId().equals(shipmentId)) {
         return; // not the affected consumer — ignore silently
     }
-    aggregate.remove();
-    unitOfWorkService.registerChanged(aggregate, unitOfWork);
+
+    {Aggregate} new{Aggregate} = {aggregate}Factory.create{Aggregate}Copy(old{Aggregate});
+    new{Aggregate}.remove();
+    unitOfWorkService.registerChanged(new{Aggregate}, unitOfWork);
 }
 ```
+
+Note the shape, which is the same one every mutate method uses (`docs/concepts/service.md` § Method
+Patterns → Mutate method, § Copy-on-Write Rule): the discriminating guard reads the loaded instance and
+returns before anything is dirtied; the mutation goes on a factory copy, never on the loaded instance;
+and `registerChanged` is what calls `verifyInvariants()` — never call it yourself.
 
 Do **not** move this check into a `subscribesEvent()` override. The override would run, but the subscription only sees the cached reference object it was constructed from, not the consumer aggregate that holds the discriminating field — and the harness keeps filtering at a single site regardless (`docs/concepts/events.md` § EventSubscription).
 
@@ -152,19 +161,27 @@ If the consumer aggregate caches no publisher payload (no name, no description �
 
 ```java
 // In {Aggregate}Service:
+@Transactional(isolation = Isolation.SERIALIZABLE)
 public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer warehouseAggregateId,
-                                                Integer publisherVersion, UnitOfWork unitOfWork) {
-    {Aggregate} aggregate = get{Aggregate}ById(aggregateId, unitOfWork);
-    aggregate.get{SubEntities}().stream()
+                                                Long publisherVersion, UnitOfWork unitOfWork) {
+    {Aggregate} old{Aggregate} = ({Aggregate}) unitOfWorkService
+            .aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
+    {Aggregate} new{Aggregate} = {aggregate}Factory.create{Aggregate}Copy(old{Aggregate});
+
+    new{Aggregate}.get{SubEntities}().stream()
         .filter(e -> e.getWarehouseAggregateId().equals(warehouseAggregateId))
         .findFirst()
         .ifPresent(e -> e.setWarehouseVersion(publisherVersion));
-    aggregate.verifyInvariants();
-    unitOfWorkService.registerChanged(aggregate, unitOfWork);
+
+    unitOfWorkService.registerChanged(new{Aggregate}, unitOfWork);
 }
 ```
 
-The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the publisher aggregate at the time the event was emitted).
+The sub-entity is mutated through the copy's own collection, not the loaded aggregate's — the factory
+copy constructor is what gives the new version its own sub-entity instances.
+
+The `publisherVersion` to use is `event.getPublisherAggregateVersion()`, which is a `Long` (the version
+of the publisher aggregate at the time the event was emitted).
 
 ### `{Aggregate}InterInvariantTest.groovy` (T3 subscription)
 
