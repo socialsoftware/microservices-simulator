@@ -1,6 +1,6 @@
 ---
 name: review-artifacts
-description: Static consistency check over docs/ and .claude/skills/ - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to docs/reviews/review-{YYYY-MM-DD}.md.
+description: Static consistency check over docs/ and .claude/ - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to docs/reviews/review-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
@@ -63,11 +63,17 @@ If a report for today already exists, append `-2`, `-3`, etc. to avoid overwriti
 Run:
 ```
 find docs -type f -name "*.md" | sort
-find .claude/skills -type f -name "*.md" | sort
+find .claude -type f -name "*.md" | sort
 ```
 
 Hold both lists. These are the complete artifact sets. Any file path referenced in a skill
 or doc must appear in one of these lists to be a valid reference.
+
+The second `find` covers **all** of `.claude`, not just `.claude/skills`. `AGENTS.md`
+§ "Harness evolution" defines the harness delta as `git log --oneline docs/ .claude/`, and
+`.claude/agents/aggregate-slice.md` is a harness file that `implement-aggregate-full` delegates to at
+runtime - `docs/workflow.md` § "Two entry points" calls it the contract for a slice. Enumerating only
+the skills tree leaves it unread by Step 2 and unscanned by Step 6.
 
 **Generated outputs excluded from input set:** files under `docs/reviews/` (e.g., `review-YYYY-MM-DD.md`, `harness-retro-{app-name}-YYYY-MM-DD.md`) are produced by `/review-artifacts` and `/harness-retrospective` and are **not** part of the input artifact enumeration. Do not flag them as untracked artifacts or broken references when they appear on disk but not in the `find docs` list.
 
@@ -76,7 +82,7 @@ or doc must appear in one of these lists to be a valid reference.
 ## Step 2: Read All Artifacts
 
 Read every file returned by the two `find` commands in Step 1.b (all `docs/**/*.md` and all
-`.claude/skills/**/*.md`) — this is the complete review set. Do not maintain a separate
+`.claude/**/*.md`) - this is the complete review set. Do not maintain a separate
 hard-coded list here: because the set is derived directly from Step 1.b, newly added files
 (e.g. `.claude/skills/_shared/conventions.md`, each `.claude/skills/implement-aggregate/session-*.md`,
 or any future skill/doc) are picked up automatically without editing this skill.
@@ -87,7 +93,7 @@ Read all files in parallel where possible.
 
 ## Step 3: Check 1 — Path Validity
 
-For every file path of the form `docs/...` or `.claude/skills/...` mentioned literally (not as a
+For every file path of the form `docs/...` or `.claude/...` mentioned literally (not as a
 template pattern) in any skill or doc file, verify the path appears in the Step 1.b artifact list
 or as a real file on disk.
 
@@ -194,8 +200,8 @@ The base commit is where the run's harness edits begin:
 
 ```bash
 BASE=$(git merge-base HEAD master)
-[ "$BASE" = "$(git rev-parse HEAD)" ] && BASE=$(git log --format=%H --grep='^harness:' HEAD -- docs .claude/skills | tail -1)^
-git diff "$BASE" -- docs .claude/skills -M | rg '^\+' | rg -v '^\+\+\+' > /tmp/harness-added.txt
+[ "$BASE" = "$(git rev-parse HEAD)" ] && BASE=$(git log --format=%H --grep='^harness:' HEAD -- docs .claude | tail -1)^
+git diff "$BASE" -- docs .claude ':(exclude)docs/reviews' -M | rg '^\+' | rg -v '^\+\+\+' > /tmp/harness-added.txt
 ```
 
 `merge-base` alone is not enough. When harness work is committed on **master** — which is what
@@ -206,6 +212,10 @@ is still measured. **State in the report which base was used and how it was deri
 cannot interpret "0 violations" without knowing how many lines were scanned.
 
 If neither rule yields a base (no `harness:` commits at all), there is nothing to check; say so.
+
+`':(exclude)docs/reviews'` keeps the pathspec aligned with Step 1.b, which excludes the generated
+report tree from the artifact set. Without it every run after the first re-scans the previous
+report's own "Forbidden nouns" line and reports one guaranteed false positive per aggregate.
 
 ### 6.c — Match
 
@@ -221,7 +231,7 @@ that relocates content between harness files reports every domain noun it carrie
 new. Before reporting a hit, check whether the identical line already existed at the base:
 
 ```bash
-git grep -F "<the added line>" "$BASE" -- docs .claude/skills
+git grep -F "<the added line>" "$BASE" -- docs .claude
 ```
 
 A match means the line was moved, not introduced: it is a `Moved` verdict, not a violation. This is
@@ -229,7 +239,7 @@ not a rare case - a session-letter swap or a sub-file split produces nothing els
 first exercise all three hits were moves.
 
 Then report the added line verbatim and the file it came from (re-run
-`git diff "$BASE" -- docs .claude/skills -M` and locate the hunk, since the filtered file has lost
+`git diff "$BASE" -- docs .claude ':(exclude)docs/reviews' -M` and locate the hunk, since the filtered file has lost
 its `+++` headers). Read each surviving hit before reporting it: a noun that is also an ordinary
 English word can appear legitimately, and a plural or possessive form will not match `-w` at all, so
 scan the added lines for those by eye.
