@@ -27,9 +27,20 @@ silently created.
 
 Run: `find applications -name plan.md`
 
-Use the first result (if a skill needs different handling for multiple results — e.g. disambiguating
-by unchecked checkboxes or prompting the user — that logic is defined locally in the referencing
-skill, not here). From the result path, extract:
+If there is exactly one result, use it. If there are several, apply this tie-break in order — `find`
+returns them in directory order, which has nothing to do with which run is current, so never just take
+the first:
+
+1. The plan.md with at least one unchecked `- [ ]` box. If exactly one qualifies, that is the run in
+   flight.
+2. Otherwise (all complete, or several still open) the one whose application directory has the most
+   recent commit: `git log -1 --format=%ct -- applications/{app-name}`.
+3. If that is still ambiguous, halt and ask which application to work on. Never guess.
+
+A referencing skill may override this with its own local rule; absent one, the tie-break above is
+binding.
+
+From the result path, extract:
 
 - `{app-name}` = directory containing `plan.md` (e.g., `my-app`)
 - `{pkg}` = `{app-name}` with hyphens removed, lowercase (e.g., `myapp`)
