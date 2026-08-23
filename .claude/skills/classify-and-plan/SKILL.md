@@ -499,8 +499,13 @@ Paths in the tables below resolve against **three** roots, and the leading segme
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.c | `service/{Aggregate}Service.java` (write methods appended), `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), write coordinator methods appended to `coordination/functionalities/{Aggregate}Functionalities.java`, write cases appended to `messaging/{Aggregate}CommandHandler.java`, `coordination/webapi/{Aggregate}Controller.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op), write-method cases plus event-publication assertions appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
+| 2.N.c | `service/{Aggregate}Service.java` (write methods appended), `commands/{aggregate}/{Operation}Command.java` (one per write op), `coordination/sagas/{Operation}FunctionalitySagas.java` (one per write op), write coordinator methods appended to `coordination/functionalities/{Aggregate}Functionalities.java`, write cases appended to `messaging/{Aggregate}CommandHandler.java`, `coordination/webapi/{Aggregate}Controller.java`, `sagas/coordination/{aggregate}/{Operation}Test.groovy` (one per write op), `sagas/coordination/{aggregate}/{Operation}CompensationTest.groovy` (one per lock-holding write op), write-method cases plus event-publication assertions appended to `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` |
 ```
+
+> **`{Operation}CompensationTest.groovy`** is required for every write functionality that holds a
+> semantic lock across a later step. Omit the entry for a write op that `docs/concepts/testing.md`
+> § Compensation Test says to skip — a read-only functionality, or one whose only step has no
+> dependents.
 
 > **`{Aggregate}Controller.java` is unconditional** — a minimal `@RestController` stub under
 > `coordination/webapi/`. List it for every aggregate; it is not gated on the aggregate having any
