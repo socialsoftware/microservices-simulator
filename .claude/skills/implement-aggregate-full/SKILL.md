@@ -235,9 +235,9 @@ These accumulate one member per item, which is why slices append and never rewri
 
 | Session | Shared files |
 |---------|--------------|
-| `b` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `ServiceMapping.java` |
-| `c` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy` |
-| `d` | `{Aggregate}EventHandling.java` (one `@Scheduled` method per event), `{Aggregate}EventHandler.java` (one `instanceof` branch per event), `{Aggregate}EventProcessing.java` (one `process{Xxx}Event` method per event), `{Aggregate}Functionalities.java` (one `{operation}ByEvent` method per event), `{Aggregate}Service.java` (the ByEvent helper, only when no existing mutate method performs exactly this mutation), `{Aggregate}.java` (one `getEventSubscriptions()` subscription per subscribed event, inside the ACTIVE guard), `{Aggregate}InterInvariantTest.groovy` |
+| `b` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `ServiceMapping.java`, `{AppClass}SpockTest.groovy` (the `@Autowired` functionalities field and the `create{Aggregate}(...)` fixture helper) |
+| `c` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `{AppClass}ErrorMessage.java` (P3 guard constants) |
+| `d` | `{Aggregate}EventHandling.java` (one `@Scheduled` method per event), `{Aggregate}EventHandler.java` (one `instanceof` branch per event), `{Aggregate}EventProcessing.java` (one `process{Xxx}Event` method per event), `{Aggregate}Functionalities.java` (one `{operation}ByEvent` method per event), `{Aggregate}Service.java` (the ByEvent helper, only when no existing mutate method performs exactly this mutation), `{Aggregate}.java` (one `getEventSubscriptions()` subscription per subscribed event, inside the ACTIVE guard), `{AppClass}ErrorMessage.java` (constants for invariants event processing can violate), `{Aggregate}InterInvariantTest.groovy` |
 
 Session `a` produces one aggregate and is never sliced, so it has no shared-file hazard.
 
