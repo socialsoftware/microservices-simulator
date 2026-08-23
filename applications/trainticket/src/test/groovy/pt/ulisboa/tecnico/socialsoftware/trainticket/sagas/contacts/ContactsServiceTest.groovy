@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.trainticket.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.TrainticketSpockTest
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.aggregate.ContactsDto
 
 @DataJpaTest
 @Transactional
@@ -72,6 +73,120 @@ class ContactsServiceTest extends TrainticketSpockTest {
 
         then:
         result.isEmpty()
+    }
+
+    def "createContacts: persisted and readable through a fresh UnitOfWork"() {
+        // Spec: plan.md §5 Contacts - CreateContacts
+        given:
+        def contactsDto = new ContactsDto(CONTACTS_USER_AGGREGATE_ID, CONTACTS_NAME,
+                CONTACTS_DOCUMENT_TYPE, CONTACTS_DOCUMENT_NUMBER, CONTACTS_PHONE_NUMBER)
+
+        when:
+        def result = contactsService.createContacts(contactsDto,
+                unitOfWorkService.createUnitOfWork("createContacts"))
+
+        then: 'read back through a second, fresh UnitOfWork'
+        result.aggregateId != null
+        def readBack = contactsService.getContactsById(result.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.userAggregateId == CONTACTS_USER_AGGREGATE_ID
+        readBack.name == CONTACTS_NAME
+        readBack.documentType == CONTACTS_DOCUMENT_TYPE
+        readBack.documentNumber == CONTACTS_DOCUMENT_NUMBER
+        readBack.phoneNumber == CONTACTS_PHONE_NUMBER
+        readBack.isActive()
+    }
+
+    def "createContacts: the account reference is stored without validating the account exists"() {
+        // Spec: plan.md §5 Contacts - CreateContacts is a single-aggregate write; no ACCOUNT_EXISTS rule
+        given:
+        def contactsDto = new ContactsDto(NONEXISTENT_AGGREGATE_ID, CONTACTS_NAME,
+                CONTACTS_DOCUMENT_TYPE, CONTACTS_DOCUMENT_NUMBER, CONTACTS_PHONE_NUMBER)
+
+        when:
+        def result = contactsService.createContacts(contactsDto,
+                unitOfWorkService.createUnitOfWork("createContacts"))
+
+        then:
+        def readBack = contactsService.getContactsById(result.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.userAggregateId == NONEXISTENT_AGGREGATE_ID
+    }
+
+    def "updateContacts: new name, document and phone number persisted, account reference untouched"() {
+        // Spec: plan.md §5 Contacts - UpdateContacts; userAggregateId is immutable (domain model §2)
+        given:
+        def contactsAggregateId = createContacts()
+
+        when:
+        contactsService.updateContacts(contactsAggregateId,
+                new ContactsDto(CONTACTS_USER_AGGREGATE_ID_TWO, CONTACTS_NAME_TWO,
+                        CONTACTS_DOCUMENT_TYPE_TWO, CONTACTS_DOCUMENT_NUMBER_TWO, CONTACTS_PHONE_NUMBER_TWO),
+                unitOfWorkService.createUnitOfWork("updateContacts"))
+
+        then: 'read back through a second, fresh UnitOfWork'
+        def readBack = contactsService.getContactsById(contactsAggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.name == CONTACTS_NAME_TWO
+        readBack.documentType == CONTACTS_DOCUMENT_TYPE_TWO
+        readBack.documentNumber == CONTACTS_DOCUMENT_NUMBER_TWO
+        readBack.phoneNumber == CONTACTS_PHONE_NUMBER_TWO
+        readBack.userAggregateId == CONTACTS_USER_AGGREGATE_ID
+    }
+
+    def "updateContacts: unknown aggregate id"() {
+        // Spec: plan.md §5 Contacts - UpdateContacts; Path A (aggregateLoadAndRegisterRead)
+        when:
+        contactsService.updateContacts(NONEXISTENT_AGGREGATE_ID,
+                new ContactsDto(CONTACTS_USER_AGGREGATE_ID, CONTACTS_NAME_TWO,
+                        CONTACTS_DOCUMENT_TYPE_TWO, CONTACTS_DOCUMENT_NUMBER_TWO, CONTACTS_PHONE_NUMBER_TWO),
+                unitOfWorkService.createUnitOfWork("updateContacts"))
+
+        then:
+        thrown(SimulatorException)
+    }
+
+    def "deleteContacts: soft-deleted contact is no longer loadable"() {
+        // Spec: plan.md §5 Contacts - DeleteContacts (soft delete)
+        given:
+        def contactsAggregateId = createContacts()
+
+        when:
+        contactsService.deleteContacts(contactsAggregateId,
+                unitOfWorkService.createUnitOfWork("deleteContacts"))
+
+        and: 'read back through a second, fresh UnitOfWork'
+        contactsService.getContactsById(contactsAggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+
+        then: 'DELETED aggregate is not loadable'
+        thrown(SimulatorException)
+    }
+
+    def "deleteContacts: the deleted contact stops being listed for its account"() {
+        // Spec: plan.md §5 Contacts - DeleteContacts (soft delete)
+        given:
+        def deletedAggregateId = createContacts(CONTACTS_USER_AGGREGATE_ID, CONTACTS_NAME)
+        def survivingAggregateId = createContacts(CONTACTS_USER_AGGREGATE_ID, CONTACTS_NAME_TWO)
+
+        when:
+        contactsService.deleteContacts(deletedAggregateId,
+                unitOfWorkService.createUnitOfWork("deleteContacts"))
+
+        then:
+        def remaining = contactsService.getContactsByAccount(CONTACTS_USER_AGGREGATE_ID,
+                unitOfWorkService.createUnitOfWork("check"))
+        remaining.collect { it.aggregateId } == [survivingAggregateId]
+    }
+
+    def "deleteContacts: unknown aggregate id"() {
+        // Spec: plan.md §5 Contacts - DeleteContacts; Path A (aggregateLoadAndRegisterRead)
+        when:
+        contactsService.deleteContacts(NONEXISTENT_AGGREGATE_ID,
+                unitOfWorkService.createUnitOfWork("deleteContacts"))
+
+        then:
+        thrown(SimulatorException)
     }
 
     @TestConfiguration

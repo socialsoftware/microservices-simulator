@@ -26,7 +26,6 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggrega
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.coordination.functionalities.RouteFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.service.RouteService
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.aggregate.ContactsDto
-import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.aggregate.sagas.SagaContacts
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.coordination.functionalities.ContactsFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.contacts.service.ContactsService
 
@@ -96,8 +95,10 @@ class TrainticketSpockTest extends SpockTest {
     public static final DocumentType CONTACTS_DOCUMENT_TYPE_TWO = DocumentType.PASSPORT
     public static final DocumentType CONTACTS_DOCUMENT_TYPE_NONE = DocumentType.NONE
     public static final String CONTACTS_DOCUMENT_NUMBER = "ID-700800900"
+    public static final String CONTACTS_DOCUMENT_NUMBER_TWO = "PP-G12345678"
     public static final String CONTACTS_DOCUMENT_NUMBER_BLANK = "   "
     public static final String CONTACTS_PHONE_NUMBER = "+86-21-5555-0100"
+    public static final String CONTACTS_PHONE_NUMBER_TWO = "+86-10-6666-0200"
 
 
     @Autowired
@@ -202,9 +203,7 @@ class TrainticketSpockTest extends SpockTest {
                            DocumentType documentType = CONTACTS_DOCUMENT_TYPE,
                            String documentNumber = CONTACTS_DOCUMENT_NUMBER,
                            String phoneNumber = CONTACTS_PHONE_NUMBER) {
-        def contacts = new SagaContacts(aggregateIdGeneratorService.getNewAggregateId(),
-                new ContactsDto(userAggregateId, name, documentType, documentNumber, phoneNumber))
-        unitOfWorkService.registerChanged(contacts, unitOfWorkService.createUnitOfWork("fixture"))
-        return contacts.getAggregateId()
+        def contactsDto = new ContactsDto(userAggregateId, name, documentType, documentNumber, phoneNumber)
+        return contactsFunctionalities.createContacts(contactsDto).aggregateId
     }
 }

@@ -52,4 +52,36 @@ public class ContactsService {
         }
         return contactsDtos;
     }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public ContactsDto createContacts(ContactsDto contactsDto, UnitOfWork unitOfWork) {
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        Contacts contacts = contactsFactory.createContacts(aggregateId, contactsDto);
+
+        unitOfWorkService.registerChanged(contacts, unitOfWork);
+        return contactsFactory.createContactsDto(contacts);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateContacts(Integer contactsAggregateId, ContactsDto contactsDto, UnitOfWork unitOfWork) {
+        Contacts oldContacts = (Contacts) unitOfWorkService.aggregateLoadAndRegisterRead(
+                contactsAggregateId, unitOfWork);
+        Contacts newContacts = contactsFactory.createContactsCopy(oldContacts);
+        newContacts.setName(contactsDto.getName());
+        newContacts.setDocumentType(contactsDto.getDocumentType());
+        newContacts.setDocumentNumber(contactsDto.getDocumentNumber());
+        newContacts.setPhoneNumber(contactsDto.getPhoneNumber());
+
+        unitOfWorkService.registerChanged(newContacts, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deleteContacts(Integer contactsAggregateId, UnitOfWork unitOfWork) {
+        Contacts oldContacts = (Contacts) unitOfWorkService.aggregateLoadAndRegisterRead(
+                contactsAggregateId, unitOfWork);
+        Contacts newContacts = contactsFactory.createContactsCopy(oldContacts);
+        newContacts.remove();
+
+        unitOfWorkService.registerChanged(newContacts, unitOfWork);
+    }
 }
