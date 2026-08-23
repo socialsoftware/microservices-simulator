@@ -625,7 +625,7 @@ Rows: one per aggregate (in sorted order from Step 5)
 For each aggregate in sorted order. **The heading must be `### {N}. {Aggregate}`, where `{N}` is the
 aggregate's ordinal from the Implementation Order table** — `_shared/conventions.md`
 § "Resolve aggregate context" locates the section by that exact shape and halts if it is absent, so
-every Phase 2/3/4 skill depends on the ordinal being present.
+every Phase 2 skill depends on the ordinal being present.
 
 ```markdown
 ### {N}. {Aggregate}
