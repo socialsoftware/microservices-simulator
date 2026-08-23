@@ -50,6 +50,7 @@ public final class TrainticketErrorMessage {
 
     public static final String PRICE_RATES_POSITIVE = "Price configuration rates must be positive.";
     public static final String PRICE_CONFIG_NOT_FOUND = "No price configuration exists for this route and train type.";
+    public static final String DUPLICATE_PRICE_CONFIG = "Another active price configuration already covers this route and train type.";
 
     public static final String PLACEHOLDER = "placeholder";
 }

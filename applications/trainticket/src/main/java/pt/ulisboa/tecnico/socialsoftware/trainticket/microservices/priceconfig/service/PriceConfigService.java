@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.a
 import java.util.ArrayList;
 import java.util.List;
 
+import static pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainticketErrorMessage.DUPLICATE_PRICE_CONFIG;
 import static pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception.TrainticketErrorMessage.PRICE_CONFIG_NOT_FOUND;
 
 @Service
@@ -67,5 +68,50 @@ public class PriceConfigService {
 
         return priceConfigFactory.createPriceConfigDto(
                 (PriceConfig) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork));
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public PriceConfigDto createPriceConfig(PriceConfigDto priceConfigDto, UnitOfWork unitOfWork) {
+        checkRouteAndTrainTypePairIsUnique(priceConfigDto.getRouteAggregateId(),
+                priceConfigDto.getTrainTypeAggregateId());
+
+        Integer aggregateId = aggregateIdGeneratorService.getNewAggregateId();
+        PriceConfig priceConfig = priceConfigFactory.createPriceConfig(aggregateId, priceConfigDto);
+
+        unitOfWorkService.registerChanged(priceConfig, unitOfWork);
+        return priceConfigFactory.createPriceConfigDto(priceConfig);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updatePriceConfig(Integer priceConfigAggregateId, PriceConfigDto priceConfigDto,
+                                  UnitOfWork unitOfWork) {
+        PriceConfig oldPriceConfig = (PriceConfig) unitOfWorkService.aggregateLoadAndRegisterRead(
+                priceConfigAggregateId, unitOfWork);
+        PriceConfig newPriceConfig = priceConfigFactory.createPriceConfigCopy(oldPriceConfig);
+        newPriceConfig.setBasicPriceRate(priceConfigDto.getBasicPriceRate());
+        newPriceConfig.setFirstClassPriceRate(priceConfigDto.getFirstClassPriceRate());
+
+        unitOfWorkService.registerChanged(newPriceConfig, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deletePriceConfig(Integer priceConfigAggregateId, UnitOfWork unitOfWork) {
+        PriceConfig oldPriceConfig = (PriceConfig) unitOfWorkService.aggregateLoadAndRegisterRead(
+                priceConfigAggregateId, unitOfWork);
+        PriceConfig newPriceConfig = priceConfigFactory.createPriceConfigCopy(oldPriceConfig);
+        newPriceConfig.remove();
+
+        unitOfWorkService.registerChanged(newPriceConfig, unitOfWork);
+    }
+
+    // UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE is a create-only guard: both ids are final, so no
+    // update path can break the pair.
+    private void checkRouteAndTrainTypePairIsUnique(Integer routeAggregateId, Integer trainTypeAggregateId) {
+        for (PriceConfig priceConfig : priceConfigCustomRepository.findAllLatestActive()) {
+            if (priceConfig.getRouteAggregateId().equals(routeAggregateId)
+                    && priceConfig.getTrainTypeAggregateId().equals(trainTypeAggregateId)) {
+                throw new TrainticketException(DUPLICATE_PRICE_CONFIG);
+            }
+        }
     }
 }

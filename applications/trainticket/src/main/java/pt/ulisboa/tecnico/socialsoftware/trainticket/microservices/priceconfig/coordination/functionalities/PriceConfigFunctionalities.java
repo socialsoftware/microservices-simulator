@@ -6,9 +6,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigDto;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.sagas.CreatePriceConfigFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.sagas.DeletePriceConfigFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.sagas.GetPriceConfigByIdFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.sagas.GetPriceConfigByRouteAndTrainTypeFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.sagas.GetPriceConfigsFunctionalitySagas;
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.sagas.UpdatePriceConfigFunctionalitySagas;
 
 import java.util.List;
 
@@ -42,5 +45,27 @@ public class PriceConfigFunctionalities {
                 unitOfWorkService, routeAggregateId, trainTypeAggregateId, unitOfWork, commandGateway);
         saga.executeWorkflow(unitOfWork);
         return saga.getPriceConfigDto();
+    }
+
+    public PriceConfigDto createPriceConfig(PriceConfigDto priceConfigDto) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("createPriceConfig");
+        CreatePriceConfigFunctionalitySagas saga = new CreatePriceConfigFunctionalitySagas(
+                unitOfWorkService, priceConfigDto, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+        return saga.getCreatedPriceConfigDto();
+    }
+
+    public void updatePriceConfig(Integer priceConfigAggregateId, PriceConfigDto priceConfigDto) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updatePriceConfig");
+        UpdatePriceConfigFunctionalitySagas saga = new UpdatePriceConfigFunctionalitySagas(
+                unitOfWorkService, priceConfigAggregateId, priceConfigDto, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
+    }
+
+    public void deletePriceConfig(Integer priceConfigAggregateId) {
+        SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("deletePriceConfig");
+        DeletePriceConfigFunctionalitySagas saga = new DeletePriceConfigFunctionalitySagas(
+                unitOfWorkService, priceConfigAggregateId, unitOfWork, commandGateway);
+        saga.executeWorkflow(unitOfWork);
     }
 }
