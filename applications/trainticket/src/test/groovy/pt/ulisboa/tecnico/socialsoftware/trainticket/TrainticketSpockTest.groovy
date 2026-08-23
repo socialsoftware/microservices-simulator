@@ -23,7 +23,6 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.coordina
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.user.service.UserService
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.RouteDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.RouteStationDto
-import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.sagas.SagaRoute
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.coordination.functionalities.RouteFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.service.RouteService
 
@@ -176,9 +175,6 @@ class TrainticketSpockTest extends SpockTest {
                         String endStationName = ROUTE_END_STATION_NAME,
                         Set<RouteStationDto> routeStations = null) {
         def stations = routeStations != null ? routeStations : twoStationRoute(startStationName, endStationName)
-        def route = new SagaRoute(aggregateIdGeneratorService.getNewAggregateId(),
-                new RouteDto(startStationName, endStationName, stations))
-        unitOfWorkService.registerChanged(route, unitOfWorkService.createUnitOfWork("fixture"))
-        return route.getAggregateId()
+        return routeFunctionalities.createRoute(new RouteDto(startStationName, endStationName, stations)).aggregateId
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.trainticket.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.TrainticketSpockTest
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.route.aggregate.RouteDto
 
 @DataJpaTest
 @Transactional
@@ -129,6 +130,116 @@ class RouteServiceTest extends TrainticketSpockTest {
 
         then:
         result.isEmpty()
+    }
+
+    def "createRoute: persisted and readable through a fresh UnitOfWork"() {
+        // Spec: plan.md §4 Route - CreateRoute postconditions
+        given:
+        def startStationAggregateId = createStation(ROUTE_START_STATION_NAME, STATION_STAY_TIME)
+        def middleStationAggregateId = createStation(ROUTE_MIDDLE_STATION_NAME, STATION_STAY_TIME)
+        def endStationAggregateId = createStation(ROUTE_END_STATION_NAME, STATION_STAY_TIME)
+        def routeStations = routeStationsOf([
+                [startStationAggregateId, ROUTE_START_STATION_NAME, ROUTE_DISTANCE_ZERO],
+                [middleStationAggregateId, ROUTE_MIDDLE_STATION_NAME, ROUTE_DISTANCE_MIDDLE],
+                [endStationAggregateId, ROUTE_END_STATION_NAME, ROUTE_DISTANCE_END]
+        ])
+
+        when:
+        def created = routeService.createRoute(
+                new RouteDto(ROUTE_START_STATION_NAME, ROUTE_END_STATION_NAME, routeStations),
+                unitOfWorkService.createUnitOfWork("createRoute"))
+
+        then: 'read back through a second, fresh UnitOfWork'
+        def readBack = routeService.getRouteById(created.aggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.startStationName == ROUTE_START_STATION_NAME
+        readBack.endStationName == ROUTE_END_STATION_NAME
+        readBack.isActive()
+
+        and: 'the whole station list is persisted'
+        def ordered = readBack.routeStations.sort { it.sequence }
+        ordered.collect { it.stationAggregateId } ==
+                [startStationAggregateId, middleStationAggregateId, endStationAggregateId]
+        ordered.collect { it.stationName } ==
+                [ROUTE_START_STATION_NAME, ROUTE_MIDDLE_STATION_NAME, ROUTE_END_STATION_NAME]
+        ordered.collect { it.distanceFromStart } ==
+                [ROUTE_DISTANCE_ZERO, ROUTE_DISTANCE_MIDDLE, ROUTE_DISTANCE_END]
+    }
+
+    def "updateRoute: replaces the station list and the endpoint names"() {
+        // Spec: plan.md §4 Route - UpdateRoute postconditions
+        given: 'a two-station route'
+        def startStationAggregateId = createStation(ROUTE_START_STATION_NAME, STATION_STAY_TIME)
+        def endStationAggregateId = createStation(ROUTE_END_STATION_NAME, STATION_STAY_TIME)
+        def routeAggregateId = createRoute(ROUTE_START_STATION_NAME, ROUTE_END_STATION_NAME,
+                routeStationsOf([
+                        [startStationAggregateId, ROUTE_START_STATION_NAME, ROUTE_DISTANCE_ZERO],
+                        [endStationAggregateId, ROUTE_END_STATION_NAME, ROUTE_DISTANCE_END]
+                ]))
+
+        and: 'a replacement list with an inserted stop and a different terminus'
+        def middleStationAggregateId = createStation(ROUTE_MIDDLE_STATION_NAME, STATION_STAY_TIME)
+        def otherStationAggregateId = createStation(ROUTE_OTHER_STATION_NAME, STATION_STAY_TIME)
+        def replacement = routeStationsOf([
+                [startStationAggregateId, ROUTE_START_STATION_NAME, ROUTE_DISTANCE_ZERO],
+                [middleStationAggregateId, ROUTE_MIDDLE_STATION_NAME, ROUTE_DISTANCE_MIDDLE],
+                [otherStationAggregateId, ROUTE_OTHER_STATION_NAME, ROUTE_DISTANCE_END]
+        ])
+
+        when:
+        routeService.updateRoute(routeAggregateId,
+                new RouteDto(ROUTE_START_STATION_NAME, ROUTE_OTHER_STATION_NAME, replacement),
+                unitOfWorkService.createUnitOfWork("updateRoute"))
+
+        then: 'read back through a second, fresh UnitOfWork'
+        def readBack = routeService.getRouteById(routeAggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
+        readBack.startStationName == ROUTE_START_STATION_NAME
+        readBack.endStationName == ROUTE_OTHER_STATION_NAME
+
+        and: 'the previous station list is replaced, not merged with the new one'
+        def ordered = readBack.routeStations.sort { it.sequence }
+        ordered.collect { it.stationAggregateId } ==
+                [startStationAggregateId, middleStationAggregateId, otherStationAggregateId]
+        ordered.collect { it.distanceFromStart } ==
+                [ROUTE_DISTANCE_ZERO, ROUTE_DISTANCE_MIDDLE, ROUTE_DISTANCE_END]
+    }
+
+    def "updateRoute: unknown aggregate id"() {
+        // Spec: plan.md §4 Route - UpdateRoute; Path A (aggregateLoadAndRegisterRead)
+        when:
+        routeService.updateRoute(NONEXISTENT_AGGREGATE_ID,
+                new RouteDto(ROUTE_START_STATION_NAME, ROUTE_END_STATION_NAME,
+                        twoStationRoute(ROUTE_START_STATION_NAME, ROUTE_END_STATION_NAME)),
+                unitOfWorkService.createUnitOfWork("updateRoute"))
+
+        then:
+        thrown(SimulatorException)
+    }
+
+    def "deleteRoute: the deleted route is no longer loadable"() {
+        // Spec: plan.md §4 Route - DeleteRoute (soft delete)
+        given:
+        def routeAggregateId = createRoute(ROUTE_START_STATION_NAME, ROUTE_END_STATION_NAME)
+
+        when:
+        routeService.deleteRoute(routeAggregateId, unitOfWorkService.createUnitOfWork("deleteRoute"))
+
+        and: 'read back through a second, fresh UnitOfWork'
+        routeService.getRouteById(routeAggregateId, unitOfWorkService.createUnitOfWork("check"))
+
+        then:
+        thrown(SimulatorException)
+    }
+
+    def "deleteRoute: unknown aggregate id"() {
+        // Spec: plan.md §4 Route - DeleteRoute; Path A (aggregateLoadAndRegisterRead)
+        when:
+        routeService.deleteRoute(NONEXISTENT_AGGREGATE_ID,
+                unitOfWorkService.createUnitOfWork("deleteRoute"))
+
+        then:
+        thrown(SimulatorException)
     }
 
     @TestConfiguration
