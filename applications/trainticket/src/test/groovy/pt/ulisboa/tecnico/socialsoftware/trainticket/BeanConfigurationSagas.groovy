@@ -69,6 +69,8 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.messagin
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.service.TripService
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.sagas.factories.SagasPriceConfigFactory
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.sagas.repositories.PriceConfigCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.sagas.factories.SagasOrderFactory
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.sagas.repositories.OrderCustomRepositorySagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigCustomRepository
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigRepository
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.functionalities.PriceConfigFunctionalities
@@ -363,6 +365,16 @@ class BeanConfigurationSagas {
     @Bean
     PriceConfigFunctionalities priceConfigFunctionalities() {
         return new PriceConfigFunctionalities()
+    }
+
+    @Bean
+    SagasOrderFactory sagasOrderFactory() {
+        return new SagasOrderFactory()
+    }
+
+    @Bean
+    OrderCustomRepositorySagas orderCustomRepositorySagas() {
+        return new OrderCustomRepositorySagas()
     }
 
 }

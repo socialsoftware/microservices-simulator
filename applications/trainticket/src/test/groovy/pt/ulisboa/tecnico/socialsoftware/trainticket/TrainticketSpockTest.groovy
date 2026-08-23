@@ -9,6 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
@@ -37,6 +39,7 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.trip.service.
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.aggregate.PriceConfigDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.coordination.functionalities.PriceConfigFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.priceconfig.service.PriceConfigService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.order.aggregate.SeatClass
 
 class TrainticketSpockTest extends SpockTest {
 
@@ -133,6 +136,38 @@ class TrainticketSpockTest extends SpockTest {
     public static final BigDecimal PRICE_CONFIG_RATE_ON_POINT = new BigDecimal("0.0001")
     public static final BigDecimal PRICE_CONFIG_RATE_OFF_POINT = BigDecimal.ZERO
     public static final BigDecimal PRICE_CONFIG_RATE_NEGATIVE = new BigDecimal("-0.5000")
+
+    public static final Integer ORDER_TRIP_AGGREGATE_ID = 701
+    public static final Integer ORDER_TRIP_AGGREGATE_ID_TWO = 702
+    public static final Integer ORDER_CONTACTS_AGGREGATE_ID = 801
+    public static final Integer ORDER_CONTACTS_AGGREGATE_ID_TWO = 802
+    public static final Integer ORDER_USER_AGGREGATE_ID = 901
+    public static final Integer ORDER_USER_AGGREGATE_ID_TWO = 902
+    public static final String ORDER_TRIP_NUMBER = "G1234"
+    public static final String ORDER_FROM_STATION_NAME = "Shanghai"
+    public static final String ORDER_TO_STATION_NAME = "Beijing"
+    public static final SeatClass ORDER_SEAT_CLASS = SeatClass.SECOND_CLASS
+    public static final SeatClass ORDER_SEAT_CLASS_TWO = SeatClass.FIRST_CLASS
+    public static final String ORDER_CONTACTS_NAME = "Zhang San"
+    public static final DocumentType ORDER_CONTACTS_DOCUMENT_TYPE = DocumentType.ID_CARD
+    public static final String ORDER_CONTACTS_DOCUMENT_NUMBER = "ID-700800900"
+    public static final LocalDate ORDER_TRAVEL_DATE = LocalDate.of(2026, 6, 1)
+    public static final LocalDateTime ORDER_DEPARTURE_TIME = LocalDateTime.of(2026, 6, 1, 8, 0)
+    public static final LocalDateTime ORDER_BOUGHT_DATE = LocalDateTime.of(2026, 5, 20, 10, 30)
+    public static final LocalDateTime ORDER_BOUGHT_DATE_ON_POINT = ORDER_DEPARTURE_TIME
+    public static final LocalDateTime ORDER_BOUGHT_DATE_OFF_POINT = ORDER_DEPARTURE_TIME.plusNanos(1)
+    public static final Integer ORDER_SEAT_NUMBER = 42
+    public static final Integer ORDER_SEAT_NUMBER_ON_POINT = 1
+    public static final Integer ORDER_SEAT_NUMBER_OFF_POINT = 0
+    public static final BigDecimal ORDER_PRICE = new BigDecimal("125.0000")
+    public static final BigDecimal ORDER_PRICE_ON_POINT = new BigDecimal("0.0001")
+    public static final BigDecimal ORDER_PRICE_OFF_POINT = BigDecimal.ZERO
+    public static final BigDecimal ORDER_PRICE_NEGATIVE = new BigDecimal("-1.0000")
+    public static final LocalDateTime ORDER_CANCELLED_TIME = LocalDateTime.of(2026, 5, 25, 9, 0)
+    public static final LocalDateTime ORDER_CANCELLED_TIME_ON_POINT = ORDER_DEPARTURE_TIME
+    public static final LocalDateTime ORDER_CANCELLED_TIME_OFF_POINT = ORDER_DEPARTURE_TIME.plusNanos(1)
+    public static final BigDecimal ORDER_REFUND_NONE = BigDecimal.ZERO
+    public static final BigDecimal ORDER_REFUND_PAID = new BigDecimal("100.0000")
 
 
     @Autowired

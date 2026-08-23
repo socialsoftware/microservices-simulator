@@ -52,5 +52,12 @@ public final class TrainticketErrorMessage {
     public static final String PRICE_CONFIG_NOT_FOUND = "No price configuration exists for this route and train type.";
     public static final String DUPLICATE_PRICE_CONFIG = "Another active price configuration already covers this route and train type.";
 
+    public static final String ORDER_STATUS_TRANSITION = "Order status transition is not allowed.";
+    public static final String ORDER_PRICE_POSITIVE = "Order price must be positive.";
+    public static final String ORDER_SEAT_NUMBER_POSITIVE = "Order seat number must be at least one.";
+    public static final String ORDER_DEPARTURE_AFTER_PURCHASE = "Order departure time must not precede its purchase time.";
+    public static final String ORDER_CANCELLATION_FIELDS_SET = "Order cancellation time and refund amount must be set exactly when the order is cancelled.";
+    public static final String ORDER_REFUND_AMOUNT = "Order refund amount does not match the refund due on cancellation.";
+
     public static final String PLACEHOLDER = "placeholder";
 }
