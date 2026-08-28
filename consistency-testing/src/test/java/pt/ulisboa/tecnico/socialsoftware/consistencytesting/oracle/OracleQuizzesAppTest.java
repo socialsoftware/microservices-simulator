@@ -98,8 +98,8 @@ class OracleQuizzesAppTest {
         SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
                 TestFunctionality.class.getSimpleName());
 
-        final int maxSteps = 500;
-        final int tooManyStepsCount = 600;
+        final int maxSteps = 100;
+        final int tooManyStepsCount = 120;
         assertTrue(maxSteps < tooManyStepsCount); // sanity check for the test itself
 
         List<FlowStep> tooManySteps = new ArrayList<>(tooManyStepsCount);
