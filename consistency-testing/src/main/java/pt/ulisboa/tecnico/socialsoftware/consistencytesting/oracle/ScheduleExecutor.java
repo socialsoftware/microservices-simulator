@@ -31,7 +31,7 @@ final class ScheduleExecutor {
     // * Should the verification be robust to steps/intra-deps that spawn at
     // * runtime, or just the ones known at initialization time?
 
-    private static final int STEP_EXECUTION_LIMIT = 500;
+    private static final int STEP_EXECUTION_LIMIT = 100;
 
     private static final Logger log = LoggerFactory.getLogger(ScheduleExecutor.class);
 
