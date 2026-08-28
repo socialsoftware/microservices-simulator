@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.SetupPlanValidator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*;
 
 import java.util.ArrayList;
@@ -7,6 +8,31 @@ import java.util.Comparator;
 import java.util.List;
 
 public final class ScenarioExecutorReadinessEvaluator {
+    public Readiness evaluate(WorkloadPlan plan, InputVariant input) {
+        if (plan == null || plan.setupPlan() == null) {
+            return evaluate(input);
+        }
+        SetupPlanValidator.ValidationResult setup = new SetupPlanValidator().validate(
+                plan.setupPlan(), plan.acceptedInputs());
+        if (!setup.valid()) {
+            return new Readiness(false, false,
+                    setup.diagnostics().stream().map(diagnostic ->
+                            "SETUP:" + diagnostic.code() + ":" + diagnostic.message()).toList(), List.of());
+        }
+        InputRecipe recipe = input == null ? null : input.inputRecipe();
+        if (recipe == null) return new Readiness(false, false, List.of("MISSING_INPUT_RECIPE"), List.of());
+        java.util.Set<Integer> setupBound = plan.setupPlan().participantBindings().stream()
+                .filter(binding -> java.util.Objects.equals(binding.inputVariantId(), input.deterministicId()))
+                .map(SetupParticipantBinding::argumentIndex)
+                .collect(java.util.stream.Collectors.toSet());
+        List<String> blockers = new ArrayList<>();
+        List<String> runtimeOwnedResolutions = new ArrayList<>();
+        recipe.arguments().stream().sorted(Comparator.comparingInt(InputRecipeArgument::index))
+                .filter(argument -> !setupBound.contains(argument.index()))
+                .forEach(argument -> evaluateArgument(argument, blockers, runtimeOwnedResolutions));
+        return new Readiness(blockers.isEmpty(), blockers.isEmpty(), blockers, runtimeOwnedResolutions);
+    }
+
     public Readiness evaluate(InputVariant input) {
         InputRecipe recipe = input == null ? null : input.inputRecipe();
         if (recipe == null) {

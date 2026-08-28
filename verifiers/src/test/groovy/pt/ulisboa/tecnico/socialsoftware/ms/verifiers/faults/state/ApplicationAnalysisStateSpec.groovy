@@ -12,6 +12,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.Comma
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.CommandHandlerBuildingBlock
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.ServiceBuildingBlock
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaFunctionalityBuildingBlock
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaStepBuildingBlock
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchMultiplicity
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchMultiplicityKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchPhase
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -84,6 +89,53 @@ class ApplicationAnalysisStateSpec extends Specification {
         state.findSagaByFqn('com.example.app.order.coordination.CreateOrderFunctionalitySagas').get() == saga
         state.hasSagaFqn('com.example.app.order.coordination.CreateOrderFunctionalitySagas')
         !state.hasSagaFqn('com.example.app.order.coordination.MissingSaga')
+    }
+
+    def "source-supported saga pairs require the same producer occurrence and property"() {
+        given:
+        def state = new ApplicationAnalysisState()
+        ['a.Saga', 'b.Saga'].each { sagaFqn ->
+            def saga = new SagaFunctionalityBuildingBlock(null, 'demo', sagaFqn)
+            def step = new SagaStepBuildingBlock(null, 'demo', "${sagaFqn}::step", 'step')
+            step.addDispatch(new StepDispatchFootprint(
+                    "${sagaFqn}::step", 'demo.Command', 'Tournament', AccessPolicy.WRITE,
+                    DispatchPhase.FORWARD,
+                    new DispatchMultiplicity(DispatchMultiplicityKind.SINGLE, 1),
+                    null, null, 1))
+            saga.addStep(step)
+            state.sagas.add(saga)
+        }
+
+        def shared = new GroovySourceValueReference('demo.Spec:10:5:createTournament',
+                'createTournament', ['aggregateId'])
+        def differentOccurrence = new GroovySourceValueReference('demo.Spec:11:5:createTournament',
+                'createTournament', ['aggregateId'])
+        def differentProperty = new GroovySourceValueReference('demo.Spec:10:5:createTournament',
+                'createTournament', ['courseAggregateId'])
+        state.groovyFullTraceResults.add(trace('a.Saga', 'left', shared))
+        state.groovyFullTraceResults.add(trace('b.Saga', 'different-call', differentOccurrence))
+        state.groovyFullTraceResults.add(trace('b.Saga', 'different-property', differentProperty))
+        state.groovyFullTraceResults.add(trace('b.Saga', 'exact', shared))
+
+        when:
+        def pairs = state.sourceSupportedSagaPairs()
+
+        then:
+        pairs.size() == 1
+        pairs.first().left().sourceBindingName() == 'left'
+        pairs.first().right().sourceBindingName() == 'exact'
+        pairs.first().left().producerReference() == pairs.first().right().producerReference()
+    }
+
+    private static GroovyFullTraceResult trace(String sagaFqn,
+                                               String binding,
+                                               GroovySourceValueReference reference) {
+        new GroovyFullTraceResult(
+                'demo.Spec', 'feature', binding, GroovyTraceOriginKind.DIRECT_CONSTRUCTOR,
+                binding, sagaFqn,
+                [new GroovyTraceArgument(0, 'runtime', null),
+                 new GroovyTraceArgument(1, 'producer.aggregateId', null, reference)],
+                [], [], binding)
     }
 
     private static void configureParser(Path sourceRoot) {

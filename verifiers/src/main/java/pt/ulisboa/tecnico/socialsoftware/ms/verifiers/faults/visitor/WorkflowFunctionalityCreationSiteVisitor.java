@@ -67,13 +67,29 @@ public class WorkflowFunctionalityCreationSiteVisitor extends VoidVisitorAdapter
                         }
 
                         List<WorkflowCreationArgumentSource> argumentSources = extractArgumentSources(decl, method, expr);
+                        List<String> parameterTypes = method.getParameters().stream()
+                                .map(parameter -> resolveType(parameter.getType()))
+                                .toList();
+                        String resultType = resolveType(method.getType());
+                        boolean voidResult = method.getType().isVoidType();
+                        String methodKey = className + "#" + method.getNameAsString()
+                                + "(" + String.join(",", parameterTypes) + "):" + resultType;
                         WorkflowFunctionalityCreationSite site = new WorkflowFunctionalityCreationSite(
-                                className, method.getNameAsString(), typeName, argumentSources);
+                                className, method.getNameAsString(), methodKey, parameterTypes,
+                                resultType, voidResult, typeName, argumentSources);
                         state.sagaCreationSites.add(site);
                         logger.info("Saga creation site: {}.{}() -> {} [args={}]",
                                 className, method.getNameAsString(), typeName, argumentSources.size());
                     }));
         });
+    }
+
+    private String resolveType(com.github.javaparser.ast.type.Type type) {
+        try {
+            return type.resolve().describe();
+        } catch (Exception exception) {
+            return type.asString();
+        }
     }
 
     private boolean containsWorkflowExecutionCall(MethodDeclaration method) {

@@ -19,6 +19,16 @@ class ScenarioMaterializer {
                                       String functionalityName,
                                       Object sagaUnitOfWork,
                                       Map<String, Object> baselineBindings) {
+        return materialize(input, runtimeContext, functionalityName, sagaUnitOfWork,
+                baselineBindings, Map.of());
+    }
+
+    MaterializedArguments materialize(InputVariant input,
+                                      ScenarioRuntimeContext runtimeContext,
+                                      String functionalityName,
+                                      Object sagaUnitOfWork,
+                                      Map<String, Object> baselineBindings,
+                                      Map<Integer, Object> setupBindings) {
         InputRecipe recipe = input == null ? null : input.inputRecipe();
         if (recipe == null) {
             return MaterializedArguments.failure(List.of(blocker(input, null, "MISSING_INPUT_RECIPE", "Input variant has no inputRecipe")));
@@ -29,7 +39,9 @@ class ScenarioMaterializer {
         List<Object> values = new ArrayList<>();
         List<ScenarioExecutionReport.Blocker> blockers = new ArrayList<>();
         for (InputRecipeArgument argument : arguments) {
-            MaterializationResult result = materializeArgument(input, argument, runtimeContext, functionalityName,
+            MaterializationResult result = setupBindings.containsKey(argument.index())
+                    ? MaterializationResult.value(setupBindings.get(argument.index()))
+                    : materializeArgument(input, argument, runtimeContext, functionalityName,
                     sagaUnitOfWork, baselineBindings);
             if (result.blocker() != null) {
                 blockers.add(result.blocker());

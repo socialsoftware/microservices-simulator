@@ -156,6 +156,118 @@ class ScenarioModelSpec extends Specification {
         validation.diagnostics()*.code().contains('INPUT_RECIPE_FINGERPRINT_MISMATCH')
     }
 
+    def 'setup semantics participate in latest identity and one validator blocks malformed references and methods'() {
+        given:
+        def base = semanticWorkload()
+        def action = new SetupAction('setup-action-1', 0, 'Spec:1:1:create',
+                'example.Facade#create():example.Dto', [], 'example.Dto', false, [])
+        def setup = new SetupPlan(SetupPlan.SCHEMA_VERSION, [action], [], [])
+        def withSetup = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
+                base.participants(), base.acceptedInputs(), base.forwardSchedule(), base.eventConsequences(),
+                base.normalSchedule(), null, setup, base.conflictEvidence(), base.faultSlots(),
+                base.compensationCheckpoints(), base.warnings())
+
+        expect:
+        new SetupPlanValidator().validate(setup).valid()
+        ScenarioIdGenerator.workloadPlanId(base) != ScenarioIdGenerator.workloadPlanId(withSetup)
+
+        when:
+        def forward = SetupValueRecipe.actionResult('setup-action-2', 'example.Dto')
+        def malformedAction = new SetupAction('setup-action-1', 0, 'Spec:1:1:create',
+                'example.Facade#unknown(java.lang.String):example.Dto',
+                [new SetupArgument(0, 'example.Dto', forward, [])], 'example.Dto', false, [])
+        def malformed = new SetupPlan(SetupPlan.SCHEMA_VERSION, [malformedAction], [], [])
+        def validation = new SetupPlanValidator().validate(malformed)
+
+        then:
+        !validation.valid()
+        validation.diagnostics()*.code().containsAll([
+                'SETUP_METHOD_KEY_SIGNATURE_MISMATCH', 'INVALID_SETUP_RESULT_REFERENCE'
+        ])
+    }
+
+    def 'setup validator rejects runtime-shaped literals unsupported properties and duplicate occurrences'() {
+        given:
+        def produced = new SetupAction('setup-action-1', 0, 'Spec:1:1:create',
+                'example.Facade#create():example.Dto', [], 'example.Dto', false, [])
+        def runtimeValue = new SetupValueRecipe(SetupValueKind.LITERAL, 'java.lang.Object',
+                'runtime_result', [databaseId: 42], null, [], [], [], null, null, null, [])
+        def badProperty = new SetupValueRecipe(SetupValueKind.ACTION_RESULT_PROPERTY,
+                'java.lang.Integer', null, [databaseId: 42], null, [], [], [], null,
+                'setup-action-1', 'databaseId', [])
+        def consumer = new SetupAction('setup-action-2', 1, 'Spec:1:1:create',
+                'example.Facade#consume(java.lang.Object,java.lang.Integer):void',
+                [new SetupArgument(0, 'java.lang.Object', runtimeValue, []),
+                 new SetupArgument(1, 'java.lang.Integer', badProperty, [])], 'void', true, [])
+        def setup = new SetupPlan(SetupPlan.SCHEMA_VERSION, [produced, consumer], [], [])
+
+        when:
+        def validation = new SetupPlanValidator().validate(setup)
+
+        then:
+        !validation.valid()
+        validation.diagnostics()*.code().containsAll([
+                'DUPLICATE_OR_MISSING_SOURCE_OCCURRENCE',
+                'INCOMPATIBLE_SETUP_LITERAL',
+                'MALFORMED_SETUP_VALUE_SHAPE',
+                'UNSUPPORTED_SETUP_RESULT_PROPERTY'
+        ])
+    }
+
+    def 'setup validator checks QuestionDto collection elements against exact generic types'() {
+        given:
+        def questionType = 'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto'
+        def topicType = 'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto'
+        def optionType = 'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.OptionDto'
+        def topic = new SetupValueRecipe(SetupValueKind.CONSTRUCTOR, topicType, null, null,
+                topicType, [], [new SetupPropertyAssignment(0, 'name', setupString('topic'), [])],
+                [], null, null, null, [])
+        def option = new SetupValueRecipe(SetupValueKind.CONSTRUCTOR, optionType, null, null,
+                optionType, [], [
+                new SetupPropertyAssignment(0, 'sequence', setupInteger(0), []),
+                new SetupPropertyAssignment(1, 'correct', setupBoolean(true), []),
+                new SetupPropertyAssignment(2, 'content', setupString('answer'), [])
+        ], [], null, null, null, [])
+        def question = { SetupValueRecipe topicElement, SetupValueRecipe optionElement ->
+            new SetupValueRecipe(SetupValueKind.CONSTRUCTOR, questionType, null, null,
+                    questionType, [], [
+                    new SetupPropertyAssignment(0, 'title', setupString('title'), []),
+                    new SetupPropertyAssignment(1, 'content', setupString('content'), []),
+                    new SetupPropertyAssignment(2, 'topicDto',
+                            new SetupValueRecipe(SetupValueKind.SET, 'java.util.Set', null, null,
+                                    null, [], [], [topicElement], null, null, null, []), []),
+                    new SetupPropertyAssignment(3, 'optionDtos',
+                            new SetupValueRecipe(SetupValueKind.LIST, 'java.util.List', null, null,
+                                    null, [], [], [optionElement], null, null, null, []), [])
+            ], [], null, null, null, [])
+        }
+
+        expect:
+        setupWithQuestion(question(topic, option)).valid()
+        !setupWithQuestion(question(setupString('wrong topic'), option)).valid()
+        !setupWithQuestion(question(topic, setupInteger(7))).valid()
+    }
+
+    def 'validator rejects mixed prerequisite and source setup through the same authority path'() {
+        given:
+        def base = semanticWorkload()
+        def setup = new SetupPlan(SetupPlan.SCHEMA_VERSION,
+                [new SetupAction('setup-action-1', 0, 'Spec:1:1:create',
+                        'example.Facade#create():example.Dto', [], 'example.Dto', false, [])], [], [])
+        def mixed = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
+                base.participants(), base.acceptedInputs(), base.forwardSchedule(), base.eventConsequences(),
+                base.normalSchedule(), new PrerequisiteBaseline('provider', '1', []), setup,
+                base.conflictEvidence(), base.faultSlots(), base.compensationCheckpoints(), base.warnings())
+        def withId = new WorkloadPlan(mixed.schemaVersion(), ScenarioIdGenerator.workloadPlanId(mixed),
+                mixed.kind(), mixed.executionShape(), mixed.participants(), mixed.acceptedInputs(),
+                mixed.forwardSchedule(), mixed.eventConsequences(), mixed.normalSchedule(),
+                mixed.prerequisiteBaseline(), mixed.setupPlan(), mixed.conflictEvidence(), mixed.faultSlots(),
+                mixed.compensationCheckpoints(), mixed.warnings())
+
+        expect:
+        new WorkloadPlanValidator().validate(withId).diagnostics()*.code().contains('MIXED_PREREQUISITE_AND_SETUP')
+    }
+
     def 'validator rejects repeated participant runtime step names with deterministic occurrence evidence'() {
         given:
         def plan = admissibilityWorkload([
@@ -414,6 +526,29 @@ class ScenarioModelSpec extends Specification {
                 overrides.get('faultSlots', original.faultSlots()) as List<ForwardFaultSlot>,
                 overrides.get('compensationCheckpoints', original.compensationCheckpoints()) as List<CompensationCheckpoint>,
                 original.warnings())
+    }
+
+    private static SetupPlanValidator.ValidationResult setupWithQuestion(SetupValueRecipe question) {
+        def questionType = 'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto'
+        def action = new SetupAction('setup-action-1', 0, 'Spec:1:1:createQuestion',
+                "example.Facade#createQuestion(${questionType}):${questionType}".toString(),
+                [new SetupArgument(0, questionType, question, [])], questionType, false, [])
+        new SetupPlanValidator().validate(new SetupPlan(SetupPlan.SCHEMA_VERSION, [action], [], []))
+    }
+
+    private static SetupValueRecipe setupString(String value) {
+        new SetupValueRecipe(SetupValueKind.LITERAL, String.name, 'string', value,
+                null, [], [], [], null, null, null, [])
+    }
+
+    private static SetupValueRecipe setupInteger(int value) {
+        new SetupValueRecipe(SetupValueKind.LITERAL, Integer.name, 'integer', value,
+                null, [], [], [], null, null, null, [])
+    }
+
+    private static SetupValueRecipe setupBoolean(boolean value) {
+        new SetupValueRecipe(SetupValueKind.LITERAL, Boolean.name, 'boolean', value,
+                null, [], [], [], null, null, null, [])
     }
 
     private static WorkloadPlan workload(CompensationCheckpoint checkpoint, List<String> warnings = []) {

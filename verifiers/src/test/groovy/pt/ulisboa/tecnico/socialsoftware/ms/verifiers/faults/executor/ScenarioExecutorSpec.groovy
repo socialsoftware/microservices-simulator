@@ -29,10 +29,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoverySc
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogPackageReader
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -453,6 +455,202 @@ class ScenarioExecutorSpec extends Specification {
         executionContext.unitOfWorkCreations == preflightContext.unitOfWorkCreations
         FixtureWorkflow.constructorCalls == 1
         FixtureWorkflow.BODIES == ['solo:first']
+    }
+
+    def 'source setup executes twelve actions once in order and reuses one retained Tournament for both participants'() {
+        given:
+        def workload = sourceSetupWorkload()
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def before = packageChecksums(packageFixture.directory)
+        def service = new TrackingSagaUnitOfWorkService()
+        def dispatcher = new FixtureSourceSetupDispatcher(1000, service.fixtureEventService)
+        def runtime = new TrackingRuntimeContext(service, [:], [], [dispatcher])
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().preflightIsolatedAttempt(
+                    new ScenarioSetupPreflightOptions(packageFixture.manifest, null), runtime,
+                    [workload.deterministicId()] as Set<String>)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.candidateCount() == 1
+        report.workloads()[0].status() == 'SETUP_READY'
+        def setup = report.workloads()[0].sourceSetup()
+        setup.status() == 'SUCCEEDED'
+        setup.actions()*.actionId() == (1..12).collect { "setup-action-${it}".toString() }
+        setup.actions()*.orderIndex() == (0..11).toList()
+        setup.actions()*.status().unique() == ['SUCCEEDED']
+        dispatcher.invokedMethodKeys == workload.setupPlan().actions()*.methodKey()
+        dispatcher.invocationCount == 12
+        dispatcher.activationEffects == 2
+        dispatcher.enrollmentEffects == 2
+        dispatcher.tournamentCreations == 1
+        dispatcher.faultProviderActive.every { !it }
+        dispatcher.faultBoundaries.every { it == null }
+        setup.pendingEventsCleared() == 12
+        setup.emptyPendingEventBaseline()
+        service.fixtureEventService.eventCountForReplay() == 0
+        def tournamentAction = setup.actions().find { it.actionId() == 'setup-action-12' }
+        tournamentAction.retainedResultId()
+        tournamentAction.aggregateId() == '1007'
+        def tournamentBindings = setup.participantBindings().findAll {
+            it.sourceActionId() == 'setup-action-12' && it.propertyName() == 'aggregateId'
+        }
+        tournamentBindings.size() == 2
+        tournamentBindings*.retainedResultId().unique() == [tournamentAction.retainedResultId()]
+        tournamentBindings*.resolvedValue().unique() == ['1007']
+        FixtureWorkflow.CONSTRUCTOR_PARTICIPANTS == [1007, 1007]
+        FixtureWorkflow.constructorCalls == 2
+        FixtureWorkflow.BODIES.isEmpty()
+        packageChecksums(packageFixture.directory) == before
+    }
+
+    def 'in-process batch preflight rejects source setup before cross-candidate persistent state can be mutated'() {
+        given:
+        def first = sourceSetupWorkload()
+        def secondActions = new ArrayList<>(first.setupPlan().actions())
+        def changed = secondActions[0]
+        secondActions[0] = new SetupAction(changed.actionId(), changed.orderIndex(),
+                changed.sourceOccurrence() + ':second-candidate', changed.methodKey(), changed.arguments(),
+                changed.declaredResultTypeFqn(), changed.voidResult(), changed.blockers())
+        def second = reidentifyWorkload(first, first.acceptedInputs(), null,
+                new SetupPlan(SetupPlan.SCHEMA_VERSION, secondActions,
+                        first.setupPlan().participantBindings(), []))
+        assert first.deterministicId() != second.deterministicId()
+        def firstScenario = scenarios(first, '00')[0]
+        def secondScenario = scenarios(second, '00')[0]
+        def packageFixture = writePackage([first, second], [firstScenario, secondScenario],
+                [first.deterministicId(), second.deterministicId()] as Set<String>)
+        def service = new TrackingSagaUnitOfWorkService()
+        def dispatcher = new FixtureSourceSetupDispatcher(1500, service.fixtureEventService)
+        def runtime = new TrackingRuntimeContext(service, [:], [], [dispatcher])
+
+        when:
+        new ScenarioExecutor().preflight(
+                new ScenarioSetupPreflightOptions(packageFixture.manifest, null), runtime)
+
+        then:
+        def error = thrown(IllegalStateException)
+        error.message.contains('one fresh process per workload')
+        dispatcher.invocationCount == 0
+        dispatcher.tournamentCreations == 0
+        runtime.unitOfWorkCreations == 0
+        FixtureWorkflow.constructorCalls == 0
+    }
+
+    def 'fresh source-setup attempts receive fresh IDs and setup finishes before target fault injection'() {
+        given:
+        def workload = sourceSetupWorkload()
+        def scenario = scenarios(workload, '10')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def before = packageChecksums(packageFixture.directory)
+
+        when:
+        def first = executeWithSourceSetup(packageFixture, scenario, 2000)
+        def firstId = first.sourceSetup().actions().find { it.actionId() == 'setup-action-12' }.aggregateId()
+        FixtureWorkflow.reset()
+        def second = executeWithSourceSetup(packageFixture, scenario, 3000)
+        def secondId = second.sourceSetup().actions().find { it.actionId() == 'setup-action-12' }.aggregateId()
+
+        then:
+        first.sourceSetup().status() == 'SUCCEEDED'
+        second.sourceSetup().status() == 'SUCCEEDED'
+        first.sourceSetup().actions()*.status().unique() == ['SUCCEEDED']
+        second.sourceSetup().actions()*.status().unique() == ['SUCCEEDED']
+        firstId == '2007'
+        secondId == '3007'
+        firstId != secondId
+        first.providerMode() == 'IN_MEMORY_FAULT_VECTOR'
+        second.providerMode() == 'IN_MEMORY_FAULT_VECTOR'
+        first.faultSlots()[0].state() == 'REALIZED'
+        second.faultSlots()[0].state() == 'REALIZED'
+        packageChecksums(packageFixture.directory) == before
+    }
+
+    def 'unauthorized setup method null result wrong result type and cleanup failure stop before target startup'() {
+        given:
+        def workload = sourceSetupWorkload()
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def impact = packageFixture.directory.resolve("reports/setup-${mode}-impact.json".toString())
+        def service = new TrackingSagaUnitOfWorkService()
+        if (mode == 'CLEANUP') service.fixtureEventService.retainEventsOnClear = true
+        def dispatcher = new FixtureSourceSetupDispatcher(4000, service.fixtureEventService, mode)
+        def runtime = new TrackingRuntimeContext(service, [:], [], [dispatcher])
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, null, scenario.deterministicId(), impact), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.terminalStatus() == expectedStatus
+        report.sourceSetup().status() == 'FAILED'
+        report.sourceSetup().failureReason() == expectedStatus
+        report.actualActions().isEmpty()
+        report.participants()*.startupState().unique() == ['NOT_ATTEMPTED']
+        FixtureWorkflow.constructorCalls == 0
+        FixtureWorkflow.BODIES.isEmpty()
+        MAPPER.readTree(impact.toFile()).path('evaluationStatus').asText() == 'NOT_EVALUATED'
+        MAPPER.readTree(impact.toFile()).path('notEvaluatedReason').asText() == expectedStatus
+        if (mode == 'UNAUTHORIZED') {
+            assert dispatcher.invocationCount == 0
+        }
+
+        where:
+        mode           || expectedStatus
+        'UNAUTHORIZED' || 'SETUP_METHOD_NOT_AUTHORIZED'
+        'NULL_RESULT'  || 'SETUP_NULL_RESULT'
+        'WRONG_TYPE'   || 'SETUP_RESULT_TYPE_MISMATCH'
+        'CLEANUP'      || 'SETUP_PENDING_EVENT_BASELINE_NOT_EMPTY'
+    }
+
+    def 'invalid setup property type order and mixed provider configuration are rejected before any setup or target invocation'() {
+        given:
+        def validWorkload = sourceSetupWorkload()
+        def workload = malformedSourceSetupWorkload(validWorkload, mutation)
+        def validScenario = scenarios(validWorkload, '00')[0]
+        def withoutId = new FaultScenario(FaultScenario.SCHEMA_VERSION, null, workload.deterministicId(),
+                validScenario.assignedVector(), validScenario.actions())
+        def scenario = new FaultScenario(withoutId.schemaVersion(), ScenarioIdGenerator.faultScenarioId(withoutId),
+                withoutId.workloadPlanId(), withoutId.assignedVector(), withoutId.actions())
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService()
+        def dispatcher = new FixtureSourceSetupDispatcher(5000, service.fixtureEventService)
+        def runtime = new TrackingRuntimeContext(service, [:], [], [dispatcher])
+
+        when:
+        new ScenarioExecutor().execute(
+                options(packageFixture.manifest, null, scenario.deterministicId()), runtime)
+
+        then:
+        def error = thrown(IllegalArgumentException)
+        error.message.contains(expectedDiagnostic)
+        dispatcher.invocationCount == 0
+        FixtureWorkflow.constructorCalls == 0
+        FixtureWorkflow.BODIES.isEmpty()
+
+        where:
+        mutation             || expectedDiagnostic
+        'PROPERTY'           || 'UNSUPPORTED_SETUP_RESULT_PROPERTY'
+        'TYPE'               || 'INCOMPATIBLE_SETUP_RESULT_REFERENCE'
+        'ORDER'              || 'INVALID_SETUP_ACTION_ORDER'
+        'MIXED'              || 'MIXED_PREREQUISITE_AND_SETUP'
+        'COLLECTION_ELEMENT' || 'INCOMPATIBLE_SETUP_LITERAL'
     }
 
     def 'setup preflight preserves reflection unboxing and primitive widening'() {
@@ -1371,8 +1569,64 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         def error = thrown(IllegalArgumentException)
-        error.message.contains('v4 WorkloadPlan/FaultScenario packages are required')
+        error.message.contains('latest v5 or explicit valid v4 packages are required')
         error.message.contains('v3 catalogs are not supported')
+    }
+
+    @Unroll
+    def 'selected execution reports #reason without whole-package fallback and still rejects package output aliases'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def valid = new ScenarioCatalogPackageReader().readSelected(
+                packageFixture.manifest, workload.deterministicId(), scenario.deterministicId())
+        def selected = new ScenarioCatalogPackageReader.SelectedPackageContents(
+                valid.manifest(), missingKind == 'workload' ? null : valid.workloadPlan(),
+                missingKind == 'fault' ? null : valid.faultScenario(), valid.workloadCatalogPath(),
+                valid.faultScenarioCatalogPath(), valid.rejectedInputsPath(), valid.accountingPath())
+        int wholeReads = 0
+        def catalogReader = new ScenarioCatalogReader({ Path ignored ->
+            wholeReads++
+            throw new AssertionError('selected execution must not invoke whole-package reading')
+        } as ScenarioCatalogReader.WholePackageReader, { Path ignored, String ignoredWorkload, String ignoredFault ->
+            selected
+        } as ScenarioCatalogReader.SelectedPackageReader)
+        def executor = new ScenarioExecutor(
+                catalogReader, new ScenarioMaterializer(), new ScenarioSetupRunner(), MAPPER)
+        def service = new TrackingSagaUnitOfWorkService()
+        def runtimeContext = runtime(service)
+
+        when:
+        def report = executor.execute(
+                options(packageFixture.manifest, null, scenario.deterministicId()), runtimeContext)
+
+        then:
+        report.terminalStatus() == 'SELECTION_FAILED'
+        report.hardStopReason() == reason
+        report.blockers()*.reason() == [reason]
+        report.actualActions().isEmpty()
+        wholeReads == 0
+        runtimeContext.unitOfWorkCreations == 0
+        FixtureWorkflow.constructorCalls == 0
+        FixtureWorkflow.BODIES.isEmpty()
+
+        when:
+        executor.execute(options(packageFixture.manifest, valid.workloadCatalogPath(),
+                scenario.deterministicId()), runtimeContext)
+
+        then:
+        def aliasFailure = thrown(IllegalArgumentException)
+        aliasFailure.message.contains('must not alias scenario package input')
+        wholeReads == 0
+        runtimeContext.unitOfWorkCreations == 0
+        FixtureWorkflow.constructorCalls == 0
+        FixtureWorkflow.BODIES.isEmpty()
+
+        where:
+        missingKind || reason
+        'fault'     || 'MISSING_FAULT_SCENARIO_ID'
+        'workload'  || 'MISSING_WORKLOAD_PLAN_ID'
     }
 
     def 'executor rejects checksum-mismatched fault-scenario content before selection or execution'() {
@@ -1817,9 +2071,9 @@ class ScenarioExecutorSpec extends Specification {
         MAPPER.readTree(impact.toFile()).path('evaluationStatus').asText() == 'NOT_EVALUATED'
     }
 
-    def 'typed prerequisite provider resolves baseline binding clears pending events and fails before measurement'() {
+    def 'explicit valid v4 prerequisite provider resolves baseline binding clears pending events and fails before measurement'() {
         given:
-        def workload = prerequisiteWorkload()
+        def workload = prerequisiteWorkload(true)
         def scenario = scenarios(workload, '00')[0]
         def packageFixture = writePackage(workload, [scenario])
         def before = packageChecksums(packageFixture.directory)
@@ -1840,7 +2094,9 @@ class ScenarioExecutorSpec extends Specification {
         }
 
         then:
+        workload.schemaVersion() == WorkloadPlan.LEGACY_V4_SCHEMA_VERSION
         report.terminalStatus() == terminal
+        report.sourceSetup() == null
         report.prerequisiteSetup().status() == setupStatus
         report.actualActions().size() == measuredActions
         MAPPER.readTree(impact.toFile()).path('evaluationStatus').asText() == impactStatus
@@ -1896,6 +2152,147 @@ class ScenarioExecutorSpec extends Specification {
         EventReplayCoordinator.activate()
     }
 
+    private static ScenarioExecutionReport executeWithSourceSetup(Map packageFixture,
+                                                                  FaultScenario scenario,
+                                                                  int firstRuntimeId) {
+        def service = new TrackingSagaUnitOfWorkService()
+        def dispatcher = new FixtureSourceSetupDispatcher(firstRuntimeId, service.fixtureEventService)
+        def runtime = new TrackingRuntimeContext(service, [:], [], [dispatcher])
+        def gate = activateEventReplay()
+        try {
+            def report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest as Path, null, scenario.deterministicId()), runtime)
+            assert dispatcher.invocationCount == 12
+            assert dispatcher.faultProviderActive.every { !it }
+            assert dispatcher.faultBoundaries.every { it == null }
+            return report
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+    }
+
+    private static WorkloadPlan sourceSetupWorkload() {
+        def base = workload(['left', 'right'], [['left', 'first'], ['right', 'first']])
+        def inputs = base.acceptedInputs().collect { original ->
+            def arguments = new ArrayList<>(original.inputRecipe().arguments())
+            arguments[0] = new InputRecipeArgument(0, Integer.name, InputResolutionStatus.UNRESOLVED,
+                    false, ['source setup binding required'], 'shared Tournament',
+                    InputRecipeNode.builder('unresolved').executorReady(false)
+                            .blockers(['source setup binding required']).build())
+            def recipe = new InputRecipe(InputRecipe.SCHEMA_VERSION, null, false,
+                    ['source setup binding required'], arguments)
+            new InputVariant(original.deterministicId(), original.sagaFqn(), original.sourceClassFqn(),
+                    original.sourceMethodName(), original.sourceBindingName(), original.callContextMethodName(),
+                    original.inputRole(), original.fixtureOrigin(), original.resolutionStatus(), original.sourceMode(),
+                    original.sourceModeConfidence(), original.sourceModeEvidence(), original.stableSourceText(),
+                    original.provenanceText(), original.owners(), original.constructorArgumentSummaries(),
+                    original.logicalKeyBindings(), original.warnings(), recipe)
+        }
+        def actions = [
+                setupAction(1, FixtureSourceSetupDispatcher.CREATE, [setupLiteral(1)], FixtureSetupDto.name),
+                setupAction(2, FixtureSourceSetupDispatcher.CREATE, [setupLiteral(2)], FixtureSetupDto.name),
+                setupAction(3, FixtureSourceSetupDispatcher.ACTIVATE,
+                        [SetupValueRecipe.actionProperty('setup-action-2', 'aggregateId', Integer.name)], 'void'),
+                setupAction(4, FixtureSourceSetupDispatcher.CREATE, [setupLiteral(4)], FixtureSetupDto.name),
+                setupAction(5, FixtureSourceSetupDispatcher.ACTIVATE,
+                        [SetupValueRecipe.actionProperty('setup-action-4', 'aggregateId', Integer.name)], 'void'),
+                setupAction(6, FixtureSourceSetupDispatcher.ENROLL,
+                        [SetupValueRecipe.actionProperty('setup-action-1', 'aggregateId', Integer.name),
+                         SetupValueRecipe.actionProperty('setup-action-2', 'aggregateId', Integer.name)], 'void'),
+                setupAction(7, FixtureSourceSetupDispatcher.ENROLL,
+                        [SetupValueRecipe.actionProperty('setup-action-1', 'aggregateId', Integer.name),
+                         SetupValueRecipe.actionProperty('setup-action-4', 'aggregateId', Integer.name)], 'void'),
+                setupAction(8, FixtureSourceSetupDispatcher.CREATE, [setupLiteral(8)], FixtureSetupDto.name),
+                setupAction(9, FixtureSourceSetupDispatcher.CREATE, [setupLiteral(9)], FixtureSetupDto.name),
+                setupAction(10, FixtureSourceSetupDispatcher.CREATE, [setupLiteral(10)], FixtureSetupDto.name),
+                setupAction(11, FixtureSourceSetupDispatcher.CREATE, [setupLiteral(11)], FixtureSetupDto.name),
+                setupAction(12, FixtureSourceSetupDispatcher.CREATE_TOURNAMENT,
+                        [SetupValueRecipe.actionProperty('setup-action-1', 'courseAggregateId', Integer.name),
+                         SetupValueRecipe.actionProperty('setup-action-4', 'aggregateId', Integer.name),
+                         new SetupValueRecipe(SetupValueKind.LIST, 'java.util.List', null, null,
+                                 null, [], [], [setupLiteral(8), setupLiteral(9)],
+                                 null, null, null, [])], FixtureTournamentDto.name)
+        ]
+        def bindings = inputs.collect { input ->
+            new SetupParticipantBinding(input.deterministicId(), 0, Integer.name,
+                    SetupValueRecipe.actionProperty('setup-action-12', 'aggregateId', Integer.name), [])
+        }
+        def setup = new SetupPlan(SetupPlan.SCHEMA_VERSION, actions, bindings, [])
+        reidentifyWorkload(base, inputs, null, setup)
+    }
+
+    private static WorkloadPlan malformedSourceSetupWorkload(WorkloadPlan base, String mutation) {
+        def actions = new ArrayList<>(base.setupPlan().actions())
+        def bindings = new ArrayList<>(base.setupPlan().participantBindings())
+        def prerequisite = null
+        if (mutation == 'PROPERTY') {
+            def binding = bindings[0]
+            bindings[0] = new SetupParticipantBinding(binding.inputVariantId(), binding.argumentIndex(),
+                    binding.expectedTypeFqn(),
+                    SetupValueRecipe.actionProperty('setup-action-12', 'quiz', Integer.name), [])
+        } else if (mutation == 'TYPE') {
+            def binding = bindings[0]
+            bindings[0] = new SetupParticipantBinding(binding.inputVariantId(), binding.argumentIndex(),
+                    String.name, SetupValueRecipe.actionProperty('setup-action-12', 'aggregateId', String.name), [])
+        } else if (mutation == 'ORDER') {
+            def action = actions[0]
+            actions[0] = new SetupAction(action.actionId(), 1, action.sourceOccurrence(), action.methodKey(),
+                    action.arguments(), action.declaredResultTypeFqn(), action.voidResult(), action.blockers())
+        } else if (mutation == 'COLLECTION_ELEMENT') {
+            def action = actions[11]
+            def arguments = new ArrayList<>(action.arguments())
+            arguments[2] = new SetupArgument(2, 'java.util.List<java.lang.Integer>',
+                    new SetupValueRecipe(SetupValueKind.LIST, 'java.util.List', null, null,
+                            null, [], [], [new SetupValueRecipe(SetupValueKind.LITERAL, String.name,
+                            'string', 'wrong', null, [], [], [], null, null, null, [])],
+                            null, null, null, []), [])
+            actions[11] = new SetupAction(action.actionId(), action.orderIndex(), action.sourceOccurrence(),
+                    action.methodKey(), arguments, action.declaredResultTypeFqn(), action.voidResult(), action.blockers())
+        } else if (mutation == 'MIXED') {
+            prerequisite = new PrerequisiteBaseline('fixture-provider', '1', [])
+        }
+        def setup = new SetupPlan(SetupPlan.SCHEMA_VERSION, actions, bindings, [])
+        reidentifyWorkload(base, base.acceptedInputs(), prerequisite, setup)
+    }
+
+    private static WorkloadPlan reidentifyWorkload(WorkloadPlan base,
+                                                   List<InputVariant> inputs,
+                                                   PrerequisiteBaseline prerequisite,
+                                                   SetupPlan setup) {
+        def withoutId = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
+                base.participants(), inputs, base.forwardSchedule(), base.eventConsequences(), base.normalSchedule(),
+                prerequisite, setup, base.conflictEvidence(), base.faultSlots(), base.compensationCheckpoints(),
+                base.warnings())
+        new WorkloadPlan(withoutId.schemaVersion(), ScenarioIdGenerator.workloadPlanId(withoutId), withoutId.kind(),
+                withoutId.executionShape(), withoutId.participants(), withoutId.acceptedInputs(),
+                withoutId.forwardSchedule(), withoutId.eventConsequences(), withoutId.normalSchedule(),
+                withoutId.prerequisiteBaseline(), withoutId.setupPlan(), withoutId.conflictEvidence(),
+                withoutId.faultSlots(), withoutId.compensationCheckpoints(), withoutId.warnings())
+    }
+
+    private static SetupAction setupAction(int oneBasedOrder,
+                                           String methodKey,
+                                           List<SetupValueRecipe> values,
+                                           String resultType) {
+        def arguments = values.withIndex().collect { value, index ->
+            new SetupArgument(index, setupMethodParameterTypes(methodKey)[index], value, [])
+        }
+        new SetupAction("setup-action-${oneBasedOrder}".toString(), oneBasedOrder - 1,
+                "fixture-source:${oneBasedOrder}".toString(), methodKey, arguments,
+                resultType, resultType == 'void', [])
+    }
+
+    private static List<String> setupMethodParameterTypes(String methodKey) {
+        def parameters = methodKey.substring(methodKey.indexOf('(') + 1, methodKey.indexOf(')'))
+        parameters ? parameters.split(',') as List<String> : []
+    }
+
+    private static SetupValueRecipe setupLiteral(int value) {
+        new SetupValueRecipe(SetupValueKind.LITERAL, Integer.name, 'integer', value,
+                null, [], [], [], null, null, null, [])
+    }
+
     private static WorkloadPlan eventWorkload(int triggerIndex = 0) {
         def base = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
         def trigger = base.forwardSchedule()[triggerIndex]
@@ -1928,7 +2325,7 @@ class ScenarioExecutorSpec extends Specification {
                 withoutId.compensationCheckpoints(), withoutId.warnings())
     }
 
-    private static WorkloadPlan prerequisiteWorkload() {
+    private static WorkloadPlan prerequisiteWorkload(boolean legacyV4 = false) {
         def base = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
         def oldInput = base.acceptedInputs()[0]
         def bindingNode = InputRecipeNode.builder('baseline_binding').executorReady(true)
@@ -1945,7 +2342,8 @@ class ScenarioExecutorSpec extends Specification {
                 oldInput.logicalKeyBindings(), oldInput.warnings(), recipe)
         def baseline = new PrerequisiteBaseline('fixture-provider', '1',
                 [new BaselineBindingRequirement('participant', String.name)])
-        def withoutId = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
+        def schemaVersion = legacyV4 ? WorkloadPlan.LEGACY_V4_SCHEMA_VERSION : base.schemaVersion()
+        def withoutId = new WorkloadPlan(schemaVersion, null, base.kind(), base.executionShape(),
                 base.participants(), [input], base.forwardSchedule(), base.eventConsequences(), base.normalSchedule(),
                 baseline, base.conflictEvidence(), base.faultSlots(), base.compensationCheckpoints(), base.warnings())
         new WorkloadPlan(withoutId.schemaVersion(), ScenarioIdGenerator.workloadPlanId(withoutId), withoutId.kind(),
@@ -2096,14 +2494,20 @@ class ScenarioExecutorSpec extends Specification {
                     it.deterministicId(), materializableWorkloadIds.contains(it.deterministicId()),
                     materializableWorkloadIds.contains(it.deterministicId()) ? [] : ['fixture excluded'])
         }
+        def workloadSchemas = workloads*.schemaVersion().unique()
+        assert workloadSchemas.size() == 1
+        def workloadSchema = workloadSchemas.first()
+        def manifestSchema = workloadSchema == WorkloadPlan.LEGACY_V4_SCHEMA_VERSION
+                ? ScenarioCatalogManifest.LEGACY_V4_SCHEMA_VERSION
+                : ScenarioCatalogManifest.SCHEMA_VERSION
         def manifest = new ScenarioCatalogManifest(
-                ScenarioCatalogManifest.SCHEMA_VERSION, '2026-07-20T00:00:00Z', new ScenarioGeneratorConfig(),
+                manifestSchema, '2026-07-20T00:00:00Z', new ScenarioGeneratorConfig(),
                 'TEST', 'TEST', 20, 'TEST', materializability, [
                         workloadsExported: workloads.size().toString(),
                         materializableWorkloadPlans: materializableWorkloadIds.size().toString(),
                         nonMaterializableWorkloadPlans: (workloads.size() - materializableWorkloadIds.size()).toString()
                 ], [],
-                artifact('WORKLOAD_CATALOG', WorkloadPlan.SCHEMA_VERSION, workloadPath, workloads.size()),
+                artifact('WORKLOAD_CATALOG', workloadSchema, workloadPath, workloads.size()),
                 artifact('FAULT_SCENARIO_CATALOG', FaultScenario.SCHEMA_VERSION, faultPath, faultScenarios.size()),
                 artifact('SCENARIO_SPACE_ACCOUNTING', ScenarioSpaceAccountingReport.SCHEMA_VERSION, accountingPath, 1),
                 artifact('REJECTED_INPUT_DIAGNOSTIC', 'test.rejected.v1', rejectedPath, 0),
@@ -2330,6 +2734,95 @@ class ScenarioExecutorSpec extends Specification {
         }
     }
 
+    static class FixtureSetupDto {
+        Integer aggregateId
+        Integer courseAggregateId
+
+        FixtureSetupDto(Integer aggregateId) {
+            this.aggregateId = aggregateId
+            this.courseAggregateId = aggregateId
+        }
+    }
+
+    static class FixtureTournamentDto extends FixtureSetupDto {
+        FixtureTournamentDto(Integer aggregateId) {
+            super(aggregateId)
+        }
+    }
+
+    private static class FixtureSourceSetupDispatcher implements ScenarioSetupActionDispatcher {
+        static final String CREATE = "fixture.ClosedFacade#create(java.lang.Integer):${FixtureSetupDto.name}".toString()
+        static final String ACTIVATE = 'fixture.ClosedFacade#activate(java.lang.Integer):void'
+        static final String ENROLL = 'fixture.ClosedFacade#enroll(java.lang.Integer,java.lang.Integer):void'
+        static final String CREATE_TOURNAMENT = "fixture.ClosedFacade#createTournament(java.lang.Integer,java.lang.Integer,java.util.List<java.lang.Integer>):${FixtureTournamentDto.name}".toString()
+
+        final TrackingEventService eventService
+        final String mode
+        final List<String> invokedMethodKeys = []
+        final List<Boolean> faultProviderActive = []
+        final List<FaultVectorBoundaryContext> faultBoundaries = []
+        int nextRuntimeId
+        int invocationCount
+        int activationEffects
+        int enrollmentEffects
+        int tournamentCreations
+
+        FixtureSourceSetupDispatcher(int firstRuntimeId,
+                                     TrackingEventService eventService,
+                                     String mode = 'SUCCESS') {
+            this.nextRuntimeId = firstRuntimeId
+            this.eventService = eventService
+            this.mode = mode
+        }
+
+        @Override
+        Map<String, SetupMethod> setupMethods() {
+            def methods = [
+                    (CREATE): new SetupMethod(CREATE, FixtureSetupDto.name, false,
+                            { List<Object> arguments ->
+                                beforeInvocation(CREATE)
+                                new FixtureSetupDto(nextRuntimeId++)
+                            } as Invocation),
+                    (ACTIVATE): new SetupMethod(ACTIVATE, 'void', true,
+                            { List<Object> arguments ->
+                                beforeInvocation(ACTIVATE)
+                                activationEffects++
+                                null
+                            } as Invocation),
+                    (ENROLL): new SetupMethod(ENROLL, 'void', true,
+                            { List<Object> arguments ->
+                                beforeInvocation(ENROLL)
+                                enrollmentEffects++
+                                null
+                            } as Invocation),
+                    (CREATE_TOURNAMENT): new SetupMethod(CREATE_TOURNAMENT,
+                            FixtureTournamentDto.name, false,
+                            { List<Object> arguments ->
+                                beforeInvocation(CREATE_TOURNAMENT)
+                                assert arguments[2] == [8, 9]
+                                assert arguments[2].every { it instanceof Integer }
+                                tournamentCreations++
+                                if (mode == 'NULL_RESULT') return null
+                                if (mode == 'WRONG_TYPE') return 'not-a-tournament'
+                                new FixtureTournamentDto(nextRuntimeId++)
+                            } as Invocation)
+            ]
+            if (mode == 'UNAUTHORIZED') methods.remove(CREATE_TOURNAMENT)
+            methods
+        }
+
+        private void beforeInvocation(String methodKey) {
+            invocationCount++
+            invokedMethodKeys.add(methodKey)
+            faultProviderActive.add(FaultVectorProviderHolder.active)
+            faultBoundaries.add(FaultVectorProviderHolder.currentBoundary().orElse(null))
+            def event = new FixtureEvent(invocationCount)
+            event.publisherAggregateVersion = 1L
+            event.published = true
+            eventService.saveEvent(event)
+        }
+    }
+
     private static class FixturePrerequisiteProvider implements ScenarioPrerequisiteProvider {
         private final String id
         private final String version
@@ -2369,16 +2862,19 @@ class ScenarioExecutorSpec extends Specification {
         private final TrackingSagaUnitOfWorkService service
         private final Map<Class<?>, Object> extraBeans
         private final List<ScenarioPrerequisiteProvider> prerequisiteProviders
+        private final List<ScenarioSetupActionDispatcher> setupDispatchers
         int unitOfWorkCreations
         List<Class<?>> beanRequests = []
         List<String> functionalityNames = []
 
         TrackingRuntimeContext(SagaUnitOfWorkService service,
                                Map<Class<?>, Object> extraBeans = [:],
-                               List<ScenarioPrerequisiteProvider> prerequisiteProviders = []) {
+                               List<ScenarioPrerequisiteProvider> prerequisiteProviders = [],
+                               List<ScenarioSetupActionDispatcher> setupDispatchers = []) {
             this.service = (TrackingSagaUnitOfWorkService) service
             this.extraBeans = extraBeans
             this.prerequisiteProviders = prerequisiteProviders
+            this.setupDispatchers = setupDispatchers
         }
 
         @Override
@@ -2391,7 +2887,9 @@ class ScenarioExecutorSpec extends Specification {
 
         @Override
         def <T> List<T> beans(Class<T> type) {
-            type == ScenarioPrerequisiteProvider ? prerequisiteProviders as List<T> : []
+            if (type == ScenarioPrerequisiteProvider) return prerequisiteProviders as List<T>
+            if (type == ScenarioSetupActionDispatcher) return setupDispatchers as List<T>
+            []
         }
 
         @Override
@@ -2455,6 +2953,7 @@ class ScenarioExecutorSpec extends Specification {
     private static class TrackingEventService extends EventService {
         final Map<Integer, pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event> events = [:]
         int nextId = 1
+        boolean retainEventsOnClear
 
         @Override
         void saveEvent(pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event event) {
@@ -2474,7 +2973,7 @@ class ScenarioExecutorSpec extends Specification {
 
         @Override
         void clearEventsForReplay() {
-            events.clear()
+            if (!retainEventsOnClear) events.clear()
         }
     }
 }

@@ -1,6 +1,6 @@
 # Verifier roadmap
 
-Last updated: 2026-08-16
+Last updated: 2026-08-28
 
 [`current-state.md`](current-state.md) describes what exists now and the evidence behind it. This roadmap describes the remaining outcomes, why they matter to the thesis, their dependencies, and what would count as done. It deliberately avoids repeating current metrics and commands.
 
@@ -29,6 +29,8 @@ input quality and executable harmful scenarios
 Do not start search or prioritization while generated scenarios are mostly blocked, cannot be reset reliably, or produce flat impact values.
 
 ## Outcome 1 — Improve useful input coverage
+
+**Status:** The source-derived shared-setup vertical slice is complete for one representative Remove/Add fixture shape; broader input families remain outcome work.
 
 ### Goal
 
@@ -115,7 +117,7 @@ Fault-vector search assumes that reward differences come from the vector/scenari
 
 ## Outcome 4 — Characterize one harmful workload before broadening impact
 
-**Status: complete (2026-08-16).** After merging master’s typed Saga-state persistence, a fresh v4 package, target/control repetitions, and all 34 retained schedules pass exact converter-decoded `GenericSagaState.NOT_IN_SAGA` proof. Landscape schema v2 records 19 bounded harmful rows and 15 no-broken-reference rows while ImpactV1 remains zero throughout. See [`current-state.md`](current-state.md#quizzes-persisted-removetournamentaddparticipant-benchmark).
+**Status: complete (2026-08-16).** After merging master’s typed Saga-state persistence, a fresh v4 package, target/control repetitions, and all 34 retained schedules pass exact converter-decoded `GenericSagaState.NOT_IN_SAGA` proof. Landscape schema v2 records 19 bounded harmful rows and 15 no-broken-reference rows while ImpactV1 remains zero throughout. See [`current-state.md`](current-state.md#historical-prerequisite-backed-removetournamentaddparticipant-benchmark).
 
 ### Goal
 
@@ -159,8 +161,8 @@ Dynamic enrichment is expensive and produces many raw artifacts. Historical broa
 
 ### Work direction
 
-- First identify a current v4 workload whose usefulness depends on unresolved runtime identity.
-- Run a bounded v4 enrichment baseline with explicit memory, profile, and test selection.
+- First identify a current latest-package workload whose usefulness depends on unresolved runtime identity.
+- Run a bounded latest-package enrichment baseline with explicit memory, profile, and test selection.
 - Prefer direct input ids and structured simulator events over fuzzy value/name matching.
 - Treat ambiguous, unmatched, and not-covered results as evidence boundaries, not metrics to optimize blindly.
 - Do not let dynamic evidence rewrite package identity or persisted actions.
@@ -172,7 +174,7 @@ Dynamic enrichment is expensive and produces many raw artifacts. Historical broa
 - attribution improvement is measured against a controlled before/after case;
 - raw artifacts and runtime cost are justified by information that changes a decision.
 
-A broad Quizzes v4 refresh is not automatically a higher priority than executable harmful-scenario work.
+A broad Quizzes v5 refresh is not automatically a higher priority than the reduced generic impact contract.
 
 ## Outcome 6 — Local fault-vector search
 
@@ -186,7 +188,7 @@ Do not start until:
 
 - the chosen workload is setup-ready and repeatably executable;
 - environment reset is defined;
-- at least one vector produces a discriminating evaluated result under an approved versioned impact contract; the benchmark-specific final-state rule is evidence for designing that contract, not yet the generic search reward;
+- at least one vector produces a discriminating evaluated result under an approved versioned impact contract; the automatic source-derived benchmark's final-state rule is evidence for designing that contract, not yet the generic search reward;
 - arbitrary valid vectors can be persisted idempotently through the v4 on-demand path;
 - invalid/infrastructure attempts cannot masquerade as zero fitness.
 

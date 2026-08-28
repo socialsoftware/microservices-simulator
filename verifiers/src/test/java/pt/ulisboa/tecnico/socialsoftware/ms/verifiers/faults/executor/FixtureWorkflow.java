@@ -28,6 +28,7 @@ public class FixtureWorkflow extends WorkflowFunctionality {
     public static final List<String> COMPENSATIONS = new ArrayList<>();
     public static final Map<String, Integer> COMPENSATION_ATTEMPTS = new LinkedHashMap<>();
     public static final Map<String, SagaUnitOfWork> UNIT_OF_WORKS = new ConcurrentHashMap<>();
+    public static final List<Object> CONSTRUCTOR_PARTICIPANTS = new ArrayList<>();
     private static final Set<String> BODY_DOMAIN_FAILURES = new HashSet<>();
     private static final Set<String> BODY_PLAIN_SIMULATOR_FAILURES = new HashSet<>();
     private static final Set<String> BODY_SERVICE_UNAVAILABLE_FAILURES = new HashSet<>();
@@ -48,6 +49,7 @@ public class FixtureWorkflow extends WorkflowFunctionality {
                            SagaUnitOfWorkService unitOfWorkService,
                            SagaUnitOfWork unitOfWork) {
         constructorCalls++;
+        CONSTRUCTOR_PARTICIPANTS.add(participant);
         this.participant = String.valueOf(participant);
         this.unitOfWorkService = unitOfWorkService;
         UNIT_OF_WORKS.put(this.participant, unitOfWork);
@@ -171,6 +173,7 @@ public class FixtureWorkflow extends WorkflowFunctionality {
         COMPENSATIONS.clear();
         COMPENSATION_ATTEMPTS.clear();
         UNIT_OF_WORKS.clear();
+        CONSTRUCTOR_PARTICIPANTS.clear();
         BODY_DOMAIN_FAILURES.clear();
         BODY_PLAIN_SIMULATOR_FAILURES.clear();
         BODY_SERVICE_UNAVAILABLE_FAILURES.clear();

@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.executor
 
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutionReport
 import pt.ulisboa.tecnico.socialsoftware.quizzes.executor.QuizzesPersistedSagaStateObserver
 import pt.ulisboa.tecnico.socialsoftware.quizzes.executor.QuizzesRemoveAddBenchmarkAttempt
 import pt.ulisboa.tecnico.socialsoftware.quizzes.executor.QuizzesRemoveAddBenchmarkRunner
@@ -22,6 +23,34 @@ class QuizzesRemoveAddBenchmarkRunnerSpec extends Specification {
         false           | true                 | false           || 'NOT_EVALUATED'
         true            | false                | false           || 'NOT_EVALUATED'
         false           | false                | true            || 'NOT_EVALUATED'
+    }
+
+    def 'no-provider proof accepts only the exact NOT_REQUIRED sentinel'() {
+        expect:
+        QuizzesRemoveAddBenchmarkRunner.isExactNoProviderPrerequisiteSetup(
+                prerequisite('NOT_REQUIRED', null, null, 0L, 0L, true, [], [:], null, null))
+    }
+
+    @Unroll
+    def 'no-provider proof rejects #caseName'() {
+        expect:
+        !QuizzesRemoveAddBenchmarkRunner.isExactNoProviderPrerequisiteSetup(setup)
+
+        where:
+        caseName                                | setup
+        'null evidence'                         | null
+        'provider-looking zero-binding success' | prerequisite('SUCCEEDED', 'remove-add-provider', '1', 0L, 0L, true, [], [:], null, null)
+        'failed status'                         | prerequisite('FAILED', null, null, 0L, 0L, true, [], [:], null, null)
+        'provider identity'                     | prerequisite('NOT_REQUIRED', 'provider', null, 0L, 0L, true, [], [:], null, null)
+        'provider version'                      | prerequisite('NOT_REQUIRED', null, '1', 0L, 0L, true, [], [:], null, null)
+        'duration'                              | prerequisite('NOT_REQUIRED', null, null, 1L, 0L, true, [], [:], null, null)
+        'cleared events'                        | prerequisite('NOT_REQUIRED', null, null, 0L, 1L, true, [], [:], null, null)
+        'nonempty baseline'                     | prerequisite('NOT_REQUIRED', null, null, 0L, 0L, false, [], [:], null, null)
+        'binding evidence'                      | prerequisite('NOT_REQUIRED', null, null, 0L, 0L, true,
+                [new ScenarioExecutionReport.BaselineBinding('key', String.name, String.name, 'RESOLVED')], [:], null, null)
+        'provider evidence'                     | prerequisite('NOT_REQUIRED', null, null, 0L, 0L, true, [], [key: 'value'], null, null)
+        'failure reason'                        | prerequisite('NOT_REQUIRED', null, null, 0L, 0L, true, [], [:], 'FAILED', null)
+        'failure message'                       | prerequisite('NOT_REQUIRED', null, null, 0L, 0L, true, [], [:], null, 'failure')
     }
 
     @Unroll
@@ -131,6 +160,59 @@ class QuizzesRemoveAddBenchmarkRunnerSpec extends Specification {
         ]
     }
 
+    def 'automatic source setup proves action 12 supplied both Saga Tournament arguments'() {
+        given:
+        def retained = 'attempt:workload:setup-action-12'
+        def actions = (1..12).collect { number ->
+            new ScenarioExecutionReport.SetupActionOutcome(
+                    "setup-action-${number}", number - 1, "method-${number}", 'SUCCEEDED',
+                    number == 12 ? 'TournamentDto' : 'void',
+                    number == 12 ? 'TournamentDto' : null,
+                    number == 12 ? retained : null,
+                    number == 12 ? '10' : null)
+        }
+        def bindings = ['remove-input', 'add-input'].collect { inputId ->
+            new ScenarioExecutionReport.SetupParticipantBindingOutcome(
+                    inputId, 1, 'setup-action-12', 'aggregateId', 'RESOLVED',
+                    Integer.name, retained, '10')
+        }
+        def setup = new ScenarioExecutionReport.SourceSetup(
+                'SUCCEEDED', 1L, 2L, true, actions, bindings, null, null)
+
+        expect:
+        QuizzesRemoveAddBenchmarkRunner.exactSourceSetupTournamentId(
+                setup, ['remove-input', 'add-input'] as Set) == 10
+    }
+
+    def 'automatic source setup rejects distinct Tournament result reuse evidence'() {
+        given:
+        def actions = (1..12).collect { number ->
+            new ScenarioExecutionReport.SetupActionOutcome(
+                    "setup-action-${number}", number - 1, "method-${number}", 'SUCCEEDED',
+                    number == 12 ? 'TournamentDto' : 'void',
+                    number == 12 ? 'TournamentDto' : null,
+                    number == 12 ? 'retained-12' : null,
+                    number == 12 ? '10' : null)
+        }
+        def bindings = [
+                new ScenarioExecutionReport.SetupParticipantBindingOutcome(
+                        'remove-input', 1, 'setup-action-12', 'aggregateId', 'RESOLVED',
+                        Integer.name, 'retained-12', '10'),
+                new ScenarioExecutionReport.SetupParticipantBindingOutcome(
+                        'add-input', 1, 'setup-action-12', 'aggregateId', 'RESOLVED',
+                        Integer.name, 'different-result', '10')
+        ]
+        def setup = new ScenarioExecutionReport.SourceSetup(
+                'SUCCEEDED', 1L, 2L, true, actions, bindings, null, null)
+
+        when:
+        QuizzesRemoveAddBenchmarkRunner.exactSourceSetupTournamentId(
+                setup, ['remove-input', 'add-input'] as Set)
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
     def 'attempt artifact uses only the approved benchmark labels and rule'() {
         expect:
         QuizzesRemoveAddBenchmarkAttempt.SCHEMA_VERSION ==
@@ -138,6 +220,22 @@ class QuizzesRemoveAddBenchmarkRunnerSpec extends Specification {
         QuizzesRemoveAddBenchmarkAttempt.BENCHMARK_ID == 'quizzes-remove-tournament-add-participant'
         QuizzesRemoveAddBenchmarkAttempt.OBSERVATION_RULE.contains('active Tournament')
         QuizzesRemoveAddBenchmarkAttempt.OBSERVATION_RULE.contains('deleted Quiz')
+    }
+
+    private static ScenarioExecutionReport.PrerequisiteSetup prerequisite(
+            String status,
+            String providerId,
+            String providerVersion,
+            long durationNanos,
+            long pendingEventsCleared,
+            boolean emptyPendingEventBaseline,
+            List<ScenarioExecutionReport.BaselineBinding> bindings,
+            Map<String, String> evidence,
+            String failureReason,
+            String failureMessage) {
+        new ScenarioExecutionReport.PrerequisiteSetup(
+                providerId, providerVersion, status, durationNanos, pendingEventsCleared,
+                emptyPendingEventBaseline, bindings, evidence, failureReason, failureMessage)
     }
 
     private static QuizzesPersistedSagaStateObserver.PersistedSagaState decodedState(

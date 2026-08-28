@@ -24,7 +24,7 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
         configureParser()
     }
 
-    def 'dummyapp extraction generates deterministic positive and control v4 package records'() {
+    def 'dummyapp extraction generates deterministic positive and control latest package records'() {
         given:
         def model = new ApplicationAnalysisScenarioModelAdapter().adapt(dummyappState())
         def producerSaga = model.sagaDefinitions().find { it.sagaFqn() == PRODUCER_SAGA }
@@ -59,7 +59,7 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
         ] as Set
         eventPlans.every { new WorkloadPlanValidator().validate(it).valid() }
         eventPlans.every { plan ->
-            plan.schemaVersion() == 'microservices-simulator.workload-plan.v4' &&
+            plan.schemaVersion() == 'microservices-simulator.workload-plan.v5' &&
                     plan.faultSlots().size() == plan.forwardSchedule().size() &&
                     plan.normalSchedule().size() == plan.forwardSchedule().size() + 1 &&
                     plan.eventConsequences().every { consequence ->
@@ -85,8 +85,8 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
 
         then:
         paths.every { key, path -> Arrays.equals(firstBytes[key], Files.readAllBytes(path)) }
-        firstManifest.schemaVersion() == 'microservices-simulator.scenario-catalog-manifest.v4'
-        firstManifest.workloadCatalog().schemaVersion() == 'microservices-simulator.workload-plan.v4'
+        firstManifest.schemaVersion() == 'microservices-simulator.scenario-catalog-manifest.v5'
+        firstManifest.workloadCatalog().schemaVersion() == 'microservices-simulator.workload-plan.v5'
         firstManifest.faultScenarioCatalog().schemaVersion() == 'microservices-simulator.fault-scenario.v4'
         firstManifest.scenarioSpaceAccounting().schemaVersion() == 'microservices-simulator.scenario-space-accounting.v4'
         firstManifest.counts().eventConsequencesExported == eventPlans.size().toString()
@@ -108,7 +108,7 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
         when: 'a linked v3 WorkloadPlan is substituted into the otherwise valid v4 package'
         def mapper = new ObjectMapper()
         def v3WorkloadText = new String(firstBytes.workload)
-                .replaceFirst('microservices-simulator.workload-plan.v4', 'microservices-simulator.workload-plan.v3')
+                .replaceFirst('microservices-simulator.workload-plan.v5', 'microservices-simulator.workload-plan.v3')
         Files.writeString(paths.workload, v3WorkloadText)
         def v3WorkloadManifest = mapper.readTree(firstBytes.manifest)
         v3WorkloadManifest.withObject('/workloadCatalog').put(
@@ -118,7 +118,7 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
 
         then:
         def workloadSchemaFailure = thrown(IllegalArgumentException)
-        workloadSchemaFailure.message.contains('v4 WorkloadPlan/FaultScenario packages are required')
+        workloadSchemaFailure.message.contains('latest v5 or explicit valid v4 packages are required')
         workloadSchemaFailure.message.contains('v3 catalogs are not supported')
 
         when: 'a linked v3 FaultScenario is substituted into the valid v4 package'
@@ -134,7 +134,7 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
 
         then:
         def faultSchemaFailure = thrown(IllegalArgumentException)
-        faultSchemaFailure.message.contains('v4 WorkloadPlan/FaultScenario packages are required')
+        faultSchemaFailure.message.contains('latest v5 or explicit valid v4 packages are required')
         faultSchemaFailure.message.contains('v3 catalogs are not supported')
 
         when: 'a checksum-valid v4 package contains an incomplete semantic event route'
@@ -155,7 +155,7 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
         malformedRouteFailure.message.contains('MALFORMED_EVENT_CONSEQUENCE')
     }
 
-    def 'v4 package reader rejects v3 manifest before reading linked artifacts'() {
+    def 'latest package reader rejects v3 manifest before reading linked artifacts'() {
         given:
         def manifest = temporaryDirectory.resolve('v3-manifest.json')
         Files.writeString(manifest, '{"schemaVersion":"microservices-simulator.scenario-catalog-manifest.v3"}')
@@ -165,7 +165,7 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
 
         then:
         def failure = thrown(IllegalArgumentException)
-        failure.message.contains('v4 WorkloadPlan/FaultScenario packages are required')
+        failure.message.contains('latest v5 or explicit valid v4 packages are required')
         failure.message.contains('v3 catalogs are not supported')
     }
 

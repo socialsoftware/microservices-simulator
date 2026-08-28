@@ -289,10 +289,10 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
 
         and:
         def manifest = objectMapper.readTree(Files.readString(manifestPath))
-        manifest.path('schemaVersion').asText() == 'microservices-simulator.scenario-catalog-manifest.v4'
+        manifest.path('schemaVersion').asText() == 'microservices-simulator.scenario-catalog-manifest.v5'
         manifest.path('counts').path('workloadsExported').asText() == lines.size().toString()
         manifest.path('workloadCatalog').path('path').asText() == workloadPath.toString()
-        manifest.path('workloadCatalog').path('schemaVersion').asText() == 'microservices-simulator.workload-plan.v4'
+        manifest.path('workloadCatalog').path('schemaVersion').asText() == 'microservices-simulator.workload-plan.v5'
         manifest.path('faultScenarioCatalog').path('path').asText() == faultScenarioPath.toString()
         manifest.path('faultScenarioCatalog').path('recordCount').asText() == faultScenarioLines.size().toString()
         manifest.path('recoveryScheduleCap').asInt() == 3

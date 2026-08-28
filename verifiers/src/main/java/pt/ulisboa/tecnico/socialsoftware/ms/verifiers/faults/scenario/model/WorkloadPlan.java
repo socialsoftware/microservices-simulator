@@ -14,12 +14,14 @@ public record WorkloadPlan(
         List<EventConsequence> eventConsequences,
         List<NormalActionRef> normalSchedule,
         PrerequisiteBaseline prerequisiteBaseline,
+        SetupPlan setupPlan,
         List<ConflictEvidence> conflictEvidence,
         List<ForwardFaultSlot> faultSlots,
         List<CompensationCheckpoint> compensationCheckpoints,
         List<String> warnings) {
 
-    public static final String SCHEMA_VERSION = "microservices-simulator.workload-plan.v4";
+    public static final String SCHEMA_VERSION = "microservices-simulator.workload-plan.v5";
+    public static final String LEGACY_V4_SCHEMA_VERSION = "microservices-simulator.workload-plan.v4";
 
     public WorkloadPlan {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;
@@ -51,7 +53,7 @@ public record WorkloadPlan(
                         List<CompensationCheckpoint> compensationCheckpoints,
                         List<String> warnings) {
         this(schemaVersion, deterministicId, kind, executionShape, participants, acceptedInputs,
-                forwardSchedule, eventConsequences, normalSchedule, null, conflictEvidence,
+                forwardSchedule, eventConsequences, normalSchedule, null, null, conflictEvidence,
                 faultSlots, compensationCheckpoints, warnings);
     }
 
@@ -67,8 +69,27 @@ public record WorkloadPlan(
                         List<CompensationCheckpoint> compensationCheckpoints,
                         List<String> warnings) {
         this(schemaVersion, deterministicId, kind, executionShape, participants, acceptedInputs,
-                forwardSchedule, List.of(), forwardsOnly(forwardSchedule), null, conflictEvidence,
+                forwardSchedule, List.of(), forwardsOnly(forwardSchedule), null, null, conflictEvidence,
                 faultSlots, compensationCheckpoints, warnings);
+    }
+
+    public WorkloadPlan(String schemaVersion,
+                        String deterministicId,
+                        ScenarioKind kind,
+                        WorkloadExecutionShape executionShape,
+                        List<SagaInstance> participants,
+                        List<InputVariant> acceptedInputs,
+                        List<ScheduledStep> forwardSchedule,
+                        List<EventConsequence> eventConsequences,
+                        List<NormalActionRef> normalSchedule,
+                        PrerequisiteBaseline prerequisiteBaseline,
+                        List<ConflictEvidence> conflictEvidence,
+                        List<ForwardFaultSlot> faultSlots,
+                        List<CompensationCheckpoint> compensationCheckpoints,
+                        List<String> warnings) {
+        this(schemaVersion, deterministicId, kind, executionShape, participants, acceptedInputs,
+                forwardSchedule, eventConsequences, normalSchedule, prerequisiteBaseline, null,
+                conflictEvidence, faultSlots, compensationCheckpoints, warnings);
     }
 
     private static List<NormalActionRef> forwardsOnly(List<ScheduledStep> schedule) {

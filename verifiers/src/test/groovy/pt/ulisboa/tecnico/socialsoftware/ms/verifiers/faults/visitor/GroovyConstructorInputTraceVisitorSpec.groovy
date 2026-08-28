@@ -996,6 +996,102 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
         loopTrace.constructorArguments()[1].recipe().metadata().assignments()*.blocker().contains('LOOP_DEPENDENT_MUTATION')
     }
 
+    def 'map-returning helpers recover one saga and keep caller occurrences distinct'() {
+        given:
+        def mapState = new ApplicationAnalysisState()
+        def workflowVisitor = new WorkflowFunctionalityVisitor()
+        parseAllDummyappFiles().each { cu -> workflowVisitor.visit(cu, mapState) }
+
+        writeSource('map-helper-fixture/demo/MapHelperTraceSpec.groovy', '''
+            package demo
+
+            import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
+            import spock.lang.Specification
+
+            class ProducedDto {
+                def aggregateId
+                ProducedDto(aggregateId) { this.aggregateId = aggregateId }
+            }
+
+            class MapHelperTraceSpec extends Specification {
+                def 'separate equal-looking producer calls stay separate'() {
+                    given:
+                    def firstDto = wrapperProducer('same')
+                    def secondDto = wrapperProducer('same')
+                    def first = oneSaga(firstDto.aggregateId)
+                    def second = oneSaga(secondDto.aggregateId)
+
+                    when:
+                    first.functionality.executeWorkflow(null)
+                    second.functionality.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def 'ambiguous map and helper cycle are blocked'() {
+                    given:
+                    def ambiguous = twoSagas()
+                    def cyclic = cycleA()
+
+                    when:
+                    ambiguous.functionality.executeWorkflow(null)
+                    cyclic.functionality.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def wrapperProducer(value) {
+                    produce(value)
+                }
+
+                def produce(value) {
+                    new ProducedDto(value)
+                }
+
+                def oneSaga(aggregateId) {
+                    def functionality = new CreateOrderFunctionalitySagas(aggregateId, null)
+                    [functionality: functionality, marker: 'one']
+                }
+
+                def twoSagas() {
+                    def first = new CreateOrderFunctionalitySagas(1, null)
+                    def second = new CreateOrderFunctionalitySagas(2, null)
+                    [functionality: first, other: second]
+                }
+
+                def cycleA() { cycleB() }
+                def cycleB() { cycleA() }
+            }
+        ''')
+
+        def sourceIndex = new GroovySourceIndex()
+        sourceIndex.parse(tempDir.resolve('map-helper-fixture'))
+
+        when:
+        new GroovyConstructorInputTraceVisitor().visit(sourceIndex, mapState)
+
+        then:
+        def traces = mapState.groovyFullTraceResults.findAll {
+            it.sourceClassFqn == 'demo.MapHelperTraceSpec' &&
+                    it.sourceMethodName == 'separate equal-looking producer calls stay separate'
+        }
+        traces*.sourceBindingName as Set == ['first', 'second'] as Set
+        traces.size() == 2
+        traces*.constructorArguments*.first().producerReference.every { it != null }
+        traces*.constructorArguments*.first().producerReference*.producerMethodName as Set == ['produce'] as Set
+        !traces*.constructorArguments*.first().producerReference*.producerMethodName.contains('wrapperProducer')
+        traces*.constructorArguments*.first().producerReference*.propertyPath as Set == [['aggregateId']] as Set
+        traces*.constructorArguments*.first().producerReference*.occurrenceId.toSet().size() == 2
+
+        and:
+        !mapState.groovyFullTraceResults.any {
+            it.sourceClassFqn == 'demo.MapHelperTraceSpec' &&
+                    it.sourceMethodName == 'ambiguous map and helper cycle are blocked'
+        }
+    }
+
     def 'existing helper-cycle regression remains conservative'() {
         given:
         def edgeState = new ApplicationAnalysisState()

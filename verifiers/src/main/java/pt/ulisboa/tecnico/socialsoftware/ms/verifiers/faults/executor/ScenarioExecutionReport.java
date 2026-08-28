@@ -23,6 +23,7 @@ public record ScenarioExecutionReport(
         String hardStopReason,
         RuntimeMetadata runtimeMetadata,
         PrerequisiteSetup prerequisiteSetup,
+        SourceSetup sourceSetup,
         List<FaultSlot> faultSlots,
         List<PlannedAction> plannedActions,
         List<ActionOutcome> actualActions,
@@ -153,6 +154,43 @@ public record ScenarioExecutionReport(
             String expectedTypeFqn,
             String actualTypeFqn,
             String status) {
+    }
+
+    public record SourceSetup(
+            String status,
+            long durationNanos,
+            long pendingEventsCleared,
+            boolean emptyPendingEventBaseline,
+            List<SetupActionOutcome> actions,
+            List<SetupParticipantBindingOutcome> participantBindings,
+            String failureReason,
+            String failureMessage) {
+        public SourceSetup {
+            actions = copy(actions);
+            participantBindings = copy(participantBindings);
+        }
+    }
+
+    public record SetupActionOutcome(
+            String actionId,
+            int orderIndex,
+            String methodKey,
+            String status,
+            String declaredResultTypeFqn,
+            String actualResultTypeFqn,
+            String retainedResultId,
+            String aggregateId) {
+    }
+
+    public record SetupParticipantBindingOutcome(
+            String inputVariantId,
+            int argumentIndex,
+            String sourceActionId,
+            String propertyName,
+            String status,
+            String actualTypeFqn,
+            String retainedResultId,
+            String resolvedValue) {
     }
 
     public record RecoverySubOutcome(

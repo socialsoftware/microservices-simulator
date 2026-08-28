@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-08-16
+Last updated: 2026-08-28
 
 This is the canonical handbook for verifier and fault-analysis scenario work. It owns the current conceptual model, terminology, supported operations, latest representative evidence, reproduction commands, and limitations. [`roadmap.md`](roadmap.md) owns future direction. [`decisions/`](decisions/index.md) explains the few design choices whose rationale is not obvious from current behavior.
 
@@ -14,6 +14,7 @@ Java application code + Groovy/Spock tests
   -> WorkloadPlans
   -> FaultScenarios
   -> optional runtime-evidence attribution
+  -> prerequisite-provider or source-derived ordered setup
   -> setup preflight or one-scenario execution
   -> optional invariant-impact result
 ```
@@ -47,7 +48,7 @@ Use this page by question:
 
 - [What the main terms mean](#the-essential-terms)
 - [What inputs are analyzed](#inputs-and-static-extraction)
-- [What the five v4 files contain](#the-v4-package)
+- [What the five v5 files contain](#the-v5-package)
 - [What the accounting metrics mean](#how-to-read-scenario-space-accounting)
 - [What dynamic enrichment contributes](#optional-dynamic-evidence)
 - [How setup preflight and execution differ](#scenarioexecutor)
@@ -70,13 +71,17 @@ An accepted input passed source-mode and configured input-policy filtering. Acce
 
 A **static setup candidate** is a WorkloadPlan whose accepted inputs pass the current deterministic input-readiness checks and whose structure is admissible to the Saga/local executor.
 
-The v4 manifest stores this as `workloadMaterializability[].materializable=true`. Read `materializable` as **setup candidate**, not runtime proof. Eager all-zero and single-point FaultScenario generation uses this gate.
+The manifest stores this as `workloadMaterializability[].materializable=true`. Read `materializable` as **setup candidate**, not runtime proof. Eager all-zero and single-point FaultScenario generation uses this gate.
 
 ### Runtime setup-ready
 
 A workload is **setup-ready** only when ScenarioExecutor, in a real application context, materializes the exact persisted argument tuple and starts every exact Saga participant. Setup preflight reports this as `SETUP_READY`.
 
-Preflight deliberately runs no forward, fault, compensation, or commit action. Setup-ready therefore predicts neither domain success nor fault behavior.
+Preflight deliberately runs no target forward, fault, compensation, or commit action. Setup-ready therefore predicts neither domain success nor fault behavior.
+
+### SetupPlan
+
+A **SetupPlan** is the latest WorkloadPlan's optional, validated sequence of source-derived application-facade calls that reconstructs ordinary test setup before target execution. Actions run once in source order through an application-owned closed dispatch map. Non-void results remain attempt-local; later setup actions and participant arguments may reference only earlier results or approved properties. Runtime IDs and result values never enter package identity. Setup is outside target fault injection and measured impact.
 
 ### WorkloadPlan
 
@@ -86,7 +91,7 @@ A **WorkloadPlan** is reusable normal-execution structure. It contains:
 - one deterministic global forward schedule;
 - one dense normal-action schedule containing forward actions and any event consequences;
 - persisted event-consequence definitions and their selected producer/consumer routes;
-- optional prerequisite-provider identity and typed baseline-binding requirements;
+- optional prerequisite-provider identity and typed baseline-binding requirements, or one validated source-derived ordered SetupPlan;
 - conflict evidence;
 - ordered forward fault slots;
 - compensation checkpoints and evidence;
@@ -131,7 +136,7 @@ It counts structured `INVARIANT_VIOLATION` events emitted when the existing Saga
 
 A **benchmark observation** is an application-side evaluation record joined to one persisted package, FaultScenario, execution attempt, and ImpactV1 report. The current Quizzes RemoveTournament–AddParticipant benchmark applies one bounded final-state predicate: an active Tournament still referring to the observed deleted Quiz is `HARMFUL_FOR_RULE`. A valid observation additionally requires the latest raw persisted Tournament Saga-state column to decode through `SagaStateConverter` as exact `GenericSagaState.NOT_IN_SAGA`; SQL null, missing, malformed, wrong-class, or different-state evidence is `NOT_EVALUATED`. `NO_BROKEN_REFERENCE` means only that the predicate is false after this proof succeeds; it is not a global safety claim.
 
-This observation is additive test/evaluation evidence. It does not change package v4, ScenarioExecutor, ImpactV1, production Quizzes behavior, or measured final state.
+This observation is application-side test/evaluation evidence. It does not change ImpactV1, production Quizzes behavior, or measured final state. The latest automatic benchmark uses package v5 source-derived setup; the retained historical benchmark continues to use its valid v4 prerequisite provider.
 
 ## Inputs and static extraction
 
@@ -143,7 +148,7 @@ Static generation consumes:
 - Groovy/Spock tests and fixtures;
 - verifier generation configuration such as source policy, schedule strategy, caps, and seed.
 
-Optional dynamic enrichment additionally runs selected application tests and consumes simulator runtime evidence. ScenarioExecutor additionally consumes a complete v4 package, target application classpath/Spring context, and one persisted FaultScenario id or the preflight mode.
+Optional dynamic enrichment additionally runs selected application tests and consumes simulator runtime evidence. ScenarioExecutor additionally consumes a complete latest v5 or explicit valid v4 package, target application classpath/Spring context, and one persisted FaultScenario id or the preflight mode.
 
 The main targets are:
 
@@ -223,23 +228,23 @@ UNKNOWN -> accepted with warning
 
 Rejected inputs remain in `workload-catalog-rejected-inputs.jsonl` with provenance, source-mode evidence, recipe, warnings, and rejection reason. TCC execution remains out of scope.
 
-## The v4 package
+## The v5 package
 
-V4 is the current package and executor contract. V3 records are rejected rather than upgraded in place; older `ScenarioPlan` and `scenario-catalog.jsonl` artifacts are also unsupported.
+V5 is the current package contract. It adds an optional validated `SetupPlan` to WorkloadPlan identity while retaining explicit reading and execution of valid v4 prerequisite-provider packages. V3 records are rejected rather than upgraded in place; older `ScenarioPlan` and `scenario-catalog.jsonl` artifacts are also unsupported.
 
 A normal generation run writes exactly five contract files:
 
 | File | Purpose | Main consumer |
 |---|---|---|
 | `scenario-catalog-manifest.json` | Package entry point: paths, schemas, hashes, configuration, counts, setup candidates, and recovery cap | Package readers, preflight, executor, on-demand writer |
-| `workload-catalog.jsonl` | Deterministic `microservices-simulator.workload-plan.v4` records | Dynamic sidecars, FaultScenario generation, executor |
+| `workload-catalog.jsonl` | Deterministic latest `microservices-simulator.workload-plan.v5` records, or explicit valid v4 records | Dynamic sidecars, FaultScenario generation, executor |
 | `fault-scenario-catalog.jsonl` | Deterministic `microservices-simulator.fault-scenario.v4` records | Executor and on-demand vector workflow |
 | `scenario-space-accounting.json` | `microservices-simulator.scenario-space-accounting.v4` workload-space, setup-candidate, vector, recovery-schedule, and event-consequence accounting | Thesis evaluation and on-demand accounting updates |
 | `workload-catalog-rejected-inputs.jsonl` | Inputs excluded by source mode or policy, with diagnostics | Input-coverage debugging |
 
-The manifest uses `microservices-simulator.scenario-catalog-manifest.v4`; input recipes use v2. `analysis-report.html` is no longer produced. It was a pre-v3 static trace browser rendered before WorkloadPlan/FaultScenario generation and had no current package, setup, execution, or impact content.
+The latest manifest uses `microservices-simulator.scenario-catalog-manifest.v5`; input recipes use v2 and SetupPlans use `microservices-simulator.setup-plan.v1`. `analysis-report.html` is no longer produced. It was a pre-v3 static trace browser rendered before WorkloadPlan/FaultScenario generation and had no current package, setup, execution, or impact content.
 
-The manifest is the package entry point and checksum boundary. The executor validates the complete package before selection. Preflight, execution, impact, dynamic sidecars, and logs are outside the five-file semantic package and must not change its bytes.
+The manifest is the package entry point and checksum boundary. Named execution traverses and validates every linked record while retaining only the selected workload/scenario; each linked artifact is opened once, and SHA-256 is computed over the exact stream consumed by strict UTF-8 parsing through EOF. Preflight, execution, impact, dynamic sidecars, and logs are outside the five-file semantic package and must not change its bytes.
 
 ### Determinism and bounds
 
@@ -361,7 +366,7 @@ dynamic-evidence-join-report.json
 dynamic-evidence/                 # raw events, input map, test reports, Maven log
 ```
 
-These artifacts are not part of v4 package identity and do not rewrite WorkloadPlans, FaultScenarios, vectors, or action schedules.
+These artifacts are not part of latest package identity and do not rewrite WorkloadPlans, SetupPlans, FaultScenarios, vectors, or action schedules.
 
 A run-level `dynamic-input-map.json` lets runtime events carry an exact static `inputVariantId` when test identity, functionality class, step, and ownership resolve uniquely. Current join statuses are:
 
@@ -374,7 +379,7 @@ A run-level `dynamic-input-map.json` lets runtime events carry an exact static `
 | `UNMATCHED` | Relevant evidence exists but cannot be joined usefully |
 | `NOT_COVERED` | No useful runtime evidence was observed for the workload |
 
-These statuses currently support attribution quality and debugging. They do not change execution behavior. The latest broad Quizzes counts are historical v2 evidence and are intentionally not retained as a current v4 headline. Current v4 package/sidecar immutability is covered by integration tests; a fresh broad Quizzes v4 enrichment run has not yet been recorded.
+These statuses currently support attribution quality and debugging. They do not change execution behavior. The latest broad Quizzes counts are historical v2 evidence and are intentionally not retained as a current headline. Latest-package/sidecar immutability is covered by integration tests; a fresh broad Quizzes v5 enrichment run has not yet been recorded.
 
 The durable static/dynamic boundary is explained in [`decisions/2026-04-28-hybrid-static-dynamic-key-binding.md`](decisions/2026-04-28-hybrid-static-dynamic-key-binding.md).
 
@@ -384,13 +389,14 @@ ScenarioExecutor is a narrow deterministic Saga/local replay path, not a generic
 
 ### Setup preflight
 
-Preflight selects every manifest row whose legacy `materializable` value is `true`. In one Spring application context, it:
+Preflight selects every manifest row whose legacy `materializable` value is `true`. Legacy/provider candidates may share one Spring application context. Each source-derived SetupPlan candidate is isolated in its own bounded fresh JVM/Spring/H2 worker before it:
 
-1. resolves runtime-owned dependencies;
-2. materializes each exact persisted input tuple;
-3. creates a fresh Saga unit of work;
-4. starts every exact Saga participant;
-5. stops before every workflow action.
+1. restores fresh process-local state;
+2. executes validated setup actions once in source order through an application-owned closed dispatch map;
+3. retains non-void results and resolves later action/participant references with exact type checks;
+4. clears setup-created pending events and proves an empty baseline;
+5. materializes each exact persisted input tuple, creates fresh Saga units of work, and starts every exact participant;
+6. stops before every target workflow action.
 
 Result meanings:
 
@@ -398,18 +404,18 @@ Result meanings:
 - `MATERIALIZATION_FAILED`: a persisted input could not be reconstructed;
 - `STARTUP_FAILED`: arguments materialized, but exact Saga construction/startup failed.
 
-Normal execution uses the same setup implementation, so a separate preflight is optional.
+Normal execution uses the same setup implementation, so a separate preflight is optional. The occurrence, validation, dispatch, and isolation rationale is retained in [`decisions/2026-08-28-source-derived-ordered-setup.md`](decisions/2026-08-28-source-derived-ordered-setup.md).
 
 ### Normal execution
 
 Normal execution requires:
 
-- a complete v4 package path;
+- a complete latest v5 or explicit valid v4 package path;
 - one exact persisted FaultScenario id;
 - an output path;
 - an application classpath/Spring application with supported Saga/local runtime dependencies.
 
-It sequentially replays persisted `FORWARD`, `EVENT_CONSEQUENCE`, and `COMPENSATION` actions, injects assigned faults at their exact forward slots, and commits each participant after its final successful forward action. Before measured execution, an optional exact `ScenarioPrerequisiteProvider` creates the baseline, resolves typed bindings, clears prerequisite-created pending events, and proves an empty pending-event baseline. This setup has separate report evidence and is excluded from measured actions, fault allocation, recovery, conformance, and ImpactV1.
+It sequentially replays persisted `FORWARD`, `EVENT_CONSEQUENCE`, and `COMPENSATION` actions, injects assigned faults at their exact forward slots, and commits each participant after its final successful forward action. Before measured execution, either an optional exact v4 `ScenarioPrerequisiteProvider` creates the baseline or a v5 SetupPlan runs its closed source-derived actions once and reuses attempt-local results. Both paths resolve typed bindings, clear setup-created pending events, prove an empty pending-event baseline, and remain excluded from measured actions, fault allocation, recovery, conformance, and ImpactV1. A null prerequisite baseline is reported by the exact non-provider sentinel `NOT_REQUIRED` rather than by absence of evidence.
 
 Only a zero-bit body/commit failure explicitly marked with the simulator `DomainFailure` contract may use immediate checkpoint recovery, skip the failed participant's remaining forwards, continue valid survivor actions, and report `DEVIATED`.
 
@@ -426,7 +432,7 @@ An event consequence is masked when its specific trigger occurrence has a pre-bo
 `microservices-simulator.scenario-execution-report.v5` records:
 
 - attempt, package, WorkloadPlan, FaultScenario, vector, and fault-provider identity;
-- separate prerequisite-provider, binding, cleanup, and baseline evidence;
+- separate prerequisite-provider or source-derived setup action/result/binding, cleanup, and baseline evidence;
 - planned and actual action order;
 - planned event route and actual persisted event/subscriber evidence;
 - fault-slot realization or causal event masking;
@@ -443,7 +449,7 @@ Supported:
 
 - persisted setup-candidate Saga/local single- and multi-participant workloads;
 - deterministic sequential replay, including one exact local event consequence;
-- exact prerequisite providers and typed baseline bindings outside measurement;
+- exact v4 prerequisite providers or validated v5 source-derived ordered setup outside measurement;
 - binary forward faults;
 - persisted compensation schedules;
 - explicit domain-failure fallback and conservative infrastructure hard stops;
@@ -456,7 +462,7 @@ Unsupported:
 - arbitrary non-candidate workload replay;
 - repeated same-participant runtime step names;
 - compensation faults, delay/non-binary impairments, or automatic recovery retries;
-- generic persistent-environment reset;
+- generic persistent-environment reset beyond fresh worker/process isolation;
 - automatic FaultScenario selection or runtime vector overlays.
 
 The compensation/failure boundary is retained in [`decisions/2026-07-19-compensation-aware-fault-scenario-contract.md`](decisions/2026-07-19-compensation-aware-fault-scenario-contract.md). Event-consequence ownership and replay isolation are retained in [`decisions/2026-07-30-deterministic-event-consequence-replay.md`](decisions/2026-07-30-deterministic-event-consequence-replay.md).
@@ -682,7 +688,46 @@ rejected inputs:   dd4b4a7051600d5856df6c02a2230a1971b9c7092e85f43130c89e4f959ea
 
 This proves one realistic Saga/local event interaction is statically represented, prerequisite-bound, causally replayed, discriminating under ImpactV1, and repeatable at the fresh-process/H2 boundary. It does not prove generic fan-out, nested event chains, distributed event replay, same-process reset, or broad event-pattern coverage.
 
-### Quizzes persisted RemoveTournament–AddParticipant benchmark
+### Automatic source-derived RemoveTournament–AddParticipant proof
+
+The latest v5 package derives the ordinary recovery-window test's shared Tournament producer and twelve setup calls without the historical Remove/Add descriptor/provider:
+
+```text
+package:       checkpoint-d-automatic-20260828-1825/quizzes-20260828-172723-706/ (generated proof package; removed from target after review)
+WorkloadPlan:  359f3c2d05e286094aec1a2d1c81f3fbc507cfe87de0ac79b2729b328cb73ec0
+harmful 00100: 1b93b0a5eadb884ba22383f5e907a0bb64f5f3781aa9ffca8b29032d238749d3
+control 00000: 4618c12787ee1a23b9c61e72708103ed6d79624a889fa026afffc40bbf85541d
+```
+
+The WorkloadPlan has `prerequisiteBaseline=null`, one validated SetupPlan, and the unchanged serial forward order `getTournamentStep -> removeQuizStep -> removeTournamentStep -> getUserStep -> addParticipantStep`. Setup creates the course execution, two users, activation/enrollment effects, two topics, two questions, and one Tournament in twelve source-ordered actions. In each fresh attempt, both Saga argument-1 bindings resolve `setup-action-12.aggregateId` through the same retained result id and value `10`. The prerequisite report is the exact non-provider sentinel: `NOT_REQUIRED`, null provider id/version/failure fields, zero duration/events, true empty baseline, and empty bindings/evidence.
+
+Two separate Docker containers/JVMs with fresh H2 state produced:
+
+```text
+harmful attempt: dc9c8b1f-4d2f-4bb2-afb4-6e0e2d424bf2
+  00100 / PARTIAL_COMPENSATED / EXACT / ImpactV1 EVALUATED=0
+  VALID / HARMFUL_FOR_RULE
+  active Tournament 10 -> deleted Quiz 9; decoded GenericSagaState.NOT_IN_SAGA
+
+control attempt: b986dd16-0847-424c-88db-db3c149facb4
+  00000 / PARTIAL_COMPENSATED / DEVIATED / ImpactV1 EVALUATED=0
+  VALID / NO_BROKEN_REFERENCE
+  deleted Tournament 10 -> deleted Quiz 9; decoded GenericSagaState.NOT_IN_SAGA
+```
+
+Both attempts ran all twelve setup actions successfully, cleared two pending setup events, established an empty pending-event baseline, and reused action 12 for both participants. The six authoritative reports remain under `verifiers/target/checkpoint-d-automatic-20260828-1825/`; the reproducible 4.6 GiB package catalog was removed after medium review. The five package hashes remained unchanged before removal:
+
+```text
+manifest:        48b92f0b33fc7c8c7e10394fde0b819978da462a5c7619d877f4cbb4030b2966
+workloads:       31440c637c772227e995135cbefade8640851588602fb019756f6dcaa488785a
+fault scenarios: 4ee8d64b065f3ca97e8c098b9fe9c6c58b1ac5352e1de78c4e77ad59d360265e
+accounting:      959be1f22bfa5c179b7dab6d92dcb0c85856c402058310e6517d73440e3c27c2
+rejected inputs: 2bb2f6592b13d9ea3312e1c1935eea4649caff7d818e23e38c2038801dd5c44b
+```
+
+This proves the bounded automatic source-derived path, not generic setup-language coverage or a generic final-state impact model. The historical descriptor/provider and 34-row v4 landscape below remain valid evidence and are intentionally retained.
+
+### Historical prerequisite-backed RemoveTournament–AddParticipant benchmark
 
 The no-event descriptor selects this exact source-derived forward and fault-slot order:
 
@@ -788,14 +833,13 @@ This proves exact BigInteger counting with bounded retained schedules for one co
 
 ### Regression baseline
 
-The latest benchmark implementation recorded:
+The latest source-derived setup implementation and D remediation recorded:
 
 ```text
-simulator Saga-state converter:           7 tests passed
-verifier descriptor-focused suite:        7 tests passed
-verifier complete suite:                634 tests passed
-focused Quizzes runner/provider/reload:  37 tests passed
-Python/shell syntax and diff check:       passed
+focused selected-reader/executor suite: 176 tests passed
+verifier complete suite:                700 tests passed
+focused Quizzes benchmark runner:        49 tests passed
+git diff --check:                        passed
 ```
 
 The prior event-consequence implementation also recorded 111 passing simulator tests. Its full `mvn -Ptest-sagas test` Quizzes baseline ran 152 tests but retained seven unrelated async/concurrency assertion failures: those tests expect `SimulatorException` directly while the async path returns `CompletionException`. No current changed path belongs to those tests or their async implementation. The benchmark uses focused Quizzes proof rather than converting that historical full-suite baseline into a passing claim.
@@ -812,7 +856,7 @@ These totals are point-in-time evidence, not permanent acceptance criteria. Curr
 - Repeated same-participant runtime step names are structurally rejected because current Saga/local runtime state is keyed by step name rather than occurrence id.
 - Segment compression preserves conflict-anchor order cases under extracted evidence; it does not prove every semantically distinct runtime interleaving is retained.
 - Dynamic enrichment remains local/Saga-focused. There is no fresh broad Quizzes v4 attribution baseline.
-- The generated Quizzes event-consequence pair provides one ImpactV1 1/0 discrimination. The RemoveTournament–AddParticipant benchmark provides a complete 34-row retained landscape with 19/15 bounded final-state variation, but ImpactV1 is zero for every row; a broader impact contract is still undefined.
+- The generated Quizzes event-consequence pair provides one ImpactV1 1/0 discrimination. The automatic source-derived RemoveTournament–AddParticipant path proves one harmful/control pair without its descriptor/provider; the retained historical benchmark still provides the complete 34-row 19/15 landscape. ImpactV1 is zero for every Remove/Add row, so a broader impact contract remains undefined.
 - Three refreshed benchmark controls demonstrate the explicitly marked zero-bit domain-fallback path; other fallback shapes remain unqualified.
 - Persistent-environment reset is the caller/orchestrator's responsibility.
 - On-demand package writes are serialized but not crash-atomic.
@@ -825,13 +869,13 @@ These totals are point-in-time evidence, not permanent acceptance criteria. Curr
 - Semantic deduplication of value-equivalent inputs.
 - Profile-aware resolution for ambiguous multiple `@Service` implementations.
 - State-divergence, postcondition, or silent-compensation impact models beyond invariant-count ImpactV1.
-- Generic batch execution qualification, generic reset orchestration, GA/local fault search, or scenario prioritization. The current batch command is benchmark-specific.
+- Generic batch execution qualification, generic reset orchestration beyond fresh process workers, GA/local fault search, or scenario prioritization. The current benchmark command remains application-specific.
 
 ## Safe thesis framing
 
 Safe current claim:
 
-> The verifier deterministically extracts Saga-oriented workload structure, conservative exact event consequences, and test-derived or prerequisite-bound inputs; publishes compensation-aware WorkloadPlan/FaultScenario v4 packages; can verify exact Saga/local setup readiness; can replay one persisted setup-ready FaultScenario sequentially, including one unique local event consequence; and can report generic Saga aggregate-invariant rejections through a first narrow impact model. A separate Quizzes test/evaluation runner applies one bounded broken-reference rule only after converter-decoded persisted `NOT_IN_SAGA` proof; its fresh 34-row retained landscape contains 19 harmful and 15 non-broken-reference rows while ImpactV1 remains zero throughout.
+> The verifier deterministically extracts Saga-oriented workload structure, conservative exact event consequences, and test-derived inputs; publishes compensation-aware WorkloadPlan/FaultScenario v5 packages with optional ordered source-derived setup while retaining valid v4 provider packages; can verify exact Saga/local setup readiness; can replay one persisted setup-ready FaultScenario sequentially; and can report generic Saga aggregate-invariant rejections through a first narrow impact model. The automatic Quizzes Remove/Add proof replays ordinary-test setup without its historical provider and distinguishes one harmful `00100` from one `00000` control after converter-decoded persisted `NOT_IN_SAGA` proof. The retained historical 34-row landscape contains 19 harmful and 15 non-broken-reference rows while ImpactV1 remains zero throughout.
 
 Required qualifications:
 
@@ -841,7 +885,7 @@ Required qualifications:
 - assigned fault or compensation does not by itself mean impact;
 - static conflict evidence and segment compression do not prove semantic completeness;
 - current execution is Saga/local and sequential, not generic distributed concurrency;
-- historical v1/v2/v3 catalogs and broad dynamic counts are not current v4 evidence.
+- historical v1/v2/v3 catalogs and broad dynamic counts are not current v5 evidence; valid v4 packages remain an explicit compatibility path.
 
 Unsafe current claim:
 

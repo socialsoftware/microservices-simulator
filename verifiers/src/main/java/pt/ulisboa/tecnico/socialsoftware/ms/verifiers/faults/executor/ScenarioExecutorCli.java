@@ -18,6 +18,17 @@ public final class ScenarioExecutorCli {
         if (!springProfiles.isBlank()) {
             System.setProperty("spring.profiles.active", springProfiles);
         }
+        ScenarioSetupPreflightOptions preflightOptions = enabled(options, "preflight")
+                ? preflightOptions(options, springProfiles) : null;
+        if (enabled(options, "preflight") && !enabled(options, "preflight-worker")) {
+            ScenarioExecutor.PreflightPlan plan = new ScenarioExecutor().preflightPlan(preflightOptions);
+            if (!plan.sourceSetupWorkloadIds().isEmpty()) {
+                int status = new ScenarioSetupPreflightProcessOrchestrator().run(args, preflightOptions, plan);
+                System.exit(status);
+                return;
+            }
+        }
+
         Class<?> applicationClass = Class.forName(options.get("spring-application-class"));
         int exitCode;
         try (EventReplayCoordinator.Activation replayMode = activateReplayMode();
@@ -25,15 +36,10 @@ public final class ScenarioExecutorCli {
             ScenarioRuntimeContext runtimeContext = new SpringScenarioRuntimeContext(context);
             ScenarioExecutor executor = new ScenarioExecutor();
             if (enabled(options, "preflight")) {
-                ScenarioSetupPreflightOptions preflightOptions = new ScenarioSetupPreflightOptions(
-                        Path.of(options.get("package-path")),
-                        Path.of(options.get("output-path")),
-                        options.get("application-base"),
-                        options.get("application-id"),
-                        options.get("spring-application-class"),
-                        springProfiles,
-                        options.get("maven-profile"));
-                ScenarioSetupPreflightReport report = executor.preflight(preflightOptions, runtimeContext);
+                ScenarioSetupPreflightReport report = enabled(options, "preflight-worker")
+                        ? executor.preflightIsolatedAttempt(preflightOptions, runtimeContext,
+                        Set.copyOf(List.of(options.get("preflight-workload-ids").split(","))))
+                        : executor.preflight(preflightOptions, runtimeContext);
                 System.out.println("Scenario setup preflight candidates=" + report.candidateCount()
                         + " participants=" + report.participantCount()
                         + " status=" + report.terminalStatus());
@@ -43,6 +49,7 @@ public final class ScenarioExecutorCli {
                             "participant " + participant.sagaInstanceId() + " "
                                     + (participant.setupReady() ? "SETUP_READY" : "SETUP_FAILED")
                                     + " saga=" + participant.sagaFqn()));
+                    printSourceSetup(workload.sourceSetup());
                     workload.blockers().forEach(blocker -> System.out.println(
                             "blocker " + blocker.reason() + " " + blocker.message()));
                 });
@@ -65,6 +72,7 @@ public final class ScenarioExecutorCli {
                 System.out.println("Scenario executor selected " + report.faultScenarioId()
                         + " status=" + report.terminalStatus()
                         + " conformance=" + report.scheduleConformance());
+                printSourceSetup(report.sourceSetup());
                 report.actualActions().forEach(action -> System.out.println(
                         "action " + action.actualPosition() + " " + action.kind() + " " + action.actionId()
                                 + " " + action.status()));
@@ -72,6 +80,35 @@ public final class ScenarioExecutorCli {
             }
         }
         System.exit(exitCode);
+    }
+
+    private static ScenarioSetupPreflightOptions preflightOptions(
+            Map<String, String> options, String springProfiles) {
+        return new ScenarioSetupPreflightOptions(
+                Path.of(options.get("package-path")),
+                Path.of(options.get("output-path")),
+                options.get("application-base"),
+                options.get("application-id"),
+                options.get("spring-application-class"),
+                springProfiles,
+                options.get("maven-profile"));
+    }
+
+    private static void printSourceSetup(ScenarioExecutionReport.SourceSetup setup) {
+        if (setup == null) return;
+        System.out.println("source setup status=" + setup.status()
+                + " pendingEventsCleared=" + setup.pendingEventsCleared());
+        setup.actions().forEach(action -> System.out.println(
+                "setup action " + action.orderIndex() + " " + action.actionId()
+                        + " " + action.status()
+                        + (action.retainedResultId() == null ? "" : " result=" + action.retainedResultId())
+                        + (action.aggregateId() == null ? "" : " aggregateId=" + action.aggregateId())));
+        setup.participantBindings().forEach(binding -> System.out.println(
+                "setup binding " + binding.inputVariantId() + "#" + binding.argumentIndex()
+                        + " <- " + binding.sourceActionId()
+                        + (binding.propertyName() == null ? "" : "." + binding.propertyName())
+                        + " result=" + binding.retainedResultId()
+                        + " value=" + binding.resolvedValue()));
     }
 
     static EventReplayCoordinator.Activation activateReplayMode() {
@@ -103,6 +140,7 @@ public final class ScenarioExecutorCli {
         require(options, "output-path");
         validateBooleanOption(options, "preflight");
         validateBooleanOption(options, "dry-run");
+        validateBooleanOption(options, "preflight-worker");
         validatePathOption(options, "impact-output-path");
         boolean preflight = enabled(options, "preflight");
         if (preflight) {
@@ -116,13 +154,21 @@ public final class ScenarioExecutorCli {
             if (options.containsKey("impact-output-path")) {
                 throw new IllegalArgumentException("--impact-output-path is an execution output and cannot be combined with --preflight");
             }
+            if (enabled(options, "preflight-worker")) {
+                require(options, "preflight-workload-ids");
+            } else if (options.containsKey("preflight-workload-ids")) {
+                throw new IllegalArgumentException("--preflight-workload-ids is internal to isolated preflight workers");
+            }
         } else {
             require(options, "fault-scenario-id");
+            if (enabled(options, "preflight-worker") || options.containsKey("preflight-workload-ids")) {
+                throw new IllegalArgumentException("isolated preflight worker options require --preflight");
+            }
         }
         Set<String> supportedExecutorOptions = Set.of(
                 "spring-application-class", "spring-profiles", "application-base", "application-id",
                 "maven-profile", "package-path", "fault-scenario-id", "output-path", "impact-output-path",
-                "dry-run", "preflight");
+                "dry-run", "preflight", "preflight-worker", "preflight-workload-ids");
         options.keySet().stream()
                 .filter(key -> !supportedExecutorOptions.contains(key) && !key.contains("."))
                 .findFirst()

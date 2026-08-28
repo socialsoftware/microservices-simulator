@@ -19,6 +19,7 @@ Superseded designs, implementation chronology, and evidence baselines belong in 
 | [`Conflict-anchor segment compression`](2026-06-16-conflict-anchor-segment-compression.md) | Defines the non-obvious schedule reduction and its semantic limits |
 | [`Compensation-aware v3 contract`](2026-07-19-compensation-aware-fault-scenario-contract.md) | Defines the retained two-level WorkloadPlan/FaultScenario compensation and executor failure boundary introduced in v3 |
 | [`Event-consequence ownership and replay contract`](2026-07-30-deterministic-event-consequence-replay.md) | Defines v4 event-action ownership, exact local replay isolation, causal masking, prerequisites, and the fresh-process reset boundary |
+| [`Source-derived ordered setup and shared attempt-local results`](2026-08-28-source-derived-ordered-setup.md) | Defines v5 SetupPlan occurrence identity, closed dispatch, shared result reuse, validation ownership, and fresh-process setup isolation |
 
 ## Maintenance rule
 

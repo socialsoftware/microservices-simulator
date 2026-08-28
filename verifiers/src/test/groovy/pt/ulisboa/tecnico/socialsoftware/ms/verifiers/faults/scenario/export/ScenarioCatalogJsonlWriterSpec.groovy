@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*
 import spock.lang.Specification
 
 import java.nio.file.Files
+import java.nio.file.Path
 
 class ScenarioCatalogJsonlWriterSpec extends Specification {
 
@@ -123,6 +124,261 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
         then:
         def danglingFailure = thrown(IllegalArgumentException)
         danglingFailure.message.contains('references missing WorkloadPlan missing')
+    }
+
+    def 'reader keeps the explicit valid v4 package path unchanged'() {
+        given:
+        def paths = packagePaths(Files.createTempDirectory('v4-package-reader'))
+        def latest = eagerGenerationResult()
+        writePackage(latest, paths, '2026-07-20T00:00:00Z')
+        def original = latest.workloadPlans().first()
+        def legacyWithoutId = new WorkloadPlan(WorkloadPlan.LEGACY_V4_SCHEMA_VERSION, null,
+                original.kind(), original.executionShape(), original.participants(), original.acceptedInputs(),
+                original.forwardSchedule(), original.eventConsequences(), original.normalSchedule(),
+                new PrerequisiteBaseline('legacy-provider', '1', []), null,
+                original.conflictEvidence(), original.faultSlots(),
+                original.compensationCheckpoints(), original.warnings())
+        def legacy = new WorkloadPlan(legacyWithoutId.schemaVersion(),
+                ScenarioIdGenerator.workloadPlanId(legacyWithoutId), legacyWithoutId.kind(),
+                legacyWithoutId.executionShape(), legacyWithoutId.participants(), legacyWithoutId.acceptedInputs(),
+                legacyWithoutId.forwardSchedule(), legacyWithoutId.eventConsequences(), legacyWithoutId.normalSchedule(),
+                legacyWithoutId.prerequisiteBaseline(), null, legacyWithoutId.conflictEvidence(),
+                legacyWithoutId.faultSlots(), legacyWithoutId.compensationCheckpoints(), legacyWithoutId.warnings())
+        def legacyScenarios = latest.faultScenarios().collect { scenario ->
+            def withoutId = new FaultScenario(scenario.schemaVersion(), null, legacy.deterministicId(),
+                    scenario.assignedVector(), scenario.actions())
+            new FaultScenario(withoutId.schemaVersion(), ScenarioIdGenerator.faultScenarioId(withoutId),
+                    withoutId.workloadPlanId(), withoutId.assignedVector(), withoutId.actions())
+        }
+        Files.writeString(paths.workload, mapper.writeValueAsString(legacy) + '\n')
+        Files.write(paths.faultScenario, legacyScenarios.collect { mapper.writeValueAsString(it) })
+        Files.writeString(paths.accounting, Files.readString(paths.accounting)
+                .replace(original.deterministicId(), legacy.deterministicId()))
+        def manifest = mapper.readTree(Files.readString(paths.manifest))
+        manifest.put('schemaVersion', ScenarioCatalogManifest.LEGACY_V4_SCHEMA_VERSION)
+        manifest.withObject('/workloadCatalog')
+                .put('schemaVersion', WorkloadPlan.LEGACY_V4_SCHEMA_VERSION)
+                .put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(paths.workload)))
+        manifest.withObject('/faultScenarioCatalog')
+                .put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(paths.faultScenario)))
+        manifest.withObject('/scenarioSpaceAccounting')
+                .put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(paths.accounting)))
+        manifest.path('workloadMaterializability').forEach { row ->
+            row.put('workloadPlanId', legacy.deterministicId())
+        }
+        Files.writeString(paths.manifest, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
+
+        when:
+        def loaded = new ScenarioCatalogPackageReader().read(paths.manifest)
+
+        then:
+        loaded.manifest().schemaVersion() == ScenarioCatalogManifest.LEGACY_V4_SCHEMA_VERSION
+        loaded.workloadPlans()*.schemaVersion() == [WorkloadPlan.LEGACY_V4_SCHEMA_VERSION]
+        loaded.workloadPlans()*.deterministicId() == [legacy.deterministicId()]
+        loaded.workloadPlans().first().setupPlan() == null
+        loaded.workloadPlans().first().prerequisiteBaseline().providerId() == 'legacy-provider'
+        loaded.faultScenarios()*.deterministicId() == legacyScenarios*.deterministicId()
+
+        and:
+        def selected = new ScenarioCatalogPackageReader().readSelected(
+                paths.manifest, legacy.deterministicId(), legacyScenarios.first().deterministicId())
+        selected.manifest().schemaVersion() == ScenarioCatalogManifest.LEGACY_V4_SCHEMA_VERSION
+        selected.workloadPlan().deterministicId() == legacy.deterministicId()
+        selected.faultScenario().deterministicId() == legacyScenarios.first().deterministicId()
+    }
+
+    def 'named selected reader hashes and parses each exact artifact stream from one open'() {
+        given:
+        def fixture = twoWorkloadPackage('selected-streaming-latest')
+        def wholeReadPaths = []
+        def openCounts = [:].withDefault { 0 }
+        def reader = new ScenarioCatalogPackageReader({ path ->
+            wholeReadPaths << path
+            throw new AssertionError('selected reading must not use the whole-artifact byte-array path')
+        } as ScenarioCatalogPackageReader.WholeArtifactReader, { Path path ->
+            openCounts[path]++
+            if (openCounts[path] > 1) {
+                throw new AssertionError('a replacement available on a second open must never be observed')
+            }
+            Files.newInputStream(path)
+        } as ScenarioCatalogPackageReader.ArtifactStreamSource)
+        def selectedWorkload = fixture.first.workloadPlans().first()
+        def selectedFault = fixture.first.faultScenarios().first()
+
+        when:
+        def selected = reader.readSelected(
+                fixture.paths.manifest, selectedWorkload.deterministicId(), selectedFault.deterministicId())
+
+        then:
+        wholeReadPaths.empty
+        openCounts == [
+                (fixture.paths.workload): 1,
+                (fixture.paths.faultScenario): 1,
+                (fixture.paths.rejected): 1,
+                (fixture.paths.accounting): 1
+        ]
+        selected.workloadPlan().deterministicId() == selectedWorkload.deterministicId()
+        selected.faultScenario().deterministicId() == selectedFault.deterministicId()
+        selected.workloadCatalogPath() == fixture.paths.workload
+        selected.faultScenarioCatalogPath() == fixture.paths.faultScenario
+    }
+
+    def 'named selected reader rejects a malformed nonselected workload record'() {
+        given:
+        def fixture = twoWorkloadPackage('selected-malformed-nonselected-workload')
+        def lines = Files.readAllLines(fixture.paths.workload)
+        lines[1] = '{not-json}'
+        Files.write(fixture.paths.workload, lines)
+        refreshArtifactHash(fixture.paths.manifest, 'workloadCatalog', fixture.paths.workload)
+
+        when:
+        selectFirst(fixture)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('Malformed JSON')
+        failure.message.contains(':2')
+    }
+
+    def 'named selected reader rejects malformed or duplicate nonselected fault records'() {
+        given:
+        def fixture = twoWorkloadPackage("selected-${mutation}-nonselected-fault")
+        def lines = Files.readAllLines(fixture.paths.faultScenario)
+        if (mutation == 'malformed') {
+            lines[-1] = '{not-json}'
+        } else {
+            lines[-1] = lines[0]
+        }
+        Files.write(fixture.paths.faultScenario, lines)
+        refreshArtifactHash(fixture.paths.manifest, 'faultScenarioCatalog', fixture.paths.faultScenario)
+
+        when:
+        selectFirst(fixture)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains(expected)
+
+        where:
+        mutation    | expected
+        'malformed' | 'Malformed JSON'
+        'duplicate' | 'missing or duplicate deterministicId'
+    }
+
+    def 'named selected reader rejects duplicate workload ids and broken nonselected fault references'() {
+        given:
+        def fixture = twoWorkloadPackage("selected-${mutation}-global-integrity")
+        if (mutation == 'duplicate-workload') {
+            def lines = Files.readAllLines(fixture.paths.workload)
+            lines[1] = lines[0]
+            Files.write(fixture.paths.workload, lines)
+            refreshArtifactHash(fixture.paths.manifest, 'workloadCatalog', fixture.paths.workload)
+        } else {
+            def lines = Files.readAllLines(fixture.paths.faultScenario)
+            def node = mapper.readTree(lines[-1])
+            node.put('workloadPlanId', 'missing-workload')
+            lines[-1] = mapper.writeValueAsString(node)
+            Files.write(fixture.paths.faultScenario, lines)
+            refreshArtifactHash(fixture.paths.manifest, 'faultScenarioCatalog', fixture.paths.faultScenario)
+        }
+
+        when:
+        selectFirst(fixture)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains(expected)
+
+        where:
+        mutation             | expected
+        'duplicate-workload' | 'Duplicate WorkloadPlan id'
+        'broken-reference'   | 'references missing WorkloadPlan missing-workload'
+    }
+
+    def 'named selected reader rejects malformed nonselected rejected-input diagnostics'() {
+        given:
+        def fixture = twoWorkloadPackage('selected-malformed-rejected')
+        def manifest = mapper.readTree(Files.readString(fixture.paths.manifest))
+        def schema = manifest.path('rejectedInputsDiagnostic').path('schemaVersion').asText()
+        Files.writeString(fixture.paths.rejected,
+                mapper.writeValueAsString([schemaVersion: schema, reason: 'valid']) + '\n{not-json}\n')
+        manifest.path('rejectedInputsDiagnostic')
+                .put('recordCount', '2')
+                .put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(fixture.paths.rejected)))
+        Files.writeString(fixture.paths.manifest,
+                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
+
+        when:
+        selectFirst(fixture)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('Malformed JSON')
+        failure.message.contains(':2')
+    }
+
+    def 'named selected reader rejects linked checksum count and UTF-8 failures'() {
+        given:
+        def fixture = twoWorkloadPackage("selected-${mutation}-integrity")
+        if (mutation == 'checksum') {
+            Files.write(fixture.paths.accounting, '\n'.bytes, java.nio.file.StandardOpenOption.APPEND)
+        } else if (mutation == 'count') {
+            def manifest = mapper.readTree(Files.readString(fixture.paths.manifest))
+            manifest.path('workloadCatalog').put('recordCount', '3')
+            Files.writeString(fixture.paths.manifest,
+                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
+        } else {
+            byte[] bytes = Files.readAllBytes(fixture.paths.rejected)
+            def malformed = new ByteArrayOutputStream()
+            malformed.write(bytes)
+            malformed.write(0x80)
+            Files.write(fixture.paths.rejected, malformed.toByteArray())
+            refreshArtifactHash(fixture.paths.manifest, 'rejectedInputsDiagnostic', fixture.paths.rejected)
+        }
+
+        when:
+        selectFirst(fixture)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains(expected)
+
+        where:
+        mutation   | expected
+        'checksum' | 'checksum mismatch'
+        'count'    | 'count mismatch for WORKLOAD_CATALOG'
+        'utf8'     | 'Malformed UTF-8'
+    }
+
+    def 'named selected reader carries validated linked paths when the selected fault id is absent'() {
+        given:
+        def fixture = twoWorkloadPackage('selected-missing')
+        def firstWorkload = fixture.first.workloadPlans().first()
+
+        when:
+        def selected = new ScenarioCatalogPackageReader().readSelected(
+                fixture.paths.manifest, firstWorkload.deterministicId(), 'missing-fault-id')
+
+        then:
+        selected.workloadPlan() == null
+        selected.faultScenario() == null
+        selected.workloadCatalogPath() == fixture.paths.workload
+        selected.faultScenarioCatalogPath() == fixture.paths.faultScenario
+    }
+
+    def 'named selected reader rejects a fault paired with the wrong requested workload id'() {
+        given:
+        def fixture = twoWorkloadPackage('selected-mismatch')
+        def firstFault = fixture.first.faultScenarios().first()
+        def secondWorkload = fixture.second.workloadPlans().first()
+
+        when:
+        new ScenarioCatalogPackageReader().readSelected(
+                fixture.paths.manifest, secondWorkload.deterministicId(), firstFault.deterministicId())
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('rather than requested WorkloadPlan')
     }
 
     def 'shared package reader rejects missing and malformed artifact checksums'() {
@@ -426,6 +682,37 @@ class ScenarioCatalogJsonlWriterSpec extends Specification {
                 paths.accounting,
                 null,
                 generatedAt)
+    }
+
+    private def selectFirst(Map fixture) {
+        def workload = fixture.first.workloadPlans().first()
+        def scenario = fixture.first.faultScenarios().first()
+        new ScenarioCatalogPackageReader().readSelected(
+                fixture.paths.manifest, workload.deterministicId(), scenario.deterministicId())
+    }
+
+    private def twoWorkloadPackage(String prefix) {
+        def root = Files.createTempDirectory(prefix)
+        def paths = packagePaths(root.resolve('combined'))
+        def secondPaths = packagePaths(root.resolve('second'))
+        def first = eagerGenerationResult(1L, 'integer')
+        def second = eagerGenerationResult(2L, 'integer')
+        writePackage(first, paths, '2026-07-20T00:00:00Z')
+        writePackage(second, secondPaths, '2026-07-20T00:00:00Z')
+        Files.write(paths.workload,
+                Files.readAllLines(paths.workload) + Files.readAllLines(secondPaths.workload))
+        Files.write(paths.faultScenario,
+                Files.readAllLines(paths.faultScenario) + Files.readAllLines(secondPaths.faultScenario))
+        def manifest = mapper.readTree(Files.readString(paths.manifest))
+        manifest.path('workloadCatalog')
+                .put('recordCount', '2')
+                .put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(paths.workload)))
+        manifest.path('faultScenarioCatalog')
+                .put('recordCount', '4')
+                .put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(paths.faultScenario)))
+        Files.writeString(paths.manifest,
+                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
+        [paths: paths, first: first, second: second]
     }
 
     private static Map<String, String> snapshot(Map paths) {

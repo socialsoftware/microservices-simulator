@@ -1,10 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor
 
 import ch.qos.logback.classic.Logger
+import com.github.javaparser.StaticJavaParser
 import ch.qos.logback.core.read.ListAppender
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.AccessPolicy
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchPhase
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchMultiplicityKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaFunctionalityBuildingBlock
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
@@ -173,6 +175,188 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
         step.analysisDiagnostics*.code().contains('UNSUPPORTED_METHOD_REFERENCE')
     }
 
+    def "plain command aggregate parameters map to their saga constructor argument"() {
+        given:
+        def saga = state.sagas.find { it.fqn.contains('RenameItemFromEventFunctionalitySagas') }
+        def dispatch = saga.steps.find { it.name == 'renameItemFromEventStep' }.dispatches.first()
+
+        expect:
+        dispatch.aggregateName() == 'Item'
+        dispatch.aggregateKeyText() == null
+        dispatch.aggregateKeyConstructorArgumentIndex() == 1
+    }
+
+    def "same-named overloads do not create aggregate-key constructor evidence"() {
+        given:
+        def saga = analyzeSyntheticSaga('SameNamedOverloadSaga', '''
+            public SameNamedOverloadSaga(SagaUnitOfWorkService service, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                buildWorkflow("not-an-aggregate-key", unitOfWork);
+            }
+
+            private void buildWorkflow(String ignored, SagaUnitOfWork unitOfWork) { }
+
+            private void buildWorkflow(Integer aggregateId, SagaUnitOfWork unitOfWork) {
+                SagaStep step = new SagaStep("overloadStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", aggregateId, null);
+                });
+            }
+        ''')
+
+        expect:
+        saga.steps.find { it.name == 'overloadStep' }.dispatches.first()
+                .aggregateKeyConstructorArgumentIndex() == null
+    }
+
+    def "differing constructor positions block aggregate-key constructor evidence"() {
+        given:
+        def saga = analyzeSyntheticSaga('DifferingConstructorPositionsSaga', '''
+            public DifferingConstructorPositionsSaga(SagaUnitOfWorkService service,
+                    Integer aggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                buildWorkflow(aggregateId, unitOfWork);
+            }
+
+            public DifferingConstructorPositionsSaga(Integer aggregateId,
+                    SagaUnitOfWorkService service, SagaUnitOfWork unitOfWork, String marker) {
+                this.service = service;
+                buildWorkflow(aggregateId, unitOfWork);
+            }
+
+            private void buildWorkflow(Integer aggregateId, SagaUnitOfWork unitOfWork) {
+                SagaStep step = new SagaStep("differingPositionsStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", aggregateId, null);
+                });
+            }
+        ''')
+
+        expect:
+        saga.steps.find { it.name == 'differingPositionsStep' }.dispatches.first()
+                .aggregateKeyConstructorArgumentIndex() == null
+    }
+
+    def "direct constructor-local evidence is blocked when overloaded positions differ"() {
+        given:
+        def saga = analyzeSyntheticSaga('DifferingDirectConstructorPositionsSaga', '''
+            public DifferingDirectConstructorPositionsSaga(SagaUnitOfWorkService service,
+                    Integer aggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                SagaStep step = new SagaStep("directPositionsStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", aggregateId, null);
+                });
+            }
+
+            public DifferingDirectConstructorPositionsSaga(Integer aggregateId,
+                    SagaUnitOfWorkService service, SagaUnitOfWork unitOfWork, String marker) {
+                this.service = service;
+                SagaStep step = new SagaStep("directPositionsStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", aggregateId, null);
+                });
+            }
+        ''')
+
+        expect:
+        def dispatches = saga.steps.findAll { it.name == 'directPositionsStep' }*.dispatches.flatten()
+        dispatches.size() == 2
+        dispatches.every { it.aggregateKeyConstructorArgumentIndex() == null }
+    }
+
+    def "method-based constructor delegation with differing positions blocks aggregate-key evidence"() {
+        given:
+        def saga = analyzeSyntheticSaga('DifferingMethodDelegationSaga', '''
+            public DifferingMethodDelegationSaga(SagaUnitOfWorkService service,
+                    Integer aggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                buildWorkflow(aggregateId, unitOfWork);
+            }
+
+            public DifferingMethodDelegationSaga(Integer aggregateId,
+                    SagaUnitOfWorkService service, SagaUnitOfWork unitOfWork, String marker) {
+                this(service, aggregateId, unitOfWork);
+            }
+
+            private void buildWorkflow(Integer aggregateId, SagaUnitOfWork unitOfWork) {
+                SagaStep step = new SagaStep("delegatedMethodStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", aggregateId, null);
+                });
+            }
+        ''')
+
+        expect:
+        saga.steps.find { it.name == 'delegatedMethodStep' }.dispatches.first()
+                .aggregateKeyConstructorArgumentIndex() == null
+    }
+
+    def "direct-command constructor delegation with differing positions blocks aggregate-key evidence"() {
+        given:
+        def saga = analyzeSyntheticSaga('DifferingDirectDelegationSaga', '''
+            public DifferingDirectDelegationSaga(SagaUnitOfWorkService service,
+                    Integer aggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                SagaStep step = new SagaStep("delegatedDirectStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", aggregateId, null);
+                });
+            }
+
+            public DifferingDirectDelegationSaga(Integer aggregateId,
+                    SagaUnitOfWorkService service, SagaUnitOfWork unitOfWork, String marker) {
+                this(service, aggregateId, unitOfWork);
+            }
+        ''')
+
+        expect:
+        saga.steps.find { it.name == 'delegatedDirectStep' }.dispatches.first()
+                .aggregateKeyConstructorArgumentIndex() == null
+    }
+
+    def "agreeing constructor delegation preserves method-based aggregate-key evidence"() {
+        given:
+        def saga = analyzeSyntheticSaga('AgreeingMethodDelegationSaga', '''
+            public AgreeingMethodDelegationSaga(SagaUnitOfWorkService service,
+                    Integer aggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                buildWorkflow(aggregateId, unitOfWork);
+            }
+
+            public AgreeingMethodDelegationSaga(String marker, Integer aggregateId,
+                    SagaUnitOfWork unitOfWork, SagaUnitOfWorkService service) {
+                this(service, aggregateId, unitOfWork);
+            }
+
+            private void buildWorkflow(Integer aggregateId, SagaUnitOfWork unitOfWork) {
+                SagaStep step = new SagaStep("agreeingDelegatedMethodStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", aggregateId, null);
+                });
+            }
+        ''')
+
+        expect:
+        saga.steps.find { it.name == 'agreeingDelegatedMethodStep' }.dispatches.first()
+                .aggregateKeyConstructorArgumentIndex() == 1
+    }
+
+    def "agreeing constructor delegation preserves direct-command aggregate-key evidence"() {
+        given:
+        def saga = analyzeSyntheticSaga('AgreeingDirectDelegationSaga', '''
+            public AgreeingDirectDelegationSaga(SagaUnitOfWorkService service,
+                    Integer aggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                SagaStep step = new SagaStep("agreeingDelegatedDirectStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", aggregateId, null);
+                });
+            }
+
+            public AgreeingDirectDelegationSaga(String marker, Integer aggregateId,
+                    SagaUnitOfWork unitOfWork, SagaUnitOfWorkService service) {
+                this(service, aggregateId, unitOfWork);
+            }
+        ''')
+
+        expect:
+        saga.steps.find { it.name == 'agreeingDelegatedDirectStep' }.dispatches.first()
+                .aggregateKeyConstructorArgumentIndex() == 1
+    }
+
     def "WorkflowFunctionalityVisitor captures predecessor edges"() {
         given:
         def saga = state.sagas.find { it.fqn.contains('CreateItemDependencyGraphFunctionalitySagas') }
@@ -253,6 +437,30 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
         recipe.metadata() != null
         recipe.metadata().category() == GroovyValueResolutionCategory.RESOLVED
         new GroovyTraceArgument(0, 'hello', recipe).expectedTypeFqn() == null
+    }
+
+    private SagaFunctionalityBuildingBlock analyzeSyntheticSaga(String className, String classBody) {
+        def syntheticState = new ApplicationAnalysisState()
+        def cus = parseAllDummyappFiles()
+        cus.each { cu -> serviceVisitor.visit(cu, syntheticState) }
+        cus.each { cu -> commandHandlerVisitor.visit(cu, syntheticState) }
+
+        def source = """
+            package com.example.dummyapp.item.coordination;
+
+            import com.example.dummyapp.item.commands.UpdateItemCommand;
+            import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
+
+            public class ${className} extends WorkflowFunctionality {
+                private SagaUnitOfWorkService service;
+                ${classBody}
+            }
+        """.stripIndent()
+        workflowVisitor.visit(StaticJavaParser.parse(source), syntheticState)
+        return syntheticState.sagas.find { it.fqn.endsWith(className) }
     }
 
     def "WorkflowFunctionalityVisitor ignores unresolved dependency references and warns"() {

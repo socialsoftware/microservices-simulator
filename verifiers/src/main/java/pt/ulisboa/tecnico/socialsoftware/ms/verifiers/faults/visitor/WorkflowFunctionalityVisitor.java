@@ -5,6 +5,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.LambdaExpr;
@@ -16,6 +17,7 @@ import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.DoStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 import com.github.javaparser.ast.stmt.ForEachStmt;
 import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
@@ -134,7 +136,7 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                         new SagaStepBuildingBlock(filePath, packageName, stepKey, stepName);
 
                 Expression lambdaArg = expr.getArgument(1);
-                extractStepFootprints(lambdaArg, stepBlock, state, stepKey, DispatchPhase.FORWARD);
+                extractStepFootprints(lambdaArg, stepBlock, state, decl, stepKey, DispatchPhase.FORWARD);
 
                 Map<String, String> stepVariableToStepKey =
                         buildStepVariableToStepKeyMap(expr, sagaClassName);
@@ -225,7 +227,8 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
      * Extracts dispatch footprints from all new *Command(...) expressions in the lambda/method reference body.
      */
     private void extractStepFootprints(Expression operation, SagaStepBuildingBlock stepBlock,
-                                       ApplicationAnalysisState state, String stepKey, DispatchPhase phase) {
+                                       ApplicationAnalysisState state, ClassOrInterfaceDeclaration sagaDeclaration,
+                                       String stepKey, DispatchPhase phase) {
         if (!operation.isLambdaExpr()) {
             String code = operation.isMethodReferenceExpr()
                     ? "UNSUPPORTED_METHOD_REFERENCE"
@@ -268,7 +271,8 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                                 phase,
                                 inferDispatchMultiplicity(creation),
                                 inferAggregateKeyText(creation),
-                                inferAggregateKeyConfidence(creation));
+                                inferAggregateKeyConfidence(creation),
+                                inferAggregateKeyConstructorArgumentIndex(creation, sagaDeclaration));
                         stepBlock.addDispatch(dispatch);
                         recognizedCommandCreations.add(creation);
                         creation.findAncestor(VariableDeclarator.class)
@@ -389,6 +393,14 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
     }
 
     private boolean sameDeclaration(VariableDeclarator left, VariableDeclarator right) {
+        return sameDeclarationNode(left, right);
+    }
+
+    private boolean sameDeclaration(MethodDeclaration left, MethodDeclaration right) {
+        return sameDeclarationNode(left, right);
+    }
+
+    private boolean sameDeclarationNode(Node left, Node right) {
         return left.getRange().equals(right.getRange())
                 && left.findCompilationUnit().flatMap(CompilationUnit::getStorage).map(CompilationUnit.Storage::getPath)
                 .equals(right.findCompilationUnit().flatMap(CompilationUnit::getStorage).map(CompilationUnit.Storage::getPath));
@@ -419,6 +431,208 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
         return aggregateArgument.isLiteralExpr()
                 ? StepDispatchFootprint.AggregateKeyConfidence.EXACT
                 : StepDispatchFootprint.AggregateKeyConfidence.SYMBOLIC;
+    }
+
+    private Integer inferAggregateKeyConstructorArgumentIndex(ObjectCreationExpr commandCreation,
+                                                               ClassOrInterfaceDeclaration sagaDeclaration) {
+        if (commandCreation.getArguments().size() < 3 || sagaDeclaration == null) {
+            return null;
+        }
+        Expression aggregateArgument = commandCreation.getArgument(2);
+        if (!aggregateArgument.isNameExpr()) {
+            return null;
+        }
+
+        com.github.javaparser.ast.body.Parameter aggregateParameter;
+        try {
+            aggregateParameter = aggregateArgument.asNameExpr().resolve().toAst()
+                    .filter(com.github.javaparser.ast.body.Parameter.class::isInstance)
+                    .map(com.github.javaparser.ast.body.Parameter.class::cast)
+                    .orElse(null);
+        } catch (Exception exception) {
+            return null;
+        }
+        if (aggregateParameter == null) {
+            return null;
+        }
+
+        Optional<ConstructorDeclaration> declaringConstructor = aggregateParameter.findAncestor(ConstructorDeclaration.class);
+        MethodDeclaration declaringMethod = aggregateParameter.findAncestor(MethodDeclaration.class).orElse(null);
+        int methodParameterIndex = declaringMethod == null
+                ? -1
+                : declaringMethod.getParameters().indexOf(aggregateParameter);
+        if (declaringConstructor.isEmpty() && (declaringMethod == null || methodParameterIndex < 0)) {
+            return null;
+        }
+
+        Set<Integer> entryIndexes = new LinkedHashSet<>();
+        boolean foundApplicablePath = false;
+        for (ConstructorDeclaration constructor : sagaDeclaration.getConstructors()) {
+            ConstructorIndexResolution resolution = resolveConstructorEntryIndex(
+                    constructor,
+                    commandCreation,
+                    declaringMethod,
+                    methodParameterIndex,
+                    new LinkedHashSet<>());
+            if (!resolution.applicable()) {
+                continue;
+            }
+            foundApplicablePath = true;
+            if (resolution.index() == null) {
+                return null;
+            }
+            entryIndexes.add(resolution.index());
+        }
+        return foundApplicablePath && entryIndexes.size() == 1
+                ? entryIndexes.iterator().next()
+                : null;
+    }
+
+    private ConstructorIndexResolution resolveConstructorEntryIndex(
+            ConstructorDeclaration constructor,
+            ObjectCreationExpr commandCreation,
+            MethodDeclaration declaringMethod,
+            int methodParameterIndex,
+            Set<ConstructorDeclaration> activePath) {
+        if (!activePath.add(constructor)) {
+            return new ConstructorIndexResolution(true, null);
+        }
+
+        Set<Integer> indexes = new LinkedHashSet<>();
+        boolean applicable = false;
+
+        if (declaringMethod != null) {
+            List<MethodCallExpr> exactCalls = constructor.findAll(MethodCallExpr.class).stream()
+                    .filter(call -> resolvesTo(call, declaringMethod))
+                    .toList();
+            applicable = !exactCalls.isEmpty();
+            for (MethodCallExpr call : exactCalls) {
+                if (call.getArguments().size() <= methodParameterIndex) {
+                    return new ConstructorIndexResolution(true, null);
+                }
+                Integer index = constructorParameterIndex(call.getArgument(methodParameterIndex), constructor);
+                if (index == null) {
+                    return new ConstructorIndexResolution(true, null);
+                }
+                indexes.add(index);
+            }
+        } else {
+            List<ObjectCreationExpr> directCommands = constructor.findAll(ObjectCreationExpr.class).stream()
+                    .filter(creation -> sameCommandPath(commandCreation, creation))
+                    .toList();
+            applicable = !directCommands.isEmpty();
+            for (ObjectCreationExpr directCommand : directCommands) {
+                Integer index = directConstructorAggregateKeyIndex(directCommand);
+                if (index == null) {
+                    return new ConstructorIndexResolution(true, null);
+                }
+                indexes.add(index);
+            }
+        }
+
+        Optional<ExplicitConstructorInvocationStmt> delegation = constructor.getBody().getStatements().stream()
+                .filter(statement -> statement.isExplicitConstructorInvocationStmt())
+                .map(statement -> statement.asExplicitConstructorInvocationStmt())
+                .filter(ExplicitConstructorInvocationStmt::isThis)
+                .findFirst();
+        if (delegation.isPresent()) {
+            ConstructorDeclaration target = resolveDelegatedConstructor(delegation.get());
+            if (target == null) {
+                return new ConstructorIndexResolution(true, null);
+            }
+            ConstructorIndexResolution downstream = resolveConstructorEntryIndex(
+                    target, commandCreation, declaringMethod, methodParameterIndex, activePath);
+            if (downstream.applicable()) {
+                applicable = true;
+                if (downstream.index() == null
+                        || delegation.get().getArguments().size() <= downstream.index()) {
+                    return new ConstructorIndexResolution(true, null);
+                }
+                Integer delegatedIndex = constructorParameterIndex(
+                        delegation.get().getArgument(downstream.index()), constructor);
+                if (delegatedIndex == null) {
+                    return new ConstructorIndexResolution(true, null);
+                }
+                indexes.add(delegatedIndex);
+            }
+        }
+
+        activePath.remove(constructor);
+        return !applicable
+                ? new ConstructorIndexResolution(false, null)
+                : new ConstructorIndexResolution(true, indexes.size() == 1 ? indexes.iterator().next() : null);
+    }
+
+    private ConstructorDeclaration resolveDelegatedConstructor(ExplicitConstructorInvocationStmt invocation) {
+        try {
+            return invocation.resolve().toAst()
+                    .filter(ConstructorDeclaration.class::isInstance)
+                    .map(ConstructorDeclaration.class::cast)
+                    .orElse(null);
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+
+    private record ConstructorIndexResolution(boolean applicable, Integer index) { }
+
+    private boolean resolvesTo(MethodCallExpr call, MethodDeclaration declaration) {
+        try {
+            return call.resolve().toAst()
+                    .filter(MethodDeclaration.class::isInstance)
+                    .map(MethodDeclaration.class::cast)
+                    .map(resolved -> sameDeclaration(resolved, declaration))
+                    .orElse(false);
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private Integer constructorParameterIndex(Expression argument,
+                                              ConstructorDeclaration constructor) {
+        if (!argument.isNameExpr()) {
+            return null;
+        }
+        try {
+            return argument.asNameExpr().resolve().toAst()
+                    .filter(com.github.javaparser.ast.body.Parameter.class::isInstance)
+                    .map(com.github.javaparser.ast.body.Parameter.class::cast)
+                    .filter(constructor.getParameters()::contains)
+                    .map(constructor.getParameters()::indexOf)
+                    .filter(index -> index >= 0)
+                    .orElse(null);
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+
+    private boolean sameCommandPath(ObjectCreationExpr expected, ObjectCreationExpr candidate) {
+        if (!expected.getTypeAsString().equals(candidate.getTypeAsString())) {
+            return false;
+        }
+        String expectedStep = enclosingStepName(expected);
+        return expectedStep != null && expectedStep.equals(enclosingStepName(candidate));
+    }
+
+    private String enclosingStepName(ObjectCreationExpr commandCreation) {
+        return commandCreation.findAncestor(ObjectCreationExpr.class)
+                .filter(creation -> TypeUtils.isSubtypeOf(creation.getType(), SagaStep.class))
+                .filter(creation -> !creation.getArguments().isEmpty())
+                .flatMap(creation -> creation.getArgument(0).toStringLiteralExpr())
+                .map(literal -> literal.getValue())
+                .orElse(null);
+    }
+
+    private Integer directConstructorAggregateKeyIndex(ObjectCreationExpr commandCreation) {
+        if (commandCreation.getArguments().size() < 3
+                || !commandCreation.getArgument(2).isNameExpr()) {
+            return null;
+        }
+        ConstructorDeclaration constructor = commandCreation.findAncestor(ConstructorDeclaration.class)
+                .orElse(null);
+        return constructor == null
+                ? null
+                : constructorParameterIndex(commandCreation.getArgument(2), constructor);
     }
 
     private DispatchMultiplicity inferDispatchMultiplicity(ObjectCreationExpr creation) {
@@ -619,8 +833,9 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                                     return;
                                 }
 
-                                extractStepFootprints(call.getArgument(0), stepBlock, state, stepKey,
-                                        DispatchPhase.COMPENSATION);
+                                extractStepFootprints(call.getArgument(0), stepBlock, state,
+                                        currentStepExpr.findAncestor(ClassOrInterfaceDeclaration.class).orElse(null),
+                                        stepKey, DispatchPhase.COMPENSATION);
                             });
                 }));
     }

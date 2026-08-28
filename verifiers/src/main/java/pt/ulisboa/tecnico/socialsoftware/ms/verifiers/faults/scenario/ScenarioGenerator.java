@@ -21,6 +21,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Work
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPlan;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,12 +42,20 @@ public final class ScenarioGenerator {
     public static WorkloadGenerationResult generate(List<SagaDefinition> sagaDefinitions,
                                                     List<InputVariant> inputVariants,
                                                     ScenarioGeneratorConfig config) {
-        return generate(sagaDefinitions, inputVariants, List.of(), config);
+        return generate(sagaDefinitions, inputVariants, List.of(), List.of(), config);
     }
 
     public static WorkloadGenerationResult generate(List<SagaDefinition> sagaDefinitions,
                                                     List<InputVariant> inputVariants,
                                                     List<EventConsequenceDefinition> eventConsequenceDefinitions,
+                                                    ScenarioGeneratorConfig config) {
+        return generate(sagaDefinitions, inputVariants, eventConsequenceDefinitions, List.of(), config);
+    }
+
+    public static WorkloadGenerationResult generate(List<SagaDefinition> sagaDefinitions,
+                                                    List<InputVariant> inputVariants,
+                                                    List<EventConsequenceDefinition> eventConsequenceDefinitions,
+                                                    List<SourceSetupPlanBinding> sourceSetupPlanBindings,
                                                     ScenarioGeneratorConfig config) {
         ScenarioGeneratorConfig effectiveConfig = config == null ? new ScenarioGeneratorConfig() : config;
         LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
@@ -87,7 +97,8 @@ public final class ScenarioGenerator {
         if (workloadsById.size() < Math.max(0, effectiveConfig.maxCatalogScenarios())
                 && effectiveConfig.maxSagaSetSize() >= 2
                 && usableSagaFqns.size() >= 2) {
-            emitMultiSagaWorkloads(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), usableSagaFqns, conflictGraph, workloadsById, warnings, counts);
+            emitMultiSagaWorkloads(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), usableSagaFqns,
+                    conflictGraph, sourceSetupPlanBindings, workloadsById, warnings, counts);
         }
 
         workloadsById = addEventConsequencePlacements(
@@ -155,6 +166,7 @@ public final class ScenarioGenerator {
                                                Map<String, List<InputVariant>> inputsBySaga,
                                                List<String> usableSagaFqns,
                                                ConflictGraphBuilder.Result conflictGraph,
+                                               List<SourceSetupPlanBinding> sourceSetupPlanBindings,
                                                LinkedHashMap<String, WorkloadPlan> workloadsById,
                                                LinkedHashSet<String> warnings,
                                                Map<String, Integer> counts) {
@@ -214,7 +226,8 @@ public final class ScenarioGenerator {
                             scheduleInputs,
                             schedule,
                             selectedCandidates,
-                            config.generationStrategy() != ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE);
+                            config.generationStrategy() != ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                            setupPlanFor(tuple, sourceSetupPlanBindings));
                     if (workload != null) {
                         if (emitWorkload(workload, workloadsById, counts)) {
                             emitted++;
@@ -225,6 +238,18 @@ public final class ScenarioGenerator {
         }
 
         counts.merge("multiWorkloadsEmitted", emitted, Integer::sum);
+    }
+
+    private static SetupPlan setupPlanFor(InputTuple tuple,
+                                          List<SourceSetupPlanBinding> bindings) {
+        if (bindings == null || bindings.isEmpty() || tuple == null) return null;
+        Set<String> inputIds = tuple.inputs().stream().map(InputVariant::deterministicId)
+                .collect(java.util.stream.Collectors.toSet());
+        return bindings.stream()
+                .filter(binding -> inputIds.contains(binding.leftInputVariantId())
+                        && inputIds.contains(binding.rightInputVariantId()))
+                .map(SourceSetupPlanBinding::setupPlan)
+                .findFirst().orElse(null);
     }
 
     private static LinkedHashMap<String, WorkloadPlan> addEventConsequencePlacements(
@@ -316,7 +341,7 @@ public final class ScenarioGenerator {
                     WorkloadPlan withoutId = new WorkloadPlan(
                             WorkloadPlan.SCHEMA_VERSION, null, base.kind(), base.executionShape(),
                             base.participants(), base.acceptedInputs(), base.forwardSchedule(),
-                            List.of(consequence), normalSchedule, base.conflictEvidence(),
+                            List.of(consequence), normalSchedule, base.prerequisiteBaseline(), base.setupPlan(), base.conflictEvidence(),
                             base.faultSlots(), base.compensationCheckpoints(), base.warnings());
                     WorkloadPlan eventWorkload = withWorkloadId(withoutId);
                     if (expanded.putIfAbsent(eventWorkload.deterministicId(), eventWorkload) == null) {
@@ -350,7 +375,7 @@ public final class ScenarioGenerator {
         return new WorkloadPlan(
                 plan.schemaVersion(), ScenarioIdGenerator.workloadPlanId(plan), plan.kind(), plan.executionShape(),
                 plan.participants(), plan.acceptedInputs(), plan.forwardSchedule(), plan.eventConsequences(),
-                plan.normalSchedule(), plan.conflictEvidence(), plan.faultSlots(),
+                plan.normalSchedule(), plan.prerequisiteBaseline(), plan.setupPlan(), plan.conflictEvidence(), plan.faultSlots(),
                 plan.compensationCheckpoints(), plan.warnings());
     }
 
@@ -379,7 +404,8 @@ public final class ScenarioGenerator {
                                                     List<SagaScheduleInput> scheduleInputs,
                                                     List<ScheduledStep> schedule,
                                                     List<ConflictCandidate> selectedCandidates,
-                                                    boolean requireConflictEvidence) {
+                                                    boolean requireConflictEvidence,
+                                                    SetupPlan setupPlan) {
         Map<String, String> sagaInstanceIdBySagaFqn = new LinkedHashMap<>();
         for (int index = 0; index < connectedSet.size(); index++) {
             sagaInstanceIdBySagaFqn.put(connectedSet.get(index), ScenarioIdGenerator.sagaInstanceId(connectedSet.get(index), tuple.inputs().get(index).deterministicId()));
@@ -443,7 +469,8 @@ public final class ScenarioGenerator {
                 schedule,
                 conflictEvidence,
                 scheduleInputs,
-                workloadWarnings);
+                workloadWarnings,
+                setupPlan);
     }
 
     private static WorkloadPlan buildWorkload(ScenarioKind kind,
@@ -453,6 +480,18 @@ public final class ScenarioGenerator {
                                               List<ConflictEvidence> conflictEvidence,
                                               List<SagaScheduleInput> scheduleInputs,
                                               List<String> warnings) {
+        return buildWorkload(kind, participants, acceptedInputs, forwardSchedule, conflictEvidence,
+                scheduleInputs, warnings, null);
+    }
+
+    private static WorkloadPlan buildWorkload(ScenarioKind kind,
+                                              List<SagaInstance> participants,
+                                              List<InputVariant> acceptedInputs,
+                                              List<ScheduledStep> forwardSchedule,
+                                              List<ConflictEvidence> conflictEvidence,
+                                              List<SagaScheduleInput> scheduleInputs,
+                                              List<String> warnings,
+                                              SetupPlan setupPlan) {
         Map<String, StepDefinition> definitionsByOccurrenceAnchor = new LinkedHashMap<>();
         for (SagaScheduleInput input : scheduleInputs) {
             for (StepDefinition definition : input.steps()) {
@@ -500,6 +539,12 @@ public final class ScenarioGenerator {
                 participants,
                 acceptedInputs,
                 forwardSchedule,
+                List.of(),
+                java.util.stream.IntStream.range(0, forwardSchedule.size())
+                        .mapToObj(index -> NormalActionRef.forward(index, forwardSchedule.get(index).deterministicId()))
+                        .toList(),
+                null,
+                setupPlan,
                 conflictEvidence,
                 faultSlots,
                 checkpoints,
@@ -512,6 +557,10 @@ public final class ScenarioGenerator {
                 withoutId.participants(),
                 withoutId.acceptedInputs(),
                 withoutId.forwardSchedule(),
+                withoutId.eventConsequences(),
+                withoutId.normalSchedule(),
+                withoutId.prerequisiteBaseline(),
+                withoutId.setupPlan(),
                 withoutId.conflictEvidence(),
                 withoutId.faultSlots(),
                 withoutId.compensationCheckpoints(),

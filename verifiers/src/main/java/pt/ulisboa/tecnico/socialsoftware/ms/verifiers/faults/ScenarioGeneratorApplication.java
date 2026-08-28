@@ -352,6 +352,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 adapterResult.sagaDefinitions(),
                 adapterResult.inputVariants(),
                 adapterResult.eventConsequenceDefinitions(),
+                adapterResult.sourceSetupPlanBindings(),
                 baseGenerationConfig);
         CatalogSelection catalogSelection = prioritizeCatalogWorkloads(
                 prerequisiteScenarios.workloads(), generationResult.workloadPlans(), totalCatalogCap);

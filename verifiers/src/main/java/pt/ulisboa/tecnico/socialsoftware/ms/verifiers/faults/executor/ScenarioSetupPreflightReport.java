@@ -36,6 +36,7 @@ public record ScenarioSetupPreflightReport(
             String workloadPlanId,
             String status,
             long setupDurationNanos,
+            ScenarioExecutionReport.SourceSetup sourceSetup,
             List<ParticipantResult> participants,
             List<ScenarioExecutionReport.Blocker> blockers) {
         public WorkloadResult {

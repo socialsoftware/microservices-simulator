@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaF
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaStepBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.SetupPlanValidator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationEvidenceClass;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey;
@@ -25,6 +26,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Inpu
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument;
@@ -33,6 +35,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueMe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceAggregateKeyInputEvidence;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceSupportedSagaPairEvidence;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,8 +102,76 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         counts.putIfAbsent("sagasWithoutUsableInputs", 0);
 
         List<EventConsequenceDefinition> eventDefinitions = adaptEventConsequences(state, diagnostics, counts);
+        List<SourceSetupPlanBinding> setupBindings = adaptSetupBindings(
+                state, adaptedInputs.inputVariants(), diagnostics, counts);
         return new ScenarioModelAdapterResult(sagaDefinitions, adaptedInputs.inputVariants(), eventDefinitions,
-                counts, new ArrayList<>(diagnostics));
+                setupBindings, counts, new ArrayList<>(diagnostics));
+    }
+
+    private List<SourceSetupPlanBinding> adaptSetupBindings(
+            ApplicationAnalysisState state,
+            List<InputVariant> inputs,
+            LinkedHashSet<String> diagnostics,
+            LinkedHashMap<String, Integer> counts) {
+        SetupPlanMapper mapper = new SetupPlanMapper();
+        LinkedHashMap<String, SourceSetupPlanBinding> bindings = new LinkedHashMap<>();
+        for (SourceSupportedSagaPairEvidence pair : state.sourceSupportedSagaPairs()) {
+            SourceAggregateKeyInputEvidence left = pair.left();
+            SourceAggregateKeyInputEvidence right = pair.right();
+            if (!Objects.equals(left.sourceClassFqn(), right.sourceClassFqn())) continue;
+            InputVariant leftInput = findInput(inputs, left);
+            InputVariant rightInput = findInput(inputs, right);
+            if (leftInput == null || rightInput == null) continue;
+
+            List<pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFacadeSetupActionTrace> traces =
+                    state.groovyFacadeSetupActionTraces.stream()
+                            .filter(trace -> Objects.equals(trace.sourceClassFqn(), left.sourceClassFqn()))
+                            .filter(trace -> "setup".equals(trace.callContextMethodName()))
+                            .toList();
+            if (traces.isEmpty()) continue;
+            GroovyFullTraceResult leftTrace = findTrace(state, left);
+            GroovyFullTraceResult rightTrace = findTrace(state, right);
+            if (leftTrace == null || rightTrace == null) continue;
+            var plan = mapper.map(traces, List.of(
+                    new SetupPlanMapper.ParticipantSource(leftInput.deterministicId(), leftTrace.constructorArguments()),
+                    new SetupPlanMapper.ParticipantSource(rightInput.deterministicId(), rightTrace.constructorArguments())));
+            SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(plan);
+            if (!validation.valid()) {
+                diagnostics.add("blocked source setup for " + left.sourceClassFqn() + ": "
+                        + validation.diagnostics());
+                continue;
+            }
+            String first = leftInput.deterministicId().compareTo(rightInput.deterministicId()) <= 0
+                    ? leftInput.deterministicId() : rightInput.deterministicId();
+            String second = first.equals(leftInput.deterministicId())
+                    ? rightInput.deterministicId() : leftInput.deterministicId();
+            bindings.putIfAbsent(first + "|" + second,
+                    new SourceSetupPlanBinding(first, second, plan));
+        }
+        counts.put("sourceSetupPlanBindings", bindings.size());
+        if (!state.sourceSupportedSagaPairs().isEmpty() && bindings.isEmpty()) {
+            diagnostics.add("source-supported Saga pairs had no extractable straight-line setup plan");
+        }
+        return List.copyOf(bindings.values());
+    }
+
+    private InputVariant findInput(List<InputVariant> inputs, SourceAggregateKeyInputEvidence evidence) {
+        return inputs.stream().filter(input ->
+                        Objects.equals(input.sagaFqn(), evidence.sagaFqn())
+                                && Objects.equals(input.sourceClassFqn(), evidence.sourceClassFqn())
+                                && Objects.equals(input.sourceMethodName(), evidence.sourceMethodName())
+                                && Objects.equals(input.sourceBindingName(), evidence.sourceBindingName()))
+                .findFirst().orElse(null);
+    }
+
+    private GroovyFullTraceResult findTrace(ApplicationAnalysisState state,
+                                            SourceAggregateKeyInputEvidence evidence) {
+        return state.groovyFullTraceResults.stream().filter(trace ->
+                        Objects.equals(trace.sagaClassFqn(), evidence.sagaFqn())
+                                && Objects.equals(trace.sourceClassFqn(), evidence.sourceClassFqn())
+                                && Objects.equals(trace.sourceMethodName(), evidence.sourceMethodName())
+                                && Objects.equals(trace.sourceBindingName(), evidence.sourceBindingName()))
+                .findFirst().orElse(null);
     }
 
     private List<EventConsequenceDefinition> adaptEventConsequences(ApplicationAnalysisState state,

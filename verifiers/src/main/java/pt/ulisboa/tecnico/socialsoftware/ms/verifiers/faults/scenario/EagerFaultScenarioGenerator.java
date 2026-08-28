@@ -91,7 +91,7 @@ public final class EagerFaultScenarioGenerator {
             if (input == null) {
                 continue;
             }
-            ScenarioExecutorReadinessEvaluator.Readiness readiness = readinessEvaluator.evaluate(input);
+            ScenarioExecutorReadinessEvaluator.Readiness readiness = readinessEvaluator.evaluate(plan, input);
             if (!readiness.materializable()) {
                 if (readiness.blockers().isEmpty()) {
                     diagnostics.add("INPUT:" + participant.deterministicId() + ":NOT_MATERIALIZABLE");

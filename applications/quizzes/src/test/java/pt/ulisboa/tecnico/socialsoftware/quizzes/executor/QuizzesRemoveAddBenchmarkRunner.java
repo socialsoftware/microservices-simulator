@@ -115,33 +115,30 @@ public final class QuizzesRemoveAddBenchmarkRunner {
     }
 
     private static PackageSelection select(Invocation invocation) {
-        ScenarioCatalogPackageReader.PackageContents contents =
-                new ScenarioCatalogPackageReader().read(invocation.manifestPath());
+        ScenarioCatalogPackageReader.SelectedPackageContents contents =
+                new ScenarioCatalogPackageReader().readSelected(
+                        invocation.manifestPath(), invocation.workloadPlanId(), invocation.faultScenarioId());
         rejectResultAlias(invocation, contents);
-        WorkloadPlan workload = contents.workloadPlans().stream()
-                .filter(candidate -> Objects.equals(candidate.deterministicId(), invocation.workloadPlanId()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Missing selected WorkloadPlan "
-                        + invocation.workloadPlanId()));
-        FaultScenario scenario = contents.faultScenarios().stream()
-                .filter(candidate -> Objects.equals(candidate.deterministicId(), invocation.faultScenarioId()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Missing selected FaultScenario "
-                        + invocation.faultScenarioId()));
+        WorkloadPlan workload = contents.workloadPlan();
+        FaultScenario scenario = contents.faultScenario();
         if (!Objects.equals(scenario.workloadPlanId(), workload.deterministicId())) {
             throw new IllegalArgumentException("Selected FaultScenario belongs to another WorkloadPlan");
         }
         Set<String> participantTypes = workload.participants().stream()
                 .map(participant -> participant.sagaFqn())
                 .collect(java.util.stream.Collectors.toSet());
+        List<String> setupActionIds = workload.setupPlan() == null ? List.of()
+                : workload.setupPlan().actions().stream().map(action -> action.actionId()).toList();
+        List<String> expectedSetupActionIds = java.util.stream.IntStream.rangeClosed(1, 12)
+                .mapToObj(index -> "setup-action-" + index).toList();
         if (!participantTypes.equals(Set.of(REMOVE_SAGA, ADD_SAGA))
                 || !workload.forwardSchedule().stream().map(step -> step.runtimeStepName()).toList().equals(FORWARD_ORDER)
                 || !workload.eventConsequences().isEmpty()
                 || !workload.faultSlots().stream().map(slot -> slot.runtimeStepName()).toList().equals(FORWARD_ORDER)
-                || workload.prerequisiteBaseline() == null
-                || !QuizzesStaleReadPrerequisiteProvider.PROVIDER_ID.equals(
-                workload.prerequisiteBaseline().providerId())) {
-            throw new IllegalArgumentException("Selected WorkloadPlan is not the exact RemoveTournament-AddParticipant benchmark");
+                || workload.prerequisiteBaseline() != null
+                || workload.setupPlan() == null
+                || !setupActionIds.equals(expectedSetupActionIds)) {
+            throw new IllegalArgumentException("Selected WorkloadPlan is not the exact automatic RemoveTournament-AddParticipant benchmark");
         }
         return new PackageSelection(workload, scenario, persistedActions(workload, scenario));
     }
@@ -199,17 +196,26 @@ public final class QuizzesRemoveAddBenchmarkRunner {
             return notEvaluated(options, invocation, execution, "EXECUTION_NOT_IMPACT_EVALUABLE",
                     execution.terminalStatus(), impact, selection);
         }
-        Map<String, String> evidence = execution.prerequisiteSetup() == null
-                ? Map.of() : execution.prerequisiteSetup().evidence();
-        int tournamentId = exactId(evidence, "tournamentAggregateId");
-        int quizId = exactId(evidence, "referencedQuizAggregateId");
+        if (!isExactNoProviderPrerequisiteSetup(execution.prerequisiteSetup())) {
+            throw new IllegalStateException("Automatic benchmark execution lacks exact no-provider prerequisite evidence");
+        }
+        Set<String> tournamentInputVariantIds = selection.workload().participants().stream()
+                .map(participant -> participant.inputVariantId())
+                .collect(java.util.stream.Collectors.toSet());
+        int tournamentId = exactSourceSetupTournamentId(execution.sourceSetup(), tournamentInputVariantIds);
         Aggregate tournamentAggregate = repository.findAnySagaAggregate(tournamentId)
                 .orElseThrow(() -> new IllegalStateException("Tournament observation found no aggregate " + tournamentId));
+        if (!(tournamentAggregate instanceof SagaTournament tournament)) {
+            throw new IllegalStateException("Observed aggregate does not match the Tournament identity");
+        }
+        Integer quizId = tournament.getTournamentQuiz().getQuizAggregateId();
+        if (quizId == null || quizId < 1) {
+            throw new IllegalStateException("Tournament observation has no referenced Quiz identity");
+        }
         Aggregate quizAggregate = repository.findAnySagaAggregate(quizId)
                 .orElseThrow(() -> new IllegalStateException("Quiz observation found no aggregate " + quizId));
-        if (!(tournamentAggregate instanceof SagaTournament tournament)
-                || !(quizAggregate instanceof SagaQuiz quiz)) {
-            throw new IllegalStateException("Observed aggregate types do not match Tournament and Quiz identities");
+        if (!(quizAggregate instanceof SagaQuiz quiz)) {
+            throw new IllegalStateException("Observed aggregate does not match the Quiz identity");
         }
         QuizzesPersistedSagaStateObserver.PersistedSagaState persistedSagaState =
                 sagaStateObserver.observeTournament(tournamentId);
@@ -235,6 +241,21 @@ public final class QuizzesRemoveAddBenchmarkRunner {
         return attempt(options, invocation, selection, execution, impact, classification, "VALID", null,
                 observed(tournament, referencedQuizId, persistedSagaState), observed(quiz, null, null),
                 true, broken, reason);
+    }
+
+    public static boolean isExactNoProviderPrerequisiteSetup(
+            ScenarioExecutionReport.PrerequisiteSetup setup) {
+        return setup != null
+                && "NOT_REQUIRED".equals(setup.status())
+                && setup.providerId() == null
+                && setup.providerVersion() == null
+                && setup.failureReason() == null
+                && setup.failureMessage() == null
+                && setup.durationNanos() == 0L
+                && setup.pendingEventsCleared() == 0L
+                && setup.emptyPendingEventBaseline()
+                && setup.bindings().isEmpty()
+                && setup.evidence().isEmpty();
     }
 
     public static boolean isOutsideActiveSaga(
@@ -342,12 +363,42 @@ public final class QuizzesRemoveAddBenchmarkRunner {
                 options.get("source-tree-state"));
     }
 
-    private static int exactId(Map<String, String> evidence, String key) {
-        String value = evidence.get(key);
-        if (value == null || !value.matches("[1-9][0-9]*")) {
-            throw new IllegalArgumentException("Missing exact prerequisite evidence " + key);
+    static int exactSourceSetupTournamentId(
+            ScenarioExecutionReport.SourceSetup setup, Set<String> tournamentInputVariantIds) {
+        if (setup == null || !"SUCCEEDED".equals(setup.status())
+                || !setup.emptyPendingEventBaseline()
+                || setup.actions().size() != 12
+                || tournamentInputVariantIds == null || tournamentInputVariantIds.size() != 2) {
+            throw new IllegalArgumentException("Automatic source setup evidence is incomplete");
         }
-        return Integer.parseInt(value);
+        for (int index = 0; index < setup.actions().size(); index++) {
+            ScenarioExecutionReport.SetupActionOutcome action = setup.actions().get(index);
+            if (!Objects.equals(action.actionId(), "setup-action-" + (index + 1))
+                    || action.orderIndex() != index || !"SUCCEEDED".equals(action.status())) {
+                throw new IllegalArgumentException("Automatic source setup did not execute once in order");
+            }
+        }
+        ScenarioExecutionReport.SetupActionOutcome tournamentAction = setup.actions().get(11);
+        if (tournamentAction.retainedResultId() == null
+                || tournamentAction.aggregateId() == null
+                || !tournamentAction.aggregateId().matches("[1-9][0-9]*")) {
+            throw new IllegalArgumentException("Action 12 did not retain one fresh Tournament result");
+        }
+        List<ScenarioExecutionReport.SetupParticipantBindingOutcome> tournamentBindings =
+                setup.participantBindings().stream()
+                        .filter(binding -> tournamentInputVariantIds.contains(binding.inputVariantId()))
+                        .filter(binding -> binding.argumentIndex() == 1)
+                        .toList();
+        if (tournamentBindings.size() != 2 || !tournamentBindings.stream().allMatch(binding ->
+                "setup-action-12".equals(binding.sourceActionId())
+                        && "aggregateId".equals(binding.propertyName())
+                        && "RESOLVED".equals(binding.status())
+                        && Integer.class.getName().equals(binding.actualTypeFqn())
+                        && tournamentAction.retainedResultId().equals(binding.retainedResultId())
+                        && tournamentAction.aggregateId().equals(binding.resolvedValue()))) {
+            throw new IllegalArgumentException("Action 12 did not supply both Saga Tournament arguments");
+        }
+        return Integer.parseInt(tournamentAction.aggregateId());
     }
 
     private static Invocation validate(Map<String, String> options) {
@@ -378,7 +429,7 @@ public final class QuizzesRemoveAddBenchmarkRunner {
     }
 
     private static void rejectResultAlias(Invocation invocation,
-                                          ScenarioCatalogPackageReader.PackageContents contents) {
+                                          ScenarioCatalogPackageReader.SelectedPackageContents contents) {
         List<Path> inputs = List.of(
                 invocation.manifestPath(), contents.workloadCatalogPath(), contents.faultScenarioCatalogPath(),
                 contents.accountingPath(), contents.rejectedInputsPath(), invocation.executionOutputPath(),

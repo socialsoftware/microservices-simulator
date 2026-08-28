@@ -22,6 +22,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Saga
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupAction;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupArgument;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupParticipantBinding;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPlan;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPropertyAssignment;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupValueRecipe;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 
 import java.nio.ByteBuffer;
@@ -148,7 +154,7 @@ public final class ScenarioIdGenerator {
         WorkloadPlan plan = Objects.requireNonNull(workloadPlan, "workloadPlan");
         return hash(digest -> {
             updateString(digest, "workload-plan");
-            updateString(digest, WorkloadPlan.SCHEMA_VERSION);
+            updateString(digest, plan.schemaVersion());
             updateString(digest, plan.kind() == null ? null : plan.kind().name());
             updateString(digest, plan.executionShape() == null ? null : plan.executionShape().name());
             updateSagaInstances(digest, plan.participants());
@@ -157,6 +163,9 @@ public final class ScenarioIdGenerator {
             updateEventConsequences(digest, plan.eventConsequences());
             updateNormalSchedule(digest, plan.normalSchedule());
             updatePrerequisiteBaseline(digest, plan.prerequisiteBaseline());
+            if (!WorkloadPlan.LEGACY_V4_SCHEMA_VERSION.equals(plan.schemaVersion())) {
+                updateSetupPlan(digest, plan.setupPlan());
+            }
             updateConflictEvidence(digest, plan.conflictEvidence());
             updateFaultSlots(digest, plan.faultSlots());
             updateCompensationCheckpoints(digest, plan.compensationCheckpoints());
@@ -184,6 +193,7 @@ public final class ScenarioIdGenerator {
                     .mapToObj(index -> NormalActionRef.forward(index, forwardSchedule.get(index).deterministicId()))
                     .toList());
             updatePrerequisiteBaseline(digest, null);
+            updateSetupPlan(digest, null);
             updateConflictEvidence(digest, conflictEvidence);
             updateFaultSlots(digest, faultSlots);
             updateCompensationCheckpoints(digest, compensationCheckpoints);
@@ -437,6 +447,57 @@ public final class ScenarioIdGenerator {
             updateString(digest, binding == null ? null : binding.key());
             updateString(digest, binding == null ? null : binding.typeFqn());
         }
+    }
+
+    private static void updateSetupPlan(MessageDigest digest, SetupPlan plan) {
+        updateString(digest, plan == null ? null : plan.schemaVersion());
+        List<SetupAction> actions = plan == null ? List.of() : plan.actions();
+        updateInt(digest, actions.size());
+        for (SetupAction action : actions) {
+            updateString(digest, action == null ? null : action.actionId());
+            updateInt(digest, action == null ? -1 : action.orderIndex());
+            updateString(digest, action == null ? null : action.sourceOccurrence());
+            updateString(digest, action == null ? null : action.methodKey());
+            updateString(digest, action == null ? null : action.declaredResultTypeFqn());
+            updateString(digest, action == null ? null : Boolean.toString(action.voidResult()));
+            List<SetupArgument> arguments = action == null ? List.of() : action.arguments();
+            updateInt(digest, arguments.size());
+            for (SetupArgument argument : arguments) {
+                updateInt(digest, argument == null ? -1 : argument.index());
+                updateString(digest, argument == null ? null : argument.expectedTypeFqn());
+                updateSetupValue(digest, argument == null ? null : argument.value());
+            }
+        }
+        List<SetupParticipantBinding> bindings = plan == null ? List.of() : plan.participantBindings();
+        updateInt(digest, bindings.size());
+        for (SetupParticipantBinding binding : bindings) {
+            updateString(digest, binding == null ? null : binding.inputVariantId());
+            updateInt(digest, binding == null ? -1 : binding.argumentIndex());
+            updateString(digest, binding == null ? null : binding.expectedTypeFqn());
+            updateSetupValue(digest, binding == null ? null : binding.value());
+        }
+    }
+
+    private static void updateSetupValue(MessageDigest digest, SetupValueRecipe value) {
+        updateString(digest, value == null || value.kind() == null ? null : value.kind().name());
+        if (value == null) return;
+        updateString(digest, value.declaredTypeFqn());
+        updateString(digest, value.literalKind());
+        updateString(digest, value.literalValue() == null ? null : value.literalValue().toString());
+        updateString(digest, value.targetTypeFqn());
+        updateString(digest, value.actionId());
+        updateString(digest, value.propertyName());
+        updateInt(digest, value.constructorArguments().size());
+        value.constructorArguments().forEach(child -> updateSetupValue(digest, child));
+        updateInt(digest, value.assignments().size());
+        for (SetupPropertyAssignment assignment : value.assignments()) {
+            updateInt(digest, assignment == null ? -1 : assignment.orderIndex());
+            updateString(digest, assignment == null ? null : assignment.propertyName());
+            updateSetupValue(digest, assignment == null ? null : assignment.value());
+        }
+        updateInt(digest, value.elements().size());
+        value.elements().forEach(child -> updateSetupValue(digest, child));
+        updateSetupValue(digest, value.receiver());
     }
 
     private static void updateConflictEvidence(MessageDigest digest, List<ConflictEvidence> conflictEvidence) {

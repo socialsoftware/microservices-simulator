@@ -221,8 +221,8 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
 
         and: 'the fixed cap exports eager vectors only for the statically ready subset'
         eager.workloadPlans().size() == 7
-        eager.workloadMaterializability().count { it.materializable() } == 6
-        eager.workloadMaterializability().count { !it.materializable() } == 1
+        eager.workloadMaterializability().count { it.materializable() } == 7
+        eager.workloadMaterializability().count { !it.materializable() } == 0
         eager.computedVectors().size() == eager.workloadPlans().findAll { plan ->
             eager.workloadMaterializability().find { it.workloadPlanId() == plan.deterministicId() }.materializable()
         }.sum { it.faultSlots().size() + 1 }

@@ -4,6 +4,7 @@ import com.github.javaparser.ast.type.Type;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.*;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,6 +24,7 @@ public class ApplicationAnalysisState {
     public final List<String> eventConsequenceDiagnostics = new ArrayList<>();
     public final List<GroovyConstructorInputTrace> groovyConstructorInputTraces = new ArrayList<>();
     public final List<GroovyFullTraceResult> groovyFullTraceResults = new ArrayList<>();
+    public final List<GroovyFacadeSetupActionTrace> groovyFacadeSetupActionTraces = new ArrayList<>();
 
     /**
      * Keyed by interface FQN → all @Service implementations found in the parsed source.
@@ -73,5 +75,60 @@ public class ApplicationAnalysisState {
 
     public boolean hasSagaFqn(String sagaFqn) {
         return findSagaByFqn(sagaFqn).isPresent();
+    }
+
+    public List<SourceAggregateKeyInputEvidence> sourceAggregateKeyInputEvidence() {
+        Set<SourceAggregateKeyInputEvidence> evidence = new LinkedHashSet<>();
+        for (GroovyFullTraceResult trace : groovyFullTraceResults) {
+            SagaFunctionalityBuildingBlock saga = findSagaByFqn(trace.sagaClassFqn()).orElse(null);
+            if (saga == null) {
+                continue;
+            }
+            for (SagaStepBuildingBlock step : saga.getSteps()) {
+                for (StepDispatchFootprint dispatch : step.getDispatches()) {
+                    Integer argumentIndex = dispatch.aggregateKeyConstructorArgumentIndex();
+                    if (argumentIndex == null || dispatch.aggregateName() == null) {
+                        continue;
+                    }
+                    trace.constructorArguments().stream()
+                            .filter(argument -> argument.index() == argumentIndex)
+                            .filter(argument -> argument.producerReference() != null)
+                            .forEach(argument -> evidence.add(new SourceAggregateKeyInputEvidence(
+                                    trace.sagaClassFqn(),
+                                    trace.sourceClassFqn(),
+                                    trace.sourceMethodName(),
+                                    trace.callContextMethodName(),
+                                    trace.sourceBindingName(),
+                                    argumentIndex,
+                                    dispatch.aggregateName(),
+                                    argument.producerReference())));
+                }
+            }
+        }
+        return evidence.stream()
+                .sorted(Comparator
+                        .comparing(SourceAggregateKeyInputEvidence::sagaFqn, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(SourceAggregateKeyInputEvidence::sourceClassFqn, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(SourceAggregateKeyInputEvidence::sourceMethodName, Comparator.nullsFirst(String::compareTo))
+                        .thenComparingInt(SourceAggregateKeyInputEvidence::constructorArgumentIndex))
+                .toList();
+    }
+
+    public List<SourceSupportedSagaPairEvidence> sourceSupportedSagaPairs() {
+        List<SourceAggregateKeyInputEvidence> inputs = sourceAggregateKeyInputEvidence();
+        List<SourceSupportedSagaPairEvidence> pairs = new ArrayList<>();
+        for (int leftIndex = 0; leftIndex < inputs.size(); leftIndex++) {
+            SourceAggregateKeyInputEvidence left = inputs.get(leftIndex);
+            for (int rightIndex = leftIndex + 1; rightIndex < inputs.size(); rightIndex++) {
+                SourceAggregateKeyInputEvidence right = inputs.get(rightIndex);
+                if (Objects.equals(left.sagaFqn(), right.sagaFqn())
+                        || !Objects.equals(left.aggregateName(), right.aggregateName())
+                        || !Objects.equals(left.producerReference(), right.producerReference())) {
+                    continue;
+                }
+                pairs.add(new SourceSupportedSagaPairEvidence(left.aggregateName(), left, right));
+            }
+        }
+        return List.copyOf(pairs);
     }
 }

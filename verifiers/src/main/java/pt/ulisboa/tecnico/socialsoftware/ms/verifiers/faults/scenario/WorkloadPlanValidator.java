@@ -34,9 +34,14 @@ public final class WorkloadPlanValidator {
         if (plan == null) {
             return new ValidationResult(false, List.of(new Diagnostic("MISSING_WORKLOAD_PLAN", "workload plan is required")));
         }
-        if (!WorkloadPlan.SCHEMA_VERSION.equals(plan.schemaVersion())) {
+        boolean latestSchema = WorkloadPlan.SCHEMA_VERSION.equals(plan.schemaVersion());
+        boolean legacyV4Schema = WorkloadPlan.LEGACY_V4_SCHEMA_VERSION.equals(plan.schemaVersion());
+        if (!latestSchema && !legacyV4Schema) {
             diagnostics.add(new Diagnostic("UNSUPPORTED_WORKLOAD_SCHEMA",
-                    "expected " + WorkloadPlan.SCHEMA_VERSION + " but found " + plan.schemaVersion()));
+                    "expected " + WorkloadPlan.SCHEMA_VERSION + " or explicit legacy v4 but found " + plan.schemaVersion()));
+        }
+        if (legacyV4Schema && plan.setupPlan() != null) {
+            diagnostics.add(new Diagnostic("V4_SETUP_NOT_SUPPORTED", "legacy v4 workloads cannot contain setupPlan"));
         }
         if (plan.executionShape() != WorkloadExecutionShape.SAGA_LOCAL) {
             diagnostics.add(new Diagnostic("UNSUPPORTED_EXECUTION_SHAPE", "only SAGA_LOCAL workloads are supported"));
@@ -66,6 +71,14 @@ public final class WorkloadPlanValidator {
         }
 
         validatePrerequisiteBaseline(plan.prerequisiteBaseline(), plan.acceptedInputs(), diagnostics);
+        SetupPlanValidator.ValidationResult setupValidation = new SetupPlanValidator().validate(
+                plan.setupPlan(), plan.acceptedInputs());
+        setupValidation.diagnostics().forEach(diagnostic -> diagnostics.add(
+                new Diagnostic("SETUP:" + diagnostic.code(), diagnostic.message())));
+        if (plan.prerequisiteBaseline() != null && plan.setupPlan() != null) {
+            diagnostics.add(new Diagnostic("MIXED_PREREQUISITE_AND_SETUP",
+                    "a workload cannot use both prerequisiteBaseline and setupPlan"));
+        }
         Map<String, ScheduledStep> stepsById = indexForwardSchedule(plan.forwardSchedule(), participantsById, diagnostics);
         Map<String, EventConsequence> consequencesById = validateEventConsequences(
                 plan.eventConsequences(), stepsById, participantsById, diagnostics);

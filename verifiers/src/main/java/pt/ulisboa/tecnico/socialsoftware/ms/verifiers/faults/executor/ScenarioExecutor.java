@@ -60,50 +60,47 @@ import java.util.concurrent.CompletionException;
 public final class ScenarioExecutor {
     private final ScenarioCatalogReader reader;
     private final ScenarioMaterializer materializer;
+    private final ScenarioSetupRunner setupRunner;
     private final ObjectMapper mapper;
 
     public ScenarioExecutor() {
-        this(new ScenarioCatalogReader(), new ScenarioMaterializer(), new ObjectMapper());
+        this(new ScenarioCatalogReader(), new ScenarioMaterializer(), new ScenarioSetupRunner(), new ObjectMapper());
     }
 
-    ScenarioExecutor(ScenarioCatalogReader reader, ScenarioMaterializer materializer, ObjectMapper mapper) {
+    ScenarioExecutor(ScenarioCatalogReader reader,
+                     ScenarioMaterializer materializer,
+                     ScenarioSetupRunner setupRunner,
+                     ObjectMapper mapper) {
         this.reader = Objects.requireNonNull(reader);
         this.materializer = Objects.requireNonNull(materializer);
+        this.setupRunner = Objects.requireNonNull(setupRunner);
         this.mapper = Objects.requireNonNull(mapper);
     }
 
     public ScenarioExecutionReport execute(ScenarioExecutorOptions options, ScenarioRuntimeContext runtimeContext) {
         Objects.requireNonNull(options, "executor options are required");
         Objects.requireNonNull(runtimeContext, "scenario runtime context is required");
-        ScenarioCatalogPackageReader.PackageContents packageContents = reader.read(options);
-        rejectPackageOutputAlias(options.packagePath(), options.outputPath(), packageContents,
+        ScenarioCatalogPackageReader.SelectedPackageContents selectedPackage =
+                reader.readSelected(options, null, options.faultScenarioId());
+        rejectPackageOutputAlias(options.packagePath(), options.outputPath(), selectedPackage,
                 "Scenario execution report");
-        rejectPackageOutputAlias(options.packagePath(), options.impactOutputPath(), packageContents,
+        rejectPackageOutputAlias(options.packagePath(), options.impactOutputPath(), selectedPackage,
                 "Scenario impact report");
         rejectExecutionOutputAlias(options.outputPath(), options.impactOutputPath());
         String attemptId = UUID.randomUUID().toString();
-        FaultScenario scenario = packageContents.faultScenarios().stream()
-                .filter(candidate -> Objects.equals(candidate.deterministicId(), options.faultScenarioId()))
-                .findFirst()
-                .orElse(null);
-        WorkloadPlan workload = scenario == null
-                ? null
-                : packageContents.workloadPlans().stream()
-                .filter(candidate -> Objects.equals(candidate.deterministicId(), scenario.workloadPlanId()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Selected FaultScenario references a missing WorkloadPlan"));
+        FaultScenario scenario = selectedPackage == null ? null : selectedPackage.faultScenario();
+        WorkloadPlan workload = selectedPackage == null ? null : selectedPackage.workloadPlan();
         ImpactV1Collector impactCollector = options.impactOutputPath() == null
                 ? null
                 : new ImpactV1Collector(DynamicEvidenceRecorderHolder.getRecorder(), attemptId,
                 workload == null ? null : workload.deterministicId());
         ScenarioExecutionReport report;
         if (scenario == null) {
-            ScenarioExecutionReport.Blocker blocker = new ScenarioExecutionReport.Blocker(
-                    null, options.faultScenarioId(), null, null, null, null,
-                    "MISSING_FAULT_SCENARIO_ID", options.faultScenarioId());
-            report = report(options, attemptId, "SELECTION_FAILED", null, null, "NONE",
-                    TraceMetadata.hardStop("MISSING_FAULT_SCENARIO_ID"),
-                    List.of(), List.of(), List.of(), List.of(), List.of(), List.of(blocker));
+            report = selectionFailureReport(options, attemptId, null, options.faultScenarioId(),
+                    "MISSING_FAULT_SCENARIO_ID");
+        } else if (workload == null) {
+            report = selectionFailureReport(options, attemptId, scenario.workloadPlanId(),
+                    scenario.deterministicId(), "MISSING_WORKLOAD_PLAN_ID");
         } else {
             report = executeSelected(options, runtimeContext, attemptId, workload, scenario, impactCollector);
         }
@@ -122,34 +119,91 @@ public final class ScenarioExecutor {
         return report;
     }
 
+    private ScenarioExecutionReport selectionFailureReport(ScenarioExecutorOptions options,
+                                                           String attemptId,
+                                                           String workloadPlanId,
+                                                           String faultScenarioId,
+                                                           String reason) {
+        ScenarioExecutionReport.Blocker blocker = new ScenarioExecutionReport.Blocker(
+                workloadPlanId, faultScenarioId, null, null, null, null, reason,
+                "MISSING_WORKLOAD_PLAN_ID".equals(reason) ? workloadPlanId : faultScenarioId);
+        return report(options, attemptId, "SELECTION_FAILED", null, null, "NONE",
+                TraceMetadata.hardStop(reason), List.of(), List.of(), List.of(), List.of(), List.of(),
+                List.of(blocker));
+    }
+
     public ScenarioSetupPreflightReport preflight(ScenarioSetupPreflightOptions options,
                                                    ScenarioRuntimeContext runtimeContext) {
+        PreflightPlan plan = preflightPlan(options);
+        if (!plan.sourceSetupWorkloadIds().isEmpty()) {
+            throw new IllegalStateException("Source-derived setup preflight requires one fresh process per workload; "
+                    + "use ScenarioExecutorCli or the supported wrapper");
+        }
+        return preflightSelected(options, runtimeContext, plan.candidateWorkloadIds(), false);
+    }
+
+    PreflightPlan preflightPlan(ScenarioSetupPreflightOptions options) {
         Objects.requireNonNull(options, "setup preflight options are required");
-        Objects.requireNonNull(runtimeContext, "scenario runtime context is required");
         ScenarioCatalogPackageReader.PackageContents packageContents = reader.read(
                 new ScenarioExecutorOptions(options.packagePath(), null, null, false));
         rejectPackageOutputAlias(options.packagePath(), options.outputPath(), packageContents,
                 "Scenario setup preflight report");
-
         Set<String> candidateIds = validateMaterializabilityTable(packageContents);
-        List<WorkloadPlan> candidates = packageContents.workloadPlans().stream()
+        Set<String> sourceSetupIds = packageContents.workloadPlans().stream()
                 .filter(workload -> candidateIds.contains(workload.deterministicId()))
+                .filter(workload -> workload.setupPlan() != null)
+                .map(WorkloadPlan::deterministicId)
+                .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
+        return new PreflightPlan(Set.copyOf(candidateIds), Set.copyOf(sourceSetupIds));
+    }
+
+    ScenarioSetupPreflightReport preflightIsolatedAttempt(ScenarioSetupPreflightOptions options,
+                                                           ScenarioRuntimeContext runtimeContext,
+                                                           Set<String> workloadIds) {
+        return preflightSelected(options, runtimeContext, workloadIds, true);
+    }
+
+    private ScenarioSetupPreflightReport preflightSelected(ScenarioSetupPreflightOptions options,
+                                                            ScenarioRuntimeContext runtimeContext,
+                                                            Set<String> selectedWorkloadIds,
+                                                            boolean freshProcessAttempt) {
+        Objects.requireNonNull(options, "setup preflight options are required");
+        Objects.requireNonNull(runtimeContext, "scenario runtime context is required");
+        Objects.requireNonNull(selectedWorkloadIds, "selected preflight workloads are required");
+        ScenarioCatalogPackageReader.PackageContents packageContents = reader.read(
+                new ScenarioExecutorOptions(options.packagePath(), null, null, false));
+        rejectPackageOutputAlias(options.packagePath(), options.outputPath(), packageContents,
+                "Scenario setup preflight report");
+        Set<String> candidateIds = validateMaterializabilityTable(packageContents);
+        if (!candidateIds.containsAll(selectedWorkloadIds)) {
+            throw new IllegalArgumentException("Preflight selection contains a non-candidate WorkloadPlan");
+        }
+        List<WorkloadPlan> candidates = packageContents.workloadPlans().stream()
+                .filter(workload -> selectedWorkloadIds.contains(workload.deterministicId()))
                 .sorted(Comparator.comparing(WorkloadPlan::deterministicId))
                 .toList();
+        long sourceSetupCount = candidates.stream().filter(workload -> workload.setupPlan() != null).count();
+        if (sourceSetupCount > 0 && (!freshProcessAttempt || candidates.size() != 1)) {
+            throw new IllegalStateException("A source-derived setup preflight attempt must contain exactly one "
+                    + "WorkloadPlan in an independently launched fresh process");
+        }
 
         long batchStarted = System.nanoTime();
+        String preflightAttemptId = UUID.randomUUID().toString();
         List<ScenarioSetupPreflightReport.WorkloadResult> results = new ArrayList<>();
         int participantCount = 0;
         for (WorkloadPlan workload : candidates) {
             long workloadStarted = System.nanoTime();
-            SetupResult setup = setup(workload, null, runtimeContext);
+            SetupResult setup = setup(workload, null,
+                    preflightAttemptId + ":" + workload.deterministicId(), runtimeContext);
             long workloadDuration = System.nanoTime() - workloadStarted;
             participantCount += setup.participants().size();
             List<ScenarioSetupPreflightReport.ParticipantResult> participants = setup.participants().stream()
                     .map(participant -> preflightParticipant(workload, setup.status(), participant))
                     .toList();
             results.add(new ScenarioSetupPreflightReport.WorkloadResult(
-                    workload.deterministicId(), setup.status(), workloadDuration, participants, setup.blockers()));
+                    workload.deterministicId(), setup.status(), workloadDuration,
+                    setup.sourceSetup(), participants, setup.blockers()));
         }
         long batchDuration = System.nanoTime() - batchStarted;
         String packagePath = manifestPath(options.packagePath()).toString();
@@ -161,11 +215,18 @@ public final class ScenarioExecutor {
                 ? "SUCCESS"
                 : "SETUP_FAILED";
         ScenarioSetupPreflightReport report = new ScenarioSetupPreflightReport(
-                ScenarioSetupPreflightReport.SCHEMA_VERSION, UUID.randomUUID().toString(), terminalStatus,
+                ScenarioSetupPreflightReport.SCHEMA_VERSION, preflightAttemptId, terminalStatus,
                 packagePath, ScenarioSetupPreflightReport.CANDIDATE_SELECTION, results.size(), participantCount,
                 batchDuration, runtimeMetadata, results);
         writePreflightReport(options, report);
         return report;
+    }
+
+    record PreflightPlan(Set<String> candidateWorkloadIds, Set<String> sourceSetupWorkloadIds) {
+        PreflightPlan {
+            candidateWorkloadIds = Set.copyOf(candidateWorkloadIds);
+            sourceSetupWorkloadIds = Set.copyOf(sourceSetupWorkloadIds);
+        }
     }
 
     private Set<String> validateMaterializabilityTable(
@@ -228,20 +289,8 @@ public final class ScenarioExecutor {
                     contract.faultSlots(), contract.plannedActions(), List.of(), List.of(), participantStates(workload), List.of());
         }
 
-        SetupResult setup = setup(workload, scenario, runtimeContext);
-        if ("PREREQUISITE_BASELINE_FAILED".equals(setup.status())) {
-            return report(options, attemptId, setup.status(), workload, scenario, "NONE",
-                    TraceMetadata.hardStop(setup.status()),
-                    contract.faultSlots(), contract.plannedActions(), List.of(), List.of(),
-                    setup.participants(), setup.blockers());
-        }
-        if ("MATERIALIZATION_FAILED".equals(setup.status())) {
-            return report(options, attemptId, setup.status(), workload, scenario, "NONE",
-                    TraceMetadata.hardStop(setup.status()),
-                    contract.faultSlots(), contract.plannedActions(), List.of(), List.of(),
-                    setup.participants(), setup.blockers());
-        }
-        if ("STARTUP_FAILED".equals(setup.status())) {
+        SetupResult setup = setup(workload, scenario, attemptId, runtimeContext);
+        if (!"SETUP_READY".equals(setup.status())) {
             return report(options, attemptId, setup.status(), workload, scenario, "NONE",
                     TraceMetadata.hardStop(setup.status()),
                     contract.faultSlots(), contract.plannedActions(), List.of(), List.of(),
@@ -253,23 +302,40 @@ public final class ScenarioExecutor {
 
     private SetupResult setup(WorkloadPlan workload,
                               FaultScenario scenario,
+                              String attemptId,
                               ScenarioRuntimeContext runtimeContext) {
         List<ParticipantState> participants = participantStates(workload);
         PrerequisiteResult prerequisite = preparePrerequisite(workload, scenario, runtimeContext);
         participants.forEach(participant -> participant.prerequisiteSetup = prerequisite.report());
         if (!prerequisite.success()) {
-            return new SetupResult("PREREQUISITE_BASELINE_FAILED", participants, prerequisite.blockers());
+            return new SetupResult("PREREQUISITE_BASELINE_FAILED", participants,
+                    null, prerequisite.blockers());
         }
+
+        Map<ScenarioSetupRunner.ParticipantArgument, Object> setupArguments = Map.of();
+        ScenarioExecutionReport.SourceSetup sourceSetup = null;
+        if (workload.setupPlan() != null) {
+            ScenarioSetupRunner.Result setup = setupRunner.run(
+                    workload, scenario, attemptId, runtimeContext);
+            sourceSetup = setup.report();
+            ScenarioExecutionReport.SourceSetup evidence = sourceSetup;
+            participants.forEach(participant -> participant.sourceSetup = evidence);
+            if (!setup.success()) {
+                return new SetupResult(setup.status(), participants, sourceSetup, setup.blockers());
+            }
+            setupArguments = setup.participantArguments();
+        }
+
         List<ScenarioExecutionReport.Blocker> blockers = materializeAll(
-                workload, scenario, participants, runtimeContext, prerequisite.bindings());
+                workload, scenario, participants, runtimeContext, prerequisite.bindings(), setupArguments);
         if (!blockers.isEmpty()) {
-            return new SetupResult("MATERIALIZATION_FAILED", participants, blockers);
+            return new SetupResult("MATERIALIZATION_FAILED", participants, sourceSetup, blockers);
         }
         blockers = startAll(workload, scenario, participants);
         if (!blockers.isEmpty()) {
-            return new SetupResult("STARTUP_FAILED", participants, blockers);
+            return new SetupResult("STARTUP_FAILED", participants, sourceSetup, blockers);
         }
-        return new SetupResult("SETUP_READY", participants, List.of());
+        return new SetupResult("SETUP_READY", participants, sourceSetup, List.of());
     }
 
     private PrerequisiteResult preparePrerequisite(WorkloadPlan workload,
@@ -352,14 +418,23 @@ public final class ScenarioExecutor {
                                                                  FaultScenario scenario,
                                                                  List<ParticipantState> participants,
                                                                  ScenarioRuntimeContext runtimeContext,
-                                                                 Map<String, Object> baselineBindings) {
+                                                                 Map<String, Object> baselineBindings,
+                                                                 Map<ScenarioSetupRunner.ParticipantArgument, Object> setupArguments) {
         List<ScenarioExecutionReport.Blocker> blockers = new ArrayList<>();
         for (ParticipantState participant : participants) {
             try {
                 participant.unitOfWork = (UnitOfWork) runtimeContext.createSagaUnitOfWork(participant.saga.deterministicId());
+                Map<Integer, Object> participantSetupArguments = new LinkedHashMap<>();
+                if (participant.input != null) {
+                    setupArguments.forEach((key, value) -> {
+                        if (Objects.equals(key.inputVariantId(), participant.input.deterministicId())) {
+                            participantSetupArguments.put(key.argumentIndex(), value);
+                        }
+                    });
+                }
                 ScenarioMaterializer.MaterializedArguments result = materializer.materialize(
                         participant.input, runtimeContext, participant.saga.sagaFqn(), participant.unitOfWork,
-                        baselineBindings);
+                        baselineBindings, participantSetupArguments);
                 if (result.success()) {
                     participant.materializedArguments = result.values();
                     participant.materializationState = "MATERIALIZED";
@@ -1316,6 +1391,7 @@ public final class ScenarioExecutor {
                 trace.deviationActionId(), trace.deviationPlannedPosition(), trace.deviationPolicy(),
                 trace.hardStopActionId(), trace.hardStopReason(), runtimeMetadata,
                 participantStates.isEmpty() ? null : participantStates.get(0).prerequisiteSetup,
+                participantStates.isEmpty() ? null : participantStates.get(0).sourceSetup,
                 faultSlots, plannedActions, completedActualActions, lifecycleEvents, participants, blockers);
     }
 
@@ -1579,14 +1655,29 @@ public final class ScenarioExecutor {
                                           Path outputPath,
                                           ScenarioCatalogPackageReader.PackageContents packageContents,
                                           String reportKind) {
+        rejectPackageOutputAlias(packagePath, outputPath, List.of(
+                packageContents.workloadCatalogPath(), packageContents.faultScenarioCatalogPath(),
+                packageContents.accountingPath(), packageContents.rejectedInputsPath()), reportKind);
+    }
+
+    private void rejectPackageOutputAlias(Path packagePath,
+                                          Path outputPath,
+                                          ScenarioCatalogPackageReader.SelectedPackageContents packageContents,
+                                          String reportKind) {
+        rejectPackageOutputAlias(packagePath, outputPath, List.of(
+                packageContents.workloadCatalogPath(), packageContents.faultScenarioCatalogPath(),
+                packageContents.accountingPath(), packageContents.rejectedInputsPath()), reportKind);
+    }
+
+    private void rejectPackageOutputAlias(Path packagePath,
+                                          Path outputPath,
+                                          List<Path> linkedArtifacts,
+                                          String reportKind) {
         if (outputPath == null) return;
         Path output = outputPath.toAbsolutePath().normalize();
-        List<Path> packageInputs = List.of(
-                manifestPath(packagePath).toAbsolutePath().normalize(),
-                packageContents.workloadCatalogPath(),
-                packageContents.faultScenarioCatalogPath(),
-                packageContents.accountingPath(),
-                packageContents.rejectedInputsPath());
+        List<Path> packageInputs = new ArrayList<>();
+        packageInputs.add(manifestPath(packagePath).toAbsolutePath().normalize());
+        packageInputs.addAll(linkedArtifacts);
         for (Path packageInput : packageInputs) {
             Path normalizedInput = packageInput.toAbsolutePath().normalize();
             if (output.equals(normalizedInput) || sameFile(output, normalizedInput)) {
@@ -1666,8 +1757,9 @@ public final class ScenarioExecutor {
                 report.scenarioKind(), report.assignedVector(), report.providerMode(),
                 report.actualActions().isEmpty() ? null : "INCOMPLETE",
                 report.deviationActionId(), report.deviationPlannedPosition(), report.deviationPolicy(),
-                null, "REPORT_WRITE_FAILED", report.runtimeMetadata(), report.prerequisiteSetup(), report.faultSlots(),
-                report.plannedActions(), report.actualActions(), report.lifecycleEvents(), report.participants(), blockers);
+                null, "REPORT_WRITE_FAILED", report.runtimeMetadata(), report.prerequisiteSetup(), report.sourceSetup(),
+                report.faultSlots(), report.plannedActions(), report.actualActions(), report.lifecycleEvents(),
+                report.participants(), blockers);
     }
 
     private void writeReport(ScenarioExecutorOptions options, ScenarioExecutionReport report) {
@@ -1749,6 +1841,7 @@ public final class ScenarioExecutor {
     private record SetupResult(
             String status,
             List<ParticipantState> participants,
+            ScenarioExecutionReport.SourceSetup sourceSetup,
             List<ScenarioExecutionReport.Blocker> blockers) {
     }
 
@@ -1843,6 +1936,7 @@ public final class ScenarioExecutor {
         private int completedCompensations;
         private boolean runtimeDeviation;
         private ScenarioExecutionReport.PrerequisiteSetup prerequisiteSetup;
+        private ScenarioExecutionReport.SourceSetup sourceSetup;
         private final List<ScenarioExecutionReport.SkippedForwardAction> skippedForwardActions = new ArrayList<>();
         private final List<ScenarioExecutionReport.Blocker> blockers = new ArrayList<>();
 
