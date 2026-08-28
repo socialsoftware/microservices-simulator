@@ -287,12 +287,7 @@ final class ScheduleExecutor {
                 continue;
             }
 
-            EventHandlerStep eventHandlerStep = new EventHandlerStep(
-                    invocation.event(),
-                    invocation.handler(),
-                    stepId,
-                    invocation.publisherAggregateId(),
-                    invocation.subscriberAggregateId());
+            EventHandlerStep eventHandlerStep = new EventHandlerStep(invocation, stepId);
             deferredEventRetryTracker.recordScheduled(invocation, eventHandlerStep.getId());
             eventHandlerSteps.add(eventHandlerStep);
         }

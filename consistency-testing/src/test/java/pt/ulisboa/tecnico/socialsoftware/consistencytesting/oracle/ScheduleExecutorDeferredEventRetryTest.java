@@ -74,13 +74,15 @@ class ScheduleExecutorDeferredEventRetryTest {
     }
 
     private static StepId eventStepId(
-            Event event,
-            EventHandler handler,
-            StepId emittingStepId,
-            Integer subscriberAggregateId) {
+            Event event, EventHandler handler, StepId capturedAfterStepId, Integer subscriberAggregateId) {
+
+        DeferredEventInvocation invocation = new DeferredEventInvocation(
+                event, handler, subscriberAggregateId, () -> {
+                });
+
         FunctionalityId eventFunctionalityId = FunctionalityId.forEventHandlerFunctionality(
-                event.getClass(), handler.getClass(), emittingStepId, subscriberAggregateId,
-                event.getPublisherAggregateId());
+                invocation, capturedAfterStepId);
+
         return StepId.forEventHandlerStep(eventFunctionalityId);
     }
 

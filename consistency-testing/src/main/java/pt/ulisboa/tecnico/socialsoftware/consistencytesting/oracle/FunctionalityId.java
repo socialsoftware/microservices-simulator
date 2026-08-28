@@ -1,5 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
+import java.util.Locale;
+import java.util.Objects;
+
 import org.jspecify.annotations.Nullable;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
@@ -32,19 +35,42 @@ public final class FunctionalityId {
         return INITIAL_STATE_SETUP_FUNCTIONALITY;
     }
 
-    public static FunctionalityId forEventHandlerFunctionality(
+    static FunctionalityId forEventHandlerFunctionality(
+            DeferredEventInvocation invocation, StepId capturedAfterStepId) {
+
+        Objects.requireNonNull(invocation, "Deferred event invocation cannot be null");
+        return createEventHandlerFunctionalityId(
+                invocation.eventId(),
+                invocation.event().getClass(),
+                invocation.handler().getClass(),
+                capturedAfterStepId,
+                invocation.subscriberAggregateId(),
+                invocation.publisherAggregateId());
+    }
+
+    private static FunctionalityId createEventHandlerFunctionalityId(
+            Integer eventId,
             Class<? extends Event> eventClazz,
             Class<? extends EventHandler> eventHandlerClazz,
-            StepId emittingStepId,
+            StepId capturedAfterStepId,
             Integer subscriberAggregateId,
             Integer publisherAggregateId) {
 
         return new FunctionalityId(String.join(ID_CONNECTOR,
                 "event", eventClazz.getName(),
+                "eventId", encodeEventId(eventId),
                 "fromAggregate", publisherAggregateId.toString(),
                 "toAggregate", subscriberAggregateId.toString(),
-                "emittedBy", emittingStepId.toString(),
+                "capturedAfter", capturedAfterStepId.toString(),
                 "withHandler", eventHandlerClazz.getName()));
+    }
+
+    /**
+     * Pads event ID with leading zeroes so lexical StepId ordering also orders
+     * event IDs numerically; for example, {@code 2} sorts before {@code 10}.
+     */
+    private static String encodeEventId(Integer eventId) {
+        return String.format(Locale.ROOT, "%010d", eventId);
     }
 
     @Override

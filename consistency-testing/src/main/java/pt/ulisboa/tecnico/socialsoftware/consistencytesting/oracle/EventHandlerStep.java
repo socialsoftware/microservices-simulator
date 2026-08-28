@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
+import java.util.Objects;
 import java.util.Set;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
@@ -12,27 +13,19 @@ final class EventHandlerStep implements OracleStep {
     private final Set<StepId> dependencies;
     private final Event event;
     private final EventHandler eventHandler;
+    private final Integer eventId;
     private final Integer subscriberAggregateId;
 
-    EventHandlerStep(
-            Event event,
-            EventHandler eventHandler,
-            StepId emittingStepId,
-            Integer publisherAggregateId,
-            Integer subscriberAggregateId) {
-
-        functionalityId = FunctionalityId.forEventHandlerFunctionality(
-                event.getClass(),
-                eventHandler.getClass(),
-                emittingStepId,
-                subscriberAggregateId,
-                publisherAggregateId);
-
-        id = StepId.forEventHandlerStep(functionalityId);
-        this.event = event;
-        this.eventHandler = eventHandler;
-        this.subscriberAggregateId = subscriberAggregateId;
-        dependencies = Set.of(emittingStepId);
+    EventHandlerStep(DeferredEventInvocation invocation, StepId capturedAfterStepId) {
+        Objects.requireNonNull(invocation, "Deferred event invocation cannot be null");
+        this.event = invocation.event();
+        this.eventHandler = invocation.handler();
+        this.eventId = invocation.eventId();
+        this.subscriberAggregateId = invocation.subscriberAggregateId();
+        this.functionalityId = FunctionalityId.forEventHandlerFunctionality(invocation, capturedAfterStepId);
+        this.id = StepId.forEventHandlerStep(this.functionalityId);
+        this.dependencies = Set.of(Objects.requireNonNull(
+                capturedAfterStepId, "Captured-after step ID cannot be null"));
     }
 
     @Override
@@ -48,6 +41,10 @@ final class EventHandlerStep implements OracleStep {
     @Override
     public FunctionalityId getFunctionalityId() {
         return functionalityId;
+    }
+
+    Integer eventId() {
+        return eventId;
     }
 
     @Override
