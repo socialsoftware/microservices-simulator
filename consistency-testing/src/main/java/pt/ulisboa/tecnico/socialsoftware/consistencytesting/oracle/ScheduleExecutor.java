@@ -33,6 +33,12 @@ final class ScheduleExecutor {
 
     private static final int STEP_EXECUTION_LIMIT = 100;
 
+    private static final Set<TestStatus> INTER_INVARIANT_CHECK_BLOCKING_STATUSES = Set.of(
+            TestStatus.INTERNAL_SYSTEM_EXCEPTION,
+            TestStatus.CRITICAL_STEP_FAILURE,
+            TestStatus.EXECUTION_LIMIT_EXCEEDED,
+            TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED);
+
     private static final Logger log = LoggerFactory.getLogger(ScheduleExecutor.class);
 
     private final SagaUnitOfWorkService uowService;
@@ -197,6 +203,12 @@ final class ScheduleExecutor {
     }
 
     private void checkInterInvariants() {
+        if (detectedStatuses.stream().anyMatch(INTER_INVARIANT_CHECK_BLOCKING_STATUSES::contains)) {
+            // Stable-state inter-invariants are meaningful only after a complete,
+            // quiescent execution.
+            return;
+        }
+
         for (InterInvariant interInvariant : interInvariants) {
             Set<InterInvariantViolation> violations = interInvariant.predicate().get();
 
@@ -263,7 +275,8 @@ final class ScheduleExecutor {
     }
 
     private void captureEmittedEventSteps(StepId stepId) {
-        // Run all event handling routines at once to capture events emitted by step.
+        // Run all event handling routines after this step to capture pending
+        // deliveries.
         EventUtils.runEventHandlingScheduledTasks(eventHandlings);
         Set<DeferredEventInvocation> eventInvocations = captureSession.drain();
 

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -125,6 +126,45 @@ class OracleQuizzesAppTest {
         assertTrue(result.schedule().size() < tooManySteps.size());
         assertEquals(maxSteps, result.schedule().size());
         assertEquals(Set.of(TestStatus.EXECUTION_LIMIT_EXCEEDED), result.statuses());
+    }
+
+    @Test
+    @DisplayName("Incomplete schedules must not evaluate stable-state inter-invariants")
+    void shouldNotCheckInterInvariantsWhenInterdependenciesRemainUnresolved() {
+        SagaUnitOfWork uow = sagaUnitOfWorkService.createUnitOfWork(
+                TestFunctionality.class.getSimpleName());
+        FlowStep firstStep = new SagaStep("first", () -> {
+        });
+        FlowStep blockedStep = new SagaStep("blocked", () -> {
+        });
+        TestFunctionality functionality = new TestFunctionality(
+                List.of(firstStep, blockedStep), sagaUnitOfWorkService, uow);
+        FunctionalityId functionalityId = simpleFunctionalityId(functionality, 1);
+
+        AtomicInteger invariantEvaluations = new AtomicInteger();
+        InterInvariantsProvider violationProbe = () -> Set.of(new InterInvariant(
+                "must only run after quiescence",
+                () -> {
+                    invariantEvaluations.incrementAndGet();
+                    return Set.of(new InterInvariantViolation("temporary state"));
+                }));
+
+        Oracle oracleSpy = spy(oracle);
+        doReturn(violationProbe).when(oracleSpy).getBean(InterInvariantsProvider.class);
+
+        StepId blockedStepId = getFunctionalityStepIds(functionalityId, functionality, false).get(1);
+        StepId neverExecutedStepId = StepId.forFunctionalityStep(
+                FunctionalityId.forSagaFunctionality("never-executed"), "step");
+        Supplier<TestCase> testCase = () -> new TestCase.Builder()
+                .addFunctionality(functionalityId, functionality)
+                .addInterDependency(blockedStepId, neverExecutedStepId)
+                .build();
+
+        TestResult result = oracleSpy.runTest(testCase);
+
+        assertEquals(0, invariantEvaluations.get());
+        assertTrue(result.interInvariantViolations().isEmpty());
+        assertEquals(Set.of(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED), result.statuses());
     }
 
     @Test
