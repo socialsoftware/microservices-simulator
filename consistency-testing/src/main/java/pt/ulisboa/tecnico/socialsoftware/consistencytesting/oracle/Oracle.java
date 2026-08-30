@@ -86,6 +86,7 @@ public final class Oracle {
     private @Nullable String[] springAppArgs;
     private @Nullable ConfigurableApplicationContext springContext;
     private long schedulerSeed = DEFAULT_SCHEDULER_SEED;
+    private Set<SemanticLockId> ignoredSemanticLocks = Set.of();
 
     private @Nullable Set<EventHandling> eventHandlings;
     private @Nullable DeferredEventApplicationService defEventAppService;
@@ -170,9 +171,11 @@ public final class Oracle {
 
         springContext = app.run(springAppArgs);
 
+        getBean(TracingSagaUnitOfWorkService.class).configureIgnoredSemanticLocks(ignoredSemanticLocks);
+
         // stop periodic events scheduling handlers, to favor
         // DeferredEventApplicationService more determinisitc testing capabilities
-        var eventsSchedulerController = springContext.getBean(EnableDisableEventsController.class);
+        var eventsSchedulerController = getBean(EnableDisableEventsController.class);
         eventsSchedulerController.stopSchedule();
 
         // Fail fast at startup if a required bean is missing or of the wrong type.
@@ -299,6 +302,20 @@ public final class Oracle {
 
     public Oracle setSchedulerSeed(long schedulerSeed) {
         this.schedulerSeed = schedulerSeed;
+        return this;
+    }
+
+    /**
+     * Configures semantic-lock acquisitions that the oracle must skip.
+     * Can only be called before {@link #init()}.
+     * 
+     * @throws IllegalStateException if the oracle has already been initialized
+     */
+    public Oracle setIgnoredSemanticLocks(Set<SemanticLockId> ignoredSemanticLocks) {
+        if (springContext != null && springContext.isActive()) {
+            throw new IllegalStateException("Ignored semantic locks must be configured before oracle startup.");
+        }
+        this.ignoredSemanticLocks = Set.copyOf(ignoredSemanticLocks);
         return this;
     }
 

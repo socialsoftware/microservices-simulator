@@ -3,17 +3,30 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.jspecify.annotations.Nullable;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 
 public class TracingSagaUnitOfWorkService extends SagaUnitOfWorkService {
 
     private volatile @Nullable TraceSession activeSession;
+    private Set<SemanticLockId> ignoredSemanticLocks = Set.of();
+    private final Queue<IgnoredSemanticLockAcquisition> ignoredAcquisitions = new ConcurrentLinkedQueue<>();
+
+    /** This should be configured before any schedule runs. */
+    void configureIgnoredSemanticLocks(Set<SemanticLockId> ignoredSemanticLocks) {
+        this.ignoredSemanticLocks = Set.copyOf(ignoredSemanticLocks);
+    }
+
+    public List<IgnoredSemanticLockAcquisition> getIgnoredAcquisitions() {
+        return List.copyOf(ignoredAcquisitions);
+    }
 
     /**
      * Starts a new read-write effects tracing session.
@@ -87,6 +100,24 @@ public class TracingSagaUnitOfWorkService extends SagaUnitOfWorkService {
         // trace runs after super.registerChanged to only trace if the write really went
         // through (i.e., the write was not stopped by a throw on verifyInvariants())
         traceWrite(aggregate);
+    }
+
+    @Override
+    public void registerSagaState(Integer aggregateId, SagaState state, SagaUnitOfWork unitOfWork) {
+        SemanticLockId semanticLock = SemanticLockId.from(state);
+        if (ignoredSemanticLocks.contains(semanticLock)) {
+            // Full-state omission models a developer not calling setSemanticLock
+            // at this acquisition.
+            // TODO Per-call-site omission could also be implemented.
+            ignoredAcquisitions.add(new IgnoredSemanticLockAcquisition(
+                    semanticLock,
+                    aggregateId,
+                    unitOfWork.getFunctionalityName(),
+                    unitOfWork.getCurrentExecutingStep()));
+            return;
+        }
+
+        super.registerSagaState(aggregateId, state, unitOfWork);
     }
 
     static final class TraceSession implements AutoCloseable {
