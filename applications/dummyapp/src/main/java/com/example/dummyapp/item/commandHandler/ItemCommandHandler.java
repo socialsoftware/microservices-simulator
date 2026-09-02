@@ -10,6 +10,7 @@ import com.example.dummyapp.item.commands.CreateItemCommand;
 import com.example.dummyapp.item.commands.DeleteItemCommand;
 import com.example.dummyapp.item.commands.GetItemCommand;
 import com.example.dummyapp.item.commands.UpdateItemCommand;
+import com.example.dummyapp.item.commands.SemanticRootItemCommand;
 import com.example.dummyapp.item.service.ItemService;
 
 @Component
@@ -32,6 +33,7 @@ public class ItemCommandHandler extends CommandHandler {
             case CreateItemCommand cmd -> handleCreateItem(cmd);
             case UpdateItemCommand cmd -> handleUpdateItem(cmd);
             case DeleteItemCommand cmd -> handleDeleteItem(cmd);
+            case SemanticRootItemCommand cmd -> handleSemanticRootItem(cmd);
             default -> {
                 logger.warn("Unknown command type: {}", command.getClass().getName());
                 yield null;
@@ -54,5 +56,9 @@ public class ItemCommandHandler extends CommandHandler {
     private Object handleDeleteItem(DeleteItemCommand cmd) {
         itemService.deleteItem(cmd.getItemAggregateId(), cmd.getUnitOfWork());
         return null;
+    }
+
+    private Object handleSemanticRootItem(SemanticRootItemCommand cmd) {
+        return itemService.getItem(cmd.getRootAggregateId(), cmd.getUnitOfWork());
     }
 }

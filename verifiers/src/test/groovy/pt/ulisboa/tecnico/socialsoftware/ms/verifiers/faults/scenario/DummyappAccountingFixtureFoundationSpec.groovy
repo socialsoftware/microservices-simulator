@@ -267,7 +267,7 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 Files.readAllBytes(secondDirectory.resolve('fault-scenarios.jsonl'))
     }
 
-    def 'dummyapp exposes key-bearing input variants for compatible and incompatible tuple tests'() {
+    def 'dummyapp exposes key-bearing input variants for strict-positive and unequal tuple tests'() {
         given:
         def itemOrder13 = model.inputVariants().find { it.sagaFqn() == ITEM_SAGA && it.logicalKeyBindings().orderId == '13' }
         def itemOrder23 = model.inputVariants().find { it.sagaFqn() == ITEM_SAGA && it.sourceMethodName() == 'item saga input shares order id with cancellation fixture' }
@@ -279,9 +279,13 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         cancelOrder23 != null
 
         and:
-        InputTupleJoiner.join(sagaOrder(), inputsBySaga(itemOrder23, cancelOrder23))
+        def candidates = ConflictGraphBuilder.build([saga(ITEM_SAGA), saga(CANCEL_ORDER_SAGA)], strictConfig())
+                .conflictCandidates()
+        InputTupleJoiner.join(sagaOrder(), inputsBySaga(itemOrder23, cancelOrder23), candidates,
+                model.aggregateKeyInputEvidence(), InputTupleSelection.Mode.STRICT)
                 .counts().inputTuplesEmitted == 1
-        InputTupleJoiner.join(sagaOrder(), inputsBySaga(itemOrder13, cancelOrder23))
+        InputTupleJoiner.join(sagaOrder(), inputsBySaga(itemOrder13, cancelOrder23), candidates,
+                model.aggregateKeyInputEvidence(), InputTupleSelection.Mode.STRICT)
                 .counts().inputTuplesEmitted == 0
     }
 
@@ -295,8 +299,10 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 ScenarioGeneratorConfig.ScheduleStrategy.SERIAL)
 
         when:
-        def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
-        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, result.workloadPlans().size())
+        def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), [], [],
+                model.aggregateKeyInputEvidence(), config)
+        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(),
+                model.inputVariants(), model.aggregateKeyInputEvidence(), config, result.workloadPlans().size())
 
         then:
         result.workloadPlans().size() == 7
@@ -306,7 +312,7 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         accounting.groupedSagaSets()*.sagaSetSize().unique() == [1]
     }
 
-    def 'dummyapp interaction-pruned full write matches selected accounting and prunes unrelated rows'() {
+    def 'dummyapp strict candidate without a positive capped input tuple remains inspectable but unselected'() {
         given:
         def config = accountingConfig(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
                 ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
@@ -316,8 +322,10 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING)
 
         when:
-        def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
-        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, result.workloadPlans().size())
+        def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), [], [],
+                model.aggregateKeyInputEvidence(), config)
+        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(),
+                model.inputVariants(), model.aggregateKeyInputEvidence(), config, result.workloadPlans().size())
         def unrelated = row(accounting, [ITEM_SAGA, CREATE_ORDER_SAGA])
         def strict = row(accounting, [ITEM_SAGA, CANCEL_ORDER_SAGA])
 
@@ -336,10 +344,13 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
 
         and:
         strict != null
-        strict.selectedByConfiguredGenerator()
+        !strict.selectedByConfiguredGenerator()
         strict.strictInteractionSummary().connected()
         strict.scheduleCountPerTuple() == '3'
-        new BigInteger(strict.compatibleInputTupleCount()) == InputTupleJoiner.join([ITEM_SAGA, CANCEL_ORDER_SAGA], groupedInputs([ITEM_SAGA, CANCEL_ORDER_SAGA], config)).tuples().size()
+        new BigInteger(strict.compatibleInputTupleCount()) == InputTupleJoiner.join(
+                [ITEM_SAGA, CANCEL_ORDER_SAGA], groupedInputs([ITEM_SAGA, CANCEL_ORDER_SAGA], config),
+                ConflictGraphBuilder.build([saga(ITEM_SAGA), saga(CANCEL_ORDER_SAGA)], strictConfig()).conflictCandidates(),
+                model.aggregateKeyInputEvidence(), InputTupleSelection.Mode.STRICT).tuples().size()
         new BigInteger(strict.compatibleInputTupleCount()) < inputProduct(strict)
     }
 
@@ -359,9 +370,12 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING)
 
         when:
-        def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
-        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, result.workloadPlans().size())
-        def opiAccounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), opiConfig, 0)
+        def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), [], [],
+                model.aggregateKeyInputEvidence(), config)
+        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(),
+                model.inputVariants(), model.aggregateKeyInputEvidence(), config, result.workloadPlans().size())
+        def opiAccounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(),
+                model.inputVariants(), model.aggregateKeyInputEvidence(), opiConfig, 0)
         def compressedRow = row(accounting, [ITEM_SAGA, CANCEL_ORDER_SAGA])
         def opiRow = row(opiAccounting, [ITEM_SAGA, CANCEL_ORDER_SAGA])
         def interactingPlans = result.workloadPlans().findAll { plan ->
@@ -396,8 +410,8 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         new BigInteger(compressedRow.scheduleCountPerTuple()) < new BigInteger(opiRow.scheduleCountPerTuple())
     }
 
-    def 'count-only compact workload totals are a projection of calculator contradiction and segment semantics'() {
-        given: 'a contradictory exact-key pair, where Cartesian multiplication would over-count'
+    def 'count-only compact workload totals preserve Cartesian all and segment semantics'() {
+        given: 'an unequal exact-key pair which remains in the all baseline'
         def itemOrder13 = model.inputVariants().find { it.sagaFqn() == ITEM_SAGA && it.logicalKeyBindings().orderId == '13' }
         def cancelOrder23 = model.inputVariants().find { it.sagaFqn() == CANCEL_ORDER_SAGA && it.sourceMethodName() == 'item-derived order cancellation shares symbolic order key' }
         def pairModel = new ScenarioModelAdapterResult(
@@ -407,7 +421,8 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY, false, 2, false,
                 ScenarioGeneratorConfig.ScheduleStrategy.SERIAL)
         def contradictionReport = new ScenarioSpaceAccountingCalculator().calculate(
-                'dummyapp', pairModel.sagaDefinitions(), pairModel.inputVariants(), contradictionConfig, 0)
+                'dummyapp', pairModel.sagaDefinitions(), pairModel.inputVariants(),
+                pairModel.aggregateKeyInputEvidence(), contradictionConfig, 0)
         def contradictionDirectory = Files.createTempDirectory('current-accounting-contradiction-')
 
         when:
@@ -418,17 +433,17 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         then:
         InputTupleJoiner.join([ITEM_SAGA, CANCEL_ORDER_SAGA], [
                 (ITEM_SAGA): [itemOrder13], (CANCEL_ORDER_SAGA): [cancelOrder23]
-        ]).tuples().size() == 0
-        contradictionReport.groupedSagaSets().find { it.sagaSetSize() == 2 }.compatibleInputTupleCount() == '0'
-        contradictionAccounting.path('workloads').path('all').path('inputBoundTotal').bigIntegerValue() == BigInteger.ZERO
-        contradictionAccounting.path('workloads').path('selected').path('inputBoundTotal').bigIntegerValue() == BigInteger.ZERO
+        ]).tuples().size() == 1
+        contradictionReport.groupedSagaSets().find { it.sagaSetSize() == 2 }.compatibleInputTupleCount() == '1'
+        contradictionAccounting.path('workloads').path('all').path('inputBoundTotal').bigIntegerValue() == BigInteger.ONE
+        contradictionAccounting.path('workloads').path('selected').path('inputBoundTotal').bigIntegerValue() == BigInteger.ONE
 
         and: 'SEGMENT_COMPRESSED totals and row counts come from the same report as the writer'
         def segmentConfig = fullDummyappConfig(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
                 ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY, false, 2, false,
                 ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED)
         def segmentReport = new ScenarioSpaceAccountingCalculator().calculate(
-                'dummyapp', model.sagaDefinitions(), model.inputVariants(), segmentConfig, 0)
+                'dummyapp', model.sagaDefinitions(), model.inputVariants(), model.aggregateKeyInputEvidence(), segmentConfig, 0)
         def segmentDirectory = Files.createTempDirectory('current-accounting-segment-')
         new StaticAnalysisArtifactWriter().write(model, 'dummyapp', segmentConfig, segmentDirectory,
                 '2026-09-01T00:00:00Z')
@@ -440,6 +455,7 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         segmentAccounting.path('workloads').path('all').path('total').intValue() == segmentReport.groupedSagaSets().size()
         segmentReport.groupedSagaSets().find { it.sagaSetSize() == 2 }.scheduleCountPerTuple() !=
                 new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(),
+                        model.aggregateKeyInputEvidence(),
                         fullDummyappConfig(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
                                 ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY, false, 2, false,
                                 ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING), 0)
@@ -522,14 +538,16 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING)
 
         when:
-        def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), config)
-        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(), model.inputVariants(), config, 0)
+        def result = ScenarioGenerator.generate(model.sagaDefinitions(), model.inputVariants(), [], [],
+                model.aggregateKeyInputEvidence(), config)
+        def accounting = new ScenarioSpaceAccountingCalculator().calculate('dummyapp', model.sagaDefinitions(),
+                model.inputVariants(), model.aggregateKeyInputEvidence(), config, 0)
 
         then:
         result.workloadPlans().isEmpty()
         accounting.inputBoundScenarioSpace().catalogWritten().total() == '0'
         accounting.inputBoundScenarioSpace().selectedByGenerator().total() == '0'
-        accounting.inputBoundScenarioSpace().allInputBound().total() == '33'
+        accounting.inputBoundScenarioSpace().allInputBound().total() == '150'
         accounting.groupedSagaSets().size() == 4
 
         and:
@@ -595,7 +613,10 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         contents.sagaFacts().first().fieldNames().toList() == expectedSaga.fieldNames().toList()
         contents.sagaFacts().first().path('steps').first().fieldNames().toList() == expectedStep.fieldNames().toList()
         contents.interactionFacts().first().fieldNames().toList() == expectedInteraction.fieldNames().toList()
-        contents.interactionFacts().first().path('accesses').first().fieldNames().toList() ==
+        def emittedKeyedInteraction = contents.interactionFacts().find { interaction ->
+            interaction.path('accesses').any { it.has('keyEvidence') }
+        }
+        emittedKeyedInteraction.path('accesses').find { it.has('keyEvidence') }.fieldNames().toList() ==
                 expectedInteraction.path('accesses').first().fieldNames().toList()
         contents.inputFacts().find { it.path('accepted').asBoolean() && it.path('materializable').asBoolean() && it.has('aggregateKeyEvidence') }
                 .fieldNames().toList() == expectedMaterializableInput.fieldNames().toList()

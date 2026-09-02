@@ -23,6 +23,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Step
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceAggregateKeyInputEvidence;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,6 +57,16 @@ public final class ScenarioGenerator {
                                                     List<InputVariant> inputVariants,
                                                     List<EventConsequenceDefinition> eventConsequenceDefinitions,
                                                     List<SourceSetupPlanBinding> sourceSetupPlanBindings,
+                                                    ScenarioGeneratorConfig config) {
+        return generate(sagaDefinitions, inputVariants, eventConsequenceDefinitions, sourceSetupPlanBindings,
+                List.of(), config);
+    }
+
+    public static WorkloadGenerationResult generate(List<SagaDefinition> sagaDefinitions,
+                                                    List<InputVariant> inputVariants,
+                                                    List<EventConsequenceDefinition> eventConsequenceDefinitions,
+                                                    List<SourceSetupPlanBinding> sourceSetupPlanBindings,
+                                                    List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
                                                     ScenarioGeneratorConfig config) {
         ScenarioGeneratorConfig effectiveConfig = config == null ? new ScenarioGeneratorConfig() : config;
         LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
@@ -98,7 +109,8 @@ public final class ScenarioGenerator {
                 && effectiveConfig.maxSagaSetSize() >= 2
                 && usableSagaFqns.size() >= 2) {
             emitMultiSagaWorkloads(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), usableSagaFqns,
-                    conflictGraph, sourceSetupPlanBindings, workloadsById, warnings, counts);
+                    conflictGraph, sourceSetupPlanBindings, aggregateKeyInputEvidence,
+                    workloadsById, warnings, counts);
         }
 
         workloadsById = addEventConsequencePlacements(
@@ -167,6 +179,7 @@ public final class ScenarioGenerator {
                                                List<String> usableSagaFqns,
                                                ConflictGraphBuilder.Result conflictGraph,
                                                List<SourceSetupPlanBinding> sourceSetupPlanBindings,
+                                               List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
                                                LinkedHashMap<String, WorkloadPlan> workloadsById,
                                                LinkedHashSet<String> warnings,
                                                Map<String, Integer> counts) {
@@ -189,7 +202,15 @@ public final class ScenarioGenerator {
                 return;
             }
 
-            InputTupleJoiner.Result tupleResult = InputTupleJoiner.join(sagaSet, inputsBySaga);
+            InputTupleSelection.Mode selectionMode = config.generationStrategy()
+                    == ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE
+                    ? InputTupleSelection.Mode.ALL
+                    : config.allowTypeOnlyFallback()
+                    ? InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK
+                    : InputTupleSelection.Mode.STRICT;
+            InputTupleJoiner.Result tupleResult = InputTupleJoiner.join(
+                    sagaSet, inputsBySaga, conflictGraph.conflictCandidates(),
+                    aggregateKeyInputEvidence, selectionMode);
             mergeCounts(counts, tupleResult.counts());
             warnings.addAll(tupleResult.warnings());
 
@@ -201,15 +222,19 @@ public final class ScenarioGenerator {
                 }
 
                 List<SagaScheduleInput> scheduleInputs = buildScheduleInputs(sagaSet, tuple.inputs(), sagaByFqn);
-                List<ConflictCandidate> selectedCandidates = conflictGraph.conflictCandidates().stream()
-                        .filter(candidate -> sagaSet.contains(candidate.leftSagaFqn()) && sagaSet.contains(candidate.rightSagaFqn()))
+                List<ConflictCandidate> scheduleCandidates = conflictGraph.conflictCandidates().stream()
+                        .filter(candidate -> sagaSet.contains(candidate.leftSagaFqn())
+                                && sagaSet.contains(candidate.rightSagaFqn()))
                         .toList();
+                List<ConflictCandidate> selectedCandidates = InputTupleSelection.selectedCandidates(
+                        sagaSet, tuple.inputs(), conflictGraph.conflictCandidates(), aggregateKeyInputEvidence,
+                        selectionMode);
                 ScheduleEnumerator.Result scheduleResult = ScheduleEnumerator.enumerate(
                         scheduleInputs,
                         config.scheduleStrategy(),
                         config.maxSchedulesPerInputTuple(),
                         config.deterministicSeed(),
-                        selectedCandidates);
+                        scheduleCandidates);
                 mergeCounts(counts, scheduleResult.counts());
                 warnings.addAll(scheduleResult.warnings());
 

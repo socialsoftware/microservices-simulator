@@ -248,7 +248,7 @@ class ScenarioGeneratorSpec extends Specification {
         multi.conflictEvidence()*.kind().every { it in [ConflictKind.WRITE_READ, ConflictKind.READ_WRITE] }
     }
 
-    def 'same aggregate different exact keys are not joined'() {
+    def 'static exact aggregate equality is not contradicted by unrelated input bindings'() {
         given:
         def sagaA = saga('com.example.A',
                 step('com.example.A', 'step-1', 0, AccessMode.WRITE, 'shared'))
@@ -262,11 +262,11 @@ class ScenarioGeneratorSpec extends Specification {
         ], config(maxSagaSetSize: 2))
 
         then:
-        result.workloadPlans()*.kind().count { it == ScenarioKind.MULTI_SAGA } == 0
-        result.workloadPlans().size() == 2
+        result.workloadPlans()*.kind().count { it == ScenarioKind.MULTI_SAGA } == 1
+        result.workloadPlans().size() == 3
     }
 
-    def 'mixed known keys with different exact values do not join'() {
+    def 'exact command keys remain positive when inputs carry other unequal logical keys'() {
         given:
         def sagaA = saga('com.example.A',
                 step('com.example.A', 'step-1', 0, AccessMode.WRITE, 'shared'))
@@ -280,8 +280,8 @@ class ScenarioGeneratorSpec extends Specification {
         ], config(maxSagaSetSize: 2))
 
         then:
-        result.workloadPlans()*.kind().every { it == ScenarioKind.SINGLE_SAGA }
-        result.workloadPlans().size() == 2
+        result.workloadPlans()*.kind().count { it == ScenarioKind.MULTI_SAGA } == 1
+        result.workloadPlans().size() == 3
     }
 
     def 'type only fallback is opt in'() {

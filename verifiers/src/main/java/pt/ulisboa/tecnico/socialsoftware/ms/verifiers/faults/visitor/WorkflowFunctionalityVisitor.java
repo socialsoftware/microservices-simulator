@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.LambdaExpr;
@@ -27,14 +28,18 @@ import org.slf4j.LoggerFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaConstructorSignature;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaFunctionalityBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaStepBuildingBlock;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.AccessPolicy;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchMultiplicity;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchMultiplicityKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchPhase;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.CommandRootKeyPath;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.CommandDispatchInfo;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.util.TypeUtils;
@@ -243,6 +248,7 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
         LambdaExpr lambda = operation.asLambdaExpr();
         Set<ObjectCreationExpr> recognizedCommandCreations = new LinkedHashSet<>();
         Set<VariableDeclarator> recognizedCommandVariables = new LinkedHashSet<>();
+        Set<MethodCallExpr> unresolvedAggregateKeyCalls = new LinkedHashSet<>();
         lambda.findAll(ObjectCreationExpr.class).forEach(creation -> {
             String commandTypeFqn;
             try {
@@ -251,6 +257,9 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                     return;
                 }
                 commandTypeFqn = resolvedType.describe();
+                if (TypeUtils.isResolvedSubtypeOf(resolvedType, SagaCommand.class)) {
+                    return;
+                }
             } catch (Exception exception) {
                 if (creation.getType().asString().endsWith("Command")) {
                     String message = "command type could not be resolved: " + creation.getType().asString();
@@ -261,8 +270,35 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                 return;
             }
 
+            if (Command.class.getName().equals(commandTypeFqn) && phase == DispatchPhase.COMPENSATION) {
+                resolveGenericCompensation(creation, state, sagaDeclaration).ifPresentOrElse(
+                        target -> {
+                            stepBlock.addDispatch(new StepDispatchFootprint(
+                                    stepKey,
+                                    commandTypeFqn,
+                                    target.aggregateName(),
+                                    AccessPolicy.WRITE,
+                                    phase,
+                                    inferDispatchMultiplicity(creation),
+                                    target.aggregateKey().text(),
+                                    target.aggregateKey().confidence(),
+                                    target.aggregateKey().sagaConstructorArgumentIndex(),
+                                    target.aggregateKey().propertyPath()));
+                            recognizeCommandCreation(creation, recognizedCommandCreations,
+                                    recognizedCommandVariables);
+                        },
+                        () -> {
+                            recognizeCommandCreation(creation, recognizedCommandCreations,
+                                    recognizedCommandVariables);
+                            markUnresolvedCompensationPayload(stepBlock, stepKey);
+                        });
+                return;
+            }
+
             state.getCommandDispatchInfo(creation.getType()).ifPresentOrElse(
                     info -> {
+                        AggregateKeyResolution aggregateKey = resolveAggregateKey(
+                                creation, commandTypeFqn, state, sagaDeclaration);
                         StepDispatchFootprint dispatch = new StepDispatchFootprint(
                                 stepKey,
                                 commandTypeFqn,
@@ -270,85 +306,104 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                                 info.accessPolicy(),
                                 phase,
                                 inferDispatchMultiplicity(creation),
-                                inferAggregateKeyText(creation),
-                                inferAggregateKeyConfidence(creation),
-                                inferAggregateKeyConstructorArgumentIndex(creation, sagaDeclaration));
+                                aggregateKey.text(),
+                                aggregateKey.confidence(),
+                                aggregateKey.sagaConstructorArgumentIndex(),
+                                aggregateKey.propertyPath());
                         stepBlock.addDispatch(dispatch);
-                        recognizedCommandCreations.add(creation);
-                        creation.findAncestor(VariableDeclarator.class)
-                                .filter(variable -> variable.getInitializer()
-                                        .map(initializer -> initializer == creation)
-                                        .orElse(false))
-                                .ifPresent(recognizedCommandVariables::add);
+                        recognizeCommandCreation(creation, recognizedCommandCreations,
+                                recognizedCommandVariables);
+                        if (aggregateKey.text() == null) {
+                            unresolvedAggregateKeyCalls.addAll(rootArgumentMethodCalls(
+                                    creation, commandTypeFqn, state));
+                        }
                     },
                     () -> {
                         String message = "command dispatch not found in registry: " + creation.getType().asString();
                         stepBlock.markDispatchAnalysisIncomplete(
                                 phase, "UNRESOLVED_COMMAND_DISPATCH", message);
                         logger.warn("{} (step: {})", message, stepKey);
+                        recognizeCommandCreation(creation, recognizedCommandCreations,
+                                recognizedCommandVariables);
                     }
             );
         });
 
-        if (phase == DispatchPhase.FORWARD) {
-            lambda.findAll(MethodCallExpr.class).stream()
-                    .filter(call -> !isSupportedDirectInputKeyAccess(call, recognizedCommandCreations))
-                    .filter(call -> !isSupportedCommandGatewayDispatch(
-                            call, recognizedCommandCreations, recognizedCommandVariables))
-                    .forEach(call -> {
-                        String message = "cannot prove effects of helper call " + call.getNameAsString();
-                        stepBlock.markDispatchAnalysisIncomplete(
-                                phase, "UNANALYZED_METHOD_CALL", message);
+        Set<ObjectCreationExpr> recognizedWrapperCreations = new LinkedHashSet<>();
+        lambda.findAll(ObjectCreationExpr.class).stream()
+                .filter(this::isSagaCommandCreation)
+                .forEach(wrapper -> {
+                    recognizedWrapperCreations.add(wrapper);
+                    recognizeCommandCreation(wrapper, recognizedWrapperCreations,
+                            recognizedCommandVariables);
+                    boolean payloadResolved = wrapper.getArguments().size() == 1
+                            && resolvesToRecognizedCommand(
+                                    wrapper.getArgument(0), recognizedCommandCreations,
+                                    recognizedCommandVariables);
+                    if (!payloadResolved) {
+                        String code = phase == DispatchPhase.COMPENSATION
+                                ? "UNRESOLVED_COMPENSATION_PAYLOAD"
+                                : "UNRESOLVED_COMMAND_PAYLOAD";
+                        String message = phase == DispatchPhase.COMPENSATION
+                                ? "cannot resolve compensation command payload"
+                                : "cannot resolve SagaCommand payload";
+                        stepBlock.markDispatchAnalysisIncomplete(phase, code, message);
                         logger.warn("{} (step: {})", message, stepKey);
-                    });
-        }
+                    }
+                });
+
+        lambda.findAll(MethodCallExpr.class).stream()
+                .filter(call -> !isSupportedCommandGatewayDispatch(
+                        call, recognizedCommandCreations, recognizedCommandVariables))
+                .filter(call -> !isSupportedCommandGatewayDispatch(
+                        call, recognizedWrapperCreations, recognizedCommandVariables))
+                .filter(call -> unresolvedAggregateKeyCalls.contains(call)
+                        || callMayHideCommandDispatch(call))
+                .forEach(call -> {
+                    String code = unresolvedAggregateKeyCalls.contains(call)
+                            ? "UNRESOLVED_AGGREGATE_KEY"
+                            : "UNRESOLVED_COMMAND_DISPATCH";
+                    String message = unresolvedAggregateKeyCalls.contains(call)
+                            ? "cannot resolve aggregate key from call " + call.getNameAsString()
+                            : "cannot resolve command dispatch through call " + call.getNameAsString();
+                    stepBlock.markDispatchAnalysisIncomplete(
+                            phase, code, message);
+                    logger.warn("{} (step: {})", message, stepKey);
+                });
     }
 
-    private boolean isSupportedDirectInputKeyAccess(MethodCallExpr call,
-                                                      Set<ObjectCreationExpr> recognizedCommandCreations) {
-        if (!isInsideRecognizedCommand(call, recognizedCommandCreations)
-                || call.getArguments().size() != 0
-                || call.getScope().filter(Expression::isNameExpr).isEmpty()) {
-            return false;
-        }
+    private void recognizeCommandCreation(ObjectCreationExpr creation,
+                                          Set<ObjectCreationExpr> recognizedCreations,
+                                          Set<VariableDeclarator> recognizedVariables) {
+        recognizedCreations.add(creation);
+        creation.findAncestor(VariableDeclarator.class)
+                .filter(variable -> variable.getInitializer()
+                        .map(initializer -> initializer == creation)
+                        .orElse(false))
+                .ifPresent(recognizedVariables::add);
+    }
 
+    private boolean isSagaCommandCreation(ObjectCreationExpr creation) {
         try {
-            var resolvedMethod = call.resolve();
-            var scopeType = call.getScope().orElseThrow().calculateResolvedType();
-            if (resolvedMethod.isStatic()
-                    || resolvedMethod.getNumberOfParams() != 0
-                    || !resolvedMethod.getName().matches("get[A-Z].*")
-                    || !scopeType.isReferenceType()) {
-                return false;
-            }
-
-            String declaringType = resolvedMethod.declaringType().getQualifiedName();
-            String scopeTypeName = scopeType.asReferenceType().getQualifiedName();
-            return declaringType.equals(scopeTypeName) && declaringType.endsWith("Dto");
+            return TypeUtils.isResolvedSubtypeOf(creation.getType().resolve(), SagaCommand.class);
         } catch (Exception exception) {
             return false;
         }
     }
 
-    private boolean isInsideRecognizedCommand(MethodCallExpr call,
-                                               Set<ObjectCreationExpr> recognizedCommandCreations) {
-        Node current = call;
-        while (current.getParentNode().isPresent()) {
-            current = current.getParentNode().orElseThrow();
-            if (current instanceof LambdaExpr) {
-                return false;
-            }
-            if (current instanceof ObjectCreationExpr creation && recognizedCommandCreations.contains(creation)) {
-                return true;
-            }
-        }
-        return false;
+    private boolean resolvesToRecognizedCommand(Expression expression,
+                                                Set<ObjectCreationExpr> recognizedCreations,
+                                                Set<VariableDeclarator> recognizedVariables) {
+        return expression.isObjectCreationExpr()
+                ? recognizedCreations.contains(expression.asObjectCreationExpr())
+                : resolvesToRecognizedCommandVariable(expression, recognizedVariables);
     }
 
     private boolean isSupportedCommandGatewayDispatch(MethodCallExpr call,
                                                         Set<ObjectCreationExpr> recognizedCommandCreations,
                                                         Set<VariableDeclarator> recognizedCommandVariables) {
-        if (!call.getNameAsString().equals("send") || call.getArguments().size() != 1 || call.getScope().isEmpty()) {
+        if (!(call.getNameAsString().equals("send") || call.getNameAsString().equals("sendAsync"))
+                || call.getArguments().size() != 1 || call.getScope().isEmpty()) {
             return false;
         }
 
@@ -362,8 +417,7 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
 
         try {
             var resolvedMethod = call.resolve();
-            return resolvedMethod.declaringType().getQualifiedName().equals(CommandGateway.class.getName())
-                    && resolvedMethod.getNumberOfParams() == 1
+            return resolvedMethod.getNumberOfParams() == 1
                     && resolvedMethod.getParam(0).getType().describe().equals(Command.class.getName())
                     && TypeUtils.isResolvedSubtypeOf(
                             call.getScope().orElseThrow().calculateResolvedType(), CommandGateway.class);
@@ -379,8 +433,13 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
         }
         try {
             NameExpr commandName = commandArgument.asNameExpr();
-            return commandName.resolve().toAst()
-                    .filter(VariableDeclarationExpr.class::isInstance)
+            Optional<Node> declarationNode = commandName.resolve().toAst();
+            if (declarationNode.filter(VariableDeclarator.class::isInstance).isPresent()) {
+                VariableDeclarator resolved = (VariableDeclarator) declarationNode.orElseThrow();
+                return recognizedCommandVariables.stream()
+                        .anyMatch(recognized -> sameDeclaration(recognized, resolved));
+            }
+            return declarationNode.filter(VariableDeclarationExpr.class::isInstance)
                     .map(VariableDeclarationExpr.class::cast)
                     .map(declaration -> declaration.getVariables().stream()
                             .filter(variable -> variable.getNameAsString().equals(commandName.getNameAsString()))
@@ -406,55 +465,392 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                 .equals(right.findCompilationUnit().flatMap(CompilationUnit::getStorage).map(CompilationUnit.Storage::getPath));
     }
 
-    private String inferAggregateKeyText(ObjectCreationExpr commandCreation) {
-        if (commandCreation.getArguments().size() < 3) {
-            return null;
+    private Optional<GenericCompensationTarget> resolveGenericCompensation(
+            ObjectCreationExpr creation,
+            ApplicationAnalysisState state,
+            ClassOrInterfaceDeclaration sagaDeclaration) {
+        if (creation.getArguments().size() != 3) {
+            return Optional.empty();
         }
-        Expression aggregateArgument = commandCreation.getArgument(2);
-        // Plain DTO variables stay type-only; this visitor only trusts directly visible key expressions.
-        if (!aggregateArgument.isLiteralExpr() && !aggregateArgument.isMethodCallExpr()) {
-            return null;
+        String serviceToken = resolveServiceToken(creation.getArgument(1)).orElse(null);
+        if (serviceToken == null) {
+            return Optional.empty();
         }
-        String text = aggregateArgument.toString();
-        return text == null || text.isBlank() ? null : text;
+        List<String> matchingAggregates = state.commandHandlers.stream()
+                .filter(handler -> simpleName(handler.getFqn())
+                        .equalsIgnoreCase(serviceToken + "CommandHandler"))
+                .flatMap(handler -> handler.getCommandDispatch().values().stream())
+                .map(CommandDispatchInfo::aggregateName)
+                .filter(name -> name != null)
+                .distinct()
+                .toList();
+        if (matchingAggregates.size() != 1) {
+            return Optional.empty();
+        }
+        AggregateKeyResolution key = resolveAggregateKey(
+                creation, Command.class.getName(), state, sagaDeclaration);
+        if (key.text() == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new GenericCompensationTarget(matchingAggregates.get(0), key));
     }
 
-    private StepDispatchFootprint.AggregateKeyConfidence inferAggregateKeyConfidence(ObjectCreationExpr commandCreation) {
-        if (commandCreation.getArguments().size() < 3) {
-            return null;
+    private Optional<String> resolveServiceToken(Expression expression) {
+        Expression source = unwrap(expression);
+        if (source.isStringLiteralExpr()) {
+            return Optional.of(source.asStringLiteralExpr().asString());
         }
-        Expression aggregateArgument = commandCreation.getArgument(2);
-        // Keep the same conservative scope as inferAggregateKeyText.
-        if (!aggregateArgument.isLiteralExpr() && !aggregateArgument.isMethodCallExpr()) {
-            return null;
+        if (!source.isMethodCallExpr()) {
+            return Optional.empty();
         }
-        return aggregateArgument.isLiteralExpr()
-                ? StepDispatchFootprint.AggregateKeyConfidence.EXACT
-                : StepDispatchFootprint.AggregateKeyConfidence.SYMBOLIC;
+        MethodCallExpr call = source.asMethodCallExpr();
+        if (!call.getNameAsString().equals("getServiceName")
+                || !call.getArguments().isEmpty() || call.getScope().isEmpty()) {
+            return Optional.empty();
+        }
+        Expression scope = unwrap(call.getScope().orElseThrow());
+        if (scope.isFieldAccessExpr()) {
+            return Optional.of(scope.asFieldAccessExpr().getNameAsString());
+        }
+        if (scope.isNameExpr()) {
+            return Optional.of(scope.asNameExpr().getNameAsString());
+        }
+        return Optional.empty();
     }
 
-    private Integer inferAggregateKeyConstructorArgumentIndex(ObjectCreationExpr commandCreation,
-                                                               ClassOrInterfaceDeclaration sagaDeclaration) {
-        if (commandCreation.getArguments().size() < 3 || sagaDeclaration == null) {
-            return null;
-        }
-        Expression aggregateArgument = commandCreation.getArgument(2);
-        if (!aggregateArgument.isNameExpr()) {
-            return null;
-        }
+    private void markUnresolvedCompensationPayload(SagaStepBuildingBlock stepBlock, String stepKey) {
+        String message = "cannot resolve compensation command target and aggregate key";
+        stepBlock.markDispatchAnalysisIncomplete(
+                DispatchPhase.COMPENSATION, "UNRESOLVED_COMPENSATION_PAYLOAD", message);
+        logger.warn("{} (step: {})", message, stepKey);
+    }
 
-        com.github.javaparser.ast.body.Parameter aggregateParameter;
+    private Set<MethodCallExpr> rootArgumentMethodCalls(ObjectCreationExpr creation,
+                                                         String commandTypeFqn,
+                                                         ApplicationAnalysisState state) {
+        CommandRootKeyPath rootPath;
+        if (Command.class.getName().equals(commandTypeFqn)) {
+            rootPath = creation.getArguments().size() == 3
+                    ? CommandRootKeyPath.baseCommand("Command") : null;
+        } else {
+            String signature = resolveCommandConstructorSignature(creation);
+            rootPath = signature == null ? null
+                    : state.getCommandRootKeyPath(commandTypeFqn, signature).orElse(null);
+        }
+        if (rootPath == null || rootPath.literalText() != null
+                || rootPath.constructorParameterIndex() < 0
+                || rootPath.constructorParameterIndex() >= creation.getArguments().size()) {
+            return Set.of();
+        }
+        Expression root = unwrap(creation.getArgument(rootPath.constructorParameterIndex()));
+        if (root.isNullLiteralExpr()) {
+            return Set.of();
+        }
+        return root.findAll(MethodCallExpr.class).stream()
+                .filter(call -> callMayHideCommandDispatch(call) || !isOrdinaryGetter(call))
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private boolean isOrdinaryGetter(MethodCallExpr call) {
+        if (!call.getArguments().isEmpty()
+                || !(call.getNameAsString().matches("get[A-Z].*")
+                || call.getNameAsString().matches("is[A-Z].*"))) {
+            return false;
+        }
         try {
-            aggregateParameter = aggregateArgument.asNameExpr().resolve().toAst()
-                    .filter(com.github.javaparser.ast.body.Parameter.class::isInstance)
-                    .map(com.github.javaparser.ast.body.Parameter.class::cast)
-                    .orElse(null);
+            var resolved = call.resolve();
+            return !resolved.isStatic() && resolved.getNumberOfParams() == 0;
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private String simpleName(String fqn) {
+        if (fqn == null) {
+            return "";
+        }
+        int separator = fqn.lastIndexOf('.');
+        return separator < 0 ? fqn : fqn.substring(separator + 1);
+    }
+
+    private boolean callMayHideCommandDispatch(MethodCallExpr call) {
+        if (isCommandTypedInvocation(call)) {
+            return true;
+        }
+        try {
+            return call.resolve().toAst()
+                    .filter(MethodDeclaration.class::isInstance)
+                    .map(MethodDeclaration.class::cast)
+                    .map(method -> methodMayDispatchCommand(method, new LinkedHashSet<>()))
+                    .orElse(false);
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private boolean isCommandTypedInvocation(MethodCallExpr call) {
+        try {
+            if (call.getScope().isPresent()
+                    && TypeUtils.isResolvedSubtypeOf(
+                            call.getScope().orElseThrow().calculateResolvedType(), CommandGateway.class)
+                    && (call.getNameAsString().equals("send")
+                    || call.getNameAsString().equals("sendAsync"))) {
+                return true;
+            }
+            var resolved = call.resolve();
+            for (int index = 0; index < Math.min(resolved.getNumberOfParams(), call.getArguments().size()); index++) {
+                if (TypeUtils.isResolvedSubtypeOf(resolved.getParam(index).getType(), Command.class)
+                        || TypeUtils.isResolvedSubtypeOf(
+                        call.getArgument(index).calculateResolvedType(), Command.class)) {
+                    return true;
+                }
+            }
+        } catch (Exception ignored) {
+            // An unresolved ordinary call is not enough to claim a hidden dispatch.
+        }
+        return false;
+    }
+
+    private boolean methodMayDispatchCommand(MethodDeclaration method,
+                                             Set<MethodDeclaration> visited) {
+        if (!visited.add(method)) {
+            return false;
+        }
+        boolean directCreation = method.findAll(ObjectCreationExpr.class).stream().anyMatch(creation -> {
+            try {
+                return TypeUtils.isResolvedSubtypeOf(creation.getType().resolve(), Command.class);
+            } catch (Exception exception) {
+                return creation.getType().asString().endsWith("Command");
+            }
+        });
+        if (directCreation) {
+            return true;
+        }
+        return method.findAll(MethodCallExpr.class).stream().anyMatch(nested -> {
+            if (isCommandTypedInvocation(nested)) {
+                return true;
+            }
+            try {
+                return nested.resolve().toAst()
+                        .filter(MethodDeclaration.class::isInstance)
+                        .map(MethodDeclaration.class::cast)
+                        .map(candidate -> methodMayDispatchCommand(candidate, visited))
+                        .orElse(false);
+            } catch (Exception exception) {
+                return false;
+            }
+        });
+    }
+
+    private AggregateKeyResolution resolveAggregateKey(
+            ObjectCreationExpr commandCreation,
+            String commandTypeFqn,
+            ApplicationAnalysisState state,
+            ClassOrInterfaceDeclaration sagaDeclaration) {
+        CommandCreationRoot root = resolveCommandCreationRoot(commandCreation, commandTypeFqn, state);
+        if (root == null) {
+            return AggregateKeyResolution.unresolved();
+        }
+        Integer constructorIndex = root.sourceParameter() == null || sagaDeclaration == null
+                ? null
+                : inferAggregateKeyConstructorArgumentIndex(
+                        commandCreation, root.sourceParameter(), sagaDeclaration, state);
+        return new AggregateKeyResolution(
+                root.text(), root.confidence(), constructorIndex, root.propertyPath());
+    }
+
+    private CommandCreationRoot resolveCommandCreationRoot(
+            ObjectCreationExpr commandCreation,
+            String commandTypeFqn,
+            ApplicationAnalysisState state) {
+        CommandRootKeyPath rootPath;
+        if (Command.class.getName().equals(commandTypeFqn)) {
+            if (commandCreation.getArguments().size() != 3) {
+                return null;
+            }
+            rootPath = CommandRootKeyPath.baseCommand("Command");
+        } else {
+            String constructorSignature = resolveCommandConstructorSignature(commandCreation);
+            if (constructorSignature == null) {
+                return null;
+            }
+            rootPath = state.getCommandRootKeyPath(commandTypeFqn, constructorSignature).orElse(null);
+            if (rootPath == null) {
+                return null;
+            }
+        }
+
+        if (rootPath.literalText() != null) {
+            return new CommandCreationRoot(
+                    rootPath.literalText(),
+                    StepDispatchFootprint.AggregateKeyConfidence.EXACT,
+                    null,
+                    List.of());
+        }
+
+        int parameterIndex = rootPath.constructorParameterIndex();
+        if (parameterIndex < 0 || parameterIndex >= commandCreation.getArguments().size()) {
+            return null;
+        }
+        Expression source = unwrap(commandCreation.getArgument(parameterIndex));
+        if (source.isNullLiteralExpr()) {
+            return null;
+        }
+
+        if (isSupportedLiteralExpression(source)) {
+            if (!rootPath.propertyPath().isEmpty()) {
+                return null;
+            }
+            return new CommandCreationRoot(
+                    source.toString(),
+                    StepDispatchFootprint.AggregateKeyConfidence.EXACT,
+                    null,
+                    List.of());
+        }
+
+        if (!isSupportedSymbolicRootExpression(source)) {
+            return null;
+        }
+
+        Optional<SourceParameterPath> sourcePath = directSourceParameterPath(source);
+        List<String> propertyPath = new java.util.ArrayList<>();
+        sourcePath.ifPresent(path -> propertyPath.addAll(path.propertyPath()));
+        propertyPath.addAll(rootPath.propertyPath());
+
+        String text = source.toString();
+        for (String property : rootPath.propertyPath()) {
+            text += "." + property;
+        }
+        if (text.isBlank()) {
+            return null;
+        }
+        return new CommandCreationRoot(
+                text,
+                StepDispatchFootprint.AggregateKeyConfidence.SYMBOLIC,
+                sourcePath.map(SourceParameterPath::parameter).orElse(null),
+                propertyPath);
+    }
+
+    private boolean isSupportedLiteralExpression(Expression expression) {
+        Expression unwrapped = unwrap(expression);
+        if (unwrapped.isLiteralExpr()) {
+            return true;
+        }
+        if (!unwrapped.isUnaryExpr()) {
+            return false;
+        }
+        var unary = unwrapped.asUnaryExpr();
+        if (unary.getOperator() != UnaryExpr.Operator.PLUS
+                && unary.getOperator() != UnaryExpr.Operator.MINUS) {
+            return false;
+        }
+        Expression operand = unwrap(unary.getExpression());
+        return operand.isIntegerLiteralExpr()
+                || operand.isLongLiteralExpr()
+                || operand.isDoubleLiteralExpr();
+    }
+
+    private boolean isSupportedSymbolicRootExpression(Expression expression) {
+        Expression unwrapped = unwrap(expression);
+        if (unwrapped.isNameExpr()) {
+            try {
+                unwrapped.asNameExpr().resolve();
+                return true;
+            } catch (Exception exception) {
+                return false;
+            }
+        }
+        if (unwrapped.isThisExpr()) {
+            return true;
+        }
+        if (unwrapped.isFieldAccessExpr()) {
+            try {
+                unwrapped.asFieldAccessExpr().resolve();
+                return isSupportedSymbolicRootExpression(unwrapped.asFieldAccessExpr().getScope());
+            } catch (Exception exception) {
+                return false;
+            }
+        }
+        if (unwrapped.isMethodCallExpr()) {
+            MethodCallExpr call = unwrapped.asMethodCallExpr();
+            if (getterProperty(call.getNameAsString()) == null
+                    || !call.getArguments().isEmpty()
+                    || call.getScope().isEmpty()
+                    || !isSupportedSymbolicRootExpression(call.getScope().orElseThrow())) {
+                return false;
+            }
+            try {
+                var resolved = call.resolve();
+                return !resolved.isStatic() && resolved.getNumberOfParams() == 0;
+            } catch (Exception exception) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private String resolveCommandConstructorSignature(ObjectCreationExpr commandCreation) {
+        try {
+            return commandCreation.resolve().getQualifiedSignature();
         } catch (Exception exception) {
             return null;
         }
-        if (aggregateParameter == null) {
+    }
+
+    private Expression unwrap(Expression expression) {
+        Expression result = expression;
+        while (result.isEnclosedExpr()) {
+            result = result.asEnclosedExpr().getInner();
+        }
+        return result;
+    }
+
+    private Optional<SourceParameterPath> directSourceParameterPath(Expression expression) {
+        Expression unwrapped = unwrap(expression);
+        if (unwrapped.isNameExpr()) {
+            try {
+                return unwrapped.asNameExpr().resolve().toAst()
+                        .filter(Parameter.class::isInstance)
+                        .map(Parameter.class::cast)
+                        .map(parameter -> new SourceParameterPath(parameter, List.of()));
+            } catch (Exception exception) {
+                return Optional.empty();
+            }
+        }
+        if (unwrapped.isMethodCallExpr()) {
+            MethodCallExpr call = unwrapped.asMethodCallExpr();
+            String property = getterProperty(call.getNameAsString());
+            if (property == null || !call.getArguments().isEmpty() || call.getScope().isEmpty()) {
+                return Optional.empty();
+            }
+            return directSourceParameterPath(call.getScope().orElseThrow())
+                    .map(path -> path.append(property));
+        }
+        if (unwrapped.isFieldAccessExpr()) {
+            var access = unwrapped.asFieldAccessExpr();
+            return directSourceParameterPath(access.getScope())
+                    .map(path -> path.append(access.getNameAsString()));
+        }
+        return Optional.empty();
+    }
+
+    private String getterProperty(String methodName) {
+        String suffix;
+        if (methodName.matches("get[A-Z].*")) {
+            suffix = methodName.substring(3);
+        } else if (methodName.matches("is[A-Z].*")) {
+            suffix = methodName.substring(2);
+        } else {
             return null;
         }
+        return Character.toLowerCase(suffix.charAt(0)) + suffix.substring(1);
+    }
+
+    private Integer inferAggregateKeyConstructorArgumentIndex(
+            ObjectCreationExpr commandCreation,
+            Parameter aggregateParameter,
+            ClassOrInterfaceDeclaration sagaDeclaration,
+            ApplicationAnalysisState state) {
 
         Optional<ConstructorDeclaration> declaringConstructor = aggregateParameter.findAncestor(ConstructorDeclaration.class);
         MethodDeclaration declaringMethod = aggregateParameter.findAncestor(MethodDeclaration.class).orElse(null);
@@ -473,6 +869,7 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                     commandCreation,
                     declaringMethod,
                     methodParameterIndex,
+                    state,
                     new LinkedHashSet<>());
             if (!resolution.applicable()) {
                 continue;
@@ -493,6 +890,7 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
             ObjectCreationExpr commandCreation,
             MethodDeclaration declaringMethod,
             int methodParameterIndex,
+            ApplicationAnalysisState state,
             Set<ConstructorDeclaration> activePath) {
         if (!activePath.add(constructor)) {
             return new ConstructorIndexResolution(true, null);
@@ -522,7 +920,7 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                     .toList();
             applicable = !directCommands.isEmpty();
             for (ObjectCreationExpr directCommand : directCommands) {
-                Integer index = directConstructorAggregateKeyIndex(directCommand);
+                Integer index = directConstructorAggregateKeyIndex(directCommand, state);
                 if (index == null) {
                     return new ConstructorIndexResolution(true, null);
                 }
@@ -541,7 +939,7 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                 return new ConstructorIndexResolution(true, null);
             }
             ConstructorIndexResolution downstream = resolveConstructorEntryIndex(
-                    target, commandCreation, declaringMethod, methodParameterIndex, activePath);
+                    target, commandCreation, declaringMethod, methodParameterIndex, state, activePath);
             if (downstream.applicable()) {
                 applicable = true;
                 if (downstream.index() == null
@@ -623,16 +1021,61 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                 .orElse(null);
     }
 
-    private Integer directConstructorAggregateKeyIndex(ObjectCreationExpr commandCreation) {
-        if (commandCreation.getArguments().size() < 3
-                || !commandCreation.getArgument(2).isNameExpr()) {
+    private Integer directConstructorAggregateKeyIndex(ObjectCreationExpr commandCreation,
+                                                       ApplicationAnalysisState state) {
+        String commandTypeFqn;
+        try {
+            commandTypeFqn = commandCreation.getType().resolve().describe();
+        } catch (Exception exception) {
+            return null;
+        }
+        CommandCreationRoot root = resolveCommandCreationRoot(commandCreation, commandTypeFqn, state);
+        if (root == null || root.sourceParameter() == null) {
             return null;
         }
         ConstructorDeclaration constructor = commandCreation.findAncestor(ConstructorDeclaration.class)
                 .orElse(null);
-        return constructor == null
-                ? null
-                : constructorParameterIndex(commandCreation.getArgument(2), constructor);
+        if (constructor == null || !constructor.getParameters().contains(root.sourceParameter())) {
+            return null;
+        }
+        int index = constructor.getParameters().indexOf(root.sourceParameter());
+        return index < 0 ? null : index;
+    }
+
+    private record CommandCreationRoot(
+            String text,
+            StepDispatchFootprint.AggregateKeyConfidence confidence,
+            Parameter sourceParameter,
+            List<String> propertyPath) {
+        private CommandCreationRoot {
+            propertyPath = propertyPath == null ? List.of() : List.copyOf(propertyPath);
+        }
+    }
+
+    private record AggregateKeyResolution(
+            String text,
+            StepDispatchFootprint.AggregateKeyConfidence confidence,
+            Integer sagaConstructorArgumentIndex,
+            List<String> propertyPath) {
+        private AggregateKeyResolution {
+            propertyPath = propertyPath == null ? List.of() : List.copyOf(propertyPath);
+        }
+
+        private static AggregateKeyResolution unresolved() {
+            return new AggregateKeyResolution(null, null, null, List.of());
+        }
+    }
+
+    private record SourceParameterPath(Parameter parameter, List<String> propertyPath) {
+        private SourceParameterPath {
+            propertyPath = propertyPath == null ? List.of() : List.copyOf(propertyPath);
+        }
+
+        private SourceParameterPath append(String property) {
+            List<String> path = new java.util.ArrayList<>(propertyPath);
+            path.add(property);
+            return new SourceParameterPath(parameter, path);
+        }
     }
 
     private DispatchMultiplicity inferDispatchMultiplicity(ObjectCreationExpr creation) {
@@ -838,5 +1281,10 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                                         stepKey, DispatchPhase.COMPENSATION);
                             });
                 }));
+    }
+
+    private record GenericCompensationTarget(
+            String aggregateName,
+            AggregateKeyResolution aggregateKey) {
     }
 }

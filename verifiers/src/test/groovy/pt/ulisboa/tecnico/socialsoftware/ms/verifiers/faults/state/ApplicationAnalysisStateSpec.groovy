@@ -127,6 +127,32 @@ class ApplicationAnalysisStateSpec extends Specification {
         pairs.first().left().producerReference() == pairs.first().right().producerReference()
     }
 
+    def "command getter suffix is preserved in source aggregate-key evidence"() {
+        given:
+        def state = new ApplicationAnalysisState()
+        def saga = new SagaFunctionalityBuildingBlock(null, 'demo', 'a.Saga')
+        def step = new SagaStepBuildingBlock(null, 'demo', 'a.Saga::step', 'step')
+        step.addDispatch(new StepDispatchFootprint(
+                'a.Saga::step', 'demo.Command', 'Item', AccessPolicy.WRITE,
+                DispatchPhase.FORWARD,
+                new DispatchMultiplicity(DispatchMultiplicityKind.SINGLE, 1),
+                'itemDto.aggregateId', StepDispatchFootprint.AggregateKeyConfidence.SYMBOLIC,
+                1, ['aggregateId']))
+        saga.addStep(step)
+        state.sagas.add(saga)
+        def wholeDto = new GroovySourceValueReference(
+                'demo.Spec:10:5:createItem', 'createItem', [])
+        state.groovyFullTraceResults.add(trace('a.Saga', 'item', wholeDto))
+
+        when:
+        def evidence = state.sourceAggregateKeyInputEvidence()
+
+        then:
+        evidence.size() == 1
+        evidence.first().producerReference().occurrenceId() == wholeDto.occurrenceId()
+        evidence.first().producerReference().propertyPath() == ['aggregateId']
+    }
+
     private static GroovyFullTraceResult trace(String sagaFqn,
                                                String binding,
                                                GroovySourceValueReference reference) {

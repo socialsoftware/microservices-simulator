@@ -59,9 +59,13 @@ the exact persisted input id while leaving the matching rules unchanged.
 - exact attribution remains step- and test-aware and reader accounting reconciles;
 - the bounded before/after evidence explains which input/workload claims became stronger.
 
+## Completed qualification — Correct static interaction selection
+
+**Status: complete (2026-09-02).** Command aggregate roots now come from constructor semantics rather than an argument position. Strict multi-Saga selection requires two-sided semantic access evidence and positive exact or same-source input evidence. Typed `SagaCommand` wrappers and justified generic compensation accesses are covered without duplicate forward accesses. The bounded Quizzes comparison reconciles every size-1/2/3 accounting equation while leaving input acceptance and materializability unchanged. The next priority remains improving materializability.
+
 ## Outcome 1 — Improve useful input coverage
 
-**Status:** The source-derived shared-setup vertical slice is complete for one representative Remove/Add fixture shape; broader input families remain outcome work.
+**Status: next priority.** The source-derived shared-setup vertical slice is complete for one representative Remove/Add fixture shape; broader input families remain outcome work.
 
 ### Goal
 

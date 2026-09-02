@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceAggregateKeyInputEvidence;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +19,14 @@ public final class InputTupleJoiner {
     }
 
     public static Result join(List<String> sagaOrder, Map<String, List<InputVariant>> inputsBySaga) {
+        return join(sagaOrder, inputsBySaga, List.of(), List.of(), InputTupleSelection.Mode.ALL);
+    }
+
+    public static Result join(List<String> sagaOrder,
+                              Map<String, List<InputVariant>> inputsBySaga,
+                              List<ConflictGraphBuilder.ConflictCandidate> conflictCandidates,
+                              List<SourceAggregateKeyInputEvidence> sourceEvidence,
+                              InputTupleSelection.Mode mode) {
         List<String> orderedSagas = sagaOrder == null ? List.of() : sagaOrder.stream()
                 .filter(Objects::nonNull)
                 .distinct()
@@ -35,7 +44,7 @@ public final class InputTupleJoiner {
             return new Result(List.of(), Collections.unmodifiableMap(counts), List.copyOf(warnings));
         }
 
-        List<List<InputVariant>> candidates = new ArrayList<>();
+        List<List<InputVariant>> inputCandidates = new ArrayList<>();
         for (String sagaFqn : orderedSagas) {
             List<InputVariant> sagaInputs = inputsBySaga == null ? null : inputsBySaga.get(sagaFqn);
             if (sagaInputs == null || sagaInputs.isEmpty()) {
@@ -45,16 +54,19 @@ public final class InputTupleJoiner {
                 counts.put("inputTuplesDeduplicated", 0);
                 return new Result(List.of(), Collections.unmodifiableMap(counts), List.copyOf(warnings));
             }
-            candidates.add(new ArrayList<>(sagaInputs));
+            inputCandidates.add(new ArrayList<>(sagaInputs));
         }
 
-        candidates.forEach(list -> list.sort(Comparator
+        inputCandidates.forEach(list -> list.sort(Comparator
                 .comparing(InputVariant::deterministicId, Comparator.nullsFirst(String::compareTo))
                 .thenComparing(InputVariant::sourceClassFqn, Comparator.nullsFirst(String::compareTo))
                 .thenComparing(InputVariant::sourceMethodName, Comparator.nullsFirst(String::compareTo))));
 
         int[] counters = new int[2];
-        buildTuples(candidates, 0, new ArrayList<>(), tuples, counters);
+        buildTuples(orderedSagas, inputCandidates, 0, new ArrayList<>(), tuples, counters,
+                conflictCandidates == null ? List.of() : conflictCandidates,
+                sourceEvidence == null ? List.of() : sourceEvidence,
+                mode == null ? InputTupleSelection.Mode.ALL : mode);
 
         List<InputTuple> orderedTuples = tuples.values().stream()
                 .sorted(Comparator.comparing(InputTuple::signature))
@@ -67,13 +79,20 @@ public final class InputTupleJoiner {
         return new Result(List.copyOf(orderedTuples), Collections.unmodifiableMap(counts), List.copyOf(warnings));
     }
 
-    private static void buildTuples(List<List<InputVariant>> candidates,
+    private static void buildTuples(List<String> sagaOrder,
+                                    List<List<InputVariant>> candidates,
                                     int index,
                                     List<InputVariant> current,
                                     LinkedHashMap<String, InputTuple> tuples,
-                                    int[] counters) {
+                                    int[] counters,
+                                    List<ConflictGraphBuilder.ConflictCandidate> conflictCandidates,
+                                    List<SourceAggregateKeyInputEvidence> sourceEvidence,
+                                    InputTupleSelection.Mode mode) {
         if (index == candidates.size()) {
             counters[0]++;
+            if (!InputTupleSelection.selected(sagaOrder, current, conflictCandidates, sourceEvidence, mode)) {
+                return;
+            }
             String signature = signature(current);
             InputTuple existing = tuples.get(signature);
             InputTuple tuple = new InputTuple(List.copyOf(current), signature, mergeWarnings(current));
@@ -88,59 +107,11 @@ public final class InputTupleJoiner {
 
         List<InputVariant> sagaCandidates = candidates.get(index);
         for (InputVariant candidate : sagaCandidates) {
-            if (!compatible(current, candidate)) {
-                continue;
-            }
             current.add(candidate);
-            buildTuples(candidates, index + 1, current, tuples, counters);
+            buildTuples(sagaOrder, candidates, index + 1, current, tuples, counters,
+                    conflictCandidates, sourceEvidence, mode);
             current.remove(current.size() - 1);
         }
-    }
-
-    private static boolean compatible(List<InputVariant> current, InputVariant candidate) {
-        Map<String, String> candidateBindings = knownExactBindings(candidate);
-        if (candidateBindings.isEmpty()) {
-            return true;
-        }
-
-        for (InputVariant existing : current) {
-            Map<String, String> existingBindings = knownExactBindings(existing);
-            if (existingBindings.isEmpty()) {
-                continue;
-            }
-
-            for (Map.Entry<String, String> candidateEntry : candidateBindings.entrySet()) {
-                String bindingKey = candidateEntry.getKey();
-                String candidateValue = candidateEntry.getValue();
-                String existingValue = existingBindings.get(bindingKey);
-                if (existingValue == null || candidateValue == null) {
-                    continue;
-                }
-                if (!existingValue.equals(candidateValue)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    private static Map<String, String> knownExactBindings(InputVariant inputVariant) {
-        LinkedHashMap<String, String> bindings = new LinkedHashMap<>();
-        if (inputVariant == null || inputVariant.logicalKeyBindings() == null || inputVariant.logicalKeyBindings().isEmpty()) {
-            return bindings;
-        }
-
-        for (Map.Entry<String, String> entry : inputVariant.logicalKeyBindings().entrySet()) {
-            String bindingKey = normalize(entry.getKey());
-            String bindingValue = normalize(entry.getValue());
-            if (bindingKey == null || bindingValue == null) {
-                continue;
-            }
-            bindings.put(bindingKey, bindingValue);
-        }
-
-        return bindings;
     }
 
     private static String signature(List<InputVariant> inputs) {

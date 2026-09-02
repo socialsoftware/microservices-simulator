@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.Acces
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchPhase
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchMultiplicityKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaFunctionalityBuildingBlock
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
@@ -124,9 +125,9 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
         forwardDispatches.size() == 1
         forwardDispatches.first().accessPolicy() == AccessPolicy.READ
         !step.isDispatchAnalysisComplete(DispatchPhase.FORWARD)
-        step.analysisDiagnostics.findAll { it.phase() == DispatchPhase.FORWARD }*.code() == ['UNANALYZED_METHOD_CALL']
-        step.analysisDiagnostics.find { it.code() == 'UNANALYZED_METHOD_CALL' }.message() ==
-                'cannot prove effects of helper call updateItemThroughHelper'
+        step.analysisDiagnostics.findAll { it.phase() == DispatchPhase.FORWARD }*.code() == ['UNRESOLVED_COMMAND_DISPATCH']
+        step.analysisDiagnostics.find { it.code() == 'UNRESOLVED_COMMAND_DISPATCH' }.message() ==
+                'cannot resolve command dispatch through call updateItemThroughHelper'
     }
 
     def "constructor helper and unsupported send shapes remain conservative"() {
@@ -140,16 +141,148 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
             assert forwardDispatches.size() == 1
             assert forwardDispatches.first().accessPolicy() == AccessPolicy.READ
             assert !step.isDispatchAnalysisComplete(DispatchPhase.FORWARD)
-            assert step.analysisDiagnostics.findAll { it.phase() == DispatchPhase.FORWARD }*.code() == ['UNANALYZED_METHOD_CALL']
+            assert step.analysisDiagnostics.findAll { it.phase() == DispatchPhase.FORWARD }*.code() == [
+                    stepName == 'constructorKeyHelperStep'
+                            ? 'UNRESOLVED_AGGREGATE_KEY'
+                            : 'UNRESOLVED_COMMAND_DISPATCH'
+            ]
         }
 
         and:
         saga.steps.find { it.name == 'constructorKeyHelperStep' }.analysisDiagnostics.first().message() ==
-                'cannot prove effects of helper call getAndUpdateItemKey'
+                'cannot resolve aggregate key from call getAndUpdateItemKey'
         ['overloadedGatewayStep', 'unrelatedSendStep', 'mismatchedCommandBindingStep'].each { stepName ->
             assert saga.steps.find { it.name == stepName }.analysisDiagnostics.first().message() ==
-                    'cannot prove effects of helper call send'
+                    'cannot resolve command dispatch through call send'
         }
+    }
+
+    def "SagaCommand is transparent and generic compensation retains recovery evidence"() {
+        given:
+        def saga = analyzeSyntheticSaga('WrappedGenericCompensationSaga', '''
+            private CommandGateway gateway;
+
+            public WrappedGenericCompensationSaga(SagaUnitOfWorkService service,
+                    CommandGateway gateway, ItemDto itemDto, Integer itemAggregateId,
+                    SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                this.gateway = gateway;
+                SagaStep step = new SagaStep("wrappedStep", () -> {
+                    GetItemCommand payload = new GetItemCommand(unitOfWork, "Item", itemAggregateId);
+                    SagaCommand wrapper = new SagaCommand(payload);
+                    wrapper.setSemanticLock(null);
+                    gateway.send(wrapper);
+                });
+                step.registerCompensation(() -> {
+                    Command payload = new Command(unitOfWork, "Item", itemAggregateId);
+                    SagaCommand wrapper = new SagaCommand(payload);
+                    wrapper.setForbiddenStates(new ArrayList<>());
+                    gateway.send(wrapper);
+                }, unitOfWork);
+            }
+        ''')
+        def step = saga.steps.find { it.name == 'wrappedStep' }
+
+        expect: 'the typed payload is recorded once and the bare payload describes compensation'
+        step.dispatches.size() == 2
+        step.dispatches.count { it.phase() == DispatchPhase.FORWARD } == 1
+        step.dispatches.count { it.phase() == DispatchPhase.COMPENSATION } == 1
+        with(step.dispatches.find { it.phase() == DispatchPhase.FORWARD }) {
+            commandTypeFqn().endsWith('.GetItemCommand')
+            aggregateName() == 'Item'
+            aggregateKeyText() == 'itemAggregateId'
+        }
+        with(step.dispatches.find { it.phase() == DispatchPhase.COMPENSATION }) {
+            commandTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command'
+            aggregateName() == 'Item'
+            accessPolicy() == AccessPolicy.WRITE
+            aggregateKeyText() == 'itemAggregateId'
+        }
+
+        and: 'wrapper configuration and gateway plumbing add no limitations'
+        step.analysisDiagnostics.isEmpty()
+        step.compensationRegistered
+        step.isDispatchAnalysisComplete(DispatchPhase.COMPENSATION)
+    }
+
+    def "one unresolved generic compensation payload produces one useful limitation"() {
+        given:
+        def saga = analyzeSyntheticSaga('UnresolvedGenericCompensationSaga', '''
+            private CommandGateway gateway;
+
+            public UnresolvedGenericCompensationSaga(SagaUnitOfWorkService service,
+                    CommandGateway gateway, Integer itemAggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                this.gateway = gateway;
+                SagaStep step = new SagaStep("unresolvedCompensationStep", () -> { });
+                step.registerCompensation(() -> {
+                    Command payload = new Command(unitOfWork, serviceName(), itemAggregateId);
+                    SagaCommand wrapper = new SagaCommand(payload);
+                    wrapper.setSemanticLock(null);
+                    gateway.send(wrapper);
+                }, unitOfWork);
+            }
+
+            private String serviceName() { return "Item"; }
+        ''')
+        def step = saga.steps.find { it.name == 'unresolvedCompensationStep' }
+
+        expect:
+        step.dispatches.findAll { it.phase() == DispatchPhase.COMPENSATION }.isEmpty()
+        step.analysisDiagnostics.findAll { it.phase() == DispatchPhase.COMPENSATION }*.code() ==
+                ['UNRESOLVED_COMPENSATION_PAYLOAD']
+        step.analysisDiagnostics.first().message() ==
+                'cannot resolve compensation command target and aggregate key'
+    }
+
+    def "ordinary accessors mutations and collection plumbing do not create limitations"() {
+        given:
+        def saga = analyzeSyntheticSaga('OrdinaryCallSaga', '''
+            private CommandGateway gateway;
+
+            public OrdinaryCallSaga(SagaUnitOfWorkService service, CommandGateway gateway,
+                    ItemDto itemDto, Integer itemAggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                this.gateway = gateway;
+                SagaStep step = new SagaStep("ordinaryCallsStep", () -> {
+                    List<Integer> ids = new ArrayList<>();
+                    ids.add(itemAggregateId);
+                    ids.get(0);
+                    itemDto.setAggregateId(itemDto.getAggregateId());
+                    GetItemCommand payload = new GetItemCommand(unitOfWork, "Item", itemAggregateId);
+                    gateway.send(payload);
+                });
+            }
+        ''')
+
+        expect:
+        saga.steps.find { it.name == 'ordinaryCallsStep' }.analysisDiagnostics.isEmpty()
+    }
+
+    def "opaque helper that dispatches a command remains limited once"() {
+        given:
+        def saga = analyzeSyntheticSaga('OpaqueDispatchHelperSaga', '''
+            private CommandGateway gateway;
+
+            public OpaqueDispatchHelperSaga(SagaUnitOfWorkService service, CommandGateway gateway,
+                    Integer itemAggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                this.gateway = gateway;
+                SagaStep step = new SagaStep("opaqueHelperStep", () -> {
+                    dispatchThroughHelper(unitOfWork, itemAggregateId);
+                    dispatchThroughHelper(unitOfWork, itemAggregateId);
+                });
+            }
+
+            private void dispatchThroughHelper(SagaUnitOfWork unitOfWork, Integer itemAggregateId) {
+                gateway.send(new GetItemCommand(unitOfWork, "Item", itemAggregateId));
+            }
+        ''')
+        def diagnostics = saga.steps.find { it.name == 'opaqueHelperStep' }.analysisDiagnostics
+
+        expect:
+        diagnostics*.code() == ['UNRESOLVED_COMMAND_DISPATCH']
+        diagnostics.first().message() == 'cannot resolve command dispatch through call dispatchThroughHelper'
     }
 
     def "direct read command plumbing and nested key getter remain complete"() {
@@ -182,8 +315,135 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
 
         expect:
         dispatch.aggregateName() == 'Item'
-        dispatch.aggregateKeyText() == null
+        dispatch.aggregateKeyText() == 'itemAggregateId'
+        dispatch.aggregateKeyConfidence() == StepDispatchFootprint.AggregateKeyConfidence.SYMBOLIC
         dispatch.aggregateKeyConstructorArgumentIndex() == 1
+    }
+
+    def "semantic command definitions select only their real root key"() {
+        given:
+        def saga = analyzeSyntheticSaga('SemanticRootKeyFunctionalitySagas', '''
+            public SemanticRootKeyFunctionalitySagas(SagaUnitOfWorkService service,
+                    ItemDto itemDto, Integer itemAggregateId, Integer relatedAggregateId,
+                    SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                buildWorkflow(itemDto, itemAggregateId, relatedAggregateId, unitOfWork);
+            }
+
+            private void buildWorkflow(ItemDto itemDto, Integer itemAggregateId,
+                    Integer relatedAggregateId, SagaUnitOfWork unitOfWork) {
+                SagaStep reorderedStep = new SagaStep("semanticReorderedStep", () -> {
+                    new SemanticRootItemCommand(unitOfWork, relatedAggregateId, "Item", itemAggregateId);
+                });
+                SagaStep getterStep = new SagaStep("semanticGetterStep", () -> {
+                    new SemanticRootItemCommand(unitOfWork, "Item", itemDto);
+                });
+                SagaStep delegatedStep = new SagaStep("semanticDelegatedStep", () -> {
+                    new SemanticRootItemCommand(unitOfWork, "Item", itemAggregateId, true);
+                });
+                SagaStep literalStep = new SagaStep("semanticLiteralStep", () -> {
+                    new SemanticRootItemCommand(unitOfWork, "Item", 1L);
+                });
+                SagaStep signedDefinitionNegativeStep = new SagaStep("semanticSignedDefinitionNegativeStep", () -> {
+                    new SemanticRootItemCommand(unitOfWork, "Item", 1.0f);
+                });
+                SagaStep signedDefinitionPositiveStep = new SagaStep("semanticSignedDefinitionPositiveStep", () -> {
+                    new SemanticRootItemCommand(unitOfWork, "Item", 1.0d);
+                });
+                SagaStep directLiteralStep = new SagaStep("semanticDirectLiteralStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", 73, null);
+                });
+                SagaStep signedCreationNegativeStep = new SagaStep("semanticSignedCreationNegativeStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", -73, null);
+                });
+                SagaStep signedCreationPositiveStep = new SagaStep("semanticSignedCreationPositiveStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", +74, null);
+                });
+                SagaStep localAliasStep = new SagaStep("semanticLocalAliasStep", () -> {
+                    Integer localAlias = itemAggregateId;
+                    new UpdateItemCommand(unitOfWork, "Item", localAlias, null);
+                });
+                SagaStep nullStep = new SagaStep("semanticNullStep", () -> {
+                    new SemanticRootItemCommand(unitOfWork, "Item");
+                });
+                SagaStep unsupportedStep = new SagaStep("semanticUnsupportedStep", () -> {
+                    new SemanticRootItemCommand(unitOfWork, "Item", itemAggregateId, "unsupported");
+                });
+                SagaStep creationTransformStep = new SagaStep("semanticCreationTransformStep", () -> {
+                    new UpdateItemCommand(unitOfWork, "Item", normalize(itemAggregateId), null);
+                });
+                SagaStep ambiguousStep = new SagaStep("semanticAmbiguousStep", () -> {
+                    new SemanticRootItemCommand(unitOfWork, "Item", itemAggregateId, 'a');
+                });
+            }
+
+            private Integer normalize(Integer itemAggregateId) {
+                return itemAggregateId;
+            }
+        ''')
+        def dispatch = { String stepName -> saga.steps.find { it.name == stepName }.dispatches.first() }
+
+        expect: 'the fourth public constructor argument wins over the unrelated second argument'
+        with(dispatch('semanticReorderedStep')) {
+            aggregateKeyText() == 'itemAggregateId'
+            aggregateKeyConfidence() == StepDispatchFootprint.AggregateKeyConfidence.SYMBOLIC
+            aggregateKeyConstructorArgumentIndex() == 2
+            aggregateKeyPropertyPath().isEmpty()
+        }
+
+        and: 'a getter in the command definition remains a canonical source-key suffix'
+        with(dispatch('semanticGetterStep')) {
+            aggregateKeyText() == 'itemDto.aggregateId'
+            aggregateKeyConfidence() == StepDispatchFootprint.AggregateKeyConfidence.SYMBOLIC
+            aggregateKeyConstructorArgumentIndex() == 1
+            aggregateKeyPropertyPath() == ['aggregateId']
+        }
+
+        and: 'one explicit command-constructor delegation is followed'
+        with(dispatch('semanticDelegatedStep')) {
+            aggregateKeyText() == 'itemAggregateId'
+            aggregateKeyConstructorArgumentIndex() == 2
+        }
+
+        and: 'literal roots are exact while null and unsupported transforms remain type-only'
+        with(dispatch('semanticLiteralStep')) {
+            aggregateKeyText() == '41'
+            aggregateKeyConfidence() == StepDispatchFootprint.AggregateKeyConfidence.EXACT
+            aggregateKeyConstructorArgumentIndex() == null
+        }
+        with(dispatch('semanticDirectLiteralStep')) {
+            aggregateKeyText() == '73'
+            aggregateKeyConfidence() == StepDispatchFootprint.AggregateKeyConfidence.EXACT
+            aggregateKeyConstructorArgumentIndex() == null
+        }
+        with(dispatch('semanticSignedDefinitionNegativeStep')) {
+            aggregateKeyText() == '-41'
+            aggregateKeyConfidence() == StepDispatchFootprint.AggregateKeyConfidence.EXACT
+        }
+        with(dispatch('semanticSignedDefinitionPositiveStep')) {
+            aggregateKeyText() == '+42'
+            aggregateKeyConfidence() == StepDispatchFootprint.AggregateKeyConfidence.EXACT
+        }
+        with(dispatch('semanticSignedCreationNegativeStep')) {
+            aggregateKeyText() == '-73'
+            aggregateKeyConfidence() == StepDispatchFootprint.AggregateKeyConfidence.EXACT
+        }
+        with(dispatch('semanticSignedCreationPositiveStep')) {
+            aggregateKeyText() == '+74'
+            aggregateKeyConfidence() == StepDispatchFootprint.AggregateKeyConfidence.EXACT
+        }
+        with(dispatch('semanticLocalAliasStep')) {
+            aggregateKeyText() == 'localAlias'
+            aggregateKeyConfidence() == StepDispatchFootprint.AggregateKeyConfidence.SYMBOLIC
+            aggregateKeyConstructorArgumentIndex() == null
+        }
+        ['semanticNullStep', 'semanticUnsupportedStep', 'semanticCreationTransformStep',
+         'semanticAmbiguousStep'].collect { stepName ->
+            def unresolved = dispatch(stepName)
+            [unresolved.aggregateKeyText(), unresolved.aggregateKeyConfidence(),
+             unresolved.aggregateKeyConstructorArgumentIndex(), unresolved.aggregateKeyPropertyPath()]
+        } == [[null, null, null, []], [null, null, null, []],
+              [null, null, null, []], [null, null, null, []]]
     }
 
     def "same-named overloads do not create aggregate-key constructor evidence"() {
@@ -449,10 +709,18 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
             package com.example.dummyapp.item.coordination;
 
             import com.example.dummyapp.item.commands.UpdateItemCommand;
+            import com.example.dummyapp.item.commands.GetItemCommand;
+            import com.example.dummyapp.item.commands.SemanticRootItemCommand;
+            import com.example.dummyapp.item.aggregate.ItemDto;
             import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+            import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+            import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
             import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
             import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
             import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
+            import java.util.ArrayList;
+            import java.util.List;
 
             public class ${className} extends WorkflowFunctionality {
                 private SagaUnitOfWorkService service;

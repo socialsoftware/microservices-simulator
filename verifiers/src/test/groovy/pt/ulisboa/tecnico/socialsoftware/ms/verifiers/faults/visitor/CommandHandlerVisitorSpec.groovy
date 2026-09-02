@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.AccessPolicy
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.CommandRootKeyPath
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
 import spock.lang.Shared
 
@@ -67,6 +68,41 @@ class CommandHandlerVisitorSpec extends VisitorTestSupport {
         dispatch.serviceMethodName() == 'createItem'
         dispatch.serviceClassName().contains('ItemService')
         dispatch.accessPolicy() == AccessPolicy.WRITE
+    }
+
+    def "indexes bounded semantic command root-key paths"() {
+        given:
+        def commandFqn = 'com.example.dummyapp.item.commands.SemanticRootItemCommand'
+        def paths = state.getCommandRootKeyPaths(commandFqn)
+
+        expect: 'null and unsupported constructors do not invent paths'
+        paths.size() == 6
+        paths.count { it.constructorParameterIndex() == 3 && it.propertyPath().isEmpty() } == 1
+        paths.count { it.constructorParameterIndex() == 2 && it.propertyPath().isEmpty() } == 1
+        paths.count { it.constructorParameterIndex() == 2 && it.propertyPath() == ['aggregateId'] } == 1
+        paths.count { it.literalText() == '41' } == 1
+        paths.count { it.literalText() == '-41' } == 1
+        paths.count { it.literalText() == '+42' } == 1
+    }
+
+    def "command root-key indexing is deterministic and file-order independent"() {
+        given:
+        def commandFqn = 'com.example.dummyapp.item.commands.SemanticRootItemCommand'
+        def expected = new ArrayList(state.getCommandRootKeyPaths(commandFqn)).sort { it.constructorSignature() }
+        def reversedState = new ApplicationAnalysisState()
+        parseAllDummyappFiles().reverseEach { cu -> commandHandlerVisitor.visit(cu, reversedState) }
+
+        expect:
+        new ArrayList(reversedState.getCommandRootKeyPaths(commandFqn)).sort { it.constructorSignature() } == expected
+    }
+
+    def "direct base Command retains its third-argument root contract"() {
+        expect:
+        with(CommandRootKeyPath.baseCommand('base')) {
+            constructorParameterIndex() == 2
+            propertyPath().isEmpty()
+            literalText() == null
+        }
     }
 
     def "CommandHandlerVisitor handles @Autowired service injection in ItemCommandHandler"() {

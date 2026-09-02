@@ -2,12 +2,18 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import org.slf4j.Logger;
@@ -16,15 +22,18 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.CommandDispatchInfo;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.CommandHandlerBuildingBlock;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.CommandRootKeyPath;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.ServiceBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.util.TypeUtils;
 
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Analyses CommandHandler subclasses to extract command dispatch mappings.
@@ -44,6 +53,9 @@ public class CommandHandlerVisitor extends VoidVisitorAdapter<ApplicationAnalysi
     @Override
     public void visit(CompilationUnit cu, ApplicationAnalysisState state) {
         cu.findFirst(ClassOrInterfaceDeclaration.class).ifPresent(decl -> {
+            if (TypeUtils.isSubclassOf(decl, Command.class)) {
+                indexCommandRootKeyPaths(decl, state);
+            }
             if (!TypeUtils.isSubclassOf(decl, CommandHandler.class)) {
                 return;
             }
@@ -71,6 +83,212 @@ public class CommandHandlerVisitor extends VoidVisitorAdapter<ApplicationAnalysi
             logger.info("CommandHandler {}: {}", fqn, block.getCommandDispatch());
         });
     }
+
+    /**
+     * Indexes command constructor semantics independently of handler discovery order.
+     * The complete command-handler pass finishes before workflow analysis starts, so a
+     * handler may be visited before or after the corresponding command declaration.
+     */
+    private void indexCommandRootKeyPaths(ClassOrInterfaceDeclaration declaration,
+                                          ApplicationAnalysisState state) {
+        String commandTypeFqn = declaration.getFullyQualifiedName().orElse(null);
+        if (commandTypeFqn == null) {
+            return;
+        }
+
+        declaration.getConstructors().stream()
+                .filter(ConstructorDeclaration::isPublic)
+                .forEach(constructor -> resolveCommandRootKeyPath(constructor, new LinkedHashSet<>())
+                        .map(path -> path.withSignature(CommandRootKeyPath.signature(constructor)))
+                        .ifPresent(path -> state.addCommandRootKeyPath(commandTypeFqn, path)));
+    }
+
+    private Optional<CommandRootKeyPath> resolveCommandRootKeyPath(
+            ConstructorDeclaration constructor,
+            Set<ConstructorDeclaration> activePath) {
+        if (!activePath.add(constructor)) {
+            return Optional.empty();
+        }
+
+        try {
+            Optional<ExplicitConstructorInvocationStmt> invocation = constructor.getBody().getStatements().stream()
+                    .filter(statement -> statement.isExplicitConstructorInvocationStmt())
+                    .map(statement -> statement.asExplicitConstructorInvocationStmt())
+                    .findFirst();
+            if (invocation.isEmpty()) {
+                return Optional.empty();
+            }
+
+            if (!invocation.get().isThis()) {
+                if (invocation.get().getArguments().size() != 3 || !resolvesCommandBaseConstructor(invocation.get())) {
+                    return Optional.empty();
+                }
+                return pathFromConstructorExpression(
+                        invocation.get().getArgument(2), constructor, CommandRootKeyPath.signature(constructor));
+            }
+
+            ConstructorDeclaration target = resolveDelegatedConstructor(invocation.get());
+            if (target == null) {
+                return Optional.empty();
+            }
+            Optional<CommandRootKeyPath> downstream = resolveCommandRootKeyPath(target, activePath);
+            if (downstream.isEmpty()) {
+                return Optional.empty();
+            }
+            if (downstream.get().literalText() != null) {
+                return Optional.of(CommandRootKeyPath.literal(
+                        CommandRootKeyPath.signature(constructor), downstream.get().literalText()));
+            }
+
+            int targetIndex = downstream.get().constructorParameterIndex();
+            if (targetIndex < 0 || targetIndex >= invocation.get().getArguments().size()) {
+                return Optional.empty();
+            }
+            Optional<CommandRootKeyPath> upstream = pathFromConstructorExpression(
+                    invocation.get().getArgument(targetIndex), constructor, CommandRootKeyPath.signature(constructor));
+            if (upstream.isEmpty() || upstream.get().literalText() != null) {
+                return upstream;
+            }
+
+            List<String> combinedProperties = new java.util.ArrayList<>(upstream.get().propertyPath());
+            combinedProperties.addAll(downstream.get().propertyPath());
+            if (combinedProperties.size() > 1) {
+                return Optional.empty();
+            }
+            return Optional.of(CommandRootKeyPath.parameter(
+                    CommandRootKeyPath.signature(constructor),
+                    upstream.get().constructorParameterIndex(),
+                    combinedProperties));
+        } finally {
+            activePath.remove(constructor);
+        }
+    }
+
+    private boolean resolvesCommandBaseConstructor(ExplicitConstructorInvocationStmt invocation) {
+        try {
+            return invocation.resolve().declaringType().getQualifiedName().equals(Command.class.getName());
+        } catch (Exception exception) {
+            logger.debug("Could not resolve command superclass constructor '{}': {}",
+                    invocation, exception.getMessage());
+            return false;
+        }
+    }
+
+    private Optional<CommandRootKeyPath> pathFromConstructorExpression(
+            Expression expression,
+            ConstructorDeclaration constructor,
+            String signature) {
+        Expression unwrapped = expression;
+        while (unwrapped.isEnclosedExpr()) {
+            unwrapped = unwrapped.asEnclosedExpr().getInner();
+        }
+        if (unwrapped.isNullLiteralExpr()) {
+            return Optional.empty();
+        }
+        if (isSupportedLiteralExpression(unwrapped)) {
+            return Optional.of(CommandRootKeyPath.literal(signature, unwrapped.toString()));
+        }
+
+        Optional<ParameterExpressionPath> parameterPath = directParameterExpressionPath(unwrapped, constructor);
+        return parameterPath.map(path -> CommandRootKeyPath.parameter(
+                signature, path.parameterIndex(), path.propertyPath()));
+    }
+
+    private boolean isSupportedLiteralExpression(Expression expression) {
+        Expression unwrapped = expression;
+        while (unwrapped.isEnclosedExpr()) {
+            unwrapped = unwrapped.asEnclosedExpr().getInner();
+        }
+        if (unwrapped.isLiteralExpr()) {
+            return true;
+        }
+        if (!unwrapped.isUnaryExpr()) {
+            return false;
+        }
+        var unary = unwrapped.asUnaryExpr();
+        if (unary.getOperator() != UnaryExpr.Operator.PLUS
+                && unary.getOperator() != UnaryExpr.Operator.MINUS) {
+            return false;
+        }
+        Expression operand = unary.getExpression();
+        return operand.isIntegerLiteralExpr()
+                || operand.isLongLiteralExpr()
+                || operand.isDoubleLiteralExpr();
+    }
+
+    private Optional<ParameterExpressionPath> directParameterExpressionPath(
+            Expression expression,
+            ConstructorDeclaration constructor) {
+        if (expression.isNameExpr()) {
+            Integer index = constructorParameterIndex(expression.asNameExpr(), constructor);
+            return index == null
+                    ? Optional.empty()
+                    : Optional.of(new ParameterExpressionPath(index, List.of()));
+        }
+
+        if (expression.isMethodCallExpr()) {
+            MethodCallExpr call = expression.asMethodCallExpr();
+            if (!call.getArguments().isEmpty() || call.getScope().isEmpty()) {
+                return Optional.empty();
+            }
+            String property = getterProperty(call.getNameAsString());
+            if (property == null) {
+                return Optional.empty();
+            }
+            return directParameterExpressionPath(call.getScope().orElseThrow(), constructor)
+                    .filter(path -> path.propertyPath().isEmpty())
+                    .map(path -> new ParameterExpressionPath(path.parameterIndex(), List.of(property)));
+        }
+
+        if (expression.isFieldAccessExpr()) {
+            FieldAccessExpr access = expression.asFieldAccessExpr();
+            return directParameterExpressionPath(access.getScope(), constructor)
+                    .filter(path -> path.propertyPath().isEmpty())
+                    .map(path -> new ParameterExpressionPath(
+                            path.parameterIndex(), List.of(access.getNameAsString())));
+        }
+
+        return Optional.empty();
+    }
+
+    private Integer constructorParameterIndex(NameExpr name, ConstructorDeclaration constructor) {
+        try {
+            return name.resolve().toAst()
+                    .filter(Parameter.class::isInstance)
+                    .map(Parameter.class::cast)
+                    .filter(constructor.getParameters()::contains)
+                    .map(constructor.getParameters()::indexOf)
+                    .filter(index -> index >= 0)
+                    .orElse(null);
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+
+    private String getterProperty(String methodName) {
+        String suffix;
+        if (methodName.matches("get[A-Z].*")) {
+            suffix = methodName.substring(3);
+        } else if (methodName.matches("is[A-Z].*")) {
+            suffix = methodName.substring(2);
+        } else {
+            return null;
+        }
+        return Character.toLowerCase(suffix.charAt(0)) + suffix.substring(1);
+    }
+
+    private ConstructorDeclaration resolveDelegatedConstructor(ExplicitConstructorInvocationStmt invocation) {
+        try {
+            return invocation.resolve().toAst()
+                    .filter(ConstructorDeclaration.class::isInstance)
+                    .map(ConstructorDeclaration.class::cast)
+                    .orElse(null);
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+
+    private record ParameterExpressionPath(int parameterIndex, List<String> propertyPath) { }
 
     /**
      * Phase A: Resolves service fields from both @Autowired field injection and constructor injection.

@@ -24,6 +24,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.Exe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogPackageReader
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchPhase
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -41,7 +42,7 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
     private static final String ADD =
             'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas'
 
-    def 'unmodified Remove Add test proves one shared Tournament producer without hiding weak footprints'() {
+    def 'unmodified Remove Add test proves one shared Tournament producer with semantic key footprints'() {
         given:
         Path applicationRoot = resolveProjectPath('applications', 'quizzes')
         configureQuizzesParser(applicationRoot)
@@ -88,6 +89,18 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
         }
         def adapted = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
         def targetDefinitions = adapted.sagaDefinitions().findAll { it.sagaFqn() in [REMOVE, ADD] }
+        def analysisLimitations = state.sagas.collectMany { saga ->
+            saga.steps.collectMany { step -> step.analysisDiagnostics.collect { diagnostic ->
+                [saga.fqn, step.name, diagnostic.phase(), diagnostic.code()]
+            } }
+        }.sort { left, right -> left.toString() <=> right.toString() }
+        def genericCompensations = state.sagas*.steps.flatten()*.dispatches.flatten().findAll {
+            it.phase() == DispatchPhase.COMPENSATION &&
+                    it.commandTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command'
+        }
+        def genericCompensationSignatures = genericCompensations.collect {
+            "${it.stepKey()}|${it.aggregateName()}|${it.aggregateKeyText()}".toString()
+        } as Set
 
         then: 'both map-returning helper inputs are recovered for every two-Saga feature in the ordinary test'
         targetTraces.count { it.sagaClassFqn == REMOVE } == 5
@@ -109,11 +122,61 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
                     it.left().producerReference() == it.right().producerReference()
         }
 
-        and: 'the source-supported join is additive; ordinary type-only footprints remain visible'
-        tournamentDispatches.every { it.aggregateKeyText() == null }
+        and: 'the semantic command path and source-supported join describe the same Tournament key'
+        tournamentDispatches.every { it.aggregateKeyText() == 'tournamentAggregateId' }
         targetDefinitions*.steps.flatten()*.footprints.flatten()
                 .findAll { it.aggregateKey()?.aggregateName() == 'Tournament' }
-                .every { it.aggregateKey().confidence() == FootprintConfidence.TYPE_ONLY }
+                .every { it.aggregateKey().confidence() == FootprintConfidence.SYMBOLIC }
+
+        and: 'wrapper plumbing is transparent and only genuinely unsupported Quizzes shapes remain limited'
+        genericCompensations.size() == 26
+        genericCompensationSignatures == [
+                'AnonymizeStudentFunctionalitySagas::getCourseExecutionStep|Execution|executionAggregateId',
+                'AnswerQuestionFunctionalitySagas::getQuestionStep|Question|this.questionDto.getAggregateId()',
+                'AnswerQuestionFunctionalitySagas::getQuizAnswerStep|Quiz|this.quizAnswer.getAggregateId()',
+                'CancelTournamentFunctionalitySagas::getTournamentStep|Tournament|tournamentAggregateId',
+                'ConcludeQuizFunctionalitySagas::getQuizAnswerStep|QuizAnswer|this.quizAnswer.getAggregateId()',
+                'CreateQuestionFunctionalitySagas::getCourseStep|Course|courseDto.getAggregateId()',
+                'CreateQuestionFunctionalitySagas::getTopicsStep|Topic|topicDto.getAggregateId()',
+                'CreateQuizFunctionalitySagas::getCourseExecutionStep|Execution|courseExecutionId',
+                'CreateQuizFunctionalitySagas::getQuestionsStep|Question|questionDto.getAggregateId()',
+                'CreateTopicFunctionalitySagas::getCourseStep|Course|courseDto.getAggregateId()',
+                'DeleteTopicFunctionalitySagas::getTopicStep|Topic|topicAggregateId',
+                'DeleteUserFunctionalitySagas::getUserStep|User|userAggregateId',
+                'FindParticipantFunctionalitySagas::getTournamentStep|Tournament|tournamentAggregateId',
+                'LeaveTournamentFunctionalitySagas::getOldTournamentStep|Tournament|tournamentAggregateId',
+                'RemoveCourseExecutionFunctionalitySagas::getCourseExecutionStep|Execution|executionAggregateId',
+                'RemoveQuestionFunctionalitySagas::getQuestionStep|Question|questionAggregateId',
+                'RemoveStudentFromCourseExecutionFunctionalitySagas::getOldCourseExecutionStep|Execution|courseExecutionAggregateId',
+                'UpdateQuestionFunctionalitySagas::getQuestionStep|Question|question.getAggregateId()',
+                'UpdateQuestionTopicsAsyncFunctionalitySagas::getQuestionAsyncStep|Question|this.question.getAggregateId()',
+                'UpdateQuestionTopicsAsyncFunctionalitySagas::getTopicsAsyncStep|Topic|topicId',
+                'UpdateQuestionTopicsFunctionalitySagas::getQuestionStep|Question|question.getAggregateId()',
+                'UpdateQuestionTopicsFunctionalitySagas::getTopicsStep|Topic|topicId',
+                'UpdateQuizFunctionalitySagas::getQuizStep|Quiz|quiz.getAggregateId()',
+                'UpdateTopicFunctionalitySagas::getTopicStep|Topic|topic.getAggregateId()',
+                'UpdateUserNameFunctionalitySagas::getParticipantStep|User|userAggregateId',
+                'UpdateUserNameFunctionalitySagas::getTournamentStep|Tournament|tournamentAggregateId'
+        ] as Set
+        genericCompensations.every {
+            it.aggregateKeyConfidence()?.name() == 'SYMBOLIC'
+        }
+
+        and: 'the non-identical ANSWER service token follows its handler to QuizAnswer rather than capitalization'
+        Files.readString(applicationRoot.resolve(
+                'src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/sagas/ConcludeQuizFunctionalitySagas.java'))
+                .contains('ServiceMapping.ANSWER.getServiceName(), this.quizAnswer.getAggregateId()')
+        Files.readString(applicationRoot.resolve(
+                'src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/messaging/AnswerCommandHandler.java'))
+                .contains('return "QuizAnswer";')
+        genericCompensationSignatures.contains(
+                'ConcludeQuizFunctionalitySagas::getQuizAnswerStep|QuizAnswer|this.quizAnswer.getAggregateId()')
+        analysisLimitations == [
+                ['pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantAsyncFunctionalitySagas',
+                 'addParticipantStep', DispatchPhase.FORWARD, 'UNRESOLVED_COMMAND_PAYLOAD'],
+                ['pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas',
+                 'updateQuizStep', DispatchPhase.FORWARD, 'UNRESOLVED_COMMAND_DISPATCH']
+        ]
 
         and: 'the exact straight-line setup is persisted once in source order, including void effects'
         adapted.sourceSetupPlanBindings().size() > 0

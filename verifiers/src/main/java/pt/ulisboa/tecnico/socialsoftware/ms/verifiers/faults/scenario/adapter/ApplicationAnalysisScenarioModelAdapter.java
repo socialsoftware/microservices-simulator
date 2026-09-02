@@ -29,6 +29,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Step
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceValueReference;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueMetadata;
@@ -102,6 +103,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         counts.putIfAbsent("sagasWithoutUsableInputs", 0);
 
         List<EventConsequenceDefinition> eventDefinitions = adaptEventConsequences(state, diagnostics, counts);
+        List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence = adaptAggregateKeyInputEvidence(
+                state.sourceAggregateKeyInputEvidence(), adaptedInputs.adaptedTraces());
         List<SourceSetupPlanBinding> setupBindings = adaptSetupBindings(
                 state, adaptedInputs.inputVariants(), diagnostics, counts);
         LinkedHashMap<String, List<StepDispatchFootprint>> dispatchesBySaga = new LinkedHashMap<>();
@@ -117,7 +120,61 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                         .toList()));
         return new ScenarioModelAdapterResult(sagaDefinitions, adaptedInputs.inputVariants(), eventDefinitions,
                 setupBindings, counts, new ArrayList<>(diagnostics), dispatchesBySaga,
-                state.sourceAggregateKeyInputEvidence());
+                aggregateKeyInputEvidence);
+    }
+
+    private List<SourceAggregateKeyInputEvidence> adaptAggregateKeyInputEvidence(
+            List<SourceAggregateKeyInputEvidence> rawEvidence,
+            List<AdaptedTrace> adaptedTraces) {
+        LinkedHashSet<SourceAggregateKeyInputEvidence> result = new LinkedHashSet<>();
+        for (SourceAggregateKeyInputEvidence evidence : rawEvidence == null
+                ? List.<SourceAggregateKeyInputEvidence>of() : rawEvidence) {
+            for (AdaptedTrace adaptedTrace : adaptedTraces == null ? List.<AdaptedTrace>of() : adaptedTraces) {
+                if (!evidenceMatchesTrace(evidence, adaptedTrace.trace())) {
+                    continue;
+                }
+                result.add(new SourceAggregateKeyInputEvidence(
+                        evidence.sagaFqn(), evidence.sourceClassFqn(), evidence.sourceMethodName(),
+                        evidence.callContextMethodName(), evidence.sourceBindingName(),
+                        evidence.constructorArgumentIndex(), evidence.aggregateName(),
+                        evidence.producerReference(), evidence.aggregateKeyPropertyPath(),
+                        adaptedTrace.inputVariantId()));
+            }
+        }
+        return result.stream()
+                .sorted(Comparator
+                        .comparing(SourceAggregateKeyInputEvidence::inputVariantId,
+                                Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(SourceAggregateKeyInputEvidence::aggregateName,
+                                Comparator.nullsFirst(String::compareTo))
+                        .thenComparingInt(SourceAggregateKeyInputEvidence::constructorArgumentIndex)
+                        .thenComparing(evidence -> String.join(".", evidence.aggregateKeyPropertyPath())))
+                .toList();
+    }
+
+    private boolean evidenceMatchesTrace(SourceAggregateKeyInputEvidence evidence,
+                                         GroovyFullTraceResult trace) {
+        if (evidence == null || trace == null
+                || !Objects.equals(evidence.sagaFqn(), trace.sagaClassFqn())
+                || !Objects.equals(evidence.sourceClassFqn(), trace.sourceClassFqn())
+                || !Objects.equals(evidence.sourceMethodName(), trace.sourceMethodName())
+                || !Objects.equals(evidence.callContextMethodName(), trace.callContextMethodName())
+                || !Objects.equals(evidence.sourceBindingName(), trace.sourceBindingName())) {
+            return false;
+        }
+        return trace.constructorArguments().stream()
+                .filter(Objects::nonNull)
+                .filter(argument -> argument.index() == evidence.constructorArgumentIndex())
+                .map(GroovyTraceArgument::producerReference)
+                .filter(Objects::nonNull)
+                .map(reference -> {
+                    GroovySourceValueReference resolved = reference;
+                    for (String property : evidence.aggregateKeyPropertyPath()) {
+                        resolved = resolved.appendProperty(property);
+                    }
+                    return resolved;
+                })
+                .anyMatch(reference -> Objects.equals(reference, evidence.producerReference()));
     }
 
     private StepDispatchFootprint canonicalDispatchKey(String sagaFqn, StepDispatchFootprint dispatch) {
@@ -132,7 +189,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         }
         return new StepDispatchFootprint(canonicalStepKey, dispatch.commandTypeFqn(), dispatch.aggregateName(),
                 dispatch.accessPolicy(), dispatch.phase(), dispatch.multiplicity(), dispatch.aggregateKeyText(),
-                dispatch.aggregateKeyConfidence(), dispatch.aggregateKeyConstructorArgumentIndex());
+                dispatch.aggregateKeyConfidence(), dispatch.aggregateKeyConstructorArgumentIndex(),
+                dispatch.aggregateKeyPropertyPath());
     }
 
     private List<SourceSetupPlanBinding> adaptSetupBindings(
@@ -409,7 +467,9 @@ public final class ApplicationAnalysisScenarioModelAdapter {
             footprintWarnings.add("type-only footprint for " + aggregateName);
             diagnostics.add(buildStepDiagnostic(sagaFqn, stepName, "type-only footprint for " + aggregateName));
         } else {
-            aggregateKey = new AggregateKey(null, aggregateName, dispatch.aggregateKeyText(), toFootprintConfidence(dispatch.aggregateKeyConfidence()));
+            aggregateKey = new AggregateKey(null, aggregateName, dispatch.aggregateKeyText(),
+                    toFootprintConfidence(dispatch.aggregateKeyConfidence()),
+                    dispatch.aggregateKeyConstructorArgumentIndex(), dispatch.aggregateKeyPropertyPath());
         }
 
         warnings.addAll(footprintWarnings);
@@ -460,6 +520,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         Map<String, List<InputOwner>> featureOwnersByClass = featureOwnersByClass(traces);
 
         LinkedHashMap<String, InputVariant> variantsBySagaAndId = new LinkedHashMap<>();
+        List<AdaptedTrace> adaptedTraces = new ArrayList<>();
         int skippedCount = 0;
         int duplicateCount = 0;
         int partialTraceCount = 0;
@@ -486,6 +547,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
             }
 
             String variantKey = traceAdaptation.variant().sagaFqn() + "|" + traceAdaptation.variant().deterministicId();
+            adaptedTraces.add(new AdaptedTrace(trace, traceAdaptation.variant().deterministicId()));
             InputVariant existing = variantsBySagaAndId.get(variantKey);
             if (existing == null) {
                 variantsBySagaAndId.put(variantKey, traceAdaptation.variant());
@@ -511,7 +573,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         counts.put("unresolvedTraces", unresolvedTraceCount);
         counts.put("replayableTraces", replayableTraceCount);
 
-        return new AdaptedInputs(inputVariants, traces.size(), skippedCount, duplicateCount, partialTraceCount, unresolvedTraceCount, replayableTraceCount,
+        return new AdaptedInputs(inputVariants, List.copyOf(adaptedTraces), traces.size(), skippedCount,
+                duplicateCount, partialTraceCount, unresolvedTraceCount, replayableTraceCount,
                 counts.getOrDefault("stepsSeen", 0), counts.getOrDefault("footprintsSeen", 0));
     }
 
@@ -947,7 +1010,11 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         }
     }
 
+    private record AdaptedTrace(GroovyFullTraceResult trace, String inputVariantId) {
+    }
+
     private record AdaptedInputs(List<InputVariant> inputVariants,
+                                 List<AdaptedTrace> adaptedTraces,
                                  int inputTracesSeen,
                                  int skippedCount,
                                  int duplicateCount,

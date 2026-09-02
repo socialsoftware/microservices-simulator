@@ -167,7 +167,9 @@ public final class ConflictGraphBuilder {
         String leftExactKey = normalize(leftKey.keyText());
         String rightExactKey = normalize(rightKey.keyText());
         boolean bothExact = leftKey.confidence() == FootprintConfidence.EXACT && rightKey.confidence() == FootprintConfidence.EXACT;
-        boolean sameKeyText = leftExactKey != null && leftExactKey.equals(rightExactKey);
+        boolean sameKeyText = leftExactKey != null && rightExactKey != null
+                && Objects.equals(ExactKeyValueNormalizer.normalize(leftExactKey),
+                ExactKeyValueNormalizer.normalize(rightExactKey));
 
         if (bothExact) {
             if (sameKeyText) {
@@ -182,33 +184,14 @@ public final class ConflictGraphBuilder {
             return MatchResult.noMatch();
         }
 
-        if (sameKeyText) {
-            if (leftKey.confidence() == FootprintConfidence.SYMBOLIC || rightKey.confidence() == FootprintConfidence.SYMBOLIC) {
-                return MatchResult.symbolic("symbolic aggregate match used for aggregate " + aggregateLabel(leftKey));
-            }
-            if (leftKey.confidence() == FootprintConfidence.TYPE_ONLY || rightKey.confidence() == FootprintConfidence.TYPE_ONLY) {
-                if (allowTypeOnlyFallback) {
-                    return MatchResult.fallback(FootprintConfidence.TYPE_ONLY, "type-only fallback used for aggregate " + aggregateLabel(leftKey));
-                }
-                return MatchResult.noMatch();
-            }
-            if (leftKey.confidence() == FootprintConfidence.UNKNOWN || rightKey.confidence() == FootprintConfidence.UNKNOWN) {
-                if (allowTypeOnlyFallback) {
-                    return MatchResult.fallback(FootprintConfidence.UNKNOWN, "unknown-confidence fallback used for aggregate " + aggregateLabel(leftKey));
-                }
-                return MatchResult.noMatch();
-            }
-            return MatchResult.exact();
-        }
-
-        if (leftExactKey != null && rightExactKey != null) {
-            return MatchResult.noMatch();
-        }
-
-        if (leftKey.confidence() == FootprintConfidence.SYMBOLIC || rightKey.confidence() == FootprintConfidence.SYMBOLIC) {
-            if (sameAggregateIdentity(leftKey, rightKey)) {
-                return MatchResult.symbolic("symbolic aggregate match used for aggregate " + aggregateLabel(leftKey));
-            }
+        boolean leftResolved = leftExactKey != null
+                && leftKey.confidence() != FootprintConfidence.TYPE_ONLY
+                && leftKey.confidence() != FootprintConfidence.UNKNOWN;
+        boolean rightResolved = rightExactKey != null
+                && rightKey.confidence() != FootprintConfidence.TYPE_ONLY
+                && rightKey.confidence() != FootprintConfidence.UNKNOWN;
+        if (leftResolved && rightResolved) {
+            return MatchResult.symbolic("symbolic aggregate candidate used for aggregate " + aggregateLabel(leftKey));
         }
 
         if (allowTypeOnlyFallback) {

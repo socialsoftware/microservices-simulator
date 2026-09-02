@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.Dispa
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConflictGraphBuilder;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputVariantNormalizer;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleSelection;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ScenarioModelAdapterResult;
@@ -119,15 +120,16 @@ public final class StaticAnalysisArtifactWriter {
                 .map(projection -> inputFact(projection, safeModel.aggregateKeyInputEvidence()))
                 .toList();
         List<Map<String, Object>> interactionFacts = interactionFacts(sagaDefinitions, safeConfig);
-        // ScenarioSpaceAccountingCalculator is the sole owner of input-bound
-        // workload semantics. In particular, it preserves InputTupleJoiner's
-        // logical-key contradiction filtering and the configured
-        // SEGMENT_COMPRESSED schedule count. The compact artifact is only a
-        // projection of that report.
+        // ScenarioSpaceAccountingCalculator owns input-bound workload totals.
+        // It shares InputTupleSelection with catalog enumeration and preserves
+        // the configured SEGMENT_COMPRESSED schedule count. The compact
+        // artifact is only a projection of that report.
         ScenarioSpaceAccountingReport accountingReport = new ScenarioSpaceAccountingCalculator().calculate(
-                targetApplication, sagaDefinitions, safeModel.inputVariants(), safeConfig, 0);
+                targetApplication, sagaDefinitions, safeModel.inputVariants(),
+                safeModel.aggregateKeyInputEvidence(), safeConfig, 0);
         Map<String, Object> account = accounting(targetApplication, safeConfig, sagaDefinitions,
-                inputProjections, interactionFacts, safeModel.eventConsequenceDefinitions(), accountingReport);
+                inputProjections, interactionFacts, safeModel.eventConsequenceDefinitions(),
+                safeModel.aggregateKeyInputEvidence(), accountingReport);
 
         return publishProjection(manifest, accounting, sagas, inputs, interactions,
                 account, sagaFacts, inputFacts, interactionFacts);
@@ -493,11 +495,7 @@ public final class StaticAnalysisArtifactWriter {
     private Map<String, Object> aggregateKeyEvidence(InputVariant input,
                                                       List<SourceAggregateKeyInputEvidence> sourceEvidence) {
         SourceAggregateKeyInputEvidence source = sourceEvidence == null ? null : sourceEvidence.stream()
-                .filter(evidence -> Objects.equals(evidence.sagaFqn(), input.sagaFqn()))
-                .filter(evidence -> Objects.equals(evidence.sourceClassFqn(), input.sourceClassFqn()))
-                .filter(evidence -> Objects.equals(evidence.sourceMethodName(), input.sourceMethodName()))
-                .filter(evidence -> Objects.equals(evidence.callContextMethodName(), input.callContextMethodName()))
-                .filter(evidence -> Objects.equals(evidence.sourceBindingName(), input.sourceBindingName()))
+                .filter(evidence -> Objects.equals(evidence.inputVariantId(), input.deterministicId()))
                 .findFirst().orElse(null);
         if (source != null && source.producerReference() != null) {
             LinkedHashMap<String, Object> result = new LinkedHashMap<>();
@@ -747,12 +745,14 @@ public final class StaticAnalysisArtifactWriter {
                                            List<InputProjection> inputs,
                                            List<Map<String, Object>> interactionFacts,
                                            List<EventConsequenceDefinition> events,
+                                           List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
                                            ScenarioSpaceAccountingReport accountingReport) {
         LinkedHashMap<String, Object> root = new LinkedHashMap<>();
         root.put("configuration", configuration(targetApplication, config));
         root.put("sagas", sagaMetrics(sagas, inputs, interactionFacts));
         root.put("inputs", inputMetrics(inputs));
-        root.put("interactions", interactionMetrics(interactionFacts, accountingReport));
+        root.put("interactions", interactionMetrics(interactionFacts, accountingReport, sagas, inputs,
+                aggregateKeyInputEvidence, config));
         root.put("events", eventMetrics(events));
         root.put("workloads", workloadMetrics(accountingReport));
         return root;
@@ -839,12 +839,26 @@ public final class StaticAnalysisArtifactWriter {
     }
 
     private Map<String, Object> interactionMetrics(List<Map<String, Object>> interactionFacts,
-                                                   ScenarioSpaceAccountingReport accountingReport) {
+                                                   ScenarioSpaceAccountingReport accountingReport,
+                                                   List<SagaDefinition> sagas,
+                                                   List<InputProjection> inputs,
+                                                   List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
+                                                   ScenarioGeneratorConfig config) {
         LinkedHashMap<String, Object> result = new LinkedHashMap<>();
         result.put("direct", directMetrics(interactionFacts));
+        Map<String, List<InputVariant>> acceptedInputsBySaga = inputs.stream()
+                .filter(InputProjection::accepted)
+                .map(InputProjection::input)
+                .collect(Collectors.groupingBy(InputVariant::sagaFqn, LinkedHashMap::new, Collectors.toList()));
+        ConflictGraphBuilder.Result strictGraph = ConflictGraphBuilder.build(sagas, graphConfig(config, false));
+        ConflictGraphBuilder.Result broadGraph = ConflictGraphBuilder.build(sagas, graphConfig(config, true));
         LinkedHashMap<String, Object> sagaSets = new LinkedHashMap<>();
-        sagaSets.put("strict", sagaSetMetrics(accountingReport.typeLevelCoverage().strict(), accountingReport.groupedSagaSets(), true));
-        sagaSets.put("withTypeOnlyFallback", sagaSetMetrics(accountingReport.typeLevelCoverage().broad(), accountingReport.groupedSagaSets(), false));
+        sagaSets.put("strict", sagaSetMetrics(accountingReport.typeLevelCoverage().strict(),
+                accountingReport.groupedSagaSets(), acceptedInputsBySaga, strictGraph.conflictCandidates(),
+                aggregateKeyInputEvidence, InputTupleSelection.Mode.STRICT));
+        sagaSets.put("withTypeOnlyFallback", sagaSetMetrics(accountingReport.typeLevelCoverage().broad(),
+                accountingReport.groupedSagaSets(), acceptedInputsBySaga, broadGraph.conflictCandidates(),
+                aggregateKeyInputEvidence, InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK));
         result.put("sagaSets", sagaSets);
         return result;
     }
@@ -865,12 +879,17 @@ public final class StaticAnalysisArtifactWriter {
 
     private Map<String, Object> sagaSetMetrics(ScenarioSpaceAccountingReport.InteractionCoverage coverage,
                                                List<GroupedSagaSetRow> groupedRows,
-                                               boolean strict) {
+                                               Map<String, List<InputVariant>> inputsBySaga,
+                                               List<ConflictGraphBuilder.ConflictCandidate> candidates,
+                                               List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
+                                               InputTupleSelection.Mode mode) {
         LinkedHashMap<String, BigInteger> covered = new LinkedHashMap<>();
         groupedRows.stream()
                 .filter(row -> row.sagaSetSize() >= 2)
-                .filter(row -> (strict ? row.strictInteractionSummary() : row.broadInteractionSummary()).connected())
-                .filter(row -> row.inputCountsBySaga().values().stream().allMatch(count -> count > 0))
+                .filter(row -> (mode == InputTupleSelection.Mode.STRICT
+                        ? row.strictInteractionSummary() : row.broadInteractionSummary()).connected())
+                .filter(row -> InputTupleSelection.count(row.sagaFqns(), inputsBySaga, candidates,
+                        aggregateKeyInputEvidence, mode).signum() > 0)
                 .forEach(row -> covered.merge(Integer.toString(row.sagaSetSize()), BigInteger.ONE, BigInteger::add));
         LinkedHashMap<String, Object> result = new LinkedHashMap<>();
         result.put("connectedBySize", decimalMap(coverage.connectedSetCountsBySize()));

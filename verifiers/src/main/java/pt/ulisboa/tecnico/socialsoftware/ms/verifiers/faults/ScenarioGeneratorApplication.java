@@ -375,6 +375,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 generationInputs,
                 adapterResult.eventConsequenceDefinitions(),
                 adapterResult.sourceSetupPlanBindings(),
+                adapterResult.aggregateKeyInputEvidence(),
                 baseGenerationConfig);
         CatalogSelection catalogSelection = prioritizeCatalogWorkloads(
                 prerequisiteScenarios.workloads(), generationResult.workloadPlans(), totalCatalogCap);
@@ -423,6 +424,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 applicationBaseDir,
                 adapterResult.sagaDefinitions(),
                 adapterResult.inputVariants(),
+                adapterResult.aggregateKeyInputEvidence(),
                 exportResult.effectiveConfig(),
                 workloadsWritten);
         // Catalog-writing publishes the same current static roles as

@@ -138,31 +138,23 @@ for the short spec and plan after we finish the audit.
 - Report materialization blockers once at the input level, with the affected argument, reason, and source expression. Do not repeat readiness, resolution, and blocker fields throughout nested recipe nodes.
 - Runtime argument recipes retain the expected type, original source expression, provider, and scope. A Saga unit of work is participant-scoped; runtime beans such as `SagaUnitOfWorkService` and `CommandGateway` are execution-scoped.
 - Any future sharing of one runtime value across multiple Saga participants must be expressed by the WorkloadPlan, where those participants are combined.
-- All 884 retained Quizzes inputs currently have empty `logicalKeyBindings`. Input-tuple compatibility therefore cannot reject combinations whose known aggregate ids disagree; after a Saga set is selected, its inputs are treated as mutually compatible and counted as a Cartesian product.
-- Investigate input-key evidence at two levels: exact values when a test contains one, and canonical same-origin provenance when runtime-generated ids are read from the same DTO or setup result. The existing dummyapp fixture demonstrates exact bindings such as `orderId: 13`; realistic Quizzes tests commonly expose symbolic sameness such as two Saga inputs both reading `tournamentDto.aggregateId`. The current Quizzes analysis records neither form.
-- Replace the exact-value-only `logicalKeyBindings` map with input aggregate-key evidence that can represent `exact` and `sameSource`. Same-source evidence must be scoped to its test/setup origin and normalize equivalent expressions such as `tournamentDto.aggregateId` and `tournamentDto.getAggregateId()`.
-- The package must not infer or invent this evidence. Until the analyzer learns to produce it, Quizzes input facts will omit aggregate-key evidence and input combinations will remain unfiltered by concrete or same-origin ids.
-- Keep artifact reshaping separate from the static-analysis improvement if necessary: the clean artifact can support the evidence first, while a later focused change populates it. Evaluation results must continue to report that the evidence is absent.
-- The current tuple joiner is only a contradiction filter: it rejects shared exact keys with different values, but missing or unrelated bindings pass. A future input-related evaluation must require positive `exact` or `sameSource` evidence; the brute-force evaluation continues to allow the Cartesian product.
+- Resolved 2026-09-02: `aggregateKeyEvidence` replaces `logicalKeyBindings` and represents `exact` or test/setup-scoped `sameSource` evidence. Equivalent getter/property expressions normalize to one source. All 884 input ids and non-evidence fields remained stable. Corrected semantic root paths intentionally changed evidence on 84 inputs: 83 values were replaced and one removed, reducing evidence-bearing inputs from 652 to 651. Discovery, acceptance, and materializability totals did not change; absent evidence remains absent rather than inferred.
+- Strict multi-Saga input selection now requires positive exact or same-source evidence for each shared aggregate relationship. Missing evidence no longer passes merely because it is not contradictory. The all-space count remains the bounded Cartesian baseline.
 
 ## Things we want to revisit
 
 ### Aggregate keys and interaction confidence
 
-- Aggregate-key extraction currently assumes that the third command-constructor argument is the target aggregate key. This fails for commands whose key is elsewhere, create commands without an existing id, and commands carrying another aggregate's id.
-- Plain variables often become type-only evidence even when source or test flow may contain a usable value.
-- Current `strict` matching accepts a symbolic-plus-type-only relationship as symbolic. A symbolic key on one side cannot prove equality when the other key is unknown.
-- The concrete example is `AnswerQuestionFunctionalitySagas::answerQuestionStep#2` versus `ConcludeQuizFunctionalitySagas::getQuizAnswerStep#0`.
-- In the retained Quizzes run, the current classifier reports 0 exact, 152 symbolic, and 612 type-only direct step interactions. The symbolic count includes the questionable mixed-confidence case.
+- Resolved 2026-09-02: command aggregate roots are derived from constructor delegation to the framework `Command` constructor, then mapped at each call site. Literals, normalized getter chains, and Saga-constructor parameters retain semantic key evidence; explicit null roots and unsupported expressions stay keyless.
+- `CreateQuestionCommand` and `CreateQuizCommand` illustrate the old third-argument error: both declare a null target root, while their third call arguments name a course or course execution. Those values are no longer recorded as Question or Quiz keys. `AnswerQuestionCommand`, `RemoveQuestionCommand`, and getter-based `UpdateQuestionCommand` calls now preserve their declared roots.
+- Resolved 2026-09-02: strict conflict classification requires two-sided semantic-root evidence. The former `AnswerQuestionFunctionalitySagas::answerQuestionStep#2` versus `ConcludeQuizFunctionalitySagas::getQuizAnswerStep#0` case remains fallback-only because the latter command declares a null root.
+- Fresh direct-interaction evidence is 0 exact, 535 symbolic, and 250 type-only, compared with the retained 0/152/612. Strict type-level connected sets increase, but strict accepted-input sets decrease after the positive input-evidence rule; neither direction alone is a success criterion.
 
 ### Static-analysis completeness
 
-- All 134 Quizzes Saga steps currently report `forwardAnalysisComplete: false`.
-- The visitor marks a step incomplete for every method call it cannot classify, including ordinary getters, setters, collection operations, and framework calls such as `getServiceName`, `stream`, `toList`, and `equals`.
-- This makes the current completeness flag too broad to show which steps may actually be missing command or aggregate-access information. We want to inspect this analysis separately and replace it with evidence that has a clear, useful meaning.
-- Application commands extend `Command`, and Saga execution wraps them in `SagaCommand` to carry forbidden states and semantic locks. The visitor already recognizes many typed payload commands but does not follow the wrapper variable into `commandGateway.send(...)`, so it adds misleading unresolved-call diagnostics around an access it has already found.
-- Some explicit compensations intentionally wrap a bare `Command`. That payload carries the service, aggregate id, and unit of work; the Saga handler uses the surrounding `SagaCommand` to restore the semantic lock without an application-specific domain command. The current visitor recognizes that compensation exists but usually cannot describe its aggregate access.
-- Improvements to investigate: follow `SagaCommand` back to its payload, recognize the generic semantic-lock compensation pattern, relate it to the known access of the same step when justified, and stop treating clearly harmless helper calls as missing command analysis.
+- Narrowed 2026-09-02: limitations now describe only unresolved command payloads or dispatches, rather than every unclassified helper call. Two of 134 Quizzes steps retain one limitation each: an unresolved `SagaCommand` payload and an unresolved dispatch through a helper `send` call.
+- Resolved 2026-09-02: typed `SagaCommand` wrappers are transparent and do not duplicate forward accesses. The fresh artifact contains 132 forward command accesses.
+- Resolved 2026-09-02: for the justified generic bare-`Command` compensation pattern, the aggregate is derived independently from the payload's service token through the matching command handler, and the root is derived from the payload's third argument under the base `Command` root-key contract. The realistic Quizzes proof records 26 compensation accesses; these remain internal compensation footprints and are not serialized as forward `commandAccesses`.
 
 ### Missing inputs and materialization
 
@@ -180,6 +172,7 @@ for the short spec and plan after we finish the audit.
 - Catalog-writing generates the all-zero and single-fault vectors. Multi-fault vectors use on-demand generation.
 - Execution takes an existing FaultScenario id, so trying vector `101` currently means running on-demand generation and then execution.
 - After the artifact audit, we want a separate audit of commands, configuration, and whether these launches can be made simpler.
+- A 2026-09-02 default catalog-writing run produced prerequisite WorkloadPlans whose four synthetic participant input ids were absent from `inputs.jsonl`; the current reader correctly rejected the first missing reference. The writer receives adapter inputs while prerequisite generation can create additional participant inputs. Diff inspection shows this ownership boundary predates the static-interaction correction, so it remains a separate catalog-writing follow-up; the count-only qualification is unaffected.
 
 ## After this artifact pass
 
@@ -195,24 +188,25 @@ rules.
 
 ## Final qualification ranking — 2026-09-02
 
-The current-only artifact pass is complete. Fresh bounded evidence preserved the retained
-interaction topology, preflighted and replayed one source-derived Remove/Add workload,
-persisted one multi-fault request, and normalized all five runtime observation kinds.
+The current-only artifact pass is complete. Fresh bounded evidence now qualifies the
+corrected static interaction relationships, preflighted and replayed one source-derived
+Remove/Add workload, persisted one multi-fault request, and normalized all five runtime
+observation kinds.
 
 Completed follow-up:
 
 1. **Dynamic input-map plan-id mismatch repaired.** The equivalent bounded class now
    produces 2 exact-input groups instead of converting both to test-and-shape evidence.
+2. **Static interaction correctness qualified.** Semantic command roots, positive strict
+   input evidence, wrapper handling, compensation footprints, focused limitations, and
+   size-1/2/3 accounting are now covered by fresh Quizzes evidence.
 
 Ranked remaining follow-up by evaluation validity and executable coverage:
 
 1. **Improve accepted-input materializability.** Only 91 of 794 accepted Quizzes inputs
    are materializable; address one representative blocker family at a time after exact
    runtime identity is trustworthy.
-2. **Correct aggregate-key extraction and interaction confidence.** The third-argument
-   assumption and 0/152/612 exact/symbolic/type-only split remain important for static
-   evaluation, but they do not block the already qualified current package lifecycle.
-3. **Define a broader impact contract.** The retained 19/15 Remove/Add final-state
+2. **Define a broader impact contract.** The retained 19/15 Remove/Add final-state
    landscape still has flat ImpactV1 and remains downstream of reliable identity and
    executable input coverage.
 

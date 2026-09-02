@@ -22,6 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTra
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyRuntimeCallArgument
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyRuntimeCallRecipe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceValueReference
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind
@@ -214,6 +215,48 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         result.inputVariants().every { it.owners()*.testMethodName() == ['same source'] }
     }
 
+    def 'adapter binds aggregate key evidence to the exact input trace occurrence and key path'() {
+        given:
+        def sagaFqn = 'com.example.order.coordination.CreateOrderFunctionalitySagas'
+        def state = new ApplicationAnalysisState()
+        def sagaBlock = saga(sagaFqn)
+        def stepBlock = new SagaStepBuildingBlock(null, 'com.example', sagaFqn + '::update', 'update')
+        stepBlock.addDispatch(new StepDispatchFootprint(
+                sagaFqn + '::update', 'com.example.UpdateOrderCommand', 'Order', AccessPolicy.WRITE,
+                DispatchPhase.FORWARD, new DispatchMultiplicity(DispatchMultiplicityKind.SINGLE, 1),
+                'orderDto.aggregateId', StepDispatchFootprint.AggregateKeyConfidence.SYMBOLIC,
+                0, ['aggregateId']))
+        sagaBlock.addStep(stepBlock)
+        state.sagas << sagaBlock
+        def firstSource = new GroovySourceValueReference('OrderSpec:10:4:createOrder', 'createOrder', [])
+        def secondSource = new GroovySourceValueReference('OrderSpec:11:4:createOrder', 'createOrder', [])
+        state.groovyFullTraceResults << trace('com.example.OrderSpec', 'same feature', null, sagaFqn,
+                'new Saga(firstOrder)', 'first trace',
+                [resolvedArgFromSource(0, 'first order', 'firstOrder', 'com.example.OrderDto', firstSource)],
+                'new Saga(firstOrder)', [], 'first provenance')
+        state.groovyFullTraceResults << trace('com.example.OrderSpec', 'same feature', null, sagaFqn,
+                'new Saga(secondOrder)', 'second trace',
+                [resolvedArgFromSource(0, 'second order', 'secondOrder', 'com.example.OrderDto', secondSource)],
+                'new Saga(secondOrder)', [], 'second provenance')
+
+        when:
+        def result = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
+        def inputsBySource = result.inputVariants().collectEntries { [(it.stableSourceText()): it.deterministicId()] }
+        def evidenceByOccurrence = result.aggregateKeyInputEvidence().collectEntries {
+            [(it.producerReference().occurrenceId()): it]
+        }
+        def key = result.sagaDefinitions().first().steps().first().footprints().first().aggregateKey()
+
+        then:
+        result.inputVariants().size() == 2
+        result.aggregateKeyInputEvidence().size() == 2
+        evidenceByOccurrence[firstSource.occurrenceId()].inputVariantId() == inputsBySource['new Saga(firstOrder)']
+        evidenceByOccurrence[secondSource.occurrenceId()].inputVariantId() == inputsBySource['new Saga(secondOrder)']
+        evidenceByOccurrence.values().every { it.aggregateKeyPropertyPath() == ['aggregateId'] }
+        key.sourceConstructorArgumentIndex() == 0
+        key.sourcePropertyPath() == ['aggregateId']
+    }
+
     def 'adapter copies source-mode metadata into input variants'() {
         given:
         def state = new ApplicationAnalysisState()
@@ -373,7 +416,7 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         steps.mixedReadHelperStep.footprints()*.accessMode() == [AccessMode.READ]
         steps.mixedReadHelperStep.forwardAnalysisComplete() == false
         steps.mixedReadHelperStep.analysisDiagnostics() == [
-                'FORWARD:UNANALYZED_METHOD_CALL: cannot prove effects of helper call updateItemThroughHelper'
+                'FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call updateItemThroughHelper'
         ]
         steps.mixedReadHelperStep.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
 
@@ -382,11 +425,13 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
             def step = steps[stepName]
             assert step.footprints()*.accessMode() == [AccessMode.READ]
             assert !step.forwardAnalysisComplete()
-            assert step.analysisDiagnostics()*.split(':')*.take(2) == [['FORWARD', 'UNANALYZED_METHOD_CALL']]
+            def expectedCode = stepName == 'constructorKeyHelperStep'
+                    ? 'UNRESOLVED_AGGREGATE_KEY' : 'UNRESOLVED_COMMAND_DISPATCH'
+            assert step.analysisDiagnostics()*.split(':')*.take(2) == [['FORWARD', expectedCode]]
             assert step.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
         }
         steps.constructorKeyHelperStep.analysisDiagnostics() == [
-                'FORWARD:UNANALYZED_METHOD_CALL: cannot prove effects of helper call getAndUpdateItemKey'
+                'FORWARD:UNRESOLVED_AGGREGATE_KEY: cannot resolve aggregate key from call getAndUpdateItemKey'
         ]
 
         and:
@@ -577,6 +622,20 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
                 [],
                 new GroovyValueMetadata(GroovyValueResolutionCategory.RESOLVED, expectedTypeFqn, null, null))
         new GroovyTraceArgument(index, provenance, recipe, expectedTypeFqn)
+    }
+
+    private static GroovyTraceArgument resolvedArgFromSource(int index,
+                                                             String provenance,
+                                                             String text,
+                                                             String expectedTypeFqn,
+                                                             GroovySourceValueReference source) {
+        def recipe = new GroovyValueRecipe(
+                GroovyValueKind.LITERAL,
+                text,
+                [],
+                new GroovyValueMetadata(GroovyValueResolutionCategory.RESOLVED, expectedTypeFqn, null, null),
+                source)
+        new GroovyTraceArgument(index, provenance, recipe, expectedTypeFqn, source)
     }
 
     private static GroovyTraceArgument defaultMetadataUnresolvedRuntimeArg(int index,

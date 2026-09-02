@@ -64,6 +64,10 @@ public class SagaStepBuildingBlock extends BuildingBlock {
         } else {
             compensationDispatchAnalysisComplete = false;
         }
-        analysisDiagnostics.add(new StepAnalysisDiagnostic(phase, code, message));
+        boolean alreadyReported = analysisDiagnostics.stream()
+                .anyMatch(diagnostic -> diagnostic.phase() == phase && diagnostic.code().equals(code));
+        if (!alreadyReported) {
+            analysisDiagnostics.add(new StepAnalysisDiagnostic(phase, code, message));
+        }
     }
 }

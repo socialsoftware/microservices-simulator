@@ -46,23 +46,23 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
                 7)
 
         expect:
-        report.inputBoundScenarioSpace().allInputBound().total() == '10'
-        report.inputBoundScenarioSpace().allInputBound().bySagaSetSize() == ['1': '5', '2': '5']
-        report.inputBoundScenarioSpace().selectedByGenerator().total() == '10'
+        report.inputBoundScenarioSpace().allInputBound().total() == '13'
+        report.inputBoundScenarioSpace().allInputBound().bySagaSetSize() == ['1': '5', '2': '8']
+        report.inputBoundScenarioSpace().selectedByGenerator().total() == '13'
         report.inputBoundScenarioSpace().catalogWritten().total() == '7'
 
         and:
         report.groupedSagaSets()*.sagaSetKey() == [
                 'saga.A', 'saga.B', 'saga.C',
                 'saga.A|saga.B', 'saga.A|saga.C', 'saga.B|saga.C']
-        row(report, 'saga.A|saga.B').compatibleInputTupleCount() == '1'
-        row(report, 'saga.A|saga.B').scenarioShapeCount() == '1'
+        row(report, 'saga.A|saga.B').compatibleInputTupleCount() == '4'
+        row(report, 'saga.A|saga.B').scenarioShapeCount() == '4'
         row(report, 'saga.A|saga.B').strictInteractionSummary().evidenceKindCounts().isEmpty()
         row(report, 'saga.A|saga.B').selectedByConfiguredGenerator()
 
         and:
-        report.topContributors()*.sagaSetKey().take(2) == ['saga.A', 'saga.A|saga.C']
-        report.topContributors()*.representedScenarioShapeCount().take(2) == ['2', '2']
+        report.topContributors()*.sagaSetKey().take(2) == ['saga.A|saga.B', 'saga.A']
+        report.topContributors()*.representedScenarioShapeCount().take(2) == ['4', '2']
     }
 
     def 'order preserving schedule formula matches materialized small enumerations'() {
@@ -201,7 +201,7 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
         report.inputBoundScenarioSpace().allInputBound().total() == '2500000000'
     }
 
-    def 'compatible input tuple counting matches explicit enumeration for exact contradictions and missing evidence'() {
+    def 'all input tuple counting matches explicit Cartesian enumeration despite exact contradictions'() {
         given:
         def sagaSet = ['saga.A', 'saga.B']
         def inputsBySaga = [
@@ -221,7 +221,7 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
 
         expect:
         new ScenarioSpaceAccountingCalculator().countCompatibleInputTuples(sagaSet, inputsBySaga) == explicit.tuples().size()
-        new ScenarioSpaceAccountingCalculator().countCompatibleInputTuples(sagaSet, inputsBySaga).toString() == '11'
+        new ScenarioSpaceAccountingCalculator().countCompatibleInputTuples(sagaSet, inputsBySaga).toString() == '20'
     }
 
     def 'compatible input tuple counting uses simple multiplication when exact bindings are absent'() {
@@ -237,7 +237,7 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
         new ScenarioSpaceAccountingCalculator().countCompatibleInputTuples(sagaSet, inputsBySaga).toString() == '24'
     }
 
-    def 'compatible input tuple count feeds grouped rows and all input-bound totals'() {
+    def 'Cartesian input tuple count feeds brute force grouped rows and all input-bound totals'() {
         when:
         def report = calculate(
                 [saga('saga.A', 2), saga('saga.B', 1)],
@@ -260,10 +260,10 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
                 0)
 
         then:
-        row(report, 'saga.A|saga.B').compatibleInputTupleCount() == '11'
+        row(report, 'saga.A|saga.B').compatibleInputTupleCount() == '20'
         row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '3'
-        row(report, 'saga.A|saga.B').scenarioShapeCount() == '33'
-        report.inputBoundScenarioSpace().allInputBound().total() == '33'
+        row(report, 'saga.A|saga.B').scenarioShapeCount() == '60'
+        report.inputBoundScenarioSpace().allInputBound().total() == '60'
     }
 
     def 'global write cap affects catalog written but not input-bound or selected counts'() {

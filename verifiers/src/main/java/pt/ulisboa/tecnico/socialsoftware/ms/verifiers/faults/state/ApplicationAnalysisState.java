@@ -25,6 +25,7 @@ public class ApplicationAnalysisState {
     public final List<GroovyConstructorInputTrace> groovyConstructorInputTraces = new ArrayList<>();
     public final List<GroovyFullTraceResult> groovyFullTraceResults = new ArrayList<>();
     public final List<GroovyFacadeSetupActionTrace> groovyFacadeSetupActionTraces = new ArrayList<>();
+    private final Map<String, Map<String, CommandRootKeyPath>> commandRootKeyPaths = new LinkedHashMap<>();
 
     /**
      * Keyed by interface FQN → all @Service implementations found in the parsed source.
@@ -67,6 +68,21 @@ public class ApplicationAnalysisState {
                 .findFirst();
     }
 
+    public void addCommandRootKeyPath(String commandTypeFqn, CommandRootKeyPath path) {
+        commandRootKeyPaths.computeIfAbsent(commandTypeFqn, ignored -> new LinkedHashMap<>())
+                .put(path.constructorSignature(), path);
+    }
+
+    public Optional<CommandRootKeyPath> getCommandRootKeyPath(String commandTypeFqn,
+                                                               String constructorSignature) {
+        return Optional.ofNullable(commandRootKeyPaths.getOrDefault(commandTypeFqn, Map.of())
+                .get(constructorSignature));
+    }
+
+    public List<CommandRootKeyPath> getCommandRootKeyPaths(String commandTypeFqn) {
+        return List.copyOf(commandRootKeyPaths.getOrDefault(commandTypeFqn, Map.of()).values());
+    }
+
     public Optional<SagaFunctionalityBuildingBlock> findSagaByFqn(String sagaFqn) {
         return sagas.stream()
                 .filter(saga -> Objects.equals(saga.getFqn(), sagaFqn))
@@ -93,15 +109,23 @@ public class ApplicationAnalysisState {
                     trace.constructorArguments().stream()
                             .filter(argument -> argument.index() == argumentIndex)
                             .filter(argument -> argument.producerReference() != null)
-                            .forEach(argument -> evidence.add(new SourceAggregateKeyInputEvidence(
-                                    trace.sagaClassFqn(),
-                                    trace.sourceClassFqn(),
-                                    trace.sourceMethodName(),
-                                    trace.callContextMethodName(),
-                                    trace.sourceBindingName(),
-                                    argumentIndex,
-                                    dispatch.aggregateName(),
-                                    argument.producerReference())));
+                            .forEach(argument -> {
+                                GroovySourceValueReference keyReference = argument.producerReference();
+                                for (String property : dispatch.aggregateKeyPropertyPath()) {
+                                    keyReference = keyReference.appendProperty(property);
+                                }
+                                evidence.add(new SourceAggregateKeyInputEvidence(
+                                        trace.sagaClassFqn(),
+                                        trace.sourceClassFqn(),
+                                        trace.sourceMethodName(),
+                                        trace.callContextMethodName(),
+                                        trace.sourceBindingName(),
+                                        argumentIndex,
+                                        dispatch.aggregateName(),
+                                        keyReference,
+                                        dispatch.aggregateKeyPropertyPath(),
+                                        null));
+                            });
                 }
             }
         }

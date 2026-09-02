@@ -4,6 +4,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioEx
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConflictGraphBuilder;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConnectedSagaSetEnumerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputVariantNormalizer;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleSelection;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport.GroupedSagaSetRow;
@@ -16,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport.TypeLevelCoverage;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceAggregateKeyInputEvidence;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -34,17 +36,26 @@ public final class ScenarioSpaceAccountingCalculator {
                                                    List<InputVariant> inputVariants,
                                                    ScenarioGeneratorConfig config,
                                                    int catalogWritten) {
+        return calculate(targetApplication, sagaDefinitions, inputVariants, List.of(), config, catalogWritten);
+    }
+
+    public ScenarioSpaceAccountingReport calculate(String targetApplication,
+                                                   List<SagaDefinition> sagaDefinitions,
+                                                   List<InputVariant> inputVariants,
+                                                   List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
+                                                   ScenarioGeneratorConfig config,
+                                                   int catalogWritten) {
         ScenarioGeneratorConfig effectiveConfig = config == null ? new ScenarioGeneratorConfig() : config;
         Map<String, SagaDefinition> sagaByFqn = indexSagas(sagaDefinitions);
         InputVariantNormalizer.NormalizationResult normalizedInputs = InputVariantNormalizer.normalize(inputVariants, effectiveConfig);
         Map<String, List<InputVariant>> inputsBySaga = acceptedInputsByKnownSaga(normalizedInputs.inputsBySaga(), sagaByFqn);
         GraphViews graphViews = buildGraphViews(sagaByFqn.values().stream().toList(), effectiveConfig);
 
-        List<GroupedSagaSetRow> groupedRows = buildGroupedRows(sagaByFqn, inputsBySaga, effectiveConfig, graphViews);
-        ScenarioSpaceTotals allInputBound = totals(groupedRows);
-        ScenarioSpaceTotals selectedByGenerator = effectiveConfig.generationStrategy() == ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE
-                ? allInputBound
-                : totals(groupedRows.stream().filter(GroupedSagaSetRow::selectedByConfiguredGenerator).toList());
+        List<CalculatedRow> calculatedRows = buildGroupedRows(sagaByFqn, inputsBySaga,
+                aggregateKeyInputEvidence, effectiveConfig, graphViews);
+        List<GroupedSagaSetRow> groupedRows = calculatedRows.stream().map(CalculatedRow::row).toList();
+        ScenarioSpaceTotals allInputBound = totals(calculatedRows, false);
+        ScenarioSpaceTotals selectedByGenerator = totals(calculatedRows, true);
         ScenarioSpaceTotals written = new ScenarioSpaceTotals(Integer.toString(Math.max(0, catalogWritten)), Map.of());
 
         return new ScenarioSpaceAccountingReport(
@@ -57,8 +68,9 @@ public final class ScenarioSpaceAccountingCalculator {
                 topContributors(groupedRows));
     }
 
-    private List<GroupedSagaSetRow> buildGroupedRows(Map<String, SagaDefinition> sagaByFqn,
+    private List<CalculatedRow> buildGroupedRows(Map<String, SagaDefinition> sagaByFqn,
                                                      Map<String, List<InputVariant>> inputsBySaga,
+                                                     List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
                                                      ScenarioGeneratorConfig config,
                                                      GraphViews graphViews) {
         List<String> sagaFqns = inputsBySaga.keySet().stream()
@@ -73,19 +85,20 @@ public final class ScenarioSpaceAccountingCalculator {
             collectCombinations(sagaFqns, size, 0, new ArrayList<>(), sagaSets, threshold);
         }
 
-        List<GroupedSagaSetRow> rows = new ArrayList<>();
+        List<CalculatedRow> rows = new ArrayList<>();
         for (List<String> sagaSet : sagaSets) {
-            rows.add(buildRow(sagaSet, sagaByFqn, inputsBySaga, config, graphViews));
+            rows.add(buildRow(sagaSet, sagaByFqn, inputsBySaga, aggregateKeyInputEvidence, config, graphViews));
         }
         rows.sort(Comparator
-                .comparingInt(GroupedSagaSetRow::sagaSetSize)
-                .thenComparing(GroupedSagaSetRow::sagaSetKey));
+                .comparingInt((CalculatedRow value) -> value.row().sagaSetSize())
+                .thenComparing(value -> value.row().sagaSetKey()));
         return List.copyOf(rows);
     }
 
-    private GroupedSagaSetRow buildRow(List<String> sagaSet,
+    private CalculatedRow buildRow(List<String> sagaSet,
                                        Map<String, SagaDefinition> sagaByFqn,
                                        Map<String, List<InputVariant>> inputsBySaga,
+                                       List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
                                        ScenarioGeneratorConfig config,
                                        GraphViews graphViews) {
         LinkedHashMap<String, Integer> inputCountsBySaga = new LinkedHashMap<>();
@@ -95,38 +108,42 @@ public final class ScenarioSpaceAccountingCalculator {
             stepCountsBySaga.put(sagaFqn, sagaByFqn.get(sagaFqn).steps().size());
         }
 
-        BigInteger tupleCount = countCompatibleInputTuples(sagaSet, inputsBySaga);
+        BigInteger allTupleCount = InputTupleSelection.count(sagaSet, inputsBySaga, List.of(),
+                aggregateKeyInputEvidence, InputTupleSelection.Mode.ALL);
+        InputTupleSelection.Mode selectedMode = selectionMode(config);
+        ConflictGraphBuilder.Result selectedGraph = selectedMode == InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK
+                ? graphViews.broad() : graphViews.strict();
+        BigInteger selectedTupleCount = InputTupleSelection.count(sagaSet, inputsBySaga,
+                selectedGraph.conflictCandidates(), aggregateKeyInputEvidence, selectedMode);
         BigInteger scheduleCount = scheduleCountPerTuple(sagaSet, sagaByFqn, config, graphViews);
-        BigInteger shapeCount = tupleCount.multiply(scheduleCount);
+        BigInteger allShapeCount = allTupleCount.multiply(scheduleCount);
+        BigInteger selectedShapeCount = selectedTupleCount.multiply(scheduleCount);
         InteractionSummary strictSummary = interactionSummary(sagaSet, graphViews.strict());
         InteractionSummary broadSummary = interactionSummary(sagaSet, graphViews.broad());
-        boolean selected = selectedByConfiguredGenerator(sagaSet, config, graphViews);
+        boolean selected = selectedTupleCount.signum() > 0;
 
-        return new GroupedSagaSetRow(
+        GroupedSagaSetRow row = new GroupedSagaSetRow(
                 sagaSetKey(sagaSet),
                 sagaSet.size(),
                 sagaSet,
                 inputCountsBySaga,
                 stepCountsBySaga,
-                tupleCount.toString(),
+                selectedTupleCount.toString(),
                 scheduleCount.toString(),
-                shapeCount.toString(),
+                selectedShapeCount.toString(),
                 strictSummary,
                 broadSummary,
                 selected);
+        return new CalculatedRow(row, allShapeCount, selectedShapeCount);
     }
 
-    private boolean selectedByConfiguredGenerator(List<String> sagaSet,
-                                                  ScenarioGeneratorConfig config,
-                                                  GraphViews graphViews) {
+    private InputTupleSelection.Mode selectionMode(ScenarioGeneratorConfig config) {
         if (config.generationStrategy() == ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE) {
-            return true;
+            return InputTupleSelection.Mode.ALL;
         }
-        if (sagaSet.size() == 1) {
-            return config.includeSingles();
-        }
-        ConflictGraphBuilder.Result selectedGraph = config.allowTypeOnlyFallback() ? graphViews.broad() : graphViews.strict();
-        return connectedInGraph(sagaSet, selectedGraph.adjacency());
+        return config.allowTypeOnlyFallback()
+                ? InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK
+                : InputTupleSelection.Mode.STRICT;
     }
 
     private InteractionSummary interactionSummary(List<String> sagaSet, ConflictGraphBuilder.Result graph) {
@@ -274,66 +291,8 @@ public final class ScenarioSpaceAccountingCalculator {
     }
 
     BigInteger countCompatibleInputTuples(List<String> sagaSet, Map<String, List<InputVariant>> inputsBySaga) {
-        if (sagaSet.size() == 1) {
-            return BigInteger.valueOf(inputsBySaga.getOrDefault(sagaSet.get(0), List.of()).size());
-        }
-        List<List<InputBindingGroup>> groupsBySaga = sagaSet.stream()
-                .map(sagaFqn -> bindingGroups(inputsBySaga.getOrDefault(sagaFqn, List.of())))
-                .toList();
-        return countCompatibleBindingGroups(groupsBySaga, 0, new LinkedHashMap<>()).count();
-    }
-
-    private List<InputBindingGroup> bindingGroups(List<InputVariant> inputs) {
-        LinkedHashMap<Map<String, String>, BigInteger> countsByBindings = new LinkedHashMap<>();
-        for (InputVariant input : inputs == null ? List.<InputVariant>of() : inputs) {
-            countsByBindings.merge(normalizedBindings(input), BigInteger.ONE, BigInteger::add);
-        }
-        return countsByBindings.entrySet().stream()
-                .map(entry -> new InputBindingGroup(entry.getKey(), entry.getValue()))
-                .toList();
-    }
-
-    private Map<String, String> normalizedBindings(InputVariant input) {
-        LinkedHashMap<String, String> bindings = new LinkedHashMap<>();
-        if (input == null || input.logicalKeyBindings() == null || input.logicalKeyBindings().isEmpty()) {
-            return Map.of();
-        }
-        input.logicalKeyBindings().entrySet().stream()
-                .filter(entry -> entry.getKey() != null && !entry.getKey().isBlank())
-                .filter(entry -> entry.getValue() != null && !entry.getValue().isBlank())
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> bindings.put(entry.getKey().trim(), entry.getValue().trim()));
-        return bindings.isEmpty() ? Map.of() : Map.copyOf(bindings);
-    }
-
-    private InputTupleCount countCompatibleBindingGroups(List<List<InputBindingGroup>> groupsBySaga,
-                                                         int index,
-                                                         LinkedHashMap<String, String> currentBindings) {
-        if (index == groupsBySaga.size()) {
-            return new InputTupleCount(BigInteger.ONE);
-        }
-
-        BigInteger count = BigInteger.ZERO;
-        for (InputBindingGroup group : groupsBySaga.get(index)) {
-            if (!compatible(currentBindings, group.bindings())) {
-                continue;
-            }
-            LinkedHashMap<String, String> merged = new LinkedHashMap<>(currentBindings);
-            group.bindings().forEach(merged::putIfAbsent);
-            BigInteger suffixCount = countCompatibleBindingGroups(groupsBySaga, index + 1, merged).count();
-            count = count.add(group.count().multiply(suffixCount));
-        }
-        return new InputTupleCount(count);
-    }
-
-    private boolean compatible(Map<String, String> existingBindings, Map<String, String> candidateBindings) {
-        for (Map.Entry<String, String> candidate : candidateBindings.entrySet()) {
-            String existingValue = existingBindings.get(candidate.getKey());
-            if (existingValue != null && !existingValue.equals(candidate.getValue())) {
-                return false;
-            }
-        }
-        return true;
+        return InputTupleSelection.count(sagaSet, inputsBySaga, List.of(), List.of(),
+                InputTupleSelection.Mode.ALL);
     }
 
     private BigInteger scheduleCountPerTuple(List<String> sagaSet,
@@ -409,11 +368,12 @@ public final class ScenarioSpaceAccountingCalculator {
         return result;
     }
 
-    private ScenarioSpaceTotals totals(List<GroupedSagaSetRow> rows) {
+    private ScenarioSpaceTotals totals(List<CalculatedRow> rows, boolean selected) {
         LinkedHashMap<String, BigInteger> bySize = new LinkedHashMap<>();
         BigInteger total = BigInteger.ZERO;
-        for (GroupedSagaSetRow row : rows) {
-            BigInteger rowCount = new BigInteger(row.scenarioShapeCount());
+        for (CalculatedRow calculated : rows) {
+            GroupedSagaSetRow row = calculated.row();
+            BigInteger rowCount = selected ? calculated.selectedShapeCount() : calculated.allShapeCount();
             total = total.add(rowCount);
             bySize.merge(Integer.toString(row.sagaSetSize()), rowCount, BigInteger::add);
         }
@@ -484,10 +444,9 @@ public final class ScenarioSpaceAccountingCalculator {
         return String.join("|", sagaSet);
     }
 
-    private record InputBindingGroup(Map<String, String> bindings, BigInteger count) {
-    }
-
-    private record InputTupleCount(BigInteger count) {
+    private record CalculatedRow(GroupedSagaSetRow row,
+                                 BigInteger allShapeCount,
+                                 BigInteger selectedShapeCount) {
     }
 
     private record GraphViews(ConflictGraphBuilder.Result strict, ConflictGraphBuilder.Result broad) {
