@@ -75,10 +75,6 @@ public final class DynamicEvidenceJoiner {
         List<DynamicObservation> observations = normalized.stream().map(Normalized::observation).toList();
         List<DynamicAttributionLink> attributions = attribute(normalized, index);
 
-        if (!observations.isEmpty() && observations.stream().noneMatch(observation -> observation.input() != null)) {
-            diagnostics.add("Known runtime input-map mismatch remains visible: verifier entries use workloadPlanIds "
-                    + "while the simulator reader expects scenarioPlanIds; no exact input id was observed");
-        }
         addContextDiagnostics(observations, diagnostics);
         Map<String, Object> accounting = accounting(plans, observations, attributions,
                 selectedTestClasses, testRunStatusByClass);

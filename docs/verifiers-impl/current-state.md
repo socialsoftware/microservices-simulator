@@ -358,7 +358,12 @@ Unique input accounting assigns each input only its strongest evidence (`exactIn
 
 Runtime input maps, Maven output, test-run reports, and normalization diagnostics remain under the diagnostic `dynamic-evidence/` directory outside the package. Raw simulator event JSONL is deleted only after the normalized files and manifest finalize successfully and is retained on failure.
 
-The fresh bounded Quizzes smoke wrote 1,038 observations and 10 invocation attributions, but exact-input attribution remained zero. Diagnostics expose the known integration mismatch: the verifier input map writes `workloadPlanIds`, while the simulator reader expects `scenarioPlanIds`. The verifier does not invent exact matches; this is the next ranked issue.
+The current input map uses `workloadPlanIds` on both sides. In the bounded Quizzes smoke,
+the same 1,038 observations and 10 Saga-invocation groups changed from 0 exact / 2
+test-and-shape / 8 shape-only before the repair to 2 exact / 0 test-and-shape / 8
+shape-only afterward. The exact groups carry the persisted RemoveTournament and
+AddParticipant input ids; the remaining groups retain only the evidence actually
+available to them.
 
 The durable static/dynamic boundary is explained in [`decisions/2026-04-28-hybrid-static-dynamic-key-binding.md`](decisions/2026-04-28-hybrid-static-dynamic-key-binding.md).
 
@@ -500,15 +505,18 @@ One on-demand request persisted workload `12f7f358f8c3c04a6541a8a86450639089e192
 
 ### Bounded current dynamic smoke
 
-The same package was enriched by one host invocation of `DynamicEnrichmentOrchestrator` selecting only `RemoveTournamentAddParticipantRecoveryWindowExploratoryTest`. Maven ran five features with zero failures. The final package has 1,038 observations (188 step-started, 188 step-finished, 422 command-sent, 239 aggregate-accessed, one invariant violation) and 10 attribution groups (2 `testAndShape`, 8 `shapeOnly`). Unique input evidence is 0 exact, 2 test-and-shape, 0 shape-only; its only workload is `allInputsObservedInOneCommonTest`.
+The same package was enriched by one host invocation of `DynamicEnrichmentOrchestrator` selecting only `RemoveTournamentAddParticipantRecoveryWindowExploratoryTest`. Maven ran five features with zero failures. The current input-map rerun is under `verifiers/target/input-map-fix/quizzes-source-package/`. It has 1,038 observations (188 step-started, 188 step-finished, 422 command-sent, 239 aggregate-accessed, one invariant violation) and 10 attribution groups (2 `exactInput`, 8 `shapeOnly`). Unique input evidence is 2 exact, 0 test-and-shape, 0 shape-only; its only workload remains `allInputsObservedInOneCommonTest`.
 
-Exact input remained zero because of the recorded `workloadPlanIds` / `scenarioPlanIds` mismatch. The raw event JSONL was removed after successful publication; the input map, Maven log, test reports, and normalization diagnostics remain outside the package.
+Before the repair, the equivalent run produced 0 exact, 2 test-and-shape, and 8 shape-only groups because the verifier wrote `workloadPlanIds` while the simulator expected `scenarioPlanIds`. The simulator now reads `workloadPlanIds`; the raw event JSONL was removed after successful publication, while the input map, Maven log, test reports, and normalization diagnostics remain outside the package.
 
-Final executable-package role sizes are: accounting 22,015 bytes; Sagas 68 / 90,446; inputs 847 / 3,959,368; interactions 764 / 402,946; setups 1 / 9,643; workloads 1 / 1,050; FaultScenarios 14 / 3,792; requests 1 / 262; observations 1,038 / 724,297; attributions 10 / 8,995; manifest 1,226 bytes. Every declared SHA-256 matched, and the current reader revalidated all cross-file references after dynamic publication.
+Current executable-package role sizes are: accounting 22,015 bytes; Sagas 68 / 90,446; inputs 847 / 3,959,368; interactions 764 / 402,946; setups 1 / 9,643; workloads 1 / 1,050; FaultScenarios 14 / 3,792; requests 1 / 262; observations 1,038 / 725,795; attributions 10 / 8,991; manifest 1,226 bytes. Every declared SHA-256 matched, and the current reader revalidated all cross-file references after dynamic publication.
 
 ### Regression proof
 
-The final handoff records the clean full verifier suite, compile/test-compile, and diff check. Generated reports are evidence artifacts, not package roles.
+After the input-map repair, the complete simulator suite passed 119 tests and the
+complete verifier suite passed 654 tests, both with zero failures, errors, or skips.
+The rerun package also passed current-reader hash and reference validation. Generated
+reports are evidence artifacts, not package roles.
 
 ## Current limitations
 
@@ -519,7 +527,7 @@ The final handoff records the clean full verifier suite, compile/test-compile, a
 - Static setup candidacy is conservative prediction. The fresh bounded source-derived workload is setup-ready, but other packages and environments still require actual setup evidence.
 - Repeated same-participant runtime step names are structurally rejected because current Saga/local runtime state is keyed by step name rather than occurrence id.
 - Segment compression preserves conflict-anchor order cases under extracted evidence; it does not prove every semantically distinct runtime interleaving is retained.
-- Dynamic enrichment remains local/Saga-focused. The fresh one-class smoke has no exact input attribution because of the `workloadPlanIds` / `scenarioPlanIds` integration mismatch.
+- Dynamic enrichment remains local/Saga-focused. The fresh one-class smoke resolves 2 of 10 Saga-invocation groups exactly; the other 8 remain shape-only, and 933 observations still lack a uniquely resolved Saga and Saga-local step.
 - The generated Quizzes event-consequence pair provides one ImpactV1 1/0 discrimination. The automatic source-derived RemoveTournament–AddParticipant path proves one harmful/control pair without its descriptor/provider; the retained historical benchmark still provides the complete 34-row 19/15 landscape. ImpactV1 is zero for every Remove/Add row, so a broader impact contract remains undefined.
 - Three refreshed benchmark controls demonstrate the explicitly marked zero-bit domain-fallback path; other fallback shapes remain unqualified.
 - Persistent-environment reset is the caller/orchestrator's responsibility.

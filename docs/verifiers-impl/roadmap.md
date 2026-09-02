@@ -14,13 +14,12 @@ The thesis direction is a reproducible pipeline that can:
 4. measure application-independent evidence of harmful behavior;
 5. search and prioritize the experiment space under a finite budget.
 
-The current implementation reaches a bounded Saga/local version of steps 1–4 and now publishes one current-only role-keyed package. The main bottleneck is no longer producing more catalog rows. Fresh qualification shows that runtime observations still cannot carry exact static input ids because the two sides disagree on the input-map plan-id field.
+The current implementation reaches a bounded Saga/local version of steps 1–4 and now publishes one current-only role-keyed package. The runtime input-map boundary now propagates exact static input ids for eligible invocations. The main bottleneck is producing more representative, materializable inputs and executable workloads rather than more catalog rows.
 
 ## Priority order
 
 ```text
-repair exact runtime input-map identity
-  -> input quality and executable harmful scenarios
+input quality and executable harmful scenarios
   -> repeatable execution boundary
   -> useful impact signal
   -> local fault-vector search
@@ -31,7 +30,9 @@ Do not start search or prioritization while generated scenarios are mostly block
 
 ## Outcome 0 — Repair exact runtime input identity
 
-**Status:** next ranked issue from the 2026-09-02 final qualification.
+**Status: complete (2026-09-02).** The simulator now reads the verifier's
+`workloadPlanIds` field. The equivalent bounded smoke changed from 0 exact / 2
+test-and-shape / 8 shape-only groups to 2 exact / 0 test-and-shape / 8 shape-only.
 
 ### Goal
 
@@ -39,7 +40,10 @@ Make the verifier-produced dynamic input map and simulator reader use one curren
 
 ### Why it matters
 
-The bounded final smoke passed five Quizzes features and normalized 1,038 observations, but exact-input attribution remained 0. Diagnostics identify a contract mismatch, not an absence of runtime evidence: the verifier writes `workloadPlanIds`, while the simulator reader expects `scenarioPlanIds`. Until that boundary agrees, exact attribution cannot validate static input identity, and apparent test/shape coverage can overstate evaluation confidence.
+The bounded final smoke passed five Quizzes features and normalized 1,038 observations,
+but exact-input attribution initially remained 0 because the two modules used different
+field names. Aligning both on `workloadPlanIds` lets eligible runtime observations carry
+the exact persisted input id while leaving the matching rules unchanged.
 
 ### Boundary
 

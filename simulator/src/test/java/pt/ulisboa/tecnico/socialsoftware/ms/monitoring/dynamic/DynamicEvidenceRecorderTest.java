@@ -172,7 +172,7 @@ class DynamicEvidenceRecorderTest {
                       "expectedCommands": [],
                       "expectedAggregateTypes": [],
                       "logicalKeyBindings": {},
-                      "scenarioPlanIds": ["scenario-1"],
+                      "workloadPlanIds": ["workload-1"],
                       "stableSourceText": "new OrderSaga(order)",
                       "provenanceText": "test constructor",
                       "warnings": []

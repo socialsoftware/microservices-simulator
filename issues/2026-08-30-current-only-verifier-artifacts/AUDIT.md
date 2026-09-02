@@ -172,7 +172,7 @@ for the short spec and plan after we finish the audit.
 
 ### Dynamic attribution
 
-- The verifier currently writes `workloadPlanIds` in `dynamic-input-map.json`, while the simulator reader expects `scenarioPlanIds`. The simulator rejects the map, so runtime events do not receive the exact static input id. The 2026-09-02 bounded current-package smoke consequently reports 0 exact-input, 2 test-and-shape, and 8 shape-only Saga-invocation attributions. We need a focused follow-up on this integration before treating the exact count as an analysis result.
+- The verifier wrote `workloadPlanIds` in `dynamic-input-map.json`, while the simulator reader expected `scenarioPlanIds`. The simulator rejected the map, so the first 2026-09-02 bounded current-package smoke reported 0 exact-input, 2 test-and-shape, and 8 shape-only Saga-invocation attributions. The focused repair aligned the reader on `workloadPlanIds`; the equivalent rerun reports 2 exact-input, 0 test-and-shape, and 8 shape-only groups without changing matching rules.
 - The old workload-shaped sidecar and `MATCHED_HIGH_CONFIDENCE` aggregation are removed. Current attribution is grouped by test execution and Saga invocation, and participant accounting distinguishes co-observation without claiming the persisted schedule ran.
 
 ### Running the system
@@ -199,19 +199,20 @@ The current-only artifact pass is complete. Fresh bounded evidence preserved the
 interaction topology, preflighted and replayed one source-derived Remove/Add workload,
 persisted one multi-fault request, and normalized all five runtime observation kinds.
 
-Ranked follow-up by evaluation validity and executable coverage:
+Completed follow-up:
 
-1. **Repair the dynamic input-map plan-id mismatch.** It directly prevents exact static
-   input identity in otherwise successful realistic runtime evidence, so it is the next
-   issue. Keep matching semantics and package ownership unchanged; align the verifier map
-   writer and simulator reader, then rerun the same bounded class as a before/after proof.
-2. **Improve accepted-input materializability.** Only 91 of 794 accepted Quizzes inputs
+1. **Dynamic input-map plan-id mismatch repaired.** The equivalent bounded class now
+   produces 2 exact-input groups instead of converting both to test-and-shape evidence.
+
+Ranked remaining follow-up by evaluation validity and executable coverage:
+
+1. **Improve accepted-input materializability.** Only 91 of 794 accepted Quizzes inputs
    are materializable; address one representative blocker family at a time after exact
    runtime identity is trustworthy.
-3. **Correct aggregate-key extraction and interaction confidence.** The third-argument
+2. **Correct aggregate-key extraction and interaction confidence.** The third-argument
    assumption and 0/152/612 exact/symbolic/type-only split remain important for static
    evaluation, but they do not block the already qualified current package lifecycle.
-4. **Define a broader impact contract.** The retained 19/15 Remove/Add final-state
+3. **Define a broader impact contract.** The retained 19/15 Remove/Add final-state
    landscape still has flat ImpactV1 and remains downstream of reliable identity and
    executable input coverage.
 

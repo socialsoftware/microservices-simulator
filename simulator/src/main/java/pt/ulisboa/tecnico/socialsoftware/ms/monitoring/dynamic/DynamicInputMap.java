@@ -76,7 +76,7 @@ public record DynamicInputMap(
             List<String> expectedCommands,
             List<String> expectedAggregateTypes,
             java.util.Map<String, String> logicalKeyBindings,
-            List<String> scenarioPlanIds,
+            List<String> workloadPlanIds,
             String stableSourceText,
             String provenanceText,
             List<String> warnings) {
@@ -96,14 +96,14 @@ public record DynamicInputMap(
                      List<String> expectedCommands,
                      List<String> expectedAggregateTypes,
                      java.util.Map<String, String> logicalKeyBindings,
-                     List<String> scenarioPlanIds,
+                     List<String> workloadPlanIds,
                      String stableSourceText,
                      String provenanceText,
                      List<String> warnings) {
             this(inputVariantId, sagaFqn, sourceClassFqn, sourceMethodName, sourceBindingName,
                     null, null, null, owners, resolutionStatus, sourceMode, sourceModeConfidence,
                     stepNameHints, literalArgumentValueHints, constructorArgumentSummaries, expectedCommands,
-                    expectedAggregateTypes, logicalKeyBindings, scenarioPlanIds, stableSourceText, provenanceText, warnings);
+                    expectedAggregateTypes, logicalKeyBindings, workloadPlanIds, stableSourceText, provenanceText, warnings);
         }
 
         public Entry {

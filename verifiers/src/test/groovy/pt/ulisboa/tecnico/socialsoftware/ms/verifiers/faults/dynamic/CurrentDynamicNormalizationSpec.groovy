@@ -40,7 +40,7 @@ class CurrentDynamicNormalizationSpec extends Specification {
         result.dynamicAccounting().testOutcomes == [passed: 1, failed: 0]
     }
 
-    def 'keeps ambiguous and unmatched evidence explicit and exposes input-map mismatch'() {
+    def 'keeps ambiguous and unmatched evidence explicit'() {
         given:
         def ambiguousPlan = plan('workload-a', [input('input-a'), input('input-b')])
         def unmatched = plan('workload-u', [input('input-u', 'com.example.OtherSaga')], 'com.example.MissingSaga')
@@ -56,7 +56,6 @@ class CurrentDynamicNormalizationSpec extends Specification {
         result.attributions()*.status().toSet() == ['ambiguous', 'unmatched'] as Set
         result.attributions().find { it.status() == 'ambiguous' }.candidateInputs() == ['input-a', 'input-b']
         result.attributions().find { it.status() == 'unmatched' }.reason() == 'no-static-input'
-        result.diagnostics().any { it.contains('input-map mismatch') }
     }
 
     def 'accounts for every workload participant evidence category'() {
