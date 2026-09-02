@@ -4,10 +4,9 @@ verifiers:
   output-root: ${VERIFIERS_OUTPUT_ROOT:output}
   scenario-catalog:
     enabled: false
-    workload-catalog-path: workload-catalog.jsonl
-    fault-scenario-catalog-path: fault-scenario-catalog.jsonl
+    workload-catalog-path: workloads.jsonl
+    fault-scenario-catalog-path: fault-scenarios.jsonl
     manifest-path: scenario-catalog-manifest.json
-    rejected-inputs-path: workload-catalog-rejected-inputs.jsonl
     include-singles: true
     max-saga-set-size: 1
     max-catalog-scenarios: 100

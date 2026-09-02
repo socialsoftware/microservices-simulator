@@ -1,5 +1,4 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.SpringApplication
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan
@@ -100,7 +99,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         def outputRoot = tempDir.resolve('verifier-output')
         def applicationBaseDir = 'dummyapp'
         Files.createDirectories(applicationsRoot.resolve(applicationBaseDir))
-        def outsideArtifact = outputRoot.resolve('outside-workload-catalog.jsonl')
+        def outsideArtifact = outputRoot.resolve('outside-workloads.jsonl')
 
         and:
         def app = new SpringApplication(ScenarioGeneratorApplication)
@@ -111,7 +110,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
                 "--verifiers.application-base-dir=${applicationBaseDir}",
                 "--verifiers.output-root=${outputRoot}",
                 '--verifiers.scenario-catalog.enabled=true',
-                '--verifiers.scenario-catalog.workload-catalog-path=../outside-workload-catalog.jsonl'
+                '--verifiers.scenario-catalog.workload-catalog-path=../outside-workloads.jsonl'
         )
 
         then:
@@ -171,8 +170,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         propertyName << [
                 'verifiers.scenario-catalog.workload-catalog-path',
                 'verifiers.scenario-catalog.fault-scenario-catalog-path',
-                'verifiers.scenario-catalog.manifest-path',
-                'verifiers.scenario-catalog.rejected-inputs-path'
+                'verifiers.scenario-catalog.manifest-path'
         ]
     }
 
@@ -201,169 +199,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         configuredValue << ['0', '-1', 'not-an-integer']
     }
 
-    def 'enabled catalog export writes jsonl and manifest'() {
-        given:
-        def applicationsRoot = tempDir.resolve('applications')
-        def outputRoot = tempDir.resolve('verifier-output')
-        def applicationBaseDir = 'dummyapp'
-        def sourceDummyappRoot = resolveProjectPath('applications', 'dummyapp', 'src')
-        def applicationPath = applicationsRoot.resolve(applicationBaseDir)
-        copyDirectory(sourceDummyappRoot, applicationPath.resolve('src'))
-
-        and:
-        def workloadRelativePath = 'exports/workload-catalog.jsonl'
-        def faultScenarioRelativePath = 'exports/fault-scenario-catalog.jsonl'
-        def manifestRelativePath = 'exports/scenario-catalog-manifest.json'
-        def rejectedRelativePath = 'exports/workload-catalog-rejected-inputs.jsonl'
-        def accountingRelativePath = 'exports/scenario-space-accounting.json'
-        def app = new SpringApplication(ScenarioGeneratorApplication)
-
-        when:
-        def context = app.run(
-                "--verifiers.applications-root=${applicationsRoot}",
-                "--verifiers.application-base-dir=${applicationBaseDir}",
-                "--verifiers.output-root=${outputRoot}",
-                '--verifiers.scenario-catalog.enabled=true',
-                '--verifiers.scenario-catalog.max-saga-set-size=1',
-                "--verifiers.scenario-catalog.workload-catalog-path=${workloadRelativePath}",
-                "--verifiers.scenario-catalog.fault-scenario-catalog-path=${faultScenarioRelativePath}",
-                "--verifiers.scenario-catalog.manifest-path=${manifestRelativePath}",
-                "--verifiers.scenario-catalog.rejected-inputs-path=${rejectedRelativePath}",
-                "--verifiers.scenario-catalog.accounting-path=${accountingRelativePath}",
-                '--verifiers.scenario-catalog.generation-strategy=BRUTE_FORCE',
-                '--verifiers.scenario-catalog.catalog-write-mode=WRITE_WORKLOADS',
-                '--verifiers.scenario-catalog.recovery-schedule-cap=3'
-        )
-
-        then:
-        noExceptionThrown()
-
-        and:
-        def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
-        def workloadPath = runDirectory.resolve(workloadRelativePath)
-        def faultScenarioPath = runDirectory.resolve(faultScenarioRelativePath)
-        def manifestPath = runDirectory.resolve(manifestRelativePath)
-        def rejectedPath = runDirectory.resolve(rejectedRelativePath)
-        def accountingPath = runDirectory.resolve(accountingRelativePath)
-        Files.exists(workloadPath)
-        Files.exists(faultScenarioPath)
-        def faultScenarioLines = Files.readAllLines(faultScenarioPath)
-        def faultScenarios = faultScenarioLines.collect { objectMapper.readTree(it) }
-        !Files.exists(runDirectory.resolve('scenario-catalog.jsonl'))
-        Files.exists(manifestPath)
-        Files.exists(rejectedPath)
-        Files.exists(accountingPath)
-
-        and:
-        def lines = Files.readAllLines(workloadPath)
-        def workloads = lines.collect { objectMapper.readTree(it) }
-        lines.size() > 0
-        workloads.each { workload ->
-            workload.path('acceptedInputs').each { input ->
-                assert input.path('sourceMode').asText()
-                assert input.path('sourceModeConfidence').asText()
-                assert input.has('sourceModeEvidence')
-                assert !['TCC', 'MIXED'].contains(input.path('sourceMode').asText())
-            }
-        }
-
-        and:
-        def rejectedLines = Files.readAllLines(rejectedPath)
-        rejectedLines.size() > 0
-        def rejectedInputs = rejectedLines.collect { objectMapper.readTree(it) }
-        rejectedInputs.every { rejected ->
-            ['TCC', 'MIXED'].contains(rejected.path('input').path('sourceMode').asText()) &&
-                    rejected.path('rejectionReason').asText()
-        }
-        def tccFixtureRejection = rejectedInputs.find {
-            it.path('input').path('sourceClassFqn').asText() == 'com.example.dummyapp.GroovyTccSourceModeTracingSpec'
-        }
-        tccFixtureRejection != null
-        tccFixtureRejection.path('schemaVersion').asText() == 'microservices-simulator.workload-catalog-rejected-input.v3'
-        tccFixtureRejection.path('input').path('sourceMode').asText() == 'TCC'
-        tccFixtureRejection.path('rejectionReason').asText() == 'SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG'
-        def rejectedIds = rejectedInputs.collect { it.path('input').path('deterministicId').asText() } as Set
-        workloads.every { workload ->
-            workload.path('acceptedInputs').every { input -> !rejectedIds.contains(input.path('deterministicId').asText()) }
-        }
-
-        and:
-        def manifest = objectMapper.readTree(Files.readString(manifestPath))
-        manifest.path('schemaVersion').asText() == 'microservices-simulator.scenario-catalog-manifest.v5'
-        manifest.path('counts').path('workloadsExported').asText() == lines.size().toString()
-        manifest.path('workloadCatalog').path('path').asText() == workloadPath.toString()
-        manifest.path('workloadCatalog').path('schemaVersion').asText() == 'microservices-simulator.workload-plan.v5'
-        manifest.path('faultScenarioCatalog').path('path').asText() == faultScenarioPath.toString()
-        manifest.path('faultScenarioCatalog').path('recordCount').asText() == faultScenarioLines.size().toString()
-        manifest.path('recoveryScheduleCap').asInt() == 3
-        manifest.path('faultScenarioVectorSource').asText() == 'EAGER_ALL_ZERO_AND_SINGLE_POINT'
-        manifest.path('materializabilityPolicy').asText().contains('RUNTIME_MATERIALIZATION_UNPROVEN')
-        def materializableWorkloadIds = manifest.path('workloadMaterializability')
-                .findAll { it.path('materializable').asBoolean() }
-                .collect { it.path('workloadPlanId').asText() } as Set
-        def expectedEagerVectorCount = workloads
-                .findAll { materializableWorkloadIds.contains(it.path('deterministicId').asText()) }
-                .sum { it.path('faultSlots').size() + 1 }
-        materializableWorkloadIds.size() >= 7
-        workloads.count { !it.path('eventConsequences').isEmpty() } > 0
-        manifest.path('counts').path('materializableWorkloadPlans').asInt() == materializableWorkloadIds.size()
-        manifest.path('counts').path('nonMaterializableWorkloadPlans').asInt() == workloads.size() - materializableWorkloadIds.size()
-        expectedEagerVectorCount > 17
-        manifest.path('counts').path('computedEagerVectors').asInt() == expectedEagerVectorCount
-        faultScenarios.size() == expectedEagerVectorCount
-        faultScenarios.collect { it.path('workloadPlanId').asText() }.toSet() == materializableWorkloadIds
-        manifest.path('counts').path('faultScenariosExported').asText() == faultScenarioLines.size().toString()
-        manifest.path('rejectedInputsDiagnostic').path('path').asText() == rejectedPath.toString()
-        manifest.path('scenarioSpaceAccounting').path('path').asText() == accountingPath.toString()
-        manifest.has('catalogArchivePath') == false
-        manifest.has('manifestArchivePath') == false
-        manifest.has('rejectedInputsArchivePath') == false
-        manifest.path('counts').path('rejectedInputsExported').asText() == rejectedLines.size().toString()
-        manifest.path('inputVariantsBySourceMode').has('SAGAS')
-        manifest.path('inputVariantsAcceptedBySourceMode').has('SAGAS')
-        manifest.path('inputVariantsRejectedBySourceModeReason').path('SOURCE_MODE_TCC_REJECTED_FOR_SAGA_CATALOG').asInt() >= 1
-        manifest.path('inputVariantsBySourceMode').path('TCC').asInt() >= 1
-        manifest.path('inputVariantsAcceptedBySourceMode').path('TCC').asInt() == 0
-        manifest.path('effectiveConfig').path('exportEnabled').asBoolean()
-        manifest.path('effectiveConfig').path('generationStrategy').asText() == 'BRUTE_FORCE'
-        manifest.path('effectiveConfig').path('catalogWriteMode').asText() == 'WRITE_WORKLOADS'
-        manifest.path('effectiveConfig').path('maxSagaSetSize').asInt() == 1
-
-        and:
-        def accounting = objectMapper.readTree(Files.readString(accountingPath))
-        accounting.path('schemaVersion').asText() == 'microservices-simulator.scenario-space-accounting.v4'
-        accounting.path('runConfig').path('targetApplication').asText() == applicationBaseDir
-        accounting.path('runConfig').path('generationStrategy').asText() == 'BRUTE_FORCE'
-        accounting.path('runConfig').path('catalogWriteMode').asText() == 'WRITE_WORKLOADS'
-        accounting.path('runConfig').path('includeSingles').asBoolean()
-        accounting.path('runConfig').path('maxSagaSetSize').asInt() == 1
-        accounting.path('runConfig').path('maxInputVariantsPerSaga').asInt() == 3
-        accounting.path('runConfig').path('maxSchedulesPerInputTuple').asInt() == 20
-        accounting.path('runConfig').path('maxCatalogScenarios').asInt() == 100
-        accounting.path('runConfig').path('scheduleStrategy').asText() == 'SERIAL'
-        accounting.path('runConfig').path('allowTypeOnlyFallback').asBoolean() == false
-        accounting.path('runConfig').path('inputPolicy').asText() == 'RESOLVED_OR_REPLAYABLE'
-        accounting.path('runConfig').path('sourceModeHandling').asText().contains('TCC and MIXED rejected')
-        accounting.path('inputBoundScenarioSpace').path('allInputBound').path('total').isTextual()
-        accounting.path('inputBoundScenarioSpace').path('catalogWritten').path('total').asText() == lines.size().toString()
-        accounting.path('workloadCatalogSpace').path('materializableWorkloadPlans').asInt() == materializableWorkloadIds.size()
-        accounting.path('workloadCatalogSpace').path('nonMaterializableWorkloadPlans').asInt() == workloads.size() - materializableWorkloadIds.size()
-        accounting.path('faultScenarioCatalogSpace').path('computedEagerVectorCount').asInt() == expectedEagerVectorCount
-        accounting.path('faultScenarioCatalogSpace').path('faultScenariosWritten').asText() == faultScenarioLines.size().toString()
-        accounting.path('faultScenarioCatalogSpace').path('allVectorRecoveryTotalStatus').asText() == 'NOT_COMPUTED'
-
-        and:
-        findTimestampedSiblingReports(workloadPath).isEmpty()
-        findTimestampedSiblingReports(faultScenarioPath).isEmpty()
-        findTimestampedSiblingReports(manifestPath).isEmpty()
-        findTimestampedSiblingReports(rejectedPath).isEmpty()
-        findTimestampedSiblingReports(accountingPath).isEmpty()
-
-        cleanup:
-        context?.close()
-    }
-
-    def 'count only catalog export writes empty catalog with complete accounting'() {
+    def 'count only catalog export writes the current static package'() {
         given:
         def applicationsRoot = tempDir.resolve('applications')
         def outputRoot = tempDir.resolve('verifier-output')
@@ -392,36 +228,32 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
 
         and:
         def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
-        def workloadPath = runDirectory.resolve('workload-catalog.jsonl')
-        def faultScenarioPath = runDirectory.resolve('fault-scenario-catalog.jsonl')
         def manifestPath = runDirectory.resolve('scenario-catalog-manifest.json')
-        def rejectedPath = runDirectory.resolve('workload-catalog-rejected-inputs.jsonl')
-        def accountingPath = runDirectory.resolve('scenario-space-accounting.json')
-        Files.exists(workloadPath)
-        Files.exists(faultScenarioPath)
-        Files.exists(manifestPath)
-        Files.exists(rejectedPath)
+        def accountingPath = runDirectory.resolve('accounting.json')
+        def sagaPath = runDirectory.resolve('sagas.jsonl')
+        def inputPath = runDirectory.resolve('inputs.jsonl')
+        def interactionPath = runDirectory.resolve('interactions.jsonl')
         Files.exists(accountingPath)
-        Files.readAllLines(workloadPath).isEmpty()
-        Files.readAllLines(faultScenarioPath).isEmpty()
+        Files.exists(sagaPath)
+        Files.exists(inputPath)
+        Files.exists(interactionPath)
+        Files.exists(manifestPath)
+        Files.list(runDirectory).collect { it.fileName.toString() }.sort() ==
+                ['accounting.json', 'inputs.jsonl', 'interactions.jsonl', 'sagas.jsonl', 'scenario-catalog-manifest.json']
 
         and:
         def manifest = objectMapper.readTree(Files.readString(manifestPath))
-        manifest.path('effectiveConfig').path('catalogWriteMode').asText() == 'COUNT_ONLY'
-        manifest.path('counts').path('workloadsExported').asText() == '0'
+        manifest.path('formatVersion').isInt()
+        manifest.path('files').fieldNames().toList() as Set == ['accounting', 'sagas', 'inputs', 'interactions'] as Set
+        manifest.path('files').elements().every { it.fieldNames().toList() as Set == ['path', 'sha256'] as Set }
 
         and:
         def accounting = objectMapper.readTree(Files.readString(accountingPath))
-        accounting.path('runConfig').path('generationStrategy').asText() == 'BRUTE_FORCE'
-        accounting.path('runConfig').path('catalogWriteMode').asText() == 'COUNT_ONLY'
-        accounting.path('inputBoundScenarioSpace').path('catalogWritten').path('total').asText() == '0'
-        accounting.path('inputBoundScenarioSpace').path('allInputBound').path('total').asText() != '0'
-        accounting.path('inputBoundScenarioSpace').path('selectedByGenerator').path('total').asText() ==
-                accounting.path('inputBoundScenarioSpace').path('allInputBound').path('total').asText()
-        accounting.path('workloadCatalogSpace').path('workloadPlansWritten').asText() == '0'
-        accounting.path('faultScenarioCatalogSpace').path('computedEagerVectorCount').asText() == '0'
-        accounting.path('faultScenarioCatalogSpace').path('faultScenariosWritten').asText() == '0'
-        accounting.path('faultScenarioCatalogSpace').path('allVectorRecoveryTotalStatus').asText() == 'NOT_COMPUTED'
+        accounting.path('configuration').path('catalogWriteMode').asText() == 'count-only'
+        accounting.path('workloads').path('written').path('total').asInt() == 0
+        !accounting.has('schemaVersion')
+        !accounting.has('discovery')
+        !accounting.toString().contains('faultScenarioCatalogSpace')
 
         cleanup:
         context?.close()
@@ -490,16 +322,9 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
 
         and:
         def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
-        def workloadPath = runDirectory.resolve('workload-catalog.jsonl')
-        def faultScenarioPath = runDirectory.resolve('fault-scenario-catalog.jsonl')
-        def rejectedInputsPath = runDirectory.resolve('workload-catalog-rejected-inputs.jsonl')
         def manifest = objectMapper.readTree(Files.readString(runDirectory.resolve('scenario-catalog-manifest.json')))
-        Files.readAllLines(workloadPath).isEmpty()
-        Files.readAllLines(faultScenarioPath).isEmpty()
-        Files.readAllLines(rejectedInputsPath).isEmpty()
-        manifest.path('counts').path('inputTracesSeen').asInt() == 0
-        manifest.path('counts').path('inputVariantsAdapted').asInt() == 0
-        manifest.path('counts').path('workloadsExported').asInt() == 0
+        Files.exists(runDirectory.resolve('inputs.jsonl'))
+        manifest.path('files').has('inputs')
         regularArtifactContents(runDirectory).every { !it.contains('MainOnlyTraceSpec') }
 
         cleanup:
@@ -533,7 +358,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         prerequisiteOnly.baseCapped() == 3
     }
 
-    def 'enabled catalog export writes exactly the five v4 package artifacts'() {
+    def 'enabled catalog export writes exactly the current executable package artifacts'() {
         given:
         def applicationsRoot = tempDir.resolve('applications')
         def outputRoot = tempDir.resolve('verifier-output')
@@ -560,11 +385,15 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         and:
         def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
         regularArtifactPaths(runDirectory) == [
-                'fault-scenario-catalog.jsonl',
+                'fault-scenarios.jsonl',
+                'inputs.jsonl',
+                'interactions.jsonl',
+                'requests.jsonl',
+                'sagas.jsonl',
                 'scenario-catalog-manifest.json',
-                'scenario-space-accounting.json',
-                'workload-catalog-rejected-inputs.jsonl',
-                'workload-catalog.jsonl'
+                'setups.jsonl',
+                'accounting.json',
+                'workloads.jsonl'
         ] as Set
 
         cleanup:

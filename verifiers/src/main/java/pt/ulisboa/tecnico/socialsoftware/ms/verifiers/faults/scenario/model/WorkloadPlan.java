@@ -21,7 +21,8 @@ public record WorkloadPlan(
         List<String> warnings) {
 
     public static final String SCHEMA_VERSION = "microservices-simulator.workload-plan.v5";
-    public static final String LEGACY_V4_SCHEMA_VERSION = "microservices-simulator.workload-plan.v4";
+    /** Compact current-package projection schema. It deliberately has no legacy wire compatibility. */
+    public static final String CURRENT_SCHEMA_VERSION = "microservices-simulator.workload-plan.current";
 
     public WorkloadPlan {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;

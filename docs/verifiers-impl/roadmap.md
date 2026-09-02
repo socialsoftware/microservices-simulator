@@ -1,6 +1,6 @@
 # Verifier roadmap
 
-Last updated: 2026-08-28
+Last updated: 2026-09-02
 
 [`current-state.md`](current-state.md) describes what exists now and the evidence behind it. This roadmap describes the remaining outcomes, why they matter to the thesis, their dependencies, and what would count as done. It deliberately avoids repeating current metrics and commands.
 
@@ -14,12 +14,13 @@ The thesis direction is a reproducible pipeline that can:
 4. measure application-independent evidence of harmful behavior;
 5. search and prioritize the experiment space under a finite budget.
 
-The current implementation reaches a bounded Saga/local version of steps 1–4. The main bottleneck is no longer producing more catalog rows. It is producing **representative, setup-ready, repeatably executable scenarios whose outcomes provide useful impact variation**.
+The current implementation reaches a bounded Saga/local version of steps 1–4 and now publishes one current-only role-keyed package. The main bottleneck is no longer producing more catalog rows. Fresh qualification shows that runtime observations still cannot carry exact static input ids because the two sides disagree on the input-map plan-id field.
 
 ## Priority order
 
 ```text
-input quality and executable harmful scenarios
+repair exact runtime input-map identity
+  -> input quality and executable harmful scenarios
   -> repeatable execution boundary
   -> useful impact signal
   -> local fault-vector search
@@ -27,6 +28,32 @@ input quality and executable harmful scenarios
 ```
 
 Do not start search or prioritization while generated scenarios are mostly blocked, cannot be reset reliably, or produce flat impact values.
+
+## Outcome 0 — Repair exact runtime input identity
+
+**Status:** next ranked issue from the 2026-09-02 final qualification.
+
+### Goal
+
+Make the verifier-produced dynamic input map and simulator reader use one current plan-id field so exact eligible runtime Saga invocations can carry their static `inputVariantId`.
+
+### Why it matters
+
+The bounded final smoke passed five Quizzes features and normalized 1,038 observations, but exact-input attribution remained 0. Diagnostics identify a contract mismatch, not an absence of runtime evidence: the verifier writes `workloadPlanIds`, while the simulator reader expects `scenarioPlanIds`. Until that boundary agrees, exact attribution cannot validate static input identity, and apparent test/shape coverage can overstate evaluation confidence.
+
+### Boundary
+
+- settle and implement one field name on both writer and reader;
+- keep workload identity, static inference, matching order, and package shapes unchanged;
+- prove positive exact propagation plus rejection of wrong-plan, wrong-test, wrong-Saga, and ambiguous candidates;
+- rerun the same bounded Quizzes class and compare exact/test-and-shape/shape-only counts without inventing matches.
+
+### Done when
+
+- the simulator accepts the generated current input map;
+- a controlled realistic invocation carries the expected exact input id;
+- exact attribution remains step- and test-aware and reader accounting reconciles;
+- the bounded before/after evidence explains which input/workload claims became stronger.
 
 ## Outcome 1 — Improve useful input coverage
 
@@ -42,7 +69,7 @@ Static Saga discovery alone does not create executable experiments. Every useful
 
 ### Current entry point
 
-The current handbook records the supported recipe model, the latest setup-ready baseline, and the remaining Sagas without accepted inputs. Known blocker families include unsupported local transforms, unresolved helper/property values, and event payload placeholders.
+The current handbook records the supported recipe model, the current setup-ready baseline, and the remaining Sagas without accepted inputs. Known blocker families include unsupported local transforms, unresolved helper/property values, and event payload placeholders.
 
 ### Work direction
 
@@ -61,7 +88,7 @@ The current handbook records the supported recipe model, the latest setup-ready 
 
 ## Outcome 2 — Make a harmful generated interaction executable
 
-**Status: complete (2026-08-01).** The persisted Quizzes event-consequence positive/control pair now provides repeatable ImpactV1 discrimination. See [`current-state.md`](current-state.md#quizzes-event-consequence-replay-positive-control-and-masking). Further event breadth is not part of this outcome.
+**Status: historically achieved (2026-08-01).** A dated v4 Quizzes event-consequence positive/control pair provided repeatable ImpactV1 discrimination under the then-current reader. That package is retained evidence only: the current reader will not consume it, so any new execution or regression claim requires regeneration as a current package. Further event breadth is not part of this outcome.
 
 ### Goal
 
@@ -79,14 +106,16 @@ The generic invariant detector needed a persisted scenario with enough prerequis
 - Preserve deterministic action identity and explicit evidence for every prerequisite.
 - Demonstrate a negative/control scenario alongside the positive interaction.
 
-### Done when
+### Historical completion evidence
 
-- the interaction is represented by a valid v4 package and exact persisted FaultScenario id;
+- the interaction was represented by the dated valid v4 package and an exact persisted FaultScenario id;
 - setup succeeds in the supported runtime;
 - repeated execution produces the expected conformance boundary and non-zero generic impact finding;
 - a nearby control produces zero impact;
 - package bytes remain unchanged by execution;
 - the claim does not depend on parsing application-specific log text.
+
+For current work, regenerate the interaction through the current writer and re-establish these checks before citing it as current executable evidence.
 
 ## Outcome 3 — Define repeatable execution and reset
 
@@ -117,7 +146,7 @@ Fault-vector search assumes that reward differences come from the vector/scenari
 
 ## Outcome 4 — Characterize one harmful workload before broadening impact
 
-**Status: complete (2026-08-16).** After merging master’s typed Saga-state persistence, a fresh v4 package, target/control repetitions, and all 34 retained schedules pass exact converter-decoded `GenericSagaState.NOT_IN_SAGA` proof. Landscape schema v2 records 19 bounded harmful rows and 15 no-broken-reference rows while ImpactV1 remains zero throughout. See [`current-state.md`](current-state.md#historical-prerequisite-backed-removetournamentaddparticipant-benchmark).
+**Status: historically achieved (2026-08-16).** The dated v4 package, target/control repetitions, and all 34 retained schedules passed exact converter-decoded `GenericSagaState.NOT_IN_SAGA` proof. Landscape schema v2 recorded 19 bounded harmful rows and 15 no-broken-reference rows while ImpactV1 remained zero throughout. The package is historical evidence and requires current-package regeneration before new execution claims.
 
 ### Goal
 
@@ -151,6 +180,8 @@ The completed landscape shows useful final-state variation that ImpactV1 does no
 
 ## Outcome 5 — Refresh dynamic attribution only for a concrete need
 
+**Status:** the bounded current-package smoke is complete; broader enrichment remains conditional on a named evaluation question. Exact input-map repair is Outcome 0 and precedes another broad run.
+
 ### Goal
 
 Use dynamic evidence when it can resolve a specific static-identity or coverage problem that blocks useful generation or interpretation.
@@ -161,8 +192,8 @@ Dynamic enrichment is expensive and produces many raw artifacts. Historical broa
 
 ### Work direction
 
-- First identify a current latest-package workload whose usefulness depends on unresolved runtime identity.
-- Run a bounded latest-package enrichment baseline with explicit memory, profile, and test selection.
+- First identify a current-package workload whose usefulness depends on unresolved runtime identity.
+- Run a bounded current-package enrichment baseline with explicit memory, profile, and test selection.
 - Prefer direct input ids and structured simulator events over fuzzy value/name matching.
 - Treat ambiguous, unmatched, and not-covered results as evidence boundaries, not metrics to optimize blindly.
 - Do not let dynamic evidence rewrite package identity or persisted actions.
@@ -174,7 +205,7 @@ Dynamic enrichment is expensive and produces many raw artifacts. Historical broa
 - attribution improvement is measured against a controlled before/after case;
 - raw artifacts and runtime cost are justified by information that changes a decision.
 
-A broad Quizzes v5 refresh is not automatically a higher priority than the reduced generic impact contract.
+A broad Quizzes refresh is not automatically a higher priority than the reduced generic impact contract.
 
 ## Outcome 6 — Local fault-vector search
 
@@ -189,7 +220,7 @@ Do not start until:
 - the chosen workload is setup-ready and repeatably executable;
 - environment reset is defined;
 - at least one vector produces a discriminating evaluated result under an approved versioned impact contract; the automatic source-derived benchmark's final-state rule is evidence for designing that contract, not yet the generic search reward;
-- arbitrary valid vectors can be persisted idempotently through the v4 on-demand path;
+- arbitrary valid vectors can be persisted idempotently through the current on-demand path;
 - invalid/infrastructure attempts cannot masquerade as zero fitness.
 
 ### Minimal design boundary

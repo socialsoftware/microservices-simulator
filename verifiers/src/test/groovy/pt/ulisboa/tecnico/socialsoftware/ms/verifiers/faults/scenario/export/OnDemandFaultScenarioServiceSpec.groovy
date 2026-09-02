@@ -1,1165 +1,470 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleGenerator
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.*
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.nio.channels.FileChannel
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
+import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 
 class OnDemandFaultScenarioServiceSpec extends Specification {
+    def 'production writer emits the exact executable shape for setup schedules faults and requests'() {
+        given:
+        def source = executableShapeWorkload(true)
+        def provider = executableShapeWorkload(false)
+        def scenario = RecoveryScheduleGenerator.generate(source, '0000', 1).faultScenarios().first()
+        def fixture = CurrentPackageFixture.write([source, provider], [scenario], 1)
 
-    private final ObjectMapper mapper = new ObjectMapper()
-
-    def 'missing manifest diagnostic identifies the required v4 package'() {
         when:
-        def result = new OnDemandFaultScenarioService().request(null)
+        def current = new ScenarioCatalogPackageReader().readCurrent(fixture.manifest)
+        def sourceRecord = current.workloadRecords().find { it.path('id').asText() == fixture.workloads[0].deterministicId() }
+        def providerRecord = current.workloadRecords().find { it.path('id').asText() == fixture.workloads[1].deterministicId() }
+        def sourceSetup = current.setupRecords().find { it.path('id').asText() == sourceRecord.path('setup').asText() }
+        def providerSetup = current.setupRecords().find { it.path('id').asText() == providerRecord.path('setup').asText() }
+        def fault = current.faultScenarioRecords().first()
 
         then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics().first().code() == 'MISSING_MANIFEST_PATH'
-        result.diagnostics().first().message() == 'A v4 package manifest path is required'
+        sourceSetup.path('kind').asText() == 'sourceDerived'
+        sourceSetup.path('actions')*.path('call')*.asText() == ['example.Fixture#create():java.lang.Long']
+        sourceSetup.path('bindings')*.path('input')*.asText() == [fixture.workloads[0].acceptedInputs().first().deterministicId()]
+        providerSetup.path('kind').asText() == 'providerBacked'
+        providerSetup.path('provider').asText() == 'fixture-provider@1'
+        sourceRecord.path('schedule')*.path('kind')*.asText() == ['step', 'event', 'step', 'step', 'step']
+        sourceRecord.path('schedule')[1].path('triggeringStep').asText() == 's1'
+        fault.path('actions')*.fieldNames()*.next() == ['step', 'event', 'step', 'step', 'step']
+        current.requestRecords().isEmpty()
+        fixture.requests.bytes.length == 0
     }
 
-    def 'valid multi-fault request persists one consistent bounded package revision before returning'() {
+    def 'writer and reader retain exact occurrence suffixes for repeated same-name Saga steps'() {
         given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-valid'), 2)
-        def before = snapshotMutable(fixture)
-        def unchangedWorkload = Files.readAllBytes(fixture.workloadPath)
-        def unchangedRejected = Files.readAllBytes(fixture.rejected)
+        def workload = repeatedNameWorkload()
+        def scenario = RecoveryScheduleGenerator.generate(workload, '01', 20).faultScenarios()
+                .find { it.actions()*.kind().contains(FaultScenarioActionKind.COMPENSATION) }
+        def fixture = CurrentPackageFixture.write([workload], [scenario], 20)
 
         when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest,
-                fixture.workload.deterministicId(),
-                '0011',
-                '2'))
+        def raw = new ScenarioCatalogPackageReader().readCurrent(fixture.manifest)
+        def execution = new ScenarioCatalogPackageReader().readCurrentForExecution(fixture.manifest)
+        def projected = execution.workloadPlans().first()
+        def projectedScenario = execution.faultScenarios().first()
+
+        then:
+        raw.workloadRecords().first().path('schedule')*.path('sagaStep')*.asText() == ['same#0', 'same#1']
+        projected.forwardSchedule()*.stepId() == ['example.RepeatedSaga::same#0', 'example.RepeatedSaga::same#1']
+        def compensation = projectedScenario.actions().find { it.kind() == FaultScenarioActionKind.COMPENSATION }
+        def completedForward = projectedScenario.actions().find { action ->
+            action.kind() == FaultScenarioActionKind.FORWARD &&
+                    action.occurrenceId() == compensation.occurrenceId()
+        }
+        completedForward != null
+        projected.compensationCheckpoints().find {
+            it.deterministicId() == compensation.sourceCompensationCheckpointId()
+        }.stepId() == 'example.RepeatedSaga::same#0'
+    }
+
+    def 'smaller then larger cap adds only absent schedules and deduplicates exact identity'() {
+        given:
+        def workload = workload()
+        def generated = new WorkloadGenerationResult(WorkloadPlan.SCHEMA_VERSION,
+                new ScenarioGeneratorConfig(), [workload], [], [:], [])
+        def eager = EagerFaultScenarioGenerator.generate(generated, new RecoveryScheduleCap(3))
+        def fixture = CurrentPackageFixture.write([workload], eager.faultScenarios(), 3)
+        def service = new OnDemandFaultScenarioService()
+
+        when:
+        def smaller = service.request(new OnDemandFaultScenarioRequest(fixture.manifest, workload.deterministicId(), '0011', '1'))
+        def afterSmall = new ScenarioCatalogPackageReader().readCurrent(fixture.manifest)
+        def idsAfterSmall = afterSmall.faultScenarioRecords()*.path('id')*.asText().toSet()
+        def larger = service.request(new OnDemandFaultScenarioRequest(fixture.manifest, workload.deterministicId(), '0011', '3'))
+        def repeated = service.request(new OnDemandFaultScenarioRequest(fixture.manifest, workload.deterministicId(), '0011', '3'))
+        def current = new ScenarioCatalogPackageReader().readCurrent(fixture.manifest)
+        def idsAfterLarge = current.faultScenarioRecords()*.path('id')*.asText().toSet()
+
+        then:
+        smaller.status() == OnDemandFaultScenarioResult.Status.PERSISTED
+        smaller.writtenScheduleCount() == 1
+        larger.status() == OnDemandFaultScenarioResult.Status.PERSISTED
+        larger.writtenScheduleCount() == 3
+        larger.addedFaultScenarioCount() == idsAfterLarge.size() - idsAfterSmall.size()
+        idsAfterLarge.containsAll(idsAfterSmall)
+        repeated.status() == OnDemandFaultScenarioResult.Status.DEDUPLICATED
+        current.requestRecords()*.path('effectiveRecoveryScheduleCap')*.asInt() == [1, 3]
+        current.requestRecords().every { !it.has('id') }
+        current.accounting().path('faultScenarios').path('initial') == afterSmall.accounting().path('faultScenarios').path('initial')
+        current.accounting().path('faultScenarios').path('current').path('written').asInt() == idsAfterLarge.size()
+    }
+
+    def 'default cap comes from accounting and a failed request is atomic'() {
+        given:
+        def workload = workload()
+        def fixture = CurrentPackageFixture.write([workload], [], 2)
+        def before = snapshot(fixture)
+
+        when:
+        def invalid = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), 'x011', null))
+
+        then:
+        invalid.status() == OnDemandFaultScenarioResult.Status.REJECTED
+        snapshot(fixture) == before
+
+        when:
+        def persisted = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), '0011', null))
+
+        then:
+        persisted.status() == OnDemandFaultScenarioResult.Status.PERSISTED
+        persisted.recoveryScheduleCap() == 2
+        new ScenarioCatalogPackageReader().readCurrent(fixture.manifest)
+                .requestRecords().first().path('effectiveRecoveryScheduleCap').asInt() == 2
+    }
+
+    def 'missing manifest is rejected as a current package request'() {
+        expect:
+        new OnDemandFaultScenarioService().request(null).diagnostics().first().message() ==
+                'A current scenario package manifest path is required'
+    }
+
+    def 'process local serialization uses one package identity for aliased manifest paths'() {
+        given:
+        def workload = workload()
+        def fixture = CurrentPackageFixture.write([workload], [], 2)
+        def aliasedManifest = fixture.manifest.parent.resolve('unused').resolve('..').resolve(fixture.manifest.fileName)
+        def firstAcquired = new CountDownLatch(1)
+        def releaseFirst = new CountDownLatch(1)
+        def opens = new AtomicInteger()
+        def closes = new AtomicInteger()
+        def provider = { Path ignored ->
+            def sequence = opens.incrementAndGet()
+            [acquire: {
+                if (sequence == 1) {
+                    firstAcquired.countDown()
+                    assert releaseFirst.await(5, TimeUnit.SECONDS)
+                }
+            }, close: { closes.incrementAndGet() }] as OnDemandFaultScenarioService.PackageLockHandle
+        } as OnDemandFaultScenarioService.PackageLockProvider
+        def service = new OnDemandFaultScenarioService(provider)
+        def request = new OnDemandFaultScenarioRequest(fixture.manifest, workload.deterministicId(), '0011', '2')
+        def aliasRequest = new OnDemandFaultScenarioRequest(aliasedManifest, workload.deterministicId(), '0011', '2')
+        def executor = Executors.newFixedThreadPool(2)
+
+        when:
+        def first = executor.submit({ service.request(request) } as Callable<OnDemandFaultScenarioResult>)
+        assert firstAcquired.await(5, TimeUnit.SECONDS)
+        def second = executor.submit({ service.request(aliasRequest) } as Callable<OnDemandFaultScenarioResult>)
+        try {
+            try {
+                second.get(200, TimeUnit.MILLISECONDS)
+                assert false: 'aliased request entered while the first package request still held the process-local lock'
+            } catch (TimeoutException expected) {
+                // Expected: the canonical package identity serializes the aliased request.
+            }
+            assert opens.get() == 1
+        } finally {
+            releaseFirst.countDown()
+        }
+        def results = [first.get(10, TimeUnit.SECONDS), second.get(10, TimeUnit.SECONDS)]
+        executor.shutdownNow()
+
+        then:
+        results*.status().toSet() == [OnDemandFaultScenarioResult.Status.PERSISTED,
+                                     OnDemandFaultScenarioResult.Status.DEDUPLICATED] as Set
+        opens.get() == 2
+        closes.get() == 2
+    }
+
+    def 'NIO package lock is acquired at the canonical package path and released after an aliased request'() {
+        given:
+        def workload = workload()
+        def fixture = CurrentPackageFixture.write([workload], [], 1)
+        def aliasedManifest = fixture.manifest.parent.resolve('unused').resolve('..').resolve(fixture.manifest.fileName)
+        def observed = []
+        def provider = new OnDemandFaultScenarioService.NioPackageLockProvider({ Path path -> observed << path })
+
+        when:
+        def result = new OnDemandFaultScenarioService(provider).request(new OnDemandFaultScenarioRequest(
+                aliasedManifest, workload.deterministicId(), '0011', '1'))
+        def lockPath = fixture.manifest.parent.toRealPath().resolve(OnDemandFaultScenarioService.PACKAGE_LOCK_FILE_NAME)
+        def channel = FileChannel.open(lockPath, StandardOpenOption.WRITE)
+        def reacquired = channel.tryLock()
 
         then:
         result.status() == OnDemandFaultScenarioResult.Status.PERSISTED
-        result.addedFaultScenarioCount() > 0
-        result.writtenScheduleCount() <= 2
-        result.faultScenarioIds().size() == result.writtenScheduleCount()
+        observed == [lockPath]
+        Files.isRegularFile(lockPath)
+        reacquired != null
 
-        and:
-        def loaded = new ScenarioCatalogPackageReader().read(fixture.manifest)
-        def requestedScenarios = loaded.faultScenarios().findAll { it.assignedVector() == '0011' }
-        requestedScenarios*.deterministicId() == result.faultScenarioIds()
-        requestedScenarios.every { scenario ->
-            scenario.actions().findAll { it.kind() == FaultScenarioActionKind.COMPENSATION }*.sagaInstanceId().toSet() == ['a', 'b'] as Set
-        }
-        loaded.manifest().generationSource() == 'STATIC_ANALYSIS_AND_ON_DEMAND_REQUEST'
-        loaded.manifest().faultScenarioVectorSource() == 'EAGER_ALL_ZERO_AND_SINGLE_POINT_AND_ON_DEMAND'
-        loaded.manifest().counts().computedOnDemandVectors == '1'
-        loaded.manifest().counts().faultScenariosExported == loaded.faultScenarios().size().toString()
-        def accounting = mapper.readTree(Files.readString(fixture.accounting))
-        def requestedRow = accounting.path('faultScenarioCatalogSpace').path('perComputedVectorRecoverySpace')
-                .find { it.path('assignedVector').asText() == '0011' }
-        requestedRow.path('vectorSource').asText() == 'ON_DEMAND_REQUEST'
-        requestedRow.path('writtenScheduleCount').asInt() == result.writtenScheduleCount()
-
-        and:
-        !Arrays.equals(before.faultScenario, Files.readAllBytes(fixture.faultScenario))
-        !Arrays.equals(before.accounting, Files.readAllBytes(fixture.accounting))
-        !Arrays.equals(before.manifest, Files.readAllBytes(fixture.manifest))
-        Arrays.equals(unchangedWorkload, Files.readAllBytes(fixture.workloadPath))
-        Arrays.equals(unchangedRejected, Files.readAllBytes(fixture.rejected))
+        cleanup:
+        reacquired?.close()
+        channel?.close()
     }
 
-    def 'invalid request matrix returns structured diagnostics and leaves all mutable artifacts byte unchanged'() {
+    @Unroll
+    def 'package lock #failurePoint failure is contained and closes any opened resource'() {
         given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-invalid'), 2)
-        def before = snapshotMutable(fixture)
+        def workload = workload()
+        def fixture = CurrentPackageFixture.write([workload], [], 1)
+        def closes = new AtomicInteger()
+        def provider = { Path ignored ->
+            if (failurePoint == 'resource') throw new IOException('resource failure')
+            [acquire: {
+                if (failurePoint == 'acquisition') throw new IOException('acquisition failure')
+            }, close: {
+                closes.incrementAndGet()
+                if (failurePoint == 'release') throw new IOException('release failure')
+            }] as OnDemandFaultScenarioService.PackageLockHandle
+        } as OnDemandFaultScenarioService.PackageLockProvider
 
         when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest,
-                workloadId == 'VALID' ? fixture.workload.deterministicId() : workloadId,
-                vector,
-                assertedCap))
+        def result = new OnDemandFaultScenarioService(provider).request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), '0011', '1'))
 
         then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics()*.code() == [expectedCode]
-        sameMutableBytes(before, fixture)
+        result.status() == expectedStatus
+        result.diagnostics()*.code() == expectedDiagnostics
+        closes.get() == expectedCloses
+        new ScenarioCatalogPackageReader().readCurrent(fixture.manifest) != null
 
         where:
-        workloadId | vector | assertedCap || expectedCode
-        'missing'  | '0011' | '2'         || 'WORKLOAD_PLAN_NOT_FOUND'
-        'VALID'    | '00x1' | '2'         || 'NON_BINARY_VECTOR'
-        'VALID'    | '001'  | '2'         || 'INVALID_VECTOR_LENGTH'
-        'VALID'    | '0011' | '0'         || 'INVALID_ASSERTED_RECOVERY_CAP'
-        'VALID'    | '0011' | '-1'        || 'INVALID_ASSERTED_RECOVERY_CAP'
-        'VALID'    | '0011' | 'invalid'   || 'INVALID_ASSERTED_RECOVERY_CAP'
-        'VALID'    | '0011' | '3'         || 'RECOVERY_CAP_MISMATCH'
+        failurePoint  || expectedStatus                                         | expectedDiagnostics       | expectedCloses
+        'resource'    || OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED | ['PACKAGE_LOCK_FAILED']   | 0
+        'acquisition' || OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED | ['PACKAGE_LOCK_FAILED']   | 1
+        'release'     || OnDemandFaultScenarioResult.Status.PERSISTED          | []                        | 1
     }
 
-    def 'blocked input and malformed slot mapping are rejected before mutation'() {
-        given: 'a package whose requested workload is not input-ready'
-        def blockedWorkload = workload(false)
-        def blocked = writePackage(Files.createTempDirectory('on-demand-blocked'), 2, blockedWorkload)
-        def blockedBefore = snapshotMutable(blocked)
-
-        when:
-        def blockedResult = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                blocked.manifest, blockedWorkload.deterministicId(), '0011', null))
-
-        then:
-        blockedResult.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        blockedResult.diagnostics()*.code() == ['WORKLOAD_NOT_MATERIALIZABLE']
-        sameMutableBytes(blockedBefore, blocked)
-
-        when: 'a linked workload has a malformed slot occurrence mapping with an otherwise current checksum'
-        def malformed = writePackage(Files.createTempDirectory('on-demand-malformed-slot'), 2)
-        def workloadJson = mapper.readTree(Files.readAllLines(malformed.workloadPath).first())
-        workloadJson.path('faultSlots').first().put('occurrenceId', 'wrong-occurrence')
-        Files.writeString(malformed.workloadPath, mapper.writeValueAsString(workloadJson) + '\n')
-        refreshArtifactHash(malformed.manifest, 'workloadCatalog', malformed.workloadPath)
-        def malformedBefore = snapshotMutable(malformed)
-        def malformedResult = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                malformed.manifest, malformed.workload.deterministicId(), '0011', null))
-
-        then:
-        malformedResult.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        malformedResult.diagnostics()*.code() == ['INVALID_PACKAGE']
-        sameMutableBytes(malformedBefore, malformed)
-    }
-
-    def 'on-demand request rejects a checksum-current repeated participant runtime step workload without mutation'() {
+    def 'atomic move fallback publishes a valid current revision'() {
         given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-repeated-runtime-step'), 2)
-        def workloadJson = mapper.readTree(Files.readAllLines(fixture.workloadPath).first())
-        def firstStep = workloadJson.path('forwardSchedule').get(0)
-        def repeatedStep = workloadJson.path('forwardSchedule').get(2)
-        repeatedStep.put('stepId', firstStep.path('stepId').asText())
-        repeatedStep.put('runtimeStepName', firstStep.path('runtimeStepName').asText())
-        Files.writeString(fixture.workloadPath, mapper.writeValueAsString(workloadJson) + '\n')
-        refreshArtifactHash(fixture.manifest, 'workloadCatalog', fixture.workloadPath)
-        def before = snapshotMutable(fixture)
-
-        when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0011', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics()*.code() == ['INVALID_PACKAGE']
-        result.diagnostics().first().message().contains('DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME')
-        sameMutableBytes(before, fixture)
-    }
-
-    def 'package validation rejects a carried on-demand vector owned by a non-materializable workload'() {
-        given:
-        def readyWorkload = workload(true)
-        def blockedWorkload = workload(false)
-        assert !EagerFaultScenarioGenerator.evaluateMaterializability(blockedWorkload).materializable()
-        def fixture = writePackage(
-                Files.createTempDirectory('on-demand-carried-blocked-workload'),
-                2,
-                [readyWorkload, blockedWorkload])
-        def loaded = new ScenarioCatalogPackageReader().read(fixture.manifest)
-        def generatedForBlocked = RecoveryScheduleGenerator.generate(blockedWorkload, '0011', 2)
-        def revisedScenarios = (loaded.faultScenarios() + generatedForBlocked.faultScenarios()).sort { left, right ->
-            left.workloadPlanId() <=> right.workloadPlanId()
-                    ?: left.assignedVector() <=> right.assignedVector()
-                    ?: left.deterministicId() <=> right.deterministicId()
-        }
-        Files.writeString(fixture.faultScenario,
-                revisedScenarios.collect { mapper.writeValueAsString(it) }.join('\n') + '\n')
-
-        def accounting = mapper.readValue(
-                Files.readString(fixture.accounting), ScenarioSpaceAccountingReport)
-        def revisedAccounting = accounting.withOnDemandVector(new ComputedVectorRecovery(
-                blockedWorkload.deterministicId(),
-                '0011',
-                FaultScenarioVectorSource.ON_DEMAND_REQUEST,
-                generatedForBlocked.uncappedScheduleCount(),
-                generatedForBlocked.writtenScheduleCount()), revisedScenarios.size())
-        Files.writeString(fixture.accounting,
-                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(revisedAccounting) + '\n')
-
-        def manifest = mapper.readTree(Files.readString(fixture.manifest))
-        def faultSpace = revisedAccounting.faultScenarioCatalogSpace()
-        manifest.put('generationSource', OnDemandFaultScenarioService.STATIC_AND_ON_DEMAND_GENERATION_SOURCE)
-        manifest.put('faultScenarioVectorSource', OnDemandFaultScenarioService.EAGER_AND_ON_DEMAND_VECTOR_SOURCE)
-        manifest.path('counts').put('computedOnDemandVectors', faultSpace.computedOnDemandVectorCount())
-        manifest.path('counts').put('computedVectors', faultSpace.computedVectorCount())
-        manifest.path('counts').put(
-                'computedVectorUncappedScheduleSum', faultSpace.exactComputedVectorUncappedScheduleSum())
-        manifest.path('counts').put(
-                'computedVectorWrittenScheduleSum', faultSpace.exactComputedVectorWrittenScheduleSum())
-        manifest.path('counts').put('faultScenariosExported', revisedScenarios.size().toString())
-        manifest.path('faultScenarioCatalog').put('recordCount', revisedScenarios.size().toString())
-        manifest.path('faultScenarioCatalog').put(
-                'sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(fixture.faultScenario)))
-        manifest.path('scenarioSpaceAccounting').put(
-                'sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(fixture.accounting)))
-        Files.writeString(fixture.manifest,
-                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
-        def before = snapshotMutable(fixture)
-
-        when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, readyWorkload.deterministicId(), '0011', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics()*.code() == ['INVALID_PACKAGE']
-        sameMutableBytes(before, fixture)
-    }
-
-    def 'on-demand request rejects checksum-mismatched package through the shared reader without mutation'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-shared-checksum'), 2)
-        Files.write(fixture.faultScenario, '\n'.bytes, java.nio.file.StandardOpenOption.APPEND)
-        def before = snapshotMutable(fixture)
-
-        when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0011', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics()*.code() == ['INVALID_PACKAGE']
-        result.diagnostics().first().message().contains('FAULT_SCENARIO_CATALOG')
-        result.diagnostics().first().message().contains('checksum mismatch')
-        sameMutableBytes(before, fixture)
-    }
-
-    def 'package mutation rejects outside linked artifacts before reading their content'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-outside-path'), 2)
-        def secret = 'SUPER_SECRET_OUTSIDE_TOKEN'
-        def outside = Files.createTempFile('on-demand-outside-secret', '.txt')
-        Files.writeString(outside, secret)
-        def manifest = mapper.readTree(Files.readString(fixture.manifest))
-        manifest.path('faultScenarioCatalog').put('path', outside.toString())
-        Files.writeString(fixture.manifest, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
-        def before = snapshotMutable(fixture)
-
-        when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0011', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics()*.code() == ['INVALID_PACKAGE']
-        result.diagnostics()*.message().every { !it.contains(secret) }
-        sameMutableBytes(before, fixture)
-    }
-
-    def 'package mutation rejects linked symlink traversal before reading target content'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-symlink'), 2)
-        def secret = 'SUPER_SECRET_SYMLINK_TOKEN'
-        def outside = Files.createTempFile('on-demand-symlink-secret', '.txt')
-        Files.writeString(outside, secret)
-        def linkedCatalog = fixture.faultScenario.parent.resolve('linked-fault-scenarios.jsonl')
-        Files.createSymbolicLink(linkedCatalog, outside)
-        def manifest = mapper.readTree(Files.readString(fixture.manifest))
-        manifest.path('faultScenarioCatalog').put('path', linkedCatalog.toString())
-        Files.writeString(fixture.manifest, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
-        def before = snapshotMutable(fixture)
-
-        when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0011', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics()*.code() == ['INVALID_PACKAGE']
-        result.diagnostics()*.message().every { !it.contains(secret) }
-        sameMutableBytes(before, fixture)
-    }
-
-    def 'hash-consistent false workload aggregate counts are rejected before mutation'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-false-workload-counts'), 2)
-        def accounting = mapper.readTree(Files.readString(fixture.accounting))
-        accounting.path('workloadCatalogSpace').put('materializableWorkloadPlans', '999')
-        accounting.path('workloadCatalogSpace').put('nonMaterializableWorkloadPlans', '888')
-        Files.writeString(fixture.accounting,
-                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(accounting) + '\n')
-        def manifest = mapper.readTree(Files.readString(fixture.manifest))
-        manifest.path('counts').put('materializableWorkloadPlans', '999')
-        manifest.path('counts').put('nonMaterializableWorkloadPlans', '888')
-        manifest.path('scenarioSpaceAccounting').put(
-                'sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(fixture.accounting)))
-        Files.writeString(fixture.manifest,
-                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
-        def before = snapshotMutable(fixture)
-
-        when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics()*.code() == ['INVALID_PACKAGE']
-        sameMutableBytes(before, fixture)
-    }
-
-    def 'false manifest package counts are rejected before mutation'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory("on-demand-false-manifest-${countKey}"), 2)
-        def manifest = mapper.readTree(Files.readString(fixture.manifest))
-        manifest.path('counts').put(countKey, falseValue)
-        Files.writeString(fixture.manifest,
-                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
-        def before = snapshotMutable(fixture)
-
-        when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics()*.code() == ['INVALID_PACKAGE']
-        sameMutableBytes(before, fixture)
-
-        where:
-        countKey                        | falseValue
-        'materializableWorkloadPlans'   | '999'
-        'nonMaterializableWorkloadPlans'| '888'
-        'rejectedInputsExported'        | '777'
-    }
-
-    def 'repeat request deduplicates byte-equivalent scenarios and cap mismatch still wins before mutation'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-repeat'), 2)
-        def service = new OnDemandFaultScenarioService()
-        def request = new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0011', '2')
-        assert service.request(request).status() == OnDemandFaultScenarioResult.Status.PERSISTED
-        def persisted = snapshotMutable(fixture)
-
-        when:
-        def repeated = service.request(request)
-
-        then:
-        repeated.status() == OnDemandFaultScenarioResult.Status.DEDUPLICATED
-        repeated.addedFaultScenarioCount() == 0
-        sameMutableBytes(persisted, fixture)
-
-        when:
-        def mismatch = service.request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0011', '3'))
-
-        then:
-        mismatch.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        mismatch.diagnostics()*.code() == ['RECOVERY_CAP_MISMATCH']
-        sameMutableBytes(persisted, fixture)
-    }
-
-    def 'package validation rejects false exact metadata for a carried #vectorSource vector'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory("on-demand-carried-${vectorSource}-count-mismatch"), 2)
-        if (persistCarriedVector) {
-            def carriedRequest = new OnDemandFaultScenarioRequest(
-                    fixture.manifest, fixture.workload.deterministicId(), carriedVector, null)
-            assert new OnDemandFaultScenarioService().request(carriedRequest).status() ==
-                    OnDemandFaultScenarioResult.Status.PERSISTED
-        }
-        def accounting = mapper.readTree(Files.readString(fixture.accounting))
-        def faultSpace = accounting.path('faultScenarioCatalogSpace')
-        def row = faultSpace.path('perComputedVectorRecoverySpace')
-                .find { it.path('assignedVector').asText() == carriedVector }
-        def originalUncapped = new BigInteger(row.path('uncappedUniqueScheduleCount').asText())
-        def falseUncapped = new BigInteger('999')
-        row.put('uncappedUniqueScheduleCount', falseUncapped.toString())
-        def revisedSum = new BigInteger(faultSpace.path('exactComputedVectorUncappedScheduleSum').asText())
-                .subtract(originalUncapped)
-                .add(falseUncapped)
-        faultSpace.put('exactComputedVectorUncappedScheduleSum', revisedSum.toString())
-        Files.writeString(fixture.accounting,
-                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(accounting) + '\n')
-        def manifest = mapper.readTree(Files.readString(fixture.manifest))
-        manifest.path('counts').put('computedVectorUncappedScheduleSum', revisedSum.toString())
-        manifest.path('scenarioSpaceAccounting').put(
-                'sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(fixture.accounting)))
-        Files.writeString(fixture.manifest,
-                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
-        def before = snapshotMutable(fixture)
-
-        when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), requestedVector, null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics()*.code() == ['INVALID_PACKAGE']
-        sameMutableBytes(before, fixture)
-
-        where:
-        vectorSource | carriedVector | persistCarriedVector | requestedVector
-        'eager'      | '1000'        | false                | '0011'
-        'on-demand'  | '0011'        | true                 | '0110'
-    }
-
-    def 'package validation rejects a non-deterministic carried scenario-id set without mutation'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-carried-id-set-mismatch'), 2)
-        def carriedRequest = new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0011', null)
-        assert new OnDemandFaultScenarioService().request(carriedRequest).status() ==
-                OnDemandFaultScenarioResult.Status.PERSISTED
-        def loaded = new ScenarioCatalogPackageReader().read(fixture.manifest)
-        def carried = loaded.faultScenarios().findAll { it.assignedVector() == '0011' }
-        def alternate = RecoveryScheduleGenerator.generate(fixture.workload, '0011', 3).faultScenarios()
-                .find { candidate -> carried.every { it.deterministicId() != candidate.deterministicId() } }
-        assert alternate != null
-        def replacementId = carried.last().deterministicId()
-        def revisedScenarios = loaded.faultScenarios().collect {
-            it.deterministicId() == replacementId ? alternate : it
-        }.sort { left, right ->
-            left.workloadPlanId() <=> right.workloadPlanId()
-                    ?: left.assignedVector() <=> right.assignedVector()
-                    ?: left.deterministicId() <=> right.deterministicId()
-        }
-        Files.writeString(fixture.faultScenario,
-                revisedScenarios.collect { mapper.writeValueAsString(it) }.join('\n') + '\n')
-        updateArtifact(fixture.manifest, 'faultScenarioCatalog', fixture.faultScenario, revisedScenarios.size())
-        def before = snapshotMutable(fixture)
-
-        when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0110', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        result.diagnostics()*.code() == ['INVALID_PACKAGE']
-        sameMutableBytes(before, fixture)
-    }
-
-    def 'duplicate ids in the existing package and same-id different-content generation fail without mutation'() {
-        given: 'an existing duplicate semantic id'
-        def duplicate = writePackage(Files.createTempDirectory('on-demand-duplicate'), 2)
-        def lines = Files.readAllLines(duplicate.faultScenario)
-        Files.writeString(duplicate.faultScenario, (lines + lines.first()).join('\n') + '\n')
-        updateArtifact(duplicate.manifest, 'faultScenarioCatalog', duplicate.faultScenario, lines.size() + 1)
-        def duplicateBefore = snapshotMutable(duplicate)
-
-        when:
-        def duplicateResult = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                duplicate.manifest, duplicate.workload.deterministicId(), '0011', null))
-
-        then:
-        duplicateResult.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        duplicateResult.diagnostics()*.code() == ['INVALID_PACKAGE']
-        sameMutableBytes(duplicateBefore, duplicate)
-
-        when: 'the generator presents different semantic content under an existing valid id'
-        def collision = writePackage(Files.createTempDirectory('on-demand-collision'), 2)
-        def existing = new ScenarioCatalogPackageReader().read(collision.manifest).faultScenarios()
-                .find { it.assignedVector() == '1000' }
-        def conflicting = new FaultScenario(existing.schemaVersion(), existing.deterministicId(),
-                existing.workloadPlanId(), existing.assignedVector(), [])
-        def source = { WorkloadPlan ignored, String ignoredVector, int cap ->
-            new RecoveryScheduleGenerationResult([conflicting], BigInteger.ONE, 1, cap, [], null)
-        } as OnDemandFaultScenarioService.RecoveryScheduleSource
-        def service = new OnDemandFaultScenarioService(source,
-                { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
-                new OnDemandFaultScenarioService.NioFileMover())
-        def collisionBefore = snapshotMutable(collision)
-        def collisionResult = service.request(new OnDemandFaultScenarioRequest(
-                collision.manifest, collision.workload.deterministicId(), '1000', null))
-
-        then:
-        collisionResult.status() == OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE
-        collisionResult.diagnostics()*.code() == ['FAULT_SCENARIO_ID_COLLISION']
-        sameMutableBytes(collisionBefore, collision)
-    }
-
-    def 'every staging and promotion boundary failure restores all original mutable artifact bytes'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory("on-demand-failure-${boundary}"), 2)
-        def before = snapshotMutable(fixture)
-        def injector = { OnDemandFaultScenarioService.Boundary reached ->
-            if (reached == boundary) {
-                throw new IOException("injected ${boundary}".toString())
-            }
-        } as OnDemandFaultScenarioService.FailureInjector
-        def service = new OnDemandFaultScenarioService(
-                { WorkloadPlan plan, String vector, int cap -> RecoveryScheduleGenerator.generate(plan, vector, cap) }
-                        as OnDemandFaultScenarioService.RecoveryScheduleSource,
-                injector,
-                new OnDemandFaultScenarioService.NioFileMover())
+        def workload = workload()
+        def fixture = CurrentPackageFixture.write([workload], [], 1)
+        def atomicAttempts = new AtomicInteger()
+        def fallbacks = new AtomicInteger()
+        def mover = [atomicMove: { Path source, Path target ->
+            atomicAttempts.incrementAndGet()
+            throw new AtomicMoveNotSupportedException(source.toString(), target.toString(), 'fixture')
+        }, fallbackMove: { Path source, Path target ->
+            fallbacks.incrementAndGet()
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING)
+        }] as OnDemandFaultScenarioService.FileMover
+        def service = operationalService({ ignored -> } as OnDemandFaultScenarioService.FailureInjector, mover)
 
         when:
         def result = service.request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0011', null))
+                fixture.manifest, workload.deterministicId(), '0011', '1'))
+
+        then:
+        result.status() == OnDemandFaultScenarioResult.Status.PERSISTED
+        atomicAttempts.get() == 4
+        fallbacks.get() == 4
+        new ScenarioCatalogPackageReader().readCurrent(fixture.manifest).requestRecords().size() == 1
+    }
+
+    def 'staging cleanup failure does not invalidate an already published current revision'() {
+        given:
+        def workload = workload()
+        def fixture = CurrentPackageFixture.write([workload], [], 1)
+        def cleanupAttempts = new AtomicInteger()
+        def cleaner = { Path ignored ->
+            cleanupAttempts.incrementAndGet()
+            throw new IOException('cleanup failure')
+        } as OnDemandFaultScenarioService.TemporaryFileCleaner
+        def service = new OnDemandFaultScenarioService(
+                generator(), { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
+                new OnDemandFaultScenarioService.NioFileMover(), cleaner)
+
+        when:
+        def result = service.request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), '0011', '1'))
+
+        then:
+        result.status() == OnDemandFaultScenarioResult.Status.PERSISTED
+        cleanupAttempts.get() == 5
+        new ScenarioCatalogPackageReader().readCurrent(fixture.manifest).requestRecords().size() == 1
+        hasFile(fixture.manifest.parent) { it.fileName.toString().startsWith('.current-validation-') }
+    }
+
+    @Unroll
+    def 'failure at current publication boundary #boundary preserves every mutable package byte'() {
+        given:
+        def workload = workload()
+        def fixture = CurrentPackageFixture.write([workload], [], 2)
+        def before = snapshot(fixture)
+        def injector = { OnDemandFaultScenarioService.Boundary actual ->
+            if (actual == boundary) throw new IOException("failure at ${boundary}".toString())
+        } as OnDemandFaultScenarioService.FailureInjector
+        def service = operationalService(injector, new OnDemandFaultScenarioService.NioFileMover())
+
+        when:
+        def result = service.request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), '0011', '2'))
 
         then:
         result.status() == OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED
         result.diagnostics()*.code() == ['PACKAGE_REVISION_FAILED']
-        sameMutableBytes(before, fixture)
-        new ScenarioCatalogPackageReader().read(fixture.manifest).faultScenarios().every { it.assignedVector() != '0011' }
+        snapshot(fixture) == before
+        new ScenarioCatalogPackageReader().readCurrent(fixture.manifest).requestRecords().isEmpty()
+        !hasFile(fixture.manifest.parent) { it.fileName.toString().endsWith('.tmp') }
 
         where:
         boundary << OnDemandFaultScenarioService.Boundary.values()
     }
 
-    def 'temporary-file cleanup failure cannot flip a committed validated revision to failure'() {
+    def 'request and fault record ordering is deterministic across equivalent current packages'() {
         given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-cleanup-failure'), 2)
-        def before = snapshotMutable(fixture)
-        def service = new OnDemandFaultScenarioService(
-                { WorkloadPlan plan, String vector, int cap -> RecoveryScheduleGenerator.generate(plan, vector, cap) }
-                        as OnDemandFaultScenarioService.RecoveryScheduleSource,
-                { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
-                new OnDemandFaultScenarioService.NioFileMover(),
-                { ignored -> throw new IOException('injected cleanup failure') }
-                        as OnDemandFaultScenarioService.TemporaryFileCleaner)
+        def workload = workload()
+        def left = CurrentPackageFixture.write([workload], [], 2)
+        def right = CurrentPackageFixture.write([workload], [], 2)
+        def requests = [['1010', '1'], ['0011', null], ['0101', '2']]
 
         when:
-        def result = service.request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0011', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.PERSISTED
-        !sameMutableBytes(before, fixture)
-        new ScenarioCatalogPackageReader().read(fixture.manifest).faultScenarios().any { it.assignedVector() == '0011' }
-    }
-
-    def 'atomic-move fallback publishes a valid revision and canonical bytes do not depend on request order'() {
-        given: 'a mover that forces the tested non-atomic replacement fallback'
-        def fallbackFixture = writePackage(Files.createTempDirectory('on-demand-fallback'), 2)
-        def fallbackCalls = new AtomicInteger()
-        def fallbackMover = [
-                atomicMove  : { source, target ->
-                    throw new AtomicMoveNotSupportedException(source.toString(), target.toString(), 'injected')
-                },
-                fallbackMove: { source, target ->
-                    fallbackCalls.incrementAndGet()
-                    Files.move(source, target, StandardCopyOption.REPLACE_EXISTING)
-                }
-        ] as OnDemandFaultScenarioService.FileMover
-        def fallbackService = new OnDemandFaultScenarioService(
-                { WorkloadPlan plan, String vector, int cap -> RecoveryScheduleGenerator.generate(plan, vector, cap) }
-                        as OnDemandFaultScenarioService.RecoveryScheduleSource,
-                { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
-                fallbackMover)
-
-        when:
-        def fallbackResult = fallbackService.request(new OnDemandFaultScenarioRequest(
-                fallbackFixture.manifest, fallbackFixture.workload.deterministicId(), '0011', null))
-
-        then:
-        fallbackResult.status() == OnDemandFaultScenarioResult.Status.PERSISTED
-        fallbackCalls.get() == 3
-        new ScenarioCatalogPackageReader().read(fallbackFixture.manifest)
-
-        when: 'two identical packages receive the same vectors in opposite order'
-        def first = writePackage(Files.createTempDirectory('on-demand-order-a'), 2)
-        def second = writePackage(Files.createTempDirectory('on-demand-order-b'), 2)
-        def service = new OnDemandFaultScenarioService()
-        ['1001', '0110'].each { vector ->
-            assert service.request(new OnDemandFaultScenarioRequest(
-                    first.manifest, first.workload.deterministicId(), vector, null)).successful()
-        }
-        ['0110', '1001'].each { vector ->
-            assert service.request(new OnDemandFaultScenarioRequest(
-                    second.manifest, second.workload.deterministicId(), vector, null)).successful()
-        }
-
-        then:
-        Files.readAllBytes(first.faultScenario) == Files.readAllBytes(second.faultScenario)
-        Files.readAllBytes(first.accounting) == Files.readAllBytes(second.accounting)
-    }
-
-    def 'separate JVM requests wait for the package OS lock and accumulate both revisions'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-cross-process'), 2)
-        def lockPath = fixture.manifest.parent.resolve('.on-demand-fault-scenario.lock')
-        def channel = FileChannel.open(lockPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
-        def heldLock = channel.lock()
-        def firstSignals = processSignals(fixture, 'first')
-        def secondSignals = processSignals(fixture, 'second')
-
-        when:
-        def first = requestProcess(fixture, '1001', firstSignals)
-        def second = requestProcess(fixture, '0110', secondSignals)
-
-        then: 'both child JVMs signal immediately before the real FileChannel.lock call'
-        awaitFile(firstSignals.ready)
-        awaitFile(secondSignals.ready)
-
-        and: 'the parent still owns that exact lock inode, so neither child acquired or completed'
-        heldLock.valid
-        !Files.exists(firstSignals.acquired)
-        !Files.exists(secondSignals.acquired)
-        !Files.exists(firstSignals.completed)
-        !Files.exists(secondSignals.completed)
-
-        when:
-        heldLock.release()
-        channel.close()
-        assert first.waitFor(20, TimeUnit.SECONDS)
-        assert second.waitFor(20, TimeUnit.SECONDS)
-
-        then:
-        first.exitValue() == 0
-        second.exitValue() == 0
-        Files.exists(firstSignals.acquired)
-        Files.exists(secondSignals.acquired)
-        Files.exists(firstSignals.completed)
-        Files.exists(secondSignals.completed)
-        mapper.readTree(Files.readString(firstSignals.result)).path('status').asText() == 'PERSISTED'
-        mapper.readTree(Files.readString(secondSignals.result)).path('status').asText() == 'PERSISTED'
-
-        and: 'the second lock owner re-read the first published revision'
-        def loaded = new ScenarioCatalogPackageReader().read(fixture.manifest)
-        loaded.faultScenarios()*.assignedVector().containsAll(['1001', '0110'])
-        def accounting = mapper.readTree(Files.readString(fixture.accounting))
-        def requestedRows = accounting.path('faultScenarioCatalogSpace').path('perComputedVectorRecoverySpace')
-                .findAll { it.path('assignedVector').asText() in ['1001', '0110'] }
-        requestedRows.size() == 2
-        requestedRows*.path('assignedVector')*.asText().toSet() == ['1001', '0110'] as Set
-        loaded.manifest().counts().computedOnDemandVectors == '2'
-        loaded.manifest().counts().faultScenariosExported == loaded.faultScenarios().size().toString()
-        Files.isRegularFile(lockPath, java.nio.file.LinkOption.NOFOLLOW_LINKS)
-        !Files.readString(fixture.manifest).contains('.on-demand-fault-scenario.lock')
-
-        cleanup:
-        if (heldLock.valid) {
-            heldLock.release()
-        }
-        channel.close()
-        if (first.alive) {
-            first.destroyForcibly()
-        }
-        if (second.alive) {
-            second.destroyForcibly()
-        }
-    }
-
-    def 'injected package lock open failure is classified narrowly and a later writer proceeds'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-lock-open-failure'), 2)
-        def before = snapshotMutable(fixture)
-        def provider = { ignored -> throw new IOException('injected lock open failure') }
-                as OnDemandFaultScenarioService.PackageLockProvider
-
-        when:
-        def result = new OnDemandFaultScenarioService(provider).request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED
-        result.diagnostics()*.code() == ['PACKAGE_LOCK_FAILED']
-        result.diagnostics().first().message() == 'injected lock open failure'
-        sameMutableBytes(before, fixture)
-        new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null)).status() ==
-                OnDemandFaultScenarioResult.Status.PERSISTED
-    }
-
-    def 'injected package lock acquisition failure closes the opened handle and a later writer proceeds'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-lock-acquire-failure'), 2)
-        def before = snapshotMutable(fixture)
-        def closes = new AtomicInteger()
-        def provider = { ignored ->
-            [
-                    acquire: { throw new IOException('injected lock acquisition failure') },
-                    close  : { closes.incrementAndGet() }
-            ] as OnDemandFaultScenarioService.PackageLockHandle
-        } as OnDemandFaultScenarioService.PackageLockProvider
-
-        when:
-        def result = new OnDemandFaultScenarioService(provider).request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED
-        result.diagnostics()*.code() == ['PACKAGE_LOCK_FAILED']
-        result.diagnostics().first().message() == 'injected lock acquisition failure'
-        closes.get() == 1
-        sameMutableBytes(before, fixture)
-        new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null)).status() ==
-                OnDemandFaultScenarioResult.Status.PERSISTED
-    }
-
-    def 'request body failure after successful acquisition is not relabeled as a lock failure'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-lock-body-failure'), 2)
-        def before = snapshotMutable(fixture)
-        def service = new OnDemandFaultScenarioService(
-                { ignoredPlan, ignoredVector, ignoredCap -> null }
-                        as OnDemandFaultScenarioService.RecoveryScheduleSource,
-                { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
-                new OnDemandFaultScenarioService.NioFileMover(),
-                { path -> Files.deleteIfExists(path) } as OnDemandFaultScenarioService.TemporaryFileCleaner,
-                new OnDemandFaultScenarioService.NioPackageLockProvider())
-
-        when:
-        def result = service.request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE
-        result.diagnostics()*.code() == ['REQUEST_PROCESSING_FAILED']
-        result.diagnostics().first().message().contains('null')
-        sameMutableBytes(before, fixture)
-        canAcquirePackageLock(fixture)
-        new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null)).status() ==
-                OnDemandFaultScenarioResult.Status.PERSISTED
-    }
-
-    def 'escaping request body error still releases the acquired package lock'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-lock-escaping-body-failure'), 2)
-        def service = new OnDemandFaultScenarioService(
-                { ignoredPlan, ignoredVector, ignoredCap -> throw new AssertionError('injected escaping body error') }
-                        as OnDemandFaultScenarioService.RecoveryScheduleSource,
-                { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
-                new OnDemandFaultScenarioService.NioFileMover())
-
-        when:
-        service.request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null))
-
-        then:
-        def error = thrown(AssertionError)
-        error.message == 'injected escaping body error'
-        canAcquirePackageLock(fixture)
-        new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null)).status() ==
-                OnDemandFaultScenarioResult.Status.PERSISTED
-    }
-
-    def 'lock close failure cannot replace a committed validated result and later writers proceed'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-lock-close-failure'), 2)
-        def nioProvider = new OnDemandFaultScenarioService.NioPackageLockProvider()
-        def provider = { lockPath ->
-            def delegate = nioProvider.open(lockPath)
-            [
-                    acquire: { delegate.acquire() },
-                    close  : {
-                        delegate.close()
-                        throw new IOException('injected lock close failure')
-                    }
-            ] as OnDemandFaultScenarioService.PackageLockHandle
-        } as OnDemandFaultScenarioService.PackageLockProvider
-
-        when:
-        def result = new OnDemandFaultScenarioService(provider).request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.PERSISTED
-        result.diagnostics().empty
-        new ScenarioCatalogPackageReader().read(fixture.manifest).faultScenarios().any {
-            it.assignedVector() == '1001'
-        }
-        canAcquirePackageLock(fixture)
-        new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0110', null)).status() ==
-                OnDemandFaultScenarioResult.Status.PERSISTED
-        new ScenarioCatalogPackageReader().read(fixture.manifest).faultScenarios()*.assignedVector()
-                .containsAll(['1001', '0110'])
-    }
-
-    def 'unsupported package lock paths fail before semantic artifact mutation'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory("on-demand-lock-${shape}"), 2)
-        def lockPath = fixture.manifest.parent.resolve('.on-demand-fault-scenario.lock')
-        if (shape == 'symlink') {
-            Files.createSymbolicLink(lockPath, Files.createTempFile('on-demand-lock-target', '.tmp'))
-        } else {
-            Files.createDirectory(lockPath)
-        }
-        def before = snapshotMutable(fixture)
-
-        when:
-        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0011', null))
-
-        then:
-        result.status() == OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED
-        result.diagnostics()*.code() == ['PACKAGE_LOCK_FAILED']
-        sameMutableBytes(before, fixture)
-
-        where:
-        shape << ['symlink', 'directory']
-    }
-
-    def 'validation and publication failures release the package OS lock for a later request'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-lock-release'), 2)
-        def failingService = new OnDemandFaultScenarioService(
-                { WorkloadPlan plan, String vector, int cap -> RecoveryScheduleGenerator.generate(plan, vector, cap) }
-                        as OnDemandFaultScenarioService.RecoveryScheduleSource,
-                { boundary ->
-                    if (boundary == OnDemandFaultScenarioService.Boundary.ACCOUNTING_PROMOTED) {
-                        throw new IOException('injected publication failure')
-                    }
-                } as OnDemandFaultScenarioService.FailureInjector,
-                new OnDemandFaultScenarioService.NioFileMover())
-
-        expect: 'an early validation return releases the lock'
-        new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), 'bad', null)).status() ==
-                OnDemandFaultScenarioResult.Status.REJECTED
-        canAcquirePackageLock(fixture)
-
-        and: 'a caught publication failure and rollback also release the lock'
-        failingService.request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null)).status() ==
-                OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED
-        canAcquirePackageLock(fixture)
-
-        and: 'a later mutation can proceed'
-        new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '0110', null)).status() ==
-                OnDemandFaultScenarioResult.Status.PERSISTED
-    }
-
-    def 'different package directories can generate concurrently'() {
-        given:
-        def firstFixture = writePackage(Files.createTempDirectory('on-demand-independent-a'), 2)
-        def secondFixture = writePackage(Files.createTempDirectory('on-demand-independent-b'), 2)
-        def entered = new CountDownLatch(2)
-        def release = new CountDownLatch(1)
-        def source = { WorkloadPlan plan, String vector, int cap ->
-            entered.countDown()
-            assert release.await(10, TimeUnit.SECONDS)
-            RecoveryScheduleGenerator.generate(plan, vector, cap)
-        } as OnDemandFaultScenarioService.RecoveryScheduleSource
-        def service = new OnDemandFaultScenarioService(source,
-                { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
-                new OnDemandFaultScenarioService.NioFileMover())
-        def executor = Executors.newFixedThreadPool(2)
-
-        when:
-        def first = executor.submit({ service.request(new OnDemandFaultScenarioRequest(
-                firstFixture.manifest, firstFixture.workload.deterministicId(), '1001', null)) }
-                as java.util.concurrent.Callable<OnDemandFaultScenarioResult>)
-        def second = executor.submit({ service.request(new OnDemandFaultScenarioRequest(
-                secondFixture.manifest, secondFixture.workload.deterministicId(), '0110', null)) }
-                as java.util.concurrent.Callable<OnDemandFaultScenarioResult>)
-
-        then:
-        entered.await(10, TimeUnit.SECONDS)
-
-        cleanup:
-        release.countDown()
-        assert first.get(20, TimeUnit.SECONDS).successful()
-        assert second.get(20, TimeUnit.SECONDS).successful()
-        executor.shutdownNow()
-    }
-
-    def 'package-local guard serializes concurrent requests in one process'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-concurrent'), 2)
-        def active = new AtomicInteger()
-        def maximum = new AtomicInteger()
-        def source = { WorkloadPlan plan, String vector, int cap ->
-            def current = active.incrementAndGet()
-            maximum.accumulateAndGet(current, Math.&max)
-            try {
-                Thread.sleep(75)
-                RecoveryScheduleGenerator.generate(plan, vector, cap)
-            } finally {
-                active.decrementAndGet()
+        [left, right].each { fixture ->
+            def service = new OnDemandFaultScenarioService()
+            requests.each { values ->
+                def result = service.request(new OnDemandFaultScenarioRequest(
+                        fixture.manifest, workload.deterministicId(), values[0], values[1]))
+                assert result.status() == OnDemandFaultScenarioResult.Status.PERSISTED
             }
-        } as OnDemandFaultScenarioService.RecoveryScheduleSource
-        def firstService = new OnDemandFaultScenarioService(source,
-                { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
-                new OnDemandFaultScenarioService.NioFileMover())
-        def secondService = new OnDemandFaultScenarioService(source,
-                { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
-                new OnDemandFaultScenarioService.NioFileMover())
-        def executor = Executors.newFixedThreadPool(2)
-
-        when:
-        def results = [
-                executor.submit({ firstService.request(new OnDemandFaultScenarioRequest(
-                        fixture.manifest, fixture.workload.deterministicId(), '1001', null)) }
-                        as java.util.concurrent.Callable<OnDemandFaultScenarioResult>),
-                executor.submit({ secondService.request(new OnDemandFaultScenarioRequest(
-                        fixture.manifest, fixture.workload.deterministicId(), '0110', null)) }
-                        as java.util.concurrent.Callable<OnDemandFaultScenarioResult>)
-        ]*.get(20, TimeUnit.SECONDS)
-        executor.shutdownNow()
-
-        then:
-        results.every { it.status() == OnDemandFaultScenarioResult.Status.PERSISTED }
-        maximum.get() == 1
-        new ScenarioCatalogPackageReader().read(fixture.manifest).faultScenarios()*.assignedVector().containsAll(['1001', '0110'])
-    }
-
-    def 'package-local guard serializes accepted manifest aliases that share mutable artifacts'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-manifest-alias'), 2)
-        def aliasManifest = fixture.manifest.parent.resolve('scenario-catalog-manifest-alias.json')
-        Files.copy(fixture.manifest, aliasManifest)
-        def enteredGeneration = new CountDownLatch(1)
-        def active = new AtomicInteger()
-        def maximum = new AtomicInteger()
-        def source = { WorkloadPlan plan, String vector, int cap ->
-            def current = active.incrementAndGet()
-            maximum.accumulateAndGet(current, Math.&max)
-            enteredGeneration.countDown()
-            try {
-                Thread.sleep(150)
-                RecoveryScheduleGenerator.generate(plan, vector, cap)
-            } finally {
-                active.decrementAndGet()
-            }
-        } as OnDemandFaultScenarioService.RecoveryScheduleSource
-        def firstService = new OnDemandFaultScenarioService(source,
-                { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
-                new OnDemandFaultScenarioService.NioFileMover())
-        def secondService = new OnDemandFaultScenarioService(source,
-                { ignored -> } as OnDemandFaultScenarioService.FailureInjector,
-                new OnDemandFaultScenarioService.NioFileMover())
-        def executor = Executors.newFixedThreadPool(2)
-
-        when:
-        def first = executor.submit({ firstService.request(new OnDemandFaultScenarioRequest(
-                fixture.manifest, fixture.workload.deterministicId(), '1001', null)) }
-                as java.util.concurrent.Callable<OnDemandFaultScenarioResult>)
-        assert enteredGeneration.await(10, TimeUnit.SECONDS)
-        def second = executor.submit({ secondService.request(new OnDemandFaultScenarioRequest(
-                aliasManifest, fixture.workload.deterministicId(), '0110', null)) }
-                as java.util.concurrent.Callable<OnDemandFaultScenarioResult>)
-        def firstResult = first.get(20, TimeUnit.SECONDS)
-        def secondResult = second.get(20, TimeUnit.SECONDS)
-        executor.shutdownNow()
-
-        then:
-        firstResult.status() == OnDemandFaultScenarioResult.Status.PERSISTED
-        secondResult.status() == OnDemandFaultScenarioResult.Status.REJECTED
-        secondResult.diagnostics()*.code() == ['INVALID_PACKAGE']
-        maximum.get() == 1
-        new ScenarioCatalogPackageReader().read(fixture.manifest).faultScenarios().any { it.assignedVector() == '1001' }
-    }
-
-    def 'operator CLI persists a request and emits structured JSON without invoking an executor'() {
-        given:
-        def fixture = writePackage(Files.createTempDirectory('on-demand-cli'), 2)
-        def output = new ByteArrayOutputStream()
-
-        when:
-        def exitCode = FaultScenarioRequestCli.run([
-                '--manifest-path', fixture.manifest.toString(),
-                '--workload-plan-id', fixture.workload.deterministicId(),
-                '--fault-vector', '0011',
-                '--recovery-schedule-cap', '2'
-        ] as String[], new PrintStream(output), new OnDemandFaultScenarioService())
-
-        then:
-        exitCode == 0
-        mapper.readTree(output.toString()).path('status').asText() == 'PERSISTED'
-        new ScenarioCatalogPackageReader().read(fixture.manifest).faultScenarios().any { it.assignedVector() == '0011' }
-    }
-
-    private static Process requestProcess(Map fixture, String vector, Map signals) {
-        new ProcessBuilder(
-                java.nio.file.Path.of(System.getProperty('java.home'), 'bin', 'java').toString(),
-                '-cp', System.getProperty('java.class.path'),
-                OnDemandFaultScenarioLockProcess.name,
-                fixture.manifest.toString(),
-                fixture.workload.deterministicId(),
-                vector,
-                signals.ready.toString(),
-                signals.acquired.toString(),
-                signals.completed.toString(),
-                signals.result.toString())
-                .redirectErrorStream(true)
-                .start()
-    }
-
-    private static Map processSignals(Map fixture, String prefix) {
-        [
-                ready    : fixture.manifest.parent.resolve("${prefix}-ready"),
-                acquired : fixture.manifest.parent.resolve("${prefix}-acquired"),
-                completed: fixture.manifest.parent.resolve("${prefix}-completed"),
-                result   : fixture.manifest.parent.resolve("${prefix}-result.json")
-        ]
-    }
-
-    private static boolean awaitFile(java.nio.file.Path path) {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(20)
-        while (!Files.exists(path) && System.nanoTime() < deadline) {
-            Thread.sleep(10)
         }
-        Files.exists(path)
+        def leftCurrent = new ScenarioCatalogPackageReader().readCurrent(left.manifest)
+
+        then:
+        left.faultScenario.bytes == right.faultScenario.bytes
+        left.requests.bytes == right.requests.bytes
+        left.accounting.bytes == right.accounting.bytes
+        left.manifest.bytes == right.manifest.bytes
+        leftCurrent.faultScenarioRecords()*.path('id')*.asText() ==
+                leftCurrent.faultScenarioRecords()*.path('id')*.asText().sort()
+        leftCurrent.requestRecords()*.path('faultVector')*.asText() == requests*.get(0)
     }
 
-    private static boolean canAcquirePackageLock(Map fixture) {
-        def channel = FileChannel.open(fixture.manifest.parent.resolve('.on-demand-fault-scenario.lock'),
-                StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+    private static OnDemandFaultScenarioService operationalService(
+            OnDemandFaultScenarioService.FailureInjector injector,
+            OnDemandFaultScenarioService.FileMover mover) {
+        new OnDemandFaultScenarioService(generator(), injector, mover)
+    }
+
+    private static OnDemandFaultScenarioService.RecoveryScheduleSource generator() {
+        { WorkloadPlan plan, String vector, int cap -> RecoveryScheduleGenerator.generate(plan, vector, cap) }
+                as OnDemandFaultScenarioService.RecoveryScheduleSource
+    }
+
+    private static boolean hasFile(Path directory, Closure<Boolean> predicate) {
+        def stream = Files.list(directory)
         try {
-            def lock = channel.tryLock()
-            if (lock == null) {
-                return false
-            }
-            lock.release()
-            return true
+            return stream.anyMatch { Path path -> predicate.call(path) }
         } finally {
-            channel.close()
+            stream.close()
         }
     }
 
-    private static Map writePackage(java.nio.file.Path directory, int cap, WorkloadPlan workload = workload()) {
-        writePackage(directory, cap, [workload]) + [workload: workload]
+    private static Map snapshot(Map fixture) {
+        [manifest: fixture.manifest.bytes, accounting: fixture.accounting.bytes,
+         faults: fixture.faultScenario.bytes, requests: fixture.requests.bytes]
     }
 
-    private static Map writePackage(java.nio.file.Path directory, int cap, List<WorkloadPlan> workloads) {
-        def generation = new WorkloadGenerationResult(
-                WorkloadPlan.SCHEMA_VERSION,
-                new ScenarioGeneratorConfig(),
-                workloads,
-                [],
-                [workloadsGenerated: workloads.size()],
-                [])
-        def eager = EagerFaultScenarioGenerator.generate(generation, new RecoveryScheduleCap(cap))
-        def paths = [
-                workload     : directory.resolve('workload-catalog.jsonl'),
-                faultScenario: directory.resolve('fault-scenario-catalog.jsonl'),
-                manifest     : directory.resolve('scenario-catalog-manifest.json'),
-                rejected     : directory.resolve('workload-catalog-rejected-inputs.jsonl'),
-                accounting   : directory.resolve('scenario-space-accounting.json')
-        ]
-        new ScenarioCatalogJsonlWriter().write(
-                eager,
-                paths.workload,
-                paths.faultScenario,
-                paths.manifest,
-                paths.rejected,
-                paths.accounting,
-                null,
-                '2026-07-20T00:00:00Z')
-        paths + [workloads: workloads, workloadPath: paths.workload]
+    private static WorkloadPlan workload() {
+        def inputs = ['a', 'b'].collect { owner -> input(owner) }
+        def participants = ['a', 'b'].collect { owner -> new SagaInstance(owner,
+                "example.${owner.toUpperCase()}Saga".toString(), "input-${owner}".toString(), []) }
+        def shape = [['a', 'first'], ['b', 'first'], ['a', 'second'], ['b', 'second']]
+        def schedule = shape.withIndex().collect { row, index -> new ScheduledStep("forward-${index}".toString(),
+                row[0], "example.${row[0].toUpperCase()}Saga::${row[1]}".toString(), index, row[1], []) }
+        def slots = schedule.withIndex().collect { step, index -> new ForwardFaultSlot("slot-${index}".toString(),
+                index, step.deterministicId(), step.sagaInstanceId(), step.stepId(), step.runtimeStepName(), step.deterministicId()) }
+        def checkpoints = schedule.take(2).withIndex().collect { step, index -> new CompensationCheckpoint(
+                "checkpoint-${index}".toString(), index, step.sagaInstanceId(), step.deterministicId(), step.stepId(),
+                step.runtimeStepName(), step.deterministicId(), CompensationEvidenceClass.EXPLICIT_COMPENSATION, [], [], []) }
+        def withoutId = new WorkloadPlan(WorkloadPlan.SCHEMA_VERSION, null, ScenarioKind.MULTI_SAGA,
+                WorkloadExecutionShape.SAGA_LOCAL, participants, inputs, schedule, [], slots, checkpoints, [])
+        new WorkloadPlan(withoutId.schemaVersion(), ScenarioIdGenerator.workloadPlanId(withoutId), withoutId.kind(),
+                withoutId.executionShape(), withoutId.participants(), withoutId.acceptedInputs(), withoutId.forwardSchedule(),
+                withoutId.conflictEvidence(), withoutId.faultSlots(), withoutId.compensationCheckpoints(), withoutId.warnings())
     }
 
-    private static Map<String, byte[]> snapshotMutable(Map fixture) {
-        [
-                faultScenario: Files.readAllBytes(fixture.faultScenario),
-                accounting   : Files.readAllBytes(fixture.accounting),
-                manifest     : Files.readAllBytes(fixture.manifest)
-        ]
+    private static WorkloadPlan repeatedNameWorkload() {
+        def accepted = input('repeated', 'example.RepeatedSaga')
+        def participant = new SagaInstance('repeated', 'example.RepeatedSaga', accepted.deterministicId(), [])
+        def schedule = (0..1).collect { index -> new ScheduledStep("forward-${index}".toString(),
+                participant.deterministicId(), "example.RepeatedSaga::same#${index}".toString(), index, 'same', []) }
+        def slots = schedule.withIndex().collect { step, index -> new ForwardFaultSlot("slot-${index}".toString(),
+                index, step.deterministicId(), participant.deterministicId(), step.stepId(), 'same', step.deterministicId()) }
+        def checkpoints = schedule.withIndex().collect { step, index -> new CompensationCheckpoint(
+                "checkpoint-${index}".toString(), index, participant.deterministicId(), step.deterministicId(),
+                step.stepId(), 'same', step.deterministicId(), CompensationEvidenceClass.EXPLICIT_COMPENSATION,
+                [], [], []) }
+        def withoutId = new WorkloadPlan(WorkloadPlan.SCHEMA_VERSION, null, ScenarioKind.SINGLE_SAGA,
+                WorkloadExecutionShape.SAGA_LOCAL, [participant], [accepted], schedule, [], slots, checkpoints, [])
+        new WorkloadPlan(withoutId.schemaVersion(), ScenarioIdGenerator.workloadPlanId(withoutId), withoutId.kind(),
+                withoutId.executionShape(), withoutId.participants(), withoutId.acceptedInputs(),
+                withoutId.forwardSchedule(), withoutId.conflictEvidence(), withoutId.faultSlots(),
+                withoutId.compensationCheckpoints(), withoutId.warnings())
     }
 
-    private static boolean sameMutableBytes(Map<String, byte[]> expected, Map fixture) {
-        Arrays.equals(expected.faultScenario, Files.readAllBytes(fixture.faultScenario))
-                && Arrays.equals(expected.accounting, Files.readAllBytes(fixture.accounting))
-                && Arrays.equals(expected.manifest, Files.readAllBytes(fixture.manifest))
-    }
-
-    private void refreshArtifactHash(java.nio.file.Path manifestPath,
-                                     String artifactField,
-                                     java.nio.file.Path artifactPath) {
-        def manifest = mapper.readTree(Files.readString(manifestPath))
-        manifest.path(artifactField).put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(artifactPath)))
-        Files.writeString(manifestPath, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
-    }
-
-    private void updateArtifact(java.nio.file.Path manifestPath,
-                                String artifactField,
-                                java.nio.file.Path artifactPath,
-                                int recordCount) {
-        def manifest = mapper.readTree(Files.readString(manifestPath))
-        manifest.path(artifactField).put('recordCount', recordCount.toString())
-        manifest.path(artifactField).put('sha256', ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(artifactPath)))
-        Files.writeString(manifestPath, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + '\n')
-    }
-
-    private static WorkloadPlan workload(boolean ready = true) {
-        def definitions = [
-                [owner: 'a', name: 'a1', checkpoint: true],
-                [owner: 'b', name: 'b1', checkpoint: true],
-                [owner: 'a', name: 'a2', checkpoint: false],
-                [owner: 'b', name: 'b2', checkpoint: false]
-        ]
-        def inputs = ['a', 'b'].collect { owner -> readyInput(owner, ready) }
-        def participants = ['a', 'b'].collect { owner ->
-            new SagaInstance(owner, "example.${owner.toUpperCase()}Saga".toString(), "input-${owner}".toString(), [])
+    private static WorkloadPlan executableShapeWorkload(boolean sourceDerived) {
+        def base = workload()
+        def trigger = base.forwardSchedule().first()
+        def site = new EventEmissionSite(ScenarioIdGenerator.eventEmissionSiteId(
+                'example.AService', 'first()', 0, 'example.CreatedEvent'),
+                'example.AService', 'first()', 0, 'example.CreatedEvent', [])
+        def event = new EventConsequence(null, trigger.deterministicId(), site,
+                'example.CreatedEvent', 'example.EventHandling', 'handle', 'example.Handler',
+                'example.EventProcessing', 'process', 'example.Facade', 'continueFlow',
+                'example.DownstreamSaga', 'UNIQUE_MATCHING_SUBSCRIBER', [])
+        event = new EventConsequence(ScenarioIdGenerator.eventConsequenceId(
+                event.triggerScheduledStepId(), event.emissionSite(), event.eventHandlingClassFqn(),
+                event.eventHandlingMethodName(), event.eventHandlerClassFqn(), event.eventProcessingClassFqn(),
+                event.eventProcessingMethodName(), event.facadeClassFqn(), event.facadeMethodName(),
+                event.downstreamSagaFqn(), event.deliveryPolicy()), event.triggerScheduledStepId(),
+                event.emissionSite(), event.eventTypeFqn(), event.eventHandlingClassFqn(),
+                event.eventHandlingMethodName(), event.eventHandlerClassFqn(), event.eventProcessingClassFqn(),
+                event.eventProcessingMethodName(), event.facadeClassFqn(), event.facadeMethodName(),
+                event.downstreamSagaFqn(), event.deliveryPolicy(), [])
+        def normal = [NormalActionRef.forward(0, trigger.deterministicId()),
+                      NormalActionRef.eventConsequence(1, event.deterministicId())]
+        base.forwardSchedule().drop(1).eachWithIndex { step, index ->
+            normal << NormalActionRef.forward(index + 2, step.deterministicId())
         }
-        def schedule = []
-        def slots = []
-        def checkpoints = []
-        definitions.eachWithIndex { definition, index ->
-            def stepId = "example.${definition.owner.toUpperCase()}Saga::${definition.name}".toString()
-            def occurrenceId = "forward-${index}".toString()
-            schedule << new ScheduledStep(occurrenceId, definition.owner as String, stepId, index,
-                    definition.name as String, [])
-            slots << new ForwardFaultSlot("slot-${index}".toString(), index, occurrenceId,
-                    definition.owner as String, stepId, definition.name as String, occurrenceId)
-            if (definition.checkpoint) {
-                checkpoints << new CompensationCheckpoint("checkpoint-${index}".toString(), checkpoints.size(),
-                        definition.owner as String, occurrenceId, stepId, definition.name as String, occurrenceId,
-                        CompensationEvidenceClass.EXPLICIT_COMPENSATION, [], [], [])
-            }
+        def setup = null
+        def prerequisite = null
+        if (sourceDerived) {
+            def action = new SetupAction('setup-action-1', 0, 'fixture:1',
+                    'example.Fixture#create():java.lang.Long', [], Long.name, false, [])
+            def binding = new SetupParticipantBinding(base.acceptedInputs().first().deterministicId(), 0,
+                    Long.name, SetupValueRecipe.actionResult(action.actionId(), Long.name), [])
+            setup = new SetupPlan(SetupPlan.SCHEMA_VERSION, [action], [binding], [])
+        } else {
+            prerequisite = new PrerequisiteBaseline('fixture-provider', '1', [])
         }
-        def withoutId = new WorkloadPlan(
-                WorkloadPlan.SCHEMA_VERSION,
-                null,
-                ScenarioKind.MULTI_SAGA,
-                WorkloadExecutionShape.SAGA_LOCAL,
-                participants,
-                inputs,
-                schedule,
-                [],
-                slots,
-                checkpoints,
-                [])
-        new WorkloadPlan(
-                withoutId.schemaVersion(),
-                ScenarioIdGenerator.workloadPlanId(withoutId),
-                withoutId.kind(),
-                withoutId.executionShape(),
-                withoutId.participants(),
-                withoutId.acceptedInputs(),
-                withoutId.forwardSchedule(),
-                withoutId.conflictEvidence(),
-                withoutId.faultSlots(),
-                withoutId.compensationCheckpoints(),
-                withoutId.warnings())
+        def withoutId = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
+                base.participants(), base.acceptedInputs(), base.forwardSchedule(), [event], normal,
+                prerequisite, setup, base.conflictEvidence(), base.faultSlots(),
+                base.compensationCheckpoints(), [])
+        new WorkloadPlan(withoutId.schemaVersion(), ScenarioIdGenerator.workloadPlanId(withoutId),
+                withoutId.kind(), withoutId.executionShape(), withoutId.participants(),
+                withoutId.acceptedInputs(), withoutId.forwardSchedule(), withoutId.eventConsequences(),
+                withoutId.normalSchedule(), withoutId.prerequisiteBaseline(), withoutId.setupPlan(),
+                withoutId.conflictEvidence(), withoutId.faultSlots(), withoutId.compensationCheckpoints(), [])
     }
 
-    private static InputVariant readyInput(String owner, boolean ready) {
-        def node = InputRecipeNode.builder('literal')
-                .sourceText('1')
-                .provenanceText('argument 0')
-                .executorReady(true)
-                .literalKind('integer')
-                .value(1L)
-                .targetTypeFqn(Long.name)
-                .build()
-        def argument = new InputRecipeArgument(0, Long.name, InputResolutionStatus.RESOLVED,
-                true, [], 'argument 0', node)
-        def recipe = ready ? new InputRecipe(InputRecipe.SCHEMA_VERSION, null, true, [], [argument]) : null
-        new InputVariant(
-                "input-${owner}".toString(),
-                "example.${owner.toUpperCase()}Saga".toString(),
-                'example.OnDemandSpec',
-                'fixture',
-                owner,
-                InputResolutionStatus.RESOLVED,
-                'source',
-                'provenance',
-                [],
-                [:],
-                [],
-                recipe)
+    private static InputVariant input(String owner, String sagaFqn = null) {
+        def node = InputRecipeNode.builder('literal').executorReady(true).literalKind('integer').value(1L).targetTypeFqn(Long.name).build()
+        def argument = new InputRecipeArgument(0, Long.name, InputResolutionStatus.RESOLVED, true, [], 'argument 0', node)
+        new InputVariant("input-${owner}".toString(), sagaFqn ?: "example.${owner.toUpperCase()}Saga".toString(),
+                'example.CurrentSpec', 'fixture', owner, null, InputRole.FEATURE_UNDER_TEST, FixtureOrigin.DIRECT_FEATURE,
+                InputResolutionStatus.RESOLVED, SourceMode.SAGAS, SourceModeConfidence.TEST_CONFIGURATION, [], 'source', 'provenance',
+                [], [], [:], [], new InputRecipe(InputRecipe.SCHEMA_VERSION, null, true, [], [argument]))
     }
 }

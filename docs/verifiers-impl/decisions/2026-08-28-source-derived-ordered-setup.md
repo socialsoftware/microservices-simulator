@@ -6,11 +6,11 @@ Status: active and implemented
 
 ## Context
 
-Ordinary application tests can create one object and pass its returned identity to multiple target Sagas. Participant-local input recipes cannot express that one setup call must execute once, that required void effects must remain ordered, or that both participants consume the same fresh result. Copying call recipes would duplicate effects and could falsely claim shared identity. The existing v4 prerequisite provider can construct such state manually, but it makes the application restate setup already present in its tests.
+Ordinary application tests can create one object and pass its returned identity to multiple target Sagas. Participant-local input recipes cannot express that one setup call must execute once, that required void effects must remain ordered, or that both participants consume the same fresh result. Copying call recipes would duplicate effects and could falsely claim shared identity. A prerequisite provider can construct such state manually, but it makes the application restate setup already present in its tests.
 
 ## Decision
 
-Package v5 gives WorkloadPlan one optional validated `SetupPlan`:
+The current package gives a workload one optional validated setup recipe:
 
 - static analysis flattens only the approved straight-line fixture/helper shapes into source-ordered setup actions;
 - each action names one Java-confirmed application facade method key and uses the closed persisted value language;
@@ -22,7 +22,7 @@ Package v5 gives WorkloadPlan one optional validated `SetupPlan`:
 - source-setup preflight isolates each candidate in a bounded fresh JVM/Spring/H2 worker;
 - SetupPlan semantics participate in deterministic workload identity, but runtime IDs and returned values do not.
 
-Valid v4 packages continue through the unchanged prerequisite-provider path. A WorkloadPlan cannot mix a prerequisite baseline and a SetupPlan.
+A workload cannot mix a prerequisite baseline and a source-derived setup recipe.
 
 ## Why this contract
 
@@ -34,7 +34,7 @@ Valid v4 packages continue through the unchanged prerequisite-provider path. A W
 
 ## Consequences
 
-- The latest manifest and WorkloadPlan schemas are v5; SetupPlan is v1. Valid v4 packages remain readable/executable, while v3 stays unsupported.
+- Current manifest-described records have exact, versionless kind-specific shapes. Historical versioned package records are not readable or executable.
 - Supported extraction is deliberately narrow, not a Java/Groovy interpreter.
 - Source-setup preflight costs one fresh process per candidate; ordinary selected execution already owns one fresh process per attempt.
 - The historical Remove/Add descriptor/provider remains retained evidence, but the automatic ordinary-test path does not invoke it.

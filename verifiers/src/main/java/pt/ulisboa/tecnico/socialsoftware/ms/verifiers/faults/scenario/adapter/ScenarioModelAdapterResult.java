@@ -4,6 +4,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Even
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceAggregateKeyInputEvidence;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -16,7 +18,9 @@ public record ScenarioModelAdapterResult(
         List<EventConsequenceDefinition> eventConsequenceDefinitions,
         List<SourceSetupPlanBinding> sourceSetupPlanBindings,
         Map<String, Integer> counts,
-        List<String> diagnostics) {
+        List<String> diagnostics,
+        Map<String, List<StepDispatchFootprint>> dispatchesBySaga,
+        List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence) {
 
     public ScenarioModelAdapterResult {
         sagaDefinitions = sagaDefinitions == null ? List.of() : List.copyOf(sagaDefinitions);
@@ -27,6 +31,25 @@ public record ScenarioModelAdapterResult(
         sourceSetupPlanBindings = sourceSetupPlanBindings == null ? List.of() : List.copyOf(sourceSetupPlanBindings);
         counts = counts == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(counts));
         diagnostics = diagnostics == null ? List.of() : List.copyOf(diagnostics);
+        if (dispatchesBySaga == null) {
+            dispatchesBySaga = Map.of();
+        } else {
+            LinkedHashMap<String, List<StepDispatchFootprint>> copy = new LinkedHashMap<>();
+            dispatchesBySaga.forEach((key, value) -> copy.put(key, value == null ? List.of() : List.copyOf(value)));
+            dispatchesBySaga = Collections.unmodifiableMap(copy);
+        }
+        aggregateKeyInputEvidence = aggregateKeyInputEvidence == null
+                ? List.of() : List.copyOf(aggregateKeyInputEvidence);
+    }
+
+    public ScenarioModelAdapterResult(List<SagaDefinition> sagaDefinitions,
+                                      List<InputVariant> inputVariants,
+                                      List<EventConsequenceDefinition> eventConsequenceDefinitions,
+                                      List<SourceSetupPlanBinding> sourceSetupPlanBindings,
+                                      Map<String, Integer> counts,
+                                      List<String> diagnostics) {
+        this(sagaDefinitions, inputVariants, eventConsequenceDefinitions, sourceSetupPlanBindings,
+                counts, diagnostics, Map.of(), List.of());
     }
 
     public ScenarioModelAdapterResult(List<SagaDefinition> sagaDefinitions,
@@ -34,13 +57,14 @@ public record ScenarioModelAdapterResult(
                                       List<EventConsequenceDefinition> eventConsequenceDefinitions,
                                       Map<String, Integer> counts,
                                       List<String> diagnostics) {
-        this(sagaDefinitions, inputVariants, eventConsequenceDefinitions, List.of(), counts, diagnostics);
+        this(sagaDefinitions, inputVariants, eventConsequenceDefinitions, List.of(), counts, diagnostics, Map.of(), List.of());
     }
 
     public ScenarioModelAdapterResult(List<SagaDefinition> sagaDefinitions,
                                       List<InputVariant> inputVariants,
                                       Map<String, Integer> counts,
                                       List<String> diagnostics) {
-        this(sagaDefinitions, inputVariants, List.of(), List.of(), counts, diagnostics);
+        this(sagaDefinitions, inputVariants, List.of(), List.of(), counts, diagnostics, Map.of(), List.of());
     }
+
 }

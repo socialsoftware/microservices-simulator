@@ -176,7 +176,8 @@ public final class SetupPlanValidator {
                 }
                 String actualType = source.declaredResultTypeFqn();
                 if (value.kind() == SetupValueKind.ACTION_RESULT_PROPERTY) {
-                    if (!RESULT_PROPERTIES.contains(value.propertyName()) || !actualType.endsWith("Dto")) {
+                    if (!RESULT_PROPERTIES.contains(value.propertyName())
+                            || actualType != null && !actualType.endsWith("Dto")) {
                         diagnostics.add(new Diagnostic("UNSUPPORTED_SETUP_RESULT_PROPERTY", String.valueOf(value.propertyName())));
                         return;
                     }

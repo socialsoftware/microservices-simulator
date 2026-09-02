@@ -19,6 +19,9 @@ public record DynamicEvidenceEvent(
         String functionalityClassSimpleName,
         String functionalityInvocationId,
         String stepName,
+        String timestamp,
+        Long sequence,
+        String threadName,
         Map<String, Object> payload,
         Path sourcePath,
         int lineNumber) {

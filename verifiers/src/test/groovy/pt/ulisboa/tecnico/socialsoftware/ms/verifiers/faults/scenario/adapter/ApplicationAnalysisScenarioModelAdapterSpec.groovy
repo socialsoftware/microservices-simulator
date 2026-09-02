@@ -137,7 +137,7 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
                 'resolved via direct constructor',
                 [
                         resolvedArg(0, 'customerId <- new CustomerDto()', 'new CustomerDto()', 'com.example.CustomerDto'),
-                        legacyUnresolvedRuntimeArg(1,
+                        defaultMetadataUnresolvedRuntimeArg(1,
                                 'unitOfWork <- sagaUnitOfWorkService.createUnitOfWork("createOrder")',
                                 'sagaUnitOfWorkService.createUnitOfWork("createOrder")',
                                 'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork')
@@ -579,10 +579,10 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         new GroovyTraceArgument(index, provenance, recipe, expectedTypeFqn)
     }
 
-    private static GroovyTraceArgument legacyUnresolvedRuntimeArg(int index,
-                                                                   String provenance,
-                                                                   String text,
-                                                                   String expectedTypeFqn) {
+    private static GroovyTraceArgument defaultMetadataUnresolvedRuntimeArg(int index,
+                                                                            String provenance,
+                                                                            String text,
+                                                                            String expectedTypeFqn) {
         def recipe = new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE, text, [])
         new GroovyTraceArgument(index, provenance, recipe, expectedTypeFqn)
     }

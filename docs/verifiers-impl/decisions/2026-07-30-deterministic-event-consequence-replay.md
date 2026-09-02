@@ -12,7 +12,7 @@ Runtime replay has a second risk. The normal scheduler can race the executor for
 
 ## Decision
 
-Represent one supported delivery as an atomic `EVENT_CONSEQUENCE` normal action in the v4 WorkloadPlan/FaultScenario contract.
+Represent one supported delivery as an atomic `EVENT_CONSEQUENCE` normal action in the current workload/FaultScenario contract.
 
 Static ownership is conservative:
 
@@ -41,7 +41,7 @@ The event action is causally masked when its specific trigger occurrence has a p
 
 Prerequisite setup uses an exact provider id/version and typed baseline bindings persisted in the workload. Provider work, binding resolution, pending-event cleanup, and baseline evidence stay outside measured actions, fault allocation, recovery, conformance, and ImpactV1.
 
-Execution reports use v5 so prerequisite evidence and actual event/subscriber evidence remain separate from the v4 five-file package. Execution never mutates those five package files.
+Execution reports use their separate v5 report schema so prerequisite evidence and actual event/subscriber evidence remain separate from the package. Execution never mutates package files.
 
 ## Why this contract
 
@@ -55,7 +55,7 @@ Execution reports use v5 so prerequisite evidence and actual event/subscriber ev
 
 ## Consequences
 
-- Package workload, fault, manifest, and accounting schemas are v4; input recipes are v2; v3 package records are rejected.
+- Current package records use exact, versionless kind-specific shapes; historical versioned package records are rejected.
 - Execution reports are v5; ImpactV1 remains v1.
 - Supported event replay is Saga/local, synchronous, and limited to one unique matching subscriber.
 - Fan-out, recursive/nested event chains, event faults, event compensation, retries, TCC, stream, gRPC, remote/distributed delivery, true parallel replay, and same-process reset remain unsupported.
@@ -67,6 +67,6 @@ Execution reports use v5 so prerequisite evidence and actual event/subscriber ev
 - an event delivery itself needs a fault or retry model;
 - distributed replay can preserve exact event/subscriber identity and exclusivity;
 - repeatability needs a reset boundary other than fresh process/container and database;
-- package consumers require a contract beyond v4.
+- package consumers require a new current contract.
 
 Current behavior and Quizzes positive/control/masking evidence are in [`../current-state.md`](../current-state.md#quizzes-event-consequence-replay-positive-control-and-masking).

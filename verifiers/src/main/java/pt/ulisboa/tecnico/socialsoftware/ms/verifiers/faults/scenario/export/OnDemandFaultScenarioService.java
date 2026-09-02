@@ -3,6 +3,9 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.FaultScenarioValidator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap;
@@ -103,7 +106,7 @@ public final class OnDemandFaultScenarioService {
     public OnDemandFaultScenarioResult request(OnDemandFaultScenarioRequest request) {
         if (request == null || request.manifestPath() == null) {
             return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, null,
-                    "MISSING_MANIFEST_PATH", "A v4 package manifest path is required");
+                    "MISSING_MANIFEST_PATH", "A current scenario package manifest path is required");
         }
         Path manifestPath = request.manifestPath().toAbsolutePath().normalize();
         Path packageIdentity;
@@ -175,266 +178,236 @@ public final class OnDemandFaultScenarioService {
     }
 
     private OnDemandFaultScenarioResult requestLocked(OnDemandFaultScenarioRequest request, Path manifestPath) {
-        ValidatedPackage validated;
+        if (!isCurrentManifest(manifestPath)) {
+            return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, null,
+                    "INVALID_PACKAGE", "Only the current role-keyed scenario package is accepted");
+        }
+        return requestCurrentLocked(request, manifestPath);
+
+    }
+
+    private boolean isCurrentManifest(Path manifestPath) {
         try {
-            validated = readValidatedPackage(manifestPath);
+            JsonNode node = objectMapper.readTree(Files.readAllBytes(manifestPath));
+            return node != null && node.has("formatVersion") && node.has("files") && !node.has("schemaVersion");
+        } catch (IOException exception) {
+            throw new IllegalArgumentException("Malformed scenario package manifest", exception);
+        }
+    }
+
+    /** Current-package request path. All four mutable artifacts are staged and validated together. */
+    private OnDemandFaultScenarioResult requestCurrentLocked(OnDemandFaultScenarioRequest request, Path manifestPath) {
+        ScenarioCatalogPackageReader.ExecutablePackageContents raw;
+        ScenarioCatalogPackageReader.PackageContents projected;
+        try {
+            ScenarioCatalogPackageReader reader = new ScenarioCatalogPackageReader();
+            raw = reader.readCurrent(manifestPath);
+            projected = reader.readCurrentForExecution(manifestPath);
         } catch (RuntimeException exception) {
             return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, null,
                     "INVALID_PACKAGE", rootMessage(exception));
         }
-
-        ScenarioCatalogManifest manifest = validated.contents().manifest();
-        RecoveryScheduleCap cap = new RecoveryScheduleCap(manifest.recoveryScheduleCap());
+        int defaultCap = raw.accounting().path("configuration").path("maxRecoverySchedulesPerVector").asInt(0);
+        if (defaultCap <= 0) {
+            return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, null,
+                    "MISSING_RECOVERY_CAP", "Current accounting.configuration.maxRecoverySchedulesPerVector must be positive");
+        }
+        int cap = defaultCap;
         if (request.assertedRecoveryScheduleCap() != null) {
-            RecoveryScheduleCap asserted;
             try {
-                asserted = RecoveryScheduleCap.parse(request.assertedRecoveryScheduleCap());
+                cap = RecoveryScheduleCap.parse(request.assertedRecoveryScheduleCap()).value();
             } catch (IllegalArgumentException exception) {
-                return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, cap.value(),
+                return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, defaultCap,
                         "INVALID_ASSERTED_RECOVERY_CAP", exception.getMessage());
             }
-            if (asserted.value() != cap.value()) {
-                return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, cap.value(),
-                        "RECOVERY_CAP_MISMATCH", "Package recovery cap is " + cap.value()
-                                + " but request asserted " + asserted.value());
-            }
         }
-
-        WorkloadPlan workload = validated.contents().workloadPlans().stream()
+        WorkloadPlan workload = projected.workloadPlans().stream()
                 .filter(candidate -> Objects.equals(candidate.deterministicId(), request.workloadPlanId()))
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
         if (workload == null) {
-            return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, cap.value(),
+            return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, cap,
                     "WORKLOAD_PLAN_NOT_FOUND", "No WorkloadPlan exists with id " + request.workloadPlanId());
         }
-
         WorkloadMaterializability materializability = EagerFaultScenarioGenerator.evaluateMaterializability(workload);
         if (!materializability.materializable()) {
-            return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, cap.value(),
+            return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, cap,
                     "WORKLOAD_NOT_MATERIALIZABLE", String.join("; ", materializability.diagnostics()));
         }
-        if (request.assignedVector() == null
-                || request.assignedVector().length() != workload.faultSlots().size()) {
-            return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, cap.value(),
-                    "INVALID_VECTOR_LENGTH", "Vector length must equal the WorkloadPlan fault-slot count "
-                            + workload.faultSlots().size());
+        if (request.assignedVector() == null || request.assignedVector().length() != workload.faultSlots().size()) {
+            return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, cap,
+                    "INVALID_VECTOR_LENGTH", "Vector length must equal the WorkloadPlan fault-slot count " + workload.faultSlots().size());
         }
         if (!request.assignedVector().matches("[01]*")) {
-            return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, cap.value(),
+            return failure(OnDemandFaultScenarioResult.Status.REJECTED, request, cap,
                     "NON_BINARY_VECTOR", "Vector must contain only binary digits");
         }
-
         RecoveryScheduleGenerationResult generated;
         try {
-            generated = recoveryScheduleSource.generate(workload, request.assignedVector(), cap.value());
+            generated = recoveryScheduleSource.generate(workload, request.assignedVector(), cap);
         } catch (RuntimeException exception) {
-            return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap.value(),
+            return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap,
                     "GENERATION_FAILED", rootMessage(exception));
         }
-
-        if (generated.recoveryScheduleCap() != cap.value()
-                || generated.writtenScheduleCount() <= 0
-                || generated.writtenScheduleCount() > cap.value()
+        if (generated.recoveryScheduleCap() != cap || generated.writtenScheduleCount() <= 0
+                || generated.writtenScheduleCount() > cap
                 || generated.faultScenarios().size() != generated.writtenScheduleCount()
                 || generated.uncappedScheduleCount().compareTo(BigInteger.valueOf(generated.writtenScheduleCount())) < 0) {
-            return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap.value(),
-                    "INVALID_GENERATION_RESULT", "Generated recovery counts do not match the frozen package cap and records");
+            return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap,
+                    "INVALID_GENERATION_RESULT", "Generated recovery counts do not match the requested cap");
         }
-
-        Map<String, FaultScenario> existingById = validated.contents().faultScenarios().stream()
-                .collect(Collectors.toMap(
-                        FaultScenario::deterministicId,
-                        scenario -> scenario,
-                        (left, right) -> left,
-                        LinkedHashMap::new));
-        List<FaultScenario> additions = new ArrayList<>();
-        java.util.Set<String> generatedIdsSeen = new java.util.HashSet<>();
-        FaultScenarioValidator validator = new FaultScenarioValidator();
+        Map<String, JsonNode> existingById = new LinkedHashMap<>();
+        for (JsonNode scenario : raw.faultScenarioRecords()) existingById.put(scenario.path("id").asText(), scenario);
+        List<JsonNode> additions = new ArrayList<>();
+        List<String> generatedIds = new ArrayList<>();
+        ExecutableArtifactWriter compactWriter = new ExecutableArtifactWriter();
         for (FaultScenario scenario : generated.faultScenarios()) {
-            if (scenario == null
-                    || !generatedIdsSeen.add(scenario.deterministicId())
-                    || !Objects.equals(workload.deterministicId(), scenario.workloadPlanId())
-                    || !Objects.equals(request.assignedVector(), scenario.assignedVector())) {
-                return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap.value(),
-                        "INVALID_GENERATED_FAULT_SCENARIO", "Generated records must be unique and match the requested workload/vector");
+            Map<String, Object> compact = compactWriter.currentFaultRecord(scenario, projected.workloadPlans());
+            JsonNode node = objectMapper.valueToTree(compact);
+            String id = node.path("id").asText();
+            generatedIds.add(id);
+            JsonNode existing = existingById.get(id);
+            if (existing == null) additions.add(node);
+            else if (!existing.equals(node)) {
+                return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap,
+                        "FAULT_SCENARIO_ID_COLLISION", "FaultScenario id " + id + " has different semantic content");
             }
-            FaultScenario existing = existingById.get(scenario.deterministicId());
-            if (existing != null) {
-                if (!canonicalScenarioBytes(existing).equals(canonicalScenarioBytes(scenario))) {
-                    return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap.value(),
-                            "FAULT_SCENARIO_ID_COLLISION", "FaultScenario id " + scenario.deterministicId()
-                                    + " has different semantic content");
-                }
-                continue;
+        }
+        generatedIds.sort(String::compareTo);
+        String requestKey = request.workloadPlanId() + "\u0000" + request.assignedVector() + "\u0000" + cap;
+        for (JsonNode prior : raw.requestRecords()) {
+            String key = prior.path("workload").asText() + "\u0000" + prior.path("faultVector").asText()
+                    + "\u0000" + prior.path("effectiveRecoveryScheduleCap").asText();
+            if (requestKey.equals(key)) {
+                return success(OnDemandFaultScenarioResult.Status.DEDUPLICATED, request, cap, generated, 0, generatedIds);
             }
-            FaultScenarioValidator.ValidationResult scenarioValidation = validator.validate(scenario, workload);
-            if (!scenarioValidation.valid()) {
-                return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap.value(),
-                        "INVALID_GENERATED_FAULT_SCENARIO", scenarioValidation.diagnostics().toString());
-            }
-            additions.add(scenario);
         }
-
-        String vectorKey = request.workloadPlanId() + "\u0000" + request.assignedVector();
-        ScenarioSpaceAccountingReport.ComputedVectorRecoverySpace existingVector = validated.accounting()
-                .faultScenarioCatalogSpace().perComputedVectorRecoverySpace().stream()
-                .filter(row -> vectorKey.equals(row.workloadPlanId() + "\u0000" + row.assignedVector()))
-                .findFirst()
-                .orElse(null);
-        List<String> generatedIds = generated.faultScenarios().stream()
-                .map(FaultScenario::deterministicId)
-                .sorted()
-                .toList();
-        if (additions.isEmpty()) {
-            if (existingVector == null) {
-                return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap.value(),
-                        "MISSING_VECTOR_ACCOUNTING", "Existing FaultScenarios have no computed-vector accounting row");
-            }
-            List<String> existingIds = validated.contents().faultScenarios().stream()
-                    .filter(scenario -> Objects.equals(request.workloadPlanId(), scenario.workloadPlanId()))
-                    .filter(scenario -> Objects.equals(request.assignedVector(), scenario.assignedVector()))
-                    .map(FaultScenario::deterministicId)
-                    .sorted()
-                    .toList();
-            if (!exact(existingVector.uncappedUniqueScheduleCount(), "uncappedUniqueScheduleCount")
-                    .equals(generated.uncappedScheduleCount())
-                    || !exact(existingVector.writtenScheduleCount(), "writtenScheduleCount")
-                    .equals(BigInteger.valueOf(generated.writtenScheduleCount()))
-                    || !existingIds.equals(generatedIds)) {
-                return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap.value(),
-                        "DETERMINISTIC_VECTOR_MISMATCH",
-                        "Persisted vector counts or FaultScenario ids differ from fresh deterministic generation");
-            }
-            return success(OnDemandFaultScenarioResult.Status.DEDUPLICATED, request, cap.value(), generated,
-                    0, generatedIds);
-        }
-        if (existingVector != null) {
-            return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap.value(),
-                    "PARTIAL_VECTOR_REVISION", "A computed vector row exists without its complete deterministic scenario set");
-        }
-
-        List<FaultScenario> mergedScenarios = new ArrayList<>(validated.contents().faultScenarios());
-        mergedScenarios.addAll(additions);
-        mergedScenarios.sort(FAULT_SCENARIO_ORDER);
-        ComputedVectorRecovery computedVector = new ComputedVectorRecovery(
-                workload.deterministicId(),
-                request.assignedVector(),
-                FaultScenarioVectorSource.ON_DEMAND_REQUEST,
-                generated.uncappedScheduleCount(),
-                generated.writtenScheduleCount());
-        ScenarioSpaceAccountingReport revisedAccounting;
-        try {
-            revisedAccounting = validated.accounting().withOnDemandVector(computedVector, mergedScenarios.size());
-        } catch (RuntimeException exception) {
-            return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap.value(),
-                    "INVALID_ACCOUNTING_REVISION", rootMessage(exception));
-        }
-
-        byte[] faultScenarioBytes;
-        byte[] accountingBytes;
-        byte[] manifestBytes;
-        ScenarioCatalogManifest revisedManifest;
-        try {
-            faultScenarioBytes = serializeFaultScenarios(mergedScenarios);
-            accountingBytes = prettyBytes(revisedAccounting);
-            revisedManifest = reviseManifest(manifest, revisedAccounting, mergedScenarios.size(),
-                    faultScenarioBytes, accountingBytes);
-            manifestBytes = prettyBytes(revisedManifest);
-        } catch (RuntimeException exception) {
-            return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap.value(),
-                    "SERIALIZATION_FAILED", rootMessage(exception));
-        }
-
-        Map<Path, byte[]> originals;
-        try {
-            originals = Map.of(
-                    validated.contents().faultScenarioCatalogPath(),
-                    Files.readAllBytes(validated.contents().faultScenarioCatalogPath()),
-                    validated.contents().accountingPath(),
-                    Files.readAllBytes(validated.contents().accountingPath()),
-                    manifestPath,
-                    Files.readAllBytes(manifestPath));
-        } catch (IOException exception) {
-            return failure(OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED, request, cap.value(),
-                    "SNAPSHOT_FAILED", rootMessage(exception));
-        }
+        List<JsonNode> mergedFaults = new ArrayList<>(raw.faultScenarioRecords());
+        mergedFaults.addAll(additions);
+        mergedFaults.sort(Comparator.comparing(node -> node.path("id").asText()));
+        ObjectNode requestRecord = objectMapper.createObjectNode();
+        requestRecord.put("workload", request.workloadPlanId());
+        requestRecord.put("faultVector", request.assignedVector());
+        requestRecord.put("effectiveRecoveryScheduleCap", cap);
+        requestRecord.put("uncappedPossibleRecoverySchedules", generated.uncappedScheduleCount());
+        ArrayNode requestIds = requestRecord.putArray("faultScenarioIds");
+        generatedIds.forEach(requestIds::add);
+        List<JsonNode> mergedRequests = new ArrayList<>(raw.requestRecords());
+        mergedRequests.add(requestRecord);
 
         try {
-            publishRevision(
-                    manifestPath,
-                    validated,
-                    revisedManifest,
-                    faultScenarioBytes,
-                    accountingBytes,
-                    manifestBytes,
-                    originals);
-            return success(OnDemandFaultScenarioResult.Status.PERSISTED, request, cap.value(), generated,
+            ObjectNode account = (ObjectNode) raw.accounting().deepCopy();
+            ObjectNode current = account.with("faultScenarios").with("current");
+            int priorVectors = current.path("vectorsComputed").asInt(0);
+            BigInteger priorPossible = bigInteger(current.path("possibleForComputedVectors"));
+            int priorWritten = current.path("written").asInt(raw.faultScenarioRecords().size());
+            boolean vectorWasAbsent = additions.size() > 0 && raw.faultScenarioRecords().stream()
+                    .noneMatch(node -> request.workloadPlanId().equals(node.path("workload").asText())
+                            && request.assignedVector().equals(node.path("faultVector").asText()));
+            if (vectorWasAbsent) {
+                current.put("vectorsComputed", priorVectors + 1);
+                current.put("possibleForComputedVectors", priorPossible.add(generated.uncappedScheduleCount()));
+            }
+            current.put("written", mergedFaults.size());
+            account.with("requests").put("written", mergedRequests.size());
+            byte[] faultBytes = jsonLinesBytes(mergedFaults);
+            byte[] requestBytes = jsonLinesBytes(mergedRequests);
+            byte[] accountBytes = compactBytes(account);
+            byte[] manifestBytes = reviseCurrentManifest(manifestPath, faultBytes, requestBytes, accountBytes);
+            publishCurrentRevision(manifestPath, raw, faultBytes, requestBytes, accountBytes, manifestBytes);
+            return success(OnDemandFaultScenarioResult.Status.PERSISTED, request, cap, generated,
                     additions.size(), generatedIds);
         } catch (Exception exception) {
-            return failure(OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED, request, cap.value(),
+            return failure(OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED, request, cap,
                     "PACKAGE_REVISION_FAILED", rootMessage(exception));
         }
     }
 
-    private void publishRevision(Path manifestPath,
-                                 ValidatedPackage originalPackage,
-                                 ScenarioCatalogManifest revisedManifest,
-                                 byte[] faultScenarioBytes,
-                                 byte[] accountingBytes,
-                                 byte[] manifestBytes,
-                                 Map<Path, byte[]> originals) throws IOException {
-        Path faultPath = originalPackage.contents().faultScenarioCatalogPath();
-        Path accountingPath = originalPackage.contents().accountingPath();
+    private byte[] reviseCurrentManifest(Path manifestPath,
+                                         byte[] faultBytes,
+                                         byte[] requestBytes,
+                                         byte[] accountingBytes) throws IOException {
+        ObjectNode manifest = (ObjectNode) objectMapper.readTree(Files.readAllBytes(manifestPath));
+        ObjectNode files = (ObjectNode) manifest.path("files");
+        files.with("faultScenarios").put("sha256", sha256(faultBytes));
+        files.with("requests").put("sha256", sha256(requestBytes));
+        files.with("accounting").put("sha256", sha256(accountingBytes));
+        return compactBytes(manifest);
+    }
+
+    private void publishCurrentRevision(Path manifestPath,
+                                        ScenarioCatalogPackageReader.ExecutablePackageContents original,
+                                        byte[] faultBytes,
+                                        byte[] requestBytes,
+                                        byte[] accountingBytes,
+                                        byte[] manifestBytes) throws IOException {
+        Path faultPath = original.faultScenarioPath();
+        Path requestPath = original.requestPath();
+        Path accountingPath = original.accountingPath();
         List<Path> temporaryFiles = new ArrayList<>();
+        Map<Path, byte[]> originals = new LinkedHashMap<>();
+        for (Path path : List.of(faultPath, requestPath, accountingPath, manifestPath)) originals.put(path, Files.readAllBytes(path));
         boolean promotionStarted = false;
         IOException publicationFailure = null;
         try {
-            Path stagedFault = stage(faultPath, faultScenarioBytes, ".fault-scenario-");
-            temporaryFiles.add(stagedFault);
+            Path stagedFault = stage(faultPath, faultBytes, ".current-fault-"); temporaryFiles.add(stagedFault);
             failureInjector.at(Boundary.FAULT_SCENARIO_STAGED);
-            Path stagedAccounting = stage(accountingPath, accountingBytes, ".accounting-");
-            temporaryFiles.add(stagedAccounting);
+            Path stagedRequest = stage(requestPath, requestBytes, ".current-request-"); temporaryFiles.add(stagedRequest);
+            failureInjector.at(Boundary.REQUEST_STAGED);
+            Path stagedAccounting = stage(accountingPath, accountingBytes, ".current-accounting-"); temporaryFiles.add(stagedAccounting);
             failureInjector.at(Boundary.ACCOUNTING_STAGED);
-            Path stagedManifest = stage(manifestPath, manifestBytes, ".manifest-");
-            temporaryFiles.add(stagedManifest);
+            Path stagedManifest = stage(manifestPath, manifestBytes, ".current-manifest-"); temporaryFiles.add(stagedManifest);
             failureInjector.at(Boundary.MANIFEST_STAGED);
 
-            ScenarioCatalogManifest validationManifest = withStagedPaths(
-                    revisedManifest, stagedFault, stagedAccounting);
-            Path validationManifestPath = stage(manifestPath, prettyBytes(validationManifest), ".validation-manifest-");
-            temporaryFiles.add(validationManifestPath);
-            readValidatedPackage(validationManifestPath);
+            ObjectNode validation = (ObjectNode) objectMapper.readTree(manifestBytes);
+            ObjectNode files = (ObjectNode) validation.path("files");
+            Path root = manifestPath.getParent();
+            files.with("faultScenarios").put("path", root.relativize(stagedFault).toString());
+            files.with("requests").put("path", root.relativize(stagedRequest).toString());
+            files.with("accounting").put("path", root.relativize(stagedAccounting).toString());
+            Path validationManifest = stage(manifestPath, compactBytes(validation), ".current-validation-"); temporaryFiles.add(validationManifest);
+            new ScenarioCatalogPackageReader().readCurrent(validationManifest);
 
             promotionStarted = true;
-            promote(stagedFault, faultPath);
-            failureInjector.at(Boundary.FAULT_SCENARIO_PROMOTED);
-            promote(stagedAccounting, accountingPath);
-            failureInjector.at(Boundary.ACCOUNTING_PROMOTED);
-            promote(stagedManifest, manifestPath);
-            failureInjector.at(Boundary.MANIFEST_PROMOTED);
-            readValidatedPackage(manifestPath);
+            promote(stagedFault, faultPath); failureInjector.at(Boundary.FAULT_SCENARIO_PROMOTED);
+            promote(stagedRequest, requestPath); failureInjector.at(Boundary.REQUEST_PROMOTED);
+            promote(stagedAccounting, accountingPath); failureInjector.at(Boundary.ACCOUNTING_PROMOTED);
+            promote(stagedManifest, manifestPath); failureInjector.at(Boundary.MANIFEST_PROMOTED);
+            new ScenarioCatalogPackageReader().readCurrent(manifestPath);
         } catch (Exception exception) {
             if (promotionStarted) {
-                try {
-                    restoreOriginals(manifestPath, faultPath, accountingPath, originals);
-                } catch (Exception rollbackException) {
-                    exception.addSuppressed(rollbackException);
-                }
+                try { for (Map.Entry<Path, byte[]> entry : originals.entrySet()) restore(entry.getKey(), entry.getValue()); }
+                catch (Exception rollbackException) { exception.addSuppressed(rollbackException); }
             }
-            publicationFailure = exception instanceof IOException ioException
-                    ? ioException
-                    : new IOException("Failed to publish package revision", exception);
+            publicationFailure = exception instanceof IOException ioException ? ioException
+                    : new IOException("Failed to publish current package revision", exception);
         }
-
         IOException cleanupFailure = cleanupTemporaryFiles(temporaryFiles);
         if (publicationFailure != null) {
-            if (cleanupFailure != null) {
-                publicationFailure.addSuppressed(cleanupFailure);
-            }
+            if (cleanupFailure != null) publicationFailure.addSuppressed(cleanupFailure);
             throw publicationFailure;
         }
     }
+
+    private byte[] jsonLinesBytes(List<? extends JsonNode> records) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        for (JsonNode record : records) { output.write(objectMapper.writeValueAsBytes(record)); output.write('\n'); }
+        return output.toByteArray();
+    }
+
+    private byte[] compactBytes(Object value) throws IOException {
+        return objectMapper.writeValueAsBytes(value);
+    }
+
+    private String sha256(byte[] bytes) {
+        try { return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes)); }
+        catch (java.security.NoSuchAlgorithmException exception) { throw new IllegalStateException("SHA-256 is unavailable", exception); }
+    }
+
+    private BigInteger bigInteger(JsonNode node) {
+        if (node == null || !node.isIntegralNumber()) return BigInteger.ZERO;
+        return node.bigIntegerValue();
+    }
+
 
     private IOException cleanupTemporaryFiles(List<Path> temporaryFiles) {
         IOException cleanupFailure = null;
@@ -470,14 +443,6 @@ public final class OnDemandFaultScenarioService {
         }
     }
 
-    private void restoreOriginals(Path manifestPath,
-                                  Path faultPath,
-                                  Path accountingPath,
-                                  Map<Path, byte[]> originals) throws IOException {
-        restore(faultPath, originals.get(faultPath));
-        restore(accountingPath, originals.get(accountingPath));
-        restore(manifestPath, originals.get(manifestPath));
-    }
 
     private void restore(Path target, byte[] bytes) throws IOException {
         Path staged = stage(target, bytes, ".rollback-");
@@ -485,409 +450,6 @@ public final class OnDemandFaultScenarioService {
             promote(staged, target);
         } finally {
             Files.deleteIfExists(staged);
-        }
-    }
-
-    private ScenarioCatalogManifest withStagedPaths(ScenarioCatalogManifest manifest,
-                                                     Path stagedFault,
-                                                     Path stagedAccounting) {
-        return new ScenarioCatalogManifest(
-                manifest.schemaVersion(),
-                manifest.generatedAt(),
-                manifest.effectiveConfig(),
-                manifest.generationSource(),
-                manifest.materializabilityPolicy(),
-                manifest.recoveryScheduleCap(),
-                manifest.faultScenarioVectorSource(),
-                manifest.workloadMaterializability(),
-                manifest.counts(),
-                manifest.warnings(),
-                manifest.workloadCatalog(),
-                withPath(manifest.faultScenarioCatalog(), stagedFault),
-                withPath(manifest.scenarioSpaceAccounting(), stagedAccounting),
-                manifest.rejectedInputsDiagnostic(),
-                manifest.inputVariantsBySourceMode(),
-                manifest.inputVariantsAcceptedBySourceMode(),
-                manifest.inputVariantsRejectedBySourceModeReason());
-    }
-
-    private ScenarioCatalogManifest.ArtifactMetadata withPath(ScenarioCatalogManifest.ArtifactMetadata artifact,
-                                                               Path path) {
-        return new ScenarioCatalogManifest.ArtifactMetadata(
-                artifact.artifactKind(), artifact.schemaVersion(), path.toString(), artifact.recordCount(), artifact.sha256());
-    }
-
-    private ScenarioCatalogManifest reviseManifest(ScenarioCatalogManifest manifest,
-                                                    ScenarioSpaceAccountingReport accounting,
-                                                    int faultScenarioCount,
-                                                    byte[] faultScenarioBytes,
-                                                    byte[] accountingBytes) {
-        ScenarioSpaceAccountingReport.FaultScenarioCatalogSpace faultSpace = accounting.faultScenarioCatalogSpace();
-        LinkedHashMap<String, String> counts = new LinkedHashMap<>(manifest.counts());
-        counts.put("computedEagerVectors", faultSpace.computedEagerVectorCount());
-        counts.put("computedOnDemandVectors", faultSpace.computedOnDemandVectorCount());
-        counts.put("computedVectors", faultSpace.computedVectorCount());
-        counts.put("computedVectorUncappedScheduleSum", faultSpace.exactComputedVectorUncappedScheduleSum());
-        counts.put("computedVectorWrittenScheduleSum", faultSpace.exactComputedVectorWrittenScheduleSum());
-        counts.put("faultScenariosExported", Integer.toString(faultScenarioCount));
-        return new ScenarioCatalogManifest(
-                manifest.schemaVersion(),
-                manifest.generatedAt(),
-                manifest.effectiveConfig(),
-                STATIC_AND_ON_DEMAND_GENERATION_SOURCE,
-                manifest.materializabilityPolicy(),
-                manifest.recoveryScheduleCap(),
-                EAGER_AND_ON_DEMAND_VECTOR_SOURCE,
-                manifest.workloadMaterializability(),
-                counts,
-                manifest.warnings(),
-                manifest.workloadCatalog(),
-                withRevision(manifest.faultScenarioCatalog(), faultScenarioCount, faultScenarioBytes),
-                withRevision(manifest.scenarioSpaceAccounting(), 1, accountingBytes),
-                manifest.rejectedInputsDiagnostic(),
-                manifest.inputVariantsBySourceMode(),
-                manifest.inputVariantsAcceptedBySourceMode(),
-                manifest.inputVariantsRejectedBySourceModeReason());
-    }
-
-    private ScenarioCatalogManifest.ArtifactMetadata withRevision(ScenarioCatalogManifest.ArtifactMetadata artifact,
-                                                                   int recordCount,
-                                                                   byte[] bytes) {
-        return new ScenarioCatalogManifest.ArtifactMetadata(
-                artifact.artifactKind(),
-                artifact.schemaVersion(),
-                artifact.path(),
-                Integer.toString(recordCount),
-                ScenarioCatalogJsonlWriter.sha256(bytes));
-    }
-
-    private byte[] serializeFaultScenarios(List<FaultScenario> scenarios) {
-        try {
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            for (FaultScenario scenario : scenarios) {
-                output.write(objectMapper.writeValueAsBytes(scenario));
-                output.write('\n');
-            }
-            return output.toByteArray();
-        } catch (IOException exception) {
-            throw new IllegalArgumentException("Failed to serialize FaultScenario catalog", exception);
-        }
-    }
-
-    private byte[] prettyBytes(Object value) {
-        try {
-            ObjectWriter writer = objectMapper.writerWithDefaultPrettyPrinter();
-            return (writer.writeValueAsString(value) + "\n").getBytes(StandardCharsets.UTF_8);
-        } catch (IOException exception) {
-            throw new IllegalArgumentException("Failed to serialize package artifact", exception);
-        }
-    }
-
-    private String canonicalScenarioBytes(FaultScenario scenario) {
-        try {
-            return objectMapper.writeValueAsString(scenario);
-        } catch (IOException exception) {
-            throw new IllegalArgumentException("Failed to compare FaultScenario semantic content", exception);
-        }
-    }
-
-    private ValidatedPackage readValidatedPackage(Path manifestPath) {
-        Path normalizedManifest = manifestPath.toAbsolutePath().normalize();
-        ManifestBoundary boundary = validateManifestBoundary(normalizedManifest);
-        ScenarioCatalogPackageReader.PackageContents contents = new ScenarioCatalogPackageReader().read(normalizedManifest);
-        List<ArtifactPath> artifacts = List.of(
-                new ArtifactPath(contents.manifest().workloadCatalog(), contents.workloadCatalogPath()),
-                new ArtifactPath(contents.manifest().faultScenarioCatalog(), contents.faultScenarioCatalogPath()),
-                new ArtifactPath(contents.manifest().scenarioSpaceAccounting(), contents.accountingPath()),
-                new ArtifactPath(contents.manifest().rejectedInputsDiagnostic(), contents.rejectedInputsPath()));
-        if (!artifacts.stream().map(artifact -> artifact.path().toAbsolutePath().normalize()).toList()
-                .equals(boundary.artifactPaths())) {
-            throw new IllegalArgumentException("Linked package artifact paths changed during package read");
-        }
-        Path packageRoot = boundary.packageRoot();
-        for (ArtifactPath artifact : artifacts) {
-            Path normalized = artifact.path().toAbsolutePath().normalize();
-            if (!normalized.startsWith(packageRoot)) {
-                throw new IllegalArgumentException("Linked package artifact escapes the package directory: " + normalized);
-            }
-            rejectSymlinkSegments(normalized);
-        }
-
-        ScenarioSpaceAccountingReport accounting;
-        try {
-            accounting = objectMapper.treeToValue(contents.accounting(), ScenarioSpaceAccountingReport.class);
-        } catch (IOException exception) {
-            throw new IllegalArgumentException("Malformed scenario-space accounting", exception);
-        }
-        validateConsistency(contents, accounting);
-        return new ValidatedPackage(contents, accounting);
-    }
-
-    private ManifestBoundary validateManifestBoundary(Path manifestPath) {
-        Path packageRoot = manifestPath.getParent();
-        if (packageRoot == null || !Files.isRegularFile(manifestPath, LinkOption.NOFOLLOW_LINKS)) {
-            throw new IllegalArgumentException("Scenario package manifest does not exist: " + manifestPath);
-        }
-        rejectSymlinkSegments(manifestPath);
-
-        ScenarioCatalogManifest manifest;
-        try {
-            manifest = objectMapper.readValue(Files.readAllBytes(manifestPath), ScenarioCatalogManifest.class);
-        } catch (IOException exception) {
-            throw new IllegalArgumentException("Malformed scenario package manifest", exception);
-        }
-        if (!ScenarioCatalogManifest.SCHEMA_VERSION.equals(manifest.schemaVersion())) {
-            throw new IllegalArgumentException("Unsupported scenario package manifest schema");
-        }
-
-        List<ScenarioCatalogManifest.ArtifactMetadata> artifacts = List.of(
-                requireArtifactMetadata(manifest.workloadCatalog(), "WORKLOAD_CATALOG"),
-                requireArtifactMetadata(manifest.faultScenarioCatalog(), "FAULT_SCENARIO_CATALOG"),
-                requireArtifactMetadata(manifest.scenarioSpaceAccounting(), "SCENARIO_SPACE_ACCOUNTING"),
-                requireArtifactMetadata(manifest.rejectedInputsDiagnostic(), "REJECTED_INPUT_DIAGNOSTIC"));
-        List<Path> artifactPaths = new ArrayList<>();
-        for (ScenarioCatalogManifest.ArtifactMetadata artifact : artifacts) {
-            Path configured;
-            try {
-                configured = Path.of(artifact.path());
-            } catch (RuntimeException exception) {
-                throw new IllegalArgumentException("Manifest artifact path is invalid for "
-                        + artifact.artifactKind());
-            }
-            Path resolved = (configured.isAbsolute() ? configured : packageRoot.resolve(configured))
-                    .toAbsolutePath()
-                    .normalize();
-            if (!resolved.startsWith(packageRoot)) {
-                throw new IllegalArgumentException("Linked package artifact escapes the package directory: "
-                        + artifact.artifactKind());
-            }
-            rejectSymlinkSegments(resolved);
-            artifactPaths.add(resolved);
-        }
-        return new ManifestBoundary(packageRoot, List.copyOf(artifactPaths));
-    }
-
-    private ScenarioCatalogManifest.ArtifactMetadata requireArtifactMetadata(
-            ScenarioCatalogManifest.ArtifactMetadata artifact,
-            String kind) {
-        if (artifact == null || artifact.path() == null) {
-            throw new IllegalArgumentException("Manifest is missing linked artifact metadata for " + kind);
-        }
-        return artifact;
-    }
-
-    private void validateConsistency(ScenarioCatalogPackageReader.PackageContents contents,
-                                     ScenarioSpaceAccountingReport accounting) {
-        ScenarioCatalogManifest manifest = contents.manifest();
-        Map<String, WorkloadPlan> workloadsById = contents.workloadPlans().stream()
-                .collect(Collectors.toMap(WorkloadPlan::deterministicId, plan -> plan, (left, right) -> left, LinkedHashMap::new));
-        Map<String, WorkloadMaterializability> declaredMaterializability = manifest.workloadMaterializability().stream()
-                .collect(Collectors.toMap(WorkloadMaterializability::workloadPlanId, value -> value,
-                        (left, right) -> { throw new IllegalArgumentException("Duplicate materializability row"); }, LinkedHashMap::new));
-        if (!declaredMaterializability.keySet().equals(workloadsById.keySet())) {
-            throw new IllegalArgumentException("Manifest materializability rows do not match WorkloadPlans");
-        }
-        Map<String, WorkloadMaterializability> actualMaterializabilityByWorkload = new LinkedHashMap<>();
-        long materializableWorkloadCount = 0;
-        for (WorkloadPlan workload : contents.workloadPlans()) {
-            WorkloadMaterializability actual = EagerFaultScenarioGenerator.evaluateMaterializability(workload);
-            actualMaterializabilityByWorkload.put(workload.deterministicId(), actual);
-            if (!actual.equals(declaredMaterializability.get(workload.deterministicId()))) {
-                throw new IllegalArgumentException("Manifest materializability diagnostic mismatch for "
-                        + workload.deterministicId());
-            }
-            if (actual.materializable()) {
-                materializableWorkloadCount++;
-            }
-        }
-        long nonMaterializableWorkloadCount = contents.workloadPlans().size() - materializableWorkloadCount;
-
-        Map<String, List<String>> actualScenarioIdsByVector = new LinkedHashMap<>();
-        contents.faultScenarios().forEach(scenario -> actualScenarioIdsByVector
-                .computeIfAbsent(scenario.workloadPlanId() + "\u0000" + scenario.assignedVector(),
-                        ignored -> new ArrayList<>())
-                .add(scenario.deterministicId()));
-        actualScenarioIdsByVector.values().forEach(ids -> ids.sort(String::compareTo));
-        Map<String, FaultScenarioVectorSource> sourcesByVector = new LinkedHashMap<>();
-        BigInteger uncappedSum = BigInteger.ZERO;
-        BigInteger writtenSum = BigInteger.ZERO;
-        int eagerCount = 0;
-        int onDemandCount = 0;
-        for (ScenarioSpaceAccountingReport.ComputedVectorRecoverySpace row
-                : accounting.faultScenarioCatalogSpace().perComputedVectorRecoverySpace()) {
-            WorkloadPlan workload = workloadsById.get(row.workloadPlanId());
-            if (workload == null || row.assignedVector() == null
-                    || row.assignedVector().length() != workload.faultSlots().size()
-                    || !row.assignedVector().matches("[01]*")) {
-                throw new IllegalArgumentException("Invalid computed-vector accounting reference");
-            }
-            if (!actualMaterializabilityByWorkload.get(row.workloadPlanId()).materializable()) {
-                throw new IllegalArgumentException("Computed vectors require a materializable WorkloadPlan: "
-                        + row.workloadPlanId());
-            }
-            FaultScenarioVectorSource source;
-            try {
-                source = FaultScenarioVectorSource.valueOf(row.vectorSource());
-            } catch (RuntimeException exception) {
-                throw new IllegalArgumentException("Invalid computed-vector source " + row.vectorSource(), exception);
-            }
-            String key = row.workloadPlanId() + "\u0000" + row.assignedVector();
-            if (sourcesByVector.putIfAbsent(key, source) != null) {
-                throw new IllegalArgumentException("Duplicate computed-vector accounting row " + key);
-            }
-            BigInteger uncapped = exact(row.uncappedUniqueScheduleCount(), "uncappedUniqueScheduleCount");
-            BigInteger written = exact(row.writtenScheduleCount(), "writtenScheduleCount");
-            List<String> actualIds = actualScenarioIdsByVector.getOrDefault(key, List.of());
-            if (written.signum() <= 0 || written.compareTo(BigInteger.valueOf(manifest.recoveryScheduleCap())) > 0
-                    || uncapped.compareTo(written) < 0
-                    || !written.equals(BigInteger.valueOf(actualIds.size()))) {
-                throw new IllegalArgumentException("Computed-vector counts do not match FaultScenario records for " + key);
-            }
-            RecoveryScheduleGenerationResult expected;
-            try {
-                expected = RecoveryScheduleGenerator.generate(
-                        workload, row.assignedVector(), manifest.recoveryScheduleCap());
-            } catch (RuntimeException exception) {
-                throw new IllegalArgumentException("Failed to deterministically reconcile computed vector " + key,
-                        exception);
-            }
-            List<String> expectedIds = expected.faultScenarios().stream()
-                    .map(FaultScenario::deterministicId)
-                    .sorted()
-                    .toList();
-            if (!uncapped.equals(expected.uncappedScheduleCount())
-                    || !written.equals(BigInteger.valueOf(expected.writtenScheduleCount()))
-                    || !actualIds.equals(expectedIds)) {
-                throw new IllegalArgumentException(
-                        "Computed-vector exact metadata differs from fresh deterministic generation for " + key);
-            }
-            uncappedSum = uncappedSum.add(uncapped);
-            writtenSum = writtenSum.add(written);
-            if (source == FaultScenarioVectorSource.ON_DEMAND_REQUEST) {
-                onDemandCount++;
-            } else {
-                eagerCount++;
-            }
-        }
-        if (!sourcesByVector.keySet().equals(actualScenarioIdsByVector.keySet())) {
-            throw new IllegalArgumentException("FaultScenario records and computed-vector accounting differ");
-        }
-
-        LinkedHashMap<String, FaultScenarioVectorSource> expectedEager = new LinkedHashMap<>();
-        for (WorkloadPlan workload : contents.workloadPlans()) {
-            if (!declaredMaterializability.get(workload.deterministicId()).materializable()) {
-                continue;
-            }
-            String allZero = "0".repeat(workload.faultSlots().size());
-            expectedEager.put(workload.deterministicId() + "\u0000" + allZero, FaultScenarioVectorSource.EAGER_ALL_ZERO);
-            for (int index = 0; index < workload.faultSlots().size(); index++) {
-                char[] vector = allZero.toCharArray();
-                vector[index] = '1';
-                expectedEager.put(workload.deterministicId() + "\u0000" + new String(vector),
-                        FaultScenarioVectorSource.EAGER_SINGLE_POINT);
-            }
-        }
-        Map<String, FaultScenarioVectorSource> actualEager = sourcesByVector.entrySet().stream()
-                .filter(entry -> entry.getValue() != FaultScenarioVectorSource.ON_DEMAND_REQUEST)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (left, right) -> left, LinkedHashMap::new));
-        if (!expectedEager.equals(actualEager)) {
-            throw new IllegalArgumentException("Eager vector coverage is invalid");
-        }
-
-        ScenarioSpaceAccountingReport.FaultScenarioCatalogSpace faultSpace = accounting.faultScenarioCatalogSpace();
-        requireExact(faultSpace.faultScenariosWritten(), contents.faultScenarios().size(), "faultScenariosWritten");
-        requireExact(faultSpace.computedEagerVectorCount(), eagerCount, "computedEagerVectorCount");
-        requireExact(faultSpace.computedOnDemandVectorCount(), onDemandCount, "computedOnDemandVectorCount");
-        requireExact(faultSpace.computedVectorCount(), sourcesByVector.size(), "computedVectorCount");
-        if (!exact(faultSpace.exactComputedVectorUncappedScheduleSum(), "uncapped sum").equals(uncappedSum)
-                || !exact(faultSpace.exactComputedVectorWrittenScheduleSum(), "written sum").equals(writtenSum)
-                || !"EXACT_SUM_OVER_COMPUTED_VECTORS_ONLY".equals(faultSpace.exactComputedSumsScope())
-                || !"NOT_COMPUTED".equals(faultSpace.allVectorRecoveryTotalStatus())) {
-            throw new IllegalArgumentException("FaultScenario accounting aggregate mismatch");
-        }
-
-        Map<String, ScenarioSpaceAccountingReport.WorkloadVectorSpace> workloadRows = accounting.workloadCatalogSpace()
-                .perWorkloadVectorSpace().stream()
-                .collect(Collectors.toMap(ScenarioSpaceAccountingReport.WorkloadVectorSpace::workloadPlanId, row -> row,
-                        (left, right) -> { throw new IllegalArgumentException("Duplicate workload accounting row"); }, LinkedHashMap::new));
-        if (!workloadRows.keySet().equals(workloadsById.keySet())) {
-            throw new IllegalArgumentException("Workload accounting rows do not match WorkloadPlans");
-        }
-        for (WorkloadPlan workload : contents.workloadPlans()) {
-            ScenarioSpaceAccountingReport.WorkloadVectorSpace row = workloadRows.get(workload.deterministicId());
-            WorkloadMaterializability materializability = declaredMaterializability.get(workload.deterministicId());
-            long workloadEager = sourcesByVector.entrySet().stream()
-                    .filter(entry -> entry.getKey().startsWith(workload.deterministicId() + "\u0000"))
-                    .filter(entry -> entry.getValue() != FaultScenarioVectorSource.ON_DEMAND_REQUEST)
-                    .count();
-            long workloadOnDemand = sourcesByVector.entrySet().stream()
-                    .filter(entry -> entry.getKey().startsWith(workload.deterministicId() + "\u0000"))
-                    .filter(entry -> entry.getValue() == FaultScenarioVectorSource.ON_DEMAND_REQUEST)
-                    .count();
-            if (!exact(row.faultSlotCount(), "faultSlotCount").equals(BigInteger.valueOf(workload.faultSlots().size()))
-                    || !exact(row.possibleBinaryVectors(), "possibleBinaryVectors")
-                    .equals(BigInteger.TWO.pow(workload.faultSlots().size()))
-                    || row.executorMaterializable() != materializability.materializable()
-                    || !row.materializabilityDiagnostics().equals(materializability.diagnostics())) {
-                throw new IllegalArgumentException("Workload accounting mismatch for " + workload.deterministicId());
-            }
-            requireExact(row.eagerVectorCount(), workloadEager, "eagerVectorCount");
-            requireExact(row.onDemandVectorCount(), workloadOnDemand, "onDemandVectorCount");
-        }
-        requireExact(accounting.workloadCatalogSpace().workloadPlansWritten(), contents.workloadPlans().size(),
-                "workloadPlansWritten");
-        requireExact(accounting.workloadCatalogSpace().materializableWorkloadPlans(), materializableWorkloadCount,
-                "materializableWorkloadPlans");
-        requireExact(accounting.workloadCatalogSpace().nonMaterializableWorkloadPlans(), nonMaterializableWorkloadCount,
-                "nonMaterializableWorkloadPlans");
-
-        requireManifestCount(manifest, "workloadsExported", contents.workloadPlans().size());
-        requireManifestCount(manifest, "materializableWorkloadPlans", materializableWorkloadCount);
-        requireManifestCount(manifest, "nonMaterializableWorkloadPlans", nonMaterializableWorkloadCount);
-        requireManifestCount(manifest, "computedEagerVectors", eagerCount);
-        requireManifestCount(manifest, "computedOnDemandVectors", onDemandCount);
-        requireManifestCount(manifest, "computedVectors", sourcesByVector.size());
-        requireManifestCount(manifest, "computedVectorUncappedScheduleSum", uncappedSum);
-        requireManifestCount(manifest, "computedVectorWrittenScheduleSum", writtenSum);
-        requireManifestCount(manifest, "faultScenariosExported", contents.faultScenarios().size());
-        requireManifestCount(manifest, "rejectedInputsExported", contents.rejectedInputDiagnostics().size());
-        String expectedSource = onDemandCount == 0 ? EAGER_VECTOR_SOURCE : EAGER_AND_ON_DEMAND_VECTOR_SOURCE;
-        String expectedGenerationSource = onDemandCount == 0
-                ? STATIC_GENERATION_SOURCE
-                : STATIC_AND_ON_DEMAND_GENERATION_SOURCE;
-        if (!expectedSource.equals(manifest.faultScenarioVectorSource())
-                || !expectedGenerationSource.equals(manifest.generationSource())) {
-            throw new IllegalArgumentException("Manifest generation-source metadata mismatch");
-        }
-    }
-
-    private void requireManifestCount(ScenarioCatalogManifest manifest, String key, long expected) {
-        requireManifestCount(manifest, key, BigInteger.valueOf(expected));
-    }
-
-    private void requireManifestCount(ScenarioCatalogManifest manifest, String key, BigInteger expected) {
-        String value = manifest.counts().get(key);
-        if (value == null || !exact(value, "manifest count " + key).equals(expected)) {
-            throw new IllegalArgumentException("Manifest count mismatch for " + key);
-        }
-    }
-
-    private void requireExact(String value, long expected, String label) {
-        if (!exact(value, label).equals(BigInteger.valueOf(expected))) {
-            throw new IllegalArgumentException(label + " mismatch");
-        }
-    }
-
-    private BigInteger exact(String value, String label) {
-        try {
-            BigInteger parsed = new BigInteger(value);
-            if (parsed.signum() < 0) {
-                throw new NumberFormatException("negative");
-            }
-            return parsed;
-        } catch (RuntimeException exception) {
-            throw new IllegalArgumentException(label + " must be a non-negative exact decimal", exception);
         }
     }
 
@@ -984,9 +546,11 @@ public final class OnDemandFaultScenarioService {
 
     enum Boundary {
         FAULT_SCENARIO_STAGED,
+        REQUEST_STAGED,
         ACCOUNTING_STAGED,
         MANIFEST_STAGED,
         FAULT_SCENARIO_PROMOTED,
+        REQUEST_PROMOTED,
         ACCOUNTING_PROMOTED,
         MANIFEST_PROMOTED
     }
@@ -1074,13 +638,4 @@ public final class OnDemandFaultScenarioService {
         }
     }
 
-    private record ArtifactPath(ScenarioCatalogManifest.ArtifactMetadata metadata, Path path) {
-    }
-
-    private record ManifestBoundary(Path packageRoot, List<Path> artifactPaths) {
-    }
-
-    private record ValidatedPackage(ScenarioCatalogPackageReader.PackageContents contents,
-                                    ScenarioSpaceAccountingReport accounting) {
-    }
 }

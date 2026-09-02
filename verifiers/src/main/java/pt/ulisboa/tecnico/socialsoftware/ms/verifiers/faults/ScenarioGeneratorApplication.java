@@ -18,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnri
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentOrchestrator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentTestClassDiscoveryService;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputVariantNormalizer;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.PrerequisiteScenarioGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator;
@@ -26,7 +27,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.Ap
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ScenarioModelAdapterResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingCalculator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogJsonlWriter;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ExecutableArtifactWriter;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.StaticAnalysisArtifactWriter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
@@ -47,6 +49,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @SpringBootApplication
 @ConditionalOnProperty(name = "verifiers.application.enabled", havingValue = "true", matchIfMissing = true)
@@ -64,7 +67,6 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
     private final String workloadCatalogPath;
     private final String faultScenarioCatalogPath;
     private final String scenarioCatalogManifestPath;
-    private final String scenarioCatalogRejectedInputsPath;
     private final String scenarioSpaceAccountingPath;
     private final String scenarioCatalogGenerationStrategy;
     private final String scenarioCatalogWriteMode;
@@ -90,11 +92,10 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             @Value("${verifiers.application-base-dir}") String applicationBaseDir,
             @Value("${verifiers.output-root:output}") String outputRoot,
             @Value("${verifiers.scenario-catalog.enabled:false}") boolean scenarioCatalogEnabled,
-            @Value("${verifiers.scenario-catalog.workload-catalog-path:workload-catalog.jsonl}") String workloadCatalogPath,
-            @Value("${verifiers.scenario-catalog.fault-scenario-catalog-path:fault-scenario-catalog.jsonl}") String faultScenarioCatalogPath,
+            @Value("${verifiers.scenario-catalog.workload-catalog-path:workloads.jsonl}") String workloadCatalogPath,
+            @Value("${verifiers.scenario-catalog.fault-scenario-catalog-path:fault-scenarios.jsonl}") String faultScenarioCatalogPath,
             @Value("${verifiers.scenario-catalog.manifest-path:scenario-catalog-manifest.json}") String scenarioCatalogManifestPath,
-            @Value("${verifiers.scenario-catalog.rejected-inputs-path:workload-catalog-rejected-inputs.jsonl}") String scenarioCatalogRejectedInputsPath,
-            @Value("${verifiers.scenario-catalog.accounting-path:scenario-space-accounting.json}") String scenarioSpaceAccountingPath,
+            @Value("${verifiers.scenario-catalog.accounting-path:accounting.json}") String scenarioSpaceAccountingPath,
             @Value("${verifiers.scenario-catalog.generation-strategy:INTERACTION_PRUNED}") String scenarioCatalogGenerationStrategy,
             @Value("${verifiers.scenario-catalog.catalog-write-mode:WRITE_WORKLOADS}") String scenarioCatalogWriteMode,
             @Value("${verifiers.scenario-catalog.include-singles:true}") boolean scenarioCatalogIncludeSingles,
@@ -110,9 +111,6 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             @Value("${verifiers.dynamic-enrichment.enabled:false}") boolean dynamicEnrichmentEnabled,
             @Value("${verifiers.dynamic-enrichment.allow-partial-test-run:true}") boolean allowPartialTestRun,
             @Value("${verifiers.dynamic-enrichment.dynamic-evidence-subdir:dynamic-evidence}") String dynamicEvidenceSubdir,
-            @Value("${verifiers.dynamic-enrichment.sidecar-path:workload-dynamic-evidence.jsonl}") String sidecarPath,
-            @Value("${verifiers.dynamic-enrichment.sidecar-manifest-path:workload-dynamic-evidence-manifest.json}") String sidecarManifestPath,
-            @Value("${verifiers.dynamic-enrichment.join-report-path:dynamic-evidence-join-report.json}") String joinReportPath,
             @Value("${verifiers.dynamic-enrichment.test-source-root:src/test/groovy}") String testSourceRoot,
             @Value("${verifiers.dynamic-enrichment.include-test-dirs:}") List<String> includeTestDirs,
             @Value("${verifiers.dynamic-enrichment.exclude-test-dirs:}") List<String> excludeTestDirs,
@@ -128,7 +126,6 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         this.workloadCatalogPath = Objects.requireNonNull(workloadCatalogPath, "workloadCatalogPath cannot be null");
         this.faultScenarioCatalogPath = Objects.requireNonNull(faultScenarioCatalogPath, "faultScenarioCatalogPath cannot be null");
         this.scenarioCatalogManifestPath = Objects.requireNonNull(scenarioCatalogManifestPath, "scenarioCatalogManifestPath cannot be null");
-        this.scenarioCatalogRejectedInputsPath = Objects.requireNonNull(scenarioCatalogRejectedInputsPath, "scenarioCatalogRejectedInputsPath cannot be null");
         this.scenarioSpaceAccountingPath = Objects.requireNonNull(scenarioSpaceAccountingPath, "scenarioSpaceAccountingPath cannot be null");
         this.scenarioCatalogGenerationStrategy = Objects.requireNonNull(scenarioCatalogGenerationStrategy, "scenarioCatalogGenerationStrategy cannot be null");
         this.scenarioCatalogWriteMode = Objects.requireNonNull(scenarioCatalogWriteMode, "scenarioCatalogWriteMode cannot be null");
@@ -146,9 +143,6 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 dynamicEnrichmentEnabled,
                 allowPartialTestRun,
                 dynamicEvidenceSubdir,
-                sidecarPath,
-                sidecarManifestPath,
-                joinReportPath,
                 testSourceRoot,
                 includeTestDirs,
                 excludeTestDirs,
@@ -337,10 +331,38 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 scenarioCatalogDeterministicSeed
         );
 
+        // COUNT_ONLY is an analysis package, not an executable catalog with
+        // empty placeholders. Keep it independent from prerequisite setup and
+        // fault-vector generation; those remain catalog-writing concerns.
+        if (scenarioGeneratorConfig.catalogWriteMode() == ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY) {
+            if (dynamicEnrichmentConfig.enabled()) {
+                throw new IllegalStateException("Dynamic enrichment requires WRITE_WORKLOADS; COUNT_ONLY writes static facts only");
+            }
+            writeCountOnlyAnalysis(adapterResult, scenarioGeneratorConfig, generatedAt);
+            return null;
+        }
+
+        // Static artifacts retain every extracted input fact. Executable
+        // generation keeps the existing policy/source-mode/cap boundary and
+        // must not let facts rejected for the Saga catalog influence
+        // prerequisite template selection.
+        var normalizedGenerationInputs = InputVariantNormalizer.normalize(
+                adapterResult.inputVariants(), scenarioGeneratorConfig).inputs();
+        Set<String> eligibleInputIds = normalizedGenerationInputs.stream()
+                .map(pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant::deterministicId)
+                .collect(java.util.stream.Collectors.toSet());
+        // Keep the adapter identities used by SourceSetupPlanBinding. The
+        // generator owns canonicalization and remapping; this boundary only
+        // selects the raw inputs that its existing normalization accepted.
+        List<pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant> generationInputs =
+                adapterResult.inputVariants().stream()
+                        .filter(input -> eligibleInputIds.contains(
+                                InputVariantNormalizer.normalizeForArtifact(input).deterministicId()))
+                        .toList();
         PrerequisiteScenarioGenerator.Result prerequisiteScenarios = new PrerequisiteScenarioGenerator().generate(
                 applicationPath,
                 adapterResult.sagaDefinitions(),
-                adapterResult.inputVariants(),
+                generationInputs,
                 adapterResult.eventConsequenceDefinitions(),
                 scenarioGeneratorConfig);
         int totalCatalogCap = Math.max(0, scenarioGeneratorConfig.maxCatalogScenarios());
@@ -350,7 +372,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 scenarioGeneratorConfig, totalCatalogCap - reservedPrerequisiteCapacity);
         var generationResult = ScenarioGenerator.generate(
                 adapterResult.sagaDefinitions(),
-                adapterResult.inputVariants(),
+                generationInputs,
                 adapterResult.eventConsequenceDefinitions(),
                 adapterResult.sourceSetupPlanBindings(),
                 baseGenerationConfig);
@@ -389,8 +411,11 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         Path workloadOutputPath = resolveWorkloadCatalogPath();
         Path faultScenarioOutputPath = resolveFaultScenarioCatalogPath();
         Path manifestOutputPath = resolveScenarioCatalogManifestPath();
-        Path rejectedInputsOutputPath = resolveScenarioCatalogRejectedInputsPath();
         Path accountingOutputPath = resolveScenarioSpaceAccountingPath();
+        Path packageRoot = manifestOutputPath.toAbsolutePath().normalize().getParent();
+        Path packageWorkloadOutputPath = packageRoot.resolve(workloadOutputPath.getFileName());
+        Path packageFaultScenarioOutputPath = packageRoot.resolve(faultScenarioOutputPath.getFileName());
+        Path packageAccountingOutputPath = packageRoot.resolve(accountingOutputPath.getFileName());
         int workloadsWritten = exportResult.effectiveConfig().catalogWriteMode() == ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY
                 ? 0
                 : exportResult.workloadPlans().size();
@@ -400,26 +425,51 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 adapterResult.inputVariants(),
                 exportResult.effectiveConfig(),
                 workloadsWritten);
-        var manifest = new ScenarioCatalogJsonlWriter().write(
+        // Catalog-writing publishes the same current static roles as
+        // count-only, then adds reusable executable roles and an empty package
+        // request stream.
+        var manifest = new ExecutableArtifactWriter().write(
+                adapterResult,
+                applicationBaseDir,
                 eagerGenerationResult,
-                workloadOutputPath,
-                faultScenarioOutputPath,
                 manifestOutputPath,
-                rejectedInputsOutputPath,
-                accountingOutputPath,
-                accountingReport,
-                generatedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+                packageAccountingOutputPath,
+                packageRoot.resolve("sagas.jsonl"),
+                packageRoot.resolve("inputs.jsonl"),
+                packageRoot.resolve("interactions.jsonl"),
+                packageRoot.resolve("setups.jsonl"),
+                packageWorkloadOutputPath,
+                packageFaultScenarioOutputPath,
+                packageRoot.resolve("requests.jsonl"), generatedAt.toString());
 
         logger.info(
-                "Scenario package export wrote {} workloads to {}, {} fault scenarios to {}, rejected inputs {}, accounting {}, and manifest {}",
-                manifest.counts().getOrDefault("workloadsExported", "0"),
-                workloadOutputPath.toAbsolutePath().normalize(),
-                manifest.counts().getOrDefault("faultScenariosExported", "0"),
-                faultScenarioOutputPath.toAbsolutePath().normalize(),
-                rejectedInputsOutputPath.toAbsolutePath().normalize(),
-                accountingOutputPath.toAbsolutePath().normalize(),
+                "Scenario package export wrote {} workloads to {}, {} fault scenarios to {}, accounting {}, and manifest {}",
+                eagerGenerationResult.workloadPlans().size(),
+                packageWorkloadOutputPath.toAbsolutePath().normalize(),
+                eagerGenerationResult.faultScenarios().size(),
+                packageFaultScenarioOutputPath.toAbsolutePath().normalize(),
+                packageAccountingOutputPath.toAbsolutePath().normalize(),
                 manifestOutputPath.toAbsolutePath().normalize());
         return exportResult;
+    }
+
+    private void writeCountOnlyAnalysis(ScenarioModelAdapterResult adapterResult,
+                                        ScenarioGeneratorConfig config,
+                                        OffsetDateTime generatedAt) throws IOException {
+        Path manifestPath = resolveScenarioCatalogManifestPath();
+        Path packageDirectory = manifestPath.getParent();
+        new StaticAnalysisArtifactWriter().write(
+                adapterResult,
+                applicationBaseDir,
+                config,
+                manifestPath,
+                packageDirectory.resolve(StaticAnalysisArtifactWriter.DEFAULT_ACCOUNTING_FILE),
+                packageDirectory.resolve(StaticAnalysisArtifactWriter.DEFAULT_SAGA_FACT_FILE),
+                packageDirectory.resolve(StaticAnalysisArtifactWriter.DEFAULT_INPUT_FACT_FILE),
+                packageDirectory.resolve(StaticAnalysisArtifactWriter.DEFAULT_INTERACTION_FACT_FILE),
+                generatedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+        logger.info("Count-only package wrote accounting, Saga, input, and direct-interaction facts under {}",
+                packageDirectory.toAbsolutePath().normalize());
     }
 
     private void runDynamicEnrichmentIfEnabled(WorkloadGenerationResult workloadGenerationResult,
@@ -441,35 +491,48 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 requireRunOutputDirectory(),
                 testClassFqns,
                 workloadGenerationResult.workloadPlans(),
-                resolveWorkloadCatalogPath(),
+                resolveScenarioCatalogManifestPath(),
                 generatedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
     }
 
     private void validateDynamicEnrichmentOutputPaths() {
         resolveRunRelativePath(dynamicEnrichmentConfig.dynamicEvidenceSubdir(), "dynamic-evidence");
-        resolveRunRelativePath(dynamicEnrichmentConfig.sidecarPath(), "workload-dynamic-evidence.jsonl");
-        resolveRunRelativePath(dynamicEnrichmentConfig.sidecarManifestPath(), "workload-dynamic-evidence-manifest.json");
-        resolveRunRelativePath(dynamicEnrichmentConfig.joinReportPath(), "dynamic-evidence-join-report.json");
     }
 
     private Path resolveWorkloadCatalogPath() {
-        return resolveRunRelativePath(workloadCatalogPath, "workload-catalog.jsonl");
+        return resolveRunRelativePath(workloadCatalogPath, "workloads.jsonl");
     }
 
     private Path resolveFaultScenarioCatalogPath() {
-        return resolveRunRelativePath(faultScenarioCatalogPath, "fault-scenario-catalog.jsonl");
+        return resolveRunRelativePath(faultScenarioCatalogPath, "fault-scenarios.jsonl");
     }
 
     private Path resolveScenarioCatalogManifestPath() {
         return resolveRunRelativePath(scenarioCatalogManifestPath, "scenario-catalog-manifest.json");
     }
 
-    private Path resolveScenarioCatalogRejectedInputsPath() {
-        return resolveRunRelativePath(scenarioCatalogRejectedInputsPath, "workload-catalog-rejected-inputs.jsonl");
+    private Path resolveScenarioSpaceAccountingPath() {
+        return resolveRunRelativePath(scenarioSpaceAccountingPath, "accounting.json");
     }
 
-    private Path resolveScenarioSpaceAccountingPath() {
-        return resolveRunRelativePath(scenarioSpaceAccountingPath, "scenario-space-accounting.json");
+    private Path resolveScenarioCatalogSagaFactsPath() {
+        return resolveRunRelativePath("sagas.jsonl", "sagas.jsonl");
+    }
+
+    private Path resolveScenarioCatalogInputFactsPath() {
+        return resolveRunRelativePath("inputs.jsonl", "inputs.jsonl");
+    }
+
+    private Path resolveScenarioCatalogInteractionFactsPath() {
+        return resolveRunRelativePath("interactions.jsonl", "interactions.jsonl");
+    }
+
+    private Path resolveScenarioCatalogSetupPath() {
+        return resolveRunRelativePath("setups.jsonl", "setups.jsonl");
+    }
+
+    private Path resolveScenarioCatalogRequestPath() {
+        return resolveRunRelativePath("requests.jsonl", "requests.jsonl");
     }
 
     private Path resolveRunRelativePath(String configuredPath, String defaultFileName) {

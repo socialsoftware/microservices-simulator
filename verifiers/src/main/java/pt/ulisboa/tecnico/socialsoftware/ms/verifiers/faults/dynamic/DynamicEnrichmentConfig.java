@@ -7,9 +7,6 @@ public record DynamicEnrichmentConfig(
         boolean enabled,
         boolean allowPartialTestRun,
         String dynamicEvidenceSubdir,
-        String sidecarPath,
-        String sidecarManifestPath,
-        String joinReportPath,
         String testSourceRoot,
         List<String> includeTestDirs,
         List<String> excludeTestDirs,
@@ -20,9 +17,6 @@ public record DynamicEnrichmentConfig(
 
     public DynamicEnrichmentConfig {
         dynamicEvidenceSubdir = requireText(dynamicEvidenceSubdir, "dynamicEvidenceSubdir");
-        sidecarPath = requireText(sidecarPath, "sidecarPath");
-        sidecarManifestPath = requireText(sidecarManifestPath, "sidecarManifestPath");
-        joinReportPath = requireText(joinReportPath, "joinReportPath");
         testSourceRoot = requireText(testSourceRoot, "testSourceRoot");
         includeTestDirs = normalizeList(includeTestDirs);
         excludeTestDirs = normalizeList(excludeTestDirs);

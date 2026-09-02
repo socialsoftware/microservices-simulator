@@ -84,7 +84,7 @@ class RecoveryScheduleGeneratorSpec extends Specification {
         }
         result.faultSlotDiagnostics().findAll { it.state() == FaultSlotGenerationState.REALIZED }*.slotIndex() == [2, 4]
 
-        and: 'latest recovery drains simultaneously enabled queues by participant id while preserving each reverse queue'
+        and: 'deterministic recovery drains simultaneously enabled queues by participant id while preserving each reverse queue'
         labels(workload, priorityPrefix.faultScenarios()[1]).findAll { it.startsWith('C:') } == ['C:a2', 'C:a1', 'C:b1']
     }
 
@@ -306,13 +306,11 @@ class RecoveryScheduleGeneratorSpec extends Specification {
         def invalidPlan = thrown(IllegalArgumentException)
         invalidPlan.message.contains('MALFORMED_FAULT_SLOT')
 
-        when: 'the shared WorkloadPlan boundary rejects repeated runtime state keys before action generation'
+        when: 'exact occurrence identities permit repeated runtime step names'
         def repeatedPlan = RecoveryScheduleGeneratorSpec.workload([step('a', 'repeat'), step('a', 'repeat')])
-        RecoveryScheduleGenerator.generate(repeatedPlan, '00', 20)
+        def repeated = RecoveryScheduleGenerator.generate(repeatedPlan, '00', 20)
         then:
-        def repeatedRuntimeName = thrown(IllegalArgumentException)
-        repeatedRuntimeName.message.contains('DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME')
-        repeatedRuntimeName.message.contains('first occurrence forward-0, repeated occurrence forward-1')
+        repeated.faultScenarios().first().actions()*.occurrenceId() == ['forward-0', 'forward-1']
 
         when:
         RecoveryScheduleGenerator.generate(workload, '00', 0)

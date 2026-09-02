@@ -18,8 +18,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayCoordinator;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.export.EnrichedScenarioCatalogWriter;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.WorkloadDynamicEvidenceRecord;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogPackageReader;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.BaselineBindingRequirement;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationCheckpoint;
@@ -852,7 +850,7 @@ public final class ScenarioExecutor {
 
         List<EventReplayCoordinator.CapturedEvent> matching = capturedEventsByTrigger
                 .getOrDefault(consequence.triggerScheduledStepId(), List.of()).stream()
-                .filter(event -> Objects.equals(event.eventTypeFqn(), consequence.eventTypeFqn()))
+                .filter(event -> samePersistedType(event.eventTypeFqn(), consequence.eventTypeFqn()))
                 .toList();
         if (matching.isEmpty()) {
             ScenarioExecutionReport.ActionOutcome outcome = eventOutcome(action, plannedPosition, actualPosition,
@@ -871,7 +869,10 @@ public final class ScenarioExecutor {
         EventReplayCoordinator.SelectedEventScope selection = null;
         boolean handlerInvoked = false;
         try {
-            Class<?> handlingType = Class.forName(consequence.eventHandlingClassFqn());
+            Class<?> handlingType = runtimeContext.resolveEventHandlingType(
+                    consequence.eventHandlingClassFqn(), consequence.eventHandlingMethodName());
+            Class<?> handlerType = resolveRelatedType(
+                    consequence.eventHandlerClassFqn(), handlingType, runtimeContext);
             Object handlingBean = runtimeContext.bean(handlingType);
             Method method = handlingType.getMethod(consequence.eventHandlingMethodName());
             if (method.getParameterCount() != 0) {
@@ -879,7 +880,7 @@ public final class ScenarioExecutor {
                         "selected EventHandling method must have no arguments");
             }
             selection = EventReplayCoordinator.beginSelectedEvent(
-                    captured, consequence.eventTypeFqn(), consequence.eventHandlerClassFqn());
+                    captured, captured.eventTypeFqn(), handlerType.getName());
             handlerInvoked = true;
             method.invoke(handlingBean);
             selection.verifyCompleted();
@@ -915,7 +916,32 @@ public final class ScenarioExecutor {
             return false;
         }
         return capturedEventsByTrigger.getOrDefault(triggerScheduledStepId, List.of()).stream()
-                .anyMatch(captured -> selectedEventTypes.contains(captured.eventTypeFqn()));
+                .anyMatch(captured -> selectedEventTypes.stream()
+                        .anyMatch(selected -> samePersistedType(captured.eventTypeFqn(), selected)));
+    }
+
+    private boolean samePersistedType(String runtimeFqn, String persistedName) {
+        if (Objects.equals(runtimeFqn, persistedName)) return true;
+        if (runtimeFqn == null || persistedName == null || persistedName.indexOf('.') >= 0) return false;
+        int separator = Math.max(runtimeFqn.lastIndexOf('.'), runtimeFqn.lastIndexOf('$'));
+        return runtimeFqn.substring(separator + 1).equals(persistedName);
+    }
+
+    private Class<?> resolveRelatedType(String persistedName, Class<?> handlingType,
+                                        ScenarioRuntimeContext runtimeContext) throws ClassNotFoundException {
+        try {
+            return runtimeContext.resolveType(persistedName);
+        } catch (ClassNotFoundException missingSimpleName) {
+            Class<?> enclosing = handlingType.getEnclosingClass();
+            if (enclosing != null) {
+                for (Class<?> candidate : enclosing.getDeclaredClasses()) {
+                    if (candidate.getSimpleName().equals(persistedName)) return candidate;
+                }
+            }
+            String packageName = handlingType.getPackageName();
+            if (!packageName.isBlank()) return Class.forName(packageName + "." + persistedName);
+            throw missingSimpleName;
+        }
     }
 
     private ScenarioExecutionReport.EventRuntimeEvidence eventEvidence(
@@ -1657,16 +1683,17 @@ public final class ScenarioExecutor {
                                           String reportKind) {
         rejectPackageOutputAlias(packagePath, outputPath, List.of(
                 packageContents.workloadCatalogPath(), packageContents.faultScenarioCatalogPath(),
-                packageContents.accountingPath(), packageContents.rejectedInputsPath()), reportKind);
+                packageContents.accountingPath()), reportKind);
     }
 
     private void rejectPackageOutputAlias(Path packagePath,
                                           Path outputPath,
                                           ScenarioCatalogPackageReader.SelectedPackageContents packageContents,
                                           String reportKind) {
-        rejectPackageOutputAlias(packagePath, outputPath, List.of(
+        List<Path> linkedArtifacts = packageContents == null ? List.of() : List.of(
                 packageContents.workloadCatalogPath(), packageContents.faultScenarioCatalogPath(),
-                packageContents.accountingPath(), packageContents.rejectedInputsPath()), reportKind);
+                packageContents.accountingPath());
+        rejectPackageOutputAlias(packagePath, outputPath, linkedArtifacts, reportKind);
     }
 
     private void rejectPackageOutputAlias(Path packagePath,
@@ -1675,6 +1702,10 @@ public final class ScenarioExecutor {
                                           String reportKind) {
         if (outputPath == null) return;
         Path output = outputPath.toAbsolutePath().normalize();
+        Path packageRoot = manifestPath(packagePath).toAbsolutePath().normalize().getParent();
+        if (packageRoot != null && output.startsWith(packageRoot)) {
+            throw new IllegalArgumentException(reportKind + " output path must remain outside scenario package " + packageRoot);
+        }
         List<Path> packageInputs = new ArrayList<>();
         packageInputs.add(manifestPath(packagePath).toAbsolutePath().normalize());
         packageInputs.addAll(linkedArtifacts);
@@ -1684,10 +1715,6 @@ public final class ScenarioExecutor {
                 throw new IllegalArgumentException(reportKind + " output path must not alias scenario package input "
                         + normalizedInput);
             }
-        }
-        if (isDynamicEnrichmentArtifact(output)) {
-            throw new IllegalArgumentException(reportKind + " output path must not overwrite an existing "
-                    + "recognized v3 dynamic-enrichment artifact " + output);
         }
     }
 
@@ -1720,20 +1747,6 @@ public final class ScenarioExecutor {
             return identity.normalize();
         } catch (IOException failure) {
             throw new IllegalArgumentException("Cannot safely resolve report output path " + absolute, failure);
-        }
-    }
-
-    private boolean isDynamicEnrichmentArtifact(Path output) {
-        if (!Files.isRegularFile(output)) return false;
-        try {
-            JsonNode artifact = mapper.readTree(output.toFile());
-            if (artifact == null || !artifact.isObject()) return false;
-            String schema = artifact.path("schemaVersion").asText(artifact.path("schema").asText(null));
-            return WorkloadDynamicEvidenceRecord.SCHEMA_VERSION.equals(schema)
-                    || EnrichedScenarioCatalogWriter.MANIFEST_SCHEMA.equals(schema)
-                    || EnrichedScenarioCatalogWriter.JOIN_REPORT_SCHEMA.equals(schema);
-        } catch (IOException ignored) {
-            return false;
         }
     }
 

@@ -20,7 +20,7 @@ class ScenarioSetupPreflightProcessOrchestratorSpec extends Specification {
     @TempDir
     Path temporaryDirectory
 
-    def 'source candidates use separate real processes while legacy candidates retain one batch and fragments are cleaned'() {
+    def 'source candidates use separate real processes while provider-backed candidates retain one batch and fragments are cleaned'() {
         given:
         def commands = []
         def processes = []
@@ -41,7 +41,7 @@ class ScenarioSetupPreflightProcessOrchestratorSpec extends Specification {
             process
         } as ScenarioSetupPreflightProcessOrchestrator.WorkerProcessStarter
         def plan = new ScenarioExecutor.PreflightPlan(
-                ['legacy-a', 'legacy-b', 'source-a', 'source-b'] as Set<String>,
+                ['provider-a', 'provider-b', 'source-a', 'source-b'] as Set<String>,
                 ['source-a', 'source-b'] as Set<String>)
 
         when:
@@ -52,7 +52,7 @@ class ScenarioSetupPreflightProcessOrchestratorSpec extends Specification {
         processes.size() == 3
         processes.every { !it.isAlive() }
         commands.collect { selectedIds(it) } == [
-                ['legacy-a', 'legacy-b'], ['source-a'], ['source-b']
+                ['provider-a', 'provider-b'], ['source-a'], ['source-b']
         ]
         commands.every { Path.of(argument(it, '--package-path')).isAbsolute() }
         commands.every { Path.of(argument(it, '--output-path')).isAbsolute() }
@@ -60,7 +60,7 @@ class ScenarioSetupPreflightProcessOrchestratorSpec extends Specification {
         def aggregate = MAPPER.readValue(output.toFile(), ScenarioSetupPreflightReport)
         aggregate.terminalStatus() == 'SUCCESS'
         aggregate.packageManifestPath() == temporaryDirectory.resolve('manifest.json').toString()
-        aggregate.workloads()*.workloadPlanId() == ['legacy-a', 'legacy-b', 'source-a', 'source-b']
+        aggregate.workloads()*.workloadPlanId() == ['provider-a', 'provider-b', 'source-a', 'source-b']
         noWorkerFragments(output.parent)
     }
 

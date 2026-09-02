@@ -212,5 +212,35 @@ public final class ScenarioExecutorCli {
         public <T> List<T> beans(Class<T> type) {
             return List.copyOf(context.getBeansOfType(type).values());
         }
+
+        @Override
+        public Class<?> resolveType(String persistedName) throws ClassNotFoundException {
+            try {
+                return Class.forName(persistedName);
+            } catch (ClassNotFoundException missingFqn) {
+                List<Class<?>> matches = java.util.Arrays.stream(context.getBeanDefinitionNames())
+                        .map(context::getType).filter(java.util.Objects::nonNull)
+                        .filter(type -> type.getSimpleName().equals(persistedName)).distinct().toList();
+                if (matches.size() == 1) return matches.getFirst();
+                if (matches.size() > 1) throw new IllegalArgumentException(
+                        "ambiguous persisted runtime type " + persistedName + ": " + matches);
+                throw missingFqn;
+            }
+        }
+
+        @Override
+        public Class<?> resolveEventHandlingType(String persistedHandler, String processingMethod)
+                throws ClassNotFoundException {
+            List<Class<?>> matches = java.util.Arrays.stream(context.getBeanDefinitionNames())
+                    .map(context::getType).filter(java.util.Objects::nonNull).distinct()
+                    .filter(type -> java.util.Arrays.stream(type.getMethods())
+                            .anyMatch(method -> method.getName().equals(processingMethod)
+                                    && method.getParameterCount() == 0))
+                    .toList();
+            if (matches.size() == 1) return matches.getFirst();
+            if (matches.size() > 1) throw new IllegalArgumentException(
+                    "ambiguous event processing method " + processingMethod + ": " + matches);
+            return resolveType(persistedHandler);
+        }
     }
 }

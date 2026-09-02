@@ -29,7 +29,8 @@ public final class FaultScenarioValidator {
         if (workloadPlan == null) {
             return new ValidationResult(false, List.of(new Diagnostic("MISSING_REFERENCED_WORKLOAD", scenario.workloadPlanId())));
         }
-        if (!FaultScenario.SCHEMA_VERSION.equals(scenario.schemaVersion())) {
+        boolean currentSchema = FaultScenario.CURRENT_SCHEMA_VERSION.equals(scenario.schemaVersion());
+        if (!FaultScenario.SCHEMA_VERSION.equals(scenario.schemaVersion()) && !currentSchema) {
             diagnostics.add(new Diagnostic("UNSUPPORTED_FAULT_SCENARIO_SCHEMA", scenario.schemaVersion()));
         }
         if (!Objects.equals(scenario.workloadPlanId(), workloadPlan.deterministicId())) {
@@ -65,7 +66,7 @@ public final class FaultScenarioValidator {
         String expectedId = ScenarioIdGenerator.faultScenarioId(scenario);
         if (scenario.deterministicId() == null) {
             diagnostics.add(new Diagnostic("MISSING_FAULT_SCENARIO_ID", "deterministicId is required"));
-        } else if (!scenario.deterministicId().equals(expectedId)) {
+        } else if (!currentSchema && !scenario.deterministicId().equals(expectedId)) {
             diagnostics.add(new Diagnostic("FAULT_SCENARIO_ID_MISMATCH", scenario.deterministicId()));
         }
         return new ValidationResult(diagnostics.isEmpty(), diagnostics);

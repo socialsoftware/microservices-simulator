@@ -10,6 +10,8 @@ public record FaultScenario(
         List<FaultScenarioAction> actions) {
 
     public static final String SCHEMA_VERSION = "microservices-simulator.fault-scenario.v4";
+    /** Compact current-package projection schema. */
+    public static final String CURRENT_SCHEMA_VERSION = "microservices-simulator.fault-scenario.current";
 
     public FaultScenario {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;

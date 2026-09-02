@@ -48,6 +48,17 @@ public final class ScenarioExecutorReadinessEvaluator {
         return new Readiness(blockers.isEmpty(), recipe.executorReady(), blockers, runtimeOwnedResolutions);
     }
 
+    /** Evaluates one top-level argument with the normal materialization rules. */
+    public Readiness evaluate(InputRecipeArgument argument) {
+        if (argument == null) {
+            return new Readiness(false, false, List.of("MISSING_RECIPE"), List.of());
+        }
+        List<String> blockers = new ArrayList<>();
+        List<String> runtimeOwnedResolutions = new ArrayList<>();
+        evaluateArgument(argument, blockers, runtimeOwnedResolutions);
+        return new Readiness(blockers.isEmpty(), argument.executorReady(), blockers, runtimeOwnedResolutions);
+    }
+
     private void evaluateArgument(InputRecipeArgument argument, List<String> blockers, List<String> runtimeOwnedResolutions) {
         String type = argument.expectedTypeFqn();
         if (ScenarioExecutorMaterializationPolicy.isRuntimeOwned(type)) {

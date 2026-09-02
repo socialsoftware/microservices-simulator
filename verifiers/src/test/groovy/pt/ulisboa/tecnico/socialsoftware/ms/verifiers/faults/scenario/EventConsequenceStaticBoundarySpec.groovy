@@ -64,7 +64,7 @@ class EventConsequenceStaticBoundarySpec extends Specification {
         labels(control, controlScenario) == ['F:a1', 'F:a2', 'F:b1', 'E:event']
     }
 
-    def 'v4 workload validation rejects embedded v1 input recipes'() {
+    def 'current internal workload validation rejects embedded v1 input recipes'() {
         given:
         def valid = workload(2)
         def original = valid.acceptedInputs().first()

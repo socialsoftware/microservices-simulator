@@ -34,14 +34,11 @@ public final class WorkloadPlanValidator {
         if (plan == null) {
             return new ValidationResult(false, List.of(new Diagnostic("MISSING_WORKLOAD_PLAN", "workload plan is required")));
         }
-        boolean latestSchema = WorkloadPlan.SCHEMA_VERSION.equals(plan.schemaVersion());
-        boolean legacyV4Schema = WorkloadPlan.LEGACY_V4_SCHEMA_VERSION.equals(plan.schemaVersion());
-        if (!latestSchema && !legacyV4Schema) {
+        boolean generatorSchema = WorkloadPlan.SCHEMA_VERSION.equals(plan.schemaVersion());
+        boolean currentSchema = WorkloadPlan.CURRENT_SCHEMA_VERSION.equals(plan.schemaVersion());
+        if (!generatorSchema && !currentSchema) {
             diagnostics.add(new Diagnostic("UNSUPPORTED_WORKLOAD_SCHEMA",
-                    "expected " + WorkloadPlan.SCHEMA_VERSION + " or explicit legacy v4 but found " + plan.schemaVersion()));
-        }
-        if (legacyV4Schema && plan.setupPlan() != null) {
-            diagnostics.add(new Diagnostic("V4_SETUP_NOT_SUPPORTED", "legacy v4 workloads cannot contain setupPlan"));
+                    "expected current workload schema but found " + plan.schemaVersion()));
         }
         if (plan.executionShape() != WorkloadExecutionShape.SAGA_LOCAL) {
             diagnostics.add(new Diagnostic("UNSUPPORTED_EXECUTION_SHAPE", "only SAGA_LOCAL workloads are supported"));
@@ -80,8 +77,9 @@ public final class WorkloadPlanValidator {
                     "a workload cannot use both prerequisiteBaseline and setupPlan"));
         }
         Map<String, ScheduledStep> stepsById = indexForwardSchedule(plan.forwardSchedule(), participantsById, diagnostics);
-        Map<String, EventConsequence> consequencesById = validateEventConsequences(
-                plan.eventConsequences(), stepsById, participantsById, diagnostics);
+        Map<String, EventConsequence> consequencesById = currentSchema
+                ? validateCurrentEventConsequences(plan.eventConsequences(), stepsById, diagnostics)
+                : validateEventConsequences(plan.eventConsequences(), stepsById, participantsById, diagnostics);
         validateNormalSchedule(plan.normalSchedule(), stepsById, consequencesById, diagnostics);
         validateConflicts(plan.conflictEvidence(), stepsById, diagnostics);
         validateFaultSlots(plan.faultSlots(), plan.forwardSchedule(), stepsById, diagnostics);
@@ -90,7 +88,7 @@ public final class WorkloadPlanValidator {
         String expectedId = ScenarioIdGenerator.workloadPlanId(plan);
         if (plan.deterministicId() == null) {
             diagnostics.add(new Diagnostic("MISSING_WORKLOAD_ID", "workload deterministicId is required"));
-        } else if (!plan.deterministicId().equals(expectedId)) {
+        } else if (!currentSchema && !plan.deterministicId().equals(expectedId)) {
             diagnostics.add(new Diagnostic("WORKLOAD_ID_MISMATCH",
                     "workload deterministicId does not match its semantic content"));
         }
@@ -195,7 +193,6 @@ public final class WorkloadPlanValidator {
                                                              Map<String, SagaInstance> participantsById,
                                                              List<Diagnostic> diagnostics) {
         Map<String, ScheduledStep> byId = new LinkedHashMap<>();
-        Map<ParticipantRuntimeStepKey, ScheduledStep> firstRuntimeStepOccurrences = new LinkedHashMap<>();
         for (int index = 0; index < schedule.size(); index++) {
             ScheduledStep step = schedule.get(index);
             if (step == null || step.deterministicId() == null) {
@@ -219,18 +216,6 @@ public final class WorkloadPlanValidator {
             if (!validRuntimeMapping) {
                 diagnostics.add(new Diagnostic("INVALID_RUNTIME_STEP_MAPPING",
                         "forward step " + step.deterministicId() + " has invalid runtime step name mapping"));
-            }
-            if (participantsById.containsKey(step.sagaInstanceId()) && validRuntimeMapping) {
-                ParticipantRuntimeStepKey key = new ParticipantRuntimeStepKey(
-                        step.sagaInstanceId(), step.runtimeStepName());
-                ScheduledStep firstOccurrence = firstRuntimeStepOccurrences.putIfAbsent(key, step);
-                if (firstOccurrence != null) {
-                    diagnostics.add(new Diagnostic("DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME",
-                            "participant " + step.sagaInstanceId() + " repeats runtime step name "
-                                    + step.runtimeStepName() + ": first occurrence "
-                                    + firstOccurrence.deterministicId() + ", repeated occurrence "
-                                    + step.deterministicId()));
-                }
             }
         }
         return byId;
@@ -297,6 +282,26 @@ public final class WorkloadPlanValidator {
             }
             if (!Objects.equals(expectedId, consequence.deterministicId())) {
                 diagnostics.add(new Diagnostic("EVENT_CONSEQUENCE_ID_MISMATCH", consequence.deterministicId()));
+            }
+        }
+        return byId;
+    }
+
+    private Map<String, EventConsequence> validateCurrentEventConsequences(List<EventConsequence> consequences,
+                                                                             Map<String, ScheduledStep> stepsById,
+                                                                             List<Diagnostic> diagnostics) {
+        Map<String, EventConsequence> byId = new LinkedHashMap<>();
+        for (EventConsequence consequence : consequences) {
+            if (consequence == null || consequence.deterministicId() == null
+                    || byId.putIfAbsent(consequence.deterministicId(), consequence) != null) {
+                diagnostics.add(new Diagnostic("DUPLICATE_OR_MISSING_EVENT_CONSEQUENCE_ID",
+                        consequence == null ? "null" : consequence.deterministicId()));
+                continue;
+            }
+            if (!stepsById.containsKey(consequence.triggerScheduledStepId())
+                    || consequence.eventTypeFqn() == null || consequence.emissionSite() == null
+                    || consequence.emissionSite().eventTypeFqn() == null) {
+                diagnostics.add(new Diagnostic("MALFORMED_CURRENT_EVENT_CONSEQUENCE", consequence.deterministicId()));
             }
         }
         return byId;
@@ -457,9 +462,6 @@ public final class WorkloadPlanValidator {
                 previousSourceOrder = source.scheduleOrder();
             }
         }
-    }
-
-    private record ParticipantRuntimeStepKey(String sagaInstanceId, String runtimeStepName) {
     }
 
     public record ValidationResult(boolean valid, List<Diagnostic> diagnostics) {

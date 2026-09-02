@@ -40,7 +40,7 @@ Interaction pruning remains separate. `INTERACTION_PRUNED` and `BRUTE_FORCE` sti
 ## Revisit when
 
 - stronger aggregate-instance binding materially changes the conflict-anchor set;
-- runtime evidence needs to influence schedule identity rather than remain a sidecar;
+- runtime evidence needs to influence schedule identity rather than remain an optional explanatory package role;
 - evaluation shows that relevant harmful orderings are lost by the static anchor model.
 
 Current behavior and limits are documented in [`../current-state.md#segment-compressed-scheduling`](../current-state.md#segment-compressed-scheduling).

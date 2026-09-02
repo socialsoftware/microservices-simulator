@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-08-28
+Last updated: 2026-09-02
 
 This is the canonical handbook for verifier and fault-analysis scenario work. It owns the current conceptual model, terminology, supported operations, latest representative evidence, reproduction commands, and limitations. [`roadmap.md`](roadmap.md) owns future direction. [`decisions/`](decisions/index.md) explains the few design choices whose rationale is not obvious from current behavior.
 
@@ -28,19 +28,17 @@ The verifier does **not** prove that an application is correct. It currently ans
 5. Did that attempt trigger an observed aggregate-invariant rejection?
 6. For the bounded Quizzes RemoveTournament–AddParticipant benchmark, did final state satisfy its explicit broken-reference rule?
 
-The current high-level Quizzes result is:
+The fresh final-code Quizzes qualification reports:
 
 ```text
-discovered Sagas:                 68
-Sagas with accepted inputs:       36
-Sagas without accepted inputs:    32
-accepted inputs / WorkloadPlans:  732
-static setup candidates:          82
-runtime setup-ready:              82 / 82
-FaultScenarios for those plans:   164
+discovered Sagas:                    68
+Sagas with / without accepted input: 36 / 32
+accepted / rejected inputs:          794 / 90
+materializable / blocked inputs:     91 / 703
+strict connected Saga sets (2 / 3):  140 / 1299
 ```
 
-The `82/82` result proves exact persisted argument materialization and Saga startup for those candidates in one Quizzes `test,sagas,local` runtime. It does not prove that every all-zero or faulty execution succeeds. [The exact command and report are below](#quizzes-setup-preflight-8282).
+A separate bounded source-derived package contains one reusable 12-action setup, one RemoveTournament/AddParticipant WorkloadPlan, and 14 FaultScenarios after one persisted `10100` request. Its Docker preflight is `SETUP_READY`; replay of that requested scenario completed `PARTIAL_COMPENSATED / EXACT`. These are bounded qualification facts, not generic execution coverage.
 
 ## Reading order
 
@@ -48,8 +46,8 @@ Use this page by question:
 
 - [What the main terms mean](#the-essential-terms)
 - [What inputs are analyzed](#inputs-and-static-extraction)
-- [What the five v5 files contain](#the-v5-package)
-- [What the accounting metrics mean](#how-to-read-scenario-space-accounting)
+- [What the current package contains](#the-current-package)
+- [What the accounting metrics mean](#how-to-read-accounting)
 - [What dynamic enrichment contributes](#optional-dynamic-evidence)
 - [How setup preflight and execution differ](#scenarioexecutor)
 - [What ImpactV1 measures](#impactv1)
@@ -71,7 +69,7 @@ An accepted input passed source-mode and configured input-policy filtering. Acce
 
 A **static setup candidate** is a WorkloadPlan whose accepted inputs pass the current deterministic input-readiness checks and whose structure is admissible to the Saga/local executor.
 
-The manifest stores this as `workloadMaterializability[].materializable=true`. Read `materializable` as **setup candidate**, not runtime proof. Eager all-zero and single-point FaultScenario generation uses this gate.
+Current input facts, setup records, WorkloadPlans, and accounting preserve the materializability decision and blockers. Read `materializable` as **setup candidate**, not runtime proof. Eager all-zero and single-point FaultScenario generation uses this gate.
 
 ### Runtime setup-ready
 
@@ -81,30 +79,20 @@ Preflight deliberately runs no target forward, fault, compensation, or commit ac
 
 ### SetupPlan
 
-A **SetupPlan** is the latest WorkloadPlan's optional, validated sequence of source-derived application-facade calls that reconstructs ordinary test setup before target execution. Actions run once in source order through an application-owned closed dispatch map. Non-void results remain attempt-local; later setup actions and participant arguments may reference only earlier results or approved properties. Runtime IDs and result values never enter package identity. Setup is outside target fault injection and measured impact.
+A **SetupPlan** is a reusable preparation record referenced by WorkloadPlans. A source-derived setup stores validated application-facade calls in source order and binds participant arguments to earlier setup results or approved properties. A provider-backed setup stores the provider identity and typed binding requirements. Setup actions run outside target fault injection and measured impact; attempt-local runtime ids and values never enter package identity.
 
 ### WorkloadPlan
 
-A **WorkloadPlan** is reusable normal-execution structure. It contains:
+A **WorkloadPlan** references participant input facts, an optional reusable setup, direct interactions, and one ordered schedule. Participants and schedule occurrences use short plan-local ids. Step occurrences reference exact Saga-local step ids such as `getUserStep#0`; event occurrences reference a Saga-local route and triggering step occurrence. Fault slots live on faultable scheduled steps.
 
-- one or more Saga participants and their accepted inputs;
-- one deterministic global forward schedule;
-- one dense normal-action schedule containing forward actions and any event consequences;
-- persisted event-consequence definitions and their selected producer/consumer routes;
-- optional prerequisite-provider identity and typed baseline-binding requirements, or one validated source-derived ordered SetupPlan;
-- conflict evidence;
-- ordered forward fault slots;
-- compensation checkpoints and evidence;
-- stable occurrence and plan identities.
-
-It does not contain an assigned fault vector or one chosen recovery ordering. `forwardSchedule` remains the only source of fault slots, vector bits, and compensation checkpoints.
+It does not own an assigned vector or a recovery order. Those belong to FaultScenario records.
 
 ### FaultScenario
 
 A **FaultScenario** is one reproducible experiment. It references one WorkloadPlan and adds:
 
 - one assigned binary vector aligned with the WorkloadPlan fault slots;
-- one complete ordered action sequence containing `FORWARD`, `EVENT_CONSEQUENCE`, and, when applicable, `COMPENSATION` actions;
+- one complete ordered action sequence whose one-key `step`, `event`, and `compensate` references point into the WorkloadPlan schedule;
 - a deterministic identity derived from the workload, vector, and action order.
 
 The executor selects a persisted FaultScenario by id. It does not accept an ad hoc runtime vector overlay.
@@ -136,7 +124,7 @@ It counts structured `INVARIANT_VIOLATION` events emitted when the existing Saga
 
 A **benchmark observation** is an application-side evaluation record joined to one persisted package, FaultScenario, execution attempt, and ImpactV1 report. The current Quizzes RemoveTournament–AddParticipant benchmark applies one bounded final-state predicate: an active Tournament still referring to the observed deleted Quiz is `HARMFUL_FOR_RULE`. A valid observation additionally requires the latest raw persisted Tournament Saga-state column to decode through `SagaStateConverter` as exact `GenericSagaState.NOT_IN_SAGA`; SQL null, missing, malformed, wrong-class, or different-state evidence is `NOT_EVALUATED`. `NO_BROKEN_REFERENCE` means only that the predicate is false after this proof succeeds; it is not a global safety claim.
 
-This observation is application-side test/evaluation evidence. It does not change ImpactV1, production Quizzes behavior, or measured final state. The latest automatic benchmark uses package v5 source-derived setup; the retained historical benchmark continues to use its valid v4 prerequisite provider.
+This observation is application-side test/evaluation evidence. It does not change ImpactV1, production Quizzes behavior, or measured final state. The current automatic benchmark uses source-derived setup; older versioned packages remain historical evidence only and are not accepted by the current reader.
 
 ## Inputs and static extraction
 
@@ -148,7 +136,7 @@ Static generation consumes:
 - Groovy/Spock tests and fixtures;
 - verifier generation configuration such as source policy, schedule strategy, caps, and seed.
 
-Optional dynamic enrichment additionally runs selected application tests and consumes simulator runtime evidence. ScenarioExecutor additionally consumes a complete latest v5 or explicit valid v4 package, target application classpath/Spring context, and one persisted FaultScenario id or the preflight mode.
+Optional dynamic enrichment additionally runs selected application tests and consumes simulator runtime evidence. ScenarioExecutor consumes one complete current package, the target application classpath/Spring context, and either one persisted FaultScenario id or preflight mode.
 
 The main targets are:
 
@@ -174,6 +162,8 @@ An **event consequence** is the deterministic atomic normal action joining one s
 
 Domain services are identified structurally through command-handler dispatch targets rather than package or class-name conventions. This prevents coordination facades from being treated as domain state services. The rationale is retained in [`decisions/2026-04-06-domain-service-vs-coordination-facade.md`](decisions/2026-04-06-domain-service-vs-coordination-facade.md).
 
+Current aggregate-key inference does not resolve the semantic aggregate-id parameter from the command declaration. At each `new ...Command(...)` call site, `WorkflowFunctionalityVisitor` assumes the zero-based argument at index `2`—the third argument—is the target aggregate key. A literal in that position is recorded as exact key text, a directly visible method call as symbolic key text, and a plain variable has no key text and therefore remains type-only for conflict analysis. The source-derived setup path can separately trace a plain variable in that same position back to one Saga constructor argument and then to a test producer, but that useful trace still inherits the third-argument assumption. Commands whose key is elsewhere, create commands with no existing target id, or commands whose third argument identifies another object can consequently be missed or associated with the wrong source value; dynamic enrichment does not repair this static selection rule.
+
 ### Test-to-input flow
 
 Quizzes tests often call a functionality facade rather than constructing a Saga directly. The verifier combines Java creation-site analysis with Groovy tracing:
@@ -195,7 +185,7 @@ A helper-created fixture can retain helper provenance while being owned by the f
 
 ### Structured input recipes
 
-Accepted inputs embed `microservices-simulator.input-recipe.v2` under `WorkloadPlan.acceptedInputs[].inputRecipe`. Recipes describe argument construction as nodes such as:
+Each input fact owns its compact constructor-argument recipes. WorkloadPlans reference input ids instead of embedding input records. Recipe values include:
 
 - typed literals and collections;
 - constructors and ordered setter/property assignments;
@@ -226,25 +216,35 @@ MIXED   -> rejected diagnostically
 UNKNOWN -> accepted with warning
 ```
 
-Rejected inputs remain in `workload-catalog-rejected-inputs.jsonl` with provenance, source-mode evidence, recipe, warnings, and rejection reason. TCC execution remains out of scope.
+Rejected inputs remain in `inputs.jsonl` with `accepted=false`, their source and recipe when available, and the applicable rejection reason. TCC execution remains out of scope.
 
-## The v5 package
+## The current package
 
-V5 is the current package contract. It adds an optional validated `SetupPlan` to WorkloadPlan identity while retaining explicit reading and execution of valid v4 prerequisite-provider packages. V3 records are rejected rather than upgraded in place; older `ScenarioPlan` and `scenario-catalog.jsonl` artifacts are also unsupported.
+`scenario-catalog-manifest.json` is the only entry point. It contains integer `formatVersion: 1` and a `files` object keyed by role; each role supplies only a relative path and SHA-256 hash. Ordinary readers accept this current contract only. Package records do not repeat schema or format versions.
 
-A normal generation run writes exactly five contract files:
+Count-only packages contain exactly these semantic roles:
 
-| File | Purpose | Main consumer |
+| Role | File | Ownership |
 |---|---|---|
-| `scenario-catalog-manifest.json` | Package entry point: paths, schemas, hashes, configuration, counts, setup candidates, and recovery cap | Package readers, preflight, executor, on-demand writer |
-| `workload-catalog.jsonl` | Deterministic latest `microservices-simulator.workload-plan.v5` records, or explicit valid v4 records | Dynamic sidecars, FaultScenario generation, executor |
-| `fault-scenario-catalog.jsonl` | Deterministic `microservices-simulator.fault-scenario.v4` records | Executor and on-demand vector workflow |
-| `scenario-space-accounting.json` | `microservices-simulator.scenario-space-accounting.v4` workload-space, setup-candidate, vector, recovery-schedule, and event-consequence accounting | Thesis evaluation and on-demand accounting updates |
-| `workload-catalog-rejected-inputs.jsonl` | Inputs excluded by source mode or policy, with diagnostics | Input-coverage debugging |
+| `accounting` | `accounting.json` | Configuration and aggregate numerical results |
+| `sagas` | `sagas.jsonl` | One record per discovered Saga, including Saga-local steps and routes |
+| `inputs` | `inputs.jsonl` | One record per extracted input, accepted or rejected |
+| `interactions` | `interactions.jsonl` | One direct two-access interaction per record |
 
-The latest manifest uses `microservices-simulator.scenario-catalog-manifest.v5`; input recipes use v2 and SetupPlans use `microservices-simulator.setup-plan.v1`. `analysis-report.html` is no longer produced. It was a pre-v3 static trace browser rendered before WorkloadPlan/FaultScenario generation and had no current package, setup, execution, or impact content.
+Catalog-writing adds:
 
-The manifest is the package entry point and checksum boundary. Named execution traverses and validates every linked record while retaining only the selected workload/scenario; each linked artifact is opened once, and SHA-256 is computed over the exact stream consumed by strict UTF-8 parsing through EOF. Preflight, execution, impact, dynamic sidecars, and logs are outside the five-file semantic package and must not change its bytes.
+| Role | File | Ownership |
+|---|---|---|
+| `setups` | `setups.jsonl` | Reusable source-derived or provider-backed preparation |
+| `workloads` | `workloads.jsonl` | Participant input references and one plan-local schedule |
+| `faultScenarios` | `fault-scenarios.jsonl` | Vector plus complete action references for one WorkloadPlan |
+| `requests` | `requests.jsonl` | Successful on-demand workload/vector/effective-cap requests |
+
+Optional dynamic enrichment adds `dynamicObservations` in `dynamic-observations.jsonl` and `dynamicAttributionLinks` in `dynamic-attribution-links.jsonl`. Absent optional evidence is omitted; there are no empty dynamic placeholders.
+
+The reader validates the manifest directory boundary, every declared hash, unique ids, exact kind-specific record shapes, and all Saga, step, route, input, interaction, setup, workload, occurrence, scenario, observation, and attribution references before returning content. Setup preflight, execution, ImpactV1, Maven/test logs, runtime input maps, and normalization diagnostics remain outside the package.
+
+Historical v3/v4/v5 manifests and their embedded record shapes are documentation evidence only. Regenerate a current package for current preflight or execution; there is no compatibility or migration layer.
 
 ### Determinism and bounds
 
@@ -257,7 +257,6 @@ Implemented generation choices include:
 - `SERIAL`, bounded order-preserving, and `SEGMENT_COMPRESSED` forward scheduling;
 - eager all-zero and single-point vectors for static setup candidates;
 - guarded on-demand persistence for arbitrary valid multi-fault vectors;
-- bounded recovery schedule materialization with exact uncapped counts for computed vectors.
 
 ### Compensation and recovery
 
@@ -290,16 +289,16 @@ java -cp <verifiers-classes-and-dependencies> \
   --manifest-path <run-dir>/scenario-catalog-manifest.json \
   --workload-plan-id <workload-plan-id> \
   --fault-vector <binary-vector> \
-  [--recovery-schedule-cap <must-match-package-cap>]
+  [--recovery-schedule-cap <positive-request-cap>]
 ```
 
-The manifest path, WorkloadPlan id, and vector are required. If the optional recovery cap is supplied, it must match the package cap. The result status is `PERSISTED`, `DEDUPLICATED`, `REJECTED`, `INTEGRITY_FAILURE`, or `PERSISTENCE_FAILED`; only the first two are successful.
+The manifest path, WorkloadPlan id, and vector are required. The request uses the package recovery cap by default; a supplied positive cap becomes that request's effective cap. An exact workload/vector/cap repeat deduplicates, while a different cap may add only schedules not already present. The result status is `PERSISTED`, `DEDUPLICATED`, `REJECTED`, `INTEGRITY_FAILURE`, or `PERSISTENCE_FAILED`; only the first two are successful.
 
-Concurrent local JVM writers serialize. This is not crash-atomic storage: the three semantic files are promoted separately, so abrupt process/host failure can leave a checksum-invalid package. Regenerate after such an integrity failure. The local `FileChannel` contract does not claim network-filesystem or multi-host coordination.
+Process-local writers serialize and the package directory is also guarded by `.on-demand-fault-scenario.lock`. Mutation stages the fault, request, accounting, and manifest files; validates the staged package; promotes them with rollback on any covered acquisition, write, move, cleanup, or validation failure; and releases lock resources. Tests cover byte preservation across all eight publication boundaries and atomic-move fallback. The local `FileChannel` contract still does not claim network-filesystem or multi-host coordination, and an abrupt host/process death outside the tested rollback boundaries is not qualified.
 
-## How to read scenario-space accounting
+## How to read accounting
 
-`scenario-space-accounting.json` mixes operational counts, thesis evaluation, and diagnostics. Only a small subset belongs in headline status.
+`accounting.json` owns configuration and aggregate counts. It intentionally contains no row per Saga set, WorkloadPlan, vector, recovery schedule, or runtime event.
 
 ### Headline questions
 
@@ -322,9 +321,9 @@ These counts answer different questions and are not expected to match.
 
 ### All, selected, and written workload totals
 
-- `allInputBound`: bounded baseline over compatible accepted inputs and schedules;
-- `selectedByGenerator`: subset selected by the configured generation strategy;
-- `catalogWritten`: records actually materialized after write mode and caps.
+- `workloads.all.inputBoundTotal`: bounded baseline over compatible accepted inputs and schedules;
+- `workloads.selected.inputBoundTotal`: subset selected by the configured Saga-set rule;
+- `workloads.written.total`: records actually materialized after write mode and caps.
 
 They can be identical for a simple single-Saga uncapped run. They differ when interaction pruning, count-only mode, or catalog caps matter. Do not present three equal values as three independent achievements.
 
@@ -337,7 +336,7 @@ These are report/evaluation lenses for uncertainty in static aggregate binding:
 
 The two counts do not represent runtime modes. They do not themselves select records; generation configuration such as `generationStrategy` and `allowTypeOnlyFallback` does.
 
-They are useful only when evaluating how uncertain aggregate-key extraction affects multi-Saga pruning. For the latest `maxSagaSetSize=1` setup package, strict/broad pair counts do not explain the emitted single-Saga catalog and should not be treated as headline metrics.
+They are useful only when evaluating how uncertain aggregate-key extraction affects multi-Saga pruning. For a `maxSagaSetSize=1` setup package, strict/broad pair counts do not explain the emitted single-Saga catalog and should not be treated as headline metrics.
 
 ### Segment-compressed scheduling
 
@@ -353,33 +352,13 @@ A synthetic high-cardinality fixture currently proves exact count `1182645815648
 
 ## Optional dynamic evidence
 
-Static analysis is strong at structure but weaker at exact runtime identity. Dynamic enrichment asks:
+Dynamic enrichment normalizes five runtime kinds—`stepStarted`, `stepFinished`, `commandSent`, `aggregateAccessed`, and `invariantViolation`—into `dynamic-observations.jsonl`. Each runtime event body appears once. `dynamic-attribution-links.jsonl` groups supporting observation ids by test execution and Saga invocation and records one of `exactInput`, `testAndShape`, `shapeOnly`, `ambiguous`, or `unmatched`.
 
-> Which static InputVariant and WorkloadPlan does this observed runtime test activity belong to?
+Unique input accounting assigns each input only its strongest evidence (`exactInput` > `testAndShape` > `shapeOnly`). Workload participant accounting distinguishes all inputs observed in one common test, all observed only across separate tests, some observed, and none observed. Only exact or test-and-shape evidence establishes co-observation; none of these categories claims that the persisted WorkloadPlan schedule executed.
 
-When enabled, the verifier runs selected tests with simulator evidence hooks and writes additive artifacts:
+Runtime input maps, Maven output, test-run reports, and normalization diagnostics remain under the diagnostic `dynamic-evidence/` directory outside the package. Raw simulator event JSONL is deleted only after the normalized files and manifest finalize successfully and is retained on failure.
 
-```text
-workload-dynamic-evidence.jsonl
-workload-dynamic-evidence-manifest.json
-dynamic-evidence-join-report.json
-dynamic-evidence/                 # raw events, input map, test reports, Maven log
-```
-
-These artifacts are not part of latest package identity and do not rewrite WorkloadPlans, SetupPlans, FaultScenarios, vectors, or action schedules.
-
-A run-level `dynamic-input-map.json` lets runtime events carry an exact static `inputVariantId` when test identity, functionality class, step, and ownership resolve uniquely. Current join statuses are:
-
-| Status | Meaning |
-|---|---|
-| `MATCHED_EXACT` | Runtime evidence directly carried an input id owned by the WorkloadPlan |
-| `MATCHED_HIGH_CONFIDENCE` | Test and semantic shape matched without a direct id |
-| `MATCHED_PARTIAL` | Some relevant shape matched, but confidence is insufficient |
-| `AMBIGUOUS` | Multiple candidates remain; the verifier refuses to guess |
-| `UNMATCHED` | Relevant evidence exists but cannot be joined usefully |
-| `NOT_COVERED` | No useful runtime evidence was observed for the workload |
-
-These statuses currently support attribution quality and debugging. They do not change execution behavior. The latest broad Quizzes counts are historical v2 evidence and are intentionally not retained as a current headline. Latest-package/sidecar immutability is covered by integration tests; a fresh broad Quizzes v5 enrichment run has not yet been recorded.
+The fresh bounded Quizzes smoke wrote 1,038 observations and 10 invocation attributions, but exact-input attribution remained zero. Diagnostics expose the known integration mismatch: the verifier input map writes `workloadPlanIds`, while the simulator reader expects `scenarioPlanIds`. The verifier does not invent exact matches; this is the next ranked issue.
 
 The durable static/dynamic boundary is explained in [`decisions/2026-04-28-hybrid-static-dynamic-key-binding.md`](decisions/2026-04-28-hybrid-static-dynamic-key-binding.md).
 
@@ -389,7 +368,7 @@ ScenarioExecutor is a narrow deterministic Saga/local replay path, not a generic
 
 ### Setup preflight
 
-Preflight selects every manifest row whose legacy `materializable` value is `true`. Legacy/provider candidates may share one Spring application context. Each source-derived SetupPlan candidate is isolated in its own bounded fresh JVM/Spring/H2 worker before it:
+Preflight selects current WorkloadPlans whose input/setup structure is declared materializable. Provider-backed candidates may share one Spring application context. Each source-derived setup candidate is isolated in its own bounded fresh JVM/Spring/H2 worker before it:
 
 1. restores fresh process-local state;
 2. executes validated setup actions once in source order through an application-owned closed dispatch map;
@@ -410,12 +389,12 @@ Normal execution uses the same setup implementation, so a separate preflight is 
 
 Normal execution requires:
 
-- a complete latest v5 or explicit valid v4 package path;
+- a complete current package path;
 - one exact persisted FaultScenario id;
 - an output path;
 - an application classpath/Spring application with supported Saga/local runtime dependencies.
 
-It sequentially replays persisted `FORWARD`, `EVENT_CONSEQUENCE`, and `COMPENSATION` actions, injects assigned faults at their exact forward slots, and commits each participant after its final successful forward action. Before measured execution, either an optional exact v4 `ScenarioPrerequisiteProvider` creates the baseline or a v5 SetupPlan runs its closed source-derived actions once and reuses attempt-local results. Both paths resolve typed bindings, clear setup-created pending events, prove an empty pending-event baseline, and remain excluded from measured actions, fault allocation, recovery, conformance, and ImpactV1. A null prerequisite baseline is reported by the exact non-provider sentinel `NOT_REQUIRED` rather than by absence of evidence.
+It sequentially replays current persisted forward, event, and compensation action references, injects assigned faults at exact forward slots, and commits each participant after its final successful forward action. Before measurement, the referenced provider-backed or source-derived setup runs once, resolves typed bindings, clears setup-created pending events, proves an empty pending-event baseline, and remains outside fault allocation, conformance, and ImpactV1.
 
 Only a zero-bit body/commit failure explicitly marked with the simulator `DomainFailure` contract may use immediate checkpoint recovery, skip the failed participant's remaining forwards, continue valid survivor actions, and report `DEVIATED`.
 
@@ -449,7 +428,7 @@ Supported:
 
 - persisted setup-candidate Saga/local single- and multi-participant workloads;
 - deterministic sequential replay, including one exact local event consequence;
-- exact v4 prerequisite providers or validated v5 source-derived ordered setup outside measurement;
+- current provider-backed or validated source-derived setup outside measurement;
 - binary forward faults;
 - persisted compensation schedules;
 - explicit domain-failure fallback and conservative infrastructure hard stops;
@@ -484,382 +463,67 @@ ImpactV1 does not detect silent compensation errors, postcondition failures, fin
 
 ## Current evidence
 
-Evidence here is intentionally current and representative. New baselines replace these sections rather than being appended as historical chronology.
+Evidence here was generated from the final current-only implementation on 2026-09-02. Paths are workspace-relative and intentionally bounded.
 
-### Quizzes setup preflight: 82/82
+### Equivalent Quizzes count-only analysis
 
-The current single-Saga package is:
-
-```text
-verifiers/target/outcome2-helper-tracing/quizzes-20260727-180306-391/
-```
-
-Its manifest records:
-
-```text
-accepted inputs / WorkloadPlans: 732
-static setup candidates:         82
-statically blocked workloads:    650
-eager FaultScenarios:            164
-```
-
-The successful one-context preflight was run from the repository root. The `tee` suffix below makes the saved container log reproducible; ScenarioExecutor itself writes only `OUTPUT_PATH`:
+Command shape (repository root):
 
 ```bash
-set -o pipefail
-MEDIUM_MEM_LIMIT=3g \
-PACKAGE_PATH=/reports/outcome2-helper-tracing/quizzes-20260727-180306-391/scenario-catalog-manifest.json \
-OUTPUT_PATH=/reports/integral-numeric-restoration/setup-preflight-report.json \
-docker compose run --rm -T \
-  -e PREFLIGHT=true \
-  -e FAULT_SCENARIO_ID= \
-  -e JAVA_TOOL_OPTIONS=-Xmx2500m \
-  scenario-executor \
-  2>&1 | tee verifiers/target/integral-numeric-restoration/scenario-executor.log
-```
-
-Evidence files have different ownership:
-
-```text
-direct executor output: verifiers/target/integral-numeric-restoration/setup-preflight-report.json
-captured stdout/stderr:  verifiers/target/integral-numeric-restoration/scenario-executor.log
-derived checks:          verifiers/target/integral-numeric-restoration/verification-summary.json
-```
-
-`verification-summary.json` was derived after the run; the wrapper does not create it. The `82/82` value comes directly from the report. The `164/164` linkage and package-immutability statements were checked separately. A reproducible inspection shape is:
-
-```bash
-report=verifiers/target/integral-numeric-restoration/setup-preflight-report.json
-package=verifiers/target/outcome2-helper-tracing/quizzes-20260727-180306-391
-
-jq '{terminalStatus,candidateCount,participantCount,
-     statuses: ([.workloads[].status] | group_by(.) | map({key: .[0], value: length}) | from_entries)}' \
-  "$report"
-
-jq -r '.workloads[] | select(.status == "SETUP_READY") | .workloadPlanId' "$report" \
-  | sort -u > /tmp/setup-ready-workloads
-jq -r '.workloadPlanId' "$package/fault-scenario-catalog.jsonl" \
-  | sort -u > /tmp/fault-scenario-workloads
-wc -l "$package/fault-scenario-catalog.jsonl"
-comm -23 /tmp/fault-scenario-workloads /tmp/setup-ready-workloads  # expected: no output
-
-sha256sum "$package"/{workload-catalog.jsonl,fault-scenario-catalog.jsonl,scenario-catalog-manifest.json,scenario-space-accounting.json,workload-catalog-rejected-inputs.jsonl}
-```
-
-For a fresh immutability check, save the five hashes before preflight, repeat afterward, and compare the files with `diff`. The saved derived summary records that comparison against the preflight baseline.
-
-Measured result:
-
-```text
-terminal status: SUCCESS
-candidates / participants: 82 / 82
-SETUP_READY: 82
-STARTUP_FAILED: 0
-workflow actions: 0
-Spring application contexts: 1
-FaultScenarios linked to setup-ready workloads: 164 / 164
-```
-
-The 82 workloads comprise 76 `CreateUserFunctionalitySagas`, four `GetCourseExecutionsFunctionalitySagas`, one `GetCourseExecutionByIdFunctionalitySagas`, and one `FindQuizFunctionalitySagas` workload.
-
-Why this matters: an earlier preflight found 80 ready and two startup failures because persisted integral values were restored as `BigInteger` while public constructors required `Integer`. The current executor preserves ordinary reflection first and then performs exact, range-checked integral restoration at the typed constructor boundary. The refreshed report establishes that the two concrete false negatives were fixed without changing package bytes or static candidate ids.
-
-What it does **not** prove: no forward/fault/compensation/commit action ran, so the result does not qualify all-zero or faulty behavior.
-
-Focused regression for this boundary:
-
-```bash
-cd verifiers
-mvn -Dtest=ScenarioExecutorSpec,ScenarioExecutorWrapperSpec,ScenarioExecutorReadinessEvaluatorSpec,ScenarioExecutorOrchestratorSpec test
-```
-
-The recorded run passed 105 tests with zero failures/errors/skips. The full verifier regression recorded with this change passed 587 tests.
-
-### Targeted all-zero and assigned-fault execution
-
-Two persisted single-Saga scenarios from the same package were executed through the shared setup path:
-
-```text
-all-zero id: 564dc9b56a716cd2797a3f3200485791e6ecdb1ed383b422de987a72792d63bd
-report:      verifiers/target/outcome2-helper-tracing/execution-all-zero.json
-result:      SUCCESS / EXACT
-
-target fault id: 142eccc9b6d9464439f9607061ff6c7a32109108d34a1ddc076e6bf8519ab71b
-report:          verifiers/target/outcome2-helper-tracing/execution-single-fault.json
-result:          COMPENSATED / EXACT; assigned fault realized
-```
-
-These are targeted controls, not a batch execution-coverage claim. All five package hashes remained unchanged.
-
-### Quizzes event-consequence replay: positive, control, and masking
-
-The v4 Quizzes package was generated from the repository root with default catalog bounds, static analysis, and the application's prerequisite descriptor:
-
-```bash
-MEDIUM_MEM_LIMIT=4g MEDIUM_MEM_RESERVATION=1g \
-docker compose run --rm -T \
-  -e JAVA_TOOL_OPTIONS=-Xmx3g \
+MEDIUM_MEM_LIMIT=5g MEDIUM_MEM_RESERVATION=2g docker compose run --rm -T \
+  -e JAVA_TOOL_OPTIONS=-Xmx4g \
   -e VERIFIERS_DYNAMIC_ENRICHMENT_ENABLED=false \
+  -e VERIFIERS_SCENARIO_CATALOG_CATALOG_WRITE_MODE=COUNT_ONLY \
+  -e VERIFIERS_SCENARIO_CATALOG_INCLUDE_SINGLES=true \
+  -e VERIFIERS_SCENARIO_CATALOG_MAX_SAGA_SET_SIZE=3 \
+  -e VERIFIERS_SCENARIO_CATALOG_MAX_INPUT_VARIANTS_PER_SAGA=1000 \
+  -e VERIFIERS_SCENARIO_CATALOG_MAX_SCHEDULES_PER_INPUT_TUPLE=20 \
+  -e VERIFIERS_SCENARIO_CATALOG_ALLOW_TYPE_ONLY_FALLBACK=false \
+  -e VERIFIERS_SCENARIO_CATALOG_INPUT_POLICY=RESOLVED_OR_REPLAYABLE \
+  -e VERIFIERS_SCENARIO_CATALOG_SCHEDULE_STRATEGY=ORDER_PRESERVING_INTERLEAVING \
   fault-analysis-scenario-gen
 ```
 
-The default 768 MiB container limit was insufficient and the first attempt was OOM-killed; the explicit limit and heap above are part of the reproducible generation configuration. The persisted package is:
+Fresh package: `verifiers/target/quizzes-20260902-011240-501/`. It declares only `accounting`, `sagas`, `inputs`, and `interactions`. Counts are 68 Sagas; 36/32 with/without accepted inputs; 884 inputs; 794/90 accepted/rejected; 91/703 materializable/blocked; 764 direct interactions (0 exact, 152 symbolic, 612 type-only); strict connected sets 140/1,299 for sizes 2/3; fallback sets 540/7,005. The size-1/2/3 all input-bound total is 1,247,308,000 and selected total is 45,968,225; count-only writes zero workloads.
 
-```text
-verifiers/target/quizzes-20260801-014405-816/
-```
+The retained 2026-08-28 comparison used the same size-2/3 strict selection, input cap 1,000, schedule cap 20, and order-preserving scheduling but excluded singles. It reported the same 68 Sagas, 36/32 Saga coverage, 140/1,299 strict and 540/7,005 fallback connected sets, and 91 materializable inputs. Its older analyzer epoch accepted 777 of 863 inputs and produced all/selected input-bound totals 1,161,251,056 / 42,079,271. The current analyzer's already-qualified no-singles totals are 1,247,307,206 / 45,967,431; enabling required size-1 records adds exactly 794 accepted-input singles to each, yielding 1,247,308,000 / 45,968,225. The analyzer-epoch input delta was isolated during M1; topology and every comparable equation remain preserved.
 
-It includes one exact `UpdateStudentNameEvent` consequence from `UpdateStudentNameFunctionalitySagas.updateStudentNameStep` through `TournamentEventHandling.handleUpdateStudentNameEvent`. Two workloads place that consequence around `AddParticipantFunctionalitySagas.addParticipantStep`:
+Static package sizes are: accounting 21,176 bytes; Sagas 68 records / 99,191 bytes; inputs 884 / 4,066,512 bytes; interactions 764 / 402,946 bytes; manifest 482 bytes.
 
-```text
-positive: getUserStep -> updateStudentNameStep -> EVENT_CONSEQUENCE -> addParticipantStep
-control:  getUserStep -> updateStudentNameStep -> addParticipantStep -> EVENT_CONSEQUENCE
-```
+### Bounded current executable package
 
-The workloads require `quizzes-stale-read-baseline@1`. Its Quizzes test-classpath provider uses application functionality APIs to create a course execution, creator/enrollment, topics/questions, tournament, and updated user, then returns four typed bindings. Provider execution, binding resolution, and pending-event cleanup occur before measurement.
+`verifiers/target/m4-final/quizzes-source-package/` was generated by the focused `SourceDerivedSharedSagaWorkloadAnalysisSpec` opt-in writer. Before dynamic enrichment it contained 68 Sagas, 847 inputs, 764 interactions, one 12-action source-derived setup, one RemoveTournament/AddParticipant WorkloadPlan with five exact Saga-local step occurrences, 13 eager FaultScenarios, and an empty request stream.
 
-Each replay was a fresh `docker compose run --rm` process with H2 state. The command shape was:
+Docker preflight used `PACKAGE_PATH=/reports/m4-final/quizzes-source-package/scenario-catalog-manifest.json`, `PREFLIGHT=true`, and `OUTPUT_PATH=/reports/m4-final/source-preflight-report.json`. It returned `SUCCESS`, one candidate, two participants, one successful source setup, all 12 actions successful, four exact participant bindings resolved, and `SETUP_READY`.
 
-```bash
-MEDIUM_MEM_LIMIT=4g MEDIUM_MEM_RESERVATION=1g \
-docker compose run --rm -T \
-  -e JAVA_TOOL_OPTIONS=-Xmx3g \
-  -e PACKAGE_PATH=/reports/quizzes-20260801-014405-816/scenario-catalog-manifest.json \
-  -e FAULT_SCENARIO_ID=<persisted-scenario-id> \
-  -e OUTPUT_PATH=/reports/outcome3-ec-rev002-20260801-014405-816-evidence/<run>-execution.json \
-  -e IMPACT_OUTPUT_PATH=/reports/outcome3-ec-rev002-20260801-014405-816-evidence/<run>-impact.json \
-  scenario-executor
-```
+One on-demand request persisted workload `12f7f358f8c3c04a6541a8a86450639089e1922c355206871fc2df6047c68417`, vector `10100`, and effective cap 20. It reported one uncapped/written schedule and added scenario `2dcaa575630b3c8e7bba41f27ef0717b5bc05a2a0f4df8c7d65f6965b783260a`. A fresh Docker execution selected that persisted id and returned `PARTIAL_COMPENSATED / EXACT`; ImpactV1 evaluated zero findings. Reports and full logs are under `verifiers/target/m4-final/`.
 
-Persisted ids:
+### Bounded current dynamic smoke
 
-```text
-positive workload: ee36b9a067b501c82e9be7ee7bf85531d39b530de2ada01fa5f2e2edfbc60c2c
-positive scenario: 24fbeb3b05830543f1deb1aa6eaa0be29e63b2eac807cae3264ce8f1f171e601
-control workload:  481ea3b5c05ad122dd46fa9db904fe0c1b6d01b99446f55a3d199b62fcb1be13
-control scenario:  ec869302d0912ce60c57a69e9a220dba0afd2aa6246a93fb141f727ffc34ca24
-B1 masking:       5b1991d323f2ad8d1066d7c82f33a3559be2444a127adbac07bc6f4c9cd3dede
-```
+The same package was enriched by one host invocation of `DynamicEnrichmentOrchestrator` selecting only `RemoveTournamentAddParticipantRecoveryWindowExploratoryTest`. Maven ran five features with zero failures. The final package has 1,038 observations (188 step-started, 188 step-finished, 422 command-sent, 239 aggregate-accessed, one invariant violation) and 10 attribution groups (2 `testAndShape`, 8 `shapeOnly`). Unique input evidence is 0 exact, 2 test-and-shape, 0 shape-only; its only workload is `allInputsObservedInOneCommonTest`.
 
-The manifest records the configured total cap and final selection honestly:
+Exact input remained zero because of the recorded `workloadPlanIds` / `scenarioPlanIds` mismatch. The raw event JSONL was removed after successful publication; the input map, Maven log, test reports, and normalization diagnostics remain outside the package.
 
-```text
-maxCatalogScenarios:                         100
-prerequisite workloads:                      2 generated / 2 exported / 0 capped
-base workloads:                              98 generated / 98 exported / 0 merge-capped
-final workloads exported:                    100
-workloadsCapped:                             1
-eventConsequenceExpansionCapEncounters:      1
-eventConsequenceBaseWorkloadsOmittedAtCap:  14
-warning: reached maxCatalogScenarios=98 between base workloads during event-consequence
-         expansion; 14 remaining base workloads and their placements were not emitted
-```
+Final executable-package role sizes are: accounting 22,015 bytes; Sagas 68 / 90,446; inputs 847 / 3,959,368; interactions 764 / 402,946; setups 1 / 9,643; workloads 1 / 1,050; FaultScenarios 14 / 3,792; requests 1 / 262; observations 1,038 / 724,297; attributions 10 / 8,995; manifest 1,226 bytes. Every declared SHA-256 matched, and the current reader revalidated all cross-file references after dynamic publication.
 
-Measured result and fresh execution-attempt ids:
+### Regression proof
 
-```text
-positive-1  151d07b0-8894-4579-96ba-81471f2b456f  PARTIAL_COMPENSATED / DEVIATED  E=COMPLETED  ImpactV1=1
-positive-2  eb8a434c-96ea-42ca-bfa5-6918854e9a8d  PARTIAL_COMPENSATED / DEVIATED  E=COMPLETED  ImpactV1=1
-positive-3  b4729ce1-99d3-465f-a94a-dd2fb11024ce  PARTIAL_COMPENSATED / DEVIATED  E=COMPLETED  ImpactV1=1
-control-1   24f40dcf-4cdb-42ec-a686-6bc51a9b462f  SUCCESS / EXACT                  E=COMPLETED  ImpactV1=0
-control-2   4f24d37e-70de-41ba-aa40-6439f142fdcf  SUCCESS / EXACT                  E=COMPLETED  ImpactV1=0
-control-3   a7c6cf8b-8098-4ad0-9391-6219fd846e08  SUCCESS / EXACT                  E=COMPLETED  ImpactV1=0
-masking-1   0aa1f90e-dc5b-4daf-bf64-50f1869dc5e4  PARTIAL_COMPENSATED / EXACT      E=MASKED_BY_TRIGGER_FAULT  ImpactV1=0
-```
-
-Every completed E used persisted event id `3`, publisher id `2`, subscriber id `9`, and `TournamentEventHandling.handleUpdateStudentNameEvent` with `UpdateStudentNameEventHandler`. Positive actions completed `getUserStep`, `updateStudentNameStep`, and E before `addParticipantStep` failed its invariant. Control actions completed all three forwards before E. The masking attempt completed A1, realized B1's assigned pre-body fault, causally masked E, and completed A2.
-
-Reports, logs, per-attempt hashes/diffs, and the derived complete matrix are under:
-
-```text
-verifiers/target/outcome3-ec-rev002-20260801-014405-816-evidence/
-verifiers/target/outcome3-ec-rev002-20260801-014405-816-evidence/verification-summary.json
-```
-
-All seven fresh-process runs used `quizzes-stale-read-baseline@1`, cleared two prerequisite-created pending events, resolved all four typed bindings, and established an empty pending-event baseline. Every per-attempt hash diff is empty. The five package hashes before and after all attempts are:
-
-```text
-workload catalog:  fa46dd469c2c60d18096d666f1066d68903ff4893236afb5701b2447848588a8
-fault catalog:     165790570406f2ba4d3e9a6358e2a5b00afa43e5a2996043910df567e79a0281
-manifest:          63f9fc77221c1c27bd89190b94a864f20f01df8852157249ef07cfe404a13f98
-accounting:        7bf7cdf08eba72667fef1e4375f1e3a05ab8f4b64d7f56835056558abc8c9643
-rejected inputs:   dd4b4a7051600d5856df6c02a2230a1971b9c7092e85f43130c89e4f959ea0bf
-```
-
-This proves one realistic Saga/local event interaction is statically represented, prerequisite-bound, causally replayed, discriminating under ImpactV1, and repeatable at the fresh-process/H2 boundary. It does not prove generic fan-out, nested event chains, distributed event replay, same-process reset, or broad event-pattern coverage.
-
-### Automatic source-derived RemoveTournament–AddParticipant proof
-
-The latest v5 package derives the ordinary recovery-window test's shared Tournament producer and twelve setup calls without the historical Remove/Add descriptor/provider:
-
-```text
-package:       checkpoint-d-automatic-20260828-1825/quizzes-20260828-172723-706/ (generated proof package; removed from target after review)
-WorkloadPlan:  359f3c2d05e286094aec1a2d1c81f3fbc507cfe87de0ac79b2729b328cb73ec0
-harmful 00100: 1b93b0a5eadb884ba22383f5e907a0bb64f5f3781aa9ffca8b29032d238749d3
-control 00000: 4618c12787ee1a23b9c61e72708103ed6d79624a889fa026afffc40bbf85541d
-```
-
-The WorkloadPlan has `prerequisiteBaseline=null`, one validated SetupPlan, and the unchanged serial forward order `getTournamentStep -> removeQuizStep -> removeTournamentStep -> getUserStep -> addParticipantStep`. Setup creates the course execution, two users, activation/enrollment effects, two topics, two questions, and one Tournament in twelve source-ordered actions. In each fresh attempt, both Saga argument-1 bindings resolve `setup-action-12.aggregateId` through the same retained result id and value `10`. The prerequisite report is the exact non-provider sentinel: `NOT_REQUIRED`, null provider id/version/failure fields, zero duration/events, true empty baseline, and empty bindings/evidence.
-
-Two separate Docker containers/JVMs with fresh H2 state produced:
-
-```text
-harmful attempt: dc9c8b1f-4d2f-4bb2-afb4-6e0e2d424bf2
-  00100 / PARTIAL_COMPENSATED / EXACT / ImpactV1 EVALUATED=0
-  VALID / HARMFUL_FOR_RULE
-  active Tournament 10 -> deleted Quiz 9; decoded GenericSagaState.NOT_IN_SAGA
-
-control attempt: b986dd16-0847-424c-88db-db3c149facb4
-  00000 / PARTIAL_COMPENSATED / DEVIATED / ImpactV1 EVALUATED=0
-  VALID / NO_BROKEN_REFERENCE
-  deleted Tournament 10 -> deleted Quiz 9; decoded GenericSagaState.NOT_IN_SAGA
-```
-
-Both attempts ran all twelve setup actions successfully, cleared two pending setup events, established an empty pending-event baseline, and reused action 12 for both participants. The six authoritative reports remain under `verifiers/target/checkpoint-d-automatic-20260828-1825/`; the reproducible 4.6 GiB package catalog was removed after medium review. The five package hashes remained unchanged before removal:
-
-```text
-manifest:        48b92f0b33fc7c8c7e10394fde0b819978da462a5c7619d877f4cbb4030b2966
-workloads:       31440c637c772227e995135cbefade8640851588602fb019756f6dcaa488785a
-fault scenarios: 4ee8d64b065f3ca97e8c098b9fe9c6c58b1ac5352e1de78c4e77ad59d360265e
-accounting:      959be1f22bfa5c179b7dab6d92dcb0c85856c402058310e6517d73440e3c27c2
-rejected inputs: 2bb2f6592b13d9ea3312e1c1935eea4649caff7d818e23e38c2038801dd5c44b
-```
-
-This proves the bounded automatic source-derived path, not generic setup-language coverage or a generic final-state impact model. The historical descriptor/provider and 34-row v4 landscape below remain valid evidence and are intentionally retained.
-
-### Historical prerequisite-backed RemoveTournament–AddParticipant benchmark
-
-The no-event descriptor selects this exact source-derived forward and fault-slot order:
-
-```text
-getTournamentStep -> removeQuizStep -> removeTournamentStep -> getUserStep -> addParticipantStep
-```
-
-The authoritative package was generated after merging `origin/master` at `45fcdb81a130c4df99418c5060468753b70b6fcd`:
-
-```text
-package:       verifiers/target/persisted-remove-add-benchmark/quizzes-20260816-170828-044/
-manifest SHA:  aa87cdcfa811bdb4726def9f760c54b74eb818db1270937fb052404c36d8364c
-WorkloadPlan:  c2c26ffa89e647e9be3c4b2d20289a711674714a9736d195acf45a19bf816c5f
-recovery cap:  20
-control:       00000 / 48fd7658066475567b17edd29e38220622f7581a056a6b0a372247f96a73f156
-known harmful: 00100 / e8ce3c2e7d03aeab87acf346ab2e2418fcda5890c16afb88967584dada8f58ee
-```
-
-The existing `quizzes-stale-read-baseline@1` provider creates and reports an active participant-free Tournament, its generated Quiz, an enrolled participant user, and the exact typed bindings. It is process-idempotent for preflight reuse; every measured attempt still uses a separate process and in-memory H2 database. Fresh preflight reports all 9 candidates and all 12 participants setup-ready, including both benchmark participants.
-
-Attempt schema v3 reads the latest raw `saga_tournament.saga_state` column without mutation, retains aggregate/version and `RAW_DATABASE_COLUMN` table/column/selection provenance, and decodes the typed value through master’s `SagaStateConverter`. Evaluation requires exact decoded `GenericSagaState.NOT_IN_SAGA`. SQL null, malformed text, the wrong enum class or value, missing/duplicate rows, or identity/provenance mismatch is `INVALID / NOT_EVALUATED`; no such case can become either benchmark classification.
-
-Three fresh immediate-recovery target attempts—`aff4e302-3756-436d-a8ea-766e68345cc4`, `07fd74d7-9323-4a1a-b0a6-c2ed8c24646b`, and `57ebb5d9-2862-4794-940b-a345d95cc69b`—are stable `VALID / HARMFUL_FOR_RULE`, `PARTIAL_COMPENSATED / EXACT`, and ImpactV1 zero. Each observes active Tournament `9` referring to deleted Quiz `8`; latest Tournament version `18` stores raw `pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState:NOT_IN_SAGA` and decodes to exact `GenericSagaState.NOT_IN_SAGA`.
-
-Three fresh all-zero controls—`23176826-b21a-41b8-bda0-03cf97e52e3a`, `a01da5c6-07bb-4ece-a5b6-2f610dd5c14d`, and `a2f42317-00a8-4dcc-84a0-fafdf28e8ad8`—are stable `VALID / NO_BROKEN_REFERENCE`, `PARTIAL_COMPENSATED / DEVIATED`, and ImpactV1 zero. The supported all-zero fallback deletes the Tournament; the same explicit decoded outside-Saga proof succeeds.
-
-The canonical set is derived from persisted participant slot ownership: no fault or one of three RemoveTournament faults, crossed with no fault or one of two AddParticipant faults. This yields 12 vectors. The other 20 five-bit vectors contain multiple assigned faults in at least one participant and are listed with their first masking slot rather than executed as separate candidates. The on-demand path persisted the six missing vectors and deduplicated every repeated request.
-
-Exact `uncapped / persisted / executed` recovery counts are:
-
-```text
-00000  1/1/1    00001  1/1/1    00010  1/1/1
-00100  6/6/6    00101 10/10/10  00110  3/3/3
-01000  3/3/3    01001  4/4/4    01010  2/2/2
-10000  1/1/1    10001  1/1/1    10010  1/1/1
-```
-
-The cap truncates none of these vectors: totals are `34 / 34 / 34`. Every retained schedule ran in a fresh process/H2 boundary. All 34 rows are valid, all decode exact `NOT_IN_SAGA`, and all have ImpactV1 score zero. Nineteen rows satisfy the bounded broken-reference rule—all schedules for `00100`, `00101`, and `00110`—while 15 do not. Terminal statuses are 21 `COMPENSATED` and 13 `PARTIAL_COMPENSATED`; schedule conformance is 33 `EXACT` and one supported all-zero `DEVIATED`.
-
-The authoritative landscape is `verifiers/target/persisted-remove-add-benchmark/m3/quizzes-remove-add-landscape.json` (SHA-256 `e0fad7d7e97f06a0d2b5015f20c73fce41442bd30b6001112e108025cf31ea4c`); the derived CSV SHA-256 is `dac36ad2c480e218601d3dc093e4c5503dadd0a79d89de75ff12a4074006c995`. Package-execution, JSON-reaggregation, and CSV-reaggregation diffs are empty. Strict negative checks reject obsolete schemas, malformed/incorrect state evidence, duplicate attempts, non-evaluated ImpactV1 marked valid, and inconsistent stored classifications.
-
-All pre-merge packages and rows are retained only under `verifiers/target/persisted-remove-add-benchmark/superseded-pre-master-merge-45fcdb81a/`. `NO_BROKEN_REFERENCE` still means only that this one predicate is false, not that the application is globally safe. The 19/15 final-state variation with ImpactV1 flat at zero supports defining the minimum broader versioned impact contract next; it does not establish weights, category ordering, GA fitness, random search, workload allocation, or a generic application observer.
-
-### Historical bounded multi-Saga package generation
-
-The prior v3 package contract was exercised at Quizzes scale with the following historical command. V4 readers now reject this package; retain the result only as bounded-generation evidence:
-
-```bash
-MEDIUM_MEM_LIMIT=3g MEDIUM_MEM_RESERVATION=2g MEDIUM_CPUS=2 \
-docker compose run --rm \
-  -e JAVA_TOOL_OPTIONS=-Xmx2500m \
-  -e VERIFIERS_OUTPUT_ROOT=/reports/compensation-aware-v3-evidence/bounded-quizzes-v3 \
-  -e VERIFIERS_SCENARIO_CATALOG_ENABLED=true \
-  -e VERIFIERS_SCENARIO_CATALOG_GENERATION_STRATEGY=BRUTE_FORCE \
-  -e VERIFIERS_SCENARIO_CATALOG_CATALOG_WRITE_MODE=WRITE_WORKLOADS \
-  -e VERIFIERS_SCENARIO_CATALOG_INCLUDE_SINGLES=false \
-  -e VERIFIERS_SCENARIO_CATALOG_MAX_SAGA_SET_SIZE=2 \
-  -e VERIFIERS_SCENARIO_CATALOG_MAX_CATALOG_SCENARIOS=2000 \
-  -e VERIFIERS_SCENARIO_CATALOG_MAX_INPUT_VARIANTS_PER_SAGA=2 \
-  -e VERIFIERS_SCENARIO_CATALOG_MAX_SCHEDULES_PER_INPUT_TUPLE=4 \
-  -e VERIFIERS_SCENARIO_CATALOG_SCHEDULE_STRATEGY=SEGMENT_COMPRESSED \
-  -e VERIFIERS_SCENARIO_CATALOG_RECOVERY_SCHEDULE_CAP=20 \
-  -e VERIFIERS_DYNAMIC_ENRICHMENT_ENABLED=false \
-  fault-analysis-scenario-gen
-```
-
-Output package:
-
-```text
-verifiers/target/compensation-aware-v3-evidence/bounded-quizzes-v3/quizzes-20260720-091007-712/
-```
-
-Result:
-
-```text
-WorkloadPlans written:       2000
-static setup candidates:     12
-statically blocked:          1988
-FaultScenarios written:      84
-computed eager vectors:      60
-uncapped/written recovery schedules over computed vectors: 84 / 84
-```
-
-This proves bounded deterministic multi-Saga package generation and compensation-aware schedules. The saved execution report beside this package predates the current explicit domain-failure classifier and misclassified unmarked service unavailability as a domain deviation. It is not current execution-policy evidence and should not be cited as such. A fresh current multi-Saga execution baseline remains missing.
-
-### Exact bounded recovery counting
-
-```bash
-cd verifiers
-mvn -Dtest=RecoveryScheduleGeneratorSpec test
-```
-
-The high-cardinality fixture records:
-
-```text
-exact uncapped schedules: 118264581564861424
-written at cap:           20
-counting states visited:  992
-materialized leaves:      fewer than 100
-```
-
-This proves exact BigInteger counting with bounded retained schedules for one computed vector.
-
-### Regression baseline
-
-The latest source-derived setup implementation and D remediation recorded:
-
-```text
-focused selected-reader/executor suite: 176 tests passed
-verifier complete suite:                700 tests passed
-focused Quizzes benchmark runner:        49 tests passed
-git diff --check:                        passed
-```
-
-The prior event-consequence implementation also recorded 111 passing simulator tests. Its full `mvn -Ptest-sagas test` Quizzes baseline ran 152 tests but retained seven unrelated async/concurrency assertion failures: those tests expect `SimulatorException` directly while the async path returns `CompletionException`. No current changed path belongs to those tests or their async implementation. The benchmark uses focused Quizzes proof rather than converting that historical full-suite baseline into a passing claim.
-
-These totals are point-in-time evidence, not permanent acceptance criteria. Current changes should run focused affected tests and broaden only when the changed boundary justifies it.
+The final handoff records the clean full verifier suite, compile/test-compile, and diff check. Generated reports are evidence artifacts, not package roles.
 
 ## Current limitations
 
 - Thirty-two discovered Quizzes Sagas still lack accepted static inputs. This does not mean no tests exist; their invocation/value shapes remain unclassified or unsupported.
-- Exact aggregate-instance key extraction is incomplete. Type-level and symbolic conflicts can over-approximate interaction.
+- Aggregate-key inference assumes that the third command-constructor argument is the target aggregate key; the source-to-Saga tracing built on it does not validate that assumption against command constructor semantics. Differently ordered commands, create commands without an existing target id, and commands carrying another aggregate's id can therefore be missed or mis-associated, while type-level and symbolic conflicts can still over-approximate interaction.
 - Event-consequence extraction supports one conservative direct producer shape and one unique local consumer. Wrong receiver or unit-of-work binding, mixed compensation-origin emission, conditional/repeated consumer delegation, multiple/repeated/conditional producer emissions, fan-out, recursion, nested event chains, and unresolved routes are rejected diagnostically.
 - Helper-built course DTOs now preserve `DateHandler.toISOString(endDate)`, but that local transform remains unsupported and blocks those candidates rather than fabricating empty DTOs.
-- Static setup candidacy is conservative prediction. The latest package achieved 82/82 runtime setup readiness, but other packages and environments still require actual setup evidence.
+- Static setup candidacy is conservative prediction. The fresh bounded source-derived workload is setup-ready, but other packages and environments still require actual setup evidence.
 - Repeated same-participant runtime step names are structurally rejected because current Saga/local runtime state is keyed by step name rather than occurrence id.
 - Segment compression preserves conflict-anchor order cases under extracted evidence; it does not prove every semantically distinct runtime interleaving is retained.
-- Dynamic enrichment remains local/Saga-focused. There is no fresh broad Quizzes v4 attribution baseline.
+- Dynamic enrichment remains local/Saga-focused. The fresh one-class smoke has no exact input attribution because of the `workloadPlanIds` / `scenarioPlanIds` integration mismatch.
 - The generated Quizzes event-consequence pair provides one ImpactV1 1/0 discrimination. The automatic source-derived RemoveTournament–AddParticipant path proves one harmful/control pair without its descriptor/provider; the retained historical benchmark still provides the complete 34-row 19/15 landscape. ImpactV1 is zero for every Remove/Add row, so a broader impact contract remains undefined.
 - Three refreshed benchmark controls demonstrate the explicitly marked zero-bit domain-fallback path; other fallback shapes remain unqualified.
 - Persistent-environment reset is the caller/orchestrator's responsibility.
-- On-demand package writes are serialized but not crash-atomic.
+- On-demand mutation is process-local and filesystem-local. Covered publication failures roll back byte-for-byte, but network filesystems, multi-host coordination, and abrupt host/process death are not qualified.
 
 ## Not implemented
 
@@ -875,20 +539,4 @@ These totals are point-in-time evidence, not permanent acceptance criteria. Curr
 
 Safe current claim:
 
-> The verifier deterministically extracts Saga-oriented workload structure, conservative exact event consequences, and test-derived inputs; publishes compensation-aware WorkloadPlan/FaultScenario v5 packages with optional ordered source-derived setup while retaining valid v4 provider packages; can verify exact Saga/local setup readiness; can replay one persisted setup-ready FaultScenario sequentially; and can report generic Saga aggregate-invariant rejections through a first narrow impact model. The automatic Quizzes Remove/Add proof replays ordinary-test setup without its historical provider and distinguishes one harmful `00100` from one `00000` control after converter-decoded persisted `NOT_IN_SAGA` proof. The retained historical 34-row landscape contains 19 harmful and 15 non-broken-reference rows while ImpactV1 remains zero throughout.
-
-Required qualifications:
-
-- generated does not mean setup-ready;
-- setup-ready does not mean execution-successful;
-- `EXACT` conformance does not mean harmless;
-- assigned fault or compensation does not by itself mean impact;
-- static conflict evidence and segment compression do not prove semantic completeness;
-- current execution is Saga/local and sequential, not generic distributed concurrency;
-- historical v1/v2/v3 catalogs and broad dynamic counts are not current v5 evidence; valid v4 packages remain an explicit compatibility path.
-
-Unsafe current claim:
-
-> The verifier can execute arbitrary generated distributed fault scenarios, detect all harmful outcomes, and optimize them through search or prioritization.
-
-That remains roadmap work.
+> The verifier deterministically extracts Saga, input, interaction, setup, workload, fault, and runtime-observation facts into one current-only role-keyed package; preserves deterministic bounded generation and current on-demand mutation; can preflight and replay a selected persisted Saga/local FaultScenario; and reports ImpactV1 separately. Fresh Quizzes evidence preserves the retained interaction topology, preflights one source-derived Remove/Add workload, persists and replays one multi-fault request, and normalizes five runtime observation kinds without inventing exact input attribution.

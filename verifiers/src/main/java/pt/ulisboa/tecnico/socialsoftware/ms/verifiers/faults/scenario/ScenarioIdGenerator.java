@@ -163,9 +163,7 @@ public final class ScenarioIdGenerator {
             updateEventConsequences(digest, plan.eventConsequences());
             updateNormalSchedule(digest, plan.normalSchedule());
             updatePrerequisiteBaseline(digest, plan.prerequisiteBaseline());
-            if (!WorkloadPlan.LEGACY_V4_SCHEMA_VERSION.equals(plan.schemaVersion())) {
-                updateSetupPlan(digest, plan.setupPlan());
-            }
+            updateSetupPlan(digest, plan.setupPlan());
             updateConflictEvidence(digest, plan.conflictEvidence());
             updateFaultSlots(digest, plan.faultSlots());
             updateCompensationCheckpoints(digest, plan.compensationCheckpoints());

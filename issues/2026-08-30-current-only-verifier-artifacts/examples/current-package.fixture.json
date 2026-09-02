@@ -1,0 +1,1502 @@
+{
+  "fixturePurpose": "One shared source for exact current-package role records and byte-level manifest examples.",
+  "formatVersion": 1,
+  "serialization": {
+    "encoding": "UTF-8",
+    "json": "one compact JSON object with no trailing newline",
+    "jsonl": "one compact JSON object per line with exactly one trailing LF; an empty stream is zero bytes"
+  },
+  "modes": {
+    "count-only": {
+      "manifest": "count-only",
+      "presentRoles": [
+        "accounting",
+        "sagas",
+        "inputs",
+        "interactions"
+      ],
+      "absentRoles": [
+        "setups",
+        "workloads",
+        "faultScenarios",
+        "requests",
+        "dynamicObservations",
+        "dynamicAttributionLinks"
+      ]
+    },
+    "catalog-writing": {
+      "initialManifest": "initial-catalog",
+      "presentRoles": [
+        "accounting",
+        "sagas",
+        "inputs",
+        "interactions",
+        "setups",
+        "workloads",
+        "faultScenarios",
+        "requests"
+      ],
+      "absentRoles": [
+        "dynamicObservations",
+        "dynamicAttributionLinks"
+      ]
+    },
+    "dynamic-enrichment": {
+      "baseManifest": "initial-catalog",
+      "manifest": "dynamic-enriched-catalog",
+      "presentRoles": [
+        "dynamicObservations",
+        "dynamicAttributionLinks"
+      ]
+    },
+    "on-demand": {
+      "baseManifest": "initial-catalog",
+      "manifest": "post-on-demand",
+      "preservedAccounting": "initial-catalog",
+      "updatesRoles": [
+        "accounting",
+        "faultScenarios",
+        "requests",
+        "manifest"
+      ]
+    }
+  },
+  "manifests": {
+    "count-only": {
+      "formatVersion": 1,
+      "files": {
+        "accounting": {
+          "path": "accounting.json",
+          "sha256": "825891f3d14faa9ed80e9ee69dad386fbe6e84ce07eb1409feb2c6cff29b21c8"
+        },
+        "sagas": {
+          "path": "sagas.jsonl",
+          "sha256": "4967b85ffa1eed52192a74897c56afa7af6acd7165c00b33af75aa3d0079ad67"
+        },
+        "inputs": {
+          "path": "inputs.jsonl",
+          "sha256": "250f0c6e549eb0a16400f8230df312cb994721b30a3f907562ae8b3e1d8814c7"
+        },
+        "interactions": {
+          "path": "interactions.jsonl",
+          "sha256": "bbe2dc8897e0da01121aa6835954cc01d76cfb0241b24dbd5eb7daa74009afcd"
+        }
+      }
+    },
+    "initial-catalog": {
+      "formatVersion": 1,
+      "files": {
+        "accounting": {
+          "path": "accounting.json",
+          "sha256": "ec6b259cac6d1bca83d01d48f1a9d0043055b8186760cfc02122bad703c6b8e5"
+        },
+        "sagas": {
+          "path": "sagas.jsonl",
+          "sha256": "4967b85ffa1eed52192a74897c56afa7af6acd7165c00b33af75aa3d0079ad67"
+        },
+        "inputs": {
+          "path": "inputs.jsonl",
+          "sha256": "250f0c6e549eb0a16400f8230df312cb994721b30a3f907562ae8b3e1d8814c7"
+        },
+        "interactions": {
+          "path": "interactions.jsonl",
+          "sha256": "bbe2dc8897e0da01121aa6835954cc01d76cfb0241b24dbd5eb7daa74009afcd"
+        },
+        "setups": {
+          "path": "setups.jsonl",
+          "sha256": "a56ae4b67abea7f141a898fe9d5a2dd0ace7bff141df0f55d2860ea09cf92b8f"
+        },
+        "workloads": {
+          "path": "workloads.jsonl",
+          "sha256": "ecb13080a7a6a179b2e2b2f920a811586560371f7a44ab7cc7e5fe614470598a"
+        },
+        "faultScenarios": {
+          "path": "fault-scenarios.jsonl",
+          "sha256": "91ed68e9f7748677ec1f8aa157067bd744eacf728724c2f027ede846276f2866"
+        },
+        "requests": {
+          "path": "requests.jsonl",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "dynamic-enriched-catalog": {
+      "formatVersion": 1,
+      "files": {
+        "accounting": {
+          "path": "accounting.json",
+          "sha256": "51fb3d6308490c87e1ce41d7be5b85de417cfa8ec245384c1c1511d9c40c9b64"
+        },
+        "sagas": {
+          "path": "sagas.jsonl",
+          "sha256": "4967b85ffa1eed52192a74897c56afa7af6acd7165c00b33af75aa3d0079ad67"
+        },
+        "inputs": {
+          "path": "inputs.jsonl",
+          "sha256": "250f0c6e549eb0a16400f8230df312cb994721b30a3f907562ae8b3e1d8814c7"
+        },
+        "interactions": {
+          "path": "interactions.jsonl",
+          "sha256": "bbe2dc8897e0da01121aa6835954cc01d76cfb0241b24dbd5eb7daa74009afcd"
+        },
+        "setups": {
+          "path": "setups.jsonl",
+          "sha256": "5c47dd4930e56941ecbd46c993aab14c72a5daa7df21986681c7e859db11d2fa"
+        },
+        "workloads": {
+          "path": "workloads.jsonl",
+          "sha256": "02cd7633c3cf45133ea551dd9c02943433442daab49e13ee61600344ccb7b61b"
+        },
+        "faultScenarios": {
+          "path": "fault-scenarios.jsonl",
+          "sha256": "91ed68e9f7748677ec1f8aa157067bd744eacf728724c2f027ede846276f2866"
+        },
+        "requests": {
+          "path": "requests.jsonl",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "dynamicObservations": {
+          "path": "dynamic-observations.jsonl",
+          "sha256": "cea1cfec360cb0a938dbd92e4ac0b900b7dbddb6b51c35d7e20a844e8fa67a40"
+        },
+        "dynamicAttributionLinks": {
+          "path": "dynamic-attribution-links.jsonl",
+          "sha256": "9d8cc1741fe257356809b56219f3f270ca295aece9abea3c25fc774341770fbf"
+        }
+      }
+    },
+    "post-on-demand": {
+      "formatVersion": 1,
+      "files": {
+        "accounting": {
+          "path": "accounting.json",
+          "sha256": "e56d81328cc92f503cdd1f8a9929a8c890a6efb11c55528f3902b52543e9ea2e"
+        },
+        "sagas": {
+          "path": "sagas.jsonl",
+          "sha256": "4967b85ffa1eed52192a74897c56afa7af6acd7165c00b33af75aa3d0079ad67"
+        },
+        "inputs": {
+          "path": "inputs.jsonl",
+          "sha256": "250f0c6e549eb0a16400f8230df312cb994721b30a3f907562ae8b3e1d8814c7"
+        },
+        "interactions": {
+          "path": "interactions.jsonl",
+          "sha256": "bbe2dc8897e0da01121aa6835954cc01d76cfb0241b24dbd5eb7daa74009afcd"
+        },
+        "setups": {
+          "path": "setups.jsonl",
+          "sha256": "5c47dd4930e56941ecbd46c993aab14c72a5daa7df21986681c7e859db11d2fa"
+        },
+        "workloads": {
+          "path": "workloads.jsonl",
+          "sha256": "02cd7633c3cf45133ea551dd9c02943433442daab49e13ee61600344ccb7b61b"
+        },
+        "faultScenarios": {
+          "path": "fault-scenarios.jsonl",
+          "sha256": "47577bcbf304658d9063433f2233d8b79ffce35a046ce6a511727ea71a90aeee"
+        },
+        "requests": {
+          "path": "requests.jsonl",
+          "sha256": "dcab93a89369c01901575cd2b05a25f1cd3fa47ebd5b2ede331ed4111312a4a7"
+        }
+      }
+    }
+  },
+  "artifacts": {
+    "accounting": {
+      "count-only": {
+        "configuration": {
+          "targetApplication": "example",
+          "catalogWriteMode": "count-only",
+          "sagaSetSizes": [
+            1,
+            2
+          ],
+          "sagaSetSelection": "strict",
+          "acceptedInputStatuses": [
+            "fullyResolved",
+            "runtimeDependent"
+          ],
+          "maxInputsPerSaga": 2
+        },
+        "sagas": {
+          "found": 2,
+          "withAcceptedInputs": 2,
+          "withoutAcceptedInputs": 0,
+          "bySaga": [
+            {
+              "fqn": "example.OrderSaga",
+              "stepCount": 2,
+              "acceptedInputs": 1,
+              "notAcceptedInputs": 1,
+              "materializableInputs": 1,
+              "blockedInputs": 0,
+              "strictDirectInteractions": 1,
+              "fallbackDirectInteractions": 1
+            },
+            {
+              "fqn": "example.PaymentSaga",
+              "stepCount": 1,
+              "acceptedInputs": 2,
+              "notAcceptedInputs": 0,
+              "materializableInputs": 1,
+              "blockedInputs": 1,
+              "strictDirectInteractions": 1,
+              "fallbackDirectInteractions": 1
+            }
+          ]
+        },
+        "inputs": {
+          "found": 4,
+          "accepted": 3,
+          "notAccepted": 1,
+          "acceptedByStatus": {
+            "fullyResolved": 2,
+            "runtimeDependent": 1
+          },
+          "notAcceptedByReason": {
+            "sourceModeRejected": 1
+          },
+          "materializability": {
+            "materializable": 2,
+            "blocked": 1,
+            "affectedInputsByReason": {
+              "runtimeProviderUnavailable": 1
+            }
+          }
+        },
+        "interactions": {
+          "direct": {
+            "total": 1,
+            "byEvidence": {
+              "exact": 0,
+              "symbolic": 1,
+              "typeOnly": 0,
+              "unknown": 0
+            }
+          },
+          "sagaSets": {
+            "strict": {
+              "connectedBySize": {
+                "2": 1
+              },
+              "withAcceptedInputsBySize": {
+                "2": 1
+              }
+            },
+            "withTypeOnlyFallback": {
+              "connectedBySize": {
+                "2": 1
+              },
+              "withAcceptedInputsBySize": {
+                "2": 1
+              }
+            }
+          }
+        },
+        "events": {
+          "emissionSites": 1,
+          "resolvedEventRoutes": 1
+        },
+        "workloads": {
+          "all": {
+            "total": 2,
+            "bySagaSetSize": {
+              "1": 1,
+              "2": 1
+            },
+            "inputBoundTotal": 118264581564861424
+          },
+          "selected": {
+            "total": 2,
+            "bySagaSetSize": {
+              "1": 1,
+              "2": 1
+            },
+            "inputBoundTotal": 118264581564861424
+          },
+          "written": {
+            "total": 0
+          }
+        }
+      },
+      "initial-catalog": {
+        "configuration": {
+          "targetApplication": "example",
+          "catalogWriteMode": "catalog-writing",
+          "sagaSetSizes": [
+            1,
+            2
+          ],
+          "sagaSetSelection": "strict",
+          "acceptedInputStatuses": [
+            "fullyResolved",
+            "runtimeDependent"
+          ],
+          "maxInputsPerSaga": 2,
+          "maxStepSchedulesPerInputCombination": 4,
+          "maxWorkloadsWritten": 2,
+          "maxRecoverySchedulesPerVector": 3
+        },
+        "sagas": {
+          "found": 2,
+          "withAcceptedInputs": 2,
+          "withoutAcceptedInputs": 0,
+          "bySaga": [
+            {
+              "fqn": "example.OrderSaga",
+              "stepCount": 2,
+              "acceptedInputs": 1,
+              "notAcceptedInputs": 1,
+              "materializableInputs": 1,
+              "blockedInputs": 0,
+              "strictDirectInteractions": 1,
+              "fallbackDirectInteractions": 1
+            },
+            {
+              "fqn": "example.PaymentSaga",
+              "stepCount": 1,
+              "acceptedInputs": 2,
+              "notAcceptedInputs": 0,
+              "materializableInputs": 1,
+              "blockedInputs": 1,
+              "strictDirectInteractions": 1,
+              "fallbackDirectInteractions": 1
+            }
+          ]
+        },
+        "inputs": {
+          "found": 4,
+          "accepted": 3,
+          "notAccepted": 1,
+          "acceptedByStatus": {
+            "fullyResolved": 2,
+            "runtimeDependent": 1
+          },
+          "notAcceptedByReason": {
+            "sourceModeRejected": 1
+          },
+          "materializability": {
+            "materializable": 2,
+            "blocked": 1,
+            "affectedInputsByReason": {
+              "runtimeProviderUnavailable": 1
+            }
+          }
+        },
+        "interactions": {
+          "direct": {
+            "total": 1,
+            "byEvidence": {
+              "exact": 0,
+              "symbolic": 1,
+              "typeOnly": 0,
+              "unknown": 0
+            }
+          },
+          "sagaSets": {
+            "strict": {
+              "connectedBySize": {
+                "2": 1
+              },
+              "withAcceptedInputsBySize": {
+                "2": 1
+              }
+            },
+            "withTypeOnlyFallback": {
+              "connectedBySize": {
+                "2": 1
+              },
+              "withAcceptedInputsBySize": {
+                "2": 1
+              }
+            }
+          }
+        },
+        "events": {
+          "emissionSites": 1,
+          "resolvedEventRoutes": 1
+        },
+        "workloads": {
+          "all": {
+            "total": 2,
+            "bySagaSetSize": {
+              "1": 1,
+              "2": 1
+            },
+            "inputBoundTotal": 118264581564861424
+          },
+          "selected": {
+            "total": 2,
+            "bySagaSetSize": {
+              "1": 1,
+              "2": 1
+            },
+            "inputBoundTotal": 118264581564861424
+          },
+          "written": {
+            "total": 2
+          }
+        },
+        "setups": {
+          "sourceDerived": {
+            "materializable": 1,
+            "blocked": 0
+          },
+          "providerBacked": {
+            "setups": 1,
+            "workloads": 1
+          }
+        },
+        "faultScenarios": {
+          "initial": {
+            "vectorsComputed": 3,
+            "possibleForComputedVectors": 3,
+            "written": 3
+          },
+          "current": {
+            "vectorsComputed": 3,
+            "possibleForComputedVectors": 3,
+            "written": 3
+          }
+        }
+      },
+      "dynamic-enriched-catalog": {
+        "configuration": {
+          "targetApplication": "example",
+          "catalogWriteMode": "catalog-writing",
+          "sagaSetSizes": [
+            1,
+            2
+          ],
+          "sagaSetSelection": "strict",
+          "acceptedInputStatuses": [
+            "fullyResolved",
+            "runtimeDependent"
+          ],
+          "maxInputsPerSaga": 2,
+          "maxStepSchedulesPerInputCombination": 4,
+          "maxWorkloadsWritten": 2,
+          "maxRecoverySchedulesPerVector": 3
+        },
+        "sagas": {
+          "found": 2,
+          "withAcceptedInputs": 2,
+          "withoutAcceptedInputs": 0,
+          "bySaga": [
+            {
+              "fqn": "example.OrderSaga",
+              "stepCount": 2,
+              "acceptedInputs": 1,
+              "notAcceptedInputs": 1,
+              "materializableInputs": 1,
+              "blockedInputs": 0,
+              "strictDirectInteractions": 1,
+              "fallbackDirectInteractions": 1
+            },
+            {
+              "fqn": "example.PaymentSaga",
+              "stepCount": 1,
+              "acceptedInputs": 2,
+              "notAcceptedInputs": 0,
+              "materializableInputs": 1,
+              "blockedInputs": 1,
+              "strictDirectInteractions": 1,
+              "fallbackDirectInteractions": 1
+            }
+          ]
+        },
+        "inputs": {
+          "found": 4,
+          "accepted": 3,
+          "notAccepted": 1,
+          "acceptedByStatus": {
+            "fullyResolved": 2,
+            "runtimeDependent": 1
+          },
+          "notAcceptedByReason": {
+            "sourceModeRejected": 1
+          },
+          "materializability": {
+            "materializable": 2,
+            "blocked": 1,
+            "affectedInputsByReason": {
+              "runtimeProviderUnavailable": 1
+            }
+          }
+        },
+        "interactions": {
+          "direct": {
+            "total": 1,
+            "byEvidence": {
+              "exact": 0,
+              "symbolic": 1,
+              "typeOnly": 0,
+              "unknown": 0
+            }
+          },
+          "sagaSets": {
+            "strict": {
+              "connectedBySize": {
+                "2": 1
+              },
+              "withAcceptedInputsBySize": {
+                "2": 1
+              }
+            },
+            "withTypeOnlyFallback": {
+              "connectedBySize": {
+                "2": 1
+              },
+              "withAcceptedInputsBySize": {
+                "2": 1
+              }
+            }
+          }
+        },
+        "events": {
+          "emissionSites": 1,
+          "resolvedEventRoutes": 1
+        },
+        "workloads": {
+          "all": {
+            "total": 2,
+            "bySagaSetSize": {
+              "1": 1,
+              "2": 1
+            },
+            "inputBoundTotal": 118264581564861424
+          },
+          "selected": {
+            "total": 2,
+            "bySagaSetSize": {
+              "1": 1,
+              "2": 1
+            },
+            "inputBoundTotal": 118264581564861424
+          },
+          "written": {
+            "total": 2
+          }
+        },
+        "setups": {
+          "sourceDerived": {
+            "materializable": 1,
+            "blocked": 0
+          },
+          "providerBacked": {
+            "setups": 1,
+            "workloads": 1
+          }
+        },
+        "faultScenarios": {
+          "initial": {
+            "vectorsComputed": 3,
+            "possibleForComputedVectors": 3,
+            "written": 3
+          },
+          "current": {
+            "vectorsComputed": 3,
+            "possibleForComputedVectors": 3,
+            "written": 3
+          }
+        },
+        "dynamicEvidence": {
+          "testOutcomes": {
+            "passed": 5,
+            "failed": 0
+          },
+          "observations": {
+            "total": 5,
+            "byKind": {
+              "stepStarted": 1,
+              "stepFinished": 1,
+              "commandSent": 1,
+              "aggregateAccessed": 1,
+              "invariantViolation": 1
+            },
+            "withoutTestContext": 0
+          },
+          "sagaInvocations": {
+            "total": 5,
+            "byStatus": {
+              "exactInput": 1,
+              "testAndShape": 1,
+              "shapeOnly": 1,
+              "ambiguous": 1,
+              "unmatched": 1
+            }
+          },
+          "uniqueInputEvidence": {
+            "exactInput": 1,
+            "testAndShape": 0,
+            "shapeOnly": 1
+          },
+          "workloadParticipantEvidence": {
+            "allInputsObservedInOneCommonTest": 0,
+            "allInputsObservedAcrossSeparateTests": 0,
+            "someInputsObserved": 1,
+            "noInputsObserved": 1
+          }
+        }
+      },
+      "post-on-demand": {
+        "configuration": {
+          "targetApplication": "example",
+          "catalogWriteMode": "catalog-writing",
+          "sagaSetSizes": [
+            1,
+            2
+          ],
+          "sagaSetSelection": "strict",
+          "acceptedInputStatuses": [
+            "fullyResolved",
+            "runtimeDependent"
+          ],
+          "maxInputsPerSaga": 2,
+          "maxStepSchedulesPerInputCombination": 4,
+          "maxWorkloadsWritten": 2,
+          "maxRecoverySchedulesPerVector": 3
+        },
+        "sagas": {
+          "found": 2,
+          "withAcceptedInputs": 2,
+          "withoutAcceptedInputs": 0,
+          "bySaga": [
+            {
+              "fqn": "example.OrderSaga",
+              "stepCount": 2,
+              "acceptedInputs": 1,
+              "notAcceptedInputs": 1,
+              "materializableInputs": 1,
+              "blockedInputs": 0,
+              "strictDirectInteractions": 1,
+              "fallbackDirectInteractions": 1
+            },
+            {
+              "fqn": "example.PaymentSaga",
+              "stepCount": 1,
+              "acceptedInputs": 2,
+              "notAcceptedInputs": 0,
+              "materializableInputs": 1,
+              "blockedInputs": 1,
+              "strictDirectInteractions": 1,
+              "fallbackDirectInteractions": 1
+            }
+          ]
+        },
+        "inputs": {
+          "found": 4,
+          "accepted": 3,
+          "notAccepted": 1,
+          "acceptedByStatus": {
+            "fullyResolved": 2,
+            "runtimeDependent": 1
+          },
+          "notAcceptedByReason": {
+            "sourceModeRejected": 1
+          },
+          "materializability": {
+            "materializable": 2,
+            "blocked": 1,
+            "affectedInputsByReason": {
+              "runtimeProviderUnavailable": 1
+            }
+          }
+        },
+        "interactions": {
+          "direct": {
+            "total": 1,
+            "byEvidence": {
+              "exact": 0,
+              "symbolic": 1,
+              "typeOnly": 0,
+              "unknown": 0
+            }
+          },
+          "sagaSets": {
+            "strict": {
+              "connectedBySize": {
+                "2": 1
+              },
+              "withAcceptedInputsBySize": {
+                "2": 1
+              }
+            },
+            "withTypeOnlyFallback": {
+              "connectedBySize": {
+                "2": 1
+              },
+              "withAcceptedInputsBySize": {
+                "2": 1
+              }
+            }
+          }
+        },
+        "events": {
+          "emissionSites": 1,
+          "resolvedEventRoutes": 1
+        },
+        "workloads": {
+          "all": {
+            "total": 2,
+            "bySagaSetSize": {
+              "1": 1,
+              "2": 1
+            },
+            "inputBoundTotal": 118264581564861424
+          },
+          "selected": {
+            "total": 2,
+            "bySagaSetSize": {
+              "1": 1,
+              "2": 1
+            },
+            "inputBoundTotal": 118264581564861424
+          },
+          "written": {
+            "total": 2
+          }
+        },
+        "setups": {
+          "sourceDerived": {
+            "materializable": 1,
+            "blocked": 0
+          },
+          "providerBacked": {
+            "setups": 1,
+            "workloads": 1
+          }
+        },
+        "faultScenarios": {
+          "initial": {
+            "vectorsComputed": 3,
+            "possibleForComputedVectors": 3,
+            "written": 3
+          },
+          "current": {
+            "vectorsComputed": 4,
+            "possibleForComputedVectors": 4,
+            "written": 4
+          }
+        }
+      }
+    },
+    "sagas": [
+      {
+        "fqn": "example.OrderSaga",
+        "dependencies": [
+          "example.PaymentSaga"
+        ],
+        "steps": [
+          {
+            "id": "reserveOrder#0",
+            "commandAccesses": [
+              {
+                "command": "ReserveOrderCommand",
+                "aggregate": {
+                  "type": "example.Order",
+                  "name": "order",
+                  "mode": "write",
+                  "keyEvidence": {
+                    "kind": "exact",
+                    "value": "order-1"
+                  }
+                },
+                "repetition": {
+                  "kind": "inputDependent",
+                  "max": 2
+                }
+              }
+            ],
+            "compensation": {
+              "kind": "explicit",
+              "step": "releaseOrder#0"
+            },
+            "eventRoutes": [
+              {
+                "id": "reserveOrder#0/event#0",
+                "event": "OrderReservedEvent",
+                "handler": "example.PaymentEventHandler",
+                "processingMethod": "handleOrderReserved",
+                "functionalityMethod": "chargePayment",
+                "downstreamSaga": "example.PaymentSaga"
+              }
+            ],
+            "analysisLimitations": [
+              "helperCallUnclassified"
+            ]
+          },
+          {
+            "id": "releaseOrder#0",
+            "commandAccesses": [],
+            "compensation": {
+              "kind": "none"
+            },
+            "eventRoutes": [],
+            "analysisLimitations": []
+          }
+        ]
+      },
+      {
+        "fqn": "example.PaymentSaga",
+        "dependencies": [],
+        "steps": [
+          {
+            "id": "chargePayment#0",
+            "commandAccesses": [
+              {
+                "command": "ChargePaymentCommand",
+                "aggregate": {
+                  "type": "example.Order",
+                  "name": "order",
+                  "mode": "read",
+                  "keyEvidence": {
+                    "kind": "sameSource",
+                    "origin": "OrderSpec.createsOrder",
+                    "expression": "paymentDto.orderId"
+                  }
+                }
+              }
+            ],
+            "compensation": {
+              "kind": "implicitSagaRollback"
+            },
+            "eventRoutes": [],
+            "analysisLimitations": []
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "id": "input-1",
+        "saga": "example.OrderSaga",
+        "source": {
+          "testClass": "example.OrderSpec",
+          "method": "createsOrder",
+          "testRole": "featureUnderTest",
+          "call": "orderFacade.create(orderDto)"
+        },
+        "transactionModel": "saga",
+        "resolution": "fullyResolved",
+        "aggregateKeyEvidence": {
+          "kind": "exact",
+          "aggregate": "order",
+          "value": "order-1"
+        },
+        "arguments": [
+          {
+            "index": 0,
+            "expectedType": "java.lang.String",
+            "sourceExpression": "orderId",
+            "value": {
+              "kind": "literal",
+              "value": "order-1"
+            }
+          }
+        ],
+        "accepted": true,
+        "materializable": true
+      },
+      {
+        "id": "input-2",
+        "saga": "example.PaymentSaga",
+        "source": {
+          "testClass": "example.OrderSpec",
+          "method": "createsOrder",
+          "calledFrom": "setupPayment",
+          "testRole": "setup",
+          "call": "paymentFacade.charge(paymentDto)"
+        },
+        "usedBy": [
+          "createsOrder"
+        ],
+        "transactionModel": "saga",
+        "resolution": "runtimeDependent",
+        "aggregateKeyEvidence": {
+          "kind": "sameSource",
+          "aggregate": "order",
+          "origin": "OrderSpec.createsOrder",
+          "expression": "paymentDto.orderId"
+        },
+        "arguments": [
+          {
+            "index": 0,
+            "expectedType": "example.PaymentDto",
+            "sourceExpression": "paymentDto",
+            "value": {
+              "kind": "runtime",
+              "type": "example.PaymentDto",
+              "provider": "example.fixtureProvider@1",
+              "scope": "participant"
+            }
+          }
+        ],
+        "accepted": true,
+        "materializable": false,
+        "blockers": [
+          {
+            "argument": 0,
+            "reason": "runtimeProviderUnavailable",
+            "sourceExpression": "paymentDto"
+          }
+        ]
+      },
+      {
+        "id": "input-3",
+        "saga": "example.OrderSaga",
+        "source": {
+          "testClass": "example.OrderSpec",
+          "method": "helperBuildsOrder",
+          "testRole": "setupHelper",
+          "call": "orderFacade.create(orderDto)"
+        },
+        "transactionModel": "tcc",
+        "resolution": "partial",
+        "arguments": [
+          {
+            "index": 0,
+            "expectedType": "example.OrderDto",
+            "sourceExpression": "orderDto",
+            "value": {
+              "kind": "unresolved",
+              "reason": "unsupportedTransform"
+            }
+          }
+        ],
+        "accepted": false,
+        "notAcceptedReason": "sourceModeRejected",
+        "materializable": false,
+        "blockers": [
+          {
+            "argument": 0,
+            "reason": "unsupportedTransform",
+            "sourceExpression": "orderDto"
+          }
+        ]
+      },
+      {
+        "id": "input-4",
+        "saga": "example.PaymentSaga",
+        "source": {
+          "testClass": "example.PaymentSpec",
+          "method": "createsPayment",
+          "testRole": "featureUnderTest",
+          "call": "paymentFacade.charge(paymentDto)"
+        },
+        "transactionModel": "saga",
+        "resolution": "fullyResolved",
+        "aggregateKeyEvidence": {
+          "kind": "exact",
+          "aggregate": "order",
+          "value": "order-1"
+        },
+        "arguments": [
+          {
+            "index": 0,
+            "expectedType": "example.PaymentDto",
+            "sourceExpression": "paymentDto",
+            "value": {
+              "kind": "constructor",
+              "targetType": "example.PaymentDto",
+              "fields": {
+                "orderId": {
+                  "kind": "literal",
+                  "value": "order-1"
+                },
+                "amount": {
+                  "kind": "literal",
+                  "value": 100
+                }
+              }
+            }
+          }
+        ],
+        "accepted": true,
+        "materializable": true
+      }
+    ],
+    "interactions": [
+      {
+        "id": "interaction-1",
+        "accesses": [
+          {
+            "saga": "example.OrderSaga",
+            "step": "reserveOrder#0",
+            "aggregate": "order",
+            "mode": "write",
+            "keyEvidence": {
+              "kind": "exact",
+              "value": "order-1"
+            }
+          },
+          {
+            "saga": "example.PaymentSaga",
+            "step": "chargePayment#0",
+            "aggregate": "order",
+            "mode": "read",
+            "keyEvidence": {
+              "kind": "sameSource",
+              "origin": "OrderSpec.createsOrder",
+              "expression": "paymentDto.orderId"
+            }
+          }
+        ],
+        "evidence": "symbolic"
+      }
+    ],
+    "setups": [
+      {
+        "id": "setup-source-1",
+        "kind": "sourceDerived",
+        "materializable": true,
+        "actions": [
+          {
+            "id": "setup-action-1",
+            "call": "courseFacade.create",
+            "arguments": [
+              {
+                "kind": "literal",
+                "value": "course-1"
+              }
+            ],
+            "result": "course"
+          },
+          {
+            "id": "setup-action-2",
+            "call": "orderFacade.create",
+            "arguments": [
+              {
+                "kind": "property",
+                "action": "setup-action-1",
+                "property": "id"
+              }
+            ],
+            "result": "order"
+          }
+        ],
+        "bindings": [
+          {
+            "input": "input-1",
+            "argument": 0,
+            "value": {
+              "kind": "resultProperty",
+              "action": "setup-action-2",
+              "property": "id"
+            }
+          }
+        ]
+      },
+      {
+        "id": "setup-provider-1",
+        "kind": "providerBacked",
+        "provider": "example.fixtureProvider@1",
+        "bindings": [
+          {
+            "key": "paymentDto",
+            "type": "example.PaymentDto"
+          }
+        ]
+      }
+    ],
+    "workloads": [
+      {
+        "id": "workload-1",
+        "participants": [
+          {
+            "id": "p1",
+            "saga": "example.OrderSaga",
+            "input": "input-1"
+          },
+          {
+            "id": "p2",
+            "saga": "example.PaymentSaga",
+            "input": "input-4"
+          }
+        ],
+        "setup": "setup-source-1",
+        "interactions": [
+          "interaction-1"
+        ],
+        "schedule": [
+          {
+            "id": "s1",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "reserveOrder#0",
+            "faultSlot": 0
+          },
+          {
+            "id": "e1",
+            "kind": "event",
+            "route": "reserveOrder#0/event#0",
+            "triggeringStep": "s1"
+          },
+          {
+            "id": "s2",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "chargePayment#0",
+            "faultSlot": 1
+          }
+        ]
+      },
+      {
+        "id": "workload-2",
+        "participants": [
+          {
+            "id": "p3",
+            "saga": "example.PaymentSaga",
+            "input": "input-4"
+          }
+        ],
+        "setup": "setup-provider-1",
+        "interactions": [],
+        "schedule": [
+          {
+            "id": "s1",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "chargePayment#0",
+            "faultSlot": 0
+          }
+        ]
+      }
+    ],
+    "faultScenarios": {
+      "initial-catalog": [
+        {
+          "id": "fault-1",
+          "workload": "workload-1",
+          "faultVector": "00",
+          "actions": [
+            {
+              "step": "s1"
+            },
+            {
+              "event": "e1"
+            },
+            {
+              "step": "s2"
+            }
+          ]
+        },
+        {
+          "id": "fault-2",
+          "workload": "workload-1",
+          "faultVector": "10",
+          "actions": [
+            {
+              "step": "s1"
+            },
+            {
+              "step": "s2"
+            }
+          ]
+        },
+        {
+          "id": "fault-3",
+          "workload": "workload-1",
+          "faultVector": "01",
+          "actions": [
+            {
+              "step": "s1"
+            },
+            {
+              "event": "e1"
+            },
+            {
+              "step": "s2"
+            },
+            {
+              "compensate": "s1"
+            }
+          ]
+        }
+      ],
+      "dynamic-enriched-catalog": [
+        {
+          "id": "fault-1",
+          "workload": "workload-1",
+          "faultVector": "00",
+          "actions": [
+            {
+              "step": "s1"
+            },
+            {
+              "event": "e1"
+            },
+            {
+              "step": "s2"
+            }
+          ]
+        },
+        {
+          "id": "fault-2",
+          "workload": "workload-1",
+          "faultVector": "10",
+          "actions": [
+            {
+              "step": "s1"
+            },
+            {
+              "step": "s2"
+            }
+          ]
+        },
+        {
+          "id": "fault-3",
+          "workload": "workload-1",
+          "faultVector": "01",
+          "actions": [
+            {
+              "step": "s1"
+            },
+            {
+              "event": "e1"
+            },
+            {
+              "step": "s2"
+            },
+            {
+              "compensate": "s1"
+            }
+          ]
+        }
+      ],
+      "post-on-demand": [
+        {
+          "id": "fault-1",
+          "workload": "workload-1",
+          "faultVector": "00",
+          "actions": [
+            {
+              "step": "s1"
+            },
+            {
+              "event": "e1"
+            },
+            {
+              "step": "s2"
+            }
+          ]
+        },
+        {
+          "id": "fault-2",
+          "workload": "workload-1",
+          "faultVector": "10",
+          "actions": [
+            {
+              "step": "s1"
+            },
+            {
+              "step": "s2"
+            }
+          ]
+        },
+        {
+          "id": "fault-3",
+          "workload": "workload-1",
+          "faultVector": "01",
+          "actions": [
+            {
+              "step": "s1"
+            },
+            {
+              "event": "e1"
+            },
+            {
+              "step": "s2"
+            },
+            {
+              "compensate": "s1"
+            }
+          ]
+        },
+        {
+          "id": "fault-4",
+          "workload": "workload-1",
+          "faultVector": "11",
+          "actions": [
+            {
+              "step": "s1"
+            },
+            {
+              "step": "s2"
+            }
+          ]
+        }
+      ]
+    },
+    "requests": {
+      "initial-catalog": [],
+      "dynamic-enriched-catalog": [],
+      "post-on-demand": [
+        {
+          "workload": "workload-1",
+          "faultVector": "11",
+          "effectiveRecoveryScheduleCap": 3,
+          "uncappedPossibleRecoverySchedules": 1,
+          "faultScenarioIds": [
+            "fault-4"
+          ]
+        }
+      ]
+    },
+    "dynamicObservations": [
+      {
+        "id": "observation-1",
+        "kind": "stepStarted",
+        "sequence": 1,
+        "timestamp": "2026-08-29T00:00:01Z",
+        "thread": "worker-1",
+        "test": {
+          "execution": "execution-1",
+          "class": "example.OrderSpec",
+          "method": "case1"
+        },
+        "saga": "example.OrderSaga",
+        "invocation": "invocation-1",
+        "step": "reserveOrder#0",
+        "input": "input-1",
+        "phase": "forward"
+      },
+      {
+        "id": "observation-2",
+        "kind": "stepFinished",
+        "sequence": 2,
+        "timestamp": "2026-08-29T00:00:02Z",
+        "thread": "worker-2",
+        "test": {
+          "execution": "execution-2",
+          "class": "example.OrderSpec",
+          "method": "case2"
+        },
+        "saga": "example.OrderSaga",
+        "invocation": "invocation-2",
+        "step": "reserveOrder#0",
+        "input": "input-1",
+        "outcome": "completed"
+      },
+      {
+        "id": "observation-3",
+        "kind": "commandSent",
+        "sequence": 3,
+        "timestamp": "2026-08-29T00:00:03Z",
+        "thread": "worker-3",
+        "test": {
+          "execution": "execution-3",
+          "class": "example.PaymentSpec",
+          "method": "case3"
+        },
+        "saga": "example.PaymentSaga",
+        "invocation": "invocation-3",
+        "step": "chargePayment#0",
+        "input": "input-4",
+        "command": {
+          "type": "ObserveOrderCommand",
+          "fields": {
+            "orderId": "order-1",
+            "userId": "user-1"
+          }
+        }
+      },
+      {
+        "id": "observation-4",
+        "kind": "aggregateAccessed",
+        "sequence": 4,
+        "timestamp": "2026-08-29T00:00:04Z",
+        "thread": "worker-4",
+        "test": {
+          "execution": "execution-4",
+          "class": "example.OrderSpec",
+          "method": "case4"
+        },
+        "saga": "example.OrderSaga",
+        "invocation": "invocation-4",
+        "step": "reserveOrder#0",
+        "access": {
+          "aggregate": "order",
+          "id": "order-1",
+          "mode": "write"
+        }
+      },
+      {
+        "id": "observation-5",
+        "kind": "invariantViolation",
+        "sequence": 5,
+        "timestamp": "2026-08-29T00:00:05Z",
+        "thread": "worker-5",
+        "test": {
+          "execution": "execution-5",
+          "class": "example.PaymentSpec",
+          "method": "case5"
+        },
+        "saga": "example.PaymentSaga",
+        "invocation": "invocation-5",
+        "step": "chargePayment#0",
+        "violation": {
+          "type": "aggregateInvariant",
+          "message": "order is locked"
+        }
+      }
+    ],
+    "dynamicAttributionLinks": [
+      {
+        "testExecution": "execution-1",
+        "saga": "example.OrderSaga",
+        "sagaInvocation": "invocation-1",
+        "status": "exactInput",
+        "observationIds": [
+          "observation-1"
+        ],
+        "input": "input-1"
+      },
+      {
+        "testExecution": "execution-2",
+        "saga": "example.OrderSaga",
+        "sagaInvocation": "invocation-2",
+        "status": "testAndShape",
+        "observationIds": [
+          "observation-2"
+        ],
+        "input": "input-1"
+      },
+      {
+        "testExecution": "execution-3",
+        "saga": "example.PaymentSaga",
+        "sagaInvocation": "invocation-3",
+        "status": "shapeOnly",
+        "observationIds": [
+          "observation-3"
+        ],
+        "input": "input-4"
+      },
+      {
+        "testExecution": "execution-4",
+        "saga": "example.OrderSaga",
+        "sagaInvocation": "invocation-4",
+        "status": "ambiguous",
+        "observationIds": [
+          "observation-4"
+        ],
+        "candidateInputs": [
+          "input-1",
+          "input-3"
+        ]
+      },
+      {
+        "testExecution": "execution-5",
+        "saga": "example.PaymentSaga",
+        "sagaInvocation": "invocation-5",
+        "status": "unmatched",
+        "observationIds": [
+          "observation-5"
+        ],
+        "reason": "no-static-input"
+      }
+    ]
+  }
+}

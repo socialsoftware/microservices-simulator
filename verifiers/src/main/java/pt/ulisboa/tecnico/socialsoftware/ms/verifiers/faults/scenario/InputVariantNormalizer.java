@@ -190,6 +190,21 @@ public final class InputVariantNormalizer {
                 normalized.inputRecipe());
     }
 
+    /**
+     * Canonicalizes an input for a persisted current artifact without applying
+     * acceptance policy or the per-Saga cap. Those decisions are recorded by
+     * the artifact writer so acceptance and materializability remain separate.
+     */
+    public static InputVariant normalizeForArtifact(InputVariant input) {
+        return input == null ? null : normalizeVariant(input);
+    }
+
+    /** Exposes the existing policy predicate to current artifact accounting. */
+    public static boolean allowedByPolicy(InputResolutionStatus status,
+                                          ScenarioGeneratorConfig.InputPolicy policy) {
+        return isAllowedByPolicy(status, policy);
+    }
+
     private static SourceModeRejectionReason sourceModeRejectionReason(SourceMode sourceMode) {
         SourceMode safeMode = sourceMode == null ? SourceMode.UNKNOWN : sourceMode;
         return switch (safeMode) {

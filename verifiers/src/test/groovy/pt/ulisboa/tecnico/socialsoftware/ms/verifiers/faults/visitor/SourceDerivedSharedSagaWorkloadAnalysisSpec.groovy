@@ -20,7 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Faul
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupValueKind
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.WorkloadPlanValidator
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogJsonlWriter
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ExecutableArtifactWriter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogPackageReader
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
@@ -209,41 +209,24 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
                     generated.schemaVersion(), generated.effectiveConfig(), [serial], [], generated.counts(),
                     generated.warnings())
             def focusedEager = EagerFaultScenarioGenerator.generate(focusedWorkloads, new RecoveryScheduleCap(20))
-            Path focusedManifest = focusedDirectory.resolve('scenario-catalog-manifest.json')
-            new ScenarioCatalogJsonlWriter().write(
-                    focusedEager, focusedDirectory.resolve('workload-catalog.jsonl'),
-                    focusedManifest, '2026-08-28T00:00:00Z')
-            def mapper = new ObjectMapper()
-            def manifestNode = mapper.readTree(focusedManifest.toFile())
-            ['workloadCatalog', 'faultScenarioCatalog', 'scenarioSpaceAccounting',
-             'rejectedInputsDiagnostic'].each { field ->
-                def artifact = manifestNode.path(field)
-                artifact.put('path', Path.of(artifact.path('path').asText()).fileName.toString())
-            }
-            mapper.writerWithDefaultPrettyPrinter().writeValue(focusedManifest.toFile(), manifestNode)
+            new ExecutableArtifactWriter().write(adapted, 'quizzes', focusedEager, focusedDirectory)
         }
 
-        when: 'the latest five-file package is written and read through its checksum boundary'
-        Path workloadPath = tempDir.resolve('workload-catalog.jsonl')
+        when: 'the current package is written and read through its checksum boundary'
+        Path workloadPath = tempDir.resolve('workloads.jsonl')
         Path manifestPath = tempDir.resolve('scenario-catalog-manifest.json')
-        def writer = new ScenarioCatalogJsonlWriter()
-        def manifest = writer.write(eager, workloadPath, manifestPath, '2026-08-28T00:00:00Z')
-        def packagePaths = [workloadPath, tempDir.resolve('fault-scenario-catalog.jsonl'), manifestPath,
-                            tempDir.resolve('scenario-space-accounting.json'),
-                            tempDir.resolve('workload-catalog-rejected-inputs.jsonl')]
-        def firstHashes = packagePaths.collect { ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(it)) }
-        writer.write(eager, workloadPath, manifestPath, '2026-08-28T00:00:00Z')
-        def secondHashes = packagePaths.collect { ScenarioCatalogJsonlWriter.sha256(Files.readAllBytes(it)) }
+        def manifest = new ExecutableArtifactWriter().write(adapted, 'quizzes', eager, tempDir)
         def roundTrip = new ScenarioCatalogPackageReader().read(manifestPath)
         def packageText = Files.readString(workloadPath)
 
         then:
-        manifest.schemaVersion() == 'microservices-simulator.scenario-catalog-manifest.v5'
-        manifest.workloadCatalog().schemaVersion() == 'microservices-simulator.workload-plan.v5'
-        roundTrip.workloadPlans().find { it.deterministicId() == serial.deterministicId() }.setupPlan().actions().size() == 12
-        roundTrip.workloadPlans().every { it.deterministicId() == ScenarioIdGenerator.workloadPlanId(it) }
-        firstHashes.size() == 5
-        firstHashes == secondHashes
+        manifest.formatVersion() == 1
+        manifest.files().keySet().containsAll(['setups', 'workloads', 'faultScenarios', 'requests'])
+        def roundTripPlan = roundTrip.workloadPlans().find { it.deterministicId() == serial.deterministicId() }
+        roundTripPlan.setupPlan().actions().size() == 12
+        def roundTripMaterializability = EagerFaultScenarioGenerator.evaluateMaterializability(roundTripPlan)
+        assert roundTripMaterializability.materializable(): roundTripMaterializability.diagnostics()
+        roundTrip.workloadPlans().size() == eager.workloadPlans().size()
         !packageText.contains('runtimeResult')
         !packageText.contains('databaseId')
     }

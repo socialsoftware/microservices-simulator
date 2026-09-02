@@ -50,7 +50,7 @@ public final class ScenarioExecutorOrchestrator {
         if (blank(config.springApplicationClass())) throw new IllegalArgumentException("Spring application class is required");
         if (blank(config.mavenProfile())) throw new IllegalArgumentException("Maven profile is required");
         if (blank(config.springProfiles())) throw new IllegalArgumentException("Spring profiles are required");
-        if (config.packagePath() == null) throw new IllegalArgumentException("v4 package path is required");
+        if (config.packagePath() == null) throw new IllegalArgumentException("current package path is required");
         if (config.outputPath() == null) throw new IllegalArgumentException("output path is required");
         if (blank(config.faultScenarioId())) throw new IllegalArgumentException("persisted FaultScenario id is required");
     }

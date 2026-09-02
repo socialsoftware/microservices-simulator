@@ -156,7 +156,7 @@ class ScenarioModelSpec extends Specification {
         validation.diagnostics()*.code().contains('INPUT_RECIPE_FINGERPRINT_MISMATCH')
     }
 
-    def 'setup semantics participate in latest identity and one validator blocks malformed references and methods'() {
+    def 'setup semantics participate in current identity and one validator blocks malformed references and methods'() {
         given:
         def base = semanticWorkload()
         def action = new SetupAction('setup-action-1', 0, 'Spec:1:1:create',
@@ -268,7 +268,7 @@ class ScenarioModelSpec extends Specification {
         new WorkloadPlanValidator().validate(withId).diagnostics()*.code().contains('MIXED_PREREQUISITE_AND_SETUP')
     }
 
-    def 'validator rejects repeated participant runtime step names with deterministic occurrence evidence'() {
+    def 'validator accepts repeated participant runtime step names with exact occurrence identities'() {
         given:
         def plan = admissibilityWorkload([
                 [owner: 'participant-1', runtimeName: 'step'],
@@ -280,24 +280,20 @@ class ScenarioModelSpec extends Specification {
         def second = new WorkloadPlanValidator().validate(plan)
 
         then:
-        !first.valid()
+        first.valid()
         first == second
-        first.diagnostics().findAll { it.code() == 'DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME' }*.message() == [
-                'participant participant-1 repeats runtime step name step: first occurrence scheduled-0, repeated occurrence scheduled-1'
-        ]
+        plan.forwardSchedule()*.deterministicId() == ['scheduled-0', 'scheduled-1']
 
         and:
         def materializability = EagerFaultScenarioGenerator.evaluateMaterializability(plan)
-        !materializability.materializable()
-        materializability.diagnostics().contains(
-                'STRUCTURAL:DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME:participant participant-1 repeats runtime step name step: first occurrence scheduled-0, repeated occurrence scheduled-1')
+        materializability.materializable()
 
         and: 'eager generation emits neither scenarios nor computed vectors for the structurally inadmissible workload'
         def eager = EagerFaultScenarioGenerator.generate(new WorkloadGenerationResult(
                 WorkloadPlan.SCHEMA_VERSION, new ScenarioGeneratorConfig(), [plan], [], [:], []),
                 RecoveryScheduleCap.defaultCap())
-        eager.faultScenarios().isEmpty()
-        eager.computedVectors().isEmpty()
+        !eager.faultScenarios().isEmpty()
+        !eager.computedVectors().isEmpty()
     }
 
     def 'runtime step-name uniqueness is participant-local and preserves distinct occurrence identities'() {

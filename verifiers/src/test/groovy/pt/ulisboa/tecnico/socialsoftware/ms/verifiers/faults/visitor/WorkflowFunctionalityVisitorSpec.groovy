@@ -429,7 +429,7 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
         ]
     }
 
-    def "legacy recipe constructors default metadata"() {
+    def "short recipe constructors default current metadata"() {
         given:
         def recipe = new GroovyValueRecipe(GroovyValueKind.LITERAL, 'hello', [])
 

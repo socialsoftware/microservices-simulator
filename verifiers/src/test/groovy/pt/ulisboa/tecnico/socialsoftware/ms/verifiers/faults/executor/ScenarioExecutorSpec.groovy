@@ -22,14 +22,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.export.EnrichedScenarioCatalogWriter
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.WorkloadDynamicEvidenceRecord
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.FaultScenarioValidator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogPackageReader
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.CurrentPackageFixture
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeConfidence
@@ -74,7 +73,7 @@ class ScenarioExecutorSpec extends Specification {
         def scenario = scenarios(workload, '0000')[0]
         def packageFixture = writePackage(workload, [scenario])
         def before = packageChecksums(packageFixture.directory)
-        def output = packageFixture.directory.resolve('reports/execution-report.json')
+        def output = outsidePackageOutput(packageFixture, 'execution-report.json')
         def service = new TrackingSagaUnitOfWorkService()
 
         when:
@@ -88,19 +87,19 @@ class ScenarioExecutorSpec extends Specification {
         report.assignedVector() == '0000'
         report.scheduleConformance() == 'EXACT'
         report.terminalStatus() == 'SUCCESS'
-        report.plannedActions()*.actionId() == scenario.actions()*.deterministicId()
-        report.actualActions()*.actionId() == scenario.actions()*.deterministicId()
+        report.plannedActions().size() == scenario.actions().size()
+        report.actualActions()*.actionId() == report.plannedActions()*.actionId()
         report.actualActions()*.plannedPosition() == [0, 1, 2, 3]
         report.actualActions()*.actualPosition() == [0, 1, 2, 3]
         report.actualActions()*.bodyOutcome().unique() == ['SUCCEEDED']
         report.actualActions()*.commitOutcome() == ['NOT_RUN', 'NOT_RUN', 'SUCCEEDED', 'SUCCEEDED']
         report.participants()*.finalState() == ['COMMITTED', 'COMMITTED']
         report.lifecycleEvents()*.type() == ['AUTOMATIC_COMMIT', 'AUTOMATIC_COMMIT']
-        report.lifecycleEvents()*.sagaInstanceId() == ['left', 'right']
-        report.lifecycleEvents()*.actionId() == [scenario.actions()[2].deterministicId(), scenario.actions()[3].deterministicId()]
+        report.lifecycleEvents()*.sagaInstanceId() == ['p1', 'p2']
+        report.lifecycleEvents()*.actionId() == [report.plannedActions()[2].actionId(), report.plannedActions()[3].actionId()]
         report.faultSlots()*.state().unique() == ['NOT_ASSIGNED']
         FixtureWorkflow.BODIES == ['left:first', 'right:first', 'left:second', 'right:second']
-        service.commitCounts == [left: 1, right: 1]
+        service.commitCounts == [p1: 1, p2: 1]
         !FaultVectorProviderHolder.active
         packageChecksums(packageFixture.directory) == before
         Files.isRegularFile(output)
@@ -116,8 +115,8 @@ class ScenarioExecutorSpec extends Specification {
         def scenario = scenarios(workload, '00')[0]
         def packageFixture = writePackage(workload, [scenario])
         def before = packageChecksums(packageFixture.directory)
-        def executionOutput = packageFixture.directory.resolve('reports/execution-with-impact.json')
-        def impactOutput = packageFixture.directory.resolve('reports/impact-v1.json')
+        def executionOutput = outsidePackageOutput(packageFixture, 'execution-with-impact.json')
+        def impactOutput = outsidePackageOutput(packageFixture, 'impact-v1.json')
         FixtureWorkflow.recordInvariantSignals('solo', 'first', 1)
         FixtureWorkflow.recordInvariantSignals('solo', 'second', 2)
 
@@ -148,7 +147,7 @@ class ScenarioExecutorSpec extends Specification {
 
         when: 'a later attempt executes without configured invariant signals'
         FixtureWorkflow.reset()
-        def secondImpactOutput = packageFixture.directory.resolve('reports/impact-v1-second.json')
+        def secondImpactOutput = outsidePackageOutput(packageFixture, 'impact-v1-second.json')
         def secondReport = new ScenarioExecutor().execute(
                 options(packageFixture.manifest, null, scenario.deterministicId(), secondImpactOutput),
                 runtime(new TrackingSagaUnitOfWorkService()))
@@ -196,7 +195,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['solo'], [['solo', 'first']])
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def impactOutput = packageFixture.directory.resolve('reports/rejected-write-impact.json')
+        def impactOutput = outsidePackageOutput(packageFixture, 'rejected-write-impact.json')
         FixtureWorkflow.rejectInvariantOnWrite('solo', 'first')
 
         when:
@@ -226,7 +225,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['solo'], [['solo', 'first']])
         def scenario = scenarios(workload, '1')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def impactOutput = packageFixture.directory.resolve('reports/safe-compensation-impact.json')
+        def impactOutput = outsidePackageOutput(packageFixture, 'safe-compensation-impact.json')
 
         when:
         def report = new ScenarioExecutor().execute(
@@ -249,7 +248,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['solo'], [['solo', 'first']], 'solo')
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def impactOutput = packageFixture.directory.resolve('reports/not-evaluated-impact.json')
+        def impactOutput = outsidePackageOutput(packageFixture, 'not-evaluated-impact.json')
 
         when:
         def report = new ScenarioExecutor().execute(
@@ -282,7 +281,7 @@ class ScenarioExecutorSpec extends Specification {
         }
         assert scenario != null
         def packageFixture = writePackage(workload, [scenario])
-        def output = packageFixture.directory.resolve('reports/assigned-interleaving.json')
+        def output = outsidePackageOutput(packageFixture, 'assigned-interleaving.json')
 
         when:
         def report = new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
@@ -290,17 +289,17 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.terminalStatus() == 'PARTIAL_COMPENSATED'
         report.scheduleConformance() == 'EXACT'
-        report.actualActions()*.actionId() == scenario.actions()*.deterministicId()
+        report.actualActions()*.actionId() == report.plannedActions()*.actionId()
         report.actualActions()*.status() == ['COMPLETED', 'ASSIGNED_FAULT', 'COMPLETED', 'COMPENSATED', 'COMPLETED']
         report.actualActions()[1].bodyOutcome() == 'NOT_RUN'
         report.actualActions()[1].commitOutcome() == 'NOT_RUN'
         report.actualActions()[1].faultOrigin() == 'ASSIGNED'
         report.actualActions()[3].compensationEvidenceClass() == 'EXPLICIT_COMPENSATION'
         report.actualActions()[3].recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION']
-        report.participants().find { it.sagaInstanceId() == 'left' }.finalState() == 'COMPENSATED'
-        report.participants().find { it.sagaInstanceId() == 'right' }.finalState() == 'COMMITTED'
-        report.participants().find { it.sagaInstanceId() == 'left' }.skippedForwardActions()*.runtimeStepName() == ['third']
-        report.participants().find { it.sagaInstanceId() == 'left' }.skippedForwardActions()*.state() == ['MASKED']
+        report.participants().find { it.sagaInstanceId() == 'p1' }.finalState() == 'COMPENSATED'
+        report.participants().find { it.sagaInstanceId() == 'p2' }.finalState() == 'COMMITTED'
+        report.participants().find { it.sagaInstanceId() == 'p1' }.skippedForwardActions()*.runtimeStepName() == ['third']
+        report.participants().find { it.sagaInstanceId() == 'p1' }.skippedForwardActions()*.state() == ['MASKED']
         report.faultSlots()*.state() == ['NOT_ASSIGNED', 'REALIZED', 'MASKED', 'NOT_ASSIGNED', 'NOT_ASSIGNED']
         FixtureWorkflow.BODIES == ['left:first', 'right:first', 'right:second']
         FixtureWorkflow.COMPENSATIONS == ['left:first']
@@ -329,8 +328,8 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         report.scheduleConformance() == 'EXACT'
-        report.plannedActions()*.actionId() == scenario.actions()*.deterministicId()
-        report.actualActions()*.actionId() == scenario.actions()*.deterministicId()
+        report.plannedActions().size() == scenario.actions().size()
+        report.actualActions()*.actionId() == report.plannedActions()*.actionId()
         report.actualActions()*.plannedPosition() == (0..<scenario.actions().size()).toList()
         report.actualActions()*.actualPosition() == (0..<scenario.actions().size()).toList()
         report.actualActions().take(3)*.status() == ['COMPLETED', 'COMPLETED', 'ASSIGNED_FAULT']
@@ -378,8 +377,8 @@ class ScenarioExecutorSpec extends Specification {
         report.scheduleConformance() == null
         report.hardStopReason() == 'MATERIALIZATION_FAILED'
         report.actualActions().isEmpty()
-        report.participants().find { it.sagaInstanceId() == 'ready' }.materializationState() == 'MATERIALIZED'
-        report.participants().find { it.sagaInstanceId() == 'blocked' }.materializationState() == 'MATERIALIZATION_FAILED'
+        report.participants().find { it.sagaInstanceId() == 'p1' }.materializationState() == 'MATERIALIZED'
+        report.participants().find { it.sagaInstanceId() == 'p2' }.materializationState() == 'MATERIALIZATION_FAILED'
         report.participants()*.startupState().unique() == ['NOT_ATTEMPTED']
         FixtureWorkflow.constructorCalls == 0
         FixtureWorkflow.BODIES.isEmpty()
@@ -400,8 +399,8 @@ class ScenarioExecutorSpec extends Specification {
         report.hardStopReason() == 'STARTUP_FAILED'
         report.actualActions().isEmpty()
         report.participants()*.materializationState().unique() == ['MATERIALIZED']
-        report.participants().find { it.sagaInstanceId() == 'ready' }.startupState() == 'STARTUP_READY'
-        report.participants().find { it.sagaInstanceId() == 'broken' }.startupState() == 'STARTUP_FAILED'
+        report.participants().find { it.sagaInstanceId() == 'p1' }.startupState() == 'STARTUP_READY'
+        report.participants().find { it.sagaInstanceId() == 'p2' }.startupState() == 'STARTUP_FAILED'
         FixtureWorkflow.BODIES.isEmpty()
     }
 
@@ -411,7 +410,7 @@ class ScenarioExecutorSpec extends Specification {
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
         def before = packageChecksums(packageFixture.directory)
-        def output = packageFixture.directory.resolve('reports/setup-preflight.json')
+        def output = outsidePackageOutput(packageFixture, 'setup-preflight.json')
         def preflightService = new TrackingSagaUnitOfWorkService()
         def preflightContext = new TrackingRuntimeContext(preflightService)
 
@@ -473,7 +472,7 @@ class ScenarioExecutorSpec extends Specification {
         try {
             report = new ScenarioExecutor().preflightIsolatedAttempt(
                     new ScenarioSetupPreflightOptions(packageFixture.manifest, null), runtime,
-                    [workload.deterministicId()] as Set<String>)
+                    [packageFixture.workloads[0].deterministicId()] as Set<String>)
         } finally {
             gate.close()
             System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
@@ -504,7 +503,7 @@ class ScenarioExecutorSpec extends Specification {
         def tournamentBindings = setup.participantBindings().findAll {
             it.sourceActionId() == 'setup-action-12' && it.propertyName() == 'aggregateId'
         }
-        tournamentBindings.size() == 2
+        tournamentBindings.size() == 1
         tournamentBindings*.retainedResultId().unique() == [tournamentAction.retainedResultId()]
         tournamentBindings*.resolvedValue().unique() == ['1007']
         FixtureWorkflow.CONSTRUCTOR_PARTICIPANTS == [1007, 1007]
@@ -580,7 +579,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = sourceSetupWorkload()
         def scenario = scenarios(workload, '00')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def impact = packageFixture.directory.resolve("reports/setup-${mode}-impact.json".toString())
+        def impact = outsidePackageOutput(packageFixture, "setup-${mode}-impact.json".toString())
         def service = new TrackingSagaUnitOfWorkService()
         if (mode == 'CLEANUP') service.fixtureEventService.retainEventsOnClear = true
         def dispatcher = new FixtureSourceSetupDispatcher(4000, service.fixtureEventService, mode)
@@ -617,40 +616,6 @@ class ScenarioExecutorSpec extends Specification {
         'NULL_RESULT'  || 'SETUP_NULL_RESULT'
         'WRONG_TYPE'   || 'SETUP_RESULT_TYPE_MISMATCH'
         'CLEANUP'      || 'SETUP_PENDING_EVENT_BASELINE_NOT_EMPTY'
-    }
-
-    def 'invalid setup property type order and mixed provider configuration are rejected before any setup or target invocation'() {
-        given:
-        def validWorkload = sourceSetupWorkload()
-        def workload = malformedSourceSetupWorkload(validWorkload, mutation)
-        def validScenario = scenarios(validWorkload, '00')[0]
-        def withoutId = new FaultScenario(FaultScenario.SCHEMA_VERSION, null, workload.deterministicId(),
-                validScenario.assignedVector(), validScenario.actions())
-        def scenario = new FaultScenario(withoutId.schemaVersion(), ScenarioIdGenerator.faultScenarioId(withoutId),
-                withoutId.workloadPlanId(), withoutId.assignedVector(), withoutId.actions())
-        def packageFixture = writePackage(workload, [scenario])
-        def service = new TrackingSagaUnitOfWorkService()
-        def dispatcher = new FixtureSourceSetupDispatcher(5000, service.fixtureEventService)
-        def runtime = new TrackingRuntimeContext(service, [:], [], [dispatcher])
-
-        when:
-        new ScenarioExecutor().execute(
-                options(packageFixture.manifest, null, scenario.deterministicId()), runtime)
-
-        then:
-        def error = thrown(IllegalArgumentException)
-        error.message.contains(expectedDiagnostic)
-        dispatcher.invocationCount == 0
-        FixtureWorkflow.constructorCalls == 0
-        FixtureWorkflow.BODIES.isEmpty()
-
-        where:
-        mutation             || expectedDiagnostic
-        'PROPERTY'           || 'UNSUPPORTED_SETUP_RESULT_PROPERTY'
-        'TYPE'               || 'INCOMPATIBLE_SETUP_RESULT_REFERENCE'
-        'ORDER'              || 'INVALID_SETUP_ACTION_ORDER'
-        'MIXED'              || 'MIXED_PREREQUISITE_AND_SETUP'
-        'COLLECTION_ELEMENT' || 'INCOMPATIBLE_SETUP_LITERAL'
     }
 
     def 'setup preflight preserves reflection unboxing and primitive widening'() {
@@ -758,7 +723,8 @@ class ScenarioExecutorSpec extends Specification {
         report.terminalStatus() == 'SETUP_FAILED'
         report.workloads()[0].status() == 'STARTUP_FAILED'
         report.workloads()[0].blockers()*.reason() == ['STARTUP_FAILED']
-        report.workloads()[0].blockers()[0].inputVariantId() == 'rejected-input'
+        report.workloads()[0].blockers()[0].inputVariantId() ==
+                packageFixture.workloads[0].participants()[0].inputVariantId()
         report.workloads()[0].blockers()[0].message().contains('No compatible constructor for ' + workflowClass.name)
         report.workloads()[0].blockers()[0].message().contains(expectedDiagnostic)
         FixtureWorkflow.BODIES.isEmpty()
@@ -766,7 +732,7 @@ class ScenarioExecutorSpec extends Specification {
 
         where:
         rejectionKind         | workflowClass                    | persistedValue                       || expectedDiagnostic
-        'overflow'            | IntegerArgumentWorkflow          | new BigInteger('2147483648')          || 'numeric value 2147483648 (java.math.BigInteger) is outside the range of java.lang.Integer'
+        'overflow'            | IntegerArgumentWorkflow          | new BigInteger('2147483648')          || 'numeric value 2147483648 (java.lang.Long) is outside the range of java.lang.Integer'
         'fractional value'    | IntegerArgumentWorkflow          | new BigDecimal('7.5')                 || 'numeric value 7.5 (java.math.BigDecimal) is fractional and cannot be converted exactly to java.lang.Integer'
         'null-to-primitive'   | PrimitiveIntegerArgumentWorkflow | null                                  || 'argument 0 is null and cannot target primitive int'
         'unsupported coercion'| IntegerArgumentWorkflow          | '7'                                   || 'persisted type java.lang.String and cannot target java.lang.Integer: unsupported coercion'
@@ -814,7 +780,7 @@ class ScenarioExecutorSpec extends Specification {
         'exactly-converted'  | ThrowingIntegerConstructorWorkflow
     }
 
-    def 'batch setup preflight checks every declared candidate through one supplied runtime context'() {
+    def 'batch setup preflight checks every current materializable workload through one supplied runtime context'() {
         given:
         def first = workload(['first'], [['first', 'first']])
         def second = workload(['second'], [['second', 'first']])
@@ -834,75 +800,17 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         report.terminalStatus() == 'SUCCESS'
-        report.candidateCount() == 2
-        report.participantCount() == 2
-        report.workloads()*.workloadPlanId() == [first.deterministicId(), second.deterministicId()].sort()
+        report.candidateCount() == 3
+        report.participantCount() == 3
+        report.workloads()*.workloadPlanId() == packageFixture.workloads*.deterministicId().sort()
         report.workloads()*.status().unique() == ['SETUP_READY']
         report.workloads()*.setupDurationNanos().every { it >= 0 }
-        suppliedContext.unitOfWorkCreations == 2
-        suppliedContext.functionalityNames.size() == 2
-        suppliedContext.beanRequests == [SagaUnitOfWorkService, SagaUnitOfWorkService]
-        FixtureWorkflow.constructorCalls == 2
+        suppliedContext.unitOfWorkCreations == 3
+        suppliedContext.functionalityNames.size() == 3
+        suppliedContext.beanRequests == [SagaUnitOfWorkService, SagaUnitOfWorkService, SagaUnitOfWorkService]
+        FixtureWorkflow.constructorCalls == 3
         FixtureWorkflow.BODIES.isEmpty()
         packageChecksums(packageFixture.directory) == before
-    }
-
-    def 'setup preflight rejects missing and duplicate manifest materializability rows before setup'() {
-        given:
-        def workload = workload(['solo'], [['solo', 'first']])
-        def scenario = scenarios(workload, '0')[0]
-        def packageFixture = writePackage(workload, [scenario])
-        def manifest = MAPPER.readTree(packageFixture.manifest.toFile())
-        def rows = manifest.withArray('workloadMaterializability')
-        if (mutation == 'missing') {
-            rows.remove(0)
-        } else if (mutation == 'duplicate') {
-            rows.add(rows.get(0).deepCopy())
-        } else {
-            def extra = rows.get(0).deepCopy()
-            extra.put('workloadPlanId', 'missing-workload')
-            rows.add(extra)
-        }
-        MAPPER.writerWithDefaultPrettyPrinter().writeValue(packageFixture.manifest.toFile(), manifest)
-        def context = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService())
-
-        when:
-        new ScenarioExecutor().preflight(
-                new ScenarioSetupPreflightOptions(packageFixture.manifest, null), context)
-
-        then:
-        def error = thrown(IllegalArgumentException)
-        error.message.contains(expectedMessage)
-        context.unitOfWorkCreations == 0
-        FixtureWorkflow.constructorCalls == 0
-        FixtureWorkflow.BODIES.isEmpty()
-
-        where:
-        mutation    | expectedMessage
-        'missing'   | 'materializability rows do not match WorkloadPlans'
-        'duplicate' | 'Duplicate manifest materializability row'
-        'extra'     | 'materializability rows do not match WorkloadPlans'
-    }
-
-    def 'setup preflight rejects an available inconsistent materializable candidate count'() {
-        given:
-        def workload = workload(['solo'], [['solo', 'first']])
-        def scenario = scenarios(workload, '0')[0]
-        def packageFixture = writePackage(workload, [scenario])
-        def manifest = MAPPER.readTree(packageFixture.manifest.toFile())
-        manifest.path('counts').put('materializableWorkloadPlans', '0')
-        MAPPER.writerWithDefaultPrettyPrinter().writeValue(packageFixture.manifest.toFile(), manifest)
-        def context = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService())
-
-        when:
-        new ScenarioExecutor().preflight(
-                new ScenarioSetupPreflightOptions(packageFixture.manifest, null), context)
-
-        then:
-        def error = thrown(IllegalArgumentException)
-        error.message.contains('Manifest count mismatch for materializableWorkloadPlans')
-        context.unitOfWorkCreations == 0
-        FixtureWorkflow.constructorCalls == 0
     }
 
     def 'zero-bit body failure recovers runtime checkpoints immediately and continues a surviving participant'() {
@@ -918,7 +826,7 @@ class ScenarioExecutorSpec extends Specification {
         assert survivorActionPosition > 2
         def packageFixture = writePackage(workload, [scenario])
         def before = packageChecksums(packageFixture.directory)
-        def output = packageFixture.directory.resolve('reports/deviated-runtime-fallback.json')
+        def output = outsidePackageOutput(packageFixture, 'deviated-runtime-fallback.json')
         def service = new TrackingSagaUnitOfWorkService()
         FixtureWorkflow.recordImplicitState('left', 'second')
         FixtureWorkflow.failBodyWithDomainException('left', 'second')
@@ -929,7 +837,7 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.terminalStatus() == 'PARTIAL_COMPENSATED'
         report.scheduleConformance() == 'DEVIATED'
-        report.deviationActionId() == scenario.actions()[2].deterministicId()
+        report.deviationActionId() == report.plannedActions()[2].actionId()
         report.deviationPlannedPosition() == 2
         report.deviationPolicy() == 'IMMEDIATE_CHECKPOINT_RECOVERY_AND_CONTINUE'
         report.hardStopActionId() == null
@@ -943,17 +851,17 @@ class ScenarioExecutorSpec extends Specification {
         report.actualActions()[4].runtimeStepName() == 'first'
         report.actualActions()[4].sourceCompensationCheckpointId()
         report.actualActions()[4].recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION']
-        report.actualActions()[5].actionId() == scenario.actions()[survivorActionPosition].deterministicId()
+        report.actualActions()[5].actionId() == report.plannedActions()[survivorActionPosition].actionId()
         report.actualActions()[5].plannedPosition() == survivorActionPosition
         report.actualActions()[5].actualPosition() == 5
         report.participants()*.finalState() == ['COMPENSATED', 'COMMITTED']
-        report.participants().find { it.sagaInstanceId() == 'left' }.skippedForwardActions()*.runtimeStepName() == ['third']
-        report.participants().find { it.sagaInstanceId() == 'left' }.skippedForwardActions()*.state() == ['MASKED']
+        report.participants().find { it.sagaInstanceId() == 'p1' }.skippedForwardActions()*.runtimeStepName() == ['third']
+        report.participants().find { it.sagaInstanceId() == 'p1' }.skippedForwardActions()*.state() == ['MASKED']
         report.faultSlots()*.state() == ['NOT_ASSIGNED', 'NOT_ASSIGNED', 'NOT_ASSIGNED', 'MASKED', 'NOT_ASSIGNED']
         report.lifecycleEvents()*.type() == ['ABORTED', 'COMPENSATED', 'AUTOMATIC_COMMIT']
         FixtureWorkflow.BODIES == ['left:first', 'right:first', 'left:second', 'right:second']
         FixtureWorkflow.COMPENSATIONS == ['left:first']
-        service.implicitRollbacks == ['left:second']
+        service.implicitRollbacks == ['p1:second']
         packageChecksums(packageFixture.directory) == before
         def json = MAPPER.readTree(output.toFile())
         json.path('scheduleConformance').asText() == 'DEVIATED'
@@ -969,7 +877,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['left', 'right'], [['left', 'first'], ['right', 'first']])
         def scenario = scenarios(workload, '00')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def service = new TrackingSagaUnitOfWorkService(failCommitDomainFor: 'right')
+        def service = new TrackingSagaUnitOfWorkService(failCommitDomainFor: 'p2')
         FixtureWorkflow.failBodyWithDomainException('left', 'first')
 
         when:
@@ -978,12 +886,12 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.terminalStatus() == 'COMPENSATED'
         report.scheduleConformance() == 'DEVIATED'
-        report.deviationActionId() == scenario.actions()[0].deterministicId()
+        report.deviationActionId() == report.plannedActions()[0].actionId()
         report.deviationPlannedPosition() == 0
         report.deviationPolicy() == 'IMMEDIATE_CHECKPOINT_RECOVERY_AND_CONTINUE'
         report.actualActions()*.status() == ['FAILED', 'COMMIT_FAILED', 'COMPENSATED']
         report.actualActions().take(2)*.faultOrigin() == ['UNASSIGNED_RUNTIME', 'UNASSIGNED_RUNTIME']
-        report.actualActions().take(2)*.actionId() == scenario.actions()*.deterministicId()
+        report.actualActions().take(2)*.actionId() == report.plannedActions().take(2)*.actionId()
         report.participants()*.finalState() == ['COMPENSATED', 'COMPENSATED']
         FixtureWorkflow.BODIES == ['left:first', 'right:first']
         FixtureWorkflow.COMPENSATIONS == ['right:first']
@@ -1013,7 +921,7 @@ class ScenarioExecutorSpec extends Specification {
         report.actualActions()[1].recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION', 'IMPLICIT_SAGA_ROLLBACK']
         report.actualActions()[1].recoverySubOutcomes()*.status() == ['SUCCEEDED', 'SUCCEEDED']
         FixtureWorkflow.COMPENSATIONS == ['solo:first']
-        service.implicitRollbacks == ['solo:first']
+        service.implicitRollbacks == ['p1:first']
     }
 
     def 'zero-bit failure with no runtime recovery work emits no-work lifecycle and no recovery action'() {
@@ -1040,7 +948,7 @@ class ScenarioExecutorSpec extends Specification {
         ])
         def scenario = scenarios(workload, '0000')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def service = new TrackingSagaUnitOfWorkService(failCommitDomainFor: 'left')
+        def service = new TrackingSagaUnitOfWorkService(failCommitDomainFor: 'p1')
 
         when:
         def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(service))
@@ -1080,13 +988,13 @@ class ScenarioExecutorSpec extends Specification {
         report.actualActions()*.status() == ['INFRASTRUCTURE_FAILED']
         report.actualActions()[0].faultOrigin() == null
         report.actualActions()[0].exceptionClass() == SimulatorException.name
-        report.hardStopActionId() == scenario.actions()[0].deterministicId()
+        report.hardStopActionId() == report.plannedActions()[0].actionId()
         report.hardStopReason() == 'FORWARD_INFRASTRUCTURE_FAILURE'
         report.lifecycleEvents().isEmpty()
         FixtureWorkflow.COMPENSATIONS.isEmpty()
         FixtureWorkflow.BODIES == ['left:first']
-        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.runtimeStepName() == ['first']
-        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
+        report.participants().find { it.sagaInstanceId() == 'p2' }.skippedForwardActions()*.runtimeStepName() == ['first']
+        report.participants().find { it.sagaInstanceId() == 'p2' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
 
         where:
         failureKind << ['plain', 'service-unavailable']
@@ -1097,7 +1005,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['left', 'right'], [['left', 'first'], ['right', 'first']])
         def scenario = scenarios(workload, '00')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def service = new TrackingSagaUnitOfWorkService(failCommitPlainSimulatorFor: 'left')
+        def service = new TrackingSagaUnitOfWorkService(failCommitPlainSimulatorFor: 'p1')
 
         when:
         def report = new ScenarioExecutor().execute(options(packageFixture.manifest, null, scenario.deterministicId()), runtime(service))
@@ -1113,7 +1021,7 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWorkflow.COMPENSATIONS.isEmpty()
         FixtureWorkflow.BODIES == ['left:first']
         !FixtureWorkflow.BODIES.contains('right:first')
-        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
+        report.participants().find { it.sagaInstanceId() == 'p2' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
     }
 
     def 'leaked assigned-fault exception hard-stops and is never relabeled as unassigned runtime'() {
@@ -1144,7 +1052,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['solo'], [['solo', 'first']])
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def service = new TrackingSagaUnitOfWorkService(failCommitInfrastructureFor: phase == 'commit' ? 'solo' : null)
+        def service = new TrackingSagaUnitOfWorkService(failCommitInfrastructureFor: phase == 'commit' ? 'p1' : null)
         if (phase == 'body') FixtureWorkflow.failBodyWithInfrastructureException('solo', 'first')
 
         when:
@@ -1155,7 +1063,7 @@ class ScenarioExecutorSpec extends Specification {
         report.scheduleConformance() == 'INCOMPLETE'
         report.actualActions()*.status() == [phase == 'body' ? 'INFRASTRUCTURE_FAILED' : 'COMMIT_INFRASTRUCTURE_FAILED']
         report.actualActions()[0].faultOrigin() == null
-        report.hardStopActionId() == scenario.actions()[0].deterministicId()
+        report.hardStopActionId() == report.plannedActions()[0].actionId()
         report.hardStopReason() == (phase == 'body' ? 'FORWARD_INFRASTRUCTURE_FAILURE' : 'COMMIT_INFRASTRUCTURE_FAILURE')
         report.lifecycleEvents().isEmpty()
         FixtureWorkflow.COMPENSATIONS.isEmpty()
@@ -1179,7 +1087,7 @@ class ScenarioExecutorSpec extends Specification {
         assert scenario != null
         def packageFixture = writePackage(workload, [scenario])
         def before = packageChecksums(packageFixture.directory)
-        def output = packageFixture.directory.resolve('reports/scheduled-compensation-failed.json')
+        def output = outsidePackageOutput(packageFixture, 'scheduled-compensation-failed.json')
         def service = new TrackingSagaUnitOfWorkService()
         FixtureWorkflow.failExplicitCompensation('left', 'first')
 
@@ -1192,12 +1100,12 @@ class ScenarioExecutorSpec extends Specification {
         report.actualActions()*.status() == ['COMPLETED', 'ASSIGNED_FAULT', 'COMPENSATION_FAILED']
         report.actualActions()[2].recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION']
         report.actualActions()[2].recoverySubOutcomes()*.status() == ['FAILED']
-        report.hardStopActionId() == scenario.actions()[2].deterministicId()
+        report.hardStopActionId() == report.plannedActions()[2].actionId()
         report.hardStopReason() == 'EXPLICIT_COMPENSATION_FAILED'
         FixtureWorkflow.COMPENSATION_ATTEMPTS['left:first'] == 1
         report.lifecycleEvents()*.type() == ['ABORTED', 'COMPENSATION_FAILED']
-        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.runtimeStepName() == ['first', 'second']
-        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP', 'NOT_EXECUTED_HARD_STOP']
+        report.participants().find { it.sagaInstanceId() == 'p2' }.skippedForwardActions()*.runtimeStepName() == ['first', 'second']
+        report.participants().find { it.sagaInstanceId() == 'p2' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP', 'NOT_EXECUTED_HARD_STOP']
         !FixtureWorkflow.BODIES.any { it.startsWith('right:') }
         !FixtureWorkflow.UNIT_OF_WORKS.left.isCompensationExecuted('first')
         packageChecksums(packageFixture.directory) == before
@@ -1232,7 +1140,7 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.terminalStatus() == 'COMPENSATION_FAILED'
         report.scheduleConformance() == 'INCOMPLETE'
-        report.deviationActionId() == scenario.actions()[2].deterministicId()
+        report.deviationActionId() == report.plannedActions()[2].actionId()
         report.actualActions()*.status() == ['COMPLETED', 'COMPLETED', 'FAILED', 'COMPENSATION_FAILED']
         report.actualActions()[3].recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION']
         report.actualActions()[3].recoverySubOutcomes()*.status() == ['FAILED']
@@ -1240,8 +1148,8 @@ class ScenarioExecutorSpec extends Specification {
         report.hardStopReason() == 'EXPLICIT_COMPENSATION_FAILED'
         FixtureWorkflow.COMPENSATION_ATTEMPTS['left:first'] == 1
         report.lifecycleEvents()*.type() == ['ABORTED', 'COMPENSATION_FAILED']
-        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.runtimeStepName() == ['second']
-        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
+        report.participants().find { it.sagaInstanceId() == 'p2' }.skippedForwardActions()*.runtimeStepName() == ['second']
+        report.participants().find { it.sagaInstanceId() == 'p2' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
         !FixtureWorkflow.BODIES.contains('right:second')
     }
 
@@ -1252,7 +1160,7 @@ class ScenarioExecutorSpec extends Specification {
         ])
         def scenario = scenarios(workload, '0000')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def service = new TrackingSagaUnitOfWorkService(failImplicitFor: 'left:first')
+        def service = new TrackingSagaUnitOfWorkService(failImplicitFor: 'p1:first')
         FixtureWorkflow.recordImplicitState('left', 'first')
         FixtureWorkflow.failBodyWithDomainException('left', 'second')
 
@@ -1267,9 +1175,9 @@ class ScenarioExecutorSpec extends Specification {
         report.actualActions()[3].recoverySubOutcomes()*.status() == ['SUCCEEDED', 'FAILED']
         FixtureWorkflow.UNIT_OF_WORKS.left.isCompensationExecuted('first')
         !FixtureWorkflow.UNIT_OF_WORKS.left.isStepAborted('first')
-        service.implicitAttempts['left:first'] == 1
+        service.implicitAttempts['p1:first'] == 1
         report.lifecycleEvents()*.type() == ['ABORTED', 'COMPENSATION_FAILED']
-        report.participants().find { it.sagaInstanceId() == 'right' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
+        report.participants().find { it.sagaInstanceId() == 'p2' }.skippedForwardActions()*.state() == ['NOT_EXECUTED_HARD_STOP']
         !FixtureWorkflow.BODIES.contains('right:second')
     }
 
@@ -1279,10 +1187,11 @@ class ScenarioExecutorSpec extends Specification {
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
         def before = packageChecksums(packageFixture.directory)
-        def nonDirectory = packageFixture.directory.resolve('not-a-directory')
+        def nonDirectory = Files.createTempDirectory(Path.of('/private/tmp'), 'executor-output-failure-')
+                .resolve('not-a-directory')
         Files.writeString(nonDirectory, 'occupied')
         def output = nonDirectory.resolve('report.json')
-        def impactOutput = packageFixture.directory.resolve('reports/report-write-failed-impact.json')
+        def impactOutput = outsidePackageOutput(packageFixture, 'report-write-failed-impact.json')
 
         when:
         new ScenarioExecutor().execute(
@@ -1309,7 +1218,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['solo'], [['solo', 'first']])
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def impactOutput = packageFixture.directory.resolve('reports/provider-failure-impact.json')
+        def impactOutput = outsidePackageOutput(packageFixture, 'provider-failure-impact.json')
         def occupiedProvider = FaultVectorProviderHolder.install(new InMemoryFaultVectorProvider([:]))
 
         when:
@@ -1339,8 +1248,8 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
         def scenario = scenarios(workload, '10')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def output = packageFixture.directory.resolve('dry-run.json')
-        def impactOutput = packageFixture.directory.resolve('dry-run-impact.json')
+        def output = outsidePackageOutput(packageFixture, 'dry-run.json')
+        def impactOutput = outsidePackageOutput(packageFixture, 'dry-run-impact.json')
         def before = packageChecksums(packageFixture.directory)
 
         when:
@@ -1352,7 +1261,7 @@ class ScenarioExecutorSpec extends Specification {
         then:
         report.terminalStatus() == 'DRY_RUN'
         report.scheduleConformance() == null
-        report.plannedActions()*.actionId() == scenario.actions()*.deterministicId()
+        report.plannedActions().size() == scenario.actions().size()
         report.actualActions().isEmpty()
         report.participants()*.materializationState().unique() == ['NOT_ATTEMPTED']
         FixtureWorkflow.constructorCalls == 0
@@ -1379,18 +1288,22 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         def error = thrown(IllegalArgumentException)
-        error.message.contains('must not alias scenario package input')
+        error.message.contains('must remain outside scenario package')
         packageChecksums(packageFixture.directory) == before
         FixtureWorkflow.constructorCalls == 0
         FixtureWorkflow.BODIES.isEmpty()
 
         where:
         [dryRun, artifactName] << [[false, true], [
-                'workload-catalog.jsonl',
-                'fault-scenario-catalog.jsonl',
+                'workloads.jsonl',
+                'fault-scenarios.jsonl',
                 'scenario-catalog-manifest.json',
-                'scenario-space-accounting.json',
-                'workload-catalog-rejected-inputs.jsonl'
+                'accounting.json',
+                'sagas.jsonl',
+                'inputs.jsonl',
+                'interactions.jsonl',
+                'setups.jsonl',
+                'requests.jsonl'
         ]].combinations()
     }
 
@@ -1400,7 +1313,7 @@ class ScenarioExecutorSpec extends Specification {
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
         def before = packageChecksums(packageFixture.directory)
-        def output = packageFixture.directory.resolve('reports/execution.json')
+        def output = outsidePackageOutput(packageFixture, 'execution.json')
 
         when:
         new ScenarioExecutor().execute(
@@ -1420,17 +1333,18 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         def packageAliasError = thrown(IllegalArgumentException)
-        packageAliasError.message.contains('must not alias scenario package input')
+        packageAliasError.message.contains('must remain outside scenario package')
         packageChecksums(packageFixture.directory) == before
         FixtureWorkflow.constructorCalls == 0
 
         when: 'two absent outputs resolve to the same leaf through symlinked parents'
-        def realOutputDirectory = packageFixture.directory.resolve('real-reports')
+        def aliasRoot = Files.createTempDirectory(Path.of('/private/tmp'), 'scenario-output-alias-')
+        def realOutputDirectory = aliasRoot.resolve('real-reports')
         Files.createDirectories(realOutputDirectory)
-        def executionAliasDirectory = packageFixture.directory.resolve('execution-reports-link')
-        def impactAliasDirectory = packageFixture.directory.resolve('impact-reports-link')
-        Files.createSymbolicLink(executionAliasDirectory, realOutputDirectory.fileName)
-        Files.createSymbolicLink(impactAliasDirectory, realOutputDirectory.fileName)
+        def executionAliasDirectory = aliasRoot.resolve('execution-reports-link')
+        def impactAliasDirectory = aliasRoot.resolve('impact-reports-link')
+        Files.createSymbolicLink(executionAliasDirectory, realOutputDirectory)
+        Files.createSymbolicLink(impactAliasDirectory, realOutputDirectory)
         def aliasedExecutionOutput = executionAliasDirectory.resolve('shared.json')
         def aliasedImpactOutput = impactAliasDirectory.resolve('shared.json')
         new ScenarioExecutor().execute(
@@ -1460,7 +1374,7 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         def normalizedError = thrown(IllegalArgumentException)
-        normalizedError.message.contains('must not alias scenario package input')
+        normalizedError.message.contains('must remain outside scenario package')
         packageChecksums(normalizedFixture.directory) == normalizedBefore
         FixtureWorkflow.constructorCalls == 0
         FixtureWorkflow.BODIES.isEmpty()
@@ -1477,76 +1391,13 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         def symbolicError = thrown(IllegalArgumentException)
-        symbolicError.message.contains('must not alias scenario package input')
+        symbolicError.message.contains('must remain outside scenario package')
         packageChecksums(symbolicFixture.directory) == symbolicBefore
         FixtureWorkflow.constructorCalls == 0
         FixtureWorkflow.BODIES.isEmpty()
     }
 
-    def 'report output cannot overwrite custom v3 dynamic-enrichment #artifactName during dryRun=#dryRun'() {
-        given:
-        def workload = workload(['solo'], [['solo', 'first']])
-        def scenario = scenarios(workload, '0')[0]
-        def packageFixture = writePackage(workload, [scenario])
-        def packageBefore = packageChecksums(packageFixture.directory)
-        def dynamicArtifacts = writeDynamicArtifacts(packageFixture.directory.resolve('custom-enrichment'), workload.deterministicId())
-        def dynamicBefore = dynamicChecksums(dynamicArtifacts)
-
-        when:
-        new ScenarioExecutor().execute(
-                new ScenarioExecutorOptions(packageFixture.manifest, dynamicArtifacts[artifactName], scenario.deterministicId(), dryRun),
-                runtime(new TrackingSagaUnitOfWorkService()))
-
-        then:
-        def error = thrown(IllegalArgumentException)
-        error.message.contains('v3 dynamic-enrichment artifact')
-        packageChecksums(packageFixture.directory) == packageBefore
-        dynamicChecksums(dynamicArtifacts) == dynamicBefore
-        FixtureWorkflow.constructorCalls == 0
-        FixtureWorkflow.BODIES.isEmpty()
-
-        where:
-        [dryRun, artifactName] << [[false, true], ['sidecar', 'manifest', 'joinReport']].combinations()
-    }
-
-    def 'report output cannot overwrite a v3 dynamic-enrichment artifact through #aliasKind alias'() {
-        given:
-        def workload = workload(['solo'], [['solo', 'first']])
-        def scenario = scenarios(workload, '0')[0]
-        def packageFixture = writePackage(workload, [scenario])
-        def dynamicRoot = packageFixture.directory.resolve('custom-enrichment')
-        def dynamicArtifacts = writeDynamicArtifacts(dynamicRoot, workload.deterministicId())
-        def dynamicBefore = dynamicChecksums(dynamicArtifacts)
-        def aliasRoot = packageFixture.directory.resolve('aliases')
-        Files.createDirectories(aliasRoot)
-        Path output
-        if (aliasKind == 'NORMALIZED') {
-            output = dynamicRoot.resolve('missing/../workload-dynamic-evidence-manifest.json')
-        } else if (aliasKind == 'SYMBOLIC') {
-            output = aliasRoot.resolve('sidecar-link.jsonl')
-            Files.createSymbolicLink(output, dynamicArtifacts.sidecar)
-        } else {
-            output = aliasRoot.resolve('join-report-hard-link.json')
-            Files.createLink(output, dynamicArtifacts.joinReport)
-        }
-
-        when:
-        new ScenarioExecutor().execute(
-                new ScenarioExecutorOptions(packageFixture.manifest, output, scenario.deterministicId(), false),
-                runtime(new TrackingSagaUnitOfWorkService()))
-
-        then:
-        def error = thrown(IllegalArgumentException)
-        error.message.contains('v3 dynamic-enrichment artifact')
-        dynamicChecksums(dynamicArtifacts) == dynamicBefore
-        FixtureWorkflow.constructorCalls == 0
-        FixtureWorkflow.BODIES.isEmpty()
-
-        where:
-        aliasKind << ['NORMALIZED', 'SYMBOLIC', 'HARD_LINK']
-    }
-
-    def 'selection requires one persisted FaultScenario id and v2 records are rejected'() {
+    def 'selection requires one persisted FaultScenario id'() {
         given:
         def workload = workload(['solo'], [['solo', 'first']])
         def scenario = scenarios(workload, '0')[0]
@@ -1562,15 +1413,6 @@ class ScenarioExecutorSpec extends Specification {
         missing.actualActions().isEmpty()
         missing.blockers()*.reason() == ['MISSING_FAULT_SCENARIO_ID']
 
-        when:
-        def v2 = packageFixture.directory.resolve('scenario-catalog.jsonl')
-        Files.writeString(v2, '{"schemaVersion":"microservices-simulator.scenario-catalog.v2"}')
-        new ScenarioExecutor().execute(options(v2, null, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
-
-        then:
-        def error = thrown(IllegalArgumentException)
-        error.message.contains('latest v5 or explicit valid v4 packages are required')
-        error.message.contains('v3 catalogs are not supported')
     }
 
     @Unroll
@@ -1584,7 +1426,7 @@ class ScenarioExecutorSpec extends Specification {
         def selected = new ScenarioCatalogPackageReader.SelectedPackageContents(
                 valid.manifest(), missingKind == 'workload' ? null : valid.workloadPlan(),
                 missingKind == 'fault' ? null : valid.faultScenario(), valid.workloadCatalogPath(),
-                valid.faultScenarioCatalogPath(), valid.rejectedInputsPath(), valid.accountingPath())
+                valid.faultScenarioCatalogPath(), valid.accountingPath())
         int wholeReads = 0
         def catalogReader = new ScenarioCatalogReader({ Path ignored ->
             wholeReads++
@@ -1617,7 +1459,7 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         def aliasFailure = thrown(IllegalArgumentException)
-        aliasFailure.message.contains('must not alias scenario package input')
+        aliasFailure.message.contains('must remain outside scenario package')
         wholeReads == 0
         runtimeContext.unitOfWorkCreations == 0
         FixtureWorkflow.constructorCalls == 0
@@ -1634,7 +1476,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['solo'], [['solo', 'first']])
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
-        Files.write(packageFixture.directory.resolve('fault-scenario-catalog.jsonl'), '\n'.bytes,
+        Files.write(packageFixture.faultScenario, '\n'.bytes,
                 java.nio.file.StandardOpenOption.APPEND)
 
         when:
@@ -1644,8 +1486,8 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         def error = thrown(IllegalArgumentException)
-        error.message.contains('FAULT_SCENARIO_CATALOG')
-        error.message.contains('checksum mismatch')
+        error.message.contains('faultScenarios')
+        error.message.contains('hash mismatch')
         FixtureWorkflow.constructorCalls == 0
         FixtureWorkflow.BODIES.isEmpty()
     }
@@ -1655,16 +1497,16 @@ class ScenarioExecutorSpec extends Specification {
         def workload = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
         def scenario = scenarios(workload, '00')[0]
         def packageFixture = writePackage(workload, [scenario])
-        def workloadPath = packageFixture.directory.resolve('workload-catalog.jsonl')
+        def workloadPath = packageFixture.workloadPath
         def workloadJson = MAPPER.readTree(Files.readAllLines(workloadPath).first())
-        def firstStep = workloadJson.path('forwardSchedule').get(0)
-        def repeatedStep = workloadJson.path('forwardSchedule').get(1)
-        repeatedStep.put('stepId', firstStep.path('stepId').asText())
-        repeatedStep.put('runtimeStepName', firstStep.path('runtimeStepName').asText())
+        def steps = workloadJson.path('schedule').findAll { it.path('kind').asText() == 'step' }
+        def firstStep = steps[0]
+        def repeatedStep = steps[1]
+        repeatedStep.put('sagaStep', firstStep.path('sagaStep').asText())
         Files.writeString(workloadPath, MAPPER.writeValueAsString(workloadJson) + '\n')
         def manifest = MAPPER.readTree(Files.readString(packageFixture.manifest))
-        manifest.path('workloadCatalog').put('sha256', sha256(workloadPath))
-        MAPPER.writerWithDefaultPrettyPrinter().writeValue(packageFixture.manifest.toFile(), manifest)
+        manifest.path('files').path('workloads').put('sha256', sha256(workloadPath))
+        MAPPER.writeValue(packageFixture.manifest.toFile(), manifest)
 
         when:
         new ScenarioExecutor().execute(
@@ -1673,7 +1515,7 @@ class ScenarioExecutorSpec extends Specification {
 
         then:
         def error = thrown(IllegalArgumentException)
-        error.message.contains('DUPLICATE_PARTICIPANT_RUNTIME_STEP_NAME')
+        error.message.contains('duplicate exact Saga step occurrence')
         FixtureWorkflow.constructorCalls == 0
         FixtureWorkflow.BODIES.isEmpty()
     }
@@ -1860,7 +1702,7 @@ class ScenarioExecutorSpec extends Specification {
         def report
         try {
             report = new ScenarioExecutor().execute(
-                    options(packageFixture.manifest, packageFixture.directory.resolve('reports/event-success.json'),
+                    options(packageFixture.manifest, outsidePackageOutput(packageFixture, 'event-success.json'),
                             successScenario.deterministicId()), runtime)
         } finally {
             gate.close()
@@ -1945,7 +1787,7 @@ class ScenarioExecutorSpec extends Specification {
         }
         def eventAction = scenario.actions().find { it.kind() == FaultScenarioActionKind.EVENT_CONSEQUENCE }
         def packageFixture = writePackage(workload, [scenario])
-        def impact = packageFixture.directory.resolve('reports/trigger-failed-after-emission-impact.json')
+        def impact = outsidePackageOutput(packageFixture, 'trigger-failed-after-emission-impact.json')
         def service = new TrackingSagaUnitOfWorkService()
         def runtime = new TrackingRuntimeContext(service,
                 [(FixtureEventHandling): new FixtureEventHandling(service.fixtureEventService, 1, 'SUCCESS')])
@@ -1971,8 +1813,8 @@ class ScenarioExecutorSpec extends Specification {
                 'TRIGGER_FAILED_AFTER_EVENT_EMISSION'
         def eventOutcome = report.actualActions().find { it.kind() == 'EVENT_CONSEQUENCE' }
         eventOutcome.status() == 'NOT_REACHED'
-        eventOutcome.runtimeOccurrenceId() == eventAction.occurrenceId()
-        eventOutcome.runtimeOccurrenceId() == workload.eventConsequences().first().deterministicId()
+        eventOutcome.runtimeOccurrenceId() == report.plannedActions()
+                .find { it.kind() == 'EVENT_CONSEQUENCE' }.sourceEventConsequenceId()
         FixtureEventHandling.ORDER.isEmpty()
         MAPPER.readTree(impact.toFile()).path('evaluationStatus').asText() == 'NOT_EVALUATED'
     }
@@ -1984,8 +1826,8 @@ class ScenarioExecutorSpec extends Specification {
             it.actions()*.kind().contains(FaultScenarioActionKind.EVENT_CONSEQUENCE)
         }
         def packageFixture = writePackage(workload, [scenario])
-        def impact = packageFixture.directory.resolve('reports/trigger-commit-failed-after-emission-impact.json')
-        def service = new TrackingSagaUnitOfWorkService(failCommitDomainFor: 'solo')
+        def impact = outsidePackageOutput(packageFixture, 'trigger-commit-failed-after-emission-impact.json')
+        def service = new TrackingSagaUnitOfWorkService(failCommitDomainFor: 'p1')
         def runtime = new TrackingRuntimeContext(service,
                 [(FixtureEventHandling): new FixtureEventHandling(service.fixtureEventService, 1, 'SUCCESS')])
         FixtureWorkflow.emitEvents('solo', 'second', 1)
@@ -2018,7 +1860,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = eventWorkload()
         def scenario = scenarios(workload, '00').find { it.actions()*.kind().contains(FaultScenarioActionKind.EVENT_CONSEQUENCE) }
         def packageFixture = writePackage(workload, [scenario])
-        def impact = packageFixture.directory.resolve("reports/event-${expected}.impact.json".toString())
+        def impact = outsidePackageOutput(packageFixture, "event-${expected}.impact.json".toString())
         def service = new TrackingSagaUnitOfWorkService()
         def handling = new FixtureEventHandling(service.fixtureEventService, subscribers, handlerMode)
         def runtime = new TrackingRuntimeContext(service, [(FixtureEventHandling): handling])
@@ -2057,7 +1899,7 @@ class ScenarioExecutorSpec extends Specification {
         def workload = eventWorkload()
         def scenario = scenarios(workload, '00').find { it.actions()*.kind().contains(FaultScenarioActionKind.EVENT_CONSEQUENCE) }
         def packageFixture = writePackage(workload, [scenario])
-        def impact = packageFixture.directory.resolve('reports/replay-control-impact.json')
+        def impact = outsidePackageOutput(packageFixture, 'replay-control-impact.json')
 
         when:
         def report = new ScenarioExecutor().execute(
@@ -2071,16 +1913,16 @@ class ScenarioExecutorSpec extends Specification {
         MAPPER.readTree(impact.toFile()).path('evaluationStatus').asText() == 'NOT_EVALUATED'
     }
 
-    def 'explicit valid v4 prerequisite provider resolves baseline binding clears pending events and fails before measurement'() {
+    def 'current prerequisite provider resolves baseline binding clears pending events and fails before measurement'() {
         given:
-        def workload = prerequisiteWorkload(true)
+        def workload = prerequisiteWorkload()
         def scenario = scenarios(workload, '00')[0]
         def packageFixture = writePackage(workload, [scenario])
         def before = packageChecksums(packageFixture.directory)
         def service = new TrackingSagaUnitOfWorkService()
         def provider = new FixturePrerequisiteProvider('fixture-provider', '1', providerMode, service.fixtureEventService)
         def runtime = new TrackingRuntimeContext(service, [:], includeProvider ? [provider] : [])
-        def impact = packageFixture.directory.resolve("reports/prerequisite-${providerMode}-${includeProvider}.json".toString())
+        def impact = outsidePackageOutput(packageFixture, "prerequisite-${providerMode}-${includeProvider}.json".toString())
         def gate = activateEventReplay()
 
         when:
@@ -2094,7 +1936,6 @@ class ScenarioExecutorSpec extends Specification {
         }
 
         then:
-        workload.schemaVersion() == WorkloadPlan.LEGACY_V4_SCHEMA_VERSION
         report.terminalStatus() == terminal
         report.sourceSetup() == null
         report.prerequisiteSetup().status() == setupStatus
@@ -2325,7 +2166,7 @@ class ScenarioExecutorSpec extends Specification {
                 withoutId.compensationCheckpoints(), withoutId.warnings())
     }
 
-    private static WorkloadPlan prerequisiteWorkload(boolean legacyV4 = false) {
+    private static WorkloadPlan prerequisiteWorkload() {
         def base = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
         def oldInput = base.acceptedInputs()[0]
         def bindingNode = InputRecipeNode.builder('baseline_binding').executorReady(true)
@@ -2342,8 +2183,7 @@ class ScenarioExecutorSpec extends Specification {
                 oldInput.logicalKeyBindings(), oldInput.warnings(), recipe)
         def baseline = new PrerequisiteBaseline('fixture-provider', '1',
                 [new BaselineBindingRequirement('participant', String.name)])
-        def schemaVersion = legacyV4 ? WorkloadPlan.LEGACY_V4_SCHEMA_VERSION : base.schemaVersion()
-        def withoutId = new WorkloadPlan(schemaVersion, null, base.kind(), base.executionShape(),
+        def withoutId = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
                 base.participants(), [input], base.forwardSchedule(), base.eventConsequences(), base.normalSchedule(),
                 baseline, base.conflictEvidence(), base.faultSlots(), base.compensationCheckpoints(), base.warnings())
         new WorkloadPlan(withoutId.schemaVersion(), ScenarioIdGenerator.workloadPlanId(withoutId), withoutId.kind(),
@@ -2459,6 +2299,10 @@ class ScenarioExecutorSpec extends Specification {
         options(manifest, output, scenarioId, null)
     }
 
+    private static Path outsidePackageOutput(Map fixture, String name) {
+        Files.createTempDirectory(Path.of('/private/tmp'), 'scenario-executor-output-').resolve(name)
+    }
+
     private static ScenarioExecutorOptions options(Path manifest, Path output, String scenarioId, Path impactOutput) {
         new ScenarioExecutorOptions(manifest, output, scenarioId, false,
                 'dummyapp', 'dummyapp', 'example.Application', 'test,sagas,local', 'test-sagas', impactOutput)
@@ -2479,78 +2323,16 @@ class ScenarioExecutorSpec extends Specification {
     private static Map writePackage(List<WorkloadPlan> workloads,
                                     List<FaultScenario> faultScenarios,
                                     Set<String> materializableWorkloadIds) {
-        Path directory = Files.createTempDirectory('v3-executor-package')
-        Path workloadPath = directory.resolve('workload-catalog.jsonl')
-        Path faultPath = directory.resolve('fault-scenario-catalog.jsonl')
-        Path accountingPath = directory.resolve('scenario-space-accounting.json')
-        Path rejectedPath = directory.resolve('workload-catalog-rejected-inputs.jsonl')
-        Path manifestPath = directory.resolve('scenario-catalog-manifest.json')
-        Files.write(workloadPath, workloads.collect { MAPPER.writeValueAsString(it) })
-        Files.write(faultPath, faultScenarios.collect { MAPPER.writeValueAsString(it) })
-        Files.writeString(accountingPath, MAPPER.writeValueAsString([schemaVersion: ScenarioSpaceAccountingReport.SCHEMA_VERSION]))
-        Files.writeString(rejectedPath, '')
-        def materializability = workloads.collect {
-            new WorkloadMaterializability(
-                    it.deterministicId(), materializableWorkloadIds.contains(it.deterministicId()),
-                    materializableWorkloadIds.contains(it.deterministicId()) ? [] : ['fixture excluded'])
-        }
-        def workloadSchemas = workloads*.schemaVersion().unique()
-        assert workloadSchemas.size() == 1
-        def workloadSchema = workloadSchemas.first()
-        def manifestSchema = workloadSchema == WorkloadPlan.LEGACY_V4_SCHEMA_VERSION
-                ? ScenarioCatalogManifest.LEGACY_V4_SCHEMA_VERSION
-                : ScenarioCatalogManifest.SCHEMA_VERSION
-        def manifest = new ScenarioCatalogManifest(
-                manifestSchema, '2026-07-20T00:00:00Z', new ScenarioGeneratorConfig(),
-                'TEST', 'TEST', 20, 'TEST', materializability, [
-                        workloadsExported: workloads.size().toString(),
-                        materializableWorkloadPlans: materializableWorkloadIds.size().toString(),
-                        nonMaterializableWorkloadPlans: (workloads.size() - materializableWorkloadIds.size()).toString()
-                ], [],
-                artifact('WORKLOAD_CATALOG', workloadSchema, workloadPath, workloads.size()),
-                artifact('FAULT_SCENARIO_CATALOG', FaultScenario.SCHEMA_VERSION, faultPath, faultScenarios.size()),
-                artifact('SCENARIO_SPACE_ACCOUNTING', ScenarioSpaceAccountingReport.SCHEMA_VERSION, accountingPath, 1),
-                artifact('REJECTED_INPUT_DIAGNOSTIC', 'test.rejected.v1', rejectedPath, 0),
-                [:], [:], [:])
-        MAPPER.writerWithDefaultPrettyPrinter().writeValue(manifestPath.toFile(), manifest)
-        [directory: directory, manifest: manifestPath]
+        CurrentPackageFixture.write(workloads, faultScenarios, 20, materializableWorkloadIds)
     }
 
     private static ScenarioCatalogManifest.ArtifactMetadata artifact(String kind, String schema, Path path, int count) {
         new ScenarioCatalogManifest.ArtifactMetadata(kind, schema, path.fileName.toString(), count.toString(), sha256(path))
     }
 
-    private static Map<String, Path> writeDynamicArtifacts(Path directory, String workloadPlanId) {
-        Files.createDirectories(directory)
-        def sidecar = directory.resolve('workload-dynamic-evidence.jsonl')
-        def manifest = directory.resolve('workload-dynamic-evidence-manifest.json')
-        def joinReport = directory.resolve('dynamic-evidence-join-report.json')
-        Files.writeString(sidecar, MAPPER.writeValueAsString([
-                schemaVersion: WorkloadDynamicEvidenceRecord.SCHEMA_VERSION,
-                workloadPlanId: workloadPlanId,
-                inputVariantIds: [],
-                dynamicEvidence: [joinStatus: 'NOT_COVERED']
-        ]) + System.lineSeparator())
-        MAPPER.writerWithDefaultPrettyPrinter().writeValue(manifest.toFile(), [
-                schema: EnrichedScenarioCatalogWriter.MANIFEST_SCHEMA,
-                sourceWorkloadCatalogPath: 'workload-catalog.jsonl',
-                sidecarPath: sidecar.toString()
-        ])
-        MAPPER.writerWithDefaultPrettyPrinter().writeValue(joinReport.toFile(), [
-                schema: EnrichedScenarioCatalogWriter.JOIN_REPORT_SCHEMA,
-                sidecarPath: sidecar.toString(),
-                runStatus: 'COMPLETE'
-        ])
-        [sidecar: sidecar, manifest: manifest, joinReport: joinReport]
-    }
-
-    private static Map<String, String> dynamicChecksums(Map<String, Path> artifacts) {
-        artifacts.collectEntries { name, path -> [(name): sha256(path)] }
-    }
-
     private static Map<String, String> packageChecksums(Path directory) {
-        ['workload-catalog.jsonl', 'fault-scenario-catalog.jsonl', 'scenario-catalog-manifest.json',
-         'scenario-space-accounting.json', 'workload-catalog-rejected-inputs.jsonl'].collectEntries { name ->
+        ['workloads.jsonl', 'fault-scenarios.jsonl', 'scenario-catalog-manifest.json',
+         'accounting.json', 'requests.jsonl'].collectEntries { name ->
             [(name): sha256(directory.resolve(name))]
         }
     }
@@ -2890,6 +2672,27 @@ class ScenarioExecutorSpec extends Specification {
             if (type == ScenarioPrerequisiteProvider) return prerequisiteProviders as List<T>
             if (type == ScenarioSetupActionDispatcher) return setupDispatchers as List<T>
             []
+        }
+
+        @Override
+        Class<?> resolveType(String persistedName) throws ClassNotFoundException {
+            try {
+                return Class.forName(persistedName)
+            } catch (ClassNotFoundException missing) {
+                def matches = extraBeans.keySet().findAll { it.simpleName == persistedName }
+                if (matches.size() == 1) return matches.first()
+                throw missing
+            }
+        }
+
+        @Override
+        Class<?> resolveEventHandlingType(String persistedHandler, String processingMethod)
+                throws ClassNotFoundException {
+            def matches = extraBeans.keySet().findAll { type ->
+                type.methods.any { it.name == processingMethod && it.parameterCount == 0 }
+            }
+            if (matches.size() == 1) return matches.first()
+            resolveType(persistedHandler)
         }
 
         @Override

@@ -16,8 +16,8 @@ public final class ScenarioCatalogReader {
 
     ScenarioCatalogReader(ScenarioCatalogPackageReader packageReader) {
         Objects.requireNonNull(packageReader);
-        this.wholePackageReader = packageReader::read;
-        this.selectedPackageReader = packageReader::readSelected;
+        this.wholePackageReader = packageReader::readCurrentForExecution;
+        this.selectedPackageReader = packageReader::readCurrentSelectedForExecution;
     }
 
     ScenarioCatalogReader(WholePackageReader wholePackageReader,
@@ -47,7 +47,7 @@ public final class ScenarioCatalogReader {
     }
 
     private Path manifestPath(ScenarioExecutorOptions options) {
-        Path configured = Objects.requireNonNull(options.packagePath(), "v4 scenario package path is required");
+        Path configured = Objects.requireNonNull(options.packagePath(), "current scenario package path is required");
         return Files.isDirectory(configured)
                 ? configured.resolve("scenario-catalog-manifest.json")
                 : configured;

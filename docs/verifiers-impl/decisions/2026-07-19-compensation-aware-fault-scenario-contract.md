@@ -1,4 +1,4 @@
-# Compensation-aware v3 fault-scenario contract
+# Compensation-aware fault-scenario contract
 
 Date: 2026-07-19
 
@@ -12,7 +12,7 @@ Multi-Saga replay needs a clear policy for persisted assigned faults, unexpected
 
 ## Decision
 
-Use a two-level v3 package:
+Use a two-level current package model:
 
 - `WorkloadPlan` owns reusable participants, accepted inputs, one normal forward interleaving, conflict evidence, forward fault slots, and compensation checkpoints.
 - `FaultScenario` references one WorkloadPlan and owns one assigned vector plus one complete ordered `FORWARD`/`COMPENSATION` action schedule.
@@ -40,9 +40,9 @@ For the supported Saga/local executor:
 
 ## Consequences
 
-- V3 is a clean replacement for the historical v1/v2 `ScenarioPlan` catalog and participant-only execution-report designs; those remain available through Git history, not the active documentation tree.
+- The current model retains the two-level workload/FaultScenario separation without accepting historical package wire shapes.
 - Runtime vector overlays and automatic FaultScenario selection are unsupported.
-- On-demand local writers serialize package revisions through a package-local OS lock, but three-file promotion is not crash-atomic and does not establish network-filesystem or multi-host coordination.
+- On-demand local writers serialize package revisions through a package-local OS lock and roll back all four promoted current artifacts at covered failure boundaries; this does not establish network-filesystem, abrupt-process-death, or multi-host coordination.
 - Current replay is deterministic sequential Saga/local execution, not TCC, stream, gRPC, causal, distributed, or true-parallel parity.
 
 ## Revisit when
@@ -50,6 +50,6 @@ For the supported Saga/local executor:
 - compensation itself needs fault slots or retry scheduling;
 - a broader runtime can preserve the same action identity under distributed/parallel execution;
 - package publication requires crash-atomic multi-file revisions;
-- an external consumer requires a versioned migration beyond v3.
+- an external consumer requires a new current package contract.
 
 Current package, execution, and limitation evidence is in [`../current-state.md`](../current-state.md).

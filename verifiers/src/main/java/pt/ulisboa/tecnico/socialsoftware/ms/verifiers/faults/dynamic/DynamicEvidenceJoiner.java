@@ -1,544 +1,396 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicAttributionLink;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceEvent;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinResult;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinStatus;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceSummary;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.WorkloadDynamicEvidenceRecord;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.MatchedTestExecution;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.ObservedAggregateAccess;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.ObservedCommand;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.ObservedStep;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.UnmatchedReason;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicObservation;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputOwner;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaInstance;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScheduledStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class DynamicEvidenceJoiner {
+/** Normalizes runtime events and attributes one test/Saga invocation at a time. */
+public final class DynamicEvidenceJoiner {
+    public static final List<String> OBSERVATION_KINDS = List.of(
+            "stepStarted", "stepFinished", "commandSent", "aggregateAccessed", "invariantViolation");
+    public static final List<String> ATTRIBUTION_STATUSES = List.of(
+            "exactInput", "testAndShape", "shapeOnly", "ambiguous", "unmatched");
 
-    public DynamicEvidenceJoinResult join(List<WorkloadPlan> workloadPlans, List<DynamicEvidenceEvent> events) {
-        return join(workloadPlans, events, 0, List.of(), 0L);
+    private static final Map<String, String> KIND_NAMES = Map.of(
+            "STEP_STARTED", "stepStarted",
+            "STEP_FINISHED", "stepFinished",
+            "COMMAND_SENT", "commandSent",
+            "AGGREGATE_ACCESSED", "aggregateAccessed",
+            "INVARIANT_VIOLATION", "invariantViolation");
+
+    public DynamicEvidenceJoinResult join(List<WorkloadPlan> workloads, List<DynamicEvidenceEvent> events) {
+        return join(workloads, events, 0, List.of(), 0L, Set.of(), Map.of());
     }
 
-    public DynamicEvidenceJoinResult join(List<WorkloadPlan> workloadPlans,
+    public DynamicEvidenceJoinResult join(List<WorkloadPlan> workloads,
                                           List<DynamicEvidenceEvent> events,
                                           int evidenceFilesRead,
-                                          List<String> readerWarnings) {
-        return join(workloadPlans, events, evidenceFilesRead, readerWarnings, 0L);
+                                          List<String> readerDiagnostics) {
+        return join(workloads, events, evidenceFilesRead, readerDiagnostics, 0L, Set.of(), Map.of());
     }
 
-    public DynamicEvidenceJoinResult join(List<WorkloadPlan> workloadPlans,
+    public DynamicEvidenceJoinResult join(List<WorkloadPlan> workloads,
                                           List<DynamicEvidenceEvent> events,
                                           int evidenceFilesRead,
-                                          List<String> readerWarnings,
-                                          long evidenceBytesRead) {
-        return join(workloadPlans, events, evidenceFilesRead, readerWarnings, evidenceBytesRead, Set.of(), Map.of());
-    }
-
-    public DynamicEvidenceJoinResult join(List<WorkloadPlan> workloadPlans,
-                                          List<DynamicEvidenceEvent> events,
-                                          int evidenceFilesRead,
-                                          List<String> readerWarnings,
+                                          List<String> readerDiagnostics,
                                           long evidenceBytesRead,
-                                          Set<String> selectedTestClassFqns,
-                                          Map<String, String> testRunStatusByClassFqn) {
-        List<WorkloadPlan> workloads = workloadPlans == null ? List.of() : workloadPlans;
-        List<DynamicEvidenceEvent> safeEvents = events == null ? List.of() : events;
-        List<String> warnings = new ArrayList<>(readerWarnings == null ? List.of() : readerWarnings);
-        CatalogIndex catalogIndex = CatalogIndex.from(workloads);
-        JoinIndex joinIndex = JoinIndex.build(safeEvents, event -> analyzeEvent(event, workloads, catalogIndex));
-        int missingContext = (int) safeEvents.stream().filter(event -> isBlank(event.testClassFqn())).count();
-
-        List<WorkloadDynamicEvidenceRecord> records = workloads.stream()
-                .map(workload -> enrich(workload, joinIndex, selectedTestClassFqns, testRunStatusByClassFqn))
-                .toList();
-        return new DynamicEvidenceJoinResult(records, warnings, safeEvents.size(), missingContext, evidenceFilesRead, evidenceBytesRead);
-    }
-
-    private WorkloadDynamicEvidenceRecord enrich(WorkloadPlan workload,
-                                          JoinIndex joinIndex,
-                                          Set<String> selectedTestClassFqns,
-                                          Map<String, String> testRunStatusByClassFqn) {
-        if (joinIndex.isEmpty()) {
-            return record(workload, DynamicEvidenceJoinStatus.NOT_COVERED, List.of(), List.of(), List.of());
-        }
-
-        List<String> planInputIds = workload.acceptedInputs().stream()
-                .map(InputVariant::deterministicId)
+                                          Set<String> selectedTestClasses,
+                                          Map<String, String> testRunStatusByClass) {
+        List<WorkloadPlan> plans = workloads == null ? List.of() : workloads.stream()
                 .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(WorkloadPlan::deterministicId, Comparator.nullsFirst(String::compareTo)))
                 .toList();
+        List<DynamicEvidenceEvent> raw = events == null ? List.of() : events;
+        List<String> diagnostics = new ArrayList<>(readerDiagnostics == null ? List.of() : readerDiagnostics);
+        Index index = Index.from(plans);
 
-        List<DynamicEvidenceEvent> exactEvents = planInputIds.stream()
-                .flatMap(inputId -> joinIndex.exactEvents(inputId).stream())
-                .sorted(EVENT_ORDER)
-                .toList();
-        if (!exactEvents.isEmpty()) {
-            List<String> matchedIds = exactEvents.stream()
-                    .map(DynamicEvidenceEvent::inputVariantId)
-                    .filter(Objects::nonNull)
-                    .distinct()
-                    .sorted()
-                    .toList();
-            return record(workload, DynamicEvidenceJoinStatus.MATCHED_EXACT, matchedIds, exactEvents, List.of());
-        }
-
-        List<EventAnalysis> relevantAnalyses = joinIndex.relevantAnalyses(workload.deterministicId()).stream()
-                .sorted(Comparator.comparing(EventAnalysis::event, EVENT_ORDER))
-                .toList();
-        if (relevantAnalyses.isEmpty()) {
-            return unmatchedRecord(workload, List.of(), List.of(), selectedTestClassFqns, testRunStatusByClassFqn);
-        }
-
-        Set<String> candidateInputIds = relevantAnalyses.stream()
-                .flatMap(analysis -> analysis.candidateInputs().stream())
-                .filter(ref -> Objects.equals(ref.workloadPlanId(), workload.deterministicId()))
-                .map(ref -> ref.input().deterministicId())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        Set<String> identityMatchIds = relevantAnalyses.stream()
-                .flatMap(analysis -> analysis.identityMatches().stream())
-                .filter(ref -> Objects.equals(ref.workloadPlanId(), workload.deterministicId()))
-                .map(ref -> ref.input().deterministicId())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        boolean hasCompleteTestIdentity = relevantAnalyses.stream().anyMatch(EventAnalysis::completeTestIdentity);
-        boolean hasAmbiguousSagaIdentity = relevantAnalyses.stream().anyMatch(analysis -> analysis.candidateSagaFqns().size() > 1);
-
-        if (hasCompleteTestIdentity) {
-            if (identityMatchIds.size() == 1) {
-                String matchedId = identityMatchIds.iterator().next();
-                if (planInputIds.contains(matchedId)) {
-                    return record(workload, DynamicEvidenceJoinStatus.MATCHED_HIGH_CONFIDENCE, List.of(matchedId), relevantEvents(relevantAnalyses), List.of());
-                }
-                return unmatchedRecord(workload, relevantEvents(relevantAnalyses), List.of(), selectedTestClassFqns, testRunStatusByClassFqn);
+        LinkedHashMap<String, Normalized> byId = new LinkedHashMap<>();
+        for (DynamicEvidenceEvent event : raw.stream().sorted(EVENT_ORDER).toList()) {
+            Normalized normalized = normalize(event, index, diagnostics);
+            if (normalized == null) continue;
+            Normalized previous = byId.putIfAbsent(normalized.observation().id(), normalized);
+            if (previous != null && !previous.observation().equals(normalized.observation())) {
+                diagnostics.add("Conflicting duplicate runtime observation id " + normalized.observation().id()
+                        + "; the first occurrence was retained");
             }
-            if (identityMatchIds.size() > 1) {
-                return record(workload, DynamicEvidenceJoinStatus.AMBIGUOUS, sorted(identityMatchIds), relevantEvents(relevantAnalyses), ambiguityWarnings(relevantAnalyses, candidateInputIds, identityMatchIds));
-            }
-            if (hasAmbiguousSagaIdentity) {
-                return record(workload, DynamicEvidenceJoinStatus.AMBIGUOUS, sorted(candidateInputIds), relevantEvents(relevantAnalyses), ambiguityWarnings(relevantAnalyses, candidateInputIds, identityMatchIds));
-            }
-            return unmatchedRecord(workload, relevantEvents(relevantAnalyses), List.of(), selectedTestClassFqns, testRunStatusByClassFqn);
         }
+        List<Normalized> normalized = List.copyOf(byId.values());
+        List<DynamicObservation> observations = normalized.stream().map(Normalized::observation).toList();
+        List<DynamicAttributionLink> attributions = attribute(normalized, index);
 
-        if (candidateInputIds.size() == 1) {
-            if (hasAmbiguousSagaIdentity) {
-                return record(workload, DynamicEvidenceJoinStatus.AMBIGUOUS, sorted(candidateInputIds), relevantEvents(relevantAnalyses), ambiguityWarnings(relevantAnalyses, candidateInputIds, identityMatchIds));
-            }
-            String matchedId = candidateInputIds.iterator().next();
-            if (planInputIds.contains(matchedId)) {
-                return record(workload, DynamicEvidenceJoinStatus.MATCHED_PARTIAL, List.of(), relevantEvents(relevantAnalyses), List.of());
-            }
-            return unmatchedRecord(workload, relevantEvents(relevantAnalyses), List.of(), selectedTestClassFqns, testRunStatusByClassFqn);
+        if (!observations.isEmpty() && observations.stream().noneMatch(observation -> observation.input() != null)) {
+            diagnostics.add("Known runtime input-map mismatch remains visible: verifier entries use workloadPlanIds "
+                    + "while the simulator reader expects scenarioPlanIds; no exact input id was observed");
         }
-        if (candidateInputIds.size() > 1) {
-            return record(workload, DynamicEvidenceJoinStatus.AMBIGUOUS, sorted(candidateInputIds), relevantEvents(relevantAnalyses), ambiguityWarnings(relevantAnalyses, candidateInputIds, identityMatchIds));
-        }
-        return unmatchedRecord(workload, relevantEvents(relevantAnalyses), List.of(), selectedTestClassFqns, testRunStatusByClassFqn);
+        addContextDiagnostics(observations, diagnostics);
+        Map<String, Object> accounting = accounting(plans, observations, attributions,
+                selectedTestClasses, testRunStatusByClass);
+        return new DynamicEvidenceJoinResult(observations, attributions, accounting, diagnostics,
+                evidenceFilesRead, evidenceBytesRead);
     }
 
-    private List<DynamicEvidenceEvent> relevantEvents(List<EventAnalysis> analyses) {
-        return analyses.stream()
-                .map(EventAnalysis::event)
-                .sorted(EVENT_ORDER)
-                .toList();
-    }
-
-    private List<String> ambiguityWarnings(List<EventAnalysis> analyses, Set<String> candidateInputIds, Set<String> identityMatchIds) {
-        List<String> warnings = new ArrayList<>();
-        for (EventAnalysis analysis : analyses) {
-            warnings.add(ambiguousWarning(analysis, candidateInputIds, identityMatchIds));
-        }
-        return warnings.stream().distinct().toList();
-    }
-
-    private String ambiguousWarning(EventAnalysis analysis, Set<String> candidateInputIds, Set<String> identityMatchIds) {
-        return "Ambiguous dynamic evidence at "
-                + evidenceLocation(analysis.event())
-                + " for functionalityName='"
-                + nullToEmpty(analysis.event().functionalityName())
-                + "' step='"
-                + nullToEmpty(analysis.event().stepName())
-                + "'; candidateSagaFqns="
-                + sorted(analysis.candidateSagaFqns())
-                + "; candidateInputVariantIds="
-                + sorted(candidateInputIds)
-                + "; identityMatchIds="
-                + sorted(identityMatchIds);
-    }
-
-    private String evidenceLocation(DynamicEvidenceEvent event) {
-        String path = event.sourcePath() == null ? "<unknown>" : event.sourcePath().toString();
-        return path + ":" + event.lineNumber();
-    }
-
-    private WorkloadDynamicEvidenceRecord record(WorkloadPlan workload,
-                                          DynamicEvidenceJoinStatus status,
-                                          List<String> matchedInputIds,
-                                          List<DynamicEvidenceEvent> matchedEvents,
-                                          List<String> warnings) {
-        DynamicEvidenceSummary summary = new DynamicEvidenceSummary(
-                status,
-                null,
-                matchedInputIds,
-                matchedTestExecutions(matchedEvents),
-                observedSteps(workload, matchedEvents),
-                observedAggregateAccesses(workload, matchedEvents),
-                observedCommands(workload, matchedEvents),
-                warnings);
-        return new WorkloadDynamicEvidenceRecord(
-                WorkloadDynamicEvidenceRecord.SCHEMA_VERSION,
-                workload.deterministicId(),
-                workload.acceptedInputs().stream()
-                        .map(InputVariant::deterministicId)
-                        .filter(Objects::nonNull)
-                        .toList(),
-                summary);
-    }
-
-    private WorkloadDynamicEvidenceRecord unmatchedRecord(WorkloadPlan workload,
-                                                   List<DynamicEvidenceEvent> matchedEvents,
-                                                   List<String> warnings,
-                                                   Set<String> selectedTestClassFqns,
-                                                   Map<String, String> testRunStatusByClassFqn) {
-        UnmatchedReason reason = new UnmatchedReasonClassifier().classify(workload, matchedEvents, selectedTestClassFqns, testRunStatusByClassFqn);
-        DynamicEvidenceSummary summary = new DynamicEvidenceSummary(
-                DynamicEvidenceJoinStatus.UNMATCHED,
-                reason,
-                List.of(),
-                matchedTestExecutions(matchedEvents),
-                observedSteps(workload, matchedEvents),
-                observedAggregateAccesses(workload, matchedEvents),
-                observedCommands(workload, matchedEvents),
-                warnings);
-        return new WorkloadDynamicEvidenceRecord(
-                WorkloadDynamicEvidenceRecord.SCHEMA_VERSION,
-                workload.deterministicId(),
-                workload.acceptedInputs().stream()
-                        .map(InputVariant::deterministicId)
-                        .filter(Objects::nonNull)
-                        .toList(),
-                summary);
-    }
-
-    private List<MatchedTestExecution> matchedTestExecutions(List<DynamicEvidenceEvent> events) {
-        return events.stream()
-                .filter(event -> !isBlank(event.testClassFqn()) || event.sourcePath() != null)
-                .collect(Collectors.toMap(
-                        event -> List.of(nullToEmpty(event.testClassFqn()), nullToEmpty(event.testMethodName()), nullToEmpty(event.testDisplayName()), nullToEmpty(event.testUniqueId()), event.sourcePath() == null ? "" : event.sourcePath().toString()),
-                        Function.identity(),
-                        (left, right) -> left,
-                        LinkedHashMap::new))
-                .values().stream()
-                .map(event -> new MatchedTestExecution(event.testClassFqn(), event.testMethodName(), event.testDisplayName(), event.testUniqueId(), event.sourcePath() == null ? null : event.sourcePath().toString(), null))
-                .toList();
-    }
-
-    private List<ObservedStep> observedSteps(WorkloadPlan workload, List<DynamicEvidenceEvent> events) {
-        Map<String, List<DynamicEvidenceEvent>> byStep = events.stream()
-                .filter(event -> !isBlank(event.stepName()) || !isBlank(event.functionalityName()))
-                .collect(Collectors.groupingBy(event -> nullToEmpty(resolveSagaFqn(workload, event)) + "\u0000" + nullToEmpty(event.functionalityName()) + "\u0000" + nullToEmpty(event.stepName()), LinkedHashMap::new, Collectors.toList()));
-        return byStep.values().stream()
-                .map(group -> {
-                    DynamicEvidenceEvent first = group.getFirst();
-                    List<String> kinds = group.stream().map(DynamicEvidenceEvent::eventKind).filter(Objects::nonNull).distinct().toList();
-                    List<String> outcomes = group.stream().map(event -> event.payloadText("outcome")).filter(Objects::nonNull).distinct().toList();
-                    return new ObservedStep(resolveSagaFqn(workload, first), first.functionalityName(), first.stepName(), kinds, outcomes);
-                })
-                .toList();
-    }
-
-    private List<ObservedAggregateAccess> observedAggregateAccesses(WorkloadPlan workload, List<DynamicEvidenceEvent> events) {
-        return events.stream()
-                .filter(event -> "AGGREGATE_ACCESSED".equals(event.eventKind()))
-                .map(event -> new ObservedAggregateAccess(resolveSagaFqn(workload, event), event.stepName(), event.payloadText("accessMode"), event.payloadText("aggregateType"), event.payloadText("aggregateId"), event.payloadText("sourceMethod"), event.eventId() == null ? List.of() : List.of(event.eventId())))
-                .toList();
-    }
-
-    private List<ObservedCommand> observedCommands(WorkloadPlan workload, List<DynamicEvidenceEvent> events) {
-        return events.stream()
-                .filter(event -> "COMMAND_SENT".equals(event.eventKind()))
-                .map(event -> new ObservedCommand(resolveSagaFqn(workload, event), event.stepName(), event.payloadText("commandType"), event.payloadText("commandFqn"), event.payloadText("serviceName"), event.payloadText("rootAggregateId"), event.eventId() == null ? List.of() : List.of(event.eventId())))
-                .toList();
-    }
-
-    private EventAnalysis analyzeEvent(DynamicEvidenceEvent event, List<WorkloadPlan> workloads, CatalogIndex catalogIndex) {
-        Set<String> candidateSagaFqns = catalogIndex.matchingSagaFqns(event);
-        if (candidateSagaFqns.isEmpty() || isBlank(event.stepName())) {
-            return new EventAnalysis(event, candidateSagaFqns, List.of(), List.of(), hasCompleteTestIdentity(event));
-        }
-
-        List<CandidateInputRef> candidateInputs = workloads.stream()
-                .filter(workload -> matchesPlanStep(workload, event))
-                .filter(workload -> planSagaFqns(workload).stream().anyMatch(fqn -> sagaMatches(fqn, candidateSagaFqns)))
-                .flatMap(workload -> workload.acceptedInputs().stream()
-                        .filter(input -> sagaMatches(input.sagaFqn(), candidateSagaFqns))
-                        .map(input -> new CandidateInputRef(workload.deterministicId(), input)))
-                .toList();
-        List<CandidateInputRef> identityMatches = candidateInputs.stream()
-                .filter(ref -> inputIdentityMatches(ref.input(), event))
-                .toList();
-        return new EventAnalysis(event, candidateSagaFqns, candidateInputs, identityMatches, hasCompleteTestIdentity(event));
-    }
-
-    private boolean hasCompleteTestIdentity(DynamicEvidenceEvent event) {
-        return !isBlank(event.testClassFqn()) && (!isBlank(event.testMethodName()) || !isBlank(event.testDisplayName()));
-    }
-
-    private boolean inputIdentityMatches(InputVariant input, DynamicEvidenceEvent event) {
-        if (isBlank(event.testClassFqn())) {
-            return false;
-        }
-        if (!input.owners().isEmpty()) {
-            return input.owners().stream().anyMatch(owner -> Objects.equals(owner.testClassFqn(), event.testClassFqn())
-                    && (Objects.equals(owner.testMethodName(), event.testMethodName())
-                    || Objects.equals(owner.testMethodName(), event.testDisplayName())));
-        }
-        if (!Objects.equals(input.sourceClassFqn(), event.testClassFqn())) {
-            return false;
-        }
-        return !isBlank(input.sourceMethodName())
-                && (Objects.equals(input.sourceMethodName(), event.testMethodName()) || Objects.equals(input.sourceMethodName(), event.testDisplayName()));
-    }
-
-    private boolean matchesPlanStep(WorkloadPlan workload, DynamicEvidenceEvent event) {
-        if (isBlank(event.stepName())) {
-            return false;
-        }
-        String runtimeStepName = event.stepName().trim();
-        return workload.forwardSchedule().stream()
-                .map(ScheduledStep::stepId)
-                .map(this::normalizedStaticStepName)
-                .anyMatch(runtimeStepName::equals);
-    }
-
-    private Set<String> planSagaFqns(WorkloadPlan workload) {
-        LinkedHashSet<String> names = new LinkedHashSet<>();
-        workload.participants().stream().map(SagaInstance::sagaFqn).filter(Objects::nonNull).forEach(names::add);
-        workload.acceptedInputs().stream().map(InputVariant::sagaFqn).filter(Objects::nonNull).forEach(names::add);
-        return names;
-    }
-
-    private boolean sagaMatches(String inputSagaFqn, Set<String> observedNames) {
-        return observedNames.stream().anyMatch(name -> sagaNameMatches(inputSagaFqn, name));
-    }
-
-    private boolean sagaNameMatches(String sagaFqn, String observed) {
-        return observedSagaNames(sagaFqn).contains(observed) || observedSagaNames(observed).contains(sagaFqn);
-    }
-
-    private String resolveSagaFqn(WorkloadPlan workload, DynamicEvidenceEvent event) {
-        Set<String> planSagas = planSagaFqns(workload);
-        String eventFqn = nonBlank(event.functionalityClassFqn());
-        if (eventFqn != null) {
-            return planSagas.contains(eventFqn) ? eventFqn : null;
-        }
-
-        List<String> matches = planSagas.stream()
-                .filter(fqn -> sagaNameMatches(fqn, event.functionalityName()))
-                .toList();
-        return matches.size() == 1 ? matches.getFirst() : null;
-    }
-
-    private static String simpleName(String fqn) {
-        if (fqn == null) {
+    private Normalized normalize(DynamicEvidenceEvent event, Index index, List<String> diagnostics) {
+        if (event == null || blank(event.eventId()) || blank(event.eventKind()) || event.sequence() == null
+                || blank(event.timestamp()) || blank(event.threadName())) {
+            diagnostics.add(location(event) + ": runtime event omitted because id, kind, sequence, timestamp, or thread is missing");
             return null;
         }
-        int index = fqn.lastIndexOf('.');
-        return index >= 0 ? fqn.substring(index + 1) : fqn;
-    }
-
-    private String stepName(String stepId) {
-        if (stepId == null) {
-            return "";
-        }
-        int index = stepId.lastIndexOf("::");
-        return index >= 0 ? stepId.substring(index + 2) : stepId;
-    }
-
-    private String normalizedStaticStepName(String stepId) {
-        return stepName(stepId).trim().replaceFirst("#\\d+$", "");
-    }
-
-    private static Set<String> observedSagaNames(String sagaFqnOrName) {
-        if (sagaFqnOrName == null || sagaFqnOrName.isBlank()) {
-            return Set.of();
-        }
-        LinkedHashSet<String> names = new LinkedHashSet<>();
-        names.add(sagaFqnOrName);
-        String simple = simpleName(sagaFqnOrName);
-        names.add(simple);
-        String withoutSuffix = stripSagaClassSuffix(simple);
-        names.add(withoutSuffix);
-        names.add(decapitalize(withoutSuffix));
-        return names;
-    }
-
-    private static String stripSagaClassSuffix(String name) {
-        if (name == null) {
+        String kind = KIND_NAMES.get(event.eventKind());
+        if (kind == null) {
+            diagnostics.add(location(event) + ": unsupported runtime event kind " + event.eventKind());
             return null;
         }
-        return name.replaceFirst("(Functionality)?Sagas$", "");
-    }
+        String saga = resolveSaga(event, index);
+        String step = resolveStep(event.stepName(), saga, index);
+        String exactInput = !blank(event.inputVariantId()) && index.inputsById().containsKey(event.inputVariantId())
+                && (saga == null || Objects.equals(saga, index.inputsById().get(event.inputVariantId()).sagaFqn()))
+                ? event.inputVariantId() : null;
+        String execution = testExecution(event);
+        DynamicObservation.TestIdentity test = blank(execution) ? null
+                : new DynamicObservation.TestIdentity(execution, event.testClassFqn(), event.testMethodName());
 
-    private static String decapitalize(String value) {
-        if (value == null || value.isEmpty()) {
-            return value;
-        }
-        return Character.toLowerCase(value.charAt(0)) + value.substring(1);
-    }
-
-    private List<String> ids(List<InputVariant> inputs) {
-        return inputs.stream().map(InputVariant::deterministicId).filter(Objects::nonNull).sorted().toList();
-    }
-
-    private List<String> sorted(Set<String> values) {
-        return values.stream().filter(Objects::nonNull).sorted().toList();
-    }
-
-    private static boolean isBlank(String value) {
-        return value == null || value.isBlank();
-    }
-
-    private static String nonBlank(String value) {
-        return isBlank(value) ? null : value.trim();
-    }
-
-    private static String nullToEmpty(String value) {
-        return value == null ? "" : value;
-    }
-
-    private record CatalogIndex(Map<String, Set<String>> sagaFqnsByObservedName) {
-        static CatalogIndex from(List<WorkloadPlan> workloads) {
-            Map<String, LinkedHashSet<String>> byObservedName = new LinkedHashMap<>();
-            for (WorkloadPlan workload : workloads) {
-                for (String sagaFqn : allSagaFqns(workload)) {
-                    for (String observedName : observedSagaNames(sagaFqn)) {
-                        addObservedName(byObservedName, observedName, sagaFqn);
-                    }
-                }
+        String phase = null;
+        String outcome = null;
+        DynamicObservation.ErrorDetail error = null;
+        DynamicObservation.CommandDetail command = null;
+        DynamicObservation.AccessDetail access = null;
+        DynamicObservation.ViolationDetail violation = null;
+        if ("stepStarted".equals(kind)) {
+            phase = lower(event.payloadText("stepPhase"));
+        } else if ("stepFinished".equals(kind)) {
+            outcome = lower(event.payloadText("outcome"));
+            if (!blank(event.payloadText("errorType")) || !blank(event.payloadText("errorMessage"))) {
+                error = new DynamicObservation.ErrorDetail(event.payloadText("errorType"), event.payloadText("errorMessage"));
             }
-            Map<String, Set<String>> frozen = new LinkedHashMap<>();
-            byObservedName.forEach((observedName, matches) -> frozen.put(observedName, Collections.unmodifiableSet(new LinkedHashSet<>(matches))));
-            return new CatalogIndex(Collections.unmodifiableMap(frozen));
+        } else if ("commandSent".equals(kind)) {
+            command = new DynamicObservation.CommandDetail(event.payloadText("commandType"), event.payloadMap("fields"));
+        } else if ("aggregateAccessed".equals(kind)) {
+            access = new DynamicObservation.AccessDetail(event.payloadText("aggregateType"),
+                    event.payloadText("aggregateId"), lower(event.payloadText("accessMode")));
+        } else if ("invariantViolation".equals(kind)) {
+            violation = new DynamicObservation.ViolationDetail("aggregateInvariant",
+                    event.payloadText("exceptionMessage"));
         }
-
-        Set<String> matchingSagaFqns(DynamicEvidenceEvent event) {
-            String eventFqn = nonBlank(event.functionalityClassFqn());
-            if (eventFqn != null) {
-                Set<String> exactMatches = sagaFqnsByObservedName.getOrDefault(eventFqn, Set.of());
-                return exactMatches.contains(eventFqn) ? Set.of(eventFqn) : Set.of();
-            }
-            String observedName = event.functionalityName();
-            if (observedName == null || observedName.isBlank()) {
-                return Set.of();
-            }
-            return sagaFqnsByObservedName.getOrDefault(observedName, Set.of());
-        }
-
-        private static void addObservedName(Map<String, LinkedHashSet<String>> index, String observedName, String sagaFqn) {
-            if (observedName == null || observedName.isBlank() || sagaFqn == null || sagaFqn.isBlank()) {
-                return;
-            }
-            index.computeIfAbsent(observedName, key -> new LinkedHashSet<>()).add(sagaFqn);
-        }
-
-        private static Set<String> allSagaFqns(WorkloadPlan workload) {
-            LinkedHashSet<String> names = new LinkedHashSet<>();
-            workload.participants().stream().map(SagaInstance::sagaFqn).filter(Objects::nonNull).forEach(names::add);
-            workload.acceptedInputs().stream().map(InputVariant::sagaFqn).filter(Objects::nonNull).forEach(names::add);
-            return names;
-        }
+        DynamicObservation observation = new DynamicObservation(event.eventId(), kind, event.sequence(),
+                event.timestamp(), event.threadName(), test, saga, event.functionalityInvocationId(), step,
+                exactInput, phase, outcome, error, command, access, violation);
+        return new Normalized(observation, event);
     }
 
-    private record CandidateInputRef(String workloadPlanId, InputVariant input) {
+    private List<DynamicAttributionLink> attribute(List<Normalized> observations, Index index) {
+        LinkedHashMap<GroupKey, List<Normalized>> groups = new LinkedHashMap<>();
+        observations.stream()
+                .filter(value -> value.observation().test() != null
+                        && !blank(value.observation().saga()) && !blank(value.observation().invocation()))
+                .forEach(value -> groups.computeIfAbsent(new GroupKey(
+                        value.observation().test().execution(), value.observation().saga(),
+                        value.observation().invocation()), ignored -> new ArrayList<>()).add(value));
+        return groups.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> attribution(entry.getKey(), entry.getValue(), index))
+                .toList();
     }
 
-    private record EventAnalysis(DynamicEvidenceEvent event,
-                                 Set<String> candidateSagaFqns,
-                                 List<CandidateInputRef> candidateInputs,
-                                 List<CandidateInputRef> identityMatches,
-                                 boolean completeTestIdentity) {
-        EventAnalysis {
-            candidateSagaFqns = candidateSagaFqns == null ? Set.of() : Set.copyOf(candidateSagaFqns);
-            candidateInputs = candidateInputs == null ? List.of() : List.copyOf(candidateInputs);
-            identityMatches = identityMatches == null ? List.of() : List.copyOf(identityMatches);
-        }
+    private DynamicAttributionLink attribution(GroupKey key, List<Normalized> group, Index index) {
+        List<String> observationIds = group.stream().map(value -> value.observation().id()).distinct().sorted().toList();
+        Set<String> exact = group.stream().map(value -> value.observation().input()).filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (exact.size() == 1) return link(key, "exactInput", observationIds, exact.iterator().next(), List.of(), null);
+        if (exact.size() > 1) return link(key, "ambiguous", observationIds, null, sorted(exact), null);
 
-        boolean relevantTo(String workloadPlanId) {
-            return candidateInputs.stream().anyMatch(ref -> Objects.equals(ref.workloadPlanId(), workloadPlanId));
+        Set<String> observedSteps = group.stream().map(value -> value.observation().step())
+                .filter(Objects::nonNull).collect(Collectors.toCollection(LinkedHashSet::new));
+        List<InputVariant> shape = observedSteps.isEmpty() ? List.of()
+                : index.inputsBySaga().getOrDefault(key.saga(), List.of()).stream()
+                .filter(input -> index.stepsByInput().getOrDefault(input.deterministicId(), Set.of())
+                        .containsAll(observedSteps))
+                .toList();
+        DynamicEvidenceEvent representative = group.get(0).raw();
+        List<InputVariant> testAndShape = shape.stream().filter(input -> testMatches(input, representative)).toList();
+        if (testAndShape.size() == 1) {
+            return link(key, "testAndShape", observationIds, testAndShape.get(0).deterministicId(), List.of(), null);
         }
+        if (testAndShape.size() > 1) {
+            return link(key, "ambiguous", observationIds, null, inputIds(testAndShape), null);
+        }
+        if (shape.size() == 1) {
+            return link(key, "shapeOnly", observationIds, shape.get(0).deterministicId(), List.of(), null);
+        }
+        if (shape.size() > 1) {
+            return link(key, "ambiguous", observationIds, null, inputIds(shape), null);
+        }
+        return link(key, "unmatched", observationIds, null, List.of(), "no-static-input");
     }
 
-    private record JoinIndex(Map<String, List<DynamicEvidenceEvent>> exactEventsByInputId,
-                             Map<String, List<EventAnalysis>> relevantAnalysesByPlanId,
-                             boolean hasEvents) {
-        static JoinIndex build(List<DynamicEvidenceEvent> events, Function<DynamicEvidenceEvent, EventAnalysis> analyzer) {
-            Map<String, List<DynamicEvidenceEvent>> exactEventsByInputId = new LinkedHashMap<>();
-            Map<String, List<EventAnalysis>> relevantAnalysesByPlanId = new LinkedHashMap<>();
-            for (DynamicEvidenceEvent event : events) {
-                if (!isBlank(event.inputVariantId())) {
-                    exactEventsByInputId.computeIfAbsent(event.inputVariantId(), ignored -> new ArrayList<>()).add(event);
-                    continue;
-                }
+    private boolean testMatches(InputVariant input, DynamicEvidenceEvent event) {
+        if (blank(event.testClassFqn())) return false;
+        Set<String> runtimeNames = java.util.stream.Stream.of(event.testMethodName(), event.testDisplayName())
+                .filter(value -> !blank(value)).collect(Collectors.toSet());
+        if (runtimeNames.isEmpty()) return false;
+        if (Objects.equals(input.sourceClassFqn(), event.testClassFqn())
+                && (runtimeNames.contains(input.sourceMethodName())
+                || runtimeNames.contains(input.callContextMethodName()))) return true;
+        return input.owners().stream().anyMatch(owner -> ownerMatches(owner, event));
+    }
 
-                EventAnalysis analysis = analyzer.apply(event);
-                Set<String> relevantPlanIds = analysis.candidateInputs().stream()
-                        .map(CandidateInputRef::workloadPlanId)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toCollection(LinkedHashSet::new));
-                for (String workloadPlanId : relevantPlanIds) {
-                    relevantAnalysesByPlanId.computeIfAbsent(workloadPlanId, ignored -> new ArrayList<>()).add(analysis);
-                }
+    private boolean ownerMatches(InputOwner owner, DynamicEvidenceEvent event) {
+        return Objects.equals(owner.testClassFqn(), event.testClassFqn())
+                && (Objects.equals(owner.testMethodName(), event.testMethodName())
+                || Objects.equals(owner.testMethodName(), event.testDisplayName()));
+    }
+
+    private DynamicAttributionLink link(GroupKey key, String status, List<String> observations,
+                                        String input, List<String> candidates, String reason) {
+        return new DynamicAttributionLink(key.testExecution(), key.saga(), key.invocation(), status,
+                observations, input, candidates, reason);
+    }
+
+    private Map<String, Object> accounting(List<WorkloadPlan> workloads,
+                                           List<DynamicObservation> observations,
+                                           List<DynamicAttributionLink> attributions,
+                                           Set<String> selectedTestClasses,
+                                           Map<String, String> testRunStatusByClass) {
+        LinkedHashMap<String, Object> result = new LinkedHashMap<>();
+        Map<String, String> statuses = testRunStatusByClass == null ? Map.of() : testRunStatusByClass;
+        Set<String> selected = selectedTestClasses == null ? Set.of() : selectedTestClasses;
+        int passed = (int) selected.stream().filter(test -> "PASSED".equals(statuses.get(test))).count();
+        int failed = (int) selected.stream().filter(test -> {
+            String status = statuses.get(test);
+            return status != null && !"PASSED".equals(status) && !"SKIPPED".equals(status);
+        }).count();
+        result.put("testOutcomes", orderedCounts(Map.of("passed", passed, "failed", failed), "passed", "failed"));
+
+        LinkedHashMap<String, Integer> kinds = zeroCounts(OBSERVATION_KINDS);
+        observations.forEach(observation -> kinds.merge(observation.kind(), 1, Integer::sum));
+        LinkedHashMap<String, Object> observationCounts = new LinkedHashMap<>();
+        observationCounts.put("total", observations.size());
+        observationCounts.put("byKind", kinds);
+        observationCounts.put("withoutTestContext", observations.stream().filter(value -> value.test() == null).count());
+        result.put("observations", observationCounts);
+
+        LinkedHashMap<String, Integer> attributionCounts = zeroCounts(ATTRIBUTION_STATUSES);
+        attributions.forEach(link -> attributionCounts.merge(link.status(), 1, Integer::sum));
+        result.put("sagaInvocations", Map.of("total", attributions.size(), "byStatus", attributionCounts));
+
+        Map<String, String> strongest = new LinkedHashMap<>();
+        for (DynamicAttributionLink link : attributions) {
+            if (link.input() == null || !List.of("exactInput", "testAndShape", "shapeOnly").contains(link.status())) continue;
+            strongest.compute(link.input(), (ignored, prior) -> stronger(prior, link.status()));
+        }
+        LinkedHashMap<String, Integer> unique = zeroCounts(List.of("exactInput", "testAndShape", "shapeOnly"));
+        strongest.values().forEach(status -> unique.merge(status, 1, Integer::sum));
+        result.put("uniqueInputEvidence", unique);
+        result.put("workloadParticipantEvidence", participantEvidence(workloads, attributions));
+        return result;
+    }
+
+    private Map<String, Integer> participantEvidence(List<WorkloadPlan> workloads,
+                                                     List<DynamicAttributionLink> attributions) {
+        LinkedHashMap<String, Integer> counts = zeroCounts(List.of(
+                "allInputsObservedInOneCommonTest", "allInputsObservedAcrossSeparateTests",
+                "someInputsObserved", "noInputsObserved"));
+        Map<String, Set<String>> testsByInput = new LinkedHashMap<>();
+        attributions.stream().filter(link -> link.input() != null
+                        && ("exactInput".equals(link.status()) || "testAndShape".equals(link.status())))
+                .forEach(link -> testsByInput.computeIfAbsent(link.input(), ignored -> new LinkedHashSet<>())
+                        .add(link.testExecution()));
+        for (WorkloadPlan workload : workloads) {
+            List<String> inputs = workload.participants().stream().map(participant -> participant.inputVariantId())
+                    .filter(Objects::nonNull).distinct().toList();
+            long observed = inputs.stream().filter(testsByInput::containsKey).count();
+            if (observed == 0) counts.merge("noInputsObserved", 1, Integer::sum);
+            else if (observed < inputs.size()) counts.merge("someInputsObserved", 1, Integer::sum);
+            else {
+                Set<String> common = new LinkedHashSet<>(testsByInput.get(inputs.get(0)));
+                for (String input : inputs.subList(1, inputs.size())) common.retainAll(testsByInput.get(input));
+                counts.merge(common.isEmpty() ? "allInputsObservedAcrossSeparateTests"
+                        : "allInputsObservedInOneCommonTest", 1, Integer::sum);
             }
-            return new JoinIndex(freezeEventMap(exactEventsByInputId), freezeAnalysisMap(relevantAnalysesByPlanId), !events.isEmpty());
         }
-
-        private JoinIndex {
-            exactEventsByInputId = exactEventsByInputId == null ? Map.of() : exactEventsByInputId;
-            relevantAnalysesByPlanId = relevantAnalysesByPlanId == null ? Map.of() : relevantAnalysesByPlanId;
-        }
-
-        private List<DynamicEvidenceEvent> exactEvents(String inputVariantId) {
-            return exactEventsByInputId.getOrDefault(inputVariantId, List.of());
-        }
-
-        private List<EventAnalysis> relevantAnalyses(String workloadPlanId) {
-            return relevantAnalysesByPlanId.getOrDefault(workloadPlanId, List.of());
-        }
-
-        private boolean isEmpty() {
-            return !hasEvents;
-        }
-
-        private static Map<String, List<DynamicEvidenceEvent>> freezeEventMap(Map<String, List<DynamicEvidenceEvent>> mutable) {
-            Map<String, List<DynamicEvidenceEvent>> frozen = new LinkedHashMap<>();
-            mutable.forEach((key, value) -> frozen.put(key, List.copyOf(value)));
-            return Collections.unmodifiableMap(frozen);
-        }
-
-        private static Map<String, List<EventAnalysis>> freezeAnalysisMap(Map<String, List<EventAnalysis>> mutable) {
-            Map<String, List<EventAnalysis>> frozen = new LinkedHashMap<>();
-            mutable.forEach((key, value) -> frozen.put(key, List.copyOf(value)));
-            return Collections.unmodifiableMap(frozen);
-        }
+        return counts;
     }
+
+    private String resolveSaga(DynamicEvidenceEvent event, Index index) {
+        List<String> identities = java.util.stream.Stream.of(event.functionalityClassFqn(), event.functionalityClassSimpleName(),
+                event.functionalityName()).filter(value -> !blank(value)).toList();
+        Set<String> knownSagas = new LinkedHashSet<>(index.inputsBySaga().keySet());
+        knownSagas.addAll(index.stepsBySaga().keySet());
+        for (String identity : identities) {
+            if (knownSagas.contains(identity)) return identity;
+            List<String> matches = knownSagas.stream()
+                    .filter(saga -> Objects.equals(simpleName(saga), simpleName(identity))).sorted().toList();
+            if (matches.size() == 1) return matches.get(0);
+        }
+        return null;
+    }
+
+    private String resolveStep(String runtimeStep, String saga, Index index) {
+        if (blank(runtimeStep) || blank(saga)) return null;
+        List<String> steps = index.stepsBySaga().getOrDefault(saga, List.of());
+        if (steps.contains(runtimeStep)) return runtimeStep;
+        List<String> matches = steps.stream().filter(step -> Objects.equals(stripOccurrence(step), stripOccurrence(runtimeStep))).toList();
+        return matches.size() == 1 ? matches.get(0) : null;
+    }
+
+    private String testExecution(DynamicEvidenceEvent event) {
+        if (!blank(event.testUniqueId())) return event.testUniqueId();
+        if (!blank(event.testClassFqn()) && !blank(event.testMethodName())) {
+            return event.testClassFqn() + "#" + event.testMethodName();
+        }
+        return null;
+    }
+
+    private void addContextDiagnostics(List<DynamicObservation> observations, List<String> diagnostics) {
+        long withoutTest = observations.stream().filter(value -> value.test() == null).count();
+        long withoutSaga = observations.stream().filter(value -> value.saga() == null).count();
+        long withoutInvocation = observations.stream().filter(value -> value.invocation() == null).count();
+        long withoutStep = observations.stream().filter(value -> value.step() == null).count();
+        if (withoutTest > 0) diagnostics.add(withoutTest + " observations lack test execution context");
+        if (withoutSaga > 0) diagnostics.add(withoutSaga + " observations lack a uniquely resolved Saga");
+        if (withoutInvocation > 0) diagnostics.add(withoutInvocation + " observations lack a Saga invocation");
+        if (withoutStep > 0) diagnostics.add(withoutStep + " observations lack a uniquely resolved Saga-local step");
+    }
+
+    private String stronger(String prior, String candidate) {
+        if (prior == null) return candidate;
+        return rank(candidate) > rank(prior) ? candidate : prior;
+    }
+
+    private int rank(String status) {
+        return switch (status) { case "exactInput" -> 3; case "testAndShape" -> 2; case "shapeOnly" -> 1; default -> 0; };
+    }
+
+    private LinkedHashMap<String, Integer> zeroCounts(List<String> names) {
+        LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
+        names.forEach(name -> counts.put(name, 0));
+        return counts;
+    }
+
+    private LinkedHashMap<String, Integer> orderedCounts(Map<String, Integer> source, String... keys) {
+        LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
+        for (String key : keys) result.put(key, source.getOrDefault(key, 0));
+        return result;
+    }
+
+    private List<String> inputIds(List<InputVariant> inputs) {
+        return inputs.stream().map(InputVariant::deterministicId).filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    private List<String> sorted(Set<String> values) { return values.stream().sorted().toList(); }
+    private String stripOccurrence(String value) { return value == null ? null : value.replaceFirst("#\\d+$", ""); }
+    private String simpleName(String value) { int index = value == null ? -1 : value.lastIndexOf('.'); return index < 0 ? value : value.substring(index + 1); }
+    private String lower(String value) { return value == null ? null : value.toLowerCase(Locale.ROOT); }
+    private boolean blank(String value) { return value == null || value.isBlank(); }
+    private String location(DynamicEvidenceEvent event) { return event == null ? "runtime evidence" : event.sourcePath() + ":" + event.lineNumber(); }
 
     private static final Comparator<DynamicEvidenceEvent> EVENT_ORDER = Comparator
-            .comparing((DynamicEvidenceEvent event) -> event.sourcePath() == null ? "" : event.sourcePath().toString())
-            .thenComparingInt(DynamicEvidenceEvent::lineNumber)
-            .thenComparing(event -> event.eventId() == null ? "" : event.eventId());
+            .comparing(DynamicEvidenceEvent::sequence, Comparator.nullsLast(Long::compareTo))
+            .thenComparing(DynamicEvidenceEvent::eventId, Comparator.nullsLast(String::compareTo))
+            .thenComparing(event -> event.sourcePath() == null ? "" : event.sourcePath().toString())
+            .thenComparingInt(DynamicEvidenceEvent::lineNumber);
+
+    private record Normalized(DynamicObservation observation, DynamicEvidenceEvent raw) { }
+    private record GroupKey(String testExecution, String saga, String invocation) implements Comparable<GroupKey> {
+        @Override public int compareTo(GroupKey other) {
+            int result = testExecution.compareTo(other.testExecution);
+            if (result != 0) return result;
+            result = saga.compareTo(other.saga);
+            return result != 0 ? result : invocation.compareTo(other.invocation);
+        }
+    }
+
+    private record Index(Map<String, InputVariant> inputsById,
+                         Map<String, List<InputVariant>> inputsBySaga,
+                         Map<String, List<String>> stepsBySaga,
+                         Map<String, Set<String>> stepsByInput) {
+        private static Index from(List<WorkloadPlan> workloads) {
+            LinkedHashMap<String, InputVariant> inputs = new LinkedHashMap<>();
+            LinkedHashMap<String, LinkedHashSet<String>> steps = new LinkedHashMap<>();
+            LinkedHashMap<String, LinkedHashSet<String>> inputSteps = new LinkedHashMap<>();
+            for (WorkloadPlan workload : workloads) {
+                workload.acceptedInputs().forEach(input -> {
+                    if (input != null && input.deterministicId() != null) inputs.putIfAbsent(input.deterministicId(), input);
+                });
+                Map<String, String> sagaByParticipant = workload.participants().stream().collect(Collectors.toMap(
+                        participant -> participant.deterministicId(), participant -> participant.sagaFqn(),
+                        (left, right) -> left, LinkedHashMap::new));
+                Map<String, String> inputByParticipant = workload.participants().stream().collect(Collectors.toMap(
+                        participant -> participant.deterministicId(), participant -> participant.inputVariantId(),
+                        (left, right) -> left, LinkedHashMap::new));
+                for (ScheduledStep step : workload.forwardSchedule()) {
+                    String saga = sagaByParticipant.get(step.sagaInstanceId());
+                    if (saga == null || step.stepId() == null) continue;
+                    String local = step.stepId().contains("::") ? step.stepId().substring(step.stepId().lastIndexOf("::") + 2) : step.stepId();
+                    steps.computeIfAbsent(saga, ignored -> new LinkedHashSet<>()).add(local);
+                    String input = inputByParticipant.get(step.sagaInstanceId());
+                    if (input != null) inputSteps.computeIfAbsent(input, ignored -> new LinkedHashSet<>()).add(local);
+                }
+            }
+            Map<String, List<InputVariant>> bySaga = inputs.values().stream().collect(Collectors.groupingBy(
+                    InputVariant::sagaFqn, LinkedHashMap::new, Collectors.collectingAndThen(Collectors.toList(), list ->
+                            list.stream().sorted(Comparator.comparing(InputVariant::deterministicId)).toList())));
+            LinkedHashMap<String, List<String>> stepLists = new LinkedHashMap<>();
+            steps.forEach((saga, values) -> stepLists.put(saga, values.stream().sorted().toList()));
+            LinkedHashMap<String, Set<String>> inputStepSets = new LinkedHashMap<>();
+            inputSteps.forEach((input, values) -> inputStepSets.put(input, Set.copyOf(values)));
+            return new Index(Map.copyOf(inputs), Map.copyOf(bySaga), Map.copyOf(stepLists), Map.copyOf(inputStepSets));
+        }
+    }
 }

@@ -104,8 +104,35 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         List<EventConsequenceDefinition> eventDefinitions = adaptEventConsequences(state, diagnostics, counts);
         List<SourceSetupPlanBinding> setupBindings = adaptSetupBindings(
                 state, adaptedInputs.inputVariants(), diagnostics, counts);
+        LinkedHashMap<String, List<StepDispatchFootprint>> dispatchesBySaga = new LinkedHashMap<>();
+        state.sagas.stream()
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(SagaFunctionalityBuildingBlock::getFqn,
+                        Comparator.nullsFirst(String::compareTo)))
+                .forEach(saga -> dispatchesBySaga.put(saga.getFqn(), saga.getSteps().stream()
+                        .filter(Objects::nonNull)
+                        .flatMap(step -> step.getDispatches().stream())
+                        .filter(Objects::nonNull)
+                        .map(dispatch -> canonicalDispatchKey(saga.getFqn(), dispatch))
+                        .toList()));
         return new ScenarioModelAdapterResult(sagaDefinitions, adaptedInputs.inputVariants(), eventDefinitions,
-                setupBindings, counts, new ArrayList<>(diagnostics));
+                setupBindings, counts, new ArrayList<>(diagnostics), dispatchesBySaga,
+                state.sourceAggregateKeyInputEvidence());
+    }
+
+    private StepDispatchFootprint canonicalDispatchKey(String sagaFqn, StepDispatchFootprint dispatch) {
+        if (dispatch.stepKey() == null || sagaFqn == null) {
+            return dispatch;
+        }
+        int separator = dispatch.stepKey().lastIndexOf("::");
+        String stepName = separator < 0 ? dispatch.stepKey() : dispatch.stepKey().substring(separator + 2);
+        String canonicalStepKey = sagaFqn + "::" + stepName;
+        if (Objects.equals(canonicalStepKey, dispatch.stepKey())) {
+            return dispatch;
+        }
+        return new StepDispatchFootprint(canonicalStepKey, dispatch.commandTypeFqn(), dispatch.aggregateName(),
+                dispatch.accessPolicy(), dispatch.phase(), dispatch.multiplicity(), dispatch.aggregateKeyText(),
+                dispatch.aggregateKeyConfidence(), dispatch.aggregateKeyConstructorArgumentIndex());
     }
 
     private List<SourceSetupPlanBinding> adaptSetupBindings(
@@ -160,6 +187,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                         Objects.equals(input.sagaFqn(), evidence.sagaFqn())
                                 && Objects.equals(input.sourceClassFqn(), evidence.sourceClassFqn())
                                 && Objects.equals(input.sourceMethodName(), evidence.sourceMethodName())
+                                && Objects.equals(input.callContextMethodName(), evidence.callContextMethodName())
                                 && Objects.equals(input.sourceBindingName(), evidence.sourceBindingName()))
                 .findFirst().orElse(null);
     }
@@ -170,6 +198,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                         Objects.equals(trace.sagaClassFqn(), evidence.sagaFqn())
                                 && Objects.equals(trace.sourceClassFqn(), evidence.sourceClassFqn())
                                 && Objects.equals(trace.sourceMethodName(), evidence.sourceMethodName())
+                                && Objects.equals(trace.callContextMethodName(), evidence.callContextMethodName())
                                 && Objects.equals(trace.sourceBindingName(), evidence.sourceBindingName()))
                 .findFirst().orElse(null);
     }

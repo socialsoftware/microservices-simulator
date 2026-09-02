@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/** Executes the validated, closed latest-package setup language outside fault measurement. */
+/** Executes the validated, closed current-package setup language outside fault measurement. */
 final class ScenarioSetupRunner {
     Result run(WorkloadPlan workload,
                FaultScenario scenario,
@@ -44,12 +44,6 @@ final class ScenarioSetupRunner {
         List<ScenarioExecutionReport.SetupActionOutcome> actionOutcomes = new ArrayList<>();
         List<ScenarioExecutionReport.SetupParticipantBindingOutcome> bindingOutcomes = new ArrayList<>();
 
-        SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(
-                plan, workload.acceptedInputs());
-        if (!validation.valid()) {
-            return failure(workload, scenario, started, "SETUP_VALIDATION_FAILED",
-                    validation.diagnostics().toString(), actionOutcomes, bindingOutcomes);
-        }
         if (workload.prerequisiteBaseline() != null) {
             return failure(workload, scenario, started, "MIXED_PREREQUISITE_AND_SETUP",
                     "source-derived setup cannot run with a prerequisite provider", actionOutcomes, bindingOutcomes);
@@ -58,6 +52,13 @@ final class ScenarioSetupRunner {
         Map<String, ScenarioSetupActionDispatcher.SetupMethod> methods;
         try {
             methods = closedMethods(runtimeContext);
+            plan = restoreDispatcherSignatures(plan, methods);
+            SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(
+                    plan, workload.acceptedInputs());
+            if (!validation.valid()) {
+                return failure(workload, scenario, started, "SETUP_VALIDATION_FAILED",
+                        validation.diagnostics().toString(), actionOutcomes, bindingOutcomes);
+            }
             validateRuntimeContract(plan, methods);
             if (!EventReplayCoordinator.isActive()) {
                 throw new SetupFailure("SETUP_REPLAY_CONTROL_FAILED",
@@ -196,6 +197,19 @@ final class ScenarioSetupRunner {
             }
         }
         return Map.copyOf(methods);
+    }
+
+    private SetupPlan restoreDispatcherSignatures(
+            SetupPlan plan,
+            Map<String, ScenarioSetupActionDispatcher.SetupMethod> methods) {
+        List<SetupAction> actions = plan.actions().stream().map(action -> {
+            ScenarioSetupActionDispatcher.SetupMethod method = methods.get(action.methodKey());
+            if (method == null || action.declaredResultTypeFqn() != null) return action;
+            return new SetupAction(action.actionId(), action.orderIndex(), action.sourceOccurrence(),
+                    action.methodKey(), action.arguments(), method.declaredResultTypeFqn(),
+                    action.voidResult(), action.blockers());
+        }).toList();
+        return new SetupPlan(plan.schemaVersion(), actions, plan.participantBindings(), plan.blockers());
     }
 
     private void validateRuntimeContract(

@@ -31,7 +31,7 @@ public class DynamicEvidenceReader {
 
     public DynamicEvidenceReadResult read(Path evidenceRoot) {
         if (evidenceRoot == null || !Files.exists(evidenceRoot)) {
-            return readResult(List.of(), List.of(), 0, 0);
+            return readResult(List.of(), List.of(), 0, 0, List.of());
         }
         List<DynamicEvidenceEvent> events = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
@@ -43,7 +43,7 @@ public class DynamicEvidenceReader {
                     .sorted(Comparator.comparing(Path::toString))
                     .toList();
         } catch (IOException e) {
-            return readResult(List.of(), List.of("Failed to scan dynamic evidence root " + evidenceRoot + ": " + e.getMessage()), 0, 0);
+            return readResult(List.of(), List.of("Failed to scan dynamic evidence root " + evidenceRoot + ": " + e.getMessage()), 0, 0, List.of());
         }
         long evidenceBytesRead = 0L;
         for (Path file : files) {
@@ -54,7 +54,7 @@ public class DynamicEvidenceReader {
             }
             readFile(file, events, warnings);
         }
-        return readResult(events, warnings, files.size(), evidenceBytesRead);
+        return readResult(events, warnings, files.size(), evidenceBytesRead, files);
     }
 
     private void readFile(Path file, List<DynamicEvidenceEvent> events, List<String> warnings) {
@@ -97,6 +97,9 @@ public class DynamicEvidenceReader {
                 text(node, "functionalityClassSimpleName"),
                 text(node, "functionalityInvocationId"),
                 text(node, "stepName"),
+                text(node, "timestamp"),
+                longValue(node, "sequence"),
+                text(node, "threadName"),
                 payload(node.get("payload")),
                 sourcePath,
                 lineNumber);
@@ -116,9 +119,20 @@ public class DynamicEvidenceReader {
         return compact;
     }
 
-    private DynamicEvidenceReadResult readResult(List<DynamicEvidenceEvent> events, List<String> warnings, int evidenceFilesRead, long evidenceBytesRead) {
+    private DynamicEvidenceReadResult readResult(List<DynamicEvidenceEvent> events, List<String> warnings,
+                                                  int evidenceFilesRead, long evidenceBytesRead,
+                                                  List<Path> rawEventFiles) {
         int missingContext = (int) events.stream().filter(event -> event.testClassFqn() == null || event.testClassFqn().isBlank()).count();
-        return new DynamicEvidenceReadResult(events, warnings, evidenceFilesRead, events.size(), missingContext, evidenceBytesRead);
+        return new DynamicEvidenceReadResult(events, warnings, evidenceFilesRead, events.size(), missingContext,
+                evidenceBytesRead, rawEventFiles);
+    }
+
+    private Long longValue(Map<String, Object> node, String field) {
+        Object value = node.get(field);
+        if (value instanceof Number number) return number.longValue();
+        if (value == null) return null;
+        try { return Long.parseLong(value.toString()); }
+        catch (NumberFormatException ignored) { return null; }
     }
 
     private String text(Map<String, Object> node, String field) {

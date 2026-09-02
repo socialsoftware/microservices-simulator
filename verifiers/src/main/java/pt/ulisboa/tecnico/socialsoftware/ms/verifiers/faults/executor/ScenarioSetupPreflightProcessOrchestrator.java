@@ -317,9 +317,9 @@ final class ScenarioSetupPreflightProcessOrchestrator {
 
     private List<Set<String>> attempts(ScenarioExecutor.PreflightPlan plan) {
         List<Set<String>> attempts = new ArrayList<>();
-        Set<String> legacy = new LinkedHashSet<>(plan.candidateWorkloadIds());
-        legacy.removeAll(plan.sourceSetupWorkloadIds());
-        if (!legacy.isEmpty()) attempts.add(Set.copyOf(legacy));
+        Set<String> providerBacked = new LinkedHashSet<>(plan.candidateWorkloadIds());
+        providerBacked.removeAll(plan.sourceSetupWorkloadIds());
+        if (!providerBacked.isEmpty()) attempts.add(Set.copyOf(providerBacked));
         plan.sourceSetupWorkloadIds().stream().sorted()
                 .forEach(id -> attempts.add(Set.of(id)));
         return attempts;

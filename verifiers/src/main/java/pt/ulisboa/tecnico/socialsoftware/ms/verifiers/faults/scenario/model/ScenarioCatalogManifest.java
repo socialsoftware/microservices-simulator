@@ -26,8 +26,27 @@ public record ScenarioCatalogManifest(
         Map<String, String> inputVariantsAcceptedBySourceMode,
         Map<String, String> inputVariantsRejectedBySourceModeReason) {
 
+    /** Current role-keyed manifest used by the static count-only package. */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)
+    @com.fasterxml.jackson.annotation.JsonPropertyOrder({"formatVersion", "files"})
+    public record Current(int formatVersion, Map<String, ArtifactFile> files) {
+        public static final int FORMAT_VERSION = 1;
+
+        public Current {
+            formatVersion = formatVersion <= 0 ? FORMAT_VERSION : formatVersion;
+            files = files == null ? Map.of()
+                    : Collections.unmodifiableMap(new LinkedHashMap<>(files));
+        }
+
+        public record ArtifactFile(String path, String sha256) {
+            public ArtifactFile {
+                path = path == null || path.isBlank() ? null : path;
+                sha256 = sha256 == null || sha256.isBlank() ? null : sha256;
+            }
+        }
+    }
+
     public static final String SCHEMA_VERSION = "microservices-simulator.scenario-catalog-manifest.v5";
-    public static final String LEGACY_V4_SCHEMA_VERSION = "microservices-simulator.scenario-catalog-manifest.v4";
     public static final String FAULT_SCENARIO_SCHEMA_VERSION = FaultScenario.SCHEMA_VERSION;
 
     public ScenarioCatalogManifest {

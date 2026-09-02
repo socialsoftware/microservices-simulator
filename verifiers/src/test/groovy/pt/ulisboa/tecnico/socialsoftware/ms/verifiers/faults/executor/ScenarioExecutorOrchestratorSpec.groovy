@@ -54,6 +54,18 @@ class ScenarioExecutorOrchestratorSpec extends Specification {
         error.message.contains('FaultScenario id')
     }
 
+    def 'orchestrator reports a missing current package path using current terminology'() {
+        when:
+        new ScenarioExecutorOrchestrator({ List<String> command, Path workingDirectory -> 0 } as ScenarioExecutorOrchestrator.ProcessRunner)
+                .run(new ScenarioExecutorOrchestrator.Config(
+                        Path.of('/tmp/app'), 'App', 'test', 'local', null,
+                        Path.of('/tmp/report.json'), 'fault-scenario-1', 'cp'))
+
+        then:
+        def error = thrown(IllegalArgumentException)
+        error.message == 'current package path is required'
+    }
+
     private static ScenarioExecutorOrchestrator.Config validConfig() {
         new ScenarioExecutorOrchestrator.Config(
                 Path.of('/tmp/app'), 'App', 'test', 'local', Path.of('/tmp/manifest.json'),

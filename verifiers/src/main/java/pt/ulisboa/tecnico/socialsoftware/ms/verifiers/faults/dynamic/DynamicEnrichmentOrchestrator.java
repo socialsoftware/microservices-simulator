@@ -2,7 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.export.EnrichedScenarioCatalogWriter;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.export.DynamicArtifactWriter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceReadResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
@@ -24,7 +24,7 @@ public class DynamicEnrichmentOrchestrator {
     private final ProcessRunner processRunner;
     private final DynamicEvidenceReader evidenceReader;
     private final DynamicEvidenceJoiner joiner;
-    private final EnrichedScenarioCatalogWriter writer;
+    private final DynamicArtifactWriter writer;
     private final DynamicInputMapWriter inputMapWriter;
     private final ObjectMapper objectMapper;
 
@@ -33,13 +33,13 @@ public class DynamicEnrichmentOrchestrator {
     }
 
     public DynamicEnrichmentOrchestrator(ProcessRunner processRunner) {
-        this(processRunner, new DynamicEvidenceReader(), new DynamicEvidenceJoiner(), new EnrichedScenarioCatalogWriter(), new DynamicInputMapWriter(), new ObjectMapper());
+        this(processRunner, new DynamicEvidenceReader(), new DynamicEvidenceJoiner(), new DynamicArtifactWriter(), new DynamicInputMapWriter(), new ObjectMapper());
     }
 
     public DynamicEnrichmentOrchestrator(ProcessRunner processRunner,
                                          DynamicEvidenceReader evidenceReader,
                                          DynamicEvidenceJoiner joiner,
-                                         EnrichedScenarioCatalogWriter writer,
+                                         DynamicArtifactWriter writer,
                                          ObjectMapper objectMapper) {
         this(processRunner, evidenceReader, joiner, writer, new DynamicInputMapWriter(objectMapper), objectMapper);
     }
@@ -47,7 +47,7 @@ public class DynamicEnrichmentOrchestrator {
     public DynamicEnrichmentOrchestrator(ProcessRunner processRunner,
                                          DynamicEvidenceReader evidenceReader,
                                          DynamicEvidenceJoiner joiner,
-                                         EnrichedScenarioCatalogWriter writer,
+                                         DynamicArtifactWriter writer,
                                          DynamicInputMapWriter inputMapWriter,
                                          ObjectMapper objectMapper) {
         this.processRunner = Objects.requireNonNull(processRunner, "processRunner cannot be null");
@@ -138,7 +138,6 @@ public class DynamicEnrichmentOrchestrator {
                 || processResult.exitCode() != 0
                 || testRuns.stream().anyMatch(record -> "FAILED".equals(record.status()) || "TIMED_OUT".equals(record.status()) || "NO_REPORT".equals(record.status()));
 
-        long readJoinWriteStartedNanos = System.nanoTime();
         DynamicEvidenceReadResult readResult = evidenceReader.read(evidenceRoot);
         DynamicEvidenceJoinResult joinResult = joiner.join(
                 safeWorkloadPlans,
@@ -148,39 +147,27 @@ public class DynamicEnrichmentOrchestrator {
                 readResult.evidenceBytesRead(),
                 new java.util.LinkedHashSet<>(selectedTestClassFqns),
                 testRunStatusByClassFqn(testRuns));
-        long readJoinWriteDurationMillis = Duration.ofNanos(System.nanoTime() - readJoinWriteStartedNanos).toMillis();
         String dynamicRunFinishedAt = nowIso();
 
-        Path sidecarPath = resolveRunRelativePath(runDirectory, config.sidecarPath(), "workload-dynamic-evidence.jsonl");
-        Path sidecarManifestPath = resolveRunRelativePath(runDirectory, config.sidecarManifestPath(), "workload-dynamic-evidence-manifest.json");
-        Path joinReportPath = resolveRunRelativePath(runDirectory, config.joinReportPath(), "dynamic-evidence-join-report.json");
-        writer.write(
-                joinResult,
-                sidecarPath,
-                sidecarManifestPath,
-                joinReportPath,
-                workloadCatalogPath.toString(),
-                evidenceRoot.toString(),
-                effectiveConfig(config),
-                testRuns.stream().map(TestRunRecord::toMap).toList(),
-                generatedAt,
-                reportMetadata(
-                        startedAt,
-                        dynamicRunFinishedAt,
-                        durationMillis,
-                        readJoinWriteDurationMillis,
-                        batchStatus,
-                        selectedTestClassFqns,
-                        arguments,
-                        workloadCatalogPath,
-                        evidenceRoot,
-                        sidecarPath,
-                        outputLog));
-
-        Result result = new Result(testRuns, joinResult, evidenceRoot, sidecarPath, sidecarManifestPath, joinReportPath);
         if (hasFailure && !config.allowPartialTestRun()) {
             throw new IllegalStateException("Dynamic enrichment test run failed; artifacts were preserved under " + runDirectory);
         }
+        Path diagnosticPath = evidenceRoot.resolve("dynamic-normalization-diagnostics.json");
+        Map<String, Object> diagnostics = new LinkedHashMap<>();
+        diagnostics.put("diagnostics", joinResult.diagnostics());
+        diagnostics.put("evidenceFilesRead", joinResult.evidenceFilesRead());
+        diagnostics.put("evidenceBytesRead", joinResult.evidenceBytesRead());
+        diagnostics.put("effectiveConfig", effectiveConfig(config));
+        diagnostics.put("testRuns", testRuns.stream().map(TestRunRecord::toMap).toList());
+        diagnostics.put("generatedAt", generatedAt);
+        diagnostics.put("finishedAt", dynamicRunFinishedAt);
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(diagnosticPath.toFile(), diagnostics);
+        DynamicArtifactWriter.Result written = writer.write(joinResult, workloadCatalogPath);
+        for (Path rawEventFile : readResult.rawEventFiles()) {
+            Files.deleteIfExists(rawEventFile);
+        }
+        Result result = new Result(testRuns, joinResult, evidenceRoot, written.observationPath(),
+                written.attributionPath(), diagnosticPath);
         return result;
     }
 
@@ -211,32 +198,6 @@ public class DynamicEnrichmentOrchestrator {
         arguments.add("-Dsimulator.dynamic-evidence.input-map-path=" + evidenceDir.resolve(DynamicInputMapWriter.FILE_NAME));
         arguments.add("-Dsimulator.dynamic-evidence.application-name=" + applicationName);
         return List.copyOf(arguments);
-    }
-
-    private Map<String, Object> reportMetadata(String dynamicRunStartedAt,
-                                               String dynamicRunFinishedAt,
-                                               long mavenDurationMillis,
-                                               long readJoinWriteDurationMillis,
-                                               String batchStatus,
-                                               List<String> selectedTestClassFqns,
-                                               List<String> commandArguments,
-                                               Path workloadCatalogPath,
-                                               Path evidenceRoot,
-                                               Path sidecarPath,
-                                               Path outputLog) {
-        Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("dynamicRunStartedAt", dynamicRunStartedAt);
-        metadata.put("dynamicRunFinishedAt", dynamicRunFinishedAt);
-        metadata.put("mavenDurationMillis", mavenDurationMillis);
-        metadata.put("readJoinWriteDurationMillis", readJoinWriteDurationMillis);
-        metadata.put("batchStatus", batchStatus);
-        metadata.put("selectedTestClassFqns", selectedTestClassFqns);
-        metadata.put("commandArguments", commandArguments);
-        metadata.put("workloadCatalogPath", workloadCatalogPath.toString());
-        metadata.put("dynamicEvidenceRoot", evidenceRoot.toString());
-        metadata.put("sidecarPath", sidecarPath.toString());
-        metadata.put("mavenOutputLogPath", outputLog.toString());
-        return metadata;
     }
 
     private void writeBatchTestRunArtifacts(Path evidenceRoot,
@@ -304,9 +265,6 @@ public class DynamicEnrichmentOrchestrator {
         map.put("enabled", config.enabled());
         map.put("allowPartialTestRun", config.allowPartialTestRun());
         map.put("dynamicEvidenceSubdir", config.dynamicEvidenceSubdir());
-        map.put("sidecarPath", config.sidecarPath());
-        map.put("sidecarManifestPath", config.sidecarManifestPath());
-        map.put("joinReportPath", config.joinReportPath());
         map.put("testSourceRoot", config.testSourceRoot());
         map.put("includeTestDirs", config.includeTestDirs());
         map.put("excludeTestDirs", config.excludeTestDirs());
@@ -350,9 +308,9 @@ public class DynamicEnrichmentOrchestrator {
     public record Result(List<TestRunRecord> testRuns,
                          DynamicEvidenceJoinResult joinResult,
                          Path evidenceRoot,
-                         Path sidecarPath,
-                         Path sidecarManifestPath,
-                         Path joinReportPath) {
+                         Path observationPath,
+                         Path attributionPath,
+                         Path diagnosticPath) {
         public Result {
             testRuns = testRuns == null ? List.of() : List.copyOf(testRuns);
         }
