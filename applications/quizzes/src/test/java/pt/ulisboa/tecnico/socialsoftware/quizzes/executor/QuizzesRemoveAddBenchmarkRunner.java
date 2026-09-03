@@ -118,7 +118,9 @@ public final class QuizzesRemoveAddBenchmarkRunner {
         ScenarioCatalogPackageReader.SelectedPackageContents contents =
                 new ScenarioCatalogPackageReader().readSelected(
                         invocation.manifestPath(), invocation.workloadPlanId(), invocation.faultScenarioId());
-        rejectResultAlias(invocation, contents);
+        rejectResultAlias(
+                invocation.resultOutputPath(), invocation.manifestPath(),
+                invocation.executionOutputPath(), invocation.impactOutputPath());
         WorkloadPlan workload = contents.workloadPlan();
         FaultScenario scenario = contents.faultScenario();
         if (!Objects.equals(scenario.workloadPlanId(), workload.deterministicId())) {
@@ -428,17 +430,35 @@ public final class QuizzesRemoveAddBenchmarkRunner {
                 required(options, "runtime-context-id"));
     }
 
-    private static void rejectResultAlias(Invocation invocation,
-                                          ScenarioCatalogPackageReader.SelectedPackageContents contents) {
-        List<Path> inputs = List.of(
-                invocation.manifestPath(), contents.workloadCatalogPath(), contents.faultScenarioCatalogPath(),
-                contents.accountingPath(), contents.rejectedInputsPath(), invocation.executionOutputPath(),
-                invocation.impactOutputPath());
+    static void rejectResultAlias(Path resultOutputPath,
+                                  Path manifestPath,
+                                  Path executionOutputPath,
+                                  Path impactOutputPath) {
+        List<Path> inputs = new ArrayList<>();
+        inputs.add(manifestPath);
+        inputs.addAll(currentManifestArtifactPaths(manifestPath));
+        inputs.add(executionOutputPath);
+        inputs.add(impactOutputPath);
         for (Path input : inputs) {
-            if (samePath(invocation.resultOutputPath(), input)) {
+            if (samePath(resultOutputPath, input)) {
                 throw new UnsafeResultPathException(
                         "Benchmark result output must not alias package or executor artifacts");
             }
+        }
+    }
+
+    private static List<Path> currentManifestArtifactPaths(Path manifestPath) {
+        try {
+            Path packageDirectory = manifestPath.toAbsolutePath().normalize().getParent();
+            if (packageDirectory == null) {
+                throw new IllegalArgumentException("Benchmark manifest path has no package directory");
+            }
+            List<Path> paths = new ArrayList<>();
+            MAPPER.readTree(manifestPath.toFile()).path("files").elements().forEachRemaining(file ->
+                    paths.add(packageDirectory.resolve(file.path("path").asText()).normalize()));
+            return List.copyOf(paths);
+        } catch (IOException failure) {
+            throw new IllegalArgumentException("Cannot read benchmark package manifest", failure);
         }
     }
 

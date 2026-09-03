@@ -8,9 +8,16 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.executor.QuizzesRemoveAddBenchm
 import pt.ulisboa.tecnico.socialsoftware.quizzes.executor.QuizzesRemoveAddBenchmarkRunner
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState
 import spock.lang.Specification
+import spock.lang.TempDir
 import spock.lang.Unroll
 
+import java.nio.file.Files
+import java.nio.file.Path
+
 class QuizzesRemoveAddBenchmarkRunnerSpec extends Specification {
+    @TempDir
+    Path tempDirectory
+
     @Unroll
     def 'classification keeps execution validity separate from the one final-state rule'() {
         expect:
@@ -220,6 +227,27 @@ class QuizzesRemoveAddBenchmarkRunnerSpec extends Specification {
         QuizzesRemoveAddBenchmarkAttempt.BENCHMARK_ID == 'quizzes-remove-tournament-add-participant'
         QuizzesRemoveAddBenchmarkAttempt.OBSERVATION_RULE.contains('active Tournament')
         QuizzesRemoveAddBenchmarkAttempt.OBSERVATION_RULE.contains('deleted Quiz')
+    }
+
+    def 'result output cannot alias any current manifest-declared package artifact'() {
+        given:
+        def manifest = tempDirectory.resolve('scenario-catalog-manifest.json')
+        def inputs = tempDirectory.resolve('inputs.jsonl')
+        Files.writeString(inputs, '{}\n')
+        Files.writeString(manifest, '''
+                {"formatVersion":1,"files":{"inputs":{"path":"inputs.jsonl","sha256":"unused"}}}
+                '''.stripIndent().trim())
+
+        when:
+        QuizzesRemoveAddBenchmarkRunner.rejectResultAlias(
+                inputs,
+                manifest,
+                tempDirectory.resolve('execution-report.json'),
+                tempDirectory.resolve('impact-report.json'))
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message == 'Benchmark result output must not alias package or executor artifacts'
     }
 
     private static ScenarioExecutionReport.PrerequisiteSetup prerequisite(
