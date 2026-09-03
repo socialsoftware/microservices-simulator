@@ -231,7 +231,7 @@ Count-only packages contain exactly these semantic roles:
 |---|---|---|
 | `accounting` | `accounting.json` | Configuration and aggregate numerical results |
 | `sagas` | `sagas.jsonl` | One record per discovered Saga, including Saga-local steps and routes |
-| `inputs` | `inputs.jsonl` | One record per extracted input, accepted or rejected |
+| `inputs` | `inputs.jsonl` | One record per extracted input, accepted or rejected; catalog-writing may add provider-bound inputs required by emitted prerequisite workloads |
 | `interactions` | `interactions.jsonl` | One direct two-access interaction per record |
 
 Catalog-writing adds:

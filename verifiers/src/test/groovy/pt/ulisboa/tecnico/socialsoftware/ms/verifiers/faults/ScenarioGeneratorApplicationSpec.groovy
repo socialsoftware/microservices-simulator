@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.SpringApplication
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogPackageReader
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan
 import spock.lang.TempDir
 
@@ -395,6 +396,54 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
                 'accounting.json',
                 'workloads.jsonl'
         ] as Set
+
+        cleanup:
+        context?.close()
+    }
+
+    def 'catalog export keeps selected prerequisite inputs closed under the application path'() {
+        given:
+        def applicationsRoot = tempDir.resolve('applications')
+        def outputRoot = tempDir.resolve('verifier-output')
+        def applicationBaseDir = 'quizzes'
+        def sourceQuizzesRoot = resolveProjectPath('applications', 'quizzes', 'src')
+        def applicationPath = applicationsRoot.resolve(applicationBaseDir)
+        copyDirectory(sourceQuizzesRoot, applicationPath.resolve('src'))
+
+        and:
+        def app = new SpringApplication(ScenarioGeneratorApplication)
+
+        when:
+        def context = app.run(
+                "--verifiers.applications-root=${applicationsRoot}",
+                "--verifiers.application-base-dir=${applicationBaseDir}",
+                "--verifiers.output-root=${outputRoot}",
+                '--verifiers.scenario-catalog.enabled=true',
+                '--verifiers.scenario-catalog.catalog-write-mode=WRITE_WORKLOADS',
+                '--verifiers.scenario-catalog.max-saga-set-size=3',
+                '--verifiers.scenario-catalog.max-catalog-scenarios=1',
+                '--verifiers.scenario-catalog.max-input-variants-per-saga=1000',
+                '--verifiers.scenario-catalog.max-schedules-per-input-tuple=1'
+        )
+
+        then:
+        noExceptionThrown()
+
+        and:
+        def runDirectory = singleRunDirectory(outputRoot, applicationBaseDir)
+        def contents = new ScenarioCatalogPackageReader().readCurrent(
+                runDirectory.resolve('scenario-catalog-manifest.json'))
+        contents.workloadRecords().size() == 1
+        def workloadInputIds = contents.workloadRecords().collectMany { workload ->
+            workload.path('participants').collect { it.path('input').asText() }
+        }.toSet()
+        def generatedInputIds = contents.inputFacts().findAll { input ->
+            input.path('warnings').any { it.asText().contains('prerequisite provider') }
+        }*.path('id')*.asText().toSet()
+        generatedInputIds.size() == 2
+        generatedInputIds.every { workloadInputIds.contains(it) }
+        contents.accounting().path('inputs').path('found').asInt() ==
+                Files.readAllLines(runDirectory.resolve('inputs.jsonl')).size() - generatedInputIds.size()
 
         cleanup:
         context?.close()

@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Inpu
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeAssignment;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeMapEntry;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.NormalActionKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.NormalActionRef;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.PrerequisiteBaseline;
@@ -46,6 +47,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * Publishes the current executable catalog by extending the static package
@@ -107,6 +109,24 @@ public final class ExecutableArtifactWriter {
                                                   Path faultPath,
                                                   Path requestPath,
                                                   String generatedAt) throws IOException {
+        return writeWithPackageInputs(model, targetApplication, generation, manifestPath, accountingPath, sagaFactsPath,
+                inputFactsPath, interactionFactsPath, setupPath, workloadPath, faultPath, requestPath,
+                generatedAt);
+    }
+
+    private ScenarioCatalogManifest.Current writeWithPackageInputs(ScenarioModelAdapterResult model,
+                                                  String targetApplication,
+                                                  EagerFaultScenarioGenerationResult generation,
+                                                  Path manifestPath,
+                                                  Path accountingPath,
+                                                  Path sagaFactsPath,
+                                                  Path inputFactsPath,
+                                                  Path interactionFactsPath,
+                                                  Path setupPath,
+                                                  Path workloadPath,
+                                                  Path faultPath,
+                                                  Path requestPath,
+                                                  String generatedAt) throws IOException {
         ScenarioModelAdapterResult safeModel = Objects.requireNonNull(model, "model");
         EagerFaultScenarioGenerationResult safeGeneration = Objects.requireNonNull(generation, "generation");
         Path manifest = Objects.requireNonNull(manifestPath, "manifestPath").toAbsolutePath().normalize();
@@ -123,10 +143,17 @@ public final class ExecutableArtifactWriter {
 
         // Reuse M1's sole static projection. It also performs static model
         // normalization and current-package validation before we add executable roles.
-        new StaticAnalysisArtifactWriter().write(safeModel, targetApplication,
+        List<InputVariant> requiredPackageInputs =
+                safeGeneration.workloadPlans().stream()
+                        .filter(Objects::nonNull)
+                        .flatMap(plan -> plan.acceptedInputs() == null
+                                ? Stream.empty() : plan.acceptedInputs().stream())
+                        .filter(Objects::nonNull)
+                        .toList();
+        new StaticAnalysisArtifactWriter().writeExecutable(safeModel, targetApplication,
                 safeGeneration.effectiveConfig(), manifest, accountingPath, sagaFactsPath,
                 inputFactsPath, interactionFactsPath,
-                generatedAt);
+                generatedAt, requiredPackageInputs);
         Map<String, String> interactionIds = interactionIds(interactionFactsPath);
         Map<String, List<String>> sagaStepIds = sagaStepIds(sagaFactsPath);
 

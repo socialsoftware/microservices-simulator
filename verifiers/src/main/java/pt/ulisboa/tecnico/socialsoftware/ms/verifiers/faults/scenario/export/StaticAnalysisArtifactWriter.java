@@ -56,6 +56,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Publishes the current count-only package: accounting and three authoritative
@@ -94,6 +95,34 @@ public final class StaticAnalysisArtifactWriter {
                                         Path inputFactsPath,
                                         Path interactionFactsPath,
                                         String generatedAt) throws IOException {
+        return writeInternal(model, targetApplication, config, manifestPath, accountingPath, sagaFactsPath,
+                inputFactsPath, interactionFactsPath, generatedAt, List.of());
+    }
+
+    ScenarioCatalogManifest.Current writeExecutable(ScenarioModelAdapterResult model,
+                                        String targetApplication,
+                                        ScenarioGeneratorConfig config,
+                                        Path manifestPath,
+                                        Path accountingPath,
+                                        Path sagaFactsPath,
+                                        Path inputFactsPath,
+                                        Path interactionFactsPath,
+                                        String generatedAt,
+                                        List<InputVariant> requiredPackageInputs) throws IOException {
+        return writeInternal(model, targetApplication, config, manifestPath, accountingPath, sagaFactsPath,
+                inputFactsPath, interactionFactsPath, generatedAt, requiredPackageInputs);
+    }
+
+    private ScenarioCatalogManifest.Current writeInternal(ScenarioModelAdapterResult model,
+                                        String targetApplication,
+                                        ScenarioGeneratorConfig config,
+                                        Path manifestPath,
+                                        Path accountingPath,
+                                        Path sagaFactsPath,
+                                        Path inputFactsPath,
+                                        Path interactionFactsPath,
+                                        String generatedAt,
+                                        List<InputVariant> requiredPackageInputs) throws IOException {
         ScenarioModelAdapterResult safeModel = Objects.requireNonNull(model, "model");
         ScenarioGeneratorConfig safeConfig = config == null ? new ScenarioGeneratorConfig() : config;
         Path manifest = Objects.requireNonNull(manifestPath, "manifestPath").toAbsolutePath().normalize();
@@ -113,8 +142,19 @@ public final class StaticAnalysisArtifactWriter {
         createParents(manifest, accounting, sagas, inputs, interactions);
 
         List<SagaDefinition> sagaDefinitions = uniqueSagas(safeModel.sagaDefinitions());
-        List<InputProjection> inputProjections = inputProjections(safeModel.inputVariants(), safeConfig,
+        List<InputProjection> accountingInputProjections = inputProjections(safeModel.inputVariants(), safeConfig,
                 sagaDefinitions);
+        List<InputVariant> packageInputs = mergeInputVariants(safeModel.inputVariants(), requiredPackageInputs);
+        Set<String> requiredInputIds = (requiredPackageInputs == null ? List.<InputVariant>of() : requiredPackageInputs)
+                .stream()
+                .filter(Objects::nonNull)
+                .map(InputVariantNormalizer::normalizeForArtifact)
+                .filter(Objects::nonNull)
+                .map(InputVariant::deterministicId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        List<InputProjection> inputProjections = inputProjections(packageInputs, safeConfig,
+                sagaDefinitions, requiredInputIds);
         List<Map<String, Object>> sagaFacts = sagaFacts(sagaDefinitions, safeModel);
         List<Map<String, Object>> inputFacts = inputProjections.stream()
                 .map(projection -> inputFact(projection, safeModel.aggregateKeyInputEvidence()))
@@ -128,7 +168,7 @@ public final class StaticAnalysisArtifactWriter {
                 targetApplication, sagaDefinitions, safeModel.inputVariants(),
                 safeModel.aggregateKeyInputEvidence(), safeConfig, 0);
         Map<String, Object> account = accounting(targetApplication, safeConfig, sagaDefinitions,
-                inputProjections, interactionFacts, safeModel.eventConsequenceDefinitions(),
+                accountingInputProjections, interactionFacts, safeModel.eventConsequenceDefinitions(),
                 safeModel.aggregateKeyInputEvidence(), accountingReport);
 
         return publishProjection(manifest, accounting, sagas, inputs, interactions,
@@ -188,6 +228,13 @@ public final class StaticAnalysisArtifactWriter {
     private List<InputProjection> inputProjections(List<InputVariant> raw,
                                                     ScenarioGeneratorConfig config,
                                                     List<SagaDefinition> sagas) {
+        return inputProjections(raw, config, sagas, Set.of());
+    }
+
+    private List<InputProjection> inputProjections(List<InputVariant> raw,
+                                                    ScenarioGeneratorConfig config,
+                                                    List<SagaDefinition> sagas,
+                                                    Set<String> requiredInputIds) {
         Set<String> knownSagas = (sagas == null ? List.<SagaDefinition>of() : sagas).stream()
                 .map(SagaDefinition::sagaFqn)
                 .filter(Objects::nonNull)
@@ -215,6 +262,13 @@ public final class StaticAnalysisArtifactWriter {
         }
         int max = Math.max(0, config.maxInputVariantsPerSaga());
         Set<String> retained = new HashSet<>();
+        Set<String> eligibleIds = eligibleBySaga.values().stream()
+                .flatMap(List::stream)
+                .map(InputVariant::deterministicId)
+                .collect(Collectors.toSet());
+        retained.addAll(requiredInputIds == null ? Set.of() : requiredInputIds.stream()
+                .filter(eligibleIds::contains)
+                .collect(Collectors.toSet()));
         eligibleBySaga.forEach((saga, values) -> values.stream()
                 .sorted(Comparator.comparing(InputVariant::deterministicId))
                 .limit(max)
@@ -230,6 +284,19 @@ public final class StaticAnalysisArtifactWriter {
         }
         result.sort(Comparator.comparing(projection -> projection.input().deterministicId()));
         return List.copyOf(result);
+    }
+
+    private List<InputVariant> mergeInputVariants(List<InputVariant> original,
+                                                   List<InputVariant> additional) {
+        LinkedHashMap<String, InputVariant> byId = new LinkedHashMap<>();
+        Stream.concat(original == null ? Stream.empty() : original.stream(),
+                        additional == null ? Stream.empty() : additional.stream())
+                .filter(Objects::nonNull)
+                .map(InputVariantNormalizer::normalizeForArtifact)
+                .filter(input -> input != null && input.deterministicId() != null)
+                .sorted(Comparator.comparing(InputVariant::deterministicId))
+                .forEach(input -> byId.putIfAbsent(input.deterministicId(), input));
+        return List.copyOf(byId.values());
     }
 
     private ScenarioExecutorReadinessEvaluator.Readiness readiness(InputVariant input) {

@@ -65,7 +65,7 @@ the exact persisted input id while leaving the matching rules unchanged.
 
 ## Outcome 1 — Improve useful input coverage
 
-**Status: next priority.** The source-derived shared-setup vertical slice is complete for one representative Remove/Add fixture shape; broader input families remain outcome work.
+**Status: next priority.** Package closure is repaired: catalog-writing publishes the provider-bound input records required by its emitted prerequisite workloads. The source-derived shared-setup vertical slice is complete for one representative Remove/Add fixture shape; broader input families remain outcome work.
 
 ### Goal
 

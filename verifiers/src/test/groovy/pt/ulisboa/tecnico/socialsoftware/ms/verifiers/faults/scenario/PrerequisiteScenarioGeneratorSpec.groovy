@@ -66,6 +66,86 @@ class PrerequisiteScenarioGeneratorSpec extends Specification {
         validAndSetupCandidate(first.workloads())
     }
 
+    def 'executable package includes generated prerequisite inputs while accounting remains based on source inputs'() {
+        given:
+        def fixture = fixture()
+        def descriptor = eventDescriptor() + [
+                id: 'fixture-no-event', selectionKind: 'NO_EVENT', expectedWorkloadCount: 1
+        ]
+        descriptor.remove('eventTypeFqn')
+        descriptor.remove('eventHandlingClassFqn')
+        descriptor.remove('eventHandlingMethodName')
+        def app = descriptorApplication([descriptor])
+        def config = new ScenarioGeneratorConfig(
+                true, ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS, false, 2, 10, 1, 1,
+                false, ScenarioGeneratorConfig.InputPolicy.RESOLVED_OR_REPLAYABLE,
+                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL, 1234L)
+        def prerequisites = new PrerequisiteScenarioGenerator().generate(
+                app, fixture.definitions, fixture.inputs, [fixture.event], config)
+        def model = new pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ScenarioModelAdapterResult(
+                fixture.definitions, fixture.inputs, [], [:], [])
+        def workloadResult = new WorkloadGenerationResult(
+                WorkloadPlan.SCHEMA_VERSION, config, prerequisites.workloads(), [], [:], [])
+        def generation = new EagerFaultScenarioGenerationResult(
+                workloadResult, 1, [], prerequisites.workloads().collect {
+                    new WorkloadMaterializability(it.deterministicId(), true, [])
+                }, [])
+        def output = Files.createTempDirectory('prerequisite-package')
+
+        when:
+        new pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ExecutableArtifactWriter().write(
+                model, 'fixture', generation, output)
+        def packageContents = new pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogPackageReader()
+                .readCurrent(output.resolve('scenario-catalog-manifest.json'))
+
+        then:
+        packageContents.inputFacts()*.path('id')*.asText().toSet() ==
+                (fixture.inputs + prerequisites.workloads().collectMany { it.acceptedInputs() })
+                        .collect { InputVariantNormalizer.normalizeForArtifact(it).deterministicId() }.toSet()
+        packageContents.inputFacts()*.path('id')*.asText().size() ==
+                packageContents.inputFacts()*.path('id')*.asText().toSet().size()
+        packageContents.workloadRecords().every { workload ->
+            workload.path('participants').every { participant ->
+                packageContents.inputFacts()*.path('id')*.asText().contains(participant.path('input').asText())
+            }
+        }
+        packageContents.accounting().path('inputs').path('found').asInt() == fixture.inputs.size()
+        packageContents.accounting().path('inputs').path('accepted').asInt() == fixture.inputs.size()
+    }
+
+    def 'capped-out prerequisite workloads do not leave orphan generated inputs'() {
+        given:
+        def fixture = fixture()
+        def app = descriptorApplication([eventDescriptor()])
+        def config = new ScenarioGeneratorConfig(
+                true, ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS, false, 2, 0, 1, 1,
+                false, ScenarioGeneratorConfig.InputPolicy.RESOLVED_OR_REPLAYABLE,
+                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL, 1234L)
+        def prerequisites = new PrerequisiteScenarioGenerator().generate(
+                app, fixture.definitions, fixture.inputs, [fixture.event], config)
+        def model = new pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ScenarioModelAdapterResult(
+                fixture.definitions, fixture.inputs, [], [:], [])
+        def workloadResult = new WorkloadGenerationResult(
+                WorkloadPlan.SCHEMA_VERSION, config, [], [], [:], [])
+        def generation = new EagerFaultScenarioGenerationResult(workloadResult, 1, [], [], [])
+        def output = Files.createTempDirectory('prerequisite-package-cap')
+
+        when:
+        new pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ExecutableArtifactWriter().write(
+                model, 'fixture', generation, output)
+
+        then:
+        new pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogPackageReader()
+                .readCurrent(output.resolve('scenario-catalog-manifest.json'))
+        Files.readAllLines(output.resolve('inputs.jsonl')).size() == fixture.inputs.size()
+        !Files.readString(output.resolve('inputs.jsonl')).contains('prerequisite provider')
+        new ObjectMapper().readTree(Files.readString(output.resolve('accounting.json')))
+                .path('inputs').path('found').asInt() == fixture.inputs.size()
+        prerequisites.workloads().collectMany { it.acceptedInputs() }.size() == 4
+    }
+
     @Unroll
     def 'descriptor rejects malformed event selection #description'() {
         given:
