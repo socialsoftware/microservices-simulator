@@ -39,7 +39,12 @@ strict connected Saga sets (2 / 3):  382 / 3594
 strict sets with positive input tuples: 35 / 42
 ```
 
-A separate bounded source-derived package contains one reusable 12-action setup, one RemoveTournament/AddParticipant WorkloadPlan, and 14 FaultScenarios after one persisted `10100` request. Its Docker preflight is `SETUP_READY`; replay of that requested scenario completed `PARTIAL_COMPENSATED / EXACT`. These are bounded qualification facts, not generic execution coverage.
+A bounded workload-writing qualification contains 1,415 ordinary Quizzes WorkloadPlans;
+408 reference a source-derived setup, including 94 singles, 182 pairs, and 132 triples.
+Two representative workloads—one natural triple and the existing
+RemoveTournament/AddParticipant pair—passed isolated Docker setup preflight. A separate
+focused package retains the pair's 14-scenario execution evidence. These are bounded
+qualification facts, not generic execution coverage.
 
 ## Reading order
 
@@ -80,7 +85,7 @@ Preflight deliberately runs no target forward, fault, compensation, or commit ac
 
 ### SetupPlan
 
-A **SetupPlan** is a reusable preparation record referenced by WorkloadPlans. A source-derived setup stores validated application-facade calls in source order and binds participant arguments to earlier setup results or approved properties. A provider-backed setup stores the provider identity and typed binding requirements. Setup actions run outside target fault injection and measured impact; attempt-local runtime ids and values never enter package identity.
+A **SetupPlan** is a reusable preparation record referenced by WorkloadPlans. A source-derived setup stores validated application-facade calls in source order and binds participant arguments to earlier setup results or approved properties. One coherent observed setup context may cover any number of inputs, but it is attached only when it completely and unambiguously supplies the selected workload's setup-dependent arguments; inputs from separate test contexts are not combined into one observed setup. A provider-backed setup stores the provider identity and typed binding requirements. Setup actions run outside target fault injection and measured impact; attempt-local runtime ids and values never enter package identity.
 
 ### WorkloadPlan
 
@@ -471,7 +476,8 @@ ImpactV1 does not detect silent compensation errors, postcondition failures, fin
 
 ## Current evidence
 
-Evidence here was generated from the final current-only implementation on 2026-09-02. Paths are workspace-relative and intentionally bounded.
+Evidence here was generated from the final current-only implementation through
+2026-09-03. Paths are workspace-relative and intentionally bounded.
 
 ### Equivalent Quizzes count-only analysis
 
@@ -503,6 +509,44 @@ The accounting equations reconcile independently by size. All Saga sets are `36 
 
 Static package sizes are: accounting 21,232 bytes; Sagas 68 records / 55,815 bytes; inputs 884 / 3,858,208 bytes; interactions 785 / 487,506 bytes; manifest 482 bytes.
 
+### Bounded workload-driven source setup qualification
+
+The full-cap size-1–3 count-only package under
+`verifiers/target/m2-count-only/quizzes-20260903-205314-778/` reproduces the accounting
+above exactly: 794/90 accepted/rejected inputs, 150/644 materializable/blocked inputs,
+785 direct interactions (0 exact, 535 symbolic, 250 type-only), 382/3,594 strict
+connected size-2/3 sets, 35/42 such sets with accepted positive tuples, and
+74,273/1,247,308,000 selected/all input-bound totals. Setup attachment therefore changed
+neither interaction selection nor input-space accounting.
+
+The bounded stable-order writer package under
+`verifiers/target/m2-write/quizzes-20260903-210351-440/` contains 1,415 WorkloadPlans.
+Of these, 408 reference source-derived setup: 94 singles, 182 pairs, and 132 triples.
+All 408 have complete source-context coverage for their exact selected participants, and
+all 94 referenced source-derived SetupPlans are validator-materializable. The attachment
+mechanism has no participant-count branch: the configured generator cap decides which
+sizes are enumerated. One setup action occurrence is retained once even when several
+participant bindings consume its result, and no candidate is formed by joining different
+test contexts. The persisted `setups.jsonl`, WorkloadPlan `setup` reference, and
+accounting shapes are unchanged.
+
+This writer run used `maxInputVariantsPerSaga=10`, sizes 1–3, one schedule and one
+recovery schedule, and `maxCatalogScenarios=50000`; stable enumeration exhausted at
+1,415 workloads before the workload cap. An attempted writer run with the full 1,000
+input variants was stopped before artifact writing after 8m42s while scanning the
+1,247,308,000 all-input Cartesian space. Accordingly, 408 is bounded catalog evidence,
+not a claim about every qualifying Quizzes combination. The full-cap count-only package,
+not the reduced-cap writer, remains the accounting authority.
+
+Docker preflight used an isolated current-shape projection of the existing
+RemoveTournament/AddParticipant pair and one natural triple combining AnonymizeStudent,
+GetCourseExecutionById, and RemoveStudentFromCourseExecution. The report under
+`verifiers/target/m2-preflight/pair-triple-preflight-report.json` returned `SUCCESS` for
+two candidates and five participants: the pair completed 12/12 actions and 4/4 bindings,
+and the triple completed 4/4 actions and 5/5 bindings; every participant reached
+`MATERIALIZED` and `STARTUP_READY`. This proves runtime setup readiness only for those
+two representatives.
+
 ### Bounded current executable package
 
 `verifiers/target/m4-final/quizzes-source-package/` was generated by the focused `SourceDerivedSharedSagaWorkloadAnalysisSpec` opt-in writer. Before dynamic enrichment it contained 68 Sagas, 847 inputs, 764 interactions, one 12-action source-derived setup, one RemoveTournament/AddParticipant WorkloadPlan with five exact Saga-local step occurrences, 13 eager FaultScenarios, and an empty request stream.
@@ -521,7 +565,13 @@ Current executable-package role sizes are: accounting 22,015 bytes; Sagas 68 / 9
 
 ### Regression proof
 
-The static-interaction focused proof passed 196 tests with zero failures, errors, or skips. The first complete verifier run exposed two stale exact fixture inventories in `ApplicationsFileTreeParserSpec`: both omitted the newly added `SemanticRootItemCommand` fixture. After correcting those expectations, the complete suite passed 675 tests with zero failures, errors, or skips. The fresh package passed current-reader shape, SHA-256, identity, ordering, uniqueness, and reference validation. Generated reports are evidence artifacts, not package roles.
+The final workload-driven-setup focused proof passed 294 tests with zero failures,
+errors, or skips across adapter, generator, setup validation, current writer/reader, and
+preflight boundaries. The complete verifier suite passed 684 tests with zero failures,
+errors, or skips; the formerly stale standalone Dummyapp accounting expectation was
+corrected independently before this feature. The fresh packages passed current-reader
+shape, SHA-256, identity, ordering, uniqueness, and reference validation. Generated
+reports remain evidence artifacts, not package roles.
 
 ## Current limitations
 
@@ -529,7 +579,7 @@ The static-interaction focused proof passed 196 tests with zero failures, errors
 - Two Quizzes steps retain focused static-analysis limitations: one unresolved `SagaCommand` payload and one unresolved dispatch through a helper `send` call. Unsupported aggregate-root expressions remain keyless and can enter only the configured fallback lens.
 - Event-consequence extraction supports one conservative direct producer shape and one unique local consumer. Wrong receiver or unit-of-work binding, mixed compensation-origin emission, conditional/repeated consumer delegation, multiple/repeated/conditional producer emissions, fan-out, recursion, nested event chains, and unresolved routes are rejected diagnostically.
 - Four observed Quizzes forms of `DateHandler.toISOString(DateHandler.now()...)` are materializable as a relative `now` plus offset. Other date expressions remain blocked rather than being guessed.
-- Static setup candidacy is conservative prediction. The fresh bounded source-derived workload is setup-ready, but other packages and environments still require actual setup evidence.
+- Static setup candidacy is conservative prediction. Two representative source-derived workloads—one pair and one natural triple—are setup-ready, but the other 406 setup-bearing workloads in the bounded writer package and other environments still require runtime evidence.
 - Repeated same-participant runtime step names are structurally rejected because current Saga/local runtime state is keyed by step name rather than occurrence id.
 - Segment compression preserves conflict-anchor order cases under extracted evidence; it does not prove every semantically distinct runtime interleaving is retained.
 - Dynamic enrichment remains local/Saga-focused. The fresh one-class smoke resolves 2 of 10 Saga-invocation groups exactly; the other 8 remain shape-only, and 933 observations still lack a uniquely resolved Saga and Saga-local step.
@@ -552,4 +602,4 @@ The static-interaction focused proof passed 196 tests with zero failures, errors
 
 Safe current claim:
 
-> The verifier deterministically extracts Saga, input, interaction, setup, workload, fault, and runtime-observation facts into one current-only role-keyed package; derives static conflicts from semantic command roots, requires positive input evidence for strict multi-Saga selection, preserves deterministic bounded generation and current on-demand mutation, can preflight and replay a selected persisted Saga/local FaultScenario, and reports ImpactV1 separately. Fresh Quizzes evidence reconciles the corrected size-1/2/3 space, materializes 150 of 794 accepted inputs after adding bounded relative-date recipes, preflights one source-derived Remove/Add workload, persists and replays one multi-fault request, and normalizes five runtime observation kinds without inventing exact input attribution.
+> The verifier deterministically extracts Saga, input, interaction, setup, workload, fault, and runtime-observation facts into one current-only role-keyed package; derives static conflicts from semantic command roots, requires positive input evidence for strict multi-Saga selection, preserves deterministic bounded generation and current on-demand mutation, can preflight and replay a selected persisted Saga/local FaultScenario, and reports ImpactV1 separately. Fresh Quizzes evidence reconciles the corrected size-1/2/3 space, materializes 150 of 794 accepted inputs after adding bounded relative-date recipes, attaches coherent source-derived setup by complete selected-input coverage without an arity-specific branch or cross-test synthesis, and preflights one natural triple plus the existing Remove/Add pair. In a reduced-input stable-order writer, 408 of 1,415 workloads reference source setup; this bounded attachment count does not replace the unchanged full-cap interaction and input-space accounting.

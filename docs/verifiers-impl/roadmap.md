@@ -65,7 +65,11 @@ the exact persisted input id while leaving the matching rules unchanged.
 
 ## Outcome 1 — Improve useful input coverage
 
-**Status: next priority.** Package closure is repaired: catalog-writing publishes the provider-bound input records required by its emitted prerequisite workloads. The source-derived shared-setup vertical slice is complete for one representative Remove/Add fixture shape; broader input families remain outcome work.
+**Status: next priority.** Package closure, bounded relative-date recipes, and
+workload-driven source setup are complete. Source setup attachment now uses complete
+selected-input coverage for any generator-emitted workload size, preserves each observed
+test context, and has bounded runtime proof for one natural triple and the existing
+Remove/Add pair. Broader input families remain outcome work.
 
 ### Goal
 
@@ -77,7 +81,14 @@ Static Saga discovery alone does not create executable experiments. Every useful
 
 ### Current entry point
 
-The current handbook records the supported recipe model, the current setup-ready baseline, and the remaining Sagas without accepted inputs. The four observed Quizzes relative-date forms are now represented and materialized without persisting run-specific timestamps. Remaining blocker families include unresolved helper/property values, other unsupported local expressions, and event payload placeholders.
+The current handbook records the supported recipe model, the current setup-ready
+baseline, and the remaining Sagas without accepted inputs. The four observed Quizzes
+relative-date forms are represented and materialized without persisting run-specific
+timestamps. Coherent source setup can now attach to singles, pairs, or larger selected
+workloads only when it completely supplies the setup-dependent arguments; it does not
+synthesize shared state across tests. Remaining blocker families include unresolved
+helper/property values, other unsupported local expressions, and event payload
+placeholders.
 
 ### Work direction
 

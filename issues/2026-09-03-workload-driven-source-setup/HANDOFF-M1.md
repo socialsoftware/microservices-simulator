@@ -71,8 +71,8 @@ workload, and accounting shapes are unchanged.
 - The focused Quizzes spec writes and reads the current package through the checksum boundary;
   deterministic identity coverage in `ScenarioModelSpec` and byte-stable Dummyapp package
   coverage remain green.
-- Independent review pass 1: one blocking readiness-authority finding addressed; awaiting
-  re-review.
+- Independent review pass 1 found one readiness-authority blocker; the same implementer
+  corrected it, and independent re-review pass 2 passed with no blocking findings.
 
 ## What to try
 
