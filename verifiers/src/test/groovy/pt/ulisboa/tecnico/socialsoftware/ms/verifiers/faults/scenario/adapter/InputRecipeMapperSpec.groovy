@@ -115,6 +115,50 @@ class InputRecipeMapperSpec extends Specification {
         recipe.blockers().contains('INPUT_STATUS_PARTIAL')
     }
 
+    def 'maps the supported DateHandler ISO conversion without an unsupported-transform blocker'() {
+        given:
+        def mapper = new InputRecipeMapper()
+        def now = dateHandlerNow()
+        def plusMinutes = new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE,
+                'DateHandler.now().plusMinutes(25)', [now],
+                new GroovyValueMetadata(GroovyValueResolutionCategory.RUNTIME_CALL,
+                        'java.time.LocalDateTime', null,
+                        new GroovyRuntimeCallRecipe('DateHandler.now()', 'plusMinutes',
+                                [new GroovyRuntimeCallArgument(0, '25', literal('25'))],
+                                'DateHandler.now().plusMinutes(25)')))
+        def endDate = new GroovyValueRecipe(GroovyValueKind.LOCAL_TRANSFORM,
+                'DateHandler.toISOString', [plusMinutes])
+
+        when:
+        def recipe = mapper.map([
+                arg(0, 'endDate <- DateHandler.toISOString(TIME_4)', endDate, String.name)
+        ], InputResolutionStatus.RESOLVED)
+
+        then:
+        recipe.executorReady()
+        recipe.blockers().isEmpty()
+        recipe.arguments()[0].recipe().transformName() == 'DateHandler.toISOString'
+        recipe.arguments()[0].recipe().receiver().kind() == 'relative_date_time'
+        recipe.arguments()[0].recipe().receiver().anchor() == 'now'
+        recipe.arguments()[0].recipe().receiver().offset() == 'PT25M'
+    }
+
+    def 'keeps other date helpers unsupported'() {
+        given:
+        def mapper = new InputRecipeMapper()
+        def unsupported = new GroovyValueRecipe(GroovyValueKind.LOCAL_TRANSFORM,
+                'DateHandler.toHumanReadableString', [dateHandlerNow()])
+
+        when:
+        def recipe = mapper.map([
+                arg(0, 'date <- DateHandler.toHumanReadableString(TIME_4)', unsupported, String.name)
+        ], InputResolutionStatus.RESOLVED)
+
+        then:
+        !recipe.executorReady()
+        recipe.arguments()[0].blockers().contains('UNSUPPORTED_TRANSFORM')
+    }
+
     def 'maps helper results property access call results and placeholders without facade-specific node kinds'() {
         given:
         def mapper = new InputRecipeMapper()
@@ -176,6 +220,16 @@ class InputRecipeMapperSpec extends Specification {
                 text,
                 [],
                 new GroovyValueMetadata(GroovyValueResolutionCategory.UNKNOWN_UNRESOLVED, null, null, null))
+    }
+
+    private static GroovyValueRecipe dateHandlerNow() {
+        new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_RUNTIME_EDGE,
+                'DateHandler.now()',
+                [],
+                new GroovyValueMetadata(GroovyValueResolutionCategory.RUNTIME_CALL,
+                        'java.time.LocalDateTime',
+                        null,
+                        new GroovyRuntimeCallRecipe('DateHandler', 'now', [], 'DateHandler.now()')))
     }
 
     private static GroovyValueRecipe constructor(String text, String targetTypeFqn, List<GroovyValueRecipe> children = [], List<GroovyAssignmentRecipe> assignments = []) {

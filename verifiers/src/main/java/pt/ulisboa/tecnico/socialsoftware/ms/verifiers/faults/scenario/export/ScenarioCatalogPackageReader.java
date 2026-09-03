@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.FaultScenarioValidator;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DateExpressionSupport;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.WorkloadPlanValidator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenario;
@@ -194,14 +195,29 @@ public final class ScenarioCatalogPackageReader {
     private InputRecipeNode currentInputNode(JsonNode value) {
         if (value == null || value.isMissingNode() || value.isNull()) return InputRecipeNode.builder("unresolved").executorReady(false).build();
         String kind = value.path("kind").asText("unresolved");
+        if ("relativeDateTime".equals(kind)) {
+            CurrentStaticPackageReader.requireObject(value, "relativeDateTime input recipe");
+            CurrentStaticPackageReader.allowed(value, Set.of("kind", "anchor", "offset"), "relativeDateTime input recipe");
+            String anchor = CurrentStaticPackageReader.text(value, "anchor", "relativeDateTime input recipe");
+            String offset = CurrentStaticPackageReader.text(value, "offset", "relativeDateTime input recipe");
+            if (!DateExpressionSupport.isAllowedRelativeDateTime(anchor, offset)) {
+                throw CurrentStaticPackageReader.invalid("relativeDateTime input recipe has unsupported anchor/offset");
+            }
+        }
         InputRecipeNode.Builder builder = InputRecipeNode.builder(switch (kind) {
-            case "property" -> "property_access"; case "transform" -> "local_transform"; case "runtime" -> "runtime"; default -> kind;
+            case "property" -> "property_access"; case "transform" -> "local_transform";
+            case "relativeDateTime" -> "relative_date_time";
+            case "runtime" -> "runtime"; default -> kind;
         }).executorReady(!"unresolved".equals(kind));
         if (value.has("value")) builder.value(currentScalar(value.get("value"))).literalKind(value.get("value").isNumber() ? "number" : "string");
         if (value.has("targetType")) builder.targetTypeFqn(value.path("targetType").asText());
         if (value.has("type")) builder.expectedTypeFqn(value.path("type").asText());
         if (value.has("property")) builder.propertyName(value.path("property").asText());
         if (value.has("name")) builder.transformName(value.path("name").asText());
+        if ("relativeDateTime".equals(kind)) {
+            builder.anchor(value.path("anchor").asText());
+            builder.offset(value.path("offset").asText());
+        }
         if (value.has("id")) builder.placeholderId(value.path("id").asText());
         if ("baseline_binding".equals(kind)) {
             builder.bindingKey(textOrNull(value, "key"));
@@ -1078,6 +1094,11 @@ public final class ScenarioCatalogPackageReader {
                 String model = text(input, "transactionModel", "input " + id); if (!Set.of("saga", "tcc", "unknown").contains(model)) throw invalid("invalid transactionModel for input " + id);
                 String resolution = text(input, "resolution", "input " + id); if (!Set.of("fullyResolved", "runtimeDependent", "partial", "unresolved").contains(resolution)) throw invalid("invalid resolution for input " + id);
                 if (!required(input, "arguments", "input " + id).isArray()) throw invalid("input arguments must be an array");
+                for (JsonNode argument : input.path("arguments")) {
+                    if (argument.isObject() && argument.has("value")) {
+                        validateInputRecipeNode(argument.path("value"), "input " + id + " argument recipe");
+                    }
+                }
                 if (input.has("aggregateKeyEvidence")) validateAggregateKeyEvidence(input.get("aggregateKeyEvidence"), id);
                 JsonNode accepted = required(input, "accepted", "input " + id); if (!accepted.isBoolean()) throw invalid("input accepted must be boolean");
                 JsonNode materializable = required(input, "materializable", "input " + id); if (!materializable.isBoolean()) throw invalid("input materializable must be boolean");
@@ -1102,6 +1123,36 @@ public final class ScenarioCatalogPackageReader {
                     }
                 } else if (!materializable.asBoolean()) {
                     throw invalid("blocked input " + id + " has no blockers");
+                }
+            }
+        }
+
+        private static void validateInputRecipeNode(JsonNode node, String label) {
+            if (node == null || node.isMissingNode() || node.isNull() || !node.isObject()) return;
+            String kind = node.path("kind").asText();
+            if ("relativeDateTime".equals(kind)) {
+                requireObject(node, label + " relativeDateTime");
+                allowed(node, Set.of("kind", "anchor", "offset"), label + " relativeDateTime");
+                String anchor = text(node, "anchor", label + " relativeDateTime");
+                String offset = text(node, "offset", label + " relativeDateTime");
+                if (!DateExpressionSupport.isAllowedRelativeDateTime(anchor, offset)) {
+                    throw invalid(label + " relativeDateTime has unsupported anchor/offset");
+                }
+            }
+            if (node.has("receiver")) validateInputRecipeNode(node.path("receiver"), label + " receiver");
+            if (node.has("elements")) for (JsonNode element : node.path("elements")) {
+                validateInputRecipeNode(element, label + " element");
+            }
+            if (node.has("arguments")) for (JsonNode child : node.path("arguments")) {
+                validateInputRecipeNode(child, label + " child");
+            }
+            if (node.has("fields") && node.path("fields").isObject()) {
+                node.path("fields").elements().forEachRemaining(child -> validateInputRecipeNode(child, label + " field"));
+            }
+            if (node.has("entries")) for (JsonNode entry : node.path("entries")) {
+                if (entry.isObject()) {
+                    validateInputRecipeNode(entry.path("key"), label + " map key");
+                    validateInputRecipeNode(entry.path("value"), label + " map value");
                 }
             }
         }

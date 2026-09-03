@@ -1,6 +1,6 @@
 # Verifier current state
 
-Last updated: 2026-09-02
+Last updated: 2026-09-03
 
 This is the canonical handbook for verifier and fault-analysis scenario work. It owns the current conceptual model, terminology, supported operations, latest representative evidence, reproduction commands, and limitations. [`roadmap.md`](roadmap.md) owns future direction. [`decisions/`](decisions/index.md) explains the few design choices whose rationale is not obvious from current behavior.
 
@@ -34,7 +34,7 @@ The fresh final-code Quizzes qualification reports:
 discovered Sagas:                    68
 Sagas with / without accepted input: 36 / 32
 accepted / rejected inputs:          794 / 90
-materializable / blocked inputs:     91 / 703
+materializable / blocked inputs:     150 / 644
 strict connected Saga sets (2 / 3):  382 / 3594
 strict sets with positive input tuples: 35 / 42
 ```
@@ -493,13 +493,15 @@ env MEDIUM_MEM_LIMIT=5g MEDIUM_MEM_RESERVATION=2g /usr/bin/time -p docker compos
   fault-analysis-scenario-gen
 ```
 
-Fresh package: `verifiers/target/quizzes-20260902-182645-973/`, generated in 36.28 seconds. It declares only `accounting`, `sagas`, `inputs`, and `interactions`; count-only wrote zero workload rows and no workload file. Counts remain 68 Sagas; 36/32 with/without accepted inputs; 884 inputs; 794/90 accepted/rejected; and 91/703 materializable/blocked. Direct interactions are now 785: 0 exact, 535 symbolic, and 250 type-only. Strict connected sets are 382/3,594 for sizes 2/3, of which 35/42 have accepted positive input tuples. Fallback connected sets are 547/7,190, of which 227/1,904 have accepted inputs.
+Fresh package: `verifiers/target/date-recipe-final/quizzes-20260903-182558-590/`, generated in 18.75 seconds. It declares only `accounting`, `sagas`, `inputs`, and `interactions`; count-only wrote zero workload rows and no workload file. Counts remain 68 Sagas; 36/32 with/without accepted inputs; 884 inputs; and 794/90 accepted/rejected. Bounded relative-date support raises materializable inputs from 91 to 150 and reduces blocked inputs from 703 to 644. Direct interactions remain 785: 0 exact, 535 symbolic, and 250 type-only. Strict connected sets remain 382/3,594 for sizes 2/3, of which 35/42 have accepted positive input tuples. Fallback connected sets remain 547/7,190, of which 227/1,904 have accepted inputs.
+
+The package contains 147 `relativeDateTime` recipes: 41 `PT5M`, one `PT25M`, 40 `PT1H5M`, and 65 `PT1H25M`. These represent the four Quizzes `DateHandler.toISOString(DateHandler.now()...)` forms currently recognized. Their compact `anchor: "now"` plus ISO-8601 `offset` shape survives package write/read and materializes relative to the executor's current time. Other date expressions remain blocked.
 
 The retained baseline `verifiers/target/quizzes-20260902-011240-501/` reported 764 direct interactions (0/152/612 exact/symbolic/type-only), strict connected sets 140/1,299 with 63/400 accepted-input sets, and fallback sets 540/7,005 with 223/1,840 accepted-input sets. The change is semantic, not a count-direction target. For example, `CreateQuestionCommand` and `CreateQuizCommand` explicitly delegate a null aggregate root; their third call arguments name a course or course execution and are no longer mis-associated as Question or Quiz keys. Conversely, `AnswerQuestionCommand`, `RemoveQuestionCommand`, and getter-based `UpdateQuestionCommand` calls now preserve their declared semantic roots. Stronger type-level evidence therefore grows, while strict input-bound selection shrinks because missing contradiction is no longer treated as proof that two inputs name the same aggregate.
 
-The accounting equations reconcile independently by size. All Saga sets are `36 + 630 + 7,140 = 7,806`; selected sets changed from `36 + 63 + 400 = 499` to `36 + 35 + 42 = 113`. The all input-bound total is unchanged at `794 + 2,460,298 + 1,244,846,908 = 1,247,308,000`. The selected total changed from `794 + 543,911 + 45,423,520 = 45,968,225` to `794 + 7,067 + 66,412 = 74,273`. All 884 input ids and non-evidence fields, along with discovery, acceptance, and materializability totals, are unchanged. Aggregate-key evidence intentionally changed on 84 inputs: 83 evidence values were semantically replaced and one was removed, changing evidence-bearing inputs from 652 to 651.
+The accounting equations reconcile independently by size. All Saga sets are `36 + 630 + 7,140 = 7,806`; selected sets changed from `36 + 63 + 400 = 499` to `36 + 35 + 42 = 113`. The all input-bound total is unchanged at `794 + 2,460,298 + 1,244,846,908 = 1,247,308,000`. The selected total changed from `794 + 543,911 + 45,423,520 = 45,968,225` to `794 + 7,067 + 66,412 = 74,273`. Aggregate-key evidence intentionally changed on 84 inputs: 83 evidence values were semantically replaced and one was removed, changing evidence-bearing inputs from 652 to 651. The later relative-date change leaves these interaction and input-bound counts unchanged while improving materializability.
 
-Static package sizes are: accounting 21,202 bytes; Sagas 68 records / 55,815 bytes; inputs 884 / 4,066,606 bytes; interactions 785 / 487,506 bytes; manifest 482 bytes.
+Static package sizes are: accounting 21,232 bytes; Sagas 68 records / 55,815 bytes; inputs 884 / 3,858,208 bytes; interactions 785 / 487,506 bytes; manifest 482 bytes.
 
 ### Bounded current executable package
 
@@ -526,7 +528,7 @@ The static-interaction focused proof passed 196 tests with zero failures, errors
 - Thirty-two discovered Quizzes Sagas still lack accepted static inputs. This does not mean no tests exist; their invocation/value shapes remain unclassified or unsupported.
 - Two Quizzes steps retain focused static-analysis limitations: one unresolved `SagaCommand` payload and one unresolved dispatch through a helper `send` call. Unsupported aggregate-root expressions remain keyless and can enter only the configured fallback lens.
 - Event-consequence extraction supports one conservative direct producer shape and one unique local consumer. Wrong receiver or unit-of-work binding, mixed compensation-origin emission, conditional/repeated consumer delegation, multiple/repeated/conditional producer emissions, fan-out, recursion, nested event chains, and unresolved routes are rejected diagnostically.
-- Helper-built course DTOs now preserve `DateHandler.toISOString(endDate)`, but that local transform remains unsupported and blocks those candidates rather than fabricating empty DTOs.
+- Four observed Quizzes forms of `DateHandler.toISOString(DateHandler.now()...)` are materializable as a relative `now` plus offset. Other date expressions remain blocked rather than being guessed.
 - Static setup candidacy is conservative prediction. The fresh bounded source-derived workload is setup-ready, but other packages and environments still require actual setup evidence.
 - Repeated same-participant runtime step names are structurally rejected because current Saga/local runtime state is keyed by step name rather than occurrence id.
 - Segment compression preserves conflict-anchor order cases under extracted evidence; it does not prove every semantically distinct runtime interleaving is retained.
@@ -550,4 +552,4 @@ The static-interaction focused proof passed 196 tests with zero failures, errors
 
 Safe current claim:
 
-> The verifier deterministically extracts Saga, input, interaction, setup, workload, fault, and runtime-observation facts into one current-only role-keyed package; derives static conflicts from semantic command roots, requires positive input evidence for strict multi-Saga selection, preserves deterministic bounded generation and current on-demand mutation, can preflight and replay a selected persisted Saga/local FaultScenario, and reports ImpactV1 separately. Fresh Quizzes evidence reconciles the corrected size-1/2/3 space without changing input acceptance or materializability, preflights one source-derived Remove/Add workload, persists and replays one multi-fault request, and normalizes five runtime observation kinds without inventing exact input attribution.
+> The verifier deterministically extracts Saga, input, interaction, setup, workload, fault, and runtime-observation facts into one current-only role-keyed package; derives static conflicts from semantic command roots, requires positive input evidence for strict multi-Saga selection, preserves deterministic bounded generation and current on-demand mutation, can preflight and replay a selected persisted Saga/local FaultScenario, and reports ImpactV1 separately. Fresh Quizzes evidence reconciles the corrected size-1/2/3 space, materializes 150 of 794 accepted inputs after adding bounded relative-date recipes, preflights one source-derived Remove/Add workload, persists and replays one multi-fault request, and normalizes five runtime observation kinds without inventing exact input attribution.

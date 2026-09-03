@@ -112,6 +112,8 @@ final class InputRecipeFingerprinter {
         updateString(digest, node.helperName());
         updateNode(digest, node.resultRecipe());
         updateString(digest, node.internalCategory());
+        updateString(digest, node.anchor());
+        updateString(digest, node.offset());
     }
 
     private static void updateStrings(MessageDigest digest, List<String> values) {

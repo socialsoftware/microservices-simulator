@@ -1,7 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor;
 
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DateExpressionSupport;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*;
 
+import java.time.LocalDateTime;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -202,6 +205,10 @@ class ScenarioMaterializer {
                                                            String functionalityName,
                                                            Object sagaUnitOfWork,
                                                            Map<String, Object> baselineBindings) {
+        if ("DateHandler.toISOString".equals(node.transformName())) {
+            return materializeDateToString(input, argumentIndex, node,
+                    runtimeContext, functionalityName, sagaUnitOfWork, baselineBindings);
+        }
         if (!"toSet".equals(node.transformName())) {
             return MaterializationResult.blocker(blocker(input, argumentIndex, "UNSUPPORTED_TRANSFORM", "Unsupported local_transform: " + node.transformName()));
         }
@@ -213,6 +220,21 @@ class ScenarioMaterializer {
             return MaterializationResult.value(new LinkedHashSet<>(collection));
         }
         return MaterializationResult.blocker(blocker(input, argumentIndex, "UNSUPPORTED_TRANSFORM_RECEIVER", "toSet receiver is not a collection"));
+    }
+
+    private MaterializationResult materializeDateToString(InputVariant input,
+                                                          Integer argumentIndex,
+                                                          InputRecipeNode node,
+                                                          ScenarioRuntimeContext runtimeContext,
+                                                          String functionalityName,
+                                                          Object sagaUnitOfWork,
+                                                          Map<String, Object> baselineBindings) {
+        Optional<LocalDateTime> dateTime = DateExpressionSupport.materialize(node.receiver());
+        if (dateTime.isEmpty()) {
+            return MaterializationResult.blocker(blocker(input, argumentIndex,
+                    "UNSUPPORTED_TRANSFORM_RECEIVER", "DateHandler.toISOString receiver is not a LocalDateTime"));
+        }
+        return MaterializationResult.value(DateHandler.toISOString(dateTime.get()));
     }
 
     private MaterializationResult materializePropertyAccess(InputVariant input,

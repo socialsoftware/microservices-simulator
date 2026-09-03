@@ -32,7 +32,9 @@ public record InputRecipeNode(
         String expectedTypeFqn,
         String helperName,
         InputRecipeNode resultRecipe,
-        String internalCategory) {
+        String internalCategory,
+        String anchor,
+        String offset) {
 
     public InputRecipeNode {
         kind = normalize(kind);
@@ -61,6 +63,8 @@ public record InputRecipeNode(
         expectedTypeFqn = normalize(expectedTypeFqn);
         helperName = normalize(helperName);
         internalCategory = normalize(internalCategory);
+        anchor = normalize(anchor);
+        offset = normalize(offset);
     }
 
     public static Builder builder(String kind) {
@@ -102,6 +106,8 @@ public record InputRecipeNode(
         private String helperName;
         private InputRecipeNode resultRecipe;
         private String internalCategory;
+        private String anchor;
+        private String offset;
 
         private Builder(String kind) {
             this.kind = kind;
@@ -252,6 +258,16 @@ public record InputRecipeNode(
             return this;
         }
 
+        public Builder anchor(String anchor) {
+            this.anchor = anchor;
+            return this;
+        }
+
+        public Builder offset(String offset) {
+            this.offset = offset;
+            return this;
+        }
+
         public InputRecipeNode build() {
             return new InputRecipeNode(kind,
                     sourceText,
@@ -282,7 +298,9 @@ public record InputRecipeNode(
                     expectedTypeFqn,
                     helperName,
                     resultRecipe,
-                    internalCategory);
+                    internalCategory,
+                    anchor,
+                    offset);
         }
     }
 }

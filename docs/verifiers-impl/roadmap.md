@@ -1,6 +1,6 @@
 # Verifier roadmap
 
-Last updated: 2026-09-02
+Last updated: 2026-09-03
 
 [`current-state.md`](current-state.md) describes what exists now and the evidence behind it. This roadmap describes the remaining outcomes, why they matter to the thesis, their dependencies, and what would count as done. It deliberately avoids repeating current metrics and commands.
 
@@ -77,7 +77,7 @@ Static Saga discovery alone does not create executable experiments. Every useful
 
 ### Current entry point
 
-The current handbook records the supported recipe model, the current setup-ready baseline, and the remaining Sagas without accepted inputs. Known blocker families include unsupported local transforms, unresolved helper/property values, and event payload placeholders.
+The current handbook records the supported recipe model, the current setup-ready baseline, and the remaining Sagas without accepted inputs. The four observed Quizzes relative-date forms are now represented and materialized without persisting run-specific timestamps. Remaining blocker families include unresolved helper/property values, other unsupported local expressions, and event payload placeholders.
 
 ### Work direction
 

@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKi
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DateExpressionSupport;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -276,6 +277,15 @@ final class InputRecipeMapper {
 
     private InputRecipeNode transformNode(GroovyValueRecipe recipe, String provenanceText, String expectedTypeFqn) {
         InputRecipeNode receiver = firstChild(recipe, expectedTypeFqn);
+        String transformName = recipe.text();
+        if ("DateHandler.toISOString".equals(transformName)) {
+            var normalizedOffset = DateExpressionSupport.normalize(receiver);
+            if (normalizedOffset.isPresent()) {
+                // Persist the semantic value, rather than the implementation's call tree.
+                // This also gives the executor one small, stable recipe to materialize.
+                receiver = DateExpressionSupport.compactNode(receiver, normalizedOffset.get());
+            }
+        }
         LinkedHashSet<String> blockers = new LinkedHashSet<>();
         if (receiver == null) {
             blockers.add("MISSING_TRANSFORM_RECEIVER");
@@ -285,7 +295,6 @@ final class InputRecipeMapper {
                 blockers.add("TRANSFORM_RECEIVER_NOT_READY");
             }
         }
-        String transformName = recipe.text();
         if (!isSupportedTransform(transformName)) {
             blockers.add("UNSUPPORTED_TRANSFORM");
         }
@@ -479,7 +488,9 @@ final class InputRecipeMapper {
             return false;
         }
         String normalized = transformName.trim();
-        return "toSet".equals(normalized) || normalized.startsWith("as ");
+        return "toSet".equals(normalized)
+                || normalized.startsWith("as ")
+                || "DateHandler.toISOString".equals(normalized);
     }
 
     private String targetTypeForTransform(String transformName) {

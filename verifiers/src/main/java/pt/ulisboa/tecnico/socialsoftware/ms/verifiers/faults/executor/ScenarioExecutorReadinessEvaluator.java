@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.SetupPlanValidator;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DateExpressionSupport;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*;
 
 import java.util.ArrayList;
@@ -140,6 +141,12 @@ public final class ScenarioExecutorReadinessEvaluator {
     }
 
     private void evaluateLocalTransform(InputRecipeNode node, List<String> blockers) {
+        if ("DateHandler.toISOString".equals(node.transformName())) {
+            if (!DateExpressionSupport.isSupported(node.receiver())) {
+                blockers.add("UNSUPPORTED_TRANSFORM_RECEIVER");
+            }
+            return;
+        }
         if (!"toSet".equals(node.transformName())) {
             blockers.add("UNSUPPORTED_TRANSFORM");
             return;

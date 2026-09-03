@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.Dispa
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.DispatchPhase;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConflictGraphBuilder;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DateExpressionSupport;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputVariantNormalizer;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleSelection;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
@@ -54,6 +55,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -632,6 +634,11 @@ public final class StaticAnalysisArtifactWriter {
                     }).toList());
                 }
             }
+            case "relative_date_time" -> {
+                result.put("kind", "relativeDateTime");
+                result.put("anchor", node.anchor());
+                result.put("offset", node.offset());
+            }
             case "runtime", "call_result" -> {
                 result.put("kind", "runtime");
                 String type = "call_result".equals(kind) ? node.expectedReturnTypeFqn() : node.expectedTypeFqn();
@@ -648,7 +655,13 @@ public final class StaticAnalysisArtifactWriter {
             case "local_transform" -> {
                 result.put("kind", "transform");
                 if (node.transformName() != null) result.put("name", node.transformName());
-                if (node.receiver() != null) result.put("receiver", recipeNode(node.receiver()));
+                if (node.receiver() != null) {
+                    var offset = "DateHandler.toISOString".equals(node.transformName())
+                            ? DateExpressionSupport.normalize(node.receiver()) : Optional.<String>empty();
+                    result.put("receiver", offset.isPresent()
+                            ? recipeNode(DateExpressionSupport.compactNode(node.receiver(), offset.get()))
+                            : recipeNode(node.receiver()));
+                }
             }
             case "placeholder" -> {
                 result.put("kind", "placeholder");
