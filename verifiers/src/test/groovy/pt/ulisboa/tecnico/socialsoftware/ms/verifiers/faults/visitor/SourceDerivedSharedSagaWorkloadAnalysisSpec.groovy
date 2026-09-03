@@ -41,6 +41,8 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
             'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas'
     private static final String ADD =
             'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas'
+    private static final String CREATE_USER =
+            'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.CreateUserFunctionalitySagas'
 
     def 'unmodified Remove Add test proves one shared Tournament producer with semantic key footprints'() {
         given:
@@ -179,15 +181,16 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
         ]
 
         and: 'the exact straight-line setup is persisted once in source order, including void effects'
-        adapted.sourceSetupPlanBindings().size() > 0
         def targetInputIdsBySaga = [
                 (REMOVE): adapted.inputVariants().findAll { it.sagaFqn() == REMOVE && it.sourceClassFqn() == TARGET_TEST }*.deterministicId as Set,
                 (ADD): adapted.inputVariants().findAll { it.sagaFqn() == ADD && it.sourceClassFqn() == TARGET_TEST }*.deterministicId as Set
         ]
-        def setupBinding = adapted.sourceSetupPlanBindings().find { binding ->
+        def targetSetupBindings = adapted.sourceSetupPlanBindings().findAll { binding ->
             def ids = [binding.leftInputVariantId(), binding.rightInputVariantId()] as Set
             ids.any { it in targetInputIdsBySaga[REMOVE] } && ids.any { it in targetInputIdsBySaga[ADD] }
         }
+        assert targetSetupBindings.size() == 20
+        def setupBinding = targetSetupBindings.first()
         assert setupBinding != null: adapted.diagnostics().findAll { it.contains('source setup') }
         def setup = setupBinding.setupPlan()
         assert setup.actions().size() == 12: setup.actions().collect {
@@ -256,12 +259,40 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
 
         then: 'the serial WorkloadPlan and immediate 00100 recovery are reached without reservation or reordering'
         generated.counts().schedulesEmitted == 10
+        generated.workloadPlans().size() == 10
+        generated.workloadPlans().every { it.setupPlan() == setup }
         serial != null
         serial.prerequisiteBaseline() == null
         serial.setupPlan() == setup
         new WorkloadPlanValidator().validate(serial).valid()
         eager.workloadMaterializability().find { it.workloadPlanId() == serial.deterministicId() }.materializable()
         immediate != null
+
+        when: 'the current pair-keyed matcher sees the same pair inside one larger tuple'
+        def thirdDefinition = adapted.sagaDefinitions().find { it.sagaFqn() == CREATE_USER }
+        def thirdInput = adapted.inputVariants().find {
+            it.sagaFqn() == CREATE_USER && it.sourceClassFqn() != TARGET_TEST
+        }
+        assert thirdDefinition != null
+        assert thirdInput != null
+        def largerConfig = new ScenarioGeneratorConfig(true,
+                ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
+                false, 3, 10, 1, 1, false,
+                ScenarioGeneratorConfig.InputPolicy.ALLOW_UNRESOLVED,
+                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL,
+                1234L)
+        def larger = ScenarioGenerator.generate(
+                targetDefinitions + thirdDefinition,
+                targetInputs + thirdInput,
+                [], [setupBinding], largerConfig)
+        def threeParticipant = larger.workloadPlans().find { it.participants().size() == 3 }
+
+        then: 'the incomplete pair setup is currently attached and leaves the third participant uncovered'
+        threeParticipant != null
+        threeParticipant.setupPlan() == setup
+        threeParticipant.setupPlan().participantBindings()*.inputVariantId.toSet() == selectedInputIds
+        !(thirdInput.deterministicId() in threeParticipant.setupPlan().participantBindings()*.inputVariantId)
 
         and: 'an opt-in evidence path can publish only the selected focused workload'
         def focusedOutput = System.getProperty('checkpointC.packageOutput')
@@ -290,6 +321,7 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
         def roundTripMaterializability = EagerFaultScenarioGenerator.evaluateMaterializability(roundTripPlan)
         assert roundTripMaterializability.materializable(): roundTripMaterializability.diagnostics()
         roundTrip.workloadPlans().size() == eager.workloadPlans().size()
+        roundTrip.workloadPlans().every { it.setupPlan() != null }
         !packageText.contains('runtimeResult')
         !packageText.contains('databaseId')
     }
