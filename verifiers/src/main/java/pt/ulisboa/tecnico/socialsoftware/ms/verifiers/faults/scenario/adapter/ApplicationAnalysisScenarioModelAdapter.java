@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.Event
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaFunctionalityBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.SagaStepBuildingBlock;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.StepDispatchFootprint;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorReadinessEvaluator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.SetupPlanValidator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode;
@@ -37,7 +38,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueResolutionCategory;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceAggregateKeyInputEvidence;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceSupportedSagaPairEvidence;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -199,65 +199,84 @@ public final class ApplicationAnalysisScenarioModelAdapter {
             LinkedHashSet<String> diagnostics,
             LinkedHashMap<String, Integer> counts) {
         SetupPlanMapper mapper = new SetupPlanMapper();
+        ScenarioExecutorReadinessEvaluator readinessEvaluator = new ScenarioExecutorReadinessEvaluator();
         LinkedHashMap<String, SourceSetupPlanBinding> bindings = new LinkedHashMap<>();
-        for (SourceSupportedSagaPairEvidence pair : state.sourceSupportedSagaPairs()) {
-            SourceAggregateKeyInputEvidence left = pair.left();
-            SourceAggregateKeyInputEvidence right = pair.right();
-            if (!Objects.equals(left.sourceClassFqn(), right.sourceClassFqn())) continue;
-            InputVariant leftInput = findInput(inputs, left);
-            InputVariant rightInput = findInput(inputs, right);
-            if (leftInput == null || rightInput == null) continue;
-
+        Set<String> setupSourceClasses = state.groovyFacadeSetupActionTraces.stream()
+                .filter(trace -> "setup".equals(trace.callContextMethodName()))
+                .map(trace -> trace.sourceClassFqn())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        for (String sourceClassFqn : setupSourceClasses.stream().sorted().toList()) {
             List<pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFacadeSetupActionTrace> traces =
                     state.groovyFacadeSetupActionTraces.stream()
-                            .filter(trace -> Objects.equals(trace.sourceClassFqn(), left.sourceClassFqn()))
+                            .filter(trace -> Objects.equals(trace.sourceClassFqn(), sourceClassFqn))
                             .filter(trace -> "setup".equals(trace.callContextMethodName()))
                             .toList();
             if (traces.isEmpty()) continue;
-            GroovyFullTraceResult leftTrace = findTrace(state, left);
-            GroovyFullTraceResult rightTrace = findTrace(state, right);
-            if (leftTrace == null || rightTrace == null) continue;
-            var plan = mapper.map(traces, List.of(
-                    new SetupPlanMapper.ParticipantSource(leftInput.deterministicId(), leftTrace.constructorArguments()),
-                    new SetupPlanMapper.ParticipantSource(rightInput.deterministicId(), rightTrace.constructorArguments())));
+
+            LinkedHashMap<String, SetupPlanMapper.ParticipantSource> eligibleParticipants = new LinkedHashMap<>();
+            state.groovyFullTraceResults.stream()
+                    .filter(trace -> Objects.equals(trace.sourceClassFqn(), sourceClassFqn))
+                    .forEach(trace -> {
+                        InputVariant input = findInput(inputs, trace);
+                        if (input == null || eligibleParticipants.containsKey(input.deterministicId())) return;
+                        SetupPlanMapper.ParticipantSource participant = new SetupPlanMapper.ParticipantSource(
+                                input.deterministicId(), trace.constructorArguments());
+                        var participantPlan = mapper.map(traces, List.of(participant));
+                        Set<Integer> boundArguments = participantPlan.participantBindings().stream()
+                                .filter(binding -> Objects.equals(binding.inputVariantId(), input.deterministicId()))
+                                .map(binding -> binding.argumentIndex())
+                                .collect(Collectors.toSet());
+                        boolean independentlyReady = input.inputRecipe() != null
+                                && input.inputRecipe().arguments().stream()
+                                .filter(argument -> !boundArguments.contains(argument.index()))
+                                .allMatch(argument -> readinessEvaluator.evaluate(argument).materializable());
+                        if (boundArguments.isEmpty() && !independentlyReady) {
+                            return;
+                        }
+                        SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(participantPlan);
+                        if (!validation.valid()) {
+                            diagnostics.add("blocked source setup for " + sourceClassFqn + " input "
+                                    + input.deterministicId() + ": " + validation.diagnostics());
+                            return;
+                        }
+                        if (!independentlyReady) {
+                            diagnostics.add("blocked source setup for " + sourceClassFqn + " input "
+                                    + input.deterministicId() + ": incomplete setup-dependent argument coverage");
+                            return;
+                        }
+                        eligibleParticipants.put(input.deterministicId(), participant);
+                    });
+            if (eligibleParticipants.isEmpty()) continue;
+
+            List<SetupPlanMapper.ParticipantSource> participants = eligibleParticipants.values().stream()
+                    .sorted(Comparator.comparing(SetupPlanMapper.ParticipantSource::inputVariantId))
+                    .toList();
+            var plan = mapper.map(traces, participants);
             SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(plan);
             if (!validation.valid()) {
-                diagnostics.add("blocked source setup for " + left.sourceClassFqn() + ": "
-                        + validation.diagnostics());
+                diagnostics.add("blocked source setup for " + sourceClassFqn + ": " + validation.diagnostics());
                 continue;
             }
-            String first = leftInput.deterministicId().compareTo(rightInput.deterministicId()) <= 0
-                    ? leftInput.deterministicId() : rightInput.deterministicId();
-            String second = first.equals(leftInput.deterministicId())
-                    ? rightInput.deterministicId() : leftInput.deterministicId();
-            bindings.putIfAbsent(first + "|" + second,
-                    new SourceSetupPlanBinding(first, second, plan));
+            List<String> inputVariantIds = participants.stream()
+                    .map(SetupPlanMapper.ParticipantSource::inputVariantId)
+                    .toList();
+            bindings.put(sourceClassFqn, new SourceSetupPlanBinding(inputVariantIds, plan));
         }
         counts.put("sourceSetupPlanBindings", bindings.size());
-        if (!state.sourceSupportedSagaPairs().isEmpty() && bindings.isEmpty()) {
-            diagnostics.add("source-supported Saga pairs had no extractable straight-line setup plan");
+        if (!setupSourceClasses.isEmpty() && bindings.isEmpty()) {
+            diagnostics.add("observed setup contexts had no extractable straight-line setup plan");
         }
         return List.copyOf(bindings.values());
     }
 
-    private InputVariant findInput(List<InputVariant> inputs, SourceAggregateKeyInputEvidence evidence) {
+    private InputVariant findInput(List<InputVariant> inputs, GroovyFullTraceResult trace) {
         return inputs.stream().filter(input ->
-                        Objects.equals(input.sagaFqn(), evidence.sagaFqn())
-                                && Objects.equals(input.sourceClassFqn(), evidence.sourceClassFqn())
-                                && Objects.equals(input.sourceMethodName(), evidence.sourceMethodName())
-                                && Objects.equals(input.callContextMethodName(), evidence.callContextMethodName())
-                                && Objects.equals(input.sourceBindingName(), evidence.sourceBindingName()))
-                .findFirst().orElse(null);
-    }
-
-    private GroovyFullTraceResult findTrace(ApplicationAnalysisState state,
-                                            SourceAggregateKeyInputEvidence evidence) {
-        return state.groovyFullTraceResults.stream().filter(trace ->
-                        Objects.equals(trace.sagaClassFqn(), evidence.sagaFqn())
-                                && Objects.equals(trace.sourceClassFqn(), evidence.sourceClassFqn())
-                                && Objects.equals(trace.sourceMethodName(), evidence.sourceMethodName())
-                                && Objects.equals(trace.callContextMethodName(), evidence.callContextMethodName())
-                                && Objects.equals(trace.sourceBindingName(), evidence.sourceBindingName()))
+                        Objects.equals(input.sagaFqn(), trace.sagaClassFqn())
+                                && Objects.equals(input.sourceClassFqn(), trace.sourceClassFqn())
+                                && Objects.equals(input.sourceMethodName(), trace.sourceMethodName())
+                                && Objects.equals(input.callContextMethodName(), trace.callContextMethodName())
+                                && Objects.equals(input.sourceBindingName(), trace.sourceBindingName()))
                 .findFirst().orElse(null);
     }
 

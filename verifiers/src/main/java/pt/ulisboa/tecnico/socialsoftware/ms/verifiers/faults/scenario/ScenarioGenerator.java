@@ -22,6 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Sche
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPlan;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupParticipantBinding;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceAggregateKeyInputEvidence;
 
@@ -102,7 +103,8 @@ public final class ScenarioGenerator {
         LinkedHashMap<String, WorkloadPlan> workloadsById = new LinkedHashMap<>();
 
         if (effectiveConfig.includeSingles()) {
-            emitSingleSagaWorkloads(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(), workloadsById, warnings, counts);
+            emitSingleSagaWorkloads(effectiveConfig, sagaByFqn, normalizedInputs.inputsBySaga(),
+                    sourceSetupPlanBindings, workloadsById, warnings, counts);
         }
 
         if (workloadsById.size() < Math.max(0, effectiveConfig.maxCatalogScenarios())
@@ -140,6 +142,7 @@ public final class ScenarioGenerator {
     private static void emitSingleSagaWorkloads(ScenarioGeneratorConfig config,
                                                 Map<String, SagaDefinition> sagaByFqn,
                                                 Map<String, List<InputVariant>> inputsBySaga,
+                                                List<SourceSetupPlanBinding> sourceSetupPlanBindings,
                                                 LinkedHashMap<String, WorkloadPlan> workloadsById,
                                                 LinkedHashSet<String> warnings,
                                                 Map<String, Integer> counts) {
@@ -165,7 +168,11 @@ public final class ScenarioGenerator {
                     return;
                 }
 
-                WorkloadPlan workload = buildSingleSagaWorkload(config, saga, input);
+                SetupPlan setupPlan = setupPlanFor(
+                        new InputTuple(List.of(input), input.deterministicId(), input.warnings()),
+                        sourceSetupPlanBindings,
+                        warnings);
+                WorkloadPlan workload = buildSingleSagaWorkload(config, saga, input, setupPlan);
                 emitted += emitWorkload(workload, workloadsById, counts) ? 1 : 0;
             }
         }
@@ -252,7 +259,7 @@ public final class ScenarioGenerator {
                             schedule,
                             selectedCandidates,
                             config.generationStrategy() != ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
-                            setupPlanFor(tuple, sourceSetupPlanBindings));
+                            setupPlanFor(tuple, sourceSetupPlanBindings, warnings));
                     if (workload != null) {
                         if (emitWorkload(workload, workloadsById, counts)) {
                             emitted++;
@@ -266,15 +273,25 @@ public final class ScenarioGenerator {
     }
 
     private static SetupPlan setupPlanFor(InputTuple tuple,
-                                          List<SourceSetupPlanBinding> bindings) {
+                                          List<SourceSetupPlanBinding> bindings,
+                                          LinkedHashSet<String> warnings) {
         if (bindings == null || bindings.isEmpty() || tuple == null) return null;
         Set<String> inputIds = tuple.inputs().stream().map(InputVariant::deterministicId)
                 .collect(java.util.stream.Collectors.toSet());
-        return bindings.stream()
-                .filter(binding -> inputIds.contains(binding.leftInputVariantId())
-                        && inputIds.contains(binding.rightInputVariantId()))
-                .map(SourceSetupPlanBinding::setupPlan)
-                .findFirst().orElse(null);
+        List<SourceSetupPlanBinding> matches = bindings.stream()
+                .filter(binding -> binding.inputVariantIds().containsAll(inputIds))
+                .toList();
+        if (matches.size() != 1) {
+            if (matches.size() > 1 && warnings != null) {
+                warnings.add("ambiguous source setup for input tuple " + inputIds.stream().sorted().toList());
+            }
+            return null;
+        }
+        SetupPlan candidate = matches.get(0).setupPlan();
+        List<SetupParticipantBinding> selectedBindings = candidate.participantBindings().stream()
+                .filter(binding -> inputIds.contains(binding.inputVariantId()))
+                .toList();
+        return new SetupPlan(candidate.schemaVersion(), candidate.actions(), selectedBindings, candidate.blockers());
     }
 
     private static LinkedHashMap<String, WorkloadPlan> addEventConsequencePlacements(
@@ -404,7 +421,10 @@ public final class ScenarioGenerator {
                 plan.compensationCheckpoints(), plan.warnings());
     }
 
-    private static WorkloadPlan buildSingleSagaWorkload(ScenarioGeneratorConfig config, SagaDefinition saga, InputVariant input) {
+    private static WorkloadPlan buildSingleSagaWorkload(ScenarioGeneratorConfig config,
+                                                        SagaDefinition saga,
+                                                        InputVariant input,
+                                                        SetupPlan setupPlan) {
         String sagaInstanceId = ScenarioIdGenerator.sagaInstanceId(saga.sagaFqn(), input.deterministicId());
         SagaInstance sagaInstance = new SagaInstance(sagaInstanceId, saga.sagaFqn(), input.deterministicId(), mergeWarnings(saga.warnings(), input.warnings()));
         SagaScheduleInput scheduleInput = new SagaScheduleInput(sagaInstance.deterministicId(), saga.sagaFqn(), sortedSteps(saga));
@@ -421,7 +441,8 @@ public final class ScenarioGenerator {
                 forwardSchedule,
                 List.of(),
                 List.of(scheduleInput),
-                mergeWarnings(saga.warnings(), input.warnings(), scheduleResult.warnings()));
+                mergeWarnings(saga.warnings(), input.warnings(), scheduleResult.warnings()),
+                setupPlan);
     }
 
     private static WorkloadPlan buildMultiSagaWorkload(List<String> connectedSet,

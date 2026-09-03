@@ -1,8 +1,17 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model;
 
-/** Connects one exact pair of accepted source inputs to its extracted fixture setup. */
+import java.util.List;
+
+/** Connects one coherent observed fixture setup to every accepted input it can supply. */
 public record SourceSetupPlanBinding(
-        String leftInputVariantId,
-        String rightInputVariantId,
+        List<String> inputVariantIds,
         SetupPlan setupPlan) {
+
+    public SourceSetupPlanBinding {
+        inputVariantIds = inputVariantIds == null ? List.of() : inputVariantIds.stream()
+                .filter(id -> id != null && !id.isBlank())
+                .distinct()
+                .sorted()
+                .toList();
+    }
 }

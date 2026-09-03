@@ -15,9 +15,12 @@ import java.util.Objects;
 final class SetupPlanMapper {
     SetupPlan map(List<GroovyFacadeSetupActionTrace> traces,
                   List<ParticipantSource> participants) {
-        List<GroovyFacadeSetupActionTrace> ordered = traces == null ? List.of() : traces.stream()
-                .filter(Objects::nonNull)
-                .toList();
+        LinkedHashMap<String, GroovyFacadeSetupActionTrace> traceByOccurrence = new LinkedHashMap<>();
+        if (traces != null) {
+            traces.stream().filter(Objects::nonNull).forEach(trace ->
+                    traceByOccurrence.putIfAbsent(trace.sourceOccurrence(), trace));
+        }
+        List<GroovyFacadeSetupActionTrace> ordered = List.copyOf(traceByOccurrence.values());
         LinkedHashMap<String, String> actionIdByOccurrence = new LinkedHashMap<>();
         List<SetupAction> actions = new ArrayList<>();
         LinkedHashSet<String> planBlockers = new LinkedHashSet<>();
@@ -43,11 +46,13 @@ final class SetupPlanMapper {
             for (ParticipantSource participant : participants) {
                 for (GroovyTraceArgument argument : participant.arguments().stream()
                         .sorted(Comparator.comparingInt(GroovyTraceArgument::index)).toList()) {
-                    if (argument.producerReference() == null
-                            || !actionIdByOccurrence.containsKey(argument.producerReference().occurrenceId())) {
+                    GroovySourceValueReference reference = argument.producerReference() != null
+                            ? argument.producerReference()
+                            : argument.recipe() == null ? null : argument.recipe().sourceReference();
+                    if (reference == null || !actionIdByOccurrence.containsKey(reference.occurrenceId())) {
                         continue;
                     }
-                    SetupValueRecipe value = referenceValue(argument.producerReference(),
+                    SetupValueRecipe value = referenceValue(reference,
                             argument.expectedTypeFqn(), actionIdByOccurrence);
                     bindings.add(new SetupParticipantBinding(participant.inputVariantId(), argument.index(),
                             argument.expectedTypeFqn(), value, value.blockers()));
