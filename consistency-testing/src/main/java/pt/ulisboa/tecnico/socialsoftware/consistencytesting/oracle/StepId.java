@@ -97,7 +97,7 @@ public final class StepId {
      * and aggregate IDs. It must never be used to schedule or address a concrete
      * step: distinct deliveries can intentionally share this identity.
      */
-    String behavioralIdentity() {
+    public String behavioralIdentity() {
         return behavioralIdentity;
     }
 

@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -543,6 +544,52 @@ public final class TestDriver {
     public GroupExplorationSession startGroupExploration(
             FunctionalityCatalog catalog, FunctionalityGroup group) {
 
+        Supplier<TestCase.Builder> initialStateSetup = groupInitialStateSetup(
+                catalog, group, registry -> {
+                    // Ordinary exploration does not expose concrete handles.
+                });
+
+        return new GroupExplorationSession(initialStateSetup, reportsSubdirectoryOf(catalog, group));
+    }
+
+    /**
+     * Replays one reported group schedule from its recorded scheduler choices.
+     * <p>
+     * The choice prefix is the ordered {@code selectedIndex} sequence written in a
+     * report's {@code scheduleExploration.decisions}.
+     * <p>
+     * The {@code beforeCleanupVerifier} runs before database cleanup and receives
+     * the fresh aggregate handles, allowing an application regression test to supplement
+     * generic anomaly/invariant evidence with direct final-state assertions.
+     * <p>
+     * Replay deliberately bypasses learned feedback and random inter-dependencies:
+     * the report's concrete scheduler choices are the test input.
+     */
+    public TestResult replayGroup(
+            FunctionalityCatalog catalog,
+            FunctionalityGroup group,
+            List<Integer> schedulerChoicePrefix,
+            BiConsumer<TestResult, AggregateHandlesRegistry> beforeCleanupVerifier) {
+
+        Objects.requireNonNull(schedulerChoicePrefix);
+        Objects.requireNonNull(beforeCleanupVerifier);
+
+        AtomicReference<AggregateHandlesRegistry> registryRef = new AtomicReference<>();
+        Supplier<TestCase.Builder> initialStateSetup = groupInitialStateSetup(
+                catalog, group, registryRef::set);
+
+        oracle.setSchedulerSeed(masterSeed);
+        oracle.setSchedulerChoicePrefix(schedulerChoicePrefix);
+        return oracle.runTest(
+                () -> buildTestCase(initialStateSetup, Set.of()),
+                result -> beforeCleanupVerifier.accept(result, registryRef.get()));
+    }
+
+    private Supplier<TestCase.Builder> groupInitialStateSetup(
+            FunctionalityCatalog catalog,
+            FunctionalityGroup group,
+            Consumer<AggregateHandlesRegistry> registryConsumer) {
+
         for (FunctionalityId member : group.members()) {
             if (!catalog.funcFactories().containsKey(member)) {
                 throw new IllegalArgumentException(
@@ -552,6 +599,7 @@ public final class TestDriver {
 
         Supplier<TestCase.Builder> initialStateSetup = () -> {
             AggregateHandlesRegistry registry = setupQuiescentCatalogState(catalog);
+            registryConsumer.accept(registry);
 
             TestCase.Builder builder = new TestCase.Builder();
             Map<FunctionalityId, Integer> occurrences = new HashMap<>();
@@ -564,8 +612,7 @@ public final class TestDriver {
             }
             return builder;
         };
-
-        return new GroupExplorationSession(initialStateSetup, reportsSubdirectoryOf(catalog, group));
+        return initialStateSetup;
     }
 
     /** One group's stateful exploration. */
