@@ -1,0 +1,391 @@
+schema_version: 1
+application: QuizzesFull
+mode: neutral-baseline
+saga_aggregates:
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.aggregate.sagas.SagaCourse
+    source: applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/course/aggregate/sagas/SagaCourse.java
+    catalogs: [ordinary-shared-state]
+    handles: [course, spareCourse]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.aggregate.sagas.SagaExecution
+    source: applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/aggregate/sagas/SagaExecution.java
+    catalogs: [ordinary-shared-state]
+    handles: [execution, emptyExecution]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.aggregate.sagas.SagaQuestion
+    source: applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/question/aggregate/sagas/SagaQuestion.java
+    catalogs: [ordinary-shared-state]
+    handles: [question, secondQuestion]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.aggregate.sagas.SagaQuiz
+    source: applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/quiz/aggregate/sagas/SagaQuiz.java
+    catalogs: [ordinary-shared-state]
+    handles: [scheduledQuiz, openTournamentQuiz]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.aggregate.sagas.SagaQuizAnswer
+    source: applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/quizanswer/aggregate/sagas/SagaQuizAnswer.java
+    catalogs: [ordinary-shared-state]
+    handles: [quizAnswer]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.aggregate.sagas.SagaTopic
+    source: applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/topic/aggregate/sagas/SagaTopic.java
+    catalogs: [ordinary-shared-state]
+    handles: [topic, secondTopic, standaloneTopic]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.aggregate.sagas.SagaTournament
+    source: applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/aggregate/sagas/SagaTournament.java
+    catalogs: [ordinary-shared-state]
+    handles: [openTournament]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.aggregate.sagas.SagaUser
+    source: applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/user/aggregate/sagas/SagaUser.java
+    catalogs: [ordinary-shared-state]
+    handles: [student, participant, unenrolledStudent]
+aggregate_relationships:
+  - { from: Topic, to: Course, relation: "topic references its course", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Execution, to: Course, relation: "execution references its course", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Execution, to: User, relation: "execution contains enrolled student snapshots", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Question, to: Course, relation: "question references its course", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Question, to: Topic, relation: "question contains topic snapshots", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Quiz, to: Execution, relation: "quiz references its execution", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Quiz, to: Question, relation: "quiz contains question snapshots", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: QuizAnswer, to: Quiz, relation: "quiz answer references its quiz", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: QuizAnswer, to: User, relation: "quiz answer references its student", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: QuizAnswer, to: Execution, relation: "quiz answer references its execution", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Tournament, to: Execution, relation: "tournament references its execution", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Tournament, to: User, relation: "tournament references creator and participants", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Tournament, to: Topic, relation: "tournament contains topic snapshots", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Tournament, to: Quiz, relation: "tournament references its generated quiz", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+  - { from: Tournament, to: QuizAnswer, relation: "tournament participants may reference quiz answers", evidence: [applications/quizzes-full/quizzes-full-domain-model.md] }
+functionalities:
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.CreateCourseFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [createCourse]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/course/coordination/functionalities/CourseFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.DeleteCourseFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [deleteCourse]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/course/coordination/functionalities/CourseFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.GetCourseByIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getCourseById]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/course/coordination/functionalities/CourseFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.UpdateCourseFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [updateCourse]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/course/coordination/functionalities/CourseFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [anonymizeStudent]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.CreateExecutionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [createExecution]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.DeleteExecutionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [deleteExecution]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.DisenrollStudentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [disenrollStudent]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.EnrollStudentInExecutionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [enrollStudentInExecution]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.GetExecutionByIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getExecutionById]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.GetStudentByExecutionIdAndUserIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getStudentByExecutionIdAndUserId]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.UpdateExecutionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [updateExecution]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [updateStudentName]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [createQuestion]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/question/coordination/functionalities/QuestionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.DeleteQuestionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [deleteQuestion]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/question/coordination/functionalities/QuestionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.GetQuestionByIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getQuestionById]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/question/coordination/functionalities/QuestionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.GetQuestionsByCourseExecutionIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getQuestionsByCourseExecutionId]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/question/coordination/functionalities/QuestionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.question.coordination.sagas.UpdateQuestionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [updateQuestion]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/question/coordination/functionalities/QuestionFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [createQuiz]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/quiz/coordination/functionalities/QuizFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.GetQuizByIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getQuizById]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/quiz/coordination/functionalities/QuizFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quiz.coordination.sagas.UpdateQuizFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [updateQuiz]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/quiz/coordination/functionalities/QuizFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.AnswerQuestionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [answerQuestion]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/quizanswer/coordination/functionalities/QuizAnswerFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.ConcludeQuizFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [concludeQuiz]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/quizanswer/coordination/functionalities/QuizAnswerFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.CreateQuizAnswerFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [createQuizAnswer]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/quizanswer/coordination/functionalities/QuizAnswerFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.quizanswer.coordination.sagas.GetQuizAnswerByQuizIdAndStudentIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getQuizAnswerByQuizIdAndStudentId]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/quizanswer/coordination/functionalities/QuizAnswerFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [createTopic]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/topic/coordination/functionalities/TopicFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.DeleteTopicFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [deleteTopic]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/topic/coordination/functionalities/TopicFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.GetTopicByIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getTopicById]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/topic/coordination/functionalities/TopicFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.GetTopicsByCourseIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getTopicsByCourseId]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/topic/coordination/functionalities/TopicFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [updateTopic]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/topic/coordination/functionalities/TopicFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [addParticipant]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [cancelTournament]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [createTournament]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.DeleteTournamentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [deleteTournament]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.GetOpenTournamentsFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getOpenTournaments]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.GetTournamentByIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getTournamentById]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+      - applications/quizzes-full/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzesfull/QuizzesFullSpockTest.groovy
+      - applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/quiz/aggregate/Quiz.java
+    exclusion_reason: "Intended successful state requires a started tournament, but its generated quiz cannot be created: Quiz requires creationDate before availableDate while started state supplies a past availableDate."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [updateTournament]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.coordination.sagas.AnonymizeUserFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [anonymizeUser]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/user/coordination/functionalities/UserFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.coordination.sagas.CreateUserFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [createUser]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/user/coordination/functionalities/UserFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [deleteUser]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/user/coordination/functionalities/UserFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.coordination.sagas.GetUserByIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [getUserById]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/user/coordination/functionalities/UserFunctionalities.java]
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.user.coordination.sagas.UpdateUserNameFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [ordinary-shared-state]
+    functionality_ids: [updateUserName]
+    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/user/coordination/functionalities/UserFunctionalities.java]
+    exclusion_reason: null
+candidate_inter_invariants: []
+confirmed_inter_invariants:
+  - { name: REMOVE_NO_STUDENTS, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: removeNoStudents }
+  - { name: NO_DUPLICATE_COURSE_EXECUTION, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: noDuplicateCourseExecution }
+  - { name: INACTIVE_USER, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: enrolledUsersAreActive }
+  - { name: STUDENT_ALREADY_ENROLLED, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: studentsAreUnique }
+  - { name: USER_EXISTS_EXECUTION, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: executionUsersExist }
+  - { name: TOPIC_BELONGS_TO_QUESTION_COURSE, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: questionTopicsBelongToCourse }
+  - { name: TOPICS_EXIST_QUESTION, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: questionTopicsExist }
+  - { name: QUESTION_EXISTS_QUIZ, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: quizQuestionsExist }
+  - { name: COURSE_EXECUTION_EXISTS_QUIZ, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: quizExecutionsExist }
+  - { name: UNIQUE_QUIZ_ANSWER_PER_STUDENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: quizAnswersAreUnique }
+  - { name: QUESTION_ALREADY_ANSWERED, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: answeredQuestionsAreUnique }
+  - { name: COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: quizAnswerExecutionMatchesQuiz }
+  - { name: USER_EXISTS_QUIZ_ANSWER, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: quizAnswerUsersExistAndRemainEnrolled }
+  - { name: QUIZ_EXISTS_QUIZ_ANSWER, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: quizAnswerQuizzesExist }
+  - { name: COURSE_EXECUTION_EXISTS_QUIZ_ANSWER, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: quizAnswerExecutionsExist }
+  - { name: CREATOR_IS_NOT_ANONYMOUS_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentCreatorsAreNotAnonymous }
+  - { name: CREATOR_COURSE_EXECUTION_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentCreatorsAreEnrolled }
+  - { name: PARTICIPANT_COURSE_EXECUTION_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentParticipantsAreEnrolled }
+  - { name: TOPIC_COURSE_EXECUTION_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentTopicsBelongToExecutionCourse }
+  - { name: QUIZ_COURSE_EXECUTION_CONSISTENCY_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentQuizMatchesExecution }
+  - { name: TOURNAMENT_QUIZ_TIME_CONSISTENCY, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentTimesMatchQuiz }
+  - { name: NUMBER_OF_QUESTIONS_QUIZ_TOPICS_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentQuestionSelectionIsConsistent }
+  - { name: CREATOR_PARTICIPANT_EXISTS_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentUsersExist }
+  - { name: TOPIC_EXISTS_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentTopicsExist }
+  - { name: QUIZ_EXISTS_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentQuizzesExist }
+  - { name: COURSE_EXECUTION_EXISTS_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentExecutionsExist }
+  - { name: QUIZ_ANSWER_EXISTS_TOURNAMENT, evidence: [applications/quizzes-full/quizzes-full-domain-model.md], provider_method: tournamentQuizAnswerStatisticsMatch }
+unimplemented_explicit_inter_invariants:
+  - description: "CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT"
+    evidence: [applications/quizzes-full/quizzes-full-domain-model.md]
+    reason: "Domain specification explicitly marks rule deferred and current model has no replacement observation mechanism."
+cross_catalog_gaps: []
