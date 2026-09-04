@@ -116,6 +116,27 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>consistency-sweep</id>
+            <properties>
+                <activatedProperties>test,sagas,local</activatedProperties>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.5.3</version>
+                        <configuration>
+                            <includes>
+                                <include>**/QuizzesConsistencyCatalogValidation.java</include>
+                                <include>**/QuizzesConsistencySweep.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <!-- Microservice Profiles -->
         <profile>
             <id>answer-service</id>
@@ -210,6 +231,12 @@
         </profile>
     </profiles>
     <dependencies>
+        <dependency>
+            <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
+            <artifactId>ConsistencyTesting</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
             <artifactId>MicroservicesSimulator</artifactId>

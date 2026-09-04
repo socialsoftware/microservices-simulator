@@ -1,0 +1,846 @@
+schema_version: 1
+application: Quizzes
+mode: neutral-baseline
+saga_aggregates:
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.SagaQuizAnswer
+    source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/aggregate/sagas/SagaQuizAnswer.java
+    catalogs: [neutral-shared-state]
+    handles: [quizAnswer]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.sagas.SagaCourse
+    source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/course/aggregate/sagas/SagaCourse.java
+    catalogs: [neutral-shared-state]
+    handles: [mainCourse, emptyCourse]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.SagaExecution
+    source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/aggregate/sagas/SagaExecution.java
+    catalogs: [neutral-shared-state]
+    handles: [mainExecution, emptyExecution]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.SagaQuestion
+    source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/aggregate/sagas/SagaQuestion.java
+    catalogs: [neutral-shared-state]
+    handles: [primaryQuestion, secondaryQuestion, disposableQuestion]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.SagaQuiz
+    source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/aggregate/sagas/SagaQuiz.java
+    catalogs: [neutral-shared-state]
+    handles: [quiz, openTournamentQuiz, cancellableTournamentQuiz, removableTournamentQuiz]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic
+    source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/aggregate/sagas/SagaTopic.java
+    catalogs: [neutral-shared-state]
+    handles: [primaryTopic, secondaryTopic, disposableTopic]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament
+    source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/sagas/SagaTournament.java
+    catalogs: [neutral-shared-state]
+    handles: [openTournament, cancellableTournament, removableTournament]
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.sagas.SagaUser
+    source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/aggregate/sagas/SagaUser.java
+    catalogs: [neutral-shared-state]
+    handles: [creator, participant, startStudent, addStudent, deleteUser, inactiveUser]
+aggregate_relationships:
+  - from: Course
+    to: Topic
+    relation: "topic references its course"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Course
+    to: Execution
+    relation: "execution snapshots its course"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Course
+    to: Question
+    relation: "question references its course"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Topic
+    to: Question
+    relation: "question snapshots its topics"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Topic
+    to: Tournament
+    relation: "tournament snapshots its topics"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: User
+    to: Execution
+    relation: "execution snapshots enrolled users"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: User
+    to: QuizAnswer
+    relation: "quiz answer snapshots its student"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: User
+    to: Tournament
+    relation: "tournament snapshots creator and participants"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Question
+    to: Quiz
+    relation: "quiz snapshots its questions"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Question
+    to: QuizAnswer
+    relation: "question answer references its question"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Execution
+    to: Quiz
+    relation: "quiz snapshots its execution"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Execution
+    to: QuizAnswer
+    relation: "quiz answer snapshots its execution"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Execution
+    to: Tournament
+    relation: "tournament snapshots its execution"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Quiz
+    to: QuizAnswer
+    relation: "quiz answer snapshots its quiz"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: Quiz
+    to: Tournament
+    relation: "tournament snapshots its generated quiz"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+  - from: QuizAnswer
+    to: Tournament
+    relation: "tournament snapshots participant quiz-answer statistics"
+    evidence:
+      - applications/quizzes/quizzes-aggregate-grouping.md
+functionalities:
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.AnswerQuestionFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/sagas/AnswerQuestionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/functionalities/QuizAnswerFunctionalities.java
+    exclusion_reason: "Solo profiling raises INTERNAL_SYSTEM_EXCEPTION at getQuizAnswerStep because AnswerQuestionFunctionalitySagas dereferences its null quizAnswer field while constructing GetQuizAnswerDtoByQuizIdAndUserIdCommand (source line 64)."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.ConcludeQuizFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/sagas/ConcludeQuizFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/functionalities/QuizAnswerFunctionalities.java
+    exclusion_reason: "Solo profiling raises INTERNAL_SYSTEM_EXCEPTION at getQuizAnswerStep because ConcludeQuizFunctionalitySagas dereferences its null quizAnswer field while constructing GetQuizAnswerDtoByQuizIdAndUserIdCommand (source line 39)."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuestionFromQuizAnswerFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/sagas/RemoveQuestionFromQuizAnswerFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/functionalities/QuizAnswerFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuizAnswerFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/sagas/RemoveQuizAnswerFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/functionalities/QuizAnswerFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveUserFromQuizAnswerFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/sagas/RemoveUserFromQuizAnswerFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/functionalities/QuizAnswerFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [startQuiz]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/sagas/StartQuizFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/functionalities/QuizAnswerFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.UpdateUserNameInQuizAnswerFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/sagas/UpdateUserNameInQuizAnswerFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/coordination/functionalities/QuizAnswerFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [addStudent]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/sagas/AddStudentFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [anonymizeStudent]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/sagas/AnonymizeStudentFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.CreateCourseExecutionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [createCourseExecution]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/sagas/CreateCourseExecutionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [getCourseExecutionById]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/sagas/GetCourseExecutionByIdFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsByUserFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [getCourseExecutionsByUser]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/sagas/GetCourseExecutionsByUserFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [getCourseExecutions]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/sagas/GetCourseExecutionsFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [removeCourseExecution]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/sagas/RemoveCourseExecutionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [removeStudent]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/sagas/RemoveStudentFromCourseExecutionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveUserFromCourseExecutionFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/sagas/RemoveUserFromCourseExecutionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [updateStudentName]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/sagas/UpdateStudentNameFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/coordination/functionalities/ExecutionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [createQuestion]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/sagas/CreateQuestionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/functionalities/QuestionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.DeleteTopicInQuestionFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/sagas/DeleteTopicInQuestionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/functionalities/QuestionFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.FindQuestionByAggregateIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [findQuestionById]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/sagas/FindQuestionByAggregateIdFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/functionalities/QuestionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.FindQuestionsByCourseFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [findQuestionsByCourse]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/sagas/FindQuestionsByCourseFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/functionalities/QuestionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.RemoveQuestionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [removeQuestion]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/sagas/RemoveQuestionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/functionalities/QuestionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateQuestionFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [updateQuestion]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/sagas/UpdateQuestionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/functionalities/QuestionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateQuestionTopicsAsyncFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [updateQuestionTopicsAsync]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/sagas/UpdateQuestionTopicsAsyncFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/functionalities/QuestionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateQuestionTopicsFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [updateQuestionTopics]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/sagas/UpdateQuestionTopicsFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/functionalities/QuestionFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateTopicInQuestionFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/sagas/UpdateTopicInQuestionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/functionalities/QuestionFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [createQuiz]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/sagas/CreateQuizFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/functionalities/QuizFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.FindQuizFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [findQuiz]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/sagas/FindQuizFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/functionalities/QuizFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.GetAvailableQuizzesFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [getAvailableQuizzes]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/sagas/GetAvailableQuizzesFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/functionalities/QuizFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.RemoveCourseExecutionFromQuizFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/sagas/RemoveCourseExecutionFromQuizFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/functionalities/QuizFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.RemoveQuizQuestionFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/sagas/RemoveQuizQuestionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/functionalities/QuizFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.UpdateQuestionInQuizFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/sagas/UpdateQuestionInQuizFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/functionalities/QuizFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.UpdateQuizFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [updateQuiz]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/sagas/UpdateQuizFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/coordination/functionalities/QuizFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [createTopic]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/coordination/sagas/CreateTopicFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/coordination/functionalities/TopicFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.DeleteTopicFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [deleteTopic]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/coordination/sagas/DeleteTopicFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/coordination/functionalities/TopicFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.FindTopicsByCourseFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [findTopicsByCourse]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/coordination/sagas/FindTopicsByCourseFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/coordination/functionalities/TopicFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.GetTopicByIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [getTopicById]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/coordination/sagas/GetTopicByIdFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/coordination/functionalities/TopicFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [updateTopic]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/coordination/sagas/UpdateTopicFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/coordination/functionalities/TopicFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantAsyncFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [addParticipantAsync]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantAsyncFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [addParticipant]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AnonymizeUserTournamentFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AnonymizeUserTournamentFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [cancelTournament]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/CancelTournamentFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentAsyncFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [createTournamentAsync]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/CreateTournamentAsyncFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [createTournament]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/CreateTournamentFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.DeleteTopicFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/DeleteTopicFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindParticipantFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [findParticipant]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/FindParticipantFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [findTournament]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/FindTournamentFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.GetClosedTournamentsForCourseExecutionFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [getClosedTournaments]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/GetClosedTournamentsForCourseExecutionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.GetOpenedTournamentsForCourseExecutionFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [getOpenedTournaments]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/GetOpenedTournamentsForCourseExecutionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.GetTournamentsForCourseExecutionFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [getTournaments]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/GetTournamentsForCourseExecutionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.InvalidateQuizFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/InvalidateQuizFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [leaveTournament]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/LeaveTournamentFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveCourseExecutionFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/RemoveCourseExecutionFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [removeTournament]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/RemoveTournamentFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveUserFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/RemoveUserFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizAsyncFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [solveQuizAsync]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/SolveQuizAsyncFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [solveQuiz]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/SolveQuizFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateParticipantAnswerFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/UpdateParticipantAnswerFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTopicFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/UpdateTopicFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [updateTournament]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/UpdateTournamentFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateUserNameFunctionalitySagas
+    kind: write
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/UpdateUserNameFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
+    exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [activateUser]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/sagas/ActivateUserFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/functionalities/UserFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.CreateUserFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [createUser]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/sagas/CreateUserFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/functionalities/UserFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [deactivateUser]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/sagas/DeactivateUserFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/functionalities/UserFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas
+    kind: write
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [deleteUser]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/sagas/DeleteUserFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/functionalities/UserFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.FindUserByIdFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [findUserById]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/sagas/FindUserByIdFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/functionalities/UserFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.GetStudentsFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [getStudents]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/sagas/GetStudentsFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/functionalities/UserFunctionalities.java
+    exclusion_reason: null
+  - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.GetTeachersFunctionalitySagas
+    kind: read
+    included: true
+    catalogs: [neutral-shared-state]
+    functionality_ids: [getTeachers]
+    evidence:
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/sagas/GetTeachersFunctionalitySagas.java
+      - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/functionalities/UserFunctionalities.java
+    exclusion_reason: null
+candidate_inter_invariants: []
+confirmed_inter_invariants: []
+unimplemented_explicit_inter_invariants:
+  - description: "NO_DUPLICATE_COURSE_EXECUTION"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "INACTIVE_USER"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "STUDENT_ALREADY_ENROLLED"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "USER_EXISTS (Execution)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "TOPIC_BELONGS_TO_QUESTION_COURSE"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "TOPICS_EXIST (Question)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "QUESTION_EXISTS (Quiz)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "COURSE_EXECUTION_EXISTS (Quiz)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "UNIQUE_QUIZ_ANSWER_PER_STUDENT"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "QUESTION_ALREADY_ANSWERED"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "USER_EXISTS (QuizAnswer)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "QUIZ_EXISTS (QuizAnswer)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "COURSE_EXECUTION_EXISTS (QuizAnswer)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "ANSWER_BEFORE_START (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "CREATOR_IS_NOT_ANONYMOUS (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "CREATOR_COURSE_EXECUTION (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "PARTICIPANT_COURSE_EXECUTION (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "TOPIC_COURSE_EXECUTION (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "QUIZ_COURSE_EXECUTION_CONSISTENCY (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "START_TIME_AVAILABLE_DATE / END_TIME_CONCLUSION_DATE (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "NUMBER_OF_QUESTIONS / QUIZ_TOPICS (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "CREATOR_EXISTS / PARTICIPANT_EXISTS (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "TOPIC_EXISTS (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "QUIZ_EXISTS (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "COURSE_EXECUTION_EXISTS (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+  - description: "QUIZ_ANSWER_EXISTS (Tournament)"
+    evidence:
+      - applications/quizzes/quizzes-domain-model.md
+    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+cross_catalog_gaps: []
